@@ -1,0 +1,30 @@
+{
+  "layers": [
+    {
+      "statements": [
+        {
+          "select": {
+            "addresses": [
+              {
+                "facet": "regions",
+                "id": "movement"
+              }
+            ]
+          },
+          "set": {
+            "display": "inline"
+          }
+        }
+      ]
+    }
+  ],
+  "manifest": "unknown_length_child.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}

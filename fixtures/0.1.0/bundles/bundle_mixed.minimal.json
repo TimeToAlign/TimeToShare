@@ -1,0 +1,187 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score",
+        "performance"
+      ],
+      "group_2": [
+        "page",
+        "excerpt"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "performance",
+        "score"
+      ],
+      "name": "Performance"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "excerpt",
+        "page"
+      ],
+      "name": "Facsimile"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": "Mixed",
+  "timelines": [
+    {
+      "id": "annotations",
+      "length": [
+        12,
+        1
+      ],
+      "name": "Annotations",
+      "regions": [
+        {
+          "end": [
+            4,
+            1
+          ],
+          "id": "region_1",
+          "name": "Verse",
+          "start": [
+            0,
+            1
+          ]
+        },
+        {
+          "end": [
+            12,
+            1
+          ],
+          "id": "region_2",
+          "name": "Chorus",
+          "start": [
+            4,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_4",
+          "scalar": [
+            3,
+            4
+          ],
+          "source_unit": "pixels",
+          "target_unit": "points",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "page",
+      "length": 1920,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_3",
+          "scalar": 44100,
+          "source_unit": "seconds",
+          "target_unit": "samples",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "performance",
+      "length": 12.5,
+      "name": "Performance",
+      "unit": "seconds"
+    },
+    {
+      "children": [
+        {
+          "conversion_maps": [
+            {
+              "id": "cmap_6",
+              "scalar": [
+                1,
+                44100
+              ],
+              "source_unit": "samples",
+              "target_unit": "seconds",
+              "type": "LinearMap"
+            }
+          ],
+          "id": "excerpt",
+          "length": 88200,
+          "locked": true,
+          "name": "Excerpt",
+          "offset": 44100,
+          "unit": "samples"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "id": "cmap_5",
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "recording",
+      "length": 441000,
+      "name": "Recording",
+      "unit": "samples"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "LinearMap"
+        },
+        {
+          "id": "cmap_2",
+          "scalar": [
+            1,
+            2
+          ],
+          "source_unit": "quarters",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_from_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "type": "jump_from"
+        }
+      ],
+      "id": "score",
+      "length": [
+        12,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

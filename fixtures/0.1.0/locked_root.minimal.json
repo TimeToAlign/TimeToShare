@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "coda",
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "name": "Coda",
+          "offset": [
+            12,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "score",
+      "length": [
+        16,
+        1
+      ],
+      "locked": true,
+      "name": "Score",
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

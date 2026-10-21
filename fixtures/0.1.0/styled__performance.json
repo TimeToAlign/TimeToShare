@@ -1,0 +1,76 @@
+{
+  "graphical": {
+    "order": {},
+    "statements": [
+      {
+        "select": {
+          "element": "label"
+        },
+        "set": {
+          "fill": "#404040",
+          "stroke": "#404040"
+        }
+      },
+      {
+        "select": {
+          "element": "name"
+        },
+        "set": {
+          "fill": "#404040",
+          "stroke": "#404040"
+        }
+      },
+      {
+        "select": {
+          "domain": "physical",
+          "element": "wedge",
+          "within": "performance"
+        },
+        "set": {
+          "fill": "#7F00FF",
+          "stroke": "#7F00FF"
+        }
+      }
+    ],
+    "styles": {}
+  },
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "excerpt",
+          "is_segment_line": false,
+          "length": 4.0,
+          "locked": true,
+          "meta": {},
+          "name": null,
+          "number_type": "float",
+          "offset": 1.0,
+          "regions": [],
+          "unit": "seconds"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "performance",
+      "is_segment_line": false,
+      "length": 10.0,
+      "locked": false,
+      "meta": {},
+      "name": "Performance",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

@@ -1,0 +1,75 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [
+            {
+              "coordinate": [
+                4,
+                1
+              ],
+              "id": "fine",
+              "label": "Fine",
+              "manifestation": "fine",
+              "meta": {},
+              "name": null,
+              "type": "flow_marker"
+            },
+            {
+              "coordinate": [
+                8,
+                1
+              ],
+              "id": "da_capo_al_fine",
+              "label": "D.C. al Fine",
+              "manifestation": "da_capo_al_fine",
+              "meta": {},
+              "name": null,
+              "type": "jump_from"
+            }
+          ],
+          "id": "verse",
+          "is_segment_line": false,
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Verse",
+          "number_type": "fraction",
+          "offset": [
+            4,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "piece",
+      "is_segment_line": false,
+      "length": [
+        16,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Piece",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

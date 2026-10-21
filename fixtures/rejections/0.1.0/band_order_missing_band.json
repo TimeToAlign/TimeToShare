@@ -1,0 +1,48 @@
+{
+  "code": "band_order",
+  "manifest": {
+    "graphical": {
+      "order": {
+        "score": [
+          "children",
+          "conversion_maps",
+          "line",
+          "regions",
+          "flow_control"
+        ]
+      },
+      "statements": [],
+      "styles": {}
+    },
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "graphical",
+    "order",
+    "score"
+  ],
+  "reason": "A band order is a permutation of line and the timeline's five facets; markers is missing."
+}

@@ -1,0 +1,47 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts0050EF}{HTML}{0050EF}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{ts0F766E}{HTML}{0F766E}
+\definecolor{tsB8BEC8}{HTML}{B8BEC8}
+\definecolor{tsC4C9D1}{HTML}{C4C9D1}
+\definecolor{tsD1D5DB}{HTML}{D1D5DB}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFFFFFF}{HTML}{FFFFFF}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (504.0242,221.3203);
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (8,203.1099) {Free IDs};
+\path[rounded corners=6pt,fill=tsFFFFFF,draw=tsD1D5DB,line width=1pt] (8,8) rectangle (496.0242,192.5156);
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,174.3052) {Piece};
+\path[rounded corners=5pt,fill=tsB8BEC8] (18,93.8555) rectangle (490.0242,165.7109);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (16,95.8555) rectangle (488.0242,167.7109);
+\path[draw=ts000000,line width=1pt] (69.0928,122.332) .. controls (69.0928,120.332) and (70.0928,119.332) .. (72.0928,119.332) -- (166.0928,119.332) .. controls (168.0928,119.332) and (169.0928,118.332) .. (169.0928,116.332) .. controls (169.0928,118.332) and (170.0928,119.332) .. (172.0928,119.332) -- (266.0928,119.332) .. controls (268.0928,119.332) and (269.0928,120.332) .. (269.0928,122.332);
+\path[draw=ts00CC00,line width=3pt] (69.0928,153.3086) -- (469.0928,153.3086);
+\path[fill=ts00CC00] (69.0928,153.3086) circle[radius=3];
+\path[fill=ts00CC00] (478.0928,153.3086) -- (469.0928,157.8086) -- (469.0928,148.8086) -- cycle;
+\path[fill=ts000000] (69.0928,151.8086) -- (66.0928,138.8086) -- (72.0928,138.8086) -- cycle;
+\path[fill=ts000000] (469.0928,151.8086) -- (466.0928,138.8086) -- (472.0928,138.8086) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (24,149.5005) {Score};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (69.0928,128.4546) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (469.0928,128.4546) {8 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (169.0928,105.978) {Exposition};
+\path[rounded corners=5pt,fill=tsB8BEC8] (18,14) rectangle (490.0242,85.8555);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (16,16) rectangle (488.0242,87.8555);
+\path[draw=ts0F766E,line width=1pt] (69.0928,42.4766) .. controls (69.0928,40.4766) and (70.0928,39.4766) .. (72.0928,39.4766) -- (116.0928,39.4766) .. controls (118.0928,39.4766) and (119.0928,38.4766) .. (119.0928,36.4766) .. controls (119.0928,38.4766) and (120.0928,39.4766) .. (122.0928,39.4766) -- (166.0928,39.4766) .. controls (168.0928,39.4766) and (169.0928,40.4766) .. (169.0928,42.4766);
+\path[draw=ts0050EF,line width=3pt] (69.0928,73.4531) -- (469.0928,73.4531);
+\path[fill=ts0050EF] (69.0928,73.4531) circle[radius=3];
+\path[fill=ts0050EF] (478.0928,73.4531) -- (469.0928,77.9531) -- (469.0928,68.9531) -- cycle;
+\path[fill=ts000000] (69.0928,71.9531) -- (66.0928,58.9531) -- (72.0928,58.9531) -- cycle;
+\path[fill=ts000000] (469.0928,71.9531) -- (466.0928,58.9531) -- (472.0928,58.9531) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (24,69.645) {Take 2};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (69.0928,48.5991) {0.0 s};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (469.0928,48.5991) {4.0 s};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (119.0928,26.1226) {Intro};
+\end{scope}
+\end{tikzpicture}
+\end{document}

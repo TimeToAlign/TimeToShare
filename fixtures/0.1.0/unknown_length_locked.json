@@ -1,0 +1,47 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "coda",
+          "is_segment_line": false,
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": null,
+          "number_type": "fraction",
+          "offset": [
+            12,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "score",
+      "is_segment_line": false,
+      "length": null,
+      "locked": true,
+      "meta": {},
+      "name": null,
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

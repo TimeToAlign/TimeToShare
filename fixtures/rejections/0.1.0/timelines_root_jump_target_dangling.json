@@ -1,0 +1,111 @@
+{
+  "code": "dangling_target",
+  "manifest": {
+    "graphical": {
+      "order": {
+        "group_1": [
+          "second-half",
+          "recording"
+        ]
+      },
+      "statements": [],
+      "styles": {}
+    },
+    "groups": [
+      {
+        "id": "group_1",
+        "members": [
+          "recording",
+          "second-half"
+        ],
+        "meta": {},
+        "name": "Second half"
+      }
+    ],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": [],
+            "id": "second-half",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "meta": {},
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              4,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "piece",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      },
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [
+          {
+            "coordinate": [
+              4,
+              1
+            ],
+            "id": "jump_from_1",
+            "label": null,
+            "manifestation": "repeat_end",
+            "meta": {},
+            "name": null,
+            "repeat_count": 1,
+            "target": "nowhere",
+            "type": "jump_from"
+          }
+        ],
+        "id": "recording",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "timelines",
+    1,
+    "flow_control",
+    0,
+    "target"
+  ],
+  "reason": "A jump_from's target names a jump_to of its own timeline, in a later root too."
+}

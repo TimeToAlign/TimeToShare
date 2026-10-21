@@ -1,0 +1,306 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "exposition",
+        "take_1"
+      ],
+      "group_2": [
+        "recapitulation",
+        "take_2"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "exposition",
+        "take_1"
+      ],
+      "name": "Exposition"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "recapitulation",
+        "take_2"
+      ],
+      "name": "Recapitulation"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": "Sonata",
+  "timelines": [
+    {
+      "id": "page",
+      "length": 1754,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "id": "exposition_first",
+              "length": [
+                6,
+                1
+              ],
+              "name": "First theme",
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "conversion_maps": [
+                {
+                  "id": "cmap_3",
+                  "scalar": [
+                    1,
+                    2
+                  ],
+                  "source_unit": "quarters",
+                  "target_unit": "seconds",
+                  "type": "LinearMap"
+                }
+              ],
+              "id": "exposition_second",
+              "length": [
+                6,
+                1
+              ],
+              "name": "Second theme",
+              "offset": [
+                6,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [
+            {
+              "id": "cmap_2",
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "LinearMap"
+            }
+          ],
+          "id": "exposition",
+          "is_segment_line": true,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "name": "Exposition",
+          "offset": [
+            0,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "id": "recapitulation_first_1",
+                  "length": [
+                    3,
+                    1
+                  ],
+                  "name": "Phrase 1",
+                  "offset": [
+                    0,
+                    1
+                  ],
+                  "unit": "quarters"
+                },
+                {
+                  "id": "recapitulation_first_2",
+                  "length": [
+                    3,
+                    1
+                  ],
+                  "name": "Phrase 2",
+                  "offset": [
+                    3,
+                    1
+                  ],
+                  "unit": "quarters"
+                }
+              ],
+              "id": "recapitulation_first",
+              "is_segment_line": true,
+              "length": [
+                6,
+                1
+              ],
+              "locked": true,
+              "name": "First theme",
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "children": [
+                {
+                  "id": "recapitulation_second_1",
+                  "length": [
+                    3,
+                    1
+                  ],
+                  "name": "Phrase 1",
+                  "offset": [
+                    0,
+                    1
+                  ],
+                  "unit": "quarters"
+                },
+                {
+                  "id": "recapitulation_second_2",
+                  "length": [
+                    3,
+                    1
+                  ],
+                  "name": "Phrase 2",
+                  "offset": [
+                    3,
+                    1
+                  ],
+                  "unit": "quarters"
+                }
+              ],
+              "conversion_maps": [
+                {
+                  "id": "cmap_4",
+                  "scalar": 480,
+                  "source_unit": "quarters",
+                  "target_unit": "ticks",
+                  "type": "LinearMap"
+                }
+              ],
+              "id": "recapitulation_second",
+              "is_segment_line": true,
+              "length": [
+                6,
+                1
+              ],
+              "locked": true,
+              "name": "Second theme",
+              "offset": [
+                6,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "recapitulation",
+          "is_segment_line": true,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "name": "Recapitulation",
+          "offset": [
+            20,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [
+        {
+          "coordinate": [
+            12,
+            1
+          ],
+          "id": "jump_from_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "type": "jump_from"
+        }
+      ],
+      "id": "score",
+      "length": [
+        32,
+        1
+      ],
+      "name": "Score",
+      "regions": [
+        {
+          "end": [
+            20,
+            1
+          ],
+          "id": "region_1",
+          "name": "Development",
+          "start": [
+            12,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    },
+    {
+      "children": [
+        {
+          "id": "take_1_first",
+          "length": 14.0,
+          "name": "First theme",
+          "offset": 0.0,
+          "unit": "seconds"
+        },
+        {
+          "id": "take_1_second",
+          "length": 16.0,
+          "name": "Second theme",
+          "offset": 14.0,
+          "unit": "seconds"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "id": "cmap_5",
+          "scalar": 44100,
+          "source_unit": "seconds",
+          "target_unit": "samples",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "take_1",
+      "is_segment_line": true,
+      "length": 30.0,
+      "locked": true,
+      "name": "Take 1",
+      "unit": "seconds"
+    },
+    {
+      "id": "take_2",
+      "length": 28.5,
+      "name": "Take 2",
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

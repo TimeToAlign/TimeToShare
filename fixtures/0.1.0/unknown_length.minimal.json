@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "coda",
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "offset": [
+            10,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "flow_control": [
+        {
+          "coordinate": [
+            6,
+            1
+          ],
+          "id": "jump_to_1",
+          "manifestation": "segno",
+          "type": "jump_to"
+        }
+      ],
+      "id": "score",
+      "length": null,
+      "regions": [
+        {
+          "end": [
+            8,
+            1
+          ],
+          "id": "region_1",
+          "start": [
+            2,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

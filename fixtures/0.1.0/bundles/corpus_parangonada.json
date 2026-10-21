@@ -1,0 +1,348 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "group_2": [
+        "perf:1966_Szegedi:cpt_1",
+        "perf:1966_Szegedi:dpt_1"
+      ],
+      "group_3": [
+        "perf:1970_Gould:cpt_1",
+        "perf:1970_Gould:dpt_1"
+      ],
+      "group_4": [
+        "perf:1971_Curzon:cpt_1",
+        "perf:1971_Curzon:dpt_1"
+      ],
+      "group_5": [
+        "perf:1985_Brendel:cpt_1",
+        "perf:1985_Brendel:dpt_1"
+      ],
+      "group_6": [
+        "perf:2023_Hewitt:cpt_1",
+        "perf:2023_Hewitt:dpt_1"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "meta": {},
+      "name": "score"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "perf:1966_Szegedi:cpt_1",
+        "perf:1966_Szegedi:dpt_1"
+      ],
+      "meta": {},
+      "name": "perf:1966_Szegedi"
+    },
+    {
+      "id": "group_3",
+      "members": [
+        "perf:1970_Gould:cpt_1",
+        "perf:1970_Gould:dpt_1"
+      ],
+      "meta": {},
+      "name": "perf:1970_Gould"
+    },
+    {
+      "id": "group_4",
+      "members": [
+        "perf:1971_Curzon:cpt_1",
+        "perf:1971_Curzon:dpt_1"
+      ],
+      "meta": {},
+      "name": "perf:1971_Curzon"
+    },
+    {
+      "id": "group_5",
+      "members": [
+        "perf:1985_Brendel:cpt_1",
+        "perf:1985_Brendel:dpt_1"
+      ],
+      "meta": {},
+      "name": "perf:1985_Brendel"
+    },
+    {
+      "id": "group_6",
+      "members": [
+        "perf:2023_Hewitt:cpt_1",
+        "perf:2023_Hewitt:dpt_1"
+      ],
+      "meta": {},
+      "name": "perf:2023_Hewitt"
+    }
+  ],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": "Beethoven_Eroica_op35-cpjku",
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "perf:1966_Szegedi:cpt_1",
+      "is_segment_line": false,
+      "length": 73.06201814058957,
+      "locked": false,
+      "meta": {},
+      "name": "1966_Szegedi",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "perf:1966_Szegedi:dpt_1",
+      "is_segment_line": false,
+      "length": 3222035,
+      "locked": false,
+      "meta": {},
+      "name": "1966_Szegedi",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "perf:1970_Gould:cpt_1",
+      "is_segment_line": false,
+      "length": 122.89201814058957,
+      "locked": false,
+      "meta": {},
+      "name": "1970_Gould",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_2",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "perf:1970_Gould:dpt_1",
+      "is_segment_line": false,
+      "length": 5419538,
+      "locked": false,
+      "meta": {},
+      "name": "1970_Gould",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "perf:1971_Curzon:cpt_1",
+      "is_segment_line": false,
+      "length": 77.78290249433107,
+      "locked": false,
+      "meta": {},
+      "name": "1971_Curzon",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_3",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "perf:1971_Curzon:dpt_1",
+      "is_segment_line": false,
+      "length": 3430226,
+      "locked": false,
+      "meta": {},
+      "name": "1971_Curzon",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "perf:1985_Brendel:cpt_1",
+      "is_segment_line": false,
+      "length": 74.88201814058957,
+      "locked": false,
+      "meta": {},
+      "name": "1985_Brendel",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_4",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "perf:1985_Brendel:dpt_1",
+      "is_segment_line": false,
+      "length": 3302297,
+      "locked": false,
+      "meta": {},
+      "name": "1985_Brendel",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "perf:2023_Hewitt:cpt_1",
+      "is_segment_line": false,
+      "length": 89.94301587301587,
+      "locked": false,
+      "meta": {},
+      "name": "2023_Hewitt",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_5",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "perf:2023_Hewitt:dpt_1",
+      "is_segment_line": false,
+      "length": 3966486,
+      "locked": false,
+      "meta": {},
+      "name": "2023_Hewitt",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "score:clt_1",
+      "is_segment_line": false,
+      "length": [
+        64,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Beethoven_Eroica_op35-cpjku",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "lmap_1",
+          "name": null,
+          "offset": [
+            -1,
+            2
+          ],
+          "scalar": [
+            1,
+            32
+          ],
+          "source_unit": "ticks",
+          "target_unit": "quarters",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "score:dlt_1",
+      "is_segment_line": false,
+      "length": 2064,
+      "locked": false,
+      "meta": {},
+      "name": "Beethoven_Eroica_op35-cpjku",
+      "number_type": "int",
+      "regions": [],
+      "unit": "ticks"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

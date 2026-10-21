@@ -1,0 +1,100 @@
+# Contributor Rules
+
+These rules apply to every contributor, human or automated.
+
+## Repository layout
+
+- `schema/`: the JSON Schema of the current version, one document
+  `<version>/timetoshare.schema.json` describing the one manifest shape
+  `{timetoshare, timelines, id?, name?, meta?, groups?, measure_maps?,
+  graphical?}`; it is the format contract and source of truth.
+- `docs/`: `drawing.md`, the specification of the style cascade, layout,
+  the block of frames, cards and bands (the boxes) that draws every
+  manifest, and SVG and TikZ writers; it is part of the contract, and both
+  packages ship it.
+- `fixtures/`: generated manifests under `fixtures/<version>/`, each in the
+  complete form beside its minimal twin (the subdirectories `groups/` and
+  `bundles/` sort them by content only), hand-authored rejection cases
+  under `fixtures/rejections/<version>/`, hand-authored warning cases under
+  `fixtures/warnings/<version>/`, and the drawings (`inputs.json`,
+  `figure.svg` and `figure.tex` per drawing; the hand-derived `figure.svg`
+  files are listed with their arithmetic in `drawings/README.md`, everything
+  else is emitted); see `fixtures/README.md`.
+- `fonts/`: DejaVu Sans 2.37, its licence, and the advance-width metrics used
+  by the drawing.
+- `python/`: the PyPI package, tests, lockfile, and build configuration.
+- `js/`: the npm package, generated TypeScript types, tests, and lockfile.
+- `scripts/`: fixture emission, font-metrics extraction, and the check
+  that every version declaration agrees.
+- `decisions/`: numbered MADR decision records.
+- `.github/workflows/`: continuous integration and the release automation,
+  which publishes both packages and the schema document on both sites.
+
+## Rules
+
+- Work schema-first: change the versioned schema, then both packages, then
+  fixtures.
+- Add a numbered MADR in `decisions/` before adding a dependency. It must
+  compare the dependency with writing the component here, record long-term
+  maintenance cost, name the audited version, and include a review date.
+- Do not add speculative options or dependencies.
+- Package manifests declare compatible dependency ranges for published
+  consumers. Lockfiles pin exact audited versions. A dependency may enter only
+  after its selected release has been available for at least 14 days.
+- Write tests README-first: update the relevant `tests/README.md` with what
+  proves the behavior, then implement tests with exact expected values.
+- Emit the manifests under `fixtures/<version>/` only through
+  `scripts/emit_fixtures.py`; never hand-edit them. The script refuses to
+  overwrite the fixtures of a version whose `v<version>` tag exists. Emit
+  the drawings under `fixtures/<version>/drawings/` only through
+  TimeLineEditor's `emit-drawings` script, which never rewrites the
+  hand-derived figures but compares them with its own output.
+- `docs/drawing.md` pins the drawing. There is no drawing schema, and a drawing's JSON form is internal to
+  an implementation. A rule a reader could not reproduce from the
+  specification alone is a defect of the specification. This repository never
+  depends on TimeLineEditor in code or packages; only the emitted drawing
+  figures are produced by TimeLineEditor's writers (its `emit-drawings`
+  script, writing into a TimeToShare checkout).
+- Write every fixture, rejection case and warning case with the standard writer
+  `dumps` of either package: object keys sorted by code point at every depth,
+  arrays in canonical order, two-space indentation, final newline, and floats
+  spelled as Python's `repr`. Never keep a fixed list of key orders; key order
+  is sorted order, and `canonical_order` covers only the order of array
+  elements. In JavaScript, read
+  files with `parse` or `parseJson`, never `JSON.parse`, and write
+  them with `dumps` or `compactJson`, never `JSON.stringify`; the native
+  methods lose the distinction between `2.0` and `2`, integers beyond 2^53,
+  and the order of array-index keys.
+- Author rejection cases under `fixtures/rejections/` by hand, one rule per
+  case, and warning cases under `fixtures/warnings/` by hand; the fixture
+  script emits neither.
+- Regenerate `js/src/generated/` after changing the schema or font metrics.
+  The generated TypeScript files belong in this repository.
+- Regenerate `fonts/dejavu-sans-2.37.metrics.json` with
+  `scripts/extract_font_metrics.py`; do not calculate or edit its advances by
+  hand.
+- Support the current version only. Both packages validate the current
+  schema version and refuse every other; there are no migrations. A version
+  a later one replaces lives in the git history at its tag and in its
+  released packages.
+
+## Commands
+
+Run these commands from the stated directory.
+
+| Directory | Command | Purpose |
+| --- | --- | --- |
+| repository root | `python3 scripts/check_versions.py` | Check version declarations agree. |
+| repository root | `python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"` | Emit and round-trip the fixtures with an environment containing timetoalign. |
+| `python/` | `uv sync` | Synchronize Python dependencies. |
+| `python/` | `uv run ruff check .` | Run Python lint checks. |
+| `python/` | `uv run ruff format --check .` | Check Python formatting. |
+| `python/` | `uv run pytest -q` | Run Python tests. |
+| `python/` | `uv run python ../scripts/extract_font_metrics.py` | Regenerate the bundled font metrics. |
+| `python/` | `uv build` | Build Python distributions. |
+| `js/` | `pnpm install --frozen-lockfile` | Install locked JavaScript dependencies. |
+| `js/` | `pnpm lint` | Run JavaScript lint checks. |
+| `js/` | `pnpm typecheck` | Check TypeScript types. |
+| `js/` | `pnpm test` | Run JavaScript tests. |
+| `js/` | `pnpm generate` | Regenerate schema- and font-derived TypeScript files. |
+| `js/` | `pnpm build` | Copy assets and build the npm package. |

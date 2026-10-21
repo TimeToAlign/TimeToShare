@@ -1,0 +1,25 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "Bass Kick",
+      "is_segment_line": false,
+      "length": 231.0791836734694,
+      "locked": false,
+      "meta": {},
+      "name": "Bass Kick.mp3",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

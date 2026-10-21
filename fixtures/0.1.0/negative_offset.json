@@ -1,0 +1,26 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "recording",
+      "is_segment_line": false,
+      "length": 30.0,
+      "locked": false,
+      "meta": {},
+      "name": "Recording",
+      "number_type": "float",
+      "offset": -2.5,
+      "regions": [],
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

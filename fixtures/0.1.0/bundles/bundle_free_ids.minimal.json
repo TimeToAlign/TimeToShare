@@ -1,0 +1,78 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "https://example.org/piece/score",
+        "perf/take 2"
+      ]
+    },
+    "statements": [
+      {
+        "select": {
+          "addresses": [
+            {
+              "id": "take 2/intro"
+            }
+          ]
+        },
+        "set": {
+          "stroke": "#0F766E"
+        }
+      }
+    ]
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "https://example.org/piece/score",
+        "perf/take 2"
+      ],
+      "name": "Piece"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": "Free IDs",
+  "timelines": [
+    {
+      "id": "https://example.org/piece/score",
+      "length": [
+        8,
+        1
+      ],
+      "name": "Score",
+      "regions": [
+        {
+          "end": [
+            4,
+            1
+          ],
+          "id": "https://example.org/piece/score#exposition",
+          "name": "Exposition",
+          "start": [
+            0,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    },
+    {
+      "id": "perf/take 2",
+      "length": 4.0,
+      "name": "Take 2",
+      "regions": [
+        {
+          "end": 1.0,
+          "id": "take 2/intro",
+          "name": "Intro",
+          "start": 0.0
+        }
+      ],
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

@@ -1,0 +1,59 @@
+{
+  "code": "child_end",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": [],
+            "id": "coda",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "meta": {},
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              8,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          10,
+          1
+        ],
+        "locked": true,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "children",
+    0,
+    "length"
+  ],
+  "reason": "A child whose offset and length are both known ends within its parent's known length."
+}

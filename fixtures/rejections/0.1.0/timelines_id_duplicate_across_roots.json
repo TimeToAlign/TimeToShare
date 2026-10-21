@@ -1,0 +1,92 @@
+{
+  "code": "duplicate_id",
+  "manifest": {
+    "graphical": {
+      "order": {
+        "group_1": [
+          "second-half"
+        ]
+      },
+      "statements": [],
+      "styles": {}
+    },
+    "groups": [
+      {
+        "id": "group_1",
+        "members": [
+          "second-half"
+        ],
+        "meta": {},
+        "name": "Second half"
+      }
+    ],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": [],
+            "id": "second-half",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "meta": {},
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              4,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "piece",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      },
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "piece",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "timelines",
+    1,
+    "id"
+  ],
+  "reason": "Timeline IDs are unique across the manifest; the later occurrence is reported."
+}

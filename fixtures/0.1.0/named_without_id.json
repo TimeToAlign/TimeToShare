@@ -1,0 +1,28 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": "Sketch",
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "score",
+      "is_segment_line": false,
+      "length": [
+        16,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Score",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

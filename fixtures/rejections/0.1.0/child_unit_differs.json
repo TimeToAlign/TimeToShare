@@ -1,0 +1,56 @@
+{
+  "code": "child_unit",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": [],
+            "id": "take",
+            "is_segment_line": false,
+            "length": 4.0,
+            "locked": false,
+            "meta": {},
+            "name": null,
+            "number_type": "float",
+            "offset": [
+              2,
+              1
+            ],
+            "regions": [],
+            "unit": "seconds"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "children",
+    0,
+    "unit"
+  ],
+  "reason": "A child shares its parent's unit."
+}

@@ -1,0 +1,18 @@
+{
+  "layers": [],
+  "manifest": "bundles/bundle_ungrouped.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {
+      "score": {
+        "height": 120,
+        "x": -60,
+        "y": -150
+      }
+    },
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}

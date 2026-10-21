@@ -1,0 +1,72 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "a",
+          "length": null,
+          "offset": [
+            0,
+            1
+          ],
+          "regions": [
+            {
+              "end": [
+                4,
+                1
+              ],
+              "id": "region_1",
+              "start": [
+                0,
+                1
+              ]
+            }
+          ],
+          "unit": "quarters"
+        },
+        {
+          "id": "b",
+          "length": [
+            6,
+            1
+          ],
+          "offset": [
+            8,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "id": "c",
+          "length": null,
+          "offset": [
+            14,
+            1
+          ],
+          "regions": [
+            {
+              "end": [
+                3,
+                1
+              ],
+              "id": "region_2",
+              "start": [
+                0,
+                1
+              ]
+            }
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "form",
+      "is_segment_line": true,
+      "length": null,
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

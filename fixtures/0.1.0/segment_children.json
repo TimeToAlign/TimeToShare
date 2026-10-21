@@ -1,0 +1,242 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "i1",
+              "is_segment_line": false,
+              "length": [
+                3,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "i1",
+              "number_type": "fraction",
+              "offset": [
+                0,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "i2",
+              "is_segment_line": false,
+              "length": [
+                3,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "i2",
+              "number_type": "fraction",
+              "offset": [
+                3,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "intro",
+          "is_segment_line": true,
+          "length": [
+            6,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Intro",
+          "number_type": "fraction",
+          "offset": [
+            2,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "t1",
+              "is_segment_line": false,
+              "length": [
+                4,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "t1",
+              "number_type": "fraction",
+              "offset": [
+                0,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "t2",
+              "is_segment_line": false,
+              "length": [
+                4,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "t2",
+              "number_type": "fraction",
+              "offset": [
+                4,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "t3",
+              "is_segment_line": false,
+              "length": [
+                4,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "t3",
+              "number_type": "fraction",
+              "offset": [
+                8,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "theme",
+          "is_segment_line": true,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Theme",
+          "number_type": "fraction",
+          "offset": [
+            6,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "c1",
+              "is_segment_line": false,
+              "length": [
+                5,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "c1",
+              "number_type": "fraction",
+              "offset": [
+                0,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "c2",
+              "is_segment_line": false,
+              "length": [
+                3,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "c2",
+              "number_type": "fraction",
+              "offset": [
+                5,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "coda",
+          "is_segment_line": true,
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Coda",
+          "number_type": "fraction",
+          "offset": [
+            22,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "piece",
+      "is_segment_line": false,
+      "length": [
+        32,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Piece",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

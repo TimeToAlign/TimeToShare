@@ -1,0 +1,41 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "lmap_1",
+          "name": null,
+          "offset": [
+            -1,
+            2
+          ],
+          "scalar": [
+            1,
+            32
+          ],
+          "source_unit": "ticks",
+          "target_unit": "quarters",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "score:dlt_1",
+      "is_segment_line": false,
+      "length": 2064,
+      "locked": false,
+      "meta": {},
+      "name": "Beethoven_Eroica_op35-cpjku",
+      "number_type": "int",
+      "regions": [],
+      "unit": "ticks"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

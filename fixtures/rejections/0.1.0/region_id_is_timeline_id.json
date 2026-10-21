@@ -1,0 +1,68 @@
+{
+  "code": "duplicate_id",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "performance",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      },
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [
+          {
+            "end": [
+              6,
+              1
+            ],
+            "id": "performance",
+            "meta": {},
+            "name": null,
+            "start": [
+              2,
+              1
+            ]
+          }
+        ],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "timelines",
+    1,
+    "regions",
+    0,
+    "id"
+  ],
+  "reason": "A region's ID differs from every timeline ID; the region performance of score shares the ID of the root performance."
+}

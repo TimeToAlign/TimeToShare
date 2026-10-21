@@ -1,0 +1,25 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "dlt_1",
+      "is_segment_line": false,
+      "length": 6959,
+      "locked": false,
+      "meta": {},
+      "name": null,
+      "number_type": "int",
+      "regions": [],
+      "unit": "ticks"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

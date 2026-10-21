@@ -1,0 +1,56 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "cgt_2",
+          "is_segment_line": false,
+          "length": 200.0,
+          "locked": true,
+          "meta": {},
+          "name": null,
+          "number_type": "float",
+          "offset": 10.0,
+          "regions": [],
+          "unit": "points"
+        },
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "cgt_3",
+          "is_segment_line": false,
+          "length": 150.0,
+          "locked": true,
+          "meta": {},
+          "name": null,
+          "number_type": "float",
+          "offset": 300.0,
+          "regions": [],
+          "unit": "points"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "cgt_1",
+      "is_segment_line": false,
+      "length": 600.0,
+      "locked": false,
+      "meta": {},
+      "name": null,
+      "number_type": "float",
+      "regions": [],
+      "unit": "points"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

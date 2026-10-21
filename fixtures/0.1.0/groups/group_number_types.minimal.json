@@ -1,0 +1,49 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score",
+        "page",
+        "performance"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "page",
+        "performance",
+        "score"
+      ],
+      "name": "Edition"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "id": "page",
+      "length": 1920,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "id": "performance",
+      "length": 12.5,
+      "name": "Performance",
+      "unit": "seconds"
+    },
+    {
+      "id": "score",
+      "length": [
+        12,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

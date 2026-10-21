@@ -1,0 +1,96 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [
+        {
+          "coordinate": [
+            2,
+            1
+          ],
+          "id": "jump_to_1",
+          "label": null,
+          "manifestation": "repeat_start",
+          "meta": {},
+          "name": "repeat-start",
+          "type": "jump_to"
+        },
+        {
+          "coordinate": [
+            4,
+            1
+          ],
+          "id": "jump_to_2",
+          "label": null,
+          "manifestation": "segno",
+          "meta": {},
+          "name": "segno",
+          "type": "jump_to"
+        },
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_from_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "meta": {
+            "source": "synthetic"
+          },
+          "name": null,
+          "repeat_count": 2,
+          "target": "jump_to_1",
+          "type": "jump_from"
+        },
+        {
+          "coordinate": [
+            12,
+            1
+          ],
+          "id": "flow_marker_1",
+          "label": "Fine",
+          "manifestation": "fine",
+          "meta": {
+            "source": "synthetic"
+          },
+          "name": "fine",
+          "type": "flow_marker"
+        },
+        {
+          "coordinate": [
+            16,
+            1
+          ],
+          "id": "jump_from_2",
+          "label": "D.S.",
+          "manifestation": "dal_segno",
+          "meta": {},
+          "name": null,
+          "target": "jump_to_2",
+          "type": "jump_from"
+        }
+      ],
+      "id": "flow:quarters",
+      "is_segment_line": false,
+      "length": [
+        16,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Flow control",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

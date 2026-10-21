@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "id": "Bass Kick",
+      "length": 231.0791836734694,
+      "name": "Bass Kick.mp3",
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

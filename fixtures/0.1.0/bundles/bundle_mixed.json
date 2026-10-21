@@ -1,0 +1,248 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score",
+        "performance"
+      ],
+      "group_2": [
+        "page",
+        "excerpt"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "performance",
+        "score"
+      ],
+      "meta": {},
+      "name": "Performance"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "excerpt",
+        "page"
+      ],
+      "meta": {},
+      "name": "Facsimile"
+    }
+  ],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": "Mixed",
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "annotations",
+      "is_segment_line": false,
+      "length": [
+        12,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Annotations",
+      "number_type": "fraction",
+      "regions": [
+        {
+          "end": [
+            4,
+            1
+          ],
+          "id": "region_1",
+          "meta": {},
+          "name": "Verse",
+          "start": [
+            0,
+            1
+          ]
+        },
+        {
+          "end": [
+            12,
+            1
+          ],
+          "id": "region_2",
+          "meta": {},
+          "name": "Chorus",
+          "start": [
+            4,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_4",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            3,
+            4
+          ],
+          "source_unit": "pixels",
+          "target_unit": "points",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "page",
+      "is_segment_line": false,
+      "length": 1920,
+      "locked": false,
+      "meta": {},
+      "name": "Page",
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_3",
+          "name": null,
+          "offset": 0,
+          "scalar": 44100,
+          "source_unit": "seconds",
+          "target_unit": "samples",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "performance",
+      "is_segment_line": false,
+      "length": 12.5,
+      "locked": false,
+      "meta": {},
+      "name": "Performance",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [
+            {
+              "id": "cmap_6",
+              "name": null,
+              "offset": 0,
+              "scalar": [
+                1,
+                44100
+              ],
+              "source_unit": "samples",
+              "target_unit": "seconds",
+              "type": "LinearMap"
+            }
+          ],
+          "flow_control": [],
+          "id": "excerpt",
+          "is_segment_line": false,
+          "length": 88200,
+          "locked": true,
+          "meta": {},
+          "name": "Excerpt",
+          "number_type": "int",
+          "offset": 44100,
+          "regions": [],
+          "unit": "samples"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "id": "cmap_5",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "recording",
+      "is_segment_line": false,
+      "length": 441000,
+      "locked": false,
+      "meta": {},
+      "name": "Recording",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": null,
+          "offset": 0,
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "LinearMap"
+        },
+        {
+          "id": "cmap_2",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            2
+          ],
+          "source_unit": "quarters",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_from_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "meta": {},
+          "name": null,
+          "repeat_count": 1,
+          "type": "jump_from"
+        }
+      ],
+      "id": "score",
+      "is_segment_line": false,
+      "length": [
+        12,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Score",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

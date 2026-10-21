@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "flow_control": [
+        {
+          "coordinate": [
+            2,
+            1
+          ],
+          "id": "jump_to_1",
+          "manifestation": "repeat_start",
+          "name": "repeat-start",
+          "type": "jump_to"
+        },
+        {
+          "coordinate": [
+            4,
+            1
+          ],
+          "id": "jump_to_2",
+          "manifestation": "segno",
+          "name": "segno",
+          "type": "jump_to"
+        },
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_from_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "meta": {
+            "source": "synthetic"
+          },
+          "repeat_count": 2,
+          "target": "jump_to_1",
+          "type": "jump_from"
+        },
+        {
+          "coordinate": [
+            12,
+            1
+          ],
+          "id": "flow_marker_1",
+          "label": "Fine",
+          "manifestation": "fine",
+          "meta": {
+            "source": "synthetic"
+          },
+          "name": "fine",
+          "type": "flow_marker"
+        },
+        {
+          "coordinate": [
+            16,
+            1
+          ],
+          "id": "jump_from_2",
+          "label": "D.S.",
+          "manifestation": "dal_segno",
+          "target": "jump_to_2",
+          "type": "jump_from"
+        }
+      ],
+      "id": "flow:quarters",
+      "length": [
+        16,
+        1
+      ],
+      "name": "Flow control",
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

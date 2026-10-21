@@ -1,0 +1,426 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "spine:dlt_1"
+      ],
+      "group_2": [
+        "los:dlt_2"
+      ],
+      "group_3": [
+        "original_score:dgt_1"
+      ],
+      "group_4": [
+        "finale_transcription:dgt_2"
+      ],
+      "group_5": [
+        "khomus_audio:cpt_1"
+      ],
+      "group_6": [
+        "khomus_video:cpt_2"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "spine:dlt_1"
+      ],
+      "meta": {},
+      "name": "spine:dlt_1"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "los:dlt_2"
+      ],
+      "meta": {},
+      "name": "los:dlt_2"
+    },
+    {
+      "id": "group_3",
+      "members": [
+        "original_score:dgt_1"
+      ],
+      "meta": {},
+      "name": "original_score:dgt_1"
+    },
+    {
+      "id": "group_4",
+      "members": [
+        "finale_transcription:dgt_2"
+      ],
+      "meta": {},
+      "name": "finale_transcription:dgt_2"
+    },
+    {
+      "id": "group_5",
+      "members": [
+        "khomus_audio:cpt_1"
+      ],
+      "meta": {},
+      "name": "khomus_audio:cpt_1"
+    },
+    {
+      "id": "group_6",
+      "members": [
+        "khomus_video:cpt_2"
+      ],
+      "meta": {},
+      "name": "khomus_video:cpt_2"
+    }
+  ],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": "khomus",
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "dgt_7",
+              "is_segment_line": false,
+              "length": 4264,
+              "locked": false,
+              "meta": {},
+              "name": "accolade_1",
+              "number_type": "int",
+              "offset": 0,
+              "regions": [],
+              "unit": "pixels"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "dgt_8",
+              "is_segment_line": false,
+              "length": 4372,
+              "locked": false,
+              "meta": {},
+              "name": "accolade_2",
+              "number_type": "int",
+              "offset": 4264,
+              "regions": [],
+              "unit": "pixels"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "dgt_9",
+              "is_segment_line": false,
+              "length": 4180,
+              "locked": false,
+              "meta": {},
+              "name": "accolade_3",
+              "number_type": "int",
+              "offset": 8636,
+              "regions": [],
+              "unit": "pixels"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "dgt_10",
+              "is_segment_line": false,
+              "length": 4110,
+              "locked": false,
+              "meta": {},
+              "name": "accolade_4",
+              "number_type": "int",
+              "offset": 12816,
+              "regions": [],
+              "unit": "pixels"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "dgt_6",
+          "is_segment_line": true,
+          "length": 16926,
+          "locked": true,
+          "meta": {
+            "page": {
+              "encoding_format": "image_jpeg",
+              "file_format": "image_jpeg",
+              "file_name": "score_files/finale_transcription/khomus_finale_score.jpg",
+              "measurement_unit": "pixels",
+              "position_in_group": 1
+            }
+          },
+          "name": "page_1",
+          "number_type": "int",
+          "offset": 0,
+          "regions": [],
+          "unit": "pixels"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "breaks": [
+            0,
+            16926
+          ],
+          "id": "cmap_3",
+          "maps": [
+            {
+              "id": "cmap_4",
+              "name": null,
+              "source_unit": "pixels",
+              "target_unit": null,
+              "type": "ConstantMap",
+              "value": "score_files/finale_transcription/khomus_finale_score.jpg"
+            }
+          ],
+          "name": "file_name",
+          "source_unit": "pixels",
+          "target_unit": null,
+          "type": "PiecewiseMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "finale_transcription:dgt_2",
+      "is_segment_line": true,
+      "length": 16926,
+      "locked": true,
+      "meta": {
+        "description": "Finale transcription",
+        "pages": [
+          {
+            "encoding_format": "image_jpeg",
+            "file_format": "image_jpeg",
+            "file_name": "score_files/finale_transcription/khomus_finale_score.jpg",
+            "measurement_unit": "pixels",
+            "position_in_group": 1
+          }
+        ]
+      },
+      "name": "Finale transcription",
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "khomus_audio:cpt_1",
+      "is_segment_line": false,
+      "length": 46.98,
+      "locked": false,
+      "meta": {
+        "encoding_format": "audio_wav",
+        "file_format": "audio_wav",
+        "file_name": "audio_files/khomus_audio.wav",
+        "performers": [
+          {
+            "name": "Audio performance",
+            "type": "khomus"
+          }
+        ],
+        "timing_type": "seconds"
+      },
+      "name": "khomus_audio",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "khomus_video:cpt_2",
+      "is_segment_line": false,
+      "length": 45.88,
+      "locked": false,
+      "meta": {
+        "encoding_format": "video_avi",
+        "file_format": "video_avi",
+        "file_name": "audio_files/khomus_video.mp4",
+        "performers": [
+          {
+            "name": "Lesson",
+            "type": "khomus"
+          }
+        ],
+        "timing_type": "seconds"
+      },
+      "name": "khomus_video",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "los:dlt_2",
+      "is_segment_line": false,
+      "length": 48128,
+      "locked": false,
+      "meta": {},
+      "name": "Logically organised symbols",
+      "number_type": "int",
+      "regions": [],
+      "unit": "ticks"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "dgt_2",
+              "is_segment_line": false,
+              "length": 1843,
+              "locked": false,
+              "meta": {},
+              "name": "accolade_1",
+              "number_type": "int",
+              "offset": 0,
+              "regions": [],
+              "unit": "pixels"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "dgt_3",
+              "is_segment_line": false,
+              "length": 1943,
+              "locked": false,
+              "meta": {},
+              "name": "accolade_2",
+              "number_type": "int",
+              "offset": 1843,
+              "regions": [],
+              "unit": "pixels"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "dgt_4",
+              "is_segment_line": false,
+              "length": 1804,
+              "locked": false,
+              "meta": {},
+              "name": "accolade_3",
+              "number_type": "int",
+              "offset": 3786,
+              "regions": [],
+              "unit": "pixels"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "dgt_5",
+              "is_segment_line": false,
+              "length": 1828,
+              "locked": false,
+              "meta": {},
+              "name": "accolade_4",
+              "number_type": "int",
+              "offset": 5590,
+              "regions": [],
+              "unit": "pixels"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "dgt_1",
+          "is_segment_line": true,
+          "length": 7418,
+          "locked": true,
+          "meta": {
+            "page": {
+              "encoding_format": "image_jpeg",
+              "file_format": "image_jpeg",
+              "file_name": "score_files/original_score/khomus_original_score.jpg",
+              "measurement_unit": "pixels",
+              "position_in_group": 1
+            }
+          },
+          "name": "page_1",
+          "number_type": "int",
+          "offset": 0,
+          "regions": [],
+          "unit": "pixels"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "breaks": [
+            0,
+            7418
+          ],
+          "id": "cmap_1",
+          "maps": [
+            {
+              "id": "cmap_2",
+              "name": null,
+              "source_unit": "pixels",
+              "target_unit": null,
+              "type": "ConstantMap",
+              "value": "score_files/original_score/khomus_original_score.jpg"
+            }
+          ],
+          "name": "file_name",
+          "source_unit": "pixels",
+          "target_unit": null,
+          "type": "PiecewiseMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "original_score:dgt_1",
+      "is_segment_line": true,
+      "length": 7418,
+      "locked": true,
+      "meta": {
+        "description": "Original score",
+        "pages": [
+          {
+            "encoding_format": "image_jpeg",
+            "file_format": "image_jpeg",
+            "file_name": "score_files/original_score/khomus_original_score.jpg",
+            "measurement_unit": "pixels",
+            "position_in_group": 1
+          }
+        ]
+      },
+      "name": "Original score",
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "spine:dlt_1",
+      "is_segment_line": false,
+      "length": 48128,
+      "locked": false,
+      "meta": {},
+      "name": "Spine",
+      "number_type": "int",
+      "regions": [],
+      "unit": "ticks"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

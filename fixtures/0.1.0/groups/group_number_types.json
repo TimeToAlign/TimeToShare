@@ -1,0 +1,78 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score",
+        "page",
+        "performance"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "page",
+        "performance",
+        "score"
+      ],
+      "meta": {},
+      "name": "Edition"
+    }
+  ],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "page",
+      "is_segment_line": false,
+      "length": 1920,
+      "locked": false,
+      "meta": {},
+      "name": "Page",
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "performance",
+      "is_segment_line": false,
+      "length": 12.5,
+      "locked": false,
+      "meta": {},
+      "name": "Performance",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "score",
+      "is_segment_line": false,
+      "length": [
+        12,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Score",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

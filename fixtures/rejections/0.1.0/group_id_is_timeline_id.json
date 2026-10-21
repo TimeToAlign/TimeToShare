@@ -1,0 +1,94 @@
+{
+  "code": "duplicate_id",
+  "manifest": {
+    "graphical": {
+      "order": {
+        "recording": [
+          "second-half",
+          "recording"
+        ]
+      },
+      "statements": [],
+      "styles": {}
+    },
+    "groups": [
+      {
+        "id": "recording",
+        "members": [
+          "recording",
+          "second-half"
+        ],
+        "meta": {},
+        "name": "Second half"
+      }
+    ],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": [],
+            "id": "second-half",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "meta": {},
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              4,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "piece",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      },
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "recording",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "groups",
+    0,
+    "id"
+  ],
+  "reason": "A group id differs from every timeline id."
+}

@@ -1,0 +1,179 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "a1",
+              "is_segment_line": false,
+              "length": [
+                8,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": null,
+              "number_type": "fraction",
+              "offset": [
+                0,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "a",
+          "is_segment_line": true,
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "A",
+          "number_type": "fraction",
+          "offset": [
+            0,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "b1",
+              "is_segment_line": false,
+              "length": [
+                6,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "b1",
+              "number_type": "fraction",
+              "offset": [
+                0,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "b2",
+              "is_segment_line": false,
+              "length": [
+                6,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": "b2",
+              "number_type": "fraction",
+              "offset": [
+                6,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "b",
+          "is_segment_line": true,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "B",
+          "number_type": "fraction",
+          "offset": [
+            8,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "c1",
+              "is_segment_line": false,
+              "length": [
+                12,
+                1
+              ],
+              "locked": false,
+              "meta": {},
+              "name": null,
+              "number_type": "fraction",
+              "offset": [
+                0,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "c",
+          "is_segment_line": true,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "C",
+          "number_type": "fraction",
+          "offset": [
+            20,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "form",
+      "is_segment_line": true,
+      "length": [
+        32,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Form",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

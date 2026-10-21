@@ -1,0 +1,171 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "exposition",
+        "take",
+        "system",
+        "audio"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "audio",
+        "exposition",
+        "system",
+        "take"
+      ],
+      "meta": {},
+      "name": "Exposition"
+    }
+  ],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_2",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "audio",
+      "is_segment_line": false,
+      "length": 1323000,
+      "locked": false,
+      "meta": {},
+      "name": "Audio",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "system",
+          "is_segment_line": false,
+          "length": 600,
+          "locked": true,
+          "meta": {},
+          "name": "System",
+          "number_type": "int",
+          "offset": 0,
+          "regions": [],
+          "unit": "pixels"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "page",
+      "is_segment_line": false,
+      "length": 1754,
+      "locked": false,
+      "meta": {},
+      "name": "Page",
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [
+            {
+              "id": "cmap_1",
+              "name": null,
+              "offset": 0,
+              "scalar": 44100,
+              "source_unit": "seconds",
+              "target_unit": "samples",
+              "type": "LinearMap"
+            }
+          ],
+          "flow_control": [],
+          "id": "take",
+          "is_segment_line": false,
+          "length": 25.5,
+          "locked": true,
+          "meta": {},
+          "name": "Take",
+          "number_type": "float",
+          "offset": 30.0,
+          "regions": [],
+          "unit": "seconds"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "session",
+      "is_segment_line": false,
+      "length": 90.0,
+      "locked": false,
+      "meta": {},
+      "name": "Session",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "exposition",
+          "is_segment_line": false,
+          "length": [
+            32,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Exposition",
+          "number_type": "fraction",
+          "offset": [
+            16,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "sonata",
+      "is_segment_line": false,
+      "length": [
+        48,
+        1
+      ],
+      "locked": true,
+      "meta": {},
+      "name": "Sonata",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

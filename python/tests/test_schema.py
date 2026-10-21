@@ -1,0 +1,405 @@
+from __future__ import annotations
+
+import re
+from collections.abc import Iterator
+from pathlib import Path
+from typing import Any
+
+from jsonschema import Draft202012Validator
+
+from timetoshare import DEFAULTS, SCHEMA_VERSION, load_schema, schema_path
+from timetoshare.validate import UNIT_NUMBER_TYPES
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+
+PUBLIC = [
+    "Manifest",
+    "Timeline",
+    "Group",
+    "Graphical",
+    "ConversionMap",
+    "Coordinate",
+    "Number",
+    "Fraction",
+    "TimeUnit",
+    "NumberType",
+    "Id",
+    "MeasureMap",
+    "MeasureMapRow",
+]
+
+MAP_TYPES = [
+    "ChainMap",
+    "CombinationMap",
+    "ConstantMap",
+    "FloatingMeasureMap",
+    "LinearMap",
+    "MeasureBeatMap",
+    "MeasureNumberMap",
+    "MeasureRecordMap",
+    "PiecewiseMap",
+    "TableMap",
+]
+MEASURE_VIEWS = {
+    "FloatingMeasureMap": "floating_measures",
+    "MeasureBeatMap": None,
+    "MeasureNumberMap": None,
+    "MeasureRecordMap": None,
+}
+
+
+def _defs() -> dict[str, Any]:
+    return load_schema()["$defs"]
+
+
+def _map_types() -> list[str]:
+    """The conversion map types: the definitions ``ConversionMap`` chooses between."""
+    return [
+        branch["$ref"].removeprefix("#/$defs/")
+        for branch in _defs()["ConversionMap"]["oneOf"]
+    ]
+
+
+def _target(node: dict) -> dict:
+    """The definition a node refers to, else the node."""
+    if "$ref" in node:
+        return _defs()[node["$ref"].removeprefix("#/$defs/")]
+    return node
+
+
+def _custom_keys(node: Any) -> list[str]:
+    """Every key of the document that begins with ``x-``."""
+    if isinstance(node, list):
+        return [key for item in node for key in _custom_keys(item)]
+    if not isinstance(node, dict):
+        return []
+    found = [key for key in node if key.startswith("x-")]
+    return found + [key for value in node.values() for key in _custom_keys(value)]
+
+
+def _nodes(node: Any, inside: bool = False) -> Iterator[tuple[dict, bool]]:
+    """Yield every schema node and whether it lies in a branch or an arm."""
+    if isinstance(node, list):
+        for item in node:
+            yield from _nodes(item, inside)
+    elif isinstance(node, dict):
+        yield node, inside
+        for key, value in node.items():
+            if key in ("oneOf", "anyOf", "if", "then", "else"):
+                yield from _nodes(value, True)
+            elif key in ("properties", "$defs"):
+                for child in value.values():
+                    yield from _nodes(child, False)
+            elif key not in ("default", "const", "enum"):
+                yield from _nodes(value, inside)
+
+
+def test_one_document_with_one_root() -> None:
+    schema = load_schema()
+    assert SCHEMA_VERSION == "0.1.0"
+    assert (
+        schema_path()
+        == REPOSITORY_ROOT / "schema" / "0.1.0" / "timetoshare.schema.json"
+    )
+    assert sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir()) == ["0.1.0"]
+    assert sorted(p.name for p in (REPOSITORY_ROOT / "schema" / "0.1.0").iterdir()) == [
+        "timetoshare.schema.json"
+    ]
+    assert schema["$id"] == (
+        "https://timetoalign.github.io/timetoshare/0.1.0/timetoshare.schema.json"
+    )
+    assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert schema["$ref"] == "#/$defs/Manifest"
+
+
+def test_references_are_local_and_resolve_without_anchors() -> None:
+    defs = _defs()
+    references = [node["$ref"] for node, _ in _nodes(load_schema()) if "$ref" in node]
+    assert references
+    for reference in references:
+        assert reference.startswith("#/$defs/")
+        assert reference.removeprefix("#/$defs/") in defs
+    assert not [node for node, _ in _nodes(load_schema()) if "$anchor" in node]
+
+
+def test_the_public_definitions() -> None:
+    defs = _defs()
+    assert set(PUBLIC) <= set(defs)
+
+
+def test_the_ten_map_types() -> None:
+    defs = _defs()
+    assert _map_types() == MAP_TYPES
+    classes = defs["Selector"]["properties"]["class"]["enum"]
+    assert classes == [
+        "ContinuousLogicalTimeline",
+        "ContinuousPhysicalTimeline",
+        "ContinuousGraphicalTimeline",
+        "DiscreteLogicalTimeline",
+        "DiscretePhysicalTimeline",
+        "DiscreteGraphicalTimeline",
+        *MAP_TYPES,
+    ]
+    facets = ["markers", "conversion_maps", "children", "regions", "flow_control"]
+    assert defs["Facet"]["enum"] == facets
+    assert defs["Part"]["enum"] == ["start", "end", "name", "label", "card"]
+    assert defs["Selector"]["properties"]["facet"]["$ref"] == "#/$defs/Facet"
+    assert defs["ElementType"]["enum"] == [
+        "block",
+        "timeline",
+        "child",
+        "band",
+        "map",
+        "region",
+        "flow_marker",
+        "jump_from",
+        "wedge",
+        "name",
+        "label",
+        "boundary",
+        "ancestor",
+        "frame",
+        "card",
+    ]
+    assert defs["MeasureView"]["properties"]["source_unit"]["const"] == "quarters"
+    for name, target in MEASURE_VIEWS.items():
+        assert defs[name]["allOf"] == [{"$ref": "#/$defs/MeasureView"}], name
+        assert defs[name]["properties"]["target_unit"]["const"] == target, name
+
+
+def test_the_unit_table_states_the_default_number_types() -> None:
+    unit = _defs()["TimeUnit"]
+    assert unit["type"] == "string"
+    assert "enum" not in unit
+    assert [entry["const"] for entry in unit["oneOf"]] == list(UNIT_NUMBER_TYPES)
+    pattern = re.compile(
+        r"^(Logical|Physical|Graphical), (continuous|discrete); "
+        r"default number type (int|float|fraction)\.$"
+    )
+    for entry in unit["oneOf"]:
+        assert sorted(entry) == ["const", "description"]
+        match = pattern.match(entry["description"])
+        assert match is not None, entry["const"]
+        assert match[3] == UNIT_NUMBER_TYPES[entry["const"]], entry["const"]
+
+
+def test_repeated_shapes_are_shared_definitions() -> None:
+    defs = _defs()
+    assert defs["Name"] == {
+        "type": ["string", "null"],
+        "description": "Human-readable name, or null when none was given.",
+        "default": None,
+    }
+    assert defs["Meta"] == {
+        "type": "object",
+        "additionalProperties": True,
+        "description": "Free-form metadata.",
+        "default": {},
+    }
+    names = [
+        defs[owner]["properties"]["name"]
+        for owner in (
+            "Manifest",
+            "Timeline",
+            "Group",
+            "Region",
+            "FlowControlElement",
+            "MeasureMap",
+            "MapBase",
+        )
+    ]
+    metas = [
+        defs[owner]["properties"]["meta"]
+        for owner in (
+            "Manifest",
+            "Timeline",
+            "Group",
+            "Region",
+            "FlowControlElement",
+            "MeasureMap",
+        )
+    ]
+    for node in names:
+        assert node["$ref"] == "#/$defs/Name"
+    for node in metas:
+        assert node["$ref"] == "#/$defs/Meta"
+    for node, _ in _nodes(load_schema()):
+        properties = node.get("properties", {})
+        if "meta" in properties:
+            assert properties["meta"]["$ref"] == "#/$defs/Meta"
+        if properties.get("name", {}).get("type") == ["string", "null"]:
+            raise AssertionError(f"an inline name: {properties['name']}")
+
+
+def test_every_conversion_map_extends_the_map_base() -> None:
+    defs = _defs()
+    base = defs["MapBase"]
+    assert list(base["properties"]) == [
+        "type",
+        "id",
+        "name",
+        "source_unit",
+        "target_unit",
+    ]
+    assert base["required"] == ["type", "id", "source_unit", "target_unit"]
+    view = defs["MeasureView"]
+    assert view["type"] == "object"
+    assert view["allOf"] == [{"$ref": "#/$defs/MapBase"}]
+    assert list(view["properties"]) == ["source_unit", "measure_map"]
+    assert view["properties"]["source_unit"]["const"] == "quarters"
+    assert view["required"] == ["measure_map"]
+    for name in _map_types():
+        definition = defs[name]
+        assert definition["type"] == "object"
+        parent = "MeasureView" if name in MEASURE_VIEWS else "MapBase"
+        assert definition["allOf"] == [{"$ref": f"#/$defs/{parent}"}], name
+        bases = set(base["properties"]) | set(view["properties"])
+        own = set(definition["properties"]) & bases
+        units = {"target_unit"} if name in MEASURE_VIEWS else set()
+        assert own == {"type"} | units, name
+        for key in units:
+            assert "const" in definition["properties"][key], name
+        assert definition["properties"]["type"] == {"const": name}
+        assert "type" in definition["required"]
+        assert not set(definition["required"]) & {"id", "source_unit", "target_unit"}
+
+
+def test_references_are_ids_and_addresses() -> None:
+    defs = _defs()
+    selector = defs["Selector"]["properties"]
+    assert selector["within"]["$ref"] == "#/$defs/Id"
+    assert selector["addresses"]["items"] == {"$ref": "#/$defs/Address"}
+    assert defs["FlowControlElement"]["properties"]["target"]["$ref"] == "#/$defs/Id"
+    assert defs["MeasureView"]["properties"]["measure_map"]["$ref"] == "#/$defs/Id"
+    identifier = Draft202012Validator({"$ref": "#/$defs/Id", "$defs": defs})
+    for accepted in (
+        "score",
+        "Bass Kick",
+        "perf/take 2",
+        "https://example.org/piece/score#exposition",
+        "start",
+        "regions_1",
+    ):
+        assert identifier.is_valid(accepted), accepted
+    for refused in ("", "score\t"):
+        assert not identifier.is_valid(refused), refused
+    address = Draft202012Validator({"$ref": "#/$defs/Address", "$defs": defs})
+    for accepted in (
+        {},
+        {"part": ["name"]},
+        {"id": "score"},
+        {"id": "perf/take 2"},
+        {"id": "score", "facet": "regions"},
+        {"id": "score", "part": ["card"]},
+        {"id": "score", "part": ["end", "label"]},
+        {"id": "score", "root": "score"},
+    ):
+        assert address.is_valid(accepted), accepted
+    for refused in (
+        "score",
+        {"facet": "regions"},
+        {"id": "score", "facet": "regions", "part": ["label"]},
+        {"id": "score", "part": []},
+        {"id": "score", "part": ["wedge"]},
+        {"id": "score", "facet": "regions_1"},
+    ):
+        assert not address.is_valid(refused), refused
+
+
+def test_objects_are_open_without_a_custom_keyword() -> None:
+    defs = _defs()
+    nodes = list(_nodes(load_schema()))
+    assert not [node for node, _ in nodes if node.get("additionalProperties") is False]
+    assert not [node for node, _ in nodes if "unevaluatedProperties" in node]
+    assert not _custom_keys(load_schema())
+    free = [node for node, _ in nodes if node.get("additionalProperties") is True]
+    assert free == [defs["Meta"]]
+    assert "properties" not in defs["Meta"]
+
+
+def _declared(node: dict) -> set[str]:
+    """The keys a node declares, its ``allOf`` bases' included, at any depth."""
+    declared = set(node.get("properties", {}))
+    for entry in node.get("allOf", []):
+        declared |= _declared(_target(entry))
+    return declared
+
+
+def test_every_object_declares_what_its_branches_declare() -> None:
+    for node, inside in _nodes(load_schema()):
+        if inside or node.get("type") != "object" or "properties" not in node:
+            continue
+        declared = _declared(node)
+        assert "patternProperties" not in node
+        for key in ("oneOf", "anyOf"):
+            for branch in node.get(key, []):
+                assert set(branch.get("properties", {})) <= declared
+        for key in ("if", "then", "else"):
+            assert set(node.get(key, {}).get("properties", {})) <= declared
+
+
+def test_every_discriminated_union_tags_each_branch_with_a_distinct_constant() -> None:
+    unions = [node for node, _ in _nodes(load_schema()) if "discriminator" in node]
+    assert sorted(node["discriminator"]["propertyName"] for node in unions) == [
+        "number_type",
+        "type",
+    ]
+    for node in unions:
+        key = node["discriminator"]["propertyName"]
+        tags = [_target(branch)["properties"][key]["const"] for branch in node["oneOf"]]
+        assert all(isinstance(tag, str) for tag in tags)
+        assert len(set(tags)) == len(tags)
+        for branch in node["oneOf"]:
+            assert key in _target(branch).get("required", node.get("required", []))
+
+
+def _defaults(definition: dict) -> dict[str, Any]:
+    """The defaults a definition declares, through references and its bases."""
+    members = dict(definition.get("properties", {}))
+    for entry in definition.get("allOf", []):
+        base = _target(entry)
+        members |= {
+            key: {"default": value}
+            for key, value in _defaults(base).items()
+            if key not in members
+        }
+    return {
+        key: (member if "default" in member else _target(member))["default"]
+        for key, member in members.items()
+        if "default" in member or "default" in _target(member)
+    }
+
+
+def test_the_defaults_are_the_table() -> None:
+    defs = _defs()
+    kinds = {
+        "manifest": ["Manifest"],
+        "timeline": ["Timeline"],
+        "region": ["Region"],
+        "measure_map": ["MeasureMap"],
+        "group": ["Group"],
+        "graphical": ["Graphical"],
+    }
+    own = {"LinearMap": "linear_map", "TableMap": "table_map"}
+    element = ["flow_control_element", "repeat_end"]
+    assert sorted([*kinds, "conversion_map", *own.values(), *element]) == sorted(
+        DEFAULTS
+    )
+    covered = {"MapBase", "MeasureView", "FlowControlElement"}
+    element_defs = defs["FlowControlElement"]
+    assert _defaults(element_defs) == DEFAULTS["flow_control_element"]
+    repeat_end = element_defs["then"]["else"]
+    assert repeat_end["if"]["properties"]["manifestation"] == {"const": "repeat_end"}
+    assert _defaults(repeat_end["then"]) == DEFAULTS["repeat_end"]
+    for kind, names in kinds.items():
+        for name in names:
+            covered.add(name)
+            assert _defaults(defs[name]) == DEFAULTS[kind], name
+    for name in _map_types():
+        covered.add(name)
+        expected = DEFAULTS["conversion_map"] | DEFAULTS.get(own.get(name, ""), {})
+        assert _defaults(defs[name]) == expected, name
+    for name, definition in defs.items():
+        if name not in covered:
+            assert _defaults(definition) == {}, name
+    assert "default" not in defs["Timeline"]["properties"]["number_type"]

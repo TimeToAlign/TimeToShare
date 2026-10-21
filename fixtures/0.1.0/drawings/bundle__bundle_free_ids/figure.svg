@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="536.0242" height="253.3203" viewBox="0 0 536.0242 253.3203" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="504.0242" height="221.3203" rx="10" fill="#F3F4F6"/>
+<text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Free IDs</text>
+<rect data-id="group_1" x="8" y="28.8047" width="488.0242" height="184.5156" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-id="group_1" data-part="name" x="16" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Piece</text>
+<rect data-id="https://example.org/piece/score" data-part="card" x="18" y="55.6094" width="472.0242" height="71.8555" rx="5" fill="#B8BEC8"/>
+<rect data-id="https://example.org/piece/score" data-part="card" x="16" y="53.6094" width="472.0242" height="71.8555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-id="https://example.org/piece/score#exposition" d="M69.0928 98.9883Q69.0928 101.9883 72.0928 101.9883L166.0928 101.9883Q169.0928 101.9883 169.0928 104.9883Q169.0928 101.9883 172.0928 101.9883L266.0928 101.9883Q269.0928 101.9883 269.0928 98.9883" fill="none" stroke="#000000" stroke-width="1"/>
+<line data-id="https://example.org/piece/score" x1="69.0928" y1="68.0117" x2="469.0928" y2="68.0117" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="https://example.org/piece/score" cx="69.0928" cy="68.0117" r="3" fill="#00CC00"/>
+<polygon data-id="https://example.org/piece/score" points="478.0928,68.0117 469.0928,63.5117 469.0928,72.5117" fill="#00CC00"/>
+<polygon data-id="https://example.org/piece/score" data-part="start" points="69.0928,69.5117 66.0928,82.5117 72.0928,82.5117" fill="#000000"/>
+<polygon data-id="https://example.org/piece/score" data-part="end" points="469.0928,69.5117 466.0928,82.5117 472.0928,82.5117" fill="#000000"/>
+<text data-id="https://example.org/piece/score" data-part="name" x="24" y="71.8198" text-anchor="start" font-size="11" fill="#000000">Score</text>
+<text data-id="https://example.org/piece/score" data-part="start label" x="69.0928" y="92.8657" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="https://example.org/piece/score" data-part="end label" x="469.0928" y="92.8657" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+<text data-id="https://example.org/piece/score#exposition" data-part="label" x="169.0928" y="115.3423" text-anchor="middle" font-size="9" fill="#000000">Exposition</text>
+<rect data-id="perf/take 2" data-part="card" x="18" y="135.4648" width="472.0242" height="71.8555" rx="5" fill="#B8BEC8"/>
+<rect data-id="perf/take 2" data-part="card" x="16" y="133.4648" width="472.0242" height="71.8555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-id="take 2/intro" d="M69.0928 178.8438Q69.0928 181.8438 72.0928 181.8438L116.0928 181.8438Q119.0928 181.8438 119.0928 184.8438Q119.0928 181.8438 122.0928 181.8438L166.0928 181.8438Q169.0928 181.8438 169.0928 178.8438" fill="none" stroke="#0F766E" stroke-width="1"/>
+<line data-id="perf/take 2" x1="69.0928" y1="147.8672" x2="469.0928" y2="147.8672" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="perf/take 2" cx="69.0928" cy="147.8672" r="3" fill="#0050EF"/>
+<polygon data-id="perf/take 2" points="478.0928,147.8672 469.0928,143.3672 469.0928,152.3672" fill="#0050EF"/>
+<polygon data-id="perf/take 2" data-part="start" points="69.0928,149.3672 66.0928,162.3672 72.0928,162.3672" fill="#000000"/>
+<polygon data-id="perf/take 2" data-part="end" points="469.0928,149.3672 466.0928,162.3672 472.0928,162.3672" fill="#000000"/>
+<text data-id="perf/take 2" data-part="name" x="24" y="151.6753" text-anchor="start" font-size="11" fill="#000000">Take 2</text>
+<text data-id="perf/take 2" data-part="start label" x="69.0928" y="172.7212" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
+<text data-id="perf/take 2" data-part="end label" x="469.0928" y="172.7212" text-anchor="middle" font-size="9" fill="#000000">4.0 s</text>
+<text data-id="take 2/intro" data-part="label" x="119.0928" y="195.1978" text-anchor="middle" font-size="9" fill="#000000">Intro</text>
+</g>
+</svg>

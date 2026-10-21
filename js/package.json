@@ -1,0 +1,67 @@
+{
+  "name": "@timetoalign/timetoshare",
+  "version": "0.1.0",
+  "description": "The TimeToShare! manifest schema, its fixtures, generated TypeScript types and a validator",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TimeToAlign/TimeToShare.git",
+    "directory": "js"
+  },
+  "homepage": "https://github.com/TimeToAlign/TimeToShare#readme",
+  "bugs": "https://github.com/TimeToAlign/TimeToShare/issues",
+  "keywords": [
+    "music",
+    "timeline",
+    "json-schema",
+    "timetoalign"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema/*": "./schema/*",
+    "./fixtures/*": "./fixtures/*",
+    "./fonts/*": "./fonts/*",
+    "./docs/*": "./docs/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "schema",
+    "fixtures",
+    "fonts",
+    "docs"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "packageManager": "pnpm@12.10.1",
+  "scripts": {
+    "generate": "node scripts/generate.ts",
+    "check:drift": "node scripts/generate.ts && git diff --exit-code -- src/generated",
+    "build": "node scripts/copy-assets.ts && tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome ci .",
+    "format": "biome format --write .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.14",
+    "@types/node": "22.20.4",
+    "json-schema-to-typescript": "16.0.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.1"
+  }
+}

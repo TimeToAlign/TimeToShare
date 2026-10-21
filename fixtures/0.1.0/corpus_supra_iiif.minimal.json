@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "id": "dgt_1",
+      "length": 299400,
+      "name": "Meistersinger von Nürnberg : Vorspiel",
+      "unit": "pixels"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

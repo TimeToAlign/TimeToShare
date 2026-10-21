@@ -1,0 +1,97 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "https://example.org/piece/score",
+        "perf/take 2"
+      ]
+    },
+    "statements": [
+      {
+        "select": {
+          "addresses": [
+            {
+              "id": "take 2/intro"
+            }
+          ]
+        },
+        "set": {
+          "stroke": "#0F766E"
+        }
+      }
+    ],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "https://example.org/piece/score",
+        "perf/take 2"
+      ],
+      "meta": {},
+      "name": "Piece"
+    }
+  ],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": "Free IDs",
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "https://example.org/piece/score",
+      "is_segment_line": false,
+      "length": [
+        8,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Score",
+      "number_type": "fraction",
+      "regions": [
+        {
+          "end": [
+            4,
+            1
+          ],
+          "id": "https://example.org/piece/score#exposition",
+          "meta": {},
+          "name": "Exposition",
+          "start": [
+            0,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "perf/take 2",
+      "is_segment_line": false,
+      "length": 4.0,
+      "locked": false,
+      "meta": {},
+      "name": "Take 2",
+      "number_type": "float",
+      "regions": [
+        {
+          "end": 1.0,
+          "id": "take 2/intro",
+          "meta": {},
+          "name": "Intro",
+          "start": 0.0
+        }
+      ],
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

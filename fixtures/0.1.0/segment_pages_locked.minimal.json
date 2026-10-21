@@ -1,0 +1,46 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "page_1",
+          "length": 1754,
+          "name": "Page 1",
+          "offset": 0,
+          "unit": "pixels"
+        },
+        {
+          "id": "page_2",
+          "length": 1754,
+          "name": "Page 2",
+          "offset": 1754,
+          "unit": "pixels"
+        },
+        {
+          "id": "page_3",
+          "length": 1754,
+          "name": "Page 3",
+          "offset": 3508,
+          "unit": "pixels"
+        },
+        {
+          "id": "page_4",
+          "length": 1754,
+          "name": "Page 4",
+          "offset": 5262,
+          "unit": "pixels"
+        }
+      ],
+      "id": "pages",
+      "is_segment_line": true,
+      "length": 7016,
+      "locked": true,
+      "name": "Pages",
+      "unit": "pixels"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

@@ -1,0 +1,56 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "dgt_2",
+          "is_segment_line": false,
+          "length": 640,
+          "locked": true,
+          "meta": {},
+          "name": null,
+          "number_type": "int",
+          "offset": 16,
+          "regions": [],
+          "unit": "pixels"
+        },
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "dgt_3",
+          "is_segment_line": false,
+          "length": 480,
+          "locked": true,
+          "meta": {},
+          "name": null,
+          "number_type": "int",
+          "offset": 1000,
+          "regions": [],
+          "unit": "pixels"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "dgt_1",
+      "is_segment_line": false,
+      "length": 1920,
+      "locked": false,
+      "meta": {},
+      "name": null,
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

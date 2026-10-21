@@ -1,0 +1,22 @@
+{
+  "layers": [],
+  "manifest": "bundles/bundle_mixed.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {
+      "group_1": {
+        "cards": {
+          "performance": {
+            "height": 120,
+            "width": 650
+          }
+        },
+        "scale": 1.25
+      }
+    },
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}

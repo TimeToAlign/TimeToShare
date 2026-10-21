@@ -1,0 +1,86 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "page_1",
+          "is_segment_line": false,
+          "length": 1754,
+          "locked": false,
+          "meta": {},
+          "name": "Page 1",
+          "number_type": "int",
+          "offset": 0,
+          "regions": [],
+          "unit": "pixels"
+        },
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "page_2",
+          "is_segment_line": false,
+          "length": 1754,
+          "locked": false,
+          "meta": {},
+          "name": "Page 2",
+          "number_type": "int",
+          "offset": 1754,
+          "regions": [],
+          "unit": "pixels"
+        },
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "page_3",
+          "is_segment_line": false,
+          "length": 1754,
+          "locked": false,
+          "meta": {},
+          "name": "Page 3",
+          "number_type": "int",
+          "offset": 3508,
+          "regions": [],
+          "unit": "pixels"
+        },
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "page_4",
+          "is_segment_line": false,
+          "length": 1754,
+          "locked": false,
+          "meta": {},
+          "name": "Page 4",
+          "number_type": "int",
+          "offset": 5262,
+          "regions": [],
+          "unit": "pixels"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "pages",
+      "is_segment_line": true,
+      "length": 7016,
+      "locked": true,
+      "meta": {},
+      "name": "Pages",
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

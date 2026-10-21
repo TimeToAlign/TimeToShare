@@ -1,0 +1,106 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "theme",
+        "recording"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "recording",
+        "theme"
+      ],
+      "meta": {},
+      "name": "Theme"
+    }
+  ],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "recording",
+      "is_segment_line": false,
+      "length": 12.0,
+      "locked": false,
+      "meta": {},
+      "name": "Recording",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": [],
+              "id": "theme",
+              "is_segment_line": false,
+              "length": [
+                8,
+                1
+              ],
+              "locked": true,
+              "meta": {},
+              "name": "Theme",
+              "number_type": "fraction",
+              "offset": [
+                8,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "movement",
+          "is_segment_line": false,
+          "length": [
+            16,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Movement",
+          "number_type": "fraction",
+          "offset": [
+            16,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "score",
+      "is_segment_line": false,
+      "length": [
+        64,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Score",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

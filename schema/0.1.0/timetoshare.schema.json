@@ -1,0 +1,1423 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timetoalign.github.io/timetoshare/0.1.0/timetoshare.schema.json",
+  "title": "TimeToShare manifest",
+  "description": "The TimeToShare! 0.1.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and MeasureMaps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of root timelines, possibly empty, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key an object does not declare is kept and reported as unknown by the TimeToShare validators, never refused. The `discriminator` annotations follow OpenAPI: they serve validators that understand them and change nothing for the others. Every key with a default may be left out; a reader supplies the default. The definitions Manifest, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.1.x.",
+  "$ref": "#/$defs/Manifest",
+  "$defs": {
+    "Manifest": {
+      "type": "object",
+      "description": "A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region and flow-control element. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a statement selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups and the MeasureMaps are written sorted by ID and each group's members by code point; readers accept any order.",
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "description": "The URL of this schema, a hint for editors. It is never read."
+        },
+        "timetoshare": {
+          "const": "0.1.0",
+          "description": "The TimeToShare version this manifest conforms to. Compulsory: a JSON structure without it is not a TimeToShare manifest."
+        },
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The manifest ID. It addresses nothing: the bundle's address is `{}` whatever its ID."
+        },
+        "name": {
+          "$ref": "#/$defs/Name",
+          "description": "The manifest's human-readable name, its title, or null when none was given."
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta",
+          "description": "Free-form metadata of the manifest."
+        },
+        "timelines": {
+          "type": "array",
+          "description": "The root timelines, each with all its descendants. The array may be empty.",
+          "items": {
+            "$ref": "#/$defs/Timeline"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "description": "The timeline groups. A root that no group names remains ungrouped in the bundle. A root whose descendants are named in a group is indirectly linked with that group.",
+          "items": {
+            "$ref": "#/$defs/Group"
+          },
+          "default": []
+        },
+        "measure_maps": {
+          "type": "array",
+          "description": "The MeasureMaps, which the measure views among the conversion maps name by ID. A MeasureMap belongs to no timeline and is not drawn. The array may be empty.",
+          "items": {
+            "$ref": "#/$defs/MeasureMap"
+          },
+          "default": []
+        },
+        "graphical": {
+          "$ref": "#/$defs/Graphical"
+        }
+      },
+      "required": [
+        "timetoshare",
+        "timelines"
+      ]
+    },
+    "Timeline": {
+      "type": "object",
+      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, flow-control coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; flow-control elements by coordinate, then ID. Readers accept any order.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The timeline ID."
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "unit": {
+          "$ref": "#/$defs/TimeUnit"
+        },
+        "number_type": {
+          "$ref": "#/$defs/NumberType",
+          "description": "The number type of every coordinate on the timeline's axis. Absent means the unit's default number type, which the unit table (`TimeUnit`) states for every unit."
+        },
+        "length": {
+          "description": "The end of the timeline on its own axis, or null when the length is not known.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NumberNonnegative"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "offset": {
+          "$ref": "#/$defs/Number",
+          "description": "Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis; typically absent."
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Whether the timeline's extent is fixed. A locked timeline, such as a CD track, cannot extend; an unlocked one may grow, as a CD timeline built by appending track after track does.",
+          "default": false
+        },
+        "is_segment_line": {
+          "type": "boolean",
+          "description": "Whether the timeline is a segment line: a timeline containing only contiguous segments. Its children are its segments: each shares the segment line's unit, as every child shares its parent's; they are contiguous from 0 in offset order (a segment of unknown length ends where its successor starts) and end at its length where both are known, all with one is_segment_line value; segments that are segment lines themselves make a nested segment line. Contiguity and the one is_segment_line value are checked after the schema.",
+          "default": false
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta"
+        },
+        "children": {
+          "type": "array",
+          "description": "The child timelines, each carrying its offset on this timeline's axis.",
+          "items": {
+            "$ref": "#/$defs/Timeline",
+            "required": [
+              "offset"
+            ]
+          },
+          "default": []
+        },
+        "conversion_maps": {
+          "type": "array",
+          "description": "Conversion maps attached to this timeline.",
+          "items": {
+            "$ref": "#/$defs/ConversionMap"
+          },
+          "default": []
+        },
+        "regions": {
+          "type": "array",
+          "description": "Regions of this timeline.",
+          "items": {
+            "$ref": "#/$defs/Region"
+          },
+          "default": []
+        },
+        "flow_control": {
+          "type": "array",
+          "description": "The flow control of this timeline: its jump origins, jump targets and flow markers.",
+          "items": {
+            "$ref": "#/$defs/FlowControlElement"
+          },
+          "default": []
+        }
+      },
+      "required": [
+        "id",
+        "unit",
+        "length"
+      ]
+    },
+    "Group": {
+      "type": "object",
+      "description": "A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group. A child may belong to a group while its root belongs to another or to none.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The group ID."
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta"
+        },
+        "members": {
+          "type": "array",
+          "description": "The IDs of the member timelines, sorted by code point. The array may be empty.",
+          "items": {
+            "$ref": "#/$defs/Id"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "id",
+        "members"
+      ]
+    },
+    "Graphical": {
+      "type": "object",
+      "description": "How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members and the band order of each timeline. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent `graphical` object draws every element with the other style layers alone.",
+      "properties": {
+        "styles": {
+          "type": "object",
+          "description": "Declarations by style name.",
+          "additionalProperties": {
+            "$ref": "#/$defs/Declaration"
+          },
+          "default": {}
+        },
+        "statements": {
+          "type": "array",
+          "description": "Statements in order; of two statements of equal rank the later one decides.",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          },
+          "default": []
+        },
+        "order": {
+          "type": "object",
+          "description": "The order of what a group or a timeline stacks, top to bottom, keyed by a group's ID (the display order of its members) or by a timeline's ID, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, and a root without one the default band order of the drawing specification.",
+          "propertyNames": {
+            "$ref": "#/$defs/Id"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/Order"
+          },
+          "default": {}
+        }
+      }
+    },
+    "ConversionMap": {
+      "description": "A conversion map of a timeline, discriminated by its type: a function from a position on the timeline's axis to a value. A map is an abstract type, independent of any number type: each of its Numbers is an int, a float or a Fraction, whatever the implementation computes in. Six types are general (LinearMap, TableMap, ConstantMap, PiecewiseMap, ChainMap, CombinationMap) and four read a MeasureMap (MeasureRecordMap, MeasureNumberMap, FloatingMeasureMap, MeasureBeatMap). A map attached to a timeline converts from the timeline's axis: its source_unit, where not null, is the timeline's unit, so a timeline in ticks reaches a measure view through a ChainMap. A map that another map holds reads its holder's input: every map of a PiecewiseMap or a CombinationMap, and the first map of a ChainMap, has its holder's source_unit wherever both are stated. Both rules are checked after the schema.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ChainMap"
+        },
+        {
+          "$ref": "#/$defs/CombinationMap"
+        },
+        {
+          "$ref": "#/$defs/ConstantMap"
+        },
+        {
+          "$ref": "#/$defs/FloatingMeasureMap"
+        },
+        {
+          "$ref": "#/$defs/LinearMap"
+        },
+        {
+          "$ref": "#/$defs/MeasureBeatMap"
+        },
+        {
+          "$ref": "#/$defs/MeasureNumberMap"
+        },
+        {
+          "$ref": "#/$defs/MeasureRecordMap"
+        },
+        {
+          "$ref": "#/$defs/PiecewiseMap"
+        },
+        {
+          "$ref": "#/$defs/TableMap"
+        }
+      ],
+      "discriminator": {
+        "propertyName": "type"
+      }
+    },
+    "Coordinate": {
+      "type": "object",
+      "description": "A self-describing position: the axis unit, the number type, and the value in the representation that number type selects. Inside a manifest every position lies on an axis its container declares (a timeline's unit and number type, a conversion map's source and target units) and is a bare Number; this form is for a position outside such a container, as hosts exchange single positions.",
+      "properties": {
+        "unit": {
+          "$ref": "#/$defs/TimeUnit"
+        },
+        "number_type": {
+          "$ref": "#/$defs/NumberType"
+        },
+        "value": {
+          "description": "The position, represented as selected by number_type."
+        }
+      },
+      "required": [
+        "unit",
+        "number_type",
+        "value"
+      ],
+      "oneOf": [
+        {
+          "description": "An integer coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "int"
+            },
+            "value": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "description": "A float coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "float"
+            },
+            "value": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "description": "An exact fraction coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "fraction"
+            },
+            "value": {
+              "$ref": "#/$defs/Fraction"
+            }
+          }
+        }
+      ],
+      "discriminator": {
+        "propertyName": "number_type"
+      }
+    },
+    "Number": {
+      "description": "A bare JSON number or an exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/Fraction"
+        }
+      ]
+    },
+    "Fraction": {
+      "type": "array",
+      "description": "Rational number encoded as a numerator and a strictly positive denominator, each an integer. The declared number type decides how a value is read, never its spelling: a member written with a zero fractional part, as in [1, 8.0], is read as the integer it equals. Writers spell every member as a JSON integer.",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "description": "Numerator, signed integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+        }
+      ],
+      "items": false
+    },
+    "TimeUnit": {
+      "type": "string",
+      "description": "The unit of a timeline axis. Each unit belongs to one domain (logical: musical time; physical: real time; graphical: space) and one modality (continuous or discrete), and states the default number type of an axis that declares none. The domain and modality decide the timeline class: `seconds`, physical and continuous, makes a ContinuousPhysicalTimeline.",
+      "oneOf": [
+        {
+          "const": "number",
+          "description": "Logical, continuous; default number type float."
+        },
+        {
+          "const": "floating_measures",
+          "description": "Logical, continuous; default number type float."
+        },
+        {
+          "const": "whole_notes",
+          "description": "Logical, continuous; default number type fraction."
+        },
+        {
+          "const": "quarters",
+          "description": "Logical, continuous; default number type fraction."
+        },
+        {
+          "const": "ticks",
+          "description": "Logical, discrete; default number type int."
+        },
+        {
+          "const": "milliseconds",
+          "description": "Physical, continuous; default number type float."
+        },
+        {
+          "const": "seconds",
+          "description": "Physical, continuous; default number type float."
+        },
+        {
+          "const": "minutes",
+          "description": "Physical, continuous; default number type float."
+        },
+        {
+          "const": "samples",
+          "description": "Physical, discrete; default number type int."
+        },
+        {
+          "const": "frames",
+          "description": "Physical, discrete; default number type int."
+        },
+        {
+          "const": "pixels",
+          "description": "Graphical, discrete; default number type int."
+        },
+        {
+          "const": "meters",
+          "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "centimeters",
+          "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "millimeters",
+          "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "inches",
+          "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "points",
+          "description": "Graphical, continuous; default number type float."
+        }
+      ]
+    },
+    "NumberType": {
+      "type": "string",
+      "description": "The number type of every coordinate on a timeline axis. It selects the representation of a coordinate's value: int is a JSON integer, float a JSON number, fraction a Fraction pair.",
+      "enum": [
+        "int",
+        "float",
+        "fraction"
+      ]
+    },
+    "Id": {
+      "type": "string",
+      "pattern": "^[^\\u0000-\\u001f]+$",
+      "description": "An identifier: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed."
+    },
+    "Facet": {
+      "type": "string",
+      "enum": [
+        "markers",
+        "conversion_maps",
+        "children",
+        "regions",
+        "flow_control"
+      ],
+      "description": "One of the five facets every timeline has: its coordinate markers (the wedges at a root's start and end; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet."
+    },
+    "Part": {
+      "type": "string",
+      "enum": [
+        "start",
+        "end",
+        "name",
+        "label",
+        "card"
+      ],
+      "description": "A word naming a part of an element in an `Address`."
+    },
+    "Address": {
+      "type": "object",
+      "description": "The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{\"part\": [\"name\"]}` the manifest's title. `{\"id\": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region or a flow-control element. `{\"id\": T, \"facet\": F}` addresses the band drawing the facet F of the timeline T, and `{\"id\": T, \"part\": [\"card\"]}` every card of T. Any other `part` addresses a part of the element X: `[\"start\"]` and `[\"end\"]` a root's wedges, a member's marks on its ancestor lines or a segment's boundary, `[\"start\", \"label\"]` and `[\"end\", \"label\"]` a wedge's label, `[\"name\"]` and `[\"label\"]` the element's name or label. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "facet": {
+          "$ref": "#/$defs/Facet"
+        },
+        "part": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Part"
+          },
+          "minItems": 1
+        }
+      },
+      "dependentRequired": {
+        "facet": [
+          "id"
+        ]
+      },
+      "not": {
+        "required": [
+          "facet",
+          "part"
+        ]
+      }
+    },
+    "Name": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Human-readable name, or null when none was given.",
+      "default": null
+    },
+    "Meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Free-form metadata.",
+      "default": {}
+    },
+    "MeasureMapRow": {
+      "type": "object",
+      "description": "One row of the Measure Map standard plus the TimeToShare extensions volta and offset_within_measure.",
+      "properties": {
+        "ID": {
+          "type": "string",
+          "description": "Any unique string to identify this Measure object. Unique, here, means that the string cannot be used as ID for another object that forms part of the same MeasureMap. The 'next' array may use these IDs to refer to other Measures. Additionally, IDs can prove useful in cross-relating between MeasureMaps relating to different editions of the same piece, e.g. by assigning identical IDs for measures that are identical across the two. The ID could be, for instance, human-readable form (e.g., the 'count' value converted to a string) or a random string (often the case in MEI scores)."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Position of this Measure object in the MeasureMap, using natural numbers starting with 1. This serves primarily as an index, and does not attempt detailed musical conventions. In the simplest case (e.g., a score with no anacrusis or other irregularities) this count matches the (most musical) number field below."
+        },
+        "qstamp": {
+          "$ref": "#/$defs/NumberNonnegative",
+          "description": "The symbolic time to have elapsed since the beginning of the source, measured in quarter notes. Non-negative; TimeToShare additionally permits an exact Fraction pair."
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "A number assigned to this measure based on a given set of rules or conventions. One wide-spread convention, for instance, is that a piece starts with measure number 0 if it has an anacrusis and with number 1 otherwise."
+        },
+        "name": {
+          "type": "string",
+          "description": "A label for the Measure. Typically used for distinguishing between Measures with the same number, e.g. for first and second endings (as in '16a', '16b') or split logical measures (as in '16-1', '16-2')."
+        },
+        "time_signature": {
+          "type": "string",
+          "description": "A label for the time signature. Typically this takes the form <int>/<int>, as in \u20183/8\u2019, but can be any text (e.g., \u2018C\u2019, \u2018common time\u2019, \u2018unmeasured\u2019 \u2018cadenza\u2019) as long as actual_length is specified."
+        },
+        "nominal_length": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NumberPositive"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The default duration that corresponds to the given 'time_signature', in quarter notes. Can be derived from 'time_signature' if it takes the form of an '<int>/<int>'-encoded fraction. Can take the value 'null' if the time signature has no corresponding duration (e.g. 'cadenza'). TimeToShare additionally permits an exact Fraction pair."
+        },
+        "actual_length": {
+          "$ref": "#/$defs/NumberPositive",
+          "description": "The actual duration of the measure, in quarter notes. Strictly positive; TimeToShare additionally permits an exact Fraction pair."
+        },
+        "start_repeat": {
+          "type": [
+            "boolean",
+            "number"
+          ],
+          "description": "Typical usage is with the bool type, with 'true' indicating a start repeat at the beginning of the measure."
+        },
+        "end_repeat": {
+          "type": [
+            "boolean",
+            "number"
+          ],
+          "description": "Typical usage is with the bool type, with 'true' indicating an end repeat at the end of the measure."
+        },
+        "next": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "integer"
+            ]
+          },
+          "description": "The 'ID' strings or 'count' integers that correspond to all measures that can follow this one. The corresponding field needs to be present in the MeasureMap."
+        },
+        "volta": {
+          "type": "integer",
+          "description": "A TimeToShare extension that identifies the volta ending. It carries no structural constraint."
+        },
+        "offset_within_measure": {
+          "$ref": "#/$defs/NumberPositive",
+          "description": "A TimeToShare extension: where this row begins inside its nominal measure, in quarter notes, when the row represents only part of that measure (an anacrusis, or one constituent of a split measure). Absent means 0; a row never states 0."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "ID"
+          ]
+        },
+        {
+          "required": [
+            "count"
+          ]
+        }
+      ]
+    },
+    "MeasureMap": {
+      "type": "object",
+      "description": "A MeasureMap: the measures of a score as compressed rows of the Measure Map standard, identified by an ID that the measure views (MeasureRecordMap, MeasureNumberMap, FloatingMeasureMap, MeasureBeatMap) name. Its positions (a row's qstamp and lengths) are quarters by definition, so it fits every timeline: a timeline in ticks or whole notes reaches a view through a ChainMap whose first map is a LinearMap to quarters. It belongs to no timeline and is not drawn. The row holding a position x in quarters is the last row, in measure order once decompressed, whose qstamp is at or before x; a position before the first row is held by the first row.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The MeasureMap ID."
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta"
+        },
+        "rows": {
+          "$ref": "#/$defs/MeasureMapRows"
+        }
+      },
+      "required": [
+        "id",
+        "rows"
+      ]
+    },
+    "MeasureMapRows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/MeasureMapRow"
+      },
+      "minItems": 1,
+      "description": "The rows of a MeasureMap: compressed rows of the Measure Map standard, in measure order. A row equal to its predecessor's default successor is omitted as a whole."
+    },
+    "NumberNonnegative": {
+      "description": "A non-negative bare JSON number or a non-negative exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "$ref": "#/$defs/FractionNonnegative"
+        }
+      ]
+    },
+    "NumberPositive": {
+      "description": "A strictly positive bare JSON number or a strictly positive exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        {
+          "$ref": "#/$defs/FractionPositive"
+        }
+      ]
+    },
+    "FractionNonnegative": {
+      "type": "array",
+      "description": "A Fraction, read and written as Fraction says, whose numerator is non-negative.",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Numerator, non-negative integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
+      ],
+      "items": false
+    },
+    "FractionPositive": {
+      "type": "array",
+      "description": "A Fraction, read and written as Fraction says, whose numerator is strictly positive.",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Numerator, positive integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
+      ],
+      "items": false
+    },
+    "Region": {
+      "type": "object",
+      "description": "A region of a timeline, from start to end on the timeline's own axis.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The region ID."
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "start": {
+          "$ref": "#/$defs/Number"
+        },
+        "end": {
+          "$ref": "#/$defs/Number"
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta"
+        }
+      },
+      "required": [
+        "id",
+        "start",
+        "end"
+      ]
+    },
+    "FlowControlElement": {
+      "type": "object",
+      "description": "One element of a timeline's flow control, at a coordinate on the timeline's own axis. A jump_from is where playback leaves for another position: its target, a jump_to of the same timeline, or, for a da_capo manifestation or a repeat_end without a target, the timeline's start. A jump_to is a position a jump_from names as its target. A flow_marker marks a position without a jump of its own: a fine, where playback ends after a jump al fine, or a section_break, a double_barline or a final_barline, which divide the timeline. When a jump acts follows from its manifestation: a repeat_end on its first repeat_count passes, a to_coda only after a da_capo_al_coda or a dal_segno_al_coda, every other jump_from always.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The element ID."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "jump_from",
+            "jump_to",
+            "flow_marker"
+          ],
+          "description": "The element type: a jump origin, a jump target or a flow marker. It decides the manifestations the element may take and whether it may carry a target and a repeat count."
+        },
+        "manifestation": {
+          "type": "string",
+          "enum": [
+            "repeat_end",
+            "da_capo",
+            "da_capo_al_fine",
+            "da_capo_al_coda",
+            "dal_segno",
+            "dal_segno_al_fine",
+            "dal_segno_al_coda",
+            "to_coda",
+            "repeat_start",
+            "segno",
+            "coda",
+            "fine",
+            "section_break",
+            "double_barline",
+            "final_barline"
+          ],
+          "description": "How the element is notated. A jump_from is a repeat_end, a da_capo, da_capo_al_fine or da_capo_al_coda, a dal_segno, dal_segno_al_fine or dal_segno_al_coda, or a to_coda; a jump_to is a repeat_start, a segno or a coda; a flow_marker is a fine, a section_break, a double_barline or a final_barline."
+        },
+        "coordinate": {
+          "$ref": "#/$defs/Number",
+          "description": "Where the element lies on the timeline's own axis."
+        },
+        "target": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the jump_to of the same timeline a jump_from leads to; checked after the schema. Required on a dal_segno manifestation and a to_coda; optional on a da_capo manifestation and a repeat_end, where its absence means the timeline's start; carried by no other element."
+        },
+        "repeat_count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many passes a repeat_end sends back to its target, 1 by default; carried by a repeat_end only."
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The text the element is drawn with, or null.",
+          "default": null
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta"
+        }
+      },
+      "required": [
+        "id",
+        "type",
+        "manifestation",
+        "coordinate"
+      ],
+      "if": {
+        "properties": {
+          "type": {
+            "const": "jump_from"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "manifestation": {
+            "enum": [
+              "repeat_end",
+              "da_capo",
+              "da_capo_al_fine",
+              "da_capo_al_coda",
+              "dal_segno",
+              "dal_segno_al_fine",
+              "dal_segno_al_coda",
+              "to_coda"
+            ]
+          }
+        },
+        "if": {
+          "properties": {
+            "manifestation": {
+              "enum": [
+                "dal_segno",
+                "dal_segno_al_fine",
+                "dal_segno_al_coda",
+                "to_coda"
+              ]
+            }
+          },
+          "required": [
+            "manifestation"
+          ]
+        },
+        "then": {
+          "required": [
+            "target"
+          ],
+          "properties": {
+            "repeat_count": {
+              "not": {}
+            }
+          }
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "manifestation": {
+                "const": "repeat_end"
+              }
+            },
+            "required": [
+              "manifestation"
+            ]
+          },
+          "then": {
+            "properties": {
+              "repeat_count": {
+                "default": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "repeat_count": {
+                "not": {}
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "target": {
+            "not": {}
+          },
+          "repeat_count": {
+            "not": {}
+          }
+        },
+        "if": {
+          "properties": {
+            "type": {
+              "const": "jump_to"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "manifestation": {
+              "enum": [
+                "repeat_start",
+                "segno",
+                "coda"
+              ]
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "manifestation": {
+              "enum": [
+                "fine",
+                "section_break",
+                "double_barline",
+                "final_barline"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "Order": {
+      "type": "array",
+      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.",
+      "items": {
+        "type": "string",
+        "pattern": "^[^\\u0000-\\u001f]+$"
+      },
+      "uniqueItems": true
+    },
+    "Statement": {
+      "type": "object",
+      "description": "One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.",
+      "properties": {
+        "select": {
+          "$ref": "#/$defs/Selector"
+        },
+        "set": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Declaration"
+            },
+            {
+              "type": "string",
+              "description": "The name of a style of the same `graphical` object's `styles`."
+            }
+          ]
+        }
+      },
+      "required": [
+        "select",
+        "set"
+      ]
+    },
+    "Selector": {
+      "type": "object",
+      "description": "An element matches when it matches every member present. The empty selector matches every element.",
+      "properties": {
+        "element": {
+          "$ref": "#/$defs/ElementType"
+        },
+        "addresses": {
+          "type": "array",
+          "description": "Addresses (`Address`); the element's address must equal one of them as a whole object, so every drawing of the element matches.",
+          "items": {
+            "$ref": "#/$defs/Address"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "domain": {
+          "type": "string",
+          "enum": [
+            "graphical",
+            "logical",
+            "physical"
+          ],
+          "description": "The domain of the element: what its time measures (graphical space, musical time, physical time)."
+        },
+        "modality": {
+          "type": "string",
+          "enum": [
+            "continuous",
+            "discrete"
+          ],
+          "description": "Whether the element is continuous or discrete."
+        },
+        "class": {
+          "type": "string",
+          "enum": [
+            "ContinuousLogicalTimeline",
+            "ContinuousPhysicalTimeline",
+            "ContinuousGraphicalTimeline",
+            "DiscreteLogicalTimeline",
+            "DiscretePhysicalTimeline",
+            "DiscreteGraphicalTimeline",
+            "ChainMap",
+            "CombinationMap",
+            "ConstantMap",
+            "FloatingMeasureMap",
+            "LinearMap",
+            "MeasureBeatMap",
+            "MeasureNumberMap",
+            "MeasureRecordMap",
+            "PiecewiseMap",
+            "TableMap"
+          ],
+          "description": "The class of the element: the timeline class its unit decides, or a conversion map's type."
+        },
+        "facet": {
+          "$ref": "#/$defs/Facet",
+          "description": "A facet: the element must be the band drawing that facet."
+        },
+        "within": {
+          "$ref": "#/$defs/Id",
+          "description": "A timeline ID: the element must belong to that timeline or to one of its descendants."
+        },
+        "inside": {
+          "$ref": "#/$defs/ElementType",
+          "description": "An element type: the element must be held, at any depth, by an element of that type in the drawing's element tree."
+        }
+      }
+    },
+    "ElementType": {
+      "type": "string",
+      "description": "The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker at a root's start or end), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), and an ancestor line of a member that is a child timeline (`ancestor`).",
+      "enum": [
+        "block",
+        "timeline",
+        "child",
+        "band",
+        "map",
+        "region",
+        "flow_marker",
+        "jump_from",
+        "wedge",
+        "name",
+        "label",
+        "boundary",
+        "ancestor",
+        "frame",
+        "card"
+      ]
+    },
+    "Paint": {
+      "type": "string",
+      "description": "A colour as #RRGGBB with upper-case hexadecimal digits, or none.",
+      "pattern": "^(#[0-9A-F]{6}|none)$"
+    },
+    "Declaration": {
+      "type": "object",
+      "description": "Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width and shadow are TimeToShare's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.",
+      "properties": {
+        "stroke": {
+          "$ref": "#/$defs/Paint"
+        },
+        "stroke-width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "stroke-dasharray": {
+          "type": "string",
+          "description": "none, or non-negative decimal numbers separated by single spaces.",
+          "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
+        },
+        "fill": {
+          "$ref": "#/$defs/Paint"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "font-size": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "rx": {
+          "type": "number",
+          "minimum": 0
+        },
+        "display": {
+          "type": "string",
+          "enum": [
+            "inline",
+            "none"
+          ]
+        },
+        "content": {
+          "type": "string"
+        },
+        "max-width": {
+          "oneOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "const": "none"
+            }
+          ]
+        },
+        "shadow": {
+          "$ref": "#/$defs/Paint"
+        }
+      }
+    },
+    "MapBase": {
+      "type": "object",
+      "description": "What every conversion map carries: its type, its ID, its name, and the units of the axes it converts from and to, either null where that side is not a time axis. Each map type adds its own members.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "The map type, which each map definition fixes."
+        },
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The map ID."
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The unit of the axis the map converts from, or null. Where stated, it is the unit of the timeline the map is attached to, or the source unit of the map holding it, as `ConversionMap` states."
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The unit of the axis the map converts to, or null."
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit"
+      ]
+    },
+    "LinearMap": {
+      "type": "object",
+      "description": "Maps x to scalar \u00b7 x + offset. Scaling, shifting and every conversion between two units of fixed ratio (quarters to ticks at a resolution, samples to seconds at a sample rate) are linear maps.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "LinearMap"
+        },
+        "scalar": {
+          "$ref": "#/$defs/Number",
+          "description": "The factor x is multiplied by.",
+          "default": 1
+        },
+        "offset": {
+          "$ref": "#/$defs/Number",
+          "description": "What is added to the product.",
+          "default": 0
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "TableMap": {
+      "type": "object",
+      "description": "Maps x by interpolating between anchor pairs (x_values[i], y_values[i]). The two arrays have equal length, at least two, and x_values increase strictly; both are checked after the schema.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "TableMap"
+        },
+        "x_values": {
+          "type": "array",
+          "description": "The anchor positions, strictly increasing.",
+          "items": {
+            "$ref": "#/$defs/Number"
+          },
+          "minItems": 2
+        },
+        "y_values": {
+          "type": "array",
+          "description": "The value at each anchor, one per x value.",
+          "items": {
+            "$ref": "#/$defs/Number"
+          },
+          "minItems": 2
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "previous"
+          ],
+          "description": "How a position between two anchors reads: linear interpolates between their values, previous takes the value of the last anchor at or before x.",
+          "default": "linear"
+        },
+        "extrapolate": {
+          "type": "string",
+          "enum": [
+            "none",
+            "constant",
+            "linear"
+          ],
+          "description": "How a position outside the anchors reads: none leaves it undefined, constant takes the value of the nearest anchor, linear continues the first or the last segment between two anchors.",
+          "default": "none"
+        }
+      },
+      "required": [
+        "type",
+        "x_values",
+        "y_values"
+      ]
+    },
+    "ConstantMap": {
+      "type": "object",
+      "description": "Maps every x to one value, a Number or a string such as a label or a file name.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "ConstantMap"
+        },
+        "value": {
+          "description": "The value of every input.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Number"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "value"
+      ]
+    },
+    "PiecewiseMap": {
+      "type": "object",
+      "description": "Maps x by the map of the interval holding it: maps[i] reads every x in [breaks[i], breaks[i+1]), and a position outside [breaks[0], the last break) is undefined. There is one map fewer than breaks, and the breaks increase strictly; both are checked after the schema.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "PiecewiseMap"
+        },
+        "breaks": {
+          "type": "array",
+          "description": "The interval bounds, strictly increasing.",
+          "items": {
+            "$ref": "#/$defs/Number"
+          },
+          "minItems": 2
+        },
+        "maps": {
+          "type": "array",
+          "description": "One map per interval, in the order of the intervals.",
+          "items": {
+            "$ref": "#/$defs/ConversionMap"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "breaks",
+        "maps"
+      ]
+    },
+    "ChainMap": {
+      "type": "object",
+      "description": "Maps x through its maps in turn, the first applied first: each map reads the value the one before it gives.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "ChainMap"
+        },
+        "maps": {
+          "type": "array",
+          "description": "The maps in the order they apply.",
+          "items": {
+            "$ref": "#/$defs/ConversionMap"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "type",
+        "maps"
+      ]
+    },
+    "CombinationMap": {
+      "type": "object",
+      "description": "Maps x to several named outputs at once, each the value one map gives for x: a measure number with its beat, or a pixel position with the file name of its image. The outputs carry no order.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "CombinationMap"
+        },
+        "maps": {
+          "type": "object",
+          "description": "The map of each output, keyed by the output's name.",
+          "additionalProperties": {
+            "$ref": "#/$defs/ConversionMap"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "maps"
+      ]
+    },
+    "MeasureView": {
+      "type": "object",
+      "description": "What every measure view carries beside the map base: its source unit, quarters, and the ID of the MeasureMap it reads. Each view adds its type, its target unit and its function.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "source_unit": {
+          "const": "quarters",
+          "description": "Quarters, the unit of every MeasureMap position."
+        },
+        "measure_map": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the MeasureMap the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+        }
+      },
+      "required": [
+        "measure_map"
+      ]
+    },
+    "MeasureRecordMap": {
+      "type": "object",
+      "description": "Maps a position x in quarters to the record of the measure holding it: the row of the MeasureMap that holds x, with every member its decompressed form carries.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MeasureView"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "MeasureRecordMap"
+        },
+        "target_unit": {
+          "const": null,
+          "description": "Null: the output is not a position on a time axis."
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "MeasureNumberMap": {
+      "type": "object",
+      "description": "Maps a position x in quarters to the number of the measure holding it: the `number` of the row of the MeasureMap that holds x, or the row's `count` where the row states no number.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MeasureView"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "MeasureNumberMap"
+        },
+        "target_unit": {
+          "const": null,
+          "description": "Null: the output is not a position on a time axis."
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "FloatingMeasureMap": {
+      "type": "object",
+      "description": "Maps a position x in quarters to floating measures, a measure ordinal followed by how far into that bar x lies (12.5 is the middle of the twelfth bar). The MeasureMap gives the knots: one per row, at the row's nominal downbeat, its qstamp minus its offset_within_measure, so the content of an incomplete bar sits where it is notated (a pickup of one eighth in 9/8 begins at 0.888); and a last knot at the end of the last row, its qstamp plus its actual_length. A knot carries the ordinal of its row, the last knot the ordinal after the last row's. Ordinals count rows, never measure numbers: the first row is 0 when it is an anacrusis (an offset_within_measure above 0 and an actual_length below its nominal_length) and 1 otherwise, and every following row adds one, through voltas and without reset. Between two knots the map is linear, and beyond the first and the last knot it continues the first and the last segment. A reading is truncated, never rounded, to three decimals, the resolution of floating measures. A MeasureMap in which two rows share a nominal downbeat (the halves of a split bar) has no floating measures.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MeasureView"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "FloatingMeasureMap"
+        },
+        "target_unit": {
+          "const": "floating_measures",
+          "description": "Floating measures."
+        }
+      },
+      "required": [
+        "type"
+      ]
+    },
+    "MeasureBeatMap": {
+      "type": "object",
+      "description": "Maps a position x in quarters to the pair of the measure number and the beat: the `number` of the row of the MeasureMap that holds x, or the row's `count` where the row states no number, and 1 plus the distance in quarters from that row's qstamp to x. Beats are 1-indexed and counted in quarters: beat 1 is the row's start, and a position halfway through its second quarter is beat 5/2.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MeasureView"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "MeasureBeatMap"
+        },
+        "target_unit": {
+          "const": null,
+          "description": "Null: the output is not a position on a time axis."
+        }
+      },
+      "required": [
+        "type"
+      ]
+    }
+  }
+}

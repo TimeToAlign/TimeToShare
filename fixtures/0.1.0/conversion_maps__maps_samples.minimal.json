@@ -1,0 +1,26 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "scalar": [
+            1,
+            48000
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "maps:samples",
+      "length": 96000,
+      "name": "Sample maps",
+      "unit": "samples"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

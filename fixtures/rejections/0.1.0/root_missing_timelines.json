@@ -1,0 +1,8 @@
+{
+  "code": "schema",
+  "manifest": {
+    "timetoshare": "0.1.0"
+  },
+  "path": [],
+  "reason": "A manifest holds its timelines, an array that may be empty."
+}

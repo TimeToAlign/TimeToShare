@@ -1,0 +1,35 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": null,
+          "offset": 0,
+          "scalar": 48000,
+          "source_unit": "seconds",
+          "target_unit": "samples",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "maps:seconds",
+      "is_segment_line": false,
+      "length": 2.0,
+      "locked": false,
+      "meta": {},
+      "name": "Second maps",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

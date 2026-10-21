@@ -1,0 +1,51 @@
+{
+  "code": "schema",
+  "manifest": {
+    "graphical": {
+      "order": {},
+      "statements": [
+        {
+          "select": {
+            "element": "name"
+          },
+          "set": {
+            "content": 5
+          }
+        }
+      ],
+      "styles": {}
+    },
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "bare",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": "Bare",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "graphical",
+    "statements",
+    0,
+    "set",
+    "content"
+  ],
+  "reason": "Content is a string."
+}

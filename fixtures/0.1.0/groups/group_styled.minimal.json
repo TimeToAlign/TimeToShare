@@ -1,0 +1,144 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score",
+        "page",
+        "performance"
+      ]
+    },
+    "statements": [
+      {
+        "select": {
+          "element": "frame"
+        },
+        "set": "frame-highlight"
+      },
+      {
+        "select": {
+          "addresses": [
+            {
+              "id": "group_1",
+              "part": [
+                "name"
+              ]
+            }
+          ],
+          "element": "name"
+        },
+        "set": {
+          "fill": "#7F00FF"
+        }
+      },
+      {
+        "select": {
+          "element": "card",
+          "inside": "frame"
+        },
+        "set": {
+          "rx": 2,
+          "shadow": "#C4B5FD"
+        }
+      }
+    ],
+    "styles": {
+      "frame-highlight": {
+        "stroke": "#7F00FF"
+      }
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "page",
+        "performance",
+        "score"
+      ],
+      "name": "Edition"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_3",
+          "scalar": [
+            3,
+            4
+          ],
+          "source_unit": "pixels",
+          "target_unit": "points",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "page",
+      "length": 1920,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_2",
+          "scalar": 44100,
+          "source_unit": "seconds",
+          "target_unit": "samples",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "performance",
+      "length": 12.5,
+      "name": "Performance",
+      "unit": "seconds"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_from_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "type": "jump_from"
+        }
+      ],
+      "id": "score",
+      "length": [
+        12,
+        1
+      ],
+      "name": "Score",
+      "regions": [
+        {
+          "end": [
+            8,
+            1
+          ],
+          "id": "region_1",
+          "name": "Theme",
+          "start": [
+            0,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

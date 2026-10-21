@@ -1,0 +1,70 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "performance",
+        "score"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "performance",
+        "score"
+      ],
+      "meta": {},
+      "name": "Edition"
+    }
+  ],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "performance",
+      "is_segment_line": false,
+      "length": null,
+      "locked": false,
+      "meta": {},
+      "name": null,
+      "number_type": "float",
+      "regions": [
+        {
+          "end": 9.5,
+          "id": "region_1",
+          "meta": {},
+          "name": null,
+          "start": 0.0
+        }
+      ],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "score",
+      "is_segment_line": false,
+      "length": [
+        12,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": null,
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

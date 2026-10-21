@@ -1,0 +1,115 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "exposition",
+        "take",
+        "system",
+        "audio"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "audio",
+        "exposition",
+        "system",
+        "take"
+      ],
+      "name": "Exposition"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (1d61e026)"
+  },
+  "timelines": [
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_2",
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "audio",
+      "length": 1323000,
+      "name": "Audio",
+      "unit": "samples"
+    },
+    {
+      "children": [
+        {
+          "id": "system",
+          "length": 600,
+          "locked": true,
+          "name": "System",
+          "offset": 0,
+          "unit": "pixels"
+        }
+      ],
+      "id": "page",
+      "length": 1754,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "children": [
+        {
+          "conversion_maps": [
+            {
+              "id": "cmap_1",
+              "scalar": 44100,
+              "source_unit": "seconds",
+              "target_unit": "samples",
+              "type": "LinearMap"
+            }
+          ],
+          "id": "take",
+          "length": 25.5,
+          "locked": true,
+          "name": "Take",
+          "offset": 30.0,
+          "unit": "seconds"
+        }
+      ],
+      "id": "session",
+      "length": 90.0,
+      "name": "Session",
+      "unit": "seconds"
+    },
+    {
+      "children": [
+        {
+          "id": "exposition",
+          "length": [
+            32,
+            1
+          ],
+          "locked": true,
+          "name": "Exposition",
+          "offset": [
+            16,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "sonata",
+      "length": [
+        48,
+        1
+      ],
+      "locked": true,
+      "name": "Sonata",
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.1.0"
+}

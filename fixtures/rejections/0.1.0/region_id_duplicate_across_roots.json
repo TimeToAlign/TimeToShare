@@ -1,0 +1,82 @@
+{
+  "code": "duplicate_id",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "performance",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [
+          {
+            "end": [
+              4,
+              1
+            ],
+            "id": "region_1",
+            "meta": {},
+            "name": null,
+            "start": [
+              0,
+              1
+            ]
+          }
+        ],
+        "unit": "quarters"
+      },
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [
+          {
+            "end": [
+              6,
+              1
+            ],
+            "id": "region_1",
+            "meta": {},
+            "name": null,
+            "start": [
+              2,
+              1
+            ]
+          }
+        ],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "timelines",
+    1,
+    "regions",
+    0,
+    "id"
+  ],
+  "reason": "IDs are unique across the manifest, not only within a root's tree; region_1 is a region of performance and of score, and the later one is reported."
+}

@@ -1,0 +1,51 @@
+{
+  "code": "band_order",
+  "manifest": {
+    "graphical": {
+      "order": {
+        "score": [
+          "children",
+          "conversion_maps",
+          "line",
+          "markers",
+          "regions",
+          "flow_control",
+          "score/regions_1"
+        ]
+      },
+      "statements": [],
+      "styles": {}
+    },
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.1.0"
+  },
+  "path": [
+    "graphical",
+    "order",
+    "score",
+    6
+  ],
+  "reason": "A band order names a facet by its word alone; score/regions_1, a timeline ID joined to a numbered band, is neither line nor a facet."
+}

@@ -1,0 +1,195 @@
+# release-please keeps one release pull request open, carrying the next version and
+# its changelog entry. Merging it tags vX.Y.Z and creates the GitHub release; the
+# publish job then checks that every version declaration carries X.Y.Z, tests and
+# builds the Python and the npm package and publishes both. The pages job serves the
+# schema of every released version on this repository's Pages site, and the org-site
+# job adds the released schema to the organisation site, at the address its `$id`
+# names (see decisions/0008-oidc-dual-package-release.md). PyPI is published through
+# trusted publishing (OIDC) and no token is stored for it; npm through trusted
+# publishing as well, falling back to the NPM_TOKEN secret, which only the package's
+# first publish needs (see the npm step). A TimeToShare version is a schema version,
+# so it is never computed from the commits: the commit that adds a schema version
+# carries a `Release-As: X.Y.Z` footer (see CONTRIBUTING.md).
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    name: Release pull request and tag
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      # Refuses to tag a merged release pull request whose version is not the
+      # version every declaration in the repository carries. A merged release pull
+      # request is the push that changes the version in an existing manifest.
+      - name: A merged release pull request names the declared version
+        run: |
+          manifest_version() { python3 -c 'import json, sys; print(json.load(sys.stdin)["."])'; }
+          before=$(git show HEAD^:.release-please-manifest.json 2>/dev/null | manifest_version || true)
+          after=$(manifest_version < .release-please-manifest.json)
+          if [ -n "$before" ] && [ "$before" != "$after" ]; then
+            python3 scripts/check_versions.py --tag "v$after"
+          fi
+      - id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: Publish to PyPI and npm
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+
+      - name: Version declarations carry the tag
+        run: python3 scripts/check_versions.py --tag "${{ needs.release-please.outputs.tag_name }}"
+
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+        working-directory: python
+      - run: uv run ruff check . && uv run ruff format --check . && uv run pytest -q
+        working-directory: python
+      - name: Build the Python package
+        run: uv build
+        working-directory: python
+      - name: Check the Python distributions
+        run: uvx twine check --strict python/dist/*
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: js/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - run: pnpm install --frozen-lockfile
+        working-directory: js
+      - run: pnpm lint && pnpm typecheck && pnpm test
+        working-directory: js
+      - run: pnpm build
+        working-directory: js
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
+          # A re-run after a failed npm step finds the Python files published.
+          skip-existing: true
+
+      - name: Trusted publishing needs npm 11.5.1 or later
+        run: npm install -g npm@latest
+      # npm tries trusted publishing first and falls back to the token. Trusted
+      # publishing can only be configured for a package that already exists on the
+      # registry, so the first publish of a new package authenticates with the
+      # NPM_TOKEN secret. Once trusted publishing is configured the secret can be
+      # deleted; the token is then empty and only trusted publishing is used.
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        working-directory: js
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  pages:
+    name: Serve every released schema on GitHub Pages
+    needs: [release-please, publish]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      # The tree holds only the current schema version, and a deployment replaces the
+      # whole site, so the site is assembled from every release tag: each released
+      # schema stays served at
+      # https://timetoalign.github.io/TimeToShare/<version>/timetoshare.schema.json.
+      - name: Assemble the schema of every released version
+        run: |
+          for tag in $(git tag --list 'v[0-9]*.[0-9]*.[0-9]*'); do
+            version=${tag#v}
+            mkdir -p "site/$version"
+            git show "$tag:schema/$version/timetoshare.schema.json" \
+              > "site/$version/timetoshare.schema.json"
+          done
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  org-site:
+    name: Serve the released schema at its $id on the organisation site
+    needs: [release-please, publish]
+    if: needs.release-please.outputs.release_created == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name }}
+          path: timetoshare
+      # The organisation site TimeToAlign/timetoalign.github.io serves
+      # https://timetoalign.github.io/timetoshare/<version>/timetoshare.schema.json,
+      # the lowercase address every schema names as its `$id`. A Pages path is
+      # case-sensitive, so the repository's own site at /TimeToShare/ cannot serve it.
+      # The deploy key ORG_SITE_DEPLOY_KEY may push to that repository alone.
+      - uses: actions/checkout@v7
+        with:
+          repository: TimeToAlign/timetoalign.github.io
+          ssh-key: ${{ secrets.ORG_SITE_DEPLOY_KEY }}
+          path: site
+      # Adds the released schema to the organisation site's default branch, and
+      # commits nothing when the site already holds that file, so a re-run is harmless.
+      - name: Add the released schema to the organisation site
+        env:
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          version=${TAG#v}
+          mkdir -p "site/timetoshare/$version"
+          cp "timetoshare/schema/$version/timetoshare.schema.json" \
+            "site/timetoshare/$version/timetoshare.schema.json"
+          cd site
+          git add "timetoshare/$version/timetoshare.schema.json"
+          if git diff --cached --quiet; then
+            echo "The organisation site already serves the $version schema."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "add the TimeToShare $version schema"
+          git push origin HEAD
