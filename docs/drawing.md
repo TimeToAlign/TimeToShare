@@ -38,17 +38,20 @@ containers are the **boxes** of a drawing.
     400): the distance from a root's start to its end;
   - `spacing`, the block's **spacing**, the gap in canvas units between its
     items that lie at their default `y` (section 8.6), a finite number ≥ 0
-    (default 8). A frame's and a card's spacing are entries of `places`
-    (section 8.6); none multiplies another;
+    (default 8);
+  - `margin`, the block's **margin**, empty space in canvas units drawn
+    above its first item and below its last (section 8.4), a finite
+    number ≥ 0 (default 0). A frame's and a card's spacing and margin are
+    entries of `places` (section 8.6); none multiplies another;
   - `width` and `height`, the requested **block size** in canvas units, or
     `null` (the default) for the content's own size;
   - `places`, the **places** of the block's items and the sizes of its
     members' cards (section 8.6): an object keyed by the ID of a group
     (its frame) and by the ID of an ungrouped root (its card), each value
     an object with any of the members `x`, `y`, `length`, `scale`,
-    `spacing`, `width` and `height`; a group's value may also hold
+    `spacing`, `margin`, `width` and `height`; a group's value may also hold
     `cards`, an object keyed by the ID of a member `T`, whose value states
-    the `width`, `height` and `spacing` of `T`'s card in that group's
+    the `width`, `height`, `spacing` and `margin` of `T`'s card in that group's
     frame, so that `places[G].cards[T]` is the card of member `T` in the
     frame of group `G` (default `{}`).
 - `layers`: the statement lists that style the drawing, from the lowest to
@@ -76,29 +79,39 @@ change one input each:
 |---|---|---|
 | Scale | scale `z` | everything scales, proportions kept, text included |
 | Box | `width`, `height` | only the block changes; the content keeps its place at the top left; the block never becomes smaller than the content (section 8.4) |
-| Stretch | `length` (horizontal), `spacing` (vertical), both (a corner); `width`, `height` where a block size is requested | horizontally, distances along time stretch; vertically, the gaps between the container's contents grow or shrink; markers, line widths and text keep their size; the block follows the content (below) |
+| Stretch | `length` (horizontal), `spacing`, or `margin` for a container with exactly one content (vertical), both (a corner); `width`, `height` where a block size is requested | horizontally, distances along time stretch; vertically, the gaps between the container's contents grow or shrink, or, in a container with exactly one content, the equal margins above and below it; markers, line widths and text keep their size; the block follows the content (below) |
 
 On a stretch, a requested block size larger than the content keeps its
 proportion to the content, so the block follows the stretched content and
-every margin it adds stretches with it: `width` (or `height`) becomes the
+the room the request adds stretches with it: `width` (or `height`) becomes the
 request times the stretched content's size divided by the content's size
 before the stretch, multiplied first, in binary64 (an editor may round the
 result to the grid it stores numbers on). A request no larger than the
 content before the stretch becomes `null`, and `null` stays `null`. A
 horizontal Stretch of the block scales every `x`, `length` and `width` that
-`places` states by the ratio of the lengths, and keeps every `scale`; a
-vertical Stretch changes the block's `spacing` alone, so it moves the items
-at their default `y` and keeps every stated `y` and `height`.
+`places` states by the ratio of the lengths, and keeps every `scale`.
+
+A container's **contents** are a block's items, a frame's cards, a card's
+root row, the root's present bands (section 6.4) and its ancestor band
+(section 8.3) when it has one. A vertical Stretch of a container with two
+or more contents changes its `spacing`; with exactly one it changes its
+`margin` instead, the gaps being none, so that the container grows or
+shrinks by equal margins above and below its contents (sections 6.5 and
+8.4), and its `spacing` is unchanged; with none it changes its
+`spacing`. Scale, Box and the horizontal Stretch keep every `margin`. A
+vertical Stretch of the block so changes its `spacing` or its `margin`
+alone: it moves the items at their default `y` and keeps every stated `y`
+and `height`.
 
 Every frame and card of the block is resized in the same three ways,
 changing entries of `places` only (section 8.6). An item, a group's frame
 or an ungrouped root's card: Scale changes its `scale`, Box its `width`
-and `height`, Stretch its `length` (horizontal), its `spacing` (vertical)
-or both (a corner), its `width` and `height` following the stretched
+and `height`, Stretch its `length` (horizontal), its `spacing` or `margin`
+(vertical, as above) or both (a corner), its `width` and `height` following the stretched
 content as the block's do. The card of a member `T` in the frame of a group
 `G`: Scale and the horizontal Stretch change `G`'s `scale` and `length`, since
 the members of a group share them; the vertical Stretch changes the card's
-own `spacing`, and Box its own `width` and `height`, the entry
+own `spacing`, or its own `margin` when the card has exactly one content, and Box its own `width` and `height`, the entry
 `places[G].cards[T]`, so the cards of the same member in other groups' frames keep
 theirs. An item's or card's content,
 for this rule, is its frame or card without its own request (for a
@@ -109,10 +122,11 @@ of a frame or card whose content a Stretch of an item or a member's card
 changes keeps its proportion to
 that content by the rule above: a horizontal Stretch of a group, from its
 frame or a member's card, rescales every requested width of the frame and
-of its members' cards, so the members' lines keep one length and every
-margin stretches with them; a vertical Stretch of a frame, which changes
-only the gaps between its cards, rescales its own requested height, and of
-a card its own and its frame's.
+of its members' cards, so the members' lines keep one length and the room
+every request adds stretches with them; a vertical Stretch of a frame,
+which changes only the gaps between its cards or the margins around its
+one card, rescales its own requested height, and of a card, which changes
+its gaps or its margins, its own and its frame's.
 
 ## 2. The `graphical` object
 
@@ -1012,15 +1026,15 @@ order of first fit (section 7.2).
 **Flow markers.** A displayed flow marker is a vertical line at `x` of its coordinate, from
 the flow row across the line of the band's timeline to the far side of
 that timeline's own drawing. For the root it runs across every band to the
-padding of the opposite side: from `(x, yf)` to `(x, P)` when the flow
-control band lies below the root's line and to `(x, Hc − P)` when it
-lies above it (section 6.5), ordinates of the member drawing counted from
-its top (section 8.4). For every other timeline it runs from `(x, yf)` to
+card margin `V` of the opposite side, inside its padding: from `(x, yf)`
+to `(x, P + V)` when the flow control band lies below the root's line and
+to `(x, Hc − P − V)` when it lies above it (section 6.5), ordinates of the
+member drawing counted from its top (section 8.4). For every other timeline it runs from `(x, yf)` to
 `(x, yl − mb)` when the band lies below the timeline's line and to `(x, yl +
 mb)` when it lies above it, `mb = max(E, h(s) / 2)`, `E` the outer edge of
 the timeline's opposite side and `s` the name size of the row its line
 lies in (section 6.2): the distance at which the root's
-padding lies beyond the root's line, `s` there the root's name size
+margin begins beyond the root's line, `s` there the root's name size
 (section 6.5). So a flow marker crosses its own timeline's drawing from its flow
 row to the far side, as the root's crosses the member drawing, and stays
 inside the room the timeline's row takes (Children): of other timelines'
@@ -1034,11 +1048,16 @@ timeline's line.
 
 ### 6.5 Heights
 
-The root's line lies at `y_root = max(P + Ea, P + h(s) / 2)`, `Ea`
+The root's line lies at `y_root = max(P + Ea, P + h(s) / 2) + V`, `Ea`
 the outer edge of the root's above side (section 6.4), its descendants'
-drawings included in its children band. The content's height is
-`Hc = y_root + max(Eb, h(s) / 2) + P`, `Eb` the outer edge of the below
-side. Here `s` is the root's row's name font size.
+drawings included in its children band, and `V` the **card margin** of
+the member drawing (section 8.6), drawn inside the padding above the
+first row or band. The content's height is
+`Hc = y_root + max(Eb, h(s) / 2) + V + P`, `Eb` the outer edge of the below
+side, the card margin drawn again inside the padding below the last row or
+band. Here `s` is the root's row's name font size. So a card margin `V`
+adds `V` to the card above its contents and `V` below them, and moves its
+contents `V` down.
 
 **A root whose line is not displayed** hides its whole drawing (section
 2.4): none of its bands is present and its line reaches nothing, so the
@@ -1046,14 +1065,14 @@ outer edges of both its sides are 0. Its row remains, with the name size
 `s` and the pitch `p0` of section 6.2, which count its name although the
 name is hidden. The formulas above then hold with `Eb = 0` and with `Ea`
 the outer edge of its ancestor band (section 8.3), or 0 when it has none:
-`y_root = max(P + Ea, P + h(s) / 2)` and `Hc = y_root + h(s) / 2 +
-P`. Its ancestor band, when it has one, starts at `max(p0 / 2, S)`, the
+`y_root = max(P + Ea, P + h(s) / 2) + V` and `Hc = y_root + h(s) / 2 +
+V + P`. Its ancestor band, when it has one, starts at `max(p0 / 2, S)`, the
 start of section 8.3 with `Ea` and `wm` 0. Such a member
 drawing draws its displayed ancestor lines, with their displayed names,
 marks and mark labels, and nothing else, and lies in its card, `Hm = Hc`
 high, as every member drawing does (section 8.4). One without a displayed
-ancestor line draws nothing: `y_root = P + h(s) / 2` and `Hc = y_root
-+ h(s) / 2 + P`, and it gives section 8.2 no name, no centred label
+ancestor line draws nothing: `y_root = P + h(s) / 2 + V` and `Hc = y_root
++ h(s) / 2 + V + P`, and it gives section 8.2 no name, no centred label
 and no right edge.
 
 ### 6.6 Elements
@@ -1423,8 +1442,8 @@ root of unknown length is drawn with its reach at the shared end (section
   every card of `M` addressed `{"id": M, "part": ["card"]}` (section 2.2).
   A timeline that several groups have
   as a member is so drawn once in each of their frames, each drawing laid
-  out with its own frame's length and scale and its own card's spacing
-  and size (section 8.6), and its elements carry the same addresses in
+  out with its own frame's length and scale and its own card's spacing,
+  margin and size (section 8.6), and its elements carry the same addresses in
   every one. The card is the same whether it lies on the grey block or in a
   frame.
 - **Member drawings.** A **member drawing** is the drawing of sections 3
@@ -1563,8 +1582,9 @@ band is `i1 + o1 + … + ik + ok` wide, summed in that order.
 ### 8.4 Vertical
 
 Every member drawing has its own height `Hm`, its content height `Hc` of
-section 6.5 with its ancestor band included in `Ea`; its card is `Hm` high,
-and the drawing's top is the card's top. The card padding `K` is
+section 6.5 with its ancestor band included in `Ea` and its card margin
+`V` above and below; its card is `Hm` high, and the drawing's top is the
+card's top. The card padding `K` is
 horizontal only: above and below, the member drawing's own padding `P`
 (section 6.5) lies inside the card. A card's shadow lies 2 to the
 right of and 2 below the card.
@@ -1579,11 +1599,14 @@ and `height`, and its right and bottom edges are `b + 2` and `d + 2`.
 - **A frame** is laid out from its top: the title's baseline lies at `top +
   Q + a(s)`, `s` the title's font size, so the title sits at the top of a
   slot `h(s)` high, unlike a row name, which is centred on its row. The
-  first card starts at `top + Q + h(s) + 4` (at `top + Q` when the title is
-  not displayed), and each further one the frame's spacing `Sf` below the
-  previous one's bottom (section 8.6). The frame is `Q + h(s) + 4 + Hm1 +
-  Sf + Hm2 + … + Sf + Hmn + Q` high, summed in that order, without `h(s) +
-  4` when the title is not displayed.
+  frame's margin `Vf` (section 8.6) lies after the title's gap: the first
+  card starts at `top + Q + h(s) + 4 + Vf` (at `top + Q + Vf` when the
+  title is not displayed), and each further one the frame's spacing `Sf`
+  below the previous one's bottom (section 8.6); the margin lies again
+  after the last card, before the bottom padding `Q`. The frame is `Q +
+  h(s) + 4 + Vf + Hm1 + Sf + Hm2 + … + Sf + Hmn + Vf + Q` high, summed in
+  that order, without `h(s) + 4` when the title is not displayed, and
+  without either `Vf` when it holds no card.
 - **The block.** The manifest's title, when there is one, lies at the block's
   top left corner: drawn at `x = Xl + P`, with its baseline at `Yt + P +
   a(s)`, both in place coordinates (below), so in the block at `P` and `P +
@@ -1605,12 +1628,15 @@ left edge of any frame or card minus `P`, to `Xr`, `P` plus the largest
 right edge of any frame or card, a card's shadow included, or of the
 manifest's displayed title, whose right edge is `Xl + P` plus its width;
 and from `Yt`, the smaller of 0 and the smallest top of any frame or card
-minus `Pt`, to `Yb`, `P` plus the largest bottom edge of any frame or card,
-a card's shadow included, or of the manifest's displayed title, whose slot
+minus `Pt`, to `Yb`, `P` plus the larger of the largest bottom edge of any
+frame or card, a card's shadow included, plus the block's margin `Vb`
+(section 8.6), and of the manifest's displayed title, whose slot
 ends at `Yt + P + h(s)` (`Xr = 2P + K` and `Yb = P` when the block holds none
-of these). `Pt` is `P + h(s) + F` when the manifest's title is displayed,
-`s` its font size, and `P` otherwise, so that an item never rises above
-`F` below the title's slot.
+of these). `Pt` is `P + h(s) + F + Vb` when the manifest's title is displayed,
+`s` its font size, and `P + Vb` otherwise, so that an item never rises above
+`F + Vb` below the title's slot. The block's margin so lies, as its padding
+does, between the title's gap (or the top padding) and the highest item,
+and between the lowest item and the bottom padding.
 The content is `Wb = Xr − Xl` wide and `Hb = Yb − Yt` high, the sum with
 `P` taken first: `Wb = (P + max(b + 2, …)) − Xl`, and `Hb` likewise. The place origin lies at
 `(Ox, Oy) = (0 − Xl, 0 − Yt)` in the block, so an origin of 0 is `+0`; it is
@@ -1648,25 +1674,27 @@ name.
 Every item of the block, a group's frame or an ungrouped root's card, lies at
 a **place**: its left edge `x` and its top `y`, measured from the place
 origin in canvas units, its graphical length `length`, its **scale**
-`scale` (positive), its `spacing` (finite, ≥ 0), and its
-requested size `width` and `height` (positive, or left out for its
+`scale` (positive), its `spacing` (finite, ≥ 0), its `margin` (finite,
+≥ 0), and its requested size `width` and `height` (positive, or left out for its
 content's own size). `places` (section 1) states any of
 these members for the item whose ID is its key, and a group's entry states
 in its `cards`, under a member's ID `M`, the card of `M` in that group's
 frame, `places[G].cards[M]`. A key naming no item, such as a member's ID
 at the top of `places`, or a key of `cards` that is not a member of its
 group, is not used, and so is any of a value's members that this section
-gives no use for (a member's card uses only `width`, `height` and
-`spacing`, and an ungrouped root's card no `cards`). A member that is not stated takes its default:
+gives no use for (a member's card uses only `width`, `height`,
+`spacing` and `margin`, and an ungrouped root's card no `cards`). A member that is not stated takes its default:
 
 - `length`: the placement's `length`;
 - `scale`: 1;
 - `spacing`: 8 for a frame, 4 for a card;
+- `margin`: 0;
 - `width` and `height`: none, the content's own size;
 - `x`: `P`;
-- `y`: for the first item in drawing order (section 8.5), `P + h(s) + F`
-  below the manifest's title, `s` its font size, or `P` when there is no
-  title or it is not displayed; for every further item, the block's spacing
+- `y`: for the first item in drawing order (section 8.5), `P + h(s) + F +
+  Vb` below the manifest's title, `s` its font size and `Vb` the block's
+  margin, or `P + Vb` when there is no title or it is not displayed; for
+  every further item, the block's spacing
   below the largest bottom edge `d` of the items before it. That edge is
   the frame's or card's `d` of section 8.4, its place `y` plus `scale` times its
   height, summed in place coordinates before any shift; a card's shadow does not count, and
@@ -1693,19 +1721,24 @@ member `M` drawn in the frame of group `G` (section 1), or the entry under
 the ungrouped root's ID. A group's entry states its frame's
 spacing `Sf`, the gap between its member cards (section 8.4); the
 placement's `spacing` is the gap between the block's items at their default
-`y`. Each container's spacing spaces only its own contents: no spacing
+`y`. The **card margin** `V` of a member drawing (section 6.5) is its
+card's `margin`, from the same entry; a group's entry states its frame's
+margin `Vf`, and the placement's `margin` is the block's margin `Vb`
+(section 8.4). A container's margin is drawn inside its padding, above its
+contents and below them (section 1), and changes no width. Each
+container's spacing and margin space only its own contents: none
 multiplies another, and a frame's padding `Q`, its title's slot, the block's
 padding `P` and the card's padding `P` above and below do not change with
 any of them.
 
-A **member's card** may request a size and a spacing of its own:
+A **member's card** may request a size, a spacing and a margin of its own:
 the entry `places[G].cards[M]`, for the card of member `M` in the frame
 of group `G`, states its `width` and `height`, in item coordinates, before
-`G`'s scale, and its `spacing`, and nothing else of it is used; the cards
+`G`'s scale, its `spacing` and its `margin`, and nothing else of it is used; the cards
 of `M` in other groups' frames take their own entries. The card is then the larger of its own width and `width` wide,
 spanning `Q` to `max(Ri + K, Q + width)`, and the larger of `Hm` and
 `height` high; its member drawing keeps its place at the card's top left,
-so the request adds a margin to its right and below. The frame holding it
+so the request adds room to its right and below. The frame holding it
 grows with it: the frame spans `0` to the largest right edge of its cards
 plus `Q`, and its height sums its cards' heights.
 
@@ -1728,6 +1761,6 @@ drawn edges, after the scale.
 
 The members of a group are never placed: they lie one under the other in
 their frame, in the group's display order (section 8.1), and only that order
-changes; their cards may only request a size and a spacing. The bands of every timeline likewise lie outwards from its own line
+changes; their cards may only request a size, a spacing and a margin. The bands of every timeline likewise lie outwards from its own line
 in its band order (section 6.4).
 
