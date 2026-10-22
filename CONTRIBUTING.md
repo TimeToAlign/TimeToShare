@@ -134,8 +134,11 @@ request with that version and its changelog entry. Merging the pull request
 tags `vX.Y.Z` and creates the GitHub release. The release job fails when the
 version differs from the declarations, and the publish job checks the tag
 again before publishing. It then runs the Python and JavaScript checks, builds
-both packages, and publishes them through OIDC trusted publishing, the first
-npm publish excepted (below). Do not push version tags by hand.
+both packages, and publishes them through OIDC trusted publishing. Do not
+push version tags by hand. When publishing fails part-way, run the Release
+workflow by hand from the Actions tab with the release tag (`v0.1.0`) as its
+input: it publishes that release again, skipping every file a registry
+already holds, and serves its schema again.
 
 The workflow then publishes the schema document of every released tag at
 two addresses. The pages job deploys this repository's own site,
@@ -160,11 +163,6 @@ registry:
 | PyPI | `timetoshare` | `TimeToAlign` | `TimeToShare` | `release.yml` | `release` |
 | npm | `@timetoalign/timetoshare` | `TimeToAlign` | `TimeToShare` | `release.yml` | `release` |
 
-npm configures a trusted publisher only for a package that exists, so the
-first publish of `@timetoalign/timetoshare` uses a token: store a granular
-npm access token with read and write permission on the `@timetoalign` scope
-(a token limited to listed packages cannot create a new one) as the
-`NPM_TOKEN` secret before the first release, configure the trusted
-publisher once the package exists, and then delete the secret. The npm
-step tries trusted publishing first and falls back to `NPM_TOKEN` only
-while the secret exists.
+npm configures a trusted publisher only for a package that exists; the
+package exists since 0.1.0, and its trusted publisher allows `npm publish`
+only. No registry token is stored.

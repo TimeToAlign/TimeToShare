@@ -31,11 +31,13 @@ https://docs.pypi.org/trusted-publishers/, https://docs.npmjs.com/trusted-publis
 and https://docs.github.com/actions/security-for-github-actions/security-hardening-your-deployments/about-security-hardening-with-openid-connect.
 
 npm configures a trusted publisher only for a package that already exists,
-so the first publish of the npm package authenticates with an `NPM_TOKEN`
-secret. The npm step tries trusted publishing first and uses the token only
-while the secret exists; it is deleted once the trusted publisher is
-configured. PyPI accepts a trusted publisher for a project before its first
-release and needs no token.
+so the npm package's first version was published by a maintainer; every
+later version is published through trusted publishing and no token is
+stored. PyPI accepts a trusted publisher for a project before its first
+release and needs no token. A manual run of the workflow naming a release
+tag publishes that release again and skips every file a registry already
+holds, so a release whose publishing failed part-way is completed without a
+new version.
 
 Every released schema is served at two addresses. Its `$id` is lowercase,
 `https://timetoalign.github.io/timetoshare/<version>/timetoshare.schema.json`,
@@ -66,8 +68,8 @@ So two jobs follow the publishing:
 
 ## Consequences
 
-The workflow depends on a token only for the npm package's first publish,
-and on nothing that enters a package's runtime. GitHub Actions and publisher
+The workflow depends on no registry token and on nothing that enters a
+package's runtime. GitHub Actions and publisher
 actions carry their own licences and transitive action dependencies. One
 release cadence keeps versions aligned; exiting to separate tags costs
 process and version checks. Writing OIDC exchange logic ourselves would add

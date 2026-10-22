@@ -5,9 +5,9 @@
 # schema of every released version on this repository's Pages site, and the org-site
 # job adds the released schema to the organisation site, at the address its `$id`
 # names (see decisions/0008-oidc-dual-package-release.md). PyPI is published through
-# trusted publishing (OIDC) and no token is stored for it; npm through trusted
-# publishing as well, falling back to the NPM_TOKEN secret, which only the package's
-# first publish needs (see the npm step). A TimeToShare version is a schema version,
+# trusted publishing (OIDC), and so is npm; no registry token is stored. A manual run
+# naming a release tag publishes that release again, skipping every file a registry
+# already holds, and serves its schema again. A TimeToShare version is a schema version,
 # so it is never computed from the commits: the commit that adds a schema version
 # carries a `Release-As: X.Y.Z` footer (see CONTRIBUTING.md).
 name: Release
@@ -15,8 +15,14 @@ name: Release
 on:
   push:
     branches: [main]
-  # Lets a maintainer re-run the release pull request and publishing by hand.
+  # Lets a maintainer run release-please by hand, or publish an existing release tag
+  # again after a failed publish.
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "An existing release tag to publish again, such as v0.1.0; empty runs release-please only"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -56,19 +62,21 @@ jobs:
   publish:
     name: Publish to PyPI and npm
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    if: needs.release-please.outputs.release_created == 'true' || inputs.tag != ''
     runs-on: ubuntu-latest
     environment: release
     permissions:
       contents: read
       id-token: write
+    env:
+      TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ needs.release-please.outputs.tag_name }}
+          ref: ${{ env.TAG }}
 
       - name: Version declarations carry the tag
-        run: python3 scripts/check_versions.py --tag "${{ needs.release-please.outputs.tag_name }}"
+        run: python3 scripts/check_versions.py --tag "$TAG"
 
       - uses: astral-sh/setup-uv@v10.2.0
         with:
@@ -106,21 +114,22 @@ jobs:
 
       - name: Trusted publishing needs npm 11.5.1 or later
         run: npm install -g npm@latest
-      # npm tries trusted publishing first and falls back to the token. Trusted
-      # publishing can only be configured for a package that already exists on the
-      # registry, so the first publish of a new package authenticates with the
-      # NPM_TOKEN secret. Once trusted publishing is configured the secret can be
-      # deleted; the token is then empty and only trusted publishing is used.
+      # A re-run finds a version the registry already holds and publishes nothing.
       - name: Publish to npm
-        run: npm publish --provenance --access public
+        run: |
+          package=$(node -p 'require("./package.json").name')
+          version=$(node -p 'require("./package.json").version')
+          if [ "$(npm view "$package@$version" version 2> /dev/null)" = "$version" ]; then
+            echo "npm already holds $package@$version."
+          else
+            npm publish --provenance --access public
+          fi
         working-directory: js
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   pages:
     name: Serve every released schema on GitHub Pages
     needs: [release-please, publish]
-    if: needs.release-please.outputs.release_created == 'true'
+    if: needs.release-please.outputs.release_created == 'true' || inputs.tag != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -156,14 +165,14 @@ jobs:
   org-site:
     name: Serve the released schema at its $id on the organisation site
     needs: [release-please, publish]
-    if: needs.release-please.outputs.release_created == 'true'
+    if: needs.release-please.outputs.release_created == 'true' || inputs.tag != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: ${{ needs.release-please.outputs.tag_name }}
+          ref: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
           path: timetoshare
       # The organisation site TimeToAlign/timetoalign.github.io serves
       # https://timetoalign.github.io/timetoshare/<version>/timetoshare.schema.json,
@@ -179,7 +188,7 @@ jobs:
       # commits nothing when the site already holds that file, so a re-run is harmless.
       - name: Add the released schema to the organisation site
         env:
-          TAG: ${{ needs.release-please.outputs.tag_name }}
+          TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
         run: |
           version=${TAG#v}
           mkdir -p "site/timetoshare/$version"
