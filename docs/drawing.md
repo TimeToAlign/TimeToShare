@@ -67,7 +67,7 @@ The drawing is a **block** of width `W` and height `H` and a list of drawn
 y downwards, and the block-local position `(Ox, Oy)` of the **place origin**,
 from which places are measured (section 8.6). Every element carries its
 **address** (section 2.2) and, where it shows a coordinate, the exact
-coordinate it shows. Canvas units become
+coordinate it shows, whatever its label's text (section 5.2). Canvas units become
 pixels in SVG and points in TikZ (section 7).
 
 A drawing does not depend on its position on a canvas, nor on its scale: a
@@ -465,8 +465,8 @@ float; 0 when `λ` is 0. Its x in item coordinates (section 8.2) is
     x(t) = x0 + L × u
 
 in binary64, `x0` the start of the root's line (section 8.2). This is the
-only step from an exact value to a double, at any depth of nesting. Labels
-show the exact coordinate, never the double.
+only step from an exact value to a double, at any depth of nesting. A
+label is spelled from the coordinate (section 5.2), never from the double.
 
 ### 3.3 Canvas arithmetic
 
@@ -654,10 +654,17 @@ cannot carry most of them. IDs hold none: the schema refuses them.
 ### 5.2 Coordinates
 
 A coordinate is labelled with the text of its value, a space (U+0020) and
-the symbol of its unit. The text of a value is its JSON form: an integer in
-decimal (`96`), a Fraction pair `[n, d]` as `n/d` (`3/2`), or `n` when `d`
-is 1; a float as the standard writer spells it, which is Python's `repr`
-(`1.5`, `6.0`, `1e-05`).
+the symbol of its unit. The text of an exact value is its JSON form: an
+integer in decimal (`96`), a Fraction pair `[n, d]` as `n/d` (`3/2`), or
+`n` when `d` is 1. A float is first rounded to three decimal places as
+Python's `round(x, 3)` rounds it: the exact value of the double to the
+nearest multiple of 1/1000, ties to even, the result being the double
+nearest that multiple; the result is then spelled as the standard writer
+spells a float, which is Python's `repr`. So 312.48979591836735 is labelled
+`312.49`, 6.71875 `6.719`, 0.0625 `0.062`, 1.5 `1.5`, 6.0 `6.0` and 1e-05
+`0.0`: a float label shows at most three decimals and keeps the `.0` that
+marks a float axis. Only the text is rounded: the element carries the exact
+coordinate (section 1), and no position is computed from its label.
 
 | Unit | Symbol |
 |---|---|
@@ -844,12 +851,26 @@ pitch** of its timeline, the pitch of the row its line lies in (section
 6.2; `p0` for the root), so that the rows of a side, its timeline's
 included, lie one pitch apart when nothing widens them; the band starts
 as Children lays it out, together with the children bands of the other
-lines of that row. The markers band
+lines of that row. A conversion maps band's own start is the start these
+rules give it, and the band starts as Conversion maps lays it out, together
+with the conversion maps bands of the other lines of its row. The markers band
 and the conversion maps band are two bands, never over each other: on one
 side they lie at two levels, the outer starting at least `S` beyond the
 outer edge of the inner. The **outer edge of a side** of a timeline is
 that of its outermost band there, or, when no band is present there, the
 line's reach on that side.
+
+**The order of the starts.** A band's own start needs the outer edge of
+the band at the level before it, and the start of bands laid out together
+needs the own start of each of them. Children bands laid out together may
+lie at different levels; conversion maps bands laid out together lie at
+one level, and are kept apart where their lines' children bands lie on
+different sides of them (Conversion maps). So no start needs itself, and
+the starts of one side of a row are found step by step, until every band
+is laid out: each step lays out a band, with every band laid out together
+with it, once every band that lies between one of them and its line is
+laid out. Every
+order of the steps gives the same starts.
 
 **Level 0.** A timeline's line reaches out on each side as every line does
 (Segment lines, below): by its map stack (Conversion maps) and, when it is
@@ -862,15 +883,55 @@ the line's boundaries, and every other band beyond them and its segment
 labels.
 
 **Conversion maps.** The conversion maps band of a timeline holds its
-displayed maps (section 2.4), in canonical order. With `w` the stroke width of the
-timeline's line and `c` the start of the band, map `j` (from 1) is centred
-`c + w / 2 + j × (g + d) − d / 2` from that line on the band's side, so
-that the first map lies `g` beyond `c + w / 2`, the line's edge when `c`
-is 0, and each next one `g` beyond the one before. `J` maps are `e = w / 2
-+ J × (g + d)` wide (0 when `J = 0`). At level 1 or −1 the band is the
-line's **map stack** on that side, which **reaches** `e` from the line; on
-every other side the line's map stack is empty. A map spans its timeline,
-from `Xs` to `Xe`.
+displayed maps (section 2.4) and those that its segments without a line
+join to it (Segments without a line). The present conversion maps bands of
+the lines of one row (Children) that lie on one side of those lines, at
+one level, are laid out **together**, also when there is only one, in one
+sequence of numbered **slots** that their maps share, except that those
+whose line's children band on that side lies nearer the line are laid out
+together apart from the others, whose line's children band lies further
+out or is not present there. Bands of one row on different sides, or at
+different levels of one side, are laid out apart. So no conversion maps
+band waits, through children bands, on its own start (Where a band lies,
+The order of the starts):
+
+- Their maps are **taken** in the traversal order of their lines (section
+  6.1), each line's own maps in canonical order before those its segments
+  join to it, segment after segment in traversal order, each segment's in
+  canonical order.
+- A map's **key** is its `name` and its `type` when its `name` is not
+  null, else its `type` alone. Keys are ordered by comparing Unicode code
+  points: those with a name by name, then by type; those without after
+  every key with a name, by type. An ID keys nothing: IDs are unique, so no
+  two maps would ever share a slot.
+- The maps of each key are placed, in the order they are taken, by first
+  fit (section 6.3) into that key's **sub-slots**, each with the extent of
+  the timeline it spans, from that timeline's start to its end (sections
+  3.1 and 3.4). The sub-slots of the keys, the keys in key order, are the
+  slots 1 to `J`. So maps of one key share a slot where their timelines do
+  not conflict, and take the next where they do, whichever line of the row
+  holds them; a band leaves empty every slot in which it holds no map.
+- The bands start at one distance `c0` outwards from their timelines'
+  lines, the largest of their own starts (Where a band lies), so `c0 = 0`
+  at level 1 or −1. With `w` the largest stroke width of their lines, the
+  map in slot `j` is centred `c0 + w / 2 + j × (g + d) − d / 2` from the
+  line of its band's timeline, on the bands' side, so that slot 1 lies `g`
+  beyond `c0 + w / 2` and each next slot `g` beyond the one before; and
+  each of the bands is `e = w / 2 + J × (g + d)` wide, whichever slots its
+  own maps take.
+
+At level 1 or −1 a line's conversion maps band is the line's **map stack**
+on that side, which **reaches** `e` from the line; on every other side the
+line's map stack is empty and reaches 0. A map spans its timeline, from
+`Xs` to `Xe`. A band places its maps, and section 7.2 writes them, in the
+order they are taken.
+
+Which lines form a row is decided by Children: the root's row holds the
+root alone, and every other row is one that the first fits of children
+bands laid out together fill. The slots depend on nothing else of the
+layout: only on which lines form the row, the displayed maps their bands
+hold, the extents of the timelines those maps span, and the side and level
+of each band and on which side of it its line's children band lies.
 
 **Segment lines.** Every segment of a segment line except its first (in
 canonical order) has a **boundary**: a thin vertical rule at `x` of the
@@ -901,7 +962,10 @@ its displayed bands holds joins its segment line's band of the same facet,
 after the segment line's own content, segment after segment in
 traversal order, and that band draws it and lays it out as it lays out its
 own. So the segment's maps lie in its segment line's conversion maps band,
-each spanning the segment, its children in the children band, its regions
+each spanning the segment and taking a slot by its key and extent as every
+map of that band does (Conversion maps), not after the segment line's own
+maps, so that the maps of one key on two segments may share a slot; its
+children in the children band, its regions
 in the regions band, and its flow-control elements in the flow control band;
 its own band order places nothing, and its markers band draws nothing.
 Section 2.4 states when a segment adds nothing. A band of a segment line
@@ -929,7 +993,10 @@ own bands draw, at any depth, laid out from its line by this section. The
 line, the extent of every item that a first fit of its own drawing places
 at any depth (its segment labels, the regions, jump origins and
 flow-marker labels of its bands, and its own children, each with its extent
-by this rule), and the position `L × u` of every flow marker it draws. The extent of a line runs
+by this rule), and the position `L × u` of every flow marker it draws.
+The maps it draws, at any depth, add nothing: each spans a timeline that
+lies within the line it is drawn at, so no first fit of this paragraph
+depends on a map's slot. The extent of a line runs
 from its start to its end; when its end is open (section 3.4), it runs on
 to `L × u + 9.5w`, `u` the proportion of its end and `w`
 its stroke width, so that its three chevrons (section 6.6) take room in its
@@ -976,13 +1043,15 @@ own children bands together in turn, at every depth, so the sections of a
 row of movements share their rows whichever movement holds them.
 
 The layout takes three passes. First every first fit, which uses extents
-alone (section 6.3), so that which row holds which line, and every row's
-name size and pitch (section 6.2), are known before any distance is. Then
-the distances, from the deepest rows up: once every row of the children
-bands of a row's lines has its halves, each of those lines has the starts
-and widths of its bands and so its edges, and the row its halves (the
-root's row the outer edges of the root's sides, section 6.5). Last the
-ordinates, from the root's line (section 6.5) down.
+alone (section 6.3), so that which row holds which line, every row's name
+size and pitch (section 6.2), and then every map's slot and the count of
+slots of every conversion maps band (Conversion maps), which need the rows
+alone, are known before any distance is. Then the distances, from the
+deepest rows up: once every row of the children bands of a row's lines
+has its halves, each of those lines has the starts and widths of its
+bands, in the order of the starts (Where a band lies), and so its edges, and the row its
+halves (the root's row the outer edges of the root's sides, section 6.5).
+Last the ordinates, from the root's line (section 6.5) down.
 
 No two children's drawings overlap, and no two names of rows (section 6.6)
 do. The extents of two lines of a row never overlap, and meet at most

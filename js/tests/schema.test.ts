@@ -107,7 +107,7 @@ describe("the schema document", () => {
   it("is the bundled file, with one root", () => {
     expect(JSON.parse(JSON.stringify(loadSchemaFile()))).toEqual(document);
     expect(document.$id).toBe(
-      "https://timetoalign.github.io/timetoshare/0.1.0/timetoshare.schema.json",
+      "https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json",
     );
     expect(document.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(document.$ref).toBe("#/$defs/Manifest");

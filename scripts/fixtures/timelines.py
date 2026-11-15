@@ -814,3 +814,108 @@ def child_jumps_timeline() -> Timeline:
         )
     )
     return piece
+
+
+def _named_ticks(uid: str) -> QuartersToTicks:
+    """Return the map ``uid`` ("Ticks") of quarters to ticks, 480 per quarter."""
+    return QuartersToTicks(ppq=480, uid=uid, name="Ticks")
+
+
+def _named_tempo(uid: str) -> ScalarMap:
+    """Return the tempo map ``uid`` ("Tempo"), half a second per quarter."""
+    return ScalarMap(
+        Fraction(1, 2),
+        source_unit="quarters",
+        target_unit="seconds",
+        uid=uid,
+        name="Tempo",
+    )
+
+
+def _siblings(
+    cons_offset: Fraction, ante_maps: tuple[Any, ...], cons_maps: tuple[Any, ...]
+) -> Timeline:
+    """Build ``piece`` ("Piece", 8 quarters) holding ``ante`` ("Ante", 4
+    quarters) at 0 and ``cons`` ("Cons", 4 quarters) at ``cons_offset``, each
+    carrying its maps.
+    """
+    piece = parts.named(ContinuousLogicalTimeline, "piece", "Piece", Fraction(8))
+    for uid, name, offset, maps in (
+        ("ante", "Ante", Fraction(0), ante_maps),
+        ("cons", "Cons", cons_offset, cons_maps),
+    ):
+        child = parts.named(ContinuousLogicalTimeline, uid, name, Fraction(4))
+        parts.holding(piece, parts.with_maps(child, *maps), offset)
+    return piece
+
+
+def map_row_siblings_timeline() -> Timeline:
+    """Build two siblings of one row whose maps of two keys share its slots.
+
+    The root ``piece`` ("Piece", 8 quarters) holds ``ante`` ("Ante", 4
+    quarters) at 0 and ``cons`` ("Cons", 4 quarters) at 4, which touch and so
+    lie in one row. ``ante`` carries the maps ``a_ticks`` ("Ticks", to ticks)
+    and ``b_tempo`` ("Tempo", to seconds), ``cons`` the maps ``a_tempo``
+    ("Tempo") and ``b_ticks`` ("Ticks"); every map is a ``LinearMap``, so
+    its name tells the keys apart. In canonical order, by ID, ``ante``'s
+    Ticks map comes first and ``cons``'s Tempo map; in the row's slots both
+    Tempo maps lie in slot 1 and both Ticks maps in slot 2.
+    """
+    return _siblings(
+        Fraction(4),
+        (_named_ticks("a_ticks"), _named_tempo("b_tempo")),
+        (_named_tempo("a_tempo"), _named_ticks("b_ticks")),
+    )
+
+
+def map_row_subslots_timeline() -> Timeline:
+    """Build a segment line whose own map and its segments' maps share a key.
+
+    The root ``form`` ("Form", 32 quarters), an unlocked segment line, holds
+    the segments ``a`` (8 quarters), ``b`` (12 quarters) and ``c`` (12
+    quarters), none named. ``form`` carries the map ``ticks_form``, ``b`` the
+    map ``ticks_b`` and ``c`` the map ``ticks_c``, each "Ticks" to ticks, so
+    all three have one key. ``ticks_b`` and ``ticks_c`` join ``form``'s
+    conversion maps band: ``ticks_form`` spans 0 to 32 and takes sub-slot 1,
+    ``ticks_b`` (8 to 20) conflicts with it and takes sub-slot 2, and
+    ``ticks_c`` (20 to 32) starts where ``ticks_b`` ends and shares it.
+    """
+    form = SegmentLine[ContinuousLogicalTimeline](
+        length=Fraction(0), unit="quarters", uid="form", name="Form"
+    )
+    form.add_conversion_map(_named_ticks("ticks_form"))
+    for uid, length, maps in (
+        ("a", 8, ()),
+        ("b", 12, (_named_ticks("ticks_b"),)),
+        ("c", 12, (_named_ticks("ticks_c"),)),
+    ):
+        segment = parts.quarters(uid, Fraction(length))
+        form.append_segment(parts.with_maps(segment, *maps))
+    return form
+
+
+def map_row_moved_timeline() -> Timeline:
+    """Build two siblings in two rows, each row with slots of its own.
+
+    The root ``piece`` ("Piece", 8 quarters) holds ``ante`` ("Ante", 4
+    quarters) at 0 with the maps ``tempo_ante`` ("Tempo") and ``ticks_ante``
+    ("Ticks"), and ``cons`` ("Cons", 4 quarters) at 3 with the map
+    ``ticks_cons`` ("Ticks"). ``cons`` overlaps ``ante`` and lies in the next
+    row, so its Ticks map takes slot 1 of that row, where in one row with
+    ``ante`` it would take slot 2.
+    """
+    return _siblings(
+        Fraction(3),
+        (_named_tempo("tempo_ante"), _named_ticks("ticks_ante")),
+        (_named_ticks("ticks_cons"),),
+    )
+
+
+def label_float_rounding_timeline() -> Timeline:
+    """Build a root of seconds whose length is labelled rounded.
+
+    The root ``take`` ("Take") is 312.48979591836735 seconds long, a float
+    with more than three decimals, so its end wedge is labelled ``312.49 s``
+    and its start wedge ``0.0 s``.
+    """
+    return parts.named(ContinuousPhysicalTimeline, "take", "Take", 312.48979591836735)

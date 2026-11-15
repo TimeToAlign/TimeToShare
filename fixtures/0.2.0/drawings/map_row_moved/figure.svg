@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512.2725" height="132.4766" viewBox="0 0 512.2725 132.4766" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="480.2725" height="100.4766" rx="10" fill="#F3F4F6"/>
+<rect data-id="piece" data-part="card" x="10" y="10" width="462.2725" height="82.4766" rx="5" fill="#B8BEC8"/>
+<rect data-id="piece" data-part="card" x="8" y="8" width="462.2725" height="82.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-id="tempo_ante" points="53.2725,35 253.2725,35 253.2725,37 53.2725,37" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-id="ticks_ante" points="53.2725,30 253.2725,30 253.2725,32 53.2725,32" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-id="ticks_cons" points="203.2725,16.5 403.2725,16.5 403.2725,18.5 203.2725,18.5" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<line data-id="piece" x1="53.2725" y1="55.5" x2="453.2725" y2="55.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="piece" cx="53.2725" cy="55.5" r="3" fill="#00CC00"/>
+<polygon data-id="piece" points="462.2725,55.5 453.2725,51 453.2725,60" fill="#00CC00"/>
+<line data-id="ante" x1="53.2725" y1="41.5" x2="248.7725" y2="41.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="ante" cx="53.2725" cy="41.5" r="3" fill="#00CC00"/>
+<polygon data-id="ante" points="248.7725,41.5 253.2725,37.9 257.7725,41.5 253.2725,45.1" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="cons" x1="203.2725" y1="23" x2="398.7725" y2="23" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="cons" cx="203.2725" cy="23" r="3" fill="#00CC00"/>
+<polygon data-id="cons" points="398.7725,23 403.2725,19.4 407.7725,23 403.2725,26.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="piece" data-part="start" points="53.2725,57 50.2725,70 56.2725,70" fill="#000000"/>
+<polygon data-id="piece" data-part="end" points="453.2725,57 450.2725,70 456.2725,70" fill="#000000"/>
+<text data-id="cons" data-part="name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">Cons</text>
+<text data-id="ante" data-part="name" x="16" y="45.3081" text-anchor="start" font-size="11" fill="#000000">Ante</text>
+<text data-id="piece" data-part="name" x="16" y="59.3081" text-anchor="start" font-size="11" fill="#000000">Piece</text>
+<text data-id="piece" data-part="start label" x="53.2725" y="80.354" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="piece" data-part="end label" x="453.2725" y="80.354" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+</g>
+</svg>

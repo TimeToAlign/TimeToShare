@@ -1,6 +1,6 @@
 # Test strategy for the `@timetoalign/timetoshare` npm package
 
-This suite proves the public contract of schema 0.1.0 in JavaScript: one
+This suite proves the public contract of schema 0.2.0 in JavaScript: one
 manifest shape, one schema document, one validator, the same answers as the
 Python package. The rules and the reasoning that proves each one are stated
 in the Python suite's README (`python/tests/README.md`); this suite asserts
@@ -29,7 +29,7 @@ Where the two packages answer differently by design, this README says so.
 ## The fixtures
 
 `fixtures.test.ts`: every manifest fixture (every `*.json` below
-`fixtures/0.1.0/` except the drawings), read by `parseJson`, validates, has
+`fixtures/0.2.0/` except the drawings), read by `parseJson`, validates, has
 no unknown keys, and satisfies both round trips of `complete` and `minimal`,
 as in the Python suite's "The fixture set".
 
@@ -92,7 +92,7 @@ schema addition cannot escape the canonical spelling.
   both packages: an ID, a unit or an order entry in single quotes, as
   written (`'m' is not unique in the manifest, first at …`), a value as the
   standard writer spells it (`unsupported TimeToShare version "9.9.9"; this
-  package reads 0.1.0 only`). A schema violation carries Ajv's message
+  package reads 0.2.0 only`). A schema violation carries Ajv's message
   (`must match pattern …`, `must NOT have duplicate items …`).
 - **Integral floats.** `parseJson` keeps `2.0` as a `JsonFloat`, so
   `length 2.0` on a fraction axis is "a float … write [2, 1]" as in Python;
@@ -157,7 +157,7 @@ is the default only in type and value: `repeat_count: new JsonFloat(1)` (read
 from `1.0`) is not the default `1` and stays in the minimal form; the round
 trips compare `dumps` texts, which tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (65, one per fixture) completes to its fixture's text, keeps it in canonical order,
+minimal twin (69, one per fixture) completes to its fixture's text, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
 optional.
@@ -227,7 +227,7 @@ reproduces the metrics file.
 ## Packaging
 
 After `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists
-`docs/drawing.md`, `schema/0.1.0/timetoshare.schema.json` and `LICENSE`, each
+`docs/drawing.md`, `schema/0.2.0/timetoshare.schema.json` and `LICENSE`, each
 copy byte for byte the repository's file, and `package.json` exports
 `./docs/*`. The packed package is `@timetoalign/timetoshare` at the version
 `SCHEMA_VERSION` names, as a package version is the schema version it

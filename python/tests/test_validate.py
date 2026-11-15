@@ -24,7 +24,7 @@ from .conftest import group, manifest, respellable, timeline
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SMALLEST = {
-    "timetoshare": "0.1.0",
+    "timetoshare": "0.2.0",
     "timelines": [{"id": "piece", "unit": "quarters", "length": [32, 1]}],
 }
 
@@ -147,9 +147,9 @@ def _problem(value: Any) -> tuple[tuple[str | int, ...], str]:
     "value",
     [
         {"timelines": []},
-        {"meta": {"schema_version": "0.1.0"}, "timelines": []},
+        {"meta": {"schema_version": "0.2.0"}, "timelines": []},
         [],
-        "0.1.0",
+        "0.2.0",
     ],
     ids=["no marker", "version in meta", "list", "string"],
 )
@@ -157,7 +157,7 @@ def test_a_value_without_the_marker_is_no_manifest(value: Any) -> None:
     assert _problem(value) == ((), "not a TimeToShare manifest")
 
 
-@pytest.mark.parametrize("version", ["9.9.9", "0.2.0", "0.1", 1])
+@pytest.mark.parametrize("version", ["9.9.9", "0.1.0", "0.1", 1])
 def test_another_version_is_unsupported(version: Any) -> None:
     with pytest.raises(UnsupportedVersionError) as caught:
         validate({"timetoshare": version})
@@ -168,13 +168,13 @@ def test_the_unsupported_version_message() -> None:
     with pytest.raises(UnsupportedVersionError) as caught:
         validate({"timetoshare": "9.9.9", "timelines": []})
     assert str(caught.value) == (
-        'unsupported TimeToShare version "9.9.9"; this package reads 0.1.0 only'
+        'unsupported TimeToShare version "9.9.9"; this package reads 0.2.0 only'
     )
 
 
 def test_the_smallest_and_the_empty_manifest_validate() -> None:
     validate(SMALLEST)
-    validate({"timetoshare": "0.1.0", "timelines": []})
+    validate({"timetoshare": "0.2.0", "timelines": []})
 
 
 # -- representation ---------------------------------------------------------------
@@ -427,7 +427,7 @@ def test_the_rejection_reader_refuses_an_unknown_non_finite_name(
         json.dumps(
             {
                 "code": "finite_number",
-                "manifest": {"timetoshare": "0.1.0", "timelines": []},
+                "manifest": {"timetoshare": "0.2.0", "timelines": []},
                 "non_finite": "Huge",
                 "path": ["timelines"],
                 "reason": "x",

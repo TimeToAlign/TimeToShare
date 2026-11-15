@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (c2880b0b)"
+  },
+  "timelines": [
+    {
+      "id": "take",
+      "length": 312.48979591836735,
+      "name": "Take",
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.2.0"
+}

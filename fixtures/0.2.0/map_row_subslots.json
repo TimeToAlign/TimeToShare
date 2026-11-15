@@ -1,0 +1,122 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (c2880b0b)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [],
+          "id": "a",
+          "is_segment_line": false,
+          "length": [
+            8,
+            1
+          ],
+          "locked": false,
+          "meta": {},
+          "name": null,
+          "number_type": "fraction",
+          "offset": [
+            0,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        },
+        {
+          "children": [],
+          "conversion_maps": [
+            {
+              "id": "ticks_b",
+              "name": "Ticks",
+              "offset": 0,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "LinearMap"
+            }
+          ],
+          "flow_control": [],
+          "id": "b",
+          "is_segment_line": false,
+          "length": [
+            12,
+            1
+          ],
+          "locked": false,
+          "meta": {},
+          "name": null,
+          "number_type": "fraction",
+          "offset": [
+            8,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        },
+        {
+          "children": [],
+          "conversion_maps": [
+            {
+              "id": "ticks_c",
+              "name": "Ticks",
+              "offset": 0,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "LinearMap"
+            }
+          ],
+          "flow_control": [],
+          "id": "c",
+          "is_segment_line": false,
+          "length": [
+            12,
+            1
+          ],
+          "locked": false,
+          "meta": {},
+          "name": null,
+          "number_type": "fraction",
+          "offset": [
+            20,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "id": "ticks_form",
+          "name": "Ticks",
+          "offset": 0,
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "form",
+      "is_segment_line": true,
+      "length": [
+        32,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Form",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.2.0"
+}

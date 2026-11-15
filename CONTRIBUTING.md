@@ -1,6 +1,6 @@
 # Contributing
 
-TimeToShare! is schema-first. The current schema, 0.1.0, is the contract; the Python and
+TimeToShare! is schema-first. The current schema, 0.2.0, is the contract; the Python and
 TypeScript packages validate it, and timetoalign emits its fixtures.
 
 ## Schema changes

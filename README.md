@@ -11,7 +11,7 @@ implementation of it, and emits the shared fixtures, but does not define
 the format. This repository holds the format as a JSON Schema, with
 validation packages for Python and TypeScript.
 
-**Status: alpha.** The repository holds one schema version, 0.1.0, the
+**Status: alpha.** The repository holds one schema version, 0.2.0, the
 current version, as one JSON Schema document describing one manifest shape.
 It provides validators for Python and TypeScript that locate a violation
 under one shared path rule and list unknown keys as warnings, the complete
@@ -57,12 +57,12 @@ whatever it holds: one timeline, several, a group of timelines, or several
 groups beside ungrouped timelines. The smallest manifest is
 
 ```json
-{"timetoshare": "0.1.0", "timelines": [{"id": "piece", "unit": "quarters", "length": [32, 1]}]}
+{"timetoshare": "0.2.0", "timelines": [{"id": "piece", "unit": "quarters", "length": [32, 1]}]}
 ```
 
 | Member | Required | Holds |
 | --- | --- | --- |
-| `timetoshare` | yes | the version marker, `"0.1.0"` |
+| `timetoshare` | yes | the version marker, `"0.2.0"` |
 | `timelines` | yes | the root timelines, an array that may be empty |
 | `id` | no | the manifest's ID |
 | `name` | no | the manifest's displayed name |
@@ -80,7 +80,7 @@ stand without the other.
 **The version marker.** Both validators read `timetoshare` first. A value
 without it is refused at the root as `not a TimeToShare manifest`; a value
 declaring any other version raises `UnsupportedVersionError` with the
-message `unsupported TimeToShare version "0.2.0"; this package reads 0.1.0
+message `unsupported TimeToShare version "0.1.0"; this package reads 0.2.0
 only`, the version spelled as JSON, byte for byte the same in both
 packages.
 
@@ -483,17 +483,17 @@ refused by the schema.
 
 ### The schema document
 
-Version 0.1.0 is one document, `schema/0.1.0/timetoshare.schema.json`,
+Version 0.2.0 is one document, `schema/0.2.0/timetoshare.schema.json`,
 with the identifier
-`https://timetoalign.github.io/timetoshare/0.1.0/timetoshare.schema.json`,
+`https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json`,
 so the document lies below `schema/` at the path of its identifier. Every
 released version's document is served at its identifier and, by this
 repository's own GitHub Pages site, at
-`https://timetoalign.github.io/TimeToShare/0.1.0/timetoshare.schema.json`
-(its version in place of `0.1.0`); the release workflow publishes both. Its
+`https://timetoalign.github.io/TimeToShare/0.2.0/timetoshare.schema.json`
+(its version in place of `0.2.0`); the release workflow publishes both. Its
 root is
 `{"$ref": "#/$defs/Manifest"}`. These definitions are public and may be
-embedded by a host schema; within 0.1.x they change only by addition:
+embedded by a host schema; within 0.2.x they change only by addition:
 
 `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
 `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
@@ -679,7 +679,7 @@ else:
   the first.
 - `complete_styles(graphical)` returns `(completed, missing)` and warns with
   `MissingStyleWarning` when `missing` is non-empty.
-- `SCHEMA_VERSION` is `"0.1.0"`, the one version the package reads.
+- `SCHEMA_VERSION` is `"0.2.0"`, the one version the package reads.
 - `schema_path()` and `load_schema()` return the schema document.
 - `fixture_paths()` returns the bundled accepted fixtures,
   `rejection_paths()` the bundled rejection cases and `warning_paths()` the
@@ -740,7 +740,7 @@ function load(text: string): string {
   `identity_problems`.
 - `completeStyles(graphical)` returns `{graphical: completed, missing}`.
 - `fontMetrics` contains the bundled font's advance-width metrics.
-- `SCHEMA_VERSION` is `"0.1.0"`, and `schema` holds the schema document.
+- `SCHEMA_VERSION` is `"0.2.0"`, and `schema` holds the schema document.
   The generated types are generated from it, with the root type
   `Manifest` and one type per definition, such as `Timeline`, `Group`
   and `Graphical`. Beside each definition with defaults a complete form is

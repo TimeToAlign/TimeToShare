@@ -17,7 +17,7 @@ import { parse, validate } from "../src/validate.js";
 import { bundle, fixtureFiles, fixtureText, manifest, timeline } from "./fixtures.js";
 
 const SMALLEST = {
-  timetoshare: "0.1.0",
+  timetoshare: "0.2.0",
   timelines: [{ id: "piece", unit: "quarters", length: [32, 1] }],
 };
 const REGION = { id: "r", start: [0, 1], end: [1, 1] };
@@ -27,7 +27,7 @@ const root = (value: unknown) => ((value as JsonObject).timelines as JsonObject[
 describe("the complete and the minimal form", () => {
   it("completes the smallest file to the literal complete form", () => {
     expect(complete(SMALLEST)).toEqual({
-      timetoshare: "0.1.0",
+      timetoshare: "0.2.0",
       name: null,
       meta: {},
       groups: [],
@@ -333,7 +333,7 @@ describe("the typed forms", () => {
     flow_control: [],
   };
   const COMPLETE: CompleteManifest = {
-    timetoshare: "0.1.0",
+    timetoshare: "0.2.0",
     name: null,
     meta: {},
     groups: [],
@@ -406,7 +406,7 @@ describe("the typed forms", () => {
   it("complete, strip and order the literal complete form", () => {
     const smallest = minimalManifest(COMPLETE);
     expect(smallest).toEqual({
-      timetoshare: "0.1.0",
+      timetoshare: "0.2.0",
       timelines: [{ id: "piece", unit: "quarters", length: [32, 1] }],
     });
     expect(completeManifest(smallest)).toEqual(COMPLETE);
@@ -418,7 +418,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal.json"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(65);
+    expect(twins.length).toBe(69);
     expect(twins.map((twin) => twin.replace(/\.minimal\.json$/, ".json"))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal.json")),
     );

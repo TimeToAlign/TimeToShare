@@ -7,7 +7,7 @@ import type { Manifest, Timeline } from "../src/index.js";
 describe("the generated types", () => {
   it("take only declared keys, with length required and nullable", () => {
     const free: Manifest = {
-      timetoshare: "0.1.0",
+      timetoshare: "0.2.0",
       meta: { anything: { goes: true } },
       timelines: [{ id: "piece", unit: "quarters", length: null, meta: { x: 1 } }],
     };

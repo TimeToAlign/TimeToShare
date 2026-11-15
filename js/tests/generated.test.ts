@@ -29,7 +29,7 @@ describe("generated files", () => {
   });
 
   it("come from the one schema document", () => {
-    expect(schemaSource()).toBe("0.1.0/timetoshare.schema.json");
+    expect(schemaSource()).toBe("0.2.0/timetoshare.schema.json");
   });
 
   it("export every definition and its complete form where it has defaults", () => {

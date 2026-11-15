@@ -16,7 +16,7 @@ def timeline(
 
 def manifest(*timelines: dict, **members: Any) -> dict:
     """A manifest of the given roots in the minimal form."""
-    return {"timetoshare": "0.1.0", "timelines": list(timelines), **members}
+    return {"timetoshare": "0.2.0", "timelines": list(timelines), **members}
 
 
 def group(identifier: str, *members: str, **rest: Any) -> dict:

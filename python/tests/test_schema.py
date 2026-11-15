@@ -96,17 +96,17 @@ def _nodes(node: Any, inside: bool = False) -> Iterator[tuple[dict, bool]]:
 
 def test_one_document_with_one_root() -> None:
     schema = load_schema()
-    assert SCHEMA_VERSION == "0.1.0"
+    assert SCHEMA_VERSION == "0.2.0"
     assert (
         schema_path()
-        == REPOSITORY_ROOT / "schema" / "0.1.0" / "timetoshare.schema.json"
+        == REPOSITORY_ROOT / "schema" / "0.2.0" / "timetoshare.schema.json"
     )
-    assert sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir()) == ["0.1.0"]
-    assert sorted(p.name for p in (REPOSITORY_ROOT / "schema" / "0.1.0").iterdir()) == [
+    assert sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir()) == ["0.2.0"]
+    assert sorted(p.name for p in (REPOSITORY_ROOT / "schema" / "0.2.0").iterdir()) == [
         "timetoshare.schema.json"
     ]
     assert schema["$id"] == (
-        "https://timetoalign.github.io/timetoshare/0.1.0/timetoshare.schema.json"
+        "https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json"
     )
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["$ref"] == "#/$defs/Manifest"

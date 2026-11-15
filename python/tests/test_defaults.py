@@ -10,7 +10,7 @@ from timetoshare import complete, dumps, minimal, validate
 from .conftest import bundle, manifest, timeline
 
 SMALLEST = {
-    "timetoshare": "0.1.0",
+    "timetoshare": "0.2.0",
     "timelines": [{"id": "piece", "unit": "quarters", "length": [32, 1]}],
 }
 REGION = {"id": "r", "start": [0, 1], "end": [1, 1]}
@@ -18,7 +18,7 @@ REGION = {"id": "r", "start": [0, 1], "end": [1, 1]}
 
 def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
     assert complete(SMALLEST) == {
-        "timetoshare": "0.1.0",
+        "timetoshare": "0.2.0",
         "name": None,
         "meta": {},
         "groups": [],

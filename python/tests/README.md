@@ -1,14 +1,14 @@
 # Test strategy for the `timetoshare` Python package
 
-This suite proves the public contract of schema 0.1.0: one manifest shape,
+This suite proves the public contract of schema 0.2.0: one manifest shape,
 described by one schema document, read by one validator. The package
 supports this version only.
 
 Every rule is proved by a document written inline in its test, never by
 editing a fixture: the documents are the smallest that exercise the rule, so
 a passing test cannot be a restatement of a fixture the implementation
-produced. The shared rejection and warning cases (`fixtures/rejections/0.1.0/`
-and `fixtures/warnings/0.1.0/`) are read by this suite and by the JavaScript
+produced. The shared rejection and warning cases (`fixtures/rejections/0.2.0/`
+and `fixtures/warnings/0.2.0/`) are read by this suite and by the JavaScript
 suite, so both validators are held to the same paths and the same lists.
 
 ## What the package promises
@@ -30,15 +30,15 @@ suite, so both validators are held to the same paths and the same lists.
 
 ## The schema document
 
-`schema_path()` is `schema/0.1.0/timetoshare.schema.json`; `load_schema()`
+`schema_path()` is `schema/0.2.0/timetoshare.schema.json`; `load_schema()`
 parses it. The tests hold invariants of the document, never a transcript of
 its definitions; the definitions' contents are proven by the fixtures and the
 rejection cases that use them (`test_schema.py`):
 
 - **One document, one root.** `$id` is
-  `https://timetoalign.github.io/timetoshare/0.1.0/timetoshare.schema.json`,
+  `https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json`,
   `$schema` the 2020-12 dialect, the root `$ref` is `#/$defs/Manifest`,
-  and `schema/` holds exactly the directory `0.1.0` with exactly that file.
+  and `schema/` holds exactly the directory `0.2.0` with exactly that file.
   Every `$ref` is local (`#/$defs/<name>`) and names a definition; no node
   carries `$anchor`.
 - **The public definitions.** The definitions include the thirteen public
@@ -137,14 +137,14 @@ rejection cases that use them (`test_schema.py`):
 - a value without it, a list and a string are refused at the root with
   exactly `not a TimeToShare manifest`, whatever else they hold (a value
   holding the version as `meta.schema_version` but no marker too);
-- `"9.9.9"`, `"0.2.0"`, `"0.1"` and the number `1` raise
-  `UnsupportedVersionError` with `version` that value, the message for
+- `"9.9.9"`, `"0.1.0"` (the version 0.2.0 replaces), `"0.1"` and the number
+  `1` raise `UnsupportedVersionError` with `version` that value, the message for
   `"9.9.9"` exactly `unsupported TimeToShare version "9.9.9"; this package
-  reads 0.1.0 only`; the marker is checked before the schema, so a value with
+  reads 0.2.0 only`; the marker is checked before the schema, so a value with
   another version and no `timelines` raises the same error;
-- the smallest file `{"timetoshare": "0.1.0", "timelines": [{"id": "piece",
+- the smallest file `{"timetoshare": "0.2.0", "timelines": [{"id": "piece",
   "unit": "quarters", "length": [32, 1]}]}` and the empty manifest
-  `{"timetoshare": "0.1.0", "timelines": []}` validate.
+  `{"timetoshare": "0.2.0", "timelines": []}` validate.
 
 ## Reading by the declared number type
 
@@ -254,7 +254,7 @@ sorted by path (segment by segment, indices by number, keys by code point,
 an object before its descendants) and then by key (`test_unknown_keys.py`):
 
 - **The shared warning cases.** For every case of
-  `fixtures/warnings/0.1.0/`, `validate` accepts the manifest and
+  `fixtures/warnings/0.2.0/`, `validate` accepts the manifest and
   `unknown_keys` returns exactly its `unknown_keys` list; the JavaScript suite
   asserts the same lists. `several_depths` holds unknown keys on the
   manifest, a timeline, a child, a region, a flow marker, a jump origin, a
@@ -379,7 +379,7 @@ ID comes first); `identity_problems` reads it as the group's.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 102 cases of `fixtures/rejections/0.1.0/` breaks one rule and stores the
+the 102 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the sixteen of the table, so every code is reached by a case both
@@ -560,11 +560,11 @@ expected text; the refusals of NaN, infinity and lone surrogates.
 
 ## The fixture set
 
-The fixtures under `fixtures/0.1.0/` are emitted by timetoalign, never
+The fixtures under `fixtures/0.2.0/` are emitted by timetoalign, never
 written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` lists nothing, `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. `fixture_paths()` lists every
-`*.json` under `fixtures/0.1.0/` except the drawings. The styled fixtures
+`*.json` under `fixtures/0.2.0/` except the drawings. The styled fixtures
 `styled__score.json` and `styled__performance.json` carry the literally
 stated `graphical` objects (20 and 3 statements, and the score's band order
 with its start and end wedges above its line and its map below), the
@@ -657,7 +657,7 @@ to the same integer.
 The test builds the sdist and the wheel with `uv build` twice (the wheel
 from the checkout, and from the sdist as the release does) and requires
 `timetoshare/docs/drawing.md` and
-`timetoshare/schema/0.1.0/timetoshare.schema.json` in the wheel, the same
+`timetoshare/schema/0.2.0/timetoshare.schema.json` in the wheel, the same
 under `src/timetoshare/` in the sdist, each byte for byte the repository's
 file, and the root `LICENSE` in the wheel's `.dist-info/licenses/` and at the
 sdist root.

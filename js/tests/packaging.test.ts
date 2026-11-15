@@ -39,7 +39,7 @@ describe("the npm package", () => {
   });
 
   it("ships the schema document", () => {
-    const path = "schema/0.1.0/timetoshare.schema.json";
+    const path = "schema/0.2.0/timetoshare.schema.json";
     expect(shipped).toContain(path);
     expect(shipped.filter((file) => file.startsWith("schema/"))).toEqual([path]);
     expect(readFileSync(resolve(packageDirectory, path))).toEqual(

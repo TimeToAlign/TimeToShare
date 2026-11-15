@@ -31,7 +31,7 @@ import {
 } from "./fixtures.js";
 
 const SMALLEST = {
-  timetoshare: "0.1.0",
+  timetoshare: "0.2.0",
   timelines: [{ id: "piece", unit: "quarters", length: [32, 1] }],
 };
 
@@ -160,14 +160,14 @@ function problem(value: unknown): [readonly (string | number)[], string] {
 describe("the version marker", () => {
   it.each([
     ["no marker", { timelines: [] }],
-    ["version in meta", { meta: { schema_version: "0.1.0" }, timelines: [] }],
+    ["version in meta", { meta: { schema_version: "0.2.0" }, timelines: [] }],
     ["a list", []],
-    ["a string", "0.1.0"],
+    ["a string", "0.2.0"],
   ])("refuses %s at the root", (_name, value) => {
     expect(problem(value)).toEqual([[], "not a TimeToShare manifest"]);
   });
 
-  it.each(["9.9.9", "0.2.0", "0.1", 1])("refuses version %s as unsupported", (version) => {
+  it.each(["9.9.9", "0.1.0", "0.1", 1])("refuses version %s as unsupported", (version) => {
     try {
       validate({ timetoshare: version });
     } catch (error) {
@@ -180,13 +180,13 @@ describe("the version marker", () => {
 
   it("names the version it reads", () => {
     expect(() => validate({ timetoshare: "9.9.9", timelines: [] })).toThrow(
-      'unsupported TimeToShare version "9.9.9"; this package reads 0.1.0 only',
+      'unsupported TimeToShare version "9.9.9"; this package reads 0.2.0 only',
     );
   });
 
   it("accepts the smallest and the empty manifest", () => {
     validate(SMALLEST);
-    validate({ timetoshare: "0.1.0", timelines: [] });
+    validate({ timetoshare: "0.2.0", timelines: [] });
   });
 });
 
@@ -514,7 +514,7 @@ describe("errors and paths", () => {
 describe("a checked value", () => {
   it("is typed as the lossless form the reader returns", () => {
     const value: unknown = parseJson(
-      '{"timetoshare": "0.1.0", "timelines": [' +
+      '{"timetoshare": "0.2.0", "timelines": [' +
         '{"id": "midi", "unit": "ticks", "length": 9007199254740993},' +
         '{"id": "audio", "unit": "seconds", "length": 2.0}]}',
     );

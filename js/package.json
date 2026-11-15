@@ -1,6 +1,6 @@
 {
   "name": "@timetoalign/timetoshare",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The TimeToShare! manifest schema, its fixtures, generated TypeScript types and a validator",
   "license": "MIT",
   "repository": {

@@ -822,7 +822,7 @@ describe("identity", () => {
       child([-1, 1000000]),
       manifest([timeline("score", "quarters", [8, 1], { children: [parent] })]),
       {
-        timetoshare: "0.1.0",
+        timetoshare: "0.2.0",
         timelines: [
           {
             id: "piece",

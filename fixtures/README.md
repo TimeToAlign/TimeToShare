@@ -1,24 +1,25 @@
 # Fixtures
 
-The fixtures of the current version, 0.1.0, are kept in `fixtures/0.1.0/`,
-its drawings in `fixtures/0.1.0/drawings/`, its rejection cases under
-`fixtures/rejections/0.1.0/` and its warning cases under
-`fixtures/warnings/0.1.0/`. A version a later one replaces keeps its
-fixtures in the git history at its tag and in its released packages.
+The fixtures of the current version, 0.2.0, are kept in `fixtures/0.2.0/`,
+its drawings in `fixtures/0.2.0/drawings/`, its rejection cases under
+`fixtures/rejections/0.2.0/` and its warning cases under
+`fixtures/warnings/0.2.0/`. A version a later one replaces keeps its
+fixtures in the git history at its tag and in its released packages, as
+0.1.0, which 0.2.0 replaces, does.
 
 Every generated fixture is a TimeToShare manifest of the one shape
 `{timetoshare, timelines, …}`, and every manifest is an alignment bundle.
 The directories sort the manifests by content only:
 
-- directly under `fixtures/0.1.0/`, manifests of one root timeline and no
+- directly under `fixtures/0.2.0/`, manifests of one root timeline and no
   group;
 - under `groups/`, manifests holding one group;
 - under `bundles/`, manifests of several groups, several ungrouped roots,
   or both.
 
-Version 0.1.0 has 43 manifests directly under `fixtures/0.1.0/`, 11 under
-`groups/` and 11 under `bundles/`, 65 in all, each with its minimal twin, so
-130 files. Beside them lie 102 rejection cases and 13 warning cases.
+Version 0.2.0 has 47 manifests directly under `fixtures/0.2.0/`, 11 under
+`groups/` and 11 under `bundles/`, 69 in all, each with its minimal twin, so
+138 files. Beside them lie 102 rejection cases and 13 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -174,6 +175,19 @@ specification, section 6.4):
 | `child_flow_control.json` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the flow marker "Fine" at 4 and the jump origin "D.C. al Fine" at 8 back to 0, while the root holds no flow control |
 | `child_jumps.json` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds the jump target `segno` at 2, the jump origin "Repeat" at 4, a repeat end taken twice back to the child's start, and the jump origin "D.S." at 8, a dal segno to `segno`, while the root holds no flow control |
 
+Three manifests cover the slots of conversion maps bands (drawing
+specification, section 6.4, Conversion maps), and one the label of a float
+coordinate (section 5.2). Every map of the three is a `LinearMap` named
+"Tempo" (to seconds, half a second per quarter) or "Ticks" (to ticks, 480
+per quarter):
+
+| File | Coverage |
+| --- | --- |
+| `map_row_siblings.json` | a root `piece` of 8 quarters whose children `ante` (4 at 0) and `cons` (4 at 4) touch and so share a row; `ante` carries the maps `a_ticks` ("Ticks") and `b_tempo` ("Tempo"), `cons` the maps `a_tempo` ("Tempo") and `b_ticks` ("Ticks"), so both Tempo maps lie in slot 1 and both Ticks maps in slot 2, although `ante`'s Ticks map comes first in its canonical order |
+| `map_row_subslots.json` | an unlocked segment line `form` of 32 quarters of the unnamed segments `a` (8), `b` (12) and `c` (12), whose own map `ticks_form` and the maps `ticks_b` of `b` and `ticks_c` of `c` share the key "Ticks": `ticks_form` takes sub-slot 1, and `ticks_b` and `ticks_c`, which touch, share sub-slot 2 |
+| `map_row_moved.json` | a root `piece` of 8 quarters whose children `ante` (4 at 0, the maps `tempo_ante` and `ticks_ante`) and `cons` (4 at 3, the map `ticks_cons`) overlap and so lie in two rows, each with slots of its own: `ticks_cons` takes slot 1 of its row, where in one row with `ante` it would take slot 2 |
+| `label_float_rounding.json` | a root `take` of 312.48979591836735 seconds and nothing else, whose end wedge is labelled `312.49 s`, its length rounded to three decimals |
+
 ## Coverage of groups and bundles
 
 Every builder writes its files; the constructed files are built first. The
@@ -210,13 +224,13 @@ export. No bundle fixture carries MatchClaims.
 
 Conversion maps, regions and flow control are spread over the constructed
 groups and bundles and the single-timeline fixtures `styled__score`,
-`unknown_length_child`, `unknown_length_segments`, `child_flow_control`
-and `child_jumps`
+`unknown_length_child`, `unknown_length_segments`, `child_flow_control`,
+`child_jumps`, `map_row_siblings`, `map_row_subslots` and `map_row_moved`
 so that each case below occurs in one of them at least.
 `group_number_types`, `group_child_member`, the three `group_parent_*` and
 `group_grandchild` hold none of them, and `group_unknown_length` holds only
-a region. The segment lines of the single-timeline fixtures
-(`segment_line`, `segment_pages`, `segment_pages_locked`,
+a region. The segment lines of the single-timeline fixtures but
+`map_row_subslots` (`segment_line`, `segment_pages`, `segment_pages_locked`,
 `segment_pages_accolades`, `segment_children` and
 `unknown_length_segments`) and their segments carry no conversion map;
 among the constructed fixtures, segment lines with maps occur only in
@@ -228,10 +242,10 @@ segment line carries a map only in `bundle_shared_parent`.
 | a logical segment line with a map, the child of a timeline that is not a segment line, and a group member | `exposition` of `bundle_shared_parent` |
 | a segment line whose segments are segment lines, the child of a timeline that is not a segment line | `recapitulation` of `bundle_shared_parent` |
 | a segment line that is a segment of a segment line, with a map, beside one without | `recapitulation_second` and `recapitulation_first` of `bundle_shared_parent` |
-| a map on a segment that is not a segment line, joining its segment line's stack after the line's own map | `exposition_second` of `bundle_shared_parent` |
+| a map on a segment that is not a segment line, joining its segment line's conversion maps band with the key of the line's own map, whose timeline overlaps it, so in the next sub-slot | `exposition_second` of `bundle_shared_parent` |
 | a physical segment line with a map, a root and a group member | `take_1` of `bundle_shared_parent` |
 | a graphical segment line with a map, an unlocked ungrouped root | `pages` of `bundle_ungrouped` |
-| a map stack of two maps on one timeline, and flow control on a group member | `score` of `bundle_mixed` |
+| two maps of one key on one timeline, in two sub-slots, and flow control on a group member | `score` of `bundle_mixed` |
 | a map on a root member and on a child member of a group | `performance` and `excerpt` of `bundle_mixed`; `audio` and `take` of `group_parents_mixed` |
 | a map on a pixel axis | `page` of `bundle_mixed` and of `group_styled`; `pages` of `bundle_ungrouped` |
 | regions on an ungrouped root | `annotations` of `bundle_mixed` |
@@ -244,6 +258,23 @@ segment line carries a map only in `bundle_shared_parent`.
 | a flow marker and a jump origin on a child, its root holding none | `verse` of `child_flow_control` |
 | a jump target, a repeat end with a repeat count and a targeted dal segno on a child, its root holding none | `verse` of `child_jumps` |
 | a MeasureMap shared by two timelines, one reading it through a `ChainMap` from ticks | `score` and `midi` of `group_measure_map` |
+| maps of two keys on two lines of one row, sharing the row's slots | `ante` and `cons` of `map_row_siblings` |
+| maps of one key on a segment line and two of its segments that are not segment lines, in two sub-slots | `form`, `b` and `c` of `map_row_subslots` |
+| maps on two siblings in two rows, each row with slots of its own | `ante` and `cons` of `map_row_moved` |
+
+The conversion maps bands of the lines of one row share their slots, a
+map's key being its `name` and `type`, or its `type` alone when it has no
+name (drawing specification, section 6.4, Conversion maps). Only
+`map_row_siblings` holds two lines with maps in one row; in every other
+drawn manifest a row's slots are those of one line and its segments. The keys still order the maps of one
+line: the twelve unnamed maps of ten types of
+`conversion_maps__maps_quarters` have ten keys, in an order other than that
+of their IDs; the maps of `map`, `map_child_band_order`,
+`map_root_band_order`, `styled__score`, `styled_score_flow_inner`,
+`map_row_siblings`, `map_row_subslots` and `map_row_moved` carry names
+(`Tempo`, `Ticks`); every other map outside the corpus fixtures is
+unnamed, so maps of one type on one line share a key and, spanning one
+timeline, take a sub-slot each, in canonical order.
 
 The defaults hide the markers, regions and flow control bands of every
 timeline held by a band, every timeline of a member drawing but its root
@@ -262,9 +293,9 @@ as it stands in that version, with exactly three files; the drawings of the
 current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
-The drawings of 0.1.0 are every fixture in the complete form but the corpus
+The drawings of 0.2.0 are every fixture in the complete form but the corpus
 ones (`corpus_*`) at the default placement, and eighteen variants. The
-drawing of a manifest directly under `fixtures/0.1.0/` is named as the file
+drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
 `bundle__bundle_mixed`). The variants draw `nested` at the lengths 200, 400
@@ -290,7 +321,7 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 `unknown_length_segments` on every regions band, `{"element": "band",
 "facet": "regions"}` (`unknown_length_segments__regions-shown`), and
 `child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`): 71 drawings in all.
+"flow_control"}` (`child_flow_control__flow-shown`): 75 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
@@ -319,12 +350,14 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   the font directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Twenty-eight `figure.svg` files are derived by hand from the
+for byte. Thirty-two `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, among them every drawing of
 a timeline of unknown length, the three variants of `bundle_ungrouped`, the
 three variants that display a band the defaults hide, the band orders of
 `styled_score_flow_inner`, `map_child_band_order` and
-`map_root_band_order`, and `joint_rows`; `drawings/README.md` lists them
+`map_root_band_order`, `joint_rows`, the three drawings of conversion map
+slots (`map_row_siblings`, `map_row_subslots`, `map_row_moved`) and
+`label_float_rounding`; `drawings/README.md` lists them
 with their arithmetic. Every other figure, and every `inputs.json`, is
 emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
 <TimeToShare checkout>` (run in its `app/packages/writers/`), which
@@ -359,7 +392,7 @@ code with the case's. The cases cover every code:
 | `display_order` | a group's display order is a permutation of its members | `group_order_not_member`, `order_missing_member` |
 | `band_order` | a band order is a permutation of `line` and the five facets | `band_order_unknown_entry`, `band_order_missing_band` |
 
-`version_unknown` names the version 0.2.0; its `code` is `null` and its
+`version_unknown` names the version 0.1.0, which 0.2.0 replaces; its `code` is `null` and its
 `"error": "UnsupportedVersionError"` names the error both packages raise
 instead. JSON has no non-finite number, so the two `finite_number` cases hold
 a finite placeholder at their path and name in `non_finite` (`"Infinity"` or

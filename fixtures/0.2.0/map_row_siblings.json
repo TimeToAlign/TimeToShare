@@ -1,0 +1,115 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (c2880b0b)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [
+            {
+              "id": "a_ticks",
+              "name": "Ticks",
+              "offset": 0,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "LinearMap"
+            },
+            {
+              "id": "b_tempo",
+              "name": "Tempo",
+              "offset": 0,
+              "scalar": [
+                1,
+                2
+              ],
+              "source_unit": "quarters",
+              "target_unit": "seconds",
+              "type": "LinearMap"
+            }
+          ],
+          "flow_control": [],
+          "id": "ante",
+          "is_segment_line": false,
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Ante",
+          "number_type": "fraction",
+          "offset": [
+            0,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        },
+        {
+          "children": [],
+          "conversion_maps": [
+            {
+              "id": "a_tempo",
+              "name": "Tempo",
+              "offset": 0,
+              "scalar": [
+                1,
+                2
+              ],
+              "source_unit": "quarters",
+              "target_unit": "seconds",
+              "type": "LinearMap"
+            },
+            {
+              "id": "b_ticks",
+              "name": "Ticks",
+              "offset": 0,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "LinearMap"
+            }
+          ],
+          "flow_control": [],
+          "id": "cons",
+          "is_segment_line": false,
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Cons",
+          "number_type": "fraction",
+          "offset": [
+            4,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "piece",
+      "is_segment_line": false,
+      "length": [
+        8,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Piece",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.2.0"
+}

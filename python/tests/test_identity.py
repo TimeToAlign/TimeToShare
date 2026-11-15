@@ -531,7 +531,7 @@ def test_a_negative_offset_is_accepted_on_a_child_or_a_root() -> None:
             )
         ),
         {
-            "timetoshare": "0.1.0",
+            "timetoshare": "0.2.0",
             "timelines": [
                 {
                     "id": "piece",

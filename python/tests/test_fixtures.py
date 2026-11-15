@@ -20,7 +20,7 @@ from timetoshare import (
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-FIXTURES = REPOSITORY_ROOT / "fixtures" / "0.1.0"
+FIXTURES = REPOSITORY_ROOT / "fixtures" / "0.2.0"
 
 
 def _load(path: Path) -> dict:

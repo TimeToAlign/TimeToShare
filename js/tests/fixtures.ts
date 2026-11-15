@@ -162,7 +162,7 @@ export function timeline(
 
 /** A manifest of the given roots in the minimal form. */
 export function manifest(timelines: JsonObject[], members: JsonObject = {}): JsonObject {
-  return { timetoshare: "0.1.0", timelines, ...members };
+  return { timetoshare: "0.2.0", timelines, ...members };
 }
 
 export function group(id: string, members: string[], rest: JsonObject = {}): JsonObject {

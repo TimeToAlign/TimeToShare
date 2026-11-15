@@ -26,7 +26,7 @@ from .validation.representation import (
     representation_problems,
 )
 
-SCHEMA_VERSION = "0.1.0"
+SCHEMA_VERSION = "0.2.0"
 """The schema version this package reads and writes, the only one it supports."""
 
 

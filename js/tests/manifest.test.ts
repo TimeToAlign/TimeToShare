@@ -561,7 +561,7 @@ describe("values the writer refuses", () => {
 describe("parse", () => {
   it("reads and validates a manifest without losing a float", () => {
     const value = parse(
-      '{"timetoshare": "0.1.0", "timelines": [{"id": "take", "unit": "seconds", "length": 12.0,' +
+      '{"timetoshare": "0.2.0", "timelines": [{"id": "take", "unit": "seconds", "length": 12.0,' +
         ' "children": [{"id": "a", "unit": "seconds", "length": 1.5, "offset": 0.5},' +
         ' {"id": "b", "unit": "seconds", "length": 1.5, "offset": 6.0}]}]}',
     ) as unknown as JsonObject;

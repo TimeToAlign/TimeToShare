@@ -24,7 +24,7 @@ export {
 } from "./validate/diagnostics.js";
 
 /** The schema version this package reads and writes, the only one it supports. */
-export const SCHEMA_VERSION = "0.1.0";
+export const SCHEMA_VERSION = "0.2.0";
 
 /** Thrown when a manifest's version marker names a version other than `SCHEMA_VERSION`. */
 export class UnsupportedVersionError extends Error {

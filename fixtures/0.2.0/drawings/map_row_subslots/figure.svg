@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="511.574" height="104.4766" viewBox="0 0 511.574 104.4766" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="479.574" height="72.4766" rx="10" fill="#F3F4F6"/>
+<rect data-id="form" data-part="card" x="10" y="10" width="461.574" height="54.4766" rx="5" fill="#B8BEC8"/>
+<rect data-id="form" data-part="card" x="8" y="8" width="461.574" height="54.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-id="ticks_form" points="52.2949,21 452.2949,21 452.2949,23 52.2949,23" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-id="ticks_b" points="152.2949,16 302.2949,16 302.2949,18 152.2949,18" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-id="ticks_c" points="302.2949,16 452.2949,16 452.2949,18 302.2949,18" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<line data-id="form" x1="52.2949" y1="27.5" x2="452.2949" y2="27.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="form" cx="52.2949" cy="27.5" r="3" fill="#00CC00"/>
+<polygon data-id="form" points="461.2949,27.5 452.2949,23 452.2949,32" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="b" data-part="start" x1="152.2949" y1="19.5" x2="152.2949" y2="35.5" stroke="#000000" stroke-width="1"/>
+<line data-id="c" data-part="start" x1="302.2949" y1="19.5" x2="302.2949" y2="35.5" stroke="#000000" stroke-width="1"/>
+<polygon data-id="form" data-part="start" points="52.2949,29 49.2949,42 55.2949,42" fill="#000000"/>
+<polygon data-id="form" data-part="end" points="452.2949,29 449.2949,42 455.2949,42" fill="#000000"/>
+<text data-id="form" data-part="name" x="16" y="31.3081" text-anchor="start" font-size="11" fill="#000000">Form</text>
+<text data-id="form" data-part="start label" x="52.2949" y="52.354" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="form" data-part="end label" x="452.2949" y="52.354" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
+</g>
+</svg>
