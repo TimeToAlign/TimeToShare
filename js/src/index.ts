@@ -49,6 +49,7 @@ export type {
   Selector,
   Statement,
   Timeline,
+  Timestamp,
   TimeUnit,
 } from "./generated/types.js";
 export { JsonSyntaxError, parseJson } from "./json/parse.js";

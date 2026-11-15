@@ -292,7 +292,7 @@ required in both forms.
 | a `TableMap` besides (`table_map`) | `kind`: `"linear"`; `extrapolate`: `"none"` |
 | MeasureMap (`measure_map`) | `name`: `null`; `meta`: `{}` |
 | group | `name`: `null`; `meta`: `{}` |
-| graphical | `styles`: `{}`; `statements`: `[]`; `order`: `{}` |
+| graphical | `styles`: `{}`; `statements`: `[]`; `order`: `{}`; `timestamps`: `[]` |
 
 A row marked "besides" adds its keys to those of the general row it
 follows: a `repeat_end` has the keys of every flow-control element plus
@@ -339,10 +339,19 @@ roots that no group names, and that contain no member, are ungrouped. A
 manifest holding a group always holds its members' roots, so a member that
 is a child keeps its parent.
 
-`graphical` is `{styles?, statements?, order?}`, at the manifest's top
-level only, never on a timeline: a timeline holds time, and what is
-graphical lies in this object. `styles` and `statements` style the drawing
-([Drawing a manifest](#drawing-a-manifest)). `order` maps the ID of a group
+`graphical` is `{styles?, statements?, order?, timestamps?}`, at the
+manifest's top level only, never on a timeline: a timeline holds time, and
+what is graphical lies in this object. `styles` and `statements` style the
+drawing ([Drawing a manifest](#drawing-a-manifest)). `timestamps` lists the
+**named timestamps**, each `{id, timeline, coordinate, name}`: a position
+`coordinate` on the own axis of the timeline `timeline`, a root or a
+descendant at any depth, a segment included, written as that timeline's
+number type selects ([Values on a timeline's own axis](#values-on-a-timelines-own-axis)),
+from its zero to its `length` (only from its zero when the length is
+`null`), and named `name`, a non-empty string. Only that coordinate is
+stored, never a map's value at it. A named timestamp is drawn as a wedge
+labelled with its name and as a cross-section line across the rows of its
+card (the drawing specification, sections 2.1 and 6.6). `order` maps the ID of a group
 or of a timeline to the order of what it stacks, top to bottom, and
 writers never reorder it:
 
@@ -387,18 +396,21 @@ host's own validator is unaffected.
 
 ### Identity
 
-Every timeline, group, MeasureMap, conversion map, region and
-flow-control element carries an `id`, which identifies it, and so may the
-manifest. A `name`, where an element has one, is what is displayed, and it
+Every timeline, group, MeasureMap, conversion map, region,
+flow-control element and named timestamp carries an `id`, which identifies
+it, and so may the manifest. A `name`, where an element has one, is what is displayed, and it
 may repeat. An ID is any non-empty string without control characters
 (U+0000 to U+001F): `/`, spaces, colons and URIs are allowed. Every ID is
 unique across the whole manifest: the manifest's own, and the IDs of every
 timeline (root or descendant), group, MeasureMap, conversion map at any
-depth of nesting, region and flow-control element. An ID is never parsed
+depth of nesting, region, flow-control element and named timestamp. A
+named timestamp's ID has one shape, `timestamp_` followed by a positive
+integer without leading zeros. An ID is never parsed
 and never composed with another. A reference is an ID: a jump origin's
 `target` names a jump target of the same timeline, a measure view's
 `measure_map` an entry of `measure_maps`, a group's `members` name
-timelines of the manifest, and a key of `graphical.order` a group or a timeline.
+timelines of the manifest, a key of `graphical.order` a group or a
+timeline, and a named timestamp's `timeline` a timeline of the manifest.
 
 timetoalign and TimeLineEditor mint a speaking default `{prefix}_{N}` for
 an element created without an ID, such as `clt_1` or `region_1`, `N` the
@@ -419,7 +431,8 @@ names an element, nor that a map converts from its timeline's unit or its
 holder's, nor that a map's arrays agree, nor that a member names a timeline
 of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
-line's segments are contiguous and alike, nor the representation of
+line's segments are contiguous and alike, nor that a named timestamp lies
+on a timeline of the manifest and within it, nor the representation of
 own-axis values, so both validators check them after the schema. Each
 finding is one problem, located by a path into the manifest and named by a
 stable code:
@@ -440,7 +453,7 @@ stable code:
 | A segment does not start where the one before it ends, or the first at 0 | `segment_line` | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
 | The last segment does not end at the segment line's length, both known | `segment_line` | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
 | An ID of a root's tree repeats an ID of an earlier root's tree | `duplicate_id` | the later occurrence | `'<id>' is not unique in the manifest, first at <pointer>` |
-| A group ID or a MeasureMap ID repeats an earlier ID of the manifest | `duplicate_id` | the group's or the MeasureMap's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
+| A group ID, a MeasureMap ID or a named timestamp's ID repeats an earlier ID of the manifest | `duplicate_id` | the group's, the MeasureMap's or the timestamp's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
 | The manifest's ID repeats another ID of the manifest | `manifest_id` | `id` | `'<id>' is not unique in the manifest, first at <pointer>`, the pointer naming the first occurrence of that ID |
 | A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
@@ -449,6 +462,8 @@ stable code:
 | A member of a group is missing from its display order | `display_order` | the order | `member '<id>' of group '<group id>' is missing` |
 | An entry of a band order is neither `line` nor a facet | `band_order` | the entry | `'<entry>' is not 'line' or a facet, in the band order of '<id>'` |
 | A facet, or `line`, is missing from its band order | `band_order` | the order | `'<entry>' is missing from the band order of '<id>'` |
+| A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
+| A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
 
 Within one root's tree, IDs are visited in identity order (a timeline,
 then its conversion maps, regions and flow-control elements, then its
@@ -466,10 +481,14 @@ segments are visited in canonical order and compared by exact value. Across the 
 order: each root's own problems, roots in array order; then the IDs
 repeated across roots (root by root, each ID of its tree in identity order,
 the IDs of the maps other maps hold last), the group IDs, the MeasureMap
-IDs, the manifest's ID; members (member by member: dangling, nested), and
-the entries of `graphical.order` in code-point order of their keys: an
-order's strangers first, in its order, then its missing entries, in the
-order of the group's `members` or of the default band order. `<pointer>`
+IDs, the named timestamps' IDs, the manifest's ID; members (member by
+member: dangling, nested); the entries of `graphical.order` in code-point
+order of their keys: an order's strangers first, in its order, then its
+missing entries, in the order of the group's `members` or of the default
+band order; and last the named timestamps, in array order. A timestamp's
+coordinate is an own-axis value of its timeline, so its representation is
+checked as every such value is (`representation`, at its `coordinate`); a
+timestamp naming no timeline is checked for its timeline alone. `<pointer>`
 is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
 `json_pointer(path)` and npm's `jsonPointer(path)` render a path. Both
 packages write the messages above alike, an ID verbatim in single quotes
@@ -603,7 +622,9 @@ order keys cannot express are put in this order:
 - in every timeline, `children` by offset, then ID;
 - `conversion_maps` by ID;
 - `regions` by start, then end, then ID;
-- `flow_control` by coordinate, then ID.
+- `flow_control` by coordinate, then ID;
+- `graphical.timestamps` by `timeline` (code point), then coordinate,
+  then ID.
 
 IDs are unique across the manifest, so no two entries tie. Coordinates
 compare by exact numeric value, never by JSON spelling. Strings compare by

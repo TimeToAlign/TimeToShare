@@ -76,7 +76,7 @@ with the same inline documents, paths, codes and messages, in the same
 order: every semantic rule by its smallest document with one problem, which
 `validate` raises too, and one document breaking every step once, whose
 problems and codes `identityProblems` lists in order and whose first problem
-`validate` raises. The rules live in six modules of the same names and
+`validate` raises. The rules live in seven modules of the same names and
 decomposition in both packages, so a rule changes in both or the shared
 cases fail. The packages differ only where JavaScript must:
 
@@ -114,7 +114,7 @@ schema addition cannot escape the canonical spelling.
 
 ## Shared rejection cases
 
-Each of the 102 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 107 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
@@ -125,7 +125,9 @@ case has one reading, the reader's value, since JSON text cannot carry it,
 and a test pins the two values in place. One `JSON.parse` reading is exempt:
 `float_axis_int_not_exact`, since `9007199254740993` becomes
 `9007199254740992`, exactly a float; the test asserts that this lossy
-reading validates. The set of names and the sixteen codes are stated literally.
+reading validates. The set of names and the eighteen codes are stated
+literally, and the twelve cases whose messages the Python suite pins carry
+the same messages here (`identity.test.ts`).
 
 The path rule is the Python README's ("One path rule for both validators");
 Ajv applies a discriminated `oneOf` to the candidate its tag selects through
@@ -157,7 +159,7 @@ is the default only in type and value: `repeat_count: new JsonFloat(1)` (read
 from `1.0`) is not the default `1` and stays in the minimal form; the round
 trips compare `dumps` texts, which tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (69, one per fixture) completes to its fixture's text, keeps it in canonical order,
+minimal twin (70, one per fixture) completes to its fixture's text, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
 optional.
@@ -173,7 +175,7 @@ pairs mixed, and adds:
   case, with the keys of every object reversed and, in the fixtures, the
   items of every array the canonical order sorts (`timelines`, `groups`,
   `members`, `measure_maps`, `children`, `conversion_maps`, `regions`,
-  `flow_control`), is written by this `dumps` and by Python's `dumps`
+  `flow_control`, `graphical.timestamps`), is written by this `dumps` and by Python's `dumps`
   (loaded by `python3` from its path) to the same bytes, equal to the file.
 - **Python's `repr` itself.** 2000 doubles from a fixed pseudo-random
   sequence are spelled exactly as `python3` spells them with `repr`.

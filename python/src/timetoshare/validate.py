@@ -288,7 +288,7 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
 
     Root by root: duplicates, dangling targets, conversion maps, containment
     and segment lines; then the IDs unique across the manifest (the roots'
-    trees, the group IDs, the MeasureMap IDs, the manifest ID), group members,
-    and graphical orders.
+    trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
+    manifest ID), group members, graphical orders and named timestamps.
     """
     return list(_semantic_problems(value))

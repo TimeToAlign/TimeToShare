@@ -29,6 +29,8 @@ export type ValidationCode =
   | "order_key"
   | "display_order"
   | "band_order"
+  | "timestamp_timeline"
+  | "timestamp_coordinate"
   | "finite_number";
 
 /** Render a path as a JSON pointer in URI fragment form (`#` for the root). */
@@ -61,6 +63,26 @@ export function entries(owner: unknown, key: string): JsonObject[] {
 /** A string member of an object the schema has already checked. */
 export function text(owner: JsonObject, key: string): string {
   return owner[key] as string;
+}
+
+/**
+ * Every timeline of a manifest, at any depth, by ID; of a repeated ID the
+ * first timeline in document order is kept.
+ */
+export function timelinesById(manifest: unknown): Map<string, JsonObject> {
+  const found = new Map<string, JsonObject>();
+  const visit = (timeline: JsonObject): void => {
+    const id = text(timeline, "id");
+    if (!found.has(id)) found.set(id, timeline);
+    for (const child of entries(timeline, "children")) visit(child);
+  };
+  for (const root of entries(manifest, "timelines")) visit(root);
+  return found;
+}
+
+/** The named timestamps of a manifest's `graphical` object, or none. */
+export function timestampsOf(manifest: unknown): JsonObject[] {
+  return entries(isJsonObject(manifest) ? manifest.graphical : undefined, "timestamps");
 }
 
 /** A timeline's length, or `null` where it is not known. */

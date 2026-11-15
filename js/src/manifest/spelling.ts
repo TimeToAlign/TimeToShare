@@ -126,12 +126,27 @@ function respellTimeline(timeline: JsonObject, offsetType: NumberType | undefine
  * An own-axis value on an int axis becomes a JSON integer, on a float axis a
  * float where one equals it exactly (a `JsonFloat` where it is integral), and
  * every member of a Fraction pair (own-axis, conversion-map Numbers at any
- * depth, MeasureMap rows) a JSON integer where it is integral. Anything else
- * is left as it is, so any value may be given.
+ * depth, MeasureMap rows) a JSON integer where it is integral; a named
+ * timestamp's coordinate is read on the axis of the timeline it names.
+ * Anything else is left as it is, so any value may be given.
  */
 export function respell(manifest: unknown): void {
   if (!isJsonObject(manifest)) return;
   for (const timeline of objects(manifest.timelines)) respellTimeline(timeline, undefined);
+  const axisTypes = new Map<string, NumberType | undefined>();
+  const visit = (timeline: JsonObject): void => {
+    const { id } = timeline;
+    if (typeof id === "string" && !axisTypes.has(id)) axisTypes.set(id, axisType(timeline));
+    for (const child of objects(timeline.children)) visit(child);
+  };
+  for (const timeline of objects(manifest.timelines)) visit(timeline);
+  const { graphical } = manifest;
+  for (const timestamp of objects(isJsonObject(graphical) ? graphical.timestamps : undefined)) {
+    const { timeline } = timestamp;
+    if (typeof timeline === "string") {
+      respellAxis(timestamp, ["coordinate"], axisTypes.get(timeline));
+    }
+  }
   for (const measureMap of objects(manifest.measure_maps)) {
     for (const row of objects(measureMap.rows)) {
       for (const key of ROW_NUMBER_MEMBERS) {

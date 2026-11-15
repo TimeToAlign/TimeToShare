@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Thirty-two of the 75 drawings in this directory are derived by hand from
+Thirty-three of the 76 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the font metrics
 alone. Their `figure.svg` files are never regenerated: the emitting script
 compares each with its writer's output instead. Every other figure in this
@@ -53,10 +53,11 @@ own `graphical` object (§1), and otherwise the defaults and the manifest's
 | `map_row_subslots` | `map_row_subslots.json` | none |
 | `map_row_moved` | `map_row_moved.json` | none |
 | `label_float_rounding` | `label_float_rounding.json` | none |
+| `timestamps` | `timestamps.json` | none (the manifest's own `graphical` object hides the cross-section line of `timestamp_2`) |
 
 ## Shared quantities
 
-Every manifest is drawn as one block (§8). Twenty-five of these drawings show
+Every manifest is drawn as one block (§8). Twenty-six of these drawings show
 one ungrouped root, drawn in its card, four one group, drawn as a frame,
 and `bundle_ungrouped__places`, `bundle_ungrouped__scale` and
 `bundle_ungrouped__spacing` three ungrouped roots, each in its own card.
@@ -72,7 +73,10 @@ carries `data-id="tempo"`, the region `region_1` of `with_region`
 `data-id="jump_from_1"`, the label of the region `intro` of
 `styled__score` `data-id="intro" data-part="label"`, and the flow marker
 `fine` of the child `verse` in `child_flow_control__flow-shown`
-`data-id="fine"`, whichever root's tree holds the element. A manifest's
+`data-id="fine"`, and the wedge of the named timestamp `timestamp_1` of
+`timestamps` `data-id="timestamp_1"`, its cross-section line
+`data-id="timestamp_1" data-part="line"`, whichever root's tree holds the
+element. A manifest's
 title, wherever one is drawn, carries `data-part="name"` alone, and the
 block, addressed `{}`, carries none of them. A band draws nothing (§2.1),
 so no element carries a band's address.
@@ -1363,3 +1367,69 @@ the physical domain's blue `#0050EF` (§4).
 - `W` = 8 + (10 + 470.1181640625) = 488.1181640625; `H` = 8 + (10 +
   49.37890625) = 67.37890625.
 - Page 520.1181640625 × 99.37890625 → **520.1182 × 99.3789**.
+
+## `timestamps`
+
+The root `clt_1` (8 quarters) and its locked child `clt_2` (4 at 2), with
+three named timestamps (§2): `timestamp_1` `Downbeat` at 3/2 and
+`timestamp_2` `Climax` at 6 on `clt_1`, and `timestamp_3` `Entry` at 1 on
+`clt_2`. No timeline has a name, so each row shows its ID. The manifest's
+own statement `{"select": {"addresses": [{"id": "timestamp_2", "part":
+["line"]}]}, "set": {"display": "none"}}` hides the cross-section line of
+`timestamp_2`, which its wedge and label do not follow (§2.4): both are
+drawn. Every markers band is shown (§4), so `clt_2`'s draws the wedge of
+`Entry`; it lies after `line` in the default band order, so below
+`clt_2`'s line, towards the root.
+
+- `N` = w(`clt_1`, 11) = 25.91552734375, the same for `clt_2`.
+- `x0` = 16 + 25.91552734375 + 8 = 49.91552734375 → 49.9155; the start
+  label `0 ♩` gives only 16 + 6.416015625 = 22.416015625. `L` = 400 over 8
+  quarters, so a root position `q` lies at `x0 + 50q`: `Downbeat` at
+  49.91552734375 + 75 = 124.91552734375 → 124.9155, `Climax` at
+  49.91552734375 + 300 = 349.91552734375 → 349.9155, and `Entry`, at
+  2 + 1 = 3 on the root's axis (§3.1), at 49.91552734375 + 150 =
+  199.91552734375 → 199.9155. `clt_2` runs from `x(2)` = 149.91552734375
+  to `x(6)` = 349.91552734375, its line stopping at `Xe − 1.5w` =
+  345.41552734375 → 345.4155 for its diamond.
+- `R` = the arrowhead tip 449.91552734375 + 9 = 458.91552734375; the end
+  label `8 ♩` reaches only 449.91552734375 + 6.416015625 = 456.33154296875,
+  and `clt_2`'s diamond 349.91552734375 + 4.5 = 354.41552734375.
+- The root's markers band: the labels `0 ♩` [−6.416015625, 6.416015625],
+  `8 ♩` [393.583984375, 406.416015625], `Downbeat` (45.79541015625 wide)
+  [75 − 22.897705078125, 75 + 22.897705078125] = [52.102294921875,
+  97.897705078125] and `Climax` (30.8935546875 wide) [300 −
+  15.44677734375, 300 + 15.44677734375] = [284.55322265625,
+  315.44677734375], placed in this order (§6.4, Markers), keep the label
+  separation 2 from one another, so they fill one tier: the band is
+  26.9765625 wide (Shared quantities), and `Eb` = 26.9765625.
+- `clt_2`'s markers band holds `Entry` (23.94580078125 wide) alone, one
+  tier: 1.5 + 13 + 2 + 10.4765625 = 26.9765625 wide, at level −1 of
+  `clt_2`, towards the root.
+- Above the root, the children band alone. `clt_1`'s line reaches nothing
+  there, so the band starts at the larger of 1.5 + 4 = 5.5 and `p0 / 2` =
+  14 / 2 = 7 (`p0` = max(10 + 4, 12.8046875) = 14): 7. `clt_2`'s row has
+  the inner half max(7, 26.9765625) = 26.9765625, its markers band, and
+  the outer half max(7, 0) = 7; its line lies 7 + 26.9765625 =
+  33.9765625 above the root's, and `Ea` = 7 + 33.9765625 = 40.9765625.
+- `y_root` = max(8 + 40.9765625, 8 + 6.40234375) = 48.9765625 in the
+  member drawing; `Hm` = 48.9765625 + 26.9765625 + 8 = 83.953125. Drawn,
+  the root's line lies at 8 + 48.9765625 = 56.9765625 → 56.9766 and
+  `clt_2`'s at 56.9765625 − 33.9765625 = 23.
+- The wedges (§6.6): the root's from 56.9765625 + 1.5 = 58.4765625 →
+  58.4766 to 71.4765625 → 71.4766, their labels' baseline at 58.4765625 +
+  13 + 2 + 8.35400390625 = 81.83056640625 → 81.8306; `Entry`'s from 23 +
+  1.5 = 24.5 to 37.5, its label's baseline at 24.5 + 13 + 2 +
+  8.35400390625 = 47.85400390625 → 47.854. The names' baselines lie at 23
+  + (10.21044921875 − 2.59423828125) / 2 = 26.80810546875 → 26.8081 and
+  56.9765625 + 3.80810546875 = 60.78466796875 → 60.7847.
+- The cross-section lines (§6.6), drawn last (§7.2), in the order of their
+  wedges: `timestamp_1` lies on the root's line, so it runs from `P + V` =
+  8 + 0 = 8 to `Hm − P − V` = 83.953125 − 8 = 75.953125 in the member
+  drawing, drawn from 8 + 8 = 16 to 8 + 75.953125 = 83.953125 → 83.9531,
+  crossing `clt_2`'s row; `timestamp_3` lies on `clt_2`'s line, above the
+  root's, so it runs from that line, 23, up to 16 (`y1="23" y2="16"`),
+  crossing no row between `clt_2` and the root; `timestamp_2`'s line is
+  not displayed and has no descriptor.
+- `W` = 8 + (10 + 458.91552734375) = 476.91552734375; `H` = 8 + (10 +
+  83.953125) = 101.953125.
+- Page 508.91552734375 × 133.953125 → **508.9155 × 133.9531**.

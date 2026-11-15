@@ -9,7 +9,8 @@ array of a manifest whose order carries no meaning has one canonical order:
   id; ``regions`` by start, then end, then id; ``flow_control`` by
   coordinate, then id;
 * ``groups`` by id and every group's ``members`` by code point;
-* ``measure_maps`` by id.
+* ``measure_maps`` by id;
+* ``graphical.timestamps`` by timeline, then coordinate, then id.
 
 Own-axis values compare by their exact numeric value, never by their JSON
 spelling; strings compare by Unicode code point. Nothing else is reordered;
@@ -285,13 +286,35 @@ def _respell_timeline(timeline: dict[str, Any], offset_type: str | None) -> None
         _respell_timeline(child, own)
 
 
+def _axis_types(manifest: dict[str, Any]) -> dict[str, str | None]:
+    """The number type of every timeline's axis by ID, the first of a repeated ID."""
+    found: dict[str, str | None] = {}
+
+    def visit(timeline: dict[str, Any]) -> None:
+        identifier = timeline.get("id")
+        if isinstance(identifier, str):
+            found.setdefault(identifier, _axis_type(timeline))
+        for child in _dicts(timeline.get("children")):
+            visit(child)
+
+    for timeline in _dicts(manifest.get("timelines")):
+        visit(timeline)
+    return found
+
+
+def _timestamps(manifest: Any) -> Any:
+    graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
+    return graphical.get("timestamps") if isinstance(graphical, dict) else None
+
+
 def _respell(manifest: Any) -> None:
     """Spell every value of a manifest as its number type selects, in place.
 
     An own-axis value on an int axis becomes a JSON integer, on a float axis
     a float where one equals it exactly, and every member of a Fraction pair
     (own-axis, conversion-map Numbers at any depth, MeasureMap rows) a JSON
-    integer where it is integral. Anything else is left as it is, so any
+    integer where it is integral; a named timestamp's coordinate is read on
+    the axis of the timeline it names. Anything else is left as it is, so any
     value may be given.
     """
     if not isinstance(manifest, dict):
@@ -303,6 +326,11 @@ def _respell(manifest: Any) -> None:
             for key in _ROW_NUMBER_MEMBERS:
                 if key in row:
                     row[key] = _fraction(row[key])
+    axis_types = _axis_types(manifest)
+    for timestamp in _dicts(_timestamps(manifest)):
+        timeline = timestamp.get("timeline")
+        if isinstance(timeline, str):
+            _respell_axis(timestamp, ("coordinate",), axis_types.get(timeline))
 
 
 def canonical_order(value: Any) -> Any:
@@ -310,8 +338,9 @@ def canonical_order(value: Any) -> Any:
 
     A value with a top-level ``timelines`` array is a manifest: every timeline
     in it is ordered at every depth and the array itself by id, its ``groups``
-    are ordered by id, each with its ``members`` by code point, and its
-    ``measure_maps`` by id.
+    are ordered by id, each with its ``members`` by code point, its
+    ``measure_maps`` by id and its ``graphical.timestamps`` by timeline, then
+    coordinate, then id.
     Every value it reads by a number type is spelled as that type selects
     (module docstring). Only the arrays listed in the module docstring move;
     object keys are left as they are (``dumps`` sorts them), and any other
@@ -338,6 +367,17 @@ def canonical_order(value: Any) -> Any:
         result["groups"] = _sorted(groups, _by_id, "groups")
     if isinstance(result.get("measure_maps"), list):
         result["measure_maps"] = _sorted(result["measure_maps"], _by_id, "measure_maps")
+    timestamps = _timestamps(result)
+    if isinstance(timestamps, list):
+        result["graphical"]["timestamps"] = _sorted(
+            timestamps,
+            lambda entry: (
+                _identifier(entry["timeline"]),
+                _exact(entry["coordinate"]),
+                _by_id(entry),
+            ),
+            "timestamps",
+        )
     return result
 
 

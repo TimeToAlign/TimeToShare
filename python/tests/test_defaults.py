@@ -195,7 +195,12 @@ def test_every_object_gains_exactly_its_defaults() -> None:
     assert value["measure_maps"] == [
         {"id": "bars", "rows": rows, "name": None, "meta": {}}
     ]
-    assert value["graphical"] == {"styles": {}, "statements": [], "order": {}}
+    assert value["graphical"] == {
+        "styles": {},
+        "statements": [],
+        "order": {},
+        "timestamps": [],
+    }
     validate(value)
 
 
@@ -224,6 +229,7 @@ def test_absent_defaults_are_never_added_or_removed() -> None:
         "styles": {},
         "statements": [],
         "order": {},
+        "timestamps": [],
     }
     child = manifest(timeline("score", children=[timeline("c", offset=(0, 1))]))
     assert minimal(child)["timelines"][0]["children"][0]["offset"] == [0, 1]

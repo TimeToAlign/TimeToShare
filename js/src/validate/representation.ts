@@ -9,6 +9,8 @@ import {
   type PathSegment,
   SchemaValidationError,
   text,
+  timelinesById,
+  timestampsOf,
 } from "./diagnostics.js";
 
 const ARTICLES: Readonly<Record<NumberType, string>> = {
@@ -87,10 +89,25 @@ function* timelineRepresentation(
   }
 }
 
-/** Yield own-axis representation violations in manifest order. */
+/**
+ * Yield own-axis representation violations in manifest order: the timelines
+ * first, then the coordinate of every named timestamp on a timeline of the
+ * manifest, read as that timeline's number type.
+ */
 export function* representationProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   for (const [index, root] of entries(manifest, "timelines").entries()) {
     yield* timelineRepresentation(root, ["timelines", index], null);
+  }
+  const timelines = timelinesById(manifest);
+  for (const [index, timestamp] of timestampsOf(manifest).entries()) {
+    const timeline = timelines.get(text(timestamp, "timeline"));
+    if (timeline === undefined) continue;
+    yield* representationProblem(
+      "coordinate",
+      timestamp,
+      ["graphical", "timestamps", index],
+      numberTypeOf(timeline as { unit: TimeUnit; number_type?: NumberType }),
+    );
   }
 }
 

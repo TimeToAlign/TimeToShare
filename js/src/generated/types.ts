@@ -307,7 +307,7 @@ export type FractionPositive = [number, number];
  */
 export type Paint = string;
 /**
- * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker at a root's start or end), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), and an ancestor line of a member that is a child timeline (`ancestor`).
+ * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker at a root's start or end, or at a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across the rows of its card, and an ancestor line of a member that is a child timeline (`ancestor`).
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -327,9 +327,10 @@ export type ElementType =
   | "boundary"
   | "ancestor"
   | "frame"
-  | "card";
+  | "card"
+  | "cross_section";
 /**
- * One of the five facets every timeline has: its coordinate markers (the wedges at a root's start and end; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet.
+ * One of the five facets every timeline has: its coordinate markers (the wedges at a root's start and end and the wedges of the timeline's named timestamps; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Facet".
@@ -341,7 +342,7 @@ export type Facet = "markers" | "conversion_maps" | "children" | "regions" | "fl
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Part".
  */
-export type Part = "start" | "end" | "name" | "label" | "card";
+export type Part = "start" | "end" | "name" | "label" | "card" | "line";
 /**
  * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.
  *
@@ -653,10 +654,11 @@ export type CompleteGraphical = {
   order: {
     [k: string]: Order;
   };
+  timestamps: Lossless<Timestamp>[];
 };
 
 /**
- * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region and flow-control element. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a statement selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups and the MeasureMaps are written sorted by ID and each group's members by code point; readers accept any order.
+ * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element and named timestamp. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a statement selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups and the MeasureMaps are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order.
  */
 export interface Manifest {
   /**
@@ -946,7 +948,7 @@ export interface MeasureMapRow {
   offset_within_measure?: NumberPositive;
 }
 /**
- * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members and the band order of each timeline. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent `graphical` object draws every element with the other style layers alone.
+ * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members, the band order of each timeline and the named timestamps. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent `graphical` object draws every element with the other style layers alone.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Graphical".
@@ -968,6 +970,10 @@ export interface Graphical {
   order?: {
     [k: string]: Order;
   };
+  /**
+   * The named timestamps, written in canonical order: by timeline (code point), then coordinate, then ID. Readers accept any order.
+   */
+  timestamps?: Timestamp[];
 }
 /**
  * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width and shadow are TimeToShare's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.
@@ -1057,7 +1063,7 @@ export interface Selector {
   inside?: ElementType;
 }
 /**
- * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region or a flow-control element. `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` and `["end"]` a root's wedges, a member's marks on its ancestor lines or a segment's boundary, `["start", "label"]` and `["end", "label"]` a wedge's label, `["name"]` and `["label"]` the element's name or label. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.
+ * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element or a named timestamp (its wedge). `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` and `["end"]` a root's wedges, a member's marks on its ancestor lines or a segment's boundary, `["start", "label"]` and `["end", "label"]` a wedge's label, `["name"]` and `["label"]` the element's name or label, and `["line"]` a named timestamp's cross-section line. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Address".
@@ -1069,6 +1075,30 @@ export interface Address {
    * @minItems 1
    */
   part?: [Part, ...Part[]];
+}
+/**
+ * A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`; drawn as a wedge `{"id": id}` labelled with its name and a cross-section line `{"id": id, "part": ["line"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, and that it lies within the timeline are checked after the schema.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Timestamp".
+ */
+export interface Timestamp {
+  /**
+   * An identifier: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
+   */
+  id: string;
+  /**
+   * The ID of the timeline the timestamp lies on: a root or a descendant at any depth, a segment included.
+   */
+  timeline: Id;
+  /**
+   * Where the timestamp lies on its timeline's own axis, represented as the axis's number type selects.
+   */
+  coordinate: Number;
+  /**
+   * The timestamp's human-readable name, which its label shows; never empty.
+   */
+  name: string;
 }
 /**
  * A manifest as `parseJson` reads it: every number a `JsonNumber`, every

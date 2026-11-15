@@ -919,3 +919,14 @@ def label_float_rounding_timeline() -> Timeline:
     and its start wedge ``0.0 s``.
     """
     return parts.named(ContinuousPhysicalTimeline, "take", "Take", 312.48979591836735)
+
+
+def timestamps_timeline() -> Timeline:
+    """Build a root of 8 quarters with one child, the timelines of named timestamps.
+
+    The root ``clt_1`` holds the child ``clt_2`` of 4 quarters at 2; the
+    named timestamps lie on both (``GRAPHICAL["timestamps"]``).
+    """
+    root = ContinuousLogicalTimeline(length=8, unit="quarters")
+    root.add_child(ContinuousLogicalTimeline(length=4, unit="quarters"), 2)
+    return root

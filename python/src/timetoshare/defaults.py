@@ -39,7 +39,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "table_map": {"kind": "linear", "extrapolate": "none"},
     "measure_map": {"name": None, "meta": {}},
     "group": {"name": None, "meta": {}},
-    "graphical": {"styles": {}, "statements": [], "order": {}},
+    "graphical": {"styles": {}, "statements": [], "order": {}, "timestamps": []},
 }
 """The default of every key that has one, by the kind of object holding it.
 

@@ -701,6 +701,24 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
             "order_unknown_group",
             "'group_9' names no group or timeline of this manifest",
         ),
+        (
+            "timestamp_timeline_unknown",
+            "'ghost' names no timeline of this manifest",
+        ),
+        (
+            "timestamp_coordinate_beyond_length",
+            "coordinate [5, 1] of 'timestamp_1' is beyond the length [4, 1] of its "
+            "timeline 'verse'",
+        ),
+        (
+            "timestamp_coordinate_negative",
+            "coordinate [-1, 1] of 'timestamp_1' lies before the start of its "
+            "timeline 'score'",
+        ),
+        (
+            "timestamp_id_is_timeline_id",
+            "'timestamp_1' is not unique in the manifest, first at #/timelines/0/id",
+        ),
     ],
 )
 def test_the_shared_identity_rejections_carry_their_messages(
@@ -1029,6 +1047,167 @@ def test_an_order_keyed_by_a_region() -> None:
     )
 
 
+def _stamp(identifier: str, line: str, coordinate: object, name: str = "Entry") -> dict:
+    return {"id": identifier, "timeline": line, "coordinate": coordinate, "name": name}
+
+
+def _stamped(*timestamps: dict, **members: object) -> dict:
+    """``score`` (8 quarters) with ``verse`` (4 at 2), and named timestamps."""
+    root = timeline("score", children=[timeline("verse", length=(4, 1), offset=(2, 1))])
+    return manifest(root, graphical={"timestamps": list(timestamps)}, **members)
+
+
+def test_named_timestamps_lie_on_their_timelines() -> None:
+    segments = timeline(
+        "form",
+        is_segment_line=True,
+        children=[
+            timeline("a", length=(4, 1), offset=(0, 1)),
+            timeline("b", length=(4, 1), offset=(4, 1)),
+        ],
+    )
+    for document in (
+        _stamped(
+            _stamp("timestamp_1", "score", [0, 1]),
+            _stamp("timestamp_2", "score", [8, 1]),
+            _stamp("timestamp_3", "verse", [0, 1]),
+            _stamp("timestamp_4", "verse", [4, 1]),
+            _stamp("timestamp_5", "score", [3, 2], "Climax"),
+            _stamp("timestamp_6", "score", [3, 2], "Climax"),
+        ),
+        manifest(
+            timeline("score"),
+            segments,
+            graphical={"timestamps": [_stamp("timestamp_1", "b", [4, 1])]},
+        ),
+        manifest(
+            timeline("take", "seconds", None),
+            graphical={"timestamps": [_stamp("timestamp_1", "take", 1e6)]},
+        ),
+        manifest(
+            timeline("midi", "ticks", 480),
+            graphical={"timestamps": [_stamp("timestamp_1", "midi", 480)]},
+        ),
+    ):
+        assert _problems(document) == []
+        validate(document)
+
+
+def test_a_named_timestamp_names_a_timeline() -> None:
+    assert _only(_stamped(_stamp("timestamp_1", "ghost", [1, 1]))) == (
+        ("graphical", "timestamps", 0, "timeline"),
+        "'ghost' names no timeline of this manifest",
+    )
+    # A group ID is no timeline.
+    value = _stamped(_stamp("timestamp_1", "g", [1, 1]), groups=[group("g", "score")])
+    assert _only(value) == (
+        ("graphical", "timestamps", 0, "timeline"),
+        "'g' names no timeline of this manifest",
+    )
+
+
+def test_a_named_timestamp_lies_within_its_timeline() -> None:
+    assert _only(_stamped(_stamp("timestamp_1", "score", [17, 2]))) == (
+        ("graphical", "timestamps", 0, "coordinate"),
+        "coordinate [17, 2] of 'timestamp_1' is beyond the length [8, 1] of its "
+        "timeline 'score'",
+    )
+    assert _problems(_stamped(_stamp("timestamp_1", "score", [16, 2]))) == []
+    assert _only(_stamped(_stamp("timestamp_1", "verse", [5, 1]))) == (
+        ("graphical", "timestamps", 0, "coordinate"),
+        "coordinate [5, 1] of 'timestamp_1' is beyond the length [4, 1] of its "
+        "timeline 'verse'",
+    )
+    assert _only(_stamped(_stamp("timestamp_1", "verse", [-1, 2]))) == (
+        ("graphical", "timestamps", 0, "coordinate"),
+        "coordinate [-1, 2] of 'timestamp_1' lies before the start of its "
+        "timeline 'verse'",
+    )
+    take = manifest(
+        timeline("take", "seconds", 60.0),
+        graphical={"timestamps": [_stamp("timestamp_1", "take", 60.5)]},
+    )
+    assert _only(take) == (
+        ("graphical", "timestamps", 0, "coordinate"),
+        "coordinate 60.5 of 'timestamp_1' is beyond the length 60.0 of its "
+        "timeline 'take'",
+    )
+    open_ended = manifest(
+        timeline("take", "seconds", None),
+        graphical={"timestamps": [_stamp("timestamp_1", "take", -0.5)]},
+    )
+    assert _only(open_ended) == (
+        ("graphical", "timestamps", 0, "coordinate"),
+        "coordinate -0.5 of 'timestamp_1' lies before the start of its timeline 'take'",
+    )
+
+
+def test_named_timestamp_ids_share_the_manifest_scope() -> None:
+    root = timeline("timestamp_1")
+    value = manifest(
+        root, graphical={"timestamps": [_stamp("timestamp_1", "timestamp_1", [1, 1])]}
+    )
+    assert _only(value) == (
+        ("graphical", "timestamps", 0, "id"),
+        "'timestamp_1' is not unique in the manifest, first at #/timelines/0/id",
+    )
+    value = _stamped(
+        _stamp("timestamp_1", "score", [1, 1]), groups=[group("timestamp_1", "score")]
+    )
+    assert _only(value) == (
+        ("graphical", "timestamps", 0, "id"),
+        "'timestamp_1' is not unique in the manifest, first at #/groups/0/id",
+    )
+    value = _stamped(
+        _stamp("timestamp_1", "score", [1, 1]), _stamp("timestamp_1", "verse", [1, 1])
+    )
+    assert _only(value) == (
+        ("graphical", "timestamps", 1, "id"),
+        "'timestamp_1' is not unique in the manifest, "
+        "first at #/graphical/timestamps/0/id",
+    )
+    value = _stamped(_stamp("timestamp_1", "score", [1, 1]), id="timestamp_1")
+    assert _only(value) == (
+        ("id",),
+        "'timestamp_1' is not unique in the manifest, "
+        "first at #/graphical/timestamps/0/id",
+    )
+
+
+@pytest.mark.parametrize(
+    ("timestamp", "path"),
+    [
+        (_stamp("timestamp_0", "score", [1, 1]), ("graphical", "timestamps", 0, "id")),
+        (_stamp("timestamp_01", "score", [1, 1]), ("graphical", "timestamps", 0, "id")),
+        (_stamp("clt_1", "score", [1, 1]), ("graphical", "timestamps", 0, "id")),
+        (
+            _stamp("timestamp_1", "score", [1, 1], ""),
+            ("graphical", "timestamps", 0, "name"),
+        ),
+        (
+            {**_stamp("timestamp_1", "score", [1, 1]), "name": None},
+            ("graphical", "timestamps", 0, "name"),
+        ),
+        (
+            {"id": "timestamp_1", "timeline": "score", "name": "Entry"},
+            ("graphical", "timestamps", 0),
+        ),
+    ],
+    ids=[
+        "zero",
+        "leading zero",
+        "other prefix",
+        "empty name",
+        "null name",
+        "no coordinate",
+    ],
+)
+def test_the_schema_shapes_a_named_timestamp(timestamp: dict, path: tuple) -> None:
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(_stamped(timestamp))
+    assert (caught.value.code, caught.value.path) == ("schema", path)
+
+
 def test_every_step_in_order() -> None:
     jump = {
         "id": "j",
@@ -1072,7 +1251,12 @@ def test_every_step_in_order() -> None:
                     "regions",
                 ],
                 "g2": ["stranger"],
-            }
+            },
+            "timestamps": [
+                _stamp("timestamp_1", "nowhere", [1, 1]),
+                _stamp("timestamp_2", "first", [9, 1]),
+                _stamp("timestamp_2", "first", [-1, 1]),
+            ],
         },
     )
     assert _problems(value) == [
@@ -1117,6 +1301,11 @@ def test_every_step_in_order() -> None:
             ("measure_maps", 0, "id"),
             "'first' is not unique in the manifest, first at #/timelines/0/id",
         ),
+        (
+            ("graphical", "timestamps", 2, "id"),
+            "'timestamp_2' is not unique in the manifest, "
+            "first at #/graphical/timestamps/1/id",
+        ),
         (("id",), "'g2' is not unique in the manifest, first at #/groups/1/id"),
         (("groups", 0, "members", 0), "'ghost' names no timeline of this manifest"),
         (("graphical", "order", "g2", 0), "'stranger' is not a member of group 'g2'"),
@@ -1133,6 +1322,20 @@ def test_every_step_in_order() -> None:
             ("graphical", "order", "zz"),
             "'zz' names no group or timeline of this manifest",
         ),
+        (
+            ("graphical", "timestamps", 0, "timeline"),
+            "'nowhere' names no timeline of this manifest",
+        ),
+        (
+            ("graphical", "timestamps", 1, "coordinate"),
+            "coordinate [9, 1] of 'timestamp_2' is beyond the length [8, 1] of its "
+            "timeline 'first'",
+        ),
+        (
+            ("graphical", "timestamps", 2, "coordinate"),
+            "coordinate [-1, 1] of 'timestamp_2' lies before the start of its "
+            "timeline 'first'",
+        ),
     ]
     assert [problem.code for problem in identity_problems(value)] == [
         *["dangling_target"] * 2,
@@ -1140,12 +1343,14 @@ def test_every_step_in_order() -> None:
         "child_unit",
         "child_offset",
         "child_end",
-        *["duplicate_id"] * 4,
+        *["duplicate_id"] * 5,
         "manifest_id",
         "group_member",
         *["display_order"] * 2,
         *["band_order"] * 2,
         "order_key",
+        "timestamp_timeline",
+        *["timestamp_coordinate"] * 2,
     ]
     with pytest.raises(SchemaValidationError) as caught:
         validate(value)

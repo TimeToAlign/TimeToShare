@@ -129,6 +129,11 @@ REJECTIONS = [
     "timelines_child_id_duplicate_across_roots",
     "timelines_id_duplicate_across_roots",
     "timelines_root_jump_target_dangling",
+    "timestamp_coordinate_beyond_length",
+    "timestamp_coordinate_negative",
+    "timestamp_id_is_timeline_id",
+    "timestamp_id_malformed",
+    "timestamp_timeline_unknown",
     "to_coda_with_repeat_count",
     "version_unknown",
 ]
@@ -238,6 +243,47 @@ def test_the_smallest_and_the_empty_manifest_validate() -> None:
 def test_a_length_or_offset_in_another_representation(root: dict, message: str) -> None:
     key = message.split(" ", 1)[0]
     assert _problem(manifest(root)) == (("timelines", 0, key), message)
+
+
+@pytest.mark.parametrize(
+    ("root", "coordinate", "message"),
+    [
+        (
+            timeline("score"),
+            3,
+            "coordinate 3 of 'timestamp_1' is an int on a fraction axis: write [3, 1]",
+        ),
+        (
+            timeline("take", "seconds", 60.0),
+            [1, 2],
+            "coordinate [1, 2] of 'timestamp_1' is a fraction on a float axis: "
+            "write 0.5",
+        ),
+        (
+            timeline("midi", "ticks", 480),
+            0.5,
+            "coordinate 0.5 of 'timestamp_1' is a float on an int axis: write an int",
+        ),
+    ],
+)
+def test_a_named_timestamp_coordinate_lies_on_its_timelines_axis(
+    root: dict, coordinate: Any, message: str
+) -> None:
+    stamp = {"id": "timestamp_1", "timeline": root["id"], "coordinate": coordinate}
+    value = manifest(root, graphical={"timestamps": [{**stamp, "name": "Entry"}]})
+    assert _problem(value) == (("graphical", "timestamps", 0, "coordinate"), message)
+
+
+def test_a_named_timestamp_coordinate_on_a_child_is_read_on_the_childs_axis() -> None:
+    child = timeline("verse", "seconds", 4.0, offset=1.0)
+    root = timeline("take", "seconds", 60.0, children=[child])
+    stamp = {"id": "timestamp_1", "timeline": "verse", "coordinate": 2, "name": "x"}
+    validate(manifest(root, graphical={"timestamps": [stamp]}))
+    stamp["coordinate"] = [2, 1]
+    assert _problem(manifest(root, graphical={"timestamps": [stamp]})) == (
+        ("graphical", "timestamps", 0, "coordinate"),
+        "coordinate [2, 1] of 'timestamp_1' is a fraction on a float axis: write 2.0",
+    )
 
 
 @pytest.mark.parametrize("child_unit", ["seconds", "quarters"])
@@ -458,6 +504,8 @@ def test_rejections_cover_every_rule_code() -> None:
         "representation",
         "schema",
         "segment_line",
+        "timestamp_coordinate",
+        "timestamp_timeline",
     }
 
 

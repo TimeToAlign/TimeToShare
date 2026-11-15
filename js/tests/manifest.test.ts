@@ -342,6 +342,30 @@ describe("canonical order", () => {
     validate(result);
   });
 
+  it("orders named timestamps by timeline, coordinate and id", () => {
+    const value = manifest([timeline("a"), timeline("b")], {
+      graphical: {
+        timestamps: [
+          stamp("timestamp_4", "b", [1, 1]),
+          stamp("timestamp_3", "a", [3, 2]),
+          stamp("timestamp_2", "a", [3, 2]),
+          stamp("timestamp_1", "a", [5, 1]),
+        ],
+      },
+    });
+    const given = compactJson(value as Lossless<Json>);
+    const result = canonicalOrder(value);
+    expect(compactJson(value as Lossless<Json>)).toBe(given);
+    const timestamps = (result.graphical as JsonObject).timestamps as JsonObject[];
+    expect(timestamps.map((entry) => entry.id)).toEqual([
+      "timestamp_2",
+      "timestamp_3",
+      "timestamp_1",
+      "timestamp_4",
+    ]);
+    validate(result);
+  });
+
   it("orders members by code point", () => {
     const value = { timelines: [], groups: [{ id: "g", members: ["\u{1F600}", "\u{FB00}", "b"] }] };
     expect(canonicalOrder(value).groups[0]?.members).toEqual(["b", "\u{FB00}", "\u{1F600}"]);
@@ -444,6 +468,10 @@ function tiedManifest(): JsonObject {
  * `members`, a timeline's `children`, `conversion_maps`, `regions` and
  * `flow_control`.
  */
+function stamp(id: string, line: string, coordinate: unknown): JsonObject {
+  return { id, timeline: line, coordinate, name: "x" };
+}
+
 function reverse(value: unknown, unordered = false, arrays = true): Lossless<Json> {
   if (Array.isArray(value)) {
     const items = value.map((item) => reverse(item, false, arrays));
@@ -454,11 +482,13 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
       ? []
       : "timelines" in value
         ? ["timelines", "groups", "measure_maps"]
-        : "unit" in value && "length" in value
-          ? ["children", "conversion_maps", "regions", "flow_control"]
-          : "members" in value && "id" in value
-            ? ["members"]
-            : [];
+        : "timestamps" in value && "statements" in value
+          ? ["timestamps"]
+          : "unit" in value && "length" in value
+            ? ["children", "conversion_maps", "regions", "flow_control"]
+            : "members" in value && "id" in value
+              ? ["members"]
+              : [];
     return Object.fromEntries(
       Object.keys(value)
         .reverse()
@@ -482,6 +512,27 @@ describe("canonical spelling", () => {
     }
     expect(dumps(value)).toBe(dumps(twin));
     expect(text(value)).toBe(written);
+  });
+
+  it("spells a named timestamp on its timeline's axis", () => {
+    const value = manifest([timeline("score"), timeline("take", "seconds", new JsonFloat(60))], {
+      graphical: {
+        timestamps: [
+          stamp("timestamp_1", "score", [new JsonFloat(6), 1]),
+          stamp("timestamp_2", "take", 2),
+          stamp("timestamp_3", "ghost", 2),
+        ],
+      },
+    });
+    for (const convert of [complete, minimal, canonicalOrder]) {
+      const timestamps = (convert(value).graphical as JsonObject).timestamps as JsonObject[];
+      const coordinates = Object.fromEntries(
+        timestamps.map((entry) => [entry.id as string, entry.coordinate]),
+      );
+      expect(text(coordinates), convert.name).toBe(
+        '{"timestamp_1":[6,1],"timestamp_2":2.0,"timestamp_3":2}',
+      );
+    }
   });
 
   it("leaves a value without an exact respelling as written", () => {

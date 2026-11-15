@@ -286,6 +286,55 @@ def test_roots_groups_and_members_are_ordered_and_display_orders_kept() -> None:
     validate(result)
 
 
+def _stamp(identifier: str, line: str, coordinate: Any) -> dict:
+    return {"id": identifier, "timeline": line, "coordinate": coordinate, "name": "x"}
+
+
+def test_named_timestamps_are_ordered_by_timeline_coordinate_and_id() -> None:
+    value = manifest(
+        timeline("a"),
+        timeline("b"),
+        graphical={
+            "timestamps": [
+                _stamp("timestamp_4", "b", [1, 1]),
+                _stamp("timestamp_3", "a", [3, 2]),
+                _stamp("timestamp_2", "a", [3, 2]),
+                _stamp("timestamp_1", "a", [5, 1]),
+            ]
+        },
+    )
+    given = copy.deepcopy(value)
+    result = canonical_order(value)
+    assert value == given
+    assert [entry["id"] for entry in result["graphical"]["timestamps"]] == [
+        "timestamp_2",
+        "timestamp_3",
+        "timestamp_1",
+        "timestamp_4",
+    ]
+    validate(result)
+
+
+def test_a_named_timestamp_is_spelled_on_its_timelines_axis() -> None:
+    value = manifest(
+        timeline("score"),
+        timeline("take", "seconds", 60.0),
+        graphical={
+            "timestamps": [
+                _stamp("timestamp_1", "score", [6.0, 1]),
+                _stamp("timestamp_2", "take", 2),
+                _stamp("timestamp_3", "ghost", 2),
+            ]
+        },
+    )
+    for convert in (complete, minimal, canonical_order):
+        timestamps = convert(value)["graphical"]["timestamps"]
+        coordinates = {entry["id"]: entry["coordinate"] for entry in timestamps}
+        assert canonical_json(coordinates) == (
+            '{"timestamp_1":[6,1],"timestamp_2":2.0,"timestamp_3":2}'
+        ), convert
+
+
 def test_members_are_ordered_by_code_point() -> None:
     value = {
         "timelines": [],

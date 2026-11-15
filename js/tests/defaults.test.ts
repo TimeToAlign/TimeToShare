@@ -164,7 +164,7 @@ describe("the complete and the minimal form", () => {
     expect(pieces.maps).toEqual([{ ...table, name: null, kind: "linear", extrapolate: "none" }]);
     expect(value.groups).toEqual([{ id: "g", members: ["score"], name: null, meta: {} }]);
     expect(value.measure_maps).toEqual([{ id: "bars", rows, name: null, meta: {} }]);
-    expect(value.graphical).toEqual({ styles: {}, statements: [], order: {} });
+    expect(value.graphical).toEqual({ styles: {}, statements: [], order: {}, timestamps: [] });
     validate(value);
   });
 
@@ -186,7 +186,12 @@ describe("the complete and the minimal form", () => {
     expect(Object.hasOwn(root(value), "offset")).toBe(false);
     const styled = manifest([timeline("score")], { graphical: {} });
     expect(minimal(styled).graphical).toEqual({});
-    expect(complete(styled).graphical).toEqual({ styles: {}, statements: [], order: {} });
+    expect(complete(styled).graphical).toEqual({
+      styles: {},
+      statements: [],
+      order: {},
+      timestamps: [],
+    });
     const child = manifest([
       timeline("score", "quarters", [8, 1], {
         children: [timeline("c", "quarters", [8, 1], { offset: [0, 1] })],
@@ -377,7 +382,7 @@ describe("the typed forms", () => {
     const named: CompleteManifest = {
       ...COMPLETE,
       id: "op35",
-      graphical: { styles: {}, statements: [], order: {} },
+      graphical: { styles: {}, statements: [], order: {}, timestamps: [] },
     };
     const placed: CompleteTimeline = { ...COMPLETE_ROOT, offset: [-1, 2] };
     // Numbers are lossless and a Fraction stays a pair.
@@ -418,7 +423,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal.json"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(69);
+    expect(twins.length).toBe(70);
     expect(twins.map((twin) => twin.replace(/\.minimal\.json$/, ".json"))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal.json")),
     );

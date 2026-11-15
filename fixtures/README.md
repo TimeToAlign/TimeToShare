@@ -17,9 +17,9 @@ The directories sort the manifests by content only:
 - under `bundles/`, manifests of several groups, several ungrouped roots,
   or both.
 
-Version 0.2.0 has 47 manifests directly under `fixtures/0.2.0/`, 11 under
-`groups/` and 11 under `bundles/`, 69 in all, each with its minimal twin, so
-138 files. Beside them lie 102 rejection cases and 13 warning cases.
+Version 0.2.0 has 48 manifests directly under `fixtures/0.2.0/`, 11 under
+`groups/` and 11 under `bundles/`, 70 in all, each with its minimal twin, so
+140 files. Beside them lie 107 rejection cases and 13 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -115,6 +115,7 @@ The structural fixtures add focused examples:
 | `segment_pages_locked.json` | the same segment line, locked once built |
 | `segment_pages_accolades.json` | an unlocked segment line of four pages, each a segment line of four accolades of 400, 450, 452 and 452 pixels |
 | `segment_children.json` | an unlocked root of 32 quarters whose three children are segment lines, two of them overlapping |
+| `timestamps.json` | named timestamps: a root `clt_1` of 8 quarters with the child `clt_2` (4 at 2), the timestamps `Downbeat` at 3/2 and `Climax` at 6 on the root and `Entry` at 1 on the child, and a statement hiding the cross-section line of `Climax`, `{"id": "timestamp_2", "part": ["line"]}` |
 
 The corpus fixtures exercise public timetoalign loaders; the synthetic
 fixtures are emitted first:
@@ -321,7 +322,7 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 `unknown_length_segments` on every regions band, `{"element": "band",
 "facet": "regions"}` (`unknown_length_segments__regions-shown`), and
 `child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`): 75 drawings in all.
+"flow_control"}` (`child_flow_control__flow-shown`): 76 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
@@ -350,7 +351,7 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   the font directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Thirty-two `figure.svg` files are derived by hand from the
+for byte. Thirty-three `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, among them every drawing of
 a timeline of unknown length, the three variants of `bundle_ungrouped`, the
 three variants that display a band the defaults hide, the band orders of
@@ -377,9 +378,9 @@ code with the case's. The cases cover every code:
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timetoshare` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 54 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs, conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order` |
+| `schema` | the schema document | 55 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, among them), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order` |
 | `representation` | an own-axis value can be read as its axis's number type, however it is spelled | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis` |
-| `duplicate_id` | every ID unique across the manifest, that of a map another map holds included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id` |
+| `duplicate_id` | every ID unique across the manifest, that of a map another map holds and that of a named timestamp included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id` |
 | `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps` | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling` |
 | `conversion_map` | a map attached to a timeline converts from the timeline's unit, and a map a `PiecewiseMap` or `CombinationMap` holds, or a `ChainMap`'s first map, from its holder's source unit, wherever both are stated; a `TableMap`'s x and y values agree in length and its x values increase strictly; a `PiecewiseMap` has one map fewer than breaks, and its breaks increase strictly | `map_source_unit_mismatch`, `table_map_lengths_differ`, `table_map_x_not_increasing`, `piecewise_map_maps_count`, `piecewise_map_breaks_not_increasing` |
 | `child_unit` | a child has its parent's unit | `child_unit_differs` |
@@ -391,6 +392,8 @@ code with the case's. The cases cover every code:
 | `order_key` | a key of `graphical.order` names a group or a timeline | `order_unknown_group` |
 | `display_order` | a group's display order is a permutation of its members | `group_order_not_member`, `order_missing_member` |
 | `band_order` | a band order is a permutation of `line` and the five facets | `band_order_unknown_entry`, `band_order_missing_band` |
+| `timestamp_timeline` | a named timestamp names a timeline of the manifest | `timestamp_timeline_unknown` |
+| `timestamp_coordinate` | a named timestamp's coordinate lies from 0 to its timeline's own length, from 0 on where the length is unknown | `timestamp_coordinate_beyond_length`, `timestamp_coordinate_negative` |
 
 `version_unknown` names the version 0.1.0, which 0.2.0 replaces; its `code` is `null` and its
 `"error": "UnsupportedVersionError"` names the error both packages raise

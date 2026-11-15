@@ -321,6 +321,39 @@ def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
     assert identity_problems(value) == []
 
 
+@pytest.mark.parametrize("name", ["timestamps.json", "timestamps.minimal.json"])
+def test_named_timestamps_pass_through_the_emitter(name: str) -> None:
+    value = _load(FIXTURES / name)
+    assert value["graphical"]["timestamps"] == [
+        {
+            "coordinate": [3, 2],
+            "id": "timestamp_1",
+            "name": "Downbeat",
+            "timeline": "clt_1",
+        },
+        {
+            "coordinate": [6, 1],
+            "id": "timestamp_2",
+            "name": "Climax",
+            "timeline": "clt_1",
+        },
+        {
+            "coordinate": [1, 1],
+            "id": "timestamp_3",
+            "name": "Entry",
+            "timeline": "clt_2",
+        },
+    ]
+    assert value["graphical"]["statements"] == [
+        {
+            "select": {"addresses": [{"id": "timestamp_2", "part": ["line"]}]},
+            "set": {"display": "none"},
+        }
+    ]
+    validate(value)
+    assert identity_problems(value) == []
+
+
 @pytest.mark.parametrize(
     "name", ["bundle_free_ids.json", "bundle_free_ids.minimal.json"]
 )

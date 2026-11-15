@@ -13,10 +13,12 @@ from .diagnostics import (
     _entries,
     _Path,
     json_pointer,
+    timestamps_of,
 )
 from .maps import MEASURE_VIEWS, timeline_map_problems, timeline_maps
 from .order import order_problems
 from .segments import timeline_segment_problems
+from .timestamps import timestamp_problems
 
 
 def _element_ids(
@@ -161,7 +163,13 @@ def _member_problems(
 def identity_problems(
     value: Mapping[str, Any],
 ) -> Iterator[SchemaValidationError]:
-    """Yield semantic violations in the established identity order."""
+    """Yield semantic violations in the established identity order.
+
+    Root by root: duplicates, dangling targets, conversion maps, containment
+    and segment lines; then the IDs unique across the manifest (the roots'
+    trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
+    manifest ID), group members, graphical orders and named timestamps.
+    """
     roots = _entries(value, "timelines")
     groups = _entries(value, "groups")
     measure_maps = _entries(value, "measure_maps")
@@ -180,9 +188,13 @@ def identity_problems(
                 yield _duplicate(identifier, path, first[identifier])
         for identifier, path in seen.items():
             first.setdefault(identifier, path)
-    for key, entries in (("groups", groups), ("measure_maps", measure_maps)):
+    for key, entries in (
+        (("groups",), groups),
+        (("measure_maps",), measure_maps),
+        (("graphical", "timestamps"), timestamps_of(value)),
+    ):
         for index, entry in enumerate(entries):
-            path = (key, index, "id")
+            path = (*key, index, "id")
             if entry["id"] in first:
                 yield _duplicate(entry["id"], path, first[entry["id"]])
             else:
@@ -198,3 +210,4 @@ def identity_problems(
     for index, group in enumerate(groups):
         first_group.setdefault(group["id"], index)
     yield from order_problems(value, parents, first_group)
+    yield from timestamp_problems(value)

@@ -1,0 +1,74 @@
+{
+  "code": "schema",
+  "manifest": {
+    "graphical": {
+      "order": {},
+      "statements": [],
+      "styles": {},
+      "timestamps": [
+        {
+          "coordinate": [
+            1,
+            1
+          ],
+          "id": "timestamp_01",
+          "name": "Entry",
+          "timeline": "score"
+        }
+      ]
+    },
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": [],
+            "id": "verse",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": true,
+            "meta": {},
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              2,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timetoshare": "0.2.0"
+  },
+  "path": [
+    "graphical",
+    "timestamps",
+    0,
+    "id"
+  ],
+  "reason": "A named timestamp's id is timestamp_ followed by a positive integer without leading zeros."
+}

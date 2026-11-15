@@ -51,7 +51,7 @@ export const DEFAULTS = {
   table_map: { kind: "linear", extrapolate: "none" },
   measure_map: { name: null, meta: {} },
   group: { name: null, meta: {} },
-  graphical: { styles: {}, statements: [], order: {} },
+  graphical: { styles: {}, statements: [], order: {}, timestamps: [] },
 } as const;
 
 type Kind = keyof typeof DEFAULTS;

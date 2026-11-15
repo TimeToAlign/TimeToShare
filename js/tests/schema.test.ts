@@ -147,7 +147,7 @@ describe("the schema document", () => {
       "regions",
       "flow_control",
     ]);
-    expect(defs.Part?.enum).toEqual(["start", "end", "name", "label", "card"]);
+    expect(defs.Part?.enum).toEqual(["start", "end", "name", "label", "card", "line"]);
     expect(properties("Selector").facet?.$ref).toBe("#/$defs/Facet");
     expect(defs.ElementType?.enum).toEqual([
       "block",
@@ -165,6 +165,7 @@ describe("the schema document", () => {
       "ancestor",
       "frame",
       "card",
+      "cross_section",
     ]);
     expect(properties("MeasureView").source_unit?.const).toBe("quarters");
     for (const [name, unit] of Object.entries(MEASURE_VIEWS)) {
@@ -277,6 +278,8 @@ describe("the schema document", () => {
       { id: "score", facet: "regions" },
       { id: "score", part: ["card"] },
       { id: "score", part: ["end", "label"] },
+      { id: "timestamp_1", part: ["line"] },
+      { id: "timestamp_1", part: ["label"] },
       { id: "score", root: "score" },
     ]) {
       expect(address(accepted), JSON.stringify(accepted)).toBe(true);

@@ -6,10 +6,12 @@ import {
   type PathSegment,
   SchemaValidationError,
   text,
+  timestampsOf,
 } from "./diagnostics.js";
 import { MEASURE_VIEWS, timelineMapProblems, timelineMaps } from "./maps.js";
 import { orderProblems } from "./order.js";
 import { timelineSegmentProblems } from "./segments.js";
+import { timestampProblems } from "./timestamps.js";
 
 function* elementIds(
   timeline: JsonObject,
@@ -186,8 +188,8 @@ function* memberProblems(
  *
  * Root by root: duplicates, dangling targets, conversion maps, containment
  * and segment lines; then the IDs unique across the manifest (the roots'
- * trees, the group IDs, the MeasureMap IDs, the manifest ID), group members,
- * and graphical orders.
+ * trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
+ * manifest ID), group members, graphical orders and named timestamps.
  */
 export function* identityProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const roots = entries(manifest, "timelines");
@@ -209,10 +211,15 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
     }
     for (const [id, path] of seen) if (!first.has(id)) first.set(id, path);
   }
-  for (const key of ["groups", "measure_maps"]) {
-    for (const [index, entry] of entries(manifest, key).entries()) {
+  const keyed: [PathSegment[], JsonObject[]][] = [
+    [["groups"], groups],
+    [["measure_maps"], measureMaps],
+    [["graphical", "timestamps"], timestampsOf(manifest)],
+  ];
+  for (const [key, list] of keyed) {
+    for (const [index, entry] of list.entries()) {
       const id = text(entry, "id");
-      const path = [key, index, "id"];
+      const path = [...key, index, "id"];
       const earlier = first.get(id);
       if (earlier === undefined) first.set(id, path);
       else yield duplicate(id, path, earlier);
@@ -233,4 +240,5 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
     if (!firstGroup.has(id)) firstGroup.set(id, index);
   }
   yield* orderProblems(manifest, parents, firstGroup);
+  yield* timestampProblems(manifest);
 }

@@ -30,6 +30,8 @@ ValidationCode: TypeAlias = Literal[
     "order_key",
     "display_order",
     "band_order",
+    "timestamp_timeline",
+    "timestamp_coordinate",
     "finite_number",
 ]
 
@@ -53,6 +55,29 @@ class SchemaValidationError(ValueError):
 def _entries(owner: Any, key: str) -> list[Any]:
     value = owner.get(key) if isinstance(owner, Mapping) else None
     return value if isinstance(value, list) else []
+
+
+def timelines_by_id(manifest: Any) -> dict[str, Mapping[str, Any]]:
+    """Return every timeline of a manifest, at any depth, by ID.
+
+    Of a repeated ID the first timeline in document order is kept.
+    """
+    found: dict[str, Mapping[str, Any]] = {}
+
+    def visit(timeline: Mapping[str, Any]) -> None:
+        found.setdefault(timeline["id"], timeline)
+        for child in _entries(timeline, "children"):
+            visit(child)
+
+    for root in _entries(manifest, "timelines"):
+        visit(root)
+    return found
+
+
+def timestamps_of(manifest: Any) -> list[Any]:
+    """Return the named timestamps of a manifest's ``graphical`` object, or none."""
+    graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
+    return _entries(graphical, "timestamps")
 
 
 def number_type_of(timeline: Mapping[str, Any]) -> str:

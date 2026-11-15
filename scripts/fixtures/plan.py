@@ -107,6 +107,7 @@ CATALOGUE = (
     _root("map_row_subslots", timelines.map_row_subslots_timeline),
     _root("map_row_moved", timelines.map_row_moved_timeline),
     _root("label_float_rounding", timelines.label_float_rounding_timeline),
+    _root("timestamps", graphical.timestamps, "clt_1"),
     _group("group_number_types", groups.number_types_group),
     _group("group_child_member", groups.group_child_member),
     _group("group_styled", groups.styled_group, "group_1"),

@@ -5,7 +5,8 @@
  * order: `timelines` by id; in every timeline, `children` by offset, then id,
  * `conversion_maps` by id, `regions` by start, then end, then id,
  * `flow_control` by coordinate, then id; `groups` by id and every group's `members` by
- * code point; `measure_maps` by id. Own-axis values compare by exact numeric
+ * code point; `measure_maps` by id; `graphical.timestamps` by timeline, then
+ * coordinate, then id. Own-axis values compare by exact numeric
  * value, strings by Unicode code point. A `graphical.order` array is a
  * display order and is never re-ordered. Readers accept any order; `dumps` writes the canonical
  * one, every object's keys sorted by code point, two-space indentation and a
@@ -63,8 +64,8 @@ function orderTimeline(timeline: JsonObject): void {
  *
  * A value with a top-level `timelines` array is a manifest: every timeline in
  * it is ordered at every depth and the array itself by id, its `groups` are
- * ordered by id, each with its `members` by code point, and its
- * `measure_maps` by id. Every value it reads by a number type is spelled as
+ * ordered by id, each with its `members` by code point, its `measure_maps`
+ * by id and its `graphical.timestamps` by timeline, then coordinate, then id. Every value it reads by a number type is spelled as
  * that type selects (`./spelling.ts`).
  * Object keys are left as they are (`dumps` sorts them), and any other JSON
  * value is copied unchanged. Python's `timetoshare.canonical_order` gives
@@ -91,6 +92,12 @@ export function canonicalOrder<T>(value: T): T {
   }
   const measureMaps = member(result, "measure_maps");
   if (Array.isArray(measureMaps)) measureMaps.sort(byId);
+  const timestamps = member(member(result, "graphical"), "timestamps");
+  if (Array.isArray(timestamps)) {
+    const byTimeline = (a: unknown, b: unknown): number =>
+      compareCodePoints(text(member(a, "timeline")), text(member(b, "timeline")));
+    timestamps.sort(by(byTimeline, at("coordinate"), byId));
+  }
   return result;
 }
 

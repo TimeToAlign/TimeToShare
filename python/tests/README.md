@@ -53,9 +53,10 @@ rejection cases that use them (`test_schema.py`):
   `facet` refer to `Facet`, exactly the five facets `markers`,
   `conversion_maps`, `children`, `regions` and `flow_control`, and the words
   of an `Address`'s `part` to `Part`, exactly `start`, `end`, `name`,
-  `label` and `card`. `ElementType` is exactly the fifteen types `block`,
+  `label`, `card` and `line`. `ElementType` is exactly the sixteen types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `flow_marker`, `jump_from`,
-  `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame` and `card`. The four
+  `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card` and
+  `cross_section`. The four
   measure views fix `source_unit` to `quarters` and `target_unit` to
   `floating_measures` (`FloatingMeasureMap`) or null (the other three).
 - **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
@@ -88,7 +89,9 @@ rejection cases that use them (`test_schema.py`):
   and refuses `""` and `score` followed by a tab. `Address` accepts `{}`,
   `{"part": ["name"]}`, `{"id": "score"}`, `{"id": "perf/take 2"}`,
   `{"id": "score", "facet": "regions"}`, `{"id": "score", "part":
-  ["card"]}` and `{"id": "score", "part": ["end", "label"]}`, and refuses
+  ["card"]}`, `{"id": "score", "part": ["end", "label"]}`, `{"id":
+  "timestamp_1", "part": ["line"]}` and `{"id": "timestamp_1", "part":
+  ["label"]}`, and refuses
   the string `"score"`, `{"facet": "regions"}` (a facet needs an ID),
   `{"id": "score", "facet": "regions", "part": ["label"]}` (a facet never
   stands with a part), `{"id": "score", "part": []}`, `{"id": "score",
@@ -313,7 +316,8 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   (`float`) and whole_notes (`fraction`).
 - **Never added, never removed.** `id`, `graphical` and a root's `offset`
   are absent from the completion of a manifest without them; a present
-  `graphical: {}` completes to its three keys and minimizes to `{}`; a
+  `graphical: {}` completes to its four keys (`styles`, `statements`,
+  `order`, `timestamps`) and minimizes to `{}`; a
   child's `offset` stays in the minimal form.
 - **Values that differ from the default stay.** `locked: true`,
   `number_type` `float` on quarters and a `repeat_end` with `repeat_count` 2
@@ -362,27 +366,34 @@ violation's is the same text in both packages.
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
 | `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
 | `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
-| `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, against every ID before it | the later ID | as above |
+| `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, then each named timestamp's ID, against every ID before it | the later ID | as above |
 | `manifest_id` | the manifest ID is no other ID of the manifest | `id` | `'g2' is not unique in the manifest, first at #/groups/1/id` |
 | `group_member` | a member names a timeline and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `member 'b' lies inside member 'a' of the same group` |
 | `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
 | `display_order` | a group's order permutes its members | the entry, then the order | `'x' is not a member of group 'g'`, `member 'b' of group 'g' is missing` |
 | `band_order` | a timeline's order permutes `line` and the five facets | the entry, then the order | `'annotations' is not 'line' or a facet, in the band order of 'score'`, `'flow_control' is missing from the band order of 'score'` |
+| `timestamp_timeline` | a named timestamp's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
+| `timestamp_coordinate` | its `coordinate` lies from 0 to its timeline's length, from 0 on where the length is null | its `coordinate` | `coordinate [9, 1] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'`, `coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'` |
 
 The keys of `graphical.order` are read in code-point order, each order's
 strangers before its missing entries, missing members in the order of
 `members`, missing bands in the default band order (`children`,
 `conversion_maps`, `line`, `markers`, `regions`, `flow_control`).
 A key naming a group and a timeline never reaches `validate` (the duplicate
-ID comes first); `identity_problems` reads it as the group's.
+ID comes first); `identity_problems` reads it as the group's. The named
+timestamps are read last, in array order. The coordinate of a timestamp on
+a timeline of the manifest is an own-axis value of that timeline and is
+checked with the `representation` rule (`coordinate 3 of 'timestamp_1' is
+an int on a fraction axis: write [3, 1]`, at its `coordinate`); a timestamp
+naming no timeline is checked for its timeline alone.
 
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 102 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 107 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
-exactly the sixteen of the table, so every code is reached by a case both
+exactly the eighteen of the table, so every code is reached by a case both
 suites read. `version_unknown` raises `UnsupportedVersionError` and stores
 `["timetoshare"]` and the code `null`. Every case is read through the
 package's one reader, `rejection_case`, which every consumer uses too; it
@@ -392,10 +403,19 @@ value in place and are reported at their path with the exact message, a
 case without one (`id_empty`) reads as written, and an unknown name is
 refused with `ValueError`. Each case's text is the
 standard writer's, and the set of names is stated literally, so a case cannot
-disappear unnoticed. Eight cases pin their message too (`test_identity.py`):
+disappear unnoticed. Twelve cases pin their message too (`test_identity.py`):
 `child_unit_differs`, `child_offset_beyond_parent`, `child_end_beyond_parent`,
 `region_id_duplicate_across_roots`, `band_order_unknown_entry`,
-`band_order_missing_band`, `band_order_old_form` and `order_unknown_group`.
+`band_order_missing_band`, `band_order_old_form`, `order_unknown_group`,
+`timestamp_timeline_unknown`, `timestamp_coordinate_beyond_length`,
+`timestamp_coordinate_negative` and `timestamp_id_is_timeline_id`. The five
+cases of named timestamps break one rule each of the manifest `score` (8
+quarters) with the child `verse` (4 at 2): a timestamp on `ghost`
+(`timestamp_timeline` at its `timeline`), at `[5, 1]` on `verse`
+(`timestamp_coordinate`, beyond the child's own length 4, though within
+its parent), at `[-1, 1]` on `score` (`timestamp_coordinate`), with the ID
+`timestamp_1` of a timeline (`duplicate_id` at the timestamp's `id`, first
+at the timeline's), and with the ID `timestamp_01` (`schema` at its `id`).
 
 **Each semantic rule has the smallest inline document with exactly one
 problem** (`test_identity.py`, `test_segment_lines.py`), whose path and
@@ -498,6 +518,18 @@ documents that bound each rule from the other side:
   `score/regions_1`, `Regions`) is one problem at its entry, a missing facet
   one at the order, an empty order its six missing entries in the default
   band order. An order keyed by a region's ID is one `order_key`.
+- **Named timestamps.** Timestamps on a root, on a child and on a segment,
+  at 0 and at the length, and at any coordinate from 0 on a timeline of
+  unknown length pass, as do a timestamp on the second of two roots and two
+  timestamps of one name at one coordinate. A timestamp ID equal to a
+  timeline's (a timeline may be named `timestamp_1`), a group's or another
+  timestamp's is one `duplicate_id` at the timestamp's `id`, and the
+  manifest ID equal to a timestamp's one `manifest_id`. A coordinate on a
+  float axis is compared exactly (`60.5` beyond `60.0`), as is a fraction
+  (`[17, 2]` beyond `[8, 1]`, `[16, 2]` not). The schema refuses an ID
+  `timestamp_0`, `timestamp_01` or `clt_1`, an empty `name`, a `name`
+  null and a timestamp without `coordinate`, each at that member (the
+  missing member at the timestamp).
 
 **One document breaks every step once** (`test_every_step_in_order` and its
 JavaScript twin): `identity_problems` returns exactly the stated problems, in
@@ -535,8 +567,15 @@ without a `target` the element.
 Every array whose order carries no meaning has one order: `timelines` by ID;
 in every timeline `children` by offset then ID, `conversion_maps` by ID,
 `regions` by start, end, ID, `flow_control` by coordinate then ID; `groups`
-by ID and `members` by code point; `measure_maps` by ID. Values compare
-exactly; strings by code point. What proves it
+by ID and `members` by code point; `measure_maps` by ID;
+`graphical.timestamps` by timeline (code point), then coordinate, then ID.
+Values compare exactly; strings by code point. The timestamps
+`timestamp_4` on `b` at `[1, 1]`, `timestamp_3` and `timestamp_2` on `a` at
+`[3, 2]` and `timestamp_1` on `a` at `[5, 1]` come out `timestamp_2`,
+`timestamp_3`, `timestamp_1`, `timestamp_4`, and a timestamp's coordinate
+is respelled on its timeline's axis (`[6.0, 1]` on quarters as `[6, 1]`,
+`2` on seconds as `2.0`), while one naming no timeline keeps its spelling
+(`2` stays `2`). What proves it
 (`test_manifest.py`): an inline manifest with ties at every level, own-axis
 values given as bare ints, floats and pairs mixed (`[5, 8]` before `[2, 1]`,
 `0.625` equal to `[5, 8]` and tied by ID), IDs where code-point and UTF-16
@@ -592,6 +631,13 @@ cannot prove that the emitter produces them:
   group holding both roots, and one statement selecting `{"id": "take
   2/intro"}`, each ID written as given, so the emitter keeps an ID holding
   a slash, a space, a colon or a `#` verbatim.
+- **Named timestamps.** `timestamps.json` and its twin hold the three
+  timestamps `timestamp_1` (`Downbeat`, `[3, 2]` on the root `clt_1`),
+  `timestamp_2` (`Climax`, `[6, 1]` on `clt_1`) and `timestamp_3` (`Entry`,
+  `[1, 1]` on the child `clt_2`), in that canonical order, and one
+  statement setting `display: none` on `{"id": "timestamp_2", "part":
+  ["line"]}`; `identity_problems` finds nothing in either form, so the
+  emitter carries the named timestamps through the library unchanged.
 - **Flow-control IDs by type.** Across the complete fixtures, every
   flow-control element whose ID has the generated form `<prefix>_<N>`
   carries its own `type` as the prefix: exactly `flow_marker_1` (three

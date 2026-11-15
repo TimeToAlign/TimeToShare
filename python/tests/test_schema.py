@@ -142,7 +142,7 @@ def test_the_ten_map_types() -> None:
     ]
     facets = ["markers", "conversion_maps", "children", "regions", "flow_control"]
     assert defs["Facet"]["enum"] == facets
-    assert defs["Part"]["enum"] == ["start", "end", "name", "label", "card"]
+    assert defs["Part"]["enum"] == ["start", "end", "name", "label", "card", "line"]
     assert defs["Selector"]["properties"]["facet"]["$ref"] == "#/$defs/Facet"
     assert defs["ElementType"]["enum"] == [
         "block",
@@ -160,6 +160,7 @@ def test_the_ten_map_types() -> None:
         "ancestor",
         "frame",
         "card",
+        "cross_section",
     ]
     assert defs["MeasureView"]["properties"]["source_unit"]["const"] == "quarters"
     for name, target in MEASURE_VIEWS.items():
@@ -292,6 +293,8 @@ def test_references_are_ids_and_addresses() -> None:
         {"id": "score", "facet": "regions"},
         {"id": "score", "part": ["card"]},
         {"id": "score", "part": ["end", "label"]},
+        {"id": "timestamp_1", "part": ["line"]},
+        {"id": "timestamp_1", "part": ["label"]},
         {"id": "score", "root": "score"},
     ):
         assert address.is_valid(accepted), accepted

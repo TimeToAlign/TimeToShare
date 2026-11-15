@@ -32,6 +32,24 @@ function only(value: JsonObject): Problem {
   throw new Error("value was accepted");
 }
 
+const stamp = (id: string, line: string, coordinate: unknown, name = "Entry"): JsonObject => ({
+  id,
+  timeline: line,
+  coordinate,
+  name,
+});
+
+/** `score` (8 quarters) with `verse` (4 at 2), and named timestamps. */
+const stamped = (timestamps: JsonObject[], members: JsonObject = {}): JsonObject =>
+  manifest(
+    [
+      timeline("score", "quarters", [8, 1], {
+        children: [timeline("verse", "quarters", [4, 1], { offset: [2, 1] })],
+      }),
+    ],
+    { graphical: { timestamps }, ...members },
+  );
+
 const targets = (...ids: string[]) =>
   ids.map((id, index) => ({ id, type: "jump_to", manifestation: "segno", coordinate: [index, 1] }));
 
@@ -952,10 +970,159 @@ describe("identity", () => {
       "child_end_beyond_parent",
       "child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'",
     ],
+    ["timestamp_timeline_unknown", "'ghost' names no timeline of this manifest"],
+    [
+      "timestamp_coordinate_beyond_length",
+      "coordinate [5, 1] of 'timestamp_1' is beyond the length [4, 1] of its timeline 'verse'",
+    ],
+    [
+      "timestamp_coordinate_negative",
+      "coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'",
+    ],
+    [
+      "timestamp_id_is_timeline_id",
+      "'timestamp_1' is not unique in the manifest, first at #/timelines/0/id",
+    ],
   ])("states the message of the shared case %s", (name, message) => {
     const testCase = rejectionCase(`${name}.json`);
     if (!isJsonObject(testCase.manifest)) throw new Error(`${name} holds no manifest object`);
     expect(only(testCase.manifest)).toEqual([testCase.path, message]);
+  });
+
+  it("accepts named timestamps on their timelines", () => {
+    const segments = timeline("form", "quarters", [8, 1], {
+      is_segment_line: true,
+      children: [
+        timeline("a", "quarters", [4, 1], { offset: [0, 1] }),
+        timeline("b", "quarters", [4, 1], { offset: [4, 1] }),
+      ],
+    });
+    for (const value of [
+      stamped([
+        stamp("timestamp_1", "score", [0, 1]),
+        stamp("timestamp_2", "score", [8, 1]),
+        stamp("timestamp_3", "verse", [0, 1]),
+        stamp("timestamp_4", "verse", [4, 1]),
+        stamp("timestamp_5", "score", [3, 2], "Climax"),
+        stamp("timestamp_6", "score", [3, 2], "Climax"),
+      ]),
+      manifest([timeline("score"), segments], {
+        graphical: { timestamps: [stamp("timestamp_1", "b", [4, 1])] },
+      }),
+      manifest([timeline("take", "seconds", null)], {
+        graphical: { timestamps: [stamp("timestamp_1", "take", new JsonFloat(1e6))] },
+      }),
+      manifest([timeline("midi", "ticks", 480)], {
+        graphical: { timestamps: [stamp("timestamp_1", "midi", 480)] },
+      }),
+    ]) {
+      expect(problems(value)).toEqual([]);
+      validate(value);
+    }
+  });
+
+  it("holds a named timestamp to name a timeline", () => {
+    expect(only(stamped([stamp("timestamp_1", "ghost", [1, 1])]))).toEqual([
+      ["graphical", "timestamps", 0, "timeline"],
+      "'ghost' names no timeline of this manifest",
+    ]);
+    const value = stamped([stamp("timestamp_1", "g", [1, 1])], {
+      groups: [group("g", ["score"])],
+    });
+    expect(only(value)).toEqual([
+      ["graphical", "timestamps", 0, "timeline"],
+      "'g' names no timeline of this manifest",
+    ]);
+  });
+
+  it("holds a named timestamp within its timeline", () => {
+    expect(only(stamped([stamp("timestamp_1", "score", [17, 2])]))).toEqual([
+      ["graphical", "timestamps", 0, "coordinate"],
+      "coordinate [17, 2] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'",
+    ]);
+    expect(problems(stamped([stamp("timestamp_1", "score", [16, 2])]))).toEqual([]);
+    expect(only(stamped([stamp("timestamp_1", "verse", [5, 1])]))).toEqual([
+      ["graphical", "timestamps", 0, "coordinate"],
+      "coordinate [5, 1] of 'timestamp_1' is beyond the length [4, 1] of its timeline 'verse'",
+    ]);
+    expect(only(stamped([stamp("timestamp_1", "verse", [-1, 2])]))).toEqual([
+      ["graphical", "timestamps", 0, "coordinate"],
+      "coordinate [-1, 2] of 'timestamp_1' lies before the start of its timeline 'verse'",
+    ]);
+    const take = manifest([timeline("take", "seconds", new JsonFloat(60))], {
+      graphical: { timestamps: [stamp("timestamp_1", "take", 60.5)] },
+    });
+    expect(only(take)).toEqual([
+      ["graphical", "timestamps", 0, "coordinate"],
+      "coordinate 60.5 of 'timestamp_1' is beyond the length 60.0 of its timeline 'take'",
+    ]);
+    const openEnded = manifest([timeline("take", "seconds", null)], {
+      graphical: { timestamps: [stamp("timestamp_1", "take", -0.5)] },
+    });
+    expect(only(openEnded)).toEqual([
+      ["graphical", "timestamps", 0, "coordinate"],
+      "coordinate -0.5 of 'timestamp_1' lies before the start of its timeline 'take'",
+    ]);
+  });
+
+  it("shares the manifest scope with named timestamp ids", () => {
+    const named = manifest([timeline("timestamp_1")], {
+      graphical: { timestamps: [stamp("timestamp_1", "timestamp_1", [1, 1])] },
+    });
+    expect(only(named)).toEqual([
+      ["graphical", "timestamps", 0, "id"],
+      "'timestamp_1' is not unique in the manifest, first at #/timelines/0/id",
+    ]);
+    const grouped = stamped([stamp("timestamp_1", "score", [1, 1])], {
+      groups: [group("timestamp_1", ["score"])],
+    });
+    expect(only(grouped)).toEqual([
+      ["graphical", "timestamps", 0, "id"],
+      "'timestamp_1' is not unique in the manifest, first at #/groups/0/id",
+    ]);
+    const twice = stamped([
+      stamp("timestamp_1", "score", [1, 1]),
+      stamp("timestamp_1", "verse", [1, 1]),
+    ]);
+    expect(only(twice)).toEqual([
+      ["graphical", "timestamps", 1, "id"],
+      "'timestamp_1' is not unique in the manifest, first at #/graphical/timestamps/0/id",
+    ]);
+    const identified = stamped([stamp("timestamp_1", "score", [1, 1])], { id: "timestamp_1" });
+    expect(only(identified)).toEqual([
+      ["id"],
+      "'timestamp_1' is not unique in the manifest, first at #/graphical/timestamps/0/id",
+    ]);
+  });
+
+  it.each([
+    ["zero", stamp("timestamp_0", "score", [1, 1]), ["graphical", "timestamps", 0, "id"]],
+    ["leading zero", stamp("timestamp_01", "score", [1, 1]), ["graphical", "timestamps", 0, "id"]],
+    ["other prefix", stamp("clt_1", "score", [1, 1]), ["graphical", "timestamps", 0, "id"]],
+    [
+      "empty name",
+      stamp("timestamp_1", "score", [1, 1], ""),
+      ["graphical", "timestamps", 0, "name"],
+    ],
+    [
+      "null name",
+      { ...stamp("timestamp_1", "score", [1, 1]), name: null },
+      ["graphical", "timestamps", 0, "name"],
+    ],
+    [
+      "no coordinate",
+      { id: "timestamp_1", timeline: "score", name: "Entry" },
+      ["graphical", "timestamps", 0],
+    ],
+  ])("lets the schema shape a named timestamp: %s", (_, entry, path) => {
+    try {
+      validate(stamped([entry]));
+    } catch (error) {
+      if (!(error instanceof SchemaValidationError)) throw error;
+      expect([error.code, error.path]).toEqual(["schema", path]);
+      return;
+    }
+    throw new Error("value was accepted");
   });
 
   it("reports every step in order", () => {
@@ -991,6 +1158,11 @@ describe("identity", () => {
           kid: ["regions_2", "line", "children", "conversion_maps", "markers", "regions"],
           g2: ["stranger"],
         },
+        timestamps: [
+          stamp("timestamp_1", "nowhere", [1, 1]),
+          stamp("timestamp_2", "first", [9, 1]),
+          stamp("timestamp_2", "first", [-1, 1]),
+        ],
       },
     });
     expect(problems(value)).toEqual([
@@ -1028,6 +1200,10 @@ describe("identity", () => {
         ["measure_maps", 0, "id"],
         "'first' is not unique in the manifest, first at #/timelines/0/id",
       ],
+      [
+        ["graphical", "timestamps", 2, "id"],
+        "'timestamp_2' is not unique in the manifest, first at #/graphical/timestamps/1/id",
+      ],
       [["id"], "'g2' is not unique in the manifest, first at #/groups/1/id"],
       [["groups", 0, "members", 0], "'ghost' names no timeline of this manifest"],
       [["graphical", "order", "g2", 0], "'stranger' is not a member of group 'g2'"],
@@ -1038,6 +1214,15 @@ describe("identity", () => {
       ],
       [["graphical", "order", "kid"], "'flow_control' is missing from the band order of 'kid'"],
       [["graphical", "order", "zz"], "'zz' names no group or timeline of this manifest"],
+      [["graphical", "timestamps", 0, "timeline"], "'nowhere' names no timeline of this manifest"],
+      [
+        ["graphical", "timestamps", 1, "coordinate"],
+        "coordinate [9, 1] of 'timestamp_2' is beyond the length [8, 1] of its timeline 'first'",
+      ],
+      [
+        ["graphical", "timestamps", 2, "coordinate"],
+        "coordinate [-1, 1] of 'timestamp_2' lies before the start of its timeline 'first'",
+      ],
     ]);
     expect(identityProblems(value).map((problem) => problem.code)).toEqual([
       ...Array<string>(2).fill("dangling_target"),
@@ -1045,12 +1230,14 @@ describe("identity", () => {
       "child_unit",
       "child_offset",
       "child_end",
-      ...Array<string>(4).fill("duplicate_id"),
+      ...Array<string>(5).fill("duplicate_id"),
       "manifest_id",
       "group_member",
       ...Array<string>(2).fill("display_order"),
       ...Array<string>(2).fill("band_order"),
       "order_key",
+      "timestamp_timeline",
+      ...Array<string>(2).fill("timestamp_coordinate"),
     ]);
     expect(() => validate(value)).toThrow(identityProblems(value)[0]?.message);
   });

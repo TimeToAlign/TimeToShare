@@ -136,6 +136,11 @@ const REJECTIONS = [
   "timelines_child_id_duplicate_across_roots",
   "timelines_id_duplicate_across_roots",
   "timelines_root_jump_target_dangling",
+  "timestamp_coordinate_beyond_length",
+  "timestamp_coordinate_negative",
+  "timestamp_id_is_timeline_id",
+  "timestamp_id_malformed",
+  "timestamp_timeline_unknown",
   "to_coda_with_repeat_count",
   "version_unknown",
 ];
@@ -243,6 +248,45 @@ describe("own-axis representation", () => {
   ])("refuses %o", (root, message) => {
     const key = message.split(" ", 1)[0] as string;
     expect(problem(manifest([root]))).toEqual([["timelines", 0, key], message]);
+  });
+
+  it.each([
+    [
+      timeline("score"),
+      3,
+      "coordinate 3 of 'timestamp_1' is an int on a fraction axis: write [3, 1]",
+    ],
+    [
+      timeline("take", "seconds", new JsonFloat(60)),
+      [1, 2],
+      "coordinate [1, 2] of 'timestamp_1' is a fraction on a float axis: write 0.5",
+    ],
+    [
+      timeline("midi", "ticks", 480),
+      0.5,
+      "coordinate 0.5 of 'timestamp_1' is a float on an int axis: write an int",
+    ],
+  ])(
+    "reads a named timestamp's coordinate on its timeline's axis: %o",
+    (root, coordinate, message) => {
+      const stamp = { id: "timestamp_1", timeline: root.id, coordinate, name: "Entry" };
+      expect(problem(manifest([root], { graphical: { timestamps: [stamp] } }))).toEqual([
+        ["graphical", "timestamps", 0, "coordinate"],
+        message,
+      ]);
+    },
+  );
+
+  it("reads a named timestamp on a child on the child's axis", () => {
+    const child = timeline("verse", "seconds", new JsonFloat(4), { offset: new JsonFloat(1) });
+    const root = timeline("take", "seconds", new JsonFloat(60), { children: [child] });
+    const stamp = { id: "timestamp_1", timeline: "verse", coordinate: 2, name: "x" };
+    validate(manifest([root], { graphical: { timestamps: [stamp] } }));
+    const fraction = { ...stamp, coordinate: [2, 1] };
+    expect(problem(manifest([root], { graphical: { timestamps: [fraction] } }))).toEqual([
+      ["graphical", "timestamps", 0, "coordinate"],
+      "coordinate [2, 1] of 'timestamp_1' is a fraction on a float axis: write 2.0",
+    ]);
   });
 
   it.each(["seconds", "quarters"])("reads a %s child's offset on its parent's axis", (unit) => {
@@ -446,6 +490,8 @@ describe("the shared rejection cases", () => {
       "representation",
       "schema",
       "segment_line",
+      "timestamp_coordinate",
+      "timestamp_timeline",
     ]);
   });
 });

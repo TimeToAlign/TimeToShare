@@ -14,6 +14,8 @@ from .diagnostics import (
     _Path,
     json_pointer,
     number_type_of,
+    timelines_by_id,
+    timestamps_of,
 )
 
 _ARTICLES = {"int": "an int", "float": "a float", "fraction": "a fraction"}
@@ -86,9 +88,23 @@ def _timeline_representation(
 def representation_problems(
     manifest: Mapping[str, Any],
 ) -> Iterator[SchemaValidationError]:
-    """Yield own-axis representation violations in manifest order."""
+    """Yield own-axis representation violations in manifest order.
+
+    The timelines first, then the coordinate of every named timestamp on a
+    timeline of the manifest, read as that timeline's number type.
+    """
     for index, root in enumerate(_entries(manifest, "timelines")):
         yield from _timeline_representation(root, ("timelines", index), None)
+    timelines = timelines_by_id(manifest)
+    for index, timestamp in enumerate(timestamps_of(manifest)):
+        timeline = timelines.get(timestamp["timeline"])
+        if timeline is not None:
+            yield from _representation_problem(
+                "coordinate",
+                timestamp,
+                ("graphical", "timestamps", index),
+                number_type_of(timeline),
+            )
 
 
 def finite_number_problems(

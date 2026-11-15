@@ -6,7 +6,7 @@ from typing import Any
 
 from timetoalign import Timeline
 
-from .timelines import map_timeline, styled_score_timeline
+from .timelines import map_timeline, styled_score_timeline, timestamps_timeline
 
 _GREY = {"stroke": "#404040", "fill": "#404040"}
 
@@ -179,6 +179,36 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             },
         },
     },
+    "timestamps": {
+        "clt_1": {
+            "statements": [
+                {
+                    "select": {"addresses": [{"id": "timestamp_2", "part": ["line"]}]},
+                    "set": {"display": "none"},
+                },
+            ],
+            "timestamps": [
+                {
+                    "id": "timestamp_1",
+                    "timeline": "clt_1",
+                    "coordinate": [3, 2],
+                    "name": "Downbeat",
+                },
+                {
+                    "id": "timestamp_2",
+                    "timeline": "clt_1",
+                    "coordinate": [6, 1],
+                    "name": "Climax",
+                },
+                {
+                    "id": "timestamp_3",
+                    "timeline": "clt_2",
+                    "coordinate": [1, 1],
+                    "name": "Entry",
+                },
+            ],
+        },
+    },
     "bundle_free_ids": {
         "group_1": {
             "statements": [
@@ -196,7 +226,8 @@ orders, by fixture name and the id of its root (a manifest of one root) or of
 its group (a manifest of one group).
 
 The script adds an entry to the manifest's ``graphical``. The library reads
-its ``styles`` and ``statements`` back as styling it keeps unread, and each
+its ``styles``, ``statements`` and ``timestamps`` back as styling it keeps
+unread, and each
 entry of its ``order``, a band order keyed by a timeline's id, as an order
 it keeps unchecked; it writes both back, the band orders beside the display
 orders of its own groups. A statement selects elements by their address
@@ -264,6 +295,16 @@ def map_child_band_order() -> Timeline:
 def map_root_band_order() -> Timeline:
     """Build ``map`` with a band order on the root ``melody`` alone."""
     return map_timeline()
+
+
+def timestamps() -> Timeline:
+    """Build the timelines of three named timestamps, one line hidden.
+
+    ``Downbeat`` at 3/2 and ``Climax`` at 6 lie on the root ``clt_1``,
+    ``Entry`` at 1 on its child ``clt_2``; a statement hides the
+    cross-section line of ``Climax``.
+    """
+    return timestamps_timeline()
 
 
 def styled_score_flow_inner() -> Timeline:

@@ -20,7 +20,8 @@
         }
       }
     ],
-    "styles": {}
+    "styles": {},
+    "timestamps": []
   },
   "groups": [
     {
@@ -35,7 +36,7 @@
   ],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (c2880b0b)"
+    "generator": "timetoalign 1.2.0 (33ee9efd)"
   },
   "name": "Free IDs",
   "timelines": [
