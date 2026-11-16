@@ -1,7 +1,7 @@
 /**
  * @timetoalign/timetoshare: the TimeToShare schema, generated types, a
  * validator, the complete and minimal forms, lossless reading and writing,
- * and the font that measures a drawing's text.
+ * and the fonts that draw a drawing's text with the table that measures it.
  *
  * A TimeToShare manifest is one JSON object holding the version marker
  * `timetoshare` and an array of root timelines, each describing a musical
@@ -12,7 +12,7 @@
  */
 
 export { complete, DEFAULTS, minimal } from "./defaults.js";
-export { type FontMetrics, fontMetrics } from "./font.js";
+export { FONT_FILES, type FontMetrics, fontMetrics } from "./font.js";
 export { canonicalManifest, completeManifest, minimalManifest } from "./forms.js";
 export { schema } from "./generated/schema.js";
 export type {

@@ -732,16 +732,40 @@ whose exact text names all of them; with none no warning. Tests pin an absent
 `styles` member, duplicate references, code-point ordering (`ﬀ` before `😀`),
 preservation of existing declarations and input independence.
 
-## The font
+## The fonts
 
-`font_path()` has the SHA-256
-`7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954` with its
-licence beside it; `font_metrics()` has exactly `advances`, `ascender`,
-`descender`, `fallback`, `units_per_em` with 2048, 1901, 483 and 1229 and 5918
-advances (`"9833"` 966, `"48"` 1303, `"32"` 651); `dumps` reproduces the
-metrics file; the extraction script reproduces it from the bundled font and
-refuses another file naming both digests; access works from any working
-directory.
+A drawing's text is drawn in DejaVu Sans 2.37 and every code point DejaVu
+Sans does not map and Noto Music 2.004 does in Noto Music, and measured from
+one table. What proves the table:
+
+- **Both files are the release files.** `FONT_FILES` is `("DejaVuSans.ttf",
+  "NotoMusic-Regular.ttf")` and `font_paths()` names them in that order,
+  each with the SHA-256 of its upstream release file
+  (`7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954`,
+  `26c0a28d7c6f96c70f1401db23066c5ea0ee1cdf155c79bc01ad2efb040de816`), with
+  `DejaVuSans-LICENSE` and `NotoMusic-LICENSE` beside them.
+- **The stated values.** `font_metrics()` has exactly `advances`,
+  `ascender`, `descender`, `fallback`, `units_per_em` with 2048, 1901, 483
+  and 1229, and 6467 advances: DejaVu Sans's 5918 (`"9833"` 966, `"48"`
+  1303, `"32"` 651) and 549 from Noto Music (`"119133"`, U+1D15D, 1053 from
+  Noto Music's 514 of 1000; `"119070"`, U+1D11E, 1456 from 711;
+  `"119135"`, U+1D15F, 819 from 400; `"118784"`, U+1D000, 973;
+  `"119296"`, U+1D200, 1810).
+- **Every DejaVu Sans value unchanged, every added value exact, no other
+  code point added.** Independently of the extraction script, the test
+  reads both TrueType files with fontTools: the table's code points that
+  DejaVu Sans maps carry exactly DejaVu Sans's advances, and the others are
+  exactly the 549 code points from U+0020 up that Noto Music maps and DejaVu
+  Sans does not (none below U+0020 is in the table: a drawing turns
+  U+0000 to U+001F into spaces before measuring, so Noto Music's U+0000
+  and U+000D are left out),
+  each the nearest integer to Noto Music's advance times 2048 over its
+  units per em, computed as an exact fraction (no added advance lies on a
+  tie).
+- **The file is the script's.** `dumps` reproduces the metrics file; the
+  extraction script reproduces it from the bundled fonts and refuses either
+  font altered by one byte, naming the file and both digests; access works
+  from any working directory.
 
 ## Integer boundaries
 
@@ -753,11 +777,16 @@ to the same integer.
 
 The test builds the sdist and the wheel with `uv build` twice (the wheel
 from the checkout, and from the sdist as the release does) and requires
-`timetoshare/docs/drawing.md` and
-`timetoshare/schema/0.2.0/timetoshare.schema.json` in the wheel, the same
-under `src/timetoshare/` in the sdist, each byte for byte the repository's
-file, and the root `LICENSE` in the wheel's `.dist-info/licenses/` and at the
-sdist root.
+`timetoshare/docs/drawing.md`,
+`timetoshare/schema/0.2.0/timetoshare.schema.json` and the five files of
+`fonts/` in the wheel, the same under `src/timetoshare/` in the sdist, each
+byte for byte the repository's file, and the root `LICENSE` in the wheel's
+`.dist-info/licenses/` and at the sdist root. The five font files are both
+TrueType files, both licences (`DejaVuSans-LICENSE`, `NotoMusic-LICENSE`;
+the SIL Open Font License requires its licence to travel with the font) and
+the metrics table `dejavu-sans-2.37+noto-music-2.004.metrics.json`, and the
+font directory of each distribution holds exactly these, so a font shipped
+without its licence fails.
 
 ## Hermeticity
 

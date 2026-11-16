@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="591.7036" height="256.1133" viewBox="0 0 591.7036 256.1133" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="591.7036" height="256.1133" viewBox="0 0 591.7036 256.1133" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
 <rect x="0" y="0" width="559.7036" height="224.1133" rx="10" fill="#F3F4F6"/>
 <rect data-id="group_1" x="8" y="8" width="543.7036" height="208.1133" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
@@ -40,7 +40,7 @@
 <polygon data-id="timestamp_1" points="111.7036,174.6367 108.7036,187.6367 114.7036,187.6367" fill="#000000"/>
 <polygon data-id="timestamp_2" points="511.7036,174.6367 508.7036,187.6367 514.7036,187.6367" fill="#000000"/>
 <text data-id="recording" data-part="name" x="24" y="176.9448" text-anchor="start" font-size="11" fill="#000000">Recording</text>
-<text data-id="timestamp_1" data-part="coordinate" x="111.7036" y="197.9907" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
-<text data-id="timestamp_2" data-part="coordinate" x="511.7036" y="197.9907" text-anchor="middle" font-size="9" fill="#000000">12.0 s</text>
+<text data-id="timestamp_1" data-part="coordinate" x="111.7036" y="197.9907" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_2" data-part="coordinate" x="511.7036" y="197.9907" text-anchor="middle" font-size="9" fill="#000000">12″</text>
 </g>
 </svg>

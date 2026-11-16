@@ -41,17 +41,21 @@ manifest with its frames, cards, bands and ancestor lines. A drawing is derived 
 schema or exchanged JSON form. The specification pins the drawing. A rule a reader could not reproduce from the
 specification alone is a defect of the specification.
 
-The drawing uses `fonts/DejaVuSans.ttf` from DejaVu Sans 2.37.
-`fonts/LICENSE` contains its licence, and
-`fonts/dejavu-sans-2.37.metrics.json` contains the advance widths used to
-measure text. Regenerate the metrics from `python/` with:
+The drawing uses `fonts/DejaVuSans.ttf` from DejaVu Sans 2.37 and, for
+every code point DejaVu Sans does not map and Noto Music does,
+`fonts/NotoMusic-Regular.ttf` from Noto Music 2.004. `fonts/DejaVuSans-LICENSE` and
+`fonts/NotoMusic-LICENSE` contain their licences, and
+`fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json` contains the
+advance widths of both used to measure text. Regenerate the metrics from
+`python/` with:
 
 ```bash
 uv run python ../scripts/extract_font_metrics.py
 ```
 
-Python exposes the font through `font_path()` and `font_metrics()`. The npm
-package exports `fontMetrics` and the
+Python exposes the files through `FONT_FILES` and `font_paths()` and the
+metrics through `font_metrics()`. The npm package exports `FONT_FILES`,
+`fontMetrics` and the
 `@timetoalign/timetoshare/fonts/*` subpath.
 
 ## Dependencies and decisions

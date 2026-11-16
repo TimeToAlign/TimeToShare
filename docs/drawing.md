@@ -2,8 +2,8 @@
 
 This specification states how one TimeToShare manifest is drawn: the
 `graphical` object of style statements (section 2), the arithmetic of
-positions (section 3), the default style (section 4), the font that
-measures every text (section 5), the layout that turns a manifest into a
+positions (section 3), the default style (section 4), the fonts that
+measure every text (section 5), the layout that turns a manifest into a
 **drawing** (section 6), and the writers that serialize a drawing as SVG and
 TikZ text (section 7). Two implementations that follow it draw the same
 manifest, with the same inputs, as the same SVG and TikZ text, byte for
@@ -60,7 +60,7 @@ containers are the **boxes** of a drawing.
   then the manifest's own `graphical` object. No layer lies above the
   manifest: a drawing's own styling is its manifest's. Section 2 defines
   them.
-- `metrics`: the advance widths of the font of section 5.
+- `metrics`: the advance widths of the fonts of section 5.1.
 
 The drawing is a **block** of width `W` and height `H` and a list of drawn
 **elements** in block-local canvas units, origin at the block's top-left corner,
@@ -690,22 +690,35 @@ line spans its timeline's line, children band and conversion maps band
 
 ## 5. Text
 
-### 5.1 The font
+### 5.1 The fonts
 
 Every text is drawn in **DejaVu Sans 2.37**, the file `DejaVuSans.ttf` of
 that release (SHA-256
-`7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954`),
-shipped in this repository under `fonts/` with its licence. Kerning and
-ligatures are off everywhere.
+`7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954`). Every
+code point Noto Music maps and DejaVu Sans does not, such as those of the
+Musical Symbols (U+1D100 to U+1D1FF), Byzantine Musical Symbols and Ancient
+Greek Musical Notation blocks, is drawn in **Noto Music 2.004**, the
+unhinted file `NotoMusic-Regular.ttf` of that release (SHA-256
+`26c0a28d7c6f96c70f1401db23066c5ea0ee1cdf155c79bc01ad2efb040de816`), as
+the whole note `𝅝` (U+1D15D) of a coordinate label is (section 5.2). Both
+files are shipped in this repository under `fonts/`, with their licences
+`DejaVuSans-LICENSE` and `NotoMusic-LICENSE` (the SIL Open Font License).
+Kerning and ligatures are off everywhere.
 
-Text is measured from the font's advance widths, never from a rendering.
-`fonts/dejavu-sans-2.37.metrics.json` holds them: `units_per_em` (2048),
-`ascender` (1901) and `descender` (483, as a positive depth) from the `hhea`
-table, `fallback` (the advance of glyph 0, 1229), and `advances`, the
-advance of every code point the font maps, keyed by the code point in
-decimal. With `A` the sum of the advances of a text's code points (an
-integer; an unmapped code point counts `fallback`, and the drawing lists
-it), the text at font size `s` has
+Text is measured from the fonts' advance widths, never from a rendering.
+One table, `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`, holds
+them: `units_per_em` (2048), `ascender` (1901) and `descender` (483, as a
+positive depth) from DejaVu Sans's `hhea` table, `fallback` (the advance
+of DejaVu Sans's glyph 0, 1229), and `advances`, keyed by the code point
+in decimal: the advance of every code point DejaVu Sans maps, and of every
+code point from U+0020 on that Noto Music maps and DejaVu Sans does not,
+Noto Music's advance scaled to 2048 units per em and rounded to the
+nearest integer, ties to even. No code point below U+0020 is listed: each
+becomes a space before it is measured (the last paragraph of this
+section), and DejaVu Sans maps none. With `A` the sum of the advances of a
+text's code points (an integer; a code point the table does not hold, one
+neither font draws, counts `fallback`, and the drawing lists it), the text
+at font size `s` has
 
 | Measure | Value |
 |---|---|
@@ -720,27 +733,68 @@ cannot carry most of them. IDs hold none: the schema refuses them.
 
 ### 5.2 Coordinates
 
-A coordinate is labelled with the text of its value, a space (U+0020) and
-the symbol of its unit. The text of an exact value is its JSON form: an
-integer in decimal (`96`), a Fraction pair `[n, d]` as `n/d` (`3/2`), or
-`n` when `d` is 1. A float is first rounded to three decimal places as
-Python's `round(x, 3)` rounds it: the exact value of the double to the
-nearest multiple of 1/1000, ties to even, the result being the double
-nearest that multiple; the result is then spelled as the standard writer
-spells a float, which is Python's `repr`. So 312.48979591836735 is labelled
-`312.49`, 6.71875 `6.719`, 0.0625 `0.062`, 1.5 `1.5`, 6.0 `6.0` and 1e-05
-`0.0`: a float label shows at most three decimals and keeps the `.0` that
-marks a float axis. Only the text is rounded: the element carries the exact
+A coordinate is labelled with its **pretty text**, rounded for the
+drawing: its number, a space (U+0020) and the **pretty unit** of its
+unit, or, in seconds, a clock with no pretty unit after it. A pretty unit
+is a symbol (`♩`, `𝅝`), an abbreviation (`ms`, `smp`), or else the
+unit's name. Only the text is rounded: the element carries the exact
 coordinate (section 1), and no position is computed from its label.
 
-| Unit | Symbol |
+| Unit | Pretty unit |
 |---|---|
 | `quarters` | `♩` (U+2669) |
-| `seconds` | `s` |
+| `whole_notes` | `𝅝` (U+1D15D) |
+| `milliseconds` | `ms` |
+| `minutes` | `min` |
 | `samples` | `smp` |
-| `ticks` | `ticks` |
 | `pixels` | `px` |
-| any other unit | the unit's name (`points`, `whole_notes`, …) |
+| `points` | `pt` |
+| `meters`, `centimeters`, `millimeters`, `inches` | `m`, `cm`, `mm`, `in` |
+| any other unit | the unit's name (`ticks`, `frames`, `number`, `floating_measures`) |
+
+The value a label shows is a position of section 3.1, a float or an exact
+value, and its number is written as follows; a negative value is written
+as its magnitude preceded by `-`.
+
+- **A float** is rounded to three decimal places as Python's `round(x, 3)`
+  rounds it: the exact value of the double to the nearest multiple of
+  1/1000, ties to even, the result being the double nearest that multiple.
+  The result is spelled as the standard writer spells a float, which is
+  Python's `repr`. So 312.48979591836735 is written `312.49`, 6.71875
+  `6.719`, 0.0625 `0.062`, 6.0 `6.0` and 1e-05 `0.0`: a float shows at
+  most three decimals and keeps the `.0` that marks a float axis.
+- **An integer on an `int` axis** is written in decimal, its digits
+  grouped by three from the right with one space between groups:
+  `514 041 smp`, `-1 234 567 smp`, `999 smp`.
+- **Any other exact value** is a fraction `n/d` in lowest terms. When `d`
+  is at most 2520 (the least common multiple of 1 to 10) it is written
+  mixed: its integer part when that is not 0, then, when a remainder `r`
+  is left, `r/d`, with a space between the two when both are written. So
+  219/16 is written `13 11/16`, −3/8 `-3/8`, 3 `3` and 1000 `1000`: the
+  digits of a fraction are never grouped. When `d` is greater than 2520
+  and has no prime factor other than 2 and 5, the value is written as its
+  decimal, which ends, with every place it needs (1/4096 is
+  `0.000244140625`). Otherwise it is written `≈`, a space, and the value
+  rounded to twelve decimal places, ties to even, with all twelve places:
+  1/2521 is `≈ 0.000396667989` and −1/2550 `≈ -0.000392156863`, the `≈`
+  before the sign.
+
+A value in **seconds** is written as a clock. Its magnitude, rounded as
+above (a float to three places, an approximated fraction to twelve), is
+split into whole hours, whole minutes and the seconds that remain, written
+`{hours}h{minutes}′{seconds}″` with the prime `′` (U+2032) and the double
+prime `″` (U+2033): the hours only when they are not 0, the minutes when
+they are not 0 or follow hours, the seconds always, and each part that
+follows a written part with its integer part padded to two digits. The
+seconds are written as the value is. Those of a float are the decimal its
+`repr` spells, with only the places they need and none when they are
+whole: 312.48979591836735 is labelled `5′12.49″`, 42.5 `42.5″`, 75.0
+`1′15″`, 3725.0 `1h02′05″`, 3599.9996 `1h00′00″` and 1e-05 `0″`. Those of
+an exact value are mixed, a decimal that ends or approximated, as above:
+151/2 is `1′15 1/2″`, 121/2 `1′00 1/2″`, 1/2 `1/2″`, 1/4096
+`0.000244140625″` and 153001/2550 `≈ 1′00.000392156863″`; an integer's
+are plain digits, never grouped (3725 is `1h02′05″`, −3600 `-1h00′00″`).
+The sign, and `≈` before it, precede the whole clock.
 
 ### 5.3 Names and labels
 
@@ -1538,7 +1592,7 @@ fractional digits without trailing zeros. A value that rounds to zero is
 The output is UTF-8, one element per line, no indentation, a final newline:
 
 ```
-<svg xmlns="http://www.w3.org/2000/svg" width="{PW}" height="{PH}" viewBox="0 0 {PW} {PH}" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="{PW}" height="{PH}" viewBox="0 0 {PW} {PH}" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate({X} {Y}) scale({z})">
 ...
 </g>
@@ -1546,7 +1600,9 @@ The output is UTF-8, one element per line, no indentation, a final newline:
 ```
 
 with one `<g>` per drawing, `(X, Y)` its position on the page, and
-` scale({z})` left out when `z` is 1. `text-rendering="geometricPrecision"`
+` scale({z})` left out when `z` is 1. The `font-family` list names Noto
+Music after DejaVu Sans, so that a renderer draws the code points of
+section 5.1 that DejaVu Sans does not map in Noto Music. `text-rendering="geometricPrecision"`
 keeps a renderer from hinting small text, which would move its glyphs off
 the advance widths the layout measured. In text, `&`, `<` and `>` are written
 `&amp;`, `&lt;` and `&gt;`; in attribute values, so are they, and `"` as
@@ -1561,7 +1617,8 @@ output is a complete LuaLaTeX document:
 ```
 \documentclass{standalone}
 \usepackage{fontspec}
-\setsansfont{DejaVuSans.ttf}[Path={font directory}/,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\directlua{luaotfload.add_fallback("music", {"[{font directory}/NotoMusic-Regular.ttf]:mode=node;"})}
+\setsansfont{DejaVuSans.ttf}[Path={font directory}/,Kerning=Off,Ligatures={TeXOff,NoCommon},RawFeature={fallback=music}]
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
@@ -1571,7 +1628,10 @@ output is a complete LuaLaTeX document:
 \end{document}
 ```
 
-`{font directory}` is a writer option, `.` by default. Without
+`{font directory}` is a writer option, `.` by default, the directory that
+holds both font files. Noto Music is a luaotfload fallback of the sans
+font, so that the code points of section 5.1 that DejaVu Sans does not
+map are drawn in it. Without
 `standalone`, the output is the `tikzpicture` environment alone. Each
 colour used is defined once, right after `\begin{tikzpicture}`, as
 `\definecolor{ts<RRGGBB>}{HTML}{<RRGGBB>}`, sorted by its digits. Each

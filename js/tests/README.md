@@ -216,24 +216,40 @@ added as an empty declaration, `missing` lists them in code-point order (`ﬀ` b
 `😀`), and with missing names it calls `console.warn` exactly once with the
 text of Python's `MissingStyleWarning`, with none never.
 
-## The font
+## The fonts
 
-`fonts/DejaVuSans.ttf` has the SHA-256 of the upstream release file
-(`7da195a7…48954`) and its licence lies beside it (8816 bytes);
-`package.json` exports `./fonts/*` and lists `fonts` in `files`;
-`fontMetrics` has exactly `advances`, `ascender`, `descender`, `fallback`
-and `units_per_em` with 5918 advances (`"9833"` 966, `"48"` 1303, `"32"`
-651) and the values 1901, 483, 1229 and 2048; `dumps(fontMetrics)`
-reproduces the metrics file.
+A drawing's text is drawn in DejaVu Sans 2.37 and every code point DejaVu
+Sans does not map and Noto Music 2.004 does in Noto Music, and measured from
+one table. The JavaScript tests cannot
+read a TrueType file's tables (the Python tests prove the table against both
+fonts with fontTools); they prove that the package ships the same files and
+the same table:
+
+- `FONT_FILES` is `["DejaVuSans.ttf", "NotoMusic-Regular.ttf"]`; each file
+  under `fonts/` has the SHA-256 of its upstream release file
+  (`7da195a7…48954`, `26c0a28d…0de816`), and its licence lies beside it,
+  `DejaVuSans-LICENSE` (8816 bytes) and `NotoMusic-LICENSE` (4381 bytes);
+  `package.json` exports `./fonts/*` and lists `fonts` in `files`.
+- `fontMetrics` has exactly `advances`, `ascender`, `descender`, `fallback`
+  and `units_per_em` with the values 1901, 483, 1229 and 2048 and 6467
+  advances, DejaVu Sans's 5918 and 549 from Noto Music (`"9833"` 966,
+  `"48"` 1303, `"32"` 651; `"119133"`, U+1D15D, 1053; `"119070"`, U+1D11E,
+  1456; `"119135"`, U+1D15F, 819; `"118784"`, U+1D000, 973; `"119296"`,
+  U+1D200, 1810).
+- `dumps(fontMetrics)` reproduces the metrics file
+  `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`.
 
 ## Packaging
 
 After `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists
-`docs/drawing.md`, `schema/0.2.0/timetoshare.schema.json` and `LICENSE`, each
-copy byte for byte the repository's file, and `package.json` exports
-`./docs/*`. The packed package is `@timetoalign/timetoshare` at the version
-`SCHEMA_VERSION` names, as a package version is the schema version it
-reads.
+`docs/drawing.md`, `schema/0.2.0/timetoshare.schema.json`, `LICENSE` and
+exactly the five files of `fonts/` (both TrueType files, `DejaVuSans-LICENSE`,
+`NotoMusic-LICENSE` and the metrics table
+`dejavu-sans-2.37+noto-music-2.004.metrics.json`; the SIL Open Font License
+requires its licence to travel with the font), each copy byte for byte the
+repository's file, and `package.json` exports `./docs/*`. The packed
+package is `@timetoalign/timetoshare` at the version `SCHEMA_VERSION` names,
+as a package version is the schema version it reads.
 
 ## Hermeticity
 

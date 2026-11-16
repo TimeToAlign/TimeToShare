@@ -1,6 +1,7 @@
 \documentclass{standalone}
 \usepackage{fontspec}
-\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\directlua{luaotfload.add_fallback("music", {"[./NotoMusic-Regular.ttf]:mode=node;"})}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon},RawFeature={fallback=music}]
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
@@ -36,8 +37,8 @@
 \path[fill=ts000000] (102.2915,197.0391) -- (99.2915,184.0391) -- (105.2915,184.0391) -- cycle;
 \path[fill=ts000000] (502.2915,197.0391) -- (499.2915,184.0391) -- (505.2915,184.0391) -- cycle;
 \node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (24,194.731) {Performance};
-\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (102.2915,173.6851) {0.0 s};
-\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (502.2915,173.6851) {4.0 s};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (102.2915,173.6851) {0″};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (502.2915,173.6851) {4″};
 \path[rounded corners=6pt,fill=tsFFFFFF,draw=tsD1D5DB,line width=1pt] (8,8) rectangle (533.8306,147.5625);
 \node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,129.3521) {Page};
 \path[rounded corners=5pt,fill=tsB8BEC8] (18,71.3789) rectangle (527.8306,120.7578);

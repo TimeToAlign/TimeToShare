@@ -2,19 +2,30 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { dumps, fontMetrics, parseJson } from "../src/index.js";
+import { dumps, FONT_FILES, fontMetrics, parseJson } from "../src/index.js";
 import { repositoryRoot } from "./fixtures.js";
 
-const RELEASE_SHA256 = "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954";
+const RELEASE_SHA256 = {
+  "DejaVuSans.ttf": "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954",
+  "NotoMusic-Regular.ttf": "26c0a28d7c6f96c70f1401db23066c5ea0ee1cdf155c79bc01ad2efb040de816",
+} as const;
+const METRICS_FILE = "dejavu-sans-2.37+noto-music-2.004.metrics.json";
 
-describe("the bundled font", () => {
-  it("is the upstream 2.37 release file, with its licence", () => {
-    const font = readFileSync(resolve(repositoryRoot, "fonts", "DejaVuSans.ttf"));
-    expect(createHash("sha256").update(font).digest("hex")).toBe(RELEASE_SHA256);
-    expect(readFileSync(resolve(repositoryRoot, "fonts", "LICENSE")).byteLength).toBe(8816);
+function fontFile(name: string): Buffer {
+  return readFileSync(resolve(repositoryRoot, "fonts", name));
+}
+
+describe("the bundled fonts", () => {
+  it("are the upstream release files, in fallback order, with their licences", () => {
+    expect(FONT_FILES).toEqual(["DejaVuSans.ttf", "NotoMusic-Regular.ttf"]);
+    for (const name of FONT_FILES) {
+      expect(createHash("sha256").update(fontFile(name)).digest("hex")).toBe(RELEASE_SHA256[name]);
+    }
+    expect(fontFile("DejaVuSans-LICENSE").byteLength).toBe(8816);
+    expect(fontFile("NotoMusic-LICENSE").byteLength).toBe(4381);
   });
 
-  it("is exported as a package subpath", () => {
+  it("are exported as a package subpath", () => {
     const manifest = parseJson(readFileSync(resolve(repositoryRoot, "js", "package.json"), "utf8"));
     const record = manifest as { exports: Record<string, string>; files: string[] };
     expect(record.exports["./fonts/*"]).toBe("./fonts/*");
@@ -35,17 +46,19 @@ describe("fontMetrics", () => {
     expect(fontMetrics.ascender).toBe(1901);
     expect(fontMetrics.descender).toBe(483);
     expect(fontMetrics.fallback).toBe(1229);
-    expect(Object.keys(fontMetrics.advances)).toHaveLength(5918);
+    expect(Object.keys(fontMetrics.advances)).toHaveLength(6467);
     expect(fontMetrics.advances["9833"]).toBe(966);
     expect(fontMetrics.advances["48"]).toBe(1303);
     expect(fontMetrics.advances["32"]).toBe(651);
+    expect(fontMetrics.advances["119133"]).toBe(1053);
+    expect(fontMetrics.advances["119070"]).toBe(1456);
+    expect(fontMetrics.advances["119135"]).toBe(819);
+    expect(fontMetrics.advances["118784"]).toBe(973);
+    expect(fontMetrics.advances["119296"]).toBe(1810);
   });
 
   it("equals the metrics file, which the standard writer wrote", () => {
-    const text = readFileSync(
-      resolve(repositoryRoot, "fonts", "dejavu-sans-2.37.metrics.json"),
-      "utf8",
-    );
+    const text = readFileSync(resolve(repositoryRoot, "fonts", METRICS_FILE), "utf8");
     expect(dumps(parseJson(text))).toBe(text);
     expect(dumps(fontMetrics)).toBe(text);
   });

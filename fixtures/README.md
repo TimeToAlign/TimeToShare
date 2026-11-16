@@ -194,7 +194,7 @@ per quarter):
 | `map_row_siblings.json` | a root `piece` of 8 quarters whose children `ante` (4 at 0) and `cons` (4 at 4) touch and so share a row; `ante` carries the maps `a_ticks` ("Ticks") and `b_tempo` ("Tempo"), `cons` the maps `a_tempo` ("Tempo") and `b_ticks` ("Ticks"), so both Tempo maps lie in slot 1 and both Ticks maps in slot 2, although `ante`'s Ticks map comes first in its canonical order |
 | `map_row_subslots.json` | an unlocked segment line `form` of 32 quarters of the unnamed segments `a` (8), `b` (12) and `c` (12), whose own map `ticks_form` and the maps `ticks_b` of `b` and `ticks_c` of `c` share the key "Ticks": `ticks_form` takes sub-slot 1, and `ticks_b` and `ticks_c`, which touch, share sub-slot 2 |
 | `map_row_moved.json` | a root `piece` of 8 quarters whose children `ante` (4 at 0, the maps `tempo_ante` and `ticks_ante`) and `cons` (4 at 3, the map `ticks_cons`) overlap and so lie in two rows, each with slots of its own: `ticks_cons` takes slot 1 of its row, where in one row with `ante` it would take slot 2 |
-| `label_float_rounding.json` | a root `take` of 312.48979591836735 seconds and its two named timestamps, `origin` at 0.0 and `length` at its length, each with the `display` `["wedge", "coordinate"]`; the coordinate label of `length` reads `312.49 s`, its coordinate rounded to three decimals |
+| `label_float_rounding.json` | a root `take` of 312.48979591836735 seconds and its two named timestamps, `origin` at 0.0 and `length` at its length, each with the `display` `["wedge", "coordinate"]`; the coordinate label of `length` reads `5′12.49″`, its coordinate rounded to three decimals and split into minutes and seconds |
 
 ## Coverage of groups and bundles
 
@@ -338,7 +338,7 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
 `map_child_band_order`, `map_root_band_order`). Each directory holds:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
-  the font, written with `dumps`:
+  the two fonts, written with `dumps`:
   - `manifest`: the path of the manifest relative to the same version's
     directory (`nested.json`, `groups/group_child_member.json`);
   - `placement`: `length`, `spacing`, `width`, `height` and `places`, all
@@ -354,8 +354,8 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
     `graphical`, which no layer outranks.
 - `figure.svg`: the SVG of the drawing alone, placed at `(0, 0)` with the
   scale `z`;
-- `figure.tex`: the TikZ of the same placement, a standalone document with
-  the font directory `.`.
+- `figure.tex`: the TikZ of the same placement, a standalone document that
+  finds both font files in the directory `.`.
 
 Two implementations that follow the specification write both figures byte
 for byte. Thirty-three `figure.svg` files are derived by hand from the

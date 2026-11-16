@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="617.3901" height="569.4609" viewBox="0 0 617.3901 569.4609" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="617.3901" height="569.4609" viewBox="0 0 617.3901 569.4609" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
 <rect x="0" y="0" width="585.3901" height="537.4609" rx="10" fill="#F3F4F6"/>
 <text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sonata</text>
@@ -38,8 +38,8 @@
 <polygon data-id="timestamp_7" points="135.3901,196.5156 132.3901,209.5156 138.3901,209.5156" fill="#000000"/>
 <polygon data-id="timestamp_8" points="535.3901,196.5156 532.3901,209.5156 538.3901,209.5156" fill="#000000"/>
 <text data-id="take_1" data-part="name" x="24" y="198.8237" text-anchor="start" font-size="11" fill="#000000">Take 1</text>
-<text data-id="timestamp_7" data-part="coordinate" x="135.3901" y="219.8696" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
-<text data-id="timestamp_8" data-part="coordinate" x="535.3901" y="219.8696" text-anchor="middle" font-size="9" fill="#000000">30.0 s</text>
+<text data-id="timestamp_7" data-part="coordinate" x="135.3901" y="219.8696" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_8" data-part="coordinate" x="535.3901" y="219.8696" text-anchor="middle" font-size="9" fill="#000000">30″</text>
 <text data-id="take_1_first" data-part="label" x="228.7235" y="182.8931" text-anchor="middle" font-size="9" fill="#000000">First theme</text>
 <text data-id="take_1_second" data-part="label" x="428.7235" y="182.8931" text-anchor="middle" font-size="9" fill="#000000">Second theme</text>
 <rect data-id="group_2" x="8" y="245.9922" width="567.3901" height="224.0898" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
@@ -87,8 +87,8 @@
 <polygon data-id="timestamp_9" points="135.3901,428.6055 132.3901,441.6055 138.3901,441.6055" fill="#000000"/>
 <polygon data-id="timestamp_10" points="535.3901,428.6055 532.3901,441.6055 538.3901,441.6055" fill="#000000"/>
 <text data-id="take_2" data-part="name" x="24" y="430.9136" text-anchor="start" font-size="11" fill="#000000">Take 2</text>
-<text data-id="timestamp_9" data-part="coordinate" x="135.3901" y="451.9595" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
-<text data-id="timestamp_10" data-part="coordinate" x="535.3901" y="451.9595" text-anchor="middle" font-size="9" fill="#000000">28.5 s</text>
+<text data-id="timestamp_9" data-part="coordinate" x="135.3901" y="451.9595" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_10" data-part="coordinate" x="535.3901" y="451.9595" text-anchor="middle" font-size="9" fill="#000000">28.5″</text>
 <rect data-id="page" data-part="card" x="10" y="480.082" width="567.3901" height="49.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="page" data-part="card" x="8" y="478.082" width="567.3901" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="page" x1="135.3901" y1="492.4844" x2="535.3901" y2="492.4844" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
@@ -98,6 +98,6 @@
 <polygon data-id="timestamp_4" points="535.3901,493.9844 532.3901,506.9844 538.3901,506.9844" fill="#000000"/>
 <text data-id="page" data-part="name" x="24" y="496.2925" text-anchor="start" font-size="11" fill="#000000">Page</text>
 <text data-id="timestamp_3" data-part="coordinate" x="135.3901" y="517.3384" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
-<text data-id="timestamp_4" data-part="coordinate" x="535.3901" y="517.3384" text-anchor="middle" font-size="9" fill="#000000">1754 px</text>
+<text data-id="timestamp_4" data-part="coordinate" x="535.3901" y="517.3384" text-anchor="middle" font-size="9" fill="#000000">1 754 px</text>
 </g>
 </svg>

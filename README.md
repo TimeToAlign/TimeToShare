@@ -611,12 +611,17 @@ pins the drawing, and both packages contain it: the wheel as
 `@timetoalign/timetoshare/docs/drawing.md`.
 
 Every text is measured and drawn with the bundled DejaVu Sans 2.37 release
-file, `fonts/DejaVuSans.ttf`. `fonts/LICENSE` contains its licence, and
-`fonts/dejavu-sans-2.37.metrics.json` contains its advance-width metrics.
-Python exposes the files through `font_path()` and `font_metrics()`. The npm
-package exports `fontMetrics` and exposes the files through the
+file, `fonts/DejaVuSans.ttf`; every code point it does not map and Noto
+Music does, such as the whole note of a label in whole notes, is drawn with the bundled Noto
+Music 2.004 release file, `fonts/NotoMusic-Regular.ttf`.
+`fonts/DejaVuSans-LICENSE` and `fonts/NotoMusic-LICENSE` contain their
+licences, and `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`
+contains the advance-width metrics of both, in one table.
+Python names the files in `FONT_FILES` and exposes them through
+`font_paths()`, and the metrics through `font_metrics()`. The npm package
+exports `FONT_FILES` and `fontMetrics` and exposes the files through the
 `@timetoalign/timetoshare/fonts/*` subpath. Run
-`scripts/extract_font_metrics.py` to regenerate the metrics from the font.
+`scripts/extract_font_metrics.py` to regenerate the metrics from the fonts.
 
 ## Canonical order
 
@@ -720,8 +725,9 @@ else:
   the package exports them. `rejection_case(path)` reads one rejection case as a
   `RejectionCase` (`manifest`, `path`, `code`, `error`, `reason`), with the
   non-finite number a finite-rule case names put in place.
-- `font_path()` returns the bundled TrueType file, and `font_metrics()` returns
-  its metrics.
+- `FONT_FILES` names the bundled TrueType files, DejaVu Sans first and Noto
+  Music second; `font_paths()` returns their paths in that order, and
+  `font_metrics()` returns the merged advance-width metrics of both.
 
 ### TypeScript
 
@@ -775,7 +781,8 @@ function load(text: string): string {
 - `identityProblems(value)` returns the same identity problems as Python's
   `identity_problems`.
 - `completeStyles(graphical)` returns `{graphical: completed, missing}`.
-- `fontMetrics` contains the bundled font's advance-width metrics.
+- `FONT_FILES` names the bundled TrueType files, as Python's constant does,
+  and `fontMetrics` contains the merged advance-width metrics of both.
 - `SCHEMA_VERSION` is `"0.2.0"`, and `schema` holds the schema document.
   The generated types are generated from it, with the root type
   `Manifest` and one type per definition, such as `Timeline`, `Group`
@@ -847,7 +854,7 @@ pnpm generate
 pnpm build
 ```
 
-To regenerate the font metrics, run this from `python/`:
+To regenerate the metrics table of the two fonts, run this from `python/`:
 
 ```bash
 uv run python ../scripts/extract_font_metrics.py
@@ -876,3 +883,6 @@ configuration.
 ## License
 
 [MIT](https://github.com/TimeToAlign/TimeToShare/blob/main/LICENSE).
+The bundled fonts keep their own licences: `fonts/DejaVuSans-LICENSE`
+(the Bitstream Vera and Arev font licences) and `fonts/NotoMusic-LICENSE`
+(the SIL Open Font License 1.1).

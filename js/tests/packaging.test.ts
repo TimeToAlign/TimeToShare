@@ -47,6 +47,22 @@ describe("the npm package", () => {
     );
   });
 
+  it("ships both fonts, their licences and the metrics table", () => {
+    const fonts = [
+      "fonts/DejaVuSans-LICENSE",
+      "fonts/DejaVuSans.ttf",
+      "fonts/NotoMusic-LICENSE",
+      "fonts/NotoMusic-Regular.ttf",
+      "fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json",
+    ];
+    expect(shipped.filter((file) => file.startsWith("fonts/")).sort()).toEqual(fonts);
+    for (const path of fonts) {
+      expect(readFileSync(resolve(packageDirectory, path))).toEqual(
+        readFileSync(resolve(repositoryRoot, path)),
+      );
+    }
+  });
+
   it("ships the repository's licence", () => {
     expect(shipped).toContain("LICENSE");
     expect(readFileSync(resolve(packageDirectory, "LICENSE"))).toEqual(

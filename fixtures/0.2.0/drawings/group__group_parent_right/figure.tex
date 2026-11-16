@@ -1,6 +1,7 @@
 \documentclass{standalone}
 \usepackage{fontspec}
-\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\directlua{luaotfload.add_fallback("music", {"[./NotoMusic-Regular.ttf]:mode=node;"})}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon},RawFeature={fallback=music}]
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
@@ -44,8 +45,8 @@
 \path[fill=ts000000] (87.7036,49.4766) -- (84.7036,36.4766) -- (90.7036,36.4766) -- cycle;
 \path[fill=ts000000] (487.7036,49.4766) -- (484.7036,36.4766) -- (490.7036,36.4766) -- cycle;
 \node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (24,47.1685) {Recording};
-\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (87.7036,26.1226) {0.0 s};
-\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (487.7036,26.1226) {10.0 s};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (87.7036,26.1226) {0″};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (487.7036,26.1226) {10″};
 \end{scope}
 \end{tikzpicture}
 \end{document}

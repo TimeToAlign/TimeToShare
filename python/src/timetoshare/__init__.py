@@ -1,4 +1,4 @@
-"""The TimeToShare! schema, its fixtures, a validator and the font.
+"""The TimeToShare! schema, its fixtures, a validator and the fonts.
 
 A TimeToShare manifest is one JSON object holding the version marker
 ``timetoshare`` and an array of root timelines, each describing a musical
@@ -18,7 +18,7 @@ from .fixtures import (
     rejection_paths,
     warning_paths,
 )
-from .font import font_metrics, font_path
+from .font import FONT_FILES, font_metrics, font_paths
 from .manifest import TIMESTAMP_DISPLAY, canonical_json, canonical_order, dumps
 from .styles import MissingStyleWarning, complete_styles
 from .validate import (
@@ -37,6 +37,7 @@ from .validate import (
 
 __all__ = [
     "DEFAULTS",
+    "FONT_FILES",
     "SCHEMA_VERSION",
     "SchemaValidationError",
     "TIMESTAMP_DISPLAY",
@@ -49,7 +50,7 @@ __all__ = [
     "complete_styles",
     "dumps",
     "font_metrics",
-    "font_path",
+    "font_paths",
     "fixture_paths",
     "identity_problems",
     "json_pointer",

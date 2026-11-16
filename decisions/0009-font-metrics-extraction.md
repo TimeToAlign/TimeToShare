@@ -2,6 +2,11 @@
 
 Date: 2026-10-11
 
+**Superseded in part by 0012 (2026-11-16).** The script now reads Noto Music
+2.004 beside DejaVu Sans and writes one merged table,
+`fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`; the choice of
+fontTools stands.
+
 ## Context
 
 The drawing specification measures every text from the advance widths of

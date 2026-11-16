@@ -20,8 +20,8 @@ These rules apply to every contributor, human or automated.
   `figure.svg` and `figure.tex` per drawing; the hand-derived `figure.svg`
   files are listed with their arithmetic in `drawings/README.md`, everything
   else is emitted); see `fixtures/README.md`.
-- `fonts/`: DejaVu Sans 2.37, its licence, and the advance-width metrics used
-  by the drawing.
+- `fonts/`: DejaVu Sans 2.37 and Noto Music 2.004, their licences, and the
+  one table of advance-width metrics used by the drawing.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
 - `js/`: the npm package, generated TypeScript types, tests, and lockfile.
 - `scripts/`: fixture emission, font-metrics extraction, and the check
@@ -70,7 +70,7 @@ These rules apply to every contributor, human or automated.
   script emits neither.
 - Regenerate `js/src/generated/` after changing the schema or font metrics.
   The generated TypeScript files belong in this repository.
-- Regenerate `fonts/dejavu-sans-2.37.metrics.json` with
+- Regenerate `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json` with
   `scripts/extract_font_metrics.py`; do not calculate or edit its advances by
   hand.
 - Support the current version only. Both packages validate the current
@@ -90,7 +90,7 @@ Run these commands from the stated directory.
 | `python/` | `uv run ruff check .` | Run Python lint checks. |
 | `python/` | `uv run ruff format --check .` | Check Python formatting. |
 | `python/` | `uv run pytest -q` | Run Python tests. |
-| `python/` | `uv run python ../scripts/extract_font_metrics.py` | Regenerate the bundled font metrics. |
+| `python/` | `uv run python ../scripts/extract_font_metrics.py` | Regenerate the metrics table of the two bundled fonts. |
 | `python/` | `uv build` | Build Python distributions. |
 | `js/` | `pnpm install --frozen-lockfile` | Install locked JavaScript dependencies. |
 | `js/` | `pnpm lint` | Run JavaScript lint checks. |

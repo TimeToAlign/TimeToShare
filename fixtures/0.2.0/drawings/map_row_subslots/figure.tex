@@ -1,6 +1,7 @@
 \documentclass{standalone}
 \usepackage{fontspec}
-\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\directlua{luaotfload.add_fallback("music", {"[./NotoMusic-Regular.ttf]:mode=node;"})}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon},RawFeature={fallback=music}]
 \usepackage{tikz}
 \begin{document}
 \begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]

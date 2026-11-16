@@ -1,8 +1,8 @@
 # Hand-derived drawings
 
 Thirty-three of the 76 drawings in this directory are derived by hand from
-the [drawing specification](../../../docs/drawing.md) and the font metrics
-alone. Their `figure.svg` files are never regenerated: the emitting script
+the [drawing specification](../../../docs/drawing.md) and the metrics table
+of its two fonts alone. Their `figure.svg` files are never regenerated: the emitting script
 compares each with its writer's output instead. Every other figure in this
 directory, and every `figure.tex` and `inputs.json`, is emitted (see
 [`fixtures/README.md`](../../README.md)). The key arithmetic of each
@@ -92,7 +92,16 @@ the named timestamp `origin` at 0 and, where the root's length is known,
 label, `{"id": X, "part": ["coordinate"]}`, `X` its `timestamp_N`; in a
 manifest of one root `origin` is `timestamp_1` and `length` `timestamp_2`.
 Below, "`origin`'s label" and "`length`'s label" are those coordinate
-labels, `0 ♩` and the length in its unit.
+labels, `0 ♩` and the length in its unit, each its pretty text (§5.2): an
+integer on an `int` axis grouped by three (`441 000 smp`), a value in
+seconds a clock (`0″`, `5′12.49″`).
+
+Every figure names the fonts `font-family="DejaVu Sans, Noto Music"`
+(§7.3), and every width is `A × s / 2048`, `A` the sum of the advances of
+the text's code points in `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`
+(§5.1). The advances used below are 1303 for each digit, 651 for the
+space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
+765 `″`.
 
 - Constants (§6.2): padding `P` = 8 (also above and below a member
   drawing's content), card padding `K` = 8, frame padding `Q` = 8, gap
@@ -399,12 +408,14 @@ pixels. A row of segment lines has no name, so `Pages` is the only one.
 - `N` = w(`Pages`, 11) = 32.85498046875.
 - `x0` = 16 + 32.85498046875 + 8 = 56.85498046875 → 56.855; the label of
   the first accolade, `u` = 200 / 7016, gives only 7.460528557493586.
-- `R` = the label `7016 px` of `length` at 456.85498046875 + 18.402099609375 =
-  475.257080078125.
+- `R` = the label `7 016 px` of `length`, its digits grouped by three on
+  the `int` axis (§5.2): the advances 4 × 1303 + 2 × 651 + 1300 + 1212 =
+  9026, so it is 9026 × 9 / 2048 = 39.6650390625 wide and ends at
+  456.85498046875 + 19.83251953125 = 476.6875.
 - `Hm` = 60.953125 + 26.9765625 + 8 = 95.9296875.
-- `W` = 8 + 485.257080078125 = 493.257080078125; `H` = 8 + 105.9296875 =
+- `W` = 8 + (10 + 476.6875) = 494.6875; `H` = 8 + 105.9296875 =
   113.9296875.
-- Page 525.257080078125 × 145.9296875 → **525.2571 × 145.9297**.
+- Page 526.6875 × 145.9296875 → **526.6875 × 145.9297**.
 
 ## `group__group_child_member`
 
@@ -420,14 +431,21 @@ left.
   + 24 = 120.61962890625 → 120.6196, above `xn + N + G'` =
   96.61962890625; the outer chevron's tip `x0 − 8w` lies exactly at the
   latter.
-- `R` = the label `10.0 s` of `length` at 520.61962890625 + 13.79443359375 =
-  534.4140625.
+- The labels of `recording` are clocks (§5.2): `origin`'s `0″` (advances
+  1303 + 765 = 2068, 9.087890625 wide) and `length`'s `10″` (2 × 1303 + 765
+  = 3371, 14.81396484375 wide).
+- `R` = the end label `16 ♩` of `second-half` on the ancestor line of
+  `piece`, at 520.61962890625 + 9.279052734375 = 529.898681640625, beyond
+  the arrowhead tip of `piece` 529.61962890625 and the label `10″` of
+  `length` at 520.61962890625 + 7.406982421875 = 528.026611328125. Each
+  card is 529.898681640625 − 8 = 521.898681640625 → 521.8987 wide and the
+  frame 529.898681640625 + 8 = 537.898681640625 → 537.8987.
 - `Hm` = 83.953125 (`second-half`, its ancestor band above) and
   49.37890625 (`recording`); the frame is 8 + 12.8046875 + 4 + 83.953125
   + 8 + 49.37890625 + 8 = 174.13671875 high.
-- `W` = 8 + (534.4140625 + 8 + 8) = 558.4140625; `H` = 8 + (8 +
+- `W` = 8 + (529.898681640625 + 8 + 8) = 553.898681640625; `H` = 8 + (8 +
   174.13671875) = 190.13671875.
-- Page 590.4140625 × 222.13671875 → **590.4141 × 222.1367**.
+- Page 585.898681640625 × 222.13671875 → **585.8987 × 222.1367**.
 
 ## `group__group_parents_mixed`
 
@@ -447,9 +465,20 @@ colour of the physical domain they convert to, the first dotted `1 1`
 - `x0` = the chevron term 24 + 57.0302734375 + 8 + 24 = 113.0302734375 →
   113.0303, set by the ancestor lines of `sonata` and `session`, which run
   on to the left; `page` starts with its member and does not.
-- `R` = the label `1323000 smp` of `length` at 513.0302734375 + 31.05615234375 =
-  544.08642578125. Each map spans its member's line, from `x0` to `x0 + L`
-  = 513.0302734375, and reaches no further right.
+- The labels in seconds are clocks (§5.2): `take`'s start and end on the
+  ancestor line of `session`, `30″` and `55.5″`, and its `origin`'s and
+  `length`'s, `0″` and `25.5″`; `55.5″` and `25.5″` have the advances 2 ×
+  1303 + 651 + 1303 + 765 = 5325, 23.40087890625 wide.
+- `R` = the label `1 323 000 smp` of `length`, its digits grouped by three
+  on the `int` axis (§5.2): the advances 7 × 1303 + 3 × 651 + 1067 + 1995
+  + 1300 = 15436, 15436 × 9 / 2048 = 67.833984375 wide, ending at
+  513.0302734375 + 33.9169921875 = 546.947265625, beyond the outer chevron
+  tips of `session` and `page` at 537.0302734375 and the label `55.5″` at
+  513.0302734375 + 11.700439453125 = 524.730712890625. Each map spans its
+  member's line, from `x0` to `x0 + L` = 513.0302734375, and reaches no
+  further right. Each card is 546.947265625 − 8 = 538.947265625 →
+  538.9473 wide and the frame 546.947265625 + 8 = 554.947265625 →
+  554.9473.
 - The map stacks: each holds one map, 5.5 above its member's line and
   reaching `e` = 6.5 (Shared quantities). Neither member draws a wedge
   above, so above lies its conversion maps band alone, reaching 6.5; below,
@@ -479,9 +508,9 @@ colour of the physical domain they convert to, the first dotted `1 1`
   172.7344 and the line of `session` at 159.734375 → 159.7344; `audio` at
   326.6640625 → 326.6641, its map's outline from 320.1640625 → 320.1641 to
   322.1640625 → 322.1641.
-- `W` = 8 + 560.08642578125 = 568.08642578125; `H` = 8 + 369.640625 =
+- `W` = 8 + (546.947265625 + 8 + 8) = 570.947265625; `H` = 8 + 369.640625 =
   377.640625.
-- Page 600.08642578125 × 409.640625 → **600.0864 × 409.6406**.
+- Page 602.947265625 × 409.640625 → **602.9473 × 409.6406**.
 
 ## `group__group_grandchild`
 
@@ -495,7 +524,10 @@ ancestor lines, `movement` and `score`, both running on to the left.
 - `x0` = the chevron term 24 + 55.70361328125 + 8 + 24 = 111.70361328125 →
   111.7036.
 - `R` = the outer chevron tip of `score`, which also runs on to the right,
-  `Xr + 4w` = (111.70361328125 + 400 + 12) + 12 = 535.70361328125 (§8.3).
+  `Xr + 4w` = (111.70361328125 + 400 + 12) + 12 = 535.70361328125 (§8.3),
+  beyond the label of `recording`'s `length`, the clock `12″` (§5.2; the
+  advances 2 × 1303 + 765 = 3371, 14.81396484375 wide), at 511.70361328125
+  + 7.406982421875 = 519.110595703125. `origin`'s label is `0″`.
 - `Hm` = 82.953125 + 26.9765625 + 8 = 117.9296875 (`theme`, two ancestor
   rows above) and 49.37890625 (`recording`); the frame is 208.11328125
   high.
@@ -594,10 +626,10 @@ The group "Edition" in the display order `performance`, `score`: the root
 - `performance` is scaled to its reach 9.5, a float: `u(9.5)` = 1.0, so the
   region spans `x0` to `x0 + L`, and its tip lies at the midpoint (0.0 +
   9.5) / 2 = 4.75, `u` = 0.5, `x` = 302.640625 (§3.1). `origin`'s label is
-  `0.0 s`.
+  the clock `0″` (§5.2), the advances 1303 + 765 = 2068, 9.087890625 wide.
 - `xn` = 24. `N` = w(`performance`, 11) = 70.640625.
 - `x0` = 24 + 70.640625 + 8 = 102.640625 → 102.6406; the label
-  `0.0 s` of `origin` gives only 34.931396484375.
+  `0″` of `origin` gives only 24 + 4.5439453125 = 28.5439453125.
 - `R` = the outer chevron tip of `performance`, `Xr + 5.5w` = (102.640625 +
   400 + 12) + 16.5 = 531.140625, beyond the label `12 ♩` of `score`'s `length` at
   511.919677734375.
@@ -663,16 +695,19 @@ and in place coordinates until the place origin is added, last (§8.4).
   21.8779296875; the jump-origin label `D.C. al Fine`, centred on `u` = 1/2,
   gives only 8 + 25.7958984375 − 200 = −166.2041015625. The shared end is
   `s0 + L` = 471.70361328125.
-- The right margin: the right edges are the labels of `length`, `5262 px` at
-  471.70361328125 + 18.402099609375 = 490.105712890625 (`pages`), `441000
-  smp` at 471.70361328125 + 28.193115234375 = 499.896728515625 (`recording`)
+- The right margin: the right edges are the labels of `length`, their
+  digits grouped by three on the `int` axes (§5.2), `5 262 px` (the
+  advances 4 × 1303 + 2 × 651 + 1300 + 1212 = 9026, 39.6650390625 wide) at
+  471.70361328125 + 19.83251953125 = 491.5361328125 (`pages`), `441 000
+  smp` (6 × 1303 + 2 × 651 + 1067 + 1995 + 1300 = 13482, 59.2470703125
+  wide) at 471.70361328125 + 29.62353515625 = 501.3271484375 (`recording`)
   and `16 ♩` at 471.70361328125 + 9.279052734375 = 480.982666015625
-  (`score`), so `Mr` = 499.896728515625 − 471.70361328125 = 28.193115234375,
-  from `recording`, and `Ri` = 471.70361328125 + 28.193115234375 =
-  499.896728515625 for every card. The maps end at the shared end, the jump
+  (`score`), so `Mr` = 501.3271484375 − 471.70361328125 = 29.62353515625,
+  from `recording`, and `Ri` = 471.70361328125 + 29.62353515625 =
+  501.3271484375 for every card. The maps end at the shared end, the jump
   origin at its start `x(16)` = 471.70361328125, and the flow-marker label
   `Fine` at 274.70361328125 + 18.91845703125 = 293.6220703125. Each card
-  spans 0 to `Ri + K` = 507.896728515625.
+  spans 0 to `Ri + K` = 509.3271484375.
 - The map stacks: each root's one map lies above its line (§4), 5.5 above
   it, its outline from 6.5 to 4.5 above it and from `s0` to `s0 + L`, and
   the stack reaches `e` = 6.5 (Shared quantities). Each map takes the
@@ -717,11 +752,11 @@ and in place coordinates until the place origin is added, last (§8.4).
   px`.
 - The block: `Pt` = 28.8046875, `Xl` = min(0, −60 − 8) = −68 and `Yt` =
   min(0, −150 − 28.8046875) = −178.8046875, so `(Ox, Oy)` = (68,
-  178.8046875). `Xr` = 8 + (515.896728515625 + 2) = 525.896728515625, from
+  178.8046875). `Xr` = 8 + (517.3271484375 + 2) = 527.3271484375, from
   the shadows of `pages` and `recording`, which end at 8 +
-  507.896728515625 + 2; `Yb` = 8 + (100.2578125 + (49.4765625 + 2)) =
-  159.734375, from `recording`'s shadow. `W` = 525.896728515625 − (−68) =
-  593.896728515625 and `H` = 159.734375 − (−178.8046875) = 338.5390625.
+  509.3271484375 + 2; `Yb` = 8 + (100.2578125 + (49.4765625 + 2)) =
+  159.734375, from `recording`'s shadow. `W` = 527.3271484375 − (−68) =
+  595.3271484375 and `H` = 159.734375 − (−178.8046875) = 338.5390625.
 - The title `Sketches` lies at the block's top left: `x` = `Xl + P` = −60,
   baseline (−178.8046875 + 8) + 10.21044921875 = −160.59423828125, right
   edge −60 + 49.951171875 = −10.048828125, slot ending at −178.8046875 + 8
@@ -731,7 +766,7 @@ and in place coordinates until the place origin is added, last (§8.4).
   where it lies in a block with no places; the cards of `score` at (8,
   28.8046875 → 28.8047), where the first item lies by default, of `pages` at
   (76, 207.609375 → 207.6094) and of `recording` at (76, 279.0625), each
-  507.896728515625 → 507.8967 wide; the starts (8 + 71.70361328125) + 68 =
+  509.3271484375 → 509.3271 wide; the starts (8 + 71.70361328125) + 68 =
   147.70361328125 → 147.7036 (`pages`, `recording`) and (−60 +
   71.70361328125) + 68 = 79.70361328125 → 79.7036 (`score`); the lines at
   `y` 236.0859375 → 236.0859 (`pages`), 293.5625 (`recording`) and
@@ -746,7 +781,7 @@ and in place coordinates until the place origin is added, last (§8.4).
   (83.68105008345772, 85.18207242556883) → (83.6811, 85.1821). The shadow of
   `score`'s card ends at 150.8046875, 56.8046875 above the card of `pages`,
   and no card overlaps another or the title.
-- Page 625.896728515625 × 370.5390625 → **625.8967 × 370.5391**.
+- Page 627.3271484375 × 370.5390625 → **627.3271 × 370.5391**.
 
 ## `bundle_ungrouped__scale`
 
@@ -758,16 +793,16 @@ that the items after a scaled one start below its drawn bottom (§8.6).
 
 - The layout and the member drawings are those of
   `bundle_ungrouped__places`, which no place changes: `n` = 8, `s0` =
-  71.70361328125, `Mr` = 28.193115234375, `Ri` = 499.896728515625, every
-  card 0 to 507.896728515625 in item coordinates, `Hm` = 63.453125
+  71.70361328125, `Mr` = 29.62353515625, `Ri` = 501.3271484375, every
+  card 0 to 509.3271484375 in item coordinates, `Hm` = 63.453125
   (`pages`), 49.4765625 (`recording`) and 84.4296875 (`score`).
 - Places: `pages` at (8, 28.8046875); `recording` at (8, 100.2578125),
   scale 1.5, its drawn bottom 100.2578125 + 1.5 × 49.4765625 =
   174.47265625; `score` at (8, 182.47265625), the block's spacing 8 below
   that. Every `length` is 400.
 - `recording`, drawn at `(8 + 1.5 × px, 100.2578125 + 1.5 × py)`: its card
-  at (8, 100.2578125), 1.5 × 507.896728515625 = 761.8450927734375 →
-  761.8451 wide and 1.5 × 49.4765625 = 74.21484375 → 74.2148 high, `rx`
+  at (8, 100.2578125), 1.5 × 509.3271484375 = 763.99072265625 →
+  763.9907 wide and 1.5 × 49.4765625 = 74.21484375 → 74.2148 high, `rx`
   7.5, stroke width 1.125; its shadow at the item position (2, 2), drawn
   at (11, 103.2578125); its line from 8 + 1.5 × 71.70361328125 =
   115.555419921875 → 115.5554 to 8 + 1.5 × 471.70361328125 =
@@ -788,11 +823,11 @@ that the items after a scaled one start below its drawn bottom (§8.6).
   238.42578125 → 238.4258.
 - The block: `Xl` = `Yt` = 0 (the first item lies at `Pt` = 28.8046875), so
   the origin is (0, 0) and the title at (8, 18.21044921875 → 18.2104).
-  `W` = 8 + (8 + 1.5 × (507.896728515625 + 2)) = 8 + 772.8450927734375 =
-  780.8450927734375, from `recording`'s shadow; `H` = 8 + (182.47265625 +
+  `W` = 8 + (8 + 1.5 × (509.3271484375 + 2)) = 8 + 774.99072265625 =
+  782.99072265625, from `recording`'s shadow; `H` = 8 + (182.47265625 +
   (84.4296875 + 2)) = 8 + 268.90234375 = 276.90234375, from `score`'s
   shadow. No card overlaps another or the title.
-- Page 812.8450927734375 × 308.90234375 → **812.8451 × 308.9023**.
+- Page 814.99072265625 × 308.90234375 → **814.9907 × 308.9023**.
 
 ## `bundle_ungrouped__spacing`
 
@@ -813,8 +848,8 @@ its padding `P` = 8 does not change (§8.6). No spacing multiplies another:
 places, only lower.
 
 - The layout is that of `bundle_ungrouped__places`, which no place
-  changes: `n` = 8, `s0` = 71.70361328125, `Mr` = 28.193115234375, `Ri` =
-  499.896728515625, every card 0 to 507.896728515625 in item coordinates,
+  changes: `n` = 8, `s0` = 71.70361328125, `Mr` = 29.62353515625, `Ri` =
+  501.3271484375, every card 0 to 509.3271484375 in item coordinates,
   `Hm` = 63.453125 (`pages`) and 49.4765625 (`recording`).
 - `score` (§6.4, §6.5): `Ea` = 6.5, its map stack's reach, so `y_root` =
   14.5, as at `S` = 4. Its flow control band starts at 26.9765625 + 8 =
@@ -845,7 +880,7 @@ places, only lower.
   189.7344). Every `length` is 400 and every `scale` 1, so a position
   `(px, py)` in item coordinates is drawn at `(8 + px, y + py)` (§8.6).
 - `recording`, 16 lower than in a block with no places: its card at (8,
-  116.2578125), 507.896728515625 → 507.8967 wide and 49.4766 high, its
+  116.2578125), 509.3271484375 → 509.3271 wide and 49.4766 high, its
   shadow at (10, 118.2578125); its map's outline from 116.2578125 + 8 =
   124.2578125 → 124.2578 to 126.2578125 → 126.2578; its line at `y`
   116.2578125 + 14.5 = 130.7578125 → 130.7578, from 79.70361328125 →
@@ -856,7 +891,7 @@ places, only lower.
   134.5659; its labels at baseline 116.2578125 + ((14.5 + 16.5) +
   8.35400390625) = 155.61181640625 → 155.6118.
 - `score`, 32 lower than in a block with no places: its card at (8,
-  189.734375), 507.8967 wide and 92.4297 high, its shadow at (10, 191.734375
+  189.734375), 509.3271 wide and 92.4297 high, its shadow at (10, 191.734375
   → 191.7344); its line at 189.734375 + 14.5 = 204.234375 → 204.2344, its
   map's outline from 197.734375 → 197.7344 to 199.734375 → 199.7344, its
   name's baseline at 208.04248046875 → 208.0425, its labels' at
@@ -869,11 +904,11 @@ places, only lower.
   corners → (83.3374, 252.2943) and (83.9694, 248.3446), and its label's
   baseline at 189.734375 + 82.30712890625 = 272.04150390625 → 272.0415.
 - The block: `Xl` = `Yt` = 0, so the origin is (0, 0) and the title at (8,
-  18.21044921875 → 18.2104). `W` = 8 + (8 + (507.896728515625 + 2)) =
-  525.896728515625, from the shadows of all three cards; `H` = 8 +
+  18.21044921875 → 18.2104). `W` = 8 + (8 + (509.3271484375 + 2)) =
+  527.3271484375, from the shadows of all three cards; `H` = 8 +
   (189.734375 + (92.4296875 + 2)) = 8 + 284.1640625 = 292.1640625, from
   `score`'s shadow. No card overlaps another or the title.
-- Page 557.896728515625 × 324.1640625 → **557.8967 × 324.1641**.
+- Page 559.3271484375 × 324.1640625 → **559.3271 × 324.1641**.
 
 ## `styled_score_flow_inner`
 
@@ -1361,9 +1396,10 @@ The root `piece` ("Piece", 8 quarters) and its locked children `ante`
 ## `label_float_rounding`
 
 The root `take` ("Take") of 312.48979591836735 seconds, a float, with
-nothing else but its two timestamps. `origin` is labelled `0.0 s` and
-`length`, its coordinate rounded as Python's `round(x, 3)` rounds it and
-spelled as `repr` spells the result (§5.2), `312.49 s`; the wedge of
+nothing else but its two timestamps. Both labels are clocks (§5.2):
+`origin` is labelled `0″` and `length`, its coordinate rounded as Python's
+`round(x, 3)` rounds it, to 312.49, and split into 5 minutes and 12.49
+seconds, `5′12.49″`; the wedge of
 `length` still lies at `x0 + L`, since no position is computed from a
 label. The line, its arrowhead and the start circle are
 the physical domain's blue `#0050EF` (§4).
@@ -1374,13 +1410,16 @@ the physical domain's blue `#0050EF` (§4).
   36.90234375 → 36.9023, their labels' baseline at 47.25634765625 →
   47.2563, the name's at 26.21044921875 → 26.2104.
 - `N` = w(`Take`, 11) = 26.59765625.
-- `x0` = 16 + 26.59765625 + 8 = 50.59765625 → 50.5977; the label `0.0
-  s` of `origin` (21.86279296875 wide) gives only 16 + 10.931396484375 = 26.931396484375.
-- `R` = the label `312.49 s` of `length` (39.041015625 wide) at 450.59765625 +
-  19.5205078125 = 470.1181640625, beyond the arrowhead tip 459.59765625.
-- `W` = 8 + (10 + 470.1181640625) = 488.1181640625; `H` = 8 + (10 +
+- `x0` = 16 + 26.59765625 + 8 = 50.59765625 → 50.5977; the label `0″` of
+  `origin` (the advances 1303 + 765 = 2068, 9.087890625 wide) gives only
+  16 + 4.5439453125 = 20.5439453125.
+- `R` = the label `5′12.49″` of `length` (the advances 1303 + 465 + 2 ×
+  1303 + 651 + 2 × 1303 + 765 = 8396, 36.896484375 wide) at 450.59765625 +
+  18.4482421875 = 469.0458984375, beyond the arrowhead tip 459.59765625.
+  The card is 469.0458984375 → 469.0459 wide.
+- `W` = 8 + (10 + 469.0458984375) = 487.0458984375; `H` = 8 + (10 +
   49.37890625) = 67.37890625.
-- Page 520.1181640625 × 99.37890625 → **520.1182 × 99.3789**.
+- Page 519.0458984375 × 99.37890625 → **519.0459 × 99.3789**.
 
 ## `timestamps`
 
