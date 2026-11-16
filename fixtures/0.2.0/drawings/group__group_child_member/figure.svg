@@ -14,23 +14,23 @@
 <polygon data-id="second-half" points="516.1196,81.7812 520.6196,78.1813 525.1196,81.7812 520.6196,85.3812" fill="none" stroke="#00CC00" stroke-width="1.5"/>
 <polygon data-id="second-half" data-part="start" points="120.6196,66.2812 117.6196,53.2812 123.6196,53.2812" fill="#000000" opacity="0.35"/>
 <polygon data-id="second-half" data-part="end" points="520.6196,66.2812 517.6196,53.2812 523.6196,53.2812" fill="#000000" opacity="0.35"/>
-<polygon data-id="second-half" data-part="start" points="120.6196,83.2812 117.6196,96.2812 123.6196,96.2812" fill="#000000"/>
-<polygon data-id="second-half" data-part="end" points="520.6196,83.2812 517.6196,96.2812 523.6196,96.2812" fill="#000000"/>
+<polygon data-id="timestamp_3" points="120.6196,83.2812 117.6196,96.2812 123.6196,96.2812" fill="#000000"/>
+<polygon data-id="timestamp_4" points="520.6196,83.2812 517.6196,96.2812 523.6196,96.2812" fill="#000000"/>
 <text data-id="piece" data-part="name" x="24" y="70.897" text-anchor="start" font-size="9" fill="#6B7280">Piece</text>
 <text data-id="second-half" data-part="name" x="24" y="85.5894" text-anchor="start" font-size="11" fill="#000000">Second half</text>
 <text data-id="second-half" data-part="start label" x="120.6196" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">8 ♩</text>
 <text data-id="second-half" data-part="end label" x="520.6196" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">16 ♩</text>
-<text data-id="second-half" data-part="start label" x="120.6196" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="second-half" data-part="end label" x="520.6196" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+<text data-id="timestamp_3" data-part="coordinate" x="120.6196" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_4" data-part="coordinate" x="520.6196" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
 <rect data-id="recording" data-part="card" x="18" y="126.7578" width="526.4141" height="49.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="recording" data-part="card" x="16" y="124.7578" width="526.4141" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="recording" x1="120.6196" y1="139.1602" x2="520.6196" y2="139.1602" stroke="#0050EF" stroke-width="3"/>
 <circle data-id="recording" cx="120.6196" cy="139.1602" r="3" fill="#0050EF"/>
 <polygon data-id="recording" points="529.6196,139.1602 520.6196,134.6602 520.6196,143.6602" fill="#0050EF"/>
-<polygon data-id="recording" data-part="start" points="120.6196,140.6602 117.6196,153.6602 123.6196,153.6602" fill="#000000"/>
-<polygon data-id="recording" data-part="end" points="520.6196,140.6602 517.6196,153.6602 523.6196,153.6602" fill="#000000"/>
+<polygon data-id="timestamp_1" points="120.6196,140.6602 117.6196,153.6602 123.6196,153.6602" fill="#000000"/>
+<polygon data-id="timestamp_2" points="520.6196,140.6602 517.6196,153.6602 523.6196,153.6602" fill="#000000"/>
 <text data-id="recording" data-part="name" x="24" y="142.9683" text-anchor="start" font-size="11" fill="#000000">Recording</text>
-<text data-id="recording" data-part="start label" x="120.6196" y="164.0142" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
-<text data-id="recording" data-part="end label" x="520.6196" y="164.0142" text-anchor="middle" font-size="9" fill="#000000">10.0 s</text>
+<text data-id="timestamp_1" data-part="coordinate" x="120.6196" y="164.0142" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
+<text data-id="timestamp_2" data-part="coordinate" x="520.6196" y="164.0142" text-anchor="middle" font-size="9" fill="#000000">10.0 s</text>
 </g>
 </svg>

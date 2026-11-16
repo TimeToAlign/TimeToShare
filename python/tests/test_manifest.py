@@ -315,6 +315,34 @@ def test_named_timestamps_are_ordered_by_timeline_coordinate_and_id() -> None:
     validate(result)
 
 
+def test_a_named_timestamp_s_display_is_put_in_canonical_order() -> None:
+    displays = [
+        ["cross_section", "coordinate", "id", "name", "wedge"],
+        ["zeta", "alpha", "wedge"],
+        [2, "name", 1, "zeta", "wedge"],
+    ]
+    value = manifest(
+        timeline("a"),
+        graphical={
+            "timestamps": [
+                {**_stamp(f"timestamp_{index}", "a", [index, 1]), "display": display}
+                for index, display in enumerate(displays, start=1)
+            ]
+        },
+    )
+    given = copy.deepcopy(value)
+    result = canonical_order(value)
+    assert value == given
+    assert [entry["display"] for entry in result["graphical"]["timestamps"]] == [
+        ["wedge", "name", "id", "coordinate", "cross_section"],
+        ["wedge", "alpha", "zeta"],
+        ["wedge", "name", "zeta", 2, 1],
+    ]
+    validate(
+        result | {"graphical": {"timestamps": result["graphical"]["timestamps"][:1]}}
+    )
+
+
 def test_a_named_timestamp_is_spelled_on_its_timelines_axis() -> None:
     value = manifest(
         timeline("score"),

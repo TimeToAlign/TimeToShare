@@ -46,7 +46,74 @@
         "stroke": "#7F00FF"
       }
     },
-    "timestamps": []
+    "timestamps": [
+      {
+        "coordinate": 0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "page"
+      },
+      {
+        "coordinate": 1920,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_2",
+        "name": "length",
+        "timeline": "page"
+      },
+      {
+        "coordinate": 0.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_3",
+        "name": "origin",
+        "timeline": "performance"
+      },
+      {
+        "coordinate": 12.5,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_4",
+        "name": "length",
+        "timeline": "performance"
+      },
+      {
+        "coordinate": [
+          0,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_5",
+        "name": "origin",
+        "timeline": "score"
+      },
+      {
+        "coordinate": [
+          12,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_6",
+        "name": "length",
+        "timeline": "score"
+      }
+    ]
   },
   "groups": [
     {
@@ -62,7 +129,7 @@
   ],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "name": null,
   "timelines": [

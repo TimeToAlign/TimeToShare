@@ -1,29 +1,18 @@
 {
   "graphical": {
     "order": {},
-    "statements": [
-      {
-        "select": {
-          "addresses": [
-            {
-              "id": "timestamp_2",
-              "part": [
-                "line"
-              ]
-            }
-          ]
-        },
-        "set": {
-          "display": "none"
-        }
-      }
-    ],
+    "statements": [],
     "styles": {},
     "timestamps": [
       {
         "coordinate": [
           3,
           2
+        ],
+        "display": [
+          "wedge",
+          "name",
+          "cross_section"
         ],
         "id": "timestamp_1",
         "name": "Downbeat",
@@ -34,6 +23,10 @@
           6,
           1
         ],
+        "display": [
+          "wedge",
+          "name"
+        ],
         "id": "timestamp_2",
         "name": "Climax",
         "timeline": "clt_1"
@@ -42,6 +35,13 @@
         "coordinate": [
           1,
           1
+        ],
+        "display": [
+          "wedge",
+          "name",
+          "id",
+          "coordinate",
+          "cross_section"
         ],
         "id": "timestamp_3",
         "name": "Entry",
@@ -52,7 +52,7 @@
   "groups": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "name": null,
   "timelines": [

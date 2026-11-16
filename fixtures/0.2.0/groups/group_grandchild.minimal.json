@@ -5,7 +5,55 @@
         "theme",
         "recording"
       ]
-    }
+    },
+    "timestamps": [
+      {
+        "coordinate": 0.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "recording"
+      },
+      {
+        "coordinate": 12.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_2",
+        "name": "length",
+        "timeline": "recording"
+      },
+      {
+        "coordinate": [
+          0,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_3",
+        "name": "origin",
+        "timeline": "theme"
+      },
+      {
+        "coordinate": [
+          8,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_4",
+        "name": "length",
+        "timeline": "theme"
+      }
+    ]
   },
   "groups": [
     {
@@ -18,7 +66,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "timelines": [
     {

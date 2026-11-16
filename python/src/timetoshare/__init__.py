@@ -19,7 +19,7 @@ from .fixtures import (
     warning_paths,
 )
 from .font import font_metrics, font_path
-from .manifest import canonical_json, canonical_order, dumps
+from .manifest import TIMESTAMP_DISPLAY, canonical_json, canonical_order, dumps
 from .styles import MissingStyleWarning, complete_styles
 from .validate import (
     SCHEMA_VERSION,
@@ -39,6 +39,7 @@ __all__ = [
     "DEFAULTS",
     "SCHEMA_VERSION",
     "SchemaValidationError",
+    "TIMESTAMP_DISPLAY",
     "MissingStyleWarning",
     "RejectionCase",
     "UnsupportedVersionError",

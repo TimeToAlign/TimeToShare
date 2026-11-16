@@ -7,10 +7,10 @@
 <line data-id="maps:samples" x1="98.9106" y1="22.5" x2="498.9106" y2="22.5" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
 <circle data-id="maps:samples" cx="98.9106" cy="22.5" r="3" fill="#0050EF"/>
 <polygon data-id="maps:samples" points="507.9106,22.5 498.9106,18 498.9106,27" fill="#0050EF"/>
-<polygon data-id="maps:samples" data-part="start" points="98.9106,24 95.9106,37 101.9106,37" fill="#000000"/>
-<polygon data-id="maps:samples" data-part="end" points="498.9106,24 495.9106,37 501.9106,37" fill="#000000"/>
+<polygon data-id="timestamp_1" points="98.9106,24 95.9106,37 101.9106,37" fill="#000000"/>
+<polygon data-id="timestamp_2" points="498.9106,24 495.9106,37 501.9106,37" fill="#000000"/>
 <text data-id="maps:samples" data-part="name" x="16" y="26.3081" text-anchor="start" font-size="11" fill="#000000">Sample maps</text>
-<text data-id="maps:samples" data-part="start label" x="98.9106" y="47.354" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
-<text data-id="maps:samples" data-part="end label" x="498.9106" y="47.354" text-anchor="middle" font-size="9" fill="#000000">96000 smp</text>
+<text data-id="timestamp_1" data-part="coordinate" x="98.9106" y="47.354" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
+<text data-id="timestamp_2" data-part="coordinate" x="498.9106" y="47.354" text-anchor="middle" font-size="9" fill="#000000">96000 smp</text>
 </g>
 </svg>

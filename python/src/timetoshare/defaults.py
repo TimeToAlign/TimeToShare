@@ -15,7 +15,7 @@ import copy
 from collections.abc import Callable
 from typing import Any
 
-from .manifest import UNIT_NUMBER_TYPES, _respell
+from .manifest import UNIT_NUMBER_TYPES, _order_displays, _respell
 
 __all__ = ["DEFAULTS", "complete", "minimal"]
 
@@ -40,6 +40,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "measure_map": {"name": None, "meta": {}},
     "group": {"name": None, "meta": {}},
     "graphical": {"styles": {}, "statements": [], "order": {}, "timestamps": []},
+    "timestamp": {"display": ["wedge", "name", "cross_section"]},
 }
 """The default of every key that has one, by the kind of object holding it.
 
@@ -48,7 +49,8 @@ Every conversion map has the keys of ``conversion_map``; a ``LinearMap`` adds
 those of ``linear_map`` and a ``TableMap`` those of ``table_map``. Every
 flow-control element has the keys of ``flow_control_element``, and one whose
 manifestation is ``repeat_end`` adds those of ``repeat_end``, as no other
-element carries a repeat count. The
+element carries a repeat count. Every named timestamp of
+``graphical.timestamps`` has the keys of ``timestamp``. The
 JavaScript package's ``DEFAULTS`` holds the same table, and the schema
 declares each value as the key's ``default``.
 """
@@ -113,8 +115,11 @@ def _visit_manifest(manifest: Any, apply: _Pass) -> None:
         apply(group, "group")
     for measure_map in _objects(manifest, "measure_maps"):
         apply(measure_map, "measure_map")
-    if isinstance(manifest.get("graphical"), dict):
-        apply(manifest["graphical"], "graphical")
+    graphical = manifest.get("graphical")
+    if isinstance(graphical, dict):
+        apply(graphical, "graphical")
+        for timestamp in _objects(graphical, "timestamps"):
+            apply(timestamp, "timestamp")
 
 
 def _default_number_type(timeline: dict[str, Any]) -> str | None:
@@ -175,11 +180,13 @@ def complete(value: Any) -> Any:
     every depth (a timeline's ``number_type`` is its unit's default). Keys
     whose default is "absent" are never added, present keys keep their
     values, spelled as their number type selects (as ``canonical_order``
-    spells them), and unknown keys pass through. The JavaScript package's
+    spells them), a named timestamp's ``display`` in canonical order, and
+    unknown keys pass through. The JavaScript package's
     ``complete`` gives the same value.
     """
     result = copy.deepcopy(value)
     _respell(result)
+    _order_displays(result)
     _visit_manifest(result, _complete_one)
     return result
 

@@ -221,7 +221,7 @@ export const schema = {
     },
     "Timestamp": {
       "type": "object",
-      "description": "A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`; drawn as a wedge `{\"id\": id}` labelled with its name and a cross-section line `{\"id\": id, \"part\": [\"line\"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, and that it lies within the timeline are checked after the schema.",
+      "description": "A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. Five parts of it may be drawn, as `display` selects: a wedge `{\"id\": id}`, three labels stacked outward from the wedge (its name `{\"id\": id, \"part\": [\"name\"]}`, its ID `{\"id\": id, \"part\": [\"id\"]}` and its coordinate `{\"id\": id, \"part\": [\"coordinate\"]}`) and a cross-section line `{\"id\": id, \"part\": [\"line\"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, and that it lies within the timeline are checked after the schema.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -239,7 +239,27 @@ export const schema = {
         "name": {
           "type": "string",
           "minLength": 1,
-          "description": "The timestamp's human-readable name, which its label shows; never empty."
+          "description": "The timestamp's human-readable name, which its name label shows; never empty."
+        },
+        "display": {
+          "type": "array",
+          "description": "What is drawn of the timestamp, each word at most once: `wedge` its wedge, `name` its name label, `id` its ID label, `coordinate` its coordinate label and `cross_section` its cross-section line. A part whose word is absent is not drawn, so an empty array draws nothing of the timestamp. The order carries no meaning: readers accept any order, and writers write the canonical order wedge, name, id, coordinate, cross_section.",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "wedge",
+              "name",
+              "id",
+              "coordinate",
+              "cross_section"
+            ]
+          },
+          "default": [
+            "wedge",
+            "name",
+            "cross_section"
+          ]
         }
       },
       "required": [
@@ -467,7 +487,7 @@ export const schema = {
         "regions",
         "flow_control"
       ],
-      "description": "One of the five facets every timeline has: its coordinate markers (the wedges at a root's start and end and the wedges of the timeline's named timestamps; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet."
+      "description": "One of the five facets every timeline has: its coordinate markers (the wedges of the timeline's named timestamps and their labels; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet."
     },
     "Part": {
       "type": "string",
@@ -477,13 +497,15 @@ export const schema = {
         "name",
         "label",
         "card",
-        "line"
+        "line",
+        "id",
+        "coordinate"
       ],
       "description": "A word naming a part of an element in an `Address`."
     },
     "Address": {
       "type": "object",
-      "description": "The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{\"part\": [\"name\"]}` the manifest's title. `{\"id\": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element or a named timestamp (its wedge). `{\"id\": T, \"facet\": F}` addresses the band drawing the facet F of the timeline T, and `{\"id\": T, \"part\": [\"card\"]}` every card of T. Any other `part` addresses a part of the element X: `[\"start\"]` and `[\"end\"]` a root's wedges, a member's marks on its ancestor lines or a segment's boundary, `[\"start\", \"label\"]` and `[\"end\", \"label\"]` a wedge's label, `[\"name\"]` and `[\"label\"]` the element's name or label, and `[\"line\"]` a named timestamp's cross-section line. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.",
+      "description": "The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{\"part\": [\"name\"]}` the manifest's title. `{\"id\": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element or a named timestamp (its wedge). `{\"id\": T, \"facet\": F}` addresses the band drawing the facet F of the timeline T, and `{\"id\": T, \"part\": [\"card\"]}` every card of T. Any other `part` addresses a part of the element X: `[\"start\"]` and `[\"end\"]` a member's marks on its ancestor lines or a segment's boundary, `[\"start\", \"label\"]` and `[\"end\", \"label\"]` a mark's label, `[\"name\"]` and `[\"label\"]` the element's name or label (a named timestamp's name label is `[\"name\"]`), `[\"id\"]` and `[\"coordinate\"]` a named timestamp's ID label and coordinate label, and `[\"line\"]` a named timestamp's cross-section line. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id"
@@ -1031,7 +1053,7 @@ export const schema = {
     },
     "ElementType": {
       "type": "string",
-      "description": "The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker at a root's start or end, or at a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across the rows of its card, and an ancestor line of a member that is a child timeline (`ancestor`).",
+      "description": "The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline; on an ancestor line, a member's start or end), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band, and an ancestor line of a member that is a child timeline (`ancestor`).",
       "enum": [
         "block",
         "timeline",

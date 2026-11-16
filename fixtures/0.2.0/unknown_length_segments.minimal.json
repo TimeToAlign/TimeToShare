@@ -1,6 +1,23 @@
 {
+  "graphical": {
+    "timestamps": [
+      {
+        "coordinate": [
+          0,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "form"
+      }
+    ]
+  },
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "timelines": [
     {

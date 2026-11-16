@@ -18,10 +18,10 @@
 <line data-id="maps:quarters" x1="128.9136" y1="77.5" x2="528.9136" y2="77.5" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="maps:quarters" cx="128.9136" cy="77.5" r="3" fill="#00CC00"/>
 <polygon data-id="maps:quarters" points="537.9136,77.5 528.9136,73 528.9136,82" fill="#00CC00"/>
-<polygon data-id="maps:quarters" data-part="start" points="128.9136,79 125.9136,92 131.9136,92" fill="#000000"/>
-<polygon data-id="maps:quarters" data-part="end" points="528.9136,79 525.9136,92 531.9136,92" fill="#000000"/>
+<polygon data-id="timestamp_1" points="128.9136,79 125.9136,92 131.9136,92" fill="#000000"/>
+<polygon data-id="timestamp_2" points="528.9136,79 525.9136,92 531.9136,92" fill="#000000"/>
 <text data-id="maps:quarters" data-part="name" x="16" y="81.3081" text-anchor="start" font-size="11" fill="#000000">Quarter-note maps</text>
-<text data-id="maps:quarters" data-part="start label" x="128.9136" y="102.354" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="maps:quarters" data-part="end label" x="528.9136" y="102.354" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<text data-id="timestamp_1" data-part="coordinate" x="128.9136" y="102.354" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="528.9136" y="102.354" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
 </g>
 </svg>

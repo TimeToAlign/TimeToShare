@@ -5,6 +5,7 @@ import re
 from collections import Counter
 from importlib import import_module
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -112,7 +113,7 @@ _STYLED_SCORE = {
             "set": {"stroke": "#65A30D", "fill": "#65A30D"},
         },
         {
-            "select": {"addresses": [{"id": "score", "part": ["end"]}]},
+            "select": {"addresses": [{"id": "timestamp_2"}]},
             "set": {"stroke": "#B45309", "fill": "#B45309"},
         },
         {
@@ -128,7 +129,7 @@ _STYLED_SCORE = {
             "set": {"fill": "#4D7C0F", "font-size": 10},
         },
         {
-            "select": {"addresses": [{"id": "score", "part": ["end", "label"]}]},
+            "select": {"addresses": [{"id": "timestamp_2", "part": ["coordinate"]}]},
             "set": {"fill": "#A16207"},
         },
         {
@@ -194,11 +195,13 @@ def test_the_styled_manifests_carry_their_statements() -> None:
 
 # The drawn elements and texts of styled__score: (type, address, timeline it
 # belongs to, class, domain, modality, parent address). The map's domain and
-# modality are those of its target unit, ticks.
+# modality are those of its target unit, ticks. The wedges and coordinate
+# labels of the timestamps origin (timestamp_1) and length (timestamp_2) lie in
+# the markers band of score, which sets nothing, so their parent is score.
 _LOGICAL = ("ContinuousLogicalTimeline", "logical", "continuous")
 _SCORE = {"id": "score"}
-_START = {"id": "score", "part": ["start"]}
-_END = {"id": "score", "part": ["end"]}
+_ORIGIN = {"id": "timestamp_1"}
+_LENGTH = {"id": "timestamp_2"}
 _INTRO = {"id": "intro"}
 _DA_CAPO = {"id": "da-capo"}
 _SCORE_ELEMENTS = [
@@ -207,12 +210,12 @@ _SCORE_ELEMENTS = [
     ("map", {"id": "ticks"}, "score", "LinearMap", "logical", "discrete", _SCORE),
     ("region", _INTRO, "score", *_LOGICAL, _SCORE),
     ("jump_from", _DA_CAPO, "score", *_LOGICAL, _SCORE),
-    ("wedge", _START, "score", *_LOGICAL, _SCORE),
-    ("wedge", _END, "score", *_LOGICAL, _SCORE),
+    ("wedge", _ORIGIN, "score", *_LOGICAL, _SCORE),
+    ("wedge", _LENGTH, "score", *_LOGICAL, _SCORE),
     ("name", {"id": "score", "part": ["name"]}, "score", *_LOGICAL, _SCORE),
     ("name", {"id": "b", "part": ["name"]}, "b", *_LOGICAL, {"id": "b"}),
-    ("label", {"id": "score", "part": ["start", "label"]}, "score", *_LOGICAL, _START),
-    ("label", {"id": "score", "part": ["end", "label"]}, "score", *_LOGICAL, _END),
+    ("label", {**_ORIGIN, "part": ["coordinate"]}, "score", *_LOGICAL, _SCORE),
+    ("label", {**_LENGTH, "part": ["coordinate"]}, "score", *_LOGICAL, _SCORE),
     ("label", {"id": "intro", "part": ["label"]}, "score", *_LOGICAL, _INTRO),
     ("label", {"id": "da-capo", "part": ["label"]}, "score", *_LOGICAL, _DA_CAPO),
 ]
@@ -321,8 +324,16 @@ def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
     assert identity_problems(value) == []
 
 
-@pytest.mark.parametrize("name", ["timestamps.json", "timestamps.minimal.json"])
-def test_named_timestamps_pass_through_the_emitter(name: str) -> None:
+@pytest.mark.parametrize(
+    ("name", "downbeat"),
+    [
+        ("timestamps.json", {"display": ["wedge", "name", "cross_section"]}),
+        ("timestamps.minimal.json", {}),
+    ],
+)
+def test_named_timestamps_pass_through_the_emitter(
+    name: str, downbeat: dict[str, Any]
+) -> None:
     value = _load(FIXTURES / name)
     assert value["graphical"]["timestamps"] == [
         {
@@ -330,28 +341,76 @@ def test_named_timestamps_pass_through_the_emitter(name: str) -> None:
             "id": "timestamp_1",
             "name": "Downbeat",
             "timeline": "clt_1",
+            **downbeat,
         },
         {
             "coordinate": [6, 1],
+            "display": ["wedge", "name"],
             "id": "timestamp_2",
             "name": "Climax",
             "timeline": "clt_1",
         },
         {
             "coordinate": [1, 1],
+            "display": ["wedge", "name", "id", "coordinate", "cross_section"],
             "id": "timestamp_3",
             "name": "Entry",
             "timeline": "clt_2",
         },
     ]
-    assert value["graphical"]["statements"] == [
-        {
-            "select": {"addresses": [{"id": "timestamp_2", "part": ["line"]}]},
-            "set": {"display": "none"},
-        }
-    ]
+    assert value["graphical"].get("statements", []) == []
     validate(value)
     assert identity_problems(value) == []
+
+
+def _marks(*marks: tuple[str, str, object]) -> list[dict[str, Any]]:
+    """Return the origin and length timestamps, numbered from 1 in order."""
+    return [
+        {
+            "coordinate": coordinate,
+            "display": ["wedge", "coordinate"],
+            "id": f"timestamp_{number}",
+            "name": name,
+            "timeline": timeline,
+        }
+        for number, (timeline, name, coordinate) in enumerate(marks, start=1)
+    ]
+
+
+_ORIGIN_AND_LENGTH = {
+    "label_float_rounding": _marks(
+        ("take", "origin", 0.0), ("take", "length", 312.48979591836735)
+    ),
+    "bundles/bundle_ungrouped": _marks(
+        ("pages", "origin", 0),
+        ("pages", "length", 5262),
+        ("recording", "origin", 0),
+        ("recording", "length", 441000),
+        ("score", "origin", [0, 1]),
+        ("score", "length", [16, 1]),
+    ),
+    "groups/group_unknown_length": _marks(
+        ("performance", "origin", 0.0),
+        ("score", "origin", [0, 1]),
+        ("score", "length", [12, 1]),
+    ),
+}
+
+
+@pytest.mark.parametrize("suffix", [".json", ".minimal.json"])
+@pytest.mark.parametrize("name", list(_ORIGIN_AND_LENGTH))
+def test_drawn_roots_carry_their_origin_and_length(name: str, suffix: str) -> None:
+    value = _load(FIXTURES / f"{name}{suffix}")
+    assert value["graphical"]["timestamps"] == _ORIGIN_AND_LENGTH[name]
+    validate(value)
+    assert identity_problems(value) == []
+
+
+def test_no_corpus_fixture_carries_a_named_timestamp() -> None:
+    corpora = [path for path in fixture_paths() if path.name.startswith("corpus_")]
+    assert len(corpora) == 24
+    for path in corpora:
+        assert _load(path).get("graphical", {}).get("timestamps", []) == []
 
 
 @pytest.mark.parametrize(

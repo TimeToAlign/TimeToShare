@@ -40,6 +40,12 @@ const stamp = (id: string, line: string, coordinate: unknown, name = "Entry"): J
 });
 
 /** `score` (8 quarters) with `verse` (4 at 2), and named timestamps. */
+/** A named timestamp on `score` at 1 stating `display`. */
+const displayed = (display: unknown): JsonObject => ({
+  ...stamp("timestamp_1", "score", [1, 1]),
+  display,
+});
+
 const stamped = (timestamps: JsonObject[], members: JsonObject = {}): JsonObject =>
   manifest(
     [
@@ -1021,6 +1027,15 @@ describe("identity", () => {
     }
   });
 
+  it("accepts a named timestamp displaying any set of its parts", () => {
+    const every = ["wedge", "name", "id", "coordinate", "cross_section"];
+    for (const display of [[], ["id"], every, [...every].reverse()]) {
+      const value = stamped([displayed(display)]);
+      expect(problems(value)).toEqual([]);
+      validate(value);
+    }
+  });
+
   it("holds a named timestamp to name a timeline", () => {
     expect(only(stamped([stamp("timestamp_1", "ghost", [1, 1])]))).toEqual([
       ["graphical", "timestamps", 0, "timeline"],
@@ -1113,6 +1128,19 @@ describe("identity", () => {
       "no coordinate",
       { id: "timestamp_1", timeline: "score", name: "Entry" },
       ["graphical", "timestamps", 0],
+    ],
+    ["display not an array", displayed("wedge"), ["graphical", "timestamps", 0, "display"]],
+    [
+      "display word in another case",
+      displayed(["wedge", "Wedge"]),
+      ["graphical", "timestamps", 0, "display", 1],
+    ],
+    ["display part word", displayed(["line"]), ["graphical", "timestamps", 0, "display", 0]],
+    ["display number", displayed([1]), ["graphical", "timestamps", 0, "display", 0]],
+    [
+      "display repeated word",
+      displayed(["name", "name"]),
+      ["graphical", "timestamps", 0, "display"],
     ],
   ])("lets the schema shape a named timestamp: %s", (_, entry, path) => {
     try {

@@ -293,6 +293,7 @@ required in both forms.
 | MeasureMap (`measure_map`) | `name`: `null`; `meta`: `{}` |
 | group | `name`: `null`; `meta`: `{}` |
 | graphical | `styles`: `{}`; `statements`: `[]`; `order`: `{}`; `timestamps`: `[]` |
+| named timestamp (`timestamp`) | `display`: `["wedge", "name", "cross_section"]` |
 
 A row marked "besides" adds its keys to those of the general row it
 follows: a `repeat_end` has the keys of every flow-control element plus
@@ -343,15 +344,20 @@ is a child keeps its parent.
 manifest's top level only, never on a timeline: a timeline holds time, and
 what is graphical lies in this object. `styles` and `statements` style the
 drawing ([Drawing a manifest](#drawing-a-manifest)). `timestamps` lists the
-**named timestamps**, each `{id, timeline, coordinate, name}`: a position
-`coordinate` on the own axis of the timeline `timeline`, a root or a
-descendant at any depth, a segment included, written as that timeline's
+**named timestamps**, each `{id, timeline, coordinate, name, display?}`: a
+position `coordinate` on the own axis of the timeline `timeline`, a root or
+a descendant at any depth, a segment included, written as that timeline's
 number type selects ([Values on a timeline's own axis](#values-on-a-timelines-own-axis)),
 from its zero to its `length` (only from its zero when the length is
 `null`), and named `name`, a non-empty string. Only that coordinate is
-stored, never a map's value at it. A named timestamp is drawn as a wedge
-labelled with its name and as a cross-section line across the rows of its
-card (the drawing specification, sections 2.1 and 6.6). `order` maps the ID of a group
+stored, never a map's value at it. `display` lists what the timestamp
+draws, distinct words from `wedge` (its coordinate marker), `name`, `id`
+and `coordinate` (its labels, stacked beyond the wedge in this order: its
+name, its ID, its coordinate with its unit) and `cross_section` (a vertical
+line across its timeline's line, children band and conversion maps band);
+its order means nothing and writers write it in the order just given. A
+timestamp draws by default its wedge, its name and its cross-section line
+(the drawing specification, sections 2, 6.4 and 6.6). `order` maps the ID of a group
 or of a timeline to the order of what it stacks, top to bottom, and
 writers never reorder it:
 
@@ -373,8 +379,9 @@ writers never reorder it:
 "order": {"score": ["children", "markers", "line", "conversion_maps", "regions", "flow_control"]}
 ```
 
-draws the start and end marks of `score` against its line above it, its
-children beyond them, and its conversion maps against its line below it;
+draws the coordinate markers of `score`, the wedges and labels of its named
+timestamps, against its line above it, its children beyond them, and its
+conversion maps against its line below it;
 its descendants follow it, so their conversion maps lie below their lines
 too. A manifest carries no MatchClaims.
 
@@ -560,13 +567,14 @@ faded lines of its ancestors. The element types are the containers
 `block`, `frame`, `card` and `band` (a band draws one of a timeline's five
 facets and lies above or below its line as the timeline's band order
 places it; a band that is not displayed hides everything it holds, and by
-default the markers, regions and flow control bands are hidden on every
-timeline but the one a card holds), and the content `timeline`, `child`,
+default the regions and flow control bands are hidden on every timeline
+but the one a card holds), and the content `timeline`, `child`,
 `boundary` (a segment's start on its segment line), `ancestor`, `map`,
 `region`, `flow_marker` (a flow marker), `jump_from` (a jump origin, drawn
 as an arc to its target or to the start; a jump target draws nothing),
-`wedge` (a coordinate marker), `name`
-and `label`. Besides `element`, a selector may name `addresses` (address
+`wedge` (a coordinate marker), `cross_section` (a named timestamp's
+cross-section line), `name` and `label` (every other text, a named
+timestamp's name among them). Besides `element`, a selector may name `addresses` (address
 objects, each matched as a whole object), `domain`, `modality`, `class`
 (the class a timeline's unit decides, such as
 `ContinuousPhysicalTimeline` for `seconds`, or a conversion map's type),
@@ -624,7 +632,8 @@ order keys cannot express are put in this order:
 - `regions` by start, then end, then ID;
 - `flow_control` by coordinate, then ID;
 - `graphical.timestamps` by `timeline` (code point), then coordinate,
-  then ID.
+  then ID, and every timestamp's `display` in the order `wedge`, `name`,
+  `id`, `coordinate`, `cross_section`.
 
 IDs are unique across the manifest, so no two entries tie. Coordinates
 compare by exact numeric value, never by JSON spelling. Strings compare by
@@ -695,6 +704,9 @@ else:
 - `canonical_order(value)` returns a deep copy with the manifest's arrays in
   canonical order. `canonical_json(value)` returns compact JSON with object
   keys sorted by code point.
+- `TIMESTAMP_DISPLAY` holds the words of a named timestamp's `display`,
+  `("wedge", "name", "id", "coordinate", "cross_section")`, in canonical
+  order.
 - `identity_problems(value)` returns every violation of the identity rules in
   a schema-valid manifest, in the order described above; `validate` raises
   the first.
@@ -757,6 +769,9 @@ function load(text: string): string {
   whitespace, and `canonicalJson(value)` also sorts object keys by code point.
 - `canonicalOrder(value)` returns a deep copy with the manifest's arrays in
   canonical order.
+- `TIMESTAMP_DISPLAY` holds the words of a named timestamp's `display`,
+  `["wedge", "name", "id", "coordinate", "cross_section"]`, in canonical
+  order, as Python's constant does.
 - `identityProblems(value)` returns the same identity problems as Python's
   `identity_problems`.
 - `completeStyles(graphical)` returns `{graphical: completed, missing}`.
@@ -765,8 +780,8 @@ function load(text: string): string {
   The generated types are generated from it, with the root type
   `Manifest` and one type per definition, such as `Timeline`, `Group`
   and `Graphical`. Beside each definition with defaults a complete form is
-  generated, `CompleteManifest`, `CompleteTimeline`, `CompleteGroup` and
-  so on, in which every key with a default is required at every depth and
+  generated, `CompleteManifest`, `CompleteTimeline`, `CompleteGroup`,
+  `CompleteTimestamp` (whose `display` is required) and so on, in which every key with a default is required at every depth and
   every number is a `JsonNumber`; keys whose default is their absence (the
   manifest's `id` and `graphical`, a root's `offset`) stay optional.
   `LosslessManifest` is `Lossless<Manifest>`.

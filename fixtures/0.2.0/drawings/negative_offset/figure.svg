@@ -6,10 +6,10 @@
 <line data-id="recording" x1="79.7036" y1="22.4023" x2="479.7036" y2="22.4023" stroke="#0050EF" stroke-width="3"/>
 <circle data-id="recording" cx="79.7036" cy="22.4023" r="3" fill="#0050EF"/>
 <polygon data-id="recording" points="488.7036,22.4023 479.7036,17.9023 479.7036,26.9023" fill="#0050EF"/>
-<polygon data-id="recording" data-part="start" points="79.7036,23.9023 76.7036,36.9023 82.7036,36.9023" fill="#000000"/>
-<polygon data-id="recording" data-part="end" points="479.7036,23.9023 476.7036,36.9023 482.7036,36.9023" fill="#000000"/>
+<polygon data-id="timestamp_1" points="79.7036,23.9023 76.7036,36.9023 82.7036,36.9023" fill="#000000"/>
+<polygon data-id="timestamp_2" points="479.7036,23.9023 476.7036,36.9023 482.7036,36.9023" fill="#000000"/>
 <text data-id="recording" data-part="name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Recording</text>
-<text data-id="recording" data-part="start label" x="79.7036" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
-<text data-id="recording" data-part="end label" x="479.7036" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">30.0 s</text>
+<text data-id="timestamp_1" data-part="coordinate" x="79.7036" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
+<text data-id="timestamp_2" data-part="coordinate" x="479.7036" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">30.0 s</text>
 </g>
 </svg>

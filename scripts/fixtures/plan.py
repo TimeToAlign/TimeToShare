@@ -25,7 +25,10 @@ class FixtureCase:
     ``TimelineGroup`` an anonymous manifest of one group (``groups``) and
     ``AlignmentBundle`` any manifest (``bundles``). Cases sharing a name and
     directory write ``<name>__<slug>.json`` each, the slug spelled from the
-    built object's id.
+    built object's id. A fixture drawn under ``drawings/`` names the origin and
+    length of each root it draws (``origin_and_length``), as an editor marks
+    them; a corpus fixture, which is not drawn, and ``timestamps``, whose
+    drawing shows its own timestamps alone, do not.
     """
 
     name: str
@@ -33,6 +36,7 @@ class FixtureCase:
     reader: type[Any]
     build: Callable[[], Any]
     graphical: Mapping[str, Any] | None = None
+    origin_and_length: bool = True
 
 
 def _case(directory: str, reader: type[Any]) -> Callable[..., FixtureCase]:
@@ -41,13 +45,18 @@ def _case(directory: str, reader: type[Any]) -> Callable[..., FixtureCase]:
     It takes the fixture's name, its builder and, for a styled fixture, the id
     of the root or group whose ``graphical`` entry ``GRAPHICAL`` holds under
     that name; a name or id it does not hold fails when the catalogue is read.
+    ``origin_and_length=False`` leaves out the origin and length timestamps.
     """
 
     def case(
-        name: str, build: Callable[[], Any], styled: str | None = None
+        name: str,
+        build: Callable[[], Any],
+        styled: str | None = None,
+        *,
+        origin_and_length: bool = True,
     ) -> FixtureCase:
         graphical = None if styled is None else GRAPHICAL[name][styled]
-        return FixtureCase(name, directory, reader, build, graphical)
+        return FixtureCase(name, directory, reader, build, graphical, origin_and_length)
 
     return case
 
@@ -81,14 +90,27 @@ CATALOGUE = (
     _root("segment_pages_locked", timelines.locked_pages_timeline),
     _root("segment_pages_accolades", timelines.accolade_pages_timeline),
     _root("segment_children", timelines.segment_children_timeline),
-    _root("corpus_score_ms3", timelines.corpus_score_ms3_timeline),
-    _root("corpus_midi_score_midi", timelines.corpus_midi_score_timeline),
-    _root("corpus_audio_audio", timelines.corpus_audio_timeline),
+    _root(
+        "corpus_score_ms3", timelines.corpus_score_ms3_timeline, origin_and_length=False
+    ),
+    _root(
+        "corpus_midi_score_midi",
+        timelines.corpus_midi_score_timeline,
+        origin_and_length=False,
+    ),
+    _root(
+        "corpus_audio_audio", timelines.corpus_audio_timeline, origin_and_length=False
+    ),
     _root(
         "corpus_parangonar_parangonada__score_dlt_1",
         timelines.corpus_parangonada_score_timeline,
+        origin_and_length=False,
     ),
-    _root("corpus_supra_iiif", timelines.corpus_supra_iiif_timeline),
+    _root(
+        "corpus_supra_iiif",
+        timelines.corpus_supra_iiif_timeline,
+        origin_and_length=False,
+    ),
     _root("negative_offset", timelines.negative_offset_timeline),
     _root("named_without_id", timelines.named_without_id_bundle),
     _root("unknown_length", timelines.unknown_length_timeline),
@@ -107,7 +129,7 @@ CATALOGUE = (
     _root("map_row_subslots", timelines.map_row_subslots_timeline),
     _root("map_row_moved", timelines.map_row_moved_timeline),
     _root("label_float_rounding", timelines.label_float_rounding_timeline),
-    _root("timestamps", graphical.timestamps, "clt_1"),
+    _root("timestamps", graphical.timestamps, "clt_1", origin_and_length=False),
     _group("group_number_types", groups.number_types_group),
     _group("group_child_member", groups.group_child_member),
     _group("group_styled", groups.styled_group, "group_1"),
@@ -116,18 +138,24 @@ CATALOGUE = (
     _group("group_parent_exact", groups.group_parent_exact),
     _group("group_parents_mixed", groups.group_parents_mixed),
     _group("group_grandchild", groups.group_grandchild),
-    _group("corpus_tilia", groups.corpus_tilia_group),
+    _group("corpus_tilia", groups.corpus_tilia_group, origin_and_length=False),
     _group("group_unknown_length", groups.group_unknown_length),
     _group("group_measure_map", groups.group_measure_map),
     _bundle("bundle_mixed", bundles.bundle_mixed),
     _bundle("bundle_shared_parent", bundles.bundle_shared_parent),
     _bundle("bundle_ungrouped", bundles.bundle_ungrouped),
-    _bundle("corpus_parangonada", bundles.corpus_parangonada_bundle),
-    _bundle("corpus_matchfile", bundles.corpus_matchfile_bundle),
-    _bundle("corpus_mpm", bundles.corpus_mpm_bundle),
-    _bundle("corpus_ieee1599", bundles.corpus_ieee1599_bundle),
-    _bundle("corpus_listen_here", bundles.corpus_listen_here_bundle),
-    _bundle("corpus_tilia", bundles.corpus_tilia_bundle),
+    _bundle(
+        "corpus_parangonada", bundles.corpus_parangonada_bundle, origin_and_length=False
+    ),
+    _bundle(
+        "corpus_matchfile", bundles.corpus_matchfile_bundle, origin_and_length=False
+    ),
+    _bundle("corpus_mpm", bundles.corpus_mpm_bundle, origin_and_length=False),
+    _bundle("corpus_ieee1599", bundles.corpus_ieee1599_bundle, origin_and_length=False),
+    _bundle(
+        "corpus_listen_here", bundles.corpus_listen_here_bundle, origin_and_length=False
+    ),
+    _bundle("corpus_tilia", bundles.corpus_tilia_bundle, origin_and_length=False),
     _bundle("bundle_shared_member", bundles.bundle_shared_member),
     _bundle("bundle_free_ids", bundles.bundle_free_ids, "group_1"),
 )
@@ -149,16 +177,18 @@ def _slug(identifier: str) -> str:
     return re.sub(r"[^A-Za-z0-9_-]", "_", identifier)
 
 
-def _compose(
-    data: dict[str, Any], generator: str, graphical: Mapping[str, Any] | None
-) -> dict[str, Any]:
-    """Add the provenance and any ``graphical`` entry to a manifest the library
-    wrote.
+def _compose(data: dict[str, Any], generator: str, case: FixtureCase) -> dict[str, Any]:
+    """Add the provenance, any ``graphical`` entry and the origin and length
+    timestamps to a manifest the library wrote.
     """
     result = copy.deepcopy(data)
     result["meta"]["generator"] = generator
-    if graphical is not None:
-        result.setdefault("graphical", {}).update(copy.deepcopy(graphical))
+    if case.graphical is not None:
+        result.setdefault("graphical", {}).update(copy.deepcopy(case.graphical))
+    if case.origin_and_length:
+        drawn = graphical.origin_and_length(result)
+        written = result.setdefault("graphical", {})
+        written["timestamps"] = [*written.get("timestamps", []), *drawn]
     return result
 
 
@@ -184,7 +214,7 @@ def plan(output: Path, generator: str) -> tuple[PlannedFixture, ...]:
                 f"produce the file name {path.name}; nothing was written."
             )
         claimed[path] = item.id
-        source = _compose(item.to_dict(), generator, case.graphical)
+        source = _compose(item.to_dict(), generator, case)
         planned.append(
             PlannedFixture(path, case.reader, case.reader.from_dict(source), source)
         )

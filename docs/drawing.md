@@ -155,18 +155,29 @@ display order of the group's members (section 8.1) and a timeline's ID to
 the timeline's band order (section 6.4).
 
 `timestamps` is a list of **named timestamps** (default `[]`), each an
-object `{id, timeline, coordinate, name}` naming one position of one
-timeline: `id` is its ID (README, "Identity"), `timeline` the ID of a
+object `{id, timeline, coordinate, name, display?}` naming one position of
+one timeline: `id` is its ID (README, "Identity"), `timeline` the ID of a
 timeline of the manifest at any depth, a segment included, `coordinate` the
 position on that timeline's own axis, a number as the timeline's number
 type selects (README, "Values on a timeline's own axis"), at least the zero
 of that number type and at most the timeline's `length` when the length is
 a value, and `name` its name. Their canonical order is by `timeline`,
 compared by Unicode code point, then by `coordinate`, compared by exact
-value, then by `id`, compared by code point. A named timestamp is drawn as a
-coordinate marker of its timeline, labelled with its name, and as a
-**cross-section line** across the rows of the card (sections 2.1, 6.4 and
-6.6).
+value, then by `id`, compared by code point.
+
+A named timestamp draws up to five elements, each named by one word of its
+`display`: `wedge`, its coordinate marker in its timeline's markers band;
+`name`, `id` and `coordinate`, its three labels, stacked beyond the wedge
+(section 6.4, Markers): its `name`, its ID, and its coordinate in its
+timeline's unit (section 5.2); and `cross_section`, its **cross-section
+line**, across its timeline's line, children band and conversion maps band
+(section 6.6). `display` is an array of distinct words from these five,
+listing what the timestamp draws; when it is absent the timestamp draws
+`["wedge", "name", "cross_section"]`, and an empty array draws nothing.
+Its order means nothing: writers write it in the canonical order `wedge`,
+`name`, `id`, `coordinate`, `cross_section`. An element whose word
+`display` does not list is not displayed, whatever the cascade sets
+(section 2.4).
 
 A reader that meets statements naming styles its `styles` does not hold
 issues one warning naming every missing style, and adds each to `styles` as
@@ -192,16 +203,17 @@ of a timeline, which draws nothing of its own:
 | `region` | a region, drawn as a brace |
 | `flow_marker` | a flow marker, a `flow_marker` element of `flow_control`, drawn as a vertical line |
 | `jump_from` | a jump origin, a `jump_from` element of `flow_control`, drawn as an arc with an arrowhead to where it jumps; a jump target, a `jump_to` element, draws nothing of its own |
-| `wedge` | a coordinate marker: of the root's start or end, or of a named timestamp of any timeline (section 2); on an ancestor line, the member's start or end on the ancestor's axis (section 8.3) |
-| `cross_section` | the cross-section line of a named timestamp, a vertical line across rows of the card (section 6.6) |
+| `wedge` | a coordinate marker: of a named timestamp of any timeline (section 2); on an ancestor line, the member's start or end on the ancestor's axis (section 8.3) |
+| `cross_section` | the cross-section line of a named timestamp, a vertical line across its timeline's line, children band and conversion maps band (section 6.6) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
-| `label` | any other text: a coordinate, or the label of a region, jump origin, flow marker, segment or named timestamp |
+| `label` | any other text: the name, ID or coordinate of a named timestamp, the coordinate of a mark on an ancestor line, or the label of a region, jump origin, flow marker or segment |
 
 A drawing has two kinds of marker, and they are never confused. A
-**coordinate marker** marks a position of a timeline: it is a wedge, held
-by the markers band of that timeline, and the wedges of the root's start
-and end and of the named timestamps of every timeline are the coordinate
-markers this version draws. A **flow marker** is an element
+**coordinate marker** marks a position of a timeline: it is a wedge, and
+the wedges of the named timestamps of every timeline, held by the markers
+band of that timeline, and the marks of a member's start and end on its
+ancestor lines (section 8.3) are the coordinate markers this version
+draws. A **flow marker** is an element
 of a timeline's `flow_control` (a fine, a section break, a double or a
 final barline), held by the flow control band and drawn as a vertical line;
 the markers band never holds one. A cross-section line is neither: it
@@ -243,12 +255,13 @@ no class; it has its **facet** instead: `markers`, `conversion_maps`,
 
 Elements form a **tree** that carries inheritance (section 2.5): the
 `block` holds the `timeline`; a `timeline` or `child` holds its five
-bands, and each band what it holds: the markers band the timeline's
-wedges, the conversion maps band its maps, the children band its child
-timelines, the regions band its regions, and the flow control band its
-flow markers and jump origins; a `timeline` or `child` also holds the
-cross-section lines of its timeline's named timestamps, directly and in no
-band; an element holds its own `name` and `label` where it has
+bands, and each band what it holds: the markers band the wedges of its
+timeline's named timestamps and their labels, each label beside its wedge
+and not held by it, the conversion maps band its maps, the children band
+its child timelines, the regions band its regions, and the flow control
+band its flow markers and jump origins; a `timeline` or `child` also holds
+the cross-section lines of its timeline's named timestamps, directly and in
+no band; any other element holds its own `name` and `label` where it has
 one (section 5.3; a map and a band have neither), except that a segment's
 label and its `boundary` are held by its segment line, directly and in no
 band, as parts of that line (section 6.4). A segment is a child timeline of
@@ -269,11 +282,14 @@ and compared as a whole object. No address is a string composed from IDs.
 `id` is an element's ID; `facet` is one of the five facets `markers`,
 `conversion_maps`, `children`, `regions` and `flow_control`, and names a
 band; `part` is a non-empty array of the words `start`, `end`, `name`,
-`label`, `card` and `line`, and names a part of an element. `facet` stands only
-with `id`, and never with `part`. The name or label of an element is
-addressed by the element's address with `name` or `label` appended to its
-`part`. One rule addresses every element of every manifest, one timeline
-or many. In this table `T` is a timeline's ID and `X` an element's ID:
+`label`, `id`, `coordinate`, `card` and `line`, and names a part of an
+element. `facet` stands only with `id`, and never with `part`. The name or
+label of an element is addressed by the element's address with `name` or
+`label` appended to its `part`; a named timestamp has no row and so no
+`name` element, and the part `name` of its address names its first label,
+a `label` element like its other two. One rule addresses every element of
+every manifest, one timeline or many. In this table `T` is a timeline's ID
+and `X` an element's ID:
 
 | Element | Address | Belongs to |
 |---|---|---|
@@ -282,10 +298,8 @@ or many. In this table `T` is a timeline's ID and `X` an element's ID:
 | the root, or a child timeline with ID `T` | `{"id": T}` | `T` |
 | the band drawing the facet `F` of a timeline with ID `T` | `{"id": T, "facet": F}` | `T` |
 | a conversion map, region or flow-control element with ID `X` of `T` | `{"id": X}` | `T` |
-| the root's wedges at its start and end, the root's ID being `T` | `{"id": T, "part": ["start"]}`, `{"id": T, "part": ["end"]}` | `T` |
-| the labels of those wedges | `{"id": T, "part": ["start", "label"]}`, `{"id": T, "part": ["end", "label"]}` | `T` |
 | the wedge of a named timestamp with ID `X` of `T` | `{"id": X}` | `T` |
-| the label of that wedge, the timestamp's name | `{"id": X, "part": ["label"]}` | `T` |
+| the labels of that timestamp, all `label` elements: its name, its ID, its coordinate | `{"id": X, "part": ["name"]}`, `{"id": X, "part": ["id"]}`, `{"id": X, "part": ["coordinate"]}` | `T` |
 | the cross-section line of that timestamp | `{"id": X, "part": ["line"]}` | `T` |
 | the name of an element with ID `X` | `{"id": X, "part": ["name"]}` | that element's timeline |
 | the label of an element with ID `X` | `{"id": X, "part": ["label"]}` | that element's timeline |
@@ -303,8 +317,10 @@ or many roots, and also when a member below its root is drawn as the root
 of its own member drawing; a jump origin `jump_from_1` is `{"id":
 "jump_from_1"}`, its label `{"id": "jump_from_1", "part": ["label"]}`; a
 named timestamp `timestamp_1` draws its wedge `{"id": "timestamp_1"}`, its
-label `{"id": "timestamp_1", "part": ["label"]}` and its cross-section line
-`{"id": "timestamp_1", "part": ["line"]}`, whichever timeline it marks. A
+labels `{"id": "timestamp_1", "part": ["name"]}`, `{"id": "timestamp_1",
+"part": ["id"]}` and `{"id": "timestamp_1", "part": ["coordinate"]}`, and
+its cross-section line `{"id": "timestamp_1", "part": ["line"]}`, whichever
+timeline it marks. A
 band follows its timeline's ID: the regions band of a child `b` is `{"id":
 "b", "facet": "regions"}`. A timeline `perf` that the groups `g1` and `g2`
 both have as a member lies in two cards, one in each frame, both
@@ -318,8 +334,8 @@ timeline and is not drawn; `{"id": X}` with its ID `X` addresses it.
 
 One timeline may be drawn more than once: as a member in the frame of each
 group that has it as a member, as an ancestor line of several members, or
-as both; and a member's start and end are marked on its own line and on
-each of its ancestor lines (section 8.3). An element drawn more than once,
+as both; and a member's start and end are marked on each of its ancestor
+lines (section 8.3). An element drawn more than once,
 such a timeline with its cards, descendants, bands, maps, regions,
 flow-control elements and named timestamps, an ancestor line with its marks, and the parts of
 each, keeps one address, which every drawing of it carries. No address
@@ -379,14 +395,23 @@ to TikZ (section 7.4).
 A statement may set any property on any element; an element ignores the
 properties its type does not read. `display: none` is the filter: an element
 that is not displayed is not drawn and takes no room. An element is
-**displayed** when its `display` is `inline` and no rule of this list hides
-it. The list holds every way in which one element hides another, and the
-other sections refer to it:
+**displayed** when its `display` is `inline`, no rule of this list hides
+it, and, for an element of a named timestamp, the timestamp's own
+`display` lists its word (section 2). The two are independent filters,
+both of which an element of a named timestamp must pass: its `display`
+array chooses what the timestamp draws at all, and the cascade's `display`
+property may still hide any one element of it, its wedge, any of its
+labels or its cross-section line, as it hides any other element, while a
+cascaded `inline` never draws an element its array leaves out. The list
+holds every way in which one element hides another, and the other sections
+refer to it:
 
 - **A band hides everything it holds.** A band that is not displayed hides
   every element it holds, at any depth of the tree of section 2.1.
-- **An element hides its label.** The label of a wedge, region, jump
-  origin or flow marker is displayed only when that element is displayed.
+- **An element hides its label.** The label of a region, jump origin,
+  flow marker or mark on an ancestor line is displayed only when that
+  element is displayed. A named timestamp's labels are not its wedge's
+  (section 2.1), and its wedge hides none of them.
 - **A line hides its timeline's whole drawing.** A line that is not
   displayed, the root's and a child's alike, hides its name, the maps,
   boundaries and segment labels on it (section 6.4), the cross-section
@@ -411,9 +436,10 @@ other sections refer to it:
 No other element hides another. A frame or card that is not displayed
 keeps everything drawn in it (section 8.4); a member's line keeps its
 ancestor lines, which are not part of its timeline's drawing; a named
-timestamp's wedge, with its label, and its cross-section line are displayed
-or hidden each on its own, so hiding a timeline's markers band hides its
-timestamps' wedges and labels and keeps their cross-section lines; and no band
+timestamp's wedge, each of its labels and its cross-section line are
+displayed or hidden each on its own, so hiding a timeline's markers band
+hides its timestamps' wedges and labels and keeps their cross-section
+lines; and no band
 takes its `display` from another: hiding the band `{"id": "score",
 "facet": "regions"}` hides the regions of `score` alone, and the regions of a child of `score` are drawn,
 at the child's own line, only when the child's own regions band is
@@ -448,8 +474,9 @@ The rank of a statement is, from the most to the least significant:
 The cascade runs on each drawing of an element at its own place in the
 tree. Drawings that share an address (section 2.2) match the same `addresses`,
 `within` and `element`, but each inherits from its own parent and matches
-`inside` by its own holders: a member's mark on an ancestor line matches
-`{"inside": "ancestor"}`, its wedge on its own line does not.
+`inside` by its own holders: the name of an ancestor line matches
+`{"inside": "ancestor"}`, the name of the same timeline's row in a card
+that draws its line does not.
 
 ## 3. Numbers
 
@@ -458,7 +485,7 @@ tree. Drawings that share an address (section 2.2) match the same `addresses`,
 A position derived from time is a value on the **root's axis**: a
 coordinate of a timeline is carried to the root by adding the offsets of
 its ancestors, from the root down. The root starts at the zero of its
-number type (labelled `0`, or `0.0` for a float) and ends at its length; a child of a timeline starting at `s`, with
+number type (`0`, or `0.0` for a float) and ends at its length; a child of a timeline starting at `s`, with
 offset `o`, starts at `s + o` and ends at that start plus its own length; a
 region, flow-control element or named timestamp of a timeline starting at
 `s` lies at `s` plus its coordinate. A jump origin runs from its own position, its
@@ -653,11 +680,13 @@ The **default band order** of a root of `timelines`, when
 ```
 
 So by default a root's conversion maps lie against its line above it and
-its children beyond them, its coordinate markers (its start and end wedges
-and its named timestamps' wedges) against its line below it, then its
-regions and its flow control; its descendants follow it, so every child's
-maps lie against the child's line above it and its own children beyond
-them, and its named timestamps' wedges against its line below it.
+its children beyond them, its coordinate markers (its named timestamps'
+wedges, with their labels) against its line below it, then its regions and
+its flow control; its descendants follow it, so every child's maps lie
+against the child's line above it and its own children beyond them, and
+its named timestamps' wedges against its line below it. A cross-section
+line spans its timeline's line, children band and conversion maps band
+(section 6.6), and so never reaches the wedges in this order.
 
 ## 5. Text
 
@@ -723,7 +752,9 @@ its `label`, or its `manifestation` when `label` is null; a flow marker's
 label is its `label`, and a flow marker whose `label` is null has none; a
 jump target draws no label; a segment's label is
 its `name`, and a segment whose `name` is null has none; a named
-timestamp's label is its `name`. The title of a
+timestamp has three labels, its `name`, its whole `id`, and its
+`coordinate`, labelled as section 5.2 labels a coordinate, in its
+timeline's unit, and draws those its `display` lists (section 2). The title of a
 group, or of the manifest, is its `name`, or, when `name` is null, its whole
 `id`. A manifest with neither a `name` nor an `id`, an
 anonymous bundle, has no title.
@@ -845,13 +876,13 @@ The bands listed before `line` lie **above** its line, those after it
 facet (section 2.1), and what another timeline holds only where a segment
 without a line of its own joins its segment line's bands (below):
 
-- the **markers band** its coordinate markers (Markers): the wedges of its
-  named timestamps (section 2), never their cross-section lines, which its
-  timeline's line holds (section 2.1), and, for the root, the wedges of its
-  start and end; no other timeline's start or end is marked, and a flow
-  marker is drawn by the flow control band, never by the markers band
-  (section 2.1), so the markers band of a timeline other than the root
-  without a named timestamp draws nothing;
+- the **markers band** its coordinate markers (Markers): the wedges and
+  labels of its named timestamps (section 2), never their cross-section
+  lines, which its timeline's line holds (section 2.1); no timeline's start
+  or end is marked in it, and a flow marker is drawn by the flow control
+  band, never by the markers band (section 2.1), so the markers band of a
+  timeline that draws no wedge and no label of a named timestamp draws
+  nothing and is absent (Levels);
 - the **conversion maps band** its maps (Conversion maps);
 - the **children band** its children (Children);
 - the **regions band** its regions (Regions);
@@ -1008,39 +1039,45 @@ map of that band does (Conversion maps), not after the segment line's own
 maps, so that the maps of one key on two segments may share a slot; its
 children in the children band, its regions
 in the regions band, its flow-control elements in the flow control band,
-and its named timestamps' wedges in the markers band, each at the segment's start
-plus its coordinate (section 3.1); its own band order places nothing. Its
-named timestamps' cross-section lines, which it holds itself (section
-2.1), are drawn from its segment line's line (section 6.6).
+and its named timestamps' wedges and labels in the markers band, each at
+the segment's start plus its coordinate (section 3.1); its own band order
+places nothing. Its named timestamps' cross-section lines, which it holds
+itself (section 2.1), are drawn at its segment line's line, across that
+line's bands (section 6.6).
 Section 2.4 states when a segment adds nothing. A band of a segment line
 is present when it draws anything, of its own or of its segments, also
 when its own `display` is `none`, since each segment's bands are displayed
 or hidden on their own (section 2.4).
 
-**Markers.** The markers band of a timeline draws its displayed wedges,
-each at `X`, `x` of the position it marks (section 3.1). The root's band
-draws first the wedges of its start and end, each labelled with the
-coordinate it marks in the root's unit (section 5.2): the zero of its
-number type, which is `0`, or `0.0` on a float axis (section 3.1), and
-`length`. A root whose end is open (section 3.4) has its start wedge and
-that zero's label only (`0 ♩` in quarters, `0.0 s` in seconds). Every
-timeline's band, the root's included, then draws the wedge of each of its
-named timestamps, in canonical order (section 2), and after them those
-that its segments without a line join to it, segment after segment in
-traversal order, each segment's in canonical order (Segments without a
-line); each is labelled with its timestamp's name (section 5.3). The
-labels are placed by one first fit, in this order (the start label, the
-end label, then the timestamps' labels), into tiers centred on their
-wedge's `X`; only wedge labels fill these tiers. The band is `w / 2 + 13`
-wide, or `w / 2 + 13 + 2 + T × h(9)` (left to right) when the labels fill
-`T ≥ 1` tiers, `w` the stroke width of its timeline's line; section 6.6
-places the wedges and their labels from the band's start. A child's
-present markers band is one of its bands like any other: it takes a level,
-widens its side and so its edge, and its row takes that room (Children).
-The band never holds a cross-section line: a named timestamp's
-cross-section line is held by its timeline's line (section 2.1), is drawn
-when it is displayed, whether or not its wedge or this band is, and takes
-no room in any band (section 6.6).
+**Markers.** The markers band of a timeline draws its named timestamps, in
+canonical order (section 2), and after them those that its segments
+without a line join to it, segment after segment in traversal order, each
+segment's in canonical order (Segments without a line): of each timestamp
+its wedge and its labels (section 5.3), those that are displayed (section
+2.4), at `X`, `x` of its position (section 3.1). A timestamp's displayed
+labels form its **stack**, one label per line in the order name, ID,
+coordinate, the first nearest the wedge's base; a timestamp without a
+displayed label has no stack. The stacks are placed by one first fit
+(section 6.3), in the order of their timestamps, into **tiers**: each stack
+is one item, as many lines high as it has labels, whose extent is that of
+one label as wide as its widest label, centred on `X`. A tier is as many
+lines high as its highest stack, and each of its stacks starts on its first
+line. Counting lines outwards from the wedges' base, from 1, the label `j`
+of a stack in tier `k` lies on line `n = m1 + … + m(k−1) + j`, `mi` the
+height of tier `i` in lines. The band is `w / 2 + 13` wide when it draws
+no label, or `w / 2 + 13 + 2 + T × h(9)` (left to right) when its tiers
+hold `T ≥ 1` lines together, `w` the stroke width of its timeline's line,
+`T` the line count here; section 6.6 places
+the wedges and the labels from the band's start. The room of the wedges
+lies between the line and the labels whether or not a wedge is displayed,
+so that showing or hiding a wedge moves no label; a band whose timestamps
+draw labels and no wedge is as wide as with them. A child's present markers
+band is one of its bands like any other: it takes a level, widens its side
+and so its edge, and its row takes that room (Children). The band never
+holds a cross-section line: a named timestamp's cross-section line is held
+by its timeline's line (section 2.1), is drawn when it is displayed,
+whether or not its wedge, its labels or this band are, and takes no room in
+any band (section 6.6).
 
 **Children.** The children band of a timeline places its displayed
 children that have a line of their own, every child that is not a segment
@@ -1049,12 +1086,13 @@ fit. Each is placed **as a whole**: its line together with everything its
 own bands draw, at any depth, laid out from its line by this section. The
 **extent** of a child is the smallest interval that holds the extent of its
 line, the extent of every item that a first fit of its own drawing places
-at any depth (its segment labels, the wedge labels, regions, jump origins
-and flow-marker labels of its bands, and its own children, each with its
-extent by this rule), the extent `[L × u − 3, L × u + 3]` of every wedge it
-draws, `u` the proportion of the position it marks, and the position `L ×
-u` of every flow marker it draws. The cross-section lines it draws add
-nothing, since they cross other rows by design (section 6.6).
+at any depth (its segment labels, the stacks of named timestamps' labels,
+regions, jump origins and flow-marker labels of its bands, and its own
+children, each with its extent by this rule), the extent `[L × u − 3, L ×
+u + 3]` of every wedge it draws, `u` the proportion of the position it
+marks, and the position `L × u` of every flow marker it draws. The
+cross-section lines it draws add nothing: each lies at a position of its
+timeline, within that timeline's own drawing (section 6.6).
 The maps it draws, at any depth, add nothing: each spans a timeline that
 lies within the line it is drawn at, so no first fit of this paragraph
 depends on a map's slot. The extent of a line runs
@@ -1243,8 +1281,7 @@ one below it.
     three chevrons, whatever its length or the member's, and an open end
     never in two. The three chevrons stand for a root, a child, a segment
     line or a member alike, locked or not: an end that is not known has no
-    position for a circle, an arrowhead or a diamond to mark. Such a root
-    has no end wedge and no end label (section 6.4);
+    position for a circle, an arrowhead or a diamond to mark;
   - a top-level timeline (a root of the manifest) whose end is known and
     whose `locked` is false ends with an **arrowhead** of length `3w` and half-width `1.5w` whose base is
     at `Xe` and whose tip is at `Xe + 3w`, the line ending at `Xe`, so that
@@ -1261,8 +1298,7 @@ one below it.
     same whether the child's `locked` is true or false. A member that is a
     child timeline ends so too, although its line is a `timeline` element.
 
-  A child carries no coordinate labels; the labels of its named
-  timestamps are names (section 5.3). The circles and the arrowhead are
+  The circles and the arrowhead are
   filled and not stroked; the open arrowhead, the diamond and the chevrons
   are stroked and not filled, with no dash. Every arrow of a drawing follows one rule:
   its shaft ends at its head's base, and the head continues the shaft's
@@ -1276,40 +1312,41 @@ one below it.
   at the distance `c + w / 2` outwards from the line of its band's
   timeline and its base 13 further out, at `c + w / 2 + 13`, `c` the start
   of the markers band (section 6.4) and `w` the stroke width of that line,
-  so that with `c = 0` the tip lies on the line's edge. A named
-  timestamp's wedge is drawn as the root's start and end wedges are. Its
-  label is centred on `X`, in its tier beyond the base: tier `k` starts `c
-  + w / 2 + 13 + 2 + (k − 1) × h(9)` out, the label gap included, and its
-  baseline lies beyond that start.
+  so that with `c = 0` the tip lies on the line's edge. The wedges of a
+  markers band are its named timestamps' (section 6.4, Markers).
+- **Labels of named timestamps.** Each centred on `X`, `x` of its
+  timestamp's position, on its line of the band's tiers (section 6.4,
+  Markers): line `n` starts `c + w / 2 + 13 + 2 + (n − 1) × h(9)` out,
+  `c` and `w` as for the wedges, the label gap included, and the label's
+  baseline lies beyond that start. These distances are the same whether or
+  not the timestamp's wedge is displayed.
 - **Cross-section lines.** A vertical line at `X`, `x` of its named
-  timestamp's position (section 3.1), across rows of the card, the
-  ordinates being of the member drawing counted from its top (section
-  8.4). Its **line** is its timeline's line, which holds it (section 2.1),
-  or, for a timestamp of a segment without a line, which that segment
-  holds, its segment line's line, at which that segment's bands lie
-  (section 6.4, Segments without a line). It runs from that line outwards,
-  away from the root's line, to the card margin `V` on that side, inside
-  the padding (section 6.5), as a flow marker of the root runs to it
-  (section 6.4, Flow markers):
-  - when its line is the root's, it crosses every row of the card, the
-    ancestor band's included (section 8.3), from `(X, P + V)` down to `(X,
-    Hc − P − V)`;
-  - when its line lies above the root's line (its ordinate `y` smaller
-    than `y_root`), it runs from `(X, y)` up to `(X, P + V)`, crossing
-    every row above its line, the ancestor band's included, and no row
-    between its line and the root's line nor any below the root's line;
-  - when its line lies below the root's line, it runs from `(X, y)` down
-    to `(X, Hc − P − V)`, crossing every row below its line and none
-    between its line and the root's line nor any above the root's line.
+  timestamp's position (section 3.1), the ordinates being of the member
+  drawing counted from its top (section 8.4). Let `T` be the timestamp's
+  timeline, whose line holds the cross-section line (section 2.1), or, for
+  a timestamp of a segment without a line, that segment's segment line,
+  whose line and bands are the segment's (section 6.4, Segments without a
+  line). The line spans `T`'s line, `T`'s whole children band and `T`'s
+  whole conversion maps band: of the ordinate of `T`'s line and the
+  ordinates of the start and the outer edge (section 6.4, Where a band
+  lies) of `T`'s children band and of `T`'s conversion maps band, each of
+  those bands counting only when it is present, `y1` is the smallest and
+  `y2` the largest, and the line runs from `(X, y1)` to `(X, y2)`. Each of
+  these ordinates is `y ± o`, `y` the ordinate of `T`'s line and `o` the
+  distance outwards, summed whole first (section 3.3). When neither band is
+  present, the line has no length and is not drawn. Nothing else bounds
+  it: it reaches no card margin, no ancestor band, no other band of `T` and
+  no row beyond these two bands. In the default band order (section 4)
+  both bands lie above `T`'s line and its markers band below, so the line
+  never meets a wedge; a band order that puts the markers band between the
+  line and either of the two bands makes it cross the wedges.
 
-  `Hc` is the content's height of section 6.5. A named timestamp whose
-  timeline is drawn in several cards, as a member in the frame of each
-  group that has it as a member, as a descendant in another member's
-  drawing, or both, draws its cross-section line in each, by these rules
-  in that card. Every line of a drawing other than the root's lies on one
-  side of it (section 6.4, Children), so one of the three rules applies. A
-  cross-section line is drawn over everything else of its member drawing
-  (section 7.2), takes no room, and widens no band or row.
+  A named timestamp whose timeline is drawn in several cards, as a member
+  in the frame of each group that has it as a member, as a descendant in
+  another member's drawing, or both, draws its cross-section line in each,
+  by this rule in that card. A cross-section line is drawn over everything
+  else of its member drawing (section 7.2), takes no room, and widens no
+  band or row.
 - **Maps.** A closed double line: the outline of the rectangle from `Xs`
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
@@ -1364,11 +1401,13 @@ where stated.
 
 Section 8 places a member drawing in its card. Its **names**
 are the name texts it draws, its ancestor names included, and every
-centred label `i` it draws (wedge, segment, region and jump-origin labels, the
-labels of the marks on its ancestor lines included) has width `wi` and the
-proportion `ui` (section 3.2) of the exact position it is centred on; a
-mark on an ancestor line is centred at the member's start (`ui = 0`) or end
-(`ui = 1`). A centred label at `X` ends at `X + wi / 2`. Its **right edge** is the largest right edge of any element it
+centred label `i` it draws (segment, region and jump-origin labels, every
+label of a named timestamp's stack on its own, and the labels of the marks
+on its ancestor lines) has width `wi` and the proportion `ui` (section 3.2)
+of the exact position it is centred on; a label of a named timestamp is
+centred at its timestamp's position, and a mark on an ancestor line at the
+member's start (`ui = 0`) or end (`ui = 1`). A centred label at `X` ends at
+`X + wi / 2`. Its **right edge** is the largest right edge of any element it
 draws (lines, markers, wedges, braces, arcs, labels and names). Right
 edges are geometric, no stroke width counted: a timeline's start circle
 `Xs + w`, its arrowhead's tip `Xe + 3w`, its end circle `Xe + w` or its
@@ -1405,14 +1444,16 @@ band's in the order it places them (section 6.4); the root and
 then the children in traversal order; the boundaries, in the traversal order
 of their segments (a nested segment line's boundaries thus follow its own
 boundary, not its siblings'); the wedges, band by band in the traversal
-order of the bands' timelines, and each band's in the order it places them
-(section 6.4, Markers: the root's start before its end, then the named
-timestamps'); the names, the wedge labels, in the order of their wedges,
-the segment labels, in the traversal order of their segments, the region
-labels, the jump-origin labels and the flow-marker labels; and last the
-cross-section lines, in the order in which the markers bands place their
-timestamps' wedges, whether or not a wedge or its band is displayed, so that
-they lie over everything else of the member drawing. Section
+order of the bands' timelines, and each band's in the order it places its
+timestamps (section 6.4, Markers); the names; the **marker labels**, the
+labels of the named timestamps in the same order, timestamp by timestamp,
+each timestamp's in the order of its stack, its name, its ID and its
+coordinate, whether or not its wedge is displayed; the segment labels, in
+the traversal order of their segments, the region labels, the jump-origin
+labels and the flow-marker labels; and last the cross-section lines, in
+the order in which the markers bands place their timestamps, whether or not
+a wedge, a label or its band is displayed, so that they lie over
+everything else of the member drawing. Section
 8.5 places them among the background, the titles, frames and cards, and
 the ancestor lines. Every
 descriptor carries the address of its element (section 2.2), the
@@ -1426,10 +1467,7 @@ screen; the SVG writer serializes them. An element's hit area is the
 painted geometry of its descriptors, each standing for the element whose
 address it carries; this specification gives no element a hit area beyond
 them. So the three chevrons of an open end, part of their line like an
-arrowhead, carry the line's address `{"id": T}` and hit the timeline,
-and an open end, which draws no end wedge and no end label, has no
-descriptor with `{"id": T, "part": ["end"]}` or `{"id": T, "part": ["end",
-"label"]}` and nothing there to hit.
+arrowhead, carry the line's address `{"id": T}` and hit the timeline.
 
 A point in a template (`{p1}`, `{P0}`, `{P3}`, `{Bh − 2w × n}`, …) is
 written by where it stands. In a `points` attribute it is `{x},{y}`, its
@@ -1458,7 +1496,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | jump origin | `<path d="M{P0}C{C1} {C2} {Bh}">`, the shaft; `<polygon>` arrowhead `{P3} {Bh − 2w × n} {Bh + 2w × n}`, `n = (−uy, ux)` (section 6.6) |
 | flow marker | `<line x1="{x}" y1="{yf}" x2="{x}" y2="{y2}">` (section 6.4) |
 | boundary | `<line x1="{X}" y1="{y−k}" x2="{X}" y2="{y+k}">` (section 6.6) |
-| cross-section line | `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, from `(X, y1)` to `(X, y2)` as section 6.6 states them, the root's from its top ordinate to its bottom one |
+| cross-section line | `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, from `(X, y1)` to `(X, y2)` as section 6.6 states them, `y1` the smaller ordinate |
 | name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and flow-marker labels, `middle` for the centred labels |
 
 The **stroke attributes** are `stroke`, `stroke-width` and, unless it is
@@ -1617,8 +1655,8 @@ root of unknown length is drawn with its reach at the shared end (section
   frame.
 - **Member drawings.** A **member drawing** is the drawing of sections 3
   to 6 of one timeline `M` taken as the root: its line is a `timeline`
-  element, its wedges mark its own `0` and `length` (its `0` alone when
-  its length is `null`) and its named timestamps, and positions are on `M`'s axis (section 3.1). A
+  element, its markers band draws its named timestamps, and positions are
+  on `M`'s axis (section 3.1). A
   member that is a child timeline in `timelines` is still a `timeline`
   element in its member drawing, so statements selecting `child` do not
   reach its line, and it ends with the diamond, or with three chevrons
@@ -1715,15 +1753,16 @@ the line's stroke width and `y` its ordinate:
   between `Aj` and `M` has a length of `null`, the line ends at `x(te)`
   (section 3.2), inside the member's span, with `Aj`'s own end.
 - **Marks.** Two wedges mark `M`'s start and end on `Aj`'s axis: `wedge`
-  elements with the addresses `M/start` and `M/end`; when `M`'s length is
-  `null`, its end is not known and only `M/start` and its label are drawn.
+  elements with the addresses `{"id": M, "part": ["start"]}` and `{"id":
+  M, "part": ["end"]}` (section 2.2); when `M`'s length is `null`, its end
+  is not known and only the start mark and its label are drawn.
   The marks lie always above the line, outside every band, each with its
   tip on the line's edge (`y − w / 2`) and its base 13 further up, at `x0`
   and `x0 + L`. Each is labelled with the coordinate it
   marks in `Aj`'s unit: `−ts` and `−ts + λ`, combined as section 3.1
   combines values. The labels are placed by first fit, start before
-  end, into tiers above the base, as the markers band places its wedge
-  labels (section 6.4).
+  end, into tiers above the base, as the markers band places its stacks
+  (section 6.4, Markers), each label a stack of one line.
 - **Nothing else** of `Aj` is drawn: no maps, regions, flow control,
   named timestamps, boundaries or other descendants. Its name is drawn in the name column on its row
   (section 6.6, names).
@@ -1834,7 +1873,7 @@ each with its chevrons, just before its root; their marks, from `A1` to
 `Ak`, each ancestor's start mark before its end mark, first among its
 wedges; their names, from `A1` to `Ak`, first among its names; and their
 mark labels, from `A1` to `Ak`, each ancestor's start label before its end
-label, first among its wedge labels. A title is a text descriptor of section 7.2, anchored at `start`;
+label, first among its marker labels. A title is a text descriptor of section 7.2, anchored at `start`;
 its `content` and `max-width` apply as section 6.6 applies them to a row's
 name.
 

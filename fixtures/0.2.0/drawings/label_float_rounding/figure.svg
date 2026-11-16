@@ -6,10 +6,10 @@
 <line data-id="take" x1="50.5977" y1="22.4023" x2="450.5977" y2="22.4023" stroke="#0050EF" stroke-width="3"/>
 <circle data-id="take" cx="50.5977" cy="22.4023" r="3" fill="#0050EF"/>
 <polygon data-id="take" points="459.5977,22.4023 450.5977,17.9023 450.5977,26.9023" fill="#0050EF"/>
-<polygon data-id="take" data-part="start" points="50.5977,23.9023 47.5977,36.9023 53.5977,36.9023" fill="#000000"/>
-<polygon data-id="take" data-part="end" points="450.5977,23.9023 447.5977,36.9023 453.5977,36.9023" fill="#000000"/>
+<polygon data-id="timestamp_1" points="50.5977,23.9023 47.5977,36.9023 53.5977,36.9023" fill="#000000"/>
+<polygon data-id="timestamp_2" points="450.5977,23.9023 447.5977,36.9023 453.5977,36.9023" fill="#000000"/>
 <text data-id="take" data-part="name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Take</text>
-<text data-id="take" data-part="start label" x="50.5977" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
-<text data-id="take" data-part="end label" x="450.5977" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">312.49 s</text>
+<text data-id="timestamp_1" data-part="coordinate" x="50.5977" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
+<text data-id="timestamp_2" data-part="coordinate" x="450.5977" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">312.49 s</text>
 </g>
 </svg>

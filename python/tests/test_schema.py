@@ -7,7 +7,13 @@ from typing import Any
 
 from jsonschema import Draft202012Validator
 
-from timetoshare import DEFAULTS, SCHEMA_VERSION, load_schema, schema_path
+from timetoshare import (
+    DEFAULTS,
+    SCHEMA_VERSION,
+    TIMESTAMP_DISPLAY,
+    load_schema,
+    schema_path,
+)
 from timetoshare.validate import UNIT_NUMBER_TYPES
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -142,7 +148,20 @@ def test_the_ten_map_types() -> None:
     ]
     facets = ["markers", "conversion_maps", "children", "regions", "flow_control"]
     assert defs["Facet"]["enum"] == facets
-    assert defs["Part"]["enum"] == ["start", "end", "name", "label", "card", "line"]
+    assert defs["Part"]["enum"] == [
+        "start",
+        "end",
+        "name",
+        "label",
+        "card",
+        "line",
+        "id",
+        "coordinate",
+    ]
+    display = defs["Timestamp"]["properties"]["display"]
+    assert display["items"]["enum"] == list(TIMESTAMP_DISPLAY)
+    assert TIMESTAMP_DISPLAY == ("wedge", "name", "id", "coordinate", "cross_section")
+    assert display["uniqueItems"] is True
     assert defs["Selector"]["properties"]["facet"]["$ref"] == "#/$defs/Facet"
     assert defs["ElementType"]["enum"] == [
         "block",
@@ -294,7 +313,9 @@ def test_references_are_ids_and_addresses() -> None:
         {"id": "score", "part": ["card"]},
         {"id": "score", "part": ["end", "label"]},
         {"id": "timestamp_1", "part": ["line"]},
-        {"id": "timestamp_1", "part": ["label"]},
+        {"id": "timestamp_1", "part": ["name"]},
+        {"id": "timestamp_1", "part": ["id"]},
+        {"id": "timestamp_1", "part": ["coordinate"]},
         {"id": "score", "root": "score"},
     ):
         assert address.is_valid(accepted), accepted
@@ -382,6 +403,7 @@ def test_the_defaults_are_the_table() -> None:
         "measure_map": ["MeasureMap"],
         "group": ["Group"],
         "graphical": ["Graphical"],
+        "timestamp": ["Timestamp"],
     }
     own = {"LinearMap": "linear_map", "TableMap": "table_map"}
     element = ["flow_control_element", "repeat_end"]

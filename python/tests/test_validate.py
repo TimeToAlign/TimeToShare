@@ -131,6 +131,8 @@ REJECTIONS = [
     "timelines_root_jump_target_dangling",
     "timestamp_coordinate_beyond_length",
     "timestamp_coordinate_negative",
+    "timestamp_display_repeated",
+    "timestamp_display_unknown",
     "timestamp_id_is_timeline_id",
     "timestamp_id_malformed",
     "timestamp_timeline_unknown",

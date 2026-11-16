@@ -25,6 +25,7 @@ export type {
   CompleteMeasureMap,
   CompleteRegion,
   CompleteTimeline,
+  CompleteTimestamp,
   ConversionMap,
   Coordinate,
   Declaration,
@@ -62,7 +63,7 @@ export {
   type Lossless,
 } from "./json/value.js";
 export { canonicalJson, compactJson } from "./json/write.js";
-export { canonicalOrder, dumps } from "./manifest/order.js";
+export { canonicalOrder, dumps, TIMESTAMP_DISPLAY } from "./manifest/order.js";
 export { completeStyles } from "./styles.js";
 export {
   identityProblems,

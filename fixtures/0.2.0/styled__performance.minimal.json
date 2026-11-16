@@ -30,10 +30,32 @@
           "stroke": "#7F00FF"
         }
       }
+    ],
+    "timestamps": [
+      {
+        "coordinate": 0.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "performance"
+      },
+      {
+        "coordinate": 10.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_2",
+        "name": "length",
+        "timeline": "performance"
+      }
     ]
   },
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "timelines": [
     {

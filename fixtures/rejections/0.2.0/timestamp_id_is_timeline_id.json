@@ -11,6 +11,11 @@
             1,
             1
           ],
+          "display": [
+            "wedge",
+            "name",
+            "cross_section"
+          ],
           "id": "timestamp_1",
           "name": "Entry",
           "timeline": "timestamp_1"

@@ -235,6 +235,44 @@ def test_absent_defaults_are_never_added_or_removed() -> None:
     assert minimal(child)["timelines"][0]["children"][0]["offset"] == [0, 1]
 
 
+def _stamp(number: int, **members: Any) -> dict[str, Any]:
+    """A named timestamp on ``score`` at 1, with the given further members."""
+    return {
+        "id": f"timestamp_{number}",
+        "timeline": "score",
+        "coordinate": [1, 1],
+        "name": "Entry",
+        **members,
+    }
+
+
+def test_a_named_timestamp_completes_its_display() -> None:
+    value = manifest(
+        timeline("score"),
+        graphical={
+            "timestamps": [
+                _stamp(1),
+                _stamp(2, display=["cross_section", "wedge", "name"]),
+                _stamp(3, display=["name", "wedge"]),
+                _stamp(4, display=[]),
+            ]
+        },
+    )
+    default = ["wedge", "name", "cross_section"]
+    assert complete(value)["graphical"]["timestamps"] == [
+        _stamp(1, display=default),
+        _stamp(2, display=default),
+        _stamp(3, display=["wedge", "name"]),
+        _stamp(4, display=[]),
+    ]
+    assert minimal(value)["graphical"]["timestamps"] == [
+        _stamp(1),
+        _stamp(2),
+        _stamp(3, display=["wedge", "name"]),
+        _stamp(4, display=[]),
+    ]
+
+
 def test_values_other_than_the_default_stay() -> None:
     value = manifest(
         timeline(

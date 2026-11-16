@@ -1,27 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="508.9155" height="133.9531" viewBox="0 0 508.9155 133.9531" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="508.9155" height="154.9062" viewBox="0 0 508.9155 154.9062" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="476.9155" height="101.9531" rx="10" fill="#F3F4F6"/>
-<rect data-id="clt_1" data-part="card" x="10" y="10" width="458.9155" height="83.9531" rx="5" fill="#B8BEC8"/>
-<rect data-id="clt_1" data-part="card" x="8" y="8" width="458.9155" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="clt_1" x1="49.9155" y1="56.9766" x2="449.9155" y2="56.9766" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="clt_1" cx="49.9155" cy="56.9766" r="3" fill="#00CC00"/>
-<polygon data-id="clt_1" points="458.9155,56.9766 449.9155,52.4766 449.9155,61.4766" fill="#00CC00"/>
+<rect x="0" y="0" width="476.9155" height="122.9062" rx="10" fill="#F3F4F6"/>
+<rect data-id="clt_1" data-part="card" x="10" y="10" width="458.9155" height="104.9062" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_1" data-part="card" x="8" y="8" width="458.9155" height="104.9062" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="49.9155" y1="77.9297" x2="449.9155" y2="77.9297" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_1" cx="49.9155" cy="77.9297" r="3" fill="#00CC00"/>
+<polygon data-id="clt_1" points="458.9155,77.9297 449.9155,73.4297 449.9155,82.4297" fill="#00CC00"/>
 <line data-id="clt_2" x1="149.9155" y1="23" x2="345.4155" y2="23" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="clt_2" cx="149.9155" cy="23" r="3" fill="#00CC00"/>
 <polygon data-id="clt_2" points="345.4155,23 349.9155,19.4 354.4155,23 349.9155,26.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<polygon data-id="clt_1" data-part="start" points="49.9155,58.4766 46.9155,71.4766 52.9155,71.4766" fill="#000000"/>
-<polygon data-id="clt_1" data-part="end" points="449.9155,58.4766 446.9155,71.4766 452.9155,71.4766" fill="#000000"/>
-<polygon data-id="timestamp_1" points="124.9155,58.4766 121.9155,71.4766 127.9155,71.4766" fill="#000000"/>
-<polygon data-id="timestamp_2" points="349.9155,58.4766 346.9155,71.4766 352.9155,71.4766" fill="#000000"/>
+<polygon data-id="timestamp_1" points="124.9155,79.4297 121.9155,92.4297 127.9155,92.4297" fill="#000000"/>
+<polygon data-id="timestamp_2" points="349.9155,79.4297 346.9155,92.4297 352.9155,92.4297" fill="#000000"/>
 <polygon data-id="timestamp_3" points="199.9155,24.5 196.9155,37.5 202.9155,37.5" fill="#000000"/>
 <text data-id="clt_2" data-part="name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">clt_2</text>
-<text data-id="clt_1" data-part="name" x="16" y="60.7847" text-anchor="start" font-size="11" fill="#000000">clt_1</text>
-<text data-id="clt_1" data-part="start label" x="49.9155" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="clt_1" data-part="end label" x="449.9155" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
-<text data-id="timestamp_1" data-part="label" x="124.9155" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">Downbeat</text>
-<text data-id="timestamp_2" data-part="label" x="349.9155" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">Climax</text>
-<text data-id="timestamp_3" data-part="label" x="199.9155" y="47.854" text-anchor="middle" font-size="9" fill="#000000">Entry</text>
-<line data-id="timestamp_1" data-part="line" x1="124.9155" y1="16" x2="124.9155" y2="83.9531" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_3" data-part="line" x1="199.9155" y1="23" x2="199.9155" y2="16" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<text data-id="clt_1" data-part="name" x="16" y="81.7378" text-anchor="start" font-size="11" fill="#000000">clt_1</text>
+<text data-id="timestamp_1" data-part="name" x="124.9155" y="102.7837" text-anchor="middle" font-size="9" fill="#000000">Downbeat</text>
+<text data-id="timestamp_2" data-part="name" x="349.9155" y="102.7837" text-anchor="middle" font-size="9" fill="#000000">Climax</text>
+<text data-id="timestamp_3" data-part="name" x="199.9155" y="47.854" text-anchor="middle" font-size="9" fill="#000000">Entry</text>
+<text data-id="timestamp_3" data-part="id" x="199.9155" y="58.3306" text-anchor="middle" font-size="9" fill="#000000">timestamp_3</text>
+<text data-id="timestamp_3" data-part="coordinate" x="199.9155" y="68.8071" text-anchor="middle" font-size="9" fill="#000000">1 ♩</text>
+<line data-id="timestamp_1" data-part="line" x1="124.9155" y1="16" x2="124.9155" y2="77.9297" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 </g>
 </svg>

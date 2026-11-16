@@ -53,7 +53,7 @@ own `graphical` object (§1), and otherwise the defaults and the manifest's
 | `map_row_subslots` | `map_row_subslots.json` | none |
 | `map_row_moved` | `map_row_moved.json` | none |
 | `label_float_rounding` | `label_float_rounding.json` | none |
-| `timestamps` | `timestamps.json` | none (the manifest's own `graphical` object hides the cross-section line of `timestamp_2`) |
+| `timestamps` | `timestamps.json` | none (each named timestamp's own `display` chooses what it draws) |
 
 ## Shared quantities
 
@@ -74,12 +74,25 @@ carries `data-id="tempo"`, the region `region_1` of `with_region`
 `styled__score` `data-id="intro" data-part="label"`, and the flow marker
 `fine` of the child `verse` in `child_flow_control__flow-shown`
 `data-id="fine"`, and the wedge of the named timestamp `timestamp_1` of
-`timestamps` `data-id="timestamp_1"`, its cross-section line
-`data-id="timestamp_1" data-part="line"`, whichever root's tree holds the
-element. A manifest's
+`timestamps` `data-id="timestamp_1"`, its name `data-id="timestamp_1"
+data-part="name"`, its cross-section line `data-id="timestamp_1"
+data-part="line"`, and the ID and coordinate labels of `timestamp_3`
+`data-id="timestamp_3" data-part="id"` and `data-id="timestamp_3"
+data-part="coordinate"`, whichever root's tree holds the element. A manifest's
 title, wherever one is drawn, carries `data-part="name"` alone, and the
 block, addressed `{}`, carries none of them. A band draws nothing (§2.1),
 so no element carries a band's address.
+
+The specification draws no mark of a root's start or end. Every manifest
+here but `timestamps` names instead the origin and length of each root it
+draws, as an editor marks them ([`fixtures/README.md`](../../README.md)):
+the named timestamp `origin` at 0 and, where the root's length is known,
+`length` at that length, each with the `display` `["wedge", "coordinate"]`
+(§2), so each draws its wedge, addressed `{"id": X}`, and its coordinate
+label, `{"id": X, "part": ["coordinate"]}`, `X` its `timestamp_N`; in a
+manifest of one root `origin` is `timestamp_1` and `length` `timestamp_2`.
+Below, "`origin`'s label" and "`length`'s label" are those coordinate
+labels, `0 ♩` and the length in its unit.
 
 - Constants (§6.2): padding `P` = 8 (also above and below a member
   drawing's content), card padding `K` = 8, frame padding `Q` = 8, gap
@@ -133,11 +146,11 @@ so no element carries a band's address.
 - Font measures (§5.1) at size 9: `a(9)` = 8.35400390625, `d(9)` =
   2.12255859375, `h(9)` = 10.4765625; at size 11: `a(11)` =
   10.21044921875, `d(11)` = 2.59423828125, `h(11)` = 12.8046875.
-  With both wedges below and their labels at `u` = 0 and 1 in one tier,
-  the markers band is `w / 2 + 13 + 2 + h(9)` = 26.9765625 wide for a line
-  of width `w` = 3 (§6.4), and at level −1, where it starts at `c` = 0, it
-  reaches as far below the line; a root whose end is open has only its
-  start wedge and label, and its markers band is as wide. Only in
+  With the wedges of `origin` and `length` below and their labels at `u` =
+  0 and 1 in one tier, the markers band is `w / 2 + 13 + 2 + h(9)` =
+  26.9765625 wide for a line of width `w` = 3 (§6.4), and at level −1,
+  where it starts at `c` = 0, it reaches as far below the line; a root
+  whose end is open has only `origin`, and its markers band is as wide. Only in
   `map_root_band_order` does another band lie between a root's line and its
   markers band.
 - A regions band of one row whose labels have the size 9, or that draws no
@@ -189,7 +202,7 @@ The root `bare` ("Bare", 8 quarters), with nothing else.
 
 - `N` = w(`Bare`, 11) = 25.5771484375.
 - `x0` = `xn + N + G'` = 16 + 25.5771484375 + 8 = 49.5771484375 → 49.5771;
-  the start label `0 ♩` gives only 16 + 6.416015625 − 0 = 22.416015625.
+  the label `0 ♩` of `origin` gives only 16 + 6.416015625 − 0 = 22.416015625.
 - `R` = the arrowhead tip `Xe + 3w` = 449.5771484375 + 9 = 458.5771484375.
 - `Hm` = 14.40234375 + 26.9765625 + 8 = 49.37890625.
 - `W` = 8 + (10 + 458.5771484375) = 476.5771484375; `H` = 8 + (10 +
@@ -204,7 +217,7 @@ each row shows its ID.
 
 - `N` = w(`clt_1`, 11) = 25.91552734375, the same for all three.
 - `x0` = 16 + 25.91552734375 + 8 = 49.91552734375 → 49.9155.
-- `R` = the end label `16 ♩` at 449.91552734375 + 9.279052734375 =
+- `R` = the label `16 ♩` of `length` at 449.91552734375 + 9.279052734375 =
   459.194580078125.
 - `Hm` = 43 + 26.9765625 + 8 = 77.9765625.
 - `W` = 8 + 469.194580078125 = 477.194580078125; `H` = 8 + 87.9765625 =
@@ -241,7 +254,7 @@ regions band is absent).
   labels, `Repeat` (32.08447265625 wide) centred on the midpoint 5 (`u` =
   5/16) and `D.S.` (18.36474609375 wide) on the midpoint 10 (`u` = 10/16),
   give only −92.957763671875 and −224.817626953125.
-- `R` = the end label `16 ♩` at 490.9775390625 + 18.55810546875 / 2 =
+- `R` = the label `16 ♩` of `length` at 490.9775390625 + 18.55810546875 / 2 =
   500.256591796875, beyond the arrowhead tip 499.9775390625; the arc of
   `jump_from_2` reaches no further right than its from `x(16)` = 490.9775390625,
   and the label `Fine` ends at `x(12)` + 3 + 18.91845703125 =
@@ -297,7 +310,7 @@ The root `clt_1` (12 quarters) with two children and the region
 
 - `N` = 25.91552734375 (`clt_1`, `clt_2`, `clt_3` alike).
 - `x0` = 16 + 25.91552734375 + 8 = 49.91552734375 → 49.9155.
-- `R` = the end label `12 ♩` at 459.194580078125.
+- `R` = the label `12 ♩` of `length` at 459.194580078125.
 - `Hm` = 43 + 49.453125 + 8 = 100.453125.
 - `W` = 8 + (10 + 459.194580078125) = 477.194580078125; `H` = 8 + (10 +
   100.453125) = 118.453125.
@@ -332,7 +345,7 @@ padding `P` = 8 above and below the content does not change with it
 
 - `x0` = 16 + 25.91552734375 + 8 = 49.91552734375 → 49.9155, as in
   `nested`.
-- `R` = the end label `16 ♩` at 49.91552734375 + 800 + 9.279052734375 =
+- `R` = the label `16 ♩` of `length` at 49.91552734375 + 800 + 9.279052734375 =
   859.194580078125.
 - The children bands of `clt_1` and of `clt_3` lie above their lines,
   which reach nothing there, so each starts at the larger of `S` beyond
@@ -368,9 +381,9 @@ The nested segment line `form` ("Form", 32 quarters) of the segments `a`
 
 - `N` = w(`Form`, 11) = 28.294921875.
 - `x0` = 16 + 28.294921875 + 8 = 52.294921875 → 52.2949; the segment
-  labels give at most `A` −30.921630859375 and the start label
+  labels give at most `A` −30.921630859375 and `origin`'s label
   22.416015625.
-- `R` = the end label `32 ♩` at 461.573974609375, beyond the arrowhead tip
+- `R` = the label `32 ♩` of `length` at 461.573974609375, beyond the arrowhead tip
   461.294921875.
 - `Hm` = 60.953125 + 26.9765625 + 8 = 95.9296875.
 - `W` = 8 + ((8 + 2) + 461.573974609375) = 479.573974609375; `H` = 8 +
@@ -386,7 +399,7 @@ pixels. A row of segment lines has no name, so `Pages` is the only one.
 - `N` = w(`Pages`, 11) = 32.85498046875.
 - `x0` = 16 + 32.85498046875 + 8 = 56.85498046875 → 56.855; the label of
   the first accolade, `u` = 200 / 7016, gives only 7.460528557493586.
-- `R` = the end label `7016 px` at 456.85498046875 + 18.402099609375 =
+- `R` = the label `7016 px` of `length` at 456.85498046875 + 18.402099609375 =
   475.257080078125.
 - `Hm` = 60.953125 + 26.9765625 + 8 = 95.9296875.
 - `W` = 8 + 485.257080078125 = 493.257080078125; `H` = 8 + 105.9296875 =
@@ -407,7 +420,7 @@ left.
   + 24 = 120.61962890625 → 120.6196, above `xn + N + G'` =
   96.61962890625; the outer chevron's tip `x0 − 8w` lies exactly at the
   latter.
-- `R` = the end label `10.0 s` at 520.61962890625 + 13.79443359375 =
+- `R` = the label `10.0 s` of `length` at 520.61962890625 + 13.79443359375 =
   534.4140625.
 - `Hm` = 83.953125 (`second-half`, its ancestor band above) and
   49.37890625 (`recording`); the frame is 8 + 12.8046875 + 4 + 83.953125
@@ -434,7 +447,7 @@ colour of the physical domain they convert to, the first dotted `1 1`
 - `x0` = the chevron term 24 + 57.0302734375 + 8 + 24 = 113.0302734375 →
   113.0303, set by the ancestor lines of `sonata` and `session`, which run
   on to the left; `page` starts with its member and does not.
-- `R` = the end label `1323000 smp` at 513.0302734375 + 31.05615234375 =
+- `R` = the label `1323000 smp` of `length` at 513.0302734375 + 31.05615234375 =
   544.08642578125. Each map spans its member's line, from `x0` to `x0 + L`
   = 513.0302734375, and reaches no further right.
 - The map stacks: each holds one map, 5.5 above its member's line and
@@ -501,12 +514,12 @@ No timeline has a name.
   = 110.94168526785714 → 110.9417, `x(10)` = 339.5131138392857 → 339.5131.
   `coda` ends at 14, known, in its diamond at `x0 + L`.
 - `N` = w(`score`, 11) = 29.798828125.
-- `x0` = 16 + 29.798828125 + 8 = 53.798828125 → 53.7988; the start label
-  `0 ♩` gives only 22.416015625.
+- `x0` = 16 + 29.798828125 + 8 = 53.798828125 → 53.7988; the label
+  `0 ♩` of `origin` gives only 22.416015625.
 - `R` = the outer chevron tip `Xr + 5.5w` = 465.798828125 + 16.5 =
-  482.298828125. The root has no end wedge and no end label.
+  482.298828125. The root has no `length`, so nothing is drawn at its end.
 - `Hm` = 29 + 49.453125 + 8 = 86.453125: `coda` in the children band above
-  (`Ea` = 21), the start wedge in the markers band below and the region in
+  (`Ea` = 21), `origin` in the markers band below and the region in
   the regions band beyond it.
 - `W` = 8 + (10 + 482.298828125) = 500.298828125; `H` = 8 + (10 +
   86.453125) = 104.453125.
@@ -557,9 +570,9 @@ holds no region, so its own regions band is absent.
   on `9.5w` past its end, to 175 + 28.5 = 203.5.
 - `N` = w(`movement`, 11) = 59.490234375, wider than `score`
   (29.798828125).
-- `x0` = 16 + 59.490234375 + 8 = 83.490234375 → 83.4902. The start label
-  `0 ♩` gives only 16 + 6.416015625 = 22.416015625.
-- `R` = the end label `32 ♩` at 483.490234375 + 9.279052734375 =
+- `x0` = 16 + 59.490234375 + 8 = 83.490234375 → 83.4902. The label
+  `0 ♩` of `origin` gives only 16 + 6.416015625 = 22.416015625.
+- `R` = the label `32 ♩` of `length` at 483.490234375 + 9.279052734375 =
   492.769287109375, beyond the arrowhead tip 492.490234375.
 - Above, the children band alone. `score`'s line reaches nothing there, so
   the band's own start is the larger of 1.5 + 4 = 5.5 and `p0 / 2` = 7: 7.
@@ -580,13 +593,13 @@ The group "Edition" in the display order `performance`, `score`: the root
 
 - `performance` is scaled to its reach 9.5, a float: `u(9.5)` = 1.0, so the
   region spans `x0` to `x0 + L`, and its tip lies at the midpoint (0.0 +
-  9.5) / 2 = 4.75, `u` = 0.5, `x` = 302.640625 (§3.1). Its start label is
+  9.5) / 2 = 4.75, `u` = 0.5, `x` = 302.640625 (§3.1). `origin`'s label is
   `0.0 s`.
 - `xn` = 24. `N` = w(`performance`, 11) = 70.640625.
-- `x0` = 24 + 70.640625 + 8 = 102.640625 → 102.6406; the start label
-  `0.0 s` gives only 34.931396484375.
+- `x0` = 24 + 70.640625 + 8 = 102.640625 → 102.6406; the label
+  `0.0 s` of `origin` gives only 34.931396484375.
 - `R` = the outer chevron tip of `performance`, `Xr + 5.5w` = (102.640625 +
-  400 + 12) + 16.5 = 531.140625, beyond the end label `12 ♩` of `score` at
+  400 + 12) + 16.5 = 531.140625, beyond the label `12 ♩` of `score`'s `length` at
   511.919677734375.
 - `Hm` = 71.85546875 (`performance`, its regions band below) and
   49.37890625 (`score`); the frame is 8 + 12.8046875 + 4 + 71.85546875 + 8
@@ -615,12 +628,12 @@ absent (§6.4).
   segments without a line and draws nothing, and there is no map. The
   above side's outer edge is therefore the line's reach, `Ea` = 8, and
   `y_root` = 8 + 8 = 16 in the member drawing. No segment has a label.
-- Below, the markers band lies against the line at level −1, the start
+- Below, the markers band lies against the line at level −1, `origin`'s
   wedge and its label `0 ♩` in one tier, 26.9765625 wide and beyond the
   boundaries' 8: `Eb` = 26.9765625.
 - `N` = w(`form`, 11) = 25.84033203125.
-- `x0` = 16 + 25.84033203125 + 8 = 49.84033203125 → 49.8403; the start
-  label `0 ♩` gives only 22.416015625.
+- `x0` = 16 + 25.84033203125 + 8 = 49.84033203125 → 49.8403; the
+  label `0 ♩` of `origin` gives only 22.416015625.
 - `R` = the outer chevron tip 478.34033203125.
 - `Hm` = 16 + 26.9765625 + 8 = 50.9765625.
 - `W` = 8 + (10 + 478.34033203125) = 496.34033203125; `H` = 8 + (10 +
@@ -646,11 +659,11 @@ and in place coordinates until the place origin is added, last (§8.4).
   w(`Recording`, 11) = 55.70361328125, of `Pages` (32.85498046875),
   `Recording` and `Score` (31.05029296875); `s0` = `n + N + G'` = 8 +
   55.70361328125 + 8 = 71.70361328125, above the largest label term, the
-  start label `0 smp` of `recording`, 8 + 13.8779296875 − 0 =
+  label `0 smp` of `recording`'s `origin`, 8 + 13.8779296875 − 0 =
   21.8779296875; the jump-origin label `D.C. al Fine`, centred on `u` = 1/2,
   gives only 8 + 25.7958984375 − 200 = −166.2041015625. The shared end is
   `s0 + L` = 471.70361328125.
-- The right margin: the right edges are the end labels `5262 px` at
+- The right margin: the right edges are the labels of `length`, `5262 px` at
   471.70361328125 + 18.402099609375 = 490.105712890625 (`pages`), `441000
   smp` at 471.70361328125 + 28.193115234375 = 499.896728515625 (`recording`)
   and `16 ♩` at 471.70361328125 + 9.279052734375 = 480.982666015625
@@ -1041,13 +1054,13 @@ Children).
   85.30810546875 → 85.3081.
 - `N` = w(`B11, D11`, 11) = 51.00390625, of `Piece` (29.2724609375),
   `B, D` (23.009765625), `B1, D1` (37.0068359375) and `B11, D11`.
-- `x0` = 16 + 51.00390625 + 8 = 75.00390625 → 75.0039; the start label
-  `0 ♩` gives only 22.416015625. Every position lies a multiple of 25 from
+- `x0` = 16 + 51.00390625 + 8 = 75.00390625 → 75.0039; the label
+  `0 ♩` of `origin` gives only 22.416015625. Every position lies a multiple of 25 from
   `x0`: `b` from 75.0039 to 225.0039, `b1` from 100.0039 to 200.0039,
   `b11` from 125.0039 to 175.0039, `d` from 275.0039 to 475.0039, `d1`
   from 325.0039 to 425.0039, `d11` from 350.0039 to 400.0039; each map
   spans its timeline.
-- `R` = the end label `16 ♩` at 475.00390625 + 9.279052734375 =
+- `R` = the label `16 ♩` of `length` at 475.00390625 + 9.279052734375 =
   484.282958984375, beyond the arrowhead tip 484.00390625 and the diamond
   corner of `d` at 479.50390625.
 - `W` = 8 + (10 + 484.282958984375) = 502.282958984375; `H` = 8 + (10 +
@@ -1153,11 +1166,11 @@ below, less than `w / 2` = 1.5, and the band starts at `S` beyond `w / 2`:
 
 - `N` = w(`Verse`, 11) = 31.3134765625, above w(`Piece`, 11) =
   29.2724609375.
-- `x0` = 16 + 31.3134765625 + 8 = 55.3134765625 → 55.3135; the start label
-  `0 ♩` gives only 22.416015625, and the jump-origin label, centred on `u` =
+- `x0` = 16 + 31.3134765625 + 8 = 55.3134765625 → 55.3135; the label
+  `0 ♩` of `origin` gives only 22.416015625, and the jump-origin label, centred on `u` =
   8/16 = 1/2, 16 + 25.7958984375 − 200 = −158.2041015625. `x(4)` =
   155.3134765625, `x(8)` = 255.3134765625 and `x(12)` = 355.3134765625.
-- `R` = the end label `16 ♩` at 455.3134765625 + 9.279052734375 =
+- `R` = the label `16 ♩` of `length` at 455.3134765625 + 9.279052734375 =
   464.592529296875, beyond the arrowhead tip 464.3134765625; the diamond of
   `verse` reaches 359.8134765625, the jump-origin label 281.109375 and the
   flow-marker label 258.3134765625 + 18.91845703125 = 277.23193359375.
@@ -1251,12 +1264,12 @@ the maps `a_tempo` ("Tempo") and `b_ticks` ("Ticks"); all four are
   `Piece` at 45.30810546875 → 45.3081.
 - `N` = w(`Ante, Cons`, 11) = 59.68359375, above w(`Piece`, 11) =
   29.2724609375.
-- `x0` = 16 + 59.68359375 + 8 = 83.68359375 → 83.6836; the start label `0 ♩`
+- `x0` = 16 + 59.68359375 + 8 = 83.68359375 → 83.6836; the label `0 ♩` of `origin`
   gives only 22.416015625. `x(4)` = 283.68359375 → 283.6836 and `x(8)` =
   483.68359375 → 483.6836: `ante`'s maps and line span `x0` to `x(4)`, its
   line stopping at the diamond's left corner 279.18359375 → 279.1836, and
   `cons`'s `x(4)` to `x(8)`.
-- `R` = the arrowhead tip 483.68359375 + 9 = 492.68359375, beyond the end
+- `R` = the arrowhead tip 483.68359375 + 9 = 492.68359375, beyond `length`'s
   label at 483.68359375 + 6.416015625 = 490.099609375 and `cons`'s diamond
   corner at 488.18359375.
 - `W` = 8 + (10 + 492.68359375) = 510.68359375; `H` = 8 + (10 + 68.4765625)
@@ -1298,7 +1311,7 @@ nothing. A segment without a name has no label.
   152.294921875 → 152.2949 (the boundary of `b`, the start of `ticks_b`),
   `x(20)` = 302.294921875 → 302.2949 (the boundary of `c`, where `ticks_b`
   ends and `ticks_c` starts) and `x(32)` = 452.294921875 → 452.2949.
-- `R` = the end label `32 ♩` at 452.294921875 + 9.279052734375 =
+- `R` = the label `32 ♩` of `length` at 452.294921875 + 9.279052734375 =
   461.573974609375, beyond the open arrowhead's tip 461.294921875.
 - `W` = 8 + (10 + 461.573974609375) = 479.573974609375; `H` = 8 + (10 +
   54.4765625) = 72.4765625.
@@ -1348,10 +1361,11 @@ The root `piece` ("Piece", 8 quarters) and its locked children `ante`
 ## `label_float_rounding`
 
 The root `take` ("Take") of 312.48979591836735 seconds, a float, with
-nothing else. Its wedges are labelled `0.0 s` and, its length rounded as
-Python's `round(x, 3)` rounds it and spelled as `repr` spells the result
-(§5.2), `312.49 s`; the end wedge still lies at `x0 + L`, since no position
-is computed from a label. The line, its arrowhead and the start circle are
+nothing else but its two timestamps. `origin` is labelled `0.0 s` and
+`length`, its coordinate rounded as Python's `round(x, 3)` rounds it and
+spelled as `repr` spells the result (§5.2), `312.49 s`; the wedge of
+`length` still lies at `x0 + L`, since no position is computed from a
+label. The line, its arrowhead and the start circle are
 the physical domain's blue `#0050EF` (§4).
 
 - Vertically the drawing is that of `bare`: `y_root` = 14.40234375, the
@@ -1360,9 +1374,9 @@ the physical domain's blue `#0050EF` (§4).
   36.90234375 → 36.9023, their labels' baseline at 47.25634765625 →
   47.2563, the name's at 26.21044921875 → 26.2104.
 - `N` = w(`Take`, 11) = 26.59765625.
-- `x0` = 16 + 26.59765625 + 8 = 50.59765625 → 50.5977; the start label `0.0
-  s` (21.86279296875 wide) gives only 16 + 10.931396484375 = 26.931396484375.
-- `R` = the end label `312.49 s` (39.041015625 wide) at 450.59765625 +
+- `x0` = 16 + 26.59765625 + 8 = 50.59765625 → 50.5977; the label `0.0
+  s` of `origin` (21.86279296875 wide) gives only 16 + 10.931396484375 = 26.931396484375.
+- `R` = the label `312.49 s` of `length` (39.041015625 wide) at 450.59765625 +
   19.5205078125 = 470.1181640625, beyond the arrowhead tip 459.59765625.
 - `W` = 8 + (10 + 470.1181640625) = 488.1181640625; `H` = 8 + (10 +
   49.37890625) = 67.37890625.
@@ -1373,63 +1387,90 @@ the physical domain's blue `#0050EF` (§4).
 The root `clt_1` (8 quarters) and its locked child `clt_2` (4 at 2), with
 three named timestamps (§2): `timestamp_1` `Downbeat` at 3/2 and
 `timestamp_2` `Climax` at 6 on `clt_1`, and `timestamp_3` `Entry` at 1 on
-`clt_2`. No timeline has a name, so each row shows its ID. The manifest's
-own statement `{"select": {"addresses": [{"id": "timestamp_2", "part":
-["line"]}]}, "set": {"display": "none"}}` hides the cross-section line of
-`timestamp_2`, which its wedge and label do not follow (§2.4): both are
-drawn. Every markers band is shown (§4), so `clt_2`'s draws the wedge of
-`Entry`; it lies after `line` in the default band order, so below
-`clt_2`'s line, towards the root.
+`clt_2`. No timeline has a name, so each row shows its ID, and the
+manifest's `graphical` object has no statement. `Downbeat` draws the
+default `display`, its wedge, its name and its cross-section line;
+`Climax` draws `["wedge", "name"]`, so no cross-section line; `Entry`
+draws all five, its labels stacked name, ID, coordinate (§6.4, Markers).
+Every markers band is shown (§4), so `clt_2`'s draws `Entry`; it lies
+after `line` in the default band order, so below `clt_2`'s line, towards
+the root.
 
 - `N` = w(`clt_1`, 11) = 25.91552734375, the same for `clt_2`.
-- `x0` = 16 + 25.91552734375 + 8 = 49.91552734375 → 49.9155; the start
-  label `0 ♩` gives only 16 + 6.416015625 = 22.416015625. `L` = 400 over 8
-  quarters, so a root position `q` lies at `x0 + 50q`: `Downbeat` at
-  49.91552734375 + 75 = 124.91552734375 → 124.9155, `Climax` at
-  49.91552734375 + 300 = 349.91552734375 → 349.9155, and `Entry`, at
-  2 + 1 = 3 on the root's axis (§3.1), at 49.91552734375 + 150 =
-  199.91552734375 → 199.9155. `clt_2` runs from `x(2)` = 149.91552734375
-  to `x(6)` = 349.91552734375, its line stopping at `Xe − 1.5w` =
-  345.41552734375 → 345.4155 for its diamond.
-- `R` = the arrowhead tip 449.91552734375 + 9 = 458.91552734375; the end
-  label `8 ♩` reaches only 449.91552734375 + 6.416015625 = 456.33154296875,
-  and `clt_2`'s diamond 349.91552734375 + 4.5 = 354.41552734375.
-- The root's markers band: the labels `0 ♩` [−6.416015625, 6.416015625],
-  `8 ♩` [393.583984375, 406.416015625], `Downbeat` (45.79541015625 wide)
-  [75 − 22.897705078125, 75 + 22.897705078125] = [52.102294921875,
-  97.897705078125] and `Climax` (30.8935546875 wide) [300 −
-  15.44677734375, 300 + 15.44677734375] = [284.55322265625,
-  315.44677734375], placed in this order (§6.4, Markers), keep the label
-  separation 2 from one another, so they fill one tier: the band is
-  26.9765625 wide (Shared quantities), and `Eb` = 26.9765625.
-- `clt_2`'s markers band holds `Entry` (23.94580078125 wide) alone, one
-  tier: 1.5 + 13 + 2 + 10.4765625 = 26.9765625 wide, at level −1 of
-  `clt_2`, towards the root.
+- `x0` = 16 + 25.91552734375 + 8 = 49.91552734375 → 49.9155; the labels
+  give only 16 + 22.897705078125 − 75 = −36.102294921875 (`Downbeat`)
+  and 16 + 29.38623046875 − 150 = −104.61376953125 (`timestamp_3`, the
+  widest label of `Entry`). `L` = 400 over 8 quarters, so a root position
+  `q` lies at `x0 + 50q`: `Downbeat` at 49.91552734375 + 75 =
+  124.91552734375 → 124.9155, `Climax` at 49.91552734375 + 300 =
+  349.91552734375 → 349.9155, and `Entry`, at 2 + 1 = 3 on the root's
+  axis (§3.1), at 49.91552734375 + 150 = 199.91552734375 → 199.9155.
+  `clt_2` runs from `x(2)` = 149.91552734375 to `x(6)` = 349.91552734375,
+  its line stopping at `Xe − 1.5w` = 345.41552734375 → 345.4155 for its
+  diamond.
+- The labels (§5.3), at size 9: `Downbeat` 45.79541015625 wide, `Climax`
+  30.8935546875, `Entry` 23.94580078125, `timestamp_3` (advances 13374)
+  13374 × 9 / 2048 = 58.7724609375, and the coordinate of `Entry`, the
+  Fraction `[1, 1]` in quarters, `1 ♩` (§5.2), 12.83203125.
+- `R` = the arrowhead tip 449.91552734375 + 9 = 458.91552734375; `Climax`
+  ends at 349.91552734375 + 15.44677734375 = 365.3623046875,
+  `timestamp_3` at 199.91552734375 + 29.38623046875 = 229.3017578125, and
+  `clt_2`'s diamond at 349.91552734375 + 4.5 = 354.41552734375.
+- The root's markers band, at level −1 from `c` = 0: the stacks of
+  `Downbeat` and `Climax`, one line each, with the extents [75 −
+  22.897705078125 − 1, 75 + 22.897705078125 + 1] = [51.102294921875,
+  98.897705078125] and [300 − 15.44677734375 − 1, 300 + 15.44677734375 +
+  1] = [283.55322265625, 316.44677734375] (§6.3), share tier 1, one line
+  high, so `T` = 1: the band is 1.5 + 13 + 2 + 10.4765625 = 26.9765625
+  wide, and `Eb` = 26.9765625.
+- `clt_2`'s markers band, at level −1 of `clt_2` from `c` = 0: the stack
+  of `Entry`, three lines, one item as wide as `timestamp_3`, [150 −
+  29.38623046875 − 1, 150 + 29.38623046875 + 1] = [119.61376953125,
+  180.38623046875], alone in tier 1, three lines high, so `T` = 3: the
+  band is 1.5 + 13 + 2 + 3 × 10.4765625 = 16.5 + 31.4296875 = 47.9296875
+  wide, towards the root. Nothing else of `clt_2` is present.
 - Above the root, the children band alone. `clt_1`'s line reaches nothing
   there, so the band starts at the larger of 1.5 + 4 = 5.5 and `p0 / 2` =
   14 / 2 = 7 (`p0` = max(10 + 4, 12.8046875) = 14): 7. `clt_2`'s row has
-  the inner half max(7, 26.9765625) = 26.9765625, its markers band, and
-  the outer half max(7, 0) = 7; its line lies 7 + 26.9765625 =
-  33.9765625 above the root's, and `Ea` = 7 + 33.9765625 = 40.9765625.
-- `y_root` = max(8 + 40.9765625, 8 + 6.40234375) = 48.9765625 in the
-  member drawing; `Hm` = 48.9765625 + 26.9765625 + 8 = 83.953125. Drawn,
-  the root's line lies at 8 + 48.9765625 = 56.9765625 → 56.9766 and
-  `clt_2`'s at 56.9765625 − 33.9765625 = 23.
-- The wedges (§6.6): the root's from 56.9765625 + 1.5 = 58.4765625 →
-  58.4766 to 71.4765625 → 71.4766, their labels' baseline at 58.4765625 +
-  13 + 2 + 8.35400390625 = 81.83056640625 → 81.8306; `Entry`'s from 23 +
-  1.5 = 24.5 to 37.5, its label's baseline at 24.5 + 13 + 2 +
-  8.35400390625 = 47.85400390625 → 47.854. The names' baselines lie at 23
-  + (10.21044921875 − 2.59423828125) / 2 = 26.80810546875 → 26.8081 and
-  56.9765625 + 3.80810546875 = 60.78466796875 → 60.7847.
-- The cross-section lines (§6.6), drawn last (§7.2), in the order of their
-  wedges: `timestamp_1` lies on the root's line, so it runs from `P + V` =
-  8 + 0 = 8 to `Hm − P − V` = 83.953125 − 8 = 75.953125 in the member
-  drawing, drawn from 8 + 8 = 16 to 8 + 75.953125 = 83.953125 → 83.9531,
-  crossing `clt_2`'s row; `timestamp_3` lies on `clt_2`'s line, above the
-  root's, so it runs from that line, 23, up to 16 (`y1="23" y2="16"`),
-  crossing no row between `clt_2` and the root; `timestamp_2`'s line is
-  not displayed and has no descriptor.
+  the inner half max(7, 47.9296875) = 47.9296875, its markers band, and
+  the outer half max(7, 0) = 7; its line lies 7 + 47.9296875 = 54.9296875
+  above the root's, the band is 47.9296875 + 7 = 54.9296875 wide, and
+  `Ea` = 7 + 54.9296875 = 61.9296875.
+- `y_root` = max(8 + 61.9296875, 8 + 6.40234375) = 69.9296875 in the
+  member drawing; `Hm` = 69.9296875 + 26.9765625 + 8 = 104.90625 →
+  104.9062 (a tie, to the even multiple, §7.3). Drawn, the root's line
+  lies at 8 + 69.9296875 = 77.9296875 → 77.9297 and `clt_2`'s at
+  77.9296875 − 54.9296875 = 23.
+- The wedges (§6.6): the root's two from 77.9296875 + 1.5 = 79.4296875 →
+  79.4297 to 77.9296875 + 14.5 = 92.4296875 → 92.4297; `Entry`'s from 23
+  + 1.5 = 24.5 to 23 + 14.5 = 37.5.
+- The labels (§6.6), line `n` starting 1.5 + 13 + 2 + (`n` − 1) ×
+  10.4765625 out, each baseline `a(9)` = 8.35400390625 beyond that start:
+  `Downbeat` and `Climax` on line 1, 16.5 out, at 77.9296875 + 16.5 +
+  8.35400390625 = 102.78369140625 → 102.7837; `Entry` on line 1 at 23 +
+  16.5 + 8.35400390625 = 47.85400390625 → 47.854, `timestamp_3` on line
+  2, 16.5 + 10.4765625 = 26.9765625 out, at 49.9765625 + 8.35400390625 =
+  58.33056640625 → 58.3306, and `1 ♩` on line 3, 16.5 + 20.953125 =
+  37.453125 out, at 60.453125 + 8.35400390625 = 68.80712890625 → 68.8071.
+  The names' baselines lie at 23 + (10.21044921875 − 2.59423828125) / 2 =
+  26.80810546875 → 26.8081 and 77.9296875 + 3.80810546875 =
+  81.73779296875 → 81.7378.
+- The cross-section lines (§6.6), drawn last (§7.2): `timestamp_1` spans
+  `clt_1`'s line and its children band, which starts 7 and ends 61.9296875
+  above the line; no conversion maps band is present. Its ordinates are
+  77.9296875, 77.9296875 − 7 = 70.9296875 and 77.9296875 − 61.9296875 =
+  16, so it runs from `y1` = 16 to `y2` = 77.9296875 → 77.9297 at
+  124.9155, and never reaches the wedges below the line. `timestamp_2`
+  does not list `cross_section`, and `timestamp_3`'s timeline `clt_2` has
+  neither a children band nor a conversion maps band, so its line has no
+  length: neither has a descriptor.
+- The descriptors (§7.2): the card's shadow and the card; `clt_1`'s line,
+  circle and arrowhead; `clt_2`'s line, circle and diamond; the wedges of
+  `timestamp_1`, `timestamp_2` and `timestamp_3`; the names `clt_2` and
+  `clt_1`; the labels `Downbeat`, `Climax`, `Entry`, `timestamp_3` and
+  `1 ♩`, addressed `{"id": X, "part": ["name"]}` for each timestamp `X` and
+  `{"id": "timestamp_3", "part": ["id"]}` and `{"id": "timestamp_3",
+  "part": ["coordinate"]}`; and the cross-section line of `timestamp_1`.
 - `W` = 8 + (10 + 458.91552734375) = 476.91552734375; `H` = 8 + (10 +
-  83.953125) = 101.953125.
-- Page 508.91552734375 × 133.953125 → **508.9155 × 133.9531**.
+  104.90625) = 122.90625 → 122.9062.
+- Page 508.91552734375 × 154.90625 → **508.9155 × 154.9062**.

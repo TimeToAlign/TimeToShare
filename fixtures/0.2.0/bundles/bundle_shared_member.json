@@ -12,7 +12,74 @@
     },
     "statements": [],
     "styles": {},
-    "timestamps": []
+    "timestamps": [
+      {
+        "coordinate": [
+          0,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "t"
+      },
+      {
+        "coordinate": [
+          8,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_2",
+        "name": "length",
+        "timeline": "t"
+      },
+      {
+        "coordinate": 0.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_3",
+        "name": "origin",
+        "timeline": "u"
+      },
+      {
+        "coordinate": 4.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_4",
+        "name": "length",
+        "timeline": "u"
+      },
+      {
+        "coordinate": 0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_5",
+        "name": "origin",
+        "timeline": "v"
+      },
+      {
+        "coordinate": 800,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_6",
+        "name": "length",
+        "timeline": "v"
+      }
+    ]
   },
   "groups": [
     {
@@ -36,7 +103,7 @@
   ],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "name": "Shared",
   "timelines": [

@@ -115,10 +115,7 @@
         "select": {
           "addresses": [
             {
-              "id": "score",
-              "part": [
-                "end"
-              ]
+              "id": "timestamp_2"
             }
           ]
         },
@@ -160,10 +157,9 @@
         "select": {
           "addresses": [
             {
-              "id": "score",
+              "id": "timestamp_2",
               "part": [
-                "end",
-                "label"
+                "coordinate"
               ]
             }
           ]
@@ -238,12 +234,39 @@
         "stroke-width": 4
       }
     },
-    "timestamps": []
+    "timestamps": [
+      {
+        "coordinate": [
+          0,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "score"
+      },
+      {
+        "coordinate": [
+          8,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_2",
+        "name": "length",
+        "timeline": "score"
+      }
+    ]
   },
   "groups": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "name": null,
   "timelines": [

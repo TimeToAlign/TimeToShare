@@ -21,7 +21,54 @@
       }
     ],
     "styles": {},
-    "timestamps": []
+    "timestamps": [
+      {
+        "coordinate": [
+          0,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "https://example.org/piece/score"
+      },
+      {
+        "coordinate": [
+          8,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_2",
+        "name": "length",
+        "timeline": "https://example.org/piece/score"
+      },
+      {
+        "coordinate": 0.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_3",
+        "name": "origin",
+        "timeline": "perf/take 2"
+      },
+      {
+        "coordinate": 4.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_4",
+        "name": "length",
+        "timeline": "perf/take 2"
+      }
+    ]
   },
   "groups": [
     {
@@ -36,7 +83,7 @@
   ],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "name": "Free IDs",
   "timelines": [

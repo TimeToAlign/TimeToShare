@@ -1,4 +1,34 @@
 {
+  "graphical": {
+    "timestamps": [
+      {
+        "coordinate": [
+          0,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "maps:quarters"
+      },
+      {
+        "coordinate": [
+          16,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_2",
+        "name": "length",
+        "timeline": "maps:quarters"
+      }
+    ]
+  },
   "measure_maps": [
     {
       "id": "measuremap_1",
@@ -50,7 +80,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "timelines": [
     {

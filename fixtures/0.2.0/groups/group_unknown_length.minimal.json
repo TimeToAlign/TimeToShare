@@ -5,7 +5,45 @@
         "performance",
         "score"
       ]
-    }
+    },
+    "timestamps": [
+      {
+        "coordinate": 0.0,
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_1",
+        "name": "origin",
+        "timeline": "performance"
+      },
+      {
+        "coordinate": [
+          0,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_2",
+        "name": "origin",
+        "timeline": "score"
+      },
+      {
+        "coordinate": [
+          12,
+          1
+        ],
+        "display": [
+          "wedge",
+          "coordinate"
+        ],
+        "id": "timestamp_3",
+        "name": "length",
+        "timeline": "score"
+      }
+    ]
   },
   "groups": [
     {
@@ -18,7 +56,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (33ee9efd)"
+    "generator": "timetoalign 1.2.0 (a3e0d256)"
   },
   "timelines": [
     {

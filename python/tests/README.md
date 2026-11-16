@@ -53,7 +53,11 @@ rejection cases that use them (`test_schema.py`):
   `facet` refer to `Facet`, exactly the five facets `markers`,
   `conversion_maps`, `children`, `regions` and `flow_control`, and the words
   of an `Address`'s `part` to `Part`, exactly `start`, `end`, `name`,
-  `label`, `card` and `line`. `ElementType` is exactly the sixteen types `block`,
+  `label`, `card`, `line`, `id` and `coordinate`. The words of a
+  `Timestamp`'s `display` are exactly `TIMESTAMP_DISPLAY`, `wedge`, `name`,
+  `id`, `coordinate` and `cross_section` in that order, so the canonical
+  order the writers apply cannot drift from the words the schema admits.
+  `ElementType` is exactly the sixteen types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `flow_marker`, `jump_from`,
   `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card` and
   `cross_section`. The four
@@ -90,8 +94,9 @@ rejection cases that use them (`test_schema.py`):
   `{"part": ["name"]}`, `{"id": "score"}`, `{"id": "perf/take 2"}`,
   `{"id": "score", "facet": "regions"}`, `{"id": "score", "part":
   ["card"]}`, `{"id": "score", "part": ["end", "label"]}`, `{"id":
-  "timestamp_1", "part": ["line"]}` and `{"id": "timestamp_1", "part":
-  ["label"]}`, and refuses
+  "timestamp_1", "part": ["line"]}`, `{"id": "timestamp_1", "part":
+  ["label"]}`, `{"id": "timestamp_1", "part": ["name"]}`, `{"id": "timestamp_1", "part": ["id"]}` and `{"id":
+  "timestamp_1", "part": ["coordinate"]}`, and refuses
   the string `"score"`, `{"facet": "regions"}` (a facet needs an ID),
   `{"id": "score", "facet": "regions", "part": ["label"]}` (a facet never
   stands with a part), `{"id": "score", "part": []}`, `{"id": "score",
@@ -312,6 +317,13 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `repeat_count` 1 besides, no other element does), a group, a MeasureMap, a conversion map (and the maps nested in a
   `ChainMap`, a `CombinationMap` and a `PiecewiseMap`), a `LinearMap`, a
   `TableMap` and a `graphical` object each gain exactly their table's keys.
+  A named timestamp without `display` gains `display: ["wedge", "name",
+  "cross_section"]`, and nothing else; one stating `["cross_section",
+  "wedge", "name"]` completes to `["wedge", "name", "cross_section"]` and
+  minimizes without `display`, as the default in another order is still
+  the default; one stating `["name", "wedge"]` completes to `["wedge",
+  "name"]` and keeps it in the minimal form; one stating `[]` keeps `[]` in
+  both forms.
   The unit default of `number_type` is stated for ticks (`int`), seconds
   (`float`) and whole_notes (`fraction`).
 - **Never added, never removed.** `id`, `graphical` and a root's `offset`
@@ -390,7 +402,7 @@ naming no timeline is checked for its timeline alone.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 107 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 109 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the eighteen of the table, so every code is reached by a case both
@@ -416,6 +428,13 @@ quarters) with the child `verse` (4 at 2): a timestamp on `ghost`
 its parent), at `[-1, 1]` on `score` (`timestamp_coordinate`), with the ID
 `timestamp_1` of a timeline (`duplicate_id` at the timestamp's `id`, first
 at the timeline's), and with the ID `timestamp_01` (`schema` at its `id`).
+Two more break the schema's `display` of a timestamp on `score`:
+`timestamp_display_unknown` states `["wedge", "flag"]` (`schema` at
+`display/1`, the word outside the enum) and `timestamp_display_repeated`
+states `["wedge", "name", "name"]` (`schema` at `display`, the duplicate
+breaking `uniqueItems`), each `display` in canonical order, so ordering it
+moves nothing. Every case is written in the complete form, so a timestamp
+of a case states its `display`.
 
 **Each semantic rule has the smallest inline document with exactly one
 problem** (`test_identity.py`, `test_segment_lines.py`), whose path and
@@ -529,7 +548,12 @@ documents that bound each rule from the other side:
   (`[17, 2]` beyond `[8, 1]`, `[16, 2]` not). The schema refuses an ID
   `timestamp_0`, `timestamp_01` or `clt_1`, an empty `name`, a `name`
   null and a timestamp without `coordinate`, each at that member (the
-  missing member at the timestamp).
+  missing member at the timestamp). `display` passes as `[]`, as `["id"]`,
+  as all five in canonical order and as all five reversed (the order
+  carries no meaning); the schema refuses `"wedge"` (not an array) at
+  `display`, `["wedge", "Wedge"]` at `display/1` (words are exact),
+  `["line"]` at `display/0` (a part word, not a display word), `[1]` at
+  `display/0`, and `["name", "name"]` at `display` (`uniqueItems`).
 
 **One document breaks every step once** (`test_every_step_in_order` and its
 JavaScript twin): `identity_problems` returns exactly the stated problems, in
@@ -572,7 +596,13 @@ by ID and `members` by code point; `measure_maps` by ID;
 Values compare exactly; strings by code point. The timestamps
 `timestamp_4` on `b` at `[1, 1]`, `timestamp_3` and `timestamp_2` on `a` at
 `[3, 2]` and `timestamp_1` on `a` at `[5, 1]` come out `timestamp_2`,
-`timestamp_3`, `timestamp_1`, `timestamp_4`, and a timestamp's coordinate
+`timestamp_3`, `timestamp_1`, `timestamp_4`; a timestamp's `display` is
+written in the order of `TIMESTAMP_DISPLAY` (`["cross_section",
+"coordinate", "id", "name", "wedge"]` comes out `["wedge", "name", "id",
+"coordinate", "cross_section"]`, a word the schema does not know after
+them by code point, `["zeta", "alpha", "wedge"]` as `["wedge", "alpha",
+"zeta"]`, any other value last in its given order, so ordering a refused
+manifest never fails), and a timestamp's coordinate
 is respelled on its timeline's axis (`[6.0, 1]` on quarters as `[6, 1]`,
 `2` on seconds as `2.0`), while one naming no timeline keeps its spelling
 (`2` stays `2`). What proves it
@@ -606,9 +636,13 @@ trips of `complete` and `minimal` hold. `fixture_paths()` lists every
 `*.json` under `fixtures/0.2.0/` except the drawings. The styled fixtures
 `styled__score.json` and `styled__performance.json` carry the literally
 stated `graphical` objects (20 and 3 statements, and the score's band order
-with its start and end wedges above its line and its map below), the
+with its markers band above its line and its map below), the
 score's elements addressed by `Address` objects (`{"id": "intro", "part":
-["label"]}`, `{"id": "da-capo", "part": ["label"]}`); the thirteen drawn items of the score resolve, by the
+["label"]}`, `{"id": "da-capo", "part": ["label"]}`, and the wedge
+`{"id": "timestamp_2"}` and coordinate label `{"id": "timestamp_2", "part":
+["coordinate"]}` of its timestamp `length`); the thirteen drawn items of the
+score, the wedges and coordinate labels of its timestamps `origin` and
+`length` among them, resolve, by the
 cascade ranking of `docs/drawing.md`, to thirteen distinct colours, and no
 statement hides anything but child `a`.
 
@@ -634,10 +668,27 @@ cannot prove that the emitter produces them:
 - **Named timestamps.** `timestamps.json` and its twin hold the three
   timestamps `timestamp_1` (`Downbeat`, `[3, 2]` on the root `clt_1`),
   `timestamp_2` (`Climax`, `[6, 1]` on `clt_1`) and `timestamp_3` (`Entry`,
-  `[1, 1]` on the child `clt_2`), in that canonical order, and one
-  statement setting `display: none` on `{"id": "timestamp_2", "part":
-  ["line"]}`; `identity_problems` finds nothing in either form, so the
-  emitter carries the named timestamps through the library unchanged.
+  `[1, 1]` on the child `clt_2`), in that canonical order, and no
+  statement. In the fixture `timestamp_1` states the default `display`
+  `["wedge", "name", "cross_section"]`, `timestamp_2` `["wedge", "name"]`
+  and `timestamp_3` all five words in canonical order; the twin leaves out
+  only `timestamp_1`'s `display`. `identity_problems` finds nothing in
+  either form, so the emitter carries the named timestamps through the
+  library with their `display` in the format's form.
+- **Origin and length.** Every fixture that a drawing under `drawings/`
+  draws, but `timestamps`, names the zero of each root it draws (each
+  ungrouped root and each group member) `origin` and, where the root's
+  length is known, its length `length`, each with the `display` `["wedge",
+  "coordinate"]`, in canonical order with the smallest free
+  `timestamp_<N>`. Three fixtures pin it with their exact timestamps, in
+  both forms: `label_float_rounding` (`origin` `0.0` and `length`
+  `312.48979591836735` on `take`, `timestamp_1` and `timestamp_2`),
+  `bundles/bundle_ungrouped` (three roots, minted by root ID: `pages` 0
+  and 5262, `recording` 0 and 441000, `score` `[0, 1]` and `[16, 1]`,
+  `timestamp_1` to `timestamp_6`) and `groups/group_unknown_length` (the
+  member `performance` of unknown length has `origin` `0.0` alone,
+  `timestamp_1`, before `score`'s `[0, 1]` and `[12, 1]`, `timestamp_2`
+  and `timestamp_3`). No corpus fixture carries a named timestamp.
 - **Flow-control IDs by type.** Across the complete fixtures, every
   flow-control element whose ID has the generated form `<prefix>_<N>`
   carries its own `type` as the prefix: exactly `flow_marker_1` (three

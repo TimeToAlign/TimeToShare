@@ -10,7 +10,8 @@ array of a manifest whose order carries no meaning has one canonical order:
   coordinate, then id;
 * ``groups`` by id and every group's ``members`` by code point;
 * ``measure_maps`` by id;
-* ``graphical.timestamps`` by timeline, then coordinate, then id.
+* ``graphical.timestamps`` by timeline, then coordinate, then id, and every
+  timestamp's ``display`` in the order of :data:`TIMESTAMP_DISPLAY`.
 
 Own-axis values compare by their exact numeric value, never by their JSON
 spelling; strings compare by Unicode code point. Nothing else is reordered;
@@ -37,7 +38,7 @@ from collections.abc import Callable, Mapping
 from fractions import Fraction
 from typing import Any
 
-__all__ = ["canonical_json", "canonical_order", "dumps"]
+__all__ = ["TIMESTAMP_DISPLAY", "canonical_json", "canonical_order", "dumps"]
 
 UNIT_NUMBER_TYPES = {
     "number": "float",
@@ -74,12 +75,36 @@ _MAP_NESTED_MEMBERS = {
 }
 """The members of each conversion map type that hold nested conversion maps."""
 
+TIMESTAMP_DISPLAY = ("wedge", "name", "id", "coordinate", "cross_section")
+"""The words of a named timestamp's ``display``, in canonical order."""
+
 _ROW_NUMBER_MEMBERS = (
     "qstamp",
     "nominal_length",
     "actual_length",
     "offset_within_measure",
 )
+
+
+def _display_key(word: Any) -> tuple[int, int, str]:
+    """Order the words of ``display``: the known ones canonically, then others.
+
+    A string the schema does not know follows them by code point, and any
+    other value follows last in its given order, so ordering never fails.
+    """
+    if word in TIMESTAMP_DISPLAY:
+        return (0, TIMESTAMP_DISPLAY.index(word), "")
+    if isinstance(word, str):
+        return (1, 0, word)
+    return (2, 0, "")
+
+
+def _order_displays(manifest: Any) -> None:
+    """Put the ``display`` of every named timestamp in canonical order, in place."""
+    for timestamp in _dicts(_timestamps(manifest)):
+        display = timestamp.get("display")
+        if isinstance(display, list):
+            timestamp["display"] = sorted(display, key=_display_key)
 
 
 def canonical_json(value: Any) -> str:
@@ -340,7 +365,7 @@ def canonical_order(value: Any) -> Any:
     in it is ordered at every depth and the array itself by id, its ``groups``
     are ordered by id, each with its ``members`` by code point, its
     ``measure_maps`` by id and its ``graphical.timestamps`` by timeline, then
-    coordinate, then id.
+    coordinate, then id, each with its ``display`` in canonical order.
     Every value it reads by a number type is spelled as that type selects
     (module docstring). Only the arrays listed in the module docstring move;
     object keys are left as they are (``dumps`` sorts them), and any other
@@ -378,6 +403,7 @@ def canonical_order(value: Any) -> Any:
             ),
             "timestamps",
         )
+    _order_displays(result)
     return result
 
 

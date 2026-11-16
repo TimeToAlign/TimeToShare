@@ -2,6 +2,7 @@ import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { DEFAULTS } from "../src/defaults.js";
 import { schema } from "../src/generated/schema.js";
+import { TIMESTAMP_DISPLAY } from "../src/manifest/order.js";
 import { UNIT_NUMBER_TYPES } from "../src/validate.js";
 import { loadSchemaFile } from "./fixtures.js";
 
@@ -147,7 +148,20 @@ describe("the schema document", () => {
       "regions",
       "flow_control",
     ]);
-    expect(defs.Part?.enum).toEqual(["start", "end", "name", "label", "card", "line"]);
+    expect(defs.Part?.enum).toEqual([
+      "start",
+      "end",
+      "name",
+      "label",
+      "card",
+      "line",
+      "id",
+      "coordinate",
+    ]);
+    const display = ((defs.Timestamp as Node).properties as Node).display as Node;
+    expect((display.items as Node).enum).toEqual([...TIMESTAMP_DISPLAY]);
+    expect(TIMESTAMP_DISPLAY).toEqual(["wedge", "name", "id", "coordinate", "cross_section"]);
+    expect(display.uniqueItems).toBe(true);
     expect(properties("Selector").facet?.$ref).toBe("#/$defs/Facet");
     expect(defs.ElementType?.enum).toEqual([
       "block",
@@ -280,6 +294,9 @@ describe("the schema document", () => {
       { id: "score", part: ["end", "label"] },
       { id: "timestamp_1", part: ["line"] },
       { id: "timestamp_1", part: ["label"] },
+      { id: "timestamp_1", part: ["name"] },
+      { id: "timestamp_1", part: ["id"] },
+      { id: "timestamp_1", part: ["coordinate"] },
       { id: "score", root: "score" },
     ]) {
       expect(address(accepted), JSON.stringify(accepted)).toBe(true);
@@ -350,6 +367,7 @@ describe("the schema document", () => {
       measure_map: ["MeasureMap"],
       group: ["Group"],
       graphical: ["Graphical"],
+      timestamp: ["Timestamp"],
     };
     const own: Readonly<Record<string, Kind>> = { LinearMap: "linear_map", TableMap: "table_map" };
     const element = ["flow_control_element", "repeat_end"];

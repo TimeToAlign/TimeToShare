@@ -366,6 +366,32 @@ describe("canonical order", () => {
     validate(result);
   });
 
+  it("puts the display of a named timestamp in canonical order", () => {
+    const displays = [
+      ["cross_section", "coordinate", "id", "name", "wedge"],
+      ["zeta", "alpha", "wedge"],
+      [2, "name", 1, "zeta", "wedge"],
+    ];
+    const value = manifest([timeline("a")], {
+      graphical: {
+        timestamps: displays.map((display, index) => ({
+          ...stamp(`timestamp_${index + 1}`, "a", [index + 1, 1]),
+          display,
+        })),
+      },
+    });
+    const given = compactJson(value as Lossless<Json>);
+    const result = canonicalOrder(value);
+    expect(compactJson(value as Lossless<Json>)).toBe(given);
+    const timestamps = (result.graphical as JsonObject).timestamps as JsonObject[];
+    expect(timestamps.map((entry) => entry.display)).toEqual([
+      ["wedge", "name", "id", "coordinate", "cross_section"],
+      ["wedge", "alpha", "zeta"],
+      ["wedge", "name", "zeta", 2, 1],
+    ]);
+    validate({ ...result, graphical: { timestamps: timestamps.slice(0, 1) } });
+  });
+
   it("orders members by code point", () => {
     const value = { timelines: [], groups: [{ id: "g", members: ["\u{1F600}", "\u{FB00}", "b"] }] };
     expect(canonicalOrder(value).groups[0]?.members).toEqual(["b", "\u{FB00}", "\u{1F600}"]);
@@ -462,16 +488,17 @@ function tiedManifest(): JsonObject {
   );
 }
 
-/**
- * The value with every object's keys reversed, and the items of every array
- * whose order carries no meaning: `timelines`, `groups` and `measure_maps`, a group's
- * `members`, a timeline's `children`, `conversion_maps`, `regions` and
- * `flow_control`.
- */
+/** A named timestamp `id` on `line` at `coordinate`, named `x`. */
 function stamp(id: string, line: string, coordinate: unknown): JsonObject {
   return { id, timeline: line, coordinate, name: "x" };
 }
 
+/**
+ * The value with every object's keys reversed, and the items of every array
+ * whose order carries no meaning: `timelines`, `groups` and `measure_maps`, a group's
+ * `members`, a timeline's `children`, `conversion_maps`, `regions` and
+ * `flow_control`, `graphical.timestamps` and a timestamp's `display`.
+ */
 function reverse(value: unknown, unordered = false, arrays = true): Lossless<Json> {
   if (Array.isArray(value)) {
     const items = value.map((item) => reverse(item, false, arrays));
@@ -484,11 +511,13 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
         ? ["timelines", "groups", "measure_maps"]
         : "timestamps" in value && "statements" in value
           ? ["timestamps"]
-          : "unit" in value && "length" in value
-            ? ["children", "conversion_maps", "regions", "flow_control"]
-            : "members" in value && "id" in value
-              ? ["members"]
-              : [];
+          : "timeline" in value && "display" in value
+            ? ["display"]
+            : "unit" in value && "length" in value
+              ? ["children", "conversion_maps", "regions", "flow_control"]
+              : "members" in value && "id" in value
+                ? ["members"]
+                : [];
     return Object.fromEntries(
       Object.keys(value)
         .reverse()

@@ -10,11 +10,11 @@
 <polygon data-id="pages" points="488.7036,57.2812 479.7036,52.7812 479.7036,61.7812" fill="none" stroke="#FF0000" stroke-width="1.5"/>
 <line data-id="page_2" data-part="start" x1="213.0369" y1="49.2812" x2="213.0369" y2="65.2812" stroke="#000000" stroke-width="1"/>
 <line data-id="page_3" data-part="start" x1="346.3703" y1="49.2812" x2="346.3703" y2="65.2812" stroke="#000000" stroke-width="1"/>
-<polygon data-id="pages" data-part="start" points="79.7036,58.7812 76.7036,71.7812 82.7036,71.7812" fill="#000000"/>
-<polygon data-id="pages" data-part="end" points="479.7036,58.7812 476.7036,71.7812 482.7036,71.7812" fill="#000000"/>
+<polygon data-id="timestamp_1" points="79.7036,58.7812 76.7036,71.7812 82.7036,71.7812" fill="#000000"/>
+<polygon data-id="timestamp_2" points="479.7036,58.7812 476.7036,71.7812 482.7036,71.7812" fill="#000000"/>
 <text data-id="pages" data-part="name" x="16" y="61.0894" text-anchor="start" font-size="11" fill="#000000">Pages</text>
-<text data-id="pages" data-part="start label" x="79.7036" y="82.1353" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
-<text data-id="pages" data-part="end label" x="479.7036" y="82.1353" text-anchor="middle" font-size="9" fill="#000000">5262 px</text>
+<text data-id="timestamp_1" data-part="coordinate" x="79.7036" y="82.1353" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
+<text data-id="timestamp_2" data-part="coordinate" x="479.7036" y="82.1353" text-anchor="middle" font-size="9" fill="#000000">5262 px</text>
 <text data-id="page_1" data-part="label" x="146.3703" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">Page 1</text>
 <text data-id="page_2" data-part="label" x="279.7036" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">Page 2</text>
 <text data-id="page_3" data-part="label" x="413.0369" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">Page 3</text>
@@ -24,11 +24,11 @@
 <line data-id="recording" x1="79.7036" y1="130.7578" x2="479.7036" y2="130.7578" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
 <circle data-id="recording" cx="79.7036" cy="130.7578" r="3" fill="#0050EF"/>
 <polygon data-id="recording" points="488.7036,130.7578 479.7036,126.2578 479.7036,135.2578" fill="#0050EF"/>
-<polygon data-id="recording" data-part="start" points="79.7036,132.2578 76.7036,145.2578 82.7036,145.2578" fill="#000000"/>
-<polygon data-id="recording" data-part="end" points="479.7036,132.2578 476.7036,145.2578 482.7036,145.2578" fill="#000000"/>
+<polygon data-id="timestamp_3" points="79.7036,132.2578 76.7036,145.2578 82.7036,145.2578" fill="#000000"/>
+<polygon data-id="timestamp_4" points="479.7036,132.2578 476.7036,145.2578 482.7036,145.2578" fill="#000000"/>
 <text data-id="recording" data-part="name" x="16" y="134.5659" text-anchor="start" font-size="11" fill="#000000">Recording</text>
-<text data-id="recording" data-part="start label" x="79.7036" y="155.6118" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
-<text data-id="recording" data-part="end label" x="479.7036" y="155.6118" text-anchor="middle" font-size="9" fill="#000000">441000 smp</text>
+<text data-id="timestamp_3" data-part="coordinate" x="79.7036" y="155.6118" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
+<text data-id="timestamp_4" data-part="coordinate" x="479.7036" y="155.6118" text-anchor="middle" font-size="9" fill="#000000">441000 smp</text>
 <rect data-id="score" data-part="card" x="10" y="191.7344" width="507.8967" height="92.4297" rx="5" fill="#B8BEC8"/>
 <rect data-id="score" data-part="card" x="8" y="189.7344" width="507.8967" height="92.4297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="flow_marker_1" x1="279.7036" y1="249.6875" x2="279.7036" y2="197.7344" stroke="#FF0000" stroke-width="1.5" stroke-dasharray="2 2"/>
@@ -38,11 +38,11 @@
 <line data-id="score" x1="79.7036" y1="204.2344" x2="479.7036" y2="204.2344" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="score" cx="79.7036" cy="204.2344" r="3" fill="#00CC00"/>
 <polygon data-id="score" points="488.7036,204.2344 479.7036,199.7344 479.7036,208.7344" fill="#00CC00"/>
-<polygon data-id="score" data-part="start" points="79.7036,205.7344 76.7036,218.7344 82.7036,218.7344" fill="#000000"/>
-<polygon data-id="score" data-part="end" points="479.7036,205.7344 476.7036,218.7344 482.7036,218.7344" fill="#000000"/>
+<polygon data-id="timestamp_5" points="79.7036,205.7344 76.7036,218.7344 82.7036,218.7344" fill="#000000"/>
+<polygon data-id="timestamp_6" points="479.7036,205.7344 476.7036,218.7344 482.7036,218.7344" fill="#000000"/>
 <text data-id="score" data-part="name" x="16" y="208.0425" text-anchor="start" font-size="11" fill="#000000">Score</text>
-<text data-id="score" data-part="start label" x="79.7036" y="229.0884" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="score" data-part="end label" x="479.7036" y="229.0884" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<text data-id="timestamp_5" data-part="coordinate" x="79.7036" y="229.0884" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_6" data-part="coordinate" x="479.7036" y="229.0884" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
 <text data-id="jump_from_1" data-part="label" x="279.7036" y="272.0415" text-anchor="middle" font-size="9" fill="#000000">D.C. al Fine</text>
 <text data-id="flow_marker_1" data-part="label" x="282.7036" y="247.5649" text-anchor="start" font-size="9" fill="#000000">Fine</text>
 </g>

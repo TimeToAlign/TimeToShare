@@ -19,7 +19,7 @@ The directories sort the manifests by content only:
 
 Version 0.2.0 has 48 manifests directly under `fixtures/0.2.0/`, 11 under
 `groups/` and 11 under `bundles/`, 70 in all, each with its minimal twin, so
-140 files. Beside them lie 107 rejection cases and 13 warning cases.
+140 files. Beside them lie 109 rejection cases and 13 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -72,7 +72,14 @@ display order in `graphical.order` is the library's own member order. The
 `graphical` object the script composes for a manifest, its styles,
 statements and band orders, is read back by the library, which keeps it as
 written, and takes part in the round trip too: the library must write the
-composed manifest back unchanged. Every timeline, MeasureMap, conversion
+composed manifest back unchanged. Every fixture but the corpus fixtures
+and `timestamps` also names the origin and length of each root it draws,
+every group member and every root that is neither a member nor holds one,
+as an editor marks a new root: the named timestamp `origin` at 0 and, where
+the length is known, `length` at the root's length, each with the `display`
+`["wedge", "coordinate"]` and the smallest `timestamp_N` the manifest
+leaves free, minted by timeline ID and then coordinate
+(`origin_and_length` in `graphical.py`). Every timeline, MeasureMap, conversion
 map, region and flow-control element carries an ID; IDs the script does not give are
 minted by timetoalign and depend on the construction order within the
 builder, which is part of the fixture contract.
@@ -115,7 +122,7 @@ The structural fixtures add focused examples:
 | `segment_pages_locked.json` | the same segment line, locked once built |
 | `segment_pages_accolades.json` | an unlocked segment line of four pages, each a segment line of four accolades of 400, 450, 452 and 452 pixels |
 | `segment_children.json` | an unlocked root of 32 quarters whose three children are segment lines, two of them overlapping |
-| `timestamps.json` | named timestamps: a root `clt_1` of 8 quarters with the child `clt_2` (4 at 2), the timestamps `Downbeat` at 3/2 and `Climax` at 6 on the root and `Entry` at 1 on the child, and a statement hiding the cross-section line of `Climax`, `{"id": "timestamp_2", "part": ["line"]}` |
+| `timestamps.json` | named timestamps: a root `clt_1` of 8 quarters with the child `clt_2` (4 at 2), the timestamps `Downbeat` at 3/2 and `Climax` at 6 on the root and `Entry` at 1 on the child; `Downbeat` draws the default `display` (wedge, name, cross-section line), `Climax` `["wedge", "name"]`, and `Entry` all five, its name, ID and coordinate stacked |
 
 The corpus fixtures exercise public timetoalign loaders; the synthetic
 fixtures are emitted first:
@@ -187,7 +194,7 @@ per quarter):
 | `map_row_siblings.json` | a root `piece` of 8 quarters whose children `ante` (4 at 0) and `cons` (4 at 4) touch and so share a row; `ante` carries the maps `a_ticks` ("Ticks") and `b_tempo` ("Tempo"), `cons` the maps `a_tempo` ("Tempo") and `b_ticks` ("Ticks"), so both Tempo maps lie in slot 1 and both Ticks maps in slot 2, although `ante`'s Ticks map comes first in its canonical order |
 | `map_row_subslots.json` | an unlocked segment line `form` of 32 quarters of the unnamed segments `a` (8), `b` (12) and `c` (12), whose own map `ticks_form` and the maps `ticks_b` of `b` and `ticks_c` of `c` share the key "Ticks": `ticks_form` takes sub-slot 1, and `ticks_b` and `ticks_c`, which touch, share sub-slot 2 |
 | `map_row_moved.json` | a root `piece` of 8 quarters whose children `ante` (4 at 0, the maps `tempo_ante` and `ticks_ante`) and `cons` (4 at 3, the map `ticks_cons`) overlap and so lie in two rows, each with slots of its own: `ticks_cons` takes slot 1 of its row, where in one row with `ante` it would take slot 2 |
-| `label_float_rounding.json` | a root `take` of 312.48979591836735 seconds and nothing else, whose end wedge is labelled `312.49 s`, its length rounded to three decimals |
+| `label_float_rounding.json` | a root `take` of 312.48979591836735 seconds and its two named timestamps, `origin` at 0.0 and `length` at its length, each with the `display` `["wedge", "coordinate"]`; the coordinate label of `length` reads `312.49 s`, its coordinate rounded to three decimals |
 
 ## Coverage of groups and bundles
 
@@ -277,7 +284,7 @@ of their IDs; the maps of `map`, `map_child_band_order`,
 unnamed, so maps of one type on one line share a key and, spanning one
 timeline, take a sub-slot each, in canonical order.
 
-The defaults hide the markers, regions and flow control bands of every
+The defaults hide the regions and flow control bands of every
 timeline held by a band, every timeline of a member drawing but its root
 (drawing specification, section 4). So a child's regions or flow control,
 or a segment's, is drawn in a figure only where a statement of the manifest
@@ -378,7 +385,7 @@ code with the case's. The cases cover every code:
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timetoshare` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 55 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, among them), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order` |
+| `schema` | the schema document | 57 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, among them), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order` |
 | `representation` | an own-axis value can be read as its axis's number type, however it is spelled | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis` |
 | `duplicate_id` | every ID unique across the manifest, that of a map another map holds and that of a named timestamp included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id` |
 | `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps` | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling` |

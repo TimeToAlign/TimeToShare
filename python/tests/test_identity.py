@@ -1051,6 +1051,11 @@ def _stamp(identifier: str, line: str, coordinate: object, name: str = "Entry") 
     return {"id": identifier, "timeline": line, "coordinate": coordinate, "name": name}
 
 
+def _displayed(display: object) -> dict:
+    """A named timestamp on ``score`` at 1 stating ``display``."""
+    return {**_stamp("timestamp_1", "score", [1, 1]), "display": display}
+
+
 def _stamped(*timestamps: dict, **members: object) -> dict:
     """``score`` (8 quarters) with ``verse`` (4 at 2), and named timestamps."""
     root = timeline("score", children=[timeline("verse", length=(4, 1), offset=(2, 1))])
@@ -1089,6 +1094,14 @@ def test_named_timestamps_lie_on_their_timelines() -> None:
             graphical={"timestamps": [_stamp("timestamp_1", "midi", 480)]},
         ),
     ):
+        assert _problems(document) == []
+        validate(document)
+
+
+def test_a_named_timestamp_displays_any_set_of_its_parts() -> None:
+    every = ["wedge", "name", "id", "coordinate", "cross_section"]
+    for display in ([], ["id"], every, every[::-1]):
+        document = _stamped(_displayed(display))
         assert _problems(document) == []
         validate(document)
 
@@ -1192,6 +1205,11 @@ def test_named_timestamp_ids_share_the_manifest_scope() -> None:
             {"id": "timestamp_1", "timeline": "score", "name": "Entry"},
             ("graphical", "timestamps", 0),
         ),
+        (_displayed("wedge"), ("graphical", "timestamps", 0, "display")),
+        (_displayed(["wedge", "Wedge"]), ("graphical", "timestamps", 0, "display", 1)),
+        (_displayed(["line"]), ("graphical", "timestamps", 0, "display", 0)),
+        (_displayed([1]), ("graphical", "timestamps", 0, "display", 0)),
+        (_displayed(["name", "name"]), ("graphical", "timestamps", 0, "display")),
     ],
     ids=[
         "zero",
@@ -1200,6 +1218,11 @@ def test_named_timestamp_ids_share_the_manifest_scope() -> None:
         "empty name",
         "null name",
         "no coordinate",
+        "display not an array",
+        "display word in another case",
+        "display part word",
+        "display number",
+        "display repeated word",
     ],
 )
 def test_the_schema_shapes_a_named_timestamp(timestamp: dict, path: tuple) -> None:

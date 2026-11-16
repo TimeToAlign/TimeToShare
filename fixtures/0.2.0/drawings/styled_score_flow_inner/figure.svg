@@ -13,12 +13,12 @@
 <line data-id="b" x1="298.0801" y1="23" x2="493.5801" y2="23" stroke="#EA580C" stroke-width="3"/>
 <circle data-id="b" cx="298.0801" cy="23" r="3" fill="#EA580C"/>
 <polygon data-id="b" points="493.5801,23 498.0801,19.4 502.5801,23 498.0801,26.6" fill="none" stroke="#EA580C" stroke-width="1.5"/>
-<polygon data-id="score" data-part="start" points="98.0801,60.6406 95.0801,47.6406 101.0801,47.6406" fill="#65A30D"/>
-<polygon data-id="score" data-part="end" points="498.0801,60.6406 495.0801,47.6406 501.0801,47.6406" fill="#B45309"/>
+<polygon data-id="timestamp_1" points="98.0801,60.6406 95.0801,47.6406 101.0801,47.6406" fill="#65A30D"/>
+<polygon data-id="timestamp_2" points="498.0801,60.6406 495.0801,47.6406 501.0801,47.6406" fill="#B45309"/>
 <text data-id="b" data-part="name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#0369A1">b</text>
 <text data-id="score" data-part="name" x="16" y="66.7949" text-anchor="start" font-size="12" fill="#111827">Styled score</text>
-<text data-id="score" data-part="start label" x="98.0801" y="43.2822" text-anchor="middle" font-size="10" fill="#4D7C0F">0 ♩</text>
-<text data-id="score" data-part="end label" x="498.0801" y="43.2822" text-anchor="middle" font-size="10" fill="#A16207">8 ♩</text>
+<text data-id="timestamp_1" data-part="coordinate" x="98.0801" y="43.2822" text-anchor="middle" font-size="10" fill="#4D7C0F">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="498.0801" y="43.2822" text-anchor="middle" font-size="10" fill="#A16207">8 ♩</text>
 <text data-id="intro" data-part="label" x="148.0801" y="116.5635" text-anchor="middle" font-size="10" fill="#0E7490">intro</text>
 <text data-id="da-capo" data-part="label" x="298.0801" y="92.9229" text-anchor="middle" font-size="10" fill="#9D174D">D.C.</text>
 </g>

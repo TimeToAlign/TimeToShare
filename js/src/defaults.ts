@@ -17,6 +17,7 @@ import type {
   TimeUnit,
 } from "./generated/types.js";
 import { clone, isJsonObject, JsonFloat, type JsonObject } from "./json/value.js";
+import { orderDisplays } from "./manifest/order.js";
 import { respell } from "./manifest/spelling.js";
 import { exactNumber } from "./numbers/exact.js";
 import { numberTypeOf } from "./validate/diagnostics.js";
@@ -28,8 +29,9 @@ import { numberTypeOf } from "./validate/diagnostics.js";
  * `conversion_map`; a `LinearMap` adds those of `linear_map` and a `TableMap`
  * those of `table_map`. Every flow-control element has the keys of
  * `flow_control_element`, and one whose manifestation is `repeat_end` adds
- * those of `repeat_end`, as no other element carries a repeat count. Python's `timetoshare.defaults` holds the same
- * table, and the schema declares each value as the key's `default`.
+ * those of `repeat_end`, as no other element carries a repeat count. Every named timestamp of
+ * `graphical.timestamps` has the keys of `timestamp`. Python's
+ * `timetoshare.defaults` holds the same table, and the schema declares each value as the key's `default`.
  */
 export const DEFAULTS = {
   manifest: { name: null, meta: {}, groups: [], measure_maps: [] },
@@ -52,6 +54,7 @@ export const DEFAULTS = {
   measure_map: { name: null, meta: {} },
   group: { name: null, meta: {} },
   graphical: { styles: {}, statements: [], order: {}, timestamps: [] },
+  timestamp: { display: ["wedge", "name", "cross_section"] },
 } as const;
 
 type Kind = keyof typeof DEFAULTS;
@@ -101,7 +104,10 @@ function visitManifest(manifest: unknown, pass: Pass): void {
   for (const timeline of objects(manifest, "timelines")) visitTimeline(timeline, pass);
   for (const group of objects(manifest, "groups")) pass(group, "group");
   for (const measureMap of objects(manifest, "measure_maps")) pass(measureMap, "measure_map");
-  if (isJsonObject(manifest.graphical)) pass(manifest.graphical, "graphical");
+  const { graphical } = manifest;
+  if (!isJsonObject(graphical)) return;
+  pass(graphical, "graphical");
+  for (const timestamp of objects(graphical, "timestamps")) pass(timestamp, "timestamp");
 }
 
 const UNITS = new Set<string>([
@@ -194,7 +200,8 @@ const stripOne: Pass = (owner, kind) => {
  * that is absent is added with its default, at every depth (a timeline's
  * `number_type` is its unit's default). Keys whose default is "absent" are
  * never added, present keys keep their values, spelled as their number type
- * selects (as `canonicalOrder` spells them), and unknown keys pass through.
+ * selects (as `canonicalOrder` spells them), a named timestamp's `display`
+ * in canonical order, and unknown keys pass through.
  * Any other value is copied, its manifest-shaped parts completed, so a
  * `graphical` object alone completes as `complete({ graphical }).graphical`.
  * Python's `timetoshare.complete` gives the same value.
@@ -204,6 +211,7 @@ export function complete<T>(value: T): T;
 export function complete(value: unknown): unknown {
   const result = clone(value);
   respell(result);
+  orderDisplays(result);
   visitManifest(result, completeOne);
   return result;
 }

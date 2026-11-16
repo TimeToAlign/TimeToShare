@@ -11,9 +11,9 @@
 <line data-id="coda" x1="353.7988" y1="23" x2="449.2988" y2="23" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="coda" cx="353.7988" cy="23" r="3" fill="#00CC00"/>
 <polygon data-id="coda" points="449.2988,23 453.7988,19.4 458.2988,23 453.7988,26.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<polygon data-id="score" data-part="start" points="53.7988,38.5 50.7988,51.5 56.7988,51.5" fill="#000000"/>
+<polygon data-id="timestamp_1" points="53.7988,38.5 50.7988,51.5 56.7988,51.5" fill="#000000"/>
 <text data-id="coda" data-part="name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">coda</text>
 <text data-id="score" data-part="name" x="16" y="40.8081" text-anchor="start" font-size="11" fill="#000000">score</text>
-<text data-id="score" data-part="start label" x="53.7988" y="61.854" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_1" data-part="coordinate" x="53.7988" y="61.854" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 </g>
 </svg>

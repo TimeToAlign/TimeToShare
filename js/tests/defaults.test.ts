@@ -200,6 +200,39 @@ describe("the complete and the minimal form", () => {
     expect((root(minimal(child)).children as JsonObject[])[0]?.offset).toEqual([0, 1]);
   });
 
+  it("completes the display of a named timestamp", () => {
+    const stamp = (number: number, members: JsonObject = {}): JsonObject => ({
+      id: `timestamp_${number}`,
+      timeline: "score",
+      coordinate: [1, 1],
+      name: "Entry",
+      ...members,
+    });
+    const value = manifest([timeline("score")], {
+      graphical: {
+        timestamps: [
+          stamp(1),
+          stamp(2, { display: ["cross_section", "wedge", "name"] }),
+          stamp(3, { display: ["name", "wedge"] }),
+          stamp(4, { display: [] }),
+        ],
+      },
+    });
+    const display = ["wedge", "name", "cross_section"];
+    expect((complete(value).graphical as JsonObject).timestamps).toEqual([
+      stamp(1, { display }),
+      stamp(2, { display }),
+      stamp(3, { display: ["wedge", "name"] }),
+      stamp(4, { display: [] }),
+    ]);
+    expect((minimal(value).graphical as JsonObject).timestamps).toEqual([
+      stamp(1),
+      stamp(2),
+      stamp(3, { display: ["wedge", "name"] }),
+      stamp(4, { display: [] }),
+    ]);
+  });
+
   it("keeps values other than the default", () => {
     const value = manifest([
       timeline("score", "quarters", 8.5, {

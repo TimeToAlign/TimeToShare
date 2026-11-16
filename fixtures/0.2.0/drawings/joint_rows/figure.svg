@@ -29,13 +29,13 @@
 <line data-id="d11" x1="350.0039" y1="27.5" x2="395.5039" y2="27.5" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="d11" cx="350.0039" cy="27.5" r="3" fill="#00CC00"/>
 <polygon data-id="d11" points="395.5039,27.5 400.0039,23.9 404.5039,27.5 400.0039,31.1" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<polygon data-id="piece" data-part="start" points="75.0039,83 72.0039,96 78.0039,96" fill="#000000"/>
-<polygon data-id="piece" data-part="end" points="475.0039,83 472.0039,96 478.0039,96" fill="#000000"/>
+<polygon data-id="timestamp_1" points="75.0039,83 72.0039,96 78.0039,96" fill="#000000"/>
+<polygon data-id="timestamp_2" points="475.0039,83 472.0039,96 478.0039,96" fill="#000000"/>
 <text data-id="b11" data-part="name" x="16" y="31.3081" text-anchor="start" font-size="11" fill="#000000">B11, D11</text>
 <text data-id="b1" data-part="name" x="16" y="53.8081" text-anchor="start" font-size="11" fill="#000000">B1, D1</text>
 <text data-id="b" data-part="name" x="16" y="71.3081" text-anchor="start" font-size="11" fill="#000000">B, D</text>
 <text data-id="piece" data-part="name" x="16" y="85.3081" text-anchor="start" font-size="11" fill="#000000">Piece</text>
-<text data-id="piece" data-part="start label" x="75.0039" y="106.354" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="piece" data-part="end label" x="475.0039" y="106.354" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<text data-id="timestamp_1" data-part="coordinate" x="75.0039" y="106.354" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="475.0039" y="106.354" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
 </g>
 </svg>

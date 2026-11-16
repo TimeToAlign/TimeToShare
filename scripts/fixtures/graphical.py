@@ -1,7 +1,9 @@
-"""Graphical overlays and builders for the band-order fixtures."""
+"""Graphical overlays, the origin and length timestamps of drawn roots, and
+builders for the band-order fixtures."""
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Mapping
 from typing import Any
 
 from timetoalign import Timeline
@@ -48,7 +50,7 @@ _STYLED_SCORE: dict[str, Any] = {
             "set": {"stroke": "#65A30D", "fill": "#65A30D"},
         },
         {
-            "select": {"addresses": [{"id": "score", "part": ["end"]}]},
+            "select": {"addresses": [{"id": "timestamp_2"}]},
             "set": {"stroke": "#B45309", "fill": "#B45309"},
         },
         {
@@ -64,7 +66,7 @@ _STYLED_SCORE: dict[str, Any] = {
             "set": {"fill": "#4D7C0F", "font-size": 10},
         },
         {
-            "select": {"addresses": [{"id": "score", "part": ["end", "label"]}]},
+            "select": {"addresses": [{"id": "timestamp_2", "part": ["coordinate"]}]},
             "set": {"fill": "#A16207"},
         },
         {
@@ -181,12 +183,6 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     },
     "timestamps": {
         "clt_1": {
-            "statements": [
-                {
-                    "select": {"addresses": [{"id": "timestamp_2", "part": ["line"]}]},
-                    "set": {"display": "none"},
-                },
-            ],
             "timestamps": [
                 {
                     "id": "timestamp_1",
@@ -199,12 +195,14 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
                     "timeline": "clt_1",
                     "coordinate": [6, 1],
                     "name": "Climax",
+                    "display": ["wedge", "name"],
                 },
                 {
                     "id": "timestamp_3",
                     "timeline": "clt_2",
                     "coordinate": [1, 1],
                     "name": "Entry",
+                    "display": ["wedge", "name", "id", "coordinate", "cross_section"],
                 },
             ],
         },
@@ -232,7 +230,7 @@ entry of its ``order``, a band order keyed by a timeline's id, as an order
 it keeps unchecked; it writes both back, the band orders beside the display
 orders of its own groups. A statement selects elements by their address
 objects: an element by its own id (``{"id": "intro"}``), a part of it by its
-id and the part words (``{"id": "score", "part": ["end", "label"]}``), and a
+id and the part words (``{"id": "intro", "part": ["label"]}``), and a
 band by its timeline's id and its facet (``{"id": "score", "facet":
 "regions"}``). A band order lists ``line`` and the five facets.
 
@@ -256,20 +254,23 @@ child line ``b``            #EA580C    13 (element ``child`` within ``b``)
 map ``ticks``               #7C3AED    5 (class ``LinearMap``)
 brace ``intro``             #0F766E    8, which outranks 7 by its position
 jump ``da-capo``            #DB2777    9 (element ``jump_from``, domain ``logical``)
-start wedge of ``score``    #65A30D    10 (element ``wedge`` within ``score``)
-end wedge of ``score``      #B45309    11 (``addresses``)
+wedge of ``origin``         #65A30D    10 (element ``wedge`` within ``score``)
+wedge of ``length``         #B45309    11 (``addresses``)
 name of ``score``           #111827    18 (``addresses``; also ``content``)
 name of ``b``               #0369A1    19 (element ``name`` within ``b``)
-label of the start wedge    #4D7C0F    14 (element ``label`` within ``score``)
-label of the end wedge      #A16207    15 (``addresses``)
+coordinate of ``origin``    #4D7C0F    14 (element ``label`` within ``score``)
+coordinate of ``length``    #A16207    15 (``addresses``)
 label of ``intro``          #0E7490    16 (``addresses``)
 label of ``da-capo``        #9D174D    17 (``addresses``)
 ==========================  =========  =============================================
 
 A stroke and the fill of one element share its colour. Statement 12 displays
 every child of ``score``; statement 2, which names ``addresses``, outranks it
-and hides the child ``a``. The band order of ``score`` lays its start and end wedges
-against its line above it and its children beyond them, and its map against
+and hides the child ``a``. ``origin`` (``timestamp_1``) and ``length``
+(``timestamp_2``) are the root's two timestamps of ``origin_and_length``,
+statements 11 and 15 address the wedge and the coordinate label of
+``length``. The band order of ``score`` lays the timestamps' wedges against
+its line above it and its children beyond them, and its map against
 its line below it, then its region and its jump.
 
 ``styled_score_flow_inner`` holds the same root with the same styles and
@@ -287,6 +288,97 @@ that the maps of both lie below their lines.
 """
 
 
+_ZERO: dict[str, Any] = {"int": 0, "float": 0.0, "fraction": [0, 1]}
+"""The zero of each number type as a manifest stores a coordinate."""
+
+_ORIGIN_AND_LENGTH_DISPLAY = ["wedge", "coordinate"]
+
+
+def _ids(value: Any) -> Iterator[str]:
+    """Yield every ``id`` held at any depth of a manifest written by the library."""
+    if isinstance(value, Mapping):
+        for key, item in value.items():
+            if key == "id" and isinstance(item, str):
+                yield item
+            else:
+                yield from _ids(item)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _ids(item)
+
+
+def _tree(
+    timelines: list[Mapping[str, Any]], ancestors: tuple[str, ...] = ()
+) -> Iterator[tuple[Mapping[str, Any], tuple[str, ...]]]:
+    """Yield every timeline of a tree with the ids of its ancestors, root first."""
+    for timeline in timelines:
+        yield timeline, ancestors
+        yield from _tree(timeline.get("children", []), (*ancestors, timeline["id"]))
+
+
+def drawn_roots(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    """Return the timelines a manifest draws as roots of member drawings.
+
+    These are every group's members and every ungrouped root, a root of
+    ``timelines`` that no group names as a member and that contains no member
+    (``docs/drawing.md``, section 8.1), in the traversal order of
+    ``timelines``.
+    """
+    members = {
+        member for group in manifest.get("groups", []) for member in group["members"]
+    }
+    holding = {
+        ancestor
+        for timeline, ancestors in _tree(manifest["timelines"])
+        if timeline["id"] in members
+        for ancestor in ancestors
+    }
+    return [
+        timeline
+        for timeline, ancestors in _tree(manifest["timelines"])
+        if timeline["id"] in members
+        or (not ancestors and timeline["id"] not in holding)
+    ]
+
+
+def origin_and_length(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Return the timestamps ``origin`` and ``length`` of each drawn root.
+
+    An editor names the zero of every root of a member drawing ``origin`` and,
+    when its length is known, its length ``length``, each drawing its wedge
+    and its coordinate label (``display`` ``["wedge", "coordinate"]``). The
+    timestamps are returned in canonical order (by timeline, then coordinate),
+    each with the smallest ``timestamp_N`` the manifest's ids leave free,
+    minted in that order. ``manifest`` is the library's complete form, which
+    names every timeline's ``number_type``.
+    """
+    used = set(_ids({key: v for key, v in manifest.items() if key != "graphical"}))
+    used.update(
+        stamp["id"] for stamp in manifest.get("graphical", {}).get("timestamps", [])
+    )
+    marks: list[tuple[str, Any, str]] = []
+    for timeline in sorted(drawn_roots(manifest), key=lambda timeline: timeline["id"]):
+        marks.append((timeline["id"], _ZERO[timeline["number_type"]], "origin"))
+        if timeline.get("length") is not None:
+            marks.append((timeline["id"], timeline["length"], "length"))
+    timestamps: list[dict[str, Any]] = []
+    number = 0
+    for timeline_id, coordinate, name in marks:
+        number += 1
+        while f"timestamp_{number}" in used:
+            number += 1
+        timestamps.append(
+            {
+                "id": f"timestamp_{number}",
+                "timeline": timeline_id,
+                "coordinate": coordinate,
+                "name": name,
+                "display": list(_ORIGIN_AND_LENGTH_DISPLAY),
+            }
+        )
+    return timestamps
+
+
 def map_child_band_order() -> Timeline:
     """Build ``map`` with a band order on the child ``phrase`` alone."""
     return map_timeline()
@@ -298,11 +390,13 @@ def map_root_band_order() -> Timeline:
 
 
 def timestamps() -> Timeline:
-    """Build the timelines of three named timestamps, one line hidden.
+    """Build the timelines of three named timestamps, each drawing other parts.
 
     ``Downbeat`` at 3/2 and ``Climax`` at 6 lie on the root ``clt_1``,
-    ``Entry`` at 1 on its child ``clt_2``; a statement hides the
-    cross-section line of ``Climax``.
+    ``Entry`` at 1 on its child ``clt_2``. ``Downbeat`` draws the default
+    parts (its wedge, name and cross-section line), ``Climax`` its wedge and
+    name only, ``Entry`` all five: wedge, name, ID, coordinate and
+    cross-section line.
     """
     return timestamps_timeline()
 

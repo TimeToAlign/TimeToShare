@@ -39,7 +39,7 @@ as in the Python suite's "The fixture set".
 refactor that keeps the accepted language stays green: the bundled `schema`
 is the file; references are local and resolve; the public definitions exist; `ConversionMap` chooses between exactly the ten
 map types, `Selector.class` names the six timeline classes and the ten types,
-`Facet`, `Part` and `ElementType` are exactly the Python suite's lists, and
+`Facet`, `Part`, `ElementType` and the words of a `Timestamp`'s `display` (`TIMESTAMP_DISPLAY`) are exactly the Python suite's lists, and
 each measure view fixes its target unit over
 `MeasureView`, which fixes the source unit; the unit
 table's consts are exactly the keys of
@@ -114,7 +114,7 @@ schema addition cannot escape the canonical spelling.
 
 ## Shared rejection cases
 
-Each of the 107 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 109 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
@@ -175,7 +175,7 @@ pairs mixed, and adds:
   case, with the keys of every object reversed and, in the fixtures, the
   items of every array the canonical order sorts (`timelines`, `groups`,
   `members`, `measure_maps`, `children`, `conversion_maps`, `regions`,
-  `flow_control`, `graphical.timestamps`), is written by this `dumps` and by Python's `dumps`
+  `flow_control`, `graphical.timestamps` and every timestamp's `display`), is written by this `dumps` and by Python's `dumps`
   (loaded by `python3` from its path) to the same bytes, equal to the file.
 - **Python's `repr` itself.** 2000 doubles from a fixed pseudo-random
   sequence are spelled exactly as `python3` spells them with `repr`.

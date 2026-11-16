@@ -18,11 +18,11 @@
 <line data-id="b" data-part="start" x1="152.2949" y1="60.9531" x2="152.2949" y2="76.9531" stroke="#000000" stroke-width="1"/>
 <line data-id="b2" data-part="start" x1="227.2949" y1="28.4766" x2="227.2949" y2="44.4766" stroke="#000000" stroke-width="1"/>
 <line data-id="c" data-part="start" x1="302.2949" y1="60.9531" x2="302.2949" y2="76.9531" stroke="#000000" stroke-width="1"/>
-<polygon data-id="form" data-part="start" points="52.2949,70.4531 49.2949,83.4531 55.2949,83.4531" fill="#000000"/>
-<polygon data-id="form" data-part="end" points="452.2949,70.4531 449.2949,83.4531 455.2949,83.4531" fill="#000000"/>
+<polygon data-id="timestamp_1" points="52.2949,70.4531 49.2949,83.4531 55.2949,83.4531" fill="#000000"/>
+<polygon data-id="timestamp_2" points="452.2949,70.4531 449.2949,83.4531 455.2949,83.4531" fill="#000000"/>
 <text data-id="form" data-part="name" x="16" y="72.7612" text-anchor="start" font-size="11" fill="#000000">Form</text>
-<text data-id="form" data-part="start label" x="52.2949" y="93.8071" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="form" data-part="end label" x="452.2949" y="93.8071" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
+<text data-id="timestamp_1" data-part="coordinate" x="52.2949" y="93.8071" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="452.2949" y="93.8071" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
 <text data-id="a" data-part="label" x="102.2949" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">A</text>
 <text data-id="b" data-part="label" x="227.2949" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">B</text>
 <text data-id="b1" data-part="label" x="189.7949" y="24.354" text-anchor="middle" font-size="9" fill="#000000">b1</text>

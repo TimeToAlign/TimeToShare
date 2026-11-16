@@ -46,6 +46,7 @@ describe("generated files", () => {
       "Region",
       "FlowControlElement",
       "MeasureMap",
+      "Timestamp",
     ];
     expect(exportsOf(committed("types.ts"))).toEqual(
       [...definitions, ...completed.map((name) => `Complete${name}`), "LosslessManifest"].sort(),

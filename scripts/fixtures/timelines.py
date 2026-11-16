@@ -915,8 +915,8 @@ def label_float_rounding_timeline() -> Timeline:
     """Build a root of seconds whose length is labelled rounded.
 
     The root ``take`` ("Take") is 312.48979591836735 seconds long, a float
-    with more than three decimals, so its end wedge is labelled ``312.49 s``
-    and its start wedge ``0.0 s``.
+    with more than three decimals, so its timestamp ``length`` is labelled
+    ``312.49 s`` and its timestamp ``origin`` ``0.0 s``.
     """
     return parts.named(ContinuousPhysicalTimeline, "take", "Take", 312.48979591836735)
 
