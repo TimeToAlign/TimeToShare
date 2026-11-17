@@ -7,11 +7,18 @@ These rules apply to every contributor, human or automated.
 - `schema/`: the JSON Schema of the current version, one document
   `<version>/timetoshare.schema.json` describing the one manifest shape
   `{timetoshare, timelines, id?, name?, meta?, groups?, measure_maps?,
-  graphical?}`; it is the format contract and source of truth.
+  schemes?, links?, graphical?}`; it is the format contract and source of
+  truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
   the block of frames, cards and bands (the boxes) that draws every
-  manifest, and SVG and TikZ writers; it is part of the contract, and both
-  packages ship it.
+  manifest, and SVG and TikZ writers; and `description.md`, the
+  specification of the description layer (links, schemes, records,
+  assertions, parts and absence, the registry of identifier schemes and
+  validation). Both are part of the contract, and both packages ship
+  them.
+- `registry/`: `schemes.json`, the registry of identifier schemes that
+  turns catalogue addresses into links, written with `dumps`; both
+  packages ship it and read it alike, and the validators never consult it.
 - `fixtures/`: generated manifests under `fixtures/<version>/`, each in the
   complete form beside its minimal twin (the subdirectories `groups/` and
   `bundles/` sort them by content only), hand-authored rejection cases
@@ -55,9 +62,9 @@ These rules apply to every contributor, human or automated.
   depends on TimeLineEditor in code or packages; only the emitted drawing
   figures are produced by TimeLineEditor's writers (its `emit-drawings`
   script, writing into a TimeToShare checkout).
-- Write every fixture, rejection case and warning case with the standard writer
-  `dumps` of either package: object keys sorted by code point at every depth,
-  arrays in canonical order, two-space indentation, final newline, and floats
+- Write every fixture, rejection case and warning case, and the registry,
+  with the standard writer `dumps` of either package: object keys sorted
+  by code point at every depth, arrays in canonical order, two-space indentation, final newline, and floats
   spelled as Python's `repr`. Never keep a fixed list of key orders; key order
   is sorted order, and `canonical_order` covers only the order of array
   elements. In JavaScript, read
