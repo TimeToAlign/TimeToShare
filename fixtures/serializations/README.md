@@ -23,11 +23,11 @@ and these cases together.
 
 The extension names the language the text was written in, not the
 serialization a reader chooses: `refusals/flow_mapping_unquoted_key.yaml`
-is meant as YAML and is read as JSON, and `readings/bom_second_json.json`
+is meant as YAML and is read as JSON, and `refusals/bom_second_json.json`
 is meant as JSON and is read as YAML. Every file is UTF-8, and only the
-`readings/bom_*` texts and `refusals/bom_only.yaml` begin with a byte
-order mark (U+FEFF), the two `readings/bom_second_*` texts with two. The
-bytes of every file are significant, final
+`readings/bom_*` texts, `refusals/bom_only.yaml` and the two
+`refusals/bom_second_*` texts begin with a byte order mark (U+FEFF), the
+last two with two. The bytes of every file are significant, final
 line feeds included; `refusals/empty.yaml` is empty.
 
 ## How a package test uses them
@@ -83,12 +83,12 @@ members.
    - `"json"` for every `pretty.json` and `"jcs"` for every `rfc8785.json`,
      the scalar ones included;
    - for a reading, refusal or writer refusal: `"json"` for every `.json`
-     text but `readings/bom_second_json.json` and for
+     text but `refusals/bom_second_json.json` and for
      `refusals/flow_mapping_unquoted_key.yaml`,
      `refusals/flow_sequence_plain.yaml` and
      `refusals/flow_sequence_then_comment.yaml`, and `"yaml"` for every
      other text (`refusals/empty.yaml`, `refusals/bom_only.yaml` and
-     `readings/bom_second_json.json`, whose first character once the byte
+     `refusals/bom_second_json.json`, whose first character once the byte
      order mark is removed is a second U+FEFF, included). None of these texts is RFC 8785 JSON: the compact ones are
      unsorted (`readings/json_compact.json`), begin with U+FEFF
      (`readings/bom_rfc8785.json`), or hold values the RFC 8785 writer
@@ -139,10 +139,7 @@ memory.
 | `bom_yaml` | U+FEFF before a YAML text | a leading byte order mark is ignored; `serialization_of` gives `"yaml"` |
 | `bom_pretty_json` | U+FEFF before pretty JSON | the same; `"json"` |
 | `bom_rfc8785` | U+FEFF before RFC 8785 JSON | the same; `"json"`, since the text is not byte for byte RFC 8785 JSON |
-| `bom_second_yaml` | two U+FEFF before `a: 1` | only the first is removed; YAML reads the second at the start of its stream as a byte order mark |
-| `bom_second_json` | two U+FEFF before `{"a": 1}` | the second U+FEFF is the first character, neither `{` nor `[`, and the text is not a JSON text: read as YAML, which reads it as a byte order mark; `serialization_of` gives `"yaml"` |
-| `yaml_bom_in_string` | a literal U+FEFF inside a double-quoted YAML string | any U+FEFF but the first is an ordinary character; written `﻿` |
-| `json_bom_in_string` | a literal U+FEFF inside a JSON string | the same, in JSON |
+| `json_bom_in_string` | a literal U+FEFF inside a JSON string | in JSON a U+FEFF inside a string is content; written `\ufeff` in canonical YAML |
 | `yaml_flow_style` | flow collections not at the first character, single quotes | Reading: YAML in any style |
 | `yaml_single_quoted` | `''`, `'it''s'`, quoted `null` and `12` | a quoted scalar is a string |
 | `yaml_block_scalars` | `\|`, `>`, `\|+`, `\|-`, `\|2` | block scalars; their chomping |
@@ -155,14 +152,15 @@ memory.
 | `yaml_double_quoted_escapes` | `\a`, `\e`, `\x41`, `\U0001F600`, `\0`, `\N`, `\_`, `\L`, `\P`, `\/`, `\ `, `\v`, upper-case hex, a literal tab, an escaped line break, a folded line | YAML double-quoted scalars |
 | `yaml_tab` | a literal tab in a comment, a double-quoted and a single-quoted scalar | the tab is not among the characters a YAML text refuses |
 | `yaml_tab_plain` | a literal tab inside a plain scalar, `x<tab>y` | the same in a plain scalar, which YAML 1.2 allows to hold a tab between two of its characters |
-| `yaml_refused_characters_escaped` | U+0001, U+001F, U+007F, U+0080, U+0085, U+009F, U+2028, U+FFFE and U+FFFF written as the escapes `\x01`, `\u001F`, `\x7F`, `\u0080`, `\x85`, `\x9f`, ` `, `￾` and `\U0000FFFF` | a character refused standing as itself is read through an escape; written `\u` and four lower-case digits |
-| `yaml_surrogate_pair_escape` | `😀` in YAML | a high-surrogate escape followed by a low-surrogate escape is one character |
+| `yaml_refused_characters_escaped` | U+0001, U+001F, U+007F, U+0080, U+0085, U+009F, U+2028, U+FFFE and U+FFFF written as the escapes `\x01`, `\u001F`, `\x7F`, `\u0080`, `\x85`, `\x9f`, `\u2028`, `\uFFFE` and `\U0000FFFF` | a character refused standing as itself is read through an escape; written `\u` and four lower-case digits |
+| `yaml_surrogate_pair_escape` | `\ud83d\ude00` and `\uD83D\uDE00` in YAML | a high-surrogate escape followed by a low-surrogate escape is one character |
 | `yaml_plain_multiline` | a plain scalar over three lines | plain-scalar folding |
 | `yaml_crlf` | CR LF line ends, in a quoted and a literal scalar | line breaks read as line feeds |
 | `yaml_comment_before_flow` | a JSON-like text after a comment | neither `{` nor `[` first, and not a JSON text: read as YAML |
 | `yaml_document_start_flow` | `--- [1, {a: b}]` | the same, after a document start |
 | `yaml_quoted_first_key` | `"b": 1` then `a: 2` | a mapping whose first key is quoted is not a JSON text: read as YAML |
 | `yaml_explicit_key` | `? key` | explicit keys |
+| `yaml_implicit_key_1023_then_space` | an implicit key of 1023 characters followed by a space and `:` | the key limit counts from the key's first character to its `:`, the space included: a span of 1024 is read |
 | `yaml_unsorted_keys` | unsorted keys, a plain key `y` | keys sorted when written; `y` is the string `"y"` under YAML 1.2 |
 | `yaml_top_level_quoted_scalar` | `'480'` | a top-level quoted scalar is a string; not a JSON text |
 | `yaml_top_level_yaml_escape` | `"\x41"` alone | a double-quoted scalar with an escape JSON lacks is not a JSON text: read as YAML |
@@ -185,10 +183,11 @@ memory.
 | `manifest_unit_not_string` | `unit: 1`, and `unit: [seconds]` beside `number_type: float` | a `unit` that is not a string is unknown, whatever the `number_type` |
 | `manifest_number_type_not_string` | `number_type` `1`, `null` and `[fraction]` | a `number_type` that is not a string, `null` included, is unknown |
 | `manifest_number_type_missing` | roots in `samples` and in `quarters` with `number_type: float`, the latter holding a child in `quarters` without `number_type` | a missing `number_type` is the unit's default, so values are respelled; a child's `offset` takes the parent's number type, its `length` its unit's default |
+| `manifest_timestamp_timeline_duplicate` | two timelines `score` in `quarters` and two `take` in `seconds`; named timestamps on `score` at `[2, 4]`, on `take` at `3`, and on the single timeline `perf` at `1` | a timestamp whose `timeline` names more than one timeline has its coordinate written as given, still ordered by value; timelines of equal ID keep their given order |
 | `manifest_timestamp_timeline_unknown` | named timestamps on `ghost`, which no timeline is, at `[4, 8]`, `2` and `0.25`, and one on `perf` at `1` | a timestamp whose `timeline` names no timeline has its coordinate written as given, still ordered by value |
 | `json_compact` | JSON without whitespace, keys unsorted | JSON in any layout |
 | `json_whitespace` | tabs, CR LF, spaces around tokens, leading whitespace | the first-character rule skips whitespace |
-| `json_escapes` | `\/`, `é`, a surrogate pair `😀`, `A`, `\u0009`, `\u007f`, `﻿`, `\u0085` | JSON escapes read; written in canonical form |
+| `json_escapes` | `\/`, `\u00e9`, `\u00E9`, a surrogate pair `\ud83d\ude00`, `\u0041`, `\u0009`, `\u007f`, `\ufeff`, `\u0085` | JSON escapes read; written in canonical form |
 | `json_numbers` | `1E2`, `-0`, `1.50`, `0.1e1`, `1e-5`, 2^64, `-0.0`, `4.9e-324`, `10E-1`, `1e+2` | a number without `.`, `e`, `E` is an integer; every other a float |
 | `json_float_edges` | `1.7976931348623158e308`, `1e-400` | as `yaml_float_edges`, in JSON |
 | `json_float_underflow_negative` | `-1e-400` | as `yaml_float_underflow_negative`, in JSON |
@@ -199,12 +198,14 @@ memory.
 | --- | --- |
 | `empty.yaml` | holds no document: an empty text |
 | `bom_only.yaml` | holds no document: U+FEFF alone, an empty text once it is ignored |
+| `bom_second_yaml.yaml` | two U+FEFF before `a: 1`: only the first is removed, and YAML refuses the second |
+| `bom_second_json.json` | two U+FEFF before `{"a": 1}`: once the first is removed, the first character is U+FEFF, neither `{` nor `[`, and the text is not a JSON text; read as YAML, which refuses the U+FEFF; `serialization_of` gives `"yaml"` |
 | `whitespace_only.yaml` | holds no document: whitespace only |
 | `comments_only.yaml` | holds no document: comments only |
 | `yaml_document_end_only.yaml` | holds no document: `...` alone |
 | `yaml_duplicate_key.yaml` | a key repeats in its object |
 | `yaml_duplicate_key_quoted.yaml` | a key repeats, once plain and once single-quoted |
-| `yaml_duplicate_key_escaped.yaml` | a key repeats, once through the escape `a` |
+| `yaml_duplicate_key_escaped.yaml` | a key repeats, once through the escape `\u0061` |
 | `yaml_duplicate_key_nested.yaml` | a key repeats in a nested object |
 | `yaml_duplicate_key_flow.yaml` | a key repeats in a flow mapping |
 | `yaml_lone_surrogate_high.yaml` | a lone high surrogate through an escape |
@@ -217,6 +218,9 @@ memory.
 | `yaml_ls_in_string.yaml` | a literal U+2028 in a YAML text |
 | `yaml_ps_in_string.yaml` | a literal U+2029 in a YAML text |
 | `yaml_ls_in_comment.yaml` | a literal U+2028 in a YAML text, inside a comment |
+| `yaml_bom_in_string.yaml` | a literal U+FEFF not at the start of a YAML text, inside a double-quoted scalar |
+| `yaml_bom_in_comment.yaml` | a literal U+FEFF not at the start of a YAML text, inside a comment |
+| `yaml_bom_in_plain.yaml` | a literal U+FEFF not at the start of a YAML text, inside a plain scalar |
 | `yaml_u0001_in_string.yaml` | a literal U+0001, a C0 control, in a YAML text |
 | `yaml_u001f_in_string.yaml` | a literal U+001F, the last C0 control, in a YAML text |
 | `yaml_del_in_string.yaml` | a literal U+007F in a YAML text |
@@ -248,18 +252,21 @@ memory.
 | `yaml_float_overflow_negative.yaml` | a negative float that rounds to an infinity |
 | `yaml_float_overflow_above_largest.yaml` | `1.7976931348623159e308`, beyond the midpoint between the largest double and 2^1024 |
 | `yaml_implicit_key_1025.yaml` | an implicit key of 1025 characters |
+| `yaml_implicit_key_1024_then_space.yaml` | an implicit key of 1024 characters followed by a space and `:`, a span of 1025 to the `:` |
+| `yaml_flow_mapping_key_1025.yaml` | an implicit key of 1025 characters in a flow mapping, `k: {a…a: 1}` |
 | `yaml_implicit_key_1025_as_written.yaml` | an implicit key of 1025 characters as written (255 escapes `\x41`, three letters and the quotes) whose value has 258 |
 | `flow_mapping_unquoted_key.yaml` | YAML flow style from the first character is read as JSON, and `{a: 1}` is not JSON |
 | `flow_sequence_plain.yaml` | the same for `[a, b]` |
 | `flow_sequence_then_comment.yaml` | read as JSON, and a comment is not JSON |
 | `json_duplicate_key.json` | a key repeats in its object |
-| `json_duplicate_key_escaped.json` | a key repeats, once through the escape `a` |
+| `json_duplicate_key_escaped.json` | a key repeats, once through the escape `\u0061` |
 | `json_duplicate_key_nested.json` | a key repeats in an object inside an array |
 | `json_lone_surrogate_high.json` | a lone high surrogate through an escape |
 | `json_lone_surrogate_low.json` | a lone low surrogate through an escape |
 | `json_lone_surrogate_reversed.json` | a low-surrogate escape before a high-surrogate one pairs neither |
 | `json_lone_surrogate_then_letter.json` | a high-surrogate escape followed by a letter |
 | `json_lone_surrogate_key.json` | a lone surrogate in a key |
+| `json_u0001_in_string.json` | a literal U+0001, a C0 control, inside a JSON string |
 | `json_nan.json` | `NaN` |
 | `json_infinity.json` | `Infinity` |
 | `json_negative_infinity.json` | `-Infinity` |
@@ -273,6 +280,7 @@ memory.
 | `json_unclosed.json` | not JSON: an unclosed object |
 | `json_comment.json` | not JSON: a comment |
 | `json_bom_between_tokens.json` | U+FEFF between `{` and a key: read as JSON, which refuses it outside a string |
+| `json_bom_after_value.json` | U+FEFF after `{"a": 1}`: read as JSON, which refuses it outside a string |
 
 ## Writer refusals
 

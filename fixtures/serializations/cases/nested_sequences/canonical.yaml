@@ -13,5 +13,5 @@ mixed:
     inner:
       -
         x: 1
-        y: [true]
+        "y": [true]
       - [null]
