@@ -170,7 +170,7 @@ def identity_problems(
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
     scheme IDs, the manifest ID), group members, graphical orders, named
-    timestamps and the references of links.
+    timestamps and the dates and references of links.
     """
     roots = _entries(value, "timelines")
     groups = _entries(value, "groups")

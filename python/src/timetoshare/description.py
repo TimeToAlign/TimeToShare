@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import copy
 import datetime
+import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field, fields, replace
 from typing import Any, ClassVar, Self
@@ -82,6 +83,27 @@ MATCHES = ("exact", "close", "broad", "narrow", "related")
 
 STATUSES = ("confirmed", "unconfirmed", "rejected")
 """The words of an assertion's ``status``, a closed vocabulary."""
+
+_DATE = re.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}")
+
+
+def _calendar_date(text: str) -> datetime.date:
+    """Read a date written ``YYYY-MM-DD``, a day of the Gregorian calendar.
+
+    The calendar's years run from 1 to 9999, its months from 1 to 12, and
+    February has 29 days in a year divisible by 4 and not by 100, or by 400.
+    The JavaScript package refuses the same texts with the same message.
+
+    Raises:
+        ValueError: If ``text`` is not written so or names a day the
+            calendar lacks, such as ``2026-02-30``.
+    """
+    if _DATE.fullmatch(text) is not None:
+        try:
+            return datetime.date.fromisoformat(text)
+        except ValueError:
+            pass
+    raise ValueError(f"'{text}' is no Gregorian calendar date written YYYY-MM-DD")
 
 
 @dataclass(frozen=True)
@@ -224,9 +246,9 @@ class Assertion(_Element):
 
     Attributes:
         asserted_by: URIs of the agents who made the assertion.
-        asserted_on: The date of the assertion, or ``None``. A date the
-            format's ``YYYY-MM-DD`` spells but the calendar lacks
-            (``2026-02-30``) is refused when read.
+        asserted_on: The date of the assertion, or ``None``. A date not
+            written ``YYYY-MM-DD``, or one the Gregorian calendar lacks
+            (``2026-02-30``), is refused when read.
         method: How the assertion was reached (a term), or ``None``.
         service: The service that reached it, or ``None``.
         based_on: The sources it rests on.
@@ -248,7 +270,7 @@ class Assertion(_Element):
     @classmethod
     def _read(cls, name: str, value: Any) -> Any:
         if name == "asserted_on" and isinstance(value, str):
-            return datetime.date.fromisoformat(value)
+            return _calendar_date(value)
         return super()._read(name, value)
 
 

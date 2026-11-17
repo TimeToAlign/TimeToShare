@@ -130,7 +130,7 @@ schema addition cannot escape the canonical spelling.
 
 ## Shared rejection cases
 
-Each of the 126 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 127 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
@@ -141,8 +141,8 @@ case has one reading, the reader's value, since JSON text cannot carry it,
 and a test pins the two values in place. One `JSON.parse` reading is exempt:
 `float_axis_int_not_exact`, since `9007199254740993` becomes
 `9007199254740992`, exactly a float; the test asserts that this lossy
-reading validates. The set of names and the eighteen codes are stated
-literally, and the fifteen cases whose messages the Python suite pins carry
+reading validates. The set of names and the nineteen codes are stated
+literally, and the sixteen cases whose messages the Python suite pins carry
 the same messages here (`identity.test.ts`, `description.test.ts`).
 
 The path rule is the Python README's ("One path rule for both validators");
@@ -203,6 +203,17 @@ only where JavaScript must:
   gives the minimal form. Unknown keys are kept because nothing is rebuilt,
   so the Python README's unknown keys are proved on what `withLabel` and
   `withParts` return. An assertion's date is the string `2026-11-17`.
+- **Dates.** Python refuses a date the calendar lacks, or one not written
+  `YYYY-MM-DD`, when it reads an assertion; a JavaScript assertion stays a
+  plain object, so every function that takes or returns one refuses such a
+  date with Python's message (`'2026-02-30' is no Gregorian calendar date
+  written YYYY-MM-DD`): `linkFromUrls` and `partSlotFromUrl` given it in
+  their `assertion`, `withAssertion`, `withParts` given it in a slot's,
+  `withPartOf` given it in the entry's, `withLabel` given a link holding
+  it, and `assertionFor` reading it; `17 November 2026`, `20261117`,
+  `2100-02-29` and `0000-01-01` are refused alike, `2024-02-29` kept as
+  written. The validator's `calendar_date` gives the Python README's
+  verdicts and messages.
 - **Patterns.** A registry pattern is compiled as `^(?:pattern)$` with the
   `u` flag, which matches what Python's `re.fullmatch` matches for every
   URL the registry reads (the URL holds no white space or control

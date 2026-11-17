@@ -220,6 +220,7 @@ describe("the work bundle of Op. 106", () => {
 });
 
 const work = (options = {}) => linkFromUrls([URLS[0]], options);
+const noDate = (date: string) => `'${date}' is no Gregorian calendar date written YYYY-MM-DD`;
 
 describe("the errors of the model", () => {
   const releaseSlot = () => partSlotFromUrl(RELEASE, { absent: "lost" });
@@ -301,8 +302,65 @@ describe("the errors of the model", () => {
       () => withParts(work(), "has_part", [...slots([0]), releaseSlot()]),
       "part slot 2 is recognised at the level 'manifestation', the link's level is 'work'",
     ],
+    ...["2026-02-30", "2100-02-29", "0000-01-01", "20261117", "17 November 2026"].map(
+      (date): [string, () => unknown, string] => [
+        `the date ${date}`,
+        () => linkFromUrls([URLS[0]], { assertion: { asserted_on: date } }),
+        noDate(date),
+      ],
+    ),
+    [
+      "an impossible date of a slot",
+      () => partSlotFromUrl(`${MB}x`, { absent: "lost", assertion: { asserted_on: "2026-11-31" } }),
+      noDate("2026-11-31"),
+    ],
+    [
+      "an impossible date given to withAssertion",
+      () => withAssertion(work(), { asserted_on: "2026-02-30" }),
+      noDate("2026-02-30"),
+    ],
+    [
+      "an impossible date of a slot given to withParts",
+      () =>
+        withParts(work(), "has_part", [
+          { absent: "lost", assertion: { asserted_on: "2026-11-31" } },
+        ]),
+      noDate("2026-11-31"),
+    ],
+    [
+      "an impossible date of a part_of entry",
+      () =>
+        withPartOf(work(), {
+          parts_relation: "has_part",
+          assertion: { asserted_on: "2026-13-01" },
+        }),
+      noDate("2026-13-01"),
+    ],
+    [
+      "an impossible date of a link given to withLabel",
+      () =>
+        withLabel(
+          { relation: "pertains_to", level: "work", assertion: { asserted_on: "2026-02-30" } },
+          null,
+        ),
+      noDate("2026-02-30"),
+    ],
+    [
+      "an impossible date read by assertionFor",
+      () =>
+        assertionFor(
+          { relation: "pertains_to", level: "work" },
+          { absent: "lost", assertion: { asserted_on: "2026-02-30" } },
+        ),
+      noDate("2026-02-30"),
+    ],
   ])("throws for %s", (_name, build, message) => {
     expect(build).toThrow(new Error(message));
+  });
+
+  it("keeps a day of the calendar as written", () => {
+    const leap = work({ assertion: { asserted_on: "2024-02-29" } });
+    expect(leap.assertion?.asserted_on).toBe("2024-02-29");
   });
 });
 
@@ -667,6 +725,75 @@ describe("the rules of links", () => {
     ]);
   });
 
+  it.each(["2024-02-29", "2000-02-29", "0001-01-01", "9999-12-31"])(
+    "accepts an assertion dated %s",
+    (date) => {
+      const value = manifest([timeline("score")], {
+        links: [link({ assertion: { asserted_on: date } })],
+      });
+      validate(value);
+      expect(identityProblems(value)).toEqual([]);
+    },
+  );
+
+  it.each([
+    "2026-02-30",
+    "2023-02-29",
+    "2100-02-29",
+    "2026-11-31",
+    "2026-13-01",
+    "2026-00-10",
+    "2026-11-00",
+    "0000-01-01",
+  ])("refuses an assertion dated %s", (date) => {
+    const value = manifest([timeline("score")], {
+      links: [link({ assertion: { asserted_on: date } })],
+    });
+    const expected = [["links", 0, "assertion", "asserted_on"], "calendar_date", noDate(date)];
+    expect(problems(value)).toEqual([expected]);
+    try {
+      validate(value);
+      expect.unreachable();
+    } catch (error) {
+      const { path, code, detail } = error as SchemaValidationError;
+      expect([path, code, detail]).toEqual(expected);
+    }
+  });
+
+  it("reads a link's dates with its references", () => {
+    const dated = (day: string) => ({ asserted_on: `2026-02-${day}` });
+    const value = manifest([timeline("score")], {
+      links: [
+        link({
+          assertion: dated("30"),
+          identifiers: opus("opus"),
+          parts_relation: "has_part",
+          parts: [{ represented_by: ["ghost"], assertion: dated("31") }],
+          part_of: [{ parts_relation: "has_part", assertion: dated("29") }],
+        }),
+      ],
+    });
+    expect(problems(value)).toEqual([
+      [["links", 0, "assertion", "asserted_on"], "calendar_date", noDate("2026-02-30")],
+      [
+        ["links", 0, "identifiers", 0, "scheme"],
+        "dangling_target",
+        "'opus' names no scheme of this manifest and is no absolute URI",
+      ],
+      [["links", 0, "parts", 0, "assertion", "asserted_on"], "calendar_date", noDate("2026-02-31")],
+      [
+        ["links", 0, "parts", 0, "represented_by", 0],
+        "dangling_target",
+        "'ghost' names no timeline or region of this manifest",
+      ],
+      [
+        ["links", 0, "part_of", 0, "assertion", "asserted_on"],
+        "calendar_date",
+        noDate("2026-02-29"),
+      ],
+    ]);
+  });
+
   it("refuses by the schema's rules of slots and links", () => {
     const pathOf = (value: JsonObject): readonly PathSegment[] => {
       try {
@@ -715,6 +842,10 @@ describe("the rules of links", () => {
     [
       "description_scheme_id_duplicate",
       "'score' is not unique in the manifest, first at #/timelines/0/id",
+    ],
+    [
+      "description_asserted_on_impossible_date",
+      "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD",
     ],
   ])("gives the shared case %s its message", (name, message) => {
     const testCase = rejectionCase(`${name}.json`);

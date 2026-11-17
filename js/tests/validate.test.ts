@@ -50,6 +50,7 @@ const REJECTIONS = [
   "conversion_map_unknown_type",
   "dal_segno_without_target",
   "description_agent_link_pertains_to",
+  "description_asserted_on_impossible_date",
   "description_asserted_on_not_a_date",
   "description_identifier_scheme_unresolved",
   "description_link_level_unknown",
@@ -494,6 +495,7 @@ describe("the shared rejection cases", () => {
     const codes = new Set(rejectionFileNames().map((name) => rejectionCase(name).code));
     expect([...codes].filter((code) => code !== null).sort()).toEqual([
       "band_order",
+      "calendar_date",
       "child_end",
       "child_offset",
       "child_unit",

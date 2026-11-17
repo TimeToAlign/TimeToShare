@@ -32,6 +32,7 @@ ValidationCode: TypeAlias = Literal[
     "band_order",
     "timestamp_timeline",
     "timestamp_coordinate",
+    "calendar_date",
     "finite_number",
 ]
 

@@ -1,15 +1,22 @@
 /**
- * Description rules: what a link's references name, and its unregistered
- * terms. The schema checks the shape of every link; two references reach
- * beyond the link and are checked here, link by link: an identifier's `scheme`
- * names a scheme of the manifest or is an absolute URI, and a part slot's
- * `represented_by` names a timeline (at any depth) or a region of the
+ * Description rules: the dates and references of links, and their
+ * unregistered terms. The schema checks the shape of every link; three rules
+ * reach beyond it and are checked here, link by link: an assertion's
+ * `asserted_on` names a day of the Gregorian calendar, an identifier's
+ * `scheme` names a scheme of the manifest or is an absolute URI, and a part
+ * slot's `represented_by` names a timeline (at any depth) or a region of the
  * manifest. The open vocabularies are never refused: a bare term outside the
  * words registered for its key is listed as a warning. Python's
  * `timetoshare.validation.description` holds the same rules.
  */
 
-import { ABSENCE_REASONS, METHODS, PARTS_RELATIONS, RELATIONS } from "../description/link.js";
+import {
+  ABSENCE_REASONS,
+  calendarDateProblem,
+  METHODS,
+  PARTS_RELATIONS,
+  RELATIONS,
+} from "../description/link.js";
 import { isAbsoluteUri } from "../description/registry.js";
 import { isJsonObject, type JsonObject } from "../json/value.js";
 import {
@@ -66,11 +73,29 @@ function targetsOf(manifest: JsonObject): Set<string> {
   return found;
 }
 
-function* schemeProblems(
+function* dateProblems(
+  owner: JsonObject,
+  path: readonly PathSegment[],
+): Generator<SchemaValidationError> {
+  const { assertion } = owner;
+  const date = isJsonObject(assertion) ? assertion.asserted_on : null;
+  const problem = typeof date === "string" ? calendarDateProblem(date) : null;
+  if (problem !== null) {
+    yield new SchemaValidationError(
+      "calendar_date",
+      [...path, "assertion", "asserted_on"],
+      problem,
+    );
+  }
+}
+
+/** The date of an owner's assertion, then its identifiers' schemes. */
+function* ownerProblems(
   owner: JsonObject,
   path: readonly PathSegment[],
   schemes: ReadonlySet<string>,
 ): Generator<SchemaValidationError> {
+  yield* dateProblems(owner, path);
   for (const [index, identifier] of entries(owner, "identifiers").entries()) {
     const scheme = text(identifier, "scheme");
     if (!schemes.has(scheme) && !isAbsoluteUri(scheme)) {
@@ -84,19 +109,20 @@ function* schemeProblems(
 }
 
 /**
- * Yield the references of links that name nothing, link by link: within a
- * link its identifiers' schemes, then each part slot's identifiers' schemes
- * and its `represented_by` entries, then each `part_of` entry's identifiers'
+ * Yield the impossible dates and dangling references of links, link by link:
+ * within a link its assertion's date and its identifiers' schemes, then each
+ * part slot's assertion's date, identifiers' schemes and `represented_by`
+ * entries, then each `part_of` entry's assertion's date and identifiers'
  * schemes.
  */
 export function* descriptionProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const schemes = new Set(entries(manifest, "schemes").map((scheme) => text(scheme, "id")));
   const targets = targetsOf(manifest);
   for (const [link, path] of linksOf(manifest)) {
-    yield* schemeProblems(link, path, schemes);
+    yield* ownerProblems(link, path, schemes);
     for (const [index, slot] of entries(link, "parts").entries()) {
       const at = [...path, "parts", index];
-      yield* schemeProblems(slot, at, schemes);
+      yield* ownerProblems(slot, at, schemes);
       const represented = Array.isArray(slot.represented_by) ? slot.represented_by : [];
       for (const [number, target] of (represented as string[]).entries()) {
         if (!targets.has(target)) {
@@ -109,7 +135,7 @@ export function* descriptionProblems(manifest: JsonObject): Generator<SchemaVali
       }
     }
     for (const [index, entry] of entries(link, "part_of").entries()) {
-      yield* schemeProblems(entry, [...path, "part_of", index], schemes);
+      yield* ownerProblems(entry, [...path, "part_of", index], schemes);
     }
   }
 }
