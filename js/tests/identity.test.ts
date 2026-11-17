@@ -990,7 +990,7 @@ describe("identity", () => {
       "'timestamp_1' is not unique in the manifest, first at #/timelines/0/id",
     ],
   ])("states the message of the shared case %s", (name, message) => {
-    const testCase = rejectionCase(`${name}.json`);
+    const testCase = rejectionCase(name);
     if (!isJsonObject(testCase.manifest)) throw new Error(`${name} holds no manifest object`);
     expect(only(testCase.manifest)).toEqual([testCase.path, message]);
   });

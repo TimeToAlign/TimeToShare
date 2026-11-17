@@ -6,8 +6,8 @@ every code point DejaVu Sans does not map and Noto Music 2.004
 (``fonts/NotoMusic-Regular.ttf``) does in Noto Music, as the font-family list
 ``DejaVu Sans, Noto Music`` does. The script verifies the SHA-256 of both
 TrueType files and writes
-``fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`` with the standard
-writer ``dumps``, one table measuring both:
+``fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`` in pretty JSON
+with ``dumps``, one table measuring both:
 
 - ``units_per_em`` (``head``), ``ascender`` and ``descender`` (``hhea``, the
   descender as a positive depth) and ``fallback`` (the advance of glyph 0)
@@ -25,8 +25,8 @@ writer ``dumps``, one table measuring both:
   would never be read. No other code point is added; one neither font maps
   is measured by ``fallback``.
 
-``dumps`` sorts every object's keys by code point. Run it from ``python/``
-with ``uv run python ../scripts/extract_font_metrics.py``.
+``dumps`` writes it in pretty JSON, every object's keys sorted by code point.
+Run it from ``python/`` with ``uv run python ../scripts/extract_font_metrics.py``.
 """
 
 from __future__ import annotations
@@ -102,7 +102,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--output", type=Path, default=METRICS)
     args = parser.parse_args(argv)
     args.output.write_text(
-        dumps(metrics(args.text_font, args.music_font)), encoding="utf-8", newline="\n"
+        dumps(metrics(args.text_font, args.music_font), serialization="json"),
+        encoding="utf-8",
+        newline="\n",
     )
     print(f"wrote {args.output}")
     return 0

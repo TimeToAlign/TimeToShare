@@ -1,0 +1,68 @@
+manifest:
+  groups: []
+  links:
+    -
+      assertion:
+        asserted_by: ["https://example.org/people/editor"]
+        asserted_on: "2026-11-17"
+        based_on: []
+        match: null
+        method: manual
+        service: null
+        status: confirmed
+      identifiers: []
+      label: "Piano Sonata No. 29 in B♭ major, Op. 106"
+      level: work
+      part_of: []
+      parts:
+        -
+          absent: null
+          assertion: null
+          identifiers: []
+          label: "I. Allegro"
+          represented_by: [intro]
+          uri: ["http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980"]
+        -
+          absent: not_represented
+          assertion: null
+          identifiers: []
+          label: "II. Scherzo. Assai vivace"
+          represented_by: []
+          uri: ["http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9"]
+      parts_ordered: true
+      parts_relation: has_part
+      records: []
+      relation: about
+      uri: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+  measure_maps: []
+  meta: {}
+  name: null
+  schemes: []
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: score
+      is_segment_line: false
+      length: [8, 1]
+      links: []
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions:
+        -
+          end: [4, 1]
+          id: intro
+          links: []
+          meta: {}
+          name: null
+          start: [0, 1]
+      unit: quarters
+  timetoshare: "0.2.0"
+unknown_keys: []
+unregistered_terms:
+  -
+    path: [links, 0, relation]
+    term: about

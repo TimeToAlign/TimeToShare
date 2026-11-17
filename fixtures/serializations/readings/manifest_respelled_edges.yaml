@@ -1,4 +1,9 @@
 timetoshare: "0.2.0"
 timelines:
-  - {id: take, unit: samples, length: 1.0e+20, offset: -0.0}
-  - {id: perf, unit: seconds, length: 9007199254740992}
+  - id: take
+    unit: samples
+    length: 1.0e+20
+    offset: -0.0
+  - id: perf
+    unit: seconds
+    length: 9007199254740992

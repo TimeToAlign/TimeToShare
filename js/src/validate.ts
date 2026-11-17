@@ -3,9 +3,9 @@
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
 import { schema } from "./generated/schema.js";
 import type { LosslessManifest } from "./generated/types.js";
-import { parseJson } from "./json/parse.js";
 import { isJsonObject, type JsonObject, plain } from "./json/value.js";
-import { compareCodePoints, spell } from "./json/write.js";
+import { loads } from "./serialization/read.js";
+import { compareCodePoints, spell } from "./serialization/text.js";
 import {
   descriptionArrays,
   linkProblems,
@@ -218,7 +218,7 @@ function run(value: unknown): Warnings {
 
 /**
  * Check that `value` is a TimeToShare manifest. A checked value is typed as
- * the lossless form `parseJson` returns: its numbers may be `bigint`s and
+ * the lossless form `loads` returns: its numbers may be `bigint`s and
  * `JsonFloat`s, and a Fraction is a pair of them.
  */
 export function validate(value: unknown): asserts value is LosslessManifest {
@@ -255,9 +255,12 @@ function reject(errors: readonly ErrorObject[], instance: unknown): never {
   );
 }
 
-/** Read lossless JSON and validate it as a TimeToShare manifest. */
+/**
+ * Read a manifest in any serialization with `loads` and validate it: a
+ * manifest read without losing a number or key order.
+ */
 export function parse(text: string): LosslessManifest {
-  const value = parseJson(text);
+  const value = loads(text);
   validate(value);
   return value;
 }

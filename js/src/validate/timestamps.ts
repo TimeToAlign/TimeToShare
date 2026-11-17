@@ -1,6 +1,6 @@
 import type { JsonObject } from "../json/value.js";
-import { spell } from "../json/write.js";
 import { compareExact } from "../numbers/exact.js";
+import { spell } from "../serialization/text.js";
 import {
   lengthOf,
   SchemaValidationError,

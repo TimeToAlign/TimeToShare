@@ -4,13 +4,27 @@ timelines:
     unit: seconds
     length: 1503
     children:
-      - {id: perf_child, unit: seconds, offset: 4, length: 10}
+      - id: perf_child
+        unit: seconds
+        offset: 4
+        length: 10
     regions:
-      - {id: r, start: 2.0, end: 8}
+      - id: r
+        start: 2.0
+        end: 8
   - id: score
     unit: quarters
     length: [33, 2.0]
     flow_control:
-      - {id: f, type: flow_marker, manifestation: fine, coordinate: [4, 1.0]}
-  - {id: take, unit: samples, offset: 10.0, length: 96000.0}
-  - {id: ticks_as_float, unit: ticks, number_type: float, length: 960}
+      - id: f
+        type: flow_marker
+        manifestation: fine
+        coordinate: [4, 1.0]
+  - id: take
+    unit: samples
+    offset: 10.0
+    length: 96000.0
+  - id: ticks_as_float
+    unit: ticks
+    number_type: float
+    length: 960

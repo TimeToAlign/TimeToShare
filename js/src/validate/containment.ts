@@ -1,7 +1,7 @@
 import type { NumberType, TimeUnit } from "../generated/types.js";
 import type { JsonObject } from "../json/value.js";
-import { compareCodePoints, spell } from "../json/write.js";
 import { compareExact, exact, type Rational, rational } from "../numbers/exact.js";
+import { compareCodePoints, spell } from "../serialization/text.js";
 import {
   entries,
   lengthOf,

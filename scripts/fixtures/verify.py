@@ -6,12 +6,12 @@ import json
 from pathlib import Path
 from typing import Any
 
-from timetoshare import canonical_order, complete, dumps, minimal, unknown_keys
+from timetoshare import canonical_order, complete, dumps, loads, minimal, unknown_keys
 
 
 def twin_path(path: Path) -> Path:
-    """Return the path of a fixture's ``<name>.minimal.json`` twin."""
-    return path.with_name(f"{path.stem}.minimal.json")
+    """Return the path of a fixture's ``<name>.minimal.yaml`` twin."""
+    return path.with_name(f"{path.stem}.minimal.yaml")
 
 
 def _library_order(value: dict[str, Any]) -> str:
@@ -34,7 +34,7 @@ def check(
     canonical order; and ``complete`` of the composed ``source`` is the
     fixture, so the library wrote back what the catalogue composed.
     """
-    fixture, twin = json.loads(fixture_text), json.loads(twin_text)
+    fixture, twin = loads(fixture_text), loads(twin_text)
     problems: list[str] = []
     for label, value in (("fixture", fixture), ("twin", twin)):
         keys = unknown_keys(value)

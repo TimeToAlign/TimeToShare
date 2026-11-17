@@ -56,10 +56,10 @@ def main(argv: list[str] | None = None) -> int:
     for directory in dict.fromkeys(case.directory for case in CATALOGUE):
         destination = args.output / directory
         destination.mkdir(parents=True, exist_ok=True)
-        for stale in destination.glob("*.json"):
+        for stale in [*destination.glob("*.json"), *destination.glob("*.yaml")]:
             stale.unlink()
     for fixture in planned:
-        # LF on every platform: the standard writer's text, byte for byte.
+        # LF on every platform: the canonical YAML of dumps, byte for byte.
         fixture.path.write_text(
             dumps(fixture.item.to_dict()), encoding="utf-8", newline="\n"
         )

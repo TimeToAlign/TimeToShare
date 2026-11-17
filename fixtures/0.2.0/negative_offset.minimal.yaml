@@ -1,0 +1,24 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: recording
+    -
+      coordinate: 30.0
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: recording
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    id: recording
+    length: 30.0
+    name: Recording
+    offset: -2.5
+    unit: seconds
+timetoshare: "0.2.0"

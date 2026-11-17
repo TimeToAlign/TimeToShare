@@ -1,15 +1,40 @@
 timetoshare: "0.2.0"
 timelines:
-  - {id: g_zero_denominator, unit: quarters, length: [1, 0]}
-  - {id: f_unknown_type, unit: seconds, number_type: decimal, length: 2, offset: [4, 8]}
+  - id: b_float_beyond_double
+    unit: seconds
+    length: 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137217
+  - id: g_zero_denominator
+    unit: quarters
+    length: [1, 0]
+  - id: f_unknown_type
+    unit: seconds
+    number_type: decimal
+    length: 2
+    offset: [4, 8]
   - id: e_unknown_unit
     unit: furlongs
     length: [4, 8]
     offset: 2.0
     children:
-      - {id: e_child, unit: furlongs, offset: [2, 4], length: [2, 4]}
-  - {id: d_negative_denominator, unit: quarters, length: [3, -2]}
-  - {id: c_fraction, unit: quarters, length: 2.0, offset: 2}
-  - {id: b_float, unit: seconds, length: 9007199254740993, offset: [4, 8]}
-  - {id: a_int, unit: samples, length: 2.5, offset: [1, 2]}
-  - {id: a_member, unit: quarters, length: [1, 2.5]}
+      - id: e_child
+        unit: furlongs
+        offset: [2, 4]
+        length: [2, 4]
+  - id: d_negative_denominator
+    unit: quarters
+    length: [3, -2]
+  - id: c_fraction
+    unit: quarters
+    length: 2.0
+    offset: 2
+  - id: b_float
+    unit: seconds
+    length: 9007199254740993
+    offset: [4, 8]
+  - id: a_int
+    unit: samples
+    length: 2.5
+    offset: [1, 2]
+  - id: a_member
+    unit: quarters
+    length: [1, 2.5]

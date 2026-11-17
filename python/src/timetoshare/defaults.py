@@ -12,10 +12,12 @@ untouched.
 from __future__ import annotations
 
 import copy
+import math
 from collections.abc import Callable
+from fractions import Fraction
 from typing import Any
 
-from .manifest import UNIT_NUMBER_TYPES, _order_displays, _respell
+from .manifest import UNIT_NUMBER_TYPES, _order_displays, _respell, fraction_pair
 
 __all__ = ["DEFAULTS", "complete", "minimal"]
 
@@ -220,16 +222,27 @@ def _complete_one(owner: dict[str, Any], kind: str) -> None:
             owner["number_type"] = number_type
 
 
-def _same(left: Any, right: Any) -> bool:
-    """Whether two JSON values are identical: numbers in type and value.
+def _number(value: Any) -> Fraction | None:
+    """The exact value of a JSON number or a Fraction pair, else ``None``."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int) or (isinstance(value, float) and math.isfinite(value)):
+        return Fraction(value)
+    return fraction_pair(value)
 
-    An int is never the float of the same value (``1.0`` is not ``1``), and
-    a boolean is no number.
+
+def _same(left: Any, right: Any) -> bool:
+    """Whether two JSON values are equal in value.
+
+    Numbers compare by exact value: an integer, a float and a Fraction pair
+    of equal value are equal (``1``, ``1.0`` and ``[1, 1]``). A boolean is no
+    number; arrays and objects are equal when their items and members are.
     """
     if isinstance(left, bool) or isinstance(right, bool):
-        return isinstance(left, bool) and isinstance(right, bool) and left is right
-    if isinstance(left, int | float) or isinstance(right, int | float):
         return type(left) is type(right) and left == right
+    left_number, right_number = _number(left), _number(right)
+    if left_number is not None and right_number is not None:
+        return left_number == right_number
     if isinstance(left, list) or isinstance(right, list):
         return (
             isinstance(left, list)
@@ -244,6 +257,8 @@ def _same(left: Any, right: Any) -> bool:
             and left.keys() == right.keys()
             and all(_same(left[key], right[key]) for key in left)
         )
+    if isinstance(left, int | float) or isinstance(right, int | float):
+        return False
     return left == right
 
 
@@ -262,9 +277,9 @@ def complete(value: Any) -> Any:
     Every key with a default that is absent is added with its default, at
     every depth (a timeline's ``number_type`` is its unit's default). Keys
     whose default is "absent" are never added, present keys keep their
-    values, spelled as their number type selects (as ``canonical_order``
-    spells them), a named timestamp's ``display`` in canonical order, and
-    unknown keys pass through. The JavaScript package's
+    values, own-axis values respelled as their number type selects (as
+    ``canonical_order`` respells them), a named timestamp's ``display`` in
+    canonical order, and unknown keys pass through. The JavaScript package's
     ``complete`` gives the same value.
     """
     result = copy.deepcopy(value)
@@ -277,8 +292,11 @@ def complete(value: Any) -> Any:
 def minimal(value: Any) -> Any:
     """Return a copy of a manifest in the minimal form.
 
-    The complete form without every key whose value is its default in type
-    and value (``repeat_count: 1.0`` is not the default ``1`` and stays).
+    The complete form without every key whose value equals its default in
+    value, numbers compared by exact value (``repeat_count: 1.0`` equals the
+    default ``1`` and is left out, as a ``LinearMap``'s ``scalar`` written
+    ``[1, 1]`` is), after own-axis values are respelled and each ``display``
+    is put in canonical order.
     ``minimal(complete(x))`` equals ``minimal(x)`` and
     ``complete(minimal(x))`` equals ``complete(x)``. The JavaScript package's
     ``minimal`` gives the same value.

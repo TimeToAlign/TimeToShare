@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import importlib.util
-import json
 from fractions import Fraction
 from pathlib import Path
 
 import pytest
 
-from timetoshare import FONT_FILES, dumps, font_metrics, font_paths
+from timetoshare import FONT_FILES, dumps, font_metrics, font_paths, loads
 
 TEXT_SHA256 = "7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954"
 MUSIC_SHA256 = "26c0a28d7c6f96c70f1401db23066c5ea0ee1cdf155c79bc01ad2efb040de816"
@@ -81,7 +80,7 @@ def test_the_metrics_merge_both_fonts_by_the_stated_rule() -> None:
 
 def test_the_metrics_file_is_written_by_dumps() -> None:
     text = _metrics_path().read_text(encoding="utf-8")
-    assert dumps(json.loads(text)) == text
+    assert dumps(loads(text), serialization="json") == text
 
 
 def test_font_accessors_work_from_any_working_directory(tmp_path, monkeypatch) -> None:
@@ -102,9 +101,9 @@ def _script():
 
 def test_the_extraction_reproduces_the_metrics_file() -> None:
     script = _script()
-    assert dumps(script.metrics(*font_paths())) == _metrics_path().read_text(
-        encoding="utf-8"
-    )
+    assert dumps(
+        script.metrics(*font_paths()), serialization="json"
+    ) == _metrics_path().read_text(encoding="utf-8")
 
 
 @pytest.mark.parametrize(

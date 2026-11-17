@@ -2,71 +2,28 @@ from __future__ import annotations
 
 import copy
 import json
-import math
 from typing import Any
 
 import pytest
 
 from timetoshare import (
-    canonical_json,
     canonical_order,
     complete,
     dumps,
-    fixture_paths,
     minimal,
-    rejection_paths,
     validate,
-    warning_paths,
 )
 
 from .conftest import bundle, manifest, respellable, respelled, timeline
 
-# Shared with the JavaScript suite, character for character.
-NUMBER_CORPUS = (
-    "[0.1, 2.0, 1e-07, 1e+16, 123456789012345678, -0.0, 5e-324, "
-    "1.7976931348623157e+308, 1E5, 1.50, -0, 100, 0.0001, 1e-05, "
-    '1000000000000000.0, "\\u00e9", "\\ud83d\\ude00", "\\ufb00", '
-    '"a\\"b\\\\c\\n\\u0001\\u001f"]'
-)
-NUMBER_CORPUS_TEXT = (
-    "[\n"
-    "  0.1,\n"
-    "  2.0,\n"
-    "  1e-07,\n"
-    "  1e+16,\n"
-    "  123456789012345678,\n"
-    "  -0.0,\n"
-    "  5e-324,\n"
-    "  1.7976931348623157e+308,\n"
-    "  100000.0,\n"
-    "  1.5,\n"
-    "  0,\n"
-    "  100,\n"
-    "  0.0001,\n"
-    "  1e-05,\n"
-    "  1000000000000000.0,\n"
-    '  "é",\n'
-    '  "\U0001f600",\n'
-    '  "ﬀ",\n'
-    '  "a\\"b\\\\c\\n\\u0001\\u001f"\n'
-    "]\n"
-)
 
+def _text(value: Any) -> str:
+    """The pretty JSON of a value wrapped in an array, which is no manifest.
 
-def _standard_files() -> list:
-    return [*fixture_paths(), *rejection_paths(), *warning_paths()]
-
-
-@pytest.mark.parametrize(
-    "path", _standard_files(), ids=lambda path: f"{path.parent.name}/{path.name}"
-)
-def test_standard_files_round_trip_byte_for_byte(path) -> None:
-    text = path.read_text(encoding="utf-8")
-    assert dumps(json.loads(text)) == text
-
-
-def test_number_corpus() -> None:
-    assert dumps(json.loads(NUMBER_CORPUS)) == NUMBER_CORPUS_TEXT
+    The text tells ``8.0`` from ``8`` and shows a manifest as given, neither
+    ordered nor respelled.
+    """
+    return dumps([value], serialization="json")
 
 
 def test_canonical_order_copies_and_reorders_manifests_only() -> None:
@@ -81,16 +38,7 @@ def test_canonical_order_copies_and_reorders_manifests_only() -> None:
 def test_the_writer_sorts_every_object_by_key() -> None:
     value = {"b": 1, "\U0001f600": 2, "\ufb00": 3, "A": {"z": 0, "10": 1, "2": 2}}
     assert dumps(value) == (
-        "{\n"
-        '  "A": {\n'
-        '    "10": 1,\n'
-        '    "2": 2,\n'
-        '    "z": 0\n'
-        "  },\n"
-        '  "b": 1,\n'
-        '  "\ufb00": 3,\n'
-        '  "\U0001f600": 2\n'
-        "}\n"
+        'A:\n  "10": 1\n  "2": 2\n  z: 0\nb: 1\n"\ufb00": 3\n"\U0001f600": 2\n'
     )
 
 
@@ -358,8 +306,8 @@ def test_a_named_timestamp_is_spelled_on_its_timelines_axis() -> None:
     for convert in (complete, minimal, canonical_order):
         timestamps = convert(value)["graphical"]["timestamps"]
         coordinates = {entry["id"]: entry["coordinate"] for entry in timestamps}
-        assert canonical_json(coordinates) == (
-            '{"timestamp_1":[6,1],"timestamp_2":2.0,"timestamp_3":2}'
+        assert _text(coordinates) == _text(
+            {"timestamp_1": [6, 1], "timestamp_2": 2.0, "timestamp_3": 2}
         ), convert
 
 
@@ -383,13 +331,13 @@ def test_a_member_that_is_no_string_is_refused() -> None:
 
 def test_readers_coerce_and_writers_spell_canonically() -> None:
     value, twin = respellable(), respelled()
-    written = canonical_json(value)
-    assert written != canonical_json(twin)
-    assert canonical_json(canonical_order(twin)) == canonical_json(twin)
+    written = _text(value)
+    assert written != _text(twin)
+    assert _text(canonical_order(twin)) == _text(twin)
     for convert in (complete, minimal, canonical_order):
-        assert canonical_json(convert(value)) == canonical_json(convert(twin)), convert
+        assert _text(convert(value)) == _text(convert(twin)), convert
     assert dumps(value) == dumps(twin)
-    assert canonical_json(value) == written
+    assert _text(value) == written
 
 
 def test_a_value_without_an_exact_respelling_is_left_as_written() -> None:
@@ -399,7 +347,7 @@ def test_a_value_without_an_exact_respelling_is_left_as_written() -> None:
     assert root["length"] == 9007199254740993
 
 
-def test_canonical_json_text() -> None:
+def test_rfc8785_json_sorts_keys_by_utf16_code_units() -> None:
     value = {
         "\U0001f600": {"b": True, "a": [1, 2.5, None]},
         "\ufb00": "\u00fc",
@@ -407,20 +355,10 @@ def test_canonical_json_text() -> None:
         "z": "\n",
         "a": [],
     }
-    assert canonical_json(value) == (
-        '{"a":[],"z":"\\n","\u00e9":1,"\ufb00":"\u00fc",'
-        '"\U0001f600":{"a":[1,2.5,null],"b":true}}'
+    assert dumps(value, serialization="jcs") == (
+        '{"a":[],"z":"\\n","\u00e9":1,"\U0001f600":{"a":[1,2.5,null],"b":true},'
+        '"\ufb00":"\u00fc"}'
     )
-
-
-@pytest.mark.parametrize(
-    "value", ["\ud800", {"\udfff": 1}, math.nan, math.inf], ids=repr
-)
-def test_values_the_writer_refuses(value) -> None:
-    with pytest.raises(ValueError):
-        dumps([value])
-    with pytest.raises(ValueError):
-        canonical_json([value])
 
 
 def test_an_unorderable_collection_is_refused() -> None:

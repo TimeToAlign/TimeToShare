@@ -1,5 +1,14 @@
 timetoshare: "0.2.0"
 timelines:
-  - {id: c, unit: quarters, number_type: [fraction], length: [4, 8]}
-  - {id: b, unit: seconds, number_type: null, length: 2}
-  - {id: a, unit: samples, number_type: 1, length: 2.0}
+  - id: c
+    unit: quarters
+    number_type: [fraction]
+    length: [4, 8]
+  - id: b
+    unit: seconds
+    number_type: null
+    length: 2
+  - id: a
+    unit: samples
+    number_type: 1
+    length: 2.0

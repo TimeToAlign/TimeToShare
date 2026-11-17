@@ -24,16 +24,25 @@ and these cases together.
 
 The extension names the language the text was written in, not the
 serialization a reader chooses: `refusals/flow_mapping_unquoted_key.yaml`
-is meant as YAML and is read as JSON, and `refusals/bom_second_json.json`
-is meant as JSON and is read as YAML. Every file is UTF-8, and only the
-`readings/bom_*` texts, `refusals/bom_only.yaml` and the two
-`refusals/bom_second_*` texts begin with a byte order mark (U+FEFF), the
-last two with two. The bytes of every file are significant, final
-line feeds included; `refusals/empty.yaml` is empty.
+is meant as YAML and is read as JSON. Every file is UTF-8, and only the
+`readings/bom_*` texts begin with a byte order mark (U+FEFF), one each;
+`readings/bom_only.yaml` is that mark alone. The bytes of every file are
+significant, line ends and final line feeds included
+(`readings/json_whitespace.json` holds carriage returns);
+`readings/empty.yaml` is empty.
 
-One reading is a known issue of the Python package: `readings/yaml_tab_plain.yaml`
-is a valid YAML 1.2 text that its parser (ruamel.yaml) refuses. Python tests
-mark it as a documented known issue; every other reader reads it.
+Every YAML reading but those named here uses only the constructs of
+canonical YAML, which every conforming YAML parser reads alike. The others pin what
+the README decides beyond them: the empty text and texts of blank lines
+(spaces only) or comments only (`empty`, `bom_only`, `whitespace_only`,
+`comments_only`), the core schema's resolution of plain scalars
+(`yaml_core_schema`, `yaml_unsorted_keys`, `yaml_top_level_tilde`,
+`yaml_top_level_minus_infinity`, `yaml_float_edges`,
+`yaml_float_underflow_negative`) and a surrogate pair written as two
+escapes (`yaml_surrogate_pair_escape`). Canonical YAML holds no literal
+tab, escaping every tab as `\t`, so no YAML text here holds one: a tab
+anywhere in a YAML text, a line of a tab alone or a tab before a comment
+included, lies outside what these cases cover.
 
 ## How a package test uses them
 
@@ -71,10 +80,10 @@ members.
    `dumps(read(text), "jcs")` and `dumps(read(expected), "jcs")`, the
    expected text being `<name>.expected.yaml`, give its bytes.
 3. **Refusals.** Reading the text raises: Python `ValueError`; TypeScript
-   `JsonSyntaxError` for a text read as JSON and `YamlSyntaxError` for a
-   text read as YAML, except a `RangeError` for a float that rounds to an
-   infinity (`json_float_overflow*`, `json_top_level_float_overflow`,
-   `yaml_float_overflow*`).
+   `JsonSyntaxError` for a text read as JSON and `YamlSyntaxError` for
+   every text read as YAML, except a `RangeError` for a JSON number that
+   rounds to an infinity (`json_float_overflow*`,
+   `json_top_level_float_overflow`).
 4. **Writer refusals.** The text reads; writing its value raises in each
    serialization the table names, and succeeds in the others: Python
    `ValueError`; TypeScript `RangeError` for a value a serialization
@@ -91,13 +100,13 @@ members.
      and every `readings/<name>.expected.rfc8785.json`, the scalar ones
      included;
    - for a reading, refusal or writer refusal: `"json"` for every `.json`
-     text (the `.expected.rfc8785.json` files, which give `"jcs"`, excepted) but `refusals/bom_second_json.json` and for
-     `refusals/flow_mapping_unquoted_key.yaml`,
+     text (the `.expected.rfc8785.json` files, which give `"jcs"`,
+     excepted) and for `refusals/flow_mapping_unquoted_key.yaml`,
      `refusals/flow_sequence_plain.yaml` and
      `refusals/flow_sequence_then_comment.yaml`, and `"yaml"` for every
-     other text (`refusals/empty.yaml`, `refusals/bom_only.yaml` and
-     `refusals/bom_second_json.json`, whose first character once the byte
-     order mark is removed is a second U+FEFF, included). None of the readings,
+     other text (`readings/empty.yaml`, `readings/bom_only.yaml`,
+     `readings/whitespace_only.yaml` and `readings/comments_only.yaml`
+     included). None of the readings,
      refusals and writer refusals is RFC 8785 JSON: the compact ones are
      unsorted (`readings/json_compact.json`), begin with U+FEFF
      (`readings/bom_rfc8785.json`), or hold values the RFC 8785 writer
@@ -126,7 +135,7 @@ memory.
 | `top_level_scalar_sequence` | a top-level array of scalars | top-level arrays are block sequences in canonical YAML |
 | `top_level_block_sequence` | a top-level array holding an object and a nested block sequence | `-` alone before a non-empty mapping or block sequence |
 | `top_level_integer`, `top_level_float`, `top_level_null`, `top_level_true`, `top_level_plain_string`, `top_level_quoted_string` | a scalar alone | a top-level scalar stands alone on the one line; a scalar that is a JSON text is read as JSON, a plain string as YAML |
-| `top_level_string_yaml_escapes` | the string `x`, U+007F, U+0085, U+2028, U+FFFE, `y` alone | canonical YAML escapes what pretty and RFC 8785 JSON write as itself; a scalar that is a JSON text is read as JSON, even one holding characters YAML refuses |
+| `top_level_string_yaml_escapes` | the string `x`, U+007F, U+0085, U+2028, U+FFFE, `y` alone | canonical YAML escapes what pretty and RFC 8785 JSON write as itself; a scalar that is a JSON text is read as JSON, even one holding characters outside YAML's printable set |
 | `readme_nesting_example` | the nesting example of the README | block sequences, nested objects, `{}` |
 | `nested_sequences` | three levels of block sequences, a mapping inside a sequence inside a mapping, `[[]]` | indentation at c + 2 |
 | `scalar_sequences` | a 60-item line, mixed scalars, a one-item sequence | scalar sequences on one line however long |
@@ -148,40 +157,28 @@ memory.
 | `bom_yaml` | U+FEFF before a YAML text | a leading byte order mark is ignored; `serialization_of` gives `"yaml"` |
 | `bom_pretty_json` | U+FEFF before pretty JSON | the same; `"json"` |
 | `bom_rfc8785` | U+FEFF before RFC 8785 JSON | the same; `"json"`, since the text is not byte for byte RFC 8785 JSON |
+| `empty` | the empty text | an empty text reads as null |
+| `bom_only` | U+FEFF alone | the empty text once the byte order mark is removed: null |
+| `whitespace_only` | spaces and line feeds only | a text of blank lines reads as null |
+| `comments_only` | two comments, the second indented | a text of comments only reads as null |
 | `json_bom_in_string` | a literal U+FEFF inside a JSON string | in JSON a U+FEFF inside a string is content; written `\ufeff` in canonical YAML |
-| `yaml_flow_style` | flow collections not at the first character, single quotes | Reading: YAML in any style |
-| `yaml_single_quoted` | `''`, `'it''s'`, quoted `null` and `12` | a quoted scalar is a string |
-| `yaml_block_scalars` | `\|`, `>`, `\|+`, `\|-`, `\|2` | block scalars; their chomping |
 | `yaml_comments` | comments on every kind of line | comments are ignored |
-| `yaml_indentation` | four-space indentation, sequences not indented under their key | any layout |
-| `yaml_document_markers` | `---` and `...` | an explicit document start and end |
-| `yaml_document_start_only` | `---` alone | one document whose value is null |
-| `yaml_directive` | `%YAML 1.2` | the one directive read |
+| `yaml_indentation` | four-space indentation, sequences not indented under their key | block collections at any consistent indentation |
 | `yaml_core_schema` | every core-schema null and boolean spelling, `+12`, `007`, `0o17`, `0x1F`, `-0`, `.5`, `1.`, `1e5`, `+2.5`, `-0.0`, rounding to the nearest double; and plain scalars that stay strings: `yes`, `On`, `y`, `2001-12-14`, `1:20`, `1_000`, `0b101`, `-0x10`, `.Nan`, `inf`, `.` | the core-schema resolution the README states, not YAML 1.1's |
-| `yaml_double_quoted_escapes` | `\a`, `\e`, `\x41`, `\U0001F600`, `\0`, `\N`, `\_`, `\L`, `\P`, `\/`, `\ `, `\v`, upper-case hex, a literal tab, an escaped line break, a folded line | YAML double-quoted scalars |
-| `yaml_tab` | a literal tab in a comment, a double-quoted and a single-quoted scalar | the tab is not among the characters a YAML text refuses |
-| `yaml_tab_plain` | a literal tab inside a plain scalar, `x<tab>y` | the same in a plain scalar, which YAML 1.2 allows to hold a tab between two of its characters |
-| `yaml_refused_characters_escaped` | U+0001, U+001F, U+007F, U+0080, U+0085, U+009F, U+2028, U+FFFE and U+FFFF written as the escapes `\x01`, `\u001F`, `\x7F`, `\u0080`, `\x85`, `\x9f`, `\u2028`, `\uFFFE` and `\U0000FFFF` | a character refused standing as itself is read through an escape; written `\u` and four lower-case digits |
 | `yaml_surrogate_pair_escape` | `\ud83d\ude00` and `\uD83D\uDE00` in YAML | a high-surrogate escape followed by a low-surrogate escape is one character |
-| `yaml_plain_multiline` | a plain scalar over three lines | plain-scalar folding |
-| `yaml_crlf` | CR LF line ends, in a quoted and a literal scalar | line breaks read as line feeds |
-| `yaml_comment_before_flow` | a JSON-like text after a comment | neither `{` nor `[` first, and not a JSON text: read as YAML |
-| `yaml_document_start_flow` | `--- [1, {a: b}]` | the same, after a document start |
+| `yaml_comment_before_flow` | `["a", 1]` after a comment | neither `{` nor `[` first, and not a JSON text: read as YAML |
 | `yaml_quoted_first_key` | `"b": 1` then `a: 2` | a mapping whose first key is quoted is not a JSON text: read as YAML |
-| `yaml_explicit_key` | `? key` | explicit keys |
-| `yaml_implicit_key_1023_then_space` | an implicit key of 1023 characters followed by a space and `:` | the key limit counts from the key's first character to its `:`, the space included: a span of 1024 is read |
 | `yaml_unsorted_keys` | unsorted keys, a plain key `y` | keys sorted when written; `y` is the string `"y"` under YAML 1.2 |
-| `yaml_top_level_quoted_scalar` | `'480'` | a top-level quoted scalar is a string; not a JSON text |
-| `yaml_top_level_yaml_escape` | `"\x41"` alone | a double-quoted scalar with an escape JSON lacks is not a JSON text: read as YAML |
 | `yaml_top_level_tilde` | `~` alone | not a JSON text: read as YAML, null |
 | `yaml_top_level_minus_infinity` | `-Infinity` alone | not a JSON text: read as YAML, where it is a plain string |
 | `yaml_float_edges` | `1.7976931348623158e308`, `1e-400` | a float rounding to the largest double, and one underflowing to 0.0, are read |
 | `yaml_float_underflow_negative` | `-1e-400` | a negative float underflowing to zero is read as `-0.0` |
-| `manifest_unsorted` | `manifest_canonical_order` with every reorderable array shuffled, in flow style | canonical order applied by the writer |
+| `manifest_unsorted` | `manifest_canonical_order` with every reorderable array shuffled, sequences not indented under their key | canonical order applied by the writer |
 | `manifest_respelled` | `2.0` on an `int` axis, `2` on a `float` axis, `[33, 2.0]`, a child's `offset`, a region, a flow-control coordinate, a root's `offset`, a `number_type` overriding the unit's default | own-axis values respelled as their number type selects |
 | `manifest_fraction_reduced` | `[64, 2]`, `[4, 8]`, `[4.0, 2]`, `[6.0, 4.0]`, `[0, 5]`, `[-6, 4]`, `[0, 3]`; a child whose `number_type` is `float` under a `fraction` parent | Fraction pairs reduced to lowest terms, members integers; a child's `offset` takes the parent's number type, its `length` its own; RFC 8785 JSON is written from the respelled value (`manifest_fraction_reduced.expected.rfc8785.json`, 429 bytes) |
 | `manifest_respelled_edges` | `-0.0` and `1.0e+20` on an `int` axis, 2^53 on a `float` axis | an integral float on an `int` axis written as the integer of its exact value; an integer a float equals written as that float |
-| `manifest_written_as_given` | `2.5` and `[1, 2]` on an `int` axis; 2^53 + 1 and `[4, 8]` on a `float` axis; `2`, `2.0`, `[1, 2.5]`, `[3, -2]` and `[1, 0]` on a `fraction` axis; an unknown `unit` (with a child) and an unknown `number_type` | a value its number type cannot take, and every value on an axis whose unit or number type is unknown, is written as given |
+| `manifest_written_as_given` | `2.5` and `[1, 2]` on an `int` axis; 2^53 + 1, 2^1024 + 1 (beyond every double) and `[4, 8]` on a `float` axis; `2`, `2.0`, `[1, 2.5]`, `[3, -2]` and `[1, 0]` on a `fraction` axis; an unknown `unit` (with a child) and an unknown `number_type` | a value its number type cannot take, an integer no float can hold included, and every value on an axis whose unit or number type is unknown, is written as given |
+| `manifest_maps_as_given` | a `LinearMap` whose `scalar` is `[4, 8]` and `offset` `2.0`, a `MeasureNumberMap`, and a MeasureMap row whose `nominal_length` and `actual_length` are `[4, 8]`, beside the timeline's `length` `[64, 8]` on a `fraction` axis | the numbers of conversion maps and MeasureMap rows are written as given, neither respelled nor reduced, while the own-axis `length` is reduced to `[8, 1]`; conversion maps ordered by ID |
 | `manifest_timestamp_respelled` | named-timestamp coordinates `3` on a `float` axis, `3.0` on an `int` axis, `[2, 4]` on a child's `fraction` axis | named-timestamp coordinates are own-axis values of the timeline they name, at any depth |
 | `timelines_without_version` | an object whose `timelines` is an array, without `timetoshare`, with values to respell | it is a manifest: its timelines are ordered and its own-axis values respelled |
 | `embedded_manifest_unsorted` | a manifest inside a value that is not one, with unsorted keys, unordered timelines and values a manifest would respell | of an embedded manifest only the keys are sorted |
@@ -205,13 +202,6 @@ memory.
 
 | Text | Reason |
 | --- | --- |
-| `empty.yaml` | holds no document: an empty text |
-| `bom_only.yaml` | holds no document: U+FEFF alone, an empty text once it is ignored |
-| `bom_second_yaml.yaml` | two U+FEFF before `a: 1`: only the first is removed, and YAML refuses the second |
-| `bom_second_json.json` | two U+FEFF before `{"a": 1}`: once the first is removed, the first character is U+FEFF, neither `{` nor `[`, and the text is not a JSON text; read as YAML, which refuses the U+FEFF; `serialization_of` gives `"yaml"` |
-| `whitespace_only.yaml` | holds no document: whitespace only |
-| `comments_only.yaml` | holds no document: comments only |
-| `yaml_document_end_only.yaml` | holds no document: `...` alone |
 | `yaml_duplicate_key.yaml` | a key repeats in its object |
 | `yaml_duplicate_key_quoted.yaml` | a key repeats, once plain and once single-quoted |
 | `yaml_duplicate_key_escaped.yaml` | a key repeats, once through the escape `\u0061` |
@@ -222,30 +212,15 @@ memory.
 | `yaml_lone_surrogate_reversed.yaml` | a low-surrogate escape before a high-surrogate one pairs neither |
 | `yaml_lone_surrogate_32bit_escape.yaml` | a surrogate through the escape `\U0000D800` |
 | `yaml_lone_surrogate_key.yaml` | a lone surrogate in a key |
-| `yaml_nel_in_string.yaml` | a literal U+0085 in a YAML text |
-| `yaml_nel_in_comment.yaml` | a literal U+0085 in a YAML text, inside a comment |
-| `yaml_ls_in_string.yaml` | a literal U+2028 in a YAML text |
-| `yaml_ps_in_string.yaml` | a literal U+2029 in a YAML text |
-| `yaml_ls_in_comment.yaml` | a literal U+2028 in a YAML text, inside a comment |
-| `yaml_bom_in_string.yaml` | a literal U+FEFF not at the start of a YAML text, inside a double-quoted scalar |
-| `yaml_bom_in_comment.yaml` | a literal U+FEFF not at the start of a YAML text, inside a comment |
-| `yaml_bom_in_plain.yaml` | a literal U+FEFF not at the start of a YAML text, inside a plain scalar |
-| `yaml_u0001_in_string.yaml` | a literal U+0001, a C0 control, in a YAML text |
-| `yaml_u001f_in_string.yaml` | a literal U+001F, the last C0 control, in a YAML text |
-| `yaml_del_in_string.yaml` | a literal U+007F in a YAML text |
-| `yaml_u0080_in_string.yaml` | a literal U+0080 in a YAML text |
-| `yaml_u009f_in_string.yaml` | a literal U+009F in a YAML text |
-| `yaml_ufffe_in_string.yaml` | a literal U+FFFE in a YAML text |
-| `yaml_uffff_in_string.yaml` | a literal U+FFFF in a YAML text |
-| `yaml_directive_1_1.yaml` | the directive `%YAML 1.1` |
-| `yaml_directive_tag.yaml` | a `%TAG` directive |
-| `yaml_directive_reserved.yaml` | a reserved directive |
 | `yaml_anchor.yaml` | an anchor |
 | `yaml_alias.yaml` | an alias |
-| `yaml_tag_core.yaml` | an explicit tag `!!str` |
-| `yaml_tag_local.yaml` | an explicit local tag |
-| `yaml_tag_non_specific.yaml` | an explicit non-specific tag `!` |
+| `yaml_tag_local.yaml` | an unknown tag, `!local` |
+| `yaml_tag_binary.yaml` | a value outside the JSON data model: `!!binary` |
+| `yaml_tag_timestamp.yaml` | a value outside the JSON data model: `!!timestamp` |
+| `yaml_tag_set.yaml` | a value outside the JSON data model: `!!set` |
+| `yaml_tag_omap.yaml` | a value outside the JSON data model: `!!omap` |
 | `yaml_two_documents.yaml` | more than one document |
+| `yaml_unclosed_quote.yaml` | not YAML: an unclosed double-quoted scalar |
 | `yaml_key_integer.yaml` | a key that is an integer |
 | `yaml_key_float.yaml` | a key that is a float |
 | `yaml_key_null.yaml` | a key that is `null` |
@@ -260,10 +235,6 @@ memory.
 | `yaml_float_overflow.yaml` | a float that rounds to an infinity, `1e309` |
 | `yaml_float_overflow_negative.yaml` | a negative float that rounds to an infinity |
 | `yaml_float_overflow_above_largest.yaml` | `1.7976931348623159e308`, beyond the midpoint between the largest double and 2^1024 |
-| `yaml_implicit_key_1025.yaml` | an implicit key of 1025 characters |
-| `yaml_implicit_key_1024_then_space.yaml` | an implicit key of 1024 characters followed by a space and `:`, a span of 1025 to the `:` |
-| `yaml_flow_mapping_key_1025.yaml` | an implicit key of 1025 characters in a flow mapping, `k: {a…a: 1}` |
-| `yaml_implicit_key_1025_as_written.yaml` | an implicit key of 1025 characters as written (255 escapes `\x41`, three letters and the quotes) whose value has 258 |
 | `flow_mapping_unquoted_key.yaml` | YAML flow style from the first character is read as JSON, and `{a: 1}` is not JSON |
 | `flow_sequence_plain.yaml` | the same for `[a, b]` |
 | `flow_sequence_then_comment.yaml` | read as JSON, and a comment is not JSON |
@@ -298,7 +269,6 @@ memory.
 | `key_1025_plain.json` | `yaml`, `json`, `jcs` | a plain key of 1025 characters |
 | `key_1025_quoted.json` | `yaml`, `json`, `jcs` | a key whose quoted form `"\t…"` is 1025 UTF-16 code units |
 | `key_1025_utf16_units.json` | `yaml`, `json`, `jcs` | a key of 512 characters whose quoted form is 1025 UTF-16 code units |
-| `key_1024_code_points_non_bmp.yaml` | `yaml`, `json`, `jcs` | an implicit key of 1024 characters that readers accept, whose quoted form is 2046 UTF-16 code units |
 | `key_1025_nested.yaml` | `yaml`, `json`, `jcs` | an explicit key of 1025 characters inside an object |
 | `integer_2_53.json` | `jcs` | the integer 2^53 |
 | `integer_minus_2_53.yaml` | `jcs` | the integer −2^53 |

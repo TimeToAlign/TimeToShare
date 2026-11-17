@@ -1,0 +1,55 @@
+graphical:
+  order:
+    group_1: [first-half, recording]
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: first-half
+    -
+      coordinate: [8, 1]
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: first-half
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_3
+      name: origin
+      timeline: recording
+    -
+      coordinate: 10.0
+      display: [wedge, coordinate]
+      id: timestamp_4
+      name: length
+      timeline: recording
+groups:
+  -
+    id: group_1
+    members: [first-half, recording]
+    name: "First half"
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    children:
+      -
+        id: first-half
+        length: [8, 1]
+        locked: true
+        name: "First half"
+        offset: [0, 1]
+        unit: quarters
+    id: piece
+    length: [16, 1]
+    name: Piece
+    unit: quarters
+  -
+    id: recording
+    length: 10.0
+    name: Recording
+    unit: seconds
+timetoshare: "0.2.0"
