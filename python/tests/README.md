@@ -764,7 +764,7 @@ writes links, reads them back and builds them from URLs. What proves it
 (`test_description.py`, `test_registry.py`):
 
 - **The registry is the shipped file.** `registry/schemes.json` is written
-  by `dumps`, and the default registry holds exactly its eight entries, in
+  by `dumps`, and the default registry holds exactly its nine entries, in
   this order, each with its scheme URI, level, entity URI template and
   `lowercase`:
   `musicbrainz_work` (`http://www.wikidata.org/entity/P435`, `work`,
@@ -776,10 +776,14 @@ writes links, reads them back and builds them from URLs. What proves it
   `http://www.wikidata.org/entity/{value}`, false), `viaf` (`P214`, null,
   `http://viaf.org/viaf/{value}`, false), `gnd` (`P227`, null,
   `https://d-nb.info/gnd/{value}`, false), `imslp` (`P839`, `work`, null,
-  false) and `doi` (`P356`, null, `https://doi.org/{value}`, false). An
-  entity URI template is Wikidata's formatter URI for RDF resources (P1921)
-  where one exists, unless the issuer prescribes the canonical form, as the
-  DOI Foundation does with `https://doi.org/`. Every entry is written with
+  false), `doi` (`P356`, null, `https://doi.org/{value}`, false) and
+  `youtube_video` (`P1651`, `item`,
+  `https://www.youtube.com/watch?v={value}`, false). An entity URI template
+  is Wikidata's formatter URI for RDF resources (P1921) where one exists,
+  unless the issuer prescribes the canonical form, as the DOI Foundation
+  does with `https://doi.org/`; YouTube has no such formatter, so its
+  template is the watch page, the first formatter URL (P1630) Wikidata
+  states for P1651. Every entry is written with
   all seven keys, so the file reads back to the entries it was written from.
   Every pattern has exactly one capturing group and no syntax that Python's
   `re` and JavaScript's `RegExp` read differently (no named group, no
@@ -807,7 +811,9 @@ writes links, reads them back and builds them from URLs. What proves it
   `https://musicbrainz.org/work/4A622B0D-B0C0-405E-B49E-05B70C108284`, the
   same work's ID in capitals, is
   `http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284`,
-  `work`, its value `4a622b0d-b0c0-405e-b49e-05b70c108284`; and
+  `work`, its value `4a622b0d-b0c0-405e-b49e-05b70c108284`;
+  `https://www.youtube.com/watch?v=Ch2mrPm1JnM` is
+  `https://www.youtube.com/watch?v=Ch2mrPm1JnM` at the level `item`; and
   `https://imslp.org/wiki/Special:ReverseLookup/534071` and
   `https://example.org/anything` are not recognised.
 - **The URL forms a scheme accepts.** `http` and `https`, an optional
@@ -835,6 +841,22 @@ writes links, reads them back and builds them from URLs. What proves it
   spaces (`%20`) gives underscores. A captured value is substituted into
   the entity URI as written, lowered where the entry states `lowercase`
   (only the letters `A` to `Z`), and decoded only for an identifier.
+- **The addresses of a YouTube video.** A video's ID is eleven letters,
+  digits, `_` and `-`, and its case matters, so the entry does not state
+  `lowercase`. Every address a video is shared at gives the one entity URI
+  `https://www.youtube.com/watch?v=Ch2mrPm1JnM` and the value
+  `Ch2mrPm1JnM` as written: `https://youtu.be/Ch2mrPm1JnM?t=42`,
+  `https://m.youtube.com/watch?feature=share&v=Ch2mrPm1JnM` (`v` need not
+  open the query), `https://www.youtube.com/embed/Ch2mrPm1JnM`,
+  `http://youtube.com/watch?v=Ch2mrPm1JnM&t=42s#x`,
+  `https://music.youtube.com/watch?v=Ch2mrPm1JnM`,
+  `https://www.youtube.com/shorts/Ch2mrPm1JnM`,
+  `https://youtube.com/live/Ch2mrPm1JnM?feature=share` and
+  `https://www.youtube.com/watch?v=Ch2mrPm1JnM#t=1m`. An address that names
+  no video is not recognised: a channel
+  (`https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv`), a `v`
+  shorter than eleven characters (`https://www.youtube.com/watch?v=short`)
+  and a playlist without `v` (`https://www.youtube.com/watch?list=PL123`).
 - **A user extension.** `with_schemes` returns a new registry and leaves the
   default as it was; an entry whose ID the registry holds replaces it in
   place, any other is appended, and a URL is recognised by the first entry

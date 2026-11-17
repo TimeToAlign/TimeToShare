@@ -191,10 +191,11 @@ optional.
 `registry.test.ts` and `description.test.ts` assert the Python README's
 sections "The description layer", "Links", "The description layer alone"
 and "Unregistered terms" with the same documents, the same values and the
-same messages: the eight shipped entries in order with their `lowercase`,
+same messages: the nine shipped entries in order with their `lowercase`,
 the recognition table (the MusicBrainz ID in capitals among it) and the URL
 forms (every IMSLP page that is no work page refused, plainly and with
 `%3A`, and the two work pages beginning with such a word recognised), the
+addresses of a YouTube video (one entity URI, the ID's case kept), the
 one rule per scheme, `withSchemes`, its reading of an entry without
 `level`, `entity_uri` and `lowercase` as null, null and false (the entry
 Python reads alike) and its refusals, a `lowercase` that is no boolean

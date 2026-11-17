@@ -89,5 +89,18 @@ export const schemes: readonly KnownScheme[] = [
       "https?://(?:www\\.|dx\\.)?doi\\.org/(10\\.[0-9]{4,9}/[^?#]+?)/?(?:[?#].*)?"
     ],
     "uri": "http://www.wikidata.org/entity/P356"
+  },
+  {
+    "entity_uri": "https://www.youtube.com/watch?v={value}",
+    "id": "youtube_video",
+    "level": "item",
+    "lowercase": false,
+    "name": "YouTube video ID",
+    "patterns": [
+      "https?://(?:www\\.|m\\.|music\\.)?youtube\\.com/watch\\?(?:[^#]*&)?v=([A-Za-z0-9_-]{11})(?:[&#].*)?",
+      "https?://(?:www\\.|m\\.|music\\.)?youtube\\.com/(?:embed|shorts|live)/([A-Za-z0-9_-]{11})/?(?:[?#].*)?",
+      "https?://youtu\\.be/([A-Za-z0-9_-]{11})/?(?:[?#].*)?"
+    ],
+    "uri": "http://www.wikidata.org/entity/P1651"
   }
 ];

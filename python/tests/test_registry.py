@@ -14,6 +14,8 @@ WIKIDATA = "http://www.wikidata.org/entity/"
 IMSLP = f"{WIKIDATA}P839"
 OP_106 = "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"
 MB_WORK = "4a622b0d-b0c0-405e-b49e-05b70c108284"
+VIDEO = "Ch2mrPm1JnM"
+VIDEO_URI = f"https://www.youtube.com/watch?v={VIDEO}"
 
 ENTRIES = [
     (
@@ -48,6 +50,13 @@ ENTRIES = [
     ("gnd", f"{WIKIDATA}P227", None, "https://d-nb.info/gnd/{value}", False),
     ("imslp", IMSLP, "work", None, False),
     ("doi", f"{WIKIDATA}P356", None, "https://doi.org/{value}", False),
+    (
+        "youtube_video",
+        f"{WIKIDATA}P1651",
+        "item",
+        "https://www.youtube.com/watch?v={value}",
+        False,
+    ),
 ]
 
 
@@ -121,6 +130,7 @@ RECOGNISED = [
         None,
         "work",
     ),
+    (VIDEO_URI, VIDEO_URI, None, "item"),
 ]
 
 
@@ -172,6 +182,14 @@ FORMS = [
     ("https://d-nb.info/gnd/118508288", "gnd"),
     ("https://dx.doi.org/10.5281/zenodo.7473560", "doi"),
     (f"https://www.imslp.org/wiki/{OP_106}?action=history", "imslp"),
+    (f"https://youtu.be/{VIDEO}?t=42", "youtube_video"),
+    (f"https://m.youtube.com/watch?feature=share&v={VIDEO}", "youtube_video"),
+    (f"https://www.youtube.com/embed/{VIDEO}", "youtube_video"),
+    (f"http://youtube.com/watch?v={VIDEO}&t=42s#x", "youtube_video"),
+    (f"https://music.youtube.com/watch?v={VIDEO}", "youtube_video"),
+    (f"https://www.youtube.com/shorts/{VIDEO}", "youtube_video"),
+    (f"https://youtube.com/live/{VIDEO}?feature=share", "youtube_video"),
+    (f"https://www.youtube.com/watch?v={VIDEO}#t=1m", "youtube_video"),
 ]
 
 
@@ -204,6 +222,18 @@ def test_every_form_gives_one_uri() -> None:
     assert {uri(url) for url, scheme in FORMS if scheme == "musicbrainz_release"} == {
         "http://musicbrainz.org/release/814c53fd-0732-4819-9753-4578f5ab992c"
     }
+    assert {uri(url) for url, scheme in FORMS if scheme == "youtube_video"} == {
+        VIDEO_URI
+    }
+
+
+def test_a_youtube_video_id_keeps_its_case() -> None:
+    for url, scheme in FORMS:
+        if scheme != "youtube_video":
+            continue
+        recognition = default_registry().recognize(url)
+        assert recognition is not None, url
+        assert (recognition.value, recognition.level) == (VIDEO, "item"), url
 
 
 @pytest.mark.parametrize(
@@ -219,6 +249,9 @@ def test_every_form_gives_one_uri() -> None:
         f"https://musicbrainz.org/work/{MB_WORK} ",
         "https://imslp.org/wiki/Sonata%E2%80",
         f"musicbrainz.org/work/{MB_WORK}",
+        "https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv",
+        "https://www.youtube.com/watch?v=short",
+        "https://www.youtube.com/watch?list=PL123",
     ],
 )
 def test_what_is_not_recognised(url: str) -> None:
@@ -297,6 +330,7 @@ def test_a_scheme_yields_an_entity_uri_or_an_identifier_never_both() -> None:
         "gnd": "https://d-nb.info/gnd/118508288",
         "imslp": f"https://imslp.org/wiki/{OP_106}",
         "doi": "https://doi.org/10.5281/zenodo.7473560",
+        "youtube_video": VIDEO_URI,
     }
     for scheme in default_registry().schemes:
         recognition = default_registry().recognize(samples[scheme.id])
@@ -331,7 +365,7 @@ def test_an_extension_is_a_new_registry() -> None:
     default = default_registry()
     extended = default.with_schemes(_entry(), KnownScheme.from_dict(_entry(id="y")))
     assert [scheme.id for scheme in extended.schemes][-2:] == ["x", "y"]
-    assert len(default.schemes) == 8
+    assert len(default.schemes) == 9
     assert default.recognize("https://example.org/page/12") is None
     recognition = extended.recognize("https://example.org/page/12")
     assert recognition is not None
