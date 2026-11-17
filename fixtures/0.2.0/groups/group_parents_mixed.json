@@ -112,11 +112,13 @@
       "name": "Exposition"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -138,6 +140,7 @@
       "id": "audio",
       "is_segment_line": false,
       "length": 1323000,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Audio",
@@ -154,6 +157,7 @@
           "id": "system",
           "is_segment_line": false,
           "length": 600,
+          "links": [],
           "locked": true,
           "meta": {},
           "name": "System",
@@ -168,6 +172,7 @@
       "id": "page",
       "is_segment_line": false,
       "length": 1754,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Page",
@@ -194,6 +199,7 @@
           "id": "take",
           "is_segment_line": false,
           "length": 25.5,
+          "links": [],
           "locked": true,
           "meta": {},
           "name": "Take",
@@ -208,6 +214,7 @@
       "id": "session",
       "is_segment_line": false,
       "length": 90.0,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Session",
@@ -227,6 +234,7 @@
             32,
             1
           ],
+          "links": [],
           "locked": true,
           "meta": {},
           "name": "Exposition",
@@ -247,6 +255,7 @@
         48,
         1
       ],
+      "links": [],
       "locked": true,
       "meta": {},
       "name": "Sonata",

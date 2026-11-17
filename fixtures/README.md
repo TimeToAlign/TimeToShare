@@ -17,9 +17,9 @@ The directories sort the manifests by content only:
 - under `bundles/`, manifests of several groups, several ungrouped roots,
   or both.
 
-Version 0.2.0 has 48 manifests directly under `fixtures/0.2.0/`, 11 under
-`groups/` and 11 under `bundles/`, 70 in all, each with its minimal twin, so
-140 files. Beside them lie 125 rejection cases and 17 warning cases.
+Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
+`groups/` and 12 under `bundles/`, 72 in all, each with its minimal twin, so
+144 files. Beside them lie 125 rejection cases and 17 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,

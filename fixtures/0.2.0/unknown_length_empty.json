@@ -20,11 +20,13 @@
     ]
   },
   "groups": [],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -33,6 +35,7 @@
       "id": "score",
       "is_segment_line": false,
       "length": null,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": null,

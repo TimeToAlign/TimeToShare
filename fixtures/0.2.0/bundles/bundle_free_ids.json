@@ -81,11 +81,13 @@
       "name": "Piece"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": "Free IDs",
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -97,6 +99,7 @@
         8,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Score",
@@ -108,6 +111,7 @@
             1
           ],
           "id": "https://example.org/piece/score#exposition",
+          "links": [],
           "meta": {},
           "name": "Exposition",
           "start": [
@@ -125,6 +129,7 @@
       "id": "perf/take 2",
       "is_segment_line": false,
       "length": 4.0,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Take 2",
@@ -133,6 +138,7 @@
         {
           "end": 1.0,
           "id": "take 2/intro",
+          "links": [],
           "meta": {},
           "name": "Intro",
           "start": 0.0

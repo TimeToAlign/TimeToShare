@@ -30,11 +30,13 @@
       "name": "rec-ref"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": "alignment",
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -56,6 +58,7 @@
       "id": "rec-a:dpt_1",
       "is_segment_line": false,
       "length": 1764,
+      "links": [],
       "locked": false,
       "meta": {
         "sample_rate": 44100,
@@ -86,6 +89,7 @@
       "id": "rec-ref:dpt_1",
       "is_segment_line": false,
       "length": 2205,
+      "links": [],
       "locked": false,
       "meta": {
         "sample_rate": 44100,

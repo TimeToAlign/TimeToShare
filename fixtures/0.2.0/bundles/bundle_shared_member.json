@@ -101,11 +101,13 @@
       "name": "Page"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": "Shared",
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -117,6 +119,7 @@
         8,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Score",
@@ -131,6 +134,7 @@
       "id": "u",
       "is_segment_line": false,
       "length": 4.0,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Performance",
@@ -145,6 +149,7 @@
       "id": "v",
       "is_segment_line": false,
       "length": 800,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Page",

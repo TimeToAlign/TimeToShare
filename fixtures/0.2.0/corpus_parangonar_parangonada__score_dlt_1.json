@@ -1,10 +1,12 @@
 {
   "groups": [],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -29,6 +31,7 @@
       "id": "score:dlt_1",
       "is_segment_line": false,
       "length": 2064,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Beethoven_Eroica_op35-cpjku",

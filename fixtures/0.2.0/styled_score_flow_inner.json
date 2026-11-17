@@ -264,11 +264,13 @@
     ]
   },
   "groups": [],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [
@@ -282,6 +284,7 @@
             4,
             1
           ],
+          "links": [],
           "locked": true,
           "meta": {},
           "name": null,
@@ -303,6 +306,7 @@
             4,
             1
           ],
+          "links": [],
           "locked": true,
           "meta": {},
           "name": null,
@@ -346,6 +350,7 @@
         8,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Score",
@@ -357,6 +362,7 @@
             1
           ],
           "id": "intro",
+          "links": [],
           "meta": {},
           "name": "intro",
           "start": [

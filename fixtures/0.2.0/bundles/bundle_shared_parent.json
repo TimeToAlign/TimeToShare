@@ -147,11 +147,13 @@
       "name": "Recapitulation"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": "Sonata",
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -160,6 +162,7 @@
       "id": "page",
       "is_segment_line": false,
       "length": 1754,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Page",
@@ -181,6 +184,7 @@
                 6,
                 1
               ],
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "First theme",
@@ -215,6 +219,7 @@
                 6,
                 1
               ],
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "Second theme",
@@ -245,6 +250,7 @@
             12,
             1
           ],
+          "links": [],
           "locked": true,
           "meta": {},
           "name": "Exposition",
@@ -270,6 +276,7 @@
                     3,
                     1
                   ],
+                  "links": [],
                   "locked": false,
                   "meta": {},
                   "name": "Phrase 1",
@@ -291,6 +298,7 @@
                     3,
                     1
                   ],
+                  "links": [],
                   "locked": false,
                   "meta": {},
                   "name": "Phrase 2",
@@ -311,6 +319,7 @@
                 6,
                 1
               ],
+              "links": [],
               "locked": true,
               "meta": {},
               "name": "First theme",
@@ -334,6 +343,7 @@
                     3,
                     1
                   ],
+                  "links": [],
                   "locked": false,
                   "meta": {},
                   "name": "Phrase 1",
@@ -355,6 +365,7 @@
                     3,
                     1
                   ],
+                  "links": [],
                   "locked": false,
                   "meta": {},
                   "name": "Phrase 2",
@@ -385,6 +396,7 @@
                 6,
                 1
               ],
+              "links": [],
               "locked": true,
               "meta": {},
               "name": "Second theme",
@@ -405,6 +417,7 @@
             12,
             1
           ],
+          "links": [],
           "locked": true,
           "meta": {},
           "name": "Recapitulation",
@@ -449,6 +462,7 @@
         32,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Score",
@@ -460,6 +474,7 @@
             1
           ],
           "id": "region_1",
+          "links": [],
           "meta": {},
           "name": "Development",
           "start": [
@@ -479,6 +494,7 @@
           "id": "take_1_first",
           "is_segment_line": false,
           "length": 14.0,
+          "links": [],
           "locked": false,
           "meta": {},
           "name": "First theme",
@@ -494,6 +510,7 @@
           "id": "take_1_second",
           "is_segment_line": false,
           "length": 16.0,
+          "links": [],
           "locked": false,
           "meta": {},
           "name": "Second theme",
@@ -518,6 +535,7 @@
       "id": "take_1",
       "is_segment_line": true,
       "length": 30.0,
+      "links": [],
       "locked": true,
       "meta": {},
       "name": "Take 1",
@@ -532,6 +550,7 @@
       "id": "take_2",
       "is_segment_line": false,
       "length": 28.5,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Take 2",
