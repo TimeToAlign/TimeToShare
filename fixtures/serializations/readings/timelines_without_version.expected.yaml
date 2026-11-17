@@ -1,5 +1,9 @@
 timelines:
   -
     id: a
+    length: 4
+    unit: samples
   -
     id: b
+    length: 2.0
+    unit: seconds
