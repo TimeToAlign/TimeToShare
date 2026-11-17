@@ -1,0 +1,39 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 1.0
+      id: timestamp_3
+      name: One
+      timeline: perf
+    -
+      coordinate: [2, 4]
+      id: timestamp_1
+      name: Half
+      timeline: score
+    -
+      coordinate: 3
+      id: timestamp_2
+      name: Three
+      timeline: take
+timelines:
+  -
+    id: perf
+    length: 2.0
+    unit: seconds
+  -
+    id: score
+    length: [8, 1]
+    unit: quarters
+  -
+    id: score
+    length: [4, 1]
+    unit: quarters
+  -
+    id: take
+    length: 8.0
+    unit: seconds
+  -
+    id: take
+    length: 4.0
+    unit: seconds
+timetoshare: "0.2.0"

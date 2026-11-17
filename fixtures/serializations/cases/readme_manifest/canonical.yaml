@@ -1,0 +1,17 @@
+meta:
+  source:
+    edition: Urtext
+    errata: []
+    pages: 12
+name: "Sonata in B♭"
+timelines:
+  -
+    id: score
+    length: [32, 1]
+    unit: quarters
+  -
+    id: take_1
+    length: 1503.25
+    offset: 1700000000.0
+    unit: seconds
+timetoshare: "0.2.0"

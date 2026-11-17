@@ -3,3 +3,6 @@
 # byte for byte, whatever core.autocrlf says.
 * text=auto eol=lf
 *.ttf binary
+# The serialization cases are compared byte for byte, line ends and final
+# line feeds included; some hold carriage returns on purpose.
+fixtures/serializations/** -text

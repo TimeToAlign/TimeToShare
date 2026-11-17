@@ -1,0 +1,10 @@
+groups:
+  -
+    id: pair
+    members: [b, 1]
+timelines:
+  -
+    id: b
+    length: 1.0
+    unit: seconds
+timetoshare: "0.2.0"

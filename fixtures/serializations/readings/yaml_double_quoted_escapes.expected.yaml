@@ -1,0 +1,16 @@
+bell: "\u0007"
+escape: "\u001b"
+escaped_line_break: onetwo
+folded_line: "one two"
+hex_8bit: A
+literal_tab: "a\tb"
+ls: "\u2028"
+nbsp: " "
+nel: "\u0085"
+nul: "\u0000"
+ps: "\u2029"
+slash: "/"
+space: " "
+unicode_32bit: "😀"
+upper_hex: "é"
+vertical_tab: "\u000b"

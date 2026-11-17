@@ -1,0 +1,15 @@
+timetoshare: "0.2.0"
+timelines:
+  - {id: g_zero_denominator, unit: quarters, length: [1, 0]}
+  - {id: f_unknown_type, unit: seconds, number_type: decimal, length: 2, offset: [4, 8]}
+  - id: e_unknown_unit
+    unit: furlongs
+    length: [4, 8]
+    offset: 2.0
+    children:
+      - {id: e_child, unit: furlongs, offset: [2, 4], length: [2, 4]}
+  - {id: d_negative_denominator, unit: quarters, length: [3, -2]}
+  - {id: c_fraction, unit: quarters, length: 2.0, offset: 2}
+  - {id: b_float, unit: seconds, length: 9007199254740993, offset: [4, 8]}
+  - {id: a_int, unit: samples, length: 2.5, offset: [1, 2]}
+  - {id: a_member, unit: quarters, length: [1, 2.5]}

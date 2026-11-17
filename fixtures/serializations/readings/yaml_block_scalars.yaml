@@ -1,0 +1,15 @@
+clip: |
+  line one
+  line two
+folded: >
+  folded
+  text
+
+  next paragraph
+keep: |+
+  kept
+
+strip: |-
+  stripped
+indented: |2
+    two extra

@@ -1,0 +1,5 @@
+timetoshare: "0.2.0"
+groups: g
+timelines:
+  - {id: b, unit: seconds, length: 1, children: x}
+  - {id: a, unit: seconds, length: 2.0, regions: 7, flow_control: {}}

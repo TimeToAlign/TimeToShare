@@ -1,0 +1,33 @@
+timelines:
+  -
+    children:
+      -
+        id: half
+        length: [2, 1]
+        offset: [1, 2]
+        unit: quarters
+      -
+        id: whole
+        length: 2.0
+        number_type: float
+        offset: [4, 1]
+        unit: quarters
+    flow_control:
+      -
+        coordinate: [3, 2]
+        id: f
+        manifestation: fine
+        type: flow_marker
+    id: score
+    length: [32, 1]
+    regions:
+      -
+        end: [0, 1]
+        id: r_neg
+        start: [-3, 2]
+      -
+        end: [3, 2]
+        id: r_zero
+        start: [0, 1]
+    unit: quarters
+timetoshare: "0.2.0"

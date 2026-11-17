@@ -1,0 +1,6 @@
+apostrophe: "it's"
+empty: ""
+hash: "x # not a comment"
+looks_null: "null"
+number: "12"
+plain_word: score

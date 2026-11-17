@@ -1,0 +1,11 @@
+timelines:
+  -
+    id: perf
+    length: 9007199254740992.0
+    unit: seconds
+  -
+    id: take
+    length: 100000000000000000000
+    offset: 0
+    unit: samples
+timetoshare: "0.2.0"

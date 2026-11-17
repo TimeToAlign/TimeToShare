@@ -1,0 +1,12 @@
+files:
+  -
+    timelines:
+      -
+        id: b
+        length: 2
+        unit: seconds
+      -
+        id: a
+        length: [4, 8]
+        unit: quarters
+    timetoshare: "0.2.0"

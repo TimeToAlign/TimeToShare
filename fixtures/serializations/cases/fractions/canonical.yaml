@@ -1,0 +1,6 @@
+fraction: [19, 2]
+negative: [-3, 4]
+pairs:
+  - [1, 2]
+  - [3, 4]
+zero: [0, 1]

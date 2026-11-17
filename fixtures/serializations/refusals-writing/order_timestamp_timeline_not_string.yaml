@@ -1,0 +1,18 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 1.0
+      id: timestamp_1
+      name: Cue
+      timeline: 1
+    -
+      coordinate: 1.0
+      id: timestamp_2
+      name: Entry
+      timeline: perf
+timelines:
+  -
+    id: perf
+    length: 2.0
+    unit: seconds
+timetoshare: "0.2.0"

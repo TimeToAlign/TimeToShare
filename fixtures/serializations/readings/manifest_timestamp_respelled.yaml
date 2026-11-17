@@ -1,0 +1,14 @@
+graphical:
+  timestamps:
+    - {id: timestamp_1, timeline: perf, coordinate: 3, name: Entry}
+    - {id: timestamp_2, timeline: verse, coordinate: [2, 4], name: Verse}
+    - {id: timestamp_3, timeline: take, coordinate: 3.0, name: Cue}
+timelines:
+  - {id: perf, unit: seconds, length: 10.0}
+  - id: score
+    unit: quarters
+    length: [8, 1]
+    children:
+      - {id: verse, unit: quarters, offset: [0, 1], length: [4, 1]}
+  - {id: take, unit: samples, length: 96000}
+timetoshare: "0.2.0"
