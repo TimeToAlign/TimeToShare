@@ -14,12 +14,15 @@ validation packages for Python and TypeScript.
 **Status: alpha.** The repository holds one schema version, 0.2.0, the
 current version, as one JSON Schema document describing one manifest shape.
 It provides validators for Python and TypeScript that locate a violation
-under one shared path rule and list unknown keys as warnings, the complete
-and the minimal form of a manifest, a canonical order, standard writers
-that produce the same bytes in Python and TypeScript, a lossless JSON reader
-for TypeScript, generated TypeScript types, and shared fixtures. It also
-specifies how a manifest is drawn, and both packages ship that
-specification.
+under one shared path rule and list unknown keys and unregistered terms as
+warnings, the complete and the minimal form of a manifest, a canonical
+order, standard writers that produce the same bytes in Python and
+TypeScript, a lossless JSON reader for TypeScript, generated TypeScript
+types, and shared fixtures. It also specifies how a manifest is drawn and
+how a manifest links its content to works, editions, recordings and
+agents, with a registry of identifier schemes that turns catalogue
+addresses into links; both packages ship both specifications and the
+registry.
 
 ## Containers
 
@@ -69,6 +72,8 @@ groups beside ungrouped timelines. The smallest manifest is
 | `meta` | no | an object of anything an application wants to record |
 | `groups` | no | timeline groups whose members name timelines of the manifest |
 | `measure_maps` | no | the MeasureMaps the conversion maps read, each with an ID; they belong to no timeline |
+| `schemes` | no | the identifier schemes the manifest's links name by ID ([Describing a manifest](#describing-a-manifest)) |
+| `links` | no | the links of the manifest as a whole to external entities ([Describing a manifest](#describing-a-manifest)) |
 | `graphical` | no | the styling of the manifest's drawing, its groups' display orders and its timelines' band orders |
 | `$schema` | no | a string naming the schema, for editors; never read |
 
@@ -97,8 +102,8 @@ events itself.
 
 A timeline (`$defs/Timeline`) requires `id`, `unit` and `length`. Its
 optional keys are `name`, `number_type`, `offset`, `locked`,
-`is_segment_line`, `meta`, `children`, `conversion_maps`, `regions` and
-`flow_control`.
+`is_segment_line`, `meta`, `children`, `conversion_maps`, `regions`,
+`flow_control` and `links`.
 
 - `unit` decides the timeline's domain (logical, physical or graphical)
   and modality (continuous or discrete), since each unit belongs to exactly
@@ -156,10 +161,12 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   offset order to its length, all sharing its unit as every child does,
   and all with one `is_segment_line` value. Segments that are segment lines
   themselves make a nested segment line.
-- `conversion_maps`, `regions` and `flow_control` hold the timeline's
-  conversion maps ([Conversion maps and
+- `conversion_maps`, `regions`, `flow_control` and `links` hold the
+  timeline's conversion maps ([Conversion maps and
   MeasureMaps](#conversion-maps-and-measuremaps)), regions (`{id, name?, start,
-  end, meta?}`) and flow-control elements ([Flow control](#flow-control)).
+  end, meta?, links?}`), flow-control elements ([Flow control](#flow-control))
+  and links to external entities ([Describing a
+  manifest](#describing-a-manifest)).
 
 ### Conversion maps and MeasureMaps
 
@@ -282,9 +289,9 @@ required in both forms.
 
 | Object | Key: default |
 | --- | --- |
-| manifest | `id`: absent (without a `name` too, an anonymous bundle); `name`: `null`; `meta`: `{}`; `groups`, `measure_maps`: `[]`; `graphical`: absent |
-| timeline | `name`: `null`; `number_type`: the unit's default (the unit table of [The timeline](#the-timeline)); `offset`: absent on a root, required on a child; `locked`: `false`; `is_segment_line`: `false`; `meta`: `{}`; `children`, `conversion_maps`, `regions`, `flow_control`: `[]` |
-| region | `name`: `null`; `meta`: `{}` |
+| manifest | `id`: absent (without a `name` too, an anonymous bundle); `name`: `null`; `meta`: `{}`; `groups`, `measure_maps`, `schemes`, `links`: `[]`; `graphical`: absent |
+| timeline | `name`: `null`; `number_type`: the unit's default (the unit table of [The timeline](#the-timeline)); `offset`: absent on a root, required on a child; `locked`: `false`; `is_segment_line`: `false`; `meta`: `{}`; `children`, `conversion_maps`, `regions`, `flow_control`, `links`: `[]` |
+| region | `name`: `null`; `meta`: `{}`; `links`: `[]` |
 | flow-control element (`flow_control_element`) | `name`, `label`: `null`; `meta`: `{}` |
 | a `repeat_end` besides (`repeat_end`) | `repeat_count`: 1 |
 | conversion map (`conversion_map`) | `name`: `null` |
@@ -294,9 +301,15 @@ required in both forms.
 | group | `name`: `null`; `meta`: `{}` |
 | graphical | `styles`: `{}`; `statements`: `[]`; `order`: `{}`; `timestamps`: `[]` |
 | named timestamp (`timestamp`) | `display`: `["wedge", "name", "cross_section"]` |
+| scheme | `name`, `criteria`: `null`; `uri`: `[]` |
+| link | `uri`, `identifiers`, `records`, `parts`, `part_of`: `[]`; `label`, `assertion`, `parts_relation`: `null`; `parts_ordered`: `true` |
+| record (`descriptor`) | `media_type`, `size`, `integrity`: `null` |
+| assertion | `asserted_by`, `based_on`: `[]`; `asserted_on`, `method`, `service`, `match`, `status`: `null` |
+| part slot (`part_slot`) | `uri`, `identifiers`, `represented_by`: `[]`; `label`, `absent`, `assertion`: `null` |
+| `part_of` entry (`part_of`) | `uri`, `identifiers`: `[]`; `label`, `position`, `assertion`: `null` |
 
-A row marked "besides" adds its keys to those of the general row it
-follows: a `repeat_end` has the keys of every flow-control element plus
+An identifier `{scheme, value}` has no default. A row marked "besides"
+adds its keys to those of the general row it follows: a `repeat_end` has the keys of every flow-control element plus
 `repeat_count`, which no other element carries, and a `LinearMap` or a
 `TableMap` the keys of every conversion map plus its own, at any depth of
 nesting. The names in
@@ -404,20 +417,23 @@ host's own validator is unaffected.
 ### Identity
 
 Every timeline, group, MeasureMap, conversion map, region,
-flow-control element and named timestamp carries an `id`, which identifies
-it, and so may the manifest. A `name`, where an element has one, is what is displayed, and it
-may repeat. An ID is any non-empty string without control characters
+flow-control element, named timestamp and scheme carries an `id`, which
+identifies it, and so may the manifest. A `name`, where an element has
+one, is what is displayed, and it may repeat. An ID is any non-empty string without control characters
 (U+0000 to U+001F): `/`, spaces, colons and URIs are allowed. Every ID is
 unique across the whole manifest: the manifest's own, and the IDs of every
 timeline (root or descendant), group, MeasureMap, conversion map at any
-depth of nesting, region, flow-control element and named timestamp. A
-named timestamp's ID has one shape, `timestamp_` followed by a positive
-integer without leading zeros. An ID is never parsed
+depth of nesting, region, flow-control element, named timestamp and
+scheme. A named timestamp's ID has one shape, `timestamp_` followed by a
+positive integer without leading zeros. An ID is never parsed
 and never composed with another. A reference is an ID: a jump origin's
 `target` names a jump target of the same timeline, a measure view's
 `measure_map` an entry of `measure_maps`, a group's `members` name
 timelines of the manifest, a key of `graphical.order` a group or a
-timeline, and a named timestamp's `timeline` a timeline of the manifest.
+timeline, a named timestamp's `timeline` a timeline of the manifest, a
+part slot's `represented_by` timelines and regions of the manifest, and an
+identifier's `scheme` a scheme of the manifest unless it is an absolute
+URI.
 
 timetoalign and TimeLineEditor mint a speaking default `{prefix}_{N}` for
 an element created without an ID, such as `clt_1` or `region_1`, `N` the
@@ -460,7 +476,7 @@ stable code:
 | A segment does not start where the one before it ends, or the first at 0 | `segment_line` | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
 | The last segment does not end at the segment line's length, both known | `segment_line` | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
 | An ID of a root's tree repeats an ID of an earlier root's tree | `duplicate_id` | the later occurrence | `'<id>' is not unique in the manifest, first at <pointer>` |
-| A group ID, a MeasureMap ID or a named timestamp's ID repeats an earlier ID of the manifest | `duplicate_id` | the group's, the MeasureMap's or the timestamp's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
+| A group ID, a MeasureMap ID, a named timestamp's ID or a scheme ID repeats an earlier ID of the manifest | `duplicate_id` | the group's, the MeasureMap's, the timestamp's or the scheme's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
 | The manifest's ID repeats another ID of the manifest | `manifest_id` | `id` | `'<id>' is not unique in the manifest, first at <pointer>`, the pointer naming the first occurrence of that ID |
 | A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
@@ -471,6 +487,8 @@ stable code:
 | A facet, or `line`, is missing from its band order | `band_order` | the order | `'<entry>' is missing from the band order of '<id>'` |
 | A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
+| An identifier's `scheme` names no scheme of the manifest and is no absolute URI | `dangling_target` | the `scheme` | `'<scheme>' names no scheme of this manifest and is no absolute URI` |
+| A part slot's `represented_by` entry names no timeline (at any depth) or region of the manifest | `dangling_target` | the entry | `'<id>' names no timeline or region of this manifest` |
 
 Within one root's tree, IDs are visited in identity order (a timeline,
 then its conversion maps, regions and flow-control elements, then its
@@ -488,11 +506,13 @@ segments are visited in canonical order and compared by exact value. Across the 
 order: each root's own problems, roots in array order; then the IDs
 repeated across roots (root by root, each ID of its tree in identity order,
 the IDs of the maps other maps hold last), the group IDs, the MeasureMap
-IDs, the named timestamps' IDs, the manifest's ID; members (member by
-member: dangling, nested); the entries of `graphical.order` in code-point
-order of their keys: an order's strangers first, in its order, then its
-missing entries, in the order of the group's `members` or of the default
-band order; and last the named timestamps, in array order. A timestamp's
+IDs, the named timestamps' IDs, the scheme IDs, the manifest's ID; members
+(member by member: dangling, nested); the entries of `graphical.order` in
+code-point order of their keys: an order's strangers first, in its order,
+then its missing entries, in the order of the group's `members` or of the
+default band order; then the named timestamps, in array order; and last
+the references of links, link by link (the description specification,
+section 8). A timestamp's
 coordinate is an own-axis value of its timeline, so its representation is
 checked as every such value is (`representation`, at its `coordinate`); a
 timestamp naming no timeline is checked for its timeline alone. `<pointer>`
@@ -534,6 +554,58 @@ The schema is the source of truth for timetoalign and TimeLineEditor.
 timetoalign's hand-written serialization is tested for schema conformance and
 fixture round trips. TypeScript types are generated in this repository from
 the one document.
+
+## Describing a manifest
+
+The manifest, every timeline at any depth and every region may carry
+`links`, the manifest's **description layer**: typed relations to the
+external entities their content is about, a work, an expression, a
+manifestation or an item in the sense of the IFLA Library Reference
+Model, or an agent. A link never states that its element is the entity.
+It states that the element pertains to the entity, or in which role an
+agent stands to it, and names the entity by URIs and by identifiers
+`{scheme, value}`. It may point to records about the entity, carry an
+assertion of who stated it, when and how, and list the entity's parts in
+order, each represented by timelines and regions of the manifest or absent
+for a stated reason. Readings that differ, such as two editions that
+order the movements of a work differently, are separate links. A scheme
+without a URI of its own, such as a composer's opus numbers, is declared
+in the manifest's `schemes` and named by its ID:
+
+```json
+"schemes": [
+  {"id": "mb_beethoven_opus", "name": "Works of Ludwig van Beethoven by opus number", "uri": ["https://musicbrainz.org/series/004f17aa-0f46-4fec-b939-c5dfc849e5c6"]}
+],
+"links": [
+  {
+    "relation": "pertains_to",
+    "level": "work",
+    "uri": ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284", "http://www.wikidata.org/entity/Q146730"],
+    "identifiers": [{"scheme": "mb_beethoven_opus", "value": "op. 106"}],
+    "label": "Piano Sonata No. 29 in B♭ major, Op. 106"
+  }
+]
+```
+
+The **registry of identifier schemes**, `registry/schemes.json`, lists
+well-known schemes (MusicBrainz works, recordings and releases, Wikidata,
+VIAF, GND, IMSLP and DOI) with the addresses each recognises. Python's
+`Link.from_urls` and npm's `linkFromUrls` turn addresses copied from those
+sites into links: `https://musicbrainz.org/work/…` gives the entity URI
+`http://musicbrainz.org/work/…` at the level `work`, and an IMSLP page an
+identifier in the scheme of IMSLP IDs. The validators never consult the
+registry. Words of the layer's open vocabularies that are not registered
+are kept and listed as warnings by `unregistered_terms(value)` and
+`unregisteredTerms(value)`, never refused. The
+[description specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/description.md)
+defines links, schemes, the registry, records, assertions, part readings,
+wholes and absence, states what is refused and what is warned, works
+through the bundle of Op. 106, and maps every term to Dublin Core,
+schema.org, SKOS, PROV, the Web Annotation vocabulary, PREMIS and LRMoo.
+Both packages contain the specification, the wheel as
+`timetoshare/docs/description.md` and the npm package as
+`@timetoalign/timetoshare/docs/description.md`, and the registry as
+`registry/schemes.json` beside it.
 
 ## Drawing a manifest
 
@@ -630,8 +702,8 @@ canonical order, so equal manifests have equal text. The keys of every
 object, at every depth, are sorted by Unicode code point. The arrays whose
 order keys cannot express are put in this order:
 
-- `timelines`, `groups` and `measure_maps` by ID, and every group's
-  `members` by code point;
+- `timelines`, `groups`, `measure_maps` and `schemes` by ID, and every
+  group's `members` by code point;
 - in every timeline, `children` by offset, then ID;
 - `conversion_maps` by ID;
 - `regions` by start, then end, then ID;
@@ -643,7 +715,8 @@ order keys cannot express are put in this order:
 IDs are unique across the manifest, so no two entries tie. Coordinates
 compare by exact numeric value, never by JSON spelling. Strings compare by
 Unicode code point. No other array is reordered: `graphical` statements,
-display orders, conversion-map payloads, and MeasureMap rows keep their
+display orders, conversion-map payloads, MeasureMap rows, the links of the
+manifest, a timeline or a region, and every array of a link keep their
 order.
 
 ## The standard writer
@@ -703,6 +776,13 @@ else:
   `Infinity` and a float beyond a double are refused with `ValueError`.
 - `unknown_keys(value)` returns the unknown keys of a manifest as a list of
   `{path, key}` entries, sorted by path and then by key.
+- `unregistered_terms(value)` returns the unregistered terms of a
+  manifest's links as `{path, term}` entries, sorted by path
+  ([Describing a manifest](#describing-a-manifest)).
+- `Link`, `PartSlot`, `PartOf`, `Assertion`, `Descriptor`, `Identifier` and
+  `Scheme` model the description layer; `Link.from_urls` and
+  `PartSlot.from_url` build links and part slots through the registry that
+  `default_registry()` returns.
 - `complete(value)` and `minimal(value)` return a copy of a manifest in the
   complete or the minimal form; the input is not changed.
 - `dumps(value)` returns the standard text of a manifest or any JSON value.
@@ -763,7 +843,13 @@ function load(text: string): string {
   `LosslessManifest` (its numbers may be bigints and `JsonFloat`s),
   checking it as Python's `validate` does; its `SchemaValidationError` carries the same
   `code` (typed `ValidationCode`), a `path` and a `detail`.
-- `unknownKeys(value)` returns the same list as Python's `unknown_keys`.
+- `unknownKeys(value)` returns the same list as Python's `unknown_keys`,
+  and `unregisteredTerms(value)` the same list as Python's
+  `unregistered_terms`.
+- `linkFromUrls`, `partSlotFromUrl`, `withParts` and the other `with…`
+  functions build links as plain objects of the generated types, as
+  Python's description model does; `defaultRegistry()`, `recognize` and
+  `withSchemes` read and extend the registry.
 - `complete(value)` and `minimal(value)` return the complete and the minimal
   form, as Python's functions do, keeping every number and key order
   `parseJson` read. The typed forms say which form a value is in:
