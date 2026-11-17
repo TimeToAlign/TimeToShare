@@ -16,7 +16,7 @@ and these cases together.
 | `cases/<name>/canonical.yaml` | the canonical YAML of one value |
 | `cases/<name>/pretty.json` | the pretty JSON of the same value |
 | `cases/<name>/rfc8785.json` | its RFC 8785 JSON, without a final line feed; absent where the RFC 8785 writer refuses the value |
-| `readings/<name>.<ext>` | a text that is not canonical and that every reader reads, `<ext>` being `yaml` or `json` |
+| `readings/<name>.<ext>` | a text that is not canonical and that every reader reads, `<ext>` being `yaml` or `json`; the readings are the files of `readings/` whose names end neither in `.expected.yaml` nor in `.expected.rfc8785.json`, and a test collecting them skips both kinds of expected file |
 | `readings/<name>.expected.yaml` | the canonical YAML of the value that text is read as |
 | `readings/<name>.expected.rfc8785.json` | optional: the RFC 8785 JSON written from the value that text is read as, without a final line feed |
 | `refusals/<name>.<ext>` | a text that every reader refuses, one rule per text |
@@ -30,6 +30,10 @@ is meant as JSON and is read as YAML. Every file is UTF-8, and only the
 `refusals/bom_second_*` texts begin with a byte order mark (U+FEFF), the
 last two with two. The bytes of every file are significant, final
 line feeds included; `refusals/empty.yaml` is empty.
+
+One reading is a known issue of the Python package: `readings/yaml_tab_plain.yaml`
+is a valid YAML 1.2 text that its parser (ruamel.yaml) refuses. Python tests
+mark it as a documented known issue; every other reader reads it.
 
 ## How a package test uses them
 
@@ -87,13 +91,14 @@ members.
      and every `readings/<name>.expected.rfc8785.json`, the scalar ones
      included;
    - for a reading, refusal or writer refusal: `"json"` for every `.json`
-     text but `refusals/bom_second_json.json` and for
+     text (the `.expected.rfc8785.json` files, which give `"jcs"`, excepted) but `refusals/bom_second_json.json` and for
      `refusals/flow_mapping_unquoted_key.yaml`,
      `refusals/flow_sequence_plain.yaml` and
      `refusals/flow_sequence_then_comment.yaml`, and `"yaml"` for every
      other text (`refusals/empty.yaml`, `refusals/bom_only.yaml` and
      `refusals/bom_second_json.json`, whose first character once the byte
-     order mark is removed is a second U+FEFF, included). None of these texts is RFC 8785 JSON: the compact ones are
+     order mark is removed is a second U+FEFF, included). None of the readings,
+     refusals and writer refusals is RFC 8785 JSON: the compact ones are
      unsorted (`readings/json_compact.json`), begin with U+FEFF
      (`readings/bom_rfc8785.json`), or hold values the RFC 8785 writer
      refuses (`refusals-writing/integer_2_53.json`, `key_1025_*.json`).
