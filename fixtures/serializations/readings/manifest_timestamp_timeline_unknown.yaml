@@ -1,0 +1,9 @@
+timetoshare: "0.2.0"
+timelines:
+  - {id: perf, unit: seconds, length: 4.0}
+graphical:
+  timestamps:
+    - {id: timestamp_4, timeline: perf, coordinate: 1, name: Known}
+    - {id: timestamp_1, timeline: ghost, coordinate: [4, 8], name: Half}
+    - {id: timestamp_2, timeline: ghost, coordinate: 2, name: Two}
+    - {id: timestamp_3, timeline: ghost, coordinate: 0.25, name: Quarter}

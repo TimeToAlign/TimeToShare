@@ -1,0 +1,17 @@
+timelines:
+  -
+    flow_control:
+      -
+        coordinate: true
+        id: f_1
+        manifestation: fine
+        type: flow_marker
+      -
+        coordinate: 1.0
+        id: f_2
+        manifestation: fine
+        type: flow_marker
+    id: perf
+    length: 2.0
+    unit: seconds
+timetoshare: "0.2.0"

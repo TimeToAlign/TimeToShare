@@ -23,9 +23,11 @@ and these cases together.
 
 The extension names the language the text was written in, not the
 serialization a reader chooses: `refusals/flow_mapping_unquoted_key.yaml`
-is meant as YAML and is read as JSON. Every file is UTF-8, and only the
-three `readings/bom_*` texts and `refusals/bom_only.yaml` begin with a
-byte order mark (U+FEFF). The bytes of every file are significant, final
+is meant as YAML and is read as JSON, and `readings/bom_second_json.json`
+is meant as JSON and is read as YAML. Every file is UTF-8, and only the
+`readings/bom_*` texts and `refusals/bom_only.yaml` begin with a byte
+order mark (U+FEFF), the two `readings/bom_second_*` texts with two. The
+bytes of every file are significant, final
 line feeds included; `refusals/empty.yaml` is empty.
 
 ## How a package test uses them
@@ -52,7 +54,8 @@ members.
    - Each text read and written again in the serialization its file name
      names gives its own bytes.
    - For the manifest cases (`readme_manifest`, `manifest_canonical_order`,
-     `manifest_order_by_value`, `manifest_ties_kept`), the value read from
+     `manifest_order_by_value`, `manifest_ties_kept`,
+     `manifest_display_order`), the value read from
      `rfc8785.json` written in canonical YAML gives the bytes of
      `canonical.yaml`: the declared number types restore the floats RFC
      8785 JSON spells as integers. These cases hold no float off a
@@ -80,11 +83,13 @@ members.
    - `"json"` for every `pretty.json` and `"jcs"` for every `rfc8785.json`,
      the scalar ones included;
    - for a reading, refusal or writer refusal: `"json"` for every `.json`
-     text and for `refusals/flow_mapping_unquoted_key.yaml`,
+     text but `readings/bom_second_json.json` and for
+     `refusals/flow_mapping_unquoted_key.yaml`,
      `refusals/flow_sequence_plain.yaml` and
      `refusals/flow_sequence_then_comment.yaml`, and `"yaml"` for every
-     other text (`refusals/empty.yaml` and `refusals/bom_only.yaml`
-     included). None of these texts is RFC 8785 JSON: the compact ones are
+     other text (`refusals/empty.yaml`, `refusals/bom_only.yaml` and
+     `readings/bom_second_json.json`, whose first character once the byte
+     order mark is removed is a second U+FEFF, included). None of these texts is RFC 8785 JSON: the compact ones are
      unsorted (`readings/json_compact.json`), begin with U+FEFF
      (`readings/bom_rfc8785.json`), or hold values the RFC 8785 writer
      refuses (`refusals-writing/integer_2_53.json`, `key_1025_*.json`).
@@ -125,6 +130,7 @@ memory.
 | `manifest_canonical_order` | timelines, nested children, conversion maps, a ChainMap's maps (kept), flow control, regions, groups and members, named timestamps and their `display`, `graphical.order` (kept) | canonical order; ties broken by ID in code-point order (`region_10` before `region_2`) |
 | `manifest_order_by_value` | children at 3/10 before 1/3, regions and flow control at 9.5 before 10.0, timestamps at 9 before 10, a child at the Fraction pair 1/10 before one at the float 0.1 (whose exact value is greater) on a `float` axis; `measure_maps` and `schemes` by ID; MeasureMap rows and the manifest's `links` kept | coordinates compare by exact numeric value, never by spelling; a value its number type cannot take is written as given |
 | `manifest_ties_kept` | duplicate IDs: two timelines, groups, children, conversion maps, regions, flow-control elements, and two named timestamps at `[1, 2]` and `0.5` on a `float` axis, each pair tying on every member it is ordered by and given `Second` before `First` | entries that tie keep their given order |
+| `manifest_display_order` | a named timestamp whose `display` holds the five known words, the strings `"2"`, `Alpha`, `Wedge`, `label` and `zeta`, and the values `2`, `null` and `1` | a `display` in canonical order: the known words in their order, other strings by code point, then other values in their given order |
 
 ## Readings
 
@@ -133,6 +139,10 @@ memory.
 | `bom_yaml` | U+FEFF before a YAML text | a leading byte order mark is ignored; `serialization_of` gives `"yaml"` |
 | `bom_pretty_json` | U+FEFF before pretty JSON | the same; `"json"` |
 | `bom_rfc8785` | U+FEFF before RFC 8785 JSON | the same; `"json"`, since the text is not byte for byte RFC 8785 JSON |
+| `bom_second_yaml` | two U+FEFF before `a: 1` | only the first is removed; YAML reads the second at the start of its stream as a byte order mark |
+| `bom_second_json` | two U+FEFF before `{"a": 1}` | the second U+FEFF is the first character, neither `{` nor `[`, and the text is not a JSON text: read as YAML, which reads it as a byte order mark; `serialization_of` gives `"yaml"` |
+| `yaml_bom_in_string` | a literal U+FEFF inside a double-quoted YAML string | any U+FEFF but the first is an ordinary character; written `﻿` |
+| `json_bom_in_string` | a literal U+FEFF inside a JSON string | the same, in JSON |
 | `yaml_flow_style` | flow collections not at the first character, single quotes | Reading: YAML in any style |
 | `yaml_single_quoted` | `''`, `'it''s'`, quoted `null` and `12` | a quoted scalar is a string |
 | `yaml_block_scalars` | `\|`, `>`, `\|+`, `\|-`, `\|2` | block scalars; their chomping |
@@ -143,6 +153,9 @@ memory.
 | `yaml_directive` | `%YAML 1.2` | the one directive read |
 | `yaml_core_schema` | every core-schema null and boolean spelling, `+12`, `007`, `0o17`, `0x1F`, `-0`, `.5`, `1.`, `1e5`, `+2.5`, `-0.0`, rounding to the nearest double; and plain scalars that stay strings: `yes`, `On`, `y`, `2001-12-14`, `1:20`, `1_000`, `0b101`, `-0x10`, `.Nan`, `inf`, `.` | the core-schema resolution the README states, not YAML 1.1's |
 | `yaml_double_quoted_escapes` | `\a`, `\e`, `\x41`, `\U0001F600`, `\0`, `\N`, `\_`, `\L`, `\P`, `\/`, `\ `, `\v`, upper-case hex, a literal tab, an escaped line break, a folded line | YAML double-quoted scalars |
+| `yaml_tab` | a literal tab in a comment, a double-quoted and a single-quoted scalar | the tab is not among the characters a YAML text refuses |
+| `yaml_tab_plain` | a literal tab inside a plain scalar, `x<tab>y` | the same in a plain scalar, which YAML 1.2 allows to hold a tab between two of its characters |
+| `yaml_refused_characters_escaped` | U+0001, U+001F, U+007F, U+0080, U+0085, U+009F, U+2028, U+FFFE and U+FFFF written as the escapes `\x01`, `\u001F`, `\x7F`, `\u0080`, `\x85`, `\x9f`, ` `, `￾` and `\U0000FFFF` | a character refused standing as itself is read through an escape; written `\u` and four lower-case digits |
 | `yaml_surrogate_pair_escape` | `😀` in YAML | a high-surrogate escape followed by a low-surrogate escape is one character |
 | `yaml_plain_multiline` | a plain scalar over three lines | plain-scalar folding |
 | `yaml_crlf` | CR LF line ends, in a quoted and a literal scalar | line breaks read as line feeds |
@@ -165,6 +178,14 @@ memory.
 | `manifest_timestamp_respelled` | named-timestamp coordinates `3` on a `float` axis, `3.0` on an `int` axis, `[2, 4]` on a child's `fraction` axis | named-timestamp coordinates are own-axis values of the timeline they name, at any depth |
 | `timelines_without_version` | an object whose `timelines` is an array, without `timetoshare`, with values to respell | it is a manifest: its timelines are ordered and its own-axis values respelled |
 | `embedded_manifest_unsorted` | a manifest inside a value that is not one, with unsorted keys, unordered timelines and values a manifest would respell | of an embedded manifest only the keys are sorted |
+| `manifest_display_unsorted` | `manifest_display_order` with its `display` shuffled, the non-strings kept in their order, and the coordinate `1` | a `display` put in canonical order by the writer |
+| `manifest_children_not_array` | `children: x`, `regions: 7`, `flow_control: {}` and `groups: g` | a member that should hold an ordered array but holds no array is written as given |
+| `manifest_fraction_integral_float` | children at `[1, 8.0]` and `[1, 4]` on a `fraction` axis; regions at `[1, 8.0]` and 0.25, flow control at `[3.0, 16]` and 0.15, on a `float` axis | a Fraction pair with an integral float member counts as the pair of integers it equals: ordered by its value, reduced on a `fraction` axis and written as given on a `float` axis |
+| `manifest_unit_missing` | a root without `unit` holding a child in `quarters`, and a root without `unit` whose `number_type` is `int` | a missing `unit` is unknown: the root's values and the child's `offset` written as given, the child's `length` respelled on its own axis |
+| `manifest_unit_not_string` | `unit: 1`, and `unit: [seconds]` beside `number_type: float` | a `unit` that is not a string is unknown, whatever the `number_type` |
+| `manifest_number_type_not_string` | `number_type` `1`, `null` and `[fraction]` | a `number_type` that is not a string, `null` included, is unknown |
+| `manifest_number_type_missing` | roots in `samples` and in `quarters` with `number_type: float`, the latter holding a child in `quarters` without `number_type` | a missing `number_type` is the unit's default, so values are respelled; a child's `offset` takes the parent's number type, its `length` its unit's default |
+| `manifest_timestamp_timeline_unknown` | named timestamps on `ghost`, which no timeline is, at `[4, 8]`, `2` and `0.25`, and one on `perf` at `1` | a timestamp whose `timeline` names no timeline has its coordinate written as given, still ordered by value |
 | `json_compact` | JSON without whitespace, keys unsorted | JSON in any layout |
 | `json_whitespace` | tabs, CR LF, spaces around tokens, leading whitespace | the first-character rule skips whitespace |
 | `json_escapes` | `\/`, `é`, a surrogate pair `😀`, `A`, `\u0009`, `\u007f`, `﻿`, `\u0085` | JSON escapes read; written in canonical form |
@@ -195,6 +216,14 @@ memory.
 | `yaml_nel_in_comment.yaml` | a literal U+0085 in a YAML text, inside a comment |
 | `yaml_ls_in_string.yaml` | a literal U+2028 in a YAML text |
 | `yaml_ps_in_string.yaml` | a literal U+2029 in a YAML text |
+| `yaml_ls_in_comment.yaml` | a literal U+2028 in a YAML text, inside a comment |
+| `yaml_u0001_in_string.yaml` | a literal U+0001, a C0 control, in a YAML text |
+| `yaml_u001f_in_string.yaml` | a literal U+001F, the last C0 control, in a YAML text |
+| `yaml_del_in_string.yaml` | a literal U+007F in a YAML text |
+| `yaml_u0080_in_string.yaml` | a literal U+0080 in a YAML text |
+| `yaml_u009f_in_string.yaml` | a literal U+009F in a YAML text |
+| `yaml_ufffe_in_string.yaml` | a literal U+FFFE in a YAML text |
+| `yaml_uffff_in_string.yaml` | a literal U+FFFF in a YAML text |
 | `yaml_directive_1_1.yaml` | the directive `%YAML 1.1` |
 | `yaml_directive_tag.yaml` | a `%TAG` directive |
 | `yaml_directive_reserved.yaml` | a reserved directive |
@@ -243,6 +272,7 @@ memory.
 | `json_single_quotes.json` | not JSON: a single-quoted string |
 | `json_unclosed.json` | not JSON: an unclosed object |
 | `json_comment.json` | not JSON: a comment |
+| `json_bom_between_tokens.json` | U+FEFF between `{` and a key: read as JSON, which refuses it outside a string |
 
 ## Writer refusals
 
@@ -265,3 +295,8 @@ memory.
 | `order_member_missing.yaml` | `yaml`, `json`, `jcs` | a child without the `offset` children are ordered by |
 | `order_member_wrong_type.yaml` | `yaml`, `json`, `jcs` | a region whose `start` is a string |
 | `order_id_wrong_type.yaml` | `yaml`, `json`, `jcs` | a timeline whose `id` is an integer |
+| `order_timestamp_timeline_not_string.yaml` | `yaml`, `json`, `jcs` | a named timestamp whose `timeline` is an integer |
+| `order_group_member_not_string.yaml` | `yaml`, `json`, `jcs` | a group whose `members` holds an integer |
+| `order_coordinate_zero_denominator.yaml` | `yaml`, `json`, `jcs` | a region whose `start` is `[1, 0]`, a pair whose denominator is below 1 |
+| `order_coordinate_three_members.yaml` | `yaml`, `json`, `jcs` | a child whose `offset` is `[1, 2, 3]`, neither a number nor a pair |
+| `order_coordinate_boolean.yaml` | `yaml`, `json`, `jcs` | a flow-control element whose `coordinate` is `true` |

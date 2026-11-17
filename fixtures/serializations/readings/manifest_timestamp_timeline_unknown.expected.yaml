@@ -1,0 +1,28 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 0.25
+      id: timestamp_3
+      name: Quarter
+      timeline: ghost
+    -
+      coordinate: [4, 8]
+      id: timestamp_1
+      name: Half
+      timeline: ghost
+    -
+      coordinate: 2
+      id: timestamp_2
+      name: Two
+      timeline: ghost
+    -
+      coordinate: 1.0
+      id: timestamp_4
+      name: Known
+      timeline: perf
+timelines:
+  -
+    id: perf
+    length: 4.0
+    unit: seconds
+timetoshare: "0.2.0"

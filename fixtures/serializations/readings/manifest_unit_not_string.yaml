@@ -1,0 +1,4 @@
+timetoshare: "0.2.0"
+timelines:
+  - {id: b, unit: [seconds], number_type: float, length: 2}
+  - {id: a, unit: 1, length: 2.0, offset: [4, 8]}

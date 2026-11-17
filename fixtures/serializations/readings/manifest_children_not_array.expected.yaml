@@ -1,0 +1,14 @@
+groups: g
+timelines:
+  -
+    flow_control: {}
+    id: a
+    length: 2.0
+    regions: 7
+    unit: seconds
+  -
+    children: x
+    id: b
+    length: 1.0
+    unit: seconds
+timetoshare: "0.2.0"
