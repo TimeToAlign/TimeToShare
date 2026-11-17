@@ -10,6 +10,7 @@
 
 import { isJsonObject, JsonFloat } from "../json/value.js";
 import { canonicalOrder } from "../manifest/order.js";
+import { DEPTH_LIMIT } from "./errors.js";
 import {
   checkKey,
   compact,
@@ -62,6 +63,32 @@ function check(value: unknown): void {
     }
   }
   throw new TypeError(`not a JSON value: ${String(value)}`);
+}
+
+/** An array, or an object whose prototype is `Object.prototype` or `null`. */
+function isCollection(value: unknown): value is unknown[] | JsonRecord {
+  if (Array.isArray(value)) return true;
+  if (value === null || typeof value !== "object") return false;
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+/**
+ * Refuse a value nested deeper than `DEPTH_LIMIT`, walking no deeper than
+ * it, so an array or object that holds itself is refused the same way.
+ */
+function checkDepth(value: unknown): void {
+  const pending: [unknown, number][] = [[value, 1]];
+  for (let next = pending.pop(); next !== undefined; next = pending.pop()) {
+    const [item, depth] = next;
+    if (!isCollection(item)) continue;
+    if (depth > DEPTH_LIMIT) {
+      throw new RangeError(`a value nested deeper than ${DEPTH_LIMIT} levels cannot be written`);
+    }
+    for (const member of Array.isArray(item) ? item : Object.values(item)) {
+      pending.push([member, depth + 1]);
+    }
+  }
 }
 
 const sortedKeys = (object: JsonRecord): string[] => Object.keys(object).sort(compareCodePoints);
@@ -159,8 +186,9 @@ export interface DumpsOptions {
  * exact value, so `-0` is 0), a `JsonFloat` and a plain number with a
  * fractional part are floats.
  *
- * @throws {RangeError} for a value the serialization refuses: a NaN or an
- * infinity, a string or key with a lone surrogate, a key whose canonical
+ * @throws {RangeError} for a value the serialization refuses: a value
+ * nested deeper than 256 levels (checked first), a NaN or an infinity, a
+ * string or key with a lone surrogate, a key whose canonical
  * YAML form is longer than 1024 UTF-16 code units, and in `"jcs"` an integer
  * beyond ±(2^53 − 1) or an integral float of magnitude from 2^53 up to but
  * excluding 10^21; and for an unknown serialization.
@@ -172,6 +200,7 @@ export function dumps(value: unknown, options: DumpsOptions = {}): string {
   if (!SERIALIZATIONS.includes(serialization)) {
     throw new RangeError(`unknown serialization ${jsonString(String(serialization))}`);
   }
+  checkDepth(value);
   check(value);
   const written =
     isJsonObject(value) && Array.isArray(value.timelines) ? canonicalOrder(value) : value;

@@ -9,7 +9,7 @@
  */
 
 import { type Json, JsonFloat, type JsonNumber, type Lossless, objectFrom } from "../json/value.js";
-import { JsonSyntaxError, positionOf } from "./errors.js";
+import { DEPTH_LIMIT, JsonSyntaxError, positionOf, TOO_DEEP } from "./errors.js";
 import { compactJson } from "./text.js";
 
 /** The text without one U+FEFF, a byte order mark, at position 0. */
@@ -56,10 +56,14 @@ const isHigh = (unit: number): boolean => unit >= 0xd800 && unit <= 0xdbff;
 const isLow = (unit: number): boolean => unit >= 0xdc00 && unit <= 0xdfff;
 
 /**
- * Read a JSON text, from its first character, as `loads` reads it.
+ * Read a JSON text, from its first character, as `loads` reads it. A
+ * collection opening at depth 257 is refused at its `{` or `[`, before the
+ * reader descends into it, so the reader's recursion never goes deeper than
+ * 256 levels.
  *
  * @throws {JsonSyntaxError} if the text is not one JSON value, a key repeats
- * in its object, or a string or key holds a lone surrogate.
+ * in its object, a string or key holds a lone surrogate, or collections nest
+ * deeper than 256 levels.
  * @throws {RangeError} if a float rounds to an infinity.
  */
 export function readJson(text: string): Lossless<Json> {
@@ -138,9 +142,11 @@ export function readJson(text: string): Lossless<Json> {
     return integer >= -SAFE && integer <= SAFE ? Number(integer) : integer;
   };
 
-  const value = (): unknown => {
+  /** The value at `index`, inside `depth` open collections. */
+  const value = (depth: number): unknown => {
     space();
     const character = text[index];
+    if ((character === "{" || character === "[") && depth === DEPTH_LIMIT) fail(TOO_DEEP);
     if (character === "{") {
       index++;
       const entries: [string, unknown][] = [];
@@ -159,7 +165,7 @@ export function readJson(text: string): Lossless<Json> {
         keys.add(key);
         space();
         expect(":");
-        entries.push([key, value()]);
+        entries.push([key, value(depth + 1)]);
         space();
         if (text[index] === ",") {
           index++;
@@ -178,7 +184,7 @@ export function readJson(text: string): Lossless<Json> {
         return items;
       }
       for (;;) {
-        items.push(value());
+        items.push(value(depth + 1));
         space();
         if (text[index] === ",") {
           index++;
@@ -209,7 +215,7 @@ export function readJson(text: string): Lossless<Json> {
     return number(match[0], at);
   };
 
-  const result = value();
+  const result = value(0);
   space();
   if (index !== text.length) fail("unexpected text after the JSON value");
   return result as Lossless<Json>;
@@ -225,7 +231,8 @@ export function readJson(text: string): Lossless<Json> {
  * first. The text `-0` is the integer `0`.
  *
  * @throws {JsonSyntaxError} if the text is not one JSON value, a key repeats
- * in its object, or a string or key holds a lone surrogate.
+ * in its object, a string or key holds a lone surrogate, or collections nest
+ * deeper than 256 levels.
  * @throws {RangeError} if a float rounds to an infinity.
  */
 export function parseJson(text: string): Lossless<Json> {

@@ -6,6 +6,13 @@
  * range), a float a float (a `JsonFloat` where it is integral), an object's
  * keys in their written order. Every refusal is a `YamlSyntaxError` at the
  * offending node.
+ *
+ * A text whose value would be deeper than 256 is refused at the first
+ * collection at depth 257 in document order. The parser composes collections
+ * recursively and, where its stack runs out, reports it and stops composing;
+ * that happens hundreds of levels deeper than 257, so the composed tree still
+ * holds the collection the refusal names, and the place depends on the text
+ * alone.
  */
 
 import {
@@ -21,7 +28,7 @@ import {
   type YAMLSeq,
 } from "yaml";
 import { type Json, JsonFloat, type Lossless, objectFrom } from "../json/value.js";
-import { YamlSyntaxError } from "./errors.js";
+import { DEPTH_LIMIT, TOO_DEEP, YamlSyntaxError } from "./errors.js";
 import { removeByteOrderMark } from "./json.js";
 import { hasLoneSurrogate } from "./text.js";
 
@@ -32,7 +39,9 @@ const SAFE = BigInt(Number.MAX_SAFE_INTEGER);
  * text, or one of comments only, reads as `null`.
  *
  * @throws {YamlSyntaxError} for a text the parser refuses (more than one
- * document, an unknown tag and a repeated key among them), an anchor or an
+ * document, an unknown tag and a repeated key among them), collections
+ * nested deeper than 256 levels (before a problem of the parser at a later
+ * place, and before the problem that its stack ran out), an anchor or an
  * alias, a key that is not a string, a value outside the JSON data model, a
  * float that is not finite (`.inf`, `.nan` and a literal that rounds to an
  * infinity) and a string or key with a lone surrogate.
@@ -40,6 +49,13 @@ const SAFE = BigInt(Number.MAX_SAFE_INTEGER);
 export function readYaml(text: string): Lossless<Json> {
   const document = parseDocument(text, { schema: "core", intAsBigInt: true, uniqueKeys: true });
   const problem = document.errors[0] ?? document.warnings[0];
+  const deep = tooDeep(document.contents);
+  if (
+    deep !== undefined &&
+    (problem === undefined || problem.code === "RESOURCE_EXHAUSTION" || problem.pos[0] >= deep)
+  ) {
+    throw new YamlSyntaxError(TOO_DEEP, text, deep);
+  }
   if (problem !== undefined) {
     throw new YamlSyntaxError(
       `${problem.code}: ${reasonOf(problem.message)}`,
@@ -128,6 +144,33 @@ export function readYaml(text: string): Lossless<Json> {
     if ("node" in visited) stack.push(visited);
     else values.push(visited.value);
   }
+}
+
+/**
+ * The offset of the first collection at depth 257, in document order, a key
+ * before its value; `undefined` where there is none, or where an anchor or an
+ * alias comes first, which the walk refuses. The walk keeps its own stack and
+ * goes no deeper than 257.
+ */
+function tooDeep(root: unknown): number | undefined {
+  const pending: [unknown, number][] = [[root, 1]];
+  for (let next = pending.pop(); next !== undefined; next = pending.pop()) {
+    const [node, depth] = next;
+    if (isAlias(node)) return undefined;
+    if (!isMap(node) && !isSeq(node)) {
+      if (isScalar(node) && node.anchor !== undefined) return undefined;
+      continue;
+    }
+    if (node.anchor !== undefined) return undefined;
+    if (depth > DEPTH_LIMIT) return node.range?.[0] ?? 0;
+    const members: unknown[] = isMap(node)
+      ? node.items.flatMap((pair) => [pair.key, pair.value])
+      : node.items;
+    for (let index = members.length - 1; index >= 0; index--) {
+      pending.push([members[index], depth + 1]);
+    }
+  }
+  return undefined;
 }
 
 /** A mapping or a sequence being read: the keys and values of its items read so far. */

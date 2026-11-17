@@ -1063,14 +1063,39 @@ any text and `serialization_of` names a text's serialization. They live in
   is U+1F600. Refused, with exactly the stated message naming the line and
   column: a repeated key, an anchor, an alias, an integer key and a
   collection key, the tags `!!timestamp`, `!!binary`, `!!set` and `!!omap`,
-  `.inf`, `1e309`, the escape `\ud800` and a second document. A sequence
-  nested 2,000 deep (`- ` written 2,000 times, then `1`) exceeds Python's
-  recursion limit and raises `ValueError`, never `RecursionError`, with the
-  message `collections nest too deeply at line 1, column C`. The depth at
-  which the limit is reached depends on the interpreter's stack, so the test
-  proves the position by the text rather than by a fixed number: C is odd
-  and the text from column C on is `- ` repeated, then `1`, the start of a
-  nested sequence.
+  `.inf`, `1e309`, the escape `\ud800` and a second document.
+- **The nesting limit.** A scalar has depth 0, an object or array 1 more
+  than its deepest member (an empty one 1). Both readers refuse a text whose
+  value would be deeper than 256 with the `ValueError` `collections nest
+  deeper than 256 levels at line L, column C`, at the first character of the
+  first collection at depth 257. The readers build collections without
+  recursion and count them as they open, so the place is a property of the
+  text alone: a text nested 100,000 deep is refused where one nested 257 deep
+  is, never by Python's recursion limit. Pinned positions: JSON `[` 257
+  times then `]` 257 times, and `[` 100,000 times unclosed, at line 1,
+  column 257; `{"a":` 257 times, then `1` and `}` 257 times, at column
+  1281; YAML `- ` 257 times then `1`, and `- ` 100,000 times then `1`, at
+  line 1, column 513 (block sequences); 257 block sequences in canonical
+  layout (`-` alone on a line, each two columns further, the last `- 1`)
+  at line 257, column 513; 257 block mappings (`k:` on a line, each two
+  columns further, the last `k: 1`) at line 257, column 513; `a: ` then `[`
+  256 times and `]` 256 times (flow sequences in a block mapping) at line 1,
+  column 259; `{a: ` 257 times, then `1` and `}` 257 times, read as YAML
+  after a comment line, at line 2, column 1025 (flow mappings); and the
+  shared refusals `json_depth_257.json` at line 1, column 257 and
+  `yaml_depth_257.yaml` at line 128, column 385. A JSON text holding a
+  repeated key before the 257th collection is refused for the key. Every
+  text nested 257 deep, made one level shallower, is read, to a value nested
+  256 deep.
+  The writers refuse a value deeper than 256 with the `ValueError` `a value
+  nested deeper than 256 levels cannot be written` in every serialization:
+  the array nested 257 deep (built in memory: no text a reader reads holds
+  it), an object whose member holds an array 256 deep, and the array nested
+  257 deep around a NaN (the depth is checked before the numbers); a list
+  holding itself is refused the same way. The array nested 256 deep is
+  written in every serialization and reads back equal, its canonical YAML
+  being `readings/json_depth_256.expected.yaml` and its RFC 8785 JSON `[`
+  256 times then `]` 256 times.
 - **Columns count code points.** In both readers a character above U+FFFF
   counts once: the YAML anchor in `"😀": &x 1` is refused at column 6, and
   the escape `\ud800` in the JSON text `["😀", "\ud800"]` at column 7 (in

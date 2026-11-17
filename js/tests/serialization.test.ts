@@ -193,6 +193,7 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "json_bom_after_value.json": JsonSyntaxError,
   "json_bom_between_tokens.json": JsonSyntaxError,
   "json_comment.json": JsonSyntaxError,
+  "json_depth_257.json": JsonSyntaxError,
   "json_duplicate_key.json": JsonSyntaxError,
   "json_duplicate_key_escaped.json": JsonSyntaxError,
   "json_duplicate_key_nested.json": JsonSyntaxError,
@@ -215,6 +216,7 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "json_unclosed.json": JsonSyntaxError,
   "yaml_alias.yaml": YamlSyntaxError,
   "yaml_anchor.yaml": YamlSyntaxError,
+  "yaml_depth_257.yaml": YamlSyntaxError,
   "yaml_duplicate_key.yaml": YamlSyntaxError,
   "yaml_duplicate_key_escaped.yaml": YamlSyntaxError,
   "yaml_duplicate_key_flow.yaml": YamlSyntaxError,
@@ -408,6 +410,152 @@ describe("the YAML reader", () => {
   it("reads a text as YAML whatever its first character, after one byte order mark", () => {
     expect(tagged(parseYaml('\uFEFF{"a": [1, 2.0]}'))).toEqual({ a: ["integer 1", "float 2"] });
     expect(parseYaml("480")).toBe(480);
+  });
+});
+
+/** An array nested `depth` deep: `[]` at depth 1, else `[innermost]` innermost. */
+function nestedArray(depth: number, innermost?: unknown): unknown {
+  let value: unknown = innermost === undefined ? [] : [innermost];
+  for (let level = 1; level < depth; level++) value = [value];
+  return value;
+}
+
+/** Lines of `lead`, each two columns further than the last, the last `last`. */
+function indented(depth: number, lead: string, last: string): string {
+  const lines = Array.from({ length: depth - 1 }, (_, level) => " ".repeat(2 * level) + lead);
+  return `${[...lines, " ".repeat(2 * depth - 2) + last].join("\n")}\n`;
+}
+
+/** Texts whose values are nested `depth` deep, by the kind of nesting. */
+function deepTexts(depth: number): Record<string, string> {
+  return {
+    "json arrays": "[".repeat(depth) + "]".repeat(depth),
+    "json objects": `${'{"a":'.repeat(depth)}1${"}".repeat(depth)}`,
+    "yaml compact block sequences": `${"- ".repeat(depth)}1`,
+    "yaml block sequences": indented(depth, "-", "- 1"),
+    "yaml block mappings": indented(depth, "k:", "k: 1"),
+    "yaml flow sequences in a block mapping": `a: ${"[".repeat(depth - 1)}${"]".repeat(depth - 1)}`,
+    "yaml flow mappings": `# x\n${"{a: ".repeat(depth)}1${"}".repeat(depth)}`,
+  };
+}
+
+const TOO_DEEP = "collections nest deeper than 256 levels";
+
+/** The message, offset, line and column of the error reading a text throws. */
+function refusal(given: string): [string, string, number, number, number] {
+  try {
+    loads(given);
+  } catch (error) {
+    if (!(error instanceof JsonSyntaxError || error instanceof YamlSyntaxError)) throw error;
+    return [error.name, error.message, error.offset, error.line, error.column];
+  }
+  throw new Error("the text was read");
+}
+
+/** The depth of a value, following the first member of each collection. */
+function depthOf(value: unknown): [number, unknown] {
+  let depth = 0;
+  let item = value;
+  while (typeof item === "object" && item !== null && !(item instanceof JsonFloat)) {
+    depth++;
+    const members = Array.isArray(item) ? item : Object.values(item);
+    item = members.length > 0 ? members[0] : null;
+  }
+  return [depth, item];
+}
+
+describe("the nesting limit", () => {
+  it.for([
+    ["json arrays", "JsonSyntaxError", 256, 1, 257],
+    ["json objects", "JsonSyntaxError", 1280, 1, 1281],
+    ["yaml compact block sequences", "YamlSyntaxError", 512, 1, 513],
+    ["yaml block sequences", "YamlSyntaxError", 66304, 257, 513],
+    ["yaml block mappings", "YamlSyntaxError", 66560, 257, 513],
+    ["yaml flow sequences in a block mapping", "YamlSyntaxError", 258, 1, 259],
+    ["yaml flow mappings", "YamlSyntaxError", 1028, 2, 1025],
+  ] as const)(
+    "refuses %s nested 257 deep at the 257th collection",
+    ([kind, name, offset, line, column]) => {
+      const language = name === "JsonSyntaxError" ? "JSON" : "YAML";
+      expect(refusal(deepTexts(257)[kind] as string)).toEqual([
+        name,
+        `${TOO_DEEP} at line ${line}, column ${column} of the ${language} text`,
+        offset,
+        line,
+        column,
+      ]);
+    },
+  );
+
+  it.for(Object.keys(deepTexts(256)))("reads %s nested 256 deep", (kind) => {
+    const [depth, innermost] = depthOf(loads(deepTexts(256)[kind] as string));
+    expect(depth).toBe(256);
+    expect([null, 1]).toContain(innermost);
+  });
+
+  it("refuses a text nested far deeper at the same place, an earlier refusal first", () => {
+    expect(refusal("[".repeat(100_000))).toEqual([
+      "JsonSyntaxError",
+      `${TOO_DEEP} at line 1, column 257 of the JSON text`,
+      256,
+      1,
+      257,
+    ]);
+    expect(refusal(`${"- ".repeat(100_000)}1`)).toEqual([
+      "YamlSyntaxError",
+      `${TOO_DEEP} at line 1, column 513 of the YAML text`,
+      512,
+      1,
+      513,
+    ]);
+    expect(refusal(`{"a":1,"a":2,"b":${"[".repeat(300)}`)).toEqual([
+      "JsonSyntaxError",
+      'duplicate key "a" at line 1, column 8 of the JSON text',
+      7,
+      1,
+      8,
+    ]);
+  });
+
+  it("names the place of the shared refusals", () => {
+    expect(refusal(text("refusals/json_depth_257.json"))).toEqual([
+      "JsonSyntaxError",
+      `${TOO_DEEP} at line 1, column 257 of the JSON text`,
+      256,
+      1,
+      257,
+    ]);
+    expect(refusal(text("refusals/yaml_depth_257.yaml"))).toEqual([
+      "YamlSyntaxError",
+      `${TOO_DEEP} at line 128, column 385 of the YAML text`,
+      16640,
+      128,
+      385,
+    ]);
+  });
+
+  it.for(ALL)("refuses in %s to write a value deeper than 256", (serialization) => {
+    const itself: unknown[] = [];
+    itself.push(itself);
+    for (const value of [
+      nestedArray(257),
+      { a: nestedArray(256) },
+      nestedArray(257, Number.NaN),
+      itself,
+    ]) {
+      expect(() => dumps(value, { serialization })).toThrow(
+        new RangeError("a value nested deeper than 256 levels cannot be written"),
+      );
+    }
+  });
+
+  it.for(ALL)("writes in %s a value 256 deep, which reads back", (serialization) => {
+    const value = nestedArray(256);
+    const written = dumps(value, { serialization });
+    expect(loads(written)).toEqual(value);
+    if (serialization === "yaml")
+      expect(written).toBe(text("readings/json_depth_256.expected.yaml"));
+    if (serialization === "jcs") expect(written).toBe("[".repeat(256) + "]".repeat(256));
   });
 });
 
