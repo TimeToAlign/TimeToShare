@@ -18,6 +18,8 @@ const WIKIDATA = "http://www.wikidata.org/entity/";
 const IMSLP = `${WIKIDATA}P839`;
 const OP_106 = "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)";
 const MB_WORK = "4a622b0d-b0c0-405e-b49e-05b70c108284";
+const VIDEO = "Ch2mrPm1JnM";
+const VIDEO_URI = `https://www.youtube.com/watch?v=${VIDEO}`;
 
 const ENTRIES: [string, string, Level | null, string | null, boolean][] = [
   ["musicbrainz_work", `${WIKIDATA}P435`, "work", "http://musicbrainz.org/work/{value}", true],
@@ -46,6 +48,7 @@ const ENTRIES: [string, string, Level | null, string | null, boolean][] = [
   ["gnd", `${WIKIDATA}P227`, null, "https://d-nb.info/gnd/{value}", false],
   ["imslp", IMSLP, "work", null, false],
   ["doi", `${WIKIDATA}P356`, null, "https://doi.org/{value}", false],
+  ["youtube_video", `${WIKIDATA}P1651`, "item", "https://www.youtube.com/watch?v={value}", false],
 ];
 
 const RECOGNISED: [string, string | null, Identifier | null, Level | null][] = [
@@ -83,6 +86,7 @@ const RECOGNISED: [string, string | null, Identifier | null, Level | null][] = [
     null,
     "work",
   ],
+  [VIDEO_URI, VIDEO_URI, null, "item"],
 ];
 
 const FORMS: [string, string][] = [
@@ -106,6 +110,19 @@ const FORMS: [string, string][] = [
   ["https://d-nb.info/gnd/118508288", "gnd"],
   ["https://dx.doi.org/10.5281/zenodo.7473560", "doi"],
   [`https://www.imslp.org/wiki/${OP_106}?action=history`, "imslp"],
+  [`https://youtu.be/${VIDEO}?t=42`, "youtube_video"],
+  [`https://m.youtube.com/watch?feature=share&v=${VIDEO}`, "youtube_video"],
+  [`https://www.youtube.com/embed/${VIDEO}`, "youtube_video"],
+  [`http://youtube.com/watch?v=${VIDEO}&t=42s#x`, "youtube_video"],
+  [`https://music.youtube.com/watch?v=${VIDEO}`, "youtube_video"],
+  [`https://www.youtube.com/shorts/${VIDEO}`, "youtube_video"],
+  [`https://youtube.com/live/${VIDEO}?feature=share`, "youtube_video"],
+  [`https://www.youtube.com/watch?v=${VIDEO}#t=1m`, "youtube_video"],
+  [`https://www.youtube-nocookie.com/embed/${VIDEO}`, "youtube_video"],
+  [`https://youtube-nocookie.com/embed/${VIDEO}`, "youtube_video"],
+  [`https://www.youtube.com/v/${VIDEO}`, "youtube_video"],
+  [`https://www.youtube.com/v/${VIDEO}&hl=en_US&fs=1`, "youtube_video"],
+  [`https://www.youtube-nocookie.com/v/${VIDEO}`, "youtube_video"],
 ];
 
 function entry(members: Partial<KnownScheme> = {}): SchemeEntry {
@@ -216,6 +233,15 @@ describe("the registry of identifier schemes", () => {
     expect(of("musicbrainz_release")).toEqual(
       new Set(["http://musicbrainz.org/release/814c53fd-0732-4819-9753-4578f5ab992c"]),
     );
+    expect(of("youtube_video")).toEqual(new Set([VIDEO_URI]));
+  });
+
+  it("keeps the case of a YouTube video ID", () => {
+    for (const [url, scheme] of FORMS) {
+      if (scheme !== "youtube_video") continue;
+      const recognition = recognize(url);
+      expect([recognition?.value, recognition?.level], url).toEqual([VIDEO, "item"]);
+    }
   });
 
   it.each([
@@ -229,6 +255,13 @@ describe("the registry of identifier schemes", () => {
     `https://musicbrainz.org/work/${MB_WORK} `,
     "https://imslp.org/wiki/Sonata%E2%80",
     `musicbrainz.org/work/${MB_WORK}`,
+    "https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv",
+    "https://www.youtube.com/watch?v=short",
+    "https://www.youtube.com/watch?list=PL123",
+    "https://www.youtube.com/embed/videoseries?list=PL123",
+    "https://www.youtube-nocookie.com/embed/videoseries?list=PL123",
+    "https://www.youtube.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv",
+    "https://www.youtube-nocookie.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv",
   ])("does not recognise %s", (url) => {
     expect(recognize(url)).toBeNull();
   });
@@ -263,6 +296,7 @@ describe("the registry of identifier schemes", () => {
       gnd: "https://d-nb.info/gnd/118508288",
       imslp: `https://imslp.org/wiki/${OP_106}`,
       doi: "https://doi.org/10.5281/zenodo.7473560",
+      youtube_video: VIDEO_URI,
     };
     for (const scheme of defaultRegistry().schemes) {
       const recognition = recognize(samples[scheme.id] as string);
@@ -283,7 +317,7 @@ describe("the registry of identifier schemes", () => {
     const original = defaultRegistry();
     const extended = withSchemes(original, [entry(), entry({ id: "y" })]);
     expect(extended.schemes.slice(-2).map((scheme) => scheme.id)).toEqual(["x", "y"]);
-    expect(original.schemes.length).toBe(8);
+    expect(original.schemes.length).toBe(9);
     expect(recognize("https://example.org/page/12")).toBeNull();
     const recognition = recognize("https://example.org/page/12", extended);
     expect([recognition?.scheme.id, recognition?.uri]).toEqual([
