@@ -943,10 +943,11 @@ writes links, reads them back and builds them from URLs. What proves it
   `to_dict` in both forms, take no part in equality, and are each listed by
   `unknown_keys` at its object (eight entries, an assertion held by a slot
   included).
-- **One mechanism for both forms.** `to_dict()` writes every key of the
-  object's kind in `DEFAULTS` and `to_dict(minimal=True)` leaves out those
-  equal to their defaults, so `complete` of a minimal link equals its
-  complete link and `minimal` of a complete one its minimal link.
+- **One mechanism for both forms.** `to_dict()`, by default, leaves out
+  every key of the object's kind in `DEFAULTS` equal to its default and
+  `to_dict(minimal=False)` writes every one of them, so `complete` of a
+  minimal link equals its complete link and `minimal` of a complete one its
+  minimal link.
 
 ## One path rule for both validators
 

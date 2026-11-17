@@ -61,7 +61,7 @@ def main(argv: list[str] | None = None) -> int:
     for fixture in planned:
         # LF on every platform: the canonical YAML of dumps, byte for byte.
         fixture.path.write_text(
-            dumps(fixture.item.to_dict()), encoding="utf-8", newline="\n"
+            dumps(fixture.item.to_dict(minimal=False)), encoding="utf-8", newline="\n"
         )
         twin_path(fixture.path).write_text(
             dumps(fixture.item.to_dict(minimal=True)), encoding="utf-8", newline="\n"

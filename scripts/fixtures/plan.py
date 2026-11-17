@@ -217,7 +217,7 @@ def plan(output: Path, generator: str) -> tuple[PlannedFixture, ...]:
                 f"produce the file name {path.name}; nothing was written."
             )
         claimed[path] = item.id
-        source = _compose(item.to_dict(), generator, case)
+        source = _compose(item.to_dict(minimal=False), generator, case)
         planned.append(
             PlannedFixture(path, case.reader, case.reader.from_dict(source), source)
         )
