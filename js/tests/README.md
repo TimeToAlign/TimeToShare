@@ -296,7 +296,11 @@ exactly the five files of `fonts/` (both TrueType files, `DejaVuSans-LICENSE`,
 requires its licence to travel with the font), each copy byte for byte the
 repository's file, and `package.json` exports `./docs/*`. The packed
 package is `@timetoalign/timetoshare` at the version `SCHEMA_VERSION` names,
-as a package version is the schema version it reads.
+as a package version is the schema version it reads. The test runs `npm`
+through the platform's shell, one fixed command line, because on Windows
+`npm` is the script `npm.cmd`, which Node starts only through a shell; so
+the six tests run on every platform, Windows included, and none is
+skipped.
 
 ## Hermeticity
 
