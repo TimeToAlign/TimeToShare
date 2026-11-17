@@ -4,7 +4,8 @@ The emitted manifests under ``fixtures/<version>/`` (drawings excluded), the
 hand-authored rejection cases under ``fixtures/rejections/<version>/`` and the
 hand-authored warning cases under ``fixtures/warnings/<version>/``, found
 beside the schema. They are written in canonical YAML (``.yaml``); a rejection
-or warning case about JSON text itself is written in JSON (``.json``). Every
+or warning case about JSON text itself would be written in JSON (``.json``);
+none is at present. Every
 case is read with :func:`~timetoshare.serialization.loads`, as the JavaScript
 package reads it.
 """

@@ -43,74 +43,10 @@ YAML_READ_AS_JSON = {
 }
 """Refusals meant as YAML that open with ``{`` or ``[`` and are read as JSON."""
 
-OUTSIDE_THE_GUARANTEE = "outside the YAML guarantee"
-
-READINGS_OUTSIDE_THE_GUARANTEE = {
-    "yaml_block_scalars",
-    "yaml_crlf",
-    "yaml_directive",
-    "yaml_document_markers",
-    "yaml_document_start_flow",
-    "yaml_document_start_only",
-    "yaml_double_quoted_escapes",
-    "yaml_explicit_key",
-    "yaml_flow_style",
-    "yaml_implicit_key_1023_then_space",
-    "yaml_plain_multiline",
-    "yaml_refused_characters_escaped",
-    "yaml_single_quoted",
-    "yaml_tab",
-    "yaml_tab_plain",
-    "yaml_top_level_quoted_scalar",
-    "yaml_top_level_yaml_escape",
-}
-"""YAML readings beyond the constructs of canonical YAML, or about a rule of the
-text itself, which the reading rules do not decide: a text beyond those
-constructs is read as the package's parser reads it. Each applies only where its
-file is present."""
-
-REFUSALS_NO_LONGER_DECIDED = {
-    "bom_only.yaml",
-    "bom_second_json.json",
-    "bom_second_yaml.yaml",
-    "comments_only.yaml",
-    "empty.yaml",
-    "whitespace_only.yaml",
-    "yaml_bom_in_comment.yaml",
-    "yaml_bom_in_plain.yaml",
-    "yaml_bom_in_string.yaml",
-    "yaml_del_in_string.yaml",
-    "yaml_directive_1_1.yaml",
-    "yaml_directive_reserved.yaml",
-    "yaml_directive_tag.yaml",
-    "yaml_flow_mapping_key_1025.yaml",
-    "yaml_implicit_key_1024_then_space.yaml",
-    "yaml_implicit_key_1025.yaml",
-    "yaml_implicit_key_1025_as_written.yaml",
-    "yaml_ls_in_comment.yaml",
-    "yaml_ls_in_string.yaml",
-    "yaml_nel_in_comment.yaml",
-    "yaml_nel_in_string.yaml",
-    "yaml_ps_in_string.yaml",
-    "yaml_tag_core.yaml",
-    "yaml_tag_non_specific.yaml",
-    "yaml_u0001_in_string.yaml",
-    "yaml_u001f_in_string.yaml",
-    "yaml_u0080_in_string.yaml",
-    "yaml_u009f_in_string.yaml",
-    "yaml_ufffe_in_string.yaml",
-    "yaml_uffff_in_string.yaml",
-}
-"""Refusals of rules of the text itself (characters, byte order marks,
-directives, the key span, an empty text) and of the tags ``!!str`` and ``!``,
-which name values of the JSON data model: the reading rules do not refuse them,
-so the parser decides. Each applies only where its file is present."""
-
 WRITER_REFUSALS = {
     "key_1025_plain.json": set(ALL),
     "key_1025_quoted.json": set(ALL),
     "key_1025_utf16_units.json": set(ALL),
-    "key_1024_code_points_non_bmp.yaml": set(ALL),
     "key_1025_nested.yaml": set(ALL),
     "integer_2_53.json": {"jcs"},
     "integer_minus_2_53.yaml": {"jcs"},
@@ -247,17 +183,6 @@ READINGS = sorted(
 )
 
 
-def _reading_parameters() -> list[Any]:
-    parameters = []
-    for path in READINGS:
-        stem = path.name.rsplit(".", 1)[0]
-        marks = []
-        if stem in READINGS_OUTSIDE_THE_GUARANTEE:
-            marks.append(pytest.mark.skip(reason=OUTSIDE_THE_GUARANTEE))
-        parameters.append(pytest.param(path, id=path.name, marks=marks))
-    return parameters
-
-
 def _expected(path: Path, suffix: str) -> Path:
     return path.with_name(path.name.rsplit(".", 1)[0] + suffix)
 
@@ -268,7 +193,7 @@ def test_every_reading_has_its_expected_text() -> None:
         assert _expected(path, ".expected.yaml").exists(), path.name
 
 
-@pytest.mark.parametrize("path", _reading_parameters())
+@pytest.mark.parametrize("path", READINGS, ids=lambda path: path.name)
 def test_a_reading_reads_to_its_expected_value(path: Path) -> None:
     value = loads(_text(path))
     assert dumps(value) == _text(_expected(path, ".expected.yaml"))
@@ -292,19 +217,7 @@ def test_an_expected_text_reads_and_writes_back(path: Path) -> None:
 REFUSALS = sorted((SERIALIZATIONS / "refusals").iterdir())
 
 
-@pytest.mark.parametrize(
-    "path",
-    [
-        pytest.param(
-            path,
-            id=path.name,
-            marks=[pytest.mark.skip(reason=OUTSIDE_THE_GUARANTEE)]
-            if path.name in REFUSALS_NO_LONGER_DECIDED
-            else [],
-        )
-        for path in REFUSALS
-    ],
-)
+@pytest.mark.parametrize("path", REFUSALS, ids=lambda path: path.name)
 def test_a_refused_text_raises(path: Path) -> None:
     with pytest.raises(ValueError):
         loads(_text(path))
@@ -315,7 +228,25 @@ WRITING = sorted(path.name for path in (SERIALIZATIONS / "refusals-writing").ite
 
 def test_every_writer_refusal_is_stated() -> None:
     assert WRITING
-    assert set(WRITING) <= set(WRITER_REFUSALS)
+    assert set(WRITING) == set(WRITER_REFUSALS)
+
+
+def test_the_tables_name_exactly_their_files() -> None:
+    values = {case.name: _case(case)[0] for case in CASES}
+    texts = {case.name: _text(case / "canonical.yaml") for case in CASES}
+    assert MANIFEST_CASES == {
+        name
+        for name, value in values.items()
+        if isinstance(value, dict) and isinstance(value.get("timelines"), list)
+    }
+    assert JSON_TEXT_CASES == {
+        name for name, text in texts.items() if _is_json_text(text)
+    }
+    assert YAML_READ_AS_JSON == {
+        path.name
+        for path in REFUSALS
+        if path.suffix == ".yaml" and _text(path).lstrip(" \t\n\r")[:1] in ("{", "[")
+    }
 
 
 @pytest.mark.parametrize("name", WRITING)
@@ -344,8 +275,6 @@ def _named_serialization(path: Path) -> str:
         return "jcs"
     if name.endswith(".expected.yaml"):
         return "json" if _is_json_text(_text(path)) else "yaml"
-    if name == "bom_second_json.json":
-        return "yaml"
     if name.endswith(".json") or name in YAML_READ_AS_JSON:
         return "json"
     return "yaml"
@@ -817,6 +746,40 @@ def test_yaml_reads_a_surrogate_pair_written_as_two_escapes() -> None:
     ],
 )
 def test_yaml_refusals_name_the_line_and_column(text: str, message: str) -> None:
+    with pytest.raises(ValueError) as caught:
+        loads(text)
+    assert str(caught.value) == message
+
+
+def test_yaml_nested_beyond_the_recursion_limit_is_refused_with_a_position() -> None:
+    text = "- " * 2000 + "1"
+    with pytest.raises(ValueError) as caught:
+        loads(text)
+    assert not isinstance(caught.value, RecursionError)
+    prefix = "collections nest too deeply at line 1, column "
+    message = str(caught.value)
+    assert message.startswith(prefix)
+    column = int(message.removeprefix(prefix))
+    # The depth at which the limit is reached depends on the interpreter's
+    # stack; the position is proven by the text: the start of a nested sequence.
+    assert column % 2 == 1
+    rest = text[column - 1 :]
+    assert rest == "- " * ((len(rest) - 1) // 2) + "1"
+    assert rest.startswith("- ")
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ('"\U0001f600": &x 1\n', "an anchor is not read at line 1, column 6"),
+        (
+            '["\U0001f600", "\\ud800"]',
+            "a string holds a lone surrogate at line 1, column 7",
+        ),
+    ],
+    ids=["yaml", "json"],
+)
+def test_columns_count_code_points(text: str, message: str) -> None:
     with pytest.raises(ValueError) as caught:
         loads(text)
     assert str(caught.value) == message
