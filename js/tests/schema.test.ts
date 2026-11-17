@@ -1,6 +1,8 @@
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { DEFAULTS } from "../src/defaults.js";
+import { LEVELS, MATCHES, STATUSES } from "../src/description/link.js";
+import { BLANK } from "../src/description/registry.js";
 import { schema } from "../src/generated/schema.js";
 import { TIMESTAMP_DISPLAY } from "../src/manifest/order.js";
 import { UNIT_NUMBER_TYPES } from "../src/validate.js";
@@ -368,6 +370,12 @@ describe("the schema document", () => {
       group: ["Group"],
       graphical: ["Graphical"],
       timestamp: ["Timestamp"],
+      scheme: ["Scheme"],
+      link: ["Link"],
+      descriptor: ["Descriptor"],
+      assertion: ["Assertion"],
+      part_slot: ["PartSlot"],
+      part_of: ["PartOf"],
     };
     const own: Readonly<Record<string, Kind>> = { LinearMap: "linear_map", TableMap: "table_map" };
     const element = ["flow_control_element", "repeat_end"];
@@ -400,5 +408,61 @@ describe("the schema document", () => {
       if (!covered.has(name)) expect(defaultsOf(definition), name).toEqual({});
     }
     expect(properties("Timeline").number_type?.default).toBeUndefined();
+  });
+
+  it("describes links on the manifest, its timelines and its regions only", () => {
+    const holding = (key: string) =>
+      Object.entries(defs)
+        .filter(([, definition]) => key in ((definition.properties ?? {}) as Node))
+        .map(([name]) => name)
+        .sort();
+    expect(holding("links")).toEqual(["Manifest", "Region", "Timeline"]);
+    expect(holding("schemes")).toEqual(["Manifest"]);
+    expect(defs.Level?.enum).toEqual([...LEVELS]);
+    expect(properties("Assertion").match?.enum).toEqual([...MATCHES, null]);
+    expect(properties("Assertion").status?.enum).toEqual([...STATUSES, null]);
+    expect(Object.keys(properties("PartSlot"))).not.toContain("position");
+    const link = Object.keys(properties("Link"));
+    expect(link).toContain("label");
+    for (const key of ["name", "same_as", "equivalent"]) expect(link).not.toContain(key);
+    for (const name of ["Term", "Uri", "UriReference"]) {
+      expect(defs[name]?.not, name).toEqual({ pattern: BLANK });
+    }
+  });
+
+  it("accepts and refuses URIs, terms and URI references as the Python suite does", () => {
+    const ajv = new Ajv2020({ strict: false });
+    const accepts = (name: string, value: string) =>
+      ajv.compile({ $ref: `#/$defs/${name}`, $defs: defs })(value);
+    for (const value of [
+      "http://musicbrainz.org/work/x",
+      "urn:isbn:0451450523",
+      "mailto:a@example.org",
+    ]) {
+      expect(accepts("Uri", value), value).toBe(true);
+    }
+    for (const value of [
+      "musicbrainz.org/work/x",
+      "1http://x",
+      "http:",
+      "http://a b",
+      "http://a\n",
+      "http://a\u00a0b",
+      "http://a\ufeff",
+    ]) {
+      expect(accepts("Uri", value), value).toBe(false);
+    }
+    for (const value of [
+      "pertains_to",
+      "marcrel:cmp",
+      "http://id.loc.gov/vocabulary/relators/cmp",
+    ]) {
+      expect(accepts("Term", value), value).toBe(true);
+    }
+    for (const value of ["", "has part", "has_part\n"]) {
+      expect(accepts("Term", value), value).toBe(false);
+    }
+    expect(accepts("UriReference", "records/op106.json")).toBe(true);
+    for (const value of ["", "a b"]) expect(accepts("UriReference", value), value).toBe(false);
   });
 });

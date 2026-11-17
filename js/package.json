@@ -28,6 +28,7 @@
     "./fixtures/*": "./fixtures/*",
     "./fonts/*": "./fonts/*",
     "./docs/*": "./docs/*",
+    "./registry/*": "./registry/*",
     "./package.json": "./package.json"
   },
   "files": [
@@ -35,7 +36,8 @@
     "schema",
     "fixtures",
     "fonts",
-    "docs"
+    "docs",
+    "registry"
   ],
   "sideEffects": false,
   "publishConfig": {

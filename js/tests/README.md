@@ -16,15 +16,21 @@ Where the two packages answer differently by design, this README says so.
    one test assigns it to `LosslessManifest` and, by a
    `@ts-expect-error` line, not to `Manifest`, and reads its lengths
    back as `9007199254740993n` and `JsonFloat(2)`.
-2. `unknownKeys` returns, for every manifest, the list Python's
-   `unknown_keys` returns, byte for byte once written by `dumps`.
+2. `unknownKeys` and `unregisteredTerms` return, for every manifest, the
+   lists Python's `unknown_keys` and `unregistered_terms` return, byte for
+   byte once written by `dumps`.
 3. `complete` and `minimal` give the values Python's functions give, from a
    `DEFAULTS` table equal to the schema's `default`s, as Python's is; their
    typed forms take and give the generated `LosslessManifest` and
    `CompleteManifest`.
 4. `dumps` writes every value as the same bytes as Python's `dumps`.
 5. The generated files are the generator's output, and the npm package
-   ships the schema document, the drawing specification and the licence.
+   ships the schema document, the drawing specification, the registry of
+   identifier schemes and the licence.
+6. The description functions (`linkFromUrls`, `withUri`, …) build the same
+   links as Python's description model, through the same registry, and
+   throw an `Error` with Python's message wherever Python raises
+   `ValueError`.
 
 ## The fixtures
 
@@ -54,9 +60,16 @@ carries `additionalProperties: false` or `unevaluatedProperties`, `Address`
 included, and no key begins with `x-`; every object
 declares, itself or in its `allOf` bases at any depth, what its branches declare; every
 discriminated union tags each branch with a distinct required constant; the
-`default`s, read through references and bases, are exactly `DEFAULTS`. `generated.test.ts`: a fresh generator run exports the committed
+`default`s, read through references and bases, are exactly `DEFAULTS`;
+the description layer's invariants of the Python README ("The schema
+document", "The description layer": `links` on exactly `Manifest`,
+`Timeline` and `Region`, `schemes` on `Manifest`, the closed vocabularies
+equal to `LEVELS`, `MATCHES` and `STATUSES`, no `position` on a slot and no
+`name` on a link, the values `Uri`, `Term` and `UriReference` accept and
+refuse, the white-space class pinned against the registry's). `generated.test.ts`: a fresh generator run exports the committed
 names, which are every definition, the complete form of exactly the
-definitions holding a default, and `LosslessManifest`; the committed
+definitions holding a default, and `LosslessManifest`, and `registry.ts`
+exports the registry file's entries as `schemes`; the committed
 text is `check:drift`'s oracle. Statements marked `@ts-expect-error` (a
 misspelt key, a missing `length` or child `offset`, a complete form missing
 a defaulted key, a three-member Fraction) make a looser generation break
@@ -114,7 +127,7 @@ schema addition cannot escape the canonical spelling.
 
 ## Shared rejection cases
 
-Each of the 109 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 125 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
@@ -126,8 +139,8 @@ and a test pins the two values in place. One `JSON.parse` reading is exempt:
 `float_axis_int_not_exact`, since `9007199254740993` becomes
 `9007199254740992`, exactly a float; the test asserts that this lossy
 reading validates. The set of names and the eighteen codes are stated
-literally, and the twelve cases whose messages the Python suite pins carry
-the same messages here (`identity.test.ts`).
+literally, and the fifteen cases whose messages the Python suite pins carry
+the same messages here (`identity.test.ts`, `description.test.ts`).
 
 The path rule is the Python README's ("One path rule for both validators");
 Ajv applies a discriminated `oneOf` to the candidate its tag selects through
@@ -135,9 +148,13 @@ its `discriminator` option. The shared cases pin the paths.
 
 ## Unknown keys
 
-`unknown-keys.test.ts`: every shared warning case validates, its text is the
-standard writer's, and `dumps(unknownKeys(manifest))` equals
-`dumps(case.unknown_keys)`; `several_depths` lists its sixteen entries in the
+`unknown-keys.test.ts`: every shared warning case validates, holds exactly
+`manifest`, `unknown_keys` and `unregistered_terms`, its text is the
+standard writer's, `dumps(unknownKeys(manifest))` equals
+`dumps(case.unknown_keys)` and `dumps(unregisteredTerms(manifest))` equals
+`dumps(case.unregistered_terms)`; the cases of terms, and the other
+documents of the Python README's "Unregistered terms", are asserted in
+`description.test.ts`; `several_depths` lists its sixteen entries in the
 stated order; keys inside `meta`, `styles`,
 `graphical.order` and unknown values are not reported; the sort (keys by
 code point, `ﬀ` before `😀`, indices by number, `timelines[2]` before
@@ -163,6 +180,34 @@ minimal twin (70, one per fixture) completes to its fixture's text, keeps it in 
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
 optional.
+
+## The description layer
+
+`registry.test.ts` and `description.test.ts` assert the Python README's
+sections "The description layer", "Links" and "Unregistered terms" with the
+same documents, the same values and the same messages: the eight shipped
+entries in order, the recognition table and the URL forms, the one rule per
+scheme, `withSchemes` and its refusals, the work bundle of Op. 106 in both
+forms (built with `linkFromUrls`, `partSlotFromUrl` and `withParts`, read
+back through `parse` to the same complete link), the two readings, every
+error, normalisation, copy-on-write and `assertionFor`. The packages differ
+only where JavaScript must:
+
+- **Plain objects.** A link is a plain object of the generated types, not a
+  class: every function takes a link in either form and returns a new link
+  in the complete form (`CompleteLink`), built through the defaults table
+  as `complete` builds a manifest's; `minimal` of a manifest holding it
+  gives the minimal form. Unknown keys are kept because nothing is rebuilt,
+  so the Python README's unknown keys are proved on what `withLabel` and
+  `withParts` return. An assertion's date is the string `2026-11-17`.
+- **Patterns.** A registry pattern is compiled as `^(?:pattern)$` with the
+  `u` flag, which matches what Python's `re.fullmatch` matches for every
+  URL the registry reads (the URL holds no white space or control
+  character, the one place the two engines read `.` and `$` differently).
+  Percent-decoding mirrors Python's `unquote` with strict UTF-8: a `%`
+  followed by two hexadecimal digits is a byte, any other `%` is kept, and
+  a byte sequence that is not UTF-8 refuses the URL; a leading byte-order
+  mark is kept, as Python keeps it.
 
 ## The canonical order and the standard writer
 
@@ -242,7 +287,9 @@ the same table:
 ## Packaging
 
 After `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists
-`docs/drawing.md`, `schema/0.2.0/timetoshare.schema.json`, `LICENSE` and
+`docs/drawing.md`, `schema/0.2.0/timetoshare.schema.json`,
+`registry/schemes.json` (and `package.json` exports `./registry/*`),
+`LICENSE` and
 exactly the five files of `fonts/` (both TrueType files, `DejaVuSans-LICENSE`,
 `NotoMusic-LICENSE` and the metrics table
 `dejavu-sans-2.37+noto-music-2.004.metrics.json`; the SIL Open Font License

@@ -274,6 +274,34 @@ export type TableMap = MapBase & {
   extrapolate?: "none" | "constant" | "linear";
 };
 /**
+ * A word of an open vocabulary: a non-empty string without white space or a control character (U+0000 to U+0020, U+007F to U+00A0, U+1680, U+2000 to U+200A, U+2028, U+2029, U+202F, U+205F, U+3000 and U+FEFF). A term holding a colon is an extension term, a prefixed name or a URI, and is read as written. A bare term is meant to be one of the words registered for its key; one that is not is kept, reported as a warning and read as that key's fallback states.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Term".
+ */
+export type Term = string;
+/**
+ * The kind of entity a link points to. The four bibliographic levels are those of the IFLA Library Reference Model: a `work`, a creation in the abstract; an `expression`, one realisation of a work, such as a version, an arrangement or a recorded performance; a `manifestation`, one embodiment of an expression, such as an edition or a release; an `item`, one exemplar of a manifestation, such as a copy or a file. An `agent` is a person or a corporate body. The vocabulary is closed.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Level".
+ */
+export type Level = "work" | "expression" | "manifestation" | "item" | "agent";
+/**
+ * An absolute URI: a scheme name (a letter, then letters, digits, `+`, `.` or `-`), a colon and at least one more character, without white space or a control character, as for `Term`.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Uri".
+ */
+export type Uri = string;
+/**
+ * A URI reference: an absolute URI or a relative reference, non-empty and without white space or a control character, as for `Term`. A relative reference resolves against the location of the manifest.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "UriReference".
+ */
+export type UriReference = string;
+/**
  * The rows of a MeasureMap: compressed rows of the Measure Map standard, in measure order. A row equal to its predecessor's default successor is omitted as a whole.
  *
  * @minItems 1
@@ -387,6 +415,8 @@ export type CompleteManifest = {
   timelines: CompleteTimeline[];
   groups: CompleteGroup[];
   measure_maps: CompleteMeasureMap[];
+  schemes: CompleteScheme[];
+  links: CompleteLink[];
   graphical?: CompleteGraphical;
 };
 /**
@@ -411,6 +441,7 @@ export type CompleteTimeline = {
   conversion_maps: CompleteConversionMap[];
   regions: CompleteRegion[];
   flow_control: CompleteFlowControlElement[];
+  links: CompleteLink[];
 };
 /**
  * `ConversionMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -583,6 +614,81 @@ export type CompleteRegion = {
   start: Lossless<Number>;
   end: Lossless<Number>;
   meta: Meta;
+  links: CompleteLink[];
+};
+/**
+ * `Link` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompleteLink".
+ */
+export type CompleteLink = {
+  relation: Term;
+  level: Level;
+  uri: Uri[];
+  identifiers: Identifier[];
+  records: CompleteDescriptor[];
+  label: string | null;
+  assertion: CompleteAssertion | null;
+  parts_relation: Term | null;
+  parts: CompletePartSlot[];
+  parts_ordered: boolean;
+  part_of: CompletePartOf[];
+};
+/**
+ * `Descriptor` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompleteDescriptor".
+ */
+export type CompleteDescriptor = {
+  url: UriReference;
+  media_type: string | null;
+  size: JsonNumber | null;
+  integrity: string | null;
+};
+/**
+ * `Assertion` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompleteAssertion".
+ */
+export type CompleteAssertion = {
+  asserted_by: Uri[];
+  asserted_on: string | null;
+  method: Term | null;
+  service: Uri | null;
+  based_on: UriReference[];
+  match: "exact" | "close" | "broad" | "narrow" | "related" | null;
+  status: "confirmed" | "unconfirmed" | "rejected" | null;
+};
+/**
+ * `PartSlot` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompletePartSlot".
+ */
+export type CompletePartSlot = {
+  uri: Uri[];
+  identifiers: Identifier[];
+  label: string | null;
+  represented_by: Id[];
+  absent: Term | null;
+  assertion: CompleteAssertion | null;
+};
+/**
+ * `PartOf` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompletePartOf".
+ */
+export type CompletePartOf = {
+  parts_relation: Term;
+  uri: Uri[];
+  identifiers: Identifier[];
+  label: string | null;
+  position: JsonNumber | null;
+  assertion: CompleteAssertion | null;
 };
 /**
  * `FlowControlElement` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -641,6 +747,18 @@ export type CompleteMeasureMap = {
   rows: Lossless<MeasureMapRows>;
 };
 /**
+ * `Scheme` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompleteScheme".
+ */
+export type CompleteScheme = {
+  id: Id;
+  name: Name;
+  uri: Uri[];
+  criteria: Uri | null;
+};
+/**
  * `Graphical` in the complete form: every key with a default present, every number as `parseJson` reads it.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
@@ -671,7 +789,7 @@ export type CompleteTimestamp = {
 };
 
 /**
- * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element and named timestamp. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a statement selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups and the MeasureMaps are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order.
+ * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp and scheme. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a statement selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the schemes are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry links to external entities (`Link`); no other element carries any. Links keep the order they are given in.
  */
 export interface Manifest {
   /**
@@ -706,6 +824,14 @@ export interface Manifest {
    * The MeasureMaps, which the measure views among the conversion maps name by ID. A MeasureMap belongs to no timeline and is not drawn. The array may be empty.
    */
   measure_maps?: MeasureMap[];
+  /**
+   * The identifier schemes the manifest declares, so that an identifier may name one by ID (`Identifier`). A scheme identified by an absolute URI needs no element. Written sorted by ID.
+   */
+  schemes?: Scheme[];
+  /**
+   * The links of the manifest as a whole, in the order given, which writers keep.
+   */
+  links?: Link[];
   graphical?: Graphical;
 }
 /**
@@ -772,6 +898,10 @@ export interface Timeline {
    * The flow control of this timeline: its jump origins, jump targets and flow markers.
    */
   flow_control?: FlowControlElement[];
+  /**
+   * The links of this timeline, in the order given, which writers keep.
+   */
+  links?: Link[];
 }
 /**
  * What every conversion map carries: its type, its ID, its name, and the units of the axes it converts from and to, either null where that side is not a time axis. Each map type adds its own members.
@@ -813,6 +943,199 @@ export interface Region {
   start: Number;
   end: Number;
   meta?: Meta;
+  /**
+   * The links of this region, in the order given, which writers keep.
+   */
+  links?: Link[];
+}
+/**
+ * A typed relation from the element holding it (the manifest, a timeline or a region) to an external entity at a stated level: a work, an expression, a manifestation, an item or an agent, identified by URIs and identifiers and described by records. A link never claims that its element is the entity: it states that the element pertains to it or, for an agent, in which role. One link is one attributed reading. Where sources disagree, as two editions that order the movements of a work differently, each reading is a link of its own with its own assertion. A link may state the parts of the linked entity (`parts`, under `parts_relation`), each represented by elements of this manifest or absent from it, and the wholes the entity belongs to (`part_of`). A non-empty `parts` requires a `parts_relation`, and a link at the level `agent` never uses the relation `pertains_to`.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Link".
+ */
+export interface Link {
+  /**
+   * How the element relates to the linked entity. Registered word: `pertains_to`, the relation of a link at one of the four bibliographic levels. A link at the level `agent` names the agent's role instead, as an extension term (a relator from a published vocabulary, written as its URI or a prefixed name), and never uses `pertains_to`. Fallback: an unspecified relation at the stated level.
+   */
+  relation: Term;
+  level: Level;
+  /**
+   * URIs of the linked entity, the first preferred.
+   */
+  uri?: Uri[];
+  /**
+   * Identifiers of the linked entity in schemes that mint no URI for it.
+   */
+  identifiers?: Identifier[];
+  /**
+   * Documents that describe the linked entity.
+   */
+  records?: Descriptor[];
+  /**
+   * A human-readable label of the linked entity, or null.
+   */
+  label?: string | null;
+  /**
+   * Who stated the link, when, how and how surely, or null.
+   */
+  assertion?: Assertion | null;
+  /**
+   * How the linked entity holds the parts of `parts`, or null where `parts` is empty. Registered words: `has_part` (the parts make up the entity, as movements make up a sonata), `aggregates` (the entity gathers entities that exist on their own, as an album gathers recordings) and `incorporates` (the entity takes in another entity whole, as a pasticcio takes in an aria). Fallback: an unspecified structural relation.
+   */
+  parts_relation?: Term | null;
+  /**
+   * The parts of the linked entity in this reading, complete and in order: the position of a part is its position in the list, counted from 1.
+   */
+  parts?: PartSlot[];
+  /**
+   * Whether the order of `parts` is an order of the parts in the linked entity (true) or a display order only (false).
+   */
+  parts_ordered?: boolean;
+  /**
+   * The wholes the linked entity belongs to, each with its position in it where stated.
+   */
+  part_of?: PartOf[];
+}
+/**
+ * An identifier of an external entity: its `value` in the identifier scheme `scheme`. Where a scheme mints a URI for the entity, the URI belongs in the `uri` of the link, slot or entry instead.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Identifier".
+ */
+export interface Identifier {
+  /**
+   * The scheme: the ID of a `Scheme` of this manifest, or an absolute URI identifying the scheme, such as the URI of a Wikidata property (`http://www.wikidata.org/entity/P839`, the IMSLP ID). A scheme that names no Scheme of the manifest must be an absolute URI; checked after the schema.
+   */
+  scheme: string;
+  /**
+   * The identifier in its scheme, as the scheme writes it.
+   */
+  value: string;
+}
+/**
+ * A document about the linked entity, such as its record in a catalogue or a database. A database may change a record's bytes, so its size and integrity are optional.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Descriptor".
+ */
+export interface Descriptor {
+  /**
+   * Where the document lies.
+   */
+  url: UriReference;
+  /**
+   * The media type of the document, such as `application/ld+json`, or null.
+   */
+  media_type?: string | null;
+  /**
+   * The size of the document in bytes, or null.
+   */
+  size?: number | null;
+  /**
+   * A digest of the document's bytes as Subresource Integrity writes one (`sha256-`, `sha384-` or `sha512-` followed by the base64 digest), or null.
+   */
+  integrity?: string | null;
+}
+/**
+ * Who stated a link, a part slot or a `part_of` entry, when, how and how surely. Every key is optional.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Assertion".
+ */
+export interface Assertion {
+  /**
+   * URIs of the agents (people, organisations, software) who made the assertion.
+   */
+  asserted_by?: Uri[];
+  /**
+   * The date of the assertion, written `YYYY-MM-DD`, or null.
+   */
+  asserted_on?: string | null;
+  /**
+   * How the assertion was reached, or null. Registered words: `manual` (stated by a person), `reconciled` (matched by a reconciliation service, named by `service`), `imported` (taken from other data, named by `based_on`) and `inferred` (derived from other statements). The event types of PREMIS enter as their URIs at id.loc.gov, which are extension terms. Fallback: the method is not stated.
+   */
+  method?: Term | null;
+  /**
+   * The service that reached the assertion, such as a reconciliation endpoint, or null.
+   */
+  service?: Uri | null;
+  /**
+   * The sources the assertion rests on.
+   */
+  based_on?: UriReference[];
+  /**
+   * How closely the linked entity corresponds to what the element represents, read as the mapping relations of SKOS: `exact`, `close`, `broad` (the linked entity is broader), `narrow` (it is narrower) or `related`; null where it is not stated. The vocabulary is closed.
+   */
+  match?: "exact" | "close" | "broad" | "narrow" | "related" | null;
+  /**
+   * Whether the assertion stands: `confirmed`, `unconfirmed` (proposed and not yet checked) or `rejected` (checked and found wrong, kept so that it is not proposed again); null where it is not stated. The vocabulary is closed.
+   */
+  status?: "confirmed" | "unconfirmed" | "rejected" | null;
+}
+/**
+ * One part of the linked entity in a link's reading: an external entity, and either the elements of this manifest that represent it or the reason none does. Exactly one of the two is stated: `represented_by` non-empty and `absent` null, or `absent` a term and `represented_by` empty. A slot has no position of its own: its position is its place in its reading's `parts`. A slot without an assertion inherits its link's.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "PartSlot".
+ */
+export interface PartSlot {
+  /**
+   * URIs of the part, the first preferred.
+   */
+  uri?: Uri[];
+  /**
+   * Identifiers of the part.
+   */
+  identifiers?: Identifier[];
+  /**
+   * A human-readable label of the part, or null.
+   */
+  label?: string | null;
+  /**
+   * The IDs of the timelines (at any depth, segments included) and regions of this manifest that represent the part; checked after the schema.
+   */
+  represented_by?: Id[];
+  /**
+   * Why no element of this manifest represents the part, or null where one does. Registered words: `not_represented` (the part exists and this manifest leaves it out), `lost` (the part is lost), `unfinished` (the part was never completed), `unknown` (whether or why the part is missing is not known) and `not_recorded` (the part exists but the represented source, such as a recording, does not contain it). Fallback: read as `not_represented`.
+   */
+  absent?: Term | null;
+  /**
+   * Who stated the slot, or null, where the link's assertion holds.
+   */
+  assertion?: Assertion | null;
+}
+/**
+ * A whole the linked entity belongs to, such as the work a movement belongs to or the series an edition appears in, with the linked entity's position in it where stated. An entry without an assertion inherits its link's.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "PartOf".
+ */
+export interface PartOf {
+  /**
+   * How the whole holds the linked entity, a term of the vocabulary of a link's `parts_relation`, with its registered words and fallback.
+   */
+  parts_relation: Term;
+  /**
+   * URIs of the whole, the first preferred.
+   */
+  uri?: Uri[];
+  /**
+   * Identifiers of the whole.
+   */
+  identifiers?: Identifier[];
+  /**
+   * A human-readable label of the whole, or null.
+   */
+  label?: string | null;
+  /**
+   * The position of the linked entity among the parts of the whole, counted from 1, or null where it is not stated.
+   */
+  position?: number | null;
+  /**
+   * Who stated the entry, or null, where the link's assertion holds.
+   */
+  assertion?: Assertion | null;
 }
 /**
  * One element of a timeline's flow control, at a coordinate on the timeline's own axis. A jump_from is where playback leaves for another position: its target, a jump_to of the same timeline, or, for a da_capo manifestation or a repeat_end without a target, the timeline's start. A jump_to is a position a jump_from names as its target. A flow_marker marks a position without a jump of its own: a fine, where playback ends after a jump al fine, or a section_break, a double_barline or a final_barline, which divide the timeline. When a jump acts follows from its manifestation: a repeat_end on its first repeat_count passes, a to_coda only after a da_capo_al_coda or a dal_segno_al_coda, every other jump_from always.
@@ -959,6 +1282,27 @@ export interface MeasureMapRow {
    * A TimeToShare extension: where this row begins inside its nominal measure, in quarter notes, when the row represents only part of that measure (an anacrusis, or one constituent of a split measure). Absent means 0; a row never states 0.
    */
   offset_within_measure?: NumberPositive;
+}
+/**
+ * An identifier scheme the manifest declares, so that identifiers may name it by ID: a numbering such as a composer's opus numbers or a thematic catalogue, or any scheme without a URI of its own.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Scheme".
+ */
+export interface Scheme {
+  /**
+   * The scheme ID, unique across every ID of the manifest.
+   */
+  id: Id;
+  name?: Name;
+  /**
+   * URIs that identify or describe the scheme, the first preferred.
+   */
+  uri?: Uri[];
+  /**
+   * A document stating how the scheme assigns its values, or null.
+   */
+  criteria?: Uri | null;
 }
 /**
  * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members, the band order of each timeline and the named timestamps. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent `graphical` object draws every element with the other style layers alone.

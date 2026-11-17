@@ -8,6 +8,7 @@
 
 import type { NumberType, TimeUnit } from "../generated/types.js";
 import { isJsonObject, type JsonObject } from "../json/value.js";
+import { compareCodePoints } from "../json/write.js";
 
 /** One step of a path into a value: an object key or an array index. */
 export type PathSegment = string | number;
@@ -32,6 +33,18 @@ export type ValidationCode =
   | "timestamp_timeline"
   | "timestamp_coordinate"
   | "finite_number";
+
+/** Order paths segment by segment: indices by number, keys by code point, prefixes first. */
+export function comparePaths(left: readonly PathSegment[], right: readonly PathSegment[]): number {
+  for (let index = 0; index < Math.min(left.length, right.length); index += 1) {
+    const a = left[index] as PathSegment;
+    const b = right[index] as PathSegment;
+    if (a === b) continue;
+    if (typeof a === "number" && typeof b === "number") return a < b ? -1 : 1;
+    return compareCodePoints(String(a), String(b));
+  }
+  return left.length - right.length;
+}
 
 /** Render a path as a JSON pointer in URI fragment form (`#` for the root). */
 export function jsonPointer(path: readonly PathSegment[]): string {

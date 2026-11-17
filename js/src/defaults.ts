@@ -11,12 +11,24 @@
  */
 
 import type {
+  Assertion,
+  CompleteAssertion,
+  CompleteDescriptor,
+  CompleteLink,
   CompleteManifest,
+  CompletePartOf,
+  CompletePartSlot,
+  CompleteScheme,
+  Descriptor,
+  Link,
   LosslessManifest,
   NumberType,
+  PartOf,
+  PartSlot,
+  Scheme,
   TimeUnit,
 } from "./generated/types.js";
-import { clone, isJsonObject, JsonFloat, type JsonObject } from "./json/value.js";
+import { clone, isJsonObject, JsonFloat, type JsonObject, type Lossless } from "./json/value.js";
 import { orderDisplays } from "./manifest/order.js";
 import { respell } from "./manifest/spelling.js";
 import { exactNumber } from "./numbers/exact.js";
@@ -30,11 +42,16 @@ import { numberTypeOf } from "./validate/diagnostics.js";
  * those of `table_map`. Every flow-control element has the keys of
  * `flow_control_element`, and one whose manifestation is `repeat_end` adds
  * those of `repeat_end`, as no other element carries a repeat count. Every named timestamp of
- * `graphical.timestamps` has the keys of `timestamp`. Python's
+ * `graphical.timestamps` has the keys of `timestamp`. Every scheme of
+ * `schemes` has the keys of `scheme`, and every link (of the manifest, a
+ * timeline or a region) those of `link`; a link's records have those of
+ * `descriptor`, its part slots those of `part_slot`, its `part_of` entries
+ * those of `part_of`, and every assertion (a link's, a slot's, an entry's)
+ * those of `assertion`. An identifier has no default. Python's
  * `timetoshare.defaults` holds the same table, and the schema declares each value as the key's `default`.
  */
 export const DEFAULTS = {
-  manifest: { name: null, meta: {}, groups: [], measure_maps: [] },
+  manifest: { name: null, meta: {}, groups: [], measure_maps: [], schemes: [], links: [] },
   timeline: {
     name: null,
     locked: false,
@@ -44,8 +61,9 @@ export const DEFAULTS = {
     conversion_maps: [],
     regions: [],
     flow_control: [],
+    links: [],
   },
-  region: { name: null, meta: {} },
+  region: { name: null, meta: {}, links: [] },
   flow_control_element: { name: null, label: null, meta: {} },
   repeat_end: { repeat_count: 1 },
   conversion_map: { name: null },
@@ -55,9 +73,63 @@ export const DEFAULTS = {
   group: { name: null, meta: {} },
   graphical: { styles: {}, statements: [], order: {}, timestamps: [] },
   timestamp: { display: ["wedge", "name", "cross_section"] },
+  scheme: { name: null, uri: [], criteria: null },
+  link: {
+    uri: [],
+    identifiers: [],
+    records: [],
+    label: null,
+    assertion: null,
+    parts_relation: null,
+    parts: [],
+    parts_ordered: true,
+    part_of: [],
+  },
+  descriptor: { media_type: null, size: null, integrity: null },
+  assertion: {
+    asserted_by: [],
+    asserted_on: null,
+    method: null,
+    service: null,
+    based_on: [],
+    match: null,
+    status: null,
+  },
+  part_slot: {
+    uri: [],
+    identifiers: [],
+    label: null,
+    represented_by: [],
+    absent: null,
+    assertion: null,
+  },
+  part_of: { uri: [], identifiers: [], label: null, position: null, assertion: null },
 } as const;
 
 type Kind = keyof typeof DEFAULTS;
+
+/** The kinds of the objects of the description layer. */
+export type DescriptionKind =
+  | "scheme"
+  | "link"
+  | "descriptor"
+  | "assertion"
+  | "part_slot"
+  | "part_of";
+
+/** The members of a description object that hold objects with defaults, by kind. */
+const DESCRIPTION_MEMBERS: Readonly<
+  Partial<Record<DescriptionKind, readonly [string, DescriptionKind][]>>
+> = {
+  link: [
+    ["records", "descriptor"],
+    ["assertion", "assertion"],
+    ["parts", "part_slot"],
+    ["part_of", "part_of"],
+  ],
+  part_slot: [["assertion", "assertion"]],
+  part_of: [["assertion", "assertion"]],
+};
 
 /** The kind of the defaults a conversion map type adds to those of every map. */
 const MAP_KINDS: Readonly<Record<string, Kind>> = {
@@ -85,12 +157,32 @@ function visitMap(map: JsonObject, pass: Pass): void {
   for (const entry of nested) if (isJsonObject(entry)) visitMap(entry, pass);
 }
 
+/** Apply a pass to an object of the description layer and to what it holds. */
+function visitDescription(owner: JsonObject, kind: DescriptionKind, pass: Pass): void {
+  pass(owner, kind);
+  for (const [key, nested] of DESCRIPTION_MEMBERS[kind] ?? []) {
+    const value = owner[key];
+    for (const entry of Array.isArray(value) ? value : [value]) {
+      if (isJsonObject(entry)) visitDescription(entry, nested, pass);
+    }
+  }
+}
+
+/** Apply a pass to every link of an object and to what each holds. */
+function visitLinks(owner: JsonObject, pass: Pass): void {
+  for (const link of objects(owner, "links")) visitDescription(link, "link", pass);
+}
+
 /** Apply a pass to a timeline and to everything it holds. */
 function visitTimeline(timeline: JsonObject, pass: Pass): void {
   pass(timeline, "timeline");
+  visitLinks(timeline, pass);
   for (const child of objects(timeline, "children")) visitTimeline(child, pass);
   for (const map of objects(timeline, "conversion_maps")) visitMap(map, pass);
-  for (const region of objects(timeline, "regions")) pass(region, "region");
+  for (const region of objects(timeline, "regions")) {
+    pass(region, "region");
+    visitLinks(region, pass);
+  }
   for (const entry of objects(timeline, "flow_control")) {
     pass(entry, "flow_control_element");
     if (entry.manifestation === "repeat_end") pass(entry, "repeat_end");
@@ -101,6 +193,8 @@ function visitTimeline(timeline: JsonObject, pass: Pass): void {
 function visitManifest(manifest: unknown, pass: Pass): void {
   if (!isJsonObject(manifest)) return;
   pass(manifest, "manifest");
+  for (const scheme of objects(manifest, "schemes")) pass(scheme, "scheme");
+  visitLinks(manifest, pass);
   for (const timeline of objects(manifest, "timelines")) visitTimeline(timeline, pass);
   for (const group of objects(manifest, "groups")) pass(group, "group");
   for (const measureMap of objects(manifest, "measure_maps")) pass(measureMap, "measure_map");
@@ -229,5 +323,26 @@ export function minimal<T>(value: T): T;
 export function minimal(value: unknown): unknown {
   const result = complete(value);
   visitManifest(result, stripOne);
+  return result;
+}
+
+/**
+ * Return a copy of an object of the description layer in the complete form:
+ * every key of its kind's defaults added where absent, at every depth (a
+ * link's records, assertion, part slots and `part_of` entries with it), as
+ * `complete` completes the links of a manifest. Unknown keys pass through.
+ */
+export function completeDescription(value: Lossless<Link>, kind: "link"): CompleteLink;
+export function completeDescription(value: Lossless<PartSlot>, kind: "part_slot"): CompletePartSlot;
+export function completeDescription(value: Lossless<PartOf>, kind: "part_of"): CompletePartOf;
+export function completeDescription(value: Assertion, kind: "assertion"): CompleteAssertion;
+export function completeDescription(
+  value: Lossless<Descriptor>,
+  kind: "descriptor",
+): CompleteDescriptor;
+export function completeDescription(value: Scheme, kind: "scheme"): CompleteScheme;
+export function completeDescription(value: unknown, kind: DescriptionKind): unknown {
+  const result = clone(value);
+  if (isJsonObject(result)) visitDescription(result, kind, completeOne);
   return result;
 }

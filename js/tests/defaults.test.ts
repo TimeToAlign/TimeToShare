@@ -23,6 +23,37 @@ const SMALLEST = {
 const REGION = { id: "r", start: [0, 1], end: [1, 1] };
 const REPEAT = { id: "b", type: "jump_from", manifestation: "repeat_end" };
 const root = (value: unknown) => ((value as JsonObject).timelines as JsonObject[])[0] as JsonObject;
+const ASSERTION = {
+  asserted_by: [],
+  asserted_on: null,
+  method: null,
+  service: null,
+  based_on: [],
+  match: null,
+  status: null,
+};
+const LINK = {
+  relation: "pertains_to",
+  level: "work",
+  records: [{ url: "records/op106.json" }],
+  assertion: { method: "manual" },
+  parts_relation: "has_part",
+  parts: [{ absent: "lost", assertion: { status: "confirmed" } }],
+  part_of: [{ parts_relation: "has_part" }],
+};
+
+/** A manifest with a scheme and one link on itself, its root and a region. */
+function described(): JsonObject {
+  return manifest(
+    [
+      timeline("score", "quarters", [8, 1], {
+        links: [LINK],
+        regions: [{ ...REGION, links: [LINK] }],
+      }),
+    ],
+    { schemes: [{ id: "opus" }], links: [LINK] },
+  );
+}
 
 describe("the complete and the minimal form", () => {
   it("completes the smallest file to the literal complete form", () => {
@@ -32,6 +63,8 @@ describe("the complete and the minimal form", () => {
       meta: {},
       groups: [],
       measure_maps: [],
+      schemes: [],
+      links: [],
       timelines: [
         {
           id: "piece",
@@ -46,6 +79,7 @@ describe("the complete and the minimal form", () => {
           conversion_maps: [],
           regions: [],
           flow_control: [],
+          links: [],
         },
       ],
     });
@@ -127,6 +161,7 @@ describe("the complete and the minimal form", () => {
       end: [1, 1],
       name: null,
       meta: {},
+      links: [],
     });
     const defaults = { name: null, label: null, meta: {} };
     expect(done.flow_control).toEqual([
@@ -166,6 +201,52 @@ describe("the complete and the minimal form", () => {
     expect(value.measure_maps).toEqual([{ id: "bars", rows, name: null, meta: {} }]);
     expect(value.graphical).toEqual({ styles: {}, statements: [], order: {}, timestamps: [] });
     validate(value);
+  });
+
+  it("gives every object of the description layer exactly its defaults", () => {
+    const value = described();
+    const done = complete(value);
+    const link = {
+      relation: "pertains_to",
+      level: "work",
+      uri: [],
+      identifiers: [],
+      records: [{ url: "records/op106.json", media_type: null, size: null, integrity: null }],
+      label: null,
+      assertion: { ...ASSERTION, method: "manual" },
+      parts_relation: "has_part",
+      parts: [
+        {
+          uri: [],
+          identifiers: [],
+          label: null,
+          represented_by: [],
+          absent: "lost",
+          assertion: { ...ASSERTION, status: "confirmed" },
+        },
+      ],
+      parts_ordered: true,
+      part_of: [
+        {
+          parts_relation: "has_part",
+          uri: [],
+          identifiers: [],
+          label: null,
+          position: null,
+          assertion: null,
+        },
+      ],
+    };
+    expect(done.schemes).toEqual([{ id: "opus", name: null, uri: [], criteria: null }]);
+    const first = root(done);
+    expect([done.links, first.links, (first.regions as JsonObject[])[0]?.links]).toEqual([
+      [link],
+      [link],
+      [link],
+    ]);
+    expect(minimal(value)).toEqual(value);
+    expect(dumps(minimal(done))).toBe(dumps(value));
+    validate(done);
   });
 
   it.each([
@@ -317,6 +398,7 @@ describe("the complete and the minimal form", () => {
     ["the smallest file", SMALLEST],
     ["its complete form", complete(SMALLEST)],
     ["the bundle document", bundle()],
+    ["a described manifest", described()],
     [
       "unknown keys",
       manifest([
@@ -369,6 +451,7 @@ describe("the typed forms", () => {
     conversion_maps: [],
     regions: [],
     flow_control: [],
+    links: [],
   };
   const COMPLETE: CompleteManifest = {
     timetoshare: "0.2.0",
@@ -376,6 +459,8 @@ describe("the typed forms", () => {
     meta: {},
     groups: [],
     measure_maps: [],
+    schemes: [],
+    links: [],
     timelines: [COMPLETE_ROOT],
   };
 

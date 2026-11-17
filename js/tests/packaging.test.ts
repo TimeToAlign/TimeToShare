@@ -47,6 +47,16 @@ describe("the npm package", () => {
     );
   });
 
+  it("ships the registry of identifier schemes", () => {
+    const path = "registry/schemes.json";
+    expect(shipped.filter((file) => file.startsWith("registry/"))).toEqual([path]);
+    expect(readFileSync(resolve(packageDirectory, path))).toEqual(
+      readFileSync(resolve(repositoryRoot, path)),
+    );
+    const manifest = JSON.parse(readFileSync(resolve(packageDirectory, "package.json"), "utf8"));
+    expect(manifest.exports["./registry/*"]).toBe("./registry/*");
+  });
+
   it("ships both fonts, their licences and the metrics table", () => {
     const fonts = [
       "fonts/DejaVuSans-LICENSE",

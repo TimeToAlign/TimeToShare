@@ -6,11 +6,18 @@ import type { LosslessManifest } from "./generated/types.js";
 import { parseJson } from "./json/parse.js";
 import { isJsonObject, type JsonObject, plain } from "./json/value.js";
 import { compareCodePoints, spell } from "./json/write.js";
-import { jsonPointer, type PathSegment, SchemaValidationError } from "./validate/diagnostics.js";
+import { type UnregisteredTerm, unregisteredTermsOf } from "./validate/description.js";
+import {
+  comparePaths,
+  jsonPointer,
+  type PathSegment,
+  SchemaValidationError,
+} from "./validate/diagnostics.js";
 import { identityProblems as semanticProblems } from "./validate/identity.js";
 import { finiteNumberProblems, representationProblems } from "./validate/representation.js";
 
 export type { JsonObject } from "./json/value.js";
+export type { UnregisteredTerm } from "./validate/description.js";
 export {
   entries,
   jsonPointer,
@@ -142,24 +149,18 @@ function select(errors: readonly ErrorObject[]): ErrorObject | undefined {
   return best;
 }
 
-/** Order paths segment by segment: indices by number, keys by code point, prefixes first. */
-function comparePaths(left: readonly PathSegment[], right: readonly PathSegment[]): number {
-  for (let index = 0; index < Math.min(left.length, right.length); index += 1) {
-    const a = left[index] as PathSegment;
-    const b = right[index] as PathSegment;
-    if (a === b) continue;
-    if (typeof a === "number" && typeof b === "number") return a < b ? -1 : 1;
-    return compareCodePoints(String(a), String(b));
-  }
-  return left.length - right.length;
-}
-
 function first(problems: Iterable<SchemaValidationError>): SchemaValidationError | undefined {
   return problems[Symbol.iterator]().next().value;
 }
 
-/** Check a value through every rule and return unknown keys from its schema walk. */
-function run(value: unknown): UnknownKey[] {
+/** What a valid manifest is warned of: its unknown keys and its unregistered terms. */
+interface Warnings {
+  readonly keys: UnknownKey[];
+  readonly terms: UnregisteredTerm[];
+}
+
+/** Check a value through every rule and return its unknown keys and unregistered terms. */
+function run(value: unknown): Warnings {
   if (!isJsonObject(value) || !Object.hasOwn(value, "timetoshare")) {
     throw new SchemaValidationError("not_a_manifest", [], "not a TimeToShare manifest");
   }
@@ -188,9 +189,10 @@ function run(value: unknown): UnknownKey[] {
   if (semantic !== undefined) throw semantic;
 
   const unique = new Map(found.map((entry) => [`${jsonPointer(entry.path)} ${entry.key}`, entry]));
-  return [...unique.values()].sort(
+  const keys = [...unique.values()].sort(
     (a, b) => comparePaths(a.path, b.path) || compareCodePoints(a.key, b.key),
   );
+  return { keys, terms: unregisteredTermsOf(value) };
 }
 
 /**
@@ -204,7 +206,20 @@ export function validate(value: unknown): asserts value is LosslessManifest {
 
 /** Return the sorted unknown keys of a valid manifest. */
 export function unknownKeys(value: unknown): UnknownKey[] {
-  return run(value);
+  return run(value).keys;
+}
+
+/**
+ * Return the bare terms of a valid manifest outside their registered words.
+ * Validates `value` as `validate` does, then lists every term of an open
+ * vocabulary (a link's `relation` and `parts_relation`, an assertion's
+ * `method`, a part slot's `absent`, a `part_of` entry's `parts_relation`)
+ * that holds no colon and is not registered for its key, sorted by path. Such
+ * a term is kept and read as its key's fallback; it is never refused.
+ * Python's `unregistered_terms` returns the same list.
+ */
+export function unregisteredTerms(value: unknown): UnregisteredTerm[] {
+  return run(value).terms;
 }
 
 function reject(errors: readonly ErrorObject[], instance: unknown): never {
