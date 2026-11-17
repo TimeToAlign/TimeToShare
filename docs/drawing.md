@@ -759,8 +759,8 @@ as its magnitude preceded by `-`.
 - **A float** is rounded to three decimal places as Python's `round(x, 3)`
   rounds it: the exact value of the double to the nearest multiple of
   1/1000, ties to even, the result being the double nearest that multiple.
-  The result is spelled as the standard writer spells a float, which is
-  Python's `repr`. So 312.48979591836735 is written `312.49`, 6.71875
+  The result is spelled as Python's `repr` spells it. So
+  312.48979591836735 is written `312.49`, 6.71875
   `6.719`, 0.0625 `0.062`, 6.0 `6.0` and 1e-05 `0.0`: a float shows at
   most three decimals and keeps the `.0` that marks a float axis.
 - **An integer on an `int` axis** is written in decimal, its digits

@@ -20,8 +20,8 @@ cases, regenerate `js/src/generated/` with `pnpm generate`, and re-emit the
 fixtures through timetoalign.
 
 The manifests under `fixtures/<version>/` and its `groups/` and `bundles/`
-subdirectories are generated artifacts, each in the complete form beside
-its minimal twin. Use an environment containing the timetoalign revision
+subdirectories are generated artifacts in canonical YAML, each in the
+complete form beside its minimal twin. Use an environment containing the timetoalign revision
 represented by the schema:
 
 ```bash
@@ -31,7 +31,15 @@ python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoal
 Do not edit a fixture by hand. The script refuses to write into the
 fixtures of a version whose `v<version>` tag exists. Rejection cases under
 `fixtures/rejections/` and warning cases under `fixtures/warnings/` are
-authored by hand.
+authored by hand and written with `dumps`. The serialization cases under
+`fixtures/serializations/` are derived by hand from the README's
+"Serializations" alone, in the layout its "Fixtures" section prescribes
+(`cases/`, `readings/`, `refusals/` and `refusals-writing/`); a change to
+a serialization rule changes the README and these cases together, and
+both packages then reproduce them byte for byte. Their bytes, carriage
+returns included, are significant: `.gitattributes` marks
+`fixtures/serializations/** -text`, so git never converts their line
+ends.
 
 ## The drawing specification
 

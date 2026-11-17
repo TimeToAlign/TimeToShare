@@ -16,10 +16,13 @@ current version, as one JSON Schema document describing one manifest shape.
 It provides validators for Python and TypeScript that locate a violation
 under one shared path rule and list unknown keys and unregistered terms as
 warnings, the complete and the minimal form of a manifest, a canonical
-order, standard writers that produce the same bytes in Python and
-TypeScript, a lossless JSON reader for TypeScript, generated TypeScript
-types, and shared fixtures. It also specifies how a manifest is drawn and
-how a manifest links its content to works, editions, recordings and
+order, generated TypeScript types, shared fixtures, and three
+serializations: canonical YAML, which every reader reads and every writer
+writes, and two optional JSON forms, pretty JSON and RFC 8785 JSON. Both
+packages write each serialization to the same bytes and read each without
+losing what it holds; the JSON Schema validates the value a
+text holds, whatever its serialization. It also specifies how a manifest
+is drawn and how a manifest links its content to works, editions, recordings and
 agents, with a registry of identifier schemes that turns catalogue
 addresses into links; both packages ship both specifications and the
 registry.
@@ -251,12 +254,23 @@ BOPP. A child's `offset` takes the parent's number type.
 
 The declared number type decides how a value is read, never its spelling,
 and a reader coerces: `2.0` on an `int` axis is the integer 2, `2` on a
-`float` axis the float 2.0, and `[1, 8.0]` the Fraction 1/8. A JSON round
-trip that respells numbers therefore never invalidates a manifest. Writers
-spell every value canonically: an int as a JSON integer, a float as
-Python's `repr` spells it, Fraction members as JSON integers. What a value
-cannot be read as stays refused: a number with a fractional part on an
-`int` axis, an integer that no float equals exactly on a `float` axis, a
+`float` axis the float 2.0, and `[1, 8.0]` the Fraction 1/8. A round trip
+that respells numbers, such as one through RFC 8785 JSON, therefore never
+invalidates a manifest. Writers respell every own-axis value of a manifest
+as its number type selects ([Shared spelling](#shared-spelling)): an
+integral float on an `int` axis as an integer (`2.0` as `2`), an integer
+on a `float` axis as a float (`2` as `2.0`), and a Fraction pair reduced
+to lowest terms with a positive denominator, its members integers
+(`[4, 8.0]` as `[1, 2]`). A value its number type cannot take, any of
+those refused below, and every value on an axis whose `unit` or
+`number_type` is unknown, is written as given; a `unit` that is missing
+or not a string, and a `number_type` that is not a string, `null`
+included, count as unknown, while a missing `number_type` is the unit's
+default. A child's own-axis values are respelled by the child's own
+`unit` and `number_type` even under a parent whose axis is unknown; the
+child's `offset`, on the parent's axis, is then written as given. What a
+value cannot be read as stays refused: a number with a fractional part on
+an `int` axis, an integer that no float equals exactly on a `float` axis, a
 Fraction pair on an `int` or `float` axis and a bare number on a
 `fraction` axis, each with the code `representation`; and a Fraction
 member with a fractional part or a denominator below 1, which the schema
@@ -278,14 +292,25 @@ inside a manifest every position lies on an axis its container declares.
 ### Defaults
 
 Every key of this table is optional, and readers supply its default when it
-is absent. Writers write the **complete form**: every key of the table,
-its default included (`null`, `{}`, `[]`), except the keys whose default is
-"absent", which are written only with a value. Asked for the **minimal
-form**, they omit exactly the keys whose value is the default, equal to it
-in JSON type and value: `repeat_count: 1.0` is a float, not the integer
-default `1`, and stays. Either form
-reads to the same objects, and each writes back to itself. `length` is
-required in both forms.
+is absent. A manifest is written in one of two forms. The **complete
+form** holds every key of the table, its default included (`null`, `{}`,
+`[]`), except the keys whose default is "absent", which are written only
+with a value. The **minimal form** omits exactly the keys whose value
+equals the default in value; applications write it unless asked for the
+complete one ([Forms and defaults for
+applications](#forms-and-defaults-for-applications)). Numbers compare by
+exact value, each read as its key's declared type selects: an integer, a
+float and a Fraction pair of equal value are equal, so `repeat_count: 1`
+and `repeat_count: 1.0` are both omitted, and a `LinearMap`'s `scalar`
+written `1`, `1.0` or `[1, 1]` equals its default 1 and is omitted alike;
+arrays and objects are equal when their items and members are. Before a
+value is compared with its default, in either form, the manifest's
+own-axis values are respelled as their number type selects ([Values on a
+timeline's own axis](#values-on-a-timelines-own-axis)) and each named
+timestamp's `display` is put in canonical order, so a `display` written
+`[name, wedge, cross_section]` equals its default and is omitted. Either form reads to
+the same objects, and each writes back to itself. `length` is required in
+both forms.
 
 | Object | Key: default |
 | --- | --- |
@@ -316,7 +341,9 @@ nesting. The names in
 parentheses are the kinds of the packages' `DEFAULTS` table.
 Python's `complete(value)` and npm's `complete(value)` return a copy of a
 manifest in the complete form, and `minimal(value)` in both packages a copy
-in the minimal form; both are pure and read the one table above.
+in the minimal form; both are pure, read the one table above, and
+respell own-axis values and put each `display` in canonical order before
+comparing a value with its default.
 timetoalign's `to_dict()` writes the complete form, and
 `to_dict(minimal=True)` the minimal one.
 
@@ -360,9 +387,12 @@ drawing ([Drawing a manifest](#drawing-a-manifest)). `timestamps` lists the
 **named timestamps**, each `{id, timeline, coordinate, name, display?}`: a
 position `coordinate` on the own axis of the timeline `timeline`, a root or
 a descendant at any depth, a segment included, written as that timeline's
-number type selects ([Values on a timeline's own axis](#values-on-a-timelines-own-axis)),
+number type selects and respelled by writers as every own-axis value is
+([Values on a timeline's own axis](#values-on-a-timelines-own-axis)),
 from its zero to its `length` (only from its zero when the length is
-`null`), and named `name`, a non-empty string. Only that coordinate is
+`null`), and named `name`, a non-empty string. A timestamp whose
+`timeline` names no timeline of the manifest, or more than one (their IDs
+repeating), has its coordinate written as given. Only that coordinate is
 stored, never a map's value at it. `display` lists what the timestamp
 draws, distinct words from `wedge` (its coordinate marker), `name`, `id`
 and `coordinate` (its labels, stacked beyond the wedge in this order: its
@@ -522,8 +552,8 @@ timestamp naming no timeline is checked for its timeline alone. `<pointer>`
 is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
 `json_pointer(path)` and npm's `jsonPointer(path)` render a path. Both
 packages write the messages above alike, an ID verbatim in single quotes
-and every value spelled as the standard writer spells it (`720`,
-`[19, 2]`, `75.0`). A child's end, its offset plus its length, or for a
+and every value spelled as canonical YAML and pretty JSON spell it
+(`720`, `[19, 2]`, `75.0`). A child's end, its offset plus its length, or for a
 segment of unknown length its successor's offset, is compared exactly and
 spelled as its parent's number type writes it, or as a `[numerator,
 denominator]` pair where that type cannot write it exactly. A repeated
@@ -728,28 +758,483 @@ order keys cannot express are put in this order:
 - `flow_control` by coordinate, then ID;
 - `graphical.timestamps` by `timeline` (code point), then coordinate,
   then ID, and every timestamp's `display` in the order `wedge`, `name`,
-  `id`, `coordinate`, `cross_section`.
+  `id`, `coordinate`, `cross_section`, followed by any other strings by
+  code point and then by any other values in their given order.
 
-IDs are unique across the manifest, so no two entries tie. Coordinates
-compare by exact numeric value, never by JSON spelling. Strings compare by
-Unicode code point. No other array is reordered: `graphical` statements,
-display orders, conversion-map payloads, MeasureMap rows, the links of the
+Coordinates compare by exact numeric value, never by spelling. Strings
+compare by Unicode code point. IDs are unique across a valid manifest, so
+no two entries tie; entries that tie on every member they are ordered by,
+as entries of equal ID do, keep their given order. A writer refuses a
+manifest that cannot be put in this order (Python raises `ValueError`,
+TypeScript `TypeError`): one in which an entry of an ordered array of
+objects is not an object, lacks a member it is ordered by, or holds that
+member in a wrong type, such as an ID or a `timeline` that is not a
+string, or a coordinate that is neither a number nor a Fraction pair (two
+integers, an integral float counting as the integer it equals, the
+denominator at least 1); and one in which an entry of a group's `members`
+is not a string. A `display` is put in order whatever it holds, and a
+member that should hold an ordered array but holds no array, such as
+`children: "x"`, has nothing to order and is written as given. No other
+array is reordered: `graphical` statements, display orders,
+conversion-map payloads, MeasureMap rows, the links of the
 manifest, a timeline or a region, and every array of a link keep their
 order.
 
-## The standard writer
+## Serializations
 
-Each package has one writer, `dumps`. It puts a manifest in canonical
-order, sorts the keys of every object by code point, and writes UTF-8 text
-with two-space indentation and a final newline. It writes any other JSON
-value, such as an application's file embedding manifests, under the same
-rules. It writes the form it is given: pass a manifest through `complete`
-or `minimal` first to choose its form. Every
-character is unescaped except `"`, `\`, and control characters U+0000 to
-U+001F. A float remains a float and is spelled as Python's `repr` spells it
-(`2.0`, `0.0001`, `1e-05`, `1e+16`, `-0.0`); an integer never has a decimal
-point or exponent. A NaN, an infinity, or a string containing a lone surrogate
-is refused. The fixtures use this writer.
+A manifest is a value, and it is exchanged as text in one of three
+serializations, each specified here to the byte:
+
+| Serialization | Name | Status |
+| --- | --- | --- |
+| canonical YAML | `"yaml"` | required: every reader reads it, every writer writes it |
+| pretty JSON | `"json"` | optional, recommended over RFC 8785 JSON for its readability and its number kinds |
+| RFC 8785 JSON | `"jcs"` | optional, for digests and signatures |
+
+Manifests are kept in repositories and changed by reviewed pull requests,
+so each serialization gives equal manifests equal text, and a diff of two
+versions of a manifest shows what changed. Each package writes
+all three with `dumps` and reads all three with `loads`, and the two
+packages write the same bytes for the same value. `dumps` writes the form it is given: pass a manifest through
+`complete` or `minimal` first to choose its form ([Defaults](#defaults)).
+
+### The data model
+
+A manifest is a JSON value: an object, an array, a string, an integer, a
+float, `true`, `false` or `null`. Integer and float are distinct kinds:
+`2` and `2.0` are two values of equal numeric value. An integer is exact at
+any size; a float is a finite IEEE 754 double. An object's keys are
+distinct strings, and an object has no order of its own; an array is
+ordered. Every serialization carries this model whole, except that RFC 8785
+JSON loses the distinction between integer and float. In Python the kinds
+are `dict`, `list`, `str`, `int`, `float`, `bool` and `None`; in
+TypeScript a number is a `JsonNumber` ([TypeScript](#typescript)).
+
+### Shared spelling
+
+These rules hold in canonical YAML and pretty JSON. In RFC 8785 JSON the
+rules on strings and on the order of arrays hold too, while numbers and
+the order of keys follow its own rules and it has no lines ([RFC 8785
+JSON](#rfc-8785-json)).
+
+**Integers** are written in decimal digits, preceded by `-` when negative,
+never with `+` or a leading zero: `0`, `480`, `-3`, `9007199254740993`.
+
+**Floats** are written by the following algorithm. It gives what Python's
+`repr` gives for a float, with a fractional digit added to a mantissa in
+exponent form that lacks one (`repr` writes `1e-05`, the algorithm
+`1.0e-05`), and is stated so that it can be implemented without Python.
+
+1. A NaN or an infinity is refused. Zero is written `0.0` and negative zero
+   `-0.0`. A negative float is written `-` followed by its magnitude,
+   spelled by steps 2 to 4.
+2. Find the shortest string of decimal digits d1 d2 … dn, d1 not 0, with an
+   integer k such that the decimal d1.d2…dn × 10^k reads back as the float:
+   the double nearest to it, of two equally near the one with an even
+   significand, is the float. Where several strings of that length read
+   back as the float, take the one nearest to the float's exact value, and
+   of two equally near the one whose last digit is even. ECMAScript's
+   Number::toString finds strings of the same length and, as ECMAScript
+   recommends and engines do, chooses the same digits.
+3. If −4 ≤ k ≤ 15, write fixed notation with at least one fractional
+   digit. For k ≥ 0: the digits d1 … d(k+1) as the integer part, padded on
+   the right with zeros when n < k + 1, then `.`, then the remaining digits
+   d(k+2) … dn, or `0` when none remain. For k < 0: `0.`, then −k − 1
+   zeros, then d1 … dn.
+4. Otherwise write d1, then `.`, then d2 … dn, or `0` when n = 1, then
+   `e`, the sign of k (`+` or `-`) and the magnitude of k in at least two
+   digits. The mantissa so always has a fractional digit.
+
+So 2.0 is written `2.0`, 123.25 `123.25`, 0.1 `0.1`, 0.0001 `0.0001`,
+0.00001 `1.0e-05`, −2.5 × 10^−7 `-2.5e-07`, 10^15 `1000000000000000.0`,
+10^16 `1.0e+16`, 1.5 × 10^16 `1.5e+16`, the smallest double above zero
+`5.0e-324` and the largest double `1.7976931348623157e+308`.
+
+**Strings and keys** are Unicode text, written in UTF-8. A string or key
+holding a lone surrogate, a code point from U+D800 to U+DFFF that is not
+part of a pair, cannot be written in UTF-8 and is refused. Each
+serialization names the characters it escapes; every other character is
+written as itself. YAML 1.2 limits the implicit keys of block mappings
+and of single pairs in flow sequences, from their first character to their
+`:`, to 1024 characters; the format extends the same limit to the implicit
+keys of flow mappings. Parsers count these characters in code points or in
+UTF-16 code units. So a key whose
+canonical YAML form, its quotes and escapes included, is longer than 1024
+UTF-16 code units (a character above U+FFFF counting two) is refused by
+every writer, in every serialization: every manifest that can be written
+can so be written in canonical YAML, and read by every YAML parser.
+Readers apply YAML's own limit ([Reading](#reading)), so a reader can read
+a key that no writer writes.
+
+**Order.** The keys of every object, at every depth, are sorted by Unicode
+code point. When the value written is an object whose `timelines` member
+is an array, whether or not it holds `timetoshare`, it is a manifest: its
+arrays are put in [canonical order](#canonical-order) and its own-axis
+values respelled as their number type selects ([Values on a timeline's
+own axis](#values-on-a-timelines-own-axis)) before it is written. Every
+other array keeps its order. Only the value written is so taken as a
+manifest: a value that is not a manifest, such as an application's file
+that embeds manifests, keeps the order of all its arrays and the kind of
+all its numbers, and of a manifest it embeds only the keys are sorted.
+A top-level `timelines` member that is an array is so reserved for
+manifests: a value such as `{"timelines": ["b", "a"]}` is taken as a
+manifest, cannot be put in canonical order, and cannot be written.
+
+**Scalar sequences.** A scalar is `null`, `true`, `false`, a number or a
+string. A non-empty array whose items are all scalars is a **scalar
+sequence**, written on one line as `[`, its items separated by `, ` (a
+comma and one space), and `]`, however long the line. Every other
+non-empty array, one holding an empty array or an empty object included,
+is written one item per line. An empty array is written `[]` and an empty
+object `{}`. A Fraction pair is so written `[19, 2]`, and a named
+timestamp's `display` `[wedge, coordinate]` in canonical YAML and
+`["wedge", "coordinate"]` in pretty JSON.
+
+### Canonical YAML
+
+Canonical YAML is YAML 1.2 under its core schema, written in one layout:
+
+- The text is one document, without a `%` directive, `---` or `...`,
+  anchors, aliases, explicit tags or comments. It is UTF-8 without a byte
+  order mark, every line ends in a line feed (LF), no line ends in a space,
+  and the text ends in exactly one line feed.
+- Columns count characters from 0 at the start of a line. Indentation is
+  two spaces: a member or an item at column c places the content nested in
+  it, where that content goes on the following lines, at column c + 2.
+- An object with members is written one member per line, as its key, `:`
+  and then
+  - a scalar, `{}`, `[]` or a scalar sequence, after one space on the same
+    line;
+  - an object with members, or a non-empty array that is not a scalar
+    sequence, on the following lines at column c + 2, c being the key's
+    column.
+- A non-empty array that is not a scalar sequence is a **block sequence**,
+  written one item per line, each item as `-` at the column c of the
+  sequence and then
+  - a scalar, `{}`, `[]` or a scalar sequence, after one space on the same
+    line;
+  - an object with members, or a block sequence: nothing, the `-` standing
+    alone on its line with no space after it, and the object's members or
+    the sequence's items on the following lines at column c + 2.
+- At the top level, an object with members starts at column 0, and so
+  does a non-empty array, written as a block sequence even when it is a
+  scalar sequence, since a text that begins with `[` is read as JSON
+  ([Reading](#reading)); a scalar, `{}` or `[]` stands alone on the one
+  line.
+- `null`, `true` and `false` are written so; integers and floats as in
+  [Shared spelling](#shared-spelling).
+- A string, a value or a key, is written **plain**, as itself, when it is
+  not empty, matches `^[A-Za-z_][A-Za-z0-9_./-]*$`, and its lower-case
+  form is none of `null`, `true`, `false`, `yes`, `no`, `on`, `off`, `y`
+  and `n` (the last six guard readers still on YAML 1.1). Every other
+  string is written **double-quoted**, between `"` and `"`, escaping `"` as
+  `\"`, `\` as `\\`, U+0008 as `\b`, U+0009 as `\t`, U+000A as `\n`, U+000C
+  as `\f` and U+000D as `\r`, and every other character of U+0000 to
+  U+001F, U+007F to U+009F, U+2028, U+2029, U+FEFF, U+FFFE and U+FFFF as
+  `\u` and its four hexadecimal digits in lower case (`\u001b`); every
+  other character is written as itself. A string is never folded or broken
+  across lines.
+
+So `score`, `take_1`, `quarters` and `has_part` are plain, while `"0.2.0"`,
+`"Sonata in B♭"`, `"https://example.org/"`, `"$schema"`, `"No"` and `""`
+are quoted. The value `{"a": [[1, 2], [{"b": null}], {"c": {"d": "x y"}}],
+"e": {}}` is written
+
+```yaml
+a:
+  - [1, 2]
+  -
+    -
+      b: null
+  -
+    c:
+      d: "x y"
+e: {}
+```
+
+Every canonical YAML text reads to the same value under a YAML 1.1 parser
+as under a YAML 1.2 parser: a YAML 1.1 float needs a `.`, which every
+written float has, and the plain strings exclude YAML 1.1's further
+booleans. Readers must still read YAML 1.2, since a text written by hand
+need not be canonical.
+
+### Pretty JSON
+
+Pretty JSON is JSON ([RFC 8259](https://www.rfc-editor.org/rfc/rfc8259))
+laid out as follows:
+
+- An object with members is written `{`, then its members one per line,
+  each as its key, `: ` (a colon and one space) and its value, then `}` on
+  a line of its own. The members stand at column c + 2 and the `}` at
+  column c, c being the indentation of the line on which the `{` stands.
+  Every member but the last is followed by `,` at the end of its last
+  line. A value that is an object or array opens on its member's line.
+- A non-empty array that is not a scalar sequence is written likewise with
+  `[` and `]`, its items one per line in place of members, each item that
+  is an object or array opening on its own line.
+- A scalar sequence is written `[a, b]`, an empty array `[]` and an empty
+  object `{}`, each on the line of the key or item that holds it.
+- `null`, `true` and `false` are written so; integers and floats as in
+  [Shared spelling](#shared-spelling).
+- Every string, a value or a key, is double-quoted, escaping `"` as `\"`,
+  `\` as `\\`, U+0008 as `\b`, U+0009 as `\t`, U+000A as `\n`, U+000C as
+  `\f` and U+000D as `\r`, and every other character of U+0000 to U+001F
+  as `\u` and its four hexadecimal digits in lower case (`\u001b`); every
+  other character is written as itself.
+- The top-level value starts at column 0. The text is UTF-8 without a byte
+  order mark, every line ends in a line feed, no line ends in a space, and
+  the text ends in exactly one line feed.
+
+Canonical YAML keeps every change to its own lines. No member or item
+shares a line with another, and an object or block sequence held in an
+item begins on the line after its `-`, so adding, removing or changing a
+member of an object, or an item of a block sequence, adds, removes or
+changes that member's or item's lines and no other. A scalar sequence is
+one line, and so are `{}` and `[]`: adding the first member or item to an
+empty object or array, or removing the last, changes the line of its key
+(or its `-`). An array that
+switches between scalar sequence and block sequence, as when an object is
+added to an array of strings, rewrites that array's own lines, the line of
+its key or its `-` included; no line outside the array changes. Pretty
+JSON keeps every change to its own lines too, except for the comma that separates
+members and items: adding or removing the last member of an object, or
+the last item of an array, also changes the line before it, which gains or
+loses its `,`.
+
+### RFC 8785 JSON
+
+RFC 8785 JSON is the JSON Canonicalization Scheme of
+[RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) exactly, applied to the
+value after canonical order and respelling: equal manifests give equal
+bytes, so a digest
+or a signature of the text is meaningful.
+
+- There is no whitespace between tokens, and no final line feed: the text
+  ends with its last `}`, `]` or scalar.
+- The keys of every object are sorted by their UTF-16 code units, which
+  differs from code-point order only between a character above U+FFFF and
+  one from U+E000 to U+FFFF at the same position.
+- Strings are escaped as in pretty JSON, which is RFC 8785's escaping.
+- An integer from −(2^53 − 1) to 2^53 − 1 is written in decimal digits as
+  in [Shared spelling](#shared-spelling). An integer outside that range is
+  refused by the writer, since RFC 8785 numbers are doubles.
+- A float is written as ECMAScript's Number::toString writes it. Zero of
+  either sign is `0`, and a negative float is `-` followed by its
+  magnitude. With d1 … dn and k as in step 2 of the float algorithm: if
+  n − 1 ≤ k ≤ 20, the digits followed by k − n + 1 zeros (`2`,
+  `1700000000`); if 0 ≤ k < n − 1, d1 … d(k+1), `.` and the remaining
+  digits (`1503.25`); if −6 ≤ k ≤ −1, `0.`, −k − 1 zeros and the digits
+  (`0.00001`); otherwise d1, then `.` and d2 … dn when n > 1, then `e`,
+  the sign of k (`+` or `-`) and the magnitude of k without leading zeros
+  (`1e+21`, `1e-7`, `1.5e-10`).
+- An integral float of magnitude from 2^53 up to but excluding 10^21 is
+  refused by the writer: it would be written in digits alone, which read
+  back as an integer outside the range above.
+
+A float written without `.` or exponent, an integral float of magnitude
+below 2^53 or a zero, is read back as an integer. On a timeline's own
+axis the declared number type restores the float ([Values on a timeline's
+own axis](#values-on-a-timelines-own-axis)), though not the sign of a
+negative zero; everywhere else, in conversion maps, MeasureMap rows,
+`graphical`, `meta` and unknown keys, the distinction between integer and
+float is lost.
+
+### One manifest in three serializations
+
+This manifest is valid and in the minimal form. It holds a Fraction
+(`length` of `score`), floats (`length` and `offset` of `take_1`), an
+integer (`pages`), plain and quoted strings, an empty array (`errata`), a
+nested object (`meta`) and an array of objects (`timelines`). In canonical
+YAML, 259 bytes:
+
+```yaml
+meta:
+  source:
+    edition: Urtext
+    errata: []
+    pages: 12
+name: "Sonata in B♭"
+timelines:
+  -
+    id: score
+    length: [32, 1]
+    unit: quarters
+  -
+    id: take_1
+    length: 1503.25
+    offset: 1700000000.0
+    unit: seconds
+timetoshare: "0.2.0"
+```
+
+In pretty JSON, 380 bytes:
+
+```json
+{
+  "meta": {
+    "source": {
+      "edition": "Urtext",
+      "errata": [],
+      "pages": 12
+    }
+  },
+  "name": "Sonata in B♭",
+  "timelines": [
+    {
+      "id": "score",
+      "length": [32, 1],
+      "unit": "quarters"
+    },
+    {
+      "id": "take_1",
+      "length": 1503.25,
+      "offset": 1700000000.0,
+      "unit": "seconds"
+    }
+  ],
+  "timetoshare": "0.2.0"
+}
+```
+
+In RFC 8785 JSON, 242 bytes, one line ending in `}` without a line feed:
+
+```json
+{"meta":{"source":{"edition":"Urtext","errata":[],"pages":12}},"name":"Sonata in B♭","timelines":[{"id":"score","length":[32,1],"unit":"quarters"},{"id":"take_1","length":1503.25,"offset":1700000000,"unit":"seconds"}],"timetoshare":"0.2.0"}
+```
+
+The first two texts end in a line feed and count `♭` (U+266D) as its three
+bytes in UTF-8. RFC 8785 JSON writes the `offset` 1700000000.0 as
+`1700000000`, which reads back as an integer; `seconds` declares the
+number type `float`, which restores 1700000000.0.
+
+The manifest holds no float that is written in exponent form. Two such
+floats, 0.00005 and 10^21, are written `5.0e-05` and `1.0e+21` in
+canonical YAML and pretty JSON, and `0.00005` and `1e+21` in RFC 8785
+JSON.
+
+### Reading
+
+Both packages read every serialization with one reader, which also reads
+texts other writers wrote in any layout. The reader takes text, not
+bytes: decoding a file, as UTF-8, is the caller's.
+
+- Exactly one U+FEFF, a byte order mark, at position 0 of a text is
+  removed before the text is read, in every serialization and by every
+  reading function; writers never write one. Of every other U+FEFF, one
+  inside a string of a JSON text is content, and one outside a string
+  makes the text not JSON, which is refused; in a YAML text every other
+  U+FEFF is refused (see the characters below). A text that begins with
+  two is therefore read as YAML, after the first is removed, and refused.
+  The text is then
+  read as JSON when its first character
+  other than a space, a tab, a line feed or a carriage return is `{` or
+  `[`, or when it is a JSON text, one value
+  under the grammar of RFC 8259; every other text is read as YAML. A YAML
+  text in flow style from its first character, such as `{a: 1}`, is
+  therefore read as JSON and refused unless it is JSON, while a YAML
+  mapping whose first key is quoted, such as `"a": 1`, is not a JSON text
+  and is read as YAML. A scalar standing alone that is a JSON text, such
+  as `480` or `"x y"`, is read as JSON, even one holding a character that
+  YAML refuses. The canonical YAML texts that are JSON texts too, `{}`,
+  `[]`, and a number, `null`, `true`, `false` or a double-quoted string
+  standing alone, read as JSON to the value they hold as YAML.
+- In every serialization, JSON and YAML alike, refused are
+  - a text that holds no document: an empty text, or one of whitespace or
+    comments only (a YAML text of `---` alone holds one document, whose
+    value is null, and is read as `null`);
+  - a key that repeats in its object, keys being compared after their
+    escapes are read (`{"a": 1, "a": 2}` is refused); both packages
+    refuse it in JSON too, where RFC 8259 leaves it open;
+  - a lone surrogate in a string or a key, a code point from U+D800 to
+    U+DFFF that is not part of a pair, whether it stands in the text as
+    itself, as only a text held in memory can hold it, or is written
+    through an escape such as `\ud800`. An escape of a high surrogate
+    directly followed by an escape of a low surrogate, such as
+    `\ud83d\ude00`, is one character, here U+1F600, in YAML as in JSON.
+- In every serialization a float is read as the double nearest to the
+  decimal written, of two equally near the one with an even significand
+  (IEEE 754 rounding to nearest), and keeps its sign: `-1e-400` and
+  `-0.0` are read as −0.0. A float whose magnitude is 2^1024 − 2^970 or
+  more rounds to an infinity and is refused (`1e309`,
+  `1.7976931348623159e308`), while one that rounds to the largest double,
+  such as `1.7976931348623158e308`, and one that underflows to a subnormal
+  or to zero, such as `1e-400` (read as 0.0), are read.
+- JSON is read in any layout by the lossless reader. A number written
+  without `.`, `e` or `E` is an integer, exact at any size (`-0` is the
+  integer 0); every other number is a float. Refused besides are a text
+  that is not one JSON value, `NaN`, `Infinity` and `-Infinity`.
+- YAML is read as any valid YAML 1.2 under the core schema, in any style:
+  block and flow collections; plain, single-quoted, double-quoted and
+  block scalars; explicit keys (`? key`); an explicit document start `---`
+  or end `...`; the directive `%YAML 1.2`. A quoted or block scalar is a
+  string. A plain scalar is resolved by the core schema: `null`, `Null`,
+  `NULL`, `~` and an empty value are null; `true`, `True`, `TRUE`,
+  `false`, `False` and `FALSE` are booleans; a scalar that matches
+  `[-+]?[0-9]+`, `0o[0-7]+` or `0x[0-9a-fA-F]+` as a whole is an integer,
+  exact at any size; every other plain scalar that matches
+  `[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?` as a whole is a
+  float; every other plain scalar is a string. Comments are ignored.
+  Refused besides are every other directive (`%YAML 1.1`, `%TAG` and the
+  reserved ones), anchors and aliases, explicit tags, more than one
+  document, a key that is not a string (such as `1`, `null`, `true` or a
+  collection), an implicit key whose span from its first character to its
+  `:` (not including it), its quotes, escapes and the spaces before the
+  `:` included, exceeds 1024 code points (the limit YAML 1.2 sets for the
+  implicit keys of block mappings and of single pairs in flow sequences,
+  which the format extends to those of flow mappings), and `.nan` and the infinities in every
+  spelling of the core schema. A tab inside a plain scalar, such as
+  between two of its words, is part of the scalar and is read, as YAML 1.2
+  reads it.
+- In a YAML text, refused besides is every character standing as itself
+  anywhere in the text, in a scalar or a comment, that lies outside YAML's
+  printable set or that YAML parsers do not read alike: the C0 controls
+  other than tab, line feed and carriage return; U+007F to U+009F, U+0085
+  included, which YAML counts as printable; U+2028 and U+2029, which YAML
+  counts as printable too; U+FEFF, other than the one removed at position
+  0; U+FFFE and U+FFFF; and the code points from U+D800 to U+DFFF. The
+  canonical YAML writer escapes each of them but the surrogates, of which
+  it refuses a lone one. A JSON text is not affected.
+
+Python's `serialization_of(text)` and npm's `serializationOf(text)` name a
+text's serialization without validating it, by the same choice between
+JSON and YAML: `"jcs"` when the text is read as JSON and is byte for byte
+the RFC 8785 JSON of its value; `"json"` for every other text read as
+JSON, including one that cannot be read, one whose value the RFC 8785
+writer refuses, and RFC 8785 JSON after a byte order mark, which RFC 8785
+JSON never begins with; `"yaml"` for every other text. They never raise.
+
+A text that a writer wrote, read and written again in the same
+serialization, gives the same bytes, in either package and across the two.
+Canonical YAML and pretty JSON keep every number kind; RFC 8785 JSON gives
+its own bytes back although its integral floats are read as integers,
+since it writes an integer and the float of equal value alike.
+
+### Comments
+
+Comments are not part of a manifest. Readers ignore them and writers never
+write them, so a manifest read and written by a tool loses the comments of
+its YAML text. A note about a manifest belongs in its `meta`, or in the
+history of the repository that keeps it.
+
+### Forms and defaults for applications
+
+An application that writes manifests writes the minimal form
+([Defaults](#defaults)) unless it is asked for the complete one, in
+canonical YAML unless it is asked for another serialization. A manifest
+read from a file is written back in the form, styling and serialization it
+came in, each inferred when the file is read:
+
+- the form is minimal when no key of the manifest holds its default value,
+  compared in value as the minimal form compares it, after own-axis values
+  are respelled and each `display` put in canonical order, and complete
+  otherwise;
+- styling, the `graphical` object, is written when the file held one and
+  left out when it did not;
+- the serialization is the one `serialization_of` names for the file's
+  text.
+
+A manifest file that a writer wrote so keeps its bytes when it is read and
+written back unchanged.
 
 ## Install
 
@@ -769,18 +1254,27 @@ npm install @timetoalign/timetoshare
 
 Python validation raises `SchemaValidationError` with the `code` of the
 rule broken, a tuple `path` to the offending value and a `message`. Read a
-manifest with `loads` and write it with `dumps`:
+manifest in any serialization with `loads`, and write it with `dumps`,
+here back in the serialization it came in:
 
 ```python
-from timetoshare import SchemaValidationError, dumps, fixture_paths, loads, validate
+from timetoshare import (
+    SchemaValidationError,
+    dumps,
+    fixture_paths,
+    loads,
+    serialization_of,
+    validate,
+)
 
-value = loads(fixture_paths()[0].read_text(encoding="utf-8"))
+text = fixture_paths()[0].read_text(encoding="utf-8")  # canonical YAML
+value = loads(text)
 try:
     validate(value)
 except SchemaValidationError as error:
     print(error.code, error.path)
 else:
-    text = dumps(value)
+    assert dumps(value, serialization=serialization_of(text)) == text
 ```
 
 - `validate(value)` reads the version marker first, then checks the value
@@ -789,9 +1283,13 @@ else:
   A value without `timetoshare` is refused at the root; a value declaring
   another version raises `UnsupportedVersionError`. Unknown
   keys never fail it.
-- `loads(text)` reads JSON text as the TypeScript package's `parseJson`
-  does: integers stay exact at any size and floats stay floats, and `NaN`,
-  `Infinity` and a float beyond a double are refused with `ValueError`.
+- `loads(text)` reads a text, a `str`, in any serialization, JSON or YAML,
+  as [Reading](#reading) states and as the TypeScript package's `loads`
+  reads it, after removing one U+FEFF at position 0: integers stay exact
+  at any size and floats stay floats. A text
+  the reading rules refuse raises `ValueError` with the position of the
+  fault, and so does every error of the YAML parser, which `loads` wraps.
+  It does not validate.
 - `unknown_keys(value)` returns the unknown keys of a manifest as a list of
   `{path, key}` entries, sorted by path and then by key.
 - `unregistered_terms(value)` returns the unregistered terms of a
@@ -807,10 +1305,21 @@ else:
   `default_registry()` returns.
 - `complete(value)` and `minimal(value)` return a copy of a manifest in the
   complete or the minimal form; the input is not changed.
-- `dumps(value)` returns the standard text of a manifest or any JSON value.
+- `dumps(value, serialization="yaml")` returns the text of a manifest, or
+  of any JSON value, in canonical YAML (`"yaml"`), pretty JSON (`"json"`)
+  or RFC 8785 JSON (`"jcs"`) ([Serializations](#serializations)), a
+  manifest put in canonical order and its own-axis values respelled first.
+  It writes the form it is given. It raises `ValueError` for a value the
+  serialization refuses: a NaN or an infinity, a string or key with a lone
+  surrogate, a key whose canonical YAML form is longer than 1024 UTF-16
+  code units, and in `"jcs"` an integer beyond ±(2^53 − 1) or an integral
+  float of magnitude from 2^53 up to but excluding 10^21; `ValueError`
+  for a manifest that cannot be put in [canonical
+  order](#canonical-order); and `TypeError` for a value that is not JSON.
+- `serialization_of(text)` returns `"yaml"`, `"json"` or `"jcs"`, the
+  serialization of a text ([Reading](#reading)).
 - `canonical_order(value)` returns a deep copy with the manifest's arrays in
-  canonical order. `canonical_json(value)` returns compact JSON with object
-  keys sorted by code point.
+  canonical order.
 - `TIMESTAMP_DISPLAY` holds the words of a named timestamp's `display`,
   `("wedge", "name", "id", "coordinate", "cross_section")`, in canonical
   order.
@@ -835,18 +1344,28 @@ else:
 
 `JSON.parse` cannot preserve every distinction in the format: it reads `2.0`
 as the integer `2`, rounds integers beyond 2^53, and changes the enumeration
-order of array-index keys. Use the package's lossless reader:
+order of array-index keys. Use the package's readers, which read every
+serialization without losing either:
 
 ```ts
 import {
   dumps,
   parse,
   SchemaValidationError,
+  serializationOf,
 } from "@timetoalign/timetoshare";
 
-function load(text: string): string {
+const text = `timelines:
+  -
+    id: piece
+    length: [32, 1]
+    unit: quarters
+timetoshare: "0.2.0"
+`;
+
+function rewrite(text: string): string {
   try {
-    return dumps(parse(text));
+    return dumps(parse(text), { serialization: serializationOf(text) });
   } catch (error) {
     if (error instanceof SchemaValidationError) {
       console.error(error.code, error.path);
@@ -854,13 +1373,30 @@ function load(text: string): string {
     throw error;
   }
 }
+
+rewrite(text) === text; // true: the text is canonical YAML
 ```
 
-- `parse(text)` reads and validates a manifest without losing a number or
-  key order, and returns it as a `LosslessManifest`. `parseJson(text)`
-  reads any JSON text without validating it, and throws `JsonSyntaxError`,
-  a `SyntaxError` with the `offset` (in UTF-16 code units), `line` and
-  `column` (from 1) of the fault.
+- `loads(text)` reads a text in any serialization, JSON or YAML, as
+  [Reading](#reading) states and as Python's `loads` reads it, after
+  removing one U+FEFF at position 0, without losing a number or key order
+  and without validating.
+- `parse(text)` is `loads(text)` followed by `validate`: it reads a
+  manifest in any serialization, validates it and returns it as a
+  `LosslessManifest`.
+- `parseJson(text)` reads a text as JSON and `parseYaml(text)` as YAML,
+  whatever its first character, each as [Reading](#reading) states for
+  its language, after removing one U+FEFF at position 0 as `loads` and
+  `parse` do, without losing a number or key order and without
+  validating.
+- For a text the reading rules refuse, the readers throw
+  `JsonSyntaxError` when it is read as JSON, a `SyntaxError` with the
+  `offset` (in UTF-16 code units, counted from 0), `line` and `column`
+(counted from 1) of the
+  fault, and `YamlSyntaxError` when it is read as YAML, a `SyntaxError`
+  with the same three fields; `.nan` and the infinities of YAML throw
+  `YamlSyntaxError`. A finite literal that rounds to an infinity, such as
+  `1e309`, in YAML or in JSON, throws a `RangeError`.
 - `validate(value)` asserts that an unknown value is a
   `LosslessManifest` (its numbers may be bigints and `JsonFloat`s),
   checking it as Python's `validate` does; its `SchemaValidationError` carries the same
@@ -878,13 +1414,26 @@ function load(text: string): string {
   `withSchemes` read and extend the registry.
 - `complete(value)` and `minimal(value)` return the complete and the minimal
   form, as Python's functions do, keeping every number and key order
-  `parseJson` read. The typed forms say which form a value is in:
+  `loads` read. The typed forms say which form a value is in:
   `completeManifest(value: LosslessManifest): CompleteManifest`,
   `minimalManifest(value): LosslessManifest` and
   `canonicalManifest(value)`, which returns its argument's type in canonical
   order.
-- `dumps(value)` is the standard writer. `compactJson(value)` writes without
-  whitespace, and `canonicalJson(value)` also sorts object keys by code point.
+- `dumps(value, { serialization })` writes a manifest, or any JSON value,
+  as Python's `dumps` does, in `"yaml"` (the default), `"json"` or `"jcs"`
+  ([Serializations](#serializations)). It throws a `RangeError` for a
+  value the serialization refuses (a NaN or an infinity, a string or key
+  with a lone surrogate, a key whose canonical YAML form is longer than
+  1024 UTF-16 code units, and in `"jcs"` an integer beyond ±(2^53 − 1) or
+  an integral float of magnitude from 2^53 up to but excluding 10^21), a
+  `TypeError` for a manifest that cannot be put in [canonical
+  order](#canonical-order) and for a value that is not JSON.
+- `serializationOf(text)` returns `"yaml"`, `"json"` or `"jcs"`, as
+  Python's `serialization_of` does.
+- `compactJson(value)` writes JSON without whitespace, every object's keys
+  in their own order and numbers spelled as in [Shared
+  spelling](#shared-spelling); it is a utility, not a serialization of the
+  format.
 - `canonicalOrder(value)` returns a deep copy with the manifest's arrays in
   canonical order.
 - `TIMESTAMP_DISPLAY` holds the words of a named timestamp's `display`,
@@ -905,20 +1454,22 @@ function load(text: string): string {
   manifest's `id` and `graphical`, a root's `offset`) stay optional.
   `LosslessManifest` is `Lossless<Manifest>`.
 
-A number read by `parseJson` is a `JsonNumber`:
+A number read by `loads`, `parseJson` or `parseYaml` is a `JsonNumber`:
 
-| JSON text | `JsonNumber` |
+| Number as written | `JsonNumber` |
 | --- | --- |
 | an integer within ±(2^53 − 1), such as `480` | a `number` |
 | an integer beyond that range, such as `9007199254740993` | a `bigint` |
 | a float with a fractional part, such as `0.5` | a `number` |
-| an integral float, such as `2.0`, `1e+16`, or `-0.0` | a `JsonFloat` |
+| an integral float, such as `2.0`, `1.0e+16`, or `-0.0` | a `JsonFloat` |
 
 `Lossless<T>` replaces every `number` in `T` with `JsonNumber` and keeps
-tuples, so a Fraction is `[JsonNumber, JsonNumber]`. A float whose
-value is an integer must be passed as `new JsonFloat(2)`, not as `2`, if it is
-to be written as a float. JavaScript code that writes files must use
-`dumps` or `compactJson`, not `JSON.stringify`.
+tuples, so a Fraction is `[JsonNumber, JsonNumber]`. An integral plain
+`number` is the integer of its exact value: `-0` is the integer 0, and
+`1e300` a 301-digit integer, which RFC 8785 JSON therefore refuses. A
+float whose value is an integer must be passed as `new JsonFloat(2)`, not as `2`, if it is
+to be written as a float. JavaScript code that writes manifests must use
+`dumps`, not `JSON.stringify`.
 
 ## Versioning
 
@@ -938,10 +1489,35 @@ version declarations agree.
 
 The [fixture guide](fixtures/README.md) describes the generated manifests
 and the drawings, the hand-authored rejection cases, and the warning cases.
-Every accepted fixture is written in the complete form beside its minimal
-twin. The manifests are emitted only by timetoalign through the catalogue of
-builders in `scripts/fixtures/`, whose CLI is `scripts/emit_fixtures.py`. Do
-not edit them by hand.
+Every accepted fixture is written in canonical YAML (`.yaml`), the complete
+form beside its minimal twin (`.minimal.yaml`). The manifests are emitted
+only by timetoalign through the catalogue of builders in
+`scripts/fixtures/`, whose CLI is `scripts/emit_fixtures.py`. Do not edit
+them by hand. The rejection and warning cases are written in canonical
+YAML too, except the cases about JSON text itself, which stay JSON.
+
+`fixtures/serializations/` holds the serialization cases, derived by hand
+from [Serializations](#serializations), never written with `dumps`, which
+they test:
+
+| Path | Holds |
+| --- | --- |
+| `cases/<name>/canonical.yaml`, `cases/<name>/pretty.json`, `cases/<name>/rfc8785.json` | one value in each of the three serializations; a missing `rfc8785.json` means that the RFC 8785 writer refuses the value |
+| `readings/<name>.<ext>` | a text that is not canonical and that every reader reads, `<ext>` being `yaml` or `json`; the readings are the files of `readings/` whose names end neither in `.expected.yaml` nor in `.expected.rfc8785.json` |
+| `readings/<name>.expected.yaml` | the canonical YAML of the value that text is read as |
+| `readings/<name>.expected.rfc8785.json` | optional; an expected output, read as RFC 8785 JSON (`serialization_of` gives `"jcs"`), not a reading: the RFC 8785 JSON written from the value that text is read as, with no final line feed; it exists for readings whose value is not yet in canonical spelling (for example an unreduced Fraction pair), since RFC 8785 JSON is written after canonical order and respelling |
+| `refusals/<name>.<ext>` | a text that every reader refuses |
+| `refusals-writing/<name>.<ext>` | a text every reader reads, whose value a writer refuses |
+
+Both packages write every text of a case byte for byte, read every reading
+to its expected value, write that value with `dumps(..., serialization="jcs")`
+to the bytes of its `.expected.rfc8785.json` where one exists, refuse every
+refused text, and refuse to write
+each value of `refusals-writing/` in the serializations that
+`fixtures/serializations/README.md` names for it. The bytes of these files, carriage
+returns and final line feeds included, are significant, so
+`.gitattributes` marks `fixtures/serializations/** -text` and git keeps
+them as they are.
 
 ## Development
 
