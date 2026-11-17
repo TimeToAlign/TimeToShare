@@ -3,25 +3,38 @@
   "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (ff43780a)"
+    "generator": "timetoalign 1.2.0 (8323b609)"
   },
   "name": null,
   "schemes": [],
   "timelines": [
     {
       "children": [],
-      "conversion_maps": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": null,
+          "offset": 0,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
       "flow_control": [],
       "id": "Bass Kick",
       "is_segment_line": false,
-      "length": 231.0791836734694,
+      "length": 10190592,
       "links": [],
       "locked": false,
       "meta": {},
       "name": "Bass Kick.mp3",
-      "number_type": "float",
+      "number_type": "int",
       "regions": [],
-      "unit": "seconds"
+      "unit": "samples"
     }
   ],
   "timetoshare": "0.2.0"

@@ -1,13 +1,25 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (ff43780a)"
+    "generator": "timetoalign 1.2.0 (8323b609)"
   },
   "timelines": [
     {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "LinearMap"
+        }
+      ],
       "id": "Bass Kick",
-      "length": 231.0791836734694,
+      "length": 10190592,
       "name": "Bass Kick.mp3",
-      "unit": "seconds"
+      "unit": "samples"
     }
   ],
   "timetoshare": "0.2.0"
