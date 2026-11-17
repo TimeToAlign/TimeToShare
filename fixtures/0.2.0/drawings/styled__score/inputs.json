@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "styled__score.json",
+  "manifest": "styled__score.yaml",
   "placement": {
     "height": null,
     "length": 400,

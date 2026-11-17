@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "map_row_moved.json",
+  "manifest": "map_row_moved.yaml",
   "placement": {
     "height": null,
     "length": 400,

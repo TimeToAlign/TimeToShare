@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "discrete_physical.json",
+  "manifest": "discrete_physical.yaml",
   "placement": {
     "height": null,
     "length": 400,

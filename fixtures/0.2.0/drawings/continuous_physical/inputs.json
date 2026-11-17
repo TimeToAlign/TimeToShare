@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "continuous_physical.json",
+  "manifest": "continuous_physical.yaml",
   "placement": {
     "height": null,
     "length": 400,

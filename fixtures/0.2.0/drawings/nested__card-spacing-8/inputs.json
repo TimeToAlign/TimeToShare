@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "nested.json",
+  "manifest": "nested.yaml",
   "placement": {
     "height": null,
     "length": 400,

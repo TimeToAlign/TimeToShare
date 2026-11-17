@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "map_row_siblings.json",
+  "manifest": "map_row_siblings.yaml",
   "placement": {
     "height": null,
     "length": 400,

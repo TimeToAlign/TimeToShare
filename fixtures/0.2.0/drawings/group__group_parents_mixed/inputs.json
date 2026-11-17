@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "groups/group_parents_mixed.json",
+  "manifest": "groups/group_parents_mixed.yaml",
   "placement": {
     "height": null,
     "length": 400,

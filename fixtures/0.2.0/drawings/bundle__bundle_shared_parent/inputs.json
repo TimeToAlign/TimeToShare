@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "bundles/bundle_shared_parent.json",
+  "manifest": "bundles/bundle_shared_parent.yaml",
   "placement": {
     "height": null,
     "length": 400,

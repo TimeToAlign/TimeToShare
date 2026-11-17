@@ -361,9 +361,10 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
 `map_child_band_order`, `map_root_band_order`). Each directory holds:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
-  the two fonts, written with `dumps`:
-  - `manifest`: the path of the manifest relative to the same version's
-    directory (`nested.json`, `groups/group_child_member.json`);
+  the two fonts, written with `dumps` in pretty JSON:
+  - `manifest`: the path of the manifest's canonical YAML file relative to
+    the same version's directory (`nested.yaml`,
+    `groups/group_child_member.yaml`);
   - `placement`: `length`, `spacing`, `width`, `height` and `places`, all
     five always written, defaults included (400, 8, `null`, `null`, `{}`);
     `spacing` is the block's, the gap between its items at their default

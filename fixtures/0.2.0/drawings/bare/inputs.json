@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "bare.json",
+  "manifest": "bare.yaml",
   "placement": {
     "height": null,
     "length": 400,
