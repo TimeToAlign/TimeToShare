@@ -266,8 +266,8 @@ relation is `pertains_to` unless the level is `agent`, where the role must
 be given. `with_uri` and `with_identifier` refuse a URI recognised at a
 level other than the link's, and `with_parts` a part slot whose URI the
 registry recognises at such a level: the parts of a work are works. Python's
-objects write themselves with `to_dict()` in the complete form and with
-`to_dict(minimal=True)` in the minimal form; the TypeScript functions take
+objects write themselves with `to_dict()` in the minimal form and with
+`to_dict(minimal=False)` in the complete form; the TypeScript functions take
 a link in either form and return a new link in the complete form. Every
 refusal raises Python's `ValueError` or throws TypeScript's `Error`, with
 the same message.
@@ -830,8 +830,8 @@ manifest = {
     "timetoshare": "0.2.0",
     "name": "Beethoven, Piano Sonata No. 29, Op. 106",
     "timelines": [],
-    "schemes": [scheme.to_dict(minimal=True)],
-    "links": [link.to_dict(minimal=True)],
+    "schemes": [scheme.to_dict()],
+    "links": [link.to_dict()],
 }
 text = dumps(manifest)
 ```

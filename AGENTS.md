@@ -33,8 +33,8 @@ These rules apply to every contributor, human or automated.
   final line feed); `refusals/`;
   `refusals-writing/`; kept byte for byte by
   `fixtures/serializations/** -text` in `.gitattributes`), and the
-  drawings (`inputs.json`,
-  `figure.svg` and `figure.tex` per drawing; the hand-derived `figure.svg`
+  drawings (`inputs.json`, in pretty JSON and naming the `.yaml`
+  manifests, `figure.svg` and `figure.tex` per drawing; the hand-derived `figure.svg`
   files are listed with their arithmetic in `drawings/README.md`, everything
   else is emitted); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37 and Noto Music 2.004, their licences, and the
@@ -73,8 +73,9 @@ These rules apply to every contributor, human or automated.
   figures are produced by TimeLineEditor's writers (its `emit-drawings`
   script, writing into a TimeToShare checkout).
 - Write every fixture, rejection case and warning case in canonical YAML
-  with `dumps` of either package, except the rejection and warning cases
-  about JSON text itself, which stay JSON. Write the registry
+  with `dumps` of either package; a rejection or warning case about JSON
+  text itself would be written in JSON, and none is at present. Write the
+  registry
   `registry/schemes.json` in pretty JSON with `dumps(…,
   serialization="json")`. Either way object keys are sorted by code point
   at every depth, arrays are in canonical order, and floats are spelled as

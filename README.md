@@ -263,8 +263,9 @@ on a `float` axis as a float (`2` as `2.0`), and a Fraction pair reduced
 to lowest terms with a positive denominator, its members integers
 (`[4, 8.0]` as `[1, 2]`). A value its number type cannot take, any of
 those refused below, and every value on an axis whose `unit` or
-`number_type` is unknown, is written as given; a `unit` that is missing
-or not a string, and a `number_type` that is not a string, `null`
+`number_type` is unknown, is written as given; a `unit` that is missing,
+not a string or a string not in the unit table, and a `number_type` that
+is not a string, `null`
 included, count as unknown, while a missing `number_type` is the unit's
 default. A child's own-axis values are respelled by the child's own
 `unit` and `number_type` even under a parent whose axis is unknown; the
@@ -284,7 +285,9 @@ value built in memory, or read by a lenient reader, may hold one, and both
 validators refuse it at its path.
 
 A conversion map's numbers and a MeasureMap row's lengths are numbers of
-the same kind, each a JSON number or a Fraction pair. The self-describing
+the same kind, each a JSON number or a Fraction pair. Writers write the
+numbers of conversion maps and of MeasureMap rows as given, neither
+respelled nor reduced. The self-describing
 coordinate object `{unit, number_type, value}` (`$defs/Coordinate`) serves
 a position outside such a container, as hosts exchange single positions;
 inside a manifest every position lies on an axis its container declares.
@@ -344,8 +347,8 @@ manifest in the complete form, and `minimal(value)` in both packages a copy
 in the minimal form; both are pure, read the one table above, and
 respell own-axis values and put each `display` in canonical order before
 comparing a value with its default.
-timetoalign's `to_dict()` writes the complete form, and
-`to_dict(minimal=True)` the minimal one.
+timetoalign's `to_dict()` writes the minimal form, and
+`to_dict(minimal=False)` the complete one.
 
 ### Unknown length
 
@@ -850,6 +853,11 @@ So 2.0 is written `2.0`, 123.25 `123.25`, 0.1 `0.1`, 0.0001 `0.0001`,
 10^16 `1.0e+16`, 1.5 × 10^16 `1.5e+16`, the smallest double above zero
 `5.0e-324` and the largest double `1.7976931348623157e+308`.
 
+**Depth.** A scalar has depth 0; an object or an array has depth 1 plus
+the greatest depth of its members, an empty one depth 1. A writer refuses a
+value deeper than 256 in every serialization, so that every value that can
+be written can be read ([Reading](#reading)).
+
 **Strings and keys** are Unicode text, written in UTF-8. A string or key
 holding a lone surrogate, a code point from U+D800 to U+DFFF that is not
 part of a pair, cannot be written in UTF-8 and is refused. Each
@@ -1142,7 +1150,7 @@ bytes: decoding a file, as UTF-8, is the caller's.
   block scalar is a string; a plain scalar is null, a boolean, an integer,
   a float or a string as the core schema resolves it, an integer being
   exact at any size. Comments are ignored, and an empty text, or one of
-  whitespace and comments only, is read as null. Refused besides are
+  blank lines and comments only, is read as null. Refused besides are
   - every text the parser refuses, more than one document and a tag it
     does not know among them;
   - anchors and aliases;
@@ -1162,7 +1170,9 @@ bytes: decoding a file, as UTF-8, is the caller's.
     itself, as only a text held in memory can hold it, or is written
     through an escape such as `\ud800`. An escape of a high surrogate
     directly followed by an escape of a low surrogate, such as
-    `\ud83d\ude00`, is one character, here U+1F600, in YAML as in JSON.
+    `\ud83d\ude00`, is one character, here U+1F600, in YAML as in JSON;
+  - a value deeper than 256 ([Shared spelling](#shared-spelling)), at the
+    first collection at depth 257. Manifests are far shallower.
 
 Canonical YAML, and every YAML text that uses only its constructs, is
 read to the same value by both packages and by every conforming YAML 1.1
@@ -1170,10 +1180,13 @@ or 1.2 parser. These constructs are block mappings and block sequences at
 any consistent indentation, one-line flow sequences of scalars, `{}` and
 `[]`, plain scalars that canonical YAML would write plain, numbers,
 booleans and null as canonical YAML spells them, double-quoted strings
-with the escapes canonical YAML writes, comments and blank lines. Beyond
-these constructs a text is read as the package's parser reads it, and a
-difference between two parsers there is not a defect of the format.
-Tools write canonical YAML.
+with the escapes canonical YAML writes, comments and blank lines, a blank
+line holding nothing but spaces. Canonical YAML holds no literal tab, since
+it escapes every tab in a string, so a text with a tab anywhere, such as a
+line of a tab alone or a tab before a comment, lies outside these
+constructs. Beyond these constructs a text is read as the package's parser
+reads it, and a difference between two parsers there is not a defect of
+the format. Tools write canonical YAML.
 
 Python's `serialization_of(text)` and npm's `serializationOf(text)` name a
 text's serialization without validating it, by the same choice between
@@ -1266,11 +1279,13 @@ else:
 - `loads(text)` reads a text, a `str`, in any serialization, JSON or YAML,
   as [Reading](#reading) states, after removing one U+FEFF at position 0:
   integers stay exact at any size and floats stay floats. It reads YAML
-  with PyYAML's safe loader (its C loader where the extension is
-  installed), given the YAML 1.2 core schema's resolvers in place of YAML
-  1.1's. A text the reading rules refuse, and every error of the YAML
-  parser, raises `ValueError` with the line and column of the fault. It
-  does not validate.
+  with PyYAML's pure-Python `SafeLoader`, given the YAML 1.2 core schema's
+  resolvers and constructors in place of YAML 1.1's; it never uses the C
+  loader, so that reading does not depend on whether libyaml is
+  installed. A text the reading rules refuse, and every error of the YAML
+  parser, raises `ValueError` with the line and column of the fault, both
+  counted from 1, the column in code points; a value deeper than 256
+  raises it at the first collection at depth 257. It does not validate.
 - `unknown_keys(value)` returns the unknown keys of a manifest as a list of
   `{path, key}` entries, sorted by path and then by key.
 - `unregistered_terms(value)` returns the unregistered terms of a
@@ -1296,7 +1311,10 @@ else:
   code units, and in `"jcs"` an integer beyond ±(2^53 − 1) or an integral
   float of magnitude from 2^53 up to but excluding 10^21; `ValueError`
   for a manifest that cannot be put in [canonical
-  order](#canonical-order); and `TypeError` for a value that is not JSON.
+  order](#canonical-order); `ValueError` for a value deeper than 256
+  ([Reading](#reading)), so that every value that can be written can be
+  read; `ValueError` for an unknown `serialization`; and `TypeError` for a
+  value that is not JSON.
 - `serialization_of(text)` returns `"yaml"`, `"json"` or `"jcs"`, the
   serialization of a text ([Reading](#reading)).
 - `canonical_order(value)` returns a deep copy with the manifest's arrays in
@@ -1373,10 +1391,14 @@ rewrite(text) === text; // true: the text is canonical YAML
 - For a text the reading rules refuse, the readers throw
   `JsonSyntaxError` when it is read as JSON, a `SyntaxError` with the
   `offset` (in UTF-16 code units, counted from 0), `line` and `column`
-  (counted from 1) of the fault, and `YamlSyntaxError` for every refusal
+  (counted from 1, the column in UTF-16 code units) of the fault, and
+  `YamlSyntaxError` for every refusal
   of a text read as YAML, a `SyntaxError` with the same three fields. A
   JSON number that rounds to an infinity, such as `1e309`, throws a
-  `RangeError`.
+  `RangeError`. A value deeper than 256 throws `JsonSyntaxError` or
+  `YamlSyntaxError` at the first collection at depth 257, with the same
+  three fields, and `dumps` throws a `RangeError` for such a value, so
+  that every value that can be written can be read.
 - `validate(value)` asserts that an unknown value is a
   `LosslessManifest` (its numbers may be bigints and `JsonFloat`s),
   checking it as Python's `validate` does; its `SchemaValidationError` carries the same
@@ -1405,9 +1427,10 @@ rewrite(text) === text; // true: the text is canonical YAML
   value the serialization refuses (a NaN or an infinity, a string or key
   with a lone surrogate, a key whose canonical YAML form is longer than
   1024 UTF-16 code units, and in `"jcs"` an integer beyond ±(2^53 − 1) or
-  an integral float of magnitude from 2^53 up to but excluding 10^21), a
-  `TypeError` for a manifest that cannot be put in [canonical
-  order](#canonical-order) and for a value that is not JSON.
+  an integral float of magnitude from 2^53 up to but excluding 10^21) and
+  for an unknown `serialization`, and a `TypeError` for a manifest that
+  cannot be put in [canonical order](#canonical-order) and for a value
+  that is not JSON.
 - `serializationOf(text)` returns `"yaml"`, `"json"` or `"jcs"`, as
   Python's `serialization_of` does.
 - `compactJson(value)` writes JSON without whitespace, every object's keys
@@ -1474,7 +1497,8 @@ form beside its minimal twin (`.minimal.yaml`). The manifests are emitted
 only by timetoalign through the catalogue of builders in
 `scripts/fixtures/`, whose CLI is `scripts/emit_fixtures.py`. Do not edit
 them by hand. The rejection and warning cases are written in canonical
-YAML too, except the cases about JSON text itself, which stay JSON.
+YAML too; a case about JSON text itself would be written in JSON, and
+none is at present.
 
 `fixtures/serializations/` holds the serialization cases, derived by hand
 from [Serializations](#serializations), never written with `dumps`, which
@@ -1488,6 +1512,10 @@ they test:
 | `readings/<name>.expected.rfc8785.json` | optional; an expected output, read as RFC 8785 JSON (`serialization_of` gives `"jcs"`), not a reading: the RFC 8785 JSON written from the value that text is read as, with no final line feed; it exists for readings whose value is not yet in canonical spelling (for example an unreduced Fraction pair), since RFC 8785 JSON is written after canonical order and respelling |
 | `refusals/<name>.<ext>` | a text that every reader refuses, by a refusal that the rules of [Reading](#reading) decide |
 | `refusals-writing/<name>.<ext>` | a text every reader reads, whose value a writer refuses |
+
+The cases include texts at depth 256, which every reader reads, texts at
+depth 257, which every reader refuses, and a value of depth 257, which every
+writer refuses ([Shared spelling](#shared-spelling)).
 
 Both packages write every text of a case byte for byte, read every reading
 to its expected value, write that value with `dumps(..., serialization="jcs")`
