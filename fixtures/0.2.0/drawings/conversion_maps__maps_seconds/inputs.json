@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "conversion_maps__maps_seconds.json",
+  "manifest": "conversion_maps__maps_seconds.yaml",
   "placement": {
     "height": null,
     "length": 400,

@@ -18,7 +18,7 @@
       ]
     }
   ],
-  "manifest": "unknown_length_child.json",
+  "manifest": "unknown_length_child.yaml",
   "placement": {
     "height": null,
     "length": 400,

@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "child_flow_control.json",
+  "manifest": "child_flow_control.yaml",
   "placement": {
     "height": null,
     "length": 400,

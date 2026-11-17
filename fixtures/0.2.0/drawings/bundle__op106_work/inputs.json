@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "bundles/op106_work.json",
+  "manifest": "bundles/op106_work.yaml",
   "placement": {
     "height": null,
     "length": 400,

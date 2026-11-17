@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "child_jumps.json",
+  "manifest": "child_jumps.yaml",
   "placement": {
     "height": null,
     "length": 400,

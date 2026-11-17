@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "joint_rows.json",
+  "manifest": "joint_rows.yaml",
   "placement": {
     "height": null,
     "length": 400,

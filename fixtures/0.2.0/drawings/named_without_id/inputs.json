@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "named_without_id.json",
+  "manifest": "named_without_id.yaml",
   "placement": {
     "height": null,
     "length": 400,

@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "bundles/bundle_ungrouped.json",
+  "manifest": "bundles/bundle_ungrouped.yaml",
   "placement": {
     "height": null,
     "length": 400,
