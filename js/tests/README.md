@@ -79,8 +79,8 @@ refuse, the white-space class pinned against the registry's). `generated.test.ts
 names, which are every definition, the complete form of exactly the
 definitions holding a default, and `LosslessManifest`, and `registry.ts`
 exports the registry file's entries as `schemes` (equal, as `compactJson`
-texts, to the value `loads` reads from the file, which is stored as the
-writers write it); the committed
+texts, to the value `loads` reads from the file, which holds byte for
+byte the pretty JSON `dumps` writes for that value); the committed
 text is `check:drift`'s oracle. Statements marked `@ts-expect-error` (a
 misspelt key, a missing `length` or child `offset`, a complete form missing
 a defaulted key, a three-member Fraction) make a looser generation break
@@ -132,10 +132,9 @@ cases fail. The packages differ only where JavaScript must:
 ## Shared rejection cases
 
 Each of the 129 cases (`validate.test.ts`), found by its name whatever
-its extension and read by `loads`, is stored as the writers write it (a
-canonical YAML text is `dumps`'s bytes; a JSON text holds its keys, arrays
-and numbers as the writers write them, compared as `compactJson` texts, so
-a JSON text in an earlier layout passes) and raises
+its extension and read by `loads`, is stored as the writers write it,
+byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
+bytes of `dumps` in pretty JSON) and raises
 `SchemaValidationError` with its stored path and code through `validate`
 on the read value, through `validate` on the value as `JSON.parse` would
 read it (`plain`: every `JsonFloat` and `bigint` a plain number), and
@@ -247,38 +246,46 @@ each break once. The packages differ only where JavaScript must:
 ## The serializations
 
 `serialization.test.ts` walks `fixtures/serializations/` as its README
-states, so a case, reading or refusal added there is tested without a
-change here:
+states. A case or a reading added there is tested without a change here;
+a refusal or a writer refusal is named in the test's table with what it
+throws, and each table is checked against its directory, the files equal
+to the table's keys, so a file added, removed or renamed on one side only
+fails. No test is skipped:
 
-- **Cases.** The value V of each of the 35 cases is read from its
+- **Cases.** The directory holds 35 cases, the five manifest cases and
+  the eight top-level JSON texts named below among them. The value V of
+  each case is read from its
   `pretty.json`; `canonical.yaml` reads to V, kind for kind (an integer
   equals only an integer, a float only a float, `-0.0` differs from
   `0.0`); `dumps(V)` with each serialization gives the bytes of its file,
   and where `rfc8785.json` is missing `"jcs"` throws a `RangeError`;
   `rfc8785.json` reads to V with every float RFC 8785 spells without `.`
   or exponent as the integer of equal value; each text read and written
-  again in its own serialization gives its own bytes; for the five
-  manifest cases the value read from `rfc8785.json` is written as
-  `canonical.yaml`; `serializationOf` names `canonical.yaml` `"json"` for
+  again in its own serialization gives its own bytes; for each of the
+  five manifest cases alone (`readme_manifest`,
+  `manifest_canonical_order`, `manifest_order_by_value`,
+  `manifest_ties_kept`, `manifest_display_order`) the value read from
+  `rfc8785.json` is written as `canonical.yaml`; `serializationOf` names `canonical.yaml` `"json"` for
   the eight top-level JSON texts and `"yaml"` otherwise, `pretty.json`
   `"json"` and `rfc8785.json` `"jcs"`.
-- **Readings.** Every file of `readings/` but the expected ones reads to the
+- **Readings.** Every reading has its `.expected.yaml`, and every
+  expected text belongs to a reading. Every file of `readings/` but the
+  expected ones reads to the
   value whose canonical YAML is its `.expected.yaml`, and, where present,
   whose RFC 8785 JSON is its `.expected.rfc8785.json`; each expected text
   gives its own bytes; `serializationOf` names a `.json` reading `"json"`, a
   `.yaml` one `"yaml"` and every expected RFC 8785 text `"jcs"`.
-- **Refusals.** A text read as JSON throws a `JsonSyntaxError` through
-  `loads` and `parseJson`, a `RangeError` for a float that rounds to an
-  infinity; a text read as YAML throws a `YamlSyntaxError` through `loads`
-  and `parseYaml`. An empty text and one of whitespace, comments or `...`
-  alone read as null. The texts outside the YAML guarantee, which `yaml`
-  reads, are skipped by name with that reason: the characters and the
-  second byte order mark once refused by a scan, `%YAML 1.1` and `%TAG`,
-  the tags `!!str` and `!`, a long key of a flow mapping, and the writer
-  refusal `key_1024_code_points_non_bmp`, whose key `yaml` refuses to read.
-  `serializationOf` never throws on any file and names each as the
-  fixtures README states.
-- **Writer refusals.** Each file reads; writing its value throws in each
+- **Refusals.** The table names each of the 67 files with the error it
+  throws: a text read as YAML a `YamlSyntaxError`, through `loads` and
+  `parseYaml`; a text read as JSON a `JsonSyntaxError`, through `loads`
+  and `parseJson` (the three `flow_*` texts meant as YAML among them), a
+  `RangeError` for the four whose float rounds to an infinity
+  (`json_float_overflow*`, `json_top_level_float_overflow`).
+  `serializationOf` names each `"yaml"` or `"json"` as it is read, never
+  throwing.
+- **Writer refusals.** The table names each of the 21 files with the
+  serializations that refuse its value. Each file reads, and is named
+  `"json"` or `"yaml"` by its extension; writing its value throws in each
   serialization the table names (a `RangeError`, or a `TypeError` for the
   `order_*` texts) and succeeds in the others.
 
@@ -287,10 +294,13 @@ The unit tests beside the walk pin what the cases leave to a package:
 - **The JSON reader** (`manifest.test.ts`): `0.5`, `2.0`,
   `123456789012345678`, `-0`, `-0.0`, `1E5` read losslessly; key order
   survives, array-index keys included; eleven malformed texts, three
-  repeated keys and seven lone surrogates (escaped, as themselves, in a
-  key, reversed, followed by a letter) pin the message, offset, line and
-  column of each `JsonSyntaxError`; `[1e400]` throws a `RangeError` naming
-  line 1, column 2; a pair of surrogate escapes is one character; one
+  repeated keys and nine lone surrogates (escaped, as themselves, in a
+  key, reversed, followed by a letter, and a high surrogate and a low one
+  of which one is escaped and the other stands as itself, which pair with
+  neither, as in Python) pin the message, offset, line and column of each
+  `JsonSyntaxError`; `[1e400]` throws a `RangeError` naming line 1, column
+  2; a pair of surrogate escapes, and a pair standing as itself, is one
+  character; one
   leading byte order mark is removed and a second refused at offset 0.
 - **The YAML reader** (`serialization.test.ts`): the core schema (`0x1F`,
   `0o17`, a 30-digit integer, `2.0`, `-0.0`, `.5`, `no`, a date, `~`,
@@ -315,7 +325,10 @@ The unit tests beside the walk pin what the cases leave to a package:
   unit while its offset stays, a missing unit, an unknown `number_type`
   and `number_type: null`; named timestamps on one timeline, on none and on
   two of equal ID; an integral plain number written as the integer of its
-  exact value (`1e300` its 301 digits, which RFC 8785 refuses, `-0` as 0).
+  exact value (`1e300` its 301 digits, which RFC 8785 refuses, `-0` as 0);
+  an integer no double can hold (10^400) as a `length` and a region `end`
+  on a `seconds` axis written as given in canonical YAML and pretty JSON,
+  each text reading back to itself, and refused in RFC 8785 JSON.
 - **Canonical order**: keys by code point in YAML and JSON and by UTF-16
   code unit in RFC 8785; roots, groups, members, measure maps,
   conversion maps, children, regions, flow control and named timestamps
@@ -331,14 +344,18 @@ The unit tests beside the walk pin what the cases leave to a package:
   serialization, keys of exactly 1024 written; ±2^53, 2^64, the integral
   floats 2^53, −10^16 and 10^21 − 2^17 refused in `"jcs"` only, ±(2^53 − 1)
   and 10^21 written; `undefined`, a function, a symbol, a `Date` and a
-  `Map` as a `TypeError`; an unknown serialization as a `RangeError`.
+  `Map` as a `TypeError`; an unknown serialization (`"toml"`, `"YAML"`,
+  `""`) as the `RangeError` `unknown serialization "<name>"`.
 - **Every stored file** (fixtures, rejection and warning cases) is written
   as stored, and its value with every key and every array the canonical
   order sorts reversed is written to the same text, or refused alike, in
   each serialization.
 - **Python's `repr`.** 2000 doubles from a fixed pseudo-random sequence are
-  spelled as `python3` spells them with `repr`, with `.0` added to a
-  mantissa in exponent form that has no fractional digit.
+  spelled as Python spells them with `repr`, with `.0` added to a mantissa
+  in exponent form that has no fractional digit. The expected spellings
+  are stored in `python-repr.ts`, produced once by CPython from the same
+  doubles (its comment states how), so the suite runs no other
+  interpreter.
 
 ## Lossless reading in JavaScript
 

@@ -37,6 +37,8 @@ function onAxis(value: unknown, axis: Axis): unknown {
     }
     const whole = BigInt(value);
     const double = Number(whole);
+    // An integer beyond the largest double, such as 10^400, rounds to an infinity.
+    if (!Number.isFinite(double)) return value;
     return BigInt(double) === whole ? new JsonFloat(double === 0 ? 0 : double) : value;
   }
   if (axis === "fraction" && Array.isArray(value)) {

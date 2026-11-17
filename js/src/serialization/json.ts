@@ -3,7 +3,9 @@
  * number's written kind or an object's key order (see `../json/value.ts`),
  * and refuses, with a `JsonSyntaxError` naming where, a text that is not one
  * JSON value, a key that repeats in its object and a lone surrogate in a
- * string or a key, whether it stands as itself or is written as an escape.
+ * string or a key, whether it stands as itself or is written as an escape;
+ * a surrogate escape pairs only with an escape, so an escaped high surrogate
+ * before a low one standing as itself is two lone surrogates, as in Python.
  */
 
 import { type Json, JsonFloat, type JsonNumber, type Lossless, objectFrom } from "../json/value.js";
@@ -79,13 +81,15 @@ export function readJson(text: string): Lossless<Json> {
     index++;
     let result = "";
     let high = -1;
+    let highViaEscape = false;
     for (;;) {
       if (index >= text.length) fail("unterminated string");
       const at = index;
       let unit = text.charCodeAt(index);
       if (unit === 0x22) break;
       if (unit < 0x20) fail("malformed string", start);
-      if (unit === 0x5c) {
+      const viaEscape = unit === 0x5c;
+      if (viaEscape) {
         const escaped = text[index + 1] as string;
         if (escaped === "u") {
           const digits = text.slice(index + 2, index + 6);
@@ -102,10 +106,13 @@ export function readJson(text: string): Lossless<Json> {
         index++;
       }
       if (high >= 0) {
-        if (!isLow(unit)) fail("lone surrogate", high);
+        // A surrogate written as an escape pairs only with an escape, and one
+        // standing as itself only with one standing as itself, as in Python.
+        if (!isLow(unit) || viaEscape !== highViaEscape) fail("lone surrogate", high);
         high = -1;
       } else if (isHigh(unit)) {
         high = at;
+        highViaEscape = viaEscape;
       } else if (isLow(unit)) {
         fail("lone surrogate", at);
       }

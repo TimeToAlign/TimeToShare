@@ -85,6 +85,7 @@ describe("the serialization cases", () => {
 
   it("are the thirty-five cases of the case table", () => {
     expect(cases.length).toBe(35);
+    for (const name of [...MANIFEST_CASES, ...JSON_CANONICAL_CASES]) expect(cases).toContain(name);
   });
 
   describe.each(cases)("%s", (name) => {
@@ -121,13 +122,6 @@ describe("the serialization cases", () => {
       expect(dumps(loads(canonical))).toBe(canonical);
     });
 
-    it.runIf(MANIFEST_CASES.has(name))(
-      "writes the value of rfc8785.json as canonical.yaml, the number types restoring floats",
-      () => {
-        expect(dumps(loads(rfc8785 as string))).toBe(canonical);
-      },
-    );
-
     it("names each file's serialization", () => {
       expect(serializationOf(canonical)).toBe(JSON_CANONICAL_CASES.has(name) ? "json" : "yaml");
       expect(serializationOf(pretty)).toBe("json");
@@ -136,10 +130,26 @@ describe("the serialization cases", () => {
   });
 });
 
+describe.each([...MANIFEST_CASES])("the manifest case %s", (name) => {
+  it("writes the value of rfc8785.json as canonical.yaml, the number types restoring floats", () => {
+    const canonical = text(`cases/${name}/canonical.yaml`);
+    expect(dumps(loads(text(`cases/${name}/rfc8785.json`)))).toBe(canonical);
+  });
+});
+
 const EXPECTED = /\.expected\.(yaml|rfc8785\.json)$/;
 
 describe("the readings", () => {
   const readings = names("readings").filter((name) => !EXPECTED.test(name));
+
+  it("are paired with their expected texts, and every expected text with its reading", () => {
+    const stems = new Set(readings.map((file) => file.replace(/\.(yaml|json)$/, "")));
+    expect(stems.size).toBe(readings.length);
+    for (const file of names("readings").filter((name) => EXPECTED.test(name))) {
+      expect(stems).toContain(file.replace(EXPECTED, ""));
+    }
+    for (const stem of stems) expect(names("readings")).toContain(`${stem}.expected.yaml`);
+  });
 
   describe.each(readings)("%s", (file) => {
     const stem = file.replace(/\.(yaml|json)$/, "");
@@ -168,85 +178,95 @@ describe("the readings", () => {
   });
 });
 
-/** The refusals read as JSON whose float rounds to an infinity, which throw a `RangeError`. */
-const OVERFLOWS = /^(json_float_overflow.*|json_top_level_float_overflow)\./;
-
-/** The texts meant as YAML that the choice between JSON and YAML reads as JSON. */
-const READ_AS_JSON = new Set([
-  "flow_mapping_unquoted_key.yaml",
-  "flow_sequence_plain.yaml",
-  "flow_sequence_then_comment.yaml",
-]);
+type Refusal = typeof JsonSyntaxError | typeof YamlSyntaxError | typeof RangeError;
 
 /**
- * Why a refusal does not run: the texts that the reading rules leave to the
- * package's parser, beyond the constructs canonical YAML writes, where a
- * difference between parsers is no defect of the format. `yaml` reads each
- * of them: characters the lexical rules once refused, a second byte order
- * mark, the directives `%YAML 1.1` and `%TAG`, the tags `!!str` and `!`, and
- * a long key of a flow mapping, for which YAML sets no limit.
+ * The error reading each refusal throws, as the fixtures README states: a
+ * `YamlSyntaxError` for a text read as YAML, a `JsonSyntaxError` for one
+ * read as JSON (the three `flow_*` texts meant as YAML among them), a
+ * `RangeError` for a JSON number that rounds to an infinity.
  */
-const OUTSIDE_GUARANTEE = "outside the YAML guarantee";
-
-const BEYOND_GUARANTEE = new Set([
-  "bom_second_json.json",
-  "bom_second_yaml.yaml",
-  "yaml_bom_in_comment.yaml",
-  "yaml_bom_in_plain.yaml",
-  "yaml_bom_in_string.yaml",
-  "yaml_del_in_string.yaml",
-  "yaml_directive_1_1.yaml",
-  "yaml_directive_tag.yaml",
-  "yaml_flow_mapping_key_1025.yaml",
-  "yaml_ls_in_comment.yaml",
-  "yaml_ls_in_string.yaml",
-  "yaml_nel_in_comment.yaml",
-  "yaml_nel_in_string.yaml",
-  "yaml_ps_in_string.yaml",
-  "yaml_tag_core.yaml",
-  "yaml_tag_non_specific.yaml",
-  "yaml_u0001_in_string.yaml",
-  "yaml_u001f_in_string.yaml",
-  "yaml_u0080_in_string.yaml",
-  "yaml_u009f_in_string.yaml",
-  "yaml_ufffe_in_string.yaml",
-  "yaml_uffff_in_string.yaml",
-  "key_1024_code_points_non_bmp.yaml",
-]);
-
-/** The texts that hold no document: an empty text, or one of comments only, reads as null. */
-const READ_AS_NULL = new Set([
-  "bom_only.yaml",
-  "comments_only.yaml",
-  "empty.yaml",
-  "whitespace_only.yaml",
-  "yaml_document_end_only.yaml",
-]);
+const REFUSALS: Readonly<Record<string, Refusal>> = {
+  "flow_mapping_unquoted_key.yaml": JsonSyntaxError,
+  "flow_sequence_plain.yaml": JsonSyntaxError,
+  "flow_sequence_then_comment.yaml": JsonSyntaxError,
+  "json_bom_after_value.json": JsonSyntaxError,
+  "json_bom_between_tokens.json": JsonSyntaxError,
+  "json_comment.json": JsonSyntaxError,
+  "json_duplicate_key.json": JsonSyntaxError,
+  "json_duplicate_key_escaped.json": JsonSyntaxError,
+  "json_duplicate_key_nested.json": JsonSyntaxError,
+  "json_float_overflow.json": RangeError,
+  "json_float_overflow_above_largest.json": RangeError,
+  "json_float_overflow_negative.json": RangeError,
+  "json_infinity.json": JsonSyntaxError,
+  "json_lone_surrogate_high.json": JsonSyntaxError,
+  "json_lone_surrogate_key.json": JsonSyntaxError,
+  "json_lone_surrogate_low.json": JsonSyntaxError,
+  "json_lone_surrogate_reversed.json": JsonSyntaxError,
+  "json_lone_surrogate_then_letter.json": JsonSyntaxError,
+  "json_nan.json": JsonSyntaxError,
+  "json_negative_infinity.json": JsonSyntaxError,
+  "json_single_quotes.json": JsonSyntaxError,
+  "json_top_level_float_overflow.json": RangeError,
+  "json_trailing_comma.json": JsonSyntaxError,
+  "json_two_values.json": JsonSyntaxError,
+  "json_u0001_in_string.json": JsonSyntaxError,
+  "json_unclosed.json": JsonSyntaxError,
+  "yaml_alias.yaml": YamlSyntaxError,
+  "yaml_anchor.yaml": YamlSyntaxError,
+  "yaml_duplicate_key.yaml": YamlSyntaxError,
+  "yaml_duplicate_key_escaped.yaml": YamlSyntaxError,
+  "yaml_duplicate_key_flow.yaml": YamlSyntaxError,
+  "yaml_duplicate_key_nested.yaml": YamlSyntaxError,
+  "yaml_duplicate_key_quoted.yaml": YamlSyntaxError,
+  "yaml_float_overflow.yaml": YamlSyntaxError,
+  "yaml_float_overflow_above_largest.yaml": YamlSyntaxError,
+  "yaml_float_overflow_negative.yaml": YamlSyntaxError,
+  "yaml_inf_lower.yaml": YamlSyntaxError,
+  "yaml_inf_minus_lower.yaml": YamlSyntaxError,
+  "yaml_inf_minus_title.yaml": YamlSyntaxError,
+  "yaml_inf_minus_upper.yaml": YamlSyntaxError,
+  "yaml_inf_plus_lower.yaml": YamlSyntaxError,
+  "yaml_inf_plus_title.yaml": YamlSyntaxError,
+  "yaml_inf_plus_upper.yaml": YamlSyntaxError,
+  "yaml_inf_title.yaml": YamlSyntaxError,
+  "yaml_inf_upper.yaml": YamlSyntaxError,
+  "yaml_key_collection.yaml": YamlSyntaxError,
+  "yaml_key_empty.yaml": YamlSyntaxError,
+  "yaml_key_float.yaml": YamlSyntaxError,
+  "yaml_key_integer.yaml": YamlSyntaxError,
+  "yaml_key_null.yaml": YamlSyntaxError,
+  "yaml_key_tilde.yaml": YamlSyntaxError,
+  "yaml_key_true.yaml": YamlSyntaxError,
+  "yaml_lone_surrogate_32bit_escape.yaml": YamlSyntaxError,
+  "yaml_lone_surrogate_high.yaml": YamlSyntaxError,
+  "yaml_lone_surrogate_key.yaml": YamlSyntaxError,
+  "yaml_lone_surrogate_low.yaml": YamlSyntaxError,
+  "yaml_lone_surrogate_reversed.yaml": YamlSyntaxError,
+  "yaml_nan_lower.yaml": YamlSyntaxError,
+  "yaml_nan_title.yaml": YamlSyntaxError,
+  "yaml_nan_upper.yaml": YamlSyntaxError,
+  "yaml_tag_binary.yaml": YamlSyntaxError,
+  "yaml_tag_local.yaml": YamlSyntaxError,
+  "yaml_tag_omap.yaml": YamlSyntaxError,
+  "yaml_tag_set.yaml": YamlSyntaxError,
+  "yaml_tag_timestamp.yaml": YamlSyntaxError,
+  "yaml_two_documents.yaml": YamlSyntaxError,
+  "yaml_unclosed_quote.yaml": YamlSyntaxError,
+};
 
 describe("the refusals", () => {
-  const refusals = names("refusals");
-
-  it.for(refusals.filter((file) => READ_AS_NULL.has(file)))("%s reads as null", (file) => {
-    expect(loads(text(`refusals/${file}`))).toBeNull();
+  it("are the files of the refusal table", () => {
+    expect(names("refusals")).toEqual(Object.keys(REFUSALS).sort());
   });
 
-  it.for(refusals.filter((file) => !READ_AS_NULL.has(file)))("%s is refused", (file, context) => {
-    if (BEYOND_GUARANTEE.has(file)) context.skip(OUTSIDE_GUARANTEE);
+  it.for(Object.entries(REFUSALS))("%s is refused", ([file, error]) => {
     const refused = text(`refusals/${file}`);
-    if (serializationOf(refused) === "yaml") {
-      expect(() => loads(refused)).toThrow(YamlSyntaxError);
-      expect(() => parseYaml(refused)).toThrow(YamlSyntaxError);
-    } else {
-      const error = OVERFLOWS.test(file) ? RangeError : JsonSyntaxError;
-      expect(() => loads(refused)).toThrow(error);
-      expect(() => parseJson(refused)).toThrow(error);
-    }
-  });
-
-  it.each(refusals)("%s is named without throwing", (file) => {
-    const named = file.endsWith(".json") || READ_AS_JSON.has(file) ? "json" : "yaml";
-    const expected = file === "bom_second_json.json" ? "yaml" : named;
-    expect(serializationOf(text(`refusals/${file}`))).toBe(expected);
+    const read = error === YamlSyntaxError ? parseYaml : parseJson;
+    expect(serializationOf(refused)).toBe(error === YamlSyntaxError ? "yaml" : "json");
+    expect(() => loads(refused)).toThrow(error);
+    expect(() => read(refused)).toThrow(error);
   });
 });
 
@@ -258,7 +278,6 @@ const WRITER_REFUSALS: Readonly<Record<string, readonly Serialization[]>> = {
   "key_1025_plain.json": ALL,
   "key_1025_quoted.json": ALL,
   "key_1025_utf16_units.json": ALL,
-  "key_1024_code_points_non_bmp.yaml": ALL,
   "key_1025_nested.yaml": ALL,
   "integer_2_53.json": JCS,
   "integer_minus_2_53.yaml": JCS,
@@ -280,14 +299,11 @@ const WRITER_REFUSALS: Readonly<Record<string, readonly Serialization[]>> = {
 };
 
 describe("the writer refusals", () => {
-  it("are files of the writer refusal table", () => {
-    for (const file of names("refusals-writing"))
-      expect(WRITER_REFUSALS, file).toHaveProperty([file]);
+  it("are the files of the writer refusal table", () => {
+    expect(names("refusals-writing")).toEqual(Object.keys(WRITER_REFUSALS).sort());
   });
 
-  it.for(Object.entries(WRITER_REFUSALS))("%s", ([file, refusedIn], context) => {
-    const path = resolve(directory, "refusals-writing", file);
-    if (!existsSync(path) || BEYOND_GUARANTEE.has(file)) context.skip(OUTSIDE_GUARANTEE);
+  it.for(Object.entries(WRITER_REFUSALS))("%s", ([file, refusedIn]) => {
     const given = text(`refusals-writing/${file}`);
     expect(serializationOf(given)).toBe(file.endsWith(".json") ? "json" : "yaml");
     const value = loads(given);

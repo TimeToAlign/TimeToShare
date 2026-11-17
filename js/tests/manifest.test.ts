@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { complete, minimal } from "../src/defaults.js";
 import type { JsonObject } from "../src/json/value.js";
@@ -30,6 +29,7 @@ import {
   warningFileNames,
   warningText,
 } from "./fixtures.js";
+import { PYTHON_REPR_SPELLINGS } from "./python-repr.js";
 
 function storedFiles(): [string, string][] {
   return [
@@ -65,10 +65,10 @@ describe("the writers", () => {
   });
 
   it("spell 2000 doubles as Python's repr, with a fractional digit in every mantissa", () => {
-    // A deterministic xorshift64 sequence.
+    // A deterministic xorshift64 sequence; `python-repr.ts` holds Python's
+    // spellings of the same doubles, in the same order.
     let state = 0x9e3779b97f4a7c15n;
     const view = new DataView(new ArrayBuffer(8));
-    const hexes: string[] = [];
     const values: number[] = [];
     while (values.length < 2000) {
       state ^= (state << 13n) & 0xffffffffffffffffn;
@@ -77,31 +77,15 @@ describe("the writers", () => {
       // Odd draws are raw bit patterns (every exponent, subnormals included);
       // even draws scatter around the switch between fixed and exponent notation.
       view.setFloat64(0, (Number(state >> 11n) / 2 ** 53) * 10 ** (Number(state % 44n) - 22));
-      if (hexes.length % 2 === 1) view.setBigUint64(0, state);
+      if (values.length % 2 === 1) view.setBigUint64(0, state);
       const value = view.getFloat64(0);
-      if (!Number.isFinite(value)) continue;
-      values.push(value);
-      hexes.push(view.getBigUint64(0).toString(16).padStart(16, "0"));
+      if (Number.isFinite(value)) values.push(value);
     }
-    const script = [
-      "import json, struct, sys",
-      "hexes = json.load(sys.stdin)",
-      "print(json.dumps([repr(struct.unpack('>d', bytes.fromhex(h))[0]) for h in hexes]))",
-    ].join("\n");
-    const python = spawnSync("python3", ["-I", "-c", script], {
-      input: compactJson(hexes),
-      encoding: "utf8",
-    });
-    expect(python.status, python.stderr).toBe(0);
-    // repr writes a mantissa without a fractional digit (1e-05); the writers add one.
-    const expected = (loads(python.stdout) as string[]).map((repr) =>
-      repr.replace(/^(-?\d)e/, "$1.0e"),
-    );
     const spelled = values.map((value) => {
       const number = Number.isInteger(value) ? new JsonFloat(value) : value;
       return dumps(number).trimEnd();
     });
-    expect(spelled).toEqual(expected);
+    expect(spelled).toEqual(PYTHON_REPR_SPELLINGS);
   });
 });
 
@@ -170,6 +154,8 @@ describe("parseJson", () => {
       '{"\\ud800": 1}',
       '["a\uD800"]',
       '["a\uDC00b"]',
+      '"\\ud83d\uDE00"',
+      '"\uD83D\\ude00"',
     ];
     expect(refusals.map(refusal)).toEqual([
       ['duplicate key "a" at line 1, column 10 of the JSON text', 9, 1, 10],
@@ -182,11 +168,14 @@ describe("parseJson", () => {
       ["lone surrogate at line 1, column 3 of the JSON text", 2, 1, 3],
       ["lone surrogate at line 1, column 4 of the JSON text", 3, 1, 4],
       ["lone surrogate at line 1, column 4 of the JSON text", 3, 1, 4],
+      ["lone surrogate at line 1, column 2 of the JSON text", 1, 1, 2],
+      ["lone surrogate at line 1, column 2 of the JSON text", 1, 1, 2],
     ]);
   });
 
   it("reads a pair of surrogate escapes as one character and removes one byte order mark", () => {
     expect(parseJson('"\\ud83d\\ude00"')).toBe("\u{1F600}");
+    expect(parseJson('"\uD83D\uDE00"')).toBe("\u{1F600}");
     expect(parseJson('﻿{"a": "﻿"}')).toEqual({ a: "﻿" });
     expect(refusal('﻿﻿{"a": 1}')).toEqual([
       "unexpected character at line 1, column 1 of the JSON text",
@@ -629,6 +618,28 @@ describe("canonical spelling", () => {
     expect(spelled(hDenominator)).toBe('{"id":"h_denominator","unit":"quarters","length":[3,-2]}');
   });
 
+  it("writes as given an integer on a float axis that no double can hold", () => {
+    const huge = 10n ** 400n;
+    const digits = huge.toString();
+    const value = manifest([
+      timeline("take", "seconds", huge, { regions: [{ id: "r", start: 0, end: huge }] }),
+    ]);
+    const yaml =
+      `timelines:\n  -\n    id: take\n    length: ${digits}\n    regions:\n      -\n` +
+      `        end: ${digits}\n        id: r\n        start: 0.0\n` +
+      '    unit: seconds\ntimetoshare: "0.2.0"\n';
+    const json =
+      `{\n  "timelines": [\n    {\n      "id": "take",\n      "length": ${digits},\n` +
+      `      "regions": [\n        {\n          "end": ${digits},\n` +
+      '          "id": "r",\n          "start": 0.0\n        }\n      ],\n' +
+      '      "unit": "seconds"\n    }\n  ],\n  "timetoshare": "0.2.0"\n}\n';
+    expect(dumps(value)).toBe(yaml);
+    expect(dumps(value, { serialization: "json" })).toBe(json);
+    expect(dumps(loads(yaml))).toBe(yaml);
+    expect(dumps(loads(json), { serialization: "json" })).toBe(json);
+    expect(() => dumps(value, { serialization: "jcs" })).toThrow(RangeError);
+  });
+
   it("writes an integral plain number as the integer of its exact value", () => {
     expect(dumps([-0, 1e300, 2 ** 53])).toBe(`- 0\n- ${BigInt(1e300)}\n- 9007199254740992\n`);
     expect(() => dumps([1e300], { serialization: "jcs" })).toThrow(RangeError);
@@ -694,7 +705,11 @@ describe("values the writers refuse", () => {
   });
 
   it("refuses an unknown serialization", () => {
-    expect(() => dumps({}, { serialization: "toml" as "yaml" })).toThrow(RangeError);
+    for (const serialization of ["toml", "YAML", ""]) {
+      expect(() => dumps({}, { serialization: serialization as "yaml" })).toThrow(
+        new RangeError(`unknown serialization "${serialization}"`),
+      );
+    }
   });
 });
 
