@@ -854,17 +854,13 @@ So 2.0 is written `2.0`, 123.25 `123.25`, 0.1 `0.1`, 0.0001 `0.0001`,
 holding a lone surrogate, a code point from U+D800 to U+DFFF that is not
 part of a pair, cannot be written in UTF-8 and is refused. Each
 serialization names the characters it escapes; every other character is
-written as itself. YAML 1.2 limits the implicit keys of block mappings
-and of single pairs in flow sequences, from their first character to their
-`:`, to 1024 characters; the format extends the same limit to the implicit
-keys of flow mappings. Parsers count these characters in code points or in
-UTF-16 code units. So a key whose
-canonical YAML form, its quotes and escapes included, is longer than 1024
-UTF-16 code units (a character above U+FFFF counting two) is refused by
-every writer, in every serialization: every manifest that can be written
-can so be written in canonical YAML, and read by every YAML parser.
-Readers apply YAML's own limit ([Reading](#reading)), so a reader can read
-a key that no writer writes.
+written as itself. A key whose canonical YAML form, its quotes and escapes
+included, is longer than 1024 UTF-16 code units (a character above U+FFFF
+counting two) is refused by every writer, in every serialization. YAML 1.2
+limits the implicit keys of block mappings, from their first character to
+their `:`, to 1024 characters, which parsers count in code points or in
+UTF-16 code units; so every manifest that can be written can be written in
+canonical YAML and read by every YAML parser.
 
 **Order.** The keys of every object, at every depth, are sorted by Unicode
 code point. When the value written is an object whose `timelines` member
@@ -955,8 +951,7 @@ e: {}
 Every canonical YAML text reads to the same value under a YAML 1.1 parser
 as under a YAML 1.2 parser: a YAML 1.1 float needs a `.`, which every
 written float has, and the plain strings exclude YAML 1.1's further
-booleans. Readers must still read YAML 1.2, since a text written by hand
-need not be canonical.
+booleans. A text written by hand is read as [Reading](#reading) states.
 
 ### Pretty JSON
 
@@ -1118,30 +1113,47 @@ Both packages read every serialization with one reader, which also reads
 texts other writers wrote in any layout. The reader takes text, not
 bytes: decoding a file, as UTF-8, is the caller's.
 
-- Exactly one U+FEFF, a byte order mark, at position 0 of a text is
-  removed before the text is read, in every serialization and by every
-  reading function; writers never write one. Of every other U+FEFF, one
-  inside a string of a JSON text is content, and one outside a string
-  makes the text not JSON, which is refused; in a YAML text every other
-  U+FEFF is refused (see the characters below). A text that begins with
-  two is therefore read as YAML, after the first is removed, and refused.
-  The text is then
-  read as JSON when its first character
-  other than a space, a tab, a line feed or a carriage return is `{` or
-  `[`, or when it is a JSON text, one value
-  under the grammar of RFC 8259; every other text is read as YAML. A YAML
-  text in flow style from its first character, such as `{a: 1}`, is
-  therefore read as JSON and refused unless it is JSON, while a YAML
-  mapping whose first key is quoted, such as `"a": 1`, is not a JSON text
-  and is read as YAML. A scalar standing alone that is a JSON text, such
-  as `480` or `"x y"`, is read as JSON, even one holding a character that
-  YAML refuses. The canonical YAML texts that are JSON texts too, `{}`,
-  `[]`, and a number, `null`, `true`, `false` or a double-quoted string
-  standing alone, read as JSON to the value they hold as YAML.
+- One U+FEFF, a byte order mark, at position 0 of a text is removed
+  before the text is read, in every serialization and by every reading
+  function; writers never write one. The text is then read as JSON when
+  its first character other than a space, a tab, a line feed or a carriage
+  return is `{` or `[`, or when it is a JSON text, one value under the
+  grammar of RFC 8259; every other text is read as YAML. A YAML text in
+  flow style from its first character, such as `{a: 1}`, is therefore
+  read as JSON and refused unless it is JSON, while a YAML mapping whose
+  first key is quoted, such as `"a": 1`, is not a JSON text and is read as
+  YAML. A scalar standing alone that is a JSON text, such as `480` or
+  `"x y"`, is read as JSON. The canonical YAML texts that are JSON texts
+  too, `{}`, `[]`, and a number, `null`, `true`, `false` or a
+  double-quoted string standing alone, read as JSON to the value they hold
+  as YAML.
+- JSON is read in any layout by the lossless reader. A number written
+  without `.`, `e` or `E` is an integer, exact at any size (`-0` is the
+  integer 0); every other number is a float, read as the double nearest to
+  the decimal written, of two equally near the one with an even
+  significand (IEEE 754 rounding to nearest), and keeping its sign:
+  `-0.0` and `-1e-400` are read as −0.0, `1e-400` as 0.0, and
+  `1.7976931348623158e308` as the largest double. Refused besides are a
+  text that is not one JSON value, `NaN`, `Infinity`, `-Infinity`, and a
+  float that rounds to an infinity, its magnitude 2^1024 − 2^970 or more
+  (`1e309`, `1.7976931348623159e308`).
+- YAML is read by a conforming YAML parser in safe mode, which builds
+  plain data and runs no code, under the YAML 1.2 core schema. A quoted or
+  block scalar is a string; a plain scalar is null, a boolean, an integer,
+  a float or a string as the core schema resolves it, an integer being
+  exact at any size. Comments are ignored, and an empty text, or one of
+  whitespace and comments only, is read as null. Refused besides are
+  - every text the parser refuses, more than one document and a tag it
+    does not know among them;
+  - anchors and aliases;
+  - a key that is not a string, such as `1`, `null`, `true` or a
+    collection;
+  - a value outside [the data model](#the-data-model), such as a
+    timestamp, binary data, a set or an ordered map that an explicit tag
+    makes;
+  - a float that is not finite: `.nan`, the infinities, and a literal that
+    rounds to an infinity, such as `1e309`.
 - In every serialization, JSON and YAML alike, refused are
-  - a text that holds no document: an empty text, or one of whitespace or
-    comments only (a YAML text of `---` alone holds one document, whose
-    value is null, and is read as `null`);
   - a key that repeats in its object, keys being compared after their
     escapes are read (`{"a": 1, "a": 2}` is refused); both packages
     refuse it in JSON too, where RFC 8259 leaves it open;
@@ -1151,49 +1163,17 @@ bytes: decoding a file, as UTF-8, is the caller's.
     through an escape such as `\ud800`. An escape of a high surrogate
     directly followed by an escape of a low surrogate, such as
     `\ud83d\ude00`, is one character, here U+1F600, in YAML as in JSON.
-- In every serialization a float is read as the double nearest to the
-  decimal written, of two equally near the one with an even significand
-  (IEEE 754 rounding to nearest), and keeps its sign: `-1e-400` and
-  `-0.0` are read as −0.0. A float whose magnitude is 2^1024 − 2^970 or
-  more rounds to an infinity and is refused (`1e309`,
-  `1.7976931348623159e308`), while one that rounds to the largest double,
-  such as `1.7976931348623158e308`, and one that underflows to a subnormal
-  or to zero, such as `1e-400` (read as 0.0), are read.
-- JSON is read in any layout by the lossless reader. A number written
-  without `.`, `e` or `E` is an integer, exact at any size (`-0` is the
-  integer 0); every other number is a float. Refused besides are a text
-  that is not one JSON value, `NaN`, `Infinity` and `-Infinity`.
-- YAML is read as any valid YAML 1.2 under the core schema, in any style:
-  block and flow collections; plain, single-quoted, double-quoted and
-  block scalars; explicit keys (`? key`); an explicit document start `---`
-  or end `...`; the directive `%YAML 1.2`. A quoted or block scalar is a
-  string. A plain scalar is resolved by the core schema: `null`, `Null`,
-  `NULL`, `~` and an empty value are null; `true`, `True`, `TRUE`,
-  `false`, `False` and `FALSE` are booleans; a scalar that matches
-  `[-+]?[0-9]+`, `0o[0-7]+` or `0x[0-9a-fA-F]+` as a whole is an integer,
-  exact at any size; every other plain scalar that matches
-  `[-+]?(\.[0-9]+|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?` as a whole is a
-  float; every other plain scalar is a string. Comments are ignored.
-  Refused besides are every other directive (`%YAML 1.1`, `%TAG` and the
-  reserved ones), anchors and aliases, explicit tags, more than one
-  document, a key that is not a string (such as `1`, `null`, `true` or a
-  collection), an implicit key whose span from its first character to its
-  `:` (not including it), its quotes, escapes and the spaces before the
-  `:` included, exceeds 1024 code points (the limit YAML 1.2 sets for the
-  implicit keys of block mappings and of single pairs in flow sequences,
-  which the format extends to those of flow mappings), and `.nan` and the infinities in every
-  spelling of the core schema. A tab inside a plain scalar, such as
-  between two of its words, is part of the scalar and is read, as YAML 1.2
-  reads it.
-- In a YAML text, refused besides is every character standing as itself
-  anywhere in the text, in a scalar or a comment, that lies outside YAML's
-  printable set or that YAML parsers do not read alike: the C0 controls
-  other than tab, line feed and carriage return; U+007F to U+009F, U+0085
-  included, which YAML counts as printable; U+2028 and U+2029, which YAML
-  counts as printable too; U+FEFF, other than the one removed at position
-  0; U+FFFE and U+FFFF; and the code points from U+D800 to U+DFFF. The
-  canonical YAML writer escapes each of them but the surrogates, of which
-  it refuses a lone one. A JSON text is not affected.
+
+Canonical YAML, and every YAML text that uses only its constructs, is
+read to the same value by both packages and by every conforming YAML 1.1
+or 1.2 parser. These constructs are block mappings and block sequences at
+any consistent indentation, one-line flow sequences of scalars, `{}` and
+`[]`, plain scalars that canonical YAML would write plain, numbers,
+booleans and null as canonical YAML spells them, double-quoted strings
+with the escapes canonical YAML writes, comments and blank lines. Beyond
+these constructs a text is read as the package's parser reads it, and a
+difference between two parsers there is not a defect of the format.
+Tools write canonical YAML.
 
 Python's `serialization_of(text)` and npm's `serializationOf(text)` name a
 text's serialization without validating it, by the same choice between
@@ -1284,12 +1264,13 @@ else:
   another version raises `UnsupportedVersionError`. Unknown
   keys never fail it.
 - `loads(text)` reads a text, a `str`, in any serialization, JSON or YAML,
-  as [Reading](#reading) states and as the TypeScript package's `loads`
-  reads it, after removing one U+FEFF at position 0: integers stay exact
-  at any size and floats stay floats. A text
-  the reading rules refuse raises `ValueError` with the position of the
-  fault, and so does every error of the YAML parser, which `loads` wraps.
-  It does not validate.
+  as [Reading](#reading) states, after removing one U+FEFF at position 0:
+  integers stay exact at any size and floats stay floats. It reads YAML
+  with PyYAML's safe loader (its C loader where the extension is
+  installed), given the YAML 1.2 core schema's resolvers in place of YAML
+  1.1's. A text the reading rules refuse, and every error of the YAML
+  parser, raises `ValueError` with the line and column of the fault. It
+  does not validate.
 - `unknown_keys(value)` returns the unknown keys of a manifest as a list of
   `{path, key}` entries, sorted by path and then by key.
 - `unregistered_terms(value)` returns the unregistered terms of a
@@ -1378,9 +1359,9 @@ rewrite(text) === text; // true: the text is canonical YAML
 ```
 
 - `loads(text)` reads a text in any serialization, JSON or YAML, as
-  [Reading](#reading) states and as Python's `loads` reads it, after
-  removing one U+FEFF at position 0, without losing a number or key order
-  and without validating.
+  [Reading](#reading) states, after removing one U+FEFF at position 0,
+  without losing a number or key order and without validating. It reads
+  YAML with the `yaml` package under its core schema.
 - `parse(text)` is `loads(text)` followed by `validate`: it reads a
   manifest in any serialization, validates it and returns it as a
   `LosslessManifest`.
@@ -1392,11 +1373,10 @@ rewrite(text) === text; // true: the text is canonical YAML
 - For a text the reading rules refuse, the readers throw
   `JsonSyntaxError` when it is read as JSON, a `SyntaxError` with the
   `offset` (in UTF-16 code units, counted from 0), `line` and `column`
-(counted from 1) of the
-  fault, and `YamlSyntaxError` when it is read as YAML, a `SyntaxError`
-  with the same three fields; `.nan` and the infinities of YAML throw
-  `YamlSyntaxError`. A finite literal that rounds to an infinity, such as
-  `1e309`, in YAML or in JSON, throws a `RangeError`.
+  (counted from 1) of the fault, and `YamlSyntaxError` for every refusal
+  of a text read as YAML, a `SyntaxError` with the same three fields. A
+  JSON number that rounds to an infinity, such as `1e309`, throws a
+  `RangeError`.
 - `validate(value)` asserts that an unknown value is a
   `LosslessManifest` (its numbers may be bigints and `JsonFloat`s),
   checking it as Python's `validate` does; its `SchemaValidationError` carries the same
@@ -1503,10 +1483,10 @@ they test:
 | Path | Holds |
 | --- | --- |
 | `cases/<name>/canonical.yaml`, `cases/<name>/pretty.json`, `cases/<name>/rfc8785.json` | one value in each of the three serializations; a missing `rfc8785.json` means that the RFC 8785 writer refuses the value |
-| `readings/<name>.<ext>` | a text that is not canonical and that every reader reads, `<ext>` being `yaml` or `json`; the readings are the files of `readings/` whose names end neither in `.expected.yaml` nor in `.expected.rfc8785.json` |
+| `readings/<name>.<ext>` | a text that is not canonical and that every reader reads to the same value, `<ext>` being `yaml` or `json`: JSON in any layout, or YAML using only the constructs of canonical YAML ([Reading](#reading)); the readings are the files of `readings/` whose names end neither in `.expected.yaml` nor in `.expected.rfc8785.json` |
 | `readings/<name>.expected.yaml` | the canonical YAML of the value that text is read as |
 | `readings/<name>.expected.rfc8785.json` | optional; an expected output, read as RFC 8785 JSON (`serialization_of` gives `"jcs"`), not a reading: the RFC 8785 JSON written from the value that text is read as, with no final line feed; it exists for readings whose value is not yet in canonical spelling (for example an unreduced Fraction pair), since RFC 8785 JSON is written after canonical order and respelling |
-| `refusals/<name>.<ext>` | a text that every reader refuses |
+| `refusals/<name>.<ext>` | a text that every reader refuses, by a refusal that the rules of [Reading](#reading) decide |
 | `refusals-writing/<name>.<ext>` | a text every reader reads, whose value a writer refuses |
 
 Both packages write every text of a case byte for byte, read every reading
