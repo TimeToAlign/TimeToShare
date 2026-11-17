@@ -27,11 +27,13 @@
     ]
   },
   "groups": [],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [
@@ -42,6 +44,7 @@
           "id": "cgt_2",
           "is_segment_line": false,
           "length": 200.0,
+          "links": [],
           "locked": true,
           "meta": {},
           "name": null,
@@ -57,6 +60,7 @@
           "id": "cgt_3",
           "is_segment_line": false,
           "length": 150.0,
+          "links": [],
           "locked": true,
           "meta": {},
           "name": null,
@@ -71,6 +75,7 @@
       "id": "cgt_1",
       "is_segment_line": false,
       "length": 600.0,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": null,

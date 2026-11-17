@@ -19,11 +19,13 @@
       "name": "score"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -42,6 +44,7 @@
       "id": "perf:Chopin_op10_no3_p01:dlt_1",
       "is_segment_line": false,
       "length": 79900,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Chopin_op10_no3_p01",
@@ -81,6 +84,7 @@
         83,
         2
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Chopin_op10_no3",

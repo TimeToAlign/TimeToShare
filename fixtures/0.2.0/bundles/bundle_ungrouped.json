@@ -73,11 +73,13 @@
     ]
   },
   "groups": [],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": "Sketches",
+  "schemes": [],
   "timelines": [
     {
       "children": [
@@ -88,6 +90,7 @@
           "id": "page_1",
           "is_segment_line": false,
           "length": 1754,
+          "links": [],
           "locked": false,
           "meta": {},
           "name": "Page 1",
@@ -103,6 +106,7 @@
           "id": "page_2",
           "is_segment_line": false,
           "length": 1754,
+          "links": [],
           "locked": false,
           "meta": {},
           "name": "Page 2",
@@ -118,6 +122,7 @@
           "id": "page_3",
           "is_segment_line": false,
           "length": 1754,
+          "links": [],
           "locked": false,
           "meta": {},
           "name": "Page 3",
@@ -145,6 +150,7 @@
       "id": "pages",
       "is_segment_line": true,
       "length": 5262,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Pages",
@@ -172,6 +178,7 @@
       "id": "recording",
       "is_segment_line": false,
       "length": 441000,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Recording",
@@ -224,6 +231,7 @@
         16,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Score",

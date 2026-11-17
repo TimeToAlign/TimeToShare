@@ -27,8 +27,9 @@ class FixtureCase:
     directory write ``<name>__<slug>.json`` each, the slug spelled from the
     built object's id. A fixture drawn under ``drawings/`` names the origin and
     length of each root it draws (``origin_and_length``), as an editor marks
-    them; a corpus fixture, which is not drawn, and ``timestamps``, whose
-    drawing shows its own timestamps alone, do not.
+    them; a corpus fixture, which is not drawn, ``timestamps``, whose
+    drawing shows its own timestamps alone, and ``op106_work``, which holds
+    no timeline to draw, do not.
     """
 
     name: str
@@ -130,6 +131,7 @@ CATALOGUE = (
     _root("map_row_moved", timelines.map_row_moved_timeline),
     _root("label_float_rounding", timelines.label_float_rounding_timeline),
     _root("timestamps", graphical.timestamps, "clt_1", origin_and_length=False),
+    _root("links", timelines.links_bundle),
     _group("group_number_types", groups.number_types_group),
     _group("group_child_member", groups.group_child_member),
     _group("group_styled", groups.styled_group, "group_1"),
@@ -158,6 +160,7 @@ CATALOGUE = (
     _bundle("corpus_tilia", bundles.corpus_tilia_bundle, origin_and_length=False),
     _bundle("bundle_shared_member", bundles.bundle_shared_member),
     _bundle("bundle_free_ids", bundles.bundle_free_ids, "group_1"),
+    _bundle("op106_work", bundles.op106_work_bundle, origin_and_length=False),
 )
 """The fixture cases in emission order; append new cases within their directory."""
 

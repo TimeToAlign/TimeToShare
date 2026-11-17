@@ -74,11 +74,13 @@
       "name": "khomus_video:cpt_2"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": "khomus",
+  "schemes": [],
   "timelines": [
     {
       "children": [
@@ -91,6 +93,7 @@
               "id": "dgt_7",
               "is_segment_line": false,
               "length": 4264,
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "accolade_1",
@@ -106,6 +109,7 @@
               "id": "dgt_8",
               "is_segment_line": false,
               "length": 4372,
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "accolade_2",
@@ -121,6 +125,7 @@
               "id": "dgt_9",
               "is_segment_line": false,
               "length": 4180,
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "accolade_3",
@@ -136,6 +141,7 @@
               "id": "dgt_10",
               "is_segment_line": false,
               "length": 4110,
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "accolade_4",
@@ -150,6 +156,7 @@
           "id": "dgt_6",
           "is_segment_line": true,
           "length": 16926,
+          "links": [],
           "locked": true,
           "meta": {
             "page": {
@@ -194,6 +201,7 @@
       "id": "finale_transcription:dgt_2",
       "is_segment_line": true,
       "length": 16926,
+      "links": [],
       "locked": true,
       "meta": {
         "description": "Finale transcription",
@@ -219,6 +227,7 @@
       "id": "khomus_audio:cpt_1",
       "is_segment_line": false,
       "length": 46.98,
+      "links": [],
       "locked": false,
       "meta": {
         "encoding_format": "audio_wav",
@@ -244,6 +253,7 @@
       "id": "khomus_video:cpt_2",
       "is_segment_line": false,
       "length": 45.88,
+      "links": [],
       "locked": false,
       "meta": {
         "encoding_format": "video_avi",
@@ -269,6 +279,7 @@
       "id": "los:dlt_2",
       "is_segment_line": false,
       "length": 48128,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Logically organised symbols",
@@ -287,6 +298,7 @@
               "id": "dgt_2",
               "is_segment_line": false,
               "length": 1843,
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "accolade_1",
@@ -302,6 +314,7 @@
               "id": "dgt_3",
               "is_segment_line": false,
               "length": 1943,
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "accolade_2",
@@ -317,6 +330,7 @@
               "id": "dgt_4",
               "is_segment_line": false,
               "length": 1804,
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "accolade_3",
@@ -332,6 +346,7 @@
               "id": "dgt_5",
               "is_segment_line": false,
               "length": 1828,
+              "links": [],
               "locked": false,
               "meta": {},
               "name": "accolade_4",
@@ -346,6 +361,7 @@
           "id": "dgt_1",
           "is_segment_line": true,
           "length": 7418,
+          "links": [],
           "locked": true,
           "meta": {
             "page": {
@@ -390,6 +406,7 @@
       "id": "original_score:dgt_1",
       "is_segment_line": true,
       "length": 7418,
+      "links": [],
       "locked": true,
       "meta": {
         "description": "Original score",
@@ -415,6 +432,7 @@
       "id": "spine:dlt_1",
       "is_segment_line": false,
       "length": 48128,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Spine",

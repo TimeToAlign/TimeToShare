@@ -147,11 +147,13 @@
       "name": "Facsimile"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": "Mixed",
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -163,6 +165,7 @@
         12,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Annotations",
@@ -174,6 +177,7 @@
             1
           ],
           "id": "region_1",
+          "links": [],
           "meta": {},
           "name": "Verse",
           "start": [
@@ -187,6 +191,7 @@
             1
           ],
           "id": "region_2",
+          "links": [],
           "meta": {},
           "name": "Chorus",
           "start": [
@@ -217,6 +222,7 @@
       "id": "page",
       "is_segment_line": false,
       "length": 1920,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Page",
@@ -241,6 +247,7 @@
       "id": "performance",
       "is_segment_line": false,
       "length": 12.5,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Performance",
@@ -270,6 +277,7 @@
           "id": "excerpt",
           "is_segment_line": false,
           "length": 88200,
+          "links": [],
           "locked": true,
           "meta": {},
           "name": "Excerpt",
@@ -297,6 +305,7 @@
       "id": "recording",
       "is_segment_line": false,
       "length": 441000,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Recording",
@@ -350,6 +359,7 @@
         12,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Score",

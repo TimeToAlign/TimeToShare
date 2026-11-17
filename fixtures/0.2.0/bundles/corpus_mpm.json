@@ -36,11 +36,13 @@
       "name": "perf"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": "Beethoven_op35_1971Curzon_Var14only",
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -49,6 +51,7 @@
       "id": "perf:cpt_1",
       "is_segment_line": false,
       "length": 75.37598985608956,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Beethoven_op35_1971Curzon_Var14only",
@@ -73,6 +76,7 @@
       "id": "perf:dgt_1",
       "is_segment_line": false,
       "length": 26469,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Beethoven_op35_1971Curzon_Var14only",
@@ -100,6 +104,7 @@
       "id": "perf:dpt_1",
       "is_segment_line": false,
       "length": 3324081,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Beethoven_op35_1971Curzon_Var14only",
@@ -171,6 +176,7 @@
         46439,
         720
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Beethoven_op35_1971Curzon_Var14only",
@@ -198,6 +204,7 @@
       "id": "score:dlt_1",
       "is_segment_line": false,
       "length": 46440,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Beethoven_op35_1971Curzon_Var14only",

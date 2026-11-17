@@ -90,11 +90,13 @@
       "name": "Edition"
     }
   ],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -103,6 +105,7 @@
       "id": "page",
       "is_segment_line": false,
       "length": 1920,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Page",
@@ -117,6 +120,7 @@
       "id": "performance",
       "is_segment_line": false,
       "length": 12.5,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Performance",
@@ -134,6 +138,7 @@
         12,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Score",

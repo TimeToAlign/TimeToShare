@@ -27,11 +27,13 @@
     ]
   },
   "groups": [],
+  "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -50,6 +52,7 @@
       "id": "maps:seconds",
       "is_segment_line": false,
       "length": 2.0,
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Second maps",

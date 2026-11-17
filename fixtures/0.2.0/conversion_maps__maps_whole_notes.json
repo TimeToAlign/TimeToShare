@@ -33,6 +33,7 @@
     ]
   },
   "groups": [],
+  "links": [],
   "measure_maps": [
     {
       "id": "measuremap_1",
@@ -86,9 +87,10 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (a3e0d256)"
+    "generator": "timetoalign 1.2.0 (ff43780a)"
   },
   "name": null,
+  "schemes": [],
   "timelines": [
     {
       "children": [],
@@ -127,6 +129,7 @@
         4,
         1
       ],
+      "links": [],
       "locked": false,
       "meta": {},
       "name": "Whole-note maps",
