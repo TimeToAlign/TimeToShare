@@ -1,4 +1,5 @@
-fixtures/** text eol=lf
-fonts/*-LICENSE text eol=lf
-fonts/*.json text eol=lf
-registry/*.json text eol=lf
+# Every text file is checked out with LF line endings on every platform, as
+# .editorconfig states: the writers, the linters and the tests compare files
+# byte for byte, whatever core.autocrlf says.
+* text=auto eol=lf
+*.ttf binary
