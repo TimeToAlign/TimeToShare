@@ -43,7 +43,7 @@ as in the Python suite's "The fixture set".
 
 `schema.test.ts` checks invariants, not the tree's private shape, so a
 refactor that keeps the accepted language stays green: the bundled `schema`
-is the file; references are local and resolve; the public definitions exist; `ConversionMap` chooses between exactly the ten
+is the file; references are local and resolve; the public definitions exist and the root's description names exactly them; `ConversionMap` chooses between exactly the ten
 map types, `Selector.class` names the six timeline classes and the ten types,
 `Facet`, `Part`, `ElementType` and the words of a `Timestamp`'s `display` (`TIMESTAMP_DISPLAY`) are exactly the Python suite's lists, and
 each measure view fixes its target unit over

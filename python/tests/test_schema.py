@@ -36,6 +36,8 @@ PUBLIC = [
     "Id",
     "MeasureMap",
     "MeasureMapRow",
+    "Link",
+    "Scheme",
 ]
 
 MAP_TYPES = [
@@ -135,6 +137,10 @@ def test_references_are_local_and_resolve_without_anchors() -> None:
 def test_the_public_definitions() -> None:
     defs = _defs()
     assert set(PUBLIC) <= set(defs)
+    (named,) = re.findall(
+        r"The definitions (.+?) are public:", load_schema()["description"]
+    )
+    assert named == ", ".join(PUBLIC[:-1]) + " and " + PUBLIC[-1]
 
 
 def test_the_ten_map_types() -> None:

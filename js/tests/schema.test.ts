@@ -24,6 +24,8 @@ const PUBLIC = [
   "Id",
   "MeasureMap",
   "MeasureMapRow",
+  "Link",
+  "Scheme",
 ];
 
 const MAP_TYPES = [
@@ -130,6 +132,9 @@ describe("the schema document", () => {
 
   it("holds the public definitions", () => {
     for (const name of PUBLIC) expect(Object.hasOwn(defs, name)).toBe(true);
+    const [, named] =
+      /The definitions (.+?) are public:/.exec(document.description as string) ?? [];
+    expect(named).toBe(`${PUBLIC.slice(0, -1).join(", ")} and ${PUBLIC.at(-1)}`);
   });
 
   it("chooses between the ten map types", () => {

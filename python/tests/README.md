@@ -48,10 +48,12 @@ rejection cases that use them (`test_schema.py`):
   and `schema/` holds exactly the directory `0.2.0` with exactly that file.
   Every `$ref` is local (`#/$defs/<name>`) and names a definition; no node
   carries `$anchor`.
-- **The public definitions.** The definitions include the thirteen public
+- **The public definitions.** The definitions include the fifteen public
   ones `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
   `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
-  `MeasureMap` and `MeasureMapRow`.
+  `MeasureMap`, `MeasureMapRow`, `Link` and `Scheme`, and the root's
+  description, which tells a host what it may refer to, names exactly
+  these, in this order.
 - **The map types.** `ConversionMap` chooses between exactly the ten types
   `ChainMap`, `CombinationMap`, `ConstantMap`, `FloatingMeasureMap`,
   `LinearMap`, `MeasureBeatMap`, `MeasureNumberMap`, `MeasureRecordMap`,
