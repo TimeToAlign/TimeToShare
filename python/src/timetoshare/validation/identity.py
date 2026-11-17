@@ -3,46 +3,22 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
-from itertools import chain
 from typing import Any
 
 from .containment import timeline_containment_problems
-from .description import description_problems
+from .description import link_problems
 from .diagnostics import (
     SchemaValidationError,
-    ValidationCode,
     _entries,
     _Path,
-    json_pointer,
+    duplicate_problem,
     timestamps_of,
+    tree_ids,
 )
 from .maps import MEASURE_VIEWS, timeline_map_problems, timeline_maps
 from .order import order_problems
 from .segments import timeline_segment_problems
 from .timestamps import timestamp_problems
-
-
-def _element_ids(
-    timeline: Mapping[str, Any], path: _Path
-) -> Iterator[tuple[str, _Path]]:
-    yield timeline["id"], (*path, "id")
-    for member in ("conversion_maps", "regions"):
-        for index, entry in enumerate(_entries(timeline, member)):
-            yield entry["id"], (*path, member, index, "id")
-    for index, entry in enumerate(_entries(timeline, "flow_control")):
-        yield entry["id"], (*path, "flow_control", index, "id")
-    for index, child in enumerate(_entries(timeline, "children")):
-        yield from _element_ids(child, (*path, "children", index))
-
-
-def _nested_map_ids(
-    timeline: Mapping[str, Any], path: _Path
-) -> Iterator[tuple[Any, _Path]]:
-    for conversion_map, at in timeline_maps(timeline, path):
-        if at[-2] == "maps":
-            yield conversion_map["id"], (*at, "id")
-    for index, child in enumerate(_entries(timeline, "children")):
-        yield from _nested_map_ids(child, (*path, "children", index))
 
 
 def _dangling_targets(
@@ -69,31 +45,13 @@ def _dangling_targets(
         yield from _dangling_targets(child, (*path, "children", index), measure_maps)
 
 
-def _duplicate(
-    identifier: str,
-    path: _Path,
-    first: _Path,
-    code: ValidationCode = "duplicate_id",
-) -> SchemaValidationError:
-    return SchemaValidationError(
-        code,
-        path,
-        f"'{identifier}' is not unique in the manifest, first at {json_pointer(first)}",
-    )
-
-
-def _tree_ids(root: Mapping[str, Any], path: _Path) -> Iterator[tuple[str, _Path]]:
-    """Yield every ID of a root's tree, the maps other maps hold after the rest."""
-    yield from chain(_element_ids(root, path), _nested_map_ids(root, path))
-
-
 def _root_problems(
     root: Mapping[str, Any], path: _Path, measure_maps: set[str]
 ) -> Iterator[SchemaValidationError]:
     first: dict[str, _Path] = {}
-    for identifier, at in _tree_ids(root, path):
+    for identifier, at in tree_ids(root, path):
         if identifier in first:
-            yield _duplicate(identifier, at, first[identifier])
+            yield duplicate_problem(identifier, at, first[identifier])
         else:
             first[identifier] = at
     yield from _dangling_targets(root, path, measure_maps)
@@ -182,12 +140,12 @@ def identity_problems(
     first: dict[str, _Path] = {}
     for index, root in enumerate(roots):
         seen: dict[str, _Path] = {}
-        for identifier, path in _tree_ids(root, ("timelines", index)):
+        for identifier, path in tree_ids(root, ("timelines", index)):
             if identifier in seen:
                 continue
             seen[identifier] = path
             if identifier in first:
-                yield _duplicate(identifier, path, first[identifier])
+                yield duplicate_problem(identifier, path, first[identifier])
         for identifier, path in seen.items():
             first.setdefault(identifier, path)
     for key, entries in (
@@ -199,12 +157,12 @@ def identity_problems(
         for index, entry in enumerate(entries):
             path = (*key, index, "id")
             if entry["id"] in first:
-                yield _duplicate(entry["id"], path, first[entry["id"]])
+                yield duplicate_problem(entry["id"], path, first[entry["id"]])
             else:
                 first[entry["id"]] = path
     manifest_id = value.get("id")
     if manifest_id in first:
-        yield _duplicate(manifest_id, ("id",), first[manifest_id], "manifest_id")
+        yield duplicate_problem(manifest_id, ("id",), first[manifest_id], "manifest_id")
 
     parents = _parents(roots)
     for index, group in enumerate(groups):
@@ -214,4 +172,4 @@ def identity_problems(
         first_group.setdefault(group["id"], index)
     yield from order_problems(value, parents, first_group)
     yield from timestamp_problems(value)
-    yield from description_problems(value)
+    yield from link_problems(value)

@@ -1,9 +1,10 @@
 /**
  * The validator's diagnostics and the small readers every rule module shares:
  * the error a rule raises with its code and path, the JSON pointer of a path,
- * and the readers of a schema-checked object's members. A leaf module: it
- * imports no rule module and no validator, so the rule modules and
- * `validate.ts` both import it without a cycle.
+ * the readers of a schema-checked object's members, and the walk of the IDs of
+ * a root's tree, which reads any value. A leaf module: it imports no rule
+ * module and no validator, so the rule modules and `validate.ts` both import
+ * it without a cycle.
  */
 
 import type { NumberType, TimeUnit } from "../generated/types.js";
@@ -68,10 +69,86 @@ export class SchemaValidationError extends Error {
   }
 }
 
+/** The problem of an ID at `path` that the manifest holds first at `first`. */
+export function duplicateProblem(
+  id: string,
+  path: readonly PathSegment[],
+  first: readonly PathSegment[],
+  code: "duplicate_id" | "manifest_id" = "duplicate_id",
+): SchemaValidationError {
+  return new SchemaValidationError(
+    code,
+    path,
+    `'${id}' is not unique in the manifest, first at ${jsonPointer(first)}`,
+  );
+}
+
 /** The objects of an array member, or none where it is absent. */
 export function entries(owner: unknown, key: string): JsonObject[] {
   const value = isJsonObject(owner) ? owner[key] : undefined;
   return Array.isArray(value) ? (value as JsonObject[]) : [];
+}
+
+/** An element's `id` where it is an object holding a string `id`, else null. */
+export function stringId(element: unknown): string | null {
+  const id = isJsonObject(element) ? element.id : undefined;
+  return typeof id === "string" ? id : null;
+}
+
+type FoundId = [string, PathSegment[]];
+
+function* elementIds(timeline: unknown, path: readonly PathSegment[]): Generator<FoundId> {
+  const id = stringId(timeline);
+  if (id !== null) yield [id, [...path, "id"]];
+  for (const member of ["conversion_maps", "regions", "flow_control"]) {
+    for (const [index, entry] of entries(timeline, member).entries()) {
+      const entryId = stringId(entry);
+      if (entryId !== null) yield [entryId, [...path, member, index, "id"]];
+    }
+  }
+  for (const [index, child] of entries(timeline, "children").entries()) {
+    yield* elementIds(child, [...path, "children", index]);
+  }
+}
+
+function* heldIds(map: unknown, path: readonly PathSegment[]): Generator<FoundId> {
+  const maps = isJsonObject(map) ? map.maps : undefined;
+  let held: [PathSegment, unknown][];
+  if (Array.isArray(maps)) held = [...maps.entries()];
+  else if (isJsonObject(maps)) {
+    held = Object.keys(maps)
+      .sort(compareCodePoints)
+      .map((name) => [name, maps[name]]);
+  } else return;
+  for (const [key, entry] of held) {
+    const at = [...path, "maps", key];
+    const id = stringId(entry);
+    if (id !== null) yield [id, [...at, "id"]];
+    yield* heldIds(entry, at);
+  }
+}
+
+function* nestedMapIds(timeline: unknown, path: readonly PathSegment[]): Generator<FoundId> {
+  for (const [index, entry] of entries(timeline, "conversion_maps").entries()) {
+    yield* heldIds(entry, [...path, "conversion_maps", index]);
+  }
+  for (const [index, child] of entries(timeline, "children").entries()) {
+    yield* nestedMapIds(child, [...path, "children", index]);
+  }
+}
+
+/**
+ * Every ID of a root's tree with its path, in the order of the rules: the
+ * timelines depth first, each with its conversion maps', regions' and
+ * flow-control elements' IDs before its children's; then the IDs of the maps
+ * other maps hold, timeline by timeline in the same order, each held map
+ * before those it holds, a `CombinationMap`'s outputs by name in code-point
+ * order. An element that is no object or holds no string `id` is passed over,
+ * so the walk reads any value.
+ */
+export function* treeIds(root: unknown, path: readonly PathSegment[]): Generator<FoundId> {
+  yield* elementIds(root, path);
+  yield* nestedMapIds(root, path);
 }
 
 /** A string member of an object the schema has already checked. */

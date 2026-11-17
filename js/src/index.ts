@@ -43,6 +43,7 @@ export {
   type KnownScheme,
   type Recognition,
   recognize,
+  type SchemeEntry,
   type SchemeRegistry,
   withSchemes,
 } from "./description/registry.js";
@@ -117,6 +118,7 @@ export { canonicalJson, compactJson } from "./json/write.js";
 export { canonicalOrder, dumps, TIMESTAMP_DISPLAY } from "./manifest/order.js";
 export { completeStyles } from "./styles.js";
 export {
+  descriptionProblems,
   identityProblems,
   jsonPointer,
   numberTypeOf,

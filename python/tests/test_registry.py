@@ -21,29 +21,33 @@ ENTRIES = [
         f"{WIKIDATA}P435",
         "work",
         "http://musicbrainz.org/work/{value}",
+        True,
     ),
     (
         "musicbrainz_recording",
         f"{WIKIDATA}P4404",
         "expression",
         "http://musicbrainz.org/recording/{value}",
+        True,
     ),
     (
         "musicbrainz_release",
         f"{WIKIDATA}P5813",
         "manifestation",
         "http://musicbrainz.org/release/{value}",
+        True,
     ),
     (
         "wikidata",
         "http://id.loc.gov/vocabulary/identifiers/wikidata",
         None,
         "http://www.wikidata.org/entity/{value}",
+        False,
     ),
-    ("viaf", f"{WIKIDATA}P214", None, "http://viaf.org/viaf/{value}"),
-    ("gnd", f"{WIKIDATA}P227", None, "https://d-nb.info/gnd/{value}"),
-    ("imslp", IMSLP, "work", None),
-    ("doi", f"{WIKIDATA}P356", None, "https://doi.org/{value}"),
+    ("viaf", f"{WIKIDATA}P214", None, "http://viaf.org/viaf/{value}", False),
+    ("gnd", f"{WIKIDATA}P227", None, "https://d-nb.info/gnd/{value}", False),
+    ("imslp", IMSLP, "work", None, False),
+    ("doi", f"{WIKIDATA}P356", None, "https://doi.org/{value}", False),
 ]
 
 
@@ -52,7 +56,8 @@ def test_the_default_registry_is_the_shipped_file() -> None:
     assert dumps(json.loads(text)) == text
     schemes = default_registry().schemes
     assert [
-        (scheme.id, scheme.uri, scheme.level, scheme.entity_uri) for scheme in schemes
+        (scheme.id, scheme.uri, scheme.level, scheme.entity_uri, scheme.lowercase)
+        for scheme in schemes
     ] == ENTRIES
     assert [scheme.to_dict() for scheme in schemes] == json.loads(text)
     assert default_registry() is default_registry()
@@ -110,6 +115,12 @@ RECOGNISED = [
         None,
         None,
     ),
+    (
+        f"https://musicbrainz.org/work/{MB_WORK.upper()}",
+        f"http://musicbrainz.org/work/{MB_WORK}",
+        None,
+        "work",
+    ),
 ]
 
 
@@ -126,8 +137,29 @@ def test_the_recognition_table(
     )
 
 
+def test_a_musicbrainz_id_in_capitals_is_written_in_lower_case() -> None:
+    recognition = default_registry().recognize(
+        f"https://musicbrainz.org/work/{MB_WORK.upper()}"
+    )
+    assert recognition is not None
+    assert recognition.value == MB_WORK
+
+
 FORMS = [
     (f"http://www.musicbrainz.org/work/{MB_WORK}?tab=details#top", "musicbrainz_work"),
+    (f"https://musicbrainz.org/work/{MB_WORK.upper()}/", "musicbrainz_work"),
+    (
+        "https://musicbrainz.org/work/4a622B0D-b0c0-405E-b49e-05B70C108284",
+        "musicbrainz_work",
+    ),
+    (
+        "https://musicbrainz.org/recording/5F1A7C3E-2B4D-4E6F-8A9B-0C1D2E3F4A5B",
+        "musicbrainz_recording",
+    ),
+    (
+        "https://musicbrainz.org/release/814C53FD-0732-4819-9753-4578F5AB992C",
+        "musicbrainz_release",
+    ),
     (
         "https://musicbrainz.org/recording/5f1a7c3e-2b4d-4e6f-8a9b-0c1d2e3f4a5b",
         "musicbrainz_recording",
@@ -163,6 +195,15 @@ def test_every_form_gives_one_uri() -> None:
         "http://viaf.org/viaf/186299955"
     }
     assert uri("https://d-nb.info/gnd/118508288") == "https://d-nb.info/gnd/118508288"
+    assert {uri(url) for url, scheme in FORMS if scheme == "musicbrainz_work"} == {
+        f"http://musicbrainz.org/work/{MB_WORK}"
+    }
+    assert {uri(url) for url, scheme in FORMS if scheme == "musicbrainz_recording"} == {
+        "http://musicbrainz.org/recording/5f1a7c3e-2b4d-4e6f-8a9b-0c1d2e3f4a5b"
+    }
+    assert {uri(url) for url, scheme in FORMS if scheme == "musicbrainz_release"} == {
+        "http://musicbrainz.org/release/814c53fd-0732-4819-9753-4578f5ab992c"
+    }
 
 
 @pytest.mark.parametrize(
@@ -182,6 +223,59 @@ def test_every_form_gives_one_uri() -> None:
 )
 def test_what_is_not_recognised(url: str) -> None:
     assert default_registry().recognize(url) is None
+
+
+NAMESPACES = [
+    "Media",
+    "Special",
+    "Talk",
+    "User",
+    "User_talk",
+    "IMSLP",
+    "IMSLP_talk",
+    "Project",
+    "Project_talk",
+    "File",
+    "File_talk",
+    "Image",
+    "Image_talk",
+    "MediaWiki",
+    "MediaWiki_talk",
+    "Template",
+    "Template_talk",
+    "Help",
+    "Help_talk",
+    "Category",
+    "Category_talk",
+    "Module",
+    "Module_talk",
+]
+NOT_WORK_PAGES = [
+    "Main_Page",
+    "Main_Page/",
+    "Main_Page?action=history",
+    "Main%20Page",
+    *[
+        f"{namespace.replace('_', space)}{colon}Example"
+        for namespace in NAMESPACES
+        for space in dict.fromkeys(("_", "%20" if "_" in namespace else "_"))
+        for colon in (":", "%3A", "%3a")
+    ],
+]
+
+
+@pytest.mark.parametrize("page", NOT_WORK_PAGES)
+def test_an_imslp_page_that_is_no_work_page_is_not_recognised(page: str) -> None:
+    assert default_registry().recognize(f"https://imslp.org/wiki/{page}") is None
+
+
+@pytest.mark.parametrize(
+    "page", ["Main_Page_(Example)", "Talk_Show_Suite_(Example,_Anna)"]
+)
+def test_a_work_page_beginning_with_a_namespace_word_is_recognised(page: str) -> None:
+    recognition = default_registry().recognize(f"https://imslp.org/wiki/{page}")
+    assert recognition is not None
+    assert recognition.identifier == Identifier(IMSLP, page)
 
 
 def test_an_identifier_is_decoded_and_its_spaces_written_as_underscores() -> None:
@@ -218,6 +312,9 @@ def test_a_scheme_yields_an_entity_uri_or_an_identifier_never_both() -> None:
             )
 
 
+_OPTIONAL = ("level", "entity_uri", "lowercase")
+
+
 def _entry(**members: object) -> dict[str, object]:
     return {
         "id": "x",
@@ -241,6 +338,36 @@ def test_an_extension_is_a_new_registry() -> None:
     assert (recognition.scheme.id, recognition.uri) == (
         "x",
         "https://example.org/entity/12",
+    )
+
+
+def test_an_entry_may_leave_out_level_entity_uri_and_lowercase() -> None:
+    entry = {key: value for key, value in _entry().items() if key not in _OPTIONAL}
+    extended = default_registry().with_schemes(entry)
+    assert extended.schemes[-1].to_dict() == {
+        **entry,
+        "level": None,
+        "entity_uri": None,
+        "lowercase": False,
+    }
+    recognition = extended.recognize("https://example.org/page/12")
+    assert recognition is not None
+    assert (recognition.uri, recognition.identifier, recognition.level) == (
+        None,
+        Identifier("https://example.org/scheme", "12"),
+        None,
+    )
+
+
+def test_an_entry_stating_lowercase_lowers_its_values() -> None:
+    extended = default_registry().with_schemes(
+        _entry(lowercase=True, patterns=["https://example\\.org/page/([0-9A-Za-z]+)"])
+    )
+    recognition = extended.recognize("https://example.org/page/AbC")
+    assert recognition is not None
+    assert (recognition.value, recognition.uri) == (
+        "abc",
+        "https://example.org/entity/abc",
     )
 
 
@@ -310,6 +437,8 @@ def test_the_first_matching_entry_recognises() -> None:
             "the entity URI template 'https://example.org/entity/' of scheme 'x' "
             "holds no {value}",
         ),
+        ({"lowercase": "yes"}, "the lowercase of scheme 'x' is no boolean"),
+        ({"lowercase": None}, "the lowercase of scheme 'x' is no boolean"),
     ],
 )
 def test_an_entry_is_refused(members: dict[str, object], message: str) -> None:

@@ -479,7 +479,7 @@ naming no timeline is checked for its timeline alone.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 127 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 129 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the nineteen of the table, so every code is reached by a case both
@@ -502,7 +502,7 @@ and `test_description.py`):
 `description_slot_represented_by_unresolved`,
 `description_identifier_scheme_unresolved`,
 `description_scheme_id_duplicate` and
-`description_asserted_on_impossible_date`. The seventeen cases named
+`description_asserted_on_impossible_date`. The nineteen cases named
 `description_*` break one rule each of a manifest whose one root `score`
 (8 quarters) holds the region `intro` and whose one link, at the level `work`, reads two
 parts; every case is in the complete form, so its slots state both
@@ -517,7 +517,11 @@ the `then` arm), a slot with `represented_by` empty and `absent` null
 `opus` that no scheme declares (`dangling_target` at its `scheme`), a
 scheme whose ID is `score` (`duplicate_id` at `schemes/0/id`, first at the
 timeline's), parts with `parts_relation` null (`schema` at
-`parts_relation`), a `part_of` entry without `parts_relation` (`schema` at
+`parts_relation`), empty parts with `parts_relation` `has_part`
+(`description_parts_relation_without_parts`, `schema` at
+`parts_relation`, the link's `else` arm) and with `parts_ordered` false
+(`description_parts_ordered_without_parts`, `schema` at `parts_ordered`,
+the same arm), a `part_of` entry without `parts_relation` (`schema` at
 the entry), an assertion with `match` `equivalent` and with `status`
 `approved` (`schema` at the member), `asserted_on` `17 November 2026`
 (`schema` at the member) and `2026-02-30` (`calendar_date` at the
@@ -677,7 +681,47 @@ documents that bound each rule from the other side:
   relation `pertains_to` at the link, the same link with the relation
   `marcrel:cmp` passes; parts with `parts_relation` null or absent are
   refused at `parts_relation` or at the link, and empty parts with neither
-  pass.
+  pass. The other side of the same rule: a `parts_relation` `has_part`
+  with `parts` empty or absent is refused at `parts_relation`, and
+  `parts_ordered` false with `parts` empty or absent at `parts_ordered`,
+  while `parts_ordered` false beside one slot under `has_part` passes. A
+  scheme's `criteria` is a URI reference: `criteria/opus-numbers.html` and
+  `https://example.org/criteria` pass, `""` and `criteria/opus numbers` are
+  refused at `schemes/0/criteria`.
+- **The description layer alone** (`test_description.py`).
+  `description_problems` returns the problems of the description layer of
+  any manifest and nothing else, so a reader of part of a manifest checks
+  its links without knowing which parts the rules read. Its oracle is the
+  shared set: each of the nineteen `description_*` rejection cases gives
+  exactly one problem, the case's path and code (and, for the four cases
+  whose message is pinned above, that message), and each of the other 110
+  cases (the `version_unknown` case and the case that is no manifest
+  among them) and every fixture gives none. Every document of the rules
+  of links above gives the list `identity_problems` gives, as each breaks
+  description rules only. A manifest whose other parts break every kind of
+  rule (the version `9.9.9`, two roots `a`, the unit `beats`, a child of
+  another unit beyond its parent's length, a region that is no object, a
+  group naming `ghost`, `graphical` that is no object) and whose links
+  are sound gives none: its one slot represented by the region `r`
+  passes, and a scheme `a` is one `duplicate_id` at `schemes/0/id`, first
+  at `#/timelines/0/id`, followed by the manifest ID `g` equal to the
+  scheme `g` (`manifest_id` at `id`, first at `#/schemes/1/id`) and then by
+  the identifier naming `q` (`dangling_target`): the scheme rules come
+  before the links' as in `identity_problems`. The arrays are checked one
+  by one, each giving its first problem at its own path, in the order
+  `schemes`, the manifest's `links`, then root by root each timeline's,
+  its regions' and its children's: in one manifest, `schemes` holding a
+  scheme without `id` (`schema` at `schemes/0`), the manifest's `links`
+  being `"none"` (`schema` at `links`), the root's link without `level`
+  (`schema` at `timelines/0/links/0`), its region `r`'s link with the
+  level `score` (`schema` at `timelines/0/regions/0/links/0/level`) and
+  the child `verse`'s link with a record of size infinity (`finite_number`
+  at `timelines/0/children/0/links/0/records/0/size`, `size of 'verse' is
+  not a finite number`, built in code) are five problems in that order; a
+  sound link of the same manifest whose identifier names `q` adds none,
+  because the reference rules read a schema-checked layer and run only
+  where no array has a problem. A schema problem's message is the schema
+  library's, as for `validate`.
 - **Unregistered terms** (`test_description.py`). `unregistered_terms`
   validates the manifest, then lists every bare term of an open vocabulary
   that is not registered for its key, as `{"path": [...], "term": ...}`
@@ -721,18 +765,22 @@ writes links, reads them back and builds them from URLs. What proves it
 
 - **The registry is the shipped file.** `registry/schemes.json` is written
   by `dumps`, and the default registry holds exactly its eight entries, in
-  this order, each with its scheme URI, level and entity URI template:
+  this order, each with its scheme URI, level, entity URI template and
+  `lowercase`:
   `musicbrainz_work` (`http://www.wikidata.org/entity/P435`, `work`,
-  `http://musicbrainz.org/work/{value}`), `musicbrainz_recording` (`P4404`,
-  `expression`, `http://musicbrainz.org/recording/{value}`),
-  `musicbrainz_release` (`P5813`, `manifestation`,
-  `http://musicbrainz.org/release/{value}`), `wikidata`
+  `http://musicbrainz.org/work/{value}`, true), `musicbrainz_recording`
+  (`P4404`, `expression`, `http://musicbrainz.org/recording/{value}`,
+  true), `musicbrainz_release` (`P5813`, `manifestation`,
+  `http://musicbrainz.org/release/{value}`, true), `wikidata`
   (`http://id.loc.gov/vocabulary/identifiers/wikidata`, null,
-  `http://www.wikidata.org/entity/{value}`), `viaf` (`P214`, null,
-  `http://viaf.org/viaf/{value}`), `gnd` (`P227`, null,
-  `https://d-nb.info/gnd/{value}`), `imslp` (`P839`, `work`, null) and `doi`
-  (`P356`, null, `https://doi.org/{value}`). An entity URI template is
-  Wikidata's formatter URI for RDF resources where the property has one.
+  `http://www.wikidata.org/entity/{value}`, false), `viaf` (`P214`, null,
+  `http://viaf.org/viaf/{value}`, false), `gnd` (`P227`, null,
+  `https://d-nb.info/gnd/{value}`, false), `imslp` (`P839`, `work`, null,
+  false) and `doi` (`P356`, null, `https://doi.org/{value}`, false). An
+  entity URI template is Wikidata's formatter URI for RDF resources (P1921)
+  where one exists, unless the issuer prescribes the canonical form, as the
+  DOI Foundation does with `https://doi.org/`. Every entry is written with
+  all seven keys, so the file reads back to the entries it was written from.
   Every pattern has exactly one capturing group and no syntax that Python's
   `re` and JavaScript's `RegExp` read differently (no named group, no
   lookbehind, no inline flag).
@@ -755,30 +803,57 @@ writes links, reads them back and builds them from URLs. What proves it
   are the identifier `{scheme: "http://www.wikidata.org/entity/P839", value:
   "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"}` at the level
   `work`; `https://doi.org/10.5281/zenodo.7473560` is
-  `https://doi.org/10.5281/zenodo.7473560`, no level; and
+  `https://doi.org/10.5281/zenodo.7473560`, no level;
+  `https://musicbrainz.org/work/4A622B0D-B0C0-405E-B49E-05B70C108284`, the
+  same work's ID in capitals, is
+  `http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284`,
+  `work`, its value `4a622b0d-b0c0-405e-b49e-05b70c108284`; and
   `https://imslp.org/wiki/Special:ReverseLookup/534071` and
   `https://example.org/anything` are not recognised.
 - **The URL forms a scheme accepts.** `http` and `https`, an optional
   `www.` (`m.` for Wikidata), Wikidata's `/wiki/` and `/entity/`, VIAF's
   language segment (`https://viaf.org/en/viaf/186299955`, the form Wikidata
   states as VIAF's formatter URL today), a trailing `/`, a query and a
-  fragment all give the same URI; an IMSLP page of the namespaces `File:`,
-  `Special:`, `Category:`, `Help:` or `IMSLP:` (written plainly or with
-  `%3A`) is not recognised, nor is a URL holding white space, nor an IMSLP
-  name whose percent-encoding is not UTF-8 (`%E2%80`); an IMSLP name
-  written with spaces (`%20`) gives underscores. A captured value is
-  substituted into the entity URI as written, and decoded only for an
-  identifier.
+  fragment all give the same URI, and so does a MusicBrainz ID in capitals
+  or in mixed case, for a work, a recording (`5F1A7C3E-…` gives
+  `http://musicbrainz.org/recording/5f1a7c3e-2b4d-4e6f-8a9b-0c1d2e3f4a5b`)
+  and a release, since the MusicBrainz entries state `lowercase`. An IMSLP
+  page that is no work page is not recognised: `Main_Page` (also with a
+  trailing `/`, a query, or written `Main%20Page`) and a page of each
+  namespace IMSLP's wiki declares, under its canonical and its local name
+  and their aliases, and of `Module`: `Media:`, `Special:`, `Talk:`,
+  `User:`, `User_talk:`, `IMSLP:`, `IMSLP_talk:`, `Project:`,
+  `Project_talk:`, `File:`, `File_talk:`, `Image:`, `Image_talk:`,
+  `MediaWiki:`, `MediaWiki_talk:`, `Template:`, `Template_talk:`, `Help:`,
+  `Help_talk:`, `Category:`, `Category_talk:`, `Module:` and
+  `Module_talk:`, each written plainly, with `%3A` or `%3a` for the colon,
+  and the two-word ones with `%20` for the underscore. A work page whose
+  name begins with such a word is recognised: `Main_Page_(Example)` and
+  `Talk_Show_Suite_(Example,_Anna)` are identifiers of those values.
+  Nor is a URL holding white space recognised, nor an IMSLP name whose
+  percent-encoding is not UTF-8 (`%E2%80`); an IMSLP name written with
+  spaces (`%20`) gives underscores. A captured value is substituted into
+  the entity URI as written, lowered where the entry states `lowercase`
+  (only the letters `A` to `Z`), and decoded only for an identifier.
 - **A user extension.** `with_schemes` returns a new registry and leaves the
   default as it was; an entry whose ID the registry holds replaces it in
   place, any other is appended, and a URL is recognised by the first entry
-  whose pattern matches it. An entry is refused with `ValueError` for a
+  whose pattern matches it. An entry that leaves out `level`, `entity_uri`
+  and `lowercase` is read as stating null, null and false, as the
+  JavaScript package reads it: written back, it holds all seven keys, and
+  `https://example.org/page/12` is the identifier `{scheme:
+  "https://example.org/scheme", value: "12"}` without a level. An entry
+  stating `lowercase` gives its values lowered: with `lowercase` true and
+  the pattern `https://example\.org/page/([0-9A-Za-z]+)`,
+  `https://example.org/page/AbC` is `https://example.org/entity/abc`. An
+  entry is refused with `ValueError` for a
   pattern with no or two capturing groups (`pattern '…' of scheme 'x' has 0
   capturing groups; it needs exactly one`), one using `(?<`, `(?P` or an
   inline flag (`… uses syntax outside the shared subset; only (?:, (?= and
   (?! may follow '(?'`), one that is no regular expression, a level outside
-  `LEVELS` (`scheme 'x' has the level 'score', which is no level`) and an
-  entity URI template without `{value}`.
+  `LEVELS` (`scheme 'x' has the level 'score', which is no level`), an
+  entity URI template without `{value}` and a `lowercase` that is no
+  boolean, `"yes"` or null (`the lowercase of scheme 'x' is no boolean`).
 - **The work bundle of Op. 106.** Built through the API from the URLs of
   its MusicBrainz work, its Wikidata item, its VIAF cluster and its IMSLP
   page, with `identifiers={"mb_beethoven_opus": "op. 106"}`, a label, an
@@ -809,16 +884,31 @@ writes links, reads them back and builds them from URLs. What proves it
   (`'score' is no level`); an agent link without a relation (`an agent link
   states its relation, the agent's role`) or with `pertains_to` (`an agent
   link never uses the relation 'pertains_to'`); parts without a parts
-  relation (`a link with parts states its parts_relation`); `with_parts`
+  relation (`a link with parts states its parts_relation`); a parts
+  relation without parts (`a link without parts states no
+  parts_relation`), from the constructor and from `with_parts` given no
+  slot; `parts_ordered` false without parts (`a link without parts keeps
+  parts_ordered true`); `with_parts`
   given a slot recognised at another level (`part slot 2 is recognised at
-  the level 'manifestation', the link's level is 'work'`); and an
+  the level 'manifestation', the link's level is 'work'`); an identifier
+  given in a scheme that mints entity URIs whose value is no value of the
+  scheme (`'op. 106' is no value of the scheme 'MusicBrainz work ID'`, and
+  `'x'` alike), from `from_urls` and from `with_identifier`; an entity URI
+  from `with_identifier` at another level than the link's (`the level
+  'expression' contradicts 'http://musicbrainz.org/work/4a622b0d-…',
+  recognised at the level 'work'`); and an
   `asserted_on` the calendar lacks or not written `YYYY-MM-DD`, read by
   `Assertion.from_dict` (`2026-02-30`, `2100-02-29`, `0000-01-01`,
   `20261117` and `17 November 2026`, each `'<date>' is no Gregorian
-  calendar date written YYYY-MM-DD`) or by `Link.from_dict` in the
+  calendar date written YYYY-MM-DD`), given to the constructor
+  `Assertion(asserted_on=…)` (the same five strings, and the integer
+  `20261117` and the `datetime.datetime(2026, 11, 17)`, neither a
+  `datetime.date`, as `'20261117'` and `'2026-11-17 00:00:00'`) or read by
+  `Link.from_dict` in the
   assertion of a slot or of a `part_of` entry, the message of the
-  validator's `calendar_date`. `Assertion.from_dict` reads `2024-02-29`
-  as `datetime.date(2024, 2, 29)`.
+  validator's `calendar_date`. `Assertion.from_dict` and the constructor
+  read `2024-02-29` as `datetime.date(2024, 2, 29)`, and the constructor
+  keeps `datetime.date(2024, 2, 29)` as given.
 - **Normalisation.** `from_urls` collapses URLs that normalise to one URI or
   one identifier, keeping the first, puts the identifiers from URLs before
   the given ones (a mapping or a list of `Identifier`), keeps an absolute
@@ -829,6 +919,32 @@ writes links, reads them back and builds them from URLs. What proves it
   the reading's parts; each returns a new link and leaves the old one
   equal to what it was. `assertion_for` gives an entry's own assertion, or
   else its link's.
+- **Each fact stored once.** A given identifier whose scheme is the scheme
+  URI of a registry entry that mints entity URIs is stored as that entity
+  URI, read back through the registry as a URL of the scheme, never as an
+  identifier beside it. `from_urls` of the Wikidata item with
+  `identifiers={"http://www.wikidata.org/entity/P435":
+  "4A622B0D-B0C0-405E-B49E-05B70C108284"}` has `uri`
+  `("http://www.wikidata.org/entity/Q146730",
+  "http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284")`, no
+  identifier, and the level `work` the entity URI tells; `from_urls` of the
+  MusicBrainz work's URL with the same identifier keeps the one URI; an
+  identifier `{"http://www.wikidata.org/entity/P356":
+  "10.5281/zenodo.7473560"}` becomes `https://doi.org/10.5281/zenodo.7473560`;
+  identifiers of IMSLP (`P839`, a scheme that mints none) and of the
+  manifest's scheme `mb_beethoven_opus` (no entry) stay identifiers.
+  `with_identifier` of the P435 identifier, in capitals, appends the
+  entity URI to a link without it and returns a link equal to one already
+  holding it; through a registry extended by an entry `x` (scheme
+  `https://example.org/scheme`, template `https://example.org/entity/{value}`,
+  pattern `https://example\.org/entity/([0-9]+)`) the identifier
+  `{"https://example.org/scheme": "12"}` becomes
+  `https://example.org/entity/12`, while the default registry keeps it an
+  identifier. The validators do not read the registry: an identifier in
+  the scheme `P435` validates.
+- **The case of a value.** `with_uri` of
+  `https://musicbrainz.org/work/4A622B0D-B0C0-405E-B49E-05B70C108284` on a
+  link holding the work's URI returns a link equal to it: one URI.
 - **Unknown keys** on a scheme, a link, an identifier, a record, an
   assertion, a part slot and a `part_of` entry survive `from_dict` and
   `to_dict` in both forms, take no part in equality, and are each listed by

@@ -10,6 +10,8 @@
  * types: every function takes a link in either form and returns a new link in
  * the complete form, built from the table of defaults as `complete` builds a
  * manifest's links; `minimal` of a manifest holding it gives the minimal form.
+ * Each fact is stored once: a function given an identifier in a scheme whose
+ * registry entry mints entity URIs keeps the entity URI in `uri` instead.
  * Python's `timetoshare.description` offers the same operations as methods,
  * with the same values, and raises `ValueError` with the same message wherever
  * a function here throws an `Error`.
@@ -92,7 +94,11 @@ export interface LinkOptions {
   readonly level?: string;
   /** The relation; `pertains_to` where absent, required at the level `agent`. */
   readonly relation?: string;
-  /** Identifiers after those from URLs: a record of scheme to value, or `Identifier`s. */
+  /**
+   * Identifiers: a record of scheme to value, or `Identifier`s. One in a scheme
+   * whose registry entry mints entity URIs joins `uri` as its entity URI; every
+   * other follows the identifiers from URLs.
+   */
   readonly identifiers?: Readonly<Record<string, string>> | readonly Identifier[];
   readonly label?: string | null;
   readonly assertion?: Assertion | null;
@@ -231,7 +237,8 @@ function checkedAssertion(assertion: CompleteAssertion | null): CompleteAssertio
  * Python's `Link` checks one on construction.
  *
  * @throws {Error} if an assertion's date is no date, the level is no level,
- * an agent link uses `pertains_to`, or parts lack a `parts_relation`.
+ * an agent link uses `pertains_to`, parts lack a `parts_relation`, or a link
+ * without parts states a `parts_relation` or `parts_ordered` false.
  */
 function checkedLink(link: CompleteLink): CompleteLink {
   checkedAssertion(link.assertion);
@@ -242,6 +249,12 @@ function checkedLink(link: CompleteLink): CompleteLink {
   }
   if (link.parts.length > 0 && link.parts_relation === null) {
     throw new Error("a link with parts states its parts_relation");
+  }
+  if (link.parts.length === 0 && link.parts_relation !== null) {
+    throw new Error("a link without parts states no parts_relation");
+  }
+  if (link.parts.length === 0 && !link.parts_ordered) {
+    throw new Error("a link without parts keeps parts_ordered true");
   }
   return link;
 }
@@ -271,23 +284,69 @@ function givenIdentifiers(identifiers: LinkOptions["identifiers"]): Identifier[]
 }
 
 /**
+ * The entity URI an identifier stands for, or null where it stands for none.
+ * The first entry of the registry whose scheme URI is the identifier's scheme
+ * and which mints entity URIs writes the URI from its template; the registry
+ * then reads the URI back, so it is written as a URL of the scheme gives it,
+ * in lower case where the scheme writes its values so.
+ *
+ * @throws {Error} if the registry does not read the URI back as one of that
+ * entry: the value is no value of the scheme.
+ */
+function entityUri(identifier: Identifier, known: SchemeRegistry): string | null {
+  for (const scheme of known.schemes) {
+    if (scheme.uri !== identifier.scheme || scheme.entity_uri === null) continue;
+    const recognition = recognize(scheme.entity_uri.split("{value}").join(identifier.value), known);
+    if (recognition === null || recognition.scheme !== scheme) {
+      throw new Error(`'${identifier.value}' is no value of the scheme '${scheme.name}'`);
+    }
+    return recognition.uri;
+  }
+  return null;
+}
+
+/**
+ * Part identifiers into the entity URIs they stand for and those kept.
+ *
+ * @throws {Error} if an identifier's value is no value of its scheme.
+ */
+function minted(
+  identifiers: readonly Identifier[],
+  known: SchemeRegistry,
+): { readonly uris: string[]; readonly kept: Identifier[] } {
+  const uris: string[] = [];
+  const kept: Identifier[] = [];
+  for (const identifier of identifiers) {
+    const uri = entityUri(identifier, known);
+    if (uri === null) kept.push(identifier);
+    else uris.push(uri);
+  }
+  return { uris, kept };
+}
+
+/**
  * Build a link from the URLs of an entity, read through the registry, as
  * Python's `Link.from_urls`. Each URL gives its entity URI, which joins `uri`,
  * or its identifier, which joins `identifiers`; an absolute URI the registry
- * does not recognise joins `uri` as it is; repetitions collapse into the
- * first. The identifiers from URLs come first, then the given ones. The level
- * is the given one, which no recognised level may contradict, else the one
- * level the URLs tell. The relation is `pertains_to` unless the level is
- * `agent`, which needs the agent's role.
+ * does not recognise joins `uri` as it is. The given identifiers follow: one
+ * whose scheme is the scheme URI of a registry entry that mints entity URIs
+ * joins `uri` as that entity URI, read as a URL of the scheme, and every other
+ * joins `identifiers` after those from URLs. Repetitions collapse into the
+ * first. The level is the given one, which no recognised level may
+ * contradict, else the one level the URLs and the entity URIs tell. The
+ * relation is `pertains_to` unless the level is `agent`, which needs the
+ * agent's role.
  *
  * @throws {Error} if no URL is given, a URL is neither recognised nor an
- * absolute URI, the level is no level, contradicts a recognised one or is
- * told by no URL, the URLs tell two levels, or an agent link names no
- * relation.
+ * absolute URI, an identifier's value is no value of its scheme, the level is
+ * no level, contradicts a recognised one or is told by no URL, the URLs tell
+ * two levels, or an agent link names no relation.
  */
 export function linkFromUrls(urls: readonly string[], options: LinkOptions = {}): CompleteLink {
   if (urls.length === 0) throw new Error("a link from URLs needs one URL at least");
-  const { uris, identifiers, levels } = normalised(urls, options.registry);
+  const known = options.registry ?? defaultRegistry();
+  const given = minted(givenIdentifiers(options.identifiers), known);
+  const { uris, identifiers, levels } = normalised([...urls, ...given.uris], known);
   const level = levelOf(options.level, levels);
   if (level === null) {
     throw new Error(`no level is recognised from ${quoted(urls)}; state the level`);
@@ -301,7 +360,7 @@ export function linkFromUrls(urls: readonly string[], options: LinkOptions = {})
     relation,
     level,
     uri: uris,
-    identifiers: unique([...identifiers, ...givenIdentifiers(options.identifiers)], identifierKey),
+    identifiers: unique([...identifiers, ...given.kept], identifierKey),
     label: options.label ?? null,
     assertion: options.assertion ?? null,
   };
@@ -352,8 +411,24 @@ export function withUri(
   return checkedLink(base);
 }
 
-/** Return the link with the identifier appended, unless it holds it. */
-export function withIdentifier(link: Lossless<Link>, scheme: string, value: string): CompleteLink {
+/**
+ * Return the link with the identifier appended, unless it holds it. An
+ * identifier whose scheme is the scheme URI of a registry entry that mints
+ * entity URIs is appended to `uri` as that entity URI instead, as `withUri`
+ * appends a URL of the scheme.
+ *
+ * @throws {Error} if the value is no value of its scheme, or the entity URI is
+ * recognised at another level than the link's.
+ */
+export function withIdentifier(
+  link: Lossless<Link>,
+  scheme: string,
+  value: string,
+  options: { readonly registry?: SchemeRegistry } = {},
+): CompleteLink {
+  const known = options.registry ?? defaultRegistry();
+  const uri = entityUri({ scheme, value }, known);
+  if (uri !== null) return withUri(link, [uri], { registry: known });
   const base = completeDescription(link, "link");
   base.identifiers = unique([...base.identifiers, { scheme, value }], identifierKey);
   return checkedLink(base);

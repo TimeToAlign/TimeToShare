@@ -18,7 +18,9 @@ Where the two packages answer differently by design, this README says so.
    back as `9007199254740993n` and `JsonFloat(2)`.
 2. `unknownKeys` and `unregisteredTerms` return, for every manifest, the
    lists Python's `unknown_keys` and `unregistered_terms` return, byte for
-   byte once written by `dumps`.
+   byte once written by `dumps`; `descriptionProblems` returns the problems
+   Python's `description_problems` returns, with the same codes and paths
+   and, but for a schema violation's, the same messages.
 3. `complete` and `minimal` give the values Python's functions give, from a
    `DEFAULTS` table equal to the schema's `default`s, as Python's is; their
    typed forms take and give the generated `LosslessManifest` and
@@ -130,7 +132,7 @@ schema addition cannot escape the canonical spelling.
 
 ## Shared rejection cases
 
-Each of the 127 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 129 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
@@ -179,7 +181,7 @@ is the default only in type and value: `repeat_count: new JsonFloat(1)` (read
 from `1.0`) is not the default `1` and stays in the minimal form; the round
 trips compare `dumps` texts, which tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (70, one per fixture) completes to its fixture's text, keeps it in canonical order,
+minimal twin (72, one per fixture) completes to its fixture's text, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
 optional.
@@ -187,14 +189,25 @@ optional.
 ## The description layer
 
 `registry.test.ts` and `description.test.ts` assert the Python README's
-sections "The description layer", "Links" and "Unregistered terms" with the
-same documents, the same values and the same messages: the eight shipped
-entries in order, the recognition table and the URL forms, the one rule per
-scheme, `withSchemes` and its refusals, the work bundle of Op. 106 in both
-forms (built with `linkFromUrls`, `partSlotFromUrl` and `withParts`, read
-back through `parse` to the same complete link), the two readings, every
-error, normalisation, copy-on-write and `assertionFor`. The packages differ
-only where JavaScript must:
+sections "The description layer", "Links", "The description layer alone"
+and "Unregistered terms" with the same documents, the same values and the
+same messages: the eight shipped entries in order with their `lowercase`,
+the recognition table (the MusicBrainz ID in capitals among it) and the URL
+forms (every IMSLP page that is no work page refused, plainly and with
+`%3A`, and the two work pages beginning with such a word recognised), the
+one rule per scheme, `withSchemes`, its reading of an entry without
+`level`, `entity_uri` and `lowercase` as null, null and false (the entry
+Python reads alike) and its refusals, a `lowercase` that is no boolean
+among them, the work bundle of Op. 106 in both forms (built with
+`linkFromUrls`, `partSlotFromUrl` and `withParts`, read back through
+`parse` to the same complete link), the two readings, every error, the two
+rules of a link without parts among them, normalisation, each fact stored
+once (`linkFromUrls` and `withIdentifier`, whose `registry` option is
+Python's keyword), copy-on-write and `assertionFor`; and
+`descriptionProblems` with the shared cases (each `description_*` case its
+one problem, every other case and every fixture none), the manifest whose
+other parts break every kind of rule, and the manifest whose five arrays
+each break once. The packages differ only where JavaScript must:
 
 - **Plain objects.** A link is a plain object of the generated types, not a
   class: every function takes a link in either form and returns a new link
@@ -203,9 +216,11 @@ only where JavaScript must:
   gives the minimal form. Unknown keys are kept because nothing is rebuilt,
   so the Python README's unknown keys are proved on what `withLabel` and
   `withParts` return. An assertion's date is the string `2026-11-17`.
+- **Schema messages.** `descriptionProblems` reports a schema violation
+  with Ajv's message, as `validate` does; its code and path are Python's.
 - **Dates.** Python refuses a date the calendar lacks, or one not written
-  `YYYY-MM-DD`, when it reads an assertion; a JavaScript assertion stays a
-  plain object, so every function that takes or returns one refuses such a
+  `YYYY-MM-DD`, when it reads or constructs an assertion; a JavaScript
+  assertion stays a plain object, so every function that takes or returns one refuses such a
   date with Python's message (`'2026-02-30' is no Gregorian calendar date
   written YYYY-MM-DD`): `linkFromUrls` and `partSlotFromUrl` given it in
   their `assertion`, `withAssertion`, `withParts` given it in a slot's,

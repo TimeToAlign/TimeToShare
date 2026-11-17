@@ -19,6 +19,8 @@ complete form and ``to_dict(minimal=True)`` the minimal form, from the one
 table of defaults (``DEFAULTS``). ``Link.from_urls`` and ``PartSlot.from_url``
 build links from the URLs of catalogue pages through the registry of known
 schemes (``timetoshare.registry``); the ``with_*`` methods return new links.
+Each fact is stored once: a builder given an identifier in a scheme whose
+registry entry mints entity URIs keeps the entity URI in ``uri`` instead.
 The JavaScript package offers the same functions over plain objects
 (``linkFromUrls``, ``withUri``, …), with the same values and the same
 messages.
@@ -209,8 +211,8 @@ class Scheme(_Element):
         id: The scheme ID, unique across every ID of the manifest.
         name: The scheme's name, or ``None``.
         uri: URIs that identify or describe the scheme, the first preferred.
-        criteria: A document stating how the scheme assigns its values, or
-            ``None``.
+        criteria: Where a document stating how the scheme assigns its values
+            lies, a URI reference, or ``None``.
     """
 
     _KIND = "scheme"
@@ -246,15 +248,19 @@ class Assertion(_Element):
 
     Attributes:
         asserted_by: URIs of the agents who made the assertion.
-        asserted_on: The date of the assertion, or ``None``. A date not
-            written ``YYYY-MM-DD``, or one the Gregorian calendar lacks
-            (``2026-02-30``), is refused when read.
+        asserted_on: The date of the assertion, or ``None``. A string is
+            read as a date written ``YYYY-MM-DD``; one written otherwise, or
+            one the Gregorian calendar lacks (``2026-02-30``), is refused, as
+            is any value that is neither a string nor a ``datetime.date``.
         method: How the assertion was reached (a term), or ``None``.
         service: The service that reached it, or ``None``.
         based_on: The sources it rests on.
         match: How closely the linked entity corresponds, one of
             :data:`MATCHES`, or ``None``.
         status: Whether it stands, one of :data:`STATUSES`, or ``None``.
+
+    Raises:
+        ValueError: If ``asserted_on`` is no day of the calendar.
     """
 
     _KIND = "assertion"
@@ -267,11 +273,15 @@ class Assertion(_Element):
     match: str | None = None
     status: str | None = None
 
-    @classmethod
-    def _read(cls, name: str, value: Any) -> Any:
-        if name == "asserted_on" and isinstance(value, str):
-            return _calendar_date(value)
-        return super()._read(name, value)
+    def __post_init__(self) -> None:
+        super().__post_init__()
+        date = self.asserted_on
+        if isinstance(date, str):
+            object.__setattr__(self, "asserted_on", _calendar_date(date))
+        elif date is not None and type(date) is not datetime.date:
+            raise ValueError(
+                f"'{date}' is no Gregorian calendar date written YYYY-MM-DD"
+            )
 
 
 def _unique(entries: Iterable[Any]) -> list[Any]:
@@ -361,6 +371,51 @@ def _given_identifiers(
     if isinstance(identifiers, Mapping):
         return [Identifier(scheme, value) for scheme, value in identifiers.items()]
     return list(identifiers)
+
+
+def _entity_uri(identifier: Identifier, known: SchemeRegistry) -> str | None:
+    """The entity URI an identifier stands for, or ``None`` where it stands for none.
+
+    The first entry of the registry whose scheme URI is the identifier's
+    scheme and which mints entity URIs writes the URI from its template; the
+    registry then reads the URI back, so it is written as a URL of the scheme
+    gives it, in lower case where the scheme writes its values so.
+
+    Raises:
+        ValueError: If the registry does not read the URI back as one of that
+            entry: the value is no value of the scheme.
+    """
+    for scheme in known.schemes:
+        if scheme.uri != identifier.scheme or scheme.entity_uri is None:
+            continue
+        recognition = known.recognize(
+            scheme.entity_uri.replace("{value}", identifier.value)
+        )
+        if recognition is None or recognition.scheme is not scheme:
+            raise ValueError(
+                f"'{identifier.value}' is no value of the scheme '{scheme.name}'"
+            )
+        return recognition.uri
+    return None
+
+
+def _minted(
+    identifiers: Iterable[Identifier], known: SchemeRegistry
+) -> tuple[list[str], list[Identifier]]:
+    """Part identifiers into the entity URIs they stand for and those kept.
+
+    Raises:
+        ValueError: If an identifier's value is no value of its scheme.
+    """
+    uris: list[str] = []
+    kept: list[Identifier] = []
+    for identifier in identifiers:
+        uri = _entity_uri(identifier, known)
+        if uri is None:
+            kept.append(identifier)
+        else:
+            uris.append(uri)
+    return uris, kept
 
 
 @dataclass(frozen=True)
@@ -476,7 +531,9 @@ class Link(_Element):
 
     Raises:
         ValueError: If the level is no level, an agent link uses
-            ``pertains_to``, or parts lack a ``parts_relation``.
+            ``pertains_to``, parts lack a ``parts_relation``, or a link
+            without parts states a ``parts_relation`` or ``parts_ordered``
+            false.
     """
 
     _KIND = "link"
@@ -507,6 +564,10 @@ class Link(_Element):
             raise ValueError("an agent link never uses the relation 'pertains_to'")
         if self.parts and self.parts_relation is None:
             raise ValueError("a link with parts states its parts_relation")
+        if not self.parts and self.parts_relation is not None:
+            raise ValueError("a link without parts states no parts_relation")
+        if not self.parts and not self.parts_ordered:
+            raise ValueError("a link without parts keeps parts_ordered true")
 
     @classmethod
     def from_urls(
@@ -523,22 +584,28 @@ class Link(_Element):
 
         Each URL gives its entity URI, which joins ``uri``, or its identifier,
         which joins ``identifiers``; an absolute URI the registry does not
-        recognise joins ``uri`` as it is. Repetitions collapse into the first.
-        The identifiers from URLs come first, then the given ones (a mapping
-        of scheme to value, or ``Identifier`` objects). The level is the given
-        one, which no recognised level may contradict, else the one level the
-        URLs tell. The relation is ``pertains_to`` unless the level is
-        ``agent``, which needs the agent's role.
+        recognise joins ``uri`` as it is. The given identifiers (a mapping of
+        scheme to value, or ``Identifier`` objects) follow: one whose scheme
+        is the scheme URI of a registry entry that mints entity URIs joins
+        ``uri`` as that entity URI, read as a URL of the scheme, and every
+        other joins ``identifiers`` after those from URLs. Repetitions
+        collapse into the first. The level is the given one, which no
+        recognised level may contradict, else the one level the URLs and
+        the entity URIs tell. The relation is ``pertains_to`` unless the
+        level is ``agent``, which needs the agent's role.
 
         Raises:
             ValueError: If no URL is given, a URL is neither recognised nor
-                an absolute URI, the level is no level, contradicts a
-                recognised one or is told by no URL, the URLs tell two
-                levels, or an agent link names no relation.
+                an absolute URI, an identifier's value is no value of its
+                scheme, the level is no level, contradicts a recognised one
+                or is told by no URL, the URLs tell two levels, or an agent
+                link names no relation.
         """
         if not urls:
             raise ValueError("a link from URLs needs one URL at least")
-        uris, found, recognised = _normalised(urls, registry)
+        known = default_registry() if registry is None else registry
+        minted, kept = _minted(_given_identifiers(identifiers), known)
+        uris, found, recognised = _normalised([*urls, *minted], known)
         resolved = _level(level, recognised)
         if resolved is None:
             raise ValueError(
@@ -552,7 +619,7 @@ class Link(_Element):
             relation,
             resolved,
             uri=tuple(uris),
-            identifiers=tuple(_unique([*found, *_given_identifiers(identifiers)])),
+            identifiers=tuple(_unique([*found, *kept])),
             label=label,
             assertion=assertion,
         )
@@ -577,9 +644,25 @@ class Link(_Element):
             identifiers=tuple(_unique([*self.identifiers, *found])),
         )
 
-    def with_identifier(self, scheme: str, value: str) -> Link:
-        """Return the link with the identifier appended, unless it holds it."""
-        identifiers = _unique([*self.identifiers, Identifier(scheme, value)])
+    def with_identifier(
+        self, scheme: str, value: str, *, registry: SchemeRegistry | None = None
+    ) -> Link:
+        """Return the link with the identifier appended, unless it holds it.
+
+        An identifier whose scheme is the scheme URI of a registry entry that
+        mints entity URIs is appended to ``uri`` as that entity URI instead,
+        as :meth:`with_uri` appends a URL of the scheme.
+
+        Raises:
+            ValueError: If the value is no value of its scheme, or the entity
+                URI is recognised at another level than the link's.
+        """
+        known = default_registry() if registry is None else registry
+        identifier = Identifier(scheme, value)
+        uri = _entity_uri(identifier, known)
+        if uri is not None:
+            return self.with_uri(uri, registry=known)
+        identifiers = _unique([*self.identifiers, identifier])
         return replace(self, identifiers=tuple(identifiers))
 
     def with_record(self, descriptor: Descriptor) -> Link:
