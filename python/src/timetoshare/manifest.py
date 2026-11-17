@@ -1,48 +1,42 @@
-"""The canonical order of a TimeToShare manifest and its standard writer.
+"""The canonical order of a TimeToShare manifest and the respelling of its values.
 
-The standard writer sorts the keys of every object by Unicode code point, so
-equal objects are equal text whatever order their keys were given in. Every
-array of a manifest whose order carries no meaning has one canonical order:
+Readers accept a manifest's arrays in any order; writers emit one canonical
+order (the README's "Canonical order"):
 
-* ``timelines`` by id;
-* in every timeline, ``children`` by offset, then id; ``conversion_maps`` by
-  id; ``regions`` by start, then end, then id; ``flow_control`` by
-  coordinate, then id;
-* ``groups`` by id and every group's ``members`` by code point;
-* ``measure_maps`` by id;
-* ``schemes`` by id;
-* ``graphical.timestamps`` by timeline, then coordinate, then id, and every
-  timestamp's ``display`` in the order of :data:`TIMESTAMP_DISPLAY`.
+* ``timelines``, ``groups``, ``measure_maps`` and ``schemes`` by ID, and
+  every group's ``members`` by code point;
+* in every timeline, ``children`` by offset, then ID; ``conversion_maps`` by
+  ID; ``regions`` by start, then end, then ID; ``flow_control`` by
+  coordinate, then ID;
+* ``graphical.timestamps`` by timeline, then coordinate, then ID, and every
+  timestamp's ``display`` in the order of :data:`TIMESTAMP_DISPLAY`, other
+  strings after them by code point and other values last in their given
+  order.
 
-Own-axis values compare by their exact numeric value, never by their JSON
-spelling; strings compare by Unicode code point. Nothing else is reordered;
-in particular a ``graphical.order`` array is a display order and stays as it
-is, as do the ``links`` of the manifest, a timeline or a region (a display
-order), a link's ``uri`` (the first preferred) and ``parts`` (the order of
-its reading), and every other array of a link. Readers accept any order;
-writers emit the canonical one.
+Coordinates compare by their exact numeric value, never by their spelling;
+strings compare by Unicode code point; entries that tie keep their given
+order. Every other array keeps its order.
 
-The declared number type decides how a value is read, never its spelling, and
-writers spell every value canonically: an own-axis value on an int axis as a
-JSON integer, on a float axis as a float, and every member of a Fraction pair
-as a JSON integer. A number whose place declares no number type keeps its
-spelling.
-
-The standard writer emits UTF-8 text with every character unescaped except
-``"``, ``\\`` and the control characters, two-space indentation and a final
-newline. A float is always written as a float (``2.0``, ``1e-07``), spelled as
-Python's ``repr``; an integer never carries a decimal point or an exponent.
+The declared number type decides how an own-axis value is read, never its
+spelling, and writers respell every own-axis value as its axis's number type
+selects (the README's "Values on a timeline's own axis"): an integral float on
+an ``int`` axis as the integer it equals, an integer on a ``float`` axis as the
+float that equals it exactly, and a Fraction pair on a ``fraction`` axis
+reduced to lowest terms, its members integers. A value its number type cannot
+take, and every value on an axis whose ``unit`` or ``number_type`` is unknown,
+is written as given.
 """
 
 from __future__ import annotations
 
 import copy
-import json
+import math
+from collections import Counter
 from collections.abc import Callable, Mapping
 from fractions import Fraction
 from typing import Any
 
-__all__ = ["TIMESTAMP_DISPLAY", "canonical_json", "canonical_order", "dumps"]
+__all__ = ["TIMESTAMP_DISPLAY", "UNIT_NUMBER_TYPES", "canonical_order"]
 
 UNIT_NUMBER_TYPES = {
     "number": "float",
@@ -64,30 +58,51 @@ UNIT_NUMBER_TYPES = {
 }
 """The default number type of each unit."""
 
-_MAP_NUMBER_MEMBERS = {
-    "ConstantMap": {"values": ("value",)},
-    "LinearMap": {"values": ("scalar", "offset")},
-    "PiecewiseMap": {"arrays": ("breaks",)},
-    "TableMap": {"arrays": ("x_values", "y_values")},
-}
-"""The members of each conversion map type that hold a Number."""
-
-_MAP_NESTED_MEMBERS = {
-    "ChainMap": {"arrays": ("maps",)},
-    "CombinationMap": {"records": ("maps",)},
-    "PiecewiseMap": {"arrays": ("maps",)},
-}
-"""The members of each conversion map type that hold nested conversion maps."""
+_NUMBER_TYPES = ("int", "float", "fraction")
 
 TIMESTAMP_DISPLAY = ("wedge", "name", "id", "coordinate", "cross_section")
 """The words of a named timestamp's ``display``, in canonical order."""
 
-_ROW_NUMBER_MEMBERS = (
-    "qstamp",
-    "nominal_length",
-    "actual_length",
-    "offset_within_measure",
-)
+
+def _integral(value: Any) -> int | None:
+    """The integer a JSON integer or an integral float equals, else ``None``."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return int(value)
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    return None
+
+
+def fraction_pair(value: Any) -> Fraction | None:
+    """The value of a Fraction pair, or ``None`` when ``value`` is none.
+
+    A pair is two integers, an integral float counting as the integer it
+    equals, whose denominator is at least 1.
+    """
+    if not isinstance(value, list) or len(value) != 2:
+        return None
+    numerator, denominator = (_integral(member) for member in value)
+    if numerator is None or denominator is None or denominator < 1:
+        return None
+    return Fraction(numerator, denominator)
+
+
+def _exact(value: Any) -> Fraction:
+    """Return the exact value of a coordinate: a JSON number or a Fraction pair.
+
+    Raises:
+        TypeError: If the value is neither.
+        ValueError: If it is a NaN.
+        OverflowError: If it is an infinity.
+    """
+    pair = fraction_pair(value)
+    if pair is not None:
+        return pair
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        raise TypeError(f"not a number or a Fraction pair: {value!r}")
+    return Fraction(value)
 
 
 def _display_key(word: Any) -> tuple[int, int, str]:
@@ -96,7 +111,7 @@ def _display_key(word: Any) -> tuple[int, int, str]:
     A string the schema does not know follows them by code point, and any
     other value follows last in its given order, so ordering never fails.
     """
-    if word in TIMESTAMP_DISPLAY:
+    if isinstance(word, str) and word in TIMESTAMP_DISPLAY:
         return (0, TIMESTAMP_DISPLAY.index(word), "")
     if isinstance(word, str):
         return (1, 0, word)
@@ -111,80 +126,16 @@ def _order_displays(manifest: Any) -> None:
             timestamp["display"] = sorted(display, key=_display_key)
 
 
-def canonical_json(value: Any) -> str:
-    """Return the canonical JSON text of a value: keys sorted, no whitespace.
-
-    Raises:
-        ValueError: If the value holds a NaN or an infinity, or a string with a
-            lone surrogate (which UTF-8 cannot encode).
-    """
-    return _utf8(
-        json.dumps(
-            value,
-            sort_keys=True,
-            separators=(",", ":"),
-            ensure_ascii=False,
-            allow_nan=False,
-        )
-    )
-
-
-def _utf8(text: str) -> str:
-    """Return ``text``, refused if it holds a lone surrogate."""
-    try:
-        text.encode("utf-8")
-    except UnicodeEncodeError as error:
-        raise ValueError(f"a string holds a lone surrogate: {error}") from error
-    return text
-
-
-def _exact(value: Any) -> Fraction:
-    """Return the exact value of a bare Number: a JSON number or a pair.
-
-    An integral float in a Fraction pair counts as the integer it equals, as a
-    JavaScript reader cannot tell ``1.0`` from ``1``.
-    """
-    if isinstance(value, list) and len(value) == 2:
-        numerator, denominator = (_integer(item) for item in value)
-        if denominator > 0:
-            return Fraction(numerator, denominator)
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        raise TypeError(f"not a Number: {value!r}")
-    return Fraction(value)
-
-
-def spell(value: Any) -> str:
-    """Spell a value as a message quotes it.
-
-    A number is spelled as the standard writer spells it, an array as its
-    items separated by ``, `` within brackets (``[32, 1]``), anything else as
-    compact JSON. The JavaScript package spells numbers and arrays the same way.
-    """
-    if isinstance(value, list):
-        return "[" + ", ".join(spell(item) for item in value) + "]"
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
-    return repr(value)
-
-
-def _integer(value: Any) -> int:
-    if type(value) is int:
-        return value
-    if type(value) is float and value.is_integer():
-        return int(value)
-    raise TypeError(f"not an integer: {value!r}")
-
-
 def _sorted(entries: list[Any], key: Callable[[Any], Any], where: str) -> list[Any]:
     try:
         return sorted(entries, key=key)
-    except (KeyError, TypeError, ValueError, ZeroDivisionError) as error:
+    except (KeyError, TypeError, ValueError, OverflowError) as error:
         raise ValueError(f"cannot put {where} in canonical order: {error!r}") from error
 
 
 def _identifier(value: Any) -> str:
     if not isinstance(value, str):
-        raise TypeError(f"not an id: {value!r}")
+        raise TypeError(f"not a string: {value!r}")
     return value
 
 
@@ -196,9 +147,8 @@ def _order_timeline(timeline: dict[str, Any]) -> None:
     """Put the arrays of one timeline and its descendants in order, in place."""
     children = timeline.get("children")
     if isinstance(children, list):
-        for child in children:
-            if isinstance(child, dict):
-                _order_timeline(child)
+        for child in _dicts(children):
+            _order_timeline(child)
         timeline["children"] = _sorted(
             children,
             lambda entry: (_exact(entry["offset"]), _by_id(entry)),
@@ -222,42 +172,42 @@ def _order_timeline(timeline: dict[str, Any]) -> None:
         )
 
 
-def _integral(value: Any) -> Any:
-    """Return an integral float as the integer it equals, anything else as it is."""
-    if type(value) is float and value.is_integer():
-        return int(value)
-    return value
-
-
-def _fraction(value: Any) -> Any:
-    """Return a pair with its members spelled as integers, anything else as it is."""
-    if isinstance(value, list) and len(value) == 2:
-        return [_integral(member) for member in value]
-    return value
-
-
 def _on_axis(value: Any, number_type: str | None) -> Any:
-    """Return an own-axis value spelled as its axis's number type selects."""
+    """Return an own-axis value respelled as its axis's number type selects."""
     if number_type == "fraction":
-        return _fraction(value)
+        pair = fraction_pair(value)
+        return value if pair is None else [pair.numerator, pair.denominator]
     if number_type == "int":
-        return _integral(value)
-    if number_type == "float" and type(value) is int:
+        if isinstance(value, float) and value.is_integer():
+            return int(value)
+        return value
+    if (
+        number_type == "float"
+        and isinstance(value, int)
+        and not isinstance(value, bool)
+    ):
         try:
             double = float(value)
         except OverflowError:
             return value
-        return double if double == value else value
+        return double if math.isfinite(double) and double == value else value
     return value
 
 
 def _axis_type(timeline: Mapping[str, Any]) -> str | None:
-    """The number type of a timeline's axis, or ``None`` where it states none."""
-    number_type = timeline.get("number_type")
-    if number_type in ("int", "float", "fraction"):
-        return number_type
+    """The number type of a timeline's axis, or ``None`` where it is unknown.
+
+    A ``unit`` that is missing, not a string or not a unit is unknown, and so
+    is a ``number_type`` that is present but not one of the three types
+    (``null`` included); a missing ``number_type`` is the unit's default.
+    """
     unit = timeline.get("unit")
-    return UNIT_NUMBER_TYPES.get(unit) if isinstance(unit, str) else None
+    if not isinstance(unit, str) or unit not in UNIT_NUMBER_TYPES:
+        return None
+    if "number_type" not in timeline:
+        return UNIT_NUMBER_TYPES[unit]
+    number_type = timeline["number_type"]
+    return number_type if number_type in _NUMBER_TYPES else None
 
 
 def _dicts(value: Any) -> list[dict[str, Any]]:
@@ -266,31 +216,6 @@ def _dicts(value: Any) -> list[dict[str, Any]]:
         if isinstance(value, list)
         else []
     )
-
-
-def _respell_map(conversion_map: dict[str, Any]) -> None:
-    map_type = conversion_map.get("type")
-    if not isinstance(map_type, str):
-        return
-    members = _MAP_NUMBER_MEMBERS.get(map_type, {})
-    for key in members.get("values", ()):
-        if key in conversion_map:
-            conversion_map[key] = _fraction(conversion_map[key])
-    for key in members.get("arrays", ()):
-        if isinstance(conversion_map.get(key), list):
-            conversion_map[key] = [_fraction(value) for value in conversion_map[key]]
-    nested = _MAP_NESTED_MEMBERS.get(map_type, {})
-    for key in nested.get("values", ()):
-        if isinstance(conversion_map.get(key), dict):
-            _respell_map(conversion_map[key])
-    for key in nested.get("arrays", ()):
-        for entry in _dicts(conversion_map.get(key)):
-            _respell_map(entry)
-    for key in nested.get("records", ()):
-        record = conversion_map.get(key)
-        if isinstance(record, dict):
-            for entry in _dicts(list(record.values())):
-                _respell_map(entry)
 
 
 def _respell_axis(
@@ -302,33 +227,41 @@ def _respell_axis(
 
 
 def _respell_timeline(timeline: dict[str, Any], offset_type: str | None) -> None:
+    """Respell a timeline's own-axis values and its descendants', in place.
+
+    ``offset_type`` is the number type of the axis its ``offset`` lies on:
+    its own for a root, its parent's for a child.
+    """
     own = _axis_type(timeline)
-    _respell_axis(timeline, ("offset",), offset_type or own)
+    _respell_axis(timeline, ("offset",), offset_type)
     _respell_axis(timeline, ("length",), own)
     for region in _dicts(timeline.get("regions")):
         _respell_axis(region, ("start", "end"), own)
     for entry in _dicts(timeline.get("flow_control")):
         _respell_axis(entry, ("coordinate",), own)
-    for conversion_map in _dicts(timeline.get("conversion_maps")):
-        _respell_map(conversion_map)
     for child in _dicts(timeline.get("children")):
         _respell_timeline(child, own)
 
 
 def _axis_types(manifest: dict[str, Any]) -> dict[str, str | None]:
-    """The number type of every timeline's axis by ID, the first of a repeated ID."""
+    """The number type of every timeline's axis by ID.
+
+    An ID that names more than one timeline names no axis (``None``).
+    """
     found: dict[str, str | None] = {}
+    counts: Counter[str] = Counter()
 
     def visit(timeline: dict[str, Any]) -> None:
         identifier = timeline.get("id")
         if isinstance(identifier, str):
-            found.setdefault(identifier, _axis_type(timeline))
+            counts[identifier] += 1
+            found[identifier] = _axis_type(timeline)
         for child in _dicts(timeline.get("children")):
             visit(child)
 
     for timeline in _dicts(manifest.get("timelines")):
         visit(timeline)
-    return found
+    return {key: value if counts[key] == 1 else None for key, value in found.items()}
 
 
 def _timestamps(manifest: Any) -> Any:
@@ -337,24 +270,17 @@ def _timestamps(manifest: Any) -> Any:
 
 
 def _respell(manifest: Any) -> None:
-    """Spell every value of a manifest as its number type selects, in place.
+    """Respell every own-axis value of a manifest as its number type selects, in place.
 
-    An own-axis value on an int axis becomes a JSON integer, on a float axis
-    a float where one equals it exactly, and every member of a Fraction pair
-    (own-axis, conversion-map Numbers at any depth, MeasureMap rows) a JSON
-    integer where it is integral; a named timestamp's coordinate is read on
-    the axis of the timeline it names. Anything else is left as it is, so any
-    value may be given.
+    The own-axis values are a timeline's ``length`` and ``offset``, its
+    regions' ``start`` and ``end``, its flow-control coordinates and the
+    coordinate of every named timestamp on it. A timestamp whose
+    ``timeline`` names no timeline, or more than one, keeps its coordinate.
     """
     if not isinstance(manifest, dict):
         return
     for timeline in _dicts(manifest.get("timelines")):
-        _respell_timeline(timeline, None)
-    for measure_map in _dicts(manifest.get("measure_maps")):
-        for row in _dicts(measure_map.get("rows")):
-            for key in _ROW_NUMBER_MEMBERS:
-                if key in row:
-                    row[key] = _fraction(row[key])
+        _respell_timeline(timeline, _axis_type(timeline))
     axis_types = _axis_types(manifest)
     for timestamp in _dicts(_timestamps(manifest)):
         timeline = timestamp.get("timeline")
@@ -362,37 +288,37 @@ def _respell(manifest: Any) -> None:
             _respell_axis(timestamp, ("coordinate",), axis_types.get(timeline))
 
 
-def canonical_order(value: Any) -> Any:
-    """Return a deep copy of ``value``, its manifest in canonical order and spelling.
+def is_manifest(value: Any) -> bool:
+    """Whether a value is a manifest: an object whose ``timelines`` is an array."""
+    return isinstance(value, dict) and isinstance(value.get("timelines"), list)
 
-    A value with a top-level ``timelines`` array is a manifest: every timeline
-    in it is ordered at every depth and the array itself by id, its ``groups``
-    are ordered by id, each with its ``members`` by code point, its
-    ``measure_maps`` and its ``schemes`` by id and its ``graphical.timestamps``
-    by timeline, then coordinate, then id, each with its ``display`` in
-    canonical order.
-    Every value it reads by a number type is spelled as that type selects
-    (module docstring). Only the arrays listed in the module docstring move;
-    object keys are left as they are (``dumps`` sorts them), and any other
-    JSON value is copied unchanged.
+
+def canonical_order(value: Any) -> Any:
+    """Return a deep copy of ``value``, a manifest put in canonical order and spelling.
+
+    A value is a manifest when it is an object whose ``timelines`` member is
+    an array: its arrays are put in canonical order (module docstring) and
+    its own-axis values respelled. Object keys are left as they are (the
+    writers sort them), and every other value is copied unchanged.
 
     Raises:
-        ValueError: If a collection holds an entry whose ordering members are
-            missing or of the wrong type.
+        ValueError: If the manifest cannot be put in canonical order: an
+            entry of an ordered array of objects is not an object, lacks a
+            member it is ordered by or holds that member in a wrong type, or
+            a group's ``members`` holds a value that is not a string.
     """
     result = copy.deepcopy(value)
-    if not isinstance(result, Mapping) or not isinstance(result.get("timelines"), list):
+    if not is_manifest(result):
         return result
     _respell(result)
     timelines = result["timelines"]
-    for timeline in timelines:
-        if isinstance(timeline, dict):
-            _order_timeline(timeline)
+    for timeline in _dicts(timelines):
+        _order_timeline(timeline)
     result["timelines"] = _sorted(timelines, _by_id, "timelines")
     groups = result.get("groups")
     if isinstance(groups, list):
-        for group in groups:
-            if isinstance(group, dict) and isinstance(group.get("members"), list):
+        for group in _dicts(groups):
+            if isinstance(group.get("members"), list):
                 group["members"] = _sorted(group["members"], _identifier, "members")
         result["groups"] = _sorted(groups, _by_id, "groups")
     for key in ("measure_maps", "schemes"):
@@ -411,25 +337,3 @@ def canonical_order(value: Any) -> Any:
         )
     _order_displays(result)
     return result
-
-
-def dumps(value: Any) -> str:
-    """Return the standard text of a TimeToShare manifest, or of any JSON value.
-
-    The value is put in :func:`canonical_order`, then written as UTF-8 text
-    with the keys of every object sorted by code point, two-space indentation
-    and a final newline, characters unescaped
-    (``ensure_ascii=False``) and every float spelled as ``repr`` spells it.
-
-    Raises:
-        ValueError: If the value holds a NaN or an infinity, a string with a
-            lone surrogate (which UTF-8 cannot encode), or a collection that
-            cannot be put in canonical order.
-    """
-    ordered = canonical_order(value)
-    return _utf8(
-        json.dumps(
-            ordered, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False
-        )
-        + "\n"
-    )

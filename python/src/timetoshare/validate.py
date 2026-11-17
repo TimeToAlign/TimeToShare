@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import math
 from collections import defaultdict
 from collections.abc import Iterable, Iterator, Mapping
 from functools import cache
@@ -14,7 +13,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-from .manifest import spell
+from .serialization import spell
 from .validation.description import description_arrays, link_problems, scheme_problems
 from .validation.description import unregistered_terms as _terms
 from .validation.diagnostics import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
@@ -60,29 +59,6 @@ def load_schema() -> dict[str, Any]:
     """Return the cached parsed schema document; treat it as read-only."""
     with schema_path().open(encoding="utf-8") as handle:
         return json.load(handle)
-
-
-def loads(text: str) -> Any:
-    """Read JSON text as ``parseJson`` reads it in the JavaScript package.
-
-    Integers stay exact at any size and floats stay floats; the constants
-    ``NaN``, ``Infinity`` and ``-Infinity`` and a float beyond the range of a
-    double are refused.
-
-    Raises:
-        ValueError: If the text is not one JSON value or holds a non-finite number.
-    """
-
-    def floating(source: str) -> float:
-        value = float(source)
-        if not math.isfinite(value):
-            raise ValueError(f"{source} is beyond the range of a double")
-        return value
-
-    def constant(source: str) -> Any:
-        raise ValueError(f"{source} is not a JSON number")
-
-    return json.loads(text, parse_float=floating, parse_constant=constant)
 
 
 _BRANCHES = ("oneOf", "anyOf", "if", "then", "else")

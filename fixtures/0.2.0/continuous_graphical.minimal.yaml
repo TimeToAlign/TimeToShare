@@ -1,0 +1,35 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: cgt_1
+    -
+      coordinate: 600.0
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: cgt_1
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    children:
+      -
+        id: cgt_2
+        length: 200.0
+        locked: true
+        offset: 10.0
+        unit: points
+      -
+        id: cgt_3
+        length: 150.0
+        locked: true
+        offset: 300.0
+        unit: points
+    id: cgt_1
+    length: 600.0
+    unit: points
+timetoshare: "0.2.0"

@@ -7,7 +7,8 @@ from fractions import Fraction
 from itertools import pairwise
 from typing import Any
 
-from ..manifest import _exact, spell
+from ..manifest import _exact
+from ..serialization import spell
 from .diagnostics import SchemaValidationError, _entries, _Path, number_type_of
 from .representation import rewritten
 

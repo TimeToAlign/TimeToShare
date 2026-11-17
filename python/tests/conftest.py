@@ -78,7 +78,7 @@ def _respellable(canonical: bool) -> dict:
                             "id": "table",
                             "source_unit": "quarters",
                             "target_unit": "seconds",
-                            "x_values": [[0, 1], [number(1.0, 1), 2]],
+                            "x_values": [[0, 1], [1.0, 2]],
                             "y_values": [0.0, 0.5],
                             "kind": "linear",
                             "extrapolate": "none",
@@ -91,7 +91,7 @@ def _respellable(canonical: bool) -> dict:
                     "source_unit": "quarters",
                     "target_unit": "seconds",
                     "scalar": 1.0,
-                    "offset": [0, number(1.0, 1)],
+                    "offset": [0, 1.0],
                 },
             ],
             regions=[
@@ -118,8 +118,8 @@ def _respellable(canonical: bool) -> dict:
                 "rows": [
                     {
                         "count": 1,
-                        "qstamp": [0, number(1.0, 1)],
-                        "actual_length": [number(4.0, 4), 1],
+                        "qstamp": [0, 1.0],
+                        "actual_length": [4.0, 1],
                         "nominal_length": 4.0,
                     }
                 ],
@@ -132,15 +132,16 @@ def respellable() -> dict:
     """A manifest in canonical order whose values are spelled unlike their number types.
 
     A Fraction member is written as an integral float in a length, a child
-    offset, a region, a jump target, a nested TableMap's x value, a LinearMap's
-    offset and two values of a MeasureMap row; a ticks length and offset as
-    integral floats; a seconds length and region start as integers. The bare
-    LinearMap scalar ``1.0``, the TableMap's y values and the row's bare
-    ``nominal_length`` ``4.0`` have no declared number type.
+    offset, a region and a jump target; a ticks length and offset as integral
+    floats; a seconds length and region start as integers. Numbers that are no
+    own-axis values keep their spelling: a nested TableMap's x value
+    ``[1.0, 2]`` and y values, the LinearMap's ``scalar`` ``1.0`` and
+    ``offset`` ``[0, 1.0]``, and the MeasureMap row's ``[0, 1.0]``,
+    ``[4.0, 1]`` and ``4.0``.
     """
     return _respellable(canonical=False)
 
 
 def respelled() -> dict:
-    """``respellable()`` with every value spelled as its number type selects."""
+    """``respellable()`` with every own-axis value respelled by its number type."""
     return _respellable(canonical=True)

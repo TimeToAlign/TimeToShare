@@ -1,0 +1,49 @@
+graphical:
+  order: {}
+  statements: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: score
+groups: []
+links: []
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+name: null
+schemes: []
+timelines:
+  -
+    children:
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: coda
+        is_segment_line: false
+        length: [4, 1]
+        links: []
+        locked: true
+        meta: {}
+        name: null
+        number_type: fraction
+        offset: [12, 1]
+        regions: []
+        unit: quarters
+    conversion_maps: []
+    flow_control: []
+    id: score
+    is_segment_line: false
+    length: null
+    links: []
+    locked: true
+    meta: {}
+    name: null
+    number_type: fraction
+    regions: []
+    unit: quarters
+timetoshare: "0.2.0"

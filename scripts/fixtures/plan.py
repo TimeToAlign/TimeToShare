@@ -24,7 +24,7 @@ class FixtureCase:
     ``Timeline`` a manifest of one root and no group (the top directory),
     ``TimelineGroup`` an anonymous manifest of one group (``groups``) and
     ``AlignmentBundle`` any manifest (``bundles``). Cases sharing a name and
-    directory write ``<name>__<slug>.json`` each, the slug spelled from the
+    directory write ``<name>__<slug>.yaml`` each, the slug spelled from the
     built object's id. A fixture drawn under ``drawings/`` names the origin and
     length of each root it draws (``origin_and_length``), as an editor marks
     them; a corpus fixture, which is not drawn, ``timestamps``, whose
@@ -210,7 +210,7 @@ def plan(output: Path, generator: str) -> tuple[PlannedFixture, ...]:
         filename = case.name
         if counts[case.directory, case.name] > 1:
             filename = f"{filename}__{_slug(item.id)}"
-        path = output / case.directory / f"{filename}.json"
+        path = output / case.directory / f"{filename}.yaml"
         if path in claimed:
             raise SystemExit(
                 f"ids {claimed[path]!r} and {item.id!r} of {case.name!r} both "

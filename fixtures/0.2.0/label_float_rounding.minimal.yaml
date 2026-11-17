@@ -1,0 +1,23 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: take
+    -
+      coordinate: 312.48979591836735
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: take
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    id: take
+    length: 312.48979591836735
+    name: Take
+    unit: seconds
+timetoshare: "0.2.0"

@@ -32,6 +32,7 @@ from timetoshare import (
     dumps,
     fixture_paths,
     identity_problems,
+    loads,
     minimal,
     rejection_case,
     rejection_paths,
@@ -224,7 +225,7 @@ def test_two_readings_of_one_work_survive_in_their_order() -> None:
     )
     value = _bundle(scheme, first, second, minimal_form=True)
     validate(value)
-    read = json.loads(dumps(value))
+    read = loads(dumps(value))
     assert [Link.from_dict(entry) for entry in read["links"]] == [first, second]
     labels = [[slot["label"] for slot in entry["parts"]] for entry in read["links"]]
     assert labels == [
@@ -1051,7 +1052,7 @@ def test_the_shared_cases_through_the_description_layer_alone() -> None:
             assert problems == [], path.stem
     assert described == 19
     for path in fixture_paths():
-        assert description_problems(json.loads(path.read_text(encoding="utf-8"))) == []
+        assert description_problems(loads(path.read_text(encoding="utf-8"))) == []
 
 
 def _broken_elsewhere(**members: Any) -> dict[str, Any]:

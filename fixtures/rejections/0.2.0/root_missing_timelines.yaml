@@ -1,0 +1,5 @@
+code: schema
+manifest:
+  timetoshare: "0.2.0"
+path: []
+reason: "A manifest holds its timelines, an array that may be empty."

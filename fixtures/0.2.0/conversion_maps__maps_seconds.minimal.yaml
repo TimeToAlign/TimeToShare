@@ -1,0 +1,30 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: "maps:seconds"
+    -
+      coordinate: 2.0
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: "maps:seconds"
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    conversion_maps:
+      -
+        id: cmap_1
+        scalar: 48000
+        source_unit: seconds
+        target_unit: samples
+        type: LinearMap
+    id: "maps:seconds"
+    length: 2.0
+    name: "Second maps"
+    unit: seconds
+timetoshare: "0.2.0"

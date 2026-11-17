@@ -3,8 +3,10 @@
 The emitted manifests under ``fixtures/<version>/`` (drawings excluded), the
 hand-authored rejection cases under ``fixtures/rejections/<version>/`` and the
 hand-authored warning cases under ``fixtures/warnings/<version>/``, found
-beside the schema. Every case is read with :func:`~timetoshare.validate.loads`,
-as the JavaScript package reads it.
+beside the schema. They are written in canonical YAML (``.yaml``); a rejection
+or warning case about JSON text itself is written in JSON (``.json``). Every
+case is read with :func:`~timetoshare.serialization.loads`, as the JavaScript
+package reads it.
 """
 
 from __future__ import annotations
@@ -14,7 +16,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .validate import SCHEMA_VERSION, _data_root, loads
+from .serialization import loads
+from .validate import SCHEMA_VERSION, _data_root
 from .validation.diagnostics import _Path
 
 
@@ -23,15 +26,20 @@ def fixture_paths() -> list[Path]:
     directory = _data_root() / "fixtures" / SCHEMA_VERSION
     return sorted(
         path
-        for path in directory.rglob("*.json")
+        for path in directory.rglob("*.yaml")
         if "drawings" not in path.relative_to(directory).parts
+    )
+
+
+def _cases(directory: Path) -> list[Path]:
+    return sorted(
+        path for path in directory.iterdir() if path.suffix in (".yaml", ".json")
     )
 
 
 def rejection_paths() -> list[Path]:
     """Return the shared rejection cases, sorted by name."""
-    directory = _data_root() / "fixtures" / "rejections" / SCHEMA_VERSION
-    return sorted(directory.glob("*.json"))
+    return _cases(_data_root() / "fixtures" / "rejections" / SCHEMA_VERSION)
 
 
 @dataclass(frozen=True)
@@ -61,12 +69,14 @@ _NON_FINITE = {"NaN": math.nan, "Infinity": math.inf, "-Infinity": -math.inf}
 def rejection_case(path: Path) -> RejectionCase:
     """Read one shared rejection case from ``path``.
 
-    JSON holds no NaN and no infinity, so a case about the finite rule stores
-    a finite placeholder at its path and names the value to put there under
-    ``non_finite``; the reader puts it in place.
+    A case holds no NaN and no infinity, which no serialization writes, so a
+    case about the finite rule stores a finite placeholder at its path and
+    names the value to put there under ``non_finite``; the reader puts it in
+    place.
 
     Raises:
-        ValueError: If the file is not JSON or names an unknown non-finite value.
+        ValueError: If the file cannot be read or names an unknown non-finite
+            value.
     """
     case = loads(path.read_text(encoding="utf-8"))
     location = tuple(case["path"])
@@ -90,5 +100,4 @@ def rejection_case(path: Path) -> RejectionCase:
 
 def warning_paths() -> list[Path]:
     """Return the shared warning cases, sorted by name."""
-    directory = _data_root() / "fixtures" / "warnings" / SCHEMA_VERSION
-    return sorted(directory.glob("*.json"))
+    return _cases(_data_root() / "fixtures" / "warnings" / SCHEMA_VERSION)

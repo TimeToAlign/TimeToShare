@@ -20,7 +20,7 @@ classifiers = [
   "Topic :: File Formats :: JSON :: JSON Schema",
   "Typing :: Typed",
 ]
-dependencies = ["jsonschema>=4.26.0,<5"]
+dependencies = ["jsonschema>=4.26.0,<5", "PyYAML>=6.0.2,<7"]
 
 [project.urls]
 Repository = "https://github.com/TimeToAlign/TimeToShare"

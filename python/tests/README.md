@@ -24,8 +24,10 @@ suite, so both validators are held to the same paths and the same lists.
    neither is ever refused.
 4. `complete` and `minimal` convert between the complete and the minimal
    form, both pure, from one table of defaults that agrees with the schema.
-5. `canonical_order` and `dumps` write every manifest, bare own-axis values
-   included, as the same bytes as the JavaScript package.
+5. `dumps` writes every JSON value, a manifest put in canonical order and its
+   own-axis values respelled first, in canonical YAML, pretty JSON and RFC
+   8785 JSON, the same bytes as the JavaScript package; `loads` reads every
+   serialization and `serialization_of` names a text's.
 6. Schema, fixture, font and registry accessors resolve package data
    independently of the working directory; the wheel and the sdist ship the
    schema document, `docs/drawing.md`, the registry of identifier schemes and
@@ -231,34 +233,27 @@ at the length), a non-integral Fraction member (`length_fraction_member_not_inte
 (`child_offset_fraction_on_float_axis`), and a bare number on a fraction
 axis (`length_int_on_fraction_axis`, `region_start_float_on_fraction_axis`).
 
-**Readers coerce, writers spell canonically.** `complete` (so `minimal`
-too) and `canonical_order` (so `dumps` too) respell every value the manifest
-reads by a number type: an own-axis value on an int axis as a JSON integer,
-on a float axis as a float, and every member of a Fraction pair (own-axis,
-conversion-map Numbers at any depth, MeasureMap rows) as a JSON integer.
-`loads` and `validate` change nothing. A number whose place declares no
-number type (a conversion map's bare Number, a MeasureMap row's bare
-quarter value, a `repeat_count`, a free value) keeps its spelling, and a
-value that has no exact respelling (an integer beyond 2^53 on a float axis,
-which `validate` refuses) is left as written. What proves it
-(`test_manifest.py`): for that manifest, `complete`, `minimal` and
-`canonical_order` each give, compared as `canonical_json` texts (which tell
-`8.0` from `8`), exactly what they give for its literal twin `respelled()`,
-written canonically (`[32, 1]`, `[8, 1]`, `[0, 1]`, `[1, 2]`, `[2, 1]`,
-`[1, 2]`, `[0, 1]`, `[0, 1]`, `[4, 1]`, `480`, `240`, `60.0`, `0.0`, with
-`1.0`, `0.0`, `0.5` and `4.0` kept); `dumps` writes the twin's text; the twin
-is its own canonical order and spelling, so that text is the canonical one;
+**Readers coerce, writers respell own-axis values.** `complete` (so
+`minimal` too) and `canonical_order` (so `dumps` too) respell every own-axis
+value as its number type selects: on an int axis an integral float as the
+integer it equals, on a float axis an integer as the float that equals it
+exactly, on a fraction axis a pair reduced to lowest terms with integer
+members. `loads` and `validate` change nothing. Every other number (a
+conversion map's Numbers and pairs, a MeasureMap row's values, a
+`repeat_count`, a free value) keeps its spelling, and a value that has no
+exact respelling (an integer beyond 2^53 on a float axis, which `validate`
+refuses) is left as written. What proves it (`test_manifest.py`): for that
+manifest, `complete`, `minimal` and `canonical_order` each give, compared as
+pretty JSON texts of the value wrapped in an array (a wrapped value is no
+manifest, so its texts tell `8.0` from `8`), exactly what they give for its
+literal twin `respelled()`, written canonically (`[32, 1]`, `[8, 1]`, `[0,
+1]`, `[1, 2]`, `[2, 1]`, `480`, `240`, `60.0`, `0.0`, while the TableMap's
+`[1.0, 2]`, the LinearMap's `[0, 1.0]` and `1.0`, the y values `0.0` and
+`0.5` and the row's `[0, 1.0]`, `[4.0, 1]` and `4.0` are kept); `dumps`
+writes the twin's text; the twin is its own canonical order and spelling;
 and the input is unchanged. Each of the three equalities fails when the
 respelling is left out. A seconds length `9007199254740993` stays that
 integer.
-
-`test_number_members.py` derives every scalar and array member of a
-conversion map that can hold a Number (by reference or as a branch of an
-`anyOf`, as `ConstantMap.value` does), and every scalar, array and
-keyed-object member that holds a nested conversion map, from the schema's
-conversion-map definitions. It asserts exact equality with the respelling's
-two traversal tables, naming every missing or extra entry on failure, so a
-schema addition cannot escape the canonical spelling.
 
 An own-axis value (a timeline's `length` and `offset`, a region's `start` and
 `end`, a flow-control element's `coordinate`) is a bare Number whose representation the axis's number type
@@ -390,20 +385,25 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   child's `offset` stays in the minimal form.
 - **Values that differ from the default stay.** `locked: true`,
   `number_type` `float` on quarters and a `repeat_end` with `repeat_count` 2
-  survive `minimal`, the element keeping only its own non-default keys. A
-  value is the default only in
-  type and value: `repeat_count: 1.0` is a float, not the default `1`, and
-  survives `minimal` as `1.0`; were it stripped, `complete` would restore it
-  as `1` and change the document. So do a `LinearMap`'s `scalar` `[1, 1]`
-  and `offset` `0.0`, which equal but are not the defaults 1 and 0.
+  survive `minimal`, the element keeping only its own non-default keys.
+- **Numbers compare by value.** `repeat_count: 1.0`, a `LinearMap`'s
+  `scalar` `1.0` and `[1, 1]` and its `offset` `0.0` and `[0, 3]` equal
+  their defaults 1 and 0 and are left out by `minimal`; `repeat_count: 2.0`
+  and `scalar` `[1, 2]` stay; `false` is not the number 0 and `0` is not
+  `null`. A named timestamp's `display` given `["name", "wedge",
+  "cross_section"]` and a child's `offset` `[4, 8]` on quarters are compared
+  after canonical order and respelling, so the `display` is left out and the
+  offset written `[1, 2]`.
 - **Unknown keys pass through** both functions, at every depth, untouched.
 - **`length` survives** both, `null` included.
 - **The round trips.** For each of these documents (a `repeat_end` with
   `repeat_count: 1.0` among them) and for every fixture,
   `minimal(complete(x)) == minimal(x)`, `complete(minimal(x)) == complete(x)`
   and both results validate; both functions return new objects and leave
-  their input unchanged. The equalities compare the texts `dumps` writes,
-  since Python's `==` takes `1.0` for `1`.
+  their input unchanged. The first equality compares the canonical YAML
+  texts, which tell `1.0` from `1`; the second compares the RFC 8785 JSON
+  texts, which compare numbers by value, since `minimal` leaves out a
+  `repeat_count: 1.0` that `complete` then restores as `1`.
 
 ## The rules and their codes
 
@@ -750,13 +750,6 @@ in a fraction pair of a region and negative infinity in a style, each in a
 manifest whose repeated root also breaks the identity rules, raise
 `finite_number` at the leaf with the message of the table.
 
-**Reading JSON.** `loads` reads text as the JavaScript package's `parseJson`
-does, with the same cases as its tests: `0.5`, `2.0`,
-`123456789012345678`, `-0` (the integer 0), `-0.0` (a negative float zero)
-and `1E5` (a float) keep their kinds, an integer beyond 64 bits stays exact,
-and `""`, `[1,]`, `{1: 2}`, `01`, `[1] 2`, `nul`, `1e400`, `NaN` and
-`-Infinity` raise `ValueError`.
-
 ## The description layer
 
 A link describes its element by pointing to an external entity; the model
@@ -764,7 +757,7 @@ writes links, reads them back and builds them from URLs. What proves it
 (`test_description.py`, `test_registry.py`):
 
 - **The registry is the shipped file.** `registry/schemes.json` is written
-  by `dumps`, and the default registry holds exactly its eight entries, in
+  in pretty JSON by `dumps(…, serialization="json")`, and the default registry holds exactly its eight entries, in
   this order, each with its scheme URI, level, entity URI template and
   `lowercase`:
   `musicbrainz_work` (`http://www.wikidata.org/entity/P435`, `work`,
@@ -1004,16 +997,105 @@ out `b`, `a`, `m`, `z`; roots, groups, members and MeasureMaps (`mﬀ`,
 `timelines` array is copied as it is; a member that is not a string and two
 regions without `start` are refused (`cannot put … in canonical order`).
 
-## The standard writer
+The respelling and the failures are pinned by inline values besides
+(`test_serialization.py`): an unknown `unit` (`furlongs`), a missing one and
+one that is not a string, and a `number_type` that is not one of the three
+(`"decimal"`, `null`, `1`), each leave `length`, `offset`, a region and a
+flow-control coordinate as given, while a known unit without `number_type`
+takes its default (`2.0` on ticks written `2`); a child in quarters under a
+root of unknown unit has its `length` `[4, 8]` written `[1, 2]` and its
+`offset` `[4, 8]` as given; a child's `offset` follows its parent's number
+type (`2` under seconds written `2.0` while the child is in ticks); a
+timestamp naming a timeline twice or no timeline keeps its coordinate (`2`
+on a float axis stays `2`). A writer refuses with `ValueError` (`cannot put
+… in canonical order`) each of: an entry of `timelines` that is not an
+object, a child without `offset`, a region whose `start` is a string, a
+timeline whose `id` is an integer, a timestamp whose `timeline` is an
+integer, a group member that is an integer, a coordinate `[1, 0]`, `[1, 2,
+3]` and `true`; a NaN offset is refused as a non-finite number, checked
+before any ordering; `{"timelines": ["b", "a"]}` is a manifest and refused;
+a member that holds no array (`children: "x"`, `groups: "g"`) is written as
+given. Entries that tie on every member they are ordered by keep their given
+order (two timelines `t` given `second` then `first` by name come out
+`second`, `first`).
 
-`dumps` writes the canonical order with keys sorted by code point, two-space
-indentation, a final newline, characters unescaped except `"`, `\` and the
-control characters, floats as `repr` spells them, integers without a point.
-What proves it: every fixture, rejection case and warning case, and the
-registry file, is reproduced
-byte for byte by `dumps(json.loads(text))`; a literal key-sorting text; the
-shared number corpus (identical in the JavaScript suite) with its one
-expected text; the refusals of NaN, infinity and lone surrogates.
+## The serializations
+
+`dumps(value, serialization)` writes canonical YAML (`"yaml"`, the
+default), pretty JSON (`"json"`) and RFC 8785 JSON (`"jcs"`); `loads` reads
+any text and `serialization_of` names a text's serialization. They live in
+`timetoshare.serialization`. What proves them (`test_serialization.py`):
+
+- **The shared cases.** Every file of `fixtures/serializations/` is walked
+  as that directory's README states, read as bytes and decoded as UTF-8
+  with a leading U+FEFF kept. For every case, `canonical.yaml` and
+  `pretty.json` read to one value V, kind for kind, which is written byte
+  for byte as `canonical.yaml`, `pretty.json` and `rfc8785.json`, and `dumps(V, "jcs")` raises `ValueError` where
+  `rfc8785.json` is absent; `rfc8785.json` reads to V with every float
+  whose RFC 8785 spelling has neither `.` nor an exponent replaced by the
+  integer it equals; each text read and written again in its own
+  serialization gives its own bytes; for the five manifest cases the value
+  read from `rfc8785.json` is written as `canonical.yaml`. Every reading
+  written in canonical YAML gives its `.expected.yaml`, and in RFC 8785
+  JSON its `.expected.rfc8785.json` where one exists; every refusal raises
+  `ValueError`; every writer refusal raises `ValueError` in exactly the
+  serializations the directory's README names, and every file of
+  `refusals-writing/` is named in the test's table; `serialization_of` gives
+  the README's name for every file, and never raises. Values are compared
+  kind for kind (an integer equals only an integer, `-0.0` differs from
+  `0.0`).
+- **What the reading rules no longer decide.** A YAML text is read by
+  PyYAML's safe loader under the YAML 1.2 core schema, with the value checks
+  below; a text beyond the constructs canonical YAML writes is read as that
+  parser reads it, and a rule of the text itself (characters, byte order
+  marks other than the one leading U+FEFF, directives, the span of a key,
+  an empty text) is no longer a refusal. The readings and refusals that pin
+  such behaviour are skipped with the reason "outside the YAML guarantee",
+  each named in `test_serialization.py` (`READINGS_OUTSIDE_THE_GUARANTEE`,
+  `REFUSALS_NO_LONGER_DECIDED`), each applying only where its file is
+  present. `serialization_of` of an `.expected.yaml` is `"json"` exactly
+  where the standard library's JSON reader reads the text.
+- **The YAML reader.** Plain scalars resolve by the core schema: `no` and
+  `y` are strings, `2026-11-17`, `1:20`, `1_000` and `0b101` strings,
+  `1e-05` a float, `2` an integer, `0x1F` 31, `0o17` 15, `010` 10, `~` and an
+  empty value null, `True` a boolean; an integer of 2^70 stays exact;
+  `!!str 1` is the string `"1"` and `!!float 2` the float 2.0; an empty text,
+  one of comments only and one of blank lines read as null; `"😀"`
+  is U+1F600. Refused, with exactly the stated message naming the line and
+  column: a repeated key, an anchor, an alias, an integer key and a
+  collection key, the tags `!!timestamp`, `!!binary`, `!!set` and `!!omap`,
+  `.inf`, `1e309`, the escape `\ud800` and a second document.
+- **The float spelling.** The README's examples: `2.0`, `123.25`, `0.1`,
+  `0.0001`, `1.0e-05`, `-2.5e-07`, `1000000000000000.0`, `1.0e+16`,
+  `1.5e+16`, `5.0e-324`, `1.7976931348623157e+308`, `-0.0`, `5.0e-05` and
+  `1.0e+21`; in RFC 8785 JSON `2`, `1700000000`, `1503.25`, `0.00001`,
+  `1e+21`, `1e-7`, `1.5e-10`, `0.00005` and `0` for both zeros.
+- **The writers' refusals.** NaN, infinity and negative infinity, a lone
+  surrogate in a string and in a key raise `ValueError` in every
+  serialization; a key of 1024 UTF-16 code units in canonical YAML form
+  (1024 plain letters; 1021 letters and a space, quoted; 511 tabs, each
+  escaped `\t`, quoted; 511 characters above U+FFFF, quoted) is written, one
+  of 1025 (1025 letters; 1022 letters and a space; 511 tabs and a letter;
+  511 characters above U+FFFF and a letter) refused in every serialization,
+  nested in an object as at the top level; in RFC 8785 JSON the integers ±2^53 and 2^64 and the
+  integral floats 2^53, −10^16, 10^20 and 10^21 − 2^17 are refused,
+  ±(2^53 − 1) and 10^21 written. A tuple, a set, a Fraction and an object
+  with an integer key raise `TypeError`; an unknown serialization name
+  raises `ValueError`.
+- **The JSON reader.** `0.5`, `2.0`, `123456789012345678`, `-0` (the
+  integer 0), `-0.0` (a negative float zero) and `1E5` (a float) keep their
+  kinds, an integer beyond 64 bits stays exact; `[1,]`, `{1: 2}`, `[1] 2`,
+  `{"a": NaN}`, `[-Infinity]` and `1e400` (a JSON text whose number rounds
+  to an infinity) raise `ValueError`; `""`, `01`, `nul`, `NaN` and
+  `-Infinity` are no JSON texts and open with neither `{` nor `[`, so they
+  are read as YAML, to null, 1 and the strings `nul`, `NaN` and `-Infinity`; `{"a": 1, "a": 2}`, `["\ud800"]` and a string holding U+D800 as
+  itself raise `ValueError` naming the line and column. A single U+FEFF
+  before a JSON text is removed; `serialization_of` gives `"json"` for `{}`
+  after a U+FEFF, `"jcs"` for `{}`, `"yaml"` for `a: 1` and `"json"` for
+  `{"a": "\ud800"}` and for `[1,` and never raises.
+- **Every standard file.** The registry and the font metrics are reproduced
+  byte for byte by `dumps(loads(text), serialization="json")`; every fixture,
+  rejection case and warning case written in canonical YAML by `dumps`.
 
 ## The fixture set
 
@@ -1021,8 +1103,8 @@ The fixtures under `fixtures/0.2.0/` are emitted by timetoalign, never
 written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` lists nothing, `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. `fixture_paths()` lists every
-`*.json` under `fixtures/0.2.0/` except the drawings. The styled fixtures
-`styled__score.json` and `styled__performance.json` carry the literally
+`*.yaml` under `fixtures/0.2.0/` except the drawings. The styled fixtures
+`styled__score.yaml` and `styled__performance.yaml` carry the literally
 stated `graphical` objects (20 and 3 statements, and the score's band order
 with its markers band above its line and its map below), the
 score's elements addressed by `Address` objects (`{"id": "intro", "part":
@@ -1042,18 +1124,18 @@ defines none of them, so each has one home.
 Two properties of the emitted set are pinned because a hand-written document
 cannot prove that the emitter produces them:
 
-- **A timeline in several groups.** `bundles/bundle_shared_member.json` and
+- **A timeline in several groups.** `bundles/bundle_shared_member.yaml` and
   its twin hold the groups `g1` with the members `t`, `u` and `g2` with `t`,
   `v`; besides passing the checks above, `identity_problems` finds nothing
   in either form, so a member shared between groups, as the emitter writes
   it, passes both the schema and the identity rules.
-- **Free IDs.** `bundles/bundle_free_ids.json` holds the roots
+- **Free IDs.** `bundles/bundle_free_ids.yaml` holds the roots
   `https://example.org/piece/score` and `perf/take 2`, their regions
   `https://example.org/piece/score#exposition` and `take 2/intro`, one
   group holding both roots, and one statement selecting `{"id": "take
   2/intro"}`, each ID written as given, so the emitter keeps an ID holding
   a slash, a space, a colon or a `#` verbatim.
-- **Named timestamps.** `timestamps.json` and its twin hold the three
+- **Named timestamps.** `timestamps.yaml` and its twin hold the three
   timestamps `timestamp_1` (`Downbeat`, `[3, 2]` on the root `clt_1`),
   `timestamp_2` (`Climax`, `[6, 1]` on `clt_1`) and `timestamp_3` (`Entry`,
   `[1, 1]` on the child `clt_2`), in that canonical order, and no
@@ -1150,7 +1232,8 @@ one table. What proves the table:
   each the nearest integer to Noto Music's advance times 2048 over its
   units per em, computed as an exact fraction (no added advance lies on a
   tie).
-- **The file is the script's.** `dumps` reproduces the metrics file; the
+- **The file is the script's.** `dumps(…, serialization="json")` reproduces
+  the metrics file; the
   extraction script reproduces it from the bundled fonts and refuses either
   font altered by one byte, naming the file and both digests; access works
   from any working directory.

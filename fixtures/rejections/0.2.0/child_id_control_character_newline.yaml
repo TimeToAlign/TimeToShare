@@ -1,0 +1,41 @@
+code: schema
+manifest:
+  groups: []
+  links: []
+  measure_maps: []
+  meta: {}
+  name: null
+  schemes: []
+  timelines:
+    -
+      children:
+        -
+          children: []
+          conversion_maps: []
+          flow_control: []
+          id: "child\nid"
+          is_segment_line: false
+          length: [8, 1]
+          links: []
+          locked: true
+          meta: {}
+          name: null
+          number_type: fraction
+          offset: [0, 1]
+          regions: []
+          unit: quarters
+      conversion_maps: []
+      flow_control: []
+      id: bare
+      is_segment_line: false
+      length: [8, 1]
+      links: []
+      locked: false
+      meta: {}
+      name: Bare
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+path: [timelines, 0, children, 0, id]
+reason: "A child's id contains no control character."

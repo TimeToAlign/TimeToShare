@@ -5,7 +5,8 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import Any
 
-from ..manifest import _exact, spell
+from ..manifest import _exact
+from ..serialization import spell
 from .diagnostics import SchemaValidationError, _entries, _Path
 
 MEASURE_VIEWS = frozenset(

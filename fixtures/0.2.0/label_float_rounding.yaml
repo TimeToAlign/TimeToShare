@@ -1,0 +1,40 @@
+graphical:
+  order: {}
+  statements: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: take
+    -
+      coordinate: 312.48979591836735
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: take
+groups: []
+links: []
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+name: null
+schemes: []
+timelines:
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: take
+    is_segment_line: false
+    length: 312.48979591836735
+    links: []
+    locked: false
+    meta: {}
+    name: Take
+    number_type: float
+    regions: []
+    unit: seconds
+timetoshare: "0.2.0"

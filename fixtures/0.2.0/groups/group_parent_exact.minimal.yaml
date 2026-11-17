@@ -1,0 +1,55 @@
+graphical:
+  order:
+    group_1: [whole, recording]
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: recording
+    -
+      coordinate: 10.0
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: recording
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_3
+      name: origin
+      timeline: whole
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate]
+      id: timestamp_4
+      name: length
+      timeline: whole
+groups:
+  -
+    id: group_1
+    members: [recording, whole]
+    name: Whole
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    children:
+      -
+        id: whole
+        length: [16, 1]
+        locked: true
+        name: Whole
+        offset: [0, 1]
+        unit: quarters
+    id: piece
+    length: [16, 1]
+    name: Piece
+    unit: quarters
+  -
+    id: recording
+    length: 10.0
+    name: Recording
+    unit: seconds
+timetoshare: "0.2.0"
