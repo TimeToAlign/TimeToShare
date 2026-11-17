@@ -15,11 +15,12 @@ The directories sort the manifests by content only:
   group;
 - under `groups/`, manifests holding one group;
 - under `bundles/`, manifests of several groups, several ungrouped roots,
-  or both.
+  or both, and manifests without timelines (`op106_work`, which links the
+  manifest alone to a work and the parts of its reading).
 
 Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
 `groups/` and 12 under `bundles/`, 72 in all, each with its minimal twin, so
-144 files. Beside them lie 125 rejection cases and 17 warning cases.
+144 files. Beside them lie 129 rejection cases and 17 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -302,7 +303,9 @@ current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
-ones (`corpus_*`) at the default placement, and eighteen variants. The
+ones (`corpus_*`) and two others at the default placement, and eighteen
+variants: `bundles/op106_work` has no drawing, since it holds no timeline to
+draw, and the drawing of `links` is pending. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -385,7 +388,7 @@ code with the case's. The cases cover every code:
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timetoshare` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 70 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, among them), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, and the links of the description layer, whose thirteen cases are named `description_*`: a link without `relation` or `level`, an unknown level, an agent link using `pertains_to`, a part slot both represented and absent or neither, parts or a `part_of` entry without `parts_relation`, an unknown `match` or `status`, an `asserted_on` that is no `YYYY-MM-DD` date, a `uri` that is no absolute URI and a record without `url` |
+| `schema` | the schema document | 73 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, and a root ID followed by a newline, `id_control_character_trailing_newline`, among them), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, and the links of the description layer, whose fifteen cases are named `description_*`: a link without `relation` or `level`, an unknown level, an agent link using `pertains_to`, a part slot both represented and absent or neither, parts or a `part_of` entry without `parts_relation`, a `parts_relation` without parts (`description_parts_relation_without_parts`), `parts_ordered` false without parts (`description_parts_ordered_without_parts`), an unknown `match` or `status`, an `asserted_on` that is no `YYYY-MM-DD` date, a `uri` that is no absolute URI and a record without `url` |
 | `representation` | an own-axis value can be read as its axis's number type, however it is spelled | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis` |
 | `duplicate_id` | every ID unique across the manifest, that of a map another map holds, of a named timestamp and of a scheme included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id`, `description_scheme_id_duplicate` |
 | `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps`, a part slot's `represented_by` a timeline or a region, and an identifier's `scheme` a scheme of the manifest unless it is an absolute URI | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling`, `description_slot_represented_by_unresolved`, `description_identifier_scheme_unresolved` |
@@ -401,6 +404,11 @@ code with the case's. The cases cover every code:
 | `band_order` | a band order is a permutation of `line` and the five facets | `band_order_unknown_entry`, `band_order_missing_band` |
 | `timestamp_timeline` | a named timestamp names a timeline of the manifest | `timestamp_timeline_unknown` |
 | `timestamp_coordinate` | a named timestamp's coordinate lies from 0 to its timeline's own length, from 0 on where the length is unknown | `timestamp_coordinate_beyond_length`, `timestamp_coordinate_negative` |
+| `calendar_date` | an assertion's `asserted_on` names a day of the Gregorian calendar from 0001-01-01 | `description_asserted_on_impossible_date` |
+
+The nineteen cases named `description_*` break the description layer:
+fifteen the schema, two `dangling_target`, one `duplicate_id` and one
+`calendar_date`.
 
 `version_unknown` names the version 0.1.0, which 0.2.0 replaces; its `code` is `null` and its
 `"error": "UnsupportedVersionError"` names the error both packages raise
