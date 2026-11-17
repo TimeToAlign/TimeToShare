@@ -118,7 +118,10 @@ line and column counted from one: a `MarkedYAMLError` from its
 or a lone surrogate written as itself) from its `position`, an index
 into the text; and a `RecursionError`, raised when
 collections nest deeper than Python's recursion limit allows (about 330
-levels under the default limit), from the start mark of the next event.
+levels under the default limit), from the start mark of the node the
+loader last began to compose or construct (the parser's own state may be
+left mid-token by the error, so the next event cannot be asked for).
+Columns count code points.
 An empty text, or one of comments only, reads as null; `---` alone too.
 
 Verified on 2026-11-17 with PyYAML 6.0.3 on Python 3.11: `k: no` →
