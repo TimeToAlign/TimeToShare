@@ -33,19 +33,16 @@ significant, line ends and final line feeds included
 
 Every YAML reading but those named here uses only the constructs of
 canonical YAML, which every conforming YAML parser reads alike. The others pin what
-the README decides beyond them: the empty text and texts of whitespace or
-comments only (`empty`, `bom_only`, `whitespace_only`, `comments_only`),
-the core schema's resolution of plain scalars (`yaml_core_schema`,
-`yaml_unsorted_keys`, `yaml_top_level_tilde`,
+the README decides beyond them: the empty text and texts of blank lines
+(spaces only) or comments only (`empty`, `bom_only`, `whitespace_only`,
+`comments_only`), the core schema's resolution of plain scalars
+(`yaml_core_schema`, `yaml_unsorted_keys`, `yaml_top_level_tilde`,
 `yaml_top_level_minus_infinity`, `yaml_float_edges`,
 `yaml_float_underflow_negative`) and a surrogate pair written as two
-escapes (`yaml_surrogate_pair_escape`).
-
-One reading is a known issue of the Python package when PyYAML's C
-extension is installed: libyaml refuses a surrogate written as an escape,
-so it refuses `readings/yaml_surrogate_pair_escape.yaml`, which PyYAML's
-pure-Python loader reads. Python tests mark it as a documented known issue
-under the C loader; every other reader reads it.
+escapes (`yaml_surrogate_pair_escape`). Canonical YAML holds no literal
+tab, escaping every tab as `\t`, so no YAML text here holds one: a tab
+anywhere in a YAML text, a line of a tab alone or a tab before a comment
+included, lies outside what these cases cover.
 
 ## How a package test uses them
 
@@ -180,7 +177,8 @@ memory.
 | `manifest_respelled` | `2.0` on an `int` axis, `2` on a `float` axis, `[33, 2.0]`, a child's `offset`, a region, a flow-control coordinate, a root's `offset`, a `number_type` overriding the unit's default | own-axis values respelled as their number type selects |
 | `manifest_fraction_reduced` | `[64, 2]`, `[4, 8]`, `[4.0, 2]`, `[6.0, 4.0]`, `[0, 5]`, `[-6, 4]`, `[0, 3]`; a child whose `number_type` is `float` under a `fraction` parent | Fraction pairs reduced to lowest terms, members integers; a child's `offset` takes the parent's number type, its `length` its own; RFC 8785 JSON is written from the respelled value (`manifest_fraction_reduced.expected.rfc8785.json`, 429 bytes) |
 | `manifest_respelled_edges` | `-0.0` and `1.0e+20` on an `int` axis, 2^53 on a `float` axis | an integral float on an `int` axis written as the integer of its exact value; an integer a float equals written as that float |
-| `manifest_written_as_given` | `2.5` and `[1, 2]` on an `int` axis; 2^53 + 1 and `[4, 8]` on a `float` axis; `2`, `2.0`, `[1, 2.5]`, `[3, -2]` and `[1, 0]` on a `fraction` axis; an unknown `unit` (with a child) and an unknown `number_type` | a value its number type cannot take, and every value on an axis whose unit or number type is unknown, is written as given |
+| `manifest_written_as_given` | `2.5` and `[1, 2]` on an `int` axis; 2^53 + 1, 2^1024 + 1 (beyond every double) and `[4, 8]` on a `float` axis; `2`, `2.0`, `[1, 2.5]`, `[3, -2]` and `[1, 0]` on a `fraction` axis; an unknown `unit` (with a child) and an unknown `number_type` | a value its number type cannot take, an integer no float can hold included, and every value on an axis whose unit or number type is unknown, is written as given |
+| `manifest_maps_as_given` | a `LinearMap` whose `scalar` is `[4, 8]` and `offset` `2.0`, a `MeasureNumberMap`, and a MeasureMap row whose `nominal_length` and `actual_length` are `[4, 8]`, beside the timeline's `length` `[64, 8]` on a `fraction` axis | the numbers of conversion maps and MeasureMap rows are written as given, neither respelled nor reduced, while the own-axis `length` is reduced to `[8, 1]`; conversion maps ordered by ID |
 | `manifest_timestamp_respelled` | named-timestamp coordinates `3` on a `float` axis, `3.0` on an `int` axis, `[2, 4]` on a child's `fraction` axis | named-timestamp coordinates are own-axis values of the timeline they name, at any depth |
 | `timelines_without_version` | an object whose `timelines` is an array, without `timetoshare`, with values to respell | it is a manifest: its timelines are ordered and its own-axis values respelled |
 | `embedded_manifest_unsorted` | a manifest inside a value that is not one, with unsorted keys, unordered timelines and values a manifest would respell | of an embedded manifest only the keys are sorted |

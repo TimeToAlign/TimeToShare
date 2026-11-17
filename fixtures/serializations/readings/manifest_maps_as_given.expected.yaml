@@ -1,0 +1,30 @@
+measure_maps:
+  -
+    id: measuremap_1
+    rows:
+      -
+        actual_length: [4, 8]
+        count: 1
+        nominal_length: [4, 8]
+        qstamp: 0
+        time_signature: "1/8"
+timelines:
+  -
+    conversion_maps:
+      -
+        id: cmap_1
+        offset: 2.0
+        scalar: [4, 8]
+        source_unit: quarters
+        target_unit: seconds
+        type: LinearMap
+      -
+        id: cmap_2
+        measure_map: measuremap_1
+        source_unit: quarters
+        target_unit: null
+        type: MeasureNumberMap
+    id: score
+    length: [8, 1]
+    unit: quarters
+timetoshare: "0.2.0"
