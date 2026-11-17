@@ -1,6 +1,7 @@
 /**
  * @timetoalign/timetoshare: the TimeToShare schema, generated types, a
- * validator, the complete and minimal forms, lossless reading and writing,
+ * validator, the complete and minimal forms, reading and writing in three
+ * serializations (canonical YAML, pretty JSON and RFC 8785 JSON),
  * and the fonts that draw a drawing's text with the table that measures it.
  *
  * A TimeToShare manifest is one JSON object holding the version marker
@@ -105,7 +106,6 @@ export type {
   Uri,
   UriReference,
 } from "./generated/types.js";
-export { JsonSyntaxError, parseJson } from "./json/parse.js";
 export {
   isJsonFloat,
   isJsonObject,
@@ -114,8 +114,13 @@ export {
   type JsonNumber,
   type Lossless,
 } from "./json/value.js";
-export { canonicalJson, compactJson } from "./json/write.js";
-export { canonicalOrder, dumps, TIMESTAMP_DISPLAY } from "./manifest/order.js";
+export { canonicalOrder, TIMESTAMP_DISPLAY } from "./manifest/order.js";
+export { JsonSyntaxError, YamlSyntaxError } from "./serialization/errors.js";
+export { parseJson } from "./serialization/json.js";
+export { loads, serializationOf } from "./serialization/read.js";
+export { compactJson } from "./serialization/text.js";
+export { type DumpsOptions, dumps, type Serialization } from "./serialization/write.js";
+export { parseYaml } from "./serialization/yaml.js";
 export { completeStyles } from "./styles.js";
 export {
   descriptionProblems,

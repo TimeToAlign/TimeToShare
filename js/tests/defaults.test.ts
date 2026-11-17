@@ -11,8 +11,9 @@ import type {
 } from "../src/generated/types.js";
 import type { JsonObject } from "../src/json/value.js";
 import { type Json, JsonFloat, type Lossless } from "../src/json/value.js";
-import { compactJson } from "../src/json/write.js";
-import { dumps } from "../src/manifest/order.js";
+import { loads } from "../src/serialization/read.js";
+import { compactJson } from "../src/serialization/text.js";
+import { dumps } from "../src/serialization/write.js";
 import { parse, validate } from "../src/validate.js";
 import { bundle, fixtureFiles, fixtureText, manifest, timeline } from "./fixtures.js";
 
@@ -333,24 +334,25 @@ describe("the complete and the minimal form", () => {
     );
   });
 
-  it("takes a value of another type for no default", () => {
+  it("omits a value of another kind equal to its default", () => {
+    const map = { type: "LinearMap", id: "l", source_unit: "quarters", target_unit: "seconds" };
     const value = manifest([
       timeline("score", "quarters", [8, 1], {
         flow_control: [{ ...REPEAT, coordinate: [1, 1], repeat_count: new JsonFloat(1) }],
-        conversion_maps: [
-          {
-            type: "LinearMap",
-            id: "l",
-            source_unit: "quarters",
-            target_unit: "seconds",
-            scalar: [1, 1],
-            offset: new JsonFloat(0),
-          },
-        ],
+        conversion_maps: [{ ...map, scalar: [1, 1], offset: new JsonFloat(-0) }],
       }),
     ]);
-    expect(dumps(minimal(value))).toBe(dumps(value));
-    expect(dumps(complete(minimal(value)))).toBe(dumps(complete(value)));
+    const stripped = manifest([
+      timeline("score", "quarters", [8, 1], {
+        flow_control: [{ ...REPEAT, coordinate: [1, 1] }],
+        conversion_maps: [map],
+      }),
+    ]);
+    expect(minimal(value)).toEqual(stripped);
+    expect(dumps(complete(minimal(value)))).toBe(dumps(complete(stripped)));
+    const completed = root(complete(value));
+    expect((completed.flow_control as JsonObject[])[0]?.repeat_count).toEqual(new JsonFloat(1));
+    expect((completed.conversion_maps as JsonObject[])[0]?.scalar).toEqual([1, 1]);
   });
 
   it("passes unknown keys through", () => {
@@ -416,14 +418,6 @@ describe("the complete and the minimal form", () => {
         ],
         { graphical: {} },
       ),
-    ],
-    [
-      "a float repeat count",
-      manifest([
-        timeline("score", "quarters", [8, 1], {
-          flow_control: [{ ...REPEAT, coordinate: [4, 1], repeat_count: new JsonFloat(1) }],
-        }),
-      ]),
     ],
   ])("round-trips %s", (_name, value) => {
     const given = compactJson(value as Lossless<Json>);
@@ -538,20 +532,20 @@ describe("the typed forms", () => {
     expect(ordered).not.toBe(COMPLETE);
   });
 
-  const twins = fixtureFiles().filter((file) => file.endsWith(".minimal.json"));
+  const twins = fixtureFiles().filter((file) => file.endsWith(".minimal"));
 
   it("have a minimal twin for every fixture", () => {
     expect(twins.length).toBe(72);
-    expect(twins.map((twin) => twin.replace(/\.minimal\.json$/, ".json"))).toEqual(
-      fixtureFiles().filter((file) => !file.endsWith(".minimal.json")),
+    expect(twins.map((twin) => twin.replace(/\.minimal$/, ""))).toEqual(
+      fixtureFiles().filter((file) => !file.endsWith(".minimal")),
     );
   });
 
   it.each(twins)("complete %s to its fixture, and back", (twin) => {
-    const fixture = fixtureText(twin.replace(/\.minimal\.json$/, ".json"));
+    const fixture = dumps(loads(fixtureText(twin.replace(/\.minimal$/, ""))));
     const completed = completeManifest(parse(fixtureText(twin)));
     expect(dumps(completed)).toBe(fixture);
     expect(dumps(canonicalManifest(completed))).toBe(fixture);
-    expect(dumps(minimalManifest(completed))).toBe(fixtureText(twin));
+    expect(dumps(minimalManifest(completed))).toBe(dumps(loads(fixtureText(twin))));
   });
 });

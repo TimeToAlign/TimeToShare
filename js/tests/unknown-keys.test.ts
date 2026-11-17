@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   dumps,
-  parseJson,
+  loads,
   SchemaValidationError,
   UnsupportedVersionError,
   unknownKeys,
@@ -9,7 +9,14 @@ import {
   validate,
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
-import { group, manifest, timeline, warningFileNames, warningText } from "./fixtures.js";
+import {
+  expectWrittenAsStored,
+  group,
+  manifest,
+  timeline,
+  warningFileNames,
+  warningText,
+} from "./fixtures.js";
 
 const WARNINGS = [
   "address_unknown_member",
@@ -33,25 +40,25 @@ const WARNINGS = [
 
 describe("unknown keys", () => {
   it("has the stated warning cases", () => {
-    expect(warningFileNames()).toEqual(WARNINGS.map((name) => `${name}.json`));
+    expect(warningFileNames()).toEqual(WARNINGS);
   });
 
   it.each(warningFileNames())("lists the warnings of %s as Python does", (name) => {
     const text = warningText(name);
-    const testCase = parseJson(text) as JsonObject;
+    const testCase = loads(text) as JsonObject;
     expect(Object.keys(testCase).sort()).toEqual([
       "manifest",
       "unknown_keys",
       "unregistered_terms",
     ]);
-    expect(dumps(testCase)).toBe(text);
+    expectWrittenAsStored(text);
     validate(testCase.manifest);
     expect(dumps(unknownKeys(testCase.manifest))).toBe(dumps(testCase.unknown_keys));
     expect(dumps(unregisteredTerms(testCase.manifest))).toBe(dumps(testCase.unregistered_terms));
   });
 
   it("finds them at several depths, in order", () => {
-    const testCase = parseJson(warningText("several_depths.json")) as JsonObject;
+    const testCase = loads(warningText("several_depths")) as JsonObject;
     expect(unknownKeys(testCase.manifest).map((entry) => [entry.path, entry.key])).toEqual([
       [[], "x-editor"],
       [["graphical"], "arrangement"],

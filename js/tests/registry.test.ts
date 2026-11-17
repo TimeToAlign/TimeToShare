@@ -2,17 +2,18 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  compactJson,
   defaultRegistry,
   dumps,
   type Identifier,
   type KnownScheme,
   type Level,
-  parseJson,
+  loads,
   recognize,
   type SchemeEntry,
   withSchemes,
 } from "../src/index.js";
-import { repositoryRoot } from "./fixtures.js";
+import { expectWrittenAsStored, repositoryRoot } from "./fixtures.js";
 
 const WIKIDATA = "http://www.wikidata.org/entity/";
 const IMSLP = `${WIKIDATA}P839`;
@@ -160,7 +161,7 @@ const NOT_WORK_PAGES = [
 describe("the registry of identifier schemes", () => {
   it("is the shipped file", () => {
     const text = readFileSync(resolve(repositoryRoot, "registry", "schemes.json"), "utf8");
-    expect(dumps(parseJson(text))).toBe(text);
+    expectWrittenAsStored(text);
     const { schemes } = defaultRegistry();
     expect(
       schemes.map((scheme) => [
@@ -171,7 +172,7 @@ describe("the registry of identifier schemes", () => {
         scheme.lowercase,
       ]),
     ).toEqual(ENTRIES);
-    expect(dumps(schemes)).toBe(text);
+    expect(compactJson(schemes)).toBe(compactJson(loads(text)));
     expect(defaultRegistry()).toBe(defaultRegistry());
   });
 

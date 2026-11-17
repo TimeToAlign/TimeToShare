@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { dumps, FONT_FILES, fontMetrics, parseJson } from "../src/index.js";
+import { dumps, FONT_FILES, fontMetrics, loads } from "../src/index.js";
 import { repositoryRoot } from "./fixtures.js";
 
 const RELEASE_SHA256 = {
@@ -26,7 +26,7 @@ describe("the bundled fonts", () => {
   });
 
   it("are exported as a package subpath", () => {
-    const manifest = parseJson(readFileSync(resolve(repositoryRoot, "js", "package.json"), "utf8"));
+    const manifest = loads(readFileSync(resolve(repositoryRoot, "js", "package.json"), "utf8"));
     const record = manifest as { exports: Record<string, string>; files: string[] };
     expect(record.exports["./fonts/*"]).toBe("./fonts/*");
     expect(record.files).toContain("fonts");
@@ -57,9 +57,9 @@ describe("fontMetrics", () => {
     expect(fontMetrics.advances["119296"]).toBe(1810);
   });
 
-  it("equals the metrics file, which the standard writer wrote", () => {
+  it("equals the metrics file, written in pretty JSON", () => {
     const text = readFileSync(resolve(repositoryRoot, "fonts", METRICS_FILE), "utf8");
-    expect(dumps(parseJson(text))).toBe(text);
-    expect(dumps(fontMetrics)).toBe(text);
+    expect(dumps(loads(text), { serialization: "json" })).toBe(text);
+    expect(dumps(fontMetrics, { serialization: "json" })).toBe(text);
   });
 });

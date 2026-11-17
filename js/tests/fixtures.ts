@@ -1,14 +1,18 @@
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { expect } from "vitest";
 import {
+  compactJson,
+  dumps,
   isJsonObject,
   type Json,
   JsonFloat,
   type Lossless,
+  loads,
   type PathSegment,
-  parseJson,
   SCHEMA_VERSION,
+  serializationOf,
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
 
@@ -20,37 +24,84 @@ export const repositoryRoot = resolve(here, "../..");
 /** The directory of the manifest fixtures. */
 export const fixtureDirectory = resolve(repositoryRoot, "fixtures", SCHEMA_VERSION);
 
+/** The extensions a stored text may have: it is found by its name, in either. */
+const EXTENSIONS = [".yaml", ".json"] as const;
+
+/** A file's name without its extension, or `null` for a file of another kind. */
+function stem(name: string): string | null {
+  const extension = EXTENSIONS.find((candidate) => name.endsWith(candidate));
+  return extension === undefined ? null : name.slice(0, -extension.length);
+}
+
+/** The text of the file `name` (without extension) in `directory`, whatever its extension. */
+export function storedText(directory: string, name: string): string {
+  for (const extension of EXTENSIONS) {
+    const path = resolve(directory, `${name}${extension}`);
+    if (existsSync(path)) return readFileSync(path, "utf8");
+  }
+  throw new Error(`no file ${name} in ${directory}`);
+}
+
+/** The names, without extension, of the stored texts in `directory`, sorted. */
+function storedNames(directory: string): string[] {
+  return readdirSync(directory)
+    .map(stem)
+    .filter((name): name is string => name !== null)
+    .sort();
+}
+
 /**
- * The manifest fixtures, as paths relative to `fixtureDirectory`, sorted:
- * every `*.json` below it except the drawings.
+ * The manifest fixtures, as paths relative to `fixtureDirectory` without
+ * their extension (`bare`, `bare.minimal`, `bundles/…`), sorted: every text
+ * below it except the drawings.
  */
 export function fixtureFiles(directory = ""): string[] {
   const files: string[] = [];
   for (const name of readdirSync(resolve(fixtureDirectory, directory)).sort()) {
-    const path = join(directory, name);
+    const path = join(directory, name).replaceAll("\\", "/");
     if (statSync(resolve(fixtureDirectory, path)).isDirectory()) {
       if (path !== "drawings") files.push(...fixtureFiles(path));
-    } else if (name.endsWith(".json")) files.push(path);
+    } else {
+      const named = stem(path);
+      if (named !== null) files.push(named);
+    }
   }
   return files.sort();
 }
 
-/** The text of one fixture, by its path relative to `fixtureDirectory`. */
+/** The text of one fixture, by its path relative to `fixtureDirectory` without extension. */
 export function fixtureText(path: string): string {
-  return readFileSync(resolve(fixtureDirectory, path), "utf8");
+  return storedText(fixtureDirectory, path);
 }
 
 function caseDirectory(kind: "rejections" | "warnings"): string {
   return resolve(repositoryRoot, "fixtures", kind, SCHEMA_VERSION);
 }
 
+/** The names of the rejection cases, without extension. */
 export function rejectionFileNames(): string[] {
-  return readdirSync(caseDirectory("rejections")).sort();
+  return storedNames(caseDirectory("rejections"));
 }
 
-/** The text of one rejection case. */
+/** The text of one rejection case, by its name without extension. */
 export function rejectionText(name: string): string {
-  return readFileSync(resolve(caseDirectory("rejections"), name), "utf8");
+  return storedText(caseDirectory("rejections"), name);
+}
+
+/**
+ * Assert that a stored text is what the writers write for its value. A
+ * text in canonical YAML is `dumps`'s bytes. A text in JSON, which may be
+ * laid out as JSON was written before canonical YAML, holds its keys,
+ * arrays and numbers as the writers write them: its compact text, keys in
+ * their written order, is that of the value its pretty JSON reads to.
+ */
+export function expectWrittenAsStored(text: string): void {
+  const value = loads(text);
+  if (serializationOf(text) === "yaml") {
+    expect(dumps(value)).toBe(text);
+  } else {
+    expect(compactJson(value)).toBe(compactJson(loads(dumps(value, { serialization: "json" }))));
+  }
 }
 
 /** One shared rejection case, read for validation. */
@@ -96,13 +147,13 @@ function stringOrNull(value: Lossless<Json> | undefined, key: string, name: stri
 }
 
 /**
- * Read one shared rejection case by its file name, as Python's
+ * Read one shared rejection case by its name, as Python's
  * `timetoshare.rejection_case` does. JSON holds no NaN and no infinity, so a
  * case about the finite rule stores a finite placeholder at its path and
  * names the value to put there under `non_finite`; the reader puts it in place.
  */
 export function rejectionCase(name: string): RejectionCase {
-  const read = parseJson(rejectionText(name));
+  const read = loads(rejectionText(name));
   if (!isLosslessObject(read)) throw new Error(`${name}: a case is an object`);
   const { manifest, path, code, error, reason, non_finite: nonFinite } = read;
   if (manifest === undefined) throw new Error(`${name}: a case holds a manifest`);
@@ -135,19 +186,20 @@ export function rejectionCase(name: string): RejectionCase {
   };
 }
 
+/** The names of the warning cases, without extension. */
 export function warningFileNames(): string[] {
-  return readdirSync(caseDirectory("warnings")).sort();
+  return storedNames(caseDirectory("warnings"));
 }
 
-/** The text of one warning case. */
+/** The text of one warning case, by its name without extension. */
 export function warningText(name: string): string {
-  return readFileSync(resolve(caseDirectory("warnings"), name), "utf8");
+  return storedText(caseDirectory("warnings"), name);
 }
 
 /** Parse the schema document from the repository root. */
 export function loadSchemaFile(): Record<string, unknown> {
   const path = resolve(repositoryRoot, "schema", SCHEMA_VERSION, "timetoshare.schema.json");
-  return parseJson(readFileSync(path, "utf8")) as Record<string, unknown>;
+  return loads(readFileSync(path, "utf8")) as Record<string, unknown>;
 }
 
 /** A timeline of the minimal form. */
@@ -193,7 +245,7 @@ function respellableManifest(canonical: boolean): JsonObject {
                 target_unit: "seconds",
                 x_values: [
                   [0, 1],
-                  [number(float(1), 1), 2],
+                  [float(1), 2],
                 ],
                 y_values: [float(0), 0.5],
                 kind: "linear",
@@ -207,7 +259,7 @@ function respellableManifest(canonical: boolean): JsonObject {
             source_unit: "quarters",
             target_unit: "seconds",
             scalar: float(1),
-            offset: [0, number(float(1), 1)],
+            offset: [0, float(1)],
           },
         ],
         regions: [{ id: "r", start: [0, number(float(1), 1)], end: [number(float(1), 1), 2] }],
@@ -231,8 +283,8 @@ function respellableManifest(canonical: boolean): JsonObject {
           rows: [
             {
               count: 1,
-              qstamp: [0, number(float(1), 1)],
-              actual_length: [number(float(4), 4), 1],
+              qstamp: [0, float(1)],
+              actual_length: [float(4), 1],
               nominal_length: float(4),
             },
           ],
@@ -243,14 +295,16 @@ function respellableManifest(canonical: boolean): JsonObject {
 }
 
 /**
- * Python's `respellable()`: a manifest in canonical order whose values are
- * spelled unlike their number types, integral floats as `JsonFloat`s.
+ * Python's `respellable()`: a manifest in canonical order whose own-axis
+ * values are spelled unlike their number types, integral floats as
+ * `JsonFloat`s, beside conversion-map numbers and MeasureMap rows, which no
+ * number type governs and which are written as given.
  */
 export function respellable(): JsonObject {
   return respellableManifest(false);
 }
 
-/** `respellable()` with every value spelled as its number type selects. */
+/** `respellable()` with every own-axis value spelled as its number type selects. */
 export function respelled(): JsonObject {
   return respellableManifest(true);
 }

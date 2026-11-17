@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { complete, minimal, parseJson, unknownKeys, validate } from "../src/index.js";
+import { complete, loads, minimal, unknownKeys, validate } from "../src/index.js";
 import { fixtureFiles, fixtureText } from "./fixtures.js";
 
 describe("the fixtures", () => {
@@ -9,7 +9,7 @@ describe("the fixtures", () => {
   });
 
   it.each(fixtureFiles())("%s is a manifest without unknown keys", (file) => {
-    const value = parseJson(fixtureText(file));
+    const value = loads(fixtureText(file));
     validate(value);
     expect(unknownKeys(value)).toEqual([]);
     expect(minimal(complete(value))).toEqual(minimal(value));
