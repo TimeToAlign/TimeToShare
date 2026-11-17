@@ -4,10 +4,24 @@ timelines:
     unit: quarters
     length: [64, 2]
     children:
-      - {id: whole, unit: quarters, number_type: float, offset: [16, 4], length: 2}
-      - {id: half, unit: quarters, offset: [4, 8], length: [4.0, 2]}
+      - id: whole
+        unit: quarters
+        number_type: float
+        offset: [16, 4]
+        length: 2
+      - id: half
+        unit: quarters
+        offset: [4, 8]
+        length: [4.0, 2]
     flow_control:
-      - {id: f, type: flow_marker, manifestation: fine, coordinate: [6.0, 4.0]}
+      - id: f
+        type: flow_marker
+        manifestation: fine
+        coordinate: [6.0, 4.0]
     regions:
-      - {id: r_zero, start: [0, 5], end: [6, 4]}
-      - {id: r_neg, start: [-6, 4], end: [0, 3]}
+      - id: r_zero
+        start: [0, 5]
+        end: [6, 4]
+      - id: r_neg
+        start: [-6, 4]
+        end: [0, 3]

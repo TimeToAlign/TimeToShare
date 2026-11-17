@@ -1,3 +1,7 @@
 timelines:
-  - {id: b, unit: seconds, length: 2}
-  - {id: a, unit: samples, length: 4.0}
+  - id: b
+    unit: seconds
+    length: 2
+  - id: a
+    unit: samples
+    length: 4.0

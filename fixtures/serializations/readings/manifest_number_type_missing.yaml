@@ -1,9 +1,14 @@
 timetoshare: "0.2.0"
 timelines:
-  - {id: take, unit: samples, length: 2.0}
+  - id: take
+    unit: samples
+    length: 2.0
   - id: score
     unit: quarters
     number_type: float
     length: 8
     children:
-      - {id: verse, unit: quarters, offset: 2, length: [4, 8]}
+      - id: verse
+        unit: quarters
+        offset: 2
+        length: [4, 8]
