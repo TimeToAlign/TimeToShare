@@ -14,13 +14,25 @@ single-quoted and double-quoted scalars, block scalars, comments) and must:
    YAML 1.2.2 (§10.3.2): `no` and `2026-11-17` are strings, `1e-05` and
    `2.0` are floats, `2` is an integer;
 2. keep integers exact at any size;
-3. refuse anchors and aliases, explicit tags (the non-specific `!`
-   included), more than one document, duplicate keys, keys that are not
-   strings, `.nan` and the infinities, and floats beyond a double;
-4. construct no objects from the text (safe loading only);
-5. report the line and column of malformed text;
-6. ignore comments;
-7. run on every Python the package supports (`requires-python >= 3.11`)
+3. read a float literal as the nearest double, underflow to zero and
+   subnormals included, and refuse one that rounds to an infinity
+   (`1e309`); `1.7976931348623158e308` is the largest double;
+4. refuse anchors and aliases, explicit tags (the non-specific `!`
+   included), a text that holds no document, more than one document,
+   every directive other than `%YAML 1.2`, duplicate keys, keys that are
+   not strings, an implicit key longer than 1024 characters (YAML's own
+   limit, counted in code points), and `.nan` and the infinities;
+5. read a surrogate pair written as two `\u` escapes as one character, and
+   refuse a lone surrogate, whether written as itself or through an
+   escape;
+6. refuse a literal U+0085 (next line) anywhere in the text; the escape
+   `\N` stays allowed;
+7. ignore a leading U+FEFF (byte order mark);
+8. construct no objects from the text (safe loading only);
+9. raise `ValueError` with the line and column for malformed text and for
+   every refusal, whatever the library raises;
+10. ignore comments;
+11. run on every Python the package supports (`requires-python >= 3.11`)
    as pure Python or with wheels for all major platforms, under a licence
    compatible with MIT.
 
@@ -78,29 +90,39 @@ Use ruamel.yaml as the parser only, through its event stream. The package
 resolves every scalar and builds the value itself; ruamel.yaml's resolver,
 constructors and emitter are not used.
 
-The package creates `YAML(typ="safe", pure=True)` and iterates
-`parse(text)`. Its own builder turns the events into the manifest value
-with an explicit stack, so nesting depth is bounded by memory, not by
-Python's recursion limit. Each requirement is met as follows:
+Before parsing, the package drops a leading U+FEFF and scans the text
+twice: for the characters ruamel.yaml would misread (U+0085, U+2028,
+U+2029) and for directives. It then creates `YAML(typ="safe", pure=True)`
+and iterates `parse(text)`. Its own builder turns the events into the
+manifest value with an explicit stack, so nesting depth is bounded by
+memory, not by Python's recursion limit. Each requirement is met as
+follows:
 
 | Requirement | How |
 | --- | --- |
 | Core schema | A plain scalar (`event.style is None`) is resolved by the package against the patterns of YAML 1.2.2 §10.3.2; a quoted scalar or block scalar (`style` one of `'`, `"`, `\|`, `>`) is a string; an empty plain scalar is null. |
 | Exact integers | `int` on the matched text in base 10, 8 (`0o`) or 16 (`0x`). |
 | Integer and float told apart | By which core pattern matched; `2.0` is a float, `2` an integer. |
+| Float range | A float is `float(text)`, which rounds correctly to the nearest double: `1.7976931348623158e308` gives the largest double, `1e-400` gives `0.0`, `2.5e-324` the smallest subnormal. Refused when the result is not finite (`1e309`, `-1e309`, `1.7976931348623159e308`). |
+| `.nan` and infinities | Refused when the infinity or not-a-number pattern matches. |
 | Anchors and aliases | Refused at an event whose `anchor` is not `None`, and at every `AliasEvent`; an alias is never expanded. |
 | Explicit tags | Refused at an event whose `tag` is not `None`: `!foo`, `!!str` and the non-specific `!` alike. |
+| No document | Refused when the stream ends without a `DocumentStartEvent`: an empty text, or one of whitespace and comments only. `---` alone yields a `DocumentStartEvent` and an empty plain scalar, read as null. `...` alone, a stream that holds no document, raises `ParserError`. |
 | One document | Refused at a second `DocumentStartEvent`. |
+| Directives | By the package's own scan, before parsing: it reads the lines up to the first that is neither blank, a comment nor a directive (a line beginning with `%`), and refuses at its line every directive other than a single `%YAML 1.2`. The events do not suffice: `DocumentStartEvent.version` shows `(1, 1)` and `tags` a `%TAG` handle, but a reserved directive (`%FOO bar`) leaves no trace, and `%YAML 1.0` or `%YAML 1.3` raises a bare `AssertionError`. A directive before a later document meets the refusal of a second document, or that `AssertionError` (see Positions). |
 | Duplicate keys | Refused while building a mapping; keys are strings, so `a` and `"a"` are the same key. |
 | Keys that are not strings | Refused when a key is a mapping or sequence, or a plain scalar that resolves to null, a boolean or a number. |
-| `.nan` and infinities | Refused when the infinity or not-a-number pattern matches. |
-| Floats beyond a double | Refused when `float(text)` is not finite (`1e400`). |
+| Implicit key over 1024 characters | By the scanner: ruamel.yaml drops a possible implicit key once its `:` lies more than 1024 characters after the key's first character, quotes and spaces before the `:` included, counted in code points, and then raises `ScannerError` ("mapping values are not allowed here") at the `:`, or `ParserError` in a flow sequence. `a`×1024 `: 1` and 1024 characters outside the Basic Multilingual Plane are read; `a`×1025 `: 1` and `a`×1024 ` : 1` are refused; an explicit key (`? `) has no limit. The package needs no check of its own. |
+| Surrogates | ruamel.yaml decodes `"\ud83d\ude00"` to two lone surrogates. The builder passes every string through `s.encode("utf-16-le", "surrogatepass").decode("utf-16-le")`, which joins a high surrogate followed by a low one into one character (U+1F600) and raises `UnicodeDecodeError` at an unpaired one (`"\ud800"`, `"\U0000d800"`, `"\udc00\ud800"`), refused at the event's `start_mark`. A lone surrogate written as itself is refused by ruamel.yaml's reader, as `ReaderError`, before any event, in a comment too. |
+| U+0085 | ruamel.yaml takes a literal U+0085 for a line break, as YAML 1.1 did: in a plain or quoted scalar it folds it silently to a space (`k: a`U+0085`b` gives `"a b"`), in a block scalar it ends the line. The package finds the first U+0085 by its scan before parsing and refuses the text at its position. The escape `\N` gives U+0085, as it should. |
+| Leading U+FEFF | Dropped by the package before dispatch; ruamel.yaml would skip it too. A U+FEFF elsewhere is content. |
 | Safe loading | Events construct nothing; no constructor runs. |
-| Positions | A malformed text raises `ruamel.yaml.error.MarkedYAMLError` (`ScannerError`, `ParserError`) with `problem_mark.line` and `problem_mark.column`, counted from zero; a refusal by the package reports the event's `start_mark`. |
+| Positions | Every error ruamel.yaml raises is wrapped as `ValueError` with a position: `MarkedYAMLError` (`ScannerError`, `ParserError`) with `problem_mark.line` and `problem_mark.column`, counted from zero; `ReaderError` (a character YAML forbids, such as U+0001 or a lone surrogate), which is no `MarkedYAMLError` and carries `position`, the index in the text, turned into line and column by the package; and the `AssertionError` of `%YAML 1.0` and `%YAML 1.3`, which carries no mark and is reported at the end mark of the last event read. A refusal by the package reports the event's `start_mark`, or the index its scans found. |
 | Comments | Discarded by the scanner of the safe loader. |
 
-The resolver and builder are small (nine patterns and one loop over
-events); the grammar, the hard part, stays in the library.
+The resolver, the builder and the two scans are small (nine patterns, one
+loop over events and two loops over characters and lines); the grammar,
+the hard part, stays in the library.
 
 - **Fit.** Of the candidates, ruamel.yaml is the only stable, pure-Python
   YAML 1.2 parser that exposes anchors, tags, styles and positions before
@@ -143,16 +165,37 @@ https://osv.dev/ (queried through its API).
 ruamel.yaml's parser is not fully conformant: in the YAML test-suite matrix
 (https://matrix.yaml.info/, test data of 2022-01-17, processor versions not
 stated) it passes 265 of 308 valid and 80 of 94 invalid cases in the event
-comparison. A tab after `key:`, valid YAML 1.2, raises a `ScannerError` in
-0.19.1. Some valid hand-written YAML is therefore refused with a position,
-and a few rare constructs may be read differently from the specification;
-the canonical layout and the common hand-written styles are unaffected.
+comparison. The defects found in 0.19.1 are of two kinds, and the package
+lets none of them misread a text.
+
+Valid YAML 1.2 that ruamel.yaml refuses, with a position, as `ScannerError`
+or `ParserError`: a tab where YAML allows separating white space, as after
+`key:` (`a:\t1`, `a: \t1`), after `-` (`-\t1`, `- \t1`), before a comment
+(`a: 1\t# c`, `a: 1 \t# c`) or on a line of its own; and an implicit key
+of a flow mapping that is longer than 1024 characters or spans lines
+(`{a\n b: 1}`), which YAML does not limit. The package passes these
+refusals on as `ValueError` with the position ruamel.yaml gives. They are
+known defects of the dependency: the package's tests mark them as known
+issues, so that a release of ruamel.yaml that reads them shows.
+
+Valid YAML 1.2 that ruamel.yaml would read differently from the
+specification, without an error: a literal U+0085 (see the table), and a
+literal U+2028 or U+2029, which it also takes for a line break in some
+places: `k: |\n  a`U+2028`\n` loses the final line feed, `k: 'a`U+2029` '`
+the trailing space, and a plain or double-quoted scalar folded onto a line
+that begins with U+2028 the space of the fold. The package refuses all
+three characters by the same scan before parsing, so such a text is
+refused with a position, never misread; for U+2028 and U+2029 this is
+another known issue, and the TypeScript reader reads them as YAML 1.2
+specifies. The canonical layout and the common hand-written styles are
+unaffected.
 
 The package owns the core-schema resolution, which is fixed by the
-specification and small, and the refusals, which are the format's own rules
-in any case. The exit cost is low: PyYAML's `yaml.parse` emits events of the
-same classes and fields, so a replacement parser changes the call that
-produces events and nothing else. The review revisits the choice if a fully
+specification and small, the refusals, which are the format's own rules
+in any case, and the two scans, which read the text, not the library. The
+exit cost is low: PyYAML's `yaml.parse` emits events of the same classes
+and fields, so a replacement parser changes the call that produces events
+and the errors it wraps, and nothing else. The review revisits the choice if a fully
 conformant parser, such as the libfyaml binding, has a stable release.
 
 ## Review date
