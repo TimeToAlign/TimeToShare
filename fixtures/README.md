@@ -303,9 +303,11 @@ current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
-ones (`corpus_*`) and two others at the default placement, and eighteen
-variants: `bundles/op106_work` has no drawing, since it holds no timeline to
-draw, and the drawing of `links` is pending. The
+ones (`corpus_*`) at the default placement, and eighteen variants.
+`bundles/op106_work` holds no timeline, so its drawing
+(`bundle__op106_work`) is its block alone, opened by its title, the
+manifest's name cut to the default maximum width of a name. The links of
+`links` are not drawn, so its drawing is that of its one root. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -332,7 +334,7 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 `unknown_length_segments` on every regions band, `{"element": "band",
 "facet": "regions"}` (`unknown_length_segments__regions-shown`), and
 `child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`): 76 drawings in all.
+"flow_control"}` (`child_flow_control__flow-shown`): 78 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings

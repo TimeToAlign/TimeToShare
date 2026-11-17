@@ -455,8 +455,9 @@ holder's, nor that a map's arrays agree, nor that a member names a timeline
 of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor that a named timestamp lies
-on a timeline of the manifest and within it, nor the representation of
-own-axis values, so both validators check them after the schema. Each
+on a timeline of the manifest and within it, nor that an assertion's date
+names a day of the calendar, nor the representation of own-axis values,
+so both validators check them after the schema. Each
 finding is one problem, located by a path into the manifest and named by a
 stable code:
 
@@ -487,6 +488,7 @@ stable code:
 | A facet, or `line`, is missing from its band order | `band_order` | the order | `'<entry>' is missing from the band order of '<id>'` |
 | A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
+| An assertion's `asserted_on` names no day of the Gregorian calendar, whose years run from 1 to 9999 | `calendar_date` | the `asserted_on` | `'<date>' is no Gregorian calendar date written YYYY-MM-DD` |
 | An identifier's `scheme` names no scheme of the manifest and is no absolute URI | `dangling_target` | the `scheme` | `'<scheme>' names no scheme of this manifest and is no absolute URI` |
 | A part slot's `represented_by` entry names no timeline (at any depth) or region of the manifest | `dangling_target` | the entry | `'<id>' names no timeline or region of this manifest` |
 
@@ -511,8 +513,9 @@ IDs, the named timestamps' IDs, the scheme IDs, the manifest's ID; members
 code-point order of their keys: an order's strangers first, in its order,
 then its missing entries, in the order of the group's `members` or of the
 default band order; then the named timestamps, in array order; and last
-the references of links, link by link (the description specification,
-section 8). A timestamp's
+the dates and references of links, link by link, each link's assertion's
+date and identifiers before those of its part slots and its `part_of`
+entries (the description specification, section 8). A timestamp's
 coordinate is an own-axis value of its timeline, so its representation is
 checked as every such value is (`representation`, at its `coordinate`); a
 timestamp naming no timeline is checked for its timeline alone. `<pointer>`
@@ -543,7 +546,7 @@ embedded by a host schema; within 0.2.x they change only by addition:
 
 `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
 `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
-`MeasureMap` and `MeasureMapRow`.
+`MeasureMap`, `MeasureMapRow`, `Link` and `Scheme`.
 
 A host refers to the document, or to one definition as
 `timetoshare.schema.json#/$defs/<Name>`, never through an `$anchor`. It
@@ -593,8 +596,23 @@ VIAF, GND, IMSLP and DOI) with the addresses each recognises. Python's
 `Link.from_urls` and npm's `linkFromUrls` turn addresses copied from those
 sites into links: `https://musicbrainz.org/work/…` gives the entity URI
 `http://musicbrainz.org/work/…` at the level `work`, and an IMSLP page an
-identifier in the scheme of IMSLP IDs. The validators never consult the
-registry. Words of the layer's open vocabularies that are not registered
+identifier in the scheme of IMSLP IDs. Each fact is stored once: an
+identifier given in a scheme whose registry entry mints entity URIs, such
+as a MusicBrainz work ID, is stored as its entity URI. The validators
+never consult the registry.
+
+Besides the shape of every link, the schema states two rules of parts: a
+link whose `parts` is not empty states its `parts_relation`, and a link
+without parts states no `parts_relation` and keeps `parts_ordered` true.
+Both are refused with the code `schema`, the second at the
+`parts_relation` or the `parts_ordered` it breaks. The dates and
+references of links are checked after the schema, with the identity rules
+([Identity](#identity)). Python's `description_problems(value)` and npm's
+`descriptionProblems(value)` check the description layer alone, its
+schemes and links against the schema and then these rules, and refuse
+nothing outside it, so a library reading only part of a manifest checks
+the layer without restating which parts of the manifest the rules read.
+Words of the layer's open vocabularies that are not registered
 are kept and listed as warnings by `unregistered_terms(value)` and
 `unregisteredTerms(value)`, never refused. The
 [description specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/description.md)
@@ -779,6 +797,10 @@ else:
 - `unregistered_terms(value)` returns the unregistered terms of a
   manifest's links as `{path, term}` entries, sorted by path
   ([Describing a manifest](#describing-a-manifest)).
+- `description_problems(value)` returns the problems of a manifest's
+  description layer alone as a list of `SchemaValidationError`s, empty
+  where its schemes and links are sound, and refuses nothing outside the
+  layer (the description specification, section 8).
 - `Link`, `PartSlot`, `PartOf`, `Assertion`, `Descriptor`, `Identifier` and
   `Scheme` model the description layer; `Link.from_urls` and
   `PartSlot.from_url` build links and part slots through the registry that
@@ -846,6 +868,10 @@ function load(text: string): string {
 - `unknownKeys(value)` returns the same list as Python's `unknown_keys`,
   and `unregisteredTerms(value)` the same list as Python's
   `unregistered_terms`.
+- `descriptionProblems(value)` returns the problems of the description
+  layer alone, as Python's `description_problems` does, with the same
+  codes and paths; a `schema` problem carries the TypeScript schema
+  validator's own message.
 - `linkFromUrls`, `partSlotFromUrl`, `withParts` and the other `with…`
   functions build links as plain objects of the generated types, as
   Python's description model does; `defaultRegistry()`, `recognize` and
