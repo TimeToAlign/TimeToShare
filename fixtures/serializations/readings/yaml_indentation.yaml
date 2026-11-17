@@ -1,0 +1,9 @@
+outer:
+    inner:
+    - 1
+    - two
+    other:
+        deep: true
+list:
+-   a: 1
+    b: 2

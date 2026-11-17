@@ -1,0 +1,11 @@
+array: []
+nested:
+  array: []
+  object: {}
+object: {}
+sequence_of_empties:
+  - []
+  - {}
+sequence_with_empty:
+  - 1
+  - []

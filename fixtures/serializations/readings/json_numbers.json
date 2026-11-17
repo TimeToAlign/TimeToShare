@@ -1,0 +1,1 @@
+{"exp_upper": 1E2, "negative_zero_int": -0, "trailing_zero": 1.50, "exp_fraction": 0.1e1, "exp_small": 1e-5, "big": 18446744073709551616, "negative_zero": -0.0, "subnormal": 4.9e-324, "integral": 2.0, "exp_negative": 10E-1, "plus_exp": 1e+2}

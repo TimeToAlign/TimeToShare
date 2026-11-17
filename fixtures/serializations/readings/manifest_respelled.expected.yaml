@@ -1,0 +1,37 @@
+timelines:
+  -
+    children:
+      -
+        id: perf_child
+        length: 10.0
+        offset: 4.0
+        unit: seconds
+    id: perf
+    length: 1503.0
+    regions:
+      -
+        end: 8.0
+        id: r
+        start: 2.0
+    unit: seconds
+  -
+    flow_control:
+      -
+        coordinate: [4, 1]
+        id: f
+        manifestation: fine
+        type: flow_marker
+    id: score
+    length: [33, 2]
+    unit: quarters
+  -
+    id: take
+    length: 96000
+    offset: 10
+    unit: samples
+  -
+    id: ticks_as_float
+    length: 960.0
+    number_type: float
+    unit: ticks
+timetoshare: "0.2.0"

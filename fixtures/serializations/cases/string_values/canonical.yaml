@@ -1,0 +1,2 @@
+plain: [score, take_1, _x, _, a/b, a.b, a-b, a-, x1, e5, E1, nan, NaN, inf, Infinity, nulls, yess, yes_, true1, n_, Off_, has_part, A, Z9._/-]
+quoted: ["", " ", "#", ":", "a:b", "a b", "a #b", "1a", "-a", "-", ".a", "/a", "0.2.0", "123", "1.5", "1e5", "https://example.org/a?b=1#c", "$schema", "~", "<<", "é", "Sonata in B♭", "null", "Null", "NULL", "nUlL", "true", "True", "TRUE", "false", "False", "FALSE", "yes", "Yes", "YES", "no", "No", "NO", "on", "On", "ON", "off", "Off", "OFF", "y", "Y", "n", "N", "oN", "yEs"]

@@ -1,0 +1,11 @@
+big: 18446744073709551616
+exp_fraction: 1.0
+exp_negative: 1.0
+exp_small: 1.0e-05
+exp_upper: 100.0
+integral: 2.0
+negative_zero: -0.0
+negative_zero_int: 0
+plus_exp: 100.0
+subnormal: 5.0e-324
+trailing_zero: 1.5

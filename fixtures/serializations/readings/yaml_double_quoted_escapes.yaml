@@ -1,0 +1,18 @@
+bell: "\a"
+escape: "\e"
+escaped_line_break: "one\
+  two"
+folded_line: "one
+  two"
+hex_8bit: "\x41"
+literal_tab: "a	b"
+ls: "\L"
+nbsp: "\_"
+nel: "\N"
+nul: "\0"
+ps: "\P"
+slash: "\/"
+space: "\ "
+unicode_32bit: "\U0001F600"
+upper_hex: "\u00E9"
+vertical_tab: "\v"
