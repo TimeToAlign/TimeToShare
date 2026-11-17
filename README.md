@@ -592,7 +592,7 @@ in the manifest's `schemes` and named by its ID:
 
 The **registry of identifier schemes**, `registry/schemes.json`, lists
 well-known schemes (MusicBrainz works, recordings and releases, Wikidata,
-VIAF, GND, IMSLP and DOI) with the addresses each recognises. Python's
+VIAF, GND, IMSLP, DOI and YouTube videos) with the addresses each recognises. Python's
 `Link.from_urls` and npm's `linkFromUrls` turn addresses copied from those
 sites into links: `https://musicbrainz.org/work/…` gives the entity URI
 `http://musicbrainz.org/work/…` at the level `work`, and an IMSLP page an

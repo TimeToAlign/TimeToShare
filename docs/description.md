@@ -165,7 +165,7 @@ entry holds:
 | `lowercase` | whether the scheme writes its values in lower case |
 | `patterns` | regular expressions, each matching a whole URL and capturing the value in its one group |
 
-The registry holds eight entries, in this order (`wd:` stands for
+The registry holds nine entries, in this order (`wd:` stands for
 `http://www.wikidata.org/entity/`):
 
 | ID | Scheme URI | Level | Entity URI template | `lowercase` |
@@ -178,11 +178,14 @@ The registry holds eight entries, in this order (`wd:` stands for
 | `gnd` | `wd:P227` | null | `https://d-nb.info/gnd/{value}` | false |
 | `imslp` | `wd:P839` | `work` | null | false |
 | `doi` | `wd:P356` | null | `https://doi.org/{value}` | false |
+| `youtube_video` | `wd:P1651` | `item` | `https://www.youtube.com/watch?v={value}` | false |
 
 An entity URI template is Wikidata's formatter URI for RDF resources
 (P1921) where one exists, unless the issuer prescribes the canonical form,
-as the DOI Foundation does with `https://doi.org/`. IMSLP mints no URI for
-a work, so its entry has no template and gives identifiers.
+as the DOI Foundation does with `https://doi.org/`. The YouTube video ID
+(P1651) has no formatter URI for RDF resources, so its template is
+Wikidata's formatter URL (P1630) for it, the watch page. IMSLP mints no URI
+for a work, so its entry has no template and gives identifiers.
 
 **Recognition.** A URL is recognised by the first entry, in registry order,
 one of whose patterns matches the whole URL. The entry gives exactly one of
@@ -222,7 +225,16 @@ page of a namespace that IMSLP's wiki declares, `Media:`, `Special:`,
 `Template:`, `Help:`, `Category:` and `Module:` and the talk pages
 (`Talk:`, `User_talk:` and so on), its colon written plainly or as `%3A`.
 A work page whose name begins with such a word, such as
-`Main_Page_(Example)`, is recognised.
+`Main_Page_(Example)`, is recognised. A YouTube video is recognised in
+every form its address is shared in: a watch page on `youtube.com`, `www.`,
+`m.` or `music.` with `v` anywhere in the query
+(`https://m.youtube.com/watch?feature=share&v=Ch2mrPm1JnM`), `youtu.be`,
+and the paths `/embed/`, `/shorts/` and `/live/`, each with any further
+query or fragment, such as a start time. All give
+`https://www.youtube.com/watch?v=Ch2mrPm1JnM`. A video ID is eleven
+letters, digits, `_` and `-`, and its case matters, so the entry keeps it
+as written. An address that names no video, such as a channel or a
+playlist without `v`, is not recognised.
 
 **Building links from URLs.** Both packages build links and part slots
 through the registry, the default one unless another is passed as
