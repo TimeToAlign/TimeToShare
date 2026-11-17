@@ -59,9 +59,12 @@ def main(argv: list[str] | None = None) -> int:
         for stale in destination.glob("*.json"):
             stale.unlink()
     for fixture in planned:
-        fixture.path.write_text(dumps(fixture.item.to_dict()), encoding="utf-8")
+        # LF on every platform: the standard writer's text, byte for byte.
+        fixture.path.write_text(
+            dumps(fixture.item.to_dict()), encoding="utf-8", newline="\n"
+        )
         twin_path(fixture.path).write_text(
-            dumps(fixture.item.to_dict(minimal=True)), encoding="utf-8"
+            dumps(fixture.item.to_dict(minimal=True)), encoding="utf-8", newline="\n"
         )
 
     for fixture in planned:
