@@ -229,15 +229,17 @@ A work page whose name begins with such a word, such as
 every form its address is shared in: a watch page on `youtube.com`, `www.`,
 `m.` or `music.` with `v` anywhere in the query
 (`https://m.youtube.com/watch?feature=share&v=Ch2mrPm1JnM`), `youtu.be`,
-the paths `/embed/`, `/shorts/` and `/live/` and the legacy `/v/`, and
-the privacy-enhanced embed on `youtube-nocookie.com` (with or without
-`www.`), each with any further query or fragment, such as a start time.
+the paths `/embed/`, `/shorts/` and `/live/`, the legacy `/v/` (also on
+`youtube-nocookie.com`, and with its parameters joined straight to the ID
+by `&`, as in `/v/Ch2mrPm1JnM&hl=en_US&fs=1`), and the privacy-enhanced
+embed on `youtube-nocookie.com` (with or without `www.`), each with any
+further query or fragment, such as a start time.
 All give `https://www.youtube.com/watch?v=Ch2mrPm1JnM`. A video ID is
 eleven letters, digits, `_` and `-`, and its case matters, so the entry
 keeps it as written. An address that names no video, such as a channel, a
-playlist without `v`, or an embedded playlist
-(`/embed/videoseries?list=…`, on `youtube.com` or
-`youtube-nocookie.com`), is not recognised.
+playlist without `v`, an embedded playlist (`/embed/videoseries?list=…`)
+or a channel's embedded live stream (`/embed/live_stream?channel=…`), on
+`youtube.com` or `youtube-nocookie.com`, is not recognised.
 
 **Building links from URLs.** Both packages build links and part slots
 through the registry, the default one unless another is passed as
