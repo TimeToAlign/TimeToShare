@@ -2,9 +2,11 @@
   "code": "duplicate_id",
   "manifest": {
     "groups": [],
+    "links": [],
     "measure_maps": [],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [],
@@ -16,6 +18,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,
@@ -27,6 +30,7 @@
               1
             ],
             "id": "region_1",
+            "links": [],
             "meta": {},
             "name": null,
             "start": [
@@ -47,6 +51,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,
@@ -58,6 +63,7 @@
               1
             ],
             "id": "region_1",
+            "links": [],
             "meta": {},
             "name": null,
             "start": [

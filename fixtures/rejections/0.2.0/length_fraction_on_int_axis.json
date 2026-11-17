@@ -2,9 +2,11 @@
   "code": "representation",
   "manifest": {
     "groups": [],
+    "links": [],
     "measure_maps": [],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [
@@ -15,6 +17,7 @@
             "id": "dlt_2",
             "is_segment_line": false,
             "length": 120,
+            "links": [],
             "locked": true,
             "meta": {},
             "name": null,
@@ -30,6 +33,7 @@
             "id": "dlt_3",
             "is_segment_line": false,
             "length": 96,
+            "links": [],
             "locked": true,
             "meta": {},
             "name": null,
@@ -47,6 +51,7 @@
           480,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,

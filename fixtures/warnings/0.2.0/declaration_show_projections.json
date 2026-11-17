@@ -14,9 +14,11 @@
       "timestamps": []
     },
     "groups": [],
+    "links": [],
     "measure_maps": [],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [],
@@ -28,6 +30,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": "Bare",
@@ -48,5 +51,6 @@
         "set"
       ]
     }
-  ]
+  ],
+  "unregistered_terms": []
 }

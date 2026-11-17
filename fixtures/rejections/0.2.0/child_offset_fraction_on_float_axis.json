@@ -2,9 +2,11 @@
   "code": "representation",
   "manifest": {
     "groups": [],
+    "links": [],
     "measure_maps": [],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [
@@ -15,6 +17,7 @@
             "id": "cpt_2",
             "is_segment_line": false,
             "length": 4.25,
+            "links": [],
             "locked": true,
             "meta": {},
             "name": null,
@@ -33,6 +36,7 @@
             "id": "cpt_3",
             "is_segment_line": false,
             "length": 3.0,
+            "links": [],
             "locked": true,
             "meta": {},
             "name": null,
@@ -47,6 +51,7 @@
         "id": "cpt_1",
         "is_segment_line": false,
         "length": 12.5,
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,

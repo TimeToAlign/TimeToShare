@@ -2,9 +2,11 @@
   "code": "schema",
   "manifest": {
     "groups": [],
+    "links": [],
     "measure_maps": [],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [
@@ -18,6 +20,7 @@
               4,
               1
             ],
+            "links": [],
             "locked": true,
             "meta": {},
             "name": null,
@@ -39,6 +42,7 @@
               3,
               1
             ],
+            "links": [],
             "locked": true,
             "meta": {},
             "name": null,
@@ -55,6 +59,7 @@
         "flow_control": [],
         "id": "clt_1",
         "is_segment_line": false,
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,

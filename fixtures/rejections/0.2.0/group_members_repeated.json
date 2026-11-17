@@ -22,9 +22,11 @@
         "name": "Second half"
       }
     ],
+    "links": [],
     "measure_maps": [],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [
@@ -38,6 +40,7 @@
               4,
               1
             ],
+            "links": [],
             "locked": false,
             "meta": {},
             "name": null,
@@ -58,6 +61,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,
@@ -75,6 +79,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,
