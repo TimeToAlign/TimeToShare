@@ -805,7 +805,7 @@ correspondences and prescribes no serialisation.
 | **Structural relation** | | | |
 | `has_part` | `dcterms:hasPart`; `schema:hasPart` | work: LRM-R18, R67 has part; expression: LRM-R23, R5 has component; manifestation: LRM-R26, R71 has part; item: P46 is composed of | close to LRMoo, level by level; Dublin Core and schema.org are broader, any inclusion, physical or logical |
 | `aggregates` | `ore:aggregates` | expression: LRM-R25 (aggregated), which LRMoo maps to P165 incorporates | approximate: `ore:aggregates` gathers web resources and is a sub-property of `dcterms:hasPart`; LRM states aggregation between expressions (LRM-R25) apart from whole and part (LRM-R23) |
-| `incorporates` | none; `dcterms:hasPart` is broader | expression: R75 incorporates, a sub-property of P165 incorporates; work: R74 uses expression of | close to LRMoo: in both the incorporated entity realises another work |
+| `incorporates` | none in Dublin Core or schema.org, whose `hasPart` is broader; MusicBrainz's relationship types *included works* (between works) and *DJ-mix* (between recordings) | expression: R75 incorporates, a sub-property of P165 incorporates; work: R74 uses expression of | close to LRMoo: in both the incorporated entity realises another work; MusicBrainz's types are kinds of it |
 | `part_of` entry | `dcterms:isPartOf`; `schema:isPartOf`; under `aggregates` `ore:isAggregatedBy` | the inverse of its `parts_relation`: R67 forms part of, R5 is component of, R71 is part of, R75 is incorporated in, R74 has expression used in | as its `parts_relation` |
 | **Level** | | | |
 | `work` | `frbr:Work` | LRM-E2 Work; F1 Work | exact in LRM and LRMoo; FRBR core follows the earlier FRBR model |
@@ -858,6 +858,9 @@ Sources:
   <https://id.loc.gov/vocabulary/preservation/eventType>.
 - MARC relators, Library of Congress:
   <https://id.loc.gov/vocabulary/relators>.
+- MusicBrainz relationship types between works and between recordings:
+  <https://musicbrainz.org/relationships/work-work>,
+  <https://musicbrainz.org/relationships/recording-recording>.
 - Wikidata, the properties P4390 and P3452 and the statement ranks:
   <https://www.wikidata.org/wiki/Property:P4390>,
   <https://www.wikidata.org/wiki/Property:P3452>,
