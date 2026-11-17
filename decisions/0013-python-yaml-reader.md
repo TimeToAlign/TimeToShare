@@ -20,14 +20,15 @@ single-quoted and double-quoted scalars, block scalars, comments) and must:
 4. refuse anchors and aliases, explicit tags (the non-specific `!`
    included), a text that holds no document, more than one document,
    every directive other than `%YAML 1.2`, duplicate keys, keys that are
-   not strings, an implicit key longer than 1024 characters (YAML's own
-   limit, counted in code points), and `.nan` and the infinities;
+   not strings, an implicit key whose span from its first character to
+   its `:` exceeds 1024 characters (YAML's own limit, counted in code
+   points), and `.nan` and the infinities;
 5. read a surrogate pair written as two `\u` escapes as one character, and
    refuse a lone surrogate, whether written as itself or through an
    escape;
 6. refuse every character written as itself, in a scalar or a comment,
-   outside YAML's printable set, and U+0085, U+2028 and U+2029; the
-   escapes stay allowed;
+   outside YAML's printable set, U+0085, U+2028 and U+2029, and every
+   U+FEFF but the one of requirement 7; the escapes stay allowed;
 7. remove exactly one U+FEFF (byte order mark) at position 0;
 8. construct no objects from the text (safe loading only);
 9. raise `ValueError` with the line and column for malformed text and for
@@ -113,10 +114,10 @@ follows:
 | Directives | By the package's own scan, before parsing: it reads the lines up to the first that is neither blank, a comment nor a directive (a line beginning with `%`), and refuses at its line every directive other than a single `%YAML 1.2`. The events do not suffice: `DocumentStartEvent.version` shows `(1, 1)` and `tags` a `%TAG` handle, but a reserved directive (`%FOO bar`) leaves no trace, and `%YAML 1.0` or `%YAML 1.3` raises a bare `AssertionError`. A directive before a later document meets the refusal of a second document, or that `AssertionError` (see Positions). |
 | Duplicate keys | Refused while building a mapping; keys are strings, so `a` and `"a"` are the same key. |
 | Keys that are not strings | Refused when a key is a mapping or sequence, or a plain scalar that resolves to null, a boolean or a number. |
-| Implicit key over 1024 characters | By the scanner: ruamel.yaml drops a possible implicit key once its `:` lies more than 1024 characters after the key's first character, quotes and spaces before the `:` included, counted in code points, and then raises `ScannerError` ("mapping values are not allowed here") at the `:`, or `ParserError` in a flow sequence. `a`×1024 `: 1` and 1024 characters outside the Basic Multilingual Plane are read; `a`×1025 `: 1` and `a`×1024 ` : 1` are refused; an explicit key (`? `) has no limit. The package needs no check of its own. |
+| Implicit key over 1024 characters | By the scanner, for every implicit key: of a block mapping, of a pair in a flow sequence and of a flow mapping. ruamel.yaml drops a possible implicit key once its `:` lies more than 1024 characters after the key's first character, counted in code points over the text as written, so quotes, escapes and spaces before the `:` count; it then raises `ScannerError` ("mapping values are not allowed here") at the `:` in a block mapping, and `ParserError` in a flow sequence or a flow mapping. `a`×1024 `: 1`, `{` `a`×1024 `: 1}` and 1024 characters outside the Basic Multilingual Plane are read; `a`×1025 `: 1`, `a`×1024 ` : 1`, `{` `a`×1025 `: 1}` and `"` `a`×1023 `": 1` are refused; a double-quoted key of 511 escapes `\t` (a span of 1024) is read, one of 512 is refused. An explicit key (`? `) has no limit. The package needs no check of its own. |
 | Surrogates | ruamel.yaml decodes `"\ud83d\ude00"` to two lone surrogates. The builder passes every string through `s.encode("utf-16-le", "surrogatepass").decode("utf-16-le")`, which joins a high surrogate followed by a low one into one character (U+1F600) and raises `UnicodeDecodeError` at an unpaired one (`"\ud800"`, `"\U0000d800"`, `"\udc00\ud800"`), refused at the event's `start_mark`. A lone surrogate written as itself is refused by ruamel.yaml's reader, as `ReaderError`, before any event, in a comment too. |
-| Characters | The package scans the text before parsing and refuses, at its position, the first character written as itself, in a scalar or a comment, that lies outside YAML's printable set (C0 controls other than tab, LF and CR; U+007F to U+009F; U+FFFE; U+FFFF; surrogates) or is U+0085, U+2028 or U+2029. YAML 1.2 reads the last three as content, but ruamel.yaml takes each for a line break, as YAML 1.1 did, and misreads silently: in a plain or quoted scalar U+0085 folds to a space (`k: a`U+0085`b` gives `"a b"`), in a block scalar it ends the line. The escapes `\N`, `\L` and `\P` give the characters, as they should. |
-| Leading U+FEFF | Exactly one U+FEFF at position 0 is removed by the package before dispatch; any other U+FEFF, a second one included, is an ordinary character. |
+| Characters | The package scans the text before parsing and refuses, at its position, the first character written as itself, in a scalar or a comment, that lies outside YAML's printable set (C0 controls other than tab, LF and CR; U+007F to U+009F; U+FFFE; U+FFFF; surrogates) or is U+0085, U+2028, U+2029 or a U+FEFF other than the one removed at position 0. YAML 1.2 reads U+FEFF as content in places, in a quoted or block scalar for one, and ruamel.yaml reads it as content wherever it stands, in a plain scalar, a comment and a key too (a second leading U+FEFF becomes part of the first key); the format refuses it everywhere. YAML 1.2 reads U+0085, U+2028 and U+2029 as content, but ruamel.yaml takes each for a line break, as YAML 1.1 did, and misreads silently: in a plain or quoted scalar U+0085 folds to a space (`k: a`U+0085`b` gives `"a b"`), in a block scalar it ends the line. The escapes `\N`, `\L` and `\P` give the characters, as they should. |
+| Leading U+FEFF | Exactly one U+FEFF at position 0 is removed by the package before dispatch. Any other U+FEFF is refused by the scan of the Characters row: a second leading one makes the text YAML by the dispatch rule, and the scan refuses it at position 0. |
 | Safe loading | Events construct nothing; no constructor runs. |
 | Positions | Every error ruamel.yaml raises is wrapped as `ValueError` with a position: `MarkedYAMLError` (`ScannerError`, `ParserError`) with `problem_mark.line` and `problem_mark.column`, counted from zero; `ReaderError` (a character YAML forbids, such as U+0001 or a lone surrogate), which is no `MarkedYAMLError` and carries `position`, the index in the text, turned into line and column by the package; and the `AssertionError` of `%YAML 1.0` and `%YAML 1.3`, which carries no mark and is reported at the end mark of the last event read. A refusal by the package reports the event's `start_mark`, or the index its scans found. |
 | Comments | Discarded by the scanner of the safe loader. |
@@ -172,9 +173,9 @@ lets none of them misread a text.
 Valid YAML 1.2 that ruamel.yaml refuses, with a position, as `ScannerError`
 or `ParserError`: a tab where YAML allows separating white space, as after
 `key:` (`a:\t1`, `a: \t1`), after `-` (`-\t1`, `- \t1`), before a comment
-(`a: 1\t# c`, `a: 1 \t# c`) or on a line of its own; and an implicit key
-of a flow mapping that is longer than 1024 characters or spans lines
-(`{a\n b: 1}`), which YAML does not limit. The package passes these
+(`a: 1\t# c`, `a: 1 \t# c`) or on a line of its own; a tab inside a plain
+scalar (`k: a\tb`), which YAML 1.2 reads as content; and an implicit key
+of a flow mapping that spans lines (`{a\n b: 1}`). The package passes these
 refusals on as `ValueError` with the position ruamel.yaml gives. They are
 known defects of the dependency: the package's tests mark them as known
 issues, so that a release of ruamel.yaml that reads them shows.
