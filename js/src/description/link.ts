@@ -66,6 +66,26 @@ export const MATCHES = ["exact", "close", "broad", "narrow", "related"] as const
 /** The words of an assertion's `status`, a closed vocabulary. */
 export const STATUSES = ["confirmed", "unconfirmed", "rejected"] as const;
 
+const DATE = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/;
+const DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/**
+ * Why `text` is no date written `YYYY-MM-DD` that the Gregorian calendar has,
+ * or null where it is one. The calendar's years run from 1 to 9999, its months
+ * from 1 to 12, and February has 29 days in a year divisible by 4 and not by
+ * 100, or by 400. Python's `ValueError` carries the same message.
+ */
+export function calendarDateProblem(text: string): string | null {
+  const [, year, month, day] = DATE.exec(text) ?? [];
+  if (year !== undefined && month !== undefined && day !== undefined) {
+    const [y, m, d] = [Number(year), Number(month), Number(day)];
+    const leap = (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+    const days = m === 2 && leap ? 29 : DAYS[m - 1];
+    if (y >= 1 && days !== undefined && d >= 1 && d <= days) return null;
+  }
+  return `'${text}' is no Gregorian calendar date written YYYY-MM-DD`;
+}
+
 /** What `linkFromUrls` takes besides the URLs; each member as Python's keyword of its name. */
 export interface LinkOptions {
   /** The level; no level a URL is recognised at may contradict it. */
@@ -193,12 +213,29 @@ function levelOf(stated: string | undefined, recognised: readonly [Level, string
 }
 
 /**
- * Check a link as Python's `Link` checks one on construction.
+ * Check an assertion's date as Python reads it.
  *
- * @throws {Error} if its level is no level, an agent link uses `pertains_to`,
- * or parts lack a `parts_relation`.
+ * @throws {Error} if its `asserted_on` is no date of the calendar written
+ * `YYYY-MM-DD`.
+ */
+function checkedAssertion(assertion: CompleteAssertion | null): CompleteAssertion | null {
+  const date = assertion?.asserted_on ?? null;
+  const problem = date === null ? null : calendarDateProblem(date);
+  if (problem !== null) throw new Error(problem);
+  return assertion;
+}
+
+/**
+ * Check the dates of a link's assertions as Python reads them, the link's
+ * own, then its slots' and its `part_of` entries', and then the link as
+ * Python's `Link` checks one on construction.
+ *
+ * @throws {Error} if an assertion's date is no date, the level is no level,
+ * an agent link uses `pertains_to`, or parts lack a `parts_relation`.
  */
 function checkedLink(link: CompleteLink): CompleteLink {
+  checkedAssertion(link.assertion);
+  for (const entry of [...link.parts, ...link.part_of]) checkedAssertion(entry.assertion);
   checkedLevel(link.level);
   if (link.level === "agent" && link.relation === "pertains_to") {
     throw new Error("an agent link never uses the relation 'pertains_to'");
@@ -210,11 +247,14 @@ function checkedLink(link: CompleteLink): CompleteLink {
 }
 
 /**
- * Check a part slot as Python's `PartSlot` checks one on construction.
+ * Check a part slot as Python's `PartSlot` checks one on construction, and
+ * the date of its assertion as Python reads it.
  *
- * @throws {Error} if the slot is both represented and absent, or neither.
+ * @throws {Error} if the slot is both represented and absent, or neither, or
+ * its assertion's date is no date.
  */
 function checkedSlot(slot: CompletePartSlot): CompletePartSlot {
+  checkedAssertion(slot.assertion);
   if (slot.represented_by.length > 0 && slot.absent !== null) {
     throw new Error("a part slot is represented or absent, not both");
   }
@@ -378,11 +418,16 @@ export function withPartOf(link: Lossless<Link>, entry: Lossless<PartOf>): Compl
   return checkedLink(base);
 }
 
-/** Return the assertion of a slot or `part_of` entry of a link: its own, else the link's. */
+/**
+ * Return the assertion of a slot or `part_of` entry of a link: its own, else
+ * the link's.
+ *
+ * @throws {Error} if that assertion's date is no date of the calendar.
+ */
 export function assertionFor(
   link: Lossless<Link>,
   entry: Lossless<PartSlot> | Lossless<PartOf>,
 ): CompleteAssertion | null {
   const assertion = entry.assertion ?? link.assertion ?? null;
-  return assertion === null ? null : completeDescription(assertion, "assertion");
+  return checkedAssertion(assertion === null ? null : completeDescription(assertion, "assertion"));
 }

@@ -50,6 +50,7 @@ const REJECTIONS = [
   "conversion_map_unknown_type",
   "dal_segno_without_target",
   "description_agent_link_pertains_to",
+  "description_asserted_on_impossible_date",
   "description_asserted_on_not_a_date",
   "description_identifier_scheme_unresolved",
   "description_link_level_unknown",
@@ -79,6 +80,7 @@ const REJECTIONS = [
   "group_order_not_member",
   "group_order_repeated",
   "id_control_character_tab",
+  "id_control_character_trailing_newline",
   "id_duplicate_across_kinds",
   "id_empty",
   "infinite_length",
@@ -493,6 +495,7 @@ describe("the shared rejection cases", () => {
     const codes = new Set(rejectionFileNames().map((name) => rejectionCase(name).code));
     expect([...codes].filter((code) => code !== null).sort()).toEqual([
       "band_order",
+      "calendar_date",
       "child_end",
       "child_offset",
       "child_unit",
@@ -672,7 +675,7 @@ describe("the graphical object", () => {
     const value = manifest([timeline("score")], { graphical: { order: { score: [""] } } });
     expect(problem(value)).toEqual([
       ["graphical", "order", "score", 0],
-      'must match pattern "^[^\\u0000-\\u001f]+$"',
+      "must NOT have fewer than 1 characters",
     ]);
   });
 

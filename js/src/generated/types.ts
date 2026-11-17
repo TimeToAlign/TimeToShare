@@ -1097,7 +1097,7 @@ export interface PartSlot {
    */
   represented_by?: Id[];
   /**
-   * Why no element of this manifest represents the part, or null where one does. Registered words: `not_represented` (the part exists and this manifest leaves it out), `lost` (the part is lost), `unfinished` (the part was never completed), `unknown` (whether or why the part is missing is not known) and `not_recorded` (the part exists but the represented source, such as a recording, does not contain it). Fallback: read as `not_represented`.
+   * Why no element of this manifest represents the part, or null where one does. Registered words: `not_represented` (the part exists and is identified, and no element of this manifest represents it), `lost` (the part existed and no source of it survives), `unfinished` (the part was begun or planned and never completed), `unknown` (whether a part occupies this position, or which part does, is not known) and `not_recorded` (the slot exists and the publisher states nothing about how the part is represented). Fallback: read as `not_represented`.
    */
   absent?: Term | null;
   /**

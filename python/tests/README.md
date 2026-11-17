@@ -48,10 +48,12 @@ rejection cases that use them (`test_schema.py`):
   and `schema/` holds exactly the directory `0.2.0` with exactly that file.
   Every `$ref` is local (`#/$defs/<name>`) and names a definition; no node
   carries `$anchor`.
-- **The public definitions.** The definitions include the thirteen public
+- **The public definitions.** The definitions include the fifteen public
   ones `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
   `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
-  `MeasureMap` and `MeasureMapRow`.
+  `MeasureMap`, `MeasureMapRow`, `Link` and `Scheme`, and the root's
+  description, which tells a host what it may refer to, names exactly
+  these, in this order.
 - **The map types.** `ConversionMap` chooses between exactly the ten types
   `ChainMap`, `CombinationMap`, `ConstantMap`, `FloatingMeasureMap`,
   `LinearMap`, `MeasureBeatMap`, `MeasureNumberMap`, `MeasureRecordMap`,
@@ -97,7 +99,8 @@ rejection cases that use them (`test_schema.py`):
   refer to `Id`, the items of `Selector.addresses` to `Address`. `Id`
   accepts `score`, `Bass Kick`, `perf/take 2`,
   `https://example.org/piece/score#exposition`, `start` and `regions_1`,
-  and refuses `""` and `score` followed by a tab. `Address` accepts `{}`,
+  and refuses `""`, `score` followed by a tab and `score` followed by a
+  newline. `Address` accepts `{}`,
   `{"part": ["name"]}`, `{"id": "score"}`, `{"id": "perf/take 2"}`,
   `{"id": "score", "facet": "regions"}`, `{"id": "score", "part":
   ["card"]}`, `{"id": "score", "part": ["end", "label"]}`, `{"id":
@@ -147,6 +150,20 @@ rejection cases that use them (`test_schema.py`):
   and refuses `""` and `a b`. The white-space class of those definitions is
   the one the registry uses to refuse a URL before matching it, pinned
   against the schema.
+- **Both libraries read every pattern alike.** A pattern ending in `$`
+  lets a trailing newline through Python's `re.search` and not through
+  JavaScript's `RegExp`, so a definition that needs to refuse control
+  characters says so with an unanchored `not`, never with an anchored
+  class: `Id` is a string of `minLength` 1 whose `not` refuses U+0000 to
+  U+001F, and an entry of an `Order` has the same two keywords. The five
+  patterns that still end in `$`, a named timestamp's `id`, `Paint`,
+  `stroke-dasharray`, `asserted_on` and a record's `integrity`, are
+  exactly those the document holds, and each refuses a value it accepts
+  (`timestamp_1`, `none`, `4 2`, `2026-11-17`, `sha256-AAAA`) once a
+  newline follows it, through `Id`'s `not`, a `not` of its own or its
+  `maxLength`; an `Order` refuses `["line\n"]`. The JavaScript suite
+  asserts the same values, so the two validators cannot part on a
+  trailing newline.
 - **Defaults agree with the table.** For every kind of `DEFAULTS` the
   schema's corresponding definitions (`Manifest`, `Timeline`,
   `Region`, `FlowControlElement`, `MeasureMap`, `Group`, `Graphical`,
@@ -426,6 +443,7 @@ violation's is the same text in both packages.
 | `band_order` | a timeline's order permutes `line` and the five facets | the entry, then the order | `'annotations' is not 'line' or a facet, in the band order of 'score'`, `'flow_control' is missing from the band order of 'score'` |
 | `timestamp_timeline` | a named timestamp's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
 | `timestamp_coordinate` | its `coordinate` lies from 0 to its timeline's length, from 0 on where the length is null | its `coordinate` | `coordinate [9, 1] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'`, `coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'` |
+| `calendar_date` | link by link, with the row below: an assertion's `asserted_on` names a day of the Gregorian calendar from 0001-01-01 to 9999-12-31 | the `asserted_on` | `'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD` |
 | `dangling_target` | link by link, an identifier's `scheme` names a scheme of the manifest or is an absolute URI, and a part slot's `represented_by` entry names a timeline (any depth) or a region of the manifest | the `scheme`, the entry | `'opus' names no scheme of this manifest and is no absolute URI`, `'ghost' names no timeline or region of this manifest` |
 
 The keys of `graphical.order` are read in code-point order, each order's
@@ -436,21 +454,35 @@ A key naming a group and a timeline never reaches `validate` (the duplicate
 ID comes first); `identity_problems` reads it as the group's. The named
 timestamps are read after the orders, in array order, and the links last:
 the manifest's, then root by root each timeline's own, its regions' in array
-order and its children's, depth first; within a link its `identifiers`, then
-each part slot's `identifiers` and `represented_by`, then each `part_of`
-entry's `identifiers`. The coordinate of a timestamp on
-a timeline of the manifest is an own-axis value of that timeline and is
-checked with the `representation` rule (`coordinate 3 of 'timestamp_1' is
+order and its children's, depth first; within a link its assertion's
+`asserted_on`, then its `identifiers`, then each part slot's `asserted_on`,
+`identifiers` and `represented_by`, then each `part_of` entry's
+`asserted_on` and `identifiers`. The schema checks that a date is written
+`YYYY-MM-DD`; `calendar_date` checks that the calendar has it, as the
+description model does when it reads an assertion, so a manifest
+`validate` accepts is one the model reads. The Gregorian calendar counts
+months 1 to 12 and the days of each month, February having 29 in a year
+divisible by 4 and not by 100, or by 400; its years run from 1 (the first
+year of Python's `datetime.date`), so `0000-01-01` is refused too. What
+proves it (`test_description.py`): `2024-02-29`, `2000-02-29`,
+`0001-01-01` and `9999-12-31` validate, and `2026-02-30`, `2023-02-29`,
+`2100-02-29`, `2026-11-31`, `2026-13-01`, `2026-00-10`, `2026-11-00` and
+`0000-01-01` are each one `calendar_date` problem with the message above;
+a manifest holding one in the assertion of a link, of its slot and of its
+`part_of` entry, its slot also represented by `ghost` and its identifier
+naming `opus`, lists its problems in the order stated. The coordinate of a
+timestamp on a timeline of the manifest is an own-axis value of that
+timeline and is checked with the `representation` rule (`coordinate 3 of 'timestamp_1' is
 an int on a fraction axis: write [3, 1]`, at its `coordinate`); a timestamp
 naming no timeline is checked for its timeline alone.
 
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 125 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 127 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
-exactly the eighteen of the table, so every code is reached by a case both
+exactly the nineteen of the table, so every code is reached by a case both
 suites read. `version_unknown` raises `UnsupportedVersionError` and stores
 `["timetoshare"]` and the code `null`. Every case is read through the
 package's one reader, `rejection_case`, which every consumer uses too; it
@@ -460,7 +492,7 @@ value in place and are reported at their path with the exact message, a
 case without one (`id_empty`) reads as written, and an unknown name is
 refused with `ValueError`. Each case's text is the
 standard writer's, and the set of names is stated literally, so a case cannot
-disappear unnoticed. Fifteen cases pin their message too (`test_identity.py`
+disappear unnoticed. Sixteen cases pin their message too (`test_identity.py`
 and `test_description.py`):
 `child_unit_differs`, `child_offset_beyond_parent`, `child_end_beyond_parent`,
 `region_id_duplicate_across_roots`, `band_order_unknown_entry`,
@@ -468,10 +500,11 @@ and `test_description.py`):
 `timestamp_timeline_unknown`, `timestamp_coordinate_beyond_length`,
 `timestamp_coordinate_negative`, `timestamp_id_is_timeline_id`,
 `description_slot_represented_by_unresolved`,
-`description_identifier_scheme_unresolved` and
-`description_scheme_id_duplicate`. The sixteen cases named `description_*`
-break one rule each of a manifest whose one root `score` (8 quarters) holds
-the region `intro` and whose one link, at the level `work`, reads two
+`description_identifier_scheme_unresolved`,
+`description_scheme_id_duplicate` and
+`description_asserted_on_impossible_date`. The seventeen cases named
+`description_*` break one rule each of a manifest whose one root `score`
+(8 quarters) holds the region `intro` and whose one link, at the level `work`, reads two
 parts; every case is in the complete form, so its slots state both
 `represented_by` and `absent` and its paths are those of the complete form:
 a link without `relation` or without `level` (`schema` at the link), with
@@ -487,8 +520,12 @@ timeline's), parts with `parts_relation` null (`schema` at
 `parts_relation`), a `part_of` entry without `parts_relation` (`schema` at
 the entry), an assertion with `match` `equivalent` and with `status`
 `approved` (`schema` at the member), `asserted_on` `17 November 2026`
-(`schema` at the member), a `uri` entry `musicbrainz.org/work/x` (`schema`
-at the entry) and a record without `url` (`schema` at the record). The five
+(`schema` at the member) and `2026-02-30` (`calendar_date` at the
+member), a `uri` entry `musicbrainz.org/work/x` (`schema`
+at the entry) and a record without `url` (`schema` at the record).
+`id_control_character_trailing_newline` names its one root `score`
+followed by a newline and is refused at that `id` (`schema`), the case on
+which an anchored pattern would part the two validators. The five
 cases of named timestamps break one rule each of the manifest `score` (8
 quarters) with the child `verse` (4 at 2): a timestamp on `ghost`
 (`timestamp_timeline` at its `timeline`), at `[5, 1]` on `verse`
@@ -772,9 +809,16 @@ writes links, reads them back and builds them from URLs. What proves it
   (`'score' is no level`); an agent link without a relation (`an agent link
   states its relation, the agent's role`) or with `pertains_to` (`an agent
   link never uses the relation 'pertains_to'`); parts without a parts
-  relation (`a link with parts states its parts_relation`); and `with_parts`
+  relation (`a link with parts states its parts_relation`); `with_parts`
   given a slot recognised at another level (`part slot 2 is recognised at
-  the level 'manifestation', the link's level is 'work'`).
+  the level 'manifestation', the link's level is 'work'`); and an
+  `asserted_on` the calendar lacks or not written `YYYY-MM-DD`, read by
+  `Assertion.from_dict` (`2026-02-30`, `2100-02-29`, `0000-01-01`,
+  `20261117` and `17 November 2026`, each `'<date>' is no Gregorian
+  calendar date written YYYY-MM-DD`) or by `Link.from_dict` in the
+  assertion of a slot or of a `part_of` entry, the message of the
+  validator's `calendar_date`. `Assertion.from_dict` reads `2024-02-29`
+  as `datetime.date(2024, 2, 29)`.
 - **Normalisation.** `from_urls` collapses URLs that normalise to one URI or
   one identifier, keeping the first, puts the identifiers from URLs before
   the given ones (a mapping or a list of `Identifier`), keeps an absolute

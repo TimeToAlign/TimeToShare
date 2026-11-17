@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -12,11 +12,17 @@ let shipped: string[] = [];
 /** The name and version `npm pack` reports. */
 let packed = { name: "", version: "" };
 
+/** Whether the package directory's copy of a repository file holds the same bytes. */
+const copied = (path: string): boolean =>
+  readFileSync(resolve(packageDirectory, path)).equals(readFileSync(resolve(repositoryRoot, path)));
+
 describe("the npm package", () => {
   beforeAll(() => {
     execFileSync(process.execPath, ["scripts/copy-assets.ts"], { cwd: packageDirectory });
+    // Through the shell: on Windows `npm` is the script `npm.cmd`, which Node
+    // starts only through a shell; the command line is fixed.
     const [report] = JSON.parse(
-      execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
+      execSync("npm pack --dry-run --json --ignore-scripts", {
         cwd: packageDirectory,
         encoding: "utf8",
       }),
@@ -31,9 +37,7 @@ describe("the npm package", () => {
 
   it("ships the drawing specification", () => {
     expect(shipped).toContain("docs/drawing.md");
-    expect(readFileSync(resolve(packageDirectory, "docs", "drawing.md"))).toEqual(
-      readFileSync(resolve(repositoryRoot, "docs", "drawing.md")),
-    );
+    expect(copied("docs/drawing.md")).toBe(true);
     const manifest = JSON.parse(readFileSync(resolve(packageDirectory, "package.json"), "utf8"));
     expect(manifest.exports["./docs/*"]).toBe("./docs/*");
   });
@@ -42,17 +46,13 @@ describe("the npm package", () => {
     const path = "schema/0.2.0/timetoshare.schema.json";
     expect(shipped).toContain(path);
     expect(shipped.filter((file) => file.startsWith("schema/"))).toEqual([path]);
-    expect(readFileSync(resolve(packageDirectory, path))).toEqual(
-      readFileSync(resolve(repositoryRoot, path)),
-    );
+    expect(copied(path)).toBe(true);
   });
 
   it("ships the registry of identifier schemes", () => {
     const path = "registry/schemes.json";
     expect(shipped.filter((file) => file.startsWith("registry/"))).toEqual([path]);
-    expect(readFileSync(resolve(packageDirectory, path))).toEqual(
-      readFileSync(resolve(repositoryRoot, path)),
-    );
+    expect(copied(path)).toBe(true);
     const manifest = JSON.parse(readFileSync(resolve(packageDirectory, "package.json"), "utf8"));
     expect(manifest.exports["./registry/*"]).toBe("./registry/*");
   });
@@ -66,17 +66,11 @@ describe("the npm package", () => {
       "fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json",
     ];
     expect(shipped.filter((file) => file.startsWith("fonts/")).sort()).toEqual(fonts);
-    for (const path of fonts) {
-      expect(readFileSync(resolve(packageDirectory, path))).toEqual(
-        readFileSync(resolve(repositoryRoot, path)),
-      );
-    }
+    for (const path of fonts) expect(copied(path), path).toBe(true);
   });
 
   it("ships the repository's licence", () => {
     expect(shipped).toContain("LICENSE");
-    expect(readFileSync(resolve(packageDirectory, "LICENSE"))).toEqual(
-      readFileSync(resolve(repositoryRoot, "LICENSE")),
-    );
+    expect(copied("LICENSE")).toBe(true);
   });
 });

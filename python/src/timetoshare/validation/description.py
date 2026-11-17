@@ -1,11 +1,12 @@
-"""Description rules: what a link's references name, and its unregistered terms.
+"""Description rules: the dates and references of links, and their unregistered terms.
 
-The schema checks the shape of every link; two references reach beyond the
-link and are checked here, link by link: an identifier's ``scheme`` names a
-scheme of the manifest or is an absolute URI, and a part slot's
-``represented_by`` names a timeline (at any depth) or a region of the
-manifest. The open vocabularies are never refused: a bare term outside the
-words registered for its key is listed as a warning.
+The schema checks the shape of every link; three rules reach beyond it and
+are checked here, link by link: an assertion's ``asserted_on`` names a day
+of the Gregorian calendar, an identifier's ``scheme`` names a scheme of the
+manifest or is an absolute URI, and a part slot's ``represented_by`` names a
+timeline (at any depth) or a region of the manifest. The open vocabularies
+are never refused: a bare term outside the words registered for its key is
+listed as a warning.
 """
 
 from __future__ import annotations
@@ -13,7 +14,13 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import Any
 
-from ..description import ABSENCE_REASONS, METHODS, PARTS_RELATIONS, RELATIONS
+from ..description import (
+    ABSENCE_REASONS,
+    METHODS,
+    PARTS_RELATIONS,
+    RELATIONS,
+    _calendar_date,
+)
 from ..registry import is_absolute_uri
 from .diagnostics import SchemaValidationError, _entries, _Path
 
@@ -58,9 +65,25 @@ def _targets(manifest: Mapping[str, Any]) -> set[str]:
     return found
 
 
-def _scheme_problems(
+def _date_problems(
+    owner: Mapping[str, Any], path: _Path
+) -> Iterator[SchemaValidationError]:
+    assertion = owner.get("assertion")
+    date = assertion.get("asserted_on") if isinstance(assertion, Mapping) else None
+    if isinstance(date, str):
+        try:
+            _calendar_date(date)
+        except ValueError as error:
+            yield SchemaValidationError(
+                "calendar_date", (*path, "assertion", "asserted_on"), str(error)
+            )
+
+
+def _owner_problems(
     owner: Mapping[str, Any], path: _Path, schemes: set[str]
 ) -> Iterator[SchemaValidationError]:
+    """The date of an owner's assertion, then its identifiers' schemes."""
+    yield from _date_problems(owner, path)
     for index, identifier in enumerate(_entries(owner, "identifiers")):
         scheme = identifier["scheme"]
         if scheme not in schemes and not is_absolute_uri(scheme):
@@ -74,19 +97,20 @@ def _scheme_problems(
 def description_problems(
     manifest: Mapping[str, Any],
 ) -> Iterator[SchemaValidationError]:
-    """Yield the references of links that name nothing, link by link.
+    """Yield the impossible dates and dangling references of links, link by link.
 
-    Within a link: its identifiers' schemes, then each part slot's
-    identifiers' schemes and its ``represented_by`` entries, then each
-    ``part_of`` entry's identifiers' schemes.
+    Within a link: its assertion's date and its identifiers' schemes, then
+    each part slot's assertion's date, identifiers' schemes and
+    ``represented_by`` entries, then each ``part_of`` entry's assertion's
+    date and identifiers' schemes.
     """
     schemes = {scheme["id"] for scheme in _entries(manifest, "schemes")}
     targets = _targets(manifest)
     for link, path in links_of(manifest):
-        yield from _scheme_problems(link, path, schemes)
+        yield from _owner_problems(link, path, schemes)
         for index, slot in enumerate(_entries(link, "parts")):
             at = (*path, "parts", index)
-            yield from _scheme_problems(slot, at, schemes)
+            yield from _owner_problems(slot, at, schemes)
             for number, target in enumerate(slot.get("represented_by", [])):
                 if target not in targets:
                     yield SchemaValidationError(
@@ -95,7 +119,7 @@ def description_problems(
                         f"'{target}' names no timeline or region of this manifest",
                     )
         for index, entry in enumerate(_entries(link, "part_of")):
-            yield from _scheme_problems(entry, (*path, "part_of", index), schemes)
+            yield from _owner_problems(entry, (*path, "part_of", index), schemes)
 
 
 def _term(

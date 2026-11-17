@@ -3,7 +3,7 @@ export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json",
   "title": "TimeToShare manifest",
-  "description": "The TimeToShare! 0.2.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and MeasureMaps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of root timelines, possibly empty, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key an object does not declare is kept and reported as unknown by the TimeToShare validators, never refused. The `discriminator` annotations follow OpenAPI: they serve validators that understand them and change nothing for the others. Every key with a default may be left out; a reader supplies the default. The definitions Manifest, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.2.x.",
+  "description": "The TimeToShare! 0.2.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and MeasureMaps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of root timelines, possibly empty, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key an object does not declare is kept and reported as unknown by the TimeToShare validators, never refused. The `discriminator` annotations follow OpenAPI: they serve validators that understand them and change nothing for the others. Every key with a default may be left out; a reader supplies the default. The definitions Manifest, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap, MeasureMapRow, Link and Scheme are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.2.x.",
   "$ref": "#/$defs/Manifest",
   "$defs": {
     "Manifest": {
@@ -499,7 +499,10 @@ export const schema = {
     },
     "Id": {
       "type": "string",
-      "pattern": "^[^\\u0000-\\u001f]+$",
+      "minLength": 1,
+      "not": {
+        "pattern": "[\\u0000-\\u001f]"
+      },
       "description": "An identifier: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed."
     },
     "Facet": {
@@ -986,7 +989,10 @@ export const schema = {
       "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.",
       "items": {
         "type": "string",
-        "pattern": "^[^\\u0000-\\u001f]+$"
+        "minLength": 1,
+        "not": {
+          "pattern": "[\\u0000-\\u001f]"
+        }
       },
       "uniqueItems": true
     },
@@ -1108,7 +1114,10 @@ export const schema = {
     "Paint": {
       "type": "string",
       "description": "A colour as #RRGGBB with upper-case hexadecimal digits, or none.",
-      "pattern": "^(#[0-9A-F]{6}|none)$"
+      "pattern": "^(#[0-9A-F]{6}|none)$",
+      "not": {
+        "pattern": "[\\u0000-\\u001f]"
+      }
     },
     "Declaration": {
       "type": "object",
@@ -1124,7 +1133,10 @@ export const schema = {
         "stroke-dasharray": {
           "type": "string",
           "description": "none, or non-negative decimal numbers separated by single spaces.",
-          "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
+          "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$",
+          "not": {
+            "pattern": "[\\u0000-\\u001f]"
+          }
         },
         "fill": {
           "$ref": "#/$defs/Paint"
@@ -1687,7 +1699,7 @@ export const schema = {
               "type": "null"
             }
           ],
-          "description": "Why no element of this manifest represents the part, or null where one does. Registered words: `not_represented` (the part exists and this manifest leaves it out), `lost` (the part is lost), `unfinished` (the part was never completed), `unknown` (whether or why the part is missing is not known) and `not_recorded` (the part exists but the represented source, such as a recording, does not contain it). Fallback: read as `not_represented`.",
+          "description": "Why no element of this manifest represents the part, or null where one does. Registered words: `not_represented` (the part exists and is identified, and no element of this manifest represents it), `lost` (the part existed and no source of it survives), `unfinished` (the part was begun or planned and never completed), `unknown` (whether a part occupies this position, or which part does, is not known) and `not_recorded` (the slot exists and the publisher states nothing about how the part is represented). Fallback: read as `not_represented`.",
           "default": null
         },
         "assertion": {

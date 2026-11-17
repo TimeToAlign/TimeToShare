@@ -326,6 +326,47 @@ ERRORS: list[tuple[Callable[[], object], str]] = [
         "part slot 2 is recognised at the level 'manifestation', the link's level "
         "is 'work'",
     ),
+    *[
+        (
+            lambda date=date: Assertion.from_dict({"asserted_on": date}),
+            f"'{date}' is no Gregorian calendar date written YYYY-MM-DD",
+        )
+        for date in (
+            "2026-02-30",
+            "2100-02-29",
+            "0000-01-01",
+            "20261117",
+            "17 November 2026",
+        )
+    ],
+    (
+        lambda: Link.from_dict(
+            {
+                "relation": "pertains_to",
+                "level": "work",
+                "parts_relation": "has_part",
+                "parts": [
+                    {"absent": "lost", "assertion": {"asserted_on": "2026-11-31"}}
+                ],
+            }
+        ),
+        "'2026-11-31' is no Gregorian calendar date written YYYY-MM-DD",
+    ),
+    (
+        lambda: Link.from_dict(
+            {
+                "relation": "pertains_to",
+                "level": "work",
+                "part_of": [
+                    {
+                        "parts_relation": "has_part",
+                        "assertion": {"asserted_on": "2026-13-01"},
+                    }
+                ],
+            }
+        ),
+        "'2026-13-01' is no Gregorian calendar date written YYYY-MM-DD",
+    ),
 ]
 
 
@@ -333,6 +374,12 @@ ERRORS: list[tuple[Callable[[], object], str]] = [
 def test_every_error_of_the_model(build: Callable[[], object], message: str) -> None:
     with pytest.raises(ValueError, match=f"^{re.escape(message)}$"):
         build()
+
+
+def test_an_assertion_reads_a_day_of_the_calendar() -> None:
+    read = Assertion.from_dict({"asserted_on": "2024-02-29"})
+    assert read.asserted_on == datetime.date(2024, 2, 29)
+    assert read.to_dict()["asserted_on"] == "2024-02-29"
 
 
 # -- normalisation and copy-on-write -------------------------------------------------
@@ -680,6 +727,81 @@ def test_a_links_identifier_comes_before_its_slot() -> None:
     ]
 
 
+CALENDAR_DATES = ["2024-02-29", "2000-02-29", "0001-01-01", "9999-12-31"]
+IMPOSSIBLE_DATES = [
+    "2026-02-30",
+    "2023-02-29",
+    "2100-02-29",
+    "2026-11-31",
+    "2026-13-01",
+    "2026-00-10",
+    "2026-11-00",
+    "0000-01-01",
+]
+
+
+def _no_date(date: str) -> str:
+    return f"'{date}' is no Gregorian calendar date written YYYY-MM-DD"
+
+
+@pytest.mark.parametrize("date", CALENDAR_DATES)
+def test_an_assertion_dated_by_the_calendar_validates(date: str) -> None:
+    value = manifest(timeline("score"), links=[_link(assertion={"asserted_on": date})])
+    validate(value)
+    assert identity_problems(value) == []
+
+
+@pytest.mark.parametrize("date", IMPOSSIBLE_DATES)
+def test_an_assertion_dated_by_no_day_of_the_calendar_is_refused(date: str) -> None:
+    value = manifest(timeline("score"), links=[_link(assertion={"asserted_on": date})])
+    problem = (
+        ("links", 0, "assertion", "asserted_on"),
+        "calendar_date",
+        _no_date(date),
+    )
+    assert _problems(value) == [problem]
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(value)
+    assert (caught.value.path, caught.value.code, caught.value.message) == problem
+
+
+def test_the_dates_of_a_link_come_with_its_references() -> None:
+    def dated(day: str) -> dict[str, str]:
+        return {"asserted_on": f"2026-02-{day}"}
+
+    link = _link(
+        assertion=dated("30"),
+        identifiers=_opus("opus"),
+        parts_relation="has_part",
+        parts=[{"represented_by": ["ghost"], "assertion": dated("31")}],
+        part_of=[{"parts_relation": "has_part", "assertion": dated("29")}],
+    )
+    at = ("links", 0)
+    assert _problems(manifest(timeline("score"), links=[link])) == [
+        ((*at, "assertion", "asserted_on"), "calendar_date", _no_date("2026-02-30")),
+        (
+            (*at, "identifiers", 0, "scheme"),
+            "dangling_target",
+            "'opus' names no scheme of this manifest and is no absolute URI",
+        ),
+        (
+            (*at, "parts", 0, "assertion", "asserted_on"),
+            "calendar_date",
+            _no_date("2026-02-31"),
+        ),
+        (
+            (*at, "parts", 0, "represented_by", 0),
+            "dangling_target",
+            "'ghost' names no timeline or region of this manifest",
+        ),
+        (
+            (*at, "part_of", 0, "assertion", "asserted_on"),
+            "calendar_date",
+            _no_date("2026-02-29"),
+        ),
+    ]
+
+
 def _path_of(value: dict[str, Any]) -> tuple[Any, ...]:
     with pytest.raises(SchemaValidationError) as caught:
         validate(value)
@@ -733,6 +855,10 @@ def test_the_schema_rules_of_slots_and_links() -> None:
         (
             "description_scheme_id_duplicate",
             "'score' is not unique in the manifest, first at #/timelines/0/id",
+        ),
+        (
+            "description_asserted_on_impossible_date",
+            "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD",
         ),
     ],
 )

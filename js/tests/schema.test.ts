@@ -24,6 +24,17 @@ const PUBLIC = [
   "Id",
   "MeasureMap",
   "MeasureMapRow",
+  "Link",
+  "Scheme",
+];
+
+/** Every node whose pattern ends in `$`, by its path below `$defs`, with a value its pattern accepts. */
+const ANCHORED: [string[], string][] = [
+  [["Timestamp", "properties", "id"], "timestamp_1"],
+  [["Paint"], "none"],
+  [["Declaration", "properties", "stroke-dasharray"], "4 2"],
+  [["Assertion", "properties", "asserted_on"], "2026-11-17"],
+  [["Descriptor", "properties", "integrity"], "sha256-AAAA"],
 ];
 
 const MAP_TYPES = [
@@ -130,6 +141,9 @@ describe("the schema document", () => {
 
   it("holds the public definitions", () => {
     for (const name of PUBLIC) expect(Object.hasOwn(defs, name)).toBe(true);
+    const [, named] =
+      /The definitions (.+?) are public:/.exec(document.description as string) ?? [];
+    expect(named).toBe(`${PUBLIC.slice(0, -1).join(", ")} and ${PUBLIC.at(-1)}`);
   });
 
   it("chooses between the ten map types", () => {
@@ -282,7 +296,7 @@ describe("the schema document", () => {
     ]) {
       expect(identifier(accepted), accepted).toBe(true);
     }
-    for (const refused of ["", "score\t"]) {
+    for (const refused of ["", "score\t", "score\n"]) {
       expect(identifier(refused), refused).toBe(false);
     }
     const address = ajv.compile({ $ref: "#/$defs/Address", $defs: defs });
@@ -313,6 +327,33 @@ describe("the schema document", () => {
     ]) {
       expect(address(refused), JSON.stringify(refused)).toBe(false);
     }
+  });
+
+  it("lets no pattern take a trailing newline", () => {
+    const anchored: string[][] = [];
+    const walk = (node: unknown, path: string[]): void => {
+      if (Array.isArray(node)) {
+        for (const item of node) walk(item, path);
+      } else if (typeof node === "object" && node !== null) {
+        const { pattern } = node as Node;
+        if (typeof pattern === "string" && pattern.endsWith("$")) anchored.push(path);
+        for (const [key, value] of Object.entries(node)) walk(value, [...path, key]);
+      }
+    };
+    walk(defs, []);
+    const key = (path: string[]) => path.join("/");
+    expect(anchored.map(key).sort()).toEqual(ANCHORED.map(([path]) => key(path)).sort());
+    const ajv = new Ajv2020({ strict: false });
+    for (const [path, value] of ANCHORED) {
+      const node = path.reduce<unknown>((at, name) => (at as Node)[name], defs) as Node;
+      const accepts = ajv.compile({ ...node, $defs: defs });
+      expect(accepts(value), key(path)).toBe(true);
+      expect(accepts(`${value}\n`), key(path)).toBe(false);
+    }
+    const order = ajv.compile({ $ref: "#/$defs/Order", $defs: defs });
+    expect(order(["line", "markers"])).toBe(true);
+    expect(order(["line\n", "markers"])).toBe(false);
+    expect(order([""])).toBe(false);
   });
 
   it("keeps every object open without a custom keyword", () => {

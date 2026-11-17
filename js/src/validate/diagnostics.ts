@@ -32,6 +32,7 @@ export type ValidationCode =
   | "band_order"
   | "timestamp_timeline"
   | "timestamp_coordinate"
+  | "calendar_date"
   | "finite_number";
 
 /** Order paths segment by segment: indices by number, keys by code point, prefixes first. */
