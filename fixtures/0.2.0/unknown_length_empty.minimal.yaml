@@ -1,0 +1,16 @@
+graphical:
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: score
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    id: score
+    length: null
+    unit: quarters
+timetoshare: "0.2.0"

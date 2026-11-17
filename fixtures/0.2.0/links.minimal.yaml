@@ -1,0 +1,74 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: recording
+    -
+      coordinate: 690.0
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: recording
+links:
+  -
+    assertion:
+      asserted_by: ["https://example.org/people/editor"]
+      asserted_on: "2026-11-17"
+      method: manual
+      status: confirmed
+    label: "Piano Sonata No. 29 in B♭ major, Op. 106"
+    level: work
+    parts:
+      -
+        label: "I. Allegro"
+        represented_by: [movement_1]
+        uri: ["http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980"]
+      -
+        absent: not_represented
+        label: "II. Scherzo. Assai vivace"
+        uri: ["http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9"]
+      -
+        absent: not_represented
+        label: "III. Adagio sostenuto"
+        uri: ["http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f"]
+      -
+        absent: not_represented
+        label: "IV. Introduzione. Largo – Allegro risoluto"
+        uri: ["http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"]
+    parts_relation: has_part
+    relation: pertains_to
+    uri: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    id: recording
+    length: 690.0
+    links:
+      -
+        assertion:
+          asserted_by: ["https://example.org/people/editor"]
+          asserted_on: "2026-11-17"
+          match: broad
+          method: manual
+        level: manifestation
+        relation: pertains_to
+        uri: ["http://musicbrainz.org/release/814c53fd-0732-4819-9753-4578f5ab992c"]
+    name: Recording
+    regions:
+      -
+        end: 688.0
+        id: movement_1
+        links:
+          -
+            label: "I. Allegro"
+            level: work
+            relation: pertains_to
+            uri: ["http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980"]
+        name: "I. Allegro"
+        start: 1.5
+    unit: seconds
+timetoshare: "0.2.0"

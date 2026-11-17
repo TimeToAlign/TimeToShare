@@ -1,0 +1,70 @@
+graphical:
+  order:
+    g1: [t, u]
+    g2: [t, v]
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: t
+    -
+      coordinate: [8, 1]
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: t
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_3
+      name: origin
+      timeline: u
+    -
+      coordinate: 4.0
+      display: [wedge, coordinate]
+      id: timestamp_4
+      name: length
+      timeline: u
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: timestamp_5
+      name: origin
+      timeline: v
+    -
+      coordinate: 800
+      display: [wedge, coordinate]
+      id: timestamp_6
+      name: length
+      timeline: v
+groups:
+  -
+    id: g1
+    members: [t, u]
+    name: Performance
+  -
+    id: g2
+    members: [t, v]
+    name: Page
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+name: Shared
+timelines:
+  -
+    id: t
+    length: [8, 1]
+    name: Score
+    unit: quarters
+  -
+    id: u
+    length: 4.0
+    name: Performance
+    unit: seconds
+  -
+    id: v
+    length: 800
+    name: Page
+    unit: pixels
+timetoshare: "0.2.0"

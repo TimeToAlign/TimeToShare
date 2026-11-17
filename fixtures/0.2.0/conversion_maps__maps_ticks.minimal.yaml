@@ -1,0 +1,30 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: "maps:ticks"
+    -
+      coordinate: 960
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: "maps:ticks"
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    conversion_maps:
+      -
+        id: cmap_1
+        scalar: [1, 480]
+        source_unit: ticks
+        target_unit: quarters
+        type: LinearMap
+    id: "maps:ticks"
+    length: 960
+    name: "Tick maps"
+    unit: ticks
+timetoshare: "0.2.0"

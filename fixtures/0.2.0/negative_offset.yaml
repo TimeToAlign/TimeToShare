@@ -1,0 +1,41 @@
+graphical:
+  order: {}
+  statements: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: recording
+    -
+      coordinate: 30.0
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: recording
+groups: []
+links: []
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+name: null
+schemes: []
+timelines:
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: recording
+    is_segment_line: false
+    length: 30.0
+    links: []
+    locked: false
+    meta: {}
+    name: Recording
+    number_type: float
+    offset: -2.5
+    regions: []
+    unit: seconds
+timetoshare: "0.2.0"

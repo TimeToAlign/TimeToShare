@@ -1,0 +1,63 @@
+graphical:
+  order:
+    group_1: [theme, recording]
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: recording
+    -
+      coordinate: 12.0
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: recording
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_3
+      name: origin
+      timeline: theme
+    -
+      coordinate: [8, 1]
+      display: [wedge, coordinate]
+      id: timestamp_4
+      name: length
+      timeline: theme
+groups:
+  -
+    id: group_1
+    members: [recording, theme]
+    name: Theme
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+timelines:
+  -
+    id: recording
+    length: 12.0
+    name: Recording
+    unit: seconds
+  -
+    children:
+      -
+        children:
+          -
+            id: theme
+            length: [8, 1]
+            locked: true
+            name: Theme
+            offset: [8, 1]
+            unit: quarters
+        id: movement
+        length: [16, 1]
+        locked: true
+        name: Movement
+        offset: [16, 1]
+        unit: quarters
+    id: score
+    length: [64, 1]
+    name: Score
+    unit: quarters
+timetoshare: "0.2.0"

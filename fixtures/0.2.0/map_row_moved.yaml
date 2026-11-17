@@ -1,0 +1,94 @@
+graphical:
+  order: {}
+  statements: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: piece
+    -
+      coordinate: [8, 1]
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: piece
+groups: []
+links: []
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+name: null
+schemes: []
+timelines:
+  -
+    children:
+      -
+        children: []
+        conversion_maps:
+          -
+            id: tempo_ante
+            name: Tempo
+            offset: 0
+            scalar: [1, 2]
+            source_unit: quarters
+            target_unit: seconds
+            type: LinearMap
+          -
+            id: ticks_ante
+            name: Ticks
+            offset: 0
+            scalar: 480
+            source_unit: quarters
+            target_unit: ticks
+            type: LinearMap
+        flow_control: []
+        id: ante
+        is_segment_line: false
+        length: [4, 1]
+        links: []
+        locked: true
+        meta: {}
+        name: Ante
+        number_type: fraction
+        offset: [0, 1]
+        regions: []
+        unit: quarters
+      -
+        children: []
+        conversion_maps:
+          -
+            id: ticks_cons
+            name: Ticks
+            offset: 0
+            scalar: 480
+            source_unit: quarters
+            target_unit: ticks
+            type: LinearMap
+        flow_control: []
+        id: cons
+        is_segment_line: false
+        length: [4, 1]
+        links: []
+        locked: true
+        meta: {}
+        name: Cons
+        number_type: fraction
+        offset: [3, 1]
+        regions: []
+        unit: quarters
+    conversion_maps: []
+    flow_control: []
+    id: piece
+    is_segment_line: false
+    length: [8, 1]
+    links: []
+    locked: false
+    meta: {}
+    name: Piece
+    number_type: fraction
+    regions: []
+    unit: quarters
+timetoshare: "0.2.0"

@@ -78,7 +78,7 @@ def schema_declarations(version: str) -> dict[str, str | None]:
     others = sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir() if p.name != version)
     found["schema versions"] = version if not others else ", ".join([version, *others])
     fixtures = REPOSITORY_ROOT / "fixtures" / version
-    found["fixtures directory"] = version if any(fixtures.glob("*.json")) else None
+    found["fixtures directory"] = version if any(fixtures.glob("*.yaml")) else None
     return found
 
 

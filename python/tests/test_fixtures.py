@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import re
 from collections import Counter
 from importlib import import_module
@@ -15,9 +14,13 @@ from timetoshare import (
     dumps,
     fixture_paths,
     identity_problems,
+    loads,
     minimal,
+    rejection_paths,
+    serialization_of,
     unknown_keys,
     validate,
+    warning_paths,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -25,13 +28,13 @@ FIXTURES = REPOSITORY_ROOT / "fixtures" / "0.2.0"
 
 
 def _load(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+    return loads(path.read_text(encoding="utf-8"))
 
 
 def test_fixture_paths_list_every_manifest_but_the_drawings() -> None:
     expected = sorted(
         path
-        for path in FIXTURES.rglob("*.json")
+        for path in FIXTURES.rglob("*.yaml")
         if "drawings" not in path.relative_to(FIXTURES).parts
     )
     assert fixture_paths() == expected
@@ -66,9 +69,21 @@ def test_every_fixture_is_a_manifest_without_unknown_keys(path: Path) -> None:
     assert dumps(complete(minimal(value))) == dumps(complete(value))
 
 
+@pytest.mark.parametrize(
+    "path",
+    [*fixture_paths(), *rejection_paths(), *warning_paths()],
+    ids=lambda path: f"{path.parent.name}/{path.name}",
+)
+def test_every_case_is_written_in_canonical_yaml(path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+    assert path.suffix == ".yaml"
+    assert serialization_of(text) == "yaml"
+    assert dumps(loads(text)) == text
+
+
 def test_non_ascii_text_is_written_unescaped() -> None:
-    text = (FIXTURES / "corpus_score_ms3.json").read_text(encoding="utf-8")
-    assert '"label": "MC 15 → start (MC 1)"' in text
+    text = (FIXTURES / "corpus_score_ms3.yaml").read_text(encoding="utf-8")
+    assert 'label: "MC 15 → start (MC 1)"' in text
     assert "\\u2192" not in text
 
 
@@ -170,8 +185,8 @@ def _styled(name: str) -> dict:
 
 def test_the_styled_manifests_carry_their_statements() -> None:
     expected = {
-        "styled__score.json": _STYLED_SCORE,
-        "styled__performance.json": {
+        "styled__score.yaml": _STYLED_SCORE,
+        "styled__performance.yaml": {
             "statements": [
                 *_SHARED,
                 {
@@ -266,7 +281,7 @@ def _resolve(graphical: dict, element: tuple, prop: str) -> str:
 
 
 def test_every_styled_score_item_has_its_own_colour() -> None:
-    graphical = _styled("styled__score.json")
+    graphical = _styled("styled__score.yaml")
     painted = {"name": "fill", "label": "fill", "wedge": "fill"}
     colours = [
         _resolve(graphical, element, painted.get(element[0], "stroke"))
@@ -294,7 +309,7 @@ def test_every_styled_score_item_has_its_own_colour() -> None:
 
 
 def test_every_styled_score_item_is_visible() -> None:
-    graphical = _styled("styled__score.json")
+    graphical = _styled("styled__score.yaml")
     declarations = [
         (statement["select"], statement["set"])
         for statement in graphical["statements"]
@@ -312,7 +327,7 @@ def test_every_styled_score_item_is_visible() -> None:
 
 
 @pytest.mark.parametrize(
-    "name", ["bundle_shared_member.json", "bundle_shared_member.minimal.json"]
+    "name", ["bundle_shared_member.yaml", "bundle_shared_member.minimal.yaml"]
 )
 def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
     value = _load(FIXTURES / "bundles" / name)
@@ -327,8 +342,8 @@ def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
 @pytest.mark.parametrize(
     ("name", "downbeat"),
     [
-        ("timestamps.json", {"display": ["wedge", "name", "cross_section"]}),
-        ("timestamps.minimal.json", {}),
+        ("timestamps.yaml", {"display": ["wedge", "name", "cross_section"]}),
+        ("timestamps.minimal.yaml", {}),
     ],
 )
 def test_named_timestamps_pass_through_the_emitter(
@@ -397,7 +412,7 @@ _ORIGIN_AND_LENGTH = {
 }
 
 
-@pytest.mark.parametrize("suffix", [".json", ".minimal.json"])
+@pytest.mark.parametrize("suffix", [".yaml", ".minimal.yaml"])
 @pytest.mark.parametrize("name", list(_ORIGIN_AND_LENGTH))
 def test_drawn_roots_carry_their_origin_and_length(name: str, suffix: str) -> None:
     value = _load(FIXTURES / f"{name}{suffix}")
@@ -414,7 +429,7 @@ def test_no_corpus_fixture_carries_a_named_timestamp() -> None:
 
 
 @pytest.mark.parametrize(
-    "name", ["bundle_free_ids.json", "bundle_free_ids.minimal.json"]
+    "name", ["bundle_free_ids.yaml", "bundle_free_ids.minimal.yaml"]
 )
 def test_free_ids_are_written_as_given(name: str) -> None:
     value = _load(FIXTURES / "bundles" / name)
@@ -447,7 +462,7 @@ def test_generated_flow_control_ids_carry_their_type() -> None:
     elements = [
         element
         for path in fixture_paths()
-        if not path.name.endswith(".minimal.json")
+        if not path.name.endswith(".minimal.yaml")
         for root in _load(path)["timelines"]
         for element in _flow_control(root)
     ]
