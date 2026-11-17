@@ -25,9 +25,10 @@ single-quoted and double-quoted scalars, block scalars, comments) and must:
 5. read a surrogate pair written as two `\u` escapes as one character, and
    refuse a lone surrogate, whether written as itself or through an
    escape;
-6. refuse a literal U+0085 (next line) anywhere in the text; the escape
-   `\N` stays allowed;
-7. ignore a leading U+FEFF (byte order mark);
+6. refuse every character written as itself, in a scalar or a comment,
+   outside YAML's printable set, and U+0085, U+2028 and U+2029; the
+   escapes stay allowed;
+7. remove exactly one U+FEFF (byte order mark) at position 0;
 8. construct no objects from the text (safe loading only);
 9. raise `ValueError` with the line and column for malformed text and for
    every refusal, whatever the library raises;
@@ -90,9 +91,9 @@ Use ruamel.yaml as the parser only, through its event stream. The package
 resolves every scalar and builds the value itself; ruamel.yaml's resolver,
 constructors and emitter are not used.
 
-Before parsing, the package drops a leading U+FEFF and scans the text
-twice: for the characters ruamel.yaml would misread (U+0085, U+2028,
-U+2029) and for directives. It then creates `YAML(typ="safe", pure=True)`
+Before parsing, the package drops a single leading U+FEFF and scans the
+text twice: for the characters it refuses (see Characters) and for
+directives. It then creates `YAML(typ="safe", pure=True)`
 and iterates `parse(text)`. Its own builder turns the events into the
 manifest value with an explicit stack, so nesting depth is bounded by
 memory, not by Python's recursion limit. Each requirement is met as
@@ -114,8 +115,8 @@ follows:
 | Keys that are not strings | Refused when a key is a mapping or sequence, or a plain scalar that resolves to null, a boolean or a number. |
 | Implicit key over 1024 characters | By the scanner: ruamel.yaml drops a possible implicit key once its `:` lies more than 1024 characters after the key's first character, quotes and spaces before the `:` included, counted in code points, and then raises `ScannerError` ("mapping values are not allowed here") at the `:`, or `ParserError` in a flow sequence. `a`×1024 `: 1` and 1024 characters outside the Basic Multilingual Plane are read; `a`×1025 `: 1` and `a`×1024 ` : 1` are refused; an explicit key (`? `) has no limit. The package needs no check of its own. |
 | Surrogates | ruamel.yaml decodes `"\ud83d\ude00"` to two lone surrogates. The builder passes every string through `s.encode("utf-16-le", "surrogatepass").decode("utf-16-le")`, which joins a high surrogate followed by a low one into one character (U+1F600) and raises `UnicodeDecodeError` at an unpaired one (`"\ud800"`, `"\U0000d800"`, `"\udc00\ud800"`), refused at the event's `start_mark`. A lone surrogate written as itself is refused by ruamel.yaml's reader, as `ReaderError`, before any event, in a comment too. |
-| U+0085 | ruamel.yaml takes a literal U+0085 for a line break, as YAML 1.1 did: in a plain or quoted scalar it folds it silently to a space (`k: a`U+0085`b` gives `"a b"`), in a block scalar it ends the line. The package finds the first U+0085 by its scan before parsing and refuses the text at its position. The escape `\N` gives U+0085, as it should. |
-| Leading U+FEFF | Dropped by the package before dispatch; ruamel.yaml would skip it too. A U+FEFF elsewhere is content. |
+| Characters | The package scans the text before parsing and refuses, at its position, the first character written as itself, in a scalar or a comment, that lies outside YAML's printable set (C0 controls other than tab, LF and CR; U+007F to U+009F; U+FFFE; U+FFFF; surrogates) or is U+0085, U+2028 or U+2029. YAML 1.2 reads the last three as content, but ruamel.yaml takes each for a line break, as YAML 1.1 did, and misreads silently: in a plain or quoted scalar U+0085 folds to a space (`k: a`U+0085`b` gives `"a b"`), in a block scalar it ends the line. The escapes `\N`, `\L` and `\P` give the characters, as they should. |
+| Leading U+FEFF | Exactly one U+FEFF at position 0 is removed by the package before dispatch; any other U+FEFF, a second one included, is an ordinary character. |
 | Safe loading | Events construct nothing; no constructor runs. |
 | Positions | Every error ruamel.yaml raises is wrapped as `ValueError` with a position: `MarkedYAMLError` (`ScannerError`, `ParserError`) with `problem_mark.line` and `problem_mark.column`, counted from zero; `ReaderError` (a character YAML forbids, such as U+0001 or a lone surrogate), which is no `MarkedYAMLError` and carries `position`, the index in the text, turned into line and column by the package; and the `AssertionError` of `%YAML 1.0` and `%YAML 1.3`, which carries no mark and is reported at the end mark of the last event read. A refusal by the package reports the event's `start_mark`, or the index its scans found. |
 | Comments | Discarded by the scanner of the safe loader. |
@@ -184,10 +185,9 @@ literal U+2028 or U+2029, which it also takes for a line break in some
 places: `k: |\n  a`U+2028`\n` loses the final line feed, `k: 'a`U+2029` '`
 the trailing space, and a plain or double-quoted scalar folded onto a line
 that begins with U+2028 the space of the fold. The package refuses all
-three characters by the same scan before parsing, so such a text is
-refused with a position, never misread; for U+2028 and U+2029 this is
-another known issue, and the TypeScript reader reads them as YAML 1.2
-specifies. The canonical layout and the common hand-written styles are
+three characters by the scan of the table's Characters row, as a rule of
+the format that the TypeScript reader applies too, so such a text is
+refused with a position, never misread. The canonical layout and the common hand-written styles are
 unaffected.
 
 The package owns the core-schema resolution, which is fixed by the

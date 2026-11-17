@@ -29,9 +29,10 @@ single-quoted and double-quoted scalars, block scalars, comments) and must:
 6. read a surrogate pair written as two `\u` escapes as one character, and
    refuse a lone surrogate, whether written as itself or through an
    escape;
-7. refuse a literal U+0085 (next line) anywhere in the text, as the Python
-   package must; the escape `\N` stays allowed;
-8. ignore a leading U+FEFF (byte order mark);
+7. refuse every character written as itself, in a scalar or a comment,
+   outside YAML's printable set, and U+0085, U+2028 and U+2029, as the
+   Python package must; the escapes stay allowed;
+8. remove exactly one U+FEFF (byte order mark) at position 0;
 9. construct no objects from the text (safe loading only);
 10. throw an error with the offset, line and column for malformed text and
     for every refusal;
@@ -70,11 +71,11 @@ Each candidate was installed and run against the requirements on Node on
 ## Decision
 
 Use `yaml` 2.9.1. `loads(text)` reads any serialization without
-validating, as the Python package's `loads` does: it drops a leading
-U+FEFF, dispatches the text to JSON or YAML by the rule of the README's
+validating, as the Python package's `loads` does: it drops a single
+leading U+FEFF, dispatches the text to JSON or YAML by the rule of the README's
 "Reading", and calls `parseJson` or `parseYaml`; `parse` is `loads`
-followed by validation. `parseYaml` first scans the text (for lone
-surrogates, for U+0085 and for directives), then calls
+followed by validation. `parseYaml` first scans the text (for the characters it
+refuses, see Characters, and for directives), then calls
 `parseDocument(text, {schema: "core", intAsBigInt: true, uniqueKeys: true,
 lineCounter})` and builds the value by walking the node tree itself; it
 never calls `toJS` and never resolves an alias. The walk keeps an explicit
@@ -97,8 +98,8 @@ stack. Each requirement is met as follows:
 | Keys that are not strings | By the walk: refused unless `pair.key` is a scalar whose `value` is a string. The option `stringKeys` stays unset, since it would turn `1:` into the key `"1"` instead of refusing it. |
 | Implicit key over 1024 characters | By the walk, overriding the library. `yaml` measures the key from its first character to its `:` (quotes and spaces before the `:` included) and reports `KEY_OVER_1024_CHARS` when that span exceeds 1024 UTF-16 code units, for keys of block mappings and of pairs in flow sequences; keys of flow mappings it leaves alone, as YAML does. The document is composed all the same. The package drops that error and recounts the key it marks in code points, `[...text.slice(key.range[0], colon)].length`, with `colon` the first `:` at or after `key.range[1]`; the error marks a key by `pos[0]`, its first character in a block mapping or its `:` in a flow sequence. The key is refused when the count exceeds 1024. A string never has more code points than code units, so every key over the limit is among those reported: 1024 characters outside the Basic Multilingual Plane (2048 code units) are read, 1025 are refused. |
 | Surrogates | By the library and the walk: `yaml` joins a pair of `\u` escapes into one character (`"\ud83d\ude00"` gives U+1F600) and leaves an unpaired one in the string (`"\ud800"`, `"\U0000d800"`, `"\udc00\ud800"`); the walk refuses a string key or value for which `isWellFormed()` is false. `yaml` reads a lone surrogate written as itself as content, in a comment too; the package refuses it by `text.isWellFormed()` before parsing, as ruamel.yaml's reader does in Python. |
-| U+0085 | By the package's scan before parsing: the first U+0085 refuses the text at its position. `yaml` reads it as content, as YAML 1.2 specifies; the refusal keeps the two packages reading the same texts, since ruamel.yaml would misread it. The escape `\N` gives U+0085. |
-| Leading U+FEFF | Dropped by `loads` before dispatch; `yaml` would skip it too. A U+FEFF elsewhere is content. |
+| Characters | By the package's scan before parsing: the first character written as itself, in a scalar or a comment, that lies outside YAML's printable set (C0 controls other than tab, LF and CR; U+007F to U+009F; U+FFFE; U+FFFF; surrogates) or is U+0085, U+2028 or U+2029 refuses the text at its position. A lone surrogate is found by `text.isWellFormed()`. `yaml` reads all of these as content, and U+0085, U+2028 and U+2029 as YAML 1.2 specifies; the refusal keeps the two packages reading the same texts, since ruamel.yaml would misread the three. The escapes `\N`, `\L` and `\P` give the characters. |
+| Leading U+FEFF | Exactly one U+FEFF at position 0 is removed by `loads` before dispatch; any other U+FEFF, a second one included, is an ordinary character. |
 | Safe loading | The walk builds plain values only, with `Object.fromEntries`, so `__proto__` is an ordinary own key; the library constructs no class instance from a tag. |
 | Positions | `parseYaml` throws `YamlSyntaxError`, a new subclass of `SyntaxError` with the fields of `JsonSyntaxError` (`offset`, `line`, `column`, counted from one), for every error in `doc.errors` but `KEY_OVER_1024_CHARS` (`pos[0]` and `linePos[0]`, with the error's `code` in the message) and for every refusal by the walk (`node.range[0]` and `lineCounter.linePos`) or by a scan (the index it found). |
 | Comments | Kept on the nodes (`comment`, `commentBefore`) and ignored by the walk. |
