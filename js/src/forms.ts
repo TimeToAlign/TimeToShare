@@ -1,6 +1,6 @@
 /**
  * The typed forms of a TimeToShare manifest. A manifest read by
- * `parseJson` is a `LosslessManifest`; its complete form, every key with a
+ * `loads` is a `LosslessManifest`; its complete form, every key with a
  * default written out at every depth, is a `CompleteManifest`; both are
  * generated from the schema (`./generated/types.ts`). The three functions
  * here convert between them and put either in canonical order; they are the

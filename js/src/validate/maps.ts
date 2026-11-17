@@ -1,8 +1,8 @@
 /** Conversion-map rules: the source units and the members of a map that must agree. */
 
 import { isJsonObject, type JsonObject } from "../json/value.js";
-import { compareCodePoints, spell } from "../json/write.js";
 import { compareExact } from "../numbers/exact.js";
+import { compareCodePoints, spell } from "../serialization/text.js";
 import { entries, type PathSegment, SchemaValidationError, text } from "./diagnostics.js";
 
 /** The conversion map types that read a MeasureMap. */

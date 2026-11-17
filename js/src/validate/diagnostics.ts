@@ -9,7 +9,7 @@
 
 import type { NumberType, TimeUnit } from "../generated/types.js";
 import { isJsonObject, type JsonObject } from "../json/value.js";
-import { compareCodePoints } from "../json/write.js";
+import { compareCodePoints } from "../serialization/text.js";
 
 /** One step of a path into a value: an object key or an array index. */
 export type PathSegment = string | number;

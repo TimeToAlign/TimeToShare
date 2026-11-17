@@ -1,5 +1,5 @@
 import { isJsonObject, type JsonObject } from "../json/value.js";
-import { compareCodePoints } from "../json/write.js";
+import { compareCodePoints } from "../serialization/text.js";
 import { entries, type PathSegment, SchemaValidationError } from "./diagnostics.js";
 
 function* permutationProblems(

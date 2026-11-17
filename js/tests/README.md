@@ -11,7 +11,7 @@ Where the two packages answer differently by design, this README says so.
 ## What the package promises
 
 1. `validate` accepts exactly the manifests the Python package accepts and
-   raises the first violation at the same path; `parse` is `parseJson`
+   raises the first violation at the same path; `parse` is `loads`
    followed by `validate`. A checked value is typed as the lossless form:
    one test assigns it to `LosslessManifest` and, by a
    `@ts-expect-error` line, not to `Manifest`, and reads its lengths
@@ -25,7 +25,10 @@ Where the two packages answer differently by design, this README says so.
    `DEFAULTS` table equal to the schema's `default`s, as Python's is; their
    typed forms take and give the generated `LosslessManifest` and
    `CompleteManifest`.
-4. `dumps` writes every value as the same bytes as Python's `dumps`.
+4. `dumps` writes every value in canonical YAML, pretty JSON and RFC 8785
+   JSON as the README's "Serializations" specifies, the bytes of the shared
+   hand-derived cases, which Python's `dumps` writes too; `loads` reads every
+   serialization as "Reading" states.
 5. The generated files are the generator's output, and the npm package
    ships the schema document, the drawing specification, the registry of
    identifier schemes and the licence.
@@ -37,7 +40,8 @@ Where the two packages answer differently by design, this README says so.
 ## The fixtures
 
 `fixtures.test.ts`: every manifest fixture (every `*.json` below
-`fixtures/0.2.0/` except the drawings), read by `parseJson`, validates, has
+`fixtures/0.2.0/` except the drawings, found by its name in either
+`.yaml` or `.json`), read by `loads`, validates, has
 no unknown keys, and satisfies both round trips of `complete` and `minimal`,
 as in the Python suite's "The fixture set".
 
@@ -74,7 +78,9 @@ equal to `LEVELS`, `MATCHES` and `STATUSES`, no `position` on a slot and no
 refuse, the white-space class pinned against the registry's). `generated.test.ts`: a fresh generator run exports the committed
 names, which are every definition, the complete form of exactly the
 definitions holding a default, and `LosslessManifest`, and `registry.ts`
-exports the registry file's entries as `schemes`; the committed
+exports the registry file's entries as `schemes` (equal, as `compactJson`
+texts, to the value `loads` reads from the file, which is stored as the
+writers write it); the committed
 text is `check:drift`'s oracle. Statements marked `@ts-expect-error` (a
 misspelt key, a missing `length` or child `offset`, a complete form missing
 a defaulted key, a three-member Fraction) make a looser generation break
@@ -98,52 +104,49 @@ problems and codes `identityProblems` lists in order and whose first problem
 decomposition in both packages, so a rule changes in both or the shared
 cases fail. The packages differ only where JavaScript must:
 
-`number-members.test.ts` derives every scalar and array member of a
-conversion map that can hold a Number (by reference or as a branch of an
-`anyOf`), and every scalar, array and
-keyed-object member that holds a nested conversion map, from the schema's
-conversion-map definitions. It asserts exact equality with the respelling's
-two traversal tables, naming every missing or extra entry on failure, so a
-schema addition cannot escape the canonical spelling.
-
 - **Messages.** Every message but a schema violation's is the same text in
   both packages: an ID, a unit or an order entry in single quotes, as
   written (`'m' is not unique in the manifest, first at …`), a value as the
-  standard writer spells it (`unsupported TimeToShare version "9.9.9"; this
+  writers spell it (`unsupported TimeToShare version "9.9.9"; this
   package reads 0.2.0 only`). A schema violation carries Ajv's message
   (`must match pattern …`, `must NOT have duplicate items …`).
-- **Integral floats.** `parseJson` keeps `2.0` as a `JsonFloat`, so
+- **Integral floats.** `loads` keeps `2.0` as a `JsonFloat`, so
   `length 2.0` on a fraction axis is "a float … write [2, 1]" as in Python;
   a number built in code as `2` is an int. A `JsonFloat` member of a
   Fraction pair is the integer it equals, as Python reads `8.0`; the Python
-  README's manifest of respellable values, read by `parseJson`, validates,
-  and `complete`, `minimal` and `canonicalOrder` give, compared as
-  `compactJson` texts, what they give for its canonical twin, a `JsonFloat`
-  member becoming a plain integer, a `JsonFloat` on an int axis a plain
-  integer, an integer on a float axis a `JsonFloat`; `dumps` writes the
-  twin's text. Rewritten floats are spelled as Python spells them (`write
+  README's manifest of respellable values validates, and `complete`,
+  `minimal` and `canonicalOrder` give, compared as `compactJson` texts,
+  what they give for its canonical twin, a `JsonFloat` member of an
+  own-axis Fraction becoming a plain integer, a `JsonFloat` on an int axis
+  a plain integer, an integer on a float axis a `JsonFloat`, while its
+  conversion-map numbers and MeasureMap rows, which no number type governs,
+  stay as written in both; `dumps` writes the twin's text. Rewritten floats are spelled as Python spells them (`write
   2.0`, `write 0.75`, `ends at 1.0`).
-- **Integers beyond 2^53.** `parseJson` reads `9007199254740993` as a
+- **Integers beyond 2^53.** `loads` reads `9007199254740993` as a
   `bigint`, so on a float axis it is "an int … write a float";
   `9007199254740992n` and `10n ** 20n` are exactly floats and validate.
-- **Non-finite numbers.** `parseJson` refuses them and a `JsonFloat` cannot
+- **Non-finite numbers.** The readers refuse them and a `JsonFloat` cannot
   hold one, so only a number built in code reaches the finite rule; the
   tests build infinity, NaN and negative infinity as Python's do.
 
 ## Shared rejection cases
 
-Each of the 129 cases (`validate.test.ts`), read by `parseJson`, is written
-as the standard writer writes it and raises `SchemaValidationError` with its
-stored path and code through `validate` on the parsed value, through
-`validate` on the value as `JSON.parse` reads it, and through `parse` of its
-compact text; `version_unknown` raises `UnsupportedVersionError`. Each case
-is read through one reader, the mirror of Python's `rejection_case`, which
-puts the infinity or NaN a `finite_number` case names at its path; such a
-case has one reading, the reader's value, since JSON text cannot carry it,
-and a test pins the two values in place. One `JSON.parse` reading is exempt:
-`float_axis_int_not_exact`, since `9007199254740993` becomes
-`9007199254740992`, exactly a float; the test asserts that this lossy
-reading validates. The set of names and the nineteen codes are stated
+Each of the 129 cases (`validate.test.ts`), found by its name whatever
+its extension and read by `loads`, is stored as the writers write it (a
+canonical YAML text is `dumps`'s bytes; a JSON text holds its keys, arrays
+and numbers as the writers write them, compared as `compactJson` texts, so
+a JSON text in an earlier layout passes) and raises
+`SchemaValidationError` with its stored path and code through `validate`
+on the read value, through `validate` on the value as `JSON.parse` would
+read it (`plain`: every `JsonFloat` and `bigint` a plain number), and
+through `parse` of its compact text; `version_unknown` raises
+`UnsupportedVersionError`. Each case is read through one reader, the mirror
+of Python's `rejection_case`, which puts the infinity or NaN a
+`finite_number` case names at its path; such a case has one reading, the
+reader's value, since no text carries it, and a test pins the two values in
+place. One plain reading is exempt: `float_axis_int_not_exact`, since
+`9007199254740993` becomes `9007199254740992`, exactly a float; the test
+asserts that this lossy reading validates. The set of names and the nineteen codes are stated
 literally, and the sixteen cases whose messages the Python suite pins carry
 the same messages here (`identity.test.ts`, `description.test.ts`).
 
@@ -154,8 +157,8 @@ its `discriminator` option. The shared cases pin the paths.
 ## Unknown keys
 
 `unknown-keys.test.ts`: every shared warning case validates, holds exactly
-`manifest`, `unknown_keys` and `unregistered_terms`, its text is the
-standard writer's, `dumps(unknownKeys(manifest))` equals
+`manifest`, `unknown_keys` and `unregistered_terms`, its text is stored
+as the writers write it, `dumps(unknownKeys(manifest))` equals
 `dumps(case.unknown_keys)` and `dumps(unregisteredTerms(manifest))` equals
 `dumps(case.unregistered_terms)`; the cases of terms, and the other
 documents of the Python README's "Unregistered terms", are asserted in
@@ -177,11 +180,14 @@ manifest's keys never appear in the next run's list (`validate.test.ts`).
 
 `defaults.test.ts` asserts the Python README's section "Defaults: the
 complete and the minimal form" with the same documents and values. A value
-is the default only in type and value: `repeat_count: new JsonFloat(1)` (read
-from `1.0`) is not the default `1` and stays in the minimal form; the round
-trips compare `dumps` texts, which tell `1.0` from `1`. No result shares
+equals its default in value: `repeat_count: new JsonFloat(1)` (read from
+`1.0`), a `LinearMap`'s `scalar: [1, 1]` and `offset: new JsonFloat(-0)` are
+left out as the defaults `1` and `0` are, and the complete form of what
+remains states the defaults; the round trips compare `dumps` texts, which
+tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (72, one per fixture) completes to its fixture's text, keeps it in canonical order,
+minimal twin (72, one per fixture) completes to the canonical YAML of its
+fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
 optional.
@@ -238,44 +244,114 @@ each break once. The packages differ only where JavaScript must:
   a byte sequence that is not UTF-8 refuses the URL; a leading byte-order
   mark is kept, as Python keeps it.
 
-## The canonical order and the standard writer
+## The serializations
 
-`manifest.test.ts` asserts the Python README's sections "The canonical
-order" and "The standard writer" with the same documents and expected id
-sequences, including own-axis values as bare ints, floats, `JsonFloat`s and
-pairs mixed, and adds:
+`serialization.test.ts` walks `fixtures/serializations/` as its README
+states, so a case, reading or refusal added there is tested without a
+change here:
 
-- **Both writers, from any order.** Every fixture, rejection and warning
-  case, with the keys of every object reversed and, in the fixtures, the
-  items of every array the canonical order sorts (`timelines`, `groups`,
-  `members`, `measure_maps`, `children`, `conversion_maps`, `regions`,
-  `flow_control`, `graphical.timestamps` and every timestamp's `display`), is written by this `dumps` and by Python's `dumps`
-  (loaded by `python3` from its path) to the same bytes, equal to the file.
-- **Python's `repr` itself.** 2000 doubles from a fixed pseudo-random
-  sequence are spelled exactly as `python3` spells them with `repr`.
-- **The shared number corpus** gives the one literal expected text.
-- **Refusals.** NaN, infinity and lone surrogates are refused as a
-  `RangeError`, `undefined` as a `TypeError`, a collection that cannot be
-  ordered as a `TypeError`.
+- **Cases.** The value V of each of the 35 cases is read from its
+  `pretty.json`; `canonical.yaml` reads to V, kind for kind (an integer
+  equals only an integer, a float only a float, `-0.0` differs from
+  `0.0`); `dumps(V)` with each serialization gives the bytes of its file,
+  and where `rfc8785.json` is missing `"jcs"` throws a `RangeError`;
+  `rfc8785.json` reads to V with every float RFC 8785 spells without `.`
+  or exponent as the integer of equal value; each text read and written
+  again in its own serialization gives its own bytes; for the five
+  manifest cases the value read from `rfc8785.json` is written as
+  `canonical.yaml`; `serializationOf` names `canonical.yaml` `"json"` for
+  the eight top-level JSON texts and `"yaml"` otherwise, `pretty.json`
+  `"json"` and `rfc8785.json` `"jcs"`.
+- **Readings.** Every file of `readings/` but the expected ones reads to the
+  value whose canonical YAML is its `.expected.yaml`, and, where present,
+  whose RFC 8785 JSON is its `.expected.rfc8785.json`; each expected text
+  gives its own bytes; `serializationOf` names a `.json` reading `"json"`, a
+  `.yaml` one `"yaml"` and every expected RFC 8785 text `"jcs"`.
+- **Refusals.** A text read as JSON throws a `JsonSyntaxError` through
+  `loads` and `parseJson`, a `RangeError` for a float that rounds to an
+  infinity; a text read as YAML throws a `YamlSyntaxError` through `loads`
+  and `parseYaml`. An empty text and one of whitespace, comments or `...`
+  alone read as null. The texts outside the YAML guarantee, which `yaml`
+  reads, are skipped by name with that reason: the characters and the
+  second byte order mark once refused by a scan, `%YAML 1.1` and `%TAG`,
+  the tags `!!str` and `!`, a long key of a flow mapping, and the writer
+  refusal `key_1024_code_points_non_bmp`, whose key `yaml` refuses to read.
+  `serializationOf` never throws on any file and names each as the
+  fixtures README states.
+- **Writer refusals.** Each file reads; writing its value throws in each
+  serialization the table names (a `RangeError`, or a `TypeError` for the
+  `order_*` texts) and succeeds in the others.
+
+The unit tests beside the walk pin what the cases leave to a package:
+
+- **The JSON reader** (`manifest.test.ts`): `0.5`, `2.0`,
+  `123456789012345678`, `-0`, `-0.0`, `1E5` read losslessly; key order
+  survives, array-index keys included; eleven malformed texts, three
+  repeated keys and seven lone surrogates (escaped, as themselves, in a
+  key, reversed, followed by a letter) pin the message, offset, line and
+  column of each `JsonSyntaxError`; `[1e400]` throws a `RangeError` naming
+  line 1, column 2; a pair of surrogate escapes is one character; one
+  leading byte order mark is removed and a second refused at offset 0.
+- **The YAML reader** (`serialization.test.ts`): the core schema (`0x1F`,
+  `0o17`, a 30-digit integer, `2.0`, `-0.0`, `.5`, `no`, a date, `~`,
+  `True`, `'12'`, `!!str 1`), key order, an empty or comment-only text as
+  null, and seventeen refusals with their message, offset, line and column:
+  an anchor, an alias, a repeated key, a collection and an integer as keys,
+  a lone surrogate escaped and as itself, `.inf`, `-.Inf`, `.nan`, `1e309`,
+  `!!binary`, `!!timestamp`, `!!set`, `!!omap`, an unknown tag and a second
+  document.
+- **The choice** between JSON and YAML: leading white space, a JSON
+  scalar, a quoted YAML scalar, a YAML escape, `-Infinity`, `{a: 1}`
+  refused as JSON, `"a": 1` read as YAML, a JSON string holding U+2028; and
+  `serializationOf` returning a name, never throwing, for unreadable texts
+  (a lone surrogate, 100000 `[`, an unclosed object, `1e309`), `"jcs"` only
+  for exact RFC 8785 bytes without a byte order mark.
+- **Respelling** (`manifest.test.ts`): one manifest whose values lie on
+  every kind of axis: an integral float on an `int` axis (`-0.0` as 0,
+  `1.0e+20` as its 21 digits), integers on a `float` axis (2^53 + 1 kept,
+  2^53 and `-0` as floats), Fractions reduced (`[6.0, 4]`, `[0, 5]`,
+  `[2, 4]` on a child's offset) and `[3, -2]` kept, a bare number on a
+  `fraction` axis kept, a child respelled by its own axis under an unknown
+  unit while its offset stays, a missing unit, an unknown `number_type`
+  and `number_type: null`; named timestamps on one timeline, on none and on
+  two of equal ID; an integral plain number written as the integer of its
+  exact value (`1e300` its 301 digits, which RFC 8785 refuses, `-0` as 0).
+- **Canonical order**: keys by code point in YAML and JSON and by UTF-16
+  code unit in RFC 8785; roots, groups, members, measure maps,
+  conversion maps, children, regions, flow control and named timestamps
+  with the expected ID sequences, ties broken by ID and entries tying on
+  every member kept in their order, values compared by exact value; a
+  `display` holding anything ordered; a member holding no array written
+  as given; display orders, statements and links kept; a `TypeError` for
+  an entry that is not an object, lacks a member or holds a wrong type,
+  even alone in its array, and for a group member that is not a string.
+- **Refusals of the writers**: a lone surrogate in a string or key, NaN and
+  an infinity, keys over 1024 UTF-16 code units of their canonical YAML
+  form (plain, quoted, above U+FFFF, nested) as a `RangeError` in every
+  serialization, keys of exactly 1024 written; ±2^53, 2^64, the integral
+  floats 2^53, −10^16 and 10^21 − 2^17 refused in `"jcs"` only, ±(2^53 − 1)
+  and 10^21 written; `undefined`, a function, a symbol, a `Date` and a
+  `Map` as a `TypeError`; an unknown serialization as a `RangeError`.
+- **Every stored file** (fixtures, rejection and warning cases) is written
+  as stored, and its value with every key and every array the canonical
+  order sorts reversed is written to the same text, or refused alike, in
+  each serialization.
+- **Python's `repr`.** 2000 doubles from a fixed pseudo-random sequence are
+  spelled as `python3` spells them with `repr`, with `.0` added to a
+  mantissa in exponent form that has no fractional digit.
 
 ## Lossless reading in JavaScript
 
-`parseJson` reads any JSON text into the smallest representation that loses
-nothing: a safe integer and a float with a fractional part are plain numbers,
-an integer beyond `Number.MAX_SAFE_INTEGER` a `bigint`, an integral float
-(`2.0`, `1e+16`, `-0.0`) a frozen `JsonFloat`; `-0` is the integer 0, as in
-Python; objects keep the written order of their keys, array-index keys
-included, which `compactJson` honours. The tests pin each case (`0.5`,
-`2.0`, `123456789012345678`, `-0`, `-0.0`, `1E5`), key order surviving a
-round trip, and `1e400` refused as a `RangeError`. Malformed text is refused
-as a `JsonSyntaxError`, a `SyntaxError`, whose offset, line and column name
-where the text breaks; eleven texts, each breaking in a different way and
-place (an empty text, a stray comma, an unterminated string, a missing
-comma on line 3), pin the message and the three numbers. `compactJson` is a
-fixpoint for every value nested in every fixture and equals Python's
-`json.dumps(value, separators=(",", ":"), ensure_ascii=False)` for every
-fixture, rejection and warning case. `JsonFloat` is told apart by
-`instanceof` or `isJsonFloat`, and `isJsonObject` is false for it.
+`loads` reads any text into the smallest representation that loses
+nothing: a safe integer and a float with a fractional part are plain
+numbers, an integer beyond `Number.MAX_SAFE_INTEGER` a `bigint`, an
+integral float (`2.0`, `1e+16`, `-0.0`) a frozen `JsonFloat`; `-0` is the
+integer 0, as in Python; objects keep the written order of their keys,
+array-index keys included, which `compactJson` honours. `compactJson` is a
+fixpoint for every value nested in every fixture and spells numbers as the
+writers do (`2.0`, `1.0e-07`, `1.0e+16`, `-0.0`, and `-0` as `0`).
+`JsonFloat` is told apart by `instanceof` or `isJsonFloat`, and
+`isJsonObject` is false for it.
 
 `JSON.parse("9007199254740993")` gives `9007199254740992`, while `parseJson`
 reads `9007199254740993n`; lengths of `9007199254740993n` and
@@ -310,7 +386,7 @@ the same table:
   `"48"` 1303, `"32"` 651; `"119133"`, U+1D15D, 1053; `"119070"`, U+1D11E,
   1456; `"119135"`, U+1D15F, 819; `"118784"`, U+1D000, 973; `"119296"`,
   U+1D200, 1810).
-- `dumps(fontMetrics)` reproduces the metrics file
+- `dumps(fontMetrics, { serialization: "json" })` reproduces the metrics file
   `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`.
 
 ## Packaging

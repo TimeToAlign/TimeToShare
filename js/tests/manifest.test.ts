@@ -1,8 +1,6 @@
 import { spawnSync } from "node:child_process";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { complete, minimal } from "../src/defaults.js";
-import { JsonSyntaxError, parseJson } from "../src/json/parse.js";
 import type { JsonObject } from "../src/json/value.js";
 import {
   isJsonFloat,
@@ -11,18 +9,21 @@ import {
   JsonFloat,
   type Lossless,
 } from "../src/json/value.js";
-import { canonicalJson, compactJson } from "../src/json/write.js";
-import { canonicalOrder, dumps } from "../src/manifest/order.js";
+import { canonicalOrder } from "../src/manifest/order.js";
+import { JsonSyntaxError } from "../src/serialization/errors.js";
+import { parseJson } from "../src/serialization/json.js";
+import { loads } from "../src/serialization/read.js";
+import { compactJson } from "../src/serialization/text.js";
+import { dumps } from "../src/serialization/write.js";
 import { parse, validate } from "../src/validate.js";
 import {
   bundle,
-  fixtureDirectory,
+  expectWrittenAsStored,
   fixtureFiles,
   fixtureText,
   manifest,
   rejectionFileNames,
   rejectionText,
-  repositoryRoot,
   respellable,
   respelled,
   timeline,
@@ -30,38 +31,7 @@ import {
   warningText,
 } from "./fixtures.js";
 
-// Shared with the Python suite, character for character.
-const NUMBER_CORPUS =
-  "[0.1, 2.0, 1e-07, 1e+16, 123456789012345678, -0.0, 5e-324, " +
-  "1.7976931348623157e+308, 1E5, 1.50, -0, 100, 0.0001, 1e-05, " +
-  '1000000000000000.0, "\\u00e9", "\\ud83d\\ude00", "\\ufb00", ' +
-  '"a\\"b\\\\c\\n\\u0001\\u001f"]';
-const NUMBER_CORPUS_TEXT = [
-  "[",
-  "  0.1,",
-  "  2.0,",
-  "  1e-07,",
-  "  1e+16,",
-  "  123456789012345678,",
-  "  -0.0,",
-  "  5e-324,",
-  "  1.7976931348623157e+308,",
-  "  100000.0,",
-  "  1.5,",
-  "  0,",
-  "  100,",
-  "  0.0001,",
-  "  1e-05,",
-  "  1000000000000000.0,",
-  '  "\u{e9}",',
-  '  "\u{1F600}",',
-  '  "\u{FB00}",',
-  '  "a\\"b\\\\c\\n\\u0001\\u001f"',
-  "]",
-  "",
-].join("\n");
-
-function standardFiles(): [string, string][] {
+function storedFiles(): [string, string][] {
   return [
     ...fixtureFiles().map((file): [string, string] => [file, fixtureText(file)]),
     ...rejectionFileNames().map((file): [string, string] => [
@@ -72,42 +42,29 @@ function standardFiles(): [string, string][] {
   ];
 }
 
-describe("the standard writer", () => {
-  it.each(standardFiles())("round-trips %s byte for byte", (_name, text) => {
-    expect(dumps(parseJson(text))).toBe(text);
+describe("the writers", () => {
+  it.each(storedFiles())("write %s as it is stored", (_name, text) => {
+    expectWrittenAsStored(text);
   });
 
-  it("writes every standard file, keys and unordered arrays reversed, as Python does", () => {
+  it.each(storedFiles())("write %s alike from any order", (name, text) => {
     // A rejection or warning case holds its manifest under `manifest`, which
     // the canonical order does not reach, so only its keys are reversed.
-    const reversed = standardFiles().map(([name, text]) =>
-      compactJson(reverse(parseJson(text), false, !/^(rejections|warnings)\//.test(name))),
-    );
-    const script = [
-      "import importlib.util, json, sys",
-      "spec = importlib.util.spec_from_file_location('manifest', sys.argv[1])",
-      "manifest = importlib.util.module_from_spec(spec)",
-      "spec.loader.exec_module(manifest)",
-      "texts = json.loads(sys.stdin.buffer.read().decode('utf-8'))",
-      "out = [manifest.dumps(json.loads(text)) for text in texts]",
-      "sys.stdout.buffer.write(json.dumps(out, ensure_ascii=False).encode('utf-8'))",
-    ].join("\n");
-    const python = spawnSync(
-      "python3",
-      ["-I", "-c", script, resolve(repositoryRoot, "python/src/timetoshare/manifest.py")],
-      { input: JSON.stringify(reversed), encoding: "utf8" },
-    );
-    expect(python.status, python.stderr).toBe(0);
-    const written = reversed.map((text) => dumps(parseJson(text)));
-    expect(written).toEqual(JSON.parse(python.stdout) as string[]);
-    expect(written).toEqual(standardFiles().map(([, text]) => text));
+    const value = loads(text);
+    const reversed = reverse(value, false, !/^(rejections|warnings)\//.test(name));
+    for (const serialization of ["yaml", "json", "jcs"] as const) {
+      const written = (given: unknown) => {
+        try {
+          return dumps(given, { serialization });
+        } catch (error) {
+          return (error as Error).constructor.name;
+        }
+      };
+      expect(written(reversed), serialization).toBe(written(value));
+    }
   });
 
-  it("writes the number and string corpus exactly as Python does", () => {
-    expect(dumps(parseJson(NUMBER_CORPUS))).toBe(NUMBER_CORPUS_TEXT);
-  });
-
-  it("spells 2000 doubles exactly as Python's repr", () => {
+  it("spell 2000 doubles as Python's repr, with a fractional digit in every mantissa", () => {
     // A deterministic xorshift64 sequence.
     let state = 0x9e3779b97f4a7c15n;
     const view = new DataView(new ArrayBuffer(8));
@@ -132,11 +89,14 @@ describe("the standard writer", () => {
       "print(json.dumps([repr(struct.unpack('>d', bytes.fromhex(h))[0]) for h in hexes]))",
     ].join("\n");
     const python = spawnSync("python3", ["-I", "-c", script], {
-      input: JSON.stringify(hexes),
+      input: compactJson(hexes),
       encoding: "utf8",
     });
     expect(python.status, python.stderr).toBe(0);
-    const expected = JSON.parse(python.stdout) as string[];
+    // repr writes a mantissa without a fractional digit (1e-05); the writers add one.
+    const expected = (loads(python.stdout) as string[]).map((repr) =>
+      repr.replace(/^(-?\d)e/, "$1.0e"),
+    );
     const spelled = values.map((value) => {
       const number = Number.isInteger(value) ? new JsonFloat(value) : value;
       return dumps(number).trimEnd();
@@ -163,7 +123,7 @@ describe("parseJson", () => {
     const text = '{\n  "b": 1,\n  "10": 2,\n  "2": 3\n}\n';
     const value = parseJson(text) as JsonObject;
     expect(Object.keys(value)).toEqual(["2", "10", "b"]);
-    expect(compactJson(value as Lossless<Json>)).toBe('{"b":1,"10":2,"2":3}');
+    expect(compactJson(value)).toBe('{"b":1,"10":2,"2":3}');
   });
 
   it("refuses text that is not one JSON value where it breaks", () => {
@@ -180,18 +140,7 @@ describe("parseJson", () => {
       '{\n  "a": ,\n}',
       '{\n  "a": 1\n  "b": 2\n}',
     ];
-    const read = refusals.map((text) => {
-      try {
-        parseJson(text);
-        return null;
-      } catch (error) {
-        if (!(error instanceof JsonSyntaxError)) throw error;
-        expect(error).toBeInstanceOf(SyntaxError);
-        expect(error.name).toBe("JsonSyntaxError");
-        return [error.message, error.offset, error.line, error.column];
-      }
-    });
-    expect(read).toEqual([
+    expect(refusals.map(refusal)).toEqual([
       ["unexpected end at line 1, column 1 of the JSON text", 0, 1, 1],
       ["unexpected character at line 1, column 4 of the JSON text", 3, 1, 4],
       ["expected a string key at line 1, column 2 of the JSON text", 1, 1, 2],
@@ -204,9 +153,62 @@ describe("parseJson", () => {
       ["unexpected character at line 2, column 8 of the JSON text", 9, 2, 8],
       ['expected "}" at line 3, column 3 of the JSON text', 13, 3, 3],
     ]);
-    expect(() => parseJson("1e400")).toThrow(RangeError);
+    expect(() => parseJson("[1e400]")).toThrow(
+      new RangeError("1e400 rounds to an infinity at line 1, column 2 of the JSON text"),
+    );
+  });
+
+  it("refuses a repeated key and a lone surrogate where they stand", () => {
+    const refusals = [
+      '{"a": 1, "a": 2}',
+      '{"a": 1, "\\u0061": 2}',
+      '[{}, {"b": {"c": 1}, "b": 2}]',
+      '"x\\ud800"',
+      '"\\udc00x"',
+      '"\\udc00\\ud800"',
+      '"\\ud83dA"',
+      '{"\\ud800": 1}',
+      '["a\uD800"]',
+      '["a\uDC00b"]',
+    ];
+    expect(refusals.map(refusal)).toEqual([
+      ['duplicate key "a" at line 1, column 10 of the JSON text', 9, 1, 10],
+      ['duplicate key "a" at line 1, column 10 of the JSON text', 9, 1, 10],
+      ['duplicate key "b" at line 1, column 22 of the JSON text', 21, 1, 22],
+      ["lone surrogate at line 1, column 3 of the JSON text", 2, 1, 3],
+      ["lone surrogate at line 1, column 2 of the JSON text", 1, 1, 2],
+      ["lone surrogate at line 1, column 2 of the JSON text", 1, 1, 2],
+      ["lone surrogate at line 1, column 2 of the JSON text", 1, 1, 2],
+      ["lone surrogate at line 1, column 3 of the JSON text", 2, 1, 3],
+      ["lone surrogate at line 1, column 4 of the JSON text", 3, 1, 4],
+      ["lone surrogate at line 1, column 4 of the JSON text", 3, 1, 4],
+    ]);
+  });
+
+  it("reads a pair of surrogate escapes as one character and removes one byte order mark", () => {
+    expect(parseJson('"\\ud83d\\ude00"')).toBe("\u{1F600}");
+    expect(parseJson('﻿{"a": "﻿"}')).toEqual({ a: "﻿" });
+    expect(refusal('﻿﻿{"a": 1}')).toEqual([
+      "unexpected character at line 1, column 1 of the JSON text",
+      0,
+      1,
+      1,
+    ]);
   });
 });
+
+/** The message, offset, line and column of the `JsonSyntaxError` reading a text throws. */
+function refusal(text: string): [string, number, number, number] | null {
+  try {
+    parseJson(text);
+    return null;
+  } catch (error) {
+    if (!(error instanceof JsonSyntaxError)) throw error;
+    expect(error).toBeInstanceOf(SyntaxError);
+    expect(error.name).toBe("JsonSyntaxError");
+    return [error.message, error.offset, error.line, error.column];
+  }
+}
 
 describe("canonical order", () => {
   it("sorts every object by key, array-index keys included", () => {
@@ -214,19 +216,12 @@ describe("canonical order", () => {
       '{"b": 1, "\\ud83d\\ude00": 2, "\\ufb00": 3, "A": {"z": 0, "10": 1, "2": 2}}',
     );
     expect(dumps(value)).toBe(
-      [
-        "{",
-        '  "A": {',
-        '    "10": 1,',
-        '    "2": 2,',
-        '    "z": 0',
-        "  },",
-        '  "b": 1,',
-        '  "\u{FB00}": 3,',
-        '  "\u{1F600}": 2',
-        "}",
-        "",
-      ].join("\n"),
+      ["A:", '  "10": 1', '  "2": 2', "  z: 0", "b: 1", '"\u{FB00}": 3', '"\u{1F600}": 2', ""].join(
+        "\n",
+      ),
+    );
+    expect(dumps(value, { serialization: "jcs" })).toBe(
+      '{"A":{"10":1,"2":2,"z":0},"b":1,"\u{1F600}":2,"\u{FB00}":3}',
     );
   });
 
@@ -528,113 +523,178 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
 }
 
 describe("canonical spelling", () => {
-  const text = (value: unknown) => canonicalJson(value as Lossless<Json>);
-
   it("is what readers give and writers write", () => {
     const value = respellable();
     const twin = respelled();
-    const written = text(value);
-    expect(written).not.toBe(text(twin));
-    expect(text(canonicalOrder(twin))).toBe(text(twin));
+    const written = compactJson(value);
+    expect(written).not.toBe(compactJson(twin));
+    expect(compactJson(canonicalOrder(twin))).toBe(compactJson(twin));
     for (const convert of [complete, minimal, canonicalOrder]) {
-      expect(text(convert(value)), convert.name).toBe(text(convert(twin)));
+      expect(compactJson(convert(value)), convert.name).toBe(compactJson(convert(twin)));
     }
     expect(dumps(value)).toBe(dumps(twin));
-    expect(text(value)).toBe(written);
+    expect(compactJson(value)).toBe(written);
   });
 
-  it("spells a named timestamp on its timeline's axis", () => {
-    const value = manifest([timeline("score"), timeline("take", "seconds", new JsonFloat(60))], {
-      graphical: {
-        timestamps: [
-          stamp("timestamp_1", "score", [new JsonFloat(6), 1]),
-          stamp("timestamp_2", "take", 2),
-          stamp("timestamp_3", "ghost", 2),
-        ],
+  it("spells a named timestamp on the axis of the one timeline it names", () => {
+    const value = manifest(
+      [
+        timeline("score"),
+        timeline("take", "seconds", new JsonFloat(60)),
+        timeline("twice", "seconds", 1.5),
+        timeline("twice", "seconds", 2.5),
+      ],
+      {
+        graphical: {
+          timestamps: [
+            stamp("timestamp_1", "score", [new JsonFloat(6), 2]),
+            stamp("timestamp_2", "take", 2),
+            stamp("timestamp_3", "ghost", 2),
+            stamp("timestamp_4", "twice", 1),
+          ],
+        },
       },
-    });
+    );
     for (const convert of [complete, minimal, canonicalOrder]) {
       const timestamps = (convert(value).graphical as JsonObject).timestamps as JsonObject[];
       const coordinates = Object.fromEntries(
-        timestamps.map((entry) => [entry.id as string, entry.coordinate]),
+        timestamps
+          .map((entry) => [entry.id as string, entry.coordinate] as const)
+          .sort(([a], [b]) => (a < b ? -1 : 1)),
       );
-      expect(text(coordinates), convert.name).toBe(
-        '{"timestamp_1":[6,1],"timestamp_2":2.0,"timestamp_3":2}',
+      expect(compactJson(coordinates), convert.name).toBe(
+        '{"timestamp_1":[3,1],"timestamp_2":2.0,"timestamp_3":2,"timestamp_4":1}',
       );
     }
   });
 
-  it("leaves a value without an exact respelling as written", () => {
-    const value = manifest([timeline("take", "seconds", 9007199254740993n)]);
-    const [root] = canonicalOrder(value).timelines as JsonObject[];
-    expect(root?.length).toBe(9007199254740993n);
+  it("respells by the axis each value lies on, and writes the rest as given", () => {
+    const value = manifest([
+      timeline("a_int", "samples", new JsonFloat(4), {
+        offset: new JsonFloat(-0),
+        children: [timeline("child", "samples", new JsonFloat(1e20), { offset: 2.5 })],
+      }),
+      timeline("b_float", "seconds", 2, {
+        offset: 9007199254740993n,
+        regions: [{ id: "r", start: 0, end: 9007199254740992n }],
+        flow_control: [{ id: "f", type: "flow_marker", manifestation: "fine", coordinate: -0 }],
+      }),
+      timeline("c_fraction", "quarters", [new JsonFloat(6), 4], {
+        children: [
+          timeline("float_child", "quarters", [4, 8], { number_type: "float", offset: [2, 4] }),
+          timeline("int_child", "quarters", 3, { number_type: "int", offset: 2 }),
+        ],
+        regions: [{ id: "q", start: [0, 5], end: [6, 4] }],
+      }),
+      timeline("d_unknown_unit", "furlongs", new JsonFloat(2), {
+        number_type: "int",
+        children: [timeline("known", "quarters", [2, 4], { offset: [2, 4] })],
+      }),
+      timeline("e_no_unit", "quarters", new JsonFloat(2)),
+      timeline("f_type", "seconds", 2, { number_type: "decimal" }),
+      timeline("g_type_null", "seconds", 2, { number_type: null }),
+      timeline("h_denominator", "quarters", [3, -2]),
+    ]);
+    delete ((value.timelines as JsonObject[])[4] as JsonObject).unit;
+    const [aInt, bFloat, cFraction, dUnknown, eNoUnit, fType, gNull, hDenominator] = canonicalOrder(
+      value,
+    ).timelines as JsonObject[];
+    const spelled = (timeline: JsonObject | undefined) => compactJson(timeline);
+    expect(spelled(aInt)).toBe(
+      '{"id":"a_int","unit":"samples","length":4,"offset":0,"children":' +
+        '[{"id":"child","unit":"samples","length":100000000000000000000,"offset":2.5}]}',
+    );
+    expect(spelled(bFloat)).toBe(
+      '{"id":"b_float","unit":"seconds","length":2.0,"offset":9007199254740993,' +
+        '"regions":[{"id":"r","start":0.0,"end":9007199254740992.0}],' +
+        '"flow_control":[{"id":"f","type":"flow_marker","manifestation":"fine","coordinate":0.0}]}',
+    );
+    expect(spelled(cFraction)).toBe(
+      '{"id":"c_fraction","unit":"quarters","length":[3,2],"children":' +
+        '[{"id":"float_child","unit":"quarters","length":[4,8],"number_type":"float","offset":[1,2]},' +
+        '{"id":"int_child","unit":"quarters","length":3,"number_type":"int","offset":2}],' +
+        '"regions":[{"id":"q","start":[0,1],"end":[3,2]}]}',
+    );
+    expect(spelled(dUnknown)).toBe(
+      '{"id":"d_unknown_unit","unit":"furlongs","length":2.0,"number_type":"int",' +
+        '"children":[{"id":"known","unit":"quarters","length":[1,2],"offset":[2,4]}]}',
+    );
+    expect(spelled(eNoUnit)).toBe('{"id":"e_no_unit","length":2.0}');
+    expect(spelled(fType)).toBe(
+      '{"id":"f_type","unit":"seconds","length":2,"number_type":"decimal"}',
+    );
+    expect(spelled(gNull)).toBe(
+      '{"id":"g_type_null","unit":"seconds","length":2,"number_type":null}',
+    );
+    expect(spelled(hDenominator)).toBe('{"id":"h_denominator","unit":"quarters","length":[3,-2]}');
+  });
+
+  it("writes an integral plain number as the integer of its exact value", () => {
+    expect(dumps([-0, 1e300, 2 ** 53])).toBe(`- 0\n- ${BigInt(1e300)}\n- 9007199254740992\n`);
+    expect(() => dumps([1e300], { serialization: "jcs" })).toThrow(RangeError);
+    expect(dumps([-0, 0.5, new JsonFloat(-0)], { serialization: "jcs" })).toBe("[0,0.5,0]");
   });
 });
 
-describe("canonical JSON text", () => {
-  it("sorts keys by code point and writes no whitespace", () => {
-    const value = {
-      "\u{1F600}": { b: true, a: [1, 2.5, null] },
-      "\u{FB00}": "\u{FC}",
-      "\u{E9}": 1,
-      z: "\n",
-      a: [],
-    };
-    expect(canonicalJson(value)).toBe(
-      '{"a":[],"z":"\\n","\u{E9}":1,"\u{FB00}":"\u{FC}","\u{1F600}":{"a":[1,2.5,null],"b":true}}',
-    );
-  });
+describe("values the writers refuse", () => {
+  const all = ["yaml", "json", "jcs"] as const;
 
-  it("equals Python's text for every flow-control element of every fixture", () => {
-    const script = [
-      "import json, pathlib, sys",
-      "texts = []",
-      "def visit(timeline):",
-      "    flow = timeline.get('flow_control', [])",
-      "    for entry in flow if isinstance(flow, list) else []:",
-      "        texts.append(json.dumps(entry, sort_keys=True, separators=(',', ':'), ensure_ascii=False))",
-      "    for child in timeline.get('children', []):",
-      "        visit(child)",
-      "for name in json.loads(sys.argv[2]):",
-      "    value = json.loads((pathlib.Path(sys.argv[1]) / name).read_text(encoding='utf-8'))",
-      "    for root in value.get('timelines', []):",
-      "        visit(root)",
-      "sys.stdout.buffer.write(json.dumps(texts, ensure_ascii=False).encode('utf-8'))",
-    ].join("\n");
-    const files = fixtureFiles();
-    const python = spawnSync(
-      "python3",
-      ["-I", "-c", script, fixtureDirectory, JSON.stringify(files)],
-      { encoding: "utf8" },
-    );
-    expect(python.status, python.stderr).toBe(0);
-    const expected = JSON.parse(python.stdout) as string[];
-    const texts: string[] = [];
-    const list = (owner: unknown, key: string) =>
-      isJsonObject(owner) && Array.isArray(owner[key]) ? (owner[key] as JsonObject[]) : [];
-    const visit = (timeline: JsonObject): void => {
-      for (const entry of list(timeline, "flow_control")) {
-        texts.push(canonicalJson(entry as Lossless<Json>));
-      }
-      for (const child of list(timeline, "children")) visit(child);
-    };
-    for (const file of files) {
-      for (const root of list(parseJson(fixtureText(file)), "timelines")) visit(root);
+  it.each([
+    ["a lone surrogate", ["\u{D800}"]],
+    ["a key with a lone surrogate", [{ "\u{DFFF}": 1 }]],
+    ["NaN", [Number.NaN]],
+    ["an infinity", [Number.POSITIVE_INFINITY]],
+    ["a plain key of 1025 characters", { ["a".repeat(1025)]: 1 }],
+    ["a key quoted to 1025 code units", { [`\t${"a".repeat(1021)}`]: 1 }],
+    ["512 characters above U+FFFF", { ["\u{1F600}".repeat(512)]: 1 }],
+    ["a nested key of 1025 characters", { outer: { ["a".repeat(1025)]: 1 } }],
+  ])("refuses %s in every serialization", (_name, value) => {
+    for (const serialization of all) {
+      expect(() => dumps(value, { serialization }), serialization).toThrow(RangeError);
     }
-    expect(texts).toEqual(expected);
   });
-});
 
-describe("values the writer refuses", () => {
-  it.each([["\u{D800}"], [{ "\u{DFFF}": 1 }], [Number.NaN], [Number.POSITIVE_INFINITY]])(
-    "refuses %s",
-    (value) => {
-      expect(() => dumps([value])).toThrow(RangeError);
-    },
-  );
+  it("writes a key of 1024 code units in every serialization", () => {
+    for (const key of ["a".repeat(1024), `\t${"a".repeat(1020)}`, "\u{1F600}".repeat(511)]) {
+      for (const serialization of all)
+        expect(() => dumps({ [key]: 1 }, { serialization })).not.toThrow();
+    }
+  });
 
-  it("refuses what is no JSON value", () => {
-    expect(() => dumps([undefined])).toThrow(TypeError);
+  it.each([
+    ["the integer 2^53", 2n ** 53n],
+    ["the integer -2^53", -(2n ** 53n)],
+    ["the integer 2^64", 2n ** 64n],
+    ["the integral float 2^53", new JsonFloat(2 ** 53)],
+    ["the integral float -10^16", new JsonFloat(-1e16)],
+    ["the largest double below 10^21", new JsonFloat(1e21 - 2 ** 17)],
+  ])("refuses %s in RFC 8785 JSON only", (_name, number) => {
+    expect(() => dumps({ a: number }, { serialization: "jcs" })).toThrow(RangeError);
+    expect(() => dumps({ a: number })).not.toThrow();
+    expect(() => dumps({ a: number }, { serialization: "json" })).not.toThrow();
+  });
+
+  it("writes ±(2^53 − 1) and 10^21 in RFC 8785 JSON", () => {
+    const safe = 2n ** 53n - 1n;
+    expect(dumps([safe, -safe, new JsonFloat(1e21)], { serialization: "jcs" })).toBe(
+      "[9007199254740991,-9007199254740991,1e+21]",
+    );
+  });
+
+  it.each([
+    ["undefined", [undefined]],
+    ["a function", [() => 1]],
+    ["a symbol", [Symbol("x")]],
+    ["a date", [new Date(0)]],
+    ["a map", [new Map()]],
+  ])("refuses %s as no JSON value", (_name, value) => {
+    for (const serialization of all) {
+      expect(() => dumps(value, { serialization })).toThrow(TypeError);
+    }
+  });
+
+  it("refuses an unknown serialization", () => {
+    expect(() => dumps({}, { serialization: "toml" as "yaml" })).toThrow(RangeError);
   });
 });
 
@@ -679,7 +739,7 @@ describe("compactJson", () => {
   it("is a fixpoint for every value nested in every fixture", () => {
     let count = 0;
     for (const file of fixtureFiles()) {
-      for (const atom of atoms(parseJson(fixtureText(file)))) {
+      for (const atom of atoms(loads(fixtureText(file)))) {
         const text = compactJson(atom);
         expect(compactJson(parseJson(text))).toBe(text);
         count++;
@@ -688,27 +748,9 @@ describe("compactJson", () => {
     expect(count).toBeGreaterThan(0);
   });
 
-  it("keeps array-index keys in their written order", () => {
-    expect(compactJson(parseJson('{"b": 1, "10": 2.0, "2": [1e-07]}'))).toBe(
-      '{"b":1,"10":2.0,"2":[1e-07]}',
-    );
-  });
-
-  it("equals Python's compact text for every fixture, rejection and warning case", () => {
-    const files = standardFiles().map(([, text]) => text);
-    const script = [
-      "import json, sys",
-      "texts = json.loads(sys.stdin.buffer.read().decode('utf-8'))",
-      "out = [json.dumps(json.loads(t), separators=(',', ':'), ensure_ascii=False) for t in texts]",
-      "sys.stdout.buffer.write(json.dumps(out, ensure_ascii=False).encode('utf-8'))",
-    ].join("\n");
-    const python = spawnSync("python3", ["-I", "-c", script], {
-      input: JSON.stringify(files),
-      encoding: "utf8",
-    });
-    expect(python.status, python.stderr).toBe(0);
-    expect(files.map((text) => compactJson(parseJson(text)))).toEqual(
-      JSON.parse(python.stdout) as string[],
+  it("keeps every key in its written order and spells numbers as the writers do", () => {
+    expect(compactJson(parseJson('{"b": 1, "10": 2.0, "2": [1e-07, 1e16, -0.0, -0]}'))).toBe(
+      '{"b":1,"10":2.0,"2":[1.0e-07,1.0e+16,-0.0,0]}',
     );
   });
 });

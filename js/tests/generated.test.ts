@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { generate, generatedDirectory, schemaSource } from "../scripts/generate.js";
 import { schemes } from "../src/generated/registry.js";
 import { schema } from "../src/generated/schema.js";
-import { dumps } from "../src/index.js";
+import { compactJson, loads } from "../src/index.js";
 import { repositoryRoot } from "./fixtures.js";
 
 type Node = Record<string, unknown>;
@@ -34,7 +34,7 @@ describe("generated files", () => {
   it("bundle the registry file's entries", () => {
     expect(exportsOf(committed("registry.ts"))).toEqual(["schemes"]);
     const file = readFileSync(resolve(repositoryRoot, "registry", "schemes.json"), "utf8");
-    expect(dumps(schemes)).toBe(file);
+    expect(compactJson(schemes)).toBe(compactJson(loads(file)));
   });
 
   it("come from the one schema document", () => {
