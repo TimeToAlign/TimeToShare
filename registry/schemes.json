@@ -95,7 +95,8 @@
     "name": "YouTube video ID",
     "patterns": [
       "https?://(?:www\\.|m\\.|music\\.)?youtube\\.com/watch\\?(?:[^#]*&)?v=([A-Za-z0-9_-]{11})(?:[&#].*)?",
-      "https?://(?:www\\.|m\\.|music\\.)?youtube\\.com/(?:embed|shorts|live)/([A-Za-z0-9_-]{11})/?(?:[?#].*)?",
+      "https?://(?:www\\.|m\\.|music\\.)?youtube\\.com/(?:embed|shorts|live|v)/(?!videoseries(?:[/?#]|$))([A-Za-z0-9_-]{11})/?(?:[?#].*)?",
+      "https?://(?:www\\.)?youtube-nocookie\\.com/embed/(?!videoseries(?:[/?#]|$))([A-Za-z0-9_-]{11})/?(?:[?#].*)?",
       "https?://youtu\\.be/([A-Za-z0-9_-]{11})/?(?:[?#].*)?"
     ],
     "uri": "http://www.wikidata.org/entity/P1651"
