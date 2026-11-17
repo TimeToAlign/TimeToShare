@@ -1,6 +1,8 @@
 timetoshare: "0.2.0"
 timelines:
-  - {id: perf, unit: seconds, length: 2.0}
+  - id: perf
+    unit: seconds
+    length: 2.0
 graphical:
   timestamps:
     - id: timestamp_1

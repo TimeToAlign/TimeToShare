@@ -1,5 +1,5 @@
-timetoshare: '0.2.0'
-name: Canonical order
+timetoshare: "0.2.0"
+name: "Canonical order"
 timelines:
 - id: take_9
   unit: seconds
@@ -8,45 +8,114 @@ timelines:
   unit: quarters
   length: [32, 1]
   regions:
-  - {id: region_3, start: [4, 1], end: [8, 1]}
-  - {id: region_2, start: [4, 1], end: [6, 1]}
-  - {id: region_1, name: Intro, start: [0, 1], end: [4, 1]}
-  - {id: region_10, start: [4, 1], end: [6, 1]}
+  - id: region_3
+    start: [4, 1]
+    end: [8, 1]
+  - id: region_2
+    start: [4, 1]
+    end: [6, 1]
+  - id: region_1
+    name: Intro
+    start: [0, 1]
+    end: [4, 1]
+  - id: region_10
+    start: [4, 1]
+    end: [6, 1]
   flow_control:
-  - {id: jump_1, type: jump_from, manifestation: repeat_end, coordinate: [16, 1], target: start_1}
-  - {id: start_1, type: jump_to, manifestation: repeat_start, coordinate: [8, 1]}
-  - {id: fine_1, type: flow_marker, manifestation: fine, coordinate: [16, 1]}
+  - id: jump_1
+    type: jump_from
+    manifestation: repeat_end
+    coordinate: [16, 1]
+    target: start_1
+  - id: start_1
+    type: jump_to
+    manifestation: repeat_start
+    coordinate: [8, 1]
+  - id: fine_1
+    type: flow_marker
+    manifestation: fine
+    coordinate: [16, 1]
   conversion_maps:
-  - {type: LinearMap, id: to_ticks, source_unit: quarters, target_unit: ticks, scalar: 480}
+  - type: LinearMap
+    id: to_ticks
+    source_unit: quarters
+    target_unit: ticks
+    scalar: 480
   - type: ChainMap
     id: chain
     source_unit: quarters
     target_unit: ticks
     maps:
-    - {type: LinearMap, id: lin_z, source_unit: quarters, target_unit: quarters, scalar: 2}
-    - {type: LinearMap, id: lin_a, source_unit: quarters, target_unit: ticks, scalar: 240}
-  - {type: ConstantMap, id: key, source_unit: quarters, target_unit: null, value: B♭ major}
+    - type: LinearMap
+      id: lin_z
+      source_unit: quarters
+      target_unit: quarters
+      scalar: 2
+    - type: LinearMap
+      id: lin_a
+      source_unit: quarters
+      target_unit: ticks
+      scalar: 240
+  - type: ConstantMap
+    id: key
+    source_unit: quarters
+    target_unit: null
+    value: "B♭ major"
   children:
-  - {id: verse_b, unit: quarters, offset: [8, 1], length: [8, 1]}
+  - id: verse_b
+    unit: quarters
+    offset: [8, 1]
+    length: [8, 1]
   - id: verse_a
     unit: quarters
     offset: [8, 1]
     length: [4, 1]
     children:
-    - {id: phrase_1, unit: quarters, offset: [2, 1], length: [2, 1]}
-    - {id: phrase_2, unit: quarters, offset: [0, 1], length: [2, 1]}
-  - {id: a_late, unit: quarters, offset: [3, 2], length: [1, 2]}
-  - {id: b_early, unit: quarters, offset: [5, 4], length: [1, 4]}
-- {id: take_10, unit: samples, length: 96000}
-- {id: perf, unit: seconds, length: 1503.25}
+    - id: phrase_1
+      unit: quarters
+      offset: [2, 1]
+      length: [2, 1]
+    - id: phrase_2
+      unit: quarters
+      offset: [0, 1]
+      length: [2, 1]
+  - id: a_late
+    unit: quarters
+    offset: [3, 2]
+    length: [1, 2]
+  - id: b_early
+    unit: quarters
+    offset: [5, 4]
+    length: [1, 4]
+- id: take_10
+  unit: samples
+  length: 96000
+- id: perf
+  unit: seconds
+  length: 1503.25
 groups:
-- {id: pair_b, members: [verse_b, take_9, perf]}
-- {id: pair_a, members: [take_10, score]}
+- id: pair_b
+  members: [verse_b, take_9, perf]
+- id: pair_a
+  members: [take_10, score]
 graphical:
   timestamps:
-  - {id: timestamp_9, timeline: score, coordinate: [4, 1], name: Theme again}
-  - {id: timestamp_10, timeline: score, coordinate: [4, 1], name: Theme, display: [coordinate, wedge, id]}
-  - {id: timestamp_1, timeline: score, coordinate: [1, 2], name: Pickup}
-  - {id: timestamp_2, timeline: perf, coordinate: 3.5, name: Entry}
+  - id: timestamp_9
+    timeline: score
+    coordinate: [4, 1]
+    name: "Theme again"
+  - id: timestamp_10
+    timeline: score
+    coordinate: [4, 1]
+    name: Theme
+    display: [coordinate, wedge, id]
+  - id: timestamp_1
+    timeline: score
+    coordinate: [1, 2]
+    name: Pickup
+  - id: timestamp_2
+    timeline: perf
+    coordinate: 3.5
+    name: Entry
   order:
     score: [children, markers, line, conversion_maps, regions, flow_control]

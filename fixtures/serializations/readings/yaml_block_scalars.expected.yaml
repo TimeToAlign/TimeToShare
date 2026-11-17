@@ -1,5 +1,0 @@
-clip: "line one\nline two\n"
-folded: "folded text\nnext paragraph\n"
-indented: "  two extra\n"
-keep: "kept\n\n"
-strip: stripped
