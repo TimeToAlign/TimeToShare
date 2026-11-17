@@ -89,7 +89,7 @@
   "links": [],
   "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (ff43780a)"
+    "generator": "timetoalign 1.2.0 (8bbc9d8d)"
   },
   "name": "Beethoven_Eroica_op35-cpjku",
   "schemes": [],
@@ -300,7 +300,7 @@
       "flow_control": [],
       "id": "perf:2023_Hewitt:dpt_1",
       "is_segment_line": false,
-      "length": 3966486,
+      "length": 3966487,
       "links": [],
       "locked": false,
       "meta": {},

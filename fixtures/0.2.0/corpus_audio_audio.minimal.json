@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (8323b609)"
+    "generator": "timetoalign 1.2.0 (8bbc9d8d)"
   },
   "timelines": [
     {
@@ -17,7 +17,7 @@
         }
       ],
       "id": "Bass Kick",
-      "length": 10190592,
+      "length": 10188800,
       "name": "Bass Kick.mp3",
       "unit": "samples"
     }
