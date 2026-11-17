@@ -18,6 +18,7 @@ and these cases together.
 | `cases/<name>/rfc8785.json` | its RFC 8785 JSON, without a final line feed; absent where the RFC 8785 writer refuses the value |
 | `readings/<name>.<ext>` | a text that is not canonical and that every reader reads, `<ext>` being `yaml` or `json` |
 | `readings/<name>.expected.yaml` | the canonical YAML of the value that text is read as |
+| `readings/<name>.expected.rfc8785.json` | optional: the RFC 8785 JSON written from the value that text is read as, without a final line feed |
 | `refusals/<name>.<ext>` | a text that every reader refuses, one rule per text |
 | `refusals-writing/<name>.<ext>` | a text every reader reads, whose value a writer refuses in the serializations stated below |
 
@@ -62,7 +63,9 @@ members.
      timeline's own axis.
 2. **Readings.** `dumps(read(text), "yaml")` gives the bytes of
    `<name>.expected.yaml`, and the expected text read and written again
-   gives its own bytes.
+   gives its own bytes. Where `<name>.expected.rfc8785.json` is present,
+   `dumps(read(text), "jcs")` and `dumps(read(expected), "jcs")`, the
+   expected text being `<name>.expected.yaml`, give its bytes.
 3. **Refusals.** Reading the text raises: Python `ValueError`; TypeScript
    `JsonSyntaxError` for a text read as JSON and `YamlSyntaxError` for a
    text read as YAML, except a `RangeError` for a float that rounds to an
@@ -80,8 +83,9 @@ members.
      `top_level_null`, `top_level_true`, `top_level_quoted_string` and
      `top_level_string_yaml_escapes`, whose texts are JSON texts and, ending
      in a line feed, not RFC 8785 JSON; `"yaml"` for every other case;
-   - `"json"` for every `pretty.json` and `"jcs"` for every `rfc8785.json`,
-     the scalar ones included;
+   - `"json"` for every `pretty.json` and `"jcs"` for every `rfc8785.json`
+     and every `readings/<name>.expected.rfc8785.json`, the scalar ones
+     included;
    - for a reading, refusal or writer refusal: `"json"` for every `.json`
      text but `refusals/bom_second_json.json` and for
      `refusals/flow_mapping_unquoted_key.yaml`,
@@ -170,7 +174,7 @@ memory.
 | `yaml_float_underflow_negative` | `-1e-400` | a negative float underflowing to zero is read as `-0.0` |
 | `manifest_unsorted` | `manifest_canonical_order` with every reorderable array shuffled, in flow style | canonical order applied by the writer |
 | `manifest_respelled` | `2.0` on an `int` axis, `2` on a `float` axis, `[33, 2.0]`, a child's `offset`, a region, a flow-control coordinate, a root's `offset`, a `number_type` overriding the unit's default | own-axis values respelled as their number type selects |
-| `manifest_fraction_reduced` | `[64, 2]`, `[4, 8]`, `[4.0, 2]`, `[6.0, 4.0]`, `[0, 5]`, `[-6, 4]`, `[0, 3]`; a child whose `number_type` is `float` under a `fraction` parent | Fraction pairs reduced to lowest terms, members integers; a child's `offset` takes the parent's number type, its `length` its own |
+| `manifest_fraction_reduced` | `[64, 2]`, `[4, 8]`, `[4.0, 2]`, `[6.0, 4.0]`, `[0, 5]`, `[-6, 4]`, `[0, 3]`; a child whose `number_type` is `float` under a `fraction` parent | Fraction pairs reduced to lowest terms, members integers; a child's `offset` takes the parent's number type, its `length` its own; RFC 8785 JSON is written from the respelled value (`manifest_fraction_reduced.expected.rfc8785.json`, 429 bytes) |
 | `manifest_respelled_edges` | `-0.0` and `1.0e+20` on an `int` axis, 2^53 on a `float` axis | an integral float on an `int` axis written as the integer of its exact value; an integer a float equals written as that float |
 | `manifest_written_as_given` | `2.5` and `[1, 2]` on an `int` axis; 2^53 + 1 and `[4, 8]` on a `float` axis; `2`, `2.0`, `[1, 2.5]`, `[3, -2]` and `[1, 0]` on a `fraction` axis; an unknown `unit` (with a child) and an unknown `number_type` | a value its number type cannot take, and every value on an axis whose unit or number type is unknown, is written as given |
 | `manifest_timestamp_respelled` | named-timestamp coordinates `3` on a `float` axis, `3.0` on an `int` axis, `[2, 4]` on a child's `fraction` axis | named-timestamp coordinates are own-axis values of the timeline they name, at any depth |
