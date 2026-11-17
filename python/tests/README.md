@@ -99,7 +99,8 @@ rejection cases that use them (`test_schema.py`):
   refer to `Id`, the items of `Selector.addresses` to `Address`. `Id`
   accepts `score`, `Bass Kick`, `perf/take 2`,
   `https://example.org/piece/score#exposition`, `start` and `regions_1`,
-  and refuses `""` and `score` followed by a tab. `Address` accepts `{}`,
+  and refuses `""`, `score` followed by a tab and `score` followed by a
+  newline. `Address` accepts `{}`,
   `{"part": ["name"]}`, `{"id": "score"}`, `{"id": "perf/take 2"}`,
   `{"id": "score", "facet": "regions"}`, `{"id": "score", "part":
   ["card"]}`, `{"id": "score", "part": ["end", "label"]}`, `{"id":
@@ -149,6 +150,20 @@ rejection cases that use them (`test_schema.py`):
   and refuses `""` and `a b`. The white-space class of those definitions is
   the one the registry uses to refuse a URL before matching it, pinned
   against the schema.
+- **Both libraries read every pattern alike.** A pattern ending in `$`
+  lets a trailing newline through Python's `re.search` and not through
+  JavaScript's `RegExp`, so a definition that needs to refuse control
+  characters says so with an unanchored `not`, never with an anchored
+  class: `Id` is a string of `minLength` 1 whose `not` refuses U+0000 to
+  U+001F, and an entry of an `Order` has the same two keywords. The five
+  patterns that still end in `$`, a named timestamp's `id`, `Paint`,
+  `stroke-dasharray`, `asserted_on` and a record's `integrity`, are
+  exactly those the document holds, and each refuses a value it accepts
+  (`timestamp_1`, `none`, `4 2`, `2026-11-17`, `sha256-AAAA`) once a
+  newline follows it, through `Id`'s `not`, a `not` of its own or its
+  `maxLength`; an `Order` refuses `["line\n"]`. The JavaScript suite
+  asserts the same values, so the two validators cannot part on a
+  trailing newline.
 - **Defaults agree with the table.** For every kind of `DEFAULTS` the
   schema's corresponding definitions (`Manifest`, `Timeline`,
   `Region`, `FlowControlElement`, `MeasureMap`, `Group`, `Graphical`,
@@ -449,7 +464,7 @@ naming no timeline is checked for its timeline alone.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 125 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 126 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the eighteen of the table, so every code is reached by a case both
@@ -490,7 +505,10 @@ timeline's), parts with `parts_relation` null (`schema` at
 the entry), an assertion with `match` `equivalent` and with `status`
 `approved` (`schema` at the member), `asserted_on` `17 November 2026`
 (`schema` at the member), a `uri` entry `musicbrainz.org/work/x` (`schema`
-at the entry) and a record without `url` (`schema` at the record). The five
+at the entry) and a record without `url` (`schema` at the record).
+`id_control_character_trailing_newline` names its one root `score`
+followed by a newline and is refused at that `id` (`schema`), the case on
+which an anchored pattern would part the two validators. The five
 cases of named timestamps break one rule each of the manifest `score` (8
 quarters) with the child `verse` (4 at 2): a timestamp on `ghost`
 (`timestamp_timeline` at its `timeline`), at `[5, 1]` on `verse`

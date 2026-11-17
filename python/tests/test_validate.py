@@ -72,6 +72,7 @@ REJECTIONS = [
     "group_order_not_member",
     "group_order_repeated",
     "id_control_character_tab",
+    "id_control_character_trailing_newline",
     "id_duplicate_across_kinds",
     "id_empty",
     "infinite_length",

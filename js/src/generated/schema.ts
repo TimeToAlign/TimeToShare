@@ -499,7 +499,10 @@ export const schema = {
     },
     "Id": {
       "type": "string",
-      "pattern": "^[^\\u0000-\\u001f]+$",
+      "minLength": 1,
+      "not": {
+        "pattern": "[\\u0000-\\u001f]"
+      },
       "description": "An identifier: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed."
     },
     "Facet": {
@@ -986,7 +989,10 @@ export const schema = {
       "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.",
       "items": {
         "type": "string",
-        "pattern": "^[^\\u0000-\\u001f]+$"
+        "minLength": 1,
+        "not": {
+          "pattern": "[\\u0000-\\u001f]"
+        }
       },
       "uniqueItems": true
     },
@@ -1108,7 +1114,10 @@ export const schema = {
     "Paint": {
       "type": "string",
       "description": "A colour as #RRGGBB with upper-case hexadecimal digits, or none.",
-      "pattern": "^(#[0-9A-F]{6}|none)$"
+      "pattern": "^(#[0-9A-F]{6}|none)$",
+      "not": {
+        "pattern": "[\\u0000-\\u001f]"
+      }
     },
     "Declaration": {
       "type": "object",
@@ -1124,7 +1133,10 @@ export const schema = {
         "stroke-dasharray": {
           "type": "string",
           "description": "none, or non-negative decimal numbers separated by single spaces.",
-          "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
+          "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$",
+          "not": {
+            "pattern": "[\\u0000-\\u001f]"
+          }
         },
         "fill": {
           "$ref": "#/$defs/Paint"

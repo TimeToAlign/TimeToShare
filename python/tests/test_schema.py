@@ -311,7 +311,7 @@ def test_references_are_ids_and_addresses() -> None:
         "regions_1",
     ):
         assert identifier.is_valid(accepted), accepted
-    for refused in ("", "score\t"):
+    for refused in ("", "score\t", "score\n"):
         assert not identifier.is_valid(refused), refused
     address = Draft202012Validator({"$ref": "#/$defs/Address", "$defs": defs})
     for accepted in (
@@ -338,6 +338,46 @@ def test_references_are_ids_and_addresses() -> None:
         {"id": "score", "facet": "regions_1"},
     ):
         assert not address.is_valid(refused), refused
+
+
+ANCHORED = {
+    ("Timestamp", "properties", "id"): "timestamp_1",
+    ("Paint",): "none",
+    ("Declaration", "properties", "stroke-dasharray"): "4 2",
+    ("Assertion", "properties", "asserted_on"): "2026-11-17",
+    ("Descriptor", "properties", "integrity"): "sha256-AAAA",
+}
+"""Every node whose pattern ends in ``$``, with a value its pattern accepts."""
+
+
+def _anchored(node: Any, path: tuple[str, ...]) -> Iterator[tuple[str, ...]]:
+    if isinstance(node, list):
+        for item in node:
+            yield from _anchored(item, path)
+    elif isinstance(node, dict):
+        if str(node.get("pattern", "")).endswith("$"):
+            yield path
+        for key, value in node.items():
+            yield from _anchored(value, (*path, key))
+
+
+def _node(path: tuple[str, ...]) -> dict[str, Any]:
+    node: Any = _defs()
+    for key in path:
+        node = node[key]
+    return node
+
+
+def test_no_pattern_lets_a_trailing_newline_through() -> None:
+    assert sorted(_anchored(_defs(), ())) == sorted(ANCHORED)
+    for path, value in ANCHORED.items():
+        validator = Draft202012Validator({**_node(path), "$defs": _defs()})
+        assert validator.is_valid(value), path
+        assert not validator.is_valid(f"{value}\n"), path
+    order = Draft202012Validator({"$ref": "#/$defs/Order", "$defs": _defs()})
+    assert order.is_valid(["line", "markers"])
+    assert not order.is_valid(["line\n", "markers"])
+    assert not order.is_valid([""])
 
 
 def test_objects_are_open_without_a_custom_keyword() -> None:

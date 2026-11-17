@@ -79,6 +79,7 @@ const REJECTIONS = [
   "group_order_not_member",
   "group_order_repeated",
   "id_control_character_tab",
+  "id_control_character_trailing_newline",
   "id_duplicate_across_kinds",
   "id_empty",
   "infinite_length",
@@ -672,7 +673,7 @@ describe("the graphical object", () => {
     const value = manifest([timeline("score")], { graphical: { order: { score: [""] } } });
     expect(problem(value)).toEqual([
       ["graphical", "order", "score", 0],
-      'must match pattern "^[^\\u0000-\\u001f]+$"',
+      "must NOT have fewer than 1 characters",
     ]);
   });
 

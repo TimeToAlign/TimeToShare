@@ -55,7 +55,10 @@ shared definitions every `name`, every `meta` and every conversion map
 refers to (a measure view through `MeasureView`, whose `allOf` is
 `MapBase`, as in the Python suite), the
 references are `Id`s and `Selector.addresses` holds `Address`es, `Id` and
-`Address` accepting and refusing the Python suite's values; no node
+`Address` accepting and refusing the Python suite's values; the patterns
+ending in `$` are exactly the Python suite's five, each refusing its value
+followed by a newline, and an `Order` refusing a trailing newline too, so
+Ajv and Python's `jsonschema` agree on every trailing newline; no node
 carries `additionalProperties: false` or `unevaluatedProperties`, `Address`
 included, and no key begins with `x-`; every object
 declares, itself or in its `allOf` bases at any depth, what its branches declare; every
@@ -127,7 +130,7 @@ schema addition cannot escape the canonical spelling.
 
 ## Shared rejection cases
 
-Each of the 125 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 126 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
