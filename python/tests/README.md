@@ -1039,22 +1039,20 @@ any text and `serialization_of` names a text's serialization. They live in
   written in canonical YAML gives its `.expected.yaml`, and in RFC 8785
   JSON its `.expected.rfc8785.json` where one exists; every refusal raises
   `ValueError`; every writer refusal raises `ValueError` in exactly the
-  serializations the directory's README names, and every file of
-  `refusals-writing/` is named in the test's table; `serialization_of` gives
+  serializations the directory's README names; `serialization_of` gives
   the README's name for every file, and never raises. Values are compared
   kind for kind (an integer equals only an integer, `-0.0` differs from
-  `0.0`).
-- **What the reading rules no longer decide.** A YAML text is read by
-  PyYAML's safe loader under the YAML 1.2 core schema, with the value checks
-  below; a text beyond the constructs canonical YAML writes is read as that
-  parser reads it, and a rule of the text itself (characters, byte order
-  marks other than the one leading U+FEFF, directives, the span of a key,
-  an empty text) is no longer a refusal. The readings and refusals that pin
-  such behaviour are skipped with the reason "outside the YAML guarantee",
-  each named in `test_serialization.py` (`READINGS_OUTSIDE_THE_GUARANTEE`,
-  `REFUSALS_NO_LONGER_DECIDED`), each applying only where its file is
-  present. `serialization_of` of an `.expected.yaml` is `"json"` exactly
-  where the standard library's JSON reader reads the text.
+  `0.0`). No case is skipped.
+- **The test's tables name exactly their files.** Each table the test keeps
+  beside the cases equals, as a set, the files it describes, so a case
+  added or removed without its entry fails: the writer refusals' table
+  names every file of `refusals-writing/` and no other; the manifest cases
+  are the cases whose value is an object with a `timelines` array; the
+  cases whose canonical YAML is a JSON text are those the standard
+  library's JSON reader reads; the refusals written as YAML and read as
+  JSON are the `.yaml` refusals whose first character other than JSON
+  whitespace is `{` or `[`. `serialization_of` of an `.expected.yaml` is
+  `"json"` exactly where the standard library's JSON reader reads the text.
 - **The YAML reader.** Plain scalars resolve by the core schema: `no` and
   `y` are strings, `2026-11-17`, `1:20`, `1_000` and `0b101` strings,
   `1e-05` a float, `2` an integer, `0x1F` 31, `0o17` 15, `010` 10, `~` and an
@@ -1064,7 +1062,18 @@ any text and `serialization_of` names a text's serialization. They live in
   is U+1F600. Refused, with exactly the stated message naming the line and
   column: a repeated key, an anchor, an alias, an integer key and a
   collection key, the tags `!!timestamp`, `!!binary`, `!!set` and `!!omap`,
-  `.inf`, `1e309`, the escape `\ud800` and a second document.
+  `.inf`, `1e309`, the escape `\ud800` and a second document. A sequence
+  nested 2,000 deep (`- ` written 2,000 times, then `1`) exceeds Python's
+  recursion limit and raises `ValueError`, never `RecursionError`, with the
+  message `collections nest too deeply at line 1, column C`. The depth at
+  which the limit is reached depends on the interpreter's stack, so the test
+  proves the position by the text rather than by a fixed number: C is odd
+  and the text from column C on is `- ` repeated, then `1`, the start of a
+  nested sequence.
+- **Columns count code points.** In both readers a character above U+FFFF
+  counts once: the YAML anchor in `"😀": &x 1` is refused at column 6, and
+  the escape `\ud800` in the JSON text `["😀", "\ud800"]` at column 7 (in
+  UTF-16 code units they would be 7 and 8).
 - **The float spelling.** The README's examples: `2.0`, `123.25`, `0.1`,
   `0.0001`, `1.0e-05`, `-2.5e-07`, `1000000000000000.0`, `1.0e+16`,
   `1.5e+16`, `5.0e-324`, `1.7976931348623157e+308`, `-0.0`, `5.0e-05` and

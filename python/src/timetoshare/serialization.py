@@ -404,6 +404,7 @@ def spell(value: Any) -> str:
 
 
 def _position(text: str, index: int) -> str:
+    """The line and column of an index, counted from one, the column in code points."""
     line = text.count("\n", 0, index) + 1
     column = index - (text.rfind("\n", 0, index) + 1) + 1
     return f"line {line}, column {column}"
@@ -568,8 +569,15 @@ class _YamlLoader(yaml.SafeLoader):
     yaml_implicit_resolvers: dict[Any, Any] = {}
     yaml_constructors: dict[Any, Any] = {}
 
+    def __init__(self, stream: str) -> None:
+        super().__init__(stream)
+        self.last_mark: Any = None
+        """The start mark of the node last composed or constructed, which
+        places collections nested deeper than the recursion limit allows."""
+
     def compose_node(self, parent: Any, index: Any) -> Any:
         event = self.peek_event()
+        self.last_mark = event.start_mark
         if isinstance(event, yaml.AliasEvent):
             raise yaml.composer.ComposerError(
                 None, None, "an alias is not read", event.start_mark
@@ -579,6 +587,10 @@ class _YamlLoader(yaml.SafeLoader):
                 None, None, "an anchor is not read", event.start_mark
             )
         return super().compose_node(parent, index)
+
+    def construct_object(self, node: Any, deep: bool = False) -> Any:
+        self.last_mark = node.start_mark
+        return super().construct_object(node, deep=deep)
 
     def construct_mapping(self, node: Any, deep: bool = False) -> dict[str, Any]:
         mapping: dict[str, Any] = {}
@@ -679,14 +691,23 @@ def _read_yaml(text: str) -> Any:
     An empty text, or one of comments only, reads as null.
 
     Raises:
-        ValueError: With the line and column, for every error of the parser
-            (more than one document and an unknown tag among them) and every
-            value :class:`_YamlLoader` refuses.
+        ValueError: With the line and column, both counted from one, the
+            column in code points, for every error of the parser (more than
+            one document and an unknown tag among them), every value
+            :class:`_YamlLoader` refuses, and collections nested deeper than
+            Python's recursion limit allows, placed at the start of the node
+            the loader last began to compose or construct.
     """
     try:
         loader = _YamlLoader(text)
         try:
             return loader.get_single_data()
+        except RecursionError:
+            mark = loader.last_mark or loader.get_mark()
+            raise ValueError(
+                "collections nest too deeply "
+                f"at line {mark.line + 1}, column {mark.column + 1}"
+            ) from None
         finally:
             loader.dispose()
     except yaml.MarkedYAMLError as error:
@@ -720,14 +741,17 @@ def loads(text: str) -> Any:
     does not validate.
 
     Raises:
-        ValueError: With the line and column of the fault, for a text the
-            reading rules refuse: a JSON text that is not one JSON value, an
-            error of the YAML parser (more than one document, an unknown tag),
-            a key that repeats in its object, a key that is not a string, an
-            anchor or an alias, a value outside the JSON data model, a
-            non-finite number (``NaN``, ``Infinity``, ``.inf``, ``.nan`` and
-            a number that rounds to an infinity) and a lone surrogate in a
-            string or a key, written as itself or through an escape.
+        ValueError: With the line and column of the fault, both counted from
+            one, the column in code points (in the text after a leading
+            U+FEFF is removed), for a text the reading rules refuse: a JSON
+            text that is not one JSON value, an error of the YAML parser
+            (more than one document, an unknown tag), a key that repeats in
+            its object, a key that is not a string, an anchor or an alias, a
+            value outside the JSON data model, a non-finite number (``NaN``,
+            ``Infinity``, ``.inf``, ``.nan`` and a number that rounds to an
+            infinity), a lone surrogate in a string or a key, written as
+            itself or through an escape, and YAML collections nested deeper
+            than Python's recursion limit allows.
         TypeError: If ``text`` is not a ``str``.
     """
     if not isinstance(text, str):
