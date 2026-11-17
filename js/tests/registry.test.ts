@@ -121,6 +121,8 @@ const FORMS: [string, string][] = [
   [`https://www.youtube-nocookie.com/embed/${VIDEO}`, "youtube_video"],
   [`https://youtube-nocookie.com/embed/${VIDEO}`, "youtube_video"],
   [`https://www.youtube.com/v/${VIDEO}`, "youtube_video"],
+  [`https://www.youtube.com/v/${VIDEO}&hl=en_US&fs=1`, "youtube_video"],
+  [`https://www.youtube-nocookie.com/v/${VIDEO}`, "youtube_video"],
 ];
 
 function entry(members: Partial<KnownScheme> = {}): SchemeEntry {
@@ -258,6 +260,8 @@ describe("the registry of identifier schemes", () => {
     "https://www.youtube.com/watch?list=PL123",
     "https://www.youtube.com/embed/videoseries?list=PL123",
     "https://www.youtube-nocookie.com/embed/videoseries?list=PL123",
+    "https://www.youtube.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv",
+    "https://www.youtube-nocookie.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv",
   ])("does not recognise %s", (url) => {
     expect(recognize(url)).toBeNull();
   });

@@ -193,6 +193,8 @@ FORMS = [
     (f"https://www.youtube-nocookie.com/embed/{VIDEO}", "youtube_video"),
     (f"https://youtube-nocookie.com/embed/{VIDEO}", "youtube_video"),
     (f"https://www.youtube.com/v/{VIDEO}", "youtube_video"),
+    (f"https://www.youtube.com/v/{VIDEO}&hl=en_US&fs=1", "youtube_video"),
+    (f"https://www.youtube-nocookie.com/v/{VIDEO}", "youtube_video"),
 ]
 
 
@@ -257,6 +259,8 @@ def test_a_youtube_video_id_keeps_its_case() -> None:
         "https://www.youtube.com/watch?list=PL123",
         "https://www.youtube.com/embed/videoseries?list=PL123",
         "https://www.youtube-nocookie.com/embed/videoseries?list=PL123",
+        "https://www.youtube.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv",
+        "https://www.youtube-nocookie.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv",
     ],
 )
 def test_what_is_not_recognised(url: str) -> None:

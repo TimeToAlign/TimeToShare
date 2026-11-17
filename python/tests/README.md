@@ -854,15 +854,21 @@ writes links, reads them back and builds them from URLs. What proves it
   `https://youtube.com/live/Ch2mrPm1JnM?feature=share`,
   `https://www.youtube.com/watch?v=Ch2mrPm1JnM#t=1m`, the privacy-enhanced
   embed `https://www.youtube-nocookie.com/embed/Ch2mrPm1JnM` (also without
-  `www.`) and the legacy `https://www.youtube.com/v/Ch2mrPm1JnM`. An
-  address that names no video is not recognised: a channel
+  `www.`) and the legacy `https://www.youtube.com/v/Ch2mrPm1JnM`, which
+  was shared with its parameters joined straight to the ID by `&`
+  (`https://www.youtube.com/v/Ch2mrPm1JnM&hl=en_US&fs=1`) and on the
+  privacy-enhanced host too (`https://www.youtube-nocookie.com/v/Ch2mrPm1JnM`).
+  An address that names no video is not recognised: a channel
   (`https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv`), a `v`
   shorter than eleven characters (`https://www.youtube.com/watch?v=short`),
-  a playlist without `v` (`https://www.youtube.com/watch?list=PL123`) and
-  the embedded playlist, whose path segment `videoseries` is eleven
-  characters long like an ID
+  a playlist without `v` (`https://www.youtube.com/watch?list=PL123`), and
+  the two embeds whose path segment is eleven characters long like an ID
+  but names no video: the embedded playlist `videoseries`
   (`https://www.youtube.com/embed/videoseries?list=PL123`,
-  `https://www.youtube-nocookie.com/embed/videoseries?list=PL123`).
+  `https://www.youtube-nocookie.com/embed/videoseries?list=PL123`) and a
+  channel's live stream `live_stream`
+  (`https://www.youtube.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv`,
+  `https://www.youtube-nocookie.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv`).
 - **A user extension.** `with_schemes` returns a new registry and leaves the
   default as it was; an entry whose ID the registry holds replaces it in
   place, any other is appended, and a URL is recognised by the first entry
