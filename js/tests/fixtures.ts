@@ -3,7 +3,6 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect } from "vitest";
 import {
-  compactJson,
   dumps,
   isJsonObject,
   type Json,
@@ -89,19 +88,14 @@ export function rejectionText(name: string): string {
 }
 
 /**
- * Assert that a stored text is what the writers write for its value. A
- * text in canonical YAML is `dumps`'s bytes. A text in JSON, which may be
- * laid out as JSON was written before canonical YAML, holds its keys,
- * arrays and numbers as the writers write them: its compact text, keys in
- * their written order, is that of the value its pretty JSON reads to.
+ * Assert that a stored text is what the writers write for its value, byte
+ * for byte: a text in canonical YAML is `dumps`'s bytes, a text in JSON
+ * those of `dumps` in pretty JSON.
  */
 export function expectWrittenAsStored(text: string): void {
   const value = loads(text);
-  if (serializationOf(text) === "yaml") {
-    expect(dumps(value)).toBe(text);
-  } else {
-    expect(compactJson(value)).toBe(compactJson(loads(dumps(value, { serialization: "json" }))));
-  }
+  const serialization = serializationOf(text) === "yaml" ? "yaml" : "json";
+  expect(dumps(value, { serialization })).toBe(text);
 }
 
 /** One shared rejection case, read for validation. */
