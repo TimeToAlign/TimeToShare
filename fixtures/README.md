@@ -25,7 +25,7 @@ Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
 `<name>.minimal.yaml`, the same manifest in the minimal form, as
-timetoalign's `to_dict(minimal=True)` writes it. The two obey one law:
+timetoalign's `to_dict()` writes it by default. The two obey one law:
 `minimal(fixture)` equals the twin, `complete(twin)` equals the fixture,
 and the library reads both to equal objects. The manifests are emitted by
 timetoalign through the catalogue and pipeline in `scripts/fixtures/`, with
@@ -86,7 +86,7 @@ validates them, checks the law above, and fails unless the manifest is
 stable through the library: read by the class that holds its content
 (`Timeline.from_dict` for one root and no group, `TimelineGroup.from_dict`
 for one group, `AlignmentBundle.from_dict` otherwise) and written back with
-`to_dict()` byte for byte, its arrays already in canonical order. A group's
+`to_dict(minimal=False)` byte for byte, its arrays already in canonical order. A group's
 display order in `graphical.order` is the library's own member order. The
 `graphical` object the script composes for a manifest, its styles,
 statements and band orders, is read back by the library, which keeps it as

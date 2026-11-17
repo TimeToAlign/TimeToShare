@@ -15,7 +15,7 @@ reading (``parts``, each a ``PartSlot``) and the wholes the entity belongs to
 Every class is a frozen dataclass read from and written to the manifest's
 JSON form: ``from_dict`` keeps the keys the format does not declare, which
 survive ``to_dict`` and take no part in equality; ``to_dict()`` writes the
-complete form and ``to_dict(minimal=True)`` the minimal form, from the one
+minimal form and ``to_dict(minimal=False)`` the complete form, from the one
 table of defaults (``DEFAULTS``). ``Link.from_urls`` and ``PartSlot.from_url``
 build links from the URLs of catalogue pages through the registry of known
 schemes (``timetoshare.registry``); the ``with_*`` methods return new links.
@@ -172,13 +172,13 @@ class _Element:
             return value.isoformat()
         return copy.deepcopy(value)
 
-    def to_dict(self, *, minimal: bool = False) -> dict[str, Any]:
-        """Return the object's JSON form, complete or, if ``minimal``, minimal.
+    def to_dict(self, *, minimal: bool = True) -> dict[str, Any]:
+        """Return the object's JSON form: minimal, or complete if not ``minimal``.
 
-        The complete form writes every key, its default included; the minimal
-        form leaves out every key whose value is its default, as
-        ``timetoshare.minimal`` does in a manifest. Unknown keys are written
-        as read.
+        The minimal form, the default, leaves out every key whose value is its
+        default, as ``timetoshare.minimal`` does in a manifest; the complete
+        form (``minimal=False``) writes every key, its default included.
+        Unknown keys are written as read.
         """
         result = {
             name: self._written(getattr(self, name), minimal) for name in self._names()

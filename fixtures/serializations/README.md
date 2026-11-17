@@ -38,8 +38,9 @@ the README decides beyond them: the empty text and texts of blank lines
 `comments_only`), the core schema's resolution of plain scalars
 (`yaml_core_schema`, `yaml_unsorted_keys`, `yaml_top_level_tilde`,
 `yaml_top_level_minus_infinity`, `yaml_float_edges`,
-`yaml_float_underflow_negative`) and a surrogate pair written as two
-escapes (`yaml_surrogate_pair_escape`). Canonical YAML holds no literal
+`yaml_float_underflow_negative`), a surrogate pair written as two
+escapes (`yaml_surrogate_pair_escape`) and flow sequences nested in flow
+sequences (`yaml_depth_256`, and the refusal `yaml_depth_257`). Canonical YAML holds no literal
 tab, escaping every tab as `\t`, so no YAML text here holds one: a tab
 anywhere in a YAML text, a line of a tab alone or a tab before a comment
 included, lies outside what these cases cover.
@@ -114,7 +115,25 @@ members.
 
 A lone surrogate standing as itself, which only a text held in memory can
 hold, cannot be stored in a UTF-8 file; package tests build such a text in
-memory.
+memory. Likewise no text a reader reads holds a value nested deeper than 256
+levels, so `refusals-writing/` cannot hold one: the writers' refusal of the
+array nested 257 deep, the value `refusals/json_depth_257.json` would hold,
+is proven by the package tests on that value built in memory, refused in
+every serialization.
+
+The long texts of the nesting limit are made by repeating fixed strings:
+`json_depth_256.json` is `[` 256 times, `]` 256 times and a line feed (513
+bytes), `json_depth_257.json` the same with 257 of each (515 bytes).
+`yaml_depth_256.yaml` (16,769 bytes) is 127 lines of `-` alone, the first
+at column 1 and each next two columns further, then, at column 255, `- `
+followed by `[` 128 times and `]` 128 times: 128 block sequences, the
+innermost holding 128 flow sequences. `yaml_depth_257.yaml` (16,771 bytes)
+holds 129 flow sequences there, and the first collection at depth 257, the
+129th `[`, lies at line 128, column 385 (offset 16,640). Both readings are
+read as the array nested 256 deep, whose canonical YAML (65,283 bytes) is,
+by the rule that `-` stands alone before a block sequence, 254 lines of `-`
+alone, the first at column 1 and each next two columns further, then `- []`
+at column 509.
 
 ## Cases
 
@@ -197,6 +216,8 @@ memory.
 | `json_numbers` | `1E2`, `-0`, `1.50`, `0.1e1`, `1e-5`, 2^64, `-0.0`, `4.9e-324`, `10E-1`, `1e+2` | a number without `.`, `e`, `E` is an integer; every other a float |
 | `json_float_edges` | `1.7976931348623158e308`, `1e-400` | as `yaml_float_edges`, in JSON |
 | `json_float_underflow_negative` | `-1e-400` | as `yaml_float_underflow_negative`, in JSON |
+| `json_depth_256` | `[` 256 times, then `]` 256 times | a value nested 256 deep, the deepest a reader reads |
+| `yaml_depth_256` | 128 block sequences, the innermost holding 128 flow sequences | the same in YAML: block and flow collections count alike; canonical YAML writes every level as a block sequence |
 
 ## Refusals
 
@@ -261,6 +282,8 @@ memory.
 | `json_comment.json` | not JSON: a comment |
 | `json_bom_between_tokens.json` | U+FEFF between `{` and a key: read as JSON, which refuses it outside a string |
 | `json_bom_after_value.json` | U+FEFF after `{"a": 1}`: read as JSON, which refuses it outside a string |
+| `json_depth_257.json` | collections nested 257 deep, refused at the 257th `[` (line 1, column 257) |
+| `yaml_depth_257.yaml` | 128 block sequences holding 129 flow sequences, refused at the 129th `[` (line 128, column 385) |
 
 ## Writer refusals
 

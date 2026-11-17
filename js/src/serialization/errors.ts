@@ -3,6 +3,16 @@
  * position of the fault.
  */
 
+/**
+ * The greatest depth of a value the writers write and the readers read. A
+ * scalar has depth 0, an object or array 1 more than its deepest member (an
+ * empty one 1).
+ */
+export const DEPTH_LIMIT = 256;
+
+/** The reason the readers give for a text nested deeper than `DEPTH_LIMIT`. */
+export const TOO_DEEP = `collections nest deeper than ${DEPTH_LIMIT} levels`;
+
 /** The line and column, both counted from 1, of an offset in a text; a line ends at each `\n`. */
 export function positionOf(text: string, offset: number): { line: number; column: number } {
   const lines = text.slice(0, offset).split("\n");

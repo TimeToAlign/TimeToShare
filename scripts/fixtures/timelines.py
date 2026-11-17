@@ -589,7 +589,7 @@ def negative_offset_timeline() -> Timeline:
     recording = ContinuousPhysicalTimeline(
         length=30.0, unit="seconds", uid="recording", name="Recording"
     )
-    data = recording.to_dict()
+    data = recording.to_dict(minimal=False)
     data["timelines"][0]["offset"] = -2.5
     return Timeline.from_dict(data)
 

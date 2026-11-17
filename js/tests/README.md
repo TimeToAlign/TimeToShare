@@ -275,7 +275,7 @@ fails. No test is skipped:
   whose RFC 8785 JSON is its `.expected.rfc8785.json`; each expected text
   gives its own bytes; `serializationOf` names a `.json` reading `"json"`, a
   `.yaml` one `"yaml"` and every expected RFC 8785 text `"jcs"`.
-- **Refusals.** The table names each of the 67 files with the error it
+- **Refusals.** The table names each of the 69 files with the error it
   throws: a text read as YAML a `YamlSyntaxError`, through `loads` and
   `parseYaml`; a text read as JSON a `JsonSyntaxError`, through `loads`
   and `parseJson` (the three `flow_*` texts meant as YAML among them), a
@@ -310,6 +310,39 @@ The unit tests beside the walk pin what the cases leave to a package:
   a lone surrogate escaped and as itself, `.inf`, `-.Inf`, `.nan`, `1e309`,
   `!!binary`, `!!timestamp`, `!!set`, `!!omap`, an unknown tag and a second
   document.
+- **The nesting limit** (`serialization.test.ts`): a scalar has depth 0,
+  an object or array 1 more than its deepest member (an empty one 1). Both
+  readers refuse a text whose value would be deeper than 256, at the first
+  character of the first collection at depth 257, with the reason
+  `collections nest deeper than 256 levels`: a `JsonSyntaxError` or a
+  `YamlSyntaxError` whose offset (UTF-16 code units from 0), line and
+  column are pinned, the same places Python names. The JSON reader counts
+  the collections it opens and refuses before its recursion could go
+  deeper; the YAML reader finds the first collection at depth 257 in the
+  parsed tree, in document order, before any other refusal of a later
+  place, also where the parser stopped composing for want of stack, so a
+  text nested 100,000 deep is refused where one nested 257 deep is. Pinned
+  (offset, line, column): JSON `[` 257 times then `]` 257 times, and `[`
+  100,000 times unclosed, at (256, 1, 257); `{"a":` 257 times, then `1`
+  and `}` 257 times, at (1280, 1, 1281); YAML `- ` 257 times then `1`, and
+  `- ` 100,000 times then `1`, at (512, 1, 513); 257 block sequences in
+  canonical layout (`-` alone on a line, each two columns further, the
+  last `- 1`) at (66304, 257, 513); 257 block mappings (`k:` on a line,
+  each two columns further, the last `k: 1`) at (66560, 257, 513); `a: `
+  then `[` 256 times and `]` 256 times at (258, 1, 259); `# x`, a line
+  feed, then `{a: ` 257 times, `1` and `}` 257 times at (1028, 2, 1025);
+  the shared refusals `json_depth_257.json` at (256, 1, 257) and
+  `yaml_depth_257.yaml` at (16640, 128, 385). A JSON text holding a
+  repeated key before the 257th collection is refused for the key. Every
+  text nested 257 deep, made one level shallower, is read, to a value
+  nested 256 deep. The writers throw the `RangeError` `a value nested
+  deeper than 256 levels cannot be written` in every serialization for the
+  array nested 257 deep (built in memory: no text a reader reads holds
+  it), an object whose member holds an array 256 deep, the array nested
+  257 deep around a NaN (the depth is checked first) and an array holding
+  itself; the array nested 256 deep is written in every serialization and
+  reads back equal, its canonical YAML `readings/json_depth_256.expected.yaml`
+  and its RFC 8785 JSON `[` 256 times then `]` 256 times.
 - **The choice** between JSON and YAML: leading white space, a JSON
   scalar, a quoted YAML scalar, a YAML escape, `-Infinity`, `{a: 1}`
   refused as JSON, `"a": 1` read as YAML, a JSON string holding U+2028; and

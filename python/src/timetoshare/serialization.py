@@ -11,8 +11,15 @@ JSON by UTF-16 code units), writes a manifest in canonical order with its
 own-axis values respelled (:func:`~timetoshare.manifest.canonical_order`),
 and refuses a value it cannot write: a NaN or an infinity, a string or key
 holding a lone surrogate, a key whose canonical YAML form is longer than 1024
-UTF-16 code units, and in RFC 8785 JSON an integer beyond ±(2^53 − 1) or an
-integral float of magnitude from 2^53 up to but excluding 10^21.
+UTF-16 code units, a value nested deeper than 256 levels, and in RFC 8785
+JSON an integer beyond ±(2^53 − 1) or an integral float of magnitude from
+2^53 up to but excluding 10^21.
+
+The depth of a value is 0 for a scalar and, for an object or an array, 1 more
+than the greatest depth of its members (1 for an empty one). The readers
+refuse a text whose value would be deeper than 256, at the first character
+of the first collection at depth 257, so that every value written can be read
+and the place of the refusal depends on the text alone.
 """
 
 from __future__ import annotations
@@ -36,6 +43,12 @@ _SERIALIZATIONS = ("yaml", "json", "jcs")
 
 _KEY_LIMIT = 1024
 """The longest canonical YAML form of a key a writer writes, in UTF-16 code units."""
+
+_DEPTH_LIMIT = 256
+"""The greatest depth of a value a writer writes and a reader reads."""
+
+_TOO_DEEP = f"collections nest deeper than {_DEPTH_LIMIT} levels"
+"""The reason the readers give for a text nested deeper than the limit."""
 
 _SAFE_INTEGER = 2**53 - 1
 """The largest magnitude of an integer RFC 8785 JSON writes."""
@@ -66,6 +79,24 @@ def _digits(value: float) -> tuple[str, int]:
 def _finite(value: float) -> None:
     if not math.isfinite(value):
         raise ValueError(f"{value!r} is not a finite number and cannot be written")
+
+
+def _within_depth(value: Any) -> None:
+    """Refuse a value nested deeper than the limit, walking no deeper than it.
+
+    A list or a dict that holds itself is refused the same way.
+    """
+    pending = [(value, 1)]
+    while pending:
+        item, depth = pending.pop()
+        if isinstance(item, list | dict):
+            if depth > _DEPTH_LIMIT:
+                raise ValueError(
+                    f"a value nested deeper than {_DEPTH_LIMIT} levels "
+                    "cannot be written"
+                )
+            members = item.values() if isinstance(item, dict) else item
+            pending.extend((member, depth + 1) for member in members)
 
 
 def _all_finite(value: Any) -> None:
@@ -357,9 +388,10 @@ def dumps(value: Any, serialization: Serialization = "yaml") -> str:
     numbers. The form, complete or minimal, is the one given.
 
     Raises:
-        ValueError: If the serialization refuses the value (a NaN or an
-            infinity, a string or key holding a lone surrogate, a key whose
-            canonical YAML form is longer than 1024 UTF-16 code units, and in
+        ValueError: If the serialization refuses the value (a value nested
+            deeper than 256 levels, checked first, a NaN or an infinity, a
+            string or key holding a lone surrogate, a key whose canonical
+            YAML form is longer than 1024 UTF-16 code units, and in
             ``"jcs"`` an integer beyond ±(2^53 − 1) or an integral float of
             magnitude from 2^53 up to but excluding 10^21), if a manifest
             cannot be put in canonical order, or if ``serialization`` names
@@ -370,6 +402,7 @@ def dumps(value: Any, serialization: Serialization = "yaml") -> str:
     """
     if serialization not in _SERIALIZATIONS:
         raise ValueError(f"unknown serialization {serialization!r}")
+    _within_depth(value)
     _all_finite(value)
     if is_manifest(value):
         value = canonical_order(value)
@@ -433,13 +466,15 @@ def _read_json(text: str) -> Any:
     Integers stay exact at any size and floats stay floats; a float is the
     double nearest to the decimal written. The whole text is checked against
     the grammar first, so a text that is not JSON raises
-    :class:`_JsonSyntaxError` even where it also holds a refused value.
+    :class:`_JsonSyntaxError` even where it also holds a refused value; only
+    a collection opening at depth 257 stops the reading where it stands,
+    refused for the first refused value before it if there is one.
 
     Raises:
         _JsonSyntaxError: If the text is not one JSON value.
         ValueError: If it is, but repeats a key in an object, holds a lone
             surrogate in a string or a key, or a number that rounds to an
-            infinity.
+            infinity; and if it nests collections deeper than 256 levels.
     """
     refusal: ValueError | None = None
 
@@ -476,6 +511,8 @@ def _read_json(text: str) -> Any:
         index = _skip(text, index)
         character = text[index : index + 1]
         if character in ("{", "["):
+            if len(stack) == _DEPTH_LIMIT:
+                raise refusal or ValueError(f"{_TOO_DEEP} at {_position(text, index)}")
             closing = "}" if character == "{" else "]"
             index = _skip(text, index + 1)
             if text[index : index + 1] == closing:
@@ -564,48 +601,135 @@ class _YamlLoader(yaml.SafeLoader):
     ``!!binary``, ``!!set`` or ``!!omap``, is refused, and so are anchors and
     aliases, a repeated key, a key that is not a string, a non-finite float
     and a string holding an unpaired surrogate.
+
+    Collections are composed and constructed without recursion, each on a
+    stack of its own: the composer refuses a collection opening at depth 257
+    at its start, and the constructor walks the composed tree in document
+    order, a key before its value.
     """
 
     yaml_implicit_resolvers: dict[Any, Any] = {}
     yaml_constructors: dict[Any, Any] = {}
 
-    def __init__(self, stream: str) -> None:
-        super().__init__(stream)
-        self.last_mark: Any = None
-        """The start mark of the node last composed or constructed, which
-        places collections nested deeper than the recursion limit allows."""
-
     def compose_node(self, parent: Any, index: Any) -> Any:
-        event = self.peek_event()
-        self.last_mark = event.start_mark
-        if isinstance(event, yaml.AliasEvent):
-            raise yaml.composer.ComposerError(
-                None, None, "an alias is not read", event.start_mark
-            )
-        if getattr(event, "anchor", None) is not None:
-            raise yaml.composer.ComposerError(
-                None, None, "an anchor is not read", event.start_mark
-            )
-        return super().compose_node(parent, index)
+        """Compose the node beginning at the next event, and every node in it."""
+        # The collections being composed, the innermost last, and for each
+        # the key node whose value is pending, if it is a mapping.
+        holders: list[Any] = []
+        keys: list[Any] = []
+        while True:
+            event = self.get_event()
+            if isinstance(event, yaml.AliasEvent):
+                raise yaml.composer.ComposerError(
+                    None, None, "an alias is not read", event.start_mark
+                )
+            if isinstance(event, yaml.SequenceEndEvent | yaml.MappingEndEvent):
+                node = holders.pop()
+                keys.pop()
+                node.end_mark = event.end_mark
+            else:
+                if event.anchor is not None:
+                    raise yaml.composer.ComposerError(
+                        None, None, "an anchor is not read", event.start_mark
+                    )
+                if isinstance(event, yaml.ScalarEvent):
+                    tag = event.tag
+                    if tag is None or tag == "!":
+                        tag = self.resolve(yaml.ScalarNode, event.value, event.implicit)
+                    node = yaml.ScalarNode(
+                        tag, event.value, event.start_mark, event.end_mark, event.style
+                    )
+                else:
+                    if len(holders) == _DEPTH_LIMIT:
+                        raise yaml.composer.ComposerError(
+                            None, None, _TOO_DEEP, event.start_mark
+                        )
+                    kind = (
+                        yaml.SequenceNode
+                        if isinstance(event, yaml.SequenceStartEvent)
+                        else yaml.MappingNode
+                    )
+                    tag = event.tag
+                    if tag is None or tag == "!":
+                        tag = self.resolve(kind, None, event.implicit)
+                    holders.append(
+                        kind(tag, [], event.start_mark, None, event.flow_style)
+                    )
+                    keys.append(None)
+                    continue
+            if not holders:
+                return node
+            holder = holders[-1]
+            if isinstance(holder, yaml.SequenceNode):
+                holder.value.append(node)
+            elif keys[-1] is None:
+                keys[-1] = node
+            else:
+                holder.value.append((keys[-1], node))
+                keys[-1] = None
 
-    def construct_object(self, node: Any, deep: bool = False) -> Any:
-        self.last_mark = node.start_mark
-        return super().construct_object(node, deep=deep)
+    def construct_document(self, node: Any) -> Any:
+        """Construct the value of a document, every collection in it on a stack."""
+        try:
+            if not _is_json_collection(node):
+                return self.construct_object(node, deep=True)
+            # Each frame: the node, the value being built, the key pending.
+            frames: list[list[Any]] = [[node, _empty(node), None]]
+            while True:
+                frame = frames[-1]
+                holder, built = frame[0], frame[1]
+                count = len(built)
+                if count == len(holder.value):
+                    frames.pop()
+                    if not frames:
+                        return built
+                    _place(frames[-1], built)
+                    continue
+                if isinstance(holder, yaml.MappingNode):
+                    key_node, item = holder.value[count]
+                    key = (
+                        self.construct_object(key_node, deep=True)
+                        if isinstance(key_node, yaml.ScalarNode)
+                        else None
+                    )
+                    if not isinstance(key, str):
+                        _refuse(key_node, "a key that is not a string is not read")
+                    if key in built:
+                        _refuse(key_node, f"the key {json.dumps(key)} repeats")
+                    frame[2] = key
+                else:
+                    item = holder.value[count]
+                if _is_json_collection(item):
+                    frames.append([item, _empty(item), None])
+                else:
+                    _place(frame, self.construct_object(item, deep=True))
+        finally:
+            self.constructed_objects = {}
+            self.recursive_objects = {}
 
-    def construct_mapping(self, node: Any, deep: bool = False) -> dict[str, Any]:
-        mapping: dict[str, Any] = {}
-        for key_node, value_node in node.value:
-            key = (
-                self.construct_object(key_node, deep=True)
-                if isinstance(key_node, yaml.ScalarNode)
-                else None
-            )
-            if not isinstance(key, str):
-                _refuse(key_node, "a key that is not a string is not read")
-            if key in mapping:
-                _refuse(key_node, f"the key {json.dumps(key)} repeats")
-            mapping[key] = self.construct_object(value_node, deep=True)
-        return mapping
+
+def _is_json_collection(node: Any) -> bool:
+    """Whether a node is a sequence or a mapping under the tag of its kind.
+
+    Every other node, a collection under another tag included, is
+    constructed by the constructor of its tag, which refuses a collection.
+    """
+    if isinstance(node, yaml.SequenceNode):
+        return node.tag == _TAG + "seq"
+    return isinstance(node, yaml.MappingNode) and node.tag == _TAG + "map"
+
+
+def _empty(node: Any) -> list[Any] | dict[str, Any]:
+    return [] if isinstance(node, yaml.SequenceNode) else {}
+
+
+def _place(frame: list[Any], value: Any) -> None:
+    """Put a value into the collection a frame builds, under its pending key."""
+    built = frame[1]
+    if isinstance(built, dict):
+        built[frame[2]] = value
+    else:
+        built.append(value)
 
 
 def _refuse(node: Any, problem: str) -> NoReturn:
@@ -653,12 +777,9 @@ def _construct_str(loader: _YamlLoader, node: Any) -> str:
         _refuse(node, "a string holds a lone surrogate")
 
 
-def _construct_seq(loader: _YamlLoader, node: Any) -> list[Any]:
-    return loader.construct_sequence(node, deep=True)
-
-
-def _construct_map(loader: _YamlLoader, node: Any) -> dict[str, Any]:
-    return loader.construct_mapping(node, deep=True)
+def _construct_mismatched(loader: _YamlLoader, node: Any) -> None:
+    """Refuse a node under ``!!seq`` or ``!!map`` that is not of that kind."""
+    _refuse(node, f"the tag {node.tag} does not fit the node it is given")
 
 
 def _construct_other(loader: _YamlLoader, node: Any) -> None:
@@ -678,8 +799,8 @@ for _name, _constructor in (
     ("int", _construct_int),
     ("float", _construct_float),
     ("str", _construct_str),
-    ("seq", _construct_seq),
-    ("map", _construct_map),
+    ("seq", _construct_mismatched),
+    ("map", _construct_mismatched),
 ):
     _YamlLoader.add_constructor(_TAG + _name, _constructor)
 _YamlLoader.add_constructor(None, _construct_other)
@@ -693,21 +814,14 @@ def _read_yaml(text: str) -> Any:
     Raises:
         ValueError: With the line and column, both counted from one, the
             column in code points, for every error of the parser (more than
-            one document and an unknown tag among them), every value
-            :class:`_YamlLoader` refuses, and collections nested deeper than
-            Python's recursion limit allows, placed at the start of the node
-            the loader last began to compose or construct.
+            one document and an unknown tag among them), collections nested
+            deeper than 256 levels, at the start of the first collection at
+            depth 257, and every value :class:`_YamlLoader` refuses.
     """
     try:
         loader = _YamlLoader(text)
         try:
             return loader.get_single_data()
-        except RecursionError:
-            mark = loader.last_mark or loader.get_mark()
-            raise ValueError(
-                "collections nest too deeply "
-                f"at line {mark.line + 1}, column {mark.column + 1}"
-            ) from None
         finally:
             loader.dispose()
     except yaml.MarkedYAMLError as error:
@@ -750,8 +864,8 @@ def loads(text: str) -> Any:
             value outside the JSON data model, a non-finite number (``NaN``,
             ``Infinity``, ``.inf``, ``.nan`` and a number that rounds to an
             infinity), a lone surrogate in a string or a key, written as
-            itself or through an escape, and YAML collections nested deeper
-            than Python's recursion limit allows.
+            itself or through an escape, and collections nested deeper than
+            256 levels, placed at the first collection at depth 257.
         TypeError: If ``text`` is not a ``str``.
     """
     if not isinstance(text, str):
@@ -779,11 +893,11 @@ def serialization_of(text: str) -> Serialization:
         value = _read_json(body)
     except _JsonSyntaxError:
         return "json" if _opens_json(body) else "yaml"
-    except (ValueError, RecursionError):
+    except ValueError:
         return "json"
     if body is not text:
         return "json"
     try:
         return "jcs" if dumps(value, serialization="jcs") == body else "json"
-    except (ValueError, TypeError, RecursionError):
+    except (ValueError, TypeError):
         return "json"

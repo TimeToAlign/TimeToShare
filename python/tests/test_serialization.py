@@ -751,21 +751,145 @@ def test_yaml_refusals_name_the_line_and_column(text: str, message: str) -> None
     assert str(caught.value) == message
 
 
-def test_yaml_nested_beyond_the_recursion_limit_is_refused_with_a_position() -> None:
-    text = "- " * 2000 + "1"
+# -- the nesting limit ---------------------------------------------------------------
+
+TOO_DEEP = "collections nest deeper than 256 levels at line {}, column {}"
+WRITTEN_TOO_DEEP = "a value nested deeper than 256 levels cannot be written"
+
+
+def _nested_array(depth: int, innermost: Any = None) -> Any:
+    """An array nested ``depth`` deep: ``[]`` at depth 1, else ``[innermost]``."""
+    value: Any = [] if innermost is None else [innermost]
+    for _ in range(depth - 1):
+        value = [value]
+    return value
+
+
+def _block_sequences(depth: int) -> str:
+    """Block sequences ``depth`` deep in canonical layout, the innermost ``- 1``."""
+    lines = [" " * (2 * level) + "-" for level in range(depth - 1)]
+    return "\n".join([*lines, " " * (2 * depth - 2) + "- 1"]) + "\n"
+
+
+def _block_mappings(depth: int) -> str:
+    """Block mappings ``k`` ``depth`` deep, each two columns further, then ``1``."""
+    lines = [" " * (2 * level) + "k:" for level in range(depth - 1)]
+    return "\n".join([*lines, " " * (2 * depth - 2) + "k: 1"]) + "\n"
+
+
+def _deep_texts(depth: int) -> dict[str, str]:
+    """Texts whose values are nested ``depth`` deep, by the kind of nesting."""
+    return {
+        "json arrays": "[" * depth + "]" * depth,
+        "json objects": '{"a":' * depth + "1" + "}" * depth,
+        "yaml compact block sequences": "- " * depth + "1",
+        "yaml block sequences": _block_sequences(depth),
+        "yaml block mappings": _block_mappings(depth),
+        "yaml flow sequences in a block mapping": "a: "
+        + "[" * (depth - 1)
+        + "]" * (depth - 1),
+        "yaml flow mappings": "# x\n" + "{a: " * depth + "1" + "}" * depth,
+    }
+
+
+@pytest.mark.parametrize(
+    ("kind", "line", "column"),
+    [
+        ("json arrays", 1, 257),
+        ("json objects", 1, 1281),
+        ("yaml compact block sequences", 1, 513),
+        ("yaml block sequences", 257, 513),
+        ("yaml block mappings", 257, 513),
+        ("yaml flow sequences in a block mapping", 1, 259),
+        ("yaml flow mappings", 2, 1025),
+    ],
+)
+def test_a_text_nested_257_deep_is_refused_at_the_257th_collection(
+    kind: str, line: int, column: int
+) -> None:
+    text = _deep_texts(257)[kind]
     with pytest.raises(ValueError) as caught:
         loads(text)
-    assert not isinstance(caught.value, RecursionError)
-    prefix = "collections nest too deeply at line 1, column "
-    message = str(caught.value)
-    assert message.startswith(prefix)
-    column = int(message.removeprefix(prefix))
-    # The depth at which the limit is reached depends on the interpreter's
-    # stack; the position is proven by the text: the start of a nested sequence.
-    assert column % 2 == 1
-    rest = text[column - 1 :]
-    assert rest == "- " * ((len(rest) - 1) // 2) + "1"
-    assert rest.startswith("- ")
+    assert str(caught.value) == TOO_DEEP.format(line, column)
+
+
+@pytest.mark.parametrize("kind", list(_deep_texts(256)))
+def test_a_text_nested_256_deep_is_read(kind: str) -> None:
+    value = loads(_deep_texts(256)[kind])
+    depth = 0
+    while isinstance(value, list | dict):
+        depth += 1
+        members = list(value.values()) if isinstance(value, dict) else value
+        value = members[0] if members else None
+    assert depth == 256
+    assert value in (None, 1)
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ("[" * 100_000, TOO_DEEP.format(1, 257)),
+        ("- " * 100_000 + "1", TOO_DEEP.format(1, 513)),
+        ('{"a":1,"a":2,"b":' + "[" * 300, 'the key "a" repeats at line 1, column 8'),
+    ],
+    ids=["json unclosed", "yaml", "json repeated key first"],
+)
+def test_a_text_nested_far_deeper_is_refused_at_the_same_place(
+    text: str, message: str
+) -> None:
+    with pytest.raises(ValueError) as caught:
+        loads(text)
+    assert type(caught.value) is not RecursionError
+    assert str(caught.value) == message
+
+
+@pytest.mark.parametrize(
+    ("name", "line", "column"),
+    [("json_depth_257.json", 1, 257), ("yaml_depth_257.yaml", 128, 385)],
+)
+def test_the_shared_refusals_of_depth_name_their_place(
+    name: str, line: int, column: int
+) -> None:
+    with pytest.raises(ValueError) as caught:
+        loads(_text(SERIALIZATIONS / "refusals" / name))
+    assert str(caught.value) == TOO_DEEP.format(line, column)
+
+
+def _holding_itself() -> list[Any]:
+    value: list[Any] = []
+    value.append(value)
+    return value
+
+
+@pytest.mark.parametrize("serialization", ALL)
+@pytest.mark.parametrize(
+    "value",
+    [
+        _nested_array(257),
+        {"a": _nested_array(256)},
+        _nested_array(257, math.nan),
+        _holding_itself(),
+    ],
+    ids=["array", "object", "nan inside", "holding itself"],
+)
+def test_a_writer_refuses_a_value_deeper_than_256(
+    value: Any, serialization: str
+) -> None:
+    with pytest.raises(ValueError) as caught:
+        dumps(value, serialization=serialization)  # type: ignore[arg-type]
+    assert str(caught.value) == WRITTEN_TOO_DEEP
+
+
+@pytest.mark.parametrize("serialization", ALL)
+def test_a_value_256_deep_is_written_and_read_back(serialization: str) -> None:
+    value = _nested_array(256)
+    text = dumps(value, serialization=serialization)  # type: ignore[arg-type]
+    assert loads(text) == value
+    if serialization == "yaml":
+        expected = SERIALIZATIONS / "readings" / "json_depth_256.expected.yaml"
+        assert text == _text(expected)
+    if serialization == "jcs":
+        assert text == "[" * 256 + "]" * 256
 
 
 @pytest.mark.parametrize(

@@ -46,8 +46,8 @@ def check(
         problems.append("complete(twin) is not the fixture")
     for label, value in (("fixture", fixture), ("twin", twin)):
         read = reader.from_dict(value)
-        written = read.to_dict()
-        written_minimal = read.to_dict(minimal=True)
+        written = read.to_dict(minimal=False)
+        written_minimal = read.to_dict()
         if dumps(written) != fixture_text:
             problems.append(f"the {label} read and written is not byte-equal")
         if dumps(written_minimal) != twin_text:
