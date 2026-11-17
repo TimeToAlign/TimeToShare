@@ -130,7 +130,7 @@ fixtures are emitted first:
 
 | File or prefix | Loader input |
 | --- | --- |
-| `corpus_audio_audio.json` | an audio file |
+| `corpus_audio_audio.json` | an audio file, its timeline in samples with a map to seconds |
 | `corpus_midi_score_midi.json` | a score MIDI file |
 | `corpus_score_ms3.json` | an ms3 score with MeasureMap and flow-control data |
 | `corpus_supra_iiif.json` | an IIIF manifest |
