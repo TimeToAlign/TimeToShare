@@ -20,9 +20,12 @@ single-quoted and double-quoted scalars, block scalars, comments) and must:
 4. refuse anchors and aliases, explicit tags (the non-specific `!`
    included), a text that holds no document, more than one document,
    every directive other than `%YAML 1.2`, duplicate keys, keys that are
-   not strings, an implicit key whose span from its first character to
-   its `:` exceeds 1024 characters (YAML's own limit, counted in code
-   points), and `.nan` and the infinities;
+   not strings, an implicit key whose span from its first character up
+   to, not including, its `:` exceeds 1024 characters, counted in code
+   points (YAML 1.2 sets this limit, productions [154] and [155], for the
+   implicit keys of block mappings and of single pairs in flow sequences;
+   the format extends it to the keys of flow mappings, production [144],
+   which YAML leaves unlimited), and `.nan` and the infinities;
 5. read a surrogate pair written as two `\u` escapes as one character, and
    refuse a lone surrogate, whether written as itself or through an
    escape;
