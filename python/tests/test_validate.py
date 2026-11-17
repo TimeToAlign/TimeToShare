@@ -51,6 +51,8 @@ REJECTIONS = [
     "description_link_without_relation",
     "description_match_unknown",
     "description_part_of_without_relation",
+    "description_parts_ordered_without_parts",
+    "description_parts_relation_without_parts",
     "description_parts_without_relation",
     "description_record_without_url",
     "description_scheme_id_duplicate",

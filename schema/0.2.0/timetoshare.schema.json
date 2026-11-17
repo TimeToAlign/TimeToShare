@@ -1527,7 +1527,7 @@
     },
     "Link": {
       "type": "object",
-      "description": "A typed relation from the element holding it (the manifest, a timeline or a region) to an external entity at a stated level: a work, an expression, a manifestation, an item or an agent, identified by URIs and identifiers and described by records. A link never claims that its element is the entity: it states that the element pertains to it or, for an agent, in which role. One link is one attributed reading. Where sources disagree, as two editions that order the movements of a work differently, each reading is a link of its own with its own assertion. A link may state the parts of the linked entity (`parts`, under `parts_relation`), each represented by elements of this manifest or absent from it, and the wholes the entity belongs to (`part_of`). A non-empty `parts` requires a `parts_relation`, and a link at the level `agent` never uses the relation `pertains_to`.",
+      "description": "A typed relation from the element holding it (the manifest, a timeline or a region) to an external entity at a stated level: a work, an expression, a manifestation, an item or an agent, identified by URIs and identifiers and described by records. A link never claims that its element is the entity: it states that the element pertains to it or, for an agent, in which role. One link is one attributed reading. Where sources disagree, as two editions that order the movements of a work differently, each reading is a link of its own with its own assertion. A link may state the parts of the linked entity (`parts`, under `parts_relation`), each represented by elements of this manifest or absent from it, and the wholes the entity belongs to (`part_of`). A non-empty `parts` requires a `parts_relation`; a link whose `parts` is empty or absent states `parts_relation` null and `parts_ordered` true, where it states them; and a link at the level `agent` never uses the relation `pertains_to`.",
       "properties": {
         "relation": {
           "$ref": "#/$defs/Term",
@@ -1589,7 +1589,7 @@
               "type": "null"
             }
           ],
-          "description": "How the linked entity holds the parts of `parts`, or null where `parts` is empty. Registered words: `has_part` (the parts make up the entity, as movements make up a sonata), `aggregates` (the entity gathers entities that exist on their own, as an album gathers recordings) and `incorporates` (the entity takes in another entity whole, as a pasticcio takes in an aria). Fallback: an unspecified structural relation.",
+          "description": "How the linked entity holds the parts of `parts`: a term where `parts` is non-empty, and null where `parts` is empty or absent. Registered words: `has_part` (the parts make up the entity, as movements make up a sonata), `aggregates` (the entity gathers entities that exist on their own, as an album gathers recordings) and `incorporates` (the entity takes in, as an integral part of its own, an entity that realises another work, as a pasticcio takes in an aria or a DJ mix a track). Fallback: an unspecified structural relation.",
           "default": null
         },
         "parts": {
@@ -1602,7 +1602,7 @@
         },
         "parts_ordered": {
           "type": "boolean",
-          "description": "Whether the order of `parts` is an order of the parts in the linked entity (true) or a display order only (false).",
+          "description": "Whether the order of `parts` is an order of the parts in the linked entity (true) or a display order only (false); true where `parts` is empty or absent.",
           "default": true
         },
         "part_of": {
@@ -1637,6 +1637,16 @@
         "required": [
           "parts_relation"
         ]
+      },
+      "else": {
+        "properties": {
+          "parts_relation": {
+            "type": "null"
+          },
+          "parts_ordered": {
+            "const": true
+          }
+        }
       },
       "not": {
         "properties": {
@@ -1971,13 +1981,13 @@
         "criteria": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Uri"
+              "$ref": "#/$defs/UriReference"
             },
             {
               "type": "null"
             }
           ],
-          "description": "A document stating how the scheme assigns its values, or null.",
+          "description": "Where a document stating how the scheme assigns its values lies, a URI reference, or null.",
           "default": null
         }
       },

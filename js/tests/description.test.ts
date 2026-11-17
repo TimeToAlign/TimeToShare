@@ -9,6 +9,8 @@ import {
   canonicalOrder,
   complete,
   completeManifest,
+  defaultRegistry,
+  descriptionProblems,
   dumps,
   identityProblems,
   LEVELS,
@@ -20,9 +22,11 @@ import {
   PARTS_RELATIONS,
   type PathSegment,
   parse,
+  parseJson,
   partSlotFromUrl,
   RELATIONS,
   SchemaValidationError,
+  UnsupportedVersionError,
   unknownKeys,
   unregisteredTerms,
   validate,
@@ -32,12 +36,23 @@ import {
   withPartOf,
   withParts,
   withRecord,
+  withSchemes,
   withUri,
 } from "../src/index.js";
 import type { JsonObject, Lossless } from "../src/json/value.js";
-import { group, manifest, rejectionCase, timeline } from "./fixtures.js";
+import {
+  fixtureFiles,
+  fixtureText,
+  group,
+  manifest,
+  rejectionCase,
+  rejectionFileNames,
+  timeline,
+} from "./fixtures.js";
 
 const MB = "http://musicbrainz.org/work/";
+const MB_WORK = "4a622b0d-b0c0-405e-b49e-05b70c108284";
+const P435 = "http://www.wikidata.org/entity/P435";
 const IMSLP = "http://www.wikidata.org/entity/P839";
 const OP_106 = "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)";
 const NAME = "Beethoven, Piano Sonata No. 29, Op. 106";
@@ -298,6 +313,36 @@ describe("the errors of the model", () => {
       "a link with parts states its parts_relation",
     ],
     [
+      "a parts relation without parts",
+      () => withLabel({ relation: "pertains_to", level: "work", parts_relation: "has_part" }, null),
+      "a link without parts states no parts_relation",
+    ],
+    [
+      "withParts given no slot",
+      () => withParts(work(), "has_part", []),
+      "a link without parts states no parts_relation",
+    ],
+    [
+      "unordered parts without parts",
+      () => withLabel({ relation: "pertains_to", level: "work", parts_ordered: false }, null),
+      "a link without parts keeps parts_ordered true",
+    ],
+    ...["op. 106", "x"].map((value): [string, () => unknown, string] => [
+      `the identifier ${value}`,
+      () => linkFromUrls([URLS[1]], { identifiers: { [P435]: value } }),
+      `'${value}' is no value of the scheme 'MusicBrainz work ID'`,
+    ]),
+    [
+      "an identifier given to withIdentifier",
+      () => withIdentifier(work(), P435, "op. 106"),
+      "'op. 106' is no value of the scheme 'MusicBrainz work ID'",
+    ],
+    [
+      "an identifier of another level",
+      () => withIdentifier(linkFromUrls([URLS[1]], { level: "expression" }), P435, MB_WORK),
+      `the level 'expression' contradicts '${MB}${MB_WORK}', recognised at the level 'work'`,
+    ],
+    [
       "a slot of another level",
       () => withParts(work(), "has_part", [...slots([0]), releaseSlot()]),
       "part slot 2 is recognised at the level 'manifestation', the link's level is 'work'",
@@ -440,6 +485,71 @@ describe("normalisation and copy-on-write", () => {
       completeDescription(whole, "part_of"),
     ]);
     expect(dumps(base)).toBe(before);
+  });
+
+  it("stores an identifier of a scheme minting URIs as its URI", () => {
+    const upper = MB_WORK.toUpperCase();
+    const link = linkFromUrls([URLS[1]], { identifiers: { [P435]: upper } });
+    expect([link.uri, link.identifiers, link.level]).toEqual([
+      ["http://www.wikidata.org/entity/Q146730", `${MB}${MB_WORK}`],
+      [],
+      "work",
+    ]);
+    expect(linkFromUrls([URLS[0]], { identifiers: [{ scheme: P435, value: upper }] }).uri).toEqual([
+      `${MB}${MB_WORK}`,
+    ]);
+    const doi = linkFromUrls([URLS[1]], {
+      level: "work",
+      identifiers: {
+        "http://www.wikidata.org/entity/P356": "10.5281/zenodo.7473560",
+        [IMSLP]: OP_106,
+        mb_beethoven_opus: "op. 106",
+      },
+    });
+    expect(doi.uri).toEqual([
+      "http://www.wikidata.org/entity/Q146730",
+      "https://doi.org/10.5281/zenodo.7473560",
+    ]);
+    expect(doi.identifiers).toEqual([
+      { scheme: IMSLP, value: OP_106 },
+      { scheme: "mb_beethoven_opus", value: "op. 106" },
+    ]);
+    const bare = linkFromUrls([URLS[1]], { level: "work" });
+    expect(withIdentifier(bare, P435, upper).uri).toEqual([
+      "http://www.wikidata.org/entity/Q146730",
+      `${MB}${MB_WORK}`,
+    ]);
+    const held = work();
+    expect(withIdentifier(held, P435, upper)).toEqual(held);
+    const extended = withSchemes(defaultRegistry(), [
+      {
+        id: "x",
+        name: "Example",
+        uri: "https://example.org/scheme",
+        entity_uri: "https://example.org/entity/{value}",
+        patterns: ["https://example\\.org/entity/([0-9]+)"],
+      },
+    ]);
+    const example = linkFromUrls(["https://example.org/anything"], { level: "work" });
+    expect(
+      withIdentifier(example, "https://example.org/scheme", "12", { registry: extended }).uri,
+    ).toEqual(["https://example.org/anything", "https://example.org/entity/12"]);
+    expect(withIdentifier(example, "https://example.org/scheme", "12").identifiers).toEqual([
+      { scheme: "https://example.org/scheme", value: "12" },
+    ]);
+    validate(
+      manifest([timeline("score")], {
+        links: [
+          { relation: "pertains_to", level: "work", identifiers: [{ scheme: P435, value: "106" }] },
+        ],
+      }),
+    );
+  });
+
+  it("gives one URI for a value in capitals", () => {
+    const held = work();
+    expect(withUri(held, [`https://musicbrainz.org/work/${MB_WORK.toUpperCase()}`])).toEqual(held);
+    expect(held.uri).toEqual([`${MB}${MB_WORK}`]);
   });
 
   it("gives an entry its link's assertion unless it states one", () => {
@@ -586,8 +696,17 @@ const slotLink = (...targets: string[]): JsonObject =>
     parts: targets.map((target) => ({ represented_by: [target] })),
   });
 
+function listed(
+  found: readonly SchemaValidationError[],
+): [readonly PathSegment[], string, string][] {
+  return found.map((problem) => [problem.path, problem.code, problem.detail]);
+}
+
+/** The problems of a document breaking description rules only, both ways. */
 function problems(value: JsonObject): [readonly PathSegment[], string, string][] {
-  return identityProblems(value).map((problem) => [problem.path, problem.code, problem.detail]);
+  const found = listed(identityProblems(value));
+  expect(listed(descriptionProblems(value))).toEqual(found);
+  return found;
 }
 
 function segmented(): JsonObject {
@@ -610,7 +729,7 @@ describe("the rules of links", () => {
   it("lets a slot be represented by timelines and regions", () => {
     const value = manifest([segmented()], { links: [slotLink("score", "a", "b1", "intro")] });
     validate(value);
-    expect(identityProblems(value)).toEqual([]);
+    expect(problems(value)).toEqual([]);
   });
 
   it.each(["ghost", "g", "bars"])("refuses a slot represented by %s", (target) => {
@@ -643,7 +762,7 @@ describe("the rules of links", () => {
       links: [link({ identifiers: [...opus("opus"), ...opus(IMSLP)] })],
     });
     validate(accepted);
-    expect(identityProblems(accepted)).toEqual([]);
+    expect(problems(accepted)).toEqual([]);
     const message = "'opus' names no scheme of this manifest and is no absolute URI";
     const value = manifest(
       [
@@ -732,7 +851,7 @@ describe("the rules of links", () => {
         links: [link({ assertion: { asserted_on: date } })],
       });
       validate(value);
-      expect(identityProblems(value)).toEqual([]);
+      expect(problems(value)).toEqual([]);
     },
   );
 
@@ -828,6 +947,37 @@ describe("the rules of links", () => {
     ]);
     validate(manifest([timeline("score")], { links: [link({ parts: [], parts_relation: null })] }));
     validate(manifest([timeline("score")], { links: [link({ parts: [] })] }));
+    const withoutParts: [JsonObject, string][] = [
+      [{ parts_relation: "has_part" }, "parts_relation"],
+      [{ parts: [], parts_relation: "has_part" }, "parts_relation"],
+      [{ parts_ordered: false }, "parts_ordered"],
+      [{ parts: [], parts_ordered: false }, "parts_ordered"],
+    ];
+    for (const [members, member] of withoutParts) {
+      expect(pathOf(manifest([timeline("score")], { links: [link(members)] }))).toEqual([
+        "links",
+        0,
+        member,
+      ]);
+    }
+    validate(
+      manifest([timeline("score")], {
+        links: [
+          link({ parts_relation: "has_part", parts: [{ absent: "lost" }], parts_ordered: false }),
+        ],
+      }),
+    );
+    const criteria: [string, boolean][] = [
+      ["criteria/opus-numbers.html", false],
+      ["https://example.org/criteria", false],
+      ["", true],
+      ["criteria/opus numbers", true],
+    ];
+    for (const [written, refused] of criteria) {
+      const value = manifest([timeline("score")], { schemes: [{ id: "opus", criteria: written }] });
+      if (refused) expect(pathOf(value)).toEqual(["schemes", 0, "criteria"]);
+      else validate(value);
+    }
   });
 
   it.each([
@@ -856,6 +1006,97 @@ describe("the rules of links", () => {
       const { path, code, detail } = error as SchemaValidationError;
       expect([path, code, detail]).toEqual([testCase.path, testCase.code, message]);
     }
+  });
+});
+
+describe("the description layer alone", () => {
+  it("gives each shared case of links its problem and every other case none", () => {
+    let described = 0;
+    for (const name of rejectionFileNames()) {
+      const testCase = rejectionCase(name);
+      const found = descriptionProblems(testCase.manifest as JsonObject).map((problem) => [
+        problem.path,
+        problem.code,
+      ]);
+      if (name.startsWith("description_")) {
+        described += 1;
+        expect(found, name).toEqual([[testCase.path, testCase.code]]);
+      } else expect(found, name).toEqual([]);
+    }
+    expect(described).toBe(19);
+    for (const file of fixtureFiles()) {
+      expect(descriptionProblems(parseJson(fixtureText(file)) as JsonObject), file).toEqual([]);
+    }
+  });
+
+  const brokenElsewhere = (members: JsonObject = {}): JsonObject => ({
+    timetoshare: "9.9.9",
+    timelines: [
+      {
+        id: "a",
+        unit: "beats",
+        length: [8, 1],
+        regions: [{ id: "r", start: [0, 1], end: [4, 1] }, 7],
+        children: [{ id: "c", unit: "seconds", length: 60.5, offset: 100.5 }],
+      },
+      { id: "a", unit: "quarters", length: [8, 1] },
+    ],
+    groups: [{ id: "grp", members: ["ghost"] }],
+    graphical: "none",
+    links: [slotLink("r")],
+    ...members,
+  });
+
+  it("refuses nothing outside the description layer", () => {
+    const sound = brokenElsewhere({ schemes: [{ id: "s" }] });
+    ((sound.links as JsonObject[])[0] as JsonObject).identifiers = opus("s");
+    expect(() => validate(sound)).toThrow(UnsupportedVersionError);
+    expect(descriptionProblems(sound)).toEqual([]);
+    const broken = brokenElsewhere({ id: "g", schemes: [{ id: "a" }, { id: "g" }] });
+    ((broken.links as JsonObject[])[0] as JsonObject).identifiers = opus("q");
+    expect(listed(descriptionProblems(broken))).toEqual([
+      [
+        ["schemes", 0, "id"],
+        "duplicate_id",
+        "'a' is not unique in the manifest, first at #/timelines/0/id",
+      ],
+      [["id"], "manifest_id", "'g' is not unique in the manifest, first at #/schemes/1/id"],
+      [
+        ["links", 0, "identifiers", 0, "scheme"],
+        "dangling_target",
+        "'q' names no scheme of this manifest and is no absolute URI",
+      ],
+    ]);
+  });
+
+  it("checks each array of the layer", () => {
+    const value = manifest(
+      [
+        timeline("score", "quarters", [8, 1], {
+          links: [{ relation: "pertains_to" }],
+          regions: [
+            { id: "r", start: [0, 1], end: [4, 1], links: [link({ level: "score" })] },
+            { id: "s", start: [4, 1], end: [8, 1], links: [link({ identifiers: opus("q") })] },
+          ],
+          children: [
+            timeline("verse", "quarters", [8, 1], {
+              offset: [0, 1],
+              links: [link({ records: [{ url: "r.json", size: Number.POSITIVE_INFINITY }] })],
+            }),
+          ],
+        }),
+      ],
+      { schemes: [{ name: "Opus" }], links: "none" },
+    );
+    const found = descriptionProblems(value);
+    expect(found.map((problem) => [problem.path, problem.code])).toEqual([
+      [["schemes", 0], "schema"],
+      [["links"], "schema"],
+      [["timelines", 0, "links", 0], "schema"],
+      [["timelines", 0, "regions", 0, "links", 0, "level"], "schema"],
+      [["timelines", 0, "children", 0, "links", 0, "records", 0, "size"], "finite_number"],
+    ]);
+    expect(found.at(-1)?.detail).toBe("size of 'verse' is not a finite number");
   });
 });
 

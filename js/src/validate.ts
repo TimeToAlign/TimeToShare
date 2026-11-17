@@ -1,12 +1,18 @@
 /** The TimeToShare schema validator and its public diagnostics. */
 
-import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
+import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
 import { schema } from "./generated/schema.js";
 import type { LosslessManifest } from "./generated/types.js";
 import { parseJson } from "./json/parse.js";
 import { isJsonObject, type JsonObject, plain } from "./json/value.js";
 import { compareCodePoints, spell } from "./json/write.js";
-import { type UnregisteredTerm, unregisteredTermsOf } from "./validate/description.js";
+import {
+  descriptionArrays,
+  linkProblems,
+  schemeProblems,
+  type UnregisteredTerm,
+  unregisteredTermsOf,
+} from "./validate/description.js";
 import {
   comparePaths,
   jsonPointer,
@@ -115,6 +121,21 @@ function closedSchema(document: Node): Node {
 
 const check = new Ajv2020(OPTIONS).compile(schema);
 const marking = new Ajv2020(OPTIONS).compile(closedSchema(schema));
+const memberChecks = new Map<string, ValidateFunction>();
+
+/** The check of one member of a definition, as the whole document checks it. */
+function memberCheck(definition: string, member: string): ValidateFunction {
+  const key = `${definition}.${member}`;
+  let compiled = memberChecks.get(key);
+  if (compiled === undefined) {
+    const definitions = (schema as Node).$defs as Readonly<Record<string, Node>>;
+    const owner = definitions[definition] as Node;
+    const declared = (owner.properties as Readonly<Record<string, Node>>)[member];
+    compiled = new Ajv2020(OPTIONS).compile({ $defs: definitions, ...declared });
+    memberChecks.set(key, compiled);
+  }
+  return compiled;
+}
 
 /** Convert an Ajv instance path to segments, typing array indices as numbers. */
 function toPath(instancePath: string, value: unknown): PathSegment[] {
@@ -239,6 +260,47 @@ export function parse(text: string): LosslessManifest {
   const value = parseJson(text);
   validate(value);
   return value;
+}
+
+/**
+ * Return the problems of the description layer of `value` alone, as Python's
+ * `description_problems` does. First, array by array, the manifest's `schemes`
+ * and every `links` array (the manifest's, then root by root each timeline's,
+ * its regions' and its children's, depth first) checked as `validate` checks
+ * them, each array's first problem at its path: a number that is not finite
+ * (`finite_number`), else the schema's `#/$defs/Scheme` or `#/$defs/Link`
+ * (`schema`), reported by the one path rule. Where no array has a problem,
+ * the reference rules follow over the whole manifest, in the order of
+ * `identityProblems`: each scheme ID unique across every ID of the manifest
+ * (`duplicate_id`), the manifest ID that is a scheme's (`manifest_id`), then
+ * link by link the dates (`calendar_date`) and references
+ * (`dangling_target`) of links.
+ *
+ * Nothing outside the description layer is refused, and the version marker
+ * is not read: a manifest whose timelines break other rules but whose links
+ * and schemes are sound has no problem here. A library that reads only part
+ * of a manifest checks its description layer with this function. The
+ * messages are those of `validate`.
+ */
+export function descriptionProblems(value: LosslessManifest | JsonObject): SchemaValidationError[] {
+  if (!isJsonObject(value)) return [];
+  const problems: SchemaValidationError[] = [];
+  for (const { definition, member, value: array, path, owner } of descriptionArrays(value)) {
+    const finite = first(finiteNumberProblems(array, path, owner, member));
+    if (finite !== undefined) {
+      problems.push(finite);
+      continue;
+    }
+    const instance = plain(array);
+    const checkMember = memberCheck(definition, member);
+    const error = checkMember(instance) ? undefined : select(checkMember.errors ?? []);
+    if (error !== undefined) {
+      const at = [...path, ...toPath(error.instancePath, instance)];
+      problems.push(new SchemaValidationError("schema", at, error.message ?? error.keyword));
+    }
+  }
+  if (problems.length > 0) return problems;
+  return [...schemeProblems(value), ...linkProblems(value)];
 }
 
 /** Return every semantic violation in the long-established identity order. */

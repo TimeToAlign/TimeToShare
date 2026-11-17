@@ -6,9 +6,10 @@ export const schemes: readonly KnownScheme[] = [
     "entity_uri": "http://musicbrainz.org/work/{value}",
     "id": "musicbrainz_work",
     "level": "work",
+    "lowercase": true,
     "name": "MusicBrainz work ID",
     "patterns": [
-      "https?://(?:www\\.)?musicbrainz\\.org/work/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?(?:[?#].*)?"
+      "https?://(?:www\\.)?musicbrainz\\.org/work/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"
     ],
     "uri": "http://www.wikidata.org/entity/P435"
   },
@@ -16,9 +17,10 @@ export const schemes: readonly KnownScheme[] = [
     "entity_uri": "http://musicbrainz.org/recording/{value}",
     "id": "musicbrainz_recording",
     "level": "expression",
+    "lowercase": true,
     "name": "MusicBrainz recording ID",
     "patterns": [
-      "https?://(?:www\\.)?musicbrainz\\.org/recording/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?(?:[?#].*)?"
+      "https?://(?:www\\.)?musicbrainz\\.org/recording/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"
     ],
     "uri": "http://www.wikidata.org/entity/P4404"
   },
@@ -26,9 +28,10 @@ export const schemes: readonly KnownScheme[] = [
     "entity_uri": "http://musicbrainz.org/release/{value}",
     "id": "musicbrainz_release",
     "level": "manifestation",
+    "lowercase": true,
     "name": "MusicBrainz release ID",
     "patterns": [
-      "https?://(?:www\\.)?musicbrainz\\.org/release/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/?(?:[?#].*)?"
+      "https?://(?:www\\.)?musicbrainz\\.org/release/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"
     ],
     "uri": "http://www.wikidata.org/entity/P5813"
   },
@@ -36,6 +39,7 @@ export const schemes: readonly KnownScheme[] = [
     "entity_uri": "http://www.wikidata.org/entity/{value}",
     "id": "wikidata",
     "level": null,
+    "lowercase": false,
     "name": "Wikidata",
     "patterns": [
       "https?://(?:www\\.|m\\.)?wikidata\\.org/(?:wiki|entity)/(Q[1-9][0-9]*)/?(?:[?#].*)?"
@@ -46,6 +50,7 @@ export const schemes: readonly KnownScheme[] = [
     "entity_uri": "http://viaf.org/viaf/{value}",
     "id": "viaf",
     "level": null,
+    "lowercase": false,
     "name": "VIAF cluster ID",
     "patterns": [
       "https?://(?:www\\.)?viaf\\.org/(?:[a-z]{2}/)?viaf/([1-9](?:[0-9]{1,8}|[0-9]{18,21}))/?(?:[?#].*)?"
@@ -56,6 +61,7 @@ export const schemes: readonly KnownScheme[] = [
     "entity_uri": "https://d-nb.info/gnd/{value}",
     "id": "gnd",
     "level": null,
+    "lowercase": false,
     "name": "GND ID",
     "patterns": [
       "https?://(?:www\\.)?d-nb\\.info/gnd/(1[0-4]?[0-9]{7}[0-9X]|[47][0-9]{6}-[0-9]|[1-9][0-9]{0,7}-[0-9X]|3[0-9]{7}[0-9X])/?(?:[?#].*)?"
@@ -66,9 +72,10 @@ export const schemes: readonly KnownScheme[] = [
     "entity_uri": null,
     "id": "imslp",
     "level": "work",
+    "lowercase": false,
     "name": "IMSLP ID",
     "patterns": [
-      "https?://(?:www\\.)?imslp\\.org/wiki/(?!(?:File|Special|Category|Help|IMSLP)(?::|%3[Aa]))([^?#]+?)/?(?:[?#].*)?"
+      "https?://(?:www\\.)?imslp\\.org/wiki/(?!Main(?:_|%20)Page/?(?:[?#]|$)|(?:Media|Special|Talk|User|IMSLP|Project|File|Image|MediaWiki|Template|Help|Category|Module|(?:User|IMSLP|Project|File|Image|MediaWiki|Template|Help|Category|Module)(?:_|%20)talk)(?::|%3[Aa]))([^?#]+?)/?(?:[?#].*)?"
     ],
     "uri": "http://www.wikidata.org/entity/P839"
   },
@@ -76,6 +83,7 @@ export const schemes: readonly KnownScheme[] = [
     "entity_uri": "https://doi.org/{value}",
     "id": "doi",
     "level": null,
+    "lowercase": false,
     "name": "DOI",
     "patterns": [
       "https?://(?:www\\.|dx\\.)?doi\\.org/(10\\.[0-9]{4,9}/[^?#]+?)/?(?:[?#].*)?"

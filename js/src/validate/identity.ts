@@ -1,48 +1,19 @@
 import type { JsonObject } from "../json/value.js";
 import { timelineContainmentProblems } from "./containment.js";
-import { descriptionProblems } from "./description.js";
+import { linkProblems } from "./description.js";
 import {
+  duplicateProblem,
   entries,
-  jsonPointer,
   type PathSegment,
   SchemaValidationError,
   text,
   timestampsOf,
+  treeIds,
 } from "./diagnostics.js";
 import { MEASURE_VIEWS, timelineMapProblems, timelineMaps } from "./maps.js";
 import { orderProblems } from "./order.js";
 import { timelineSegmentProblems } from "./segments.js";
 import { timestampProblems } from "./timestamps.js";
-
-function* elementIds(
-  timeline: JsonObject,
-  path: readonly PathSegment[],
-): Generator<[string, PathSegment[]]> {
-  yield [text(timeline, "id"), [...path, "id"]];
-  for (const member of ["conversion_maps", "regions"]) {
-    for (const [index, entry] of entries(timeline, member).entries()) {
-      yield [text(entry, "id"), [...path, member, index, "id"]];
-    }
-  }
-  for (const [index, entry] of entries(timeline, "flow_control").entries()) {
-    yield [text(entry, "id"), [...path, "flow_control", index, "id"]];
-  }
-  for (const [index, child] of entries(timeline, "children").entries()) {
-    yield* elementIds(child, [...path, "children", index]);
-  }
-}
-
-function* nestedMapIds(
-  timeline: JsonObject,
-  path: readonly PathSegment[],
-): Generator<[string, PathSegment[]]> {
-  for (const [map, at] of timelineMaps(timeline, path)) {
-    if (at[at.length - 2] === "maps") yield [text(map, "id"), [...at, "id"]];
-  }
-  for (const [index, child] of entries(timeline, "children").entries()) {
-    yield* nestedMapIds(child, [...path, "children", index]);
-  }
-}
 
 function* danglingTargets(
   timeline: JsonObject,
@@ -77,28 +48,6 @@ function* danglingTargets(
   }
 }
 
-function duplicate(
-  id: string,
-  path: readonly PathSegment[],
-  first: readonly PathSegment[],
-  code: "duplicate_id" | "manifest_id" = "duplicate_id",
-): SchemaValidationError {
-  return new SchemaValidationError(
-    code,
-    path,
-    `'${id}' is not unique in the manifest, first at ${jsonPointer(first)}`,
-  );
-}
-
-/** Every ID of a root's tree, the maps other maps hold after the rest. */
-function* treeIds(
-  root: JsonObject,
-  path: readonly PathSegment[],
-): Generator<[string, PathSegment[]]> {
-  yield* elementIds(root, path);
-  yield* nestedMapIds(root, path);
-}
-
 function* rootProblems(
   root: JsonObject,
   path: readonly PathSegment[],
@@ -108,7 +57,7 @@ function* rootProblems(
   for (const [id, at] of treeIds(root, path)) {
     const earlier = first.get(id);
     if (earlier === undefined) first.set(id, at);
-    else yield duplicate(id, at, earlier);
+    else yield duplicateProblem(id, at, earlier);
   }
   yield* danglingTargets(root, path, measureMaps);
   yield* timelineMapProblems(root, path);
@@ -209,7 +158,7 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
       if (seen.has(id)) continue;
       seen.set(id, path);
       const earlier = first.get(id);
-      if (earlier !== undefined) yield duplicate(id, path, earlier);
+      if (earlier !== undefined) yield duplicateProblem(id, path, earlier);
     }
     for (const [id, path] of seen) if (!first.has(id)) first.set(id, path);
   }
@@ -225,12 +174,12 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
       const path = [...key, index, "id"];
       const earlier = first.get(id);
       if (earlier === undefined) first.set(id, path);
-      else yield duplicate(id, path, earlier);
+      else yield duplicateProblem(id, path, earlier);
     }
   }
   if (typeof manifest.id === "string") {
     const earlier = first.get(manifest.id);
-    if (earlier !== undefined) yield duplicate(manifest.id, ["id"], earlier, "manifest_id");
+    if (earlier !== undefined) yield duplicateProblem(manifest.id, ["id"], earlier, "manifest_id");
   }
 
   const parents = parentsOf(roots);
@@ -244,5 +193,5 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
   }
   yield* orderProblems(manifest, parents, firstGroup);
   yield* timestampProblems(manifest);
-  yield* descriptionProblems(manifest);
+  yield* linkProblems(manifest);
 }

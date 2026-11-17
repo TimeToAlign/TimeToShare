@@ -1,14 +1,15 @@
 """The validator's diagnostics and the small readers every rule module shares.
 
 The error a rule raises with its code and path, the JSON pointer of a path,
-and the readers of a schema-checked object's members. A leaf module: it
-imports no rule module and no validator, so the rule modules and
-``timetoshare.validate`` both import it without a cycle.
+the readers of a schema-checked object's members, and the walk of the IDs of
+a root's tree, which reads any value. A leaf module: it imports no rule
+module and no validator, so the rule modules and ``timetoshare.validate``
+both import it without a cycle.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator, Mapping
 from typing import Any, Literal, TypeAlias
 
 from ..manifest import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
@@ -53,9 +54,79 @@ class SchemaValidationError(ValueError):
         super().__init__(f"{json_pointer(path)}: {message}")
 
 
+def duplicate_problem(
+    identifier: str,
+    path: _Path,
+    first: _Path,
+    code: ValidationCode = "duplicate_id",
+) -> SchemaValidationError:
+    """The problem of an ID at ``path`` that the manifest holds first at ``first``."""
+    return SchemaValidationError(
+        code,
+        path,
+        f"'{identifier}' is not unique in the manifest, first at {json_pointer(first)}",
+    )
+
+
 def _entries(owner: Any, key: str) -> list[Any]:
     value = owner.get(key) if isinstance(owner, Mapping) else None
     return value if isinstance(value, list) else []
+
+
+def string_id(element: Any) -> str | None:
+    """Return an element's ``id`` where it is an object holding a string ``id``."""
+    identifier = element.get("id") if isinstance(element, Mapping) else None
+    return identifier if isinstance(identifier, str) else None
+
+
+def _element_ids(timeline: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
+    identifier = string_id(timeline)
+    if identifier is not None:
+        yield identifier, (*path, "id")
+    for member in ("conversion_maps", "regions", "flow_control"):
+        for index, entry in enumerate(_entries(timeline, member)):
+            identifier = string_id(entry)
+            if identifier is not None:
+                yield identifier, (*path, member, index, "id")
+    for index, child in enumerate(_entries(timeline, "children")):
+        yield from _element_ids(child, (*path, "children", index))
+
+
+def _held_ids(conversion_map: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
+    maps = conversion_map.get("maps") if isinstance(conversion_map, Mapping) else None
+    if isinstance(maps, list):
+        held = list(enumerate(maps))
+    elif isinstance(maps, Mapping):
+        held = [(name, maps[name]) for name in sorted(maps)]
+    else:
+        return
+    for key, entry in held:
+        at = (*path, "maps", key)
+        identifier = string_id(entry)
+        if identifier is not None:
+            yield identifier, (*at, "id")
+        yield from _held_ids(entry, at)
+
+
+def _nested_map_ids(timeline: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
+    for index, entry in enumerate(_entries(timeline, "conversion_maps")):
+        yield from _held_ids(entry, (*path, "conversion_maps", index))
+    for index, child in enumerate(_entries(timeline, "children")):
+        yield from _nested_map_ids(child, (*path, "children", index))
+
+
+def tree_ids(root: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
+    """Yield every ID of a root's tree with its path, in the order of the rules.
+
+    The timelines depth first, each with its conversion maps', regions' and
+    flow-control elements' IDs before its children's; then the IDs of the
+    maps other maps hold, timeline by timeline in the same order, each held
+    map before those it holds, a ``CombinationMap``'s outputs by name in
+    code-point order. An element that is no object or holds no string ``id``
+    is passed over, so the walk reads any value.
+    """
+    yield from _element_ids(root, path)
+    yield from _nested_map_ids(root, path)
 
 
 def timelines_by_id(manifest: Any) -> dict[str, Mapping[str, Any]]:

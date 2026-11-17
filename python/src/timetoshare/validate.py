@@ -15,6 +15,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
 from .manifest import spell
+from .validation.description import description_arrays, link_problems, scheme_problems
 from .validation.description import unregistered_terms as _terms
 from .validation.diagnostics import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
 from .validation.diagnostics import SchemaValidationError, _Path
@@ -140,10 +141,23 @@ def _closed_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
 
 
 @cache
-def _marking_validator() -> Any:
+def _closed_document() -> dict[str, Any]:
     schema = load_schema()
     Draft202012Validator.check_schema(schema)
-    return Draft202012Validator(_closed_schema(schema))
+    return _closed_schema(schema)
+
+
+@cache
+def _marking_validator() -> Any:
+    return Draft202012Validator(_closed_document())
+
+
+@cache
+def _member_validator(definition: str, member: str) -> Any:
+    """The validator of one member of a definition, as the whole walk checks it."""
+    document = _closed_document()
+    declared = document["$defs"][definition]["properties"][member]
+    return Draft202012Validator({"$defs": document["$defs"], **declared})
 
 
 def _branch_tag(candidate: Mapping[str, Any], tag: str) -> Any:
@@ -301,6 +315,42 @@ def unregistered_terms(value: Mapping[str, Any]) -> list[dict[str, Any]]:
         UnsupportedVersionError: If it names another version.
     """
     return _check(value)[1]
+
+
+def description_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
+    """Return the problems of the description layer of ``value`` alone.
+
+    First, array by array, the manifest's ``schemes`` and every ``links``
+    array (the manifest's, then root by root each timeline's, its regions'
+    and its children's, depth first) checked as :func:`validate` checks
+    them, each array's first problem at its path: a number that is not
+    finite (``finite_number``), else the schema's ``#/$defs/Scheme`` or
+    ``#/$defs/Link`` (``schema``), reported by the one path rule. Where no
+    array has a problem, the reference rules follow over the whole
+    manifest, in the order of :func:`identity_problems`: each scheme ID
+    unique across every ID of the manifest (``duplicate_id``), the manifest
+    ID that is a scheme's (``manifest_id``), then link by link the dates
+    (``calendar_date``) and references (``dangling_target``) of links.
+
+    Nothing outside the description layer is refused, and the version
+    marker is not read: a manifest whose timelines break other rules but
+    whose links and schemes are sound has no problem here. A library that
+    reads only part of a manifest checks its description layer with this
+    function. The messages are those of :func:`validate`.
+    """
+    problems: list[SchemaValidationError] = []
+    for definition, member, array, path, owner in description_arrays(value):
+        finite = next(finite_number_problems(array, path, owner, member), None)
+        if finite is not None:
+            problems.append(finite)
+            continue
+        error = _select(_member_validator(definition, member).iter_errors(array))
+        if error is not None:
+            at = (*path, *error.absolute_path)
+            problems.append(SchemaValidationError("schema", at, error.message))
+    if problems:
+        return problems
+    return [*scheme_problems(value), *link_problems(value)]
 
 
 def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:

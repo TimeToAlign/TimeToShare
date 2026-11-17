@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime
 import json
+import math
 import re
 from collections.abc import Callable
 from typing import Any
@@ -23,9 +24,13 @@ from timetoshare import (
     PartSlot,
     SchemaValidationError,
     Scheme,
+    UnsupportedVersionError,
     canonical_order,
     complete,
+    default_registry,
+    description_problems,
     dumps,
+    fixture_paths,
     identity_problems,
     minimal,
     rejection_case,
@@ -38,6 +43,8 @@ from timetoshare import (
 from .conftest import group, manifest, timeline
 
 MB = "http://musicbrainz.org/work/"
+MB_WORK = "4a622b0d-b0c0-405e-b49e-05b70c108284"
+P435 = "http://www.wikidata.org/entity/P435"
 IMSLP = "http://www.wikidata.org/entity/P839"
 OP_106 = "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"
 NAME = "Beethoven, Piano Sonata No. 29, Op. 106"
@@ -313,6 +320,36 @@ ERRORS: list[tuple[Callable[[], object], str]] = [
         "a link with parts states its parts_relation",
     ),
     (
+        lambda: Link("pertains_to", "work", parts_relation="has_part"),
+        "a link without parts states no parts_relation",
+    ),
+    (
+        lambda: _work().with_parts("has_part", []),
+        "a link without parts states no parts_relation",
+    ),
+    (
+        lambda: Link("pertains_to", "work", parts_ordered=False),
+        "a link without parts keeps parts_ordered true",
+    ),
+    *[
+        (
+            lambda value=value: Link.from_urls(URLS[1], identifiers={P435: value}),
+            f"'{value}' is no value of the scheme 'MusicBrainz work ID'",
+        )
+        for value in ("op. 106", "x")
+    ],
+    (
+        lambda: _work().with_identifier(P435, "op. 106"),
+        "'op. 106' is no value of the scheme 'MusicBrainz work ID'",
+    ),
+    (
+        lambda: Link.from_urls(URLS[1], level="expression").with_identifier(
+            P435, MB_WORK
+        ),
+        f"the level 'expression' contradicts '{MB}{MB_WORK}', recognised at the level "
+        "'work'",
+    ),
+    (
         lambda: _work().with_parts(
             "has_part",
             [
@@ -328,7 +365,7 @@ ERRORS: list[tuple[Callable[[], object], str]] = [
     ),
     *[
         (
-            lambda date=date: Assertion.from_dict({"asserted_on": date}),
+            lambda date=date, read=read: read(date),
             f"'{date}' is no Gregorian calendar date written YYYY-MM-DD",
         )
         for date in (
@@ -338,7 +375,19 @@ ERRORS: list[tuple[Callable[[], object], str]] = [
             "20261117",
             "17 November 2026",
         )
+        for read in (
+            lambda date: Assertion.from_dict({"asserted_on": date}),
+            lambda date: Assertion(asserted_on=date),
+        )
     ],
+    (
+        lambda: Assertion(asserted_on=20261117),  # type: ignore[arg-type]
+        "'20261117' is no Gregorian calendar date written YYYY-MM-DD",
+    ),
+    (
+        lambda: Assertion(asserted_on=datetime.datetime(2026, 11, 17)),
+        "'2026-11-17 00:00:00' is no Gregorian calendar date written YYYY-MM-DD",
+    ),
     (
         lambda: Link.from_dict(
             {
@@ -380,6 +429,10 @@ def test_an_assertion_reads_a_day_of_the_calendar() -> None:
     read = Assertion.from_dict({"asserted_on": "2024-02-29"})
     assert read.asserted_on == datetime.date(2024, 2, 29)
     assert read.to_dict()["asserted_on"] == "2024-02-29"
+    built = Assertion(asserted_on="2024-02-29")  # type: ignore[arg-type]
+    assert built.asserted_on == datetime.date(2024, 2, 29)
+    assert built == read
+    assert Assertion(asserted_on=datetime.date(2024, 2, 29)) == read
 
 
 # -- normalisation and copy-on-write -------------------------------------------------
@@ -444,6 +497,66 @@ def test_every_change_gives_a_new_link() -> None:
     whole = PartOf("has_part", label="The thirty-two piano sonatas", position=29)
     assert base.with_part_of(whole).with_part_of(whole).part_of == (whole, whole)
     assert base.to_dict() == before
+
+
+def test_an_identifier_of_a_scheme_minting_uris_is_stored_as_its_uri() -> None:
+    upper = MB_WORK.upper()
+    link = Link.from_urls(URLS[1], identifiers={P435: upper})
+    assert (link.uri, link.identifiers, link.level) == (
+        ("http://www.wikidata.org/entity/Q146730", f"{MB}{MB_WORK}"),
+        (),
+        "work",
+    )
+    assert Link.from_urls(URLS[0], identifiers=[Identifier(P435, upper)]).uri == (
+        f"{MB}{MB_WORK}",
+    )
+    doi = Link.from_urls(
+        URLS[1],
+        level="work",
+        identifiers={
+            "http://www.wikidata.org/entity/P356": "10.5281/zenodo.7473560",
+            IMSLP: OP_106,
+            "mb_beethoven_opus": "op. 106",
+        },
+    )
+    assert doi.uri == (
+        "http://www.wikidata.org/entity/Q146730",
+        "https://doi.org/10.5281/zenodo.7473560",
+    )
+    assert doi.identifiers == (
+        Identifier(IMSLP, OP_106),
+        Identifier("mb_beethoven_opus", "op. 106"),
+    )
+    bare = Link.from_urls(URLS[1], level="work")
+    assert bare.with_identifier(P435, upper).uri == (
+        "http://www.wikidata.org/entity/Q146730",
+        f"{MB}{MB_WORK}",
+    )
+    held = _work()
+    assert held.with_identifier(P435, upper) == held
+    extended = default_registry().with_schemes(
+        {
+            "id": "x",
+            "name": "Example",
+            "uri": "https://example.org/scheme",
+            "entity_uri": "https://example.org/entity/{value}",
+            "patterns": ["https://example\\.org/entity/([0-9]+)"],
+        }
+    )
+    example = Link.from_urls("https://example.org/anything", level="work")
+    assert example.with_identifier(
+        "https://example.org/scheme", "12", registry=extended
+    ).uri == ("https://example.org/anything", "https://example.org/entity/12")
+    assert example.with_identifier("https://example.org/scheme", "12").identifiers == (
+        Identifier("https://example.org/scheme", "12"),
+    )
+    validate(manifest(timeline("score"), links=[_link(identifiers=_opus(P435))]))
+
+
+def test_a_value_in_capitals_gives_the_one_uri() -> None:
+    held = _work()
+    assert held.with_uri(f"https://musicbrainz.org/work/{MB_WORK.upper()}") == held
+    assert held.uri == (f"{MB}{MB_WORK}",)
 
 
 def test_an_entry_inherits_its_links_assertion_unless_it_states_one() -> None:
@@ -576,11 +689,15 @@ def _slot_link(*targets: str) -> dict[str, Any]:
     )
 
 
+def _listed(problems: list[SchemaValidationError]) -> list[tuple[Any, ...]]:
+    return [(problem.path, problem.code, problem.message) for problem in problems]
+
+
 def _problems(value: dict[str, Any]) -> list[tuple[tuple[Any, ...], str, str]]:
-    return [
-        (problem.path, problem.code, problem.message)
-        for problem in identity_problems(value)
-    ]
+    """The problems of a document breaking description rules only, both ways."""
+    found = _listed(identity_problems(value))
+    assert _listed(description_problems(value)) == found
+    return found
 
 
 def _segmented() -> dict[str, Any]:
@@ -599,7 +716,7 @@ def _segmented() -> dict[str, Any]:
 def test_a_slot_is_represented_by_timelines_and_regions() -> None:
     value = manifest(_segmented(), links=[_slot_link("score", "a", "b1", "intro")])
     validate(value)
-    assert identity_problems(value) == []
+    assert _problems(value) == []
 
 
 @pytest.mark.parametrize("target", ["ghost", "g", "bars"])
@@ -633,7 +750,7 @@ def test_an_identifier_names_a_scheme_or_an_absolute_uri() -> None:
         links=[_link(identifiers=[*_opus("opus"), *_opus(IMSLP)])],
     )
     validate(accepted)
-    assert identity_problems(accepted) == []
+    assert _problems(accepted) == []
     message = "'opus' names no scheme of this manifest and is no absolute URI"
     whole = {"parts_relation": "has_part", "identifiers": _opus("opus")}
     slot = {"absent": "lost", "identifiers": _opus("opus")}
@@ -748,7 +865,7 @@ def _no_date(date: str) -> str:
 def test_an_assertion_dated_by_the_calendar_validates(date: str) -> None:
     value = manifest(timeline("score"), links=[_link(assertion={"asserted_on": date})])
     validate(value)
-    assert identity_problems(value) == []
+    assert _problems(value) == []
 
 
 @pytest.mark.parametrize("date", IMPOSSIBLE_DATES)
@@ -838,6 +955,49 @@ def test_the_schema_rules_of_slots_and_links() -> None:
     validate(manifest(timeline("score"), links=[_link(parts=[])]))
 
 
+@pytest.mark.parametrize(
+    ("members", "member"),
+    [
+        ({"parts_relation": "has_part"}, "parts_relation"),
+        ({"parts": [], "parts_relation": "has_part"}, "parts_relation"),
+        ({"parts_ordered": False}, "parts_ordered"),
+        ({"parts": [], "parts_ordered": False}, "parts_ordered"),
+    ],
+)
+def test_a_link_without_parts_states_no_parts_relation_and_no_display_order(
+    members: dict[str, Any], member: str
+) -> None:
+    value = manifest(timeline("score"), links=[_link(**members)])
+    assert _path_of(value) == ("links", 0, member)
+
+
+def test_unordered_parts_validate() -> None:
+    link = _link(
+        parts_relation="has_part", parts=[{"absent": "lost"}], parts_ordered=False
+    )
+    validate(manifest(timeline("score"), links=[link]))
+
+
+@pytest.mark.parametrize(
+    ("criteria", "refused"),
+    [
+        ("criteria/opus-numbers.html", False),
+        ("https://example.org/criteria", False),
+        ("", True),
+        ("criteria/opus numbers", True),
+    ],
+)
+def test_the_criteria_of_a_scheme_are_a_uri_reference(
+    criteria: str, refused: bool
+) -> None:
+    value = manifest(timeline("score"), schemes=[{"id": "opus", "criteria": criteria}])
+    if refused:
+        assert _path_of(value) == ("schemes", 0, "criteria")
+    else:
+        validate(value)
+        assert Scheme.from_dict(value["schemes"][0]).criteria == criteria
+
+
 # -- the shared cases of links -------------------------------------------------------
 
 
@@ -872,6 +1032,120 @@ def test_the_messages_of_the_shared_cases_of_links(name: str, message: str) -> N
         case.code,
         message,
     )
+
+
+# -- the description layer alone ----------------------------------------------------
+
+
+def test_the_shared_cases_through_the_description_layer_alone() -> None:
+    described = 0
+    for path in rejection_paths():
+        case = rejection_case(path)
+        problems = description_problems(case.manifest)
+        if path.stem.startswith("description_"):
+            described += 1
+            assert [(problem.path, problem.code) for problem in problems] == [
+                (case.path, case.code)
+            ], path.stem
+        else:
+            assert problems == [], path.stem
+    assert described == 19
+    for path in fixture_paths():
+        assert description_problems(json.loads(path.read_text(encoding="utf-8"))) == []
+
+
+def _broken_elsewhere(**members: Any) -> dict[str, Any]:
+    """A manifest breaking every kind of rule outside its sound links and schemes."""
+    return {
+        "timetoshare": "9.9.9",
+        "timelines": [
+            {
+                "id": "a",
+                "unit": "beats",
+                "length": [8, 1],
+                "regions": [{"id": "r", "start": [0, 1], "end": [4, 1]}, 7],
+                "children": [
+                    {"id": "c", "unit": "seconds", "length": 60.5, "offset": 100.5}
+                ],
+            },
+            {"id": "a", "unit": "quarters", "length": [8, 1]},
+        ],
+        "groups": [{"id": "grp", "members": ["ghost"]}],
+        "graphical": "none",
+        "links": [_slot_link("r")],
+        **members,
+    }
+
+
+def test_the_description_layer_alone_refuses_nothing_outside_it() -> None:
+    sound = _broken_elsewhere(schemes=[{"id": "s"}])
+    sound["links"][0]["identifiers"] = _opus("s")
+    with pytest.raises(UnsupportedVersionError):
+        validate(sound)
+    assert description_problems(sound) == []
+    broken = _broken_elsewhere(id="g", schemes=[{"id": "a"}, {"id": "g"}])
+    broken["links"][0]["identifiers"] = _opus("q")
+    assert _listed(description_problems(broken)) == [
+        (
+            ("schemes", 0, "id"),
+            "duplicate_id",
+            "'a' is not unique in the manifest, first at #/timelines/0/id",
+        ),
+        (
+            ("id",),
+            "manifest_id",
+            "'g' is not unique in the manifest, first at #/schemes/1/id",
+        ),
+        (
+            ("links", 0, "identifiers", 0, "scheme"),
+            "dangling_target",
+            "'q' names no scheme of this manifest and is no absolute URI",
+        ),
+    ]
+
+
+def test_the_description_layer_alone_checks_each_array() -> None:
+    value = manifest(
+        timeline(
+            "score",
+            links=[{"relation": "pertains_to"}],
+            regions=[
+                {
+                    "id": "r",
+                    "start": [0, 1],
+                    "end": [4, 1],
+                    "links": [_link(level="score")],
+                },
+                {
+                    "id": "s",
+                    "start": [4, 1],
+                    "end": [8, 1],
+                    "links": [_link(identifiers=_opus("q"))],
+                },
+            ],
+            children=[
+                timeline(
+                    "verse",
+                    offset=(0, 1),
+                    links=[_link(records=[{"url": "r.json", "size": math.inf}])],
+                )
+            ],
+        ),
+        schemes=[{"name": "Opus"}],
+        links="none",
+    )
+    problems = description_problems(value)
+    assert [(problem.path, problem.code) for problem in problems] == [
+        (("schemes", 0), "schema"),
+        (("links",), "schema"),
+        (("timelines", 0, "links", 0), "schema"),
+        (("timelines", 0, "regions", 0, "links", 0, "level"), "schema"),
+        (
+            ("timelines", 0, "children", 0, "links", 0, "records", 0, "size"),
+            "finite_number",
+        ),
+    ]
+    assert problems[-1].message == "size of 'verse' is not a finite number"
 
 
 # -- unregistered terms --------------------------------------------------------------
