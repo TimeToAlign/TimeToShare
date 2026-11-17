@@ -59,34 +59,39 @@ Each candidate was installed and run against the requirements on Node on
 ## Decision
 
 Use `yaml` 2.9.1. The YAML reader calls `parseDocument(text, {schema:
-"core", intAsBigInt: true, uniqueKeys: true, lineCounter})`, the
-`LineCounter` serving positions only, and refuses the text when
-`doc.errors` or `doc.warnings` is not empty. It then builds the value by
-one walk over the node tree, with an explicit stack; it never calls
+"core", intAsBigInt: true, uniqueKeys: true})` and refuses the text when
+`doc.errors` or `doc.warnings` is not empty, at the first error, else the
+first warning. It then builds the value by one walk over the node tree in
+document order (a key before its value, a value's items before the next
+key), with an explicit stack, so a text nested as deeply as `yaml`
+composes it never exhausts the call stack in the walk; it never calls
 `toJS` and never resolves an alias.
 
 | Refusal | How |
 | --- | --- |
 | Malformed text, more than one document, duplicate keys | Errors of the parser: a second document is `MULTIPLE_DOCS`, two equal keys (`a` and `"a"` alike) are `DUPLICATE_KEY` under `uniqueKeys`, a text nested too deeply for the call stack is `RESOURCE_EXHAUSTION`. |
 | What the parser only warns about | Refused as well: an unknown tag (`!foo`) is the warning `TAG_RESOLVE_FAILED`. |
-| Anchors and aliases | The walk refuses a node for which `isAlias(node)` holds or whose `anchor` is set. |
+| Anchors and aliases | The walk refuses a node, key or value, for which `isAlias(node)` holds or whose `anchor` is set. |
 | Keys that are not strings | The walk refuses a pair whose `key` is not a scalar whose `value` is a string (`1:`, `null:`, `[1]:`). The option `stringKeys` stays unset, since it would turn `1:` into the key `"1"`. |
-| Values outside the JSON data model | The walk refuses a node whose `tag` is set to anything but `str`, `int`, `float`, `bool`, `null`, `seq` or `map` of `tag:yaml.org,2002:`; implicit resolution leaves `tag` unset. `yaml` knows some tags beyond the core schema and builds them: `!!set` a `YAMLSet`, `!!omap` a `YAMLOMap`, `!!timestamp` a `Date`, `!!binary` a `Uint8Array`; each is refused. `!!str 1` reads as `"1"`. |
+| Values outside the JSON data model | Collections by their tag: the walk refuses a mapping or sequence whose `tag` is set to anything but `tag:yaml.org,2002:map` or `tag:yaml.org,2002:seq`, so `!!set` (a `YAMLSet`, a mapping tagged `set`) and `!!omap` (a `YAMLOMap`, a sequence tagged `omap`) are refused; implicit resolution leaves `tag` unset. Scalars by their value: the walk keeps a scalar whose `value` is `null`, a boolean, a string, a `bigint` or a `number`, and refuses any other, so `!!timestamp` (a `Date`) and `!!binary` (a `Uint8Array`) are refused, and `!!str 1` reads as `"1"`. A node that is neither a mapping, a sequence nor a scalar is refused at the collection holding it. |
 | Non-finite floats | The walk refuses a scalar whose `value` is a `number` that is not `Number.isFinite`: `.inf`, `-.Inf` and `.nan`, which `yaml` resolves to `Infinity` and `NaN` with `tag` unset, and `1e309`, which `parseFloat` rounds to `Infinity`. |
-| Unpaired surrogates | The walk refuses a string, key or value, for which `isWellFormed()` is false. `yaml` joins a high-surrogate escape followed by a low one into one character (`"😀"` gives U+1F600) and leaves an unpaired one in the string (`"\ud800"`). |
+| Unpaired surrogates | The walk refuses a string, key or value, holding a high surrogate not followed by a low one or a low surrogate not preceded by a high one, by the package's own test, which the writers share. `yaml` joins a high-surrogate escape followed by a low one into one character (`"\ud83d\ude00"` gives U+1F600) and leaves an unpaired one in the string (`"\ud800"`). |
 
 Numbers stay lossless by the scalar's resolved kind: a `value` that is a
 `bigint` is an integer, one that is a `number` a float.
 
 Every refusal throws `YamlSyntaxError`, a subclass of `SyntaxError` with
 the fields of `JsonSyntaxError` (`offset`, in UTF-16 code units from zero;
-`line` and `column` counted from one): for an error or warning of the
-parser from its `pos[0]` and `linePos[0]`, with its `code` in the message;
-for a refusal of the walk from the node's `range[0]` through the
-`LineCounter`. The walk builds plain values only, with
-`Object.fromEntries`, so `__proto__` is an ordinary own key. An empty text,
-or one of comments only, reads as null; `---` alone too. Comments are kept
-on the nodes and ignored by the walk. The emitter is not used.
+`line` and `column` counted from one, the column in UTF-16 code units),
+from an offset: for an error or warning of the parser its `pos[0]`, with
+its `code` in the message; for a refusal of the walk the node's
+`range[0]`. The package computes the line and column from the offset
+itself, with the same function as for `JsonSyntaxError` (a line ends at
+each line feed), so no `LineCounter` is passed. The walk builds plain
+values only, defining each key as an own property in its written order,
+so `__proto__` is an ordinary own key. An empty text, or one of comments
+only, reads as null; `---` alone too. Comments are kept on the nodes and
+ignored by the walk. The emitter is not used.
 
 Verified on 2026-11-17 with `yaml` 2.9.1 on Node: `!foo 1` gives the
 warning `TAG_RESOLVE_FAILED`; `.inf` resolves to the `number` `Infinity`

@@ -8,7 +8,18 @@
  * offending node.
  */
 
-import { isAlias, isMap, isScalar, isSeq, type Node, parseDocument } from "yaml";
+import {
+  isAlias,
+  isMap,
+  isScalar,
+  isSeq,
+  type Node,
+  type Pair,
+  parseDocument,
+  type Scalar,
+  type YAMLMap,
+  type YAMLSeq,
+} from "yaml";
 import { type Json, JsonFloat, type Lossless, objectFrom } from "../json/value.js";
 import { YamlSyntaxError } from "./errors.js";
 import { removeByteOrderMark } from "./json.js";
@@ -46,33 +57,7 @@ export function readYaml(text: string): Lossless<Json> {
   const string = (value: string, node: Node): string =>
     hasLoneSurrogate(value) ? fail("a string holds a lone surrogate", node) : value;
 
-  const walk = (node: unknown, parent: Node | null): unknown => {
-    if (node === null || node === undefined) return null;
-    if (isAlias(node)) return fail("an alias", node);
-    if (!isMap(node) && !isSeq(node) && !isScalar(node)) {
-      return fail("a value outside the JSON data model", parent);
-    }
-    if (node.anchor !== undefined) return fail("an anchor", node);
-    if ((isMap(node) || isSeq(node)) && !COLLECTION_TAGS.has(node.tag)) {
-      return fail("a value outside the JSON data model", node);
-    }
-    if (isMap(node)) {
-      const entries: [string, unknown][] = [];
-      for (const pair of node.items) {
-        const key = pair.key;
-        if (isAlias(key)) return fail("an alias", key);
-        if (!isScalar(key) || typeof key.value !== "string") {
-          return fail(
-            "a key that is not a string",
-            isMap(key) || isSeq(key) || isScalar(key) ? key : node,
-          );
-        }
-        if (key.anchor !== undefined) return fail("an anchor", key);
-        entries.push([string(key.value, key), walk(pair.value, node)]);
-      }
-      return objectFrom(entries);
-    }
-    if (isSeq(node)) return node.items.map((item) => walk(item, node));
+  const scalar = (node: Scalar): unknown => {
     const { value } = node;
     if (value === null || typeof value === "boolean") return value;
     if (typeof value === "string") return string(value, node);
@@ -84,7 +69,72 @@ export function readYaml(text: string): Lossless<Json> {
     return fail("a value outside the JSON data model", node);
   };
 
-  return walk(document.contents, null) as Lossless<Json>;
+  /** A node's value where it is a scalar, else a frame to fill with its items. */
+  const visit = (node: unknown, parent: Node | null): { value: unknown } | Frame => {
+    if (node === null || node === undefined) return { value: null };
+    if (isAlias(node)) return fail("an alias", node);
+    if (!isMap(node) && !isSeq(node) && !isScalar(node)) {
+      return fail("a value outside the JSON data model", parent);
+    }
+    if (node.anchor !== undefined) return fail("an anchor", node);
+    if (isScalar(node)) return { value: scalar(node) };
+    if (!COLLECTION_TAGS.has(node.tag)) return fail("a value outside the JSON data model", node);
+    return { node, keys: [], values: [] };
+  };
+
+  const keyOf = (pair: Pair, map: YAMLMap): string => {
+    const { key } = pair;
+    if (isAlias(key)) return fail("an alias", key);
+    if (!isScalar(key) || typeof key.value !== "string") {
+      return fail(
+        "a key that is not a string",
+        isMap(key) || isSeq(key) || isScalar(key) ? key : map,
+      );
+    }
+    if (key.anchor !== undefined) return fail("an anchor", key);
+    return string(key.value, key);
+  };
+
+  // The walk keeps its own stack, so a text nested as deeply as `yaml`
+  // composes it is read without exhausting the call stack. It visits the
+  // nodes in document order, a key before its value, and a value's items
+  // before the next key, so the first refusal is the first in the text.
+  const root = visit(document.contents, null);
+  if (!("node" in root)) return root.value as Lossless<Json>;
+  const stack: Frame[] = [root];
+  for (;;) {
+    const frame = stack.at(-1) as Frame;
+    const { node, keys, values } = frame;
+    const index = values.length;
+    if (index === node.items.length) {
+      stack.pop();
+      const value = isMap(node)
+        ? objectFrom(keys.map((name, at) => [name, values[at]] as const))
+        : values;
+      const holder = stack.at(-1);
+      if (holder === undefined) return value as Lossless<Json>;
+      holder.values.push(value);
+      continue;
+    }
+    let item: unknown;
+    if (isMap(node)) {
+      const pair = node.items[index] as Pair;
+      keys.push(keyOf(pair, node));
+      item = pair.value;
+    } else {
+      item = node.items[index];
+    }
+    const visited = visit(item, node);
+    if ("node" in visited) stack.push(visited);
+    else values.push(visited.value);
+  }
+}
+
+/** A mapping or a sequence being read: the keys and values of its items read so far. */
+interface Frame {
+  readonly node: YAMLMap | YAMLSeq;
+  readonly keys: string[];
+  readonly values: unknown[];
 }
 
 /** The tags a mapping or a sequence of the JSON data model may carry: none, or the plain ones. */
