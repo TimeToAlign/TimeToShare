@@ -20,7 +20,14 @@ from .manifest import UNIT_NUMBER_TYPES, _order_displays, _respell
 __all__ = ["DEFAULTS", "complete", "minimal"]
 
 DEFAULTS: dict[str, dict[str, Any]] = {
-    "manifest": {"name": None, "meta": {}, "groups": [], "measure_maps": []},
+    "manifest": {
+        "name": None,
+        "meta": {},
+        "groups": [],
+        "measure_maps": [],
+        "schemes": [],
+        "links": [],
+    },
     "timeline": {
         "name": None,
         "locked": False,
@@ -30,8 +37,9 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "conversion_maps": [],
         "regions": [],
         "flow_control": [],
+        "links": [],
     },
-    "region": {"name": None, "meta": {}},
+    "region": {"name": None, "meta": {}, "links": []},
     "flow_control_element": {"name": None, "label": None, "meta": {}},
     "repeat_end": {"repeat_count": 1},
     "conversion_map": {"name": None},
@@ -41,6 +49,43 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "group": {"name": None, "meta": {}},
     "graphical": {"styles": {}, "statements": [], "order": {}, "timestamps": []},
     "timestamp": {"display": ["wedge", "name", "cross_section"]},
+    "scheme": {"name": None, "uri": [], "criteria": None},
+    "link": {
+        "uri": [],
+        "identifiers": [],
+        "records": [],
+        "label": None,
+        "assertion": None,
+        "parts_relation": None,
+        "parts": [],
+        "parts_ordered": True,
+        "part_of": [],
+    },
+    "descriptor": {"media_type": None, "size": None, "integrity": None},
+    "assertion": {
+        "asserted_by": [],
+        "asserted_on": None,
+        "method": None,
+        "service": None,
+        "based_on": [],
+        "match": None,
+        "status": None,
+    },
+    "part_slot": {
+        "uri": [],
+        "identifiers": [],
+        "label": None,
+        "represented_by": [],
+        "absent": None,
+        "assertion": None,
+    },
+    "part_of": {
+        "uri": [],
+        "identifiers": [],
+        "label": None,
+        "position": None,
+        "assertion": None,
+    },
 }
 """The default of every key that has one, by the kind of object holding it.
 
@@ -50,10 +95,27 @@ those of ``linear_map`` and a ``TableMap`` those of ``table_map``. Every
 flow-control element has the keys of ``flow_control_element``, and one whose
 manifestation is ``repeat_end`` adds those of ``repeat_end``, as no other
 element carries a repeat count. Every named timestamp of
-``graphical.timestamps`` has the keys of ``timestamp``. The
+``graphical.timestamps`` has the keys of ``timestamp``. Every scheme of
+``schemes`` has the keys of ``scheme``, and every link (of the manifest, a
+timeline or a region) those of ``link``; a link's records have those of
+``descriptor``, its part slots those of ``part_slot``, its ``part_of``
+entries those of ``part_of``, and every assertion (a link's, a slot's, an
+entry's) those of ``assertion``. An identifier has no default. The
 JavaScript package's ``DEFAULTS`` holds the same table, and the schema
 declares each value as the key's ``default``.
 """
+
+_DESCRIPTION_MEMBERS: dict[str, tuple[tuple[str, str], ...]] = {
+    "link": (
+        ("records", "descriptor"),
+        ("assertion", "assertion"),
+        ("parts", "part_slot"),
+        ("part_of", "part_of"),
+    ),
+    "part_slot": (("assertion", "assertion"),),
+    "part_of": (("assertion", "assertion"),),
+}
+"""The members of a description object that hold objects with defaults, by kind."""
 
 _MAP_KINDS = {"LinearMap": "linear_map", "TableMap": "table_map"}
 """The kind of the defaults a conversion map type adds to those of every map."""
@@ -89,15 +151,33 @@ def _visit_map(conversion_map: dict[str, Any], apply: _Pass) -> None:
             _visit_map(entry, apply)
 
 
+def _visit_description(owner: dict[str, Any], kind: str, apply: _Pass) -> None:
+    """Apply a pass to an object of the description layer and to what it holds."""
+    apply(owner, kind)
+    for key, nested in _DESCRIPTION_MEMBERS.get(kind, ()):
+        value = owner.get(key)
+        for entry in value if isinstance(value, list) else [value]:
+            if isinstance(entry, dict):
+                _visit_description(entry, nested, apply)
+
+
+def _visit_links(owner: dict[str, Any], apply: _Pass) -> None:
+    """Apply a pass to every link of an object and to what each holds."""
+    for link in _objects(owner, "links"):
+        _visit_description(link, "link", apply)
+
+
 def _visit_timeline(timeline: dict[str, Any], apply: _Pass) -> None:
     """Apply a pass to a timeline and to everything it holds."""
     apply(timeline, "timeline")
+    _visit_links(timeline, apply)
     for child in _objects(timeline, "children"):
         _visit_timeline(child, apply)
     for conversion_map in _objects(timeline, "conversion_maps"):
         _visit_map(conversion_map, apply)
     for region in _objects(timeline, "regions"):
         apply(region, "region")
+        _visit_links(region, apply)
     for entry in _objects(timeline, "flow_control"):
         apply(entry, "flow_control_element")
         if entry.get("manifestation") == "repeat_end":
@@ -109,6 +189,9 @@ def _visit_manifest(manifest: Any, apply: _Pass) -> None:
     if not isinstance(manifest, dict):
         return
     apply(manifest, "manifest")
+    for scheme in _objects(manifest, "schemes"):
+        apply(scheme, "scheme")
+    _visit_links(manifest, apply)
     for timeline in _objects(manifest, "timelines"):
         _visit_timeline(timeline, apply)
     for group in _objects(manifest, "groups"):

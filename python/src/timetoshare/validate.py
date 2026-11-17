@@ -15,6 +15,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
 from .manifest import spell
+from .validation.description import unregistered_terms as _terms
 from .validation.diagnostics import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
 from .validation.diagnostics import SchemaValidationError, _Path
 from .validation.diagnostics import ValidationCode as ValidationCode
@@ -244,7 +245,8 @@ def _keys(errors: Iterable[ValidationError]) -> Iterator[tuple[_Path, str]]:
                     yield from _keys(branch)
 
 
-def _check(value: Any) -> list[dict[str, Any]]:
+def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Check ``value`` through every rule; return its unknown keys and terms."""
     if not isinstance(value, Mapping) or "timetoshare" not in value:
         raise SchemaValidationError("not_a_manifest", (), "not a TimeToShare manifest")
     if value["timetoshare"] != SCHEMA_VERSION:
@@ -267,10 +269,11 @@ def _check(value: Any) -> list[dict[str, Any]]:
         raise semantic
 
     found = set(_keys(errors))
-    return [
+    keys = [
         {"path": list(path), "key": key}
         for path, key in sorted(found, key=lambda entry: (entry[0], entry[1]))
     ]
+    return keys, _terms(value)
 
 
 def validate(value: Mapping[str, Any]) -> None:
@@ -280,7 +283,24 @@ def validate(value: Mapping[str, Any]) -> None:
 
 def unknown_keys(value: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Return sorted unknown keys from the same schema walk used for validation."""
-    return _check(value)
+    return _check(value)[0]
+
+
+def unregistered_terms(value: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Return the bare terms of a valid manifest outside their registered words.
+
+    Validates ``value`` as :func:`validate` does, then lists every term of an
+    open vocabulary (a link's ``relation`` and ``parts_relation``, an
+    assertion's ``method``, a part slot's ``absent``, a ``part_of`` entry's
+    ``parts_relation``) that holds no colon and is not registered for its
+    key, as ``{"path": [...], "term": ...}`` sorted by path. Such a term is
+    kept and read as its key's fallback; it is never refused.
+
+    Raises:
+        SchemaValidationError: If the manifest violates a rule.
+        UnsupportedVersionError: If it names another version.
+    """
+    return _check(value)[1]
 
 
 def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
@@ -289,6 +309,7 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     Root by root: duplicates, dangling targets, conversion maps, containment
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
-    manifest ID), group members, graphical orders and named timestamps.
+    scheme IDs, the manifest ID), group members, graphical orders, named
+    timestamps and the references of links.
     """
     return list(_semantic_problems(value))

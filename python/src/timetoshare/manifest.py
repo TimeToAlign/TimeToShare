@@ -10,13 +10,17 @@ array of a manifest whose order carries no meaning has one canonical order:
   coordinate, then id;
 * ``groups`` by id and every group's ``members`` by code point;
 * ``measure_maps`` by id;
+* ``schemes`` by id;
 * ``graphical.timestamps`` by timeline, then coordinate, then id, and every
   timestamp's ``display`` in the order of :data:`TIMESTAMP_DISPLAY`.
 
 Own-axis values compare by their exact numeric value, never by their JSON
 spelling; strings compare by Unicode code point. Nothing else is reordered;
 in particular a ``graphical.order`` array is a display order and stays as it
-is. Readers accept any order; writers emit the canonical one.
+is, as do the ``links`` of the manifest, a timeline or a region (a display
+order), a link's ``uri`` (the first preferred) and ``parts`` (the order of
+its reading), and every other array of a link. Readers accept any order;
+writers emit the canonical one.
 
 The declared number type decides how a value is read, never its spelling, and
 writers spell every value canonically: an own-axis value on an int axis as a
@@ -364,8 +368,9 @@ def canonical_order(value: Any) -> Any:
     A value with a top-level ``timelines`` array is a manifest: every timeline
     in it is ordered at every depth and the array itself by id, its ``groups``
     are ordered by id, each with its ``members`` by code point, its
-    ``measure_maps`` by id and its ``graphical.timestamps`` by timeline, then
-    coordinate, then id, each with its ``display`` in canonical order.
+    ``measure_maps`` and its ``schemes`` by id and its ``graphical.timestamps``
+    by timeline, then coordinate, then id, each with its ``display`` in
+    canonical order.
     Every value it reads by a number type is spelled as that type selects
     (module docstring). Only the arrays listed in the module docstring move;
     object keys are left as they are (``dumps`` sorts them), and any other
@@ -390,8 +395,9 @@ def canonical_order(value: Any) -> Any:
             if isinstance(group, dict) and isinstance(group.get("members"), list):
                 group["members"] = _sorted(group["members"], _identifier, "members")
         result["groups"] = _sorted(groups, _by_id, "groups")
-    if isinstance(result.get("measure_maps"), list):
-        result["measure_maps"] = _sorted(result["measure_maps"], _by_id, "measure_maps")
+    for key in ("measure_maps", "schemes"):
+        if isinstance(result.get(key), list):
+            result[key] = _sorted(result[key], _by_id, key)
     timestamps = _timestamps(result)
     if isinstance(timestamps, list):
         result["graphical"]["timestamps"] = _sorted(
