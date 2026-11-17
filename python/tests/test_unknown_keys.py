@@ -11,6 +11,7 @@ from timetoshare import (
     UnsupportedVersionError,
     dumps,
     unknown_keys,
+    unregistered_terms,
     validate,
     warning_paths,
 )
@@ -22,6 +23,10 @@ WARNINGS = [
     "combination_map_names",
     "declaration_show_projections",
     "declaration_unknown_key",
+    "description_absent_unregistered",
+    "description_method_unregistered",
+    "description_parts_relation_unregistered",
+    "description_relation_unregistered",
     "graphical_unknown_key",
     "group_unknown_key",
     "measure_map_row_offset_key",
@@ -39,13 +44,14 @@ def test_the_warning_cases_are_stated() -> None:
 
 
 @pytest.mark.parametrize("path", warning_paths(), ids=lambda path: path.stem)
-def test_each_warning_case_lists_its_unknown_keys(path: Path) -> None:
+def test_each_warning_case_lists_its_warnings(path: Path) -> None:
     text = path.read_text(encoding="utf-8")
     case = json.loads(text)
-    assert sorted(case) == ["manifest", "unknown_keys"]
+    assert sorted(case) == ["manifest", "unknown_keys", "unregistered_terms"]
     assert dumps(case) == text
     validate(case["manifest"])
     assert unknown_keys(case["manifest"]) == case["unknown_keys"]
+    assert unregistered_terms(case["manifest"]) == case["unregistered_terms"]
 
 
 def test_unknown_keys_at_several_depths() -> None:

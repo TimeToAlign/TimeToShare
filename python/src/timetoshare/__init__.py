@@ -3,7 +3,10 @@
 A TimeToShare manifest is one JSON object holding the version marker
 ``timetoshare`` and an array of root timelines, each describing a musical
 timeline as timetoalign serializes it, optionally named, optionally
-attributing timelines to groups and optionally styled for drawing. An editor
+attributing timelines to groups, optionally linking the manifest, its
+timelines and its regions to external entities (``Link``, built from URLs
+through the registry of known identifier schemes) and optionally styled for
+drawing. An editor
 can place many manifests on a canvas, but a manifest knows nothing about
 where or how often it is placed.
 """
@@ -11,6 +14,22 @@ where or how often it is placed.
 from __future__ import annotations
 
 from .defaults import DEFAULTS, complete, minimal
+from .description import (
+    ABSENCE_REASONS,
+    LEVELS,
+    MATCHES,
+    METHODS,
+    PARTS_RELATIONS,
+    RELATIONS,
+    STATUSES,
+    Assertion,
+    Descriptor,
+    Identifier,
+    Link,
+    PartOf,
+    PartSlot,
+    Scheme,
+)
 from .fixtures import (
     RejectionCase,
     fixture_paths,
@@ -20,6 +39,7 @@ from .fixtures import (
 )
 from .font import FONT_FILES, font_metrics, font_paths
 from .manifest import TIMESTAMP_DISPLAY, canonical_json, canonical_order, dumps
+from .registry import KnownScheme, Recognition, SchemeRegistry, default_registry
 from .styles import MissingStyleWarning, complete_styles
 from .validate import (
     SCHEMA_VERSION,
@@ -32,14 +52,32 @@ from .validate import (
     number_type_of,
     schema_path,
     unknown_keys,
+    unregistered_terms,
     validate,
 )
 
 __all__ = [
+    "ABSENCE_REASONS",
     "DEFAULTS",
     "FONT_FILES",
+    "LEVELS",
+    "MATCHES",
+    "METHODS",
+    "PARTS_RELATIONS",
+    "RELATIONS",
     "SCHEMA_VERSION",
+    "STATUSES",
+    "Assertion",
+    "Descriptor",
+    "Identifier",
+    "KnownScheme",
+    "Link",
+    "PartOf",
+    "PartSlot",
+    "Recognition",
+    "Scheme",
     "SchemaValidationError",
+    "SchemeRegistry",
     "TIMESTAMP_DISPLAY",
     "MissingStyleWarning",
     "RejectionCase",
@@ -48,6 +86,7 @@ __all__ = [
     "canonical_order",
     "complete",
     "complete_styles",
+    "default_registry",
     "dumps",
     "font_metrics",
     "font_paths",
@@ -62,6 +101,7 @@ __all__ = [
     "rejection_paths",
     "schema_path",
     "unknown_keys",
+    "unregistered_terms",
     "validate",
     "warning_paths",
 ]

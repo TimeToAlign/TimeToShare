@@ -5,6 +5,7 @@ import {
   SchemaValidationError,
   UnsupportedVersionError,
   unknownKeys,
+  unregisteredTerms,
   validate,
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
@@ -15,6 +16,10 @@ const WARNINGS = [
   "combination_map_names",
   "declaration_show_projections",
   "declaration_unknown_key",
+  "description_absent_unregistered",
+  "description_method_unregistered",
+  "description_parts_relation_unregistered",
+  "description_relation_unregistered",
   "graphical_unknown_key",
   "group_unknown_key",
   "measure_map_row_offset_key",
@@ -31,13 +36,18 @@ describe("unknown keys", () => {
     expect(warningFileNames()).toEqual(WARNINGS.map((name) => `${name}.json`));
   });
 
-  it.each(warningFileNames())("lists the unknown keys of %s as Python does", (name) => {
+  it.each(warningFileNames())("lists the warnings of %s as Python does", (name) => {
     const text = warningText(name);
     const testCase = parseJson(text) as JsonObject;
-    expect(Object.keys(testCase).sort()).toEqual(["manifest", "unknown_keys"]);
+    expect(Object.keys(testCase).sort()).toEqual([
+      "manifest",
+      "unknown_keys",
+      "unregistered_terms",
+    ]);
     expect(dumps(testCase)).toBe(text);
     validate(testCase.manifest);
     expect(dumps(unknownKeys(testCase.manifest))).toBe(dumps(testCase.unknown_keys));
+    expect(dumps(unregisteredTerms(testCase.manifest))).toBe(dumps(testCase.unregistered_terms));
   });
 
   it("finds them at several depths, in order", () => {

@@ -1,5 +1,6 @@
 import type { JsonObject } from "../json/value.js";
 import { timelineContainmentProblems } from "./containment.js";
+import { descriptionProblems } from "./description.js";
 import {
   entries,
   jsonPointer,
@@ -189,7 +190,8 @@ function* memberProblems(
  * Root by root: duplicates, dangling targets, conversion maps, containment
  * and segment lines; then the IDs unique across the manifest (the roots'
  * trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
- * manifest ID), group members, graphical orders and named timestamps.
+ * scheme IDs, the manifest ID), group members, graphical orders, named
+ * timestamps and the references of links.
  */
 export function* identityProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const roots = entries(manifest, "timelines");
@@ -215,6 +217,7 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
     [["groups"], groups],
     [["measure_maps"], measureMaps],
     [["graphical", "timestamps"], timestampsOf(manifest)],
+    [["schemes"], entries(manifest, "schemes")],
   ];
   for (const [key, list] of keyed) {
     for (const [index, entry] of list.entries()) {
@@ -241,4 +244,5 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
   }
   yield* orderProblems(manifest, parents, firstGroup);
   yield* timestampProblems(manifest);
+  yield* descriptionProblems(manifest);
 }

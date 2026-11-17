@@ -2,6 +2,7 @@
   "code": "schema",
   "manifest": {
     "groups": [],
+    "links": [],
     "measure_maps": [
       {
         "id": "measures",
@@ -353,6 +354,7 @@
     ],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [
@@ -366,6 +368,7 @@
               37,
               1
             ],
+            "links": [],
             "locked": true,
             "meta": {},
             "name": null,
@@ -387,6 +390,7 @@
               37,
               1
             ],
+            "links": [],
             "locked": true,
             "meta": {},
             "name": null,
@@ -543,6 +547,7 @@
           37,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,

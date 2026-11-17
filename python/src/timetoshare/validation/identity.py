@@ -7,6 +7,7 @@ from itertools import chain
 from typing import Any
 
 from .containment import timeline_containment_problems
+from .description import description_problems
 from .diagnostics import (
     SchemaValidationError,
     ValidationCode,
@@ -168,7 +169,8 @@ def identity_problems(
     Root by root: duplicates, dangling targets, conversion maps, containment
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
-    manifest ID), group members, graphical orders and named timestamps.
+    scheme IDs, the manifest ID), group members, graphical orders, named
+    timestamps and the references of links.
     """
     roots = _entries(value, "timelines")
     groups = _entries(value, "groups")
@@ -192,6 +194,7 @@ def identity_problems(
         (("groups",), groups),
         (("measure_maps",), measure_maps),
         (("graphical", "timestamps"), timestamps_of(value)),
+        (("schemes",), _entries(value, "schemes")),
     ):
         for index, entry in enumerate(entries):
             path = (*key, index, "id")
@@ -211,3 +214,4 @@ def identity_problems(
         first_group.setdefault(group["id"], index)
     yield from order_problems(value, parents, first_group)
     yield from timestamp_problems(value)
+    yield from description_problems(value)

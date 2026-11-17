@@ -2,6 +2,7 @@
   "code": "conversion_map",
   "manifest": {
     "groups": [],
+    "links": [],
     "measure_maps": [
       {
         "id": "measures",
@@ -30,6 +31,7 @@
     ],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [],
@@ -47,6 +49,7 @@
         "id": "score",
         "is_segment_line": false,
         "length": 3840,
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,

@@ -1,3 +1,4 @@
 fixtures/** text eol=lf
 fonts/*-LICENSE text eol=lf
 fonts/*.json text eol=lf
+registry/*.json text eol=lf

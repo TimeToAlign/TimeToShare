@@ -2,9 +2,11 @@
   "code": "schema",
   "manifest": {
     "groups": [],
+    "links": [],
     "measure_maps": [],
     "meta": {},
     "name": null,
+    "schemes": [],
     "timelines": [
       {
         "children": [],
@@ -71,6 +73,7 @@
           16,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": "Flow control",

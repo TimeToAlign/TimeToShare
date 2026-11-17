@@ -38,9 +38,11 @@
       }
     ],
     "id": "bundle_1",
+    "links": [],
     "measure_maps": [],
     "meta": {},
     "name": "Mixed",
+    "schemes": [],
     "timelines": [
       {
         "children": [],
@@ -52,6 +54,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,
@@ -69,6 +72,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,
@@ -86,6 +90,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,
@@ -105,6 +110,7 @@
               4,
               1
             ],
+            "links": [],
             "locked": false,
             "meta": {},
             "name": null,
@@ -125,6 +131,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,
@@ -142,6 +149,7 @@
           8,
           1
         ],
+        "links": [],
         "locked": false,
         "meta": {},
         "name": null,

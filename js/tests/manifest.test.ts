@@ -508,7 +508,7 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
     const members = !arrays
       ? []
       : "timelines" in value
-        ? ["timelines", "groups", "measure_maps"]
+        ? ["timelines", "groups", "measure_maps", "schemes"]
         : "timestamps" in value && "statements" in value
           ? ["timestamps"]
           : "timeline" in value && "display" in value
