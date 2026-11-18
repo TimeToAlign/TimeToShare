@@ -23,6 +23,7 @@ import { identityProblems as semanticProblems } from "./validate/identity.js";
 import { finiteNumberProblems, representationProblems } from "./validate/representation.js";
 
 export type { JsonObject } from "./json/value.js";
+export { childEnds } from "./validate/containment.js";
 export type { UnregisteredTerm } from "./validate/description.js";
 export {
   entries,

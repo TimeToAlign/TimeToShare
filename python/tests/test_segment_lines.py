@@ -6,7 +6,8 @@ from typing import Any
 
 import pytest
 
-from timetoshare import SchemaValidationError, identity_problems, validate
+import timetoshare
+from timetoshare import SchemaValidationError, child_ends, identity_problems, validate
 
 from .conftest import manifest, timeline
 
@@ -318,3 +319,20 @@ def test_a_timeline_that_is_no_segment_line_is_never_checked() -> None:
         timeline("free", children=[timeline("x", offset=(5, 1), length=(1, 1))])
     )
     assert _problems(value) == []
+
+
+def test_child_ends_is_public_and_adds_floats_as_doubles() -> None:
+    assert timetoshare.child_ends is child_ends
+    assert "child_ends" in timetoshare.__all__
+    line = timeline(
+        "line",
+        "seconds",
+        1.0,
+        children=[
+            _segment("a", 0.1, 0.2, "seconds"),
+            _segment("b", 0.5, 0.25, "seconds"),
+            _segment("c", 0.75, None, "seconds"),
+        ],
+    )
+    assert child_ends(line) == [Fraction(0.1 + 0.2), Fraction(3, 4), None]
+    assert Fraction(0.1 + 0.2) != Fraction(0.1) + Fraction(0.2)

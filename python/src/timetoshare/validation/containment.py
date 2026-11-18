@@ -52,7 +52,17 @@ def _child_end(timeline: Mapping[str, Any], child: Mapping[str, Any]) -> Fractio
 
 
 def child_ends(timeline: Mapping[str, Any]) -> list[Fraction | None]:
-    """Return each child's end, deriving an unknown segment end from its successor."""
+    """Return each child's end on its parent's axis, as an exact Fraction.
+
+    A child's end is its ``offset`` plus its ``length``. Where the timeline and
+    the child both have number type ``float``, the two JSON numbers are summed
+    in IEEE double arithmetic, as a reader adds them, so the end may differ from
+    the exact sum by a rounding. In every other case (``int``, ``fraction``,
+    mixed number types, or a number beyond the range of doubles) the sum is
+    exact. A child with no length, or on another unit than its parent, has
+    end ``None``, except a child of a segment line without a length, whose
+    end is the offset of the next child in offset order.
+    """
     children = _entries(timeline, "children")
     ends: list[Fraction | None] = [
         _child_end(timeline, child)

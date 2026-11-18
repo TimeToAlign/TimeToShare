@@ -130,6 +130,7 @@ export {
 export { parseYaml } from "./serialization/yaml.js";
 export { completeStyles } from "./styles.js";
 export {
+  childEnds,
   descriptionProblems,
   identityProblems,
   jsonPointer,

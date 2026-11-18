@@ -14,6 +14,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
 from .serialization import spell
+from .validation.containment import child_ends as child_ends
 from .validation.description import description_arrays, link_problems, scheme_problems
 from .validation.description import unregistered_terms as _terms
 from .validation.diagnostics import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES

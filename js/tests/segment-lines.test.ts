@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { identityProblems, validate } from "../src/index.js";
+import * as api from "../src/index.js";
+import { childEnds, identityProblems, validate } from "../src/index.js";
 import { JsonFloat, type JsonObject } from "../src/json/value.js";
 import { exact } from "../src/numbers/exact.js";
 import { manifest, timeline } from "./fixtures.js";
@@ -306,5 +307,16 @@ describe("segment lines", () => {
       }),
     ]);
     expect(problems(value)).toEqual([]);
+  });
+});
+
+describe("childEnds", () => {
+  it("is public and adds floats as doubles", () => {
+    expect(api.childEnds).toBe(childEnds);
+    const line = timeline("line", "seconds", new JsonFloat(1), {
+      children: [segment("a", new JsonFloat(0.1), new JsonFloat(0.2), "seconds")],
+    });
+    expect(childEnds(line)).toEqual([exact(0.1 + 0.2)]);
+    expect(exact(0.1 + 0.2)).not.toEqual(exact(0.1));
   });
 });
