@@ -757,9 +757,9 @@ writes links, reads them back and builds them from URLs. What proves it
 (`test_description.py`, `test_registry.py`):
 
 - **The registry is the shipped file.** `registry/schemes.json` is written
-  in pretty JSON by `dumps(…, serialization="json")`, and the default registry holds exactly its nine entries, in
-  this order, each with its scheme URI, level, entity URI template and
-  `lowercase`:
+  in pretty JSON by `dumps(…, serialization="json")`, and the default
+  registry holds exactly its nine entries, in this order, each with its
+  scheme URI, level, entity URI template and `lowercase`:
   `musicbrainz_work` (`http://www.wikidata.org/entity/P435`, `work`,
   `http://musicbrainz.org/work/{value}`, true), `musicbrainz_recording`
   (`P4404`, `expression`, `http://musicbrainz.org/recording/{value}`,

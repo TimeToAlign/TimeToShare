@@ -154,10 +154,11 @@ fixtures are emitted first:
 | `corpus_supra_iiif.yaml` | an IIIF manifest |
 | `corpus_parangonar_parangonada__score_dlt_1.yaml` | the discrete score timeline of a Parangonada alignment |
 
-Every generated manifest is in the complete form timetoalign writes:
-`name` is `null` when absent, every timeline states `number_type`,
-`locked` and `is_segment_line`, empty flow control is `[]`, and a
-manifest without MeasureMaps writes `measure_maps` as `[]`. Its minimal twin leaves all of these out. The children of these
+Every generated manifest is in the complete form, as timetoalign's
+`to_dict(minimal=False)` writes it: `name` is `null` when absent, every
+timeline states `number_type`, `locked` and `is_segment_line`, empty flow
+control is `[]`, and a manifest without MeasureMaps writes `measure_maps`
+as `[]`. Its minimal twin leaves all of these out. The children of these
 fixtures are locked, as timetoalign embeds a child by default, except the
 segments: a segment is never locked, its segment line's lock governs it, so
 its `locked` is `false` and is left out of the minimal form. A segment line
