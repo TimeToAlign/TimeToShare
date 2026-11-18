@@ -1177,10 +1177,11 @@ whether it holds its `styling` (the top-level `graphical` key) and its
 top-level `graphical` unless `form.styling`, writes the minimal form if
 `form.minimal`, else the complete form, and writes it in
 `form.serialization`. They live in `timetoshare.files`. The form is
-minimal when `minimal(value)` and `value` write the same canonical YAML:
-the equality the twin law of the fixtures uses, which tells an integer
-from a float (`1.0` where the default is `1` is no default) and ignores
-the order canonical order sorts. What proves them (`test_files.py`):
+minimal when `minimal(value)` and `value` write the same canonical YAML,
+the equality the twin law of the fixtures uses: a key stated at its
+default, recognized by exact value (`repeat_count: 1.0` is the default
+`1`), makes a text not minimal, and the order canonical order sorts does
+not count. What proves them (`test_files.py`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
   minimal twin under `fixtures/0.2.0/` (bundles and groups included), its
@@ -1204,7 +1205,22 @@ the order canonical order sorts. What proves them (`test_files.py`):
   separator, so pretty JSON but no RFC 8785 JSON; it comes back in the
   layout of pretty JSON. `crlf.yaml` is the twin in canonical YAML with
   every line feed preceded by a carriage return; it comes back with line
-  feeds alone, the twin's own bytes.
+  feeds alone, the twin's own bytes. Two RFC 8785 JSON texts pin what
+  that serialization cannot express: it writes an integral float as an
+  integer, so a timeline on a float axis (`seconds`, no `number_type`) whose
+  `length` 8.0, root `offset` 0.0 and region `start` 0.0 are written `8`
+  and `0` is read with integers there. `jcs_minimal.json` is minimal (a
+  LinearMap with `scalar` 0.5 and its default `offset` left out); it reads
+  as `minimal=True` and comes back as its own bytes, because a key is left
+  out by `minimal` when its exact value equals the default, which RFC 8785
+  JSON keeps, and the canonical YAML that compares the forms respells every
+  own-axis value by the declared number type on both sides. Written in
+  canonical YAML instead, its value gives `length: 8.0`, `offset: 0.0` and
+  `start: 0.0` (the exact text is pinned in the test).
+  `jcs_float_default.json` is the same manifest with the LinearMap's
+  default `offset` stated (0.0, written `0`) and every other default left
+  out: it reads as `minimal=False`, as a YAML text stating `offset: 0.0`
+  would, and comes back as the complete form in RFC 8785 JSON.
 - **The shape.** `FileForm` is frozen (assigning a field raises
   `FrozenInstanceError`) and equal by its three fields; `SERIALIZATIONS`
   is `("yaml", "json", "jcs")`. `FileForm`, `file_form`, `dumps_file` and

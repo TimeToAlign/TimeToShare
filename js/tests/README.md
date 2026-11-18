@@ -402,8 +402,9 @@ The unit tests beside the walk pin what the cases leave to a package:
 and `dumpsFile(value, form)` writes a value back in it, as Python's
 `file_form` and `dumps_file` do (`src/files.ts`). The form is minimal when
 `minimal(value)` and `value` write the same canonical YAML, the equality
-of the fixtures' twin law, which tells an integer from a float and ignores
-the order canonical order sorts. What proves them (`files.test.ts`):
+of the fixtures' twin law: a key stated at its default, recognized by
+exact value, makes a text not minimal, and the order canonical order sorts
+does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
   minimal twin (bundles and groups included), its value and its value
@@ -417,7 +418,13 @@ the order canonical order sorts. What proves them (`files.test.ts`):
   texts) and is written back as the bytes of its `.expected` file:
   `neither.yaml` (neither minimal nor complete) as `minimal: false` and
   the complete form, `one_line.json` in the pretty JSON layout,
-  `crlf.yaml` with line feeds alone.
+  `crlf.yaml` with line feeds alone, `jcs_minimal.json` (RFC 8785 JSON
+  on a float axis, its integral floats written as integers) as
+  `minimal: true` and its own bytes, `jcs_float_default.json` (the same
+  with a LinearMap's default `offset` 0.0 stated as `0`) as
+  `minimal: false` and the complete form. `jcs_minimal.json` written in
+  canonical YAML gives the floats its declared number type selects, the
+  same text Python's test pins.
 - **The serialization names.** `SERIALIZATIONS` is `["yaml", "json",
   "jcs"]`; `isSerialization` is true for those three and false for
   `"YAML"`, `"toml"`, `""`, `null`, `undefined` and `1`.

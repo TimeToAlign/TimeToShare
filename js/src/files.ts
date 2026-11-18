@@ -27,8 +27,11 @@ export interface FileForm {
 /**
  * Read the form of a manifest file off its text. The manifest is minimal
  * when its minimal form writes the same canonical YAML as the value the text
- * holds, which tells an integer from a float (`repeat_count: 1.0` is not the
- * default `1` written out) and ignores the order canonical order sorts; it
+ * holds: a key stated at its default makes a text not minimal, and the order
+ * canonical order sorts does not count. Defaults are recognized by exact
+ * value (`repeat_count: 1.0` is the default `1`) and own-axis values
+ * respelled by the declared number type on both sides, so an RFC 8785 JSON text, which writes
+ * an integral float as an integer, reads as the form it was written in. It
  * holds its styling when it has a top-level `graphical` key; the
  * serialization is the one `serializationOf` names. A text whose value
  * states some defaults and leaves out others is not minimal. The value is not
