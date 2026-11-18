@@ -651,20 +651,30 @@ class _YamlLoader(yaml.SafeLoader):
     base 10, ``0o`` and ``0x``, floats), replacing YAML 1.1's, so ``no`` and
     ``2026-11-17`` are strings and ``1e-05`` is a float. Only the JSON data
     model is read: a tag outside it, such as ``!!timestamp``, ``!!binary``,
-    ``!!set`` or ``!!omap``, is refused, and so are anchors and aliases, a
+    ``!!set`` or ``!!omap``, is refused, and so are a core tag on a node of
+    another kind (``!!str [1]``, ``!!map [1]``), anchors and aliases, a
     repeated key, a key that is not a string, a non-finite float, a string
     holding an unpaired surrogate and a collection opening at depth 257.
 
     The value is built in one pass over the parser's events, every
     collection on a stack rather than by recursion, and each node is checked
-    as its event arrives, a key before its value: its anchor, its tag, a key
-    being a string and not repeating, its depth, then its value. So the
-    refusal raised is the first in document order, and a parser error is
-    raised where the parser meets it.
+    as its event arrives, a key before its value: its anchor and its tag, in
+    the order they are written, a key being a string, a key repeating, its
+    depth, then its value. So the refusal raised is the first in document
+    order, and a parser error is raised where the parser meets it. An anchor
+    is refused at its ``&``; every other refusal of a node at the node's
+    first character, its tag where it has one.
     """
 
     yaml_implicit_resolvers: dict[Any, Any] = {}
     yaml_constructors: dict[Any, Any] = {}
+
+    def get_token(self) -> Any:
+        """The next token, noting where the last anchor began."""
+        token = super().get_token()
+        if isinstance(token, yaml.AnchorToken):
+            self._anchor_mark = token.start_mark
+        return token
 
     def get_single_data(self) -> Any:
         """Read the one document of the stream; ``None`` for an empty stream."""
@@ -697,31 +707,40 @@ class _YamlLoader(yaml.SafeLoader):
             else:
                 if isinstance(event, yaml.AliasEvent):
                     _refuse(event, "an alias is not read")
+                kind = _KINDS[type(event)]
+                tag = event.tag
+                if tag is None or tag == "!":
+                    value = getattr(event, "value", None)
+                    tag = self.resolve(kind, value, event.implicit)
                 if event.anchor is not None:
-                    _refuse(event, "an anchor is not read")
+                    # The tag is checked first where it is written first:
+                    # then the event begins at the tag, not at the anchor.
+                    if self._anchor_mark.index != event.start_mark.index:
+                        _check_tag(event, tag, kind)
+                    _refuse(self._anchor_mark, "an anchor is not read")
+                _check_tag(event, tag, kind)
                 holder = frames[-1] if frames else None
                 is_key = (
                     holder is not None
                     and isinstance(holder[0], dict)
                     and holder[1] is _NO_KEY
                 )
-                if isinstance(event, yaml.ScalarEvent):
-                    value = self._scalar(event)
+                if is_key and tag != _TAG + "str":
+                    _refuse(event, "a key that is not a string is not read")
+                if kind is yaml.ScalarNode:
+                    node = yaml.ScalarNode(
+                        tag, event.value, event.start_mark, event.end_mark, event.style
+                    )
+                    value = self.yaml_constructors[tag](self, node)
                     if is_key:
-                        if not isinstance(value, str):
-                            _refuse(event, "a key that is not a string is not read")
                         if value in holder[0]:
                             _refuse(event, f"the key {json.dumps(value)} repeats")
                         holder[1] = value
                         continue
                 else:
-                    is_sequence = isinstance(event, yaml.SequenceStartEvent)
-                    _collection_tag(event, is_sequence, self.resolve)
-                    if is_key:
-                        _refuse(event, "a key that is not a string is not read")
                     if len(frames) == _DEPTH_LIMIT:
                         _refuse(event, _TOO_DEEP)
-                    frames.append([[] if is_sequence else {}, _NO_KEY])
+                    frames.append([[] if kind is yaml.SequenceNode else {}, _NO_KEY])
                     continue
             if not frames:
                 return value
@@ -732,38 +751,39 @@ class _YamlLoader(yaml.SafeLoader):
                 holder[0][holder[1]] = value
                 holder[1] = _NO_KEY
 
-    def _scalar(self, event: Any) -> Any:
-        """The value of a scalar, built by the constructor of its tag."""
-        tag = event.tag
-        if tag is None or tag == "!":
-            tag = self.resolve(yaml.ScalarNode, event.value, event.implicit)
-        node = yaml.ScalarNode(
-            tag, event.value, event.start_mark, event.end_mark, event.style
-        )
-        constructor = self.yaml_constructors.get(tag, self.yaml_constructors[None])
-        return constructor(self, node)
-
 
 _NO_KEY = object()
 """The key of a mapping whose next node is a key."""
 
+_KINDS: dict[type, type] = {
+    yaml.ScalarEvent: yaml.ScalarNode,
+    yaml.SequenceStartEvent: yaml.SequenceNode,
+    yaml.MappingStartEvent: yaml.MappingNode,
+}
+"""The kind of node each event that begins a node begins."""
 
-def _collection_tag(event: Any, is_sequence: bool, resolve: Callable[..., str]) -> None:
-    """Refuse a collection under a tag other than the plain one of its kind."""
-    kind = yaml.SequenceNode if is_sequence else yaml.MappingNode
-    tag = event.tag
-    if tag is None or tag == "!":
-        tag = resolve(kind, None, event.implicit)
-    if tag == _TAG + ("seq" if is_sequence else "map"):
+_CORE_TAGS = {
+    yaml.ScalarNode: {_TAG + name for name in ("null", "bool", "int", "float", "str")},
+    yaml.SequenceNode: {_TAG + "seq"},
+    yaml.MappingNode: {_TAG + "map"},
+}
+"""The tags of the JSON data model, by the kind of node each fits."""
+
+
+def _check_tag(event: Any, tag: str, kind: type) -> None:
+    """Refuse a node under a tag that names no value of the JSON data model,
+    or under a core tag that does not fit its kind (``!!str [1]``)."""
+    if tag in _CORE_TAGS[kind]:
         return
-    if tag in (_TAG + "seq", _TAG + "map"):
+    if any(tag in tags for tags in _CORE_TAGS.values()):
         _refuse(event, f"the tag {tag} does not fit the node it is given")
     _refuse(event, f"the tag {tag} names no value of the JSON data model")
 
 
 def _refuse(node: Any, problem: str) -> NoReturn:
-    """Refuse a node, or the event that begins it, at its start."""
-    raise yaml.constructor.ConstructorError(None, None, problem, node.start_mark)
+    """Refuse a node, or the event that begins it, at its start, or at a mark."""
+    mark = node if isinstance(node, yaml.Mark) else node.start_mark
+    raise yaml.constructor.ConstructorError(None, None, problem, mark)
 
 
 def _construct_null(loader: _YamlLoader, node: Any) -> None:
@@ -807,15 +827,6 @@ def _construct_str(loader: _YamlLoader, node: Any) -> str:
         _refuse(node, "a string holds a lone surrogate")
 
 
-def _construct_mismatched(loader: _YamlLoader, node: Any) -> None:
-    """Refuse a node under ``!!seq`` or ``!!map`` that is not of that kind."""
-    _refuse(node, f"the tag {node.tag} does not fit the node it is given")
-
-
-def _construct_other(loader: _YamlLoader, node: Any) -> None:
-    _refuse(node, f"the tag {node.tag} names no value of the JSON data model")
-
-
 for _name, _pattern, _first in (
     ("null", _CORE_NULL, ["~", "n", "N", ""]),
     ("bool", _CORE_BOOL, list("tTfF")),
@@ -829,11 +840,8 @@ for _name, _constructor in (
     ("int", _construct_int),
     ("float", _construct_float),
     ("str", _construct_str),
-    ("seq", _construct_mismatched),
-    ("map", _construct_mismatched),
 ):
     _YamlLoader.add_constructor(_TAG + _name, _constructor)
-_YamlLoader.add_constructor(None, _construct_other)
 
 
 def _read_yaml(text: str) -> Any:
@@ -854,9 +862,10 @@ def _read_yaml(text: str) -> Any:
         return _load_yaml(text)
     except yaml.reader.ReaderError as error:
         # PyYAML checks every character before it parses any, so a fault
-        # before the character it refuses is found in the text before it.
+        # before the character it refuses is found in the text before it,
+        # read with a printable character in its place, which ends no token.
         try:
-            _load_yaml(text[: error.position])
+            _load_yaml(text[: error.position] + "\ufffd")
         except yaml.MarkedYAMLError as earlier:
             mark = earlier.problem_mark or earlier.context_mark
             if mark is not None and mark.index < error.position:

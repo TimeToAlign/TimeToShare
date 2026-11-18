@@ -139,7 +139,10 @@ at column 509.
 A text holding several faults is refused for the first in document order,
 at the token that offends: a lone surrogate at its escape (or where it
 stands as itself), a number at its first character, a repeated key at its
-second occurrence, a collection at depth 257 at its `{` or `[`. The
+second occurrence, a collection at depth 257 at its `{` or `[`, an anchor
+at its `&`, a value outside the JSON data model at its tag, a character
+outside YAML's printable set (U+0001, U+007F) where it stands. A node's
+anchor and tag are checked in the order they are written. The
 `*_before_*` refusals pin that order with two faults each, in both
 orders where the second is the nesting limit. Their deep part is `[` 256
 times then `]` 256 times as the value of a key: in a YAML block mapping
@@ -245,15 +248,19 @@ at column 262.
 | `yaml_lone_surrogate_reversed.yaml` | a low-surrogate escape before a high-surrogate one pairs neither |
 | `yaml_lone_surrogate_32bit_escape.yaml` | a surrogate through the escape `\U0000D800` |
 | `yaml_lone_surrogate_key.yaml` | a lone surrogate in a key |
-| `yaml_anchor.yaml` | an anchor |
-| `yaml_alias.yaml` | an alias |
+| `yaml_anchor.yaml` | an anchor, at its `&` (line 1, column 4) |
+| `yaml_alias.yaml` | an alias, after the anchor it names, which is refused first (line 1, column 4) |
 | `yaml_tag_local.yaml` | an unknown tag, `!local` |
-| `yaml_tag_binary.yaml` | a value outside the JSON data model: `!!binary` |
-| `yaml_tag_timestamp.yaml` | a value outside the JSON data model: `!!timestamp` |
-| `yaml_tag_set.yaml` | a value outside the JSON data model: `!!set` |
-| `yaml_tag_omap.yaml` | a value outside the JSON data model: `!!omap` |
+| `yaml_tag_binary.yaml` | a value outside the JSON data model: `!!binary`, at the tag (line 1, column 4) |
+| `yaml_tag_timestamp.yaml` | a value outside the JSON data model: `!!timestamp`, at the tag (line 1, column 4) |
+| `yaml_tag_set.yaml` | a value outside the JSON data model: `!!set`, at the tag (line 1, column 4) |
+| `yaml_tag_omap.yaml` | a value outside the JSON data model: `!!omap`, at the tag (line 1, column 4) |
+| `yaml_anchor_before_unknown_tag.yaml` | `a: &x !local 1`: the anchor (line 1, column 4) before the unknown tag written after it |
 | `yaml_two_documents.yaml` | more than one document |
 | `yaml_unclosed_quote.yaml` | not YAML: an unclosed double-quoted scalar |
+| `yaml_special_character_in_key.yaml` | `x: {a: 1, a` U+0001 `: 2}`: U+0001, outside YAML's printable set, where it stands (line 1, column 12); the text before it, cut there, would repeat the key `a` |
+| `yaml_special_character_in_number.yaml` | `x: [1, 1e99999` U+0001 `]`: U+0001 where it stands (line 1, column 15); the text before it, cut there, would end in a float that rounds to an infinity |
+| `yaml_special_character_before_duplicate_key.yaml` | U+0001 in a plain scalar on line 1 (line 1, column 5) before a key repeating on line 3 |
 | `yaml_key_integer.yaml` | a key that is an integer |
 | `yaml_key_float.yaml` | a key that is a float |
 | `yaml_key_null.yaml` | a key that is `null` |

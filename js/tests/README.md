@@ -311,11 +311,13 @@ The unit tests beside the walk pin what the cases leave to a package:
 - **The YAML reader** (`serialization.test.ts`): the core schema (`0x1F`,
   `0o17`, a 30-digit integer, `2.0`, `-0.0`, `.5`, `no`, a date, `~`,
   `True`, `'12'`, `!!str 1`), key order, an empty or comment-only text as
-  null, and seventeen refusals with their message, offset, line and column:
-  an anchor, an alias, a repeated key, a collection and an integer as keys,
-  a lone surrogate escaped and as itself, `.inf`, `-.Inf`, `.nan`, `1e309`,
-  `!!binary`, `!!timestamp`, `!!set`, `!!omap`, an unknown tag and a second
-  document.
+  null, and nineteen refusals with their message, offset, line and column:
+  an anchor at its `&`, an alias, a repeated key, a collection and an
+  integer as keys, an escaped lone surrogate at the string, a lone
+  surrogate as itself and U+007F where they stand (outside YAML's
+  printable set), `.inf`, `-.Inf`, `.nan`, `1e309`, `!!binary`,
+  `!!timestamp`, `!!set`, `!!omap` and `!!str` on a sequence at the tag,
+  an unknown tag and a second document.
 - **The nesting limit** (`serialization.test.ts`): a scalar has depth 0,
   an object or array 1 more than its deepest member (an empty one 1). Both
   readers refuse a text whose value would be deeper than 256, at the first
@@ -360,7 +362,15 @@ The unit tests beside the walk pin what the cases leave to a package:
   before a repeated key or `!foo`; `!foo` before a repeated key at (1, 4)
   and a repeated key before `!foo` at (2, 1); a repeated key before a
   second document, and a second document before a repeated key in it, at
-  (2, 1). In JSON, `[1e999, }` and `[1e999] 2` as a `RangeError` at column
+  (2, 1); an anchor at its `&` and a tag at the tag, in the order they are
+  written: `a: &x !local 1` and `a: !local &x 1` at (1, 4), `a: !!str &x
+  1` at (1, 10); `.inf: 1` as a key that is not a string at (1, 1);
+  `!!binary aGk=: 1` for the tag at (1, 1); a character outside YAML's
+  printable set, which `yaml` reads, refused where it stands with
+  Python's message (`special characters are not allowed #x0001`): U+0001
+  ending a key that would repeat `a` at (1, 12), ending `1e99999` at (1,
+  15), before a repeated key at (1, 5), after `!foo` for the tag at (1,
+  4). In JSON, `[1e999, }` and `[1e999] 2` as a `RangeError` at column
   2, `["\ud800", }` at 3, a repeated key before a missing key or extra
   data at 8, `1e999` as the value of a key that repeats later as a
   `RangeError` at 6, a lone surrogate before 300 unclosed `[` at 3, a
@@ -372,9 +382,11 @@ The unit tests beside the walk pin what the cases leave to a package:
   low-surrogate escape (an invalid escape, the end, a control character,
   an escaped quote or a low surrogate standing as itself follows) is lone
   at its own escape, column 3. Every shared refusal whose place the
-  cases' README gives is refused there (`SHARED_PLACES`): the two depth
-  texts, the five `json_lone_surrogate_*` texts and the ten `*_before_*`
-  texts.
+  cases' README gives is refused there (`SHARED_PLACES`): the two depth texts; the six `json_lone_surrogate_*` texts, one of them
+  (`json_lone_surrogate_before_syntax_error`) also among the twelve
+  `*_before_*` texts; `yaml_anchor` and `yaml_alias` at the `&`; the four
+  `yaml_tag_*` texts outside the data model at the tag; and the two
+  `yaml_special_character_in_*` texts at the character.
 - **The choice** between JSON and YAML: leading white space, a JSON
   scalar, a quoted YAML scalar, a YAML escape, `-Infinity`, `{a: 1}`
   refused as JSON, `"a": 1` read as YAML, a JSON string holding U+2028; and
