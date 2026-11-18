@@ -623,8 +623,23 @@ documents that bound each rule from the other side:
   child at `[-3, 2]` of length `[40, 1]` in `[32, 1]` ends at `[77, 2]` and is
   reported. A grandchild is reported at its own path, naming its parent.
 - **Segment lines.** Offset order decides, not array order (`b`, `a` at 3
-  and 0 are contiguous); exact comparison (`0.1 + 0.2` does not meet `0.3`,
-  `0.5 + 0.25` meets `0.75`); a segment of unknown length ends where its
+  and 0 are contiguous). A segment ends where a child ends under
+  containment: where the line's axis and the segment's are both `float`,
+  at the double sum of its offset and length, else at the exact sum
+  (`0.1 + 0.2` seconds does not meet `0.3`, their double sum being
+  `0.30000000000000004`; `0.5 + 0.25` meets `0.75` and `0.3 + 0.7` meets
+  `1.0`). The double sum decides even where the exact one differs: on a
+  `points` line of length `1000.0`, `a` of `76.70371459980326` at `0.0`,
+  `b` of `855.5289364103584` at `76.70371459980326` and `c` of
+  `67.7673489898384` at `932.2326510101616` pass, though `b` ends 3/2^46
+  beyond `c`'s offset and `c` 1/2^46 short of the length in exact
+  arithmetic (both sums are asserted in the test). A real gap is still
+  refused: `b` at `76.70371459980328`, one double after `a`'s end, is one
+  problem at its offset. The same values as the Fraction pairs that equal
+  them on a `fraction` line are added exactly and refused at `c`'s offset
+  and at the line's length, and so are they on the `float` line where `b`
+  alone is declared `fraction`, its length the pair: one problem, at `c`'s
+  offset. A segment of unknown length ends where its
   successor starts; the end check is skipped where the last segment's or the
   line's length is unknown, contiguity is not; a line without segments has
   one problem at a length of 8, none at 0 or null; a flag differing from the

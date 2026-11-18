@@ -1,6 +1,6 @@
 import type { JsonObject } from "../json/value.js";
 import { exact, type Rational, rational } from "../numbers/exact.js";
-import { add, offsetOrder } from "./containment.js";
+import { childEnd, offsetOrder } from "./containment.js";
 import { entries, lengthOf, type PathSegment, SchemaValidationError } from "./diagnostics.js";
 
 function equal(left: Rational, right: Rational): boolean {
@@ -43,7 +43,7 @@ export function* timelineSegmentProblems(
         );
       }
       const length = lengthOf(segment);
-      end = length === null ? null : add(offset, exact(length));
+      end = length === null ? null : childEnd(timeline, segment, length);
     }
     const length = lengthOf(timeline);
     if (end !== null && length !== null && !equal(end, exact(length))) {

@@ -7,7 +7,7 @@ from fractions import Fraction
 from typing import Any
 
 from ..manifest import _exact
-from .containment import offset_order
+from .containment import _child_end, offset_order
 from .diagnostics import SchemaValidationError, _entries, _Path
 
 
@@ -47,7 +47,7 @@ def timeline_segment_problems(
                     ),
                 )
             length = segment.get("length")
-            end = None if length is None else offset + _exact(length)
+            end = None if length is None else _child_end(timeline, segment)
         length = timeline.get("length")
         if end is not None and length is not None and end != _exact(length):
             yield SchemaValidationError(

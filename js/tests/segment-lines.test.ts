@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { identityProblems, validate } from "../src/index.js";
-import type { JsonObject } from "../src/json/value.js";
+import { JsonFloat, type JsonObject } from "../src/json/value.js";
+import { exact } from "../src/numbers/exact.js";
 import { manifest, timeline } from "./fixtures.js";
 
 type Problem = [readonly (string | number)[], string];
@@ -121,7 +122,7 @@ describe("segment lines", () => {
     ]);
   });
 
-  it("compares exactly", () => {
+  it("adds a float line as doubles", () => {
     const value = line(
       [
         segment("a", 0, 0.1, "seconds"),
@@ -131,12 +132,79 @@ describe("segment lines", () => {
       1,
       "seconds",
     );
+    expect(0.1 + 0.2).toBe(0.30000000000000004);
+    expect(0.3 + 0.7).toBe(1);
     expect(problems(value)).toEqual([
       [
         [...AT, "children", 2, "offset"],
         `segment 'c' of ${ID} does not start where the one before it ends`,
       ],
+    ]);
+  });
+
+  it("lets the double sum decide where the exact one differs", () => {
+    const page = (bOffset: unknown, bLength: unknown, bRest: JsonObject = {}) =>
+      line(
+        [
+          segment("a", new JsonFloat(0), 76.70371459980326, "points"),
+          segment("b", bOffset, bLength, "points", bRest),
+          segment("c", 932.2326510101616, 67.7673489898384, "points"),
+        ],
+        new JsonFloat(1000),
+        "points",
+      );
+    // Every value here is a whole number of 2^-46, so the exact sums compare as integers.
+    const ulps = (value: number) => {
+      const { numerator, denominator } = exact(value);
+      return (numerator * 2n ** 46n) / denominator;
+    };
+    expect(76.70371459980326 + 855.5289364103584).toBe(932.2326510101616);
+    expect(932.2326510101616 + 67.7673489898384).toBe(1000);
+    expect(ulps(76.70371459980326) + ulps(855.5289364103584) - ulps(932.2326510101616)).toBe(3n);
+    expect(ulps(1000) - ulps(932.2326510101616) - ulps(67.7673489898384)).toBe(1n);
+    expect(problems(page(76.70371459980326, 855.5289364103584))).toEqual([]);
+
+    expect(76.70371459980326 + 2 ** -46).toBe(76.70371459980328);
+    expect(76.70371459980328 + 855.5289364103584).toBe(932.2326510101616);
+    expect(problems(page(76.70371459980328, 855.5289364103584))).toEqual([
+      [
+        [...AT, "children", 1, "offset"],
+        `segment 'b' of ${ID} does not start where the one before it ends`,
+      ],
+    ]);
+
+    const pairs: [number, [number, number]][] = [
+      [76.70371459980326, [5397544070150107, 70368744177664]],
+      [855.5289364103584, [7525312107856185, 8796093022208]],
+      [932.2326510101616, [2050001279156237, 2199023255552]],
+      [67.7673489898384, [4768703244664415, 70368744177664]],
+    ];
+    expect(pairs.map(([, pair]) => exact(pair))).toEqual(pairs.map(([value]) => exact(value)));
+    const [a, b, c, cLength] = pairs.map(([, pair]) => pair);
+    const fraction = { number_type: "fraction" };
+    const exactLine = manifest([
+      timeline("line", "points", [1000, 1], {
+        ...fraction,
+        is_segment_line: true,
+        children: [
+          segment("a", [0, 1], a, "points", fraction),
+          segment("b", a, b, "points", fraction),
+          segment("c", c, cLength, "points", fraction),
+        ],
+      }),
+    ]);
+    expect(problems(exactLine)).toEqual([
+      [
+        [...AT, "children", 2, "offset"],
+        `segment 'c' of ${ID} does not start where the one before it ends`,
+      ],
       [[...AT, "length"], `the segments of ${ID} do not end at its length`],
+    ]);
+    expect(problems(page(76.70371459980326, b, fraction))).toEqual([
+      [
+        [...AT, "children", 2, "offset"],
+        `segment 'c' of ${ID} does not start where the one before it ends`,
+      ],
     ]);
   });
 

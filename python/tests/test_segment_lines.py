@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+from fractions import Fraction
 from typing import Any
 
 import pytest
@@ -133,7 +135,7 @@ def test_each_rule_one_problem() -> None:
     ]
 
 
-def test_exact_values() -> None:
+def test_a_float_line_adds_as_doubles() -> None:
     value = _line(
         _segment("a", 0.0, 0.1, "seconds"),
         _segment("b", 0.1, 0.2, "seconds"),
@@ -141,12 +143,74 @@ def test_exact_values() -> None:
         length=1.0,
         unit="seconds",
     )
+    assert 0.1 + 0.2 == 0.30000000000000004
+    assert 0.3 + 0.7 == 1.0
     assert _problems(value) == [
         (
             (*AT, "children", 2, "offset"),
             f"segment 'c' of {ID} does not start where the one before it ends",
         ),
+    ]
+
+
+def test_the_double_sum_decides_where_the_exact_one_differs() -> None:
+    def page(b_offset: Any, b_length: Any, **b_rest: Any) -> dict:
+        return _line(
+            _segment("a", 0.0, 76.70371459980326, "points"),
+            _segment("b", b_offset, b_length, "points", **b_rest),
+            _segment("c", 932.2326510101616, 67.7673489898384, "points"),
+            length=1000.0,
+            unit="points",
+        )
+
+    assert 76.70371459980326 + 855.5289364103584 == 932.2326510101616
+    assert 932.2326510101616 + 67.7673489898384 == 1000.0
+    assert Fraction(76.70371459980326) + Fraction(855.5289364103584) == Fraction(
+        932.2326510101616
+    ) + Fraction(3, 2**46)
+    assert Fraction(932.2326510101616) + Fraction(67.7673489898384) == 1000 - Fraction(
+        1, 2**46
+    )
+    assert _problems(page(76.70371459980326, 855.5289364103584)) == []
+
+    assert math.nextafter(76.70371459980326, math.inf) == 76.70371459980328
+    assert 76.70371459980328 + 855.5289364103584 == 932.2326510101616
+    assert _problems(page(76.70371459980328, 855.5289364103584)) == [
+        (
+            (*AT, "children", 1, "offset"),
+            f"segment 'b' of {ID} does not start where the one before it ends",
+        ),
+    ]
+
+    pairs = {
+        76.70371459980326: (5397544070150107, 70368744177664),
+        855.5289364103584: (7525312107856185, 8796093022208),
+        932.2326510101616: (2050001279156237, 2199023255552),
+        67.7673489898384: (4768703244664415, 70368744177664),
+    }
+    assert all(Fraction(*pair) == Fraction(value) for value, pair in pairs.items())
+    exact = _line(
+        _segment("a", (0, 1), pairs[76.70371459980326], "points"),
+        _segment("b", pairs[76.70371459980326], pairs[855.5289364103584], "points"),
+        _segment("c", pairs[932.2326510101616], pairs[67.7673489898384], "points"),
+        length=(1000, 1),
+        unit="points",
+    )
+    for node in (exact["timelines"][0], *exact["timelines"][0]["children"]):
+        node["number_type"] = "fraction"
+    assert _problems(exact) == [
+        (
+            (*AT, "children", 2, "offset"),
+            f"segment 'c' of {ID} does not start where the one before it ends",
+        ),
         ((*AT, "length"), f"the segments of {ID} do not end at its length"),
+    ]
+    mixed = page(76.70371459980326, pairs[855.5289364103584], number_type="fraction")
+    assert _problems(mixed) == [
+        (
+            (*AT, "children", 2, "offset"),
+            f"segment 'c' of {ID} does not start where the one before it ends",
+        ),
     ]
 
 

@@ -25,7 +25,7 @@ export function offsetOrder(children: readonly JsonObject[]): number[] {
 }
 
 /** The exact sum of two rationals. */
-export function add(left: Rational, right: Rational): Rational {
+function add(left: Rational, right: Rational): Rational {
   return rational(
     left.numerator * right.denominator + right.numerator * left.denominator,
     left.denominator * right.denominator,
@@ -52,7 +52,7 @@ type Axis = { unit: TimeUnit; number_type?: NumberType };
  * end is their double sum, which may differ from the exact sum by a rounding;
  * wherever either axis is `int` or `fraction`, the end is the exact sum.
  */
-function childEnd(timeline: JsonObject, child: JsonObject, length: unknown): Rational {
+export function childEnd(timeline: JsonObject, child: JsonObject, length: unknown): Rational {
   if (numberTypeOf(timeline as Axis) === "float" && numberTypeOf(child as Axis) === "float") {
     const offset = double(child.offset);
     const extent = double(length);
