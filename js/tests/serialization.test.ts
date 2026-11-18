@@ -190,6 +190,7 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "flow_mapping_unquoted_key.yaml": JsonSyntaxError,
   "flow_sequence_plain.yaml": JsonSyntaxError,
   "flow_sequence_then_comment.yaml": JsonSyntaxError,
+  "json_astral_before_duplicate_key.json": JsonSyntaxError,
   "json_bom_after_value.json": JsonSyntaxError,
   "json_bom_between_tokens.json": JsonSyntaxError,
   "json_comment.json": JsonSyntaxError,
@@ -222,11 +223,13 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "yaml_alias.yaml": YamlSyntaxError,
   "yaml_anchor.yaml": YamlSyntaxError,
   "yaml_anchor_before_unknown_tag.yaml": YamlSyntaxError,
+  "yaml_astral_before_infinity.yaml": YamlSyntaxError,
   "yaml_depth_257.yaml": YamlSyntaxError,
   "yaml_depth_257_before_duplicate_key.yaml": YamlSyntaxError,
   "yaml_depth_257_before_unknown_tag.yaml": YamlSyntaxError,
   "yaml_duplicate_key.yaml": YamlSyntaxError,
   "yaml_duplicate_key_before_depth_257.yaml": YamlSyntaxError,
+  "yaml_duplicate_key_before_special_character.yaml": YamlSyntaxError,
   "yaml_duplicate_key_escaped.yaml": YamlSyntaxError,
   "yaml_duplicate_key_flow.yaml": YamlSyntaxError,
   "yaml_duplicate_key_nested.yaml": YamlSyntaxError,
@@ -246,6 +249,7 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "yaml_infinity_before_depth_257.yaml": YamlSyntaxError,
   "yaml_key_collection.yaml": YamlSyntaxError,
   "yaml_key_empty.yaml": YamlSyntaxError,
+  "yaml_key_empty_trailing_space.yaml": YamlSyntaxError,
   "yaml_key_float.yaml": YamlSyntaxError,
   "yaml_key_integer.yaml": YamlSyntaxError,
   "yaml_key_null.yaml": YamlSyntaxError,
@@ -259,13 +263,15 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "yaml_nan_lower.yaml": YamlSyntaxError,
   "yaml_nan_title.yaml": YamlSyntaxError,
   "yaml_nan_upper.yaml": YamlSyntaxError,
-  "yaml_special_character_before_duplicate_key.yaml": YamlSyntaxError,
   "yaml_special_character_in_key.yaml": YamlSyntaxError,
-  "yaml_special_character_in_number.yaml": YamlSyntaxError,
+  "yaml_tag_before_anchor.yaml": YamlSyntaxError,
   "yaml_tag_binary.yaml": YamlSyntaxError,
+  "yaml_tag_float.yaml": YamlSyntaxError,
   "yaml_tag_local.yaml": YamlSyntaxError,
+  "yaml_tag_nonspecific.yaml": YamlSyntaxError,
   "yaml_tag_omap.yaml": YamlSyntaxError,
   "yaml_tag_set.yaml": YamlSyntaxError,
+  "yaml_tag_str.yaml": YamlSyntaxError,
   "yaml_tag_timestamp.yaml": YamlSyntaxError,
   "yaml_two_documents.yaml": YamlSyntaxError,
   "yaml_unclosed_quote.yaml": YamlSyntaxError,
@@ -349,7 +355,7 @@ describe("the YAML reader", () => {
   it("reads by the core schema, integers exact, integral floats as JsonFloat", () => {
     const value = loads(
       "a: 0x1F\nb: 0o17\nc: 123456789012345678901234567890\nd: 2.0\ne: -0.0\nf: .5\n" +
-        "g: no\nh: 2026-11-17\ni: ~\nj: True\nk: '12'\nl: !!str 1\n",
+        "g: no\nh: 2026-11-17\ni: ~\nj: True\nk: '12'\n",
     );
     expect(tagged(value)).toEqual({
       a: "integer 31",
@@ -363,7 +369,6 @@ describe("the YAML reader", () => {
       i: null,
       j: true,
       k: "12",
-      l: "1",
     });
     expect(compactJson(loads("b: 1\n'10': 2\na: 3\n'2': 4\n"))).toBe('{"b":1,"10":2,"a":3,"2":4}');
   });
@@ -393,6 +398,9 @@ describe("the YAML reader", () => {
         "x: !!set {a: null}\n",
         "x: !!omap [{a: 1}]\n",
         "x: !local y\n",
+        "x: !!str 1\n",
+        "x: ! 1\n",
+        "x: !!float 1\n",
         "x: x\u007Fy\n",
         "x: !!str [1]\n",
         "a: 1\n---\nb: 2\n",
@@ -409,18 +417,16 @@ describe("the YAML reader", () => {
       ["the float -.Inf is not finite at line 1, column 4 of the YAML text", 3, 1, 4],
       ["the float .nan is not finite at line 1, column 4 of the YAML text", 3, 1, 4],
       ["the float 1e309 is not finite at line 1, column 4 of the YAML text", 3, 1, 4],
-      ["a value outside the JSON data model at line 1, column 4 of the YAML text", 3, 1, 4],
-      ["a value outside the JSON data model at line 1, column 4 of the YAML text", 3, 1, 4],
-      ["a value outside the JSON data model at line 1, column 4 of the YAML text", 3, 1, 4],
-      ["a value outside the JSON data model at line 1, column 4 of the YAML text", 3, 1, 4],
-      ["TAG_RESOLVE_FAILED: Unresolved tag: !local at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
       ["special characters are not allowed #x007f at line 1, column 5 of the YAML text", 4, 1, 5],
-      [
-        "TAG_RESOLVE_FAILED: Unresolved tag: tag:yaml.org,2002:str at line 1, column 4 of the YAML text",
-        3,
-        1,
-        4,
-      ],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
       [
         "MULTIPLE_DOCS: Source contains multiple documents; please use YAML.parseAllDocuments() at line 2, column 1 of the YAML text",
         5,
@@ -590,13 +596,20 @@ const SHARED_PLACES: Readonly<Record<string, readonly [number, number]>> = {
   "yaml_anchor.yaml": [1, 4],
   "yaml_alias.yaml": [1, 4],
   "yaml_tag_binary.yaml": [1, 4],
+  "yaml_tag_float.yaml": [1, 4],
+  "yaml_tag_local.yaml": [1, 4],
+  "yaml_tag_nonspecific.yaml": [1, 4],
   "yaml_tag_omap.yaml": [1, 4],
   "yaml_tag_set.yaml": [1, 4],
+  "yaml_tag_str.yaml": [1, 4],
   "yaml_tag_timestamp.yaml": [1, 4],
   "yaml_anchor_before_unknown_tag.yaml": [1, 4],
+  "yaml_tag_before_anchor.yaml": [1, 4],
+  "yaml_key_empty_trailing_space.yaml": [1, 2],
   "yaml_special_character_in_key.yaml": [1, 12],
-  "yaml_special_character_in_number.yaml": [1, 15],
-  "yaml_special_character_before_duplicate_key.yaml": [1, 5],
+  "yaml_duplicate_key_before_special_character.yaml": [3, 5],
+  "json_astral_before_duplicate_key.json": [1, 10],
+  "yaml_astral_before_infinity.yaml": [1, 10],
 };
 
 /** The name of the error reading a text throws, and the line and column its message names. */
@@ -633,17 +646,29 @@ describe("the first fault", () => {
     ["repeated key, then unknown tag", "a: 1\na: 2\nb: !foo x\n", 2, 1],
     ["repeated key, then a second document", "a: 1\na: 2\n---\nb\n", 2, 1],
     ["a second document, then repeated key", "a: 1\n---\nb: 1\nb: 2\n", 2, 1],
-    ["anchor, then unknown tag", "a: &x !local 1\n", 1, 4],
-    ["unknown tag, then anchor", "a: !local &x 1\n", 1, 4],
-    ["known tag, then anchor", "a: !!str &x 1\n", 1, 10],
     ["a key resolving to a float", ".inf: 1\n", 1, 1],
     ["a tag outside the data model, then a key not a string", "!!binary aGk=: 1\n", 1, 1],
     ["a character YAML does not allow, ending a repeated key", "x: {a: 1, a\u0001: 2}\n", 1, 12],
     ["a character YAML does not allow, ending a float too large", "x: [1, 1e99999\u0001]\n", 1, 15],
     ["a character YAML does not allow, then repeated key", "b: x\u0001y\na: 1\na: 2\n", 1, 5],
-    ["unknown tag, then a character YAML does not allow", "a: !foo x\nb: \u0001\n", 1, 4],
+    ["repeated key, then a character YAML does not allow", "a: 1\na: 2\nb: x\u0001\n", 3, 5],
+    ["unknown tag, then a character YAML does not allow", "a: !foo x\nb: \u0001\n", 2, 4],
   ] as const)("refuses in YAML %s at the first", ([, given, line, column]) => {
     expect(place(given)).toEqual(["YamlSyntaxError", line, column]);
+  });
+
+  it("names an anchor and a tag on one node by the property written first", () => {
+    expect(["a: &x !local 1\n", "a: !local &x 1\n", "a: !!str &x 1\n"].map(yamlRefusal)).toEqual([
+      ["an anchor at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+    ]);
+  });
+
+  it("refuses a syntax error met reading one token ahead, wherever the parser names it", () => {
+    // PyYAML meets the bad escape reading one token ahead and refuses it at
+    // (1, 8), before the anchor that `yaml` refuses at (1, 3): either may stand.
+    expect(() => loads('- &a "\\q"\n')).toThrow(YamlSyntaxError);
   });
 
   it.for([
@@ -673,6 +698,33 @@ describe("the first fault", () => {
     ["high-surrogate escape, then a low surrogate as itself", '["\\ud800\udc00"]', 3],
   ] as const)("refuses a JSON string at the token that offends: %s", ([, given, column]) => {
     expect(place(given)).toEqual(["JsonSyntaxError", 1, column]);
+  });
+});
+
+/** The name, offset, line and column of the error reading a text throws. */
+function position(given: string): [string, number, number, number] {
+  try {
+    loads(given);
+  } catch (error) {
+    const { name, offset, line, column } = error as JsonSyntaxError;
+    return [name, offset, line, column];
+  }
+  throw new Error("the text was read");
+}
+
+describe("columns", () => {
+  it("count code points, the offset UTF-16 code units", () => {
+    expect(
+      ['"😀": &x 1\n', '["😀", "\\ud800"]', 'a: ["𝄞", .inf]\n', '{"𝄞": 1, "𝄞": 2}'].map(position),
+    ).toEqual([
+      ["YamlSyntaxError", 6, 1, 6],
+      ["JsonSyntaxError", 8, 1, 8],
+      ["YamlSyntaxError", 10, 1, 10],
+      ["JsonSyntaxError", 10, 1, 10],
+    ]);
+    expect(() => loads('["😀", 1e999]')).toThrow(
+      new RangeError("1e999 rounds to an infinity at line 1, column 7 of the JSON text"),
+    );
   });
 });
 

@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
 from timetoshare import canonical_order, dumps, loads, serialization_of
 
@@ -674,22 +675,37 @@ def test_yaml_is_read_under_the_core_schema() -> None:
     )
 
 
-@pytest.mark.parametrize("text", ["", "# only a comment\n", "\n\n"], ids=repr)
+@pytest.mark.parametrize("text", ["", "# only a comment\n", "\n\n", "---\n"], ids=repr)
 def test_an_empty_yaml_text_reads_as_null(text: str) -> None:
     assert loads(text) is None
 
 
-def test_yaml_keeps_integers_exact_and_reads_explicit_json_tags() -> None:
-    assert loads(f"a: {2**70}\nb: !!str 1\nc: !!float 2\n") == {
-        "a": 2**70,
-        "b": "1",
-        "c": 2.0,
-    }
-    assert type(loads("!!float 2\n")) is float
+def test_yaml_keeps_integers_exact() -> None:
+    assert loads(f"a: {2**70}\n") == {"a": 2**70}
 
 
 def test_yaml_reads_a_surrogate_pair_written_as_two_escapes() -> None:
     assert loads('a: "\\ud83d\\ude00"\n') == {"a": "\U0001f600"}
+
+
+CANONICAL_YAML = sorted(
+    [
+        *(REPOSITORY_ROOT / "fixtures" / "0.2.0").rglob("*.yaml"),
+        *(SERIALIZATIONS / "cases").glob("*/canonical.yaml"),
+        *(SERIALIZATIONS / "readings").glob("*.expected.yaml"),
+    ]
+)
+"""Every canonical YAML text of the fixtures."""
+
+
+@pytest.mark.parametrize(
+    "path",
+    CANONICAL_YAML,
+    ids=lambda path: path.relative_to(REPOSITORY_ROOT).as_posix(),
+)
+def test_canonical_yaml_reads_alike_by_an_unmodified_yaml_reader(path: Path) -> None:
+    text = _text(path)
+    assert _kind(yaml.safe_load(text)) == _kind(loads(text))
 
 
 @pytest.mark.parametrize(
@@ -700,36 +716,16 @@ def test_yaml_reads_a_surrogate_pair_written_as_two_escapes() -> None:
         ("a: 1\nb: *x\n", "an alias is not read at line 2, column 4"),
         ("1: a\n", "a key that is not a string is not read at line 1, column 1"),
         ("? [a]\n: 1\n", "a key that is not a string is not read at line 1, column 3"),
-        (
-            "a: !!timestamp 2026-11-17\n",
-            "the tag tag:yaml.org,2002:timestamp names no value of the JSON data "
-            "model at line 1, column 4",
-        ),
-        (
-            "a: !!binary aGk=\n",
-            "the tag tag:yaml.org,2002:binary names no value of the JSON data "
-            "model at line 1, column 4",
-        ),
-        (
-            "a: !!set {x: null}\n",
-            "the tag tag:yaml.org,2002:set names no value of the JSON data model "
-            "at line 1, column 4",
-        ),
-        (
-            "a: !!omap [{x: 1}]\n",
-            "the tag tag:yaml.org,2002:omap names no value of the JSON data model "
-            "at line 1, column 4",
-        ),
-        (
-            "a: !!str [1]\n",
-            "the tag tag:yaml.org,2002:str does not fit the node it is given "
-            "at line 1, column 4",
-        ),
-        (
-            "a: !!int [1]\n",
-            "the tag tag:yaml.org,2002:int does not fit the node it is given "
-            "at line 1, column 4",
-        ),
+        ("a: !!timestamp 2026-11-17\n", "a tag is not read at line 1, column 4"),
+        ("a: !!binary aGk=\n", "a tag is not read at line 1, column 4"),
+        ("a: !!set {x: null}\n", "a tag is not read at line 1, column 4"),
+        ("a: !!omap [{x: 1}]\n", "a tag is not read at line 1, column 4"),
+        ("a: !!str 1\n", "a tag is not read at line 1, column 4"),
+        ("a: !!float 2\n", "a tag is not read at line 1, column 4"),
+        ("a: !!str [1]\n", "a tag is not read at line 1, column 4"),
+        ("a: !!int [1]\n", "a tag is not read at line 1, column 4"),
+        ("a: ! 1\n", "a tag is not read at line 1, column 4"),
+        ("a: !local x\n", "a tag is not read at line 1, column 4"),
         ("a: .inf\n", "'.inf' is not a finite float at line 1, column 4"),
         ("a: 1e309\n", "1e309 rounds to an infinity at line 1, column 4"),
         ('a: "\\ud800"\n', "a string holds a lone surrogate at line 1, column 4"),
@@ -757,8 +753,12 @@ def test_yaml_reads_a_surrogate_pair_written_as_two_escapes() -> None:
         "binary",
         "set",
         "omap",
+        "str",
+        "float",
         "str on a sequence",
         "int on a sequence",
+        "non-specific",
+        "local",
         "infinity",
         "overflow",
         "lone surrogate",
@@ -888,13 +888,20 @@ SHARED_PLACES = {
     "yaml_anchor.yaml": (1, 4),
     "yaml_alias.yaml": (1, 4),
     "yaml_tag_binary.yaml": (1, 4),
+    "yaml_tag_float.yaml": (1, 4),
+    "yaml_tag_local.yaml": (1, 4),
+    "yaml_tag_nonspecific.yaml": (1, 4),
     "yaml_tag_omap.yaml": (1, 4),
     "yaml_tag_set.yaml": (1, 4),
+    "yaml_tag_str.yaml": (1, 4),
     "yaml_tag_timestamp.yaml": (1, 4),
     "yaml_anchor_before_unknown_tag.yaml": (1, 4),
+    "yaml_tag_before_anchor.yaml": (1, 4),
+    "yaml_key_empty_trailing_space.yaml": (1, 2),
     "yaml_special_character_in_key.yaml": (1, 12),
-    "yaml_special_character_in_number.yaml": (1, 15),
-    "yaml_special_character_before_duplicate_key.yaml": (1, 5),
+    "yaml_duplicate_key_before_special_character.yaml": (3, 5),
+    "json_astral_before_duplicate_key.json": (1, 10),
+    "yaml_astral_before_infinity.yaml": (1, 10),
 }
 """The place of each shared refusal the cases' README places, as a line and a column."""
 
@@ -911,96 +918,102 @@ DEEP = "[" * 256 + "]" * 256
 """Flow sequences that, as the value of a key, open a collection at depth 257."""
 
 
+TAG = "a tag is not read at line 1, column 4"
+"""The refusal of a tag at line 1, column 4."""
+
+SPECIAL = "special characters are not allowed #x0001 at line {}, column {}"
+"""The refusal of U+0001 at a line and a column."""
+
+FIRST_FAULTS = {
+    "repeated key, then depth": (
+        "a: 1\na: 2\nb: " + DEEP,
+        'the key "a" repeats at line 2, column 1',
+    ),
+    "unknown tag, then depth": ("a: !foo x\nb: " + DEEP, TAG),
+    "!!map on a sequence, then depth": ("a: !!map [1]\nb: " + DEEP, TAG),
+    "integer key, then depth": (
+        "1: a\nb: " + DEEP,
+        "a key that is not a string is not read at line 1, column 1",
+    ),
+    "lone surrogate, then depth": (
+        'a: "\\ud800"\nb: ' + DEEP,
+        "a string holds a lone surrogate at line 1, column 4",
+    ),
+    "depth, then repeated key": (
+        "a: " + DEEP + "\nb: 1\nb: 2\n",
+        TOO_DEEP.format(1, 259),
+    ),
+    "depth, then unknown tag": (
+        "a: " + DEEP + "\nb: !foo x\n",
+        TOO_DEEP.format(1, 259),
+    ),
+    "unknown tag, then repeated key": ("b: !foo x\na: 1\na: 2\n", TAG),
+    "repeated key, then unknown tag": (
+        "a: 1\na: 2\nb: !foo x\n",
+        'the key "a" repeats at line 2, column 1',
+    ),
+    "repeated key, then a second document": (
+        "a: 1\na: 2\n---\nb\n",
+        'the key "a" repeats at line 2, column 1',
+    ),
+    "a second document, then repeated key": (
+        "a: 1\n---\nb: 1\nb: 2\n",
+        "expected a single document in the stream, but found another document "
+        "at line 2, column 1",
+    ),
+    "anchor, then tag": (
+        "a: &x !local 1\n",
+        "an anchor is not read at line 1, column 4",
+    ),
+    "tag, then anchor": ("a: !local &x 1\n", TAG),
+    "core tag, then anchor": ("a: !!str &x 1\n", TAG),
+    "a key resolving to a float": (
+        ".inf: 1\n",
+        "a key that is not a string is not read at line 1, column 1",
+    ),
+    "a tag, then a key not a string": (
+        "!!binary aGk=: 1\n",
+        "a tag is not read at line 1, column 1",
+    ),
+    "unknown tag, then a character YAML does not allow": (
+        "a: !foo x\nb: \x01\n",
+        SPECIAL.format(2, 4),
+    ),
+    "a character YAML does not allow, then repeated key": (
+        "b: \x01\na: 1\na: 2\n",
+        SPECIAL.format(1, 4),
+    ),
+    "repeated key, then a character YAML does not allow": (
+        "a: 1\na: 2\nb: x\x01\n",
+        SPECIAL.format(3, 5),
+    ),
+    "a character YAML does not allow, ending a repeated key": (
+        "x: {a: 1, a\x01: 2}\n",
+        SPECIAL.format(1, 12),
+    ),
+    "a character YAML does not allow, ending a float too large": (
+        "x: [1, 1e99999\x01]\n",
+        SPECIAL.format(1, 15),
+    ),
+}
+"""Texts holding several faults, by name, and the message of the refusal."""
+
+
 @pytest.mark.parametrize(
-    ("text", "message"),
-    [
-        ("a: 1\na: 2\nb: " + DEEP, 'the key "a" repeats at line 2, column 1'),
-        (
-            "a: !foo x\nb: " + DEEP,
-            "the tag !foo names no value of the JSON data model at line 1, column 4",
-        ),
-        (
-            "a: !!map [1]\nb: " + DEEP,
-            "the tag tag:yaml.org,2002:map does not fit the node it is given "
-            "at line 1, column 4",
-        ),
-        (
-            "1: a\nb: " + DEEP,
-            "a key that is not a string is not read at line 1, column 1",
-        ),
-        (
-            'a: "\\ud800"\nb: ' + DEEP,
-            "a string holds a lone surrogate at line 1, column 4",
-        ),
-        ("a: " + DEEP + "\nb: 1\nb: 2\n", TOO_DEEP.format(1, 259)),
-        ("a: " + DEEP + "\nb: !foo x\n", TOO_DEEP.format(1, 259)),
-        (
-            "b: !foo x\na: 1\na: 2\n",
-            "the tag !foo names no value of the JSON data model at line 1, column 4",
-        ),
-        ("a: 1\na: 2\nb: !foo x\n", 'the key "a" repeats at line 2, column 1'),
-        (
-            "a: !foo x\nb: \x01\n",
-            "the tag !foo names no value of the JSON data model at line 1, column 4",
-        ),
-        (
-            "b: \x01\na: 1\na: 2\n",
-            "special characters are not allowed #x0001 at line 1, column 4",
-        ),
-        ("a: 1\na: 2\n---\nb\n", 'the key "a" repeats at line 2, column 1'),
-        ("a: &x !local 1\n", "an anchor is not read at line 1, column 4"),
-        (
-            "a: !local &x 1\n",
-            "the tag !local names no value of the JSON data model at line 1, column 4",
-        ),
-        ("a: !!str &x 1\n", "an anchor is not read at line 1, column 10"),
-        (".inf: 1\n", "a key that is not a string is not read at line 1, column 1"),
-        (
-            "!!binary aGk=: 1\n",
-            "the tag tag:yaml.org,2002:binary names no value of the JSON data "
-            "model at line 1, column 1",
-        ),
-        (
-            "x: {a: 1, a\x01: 2}\n",
-            "special characters are not allowed #x0001 at line 1, column 12",
-        ),
-        (
-            "x: [1, 1e99999\x01]\n",
-            "special characters are not allowed #x0001 at line 1, column 15",
-        ),
-        (
-            "a: 1\n---\nb: 1\nb: 2\n",
-            "expected a single document in the stream, but found another document "
-            "at line 2, column 1",
-        ),
-    ],
-    ids=[
-        "repeated key, then depth",
-        "unknown tag, then depth",
-        "!!map on a sequence, then depth",
-        "integer key, then depth",
-        "lone surrogate, then depth",
-        "depth, then repeated key",
-        "depth, then unknown tag",
-        "unknown tag, then repeated key",
-        "repeated key, then unknown tag",
-        "unknown tag, then a character YAML does not allow",
-        "a character YAML does not allow, then repeated key",
-        "repeated key, then a second document",
-        "a second document, then repeated key",
-        "anchor, then unknown tag",
-        "unknown tag, then anchor",
-        "known tag, then anchor",
-        "a key resolving to a float",
-        "a tag outside the data model, then a key not a string",
-        "a character YAML does not allow, ending a repeated key",
-        "a character YAML does not allow, ending a float too large",
-    ],
+    ("text", "message"), list(FIRST_FAULTS.values()), ids=list(FIRST_FAULTS)
 )
 def test_yaml_refuses_the_first_fault(text: str, message: str) -> None:
     with pytest.raises(ValueError) as caught:
         loads(text)
     assert str(caught.value) == message
+
+
+def test_yaml_refuses_a_syntax_error_met_reading_ahead() -> None:
+    # PyYAML meets the bad escape reading one token ahead and refuses it at
+    # (1, 8), before the anchor the TypeScript reader refuses at (1, 3): either
+    # may stand, so the place is not pinned.
+    with pytest.raises(ValueError):
+        loads('- &a "\\q"\n')
 
 
 @pytest.mark.parametrize(
@@ -1114,11 +1127,19 @@ def test_a_value_256_deep_is_written_and_read_back(serialization: str) -> None:
     [
         ('"\U0001f600": &x 1\n', "an anchor is not read at line 1, column 6"),
         (
+            'a: ["\U0001d11e", .inf]\n',
+            "'.inf' is not a finite float at line 1, column 10",
+        ),
+        (
+            '{"\U0001d11e": 1, "\U0001d11e": 2}',
+            'the key "\\ud834\\udd1e" repeats at line 1, column 10',
+        ),
+        (
             '["\U0001f600", "\\ud800"]',
             "a string holds a lone surrogate at line 1, column 8",
         ),
     ],
-    ids=["yaml", "json"],
+    ids=["yaml", "yaml after U+1D11E", "json after U+1D11E", "json"],
 )
 def test_columns_count_code_points(text: str, message: str) -> None:
     with pytest.raises(ValueError) as caught:

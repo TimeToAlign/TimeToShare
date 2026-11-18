@@ -1094,16 +1094,26 @@ any text and `serialization_of` names a text's serialization. They live in
 - **The YAML reader.** Plain scalars resolve by the core schema: `no` and
   `y` are strings, `2026-11-17`, `1:20`, `1_000` and `0b101` strings,
   `1e-05` a float, `2` an integer, `0x1F` 31, `0o17` 15, `010` 10, `~` and an
-  empty value null, `True` a boolean; an integer of 2^70 stays exact;
-  `!!str 1` is the string `"1"` and `!!float 2` the float 2.0; an empty text,
-  one of comments only and one of blank lines read as null; `"😀"`
-  is U+1F600. Refused, with exactly the stated message naming the line and
-  column: a repeated key, an anchor, an alias, an integer key and a
-  collection key, the tags `!!timestamp`, `!!binary`, `!!set` and `!!omap`
-  (each naming no value of the JSON data model), `!!str` and `!!int` on a
-  sequence (a core tag that does not fit the node it is given), `.inf`,
-  `1e309`, the escape `\ud800`, U+007F and a lone surrogate written as
-  itself (characters outside YAML's printable set) and a second document.
+  empty value null, `True` a boolean; an integer of 2^70 stays exact; an
+  empty text, one of comments only, one of blank lines and `---` alone read
+  as null; `"😀"` is U+1F600. Refused, with exactly the stated message
+  naming the line and column: a repeated key, an anchor, an alias, an
+  integer key and a collection key; every tag, whatever it names, as `a
+  tag is not read` at the tag: `!!timestamp`, `!!binary`, `!!set`,
+  `!!omap`, `!!str 1` and `!!float 2` (whose values would be in the format),
+  `!!str` and `!!int` on a sequence, the non-specific `!` and the local
+  `!local`; `.inf`, `1e309`, the escape `\ud800`, U+007F and a lone
+  surrogate written as itself (characters outside YAML's printable set)
+  and a second document.
+- **Canonical YAML is plain YAML.** Every canonical YAML text of the
+  fixtures (every manifest under `fixtures/0.2.0/`, every case's
+  `canonical.yaml` and every reading's `.expected.yaml`) is read by
+  PyYAML's unmodified `yaml.safe_load`, a YAML 1.1 reader, to the value
+  `loads` reads, kind for kind (an integer equals only an integer, a
+  boolean only a boolean, `-0.0` differs from `0.0`). So a reader that
+  knows nothing of the format's rules reads canonical YAML as the format
+  does. The texts are found by walking those directories, so a fixture
+  added there is checked without a change to the test.
 - **The nesting limit.** A scalar has depth 0, an object or array 1 more
   than its deepest member (an empty one 1). Both readers refuse a text whose
   value would be deeper than 256 with the `ValueError` `collections nest
@@ -1137,28 +1147,32 @@ any text and `serialization_of` names a text's serialization. They live in
 - **The first fault.** A text holding several faults is refused for the
   first in document order, at the token that offends, by both readers; the
   place names the fault, so a test that pins it proves the order. The
-  YAML reader checks each node as the parser's event for it arrives, a key
-  before its value (its anchor and its tag in the order they are written,
-  a key being a string by its resolved tag, before its value is built, a
-  key not repeating, depth, value), and stops there; an anchor is placed
-  at its `&`, every other fault of a node at its first character; the JSON reader refuses where it stands
-  when it meets a fault, the grammar's included. Pinned by message: in
-  YAML, a repeated key, `!foo`, `!!map [1]`, the key `1` and the escape
-  `\ud800` each before a flow sequence at depth 257 are refused for
-  themselves, and that depth (line 1, column 259) before a repeated key or
-  `!foo`; `!foo` before a repeated key and a repeated key before `!foo`,
-  each for the first; `!foo` before U+0001 for the tag and U+0001 before a
-  repeated key for the character (PyYAML checks every character before it
-  parses any, so the reader looks for a fault in the text before the
-  character first, that text read with U+FFFD in the character's place,
-  so no token is cut short: `x: {a: 1, a` U+0001 `: 2}` and `x: [1,
-  1e99999` U+0001 `]` are refused for the character, at columns 12 and 15,
-  not for a key `a` or an infinity the cut would invent); a repeated key
-  before a second document for the key, and a second document before a
-  repeated key in it for the document; `a: &x !local 1` for the anchor and
-  `a: !local &x 1` for the tag, both at column 4, `a: !!str &x 1` for the
-  anchor at column 10; `.inf: 1` for a key that is not a string, never for
-  the infinity; `!!binary aGk=: 1` for the tag before the key. In
+  YAML reader first looks for a character outside YAML's printable set and
+  refuses it where it stands, before the text is parsed; it then checks
+  each node as the parser's event for it arrives, a key before its value
+  (an alias, an anchor, a tag, a key being a string, a key not repeating,
+  depth, value), and stops there, except that a parser reading one token
+  ahead may meet a syntax error there first: `- &a "\q"` is refused here
+  at the bad escape (1, 8) and by TypeScript at the anchor (1, 3), so its
+  test asserts only the `ValueError`, and no shared refusal pins such a
+  pair; an anchor or a tag is placed at the node's first property and
+  named by it, an empty key right after its `?`, every other fault of a
+  node at its first character; the
+  JSON reader refuses where it stands when it meets a fault, the grammar's
+  included. Pinned by message: in YAML, a repeated key, `!foo`, `!!map
+  [1]`, the key `1` and the escape `\ud800` each before a flow sequence at
+  depth 257 are refused for themselves, and that depth (line 1, column
+  259) before a repeated key or `!foo`; `!foo` before a repeated key and a
+  repeated key before `!foo`, each for the first; U+0001 after `!foo`,
+  before a repeated key, after a repeated key, inside a key that would
+  repeat (`x: {a: 1, a` U+0001 `: 2}`, column 12) and after a float too
+  large (`x: [1, 1e99999` U+0001 `]`, column 15), each for the character;
+  a repeated key before a second document for the key, and a second
+  document before a repeated key in it for the document; `a: &x !local 1`
+  for the anchor, `a: !local &x 1` and `a: !!str &x 1` for the tag, the
+  property written first, all at column 4; `.inf: 1`
+  for a key that is not a string, never for the infinity; `!!binary aGk=:
+  1` for the tag before the key. In
   JSON, `[1e999, }` and `[1e999] 2` for the number at column 2,
   `["\ud800", }` for the surrogate at column 3, a repeated key before a
   missing key or extra data for the key, `1e999` as the value of a key
@@ -1173,14 +1187,18 @@ any text and `serialization_of` names a text's serialization. They live in
   itself follows) is lone at its own escape. Every shared refusal whose
   place the cases' README gives is refused there (the test's table of
   places): the two depth texts; the six `json_lone_surrogate_*` texts, one of them
-  (`json_lone_surrogate_before_syntax_error`) also among the twelve
-  `*_before_*` texts; `yaml_anchor` and `yaml_alias` at the `&`; the four
-  `yaml_tag_*` texts outside the data model at the tag; and the two
-  `yaml_special_character_in_*` texts at the character.
+  (`json_lone_surrogate_before_syntax_error`) also among the fifteen
+  `*_before_*` texts; `yaml_anchor` and `yaml_alias` at the `&`; the nine
+  `yaml_tag_*` texts at the tag (`yaml_tag_before_anchor` also among the
+  `*_before_*` texts); `yaml_special_character_in_key` at the character;
+  and `yaml_key_empty_trailing_space` (`?`, a space, a line feed, `: 1`)
+  right after the `?` at (1, 2).
 - **Columns count code points.** In both readers a character above U+FFFF
   counts once: the YAML anchor in `"😀": &x 1` is refused at column 6, and
   the escape `\ud800` in the JSON text `["😀", "\ud800"]` at column 8 (in
-  UTF-16 code units they would be 7 and 9).
+  UTF-16 code units they would be 7 and 9); among the shared refusals
+  `json_astral_before_duplicate_key` and `yaml_astral_before_infinity` at
+  column 10 (11 in UTF-16 code units).
 - **The float spelling.** The README's examples: `2.0`, `123.25`, `0.1`,
   `0.0001`, `1.0e-05`, `-2.5e-07`, `1000000000000000.0`, `1.0e+16`,
   `1.5e+16`, `5.0e-324`, `1.7976931348623157e+308`, `-0.0`, `5.0e-05` and

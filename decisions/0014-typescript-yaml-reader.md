@@ -17,8 +17,9 @@ it needs a library for reading only. The reader must:
    same `number`, needs each scalar's resolved kind;
 3. read a float literal as the nearest double;
 4. refuse, with the position of the offending node: malformed text and
-   more than one document; duplicate keys; anchors and aliases; a key that
-   is not a string; a value outside the JSON data model; a non-finite float
+   more than one document; a character outside YAML's printable set;
+   duplicate keys; anchors, aliases and tags; a key that is not a string;
+   a non-finite float
    (`.inf`, `.nan`, and a literal such as `1e309` that rounds to an
    infinity); a string holding an unpaired surrogate; collections nested
    deeper than 256 levels; of several faults, the first in document order;
@@ -59,7 +60,7 @@ Each candidate was installed and run against the requirements on Node on
 
 ## Decision
 
-Use `yaml` 2.9.1. The YAML reader first looks for a character outside
+Use `yaml` 2.9.1. The YAML reader first refuses a character outside
 YAML 1.2's printable set, then calls `parseDocument(text, {schema:
 "core", intAsBigInt: true, uniqueKeys: true, keepSourceTokens: true})`,
 then builds the value by
@@ -67,30 +68,30 @@ one walk over the node tree in document order (a key before its value, a
 value's items before the next key), with an explicit stack, so a text
 nested as deeply as `yaml` composes it never exhausts the call stack in
 the walk; it never calls `toJS` and never resolves an alias. At each node
-the walk checks, in this order, an alias, the anchor and the tag in the
-order they are written, a key being a string, the depth, then the value,
-and it stops at the first fault. Every error and warning of the parser is a fault as well; the
+the walk checks, in this order, an alias, an anchor, a tag, a key being a
+string, the depth, then the value, and it stops at the first fault. Every error and warning of the parser is a fault as well; the
 reader refuses the one of them with the smallest `pos[0]`.
 
 | Refusal | How |
 | --- | --- |
-| Characters outside the printable set | `yaml` reads them; YAML 1.2 allows only `c-printable` (tab, line feed, carriage return, U+0020 to U+007E, U+0085, U+00A0 to U+D7FF, U+E000 to U+FFFD, U+10000 to U+10FFFF), as PyYAML does. The reader refuses the first other code point, U+0001, U+007F or a lone surrogate among them, at its offset with PyYAML's message (`special characters are not allowed #x0001`), unless the text before it holds a fault: that text is read first with U+FFFD, printable and ending no token, in the character's place, and a fault it finds before the character's offset is refused instead. Cutting the text there without U+FFFD could invent a fault: `x: {a: 1, a` U+0001 `: 2}` would end in the repeated key `a`. |
+| Characters outside the printable set | `yaml` reads them; YAML 1.2 allows only `c-printable` (tab, line feed, carriage return, U+0020 to U+007E, U+0085, U+00A0 to U+D7FF, U+E000 to U+FFFD, U+10000 to U+10FFFF), as PyYAML does. Before parsing, the reader refuses the first other code point, U+0001, U+007F or a lone surrogate among them, at its offset with PyYAML's message (`special characters are not allowed #x0001`), whatever fault comes before it, as PyYAML does. |
 | Malformed text, more than one document, duplicate keys | Errors of the parser: a second document is `MULTIPLE_DOCS`, two equal keys (`a` and `"a"` alike) are `DUPLICATE_KEY` under `uniqueKeys`, a text nested too deeply for the call stack is `RESOURCE_EXHAUSTION`. |
-| What the parser only warns about | Refused as well: an unknown tag (`!foo`) is the warning `TAG_RESOLVE_FAILED`. |
-| Anchors and aliases | The walk refuses a node, key or value, for which `isAlias(node)` holds or whose `anchor` is set; a node's tag is checked first where it is written first. |
+| What the parser only warns about | Refused as well, but never before the walk's own fault at the same offset: an unknown tag (`!foo`) and a core tag on a value it cannot describe (`!!float 1`, `!!str [1]`, `!!map [1]`) are the warning `TAG_RESOLVE_FAILED` at the tag, where the walk refuses them as `a tag`. |
+| Anchors, aliases and tags | The walk refuses a node, key or value, for which `isAlias(node)` holds, then one whose `anchor` or `tag` is set, as an anchor or a tag by the property written first, whatever the tag names (`!!str 1` and `!` included); implicit resolution leaves `tag` unset. |
 | Keys that are not strings | The walk refuses a pair whose `key` is not a scalar whose `value` is a string (`1:`, `null:`, `[1]:`). The option `stringKeys` stays unset, since it would turn `1:` into the key `"1"`. |
-| Values outside the JSON data model | Collections by their tag: the walk refuses a mapping or sequence whose `tag` is set to anything but `tag:yaml.org,2002:map` or `tag:yaml.org,2002:seq`, so `!!set` (a `YAMLSet`, a mapping tagged `set`) and `!!omap` (a `YAMLOMap`, a sequence tagged `omap`) are refused; implicit resolution leaves `tag` unset. Scalars by their value: the walk keeps a scalar whose `value` is `null`, a boolean, a string, a `bigint` or a `number`, and refuses any other, so `!!timestamp` (a `Date`) and `!!binary` (a `Uint8Array`) are refused, and `!!str 1` reads as `"1"`. A node that is neither a mapping, a sequence nor a scalar is refused at the collection holding it. |
+| The data model | With every tag refused, a scalar under the core schema is `null`, a boolean, a string, a `bigint` or a `number`, a collection a mapping or a sequence, so nothing else needs a check. |
 | Non-finite floats | The walk refuses a scalar whose `value` is a `number` that is not `Number.isFinite`: `.inf`, `-.Inf` and `.nan`, which `yaml` resolves to `Infinity` and `NaN` with `tag` unset, and `1e309`, which `parseFloat` rounds to `Infinity`. |
 | Unpaired surrogates | The walk refuses a string, key or value, holding a high surrogate not followed by a low one or a low surrogate not preceded by a high one, by the package's own test, which the writers share. `yaml` joins a high-surrogate escape followed by a low one into one character (`"\ud83d\ude00"` gives U+1F600) and leaves an unpaired one in the string (`"\ud800"`). |
 | Nesting deeper than 256 levels | The walk knows the depth of each node from its stack (the root stands at depth 1) and refuses a mapping or a sequence at depth 257 at its first character, before it walks into it: the first collection at depth 257, in document order. |
 
 **The first fault.** Of several faults the reader refuses the first in
-document order. The walk meets its own faults in that order and stops at
-the first; the parser reports its errors and warnings in lists of their
-own, ordered by kind rather than by place, so the reader takes the one
-with the smallest `pos[0]`. A fault of the walk is refused unless that
-problem of the parser lies at or before its offset, and a problem of the
-parser alone is refused where the walk finds none. One problem never
+document order, once the characters are checked. The walk meets its own
+faults in that order and stops at the first; the parser reports its errors
+and warnings in lists of their own, ordered by kind rather than by place,
+so the reader takes the one with the smallest `pos[0]`. A fault of the
+walk is refused unless that problem of the parser lies strictly before its
+offset, so at an equal offset the walk's message stands, and a problem of
+the parser alone is refused where the walk finds none. One problem never
 outranks the walk: `RESOURCE_EXHAUSTION`, which `yaml` reports where its
 stack ran out composing collections hundreds of levels deeper than 257 and
 where it stops composing. The tree it leaves still holds the collection at
@@ -102,28 +103,31 @@ Numbers stay lossless by the scalar's resolved kind: a `value` that is a
 
 Every refusal throws `YamlSyntaxError`, a subclass of `SyntaxError` with
 the fields of `JsonSyntaxError` (`offset`, in UTF-16 code units from zero;
-`line` and `column` counted from one, the column in UTF-16 code units),
-from an offset: for an error or warning of the parser its `pos[0]`, with
-its `code` in the message; for a refusal of the walk the offending token.
-An alias is refused at its `*` and an anchor at its `&`; every other
-fault of a node at the node's first character, which is its anchor or tag
-where it has one, else its `range[0]`. A node keeps no position of its
-anchor or tag: they are tokens of the concrete syntax tree written before
-the node (in a document's start for the root, in an item's start for its
-key, or its value where it has no key, and in an item's separator for its
-value). Where a node has one, the reader parses the text again with
-`yaml`'s `Parser` and reads them there, naming the node's token by its
-type and its `offset` (kept by `keepSourceTokens`), since a block mapping
-and its first key share an offset; an empty node, which has no token,
-takes the last written before its `range[0]`. The package computes the line and column from the offset
-itself, with the same function as for `JsonSyntaxError` (a line ends at
-each line feed), so no `LineCounter` is passed. The walk builds plain
-values only, defining each key as an own property in its written order,
-so `__proto__` is an ordinary own key. An empty text, or one of comments
-only, reads as null; `---` alone too. Comments are kept on the nodes and
-ignored by the walk. The emitter is not used.
+`line` and `column` counted from one, the column in code points, so that a
+character above U+FFFF counts once, as in PyYAML's marks), from an offset:
+for an error or warning of the parser its `pos[0]`, with its `code` in the
+message; for a refusal of the walk the offending token. An alias is
+refused at its `*`, an anchor or a tag at the node's first property and
+named by it (`&` an anchor, `!` a tag), an empty key right after its `?`
+(`yaml` places it after the white space that follows), every other fault
+of a node at its `range[0]`. A node keeps no position of its properties:
+they are tokens of the concrete syntax tree written before the node (in a
+document's start for the root, in an item's start for its key, or its
+value where it has no key, and in an item's separator for its value).
+Where a node has one, the reader parses the text again with `yaml`'s
+`Parser` and takes the first there, naming the node's token by its type
+and its `offset` (kept by `keepSourceTokens`), since a block mapping and
+its first key share an offset; an empty node, which has no token, takes
+the last written before its `range[0]`. The package computes the line and
+column from the offset itself, with the same function as for
+`JsonSyntaxError` (a line ends at each line feed), so no `LineCounter` is
+passed. The walk builds plain values only, defining each key as an own
+property in its written order, so `__proto__` is an ordinary own key. An
+empty text, or one of comments only, reads as null; `---` alone too.
+Comments are kept on the nodes and ignored by the walk. The emitter is not
+used.
 
-Verified on 2026-11-17 with `yaml` 2.9.1 on Node: `!foo 1` gives the
+Verified on 2026-11-18 with `yaml` 2.9.1 on Node 22.23: `!foo 1` gives the
 warning `TAG_RESOLVE_FAILED`; `.inf` resolves to the `number` `Infinity`
 with `tag` unset; `&x` sets `anchor` and `*x` is a node for which
 `isAlias` holds; the values listed under `yaml` 2.9.1 above, the
