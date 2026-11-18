@@ -249,6 +249,7 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "yaml_infinity_before_depth_257.yaml": YamlSyntaxError,
   "yaml_key_collection.yaml": YamlSyntaxError,
   "yaml_key_empty.yaml": YamlSyntaxError,
+  "yaml_key_empty_trailing_space.yaml": YamlSyntaxError,
   "yaml_key_float.yaml": YamlSyntaxError,
   "yaml_key_integer.yaml": YamlSyntaxError,
   "yaml_key_null.yaml": YamlSyntaxError,
@@ -420,22 +421,12 @@ describe("the YAML reader", () => {
       ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
       ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
       ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
-      ["TAG_RESOLVE_FAILED: Unresolved tag: !local at line 1, column 4 of the YAML text", 3, 1, 4],
       ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
       ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
-      [
-        "TAG_RESOLVE_FAILED: Unresolved tag: tag:yaml.org,2002:float at line 1, column 4 of the YAML text",
-        3,
-        1,
-        4,
-      ],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
       ["special characters are not allowed #x007f at line 1, column 5 of the YAML text", 4, 1, 5],
-      [
-        "TAG_RESOLVE_FAILED: Unresolved tag: tag:yaml.org,2002:str at line 1, column 4 of the YAML text",
-        3,
-        1,
-        4,
-      ],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
       [
         "MULTIPLE_DOCS: Source contains multiple documents; please use YAML.parseAllDocuments() at line 2, column 1 of the YAML text",
         5,
@@ -614,6 +605,7 @@ const SHARED_PLACES: Readonly<Record<string, readonly [number, number]>> = {
   "yaml_tag_timestamp.yaml": [1, 4],
   "yaml_anchor_before_unknown_tag.yaml": [1, 4],
   "yaml_tag_before_anchor.yaml": [1, 4],
+  "yaml_key_empty_trailing_space.yaml": [1, 2],
   "yaml_special_character_in_key.yaml": [1, 12],
   "yaml_duplicate_key_before_special_character.yaml": [3, 5],
   "json_astral_before_duplicate_key.json": [1, 10],
@@ -654,9 +646,6 @@ describe("the first fault", () => {
     ["repeated key, then unknown tag", "a: 1\na: 2\nb: !foo x\n", 2, 1],
     ["repeated key, then a second document", "a: 1\na: 2\n---\nb\n", 2, 1],
     ["a second document, then repeated key", "a: 1\n---\nb: 1\nb: 2\n", 2, 1],
-    ["anchor, then tag", "a: &x !local 1\n", 1, 4],
-    ["tag, then anchor", "a: !local &x 1\n", 1, 4],
-    ["core tag, then anchor", "a: !!str &x 1\n", 1, 4],
     ["a key resolving to a float", ".inf: 1\n", 1, 1],
     ["a tag outside the data model, then a key not a string", "!!binary aGk=: 1\n", 1, 1],
     ["a character YAML does not allow, ending a repeated key", "x: {a: 1, a\u0001: 2}\n", 1, 12],
@@ -666,6 +655,20 @@ describe("the first fault", () => {
     ["unknown tag, then a character YAML does not allow", "a: !foo x\nb: \u0001\n", 2, 4],
   ] as const)("refuses in YAML %s at the first", ([, given, line, column]) => {
     expect(place(given)).toEqual(["YamlSyntaxError", line, column]);
+  });
+
+  it("names an anchor and a tag on one node by the property written first", () => {
+    expect(["a: &x !local 1\n", "a: !local &x 1\n", "a: !!str &x 1\n"].map(yamlRefusal)).toEqual([
+      ["an anchor at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+      ["a tag at line 1, column 4 of the YAML text", 3, 1, 4],
+    ]);
+  });
+
+  it("refuses a syntax error met reading one token ahead, wherever the parser names it", () => {
+    // PyYAML meets the bad escape reading one token ahead and refuses it at
+    // (1, 8), before the anchor that `yaml` refuses at (1, 3): either may stand.
+    expect(() => loads('- &a "\\q"\n')).toThrow(YamlSyntaxError);
   });
 
   it.for([

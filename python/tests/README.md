@@ -1151,9 +1151,13 @@ any text and `serialization_of` names a text's serialization. They live in
   refuses it where it stands, before the text is parsed; it then checks
   each node as the parser's event for it arrives, a key before its value
   (an alias, an anchor, a tag, a key being a string, a key not repeating,
-  depth, value), and stops there, the parser being lazy, so nothing after
-  the first fault is parsed; an anchor or a tag is placed at the node's
-  first property, every other fault of a node at its first character; the
+  depth, value), and stops there, except that a parser reading one token
+  ahead may meet a syntax error there first: `- &a "\q"` is refused here
+  at the bad escape (1, 8) and by TypeScript at the anchor (1, 3), so its
+  test asserts only the `ValueError`, and no shared refusal pins such a
+  pair; an anchor or a tag is placed at the node's first property and
+  named by it, an empty key right after its `?`, every other fault of a
+  node at its first character; the
   JSON reader refuses where it stands when it meets a fault, the grammar's
   included. Pinned by message: in YAML, a repeated key, `!foo`, `!!map
   [1]`, the key `1` and the escape `\ud800` each before a flow sequence at
@@ -1165,8 +1169,8 @@ any text and `serialization_of` names a text's serialization. They live in
   large (`x: [1, 1e99999` U+0001 `]`, column 15), each for the character;
   a repeated key before a second document for the key, and a second
   document before a repeated key in it for the document; `a: &x !local 1`
-  for the anchor, `a: !local &x 1` and `a: !!str &x 1` for the anchor too
-  but at the tag, the node's first property, all at column 4; `.inf: 1`
+  for the anchor, `a: !local &x 1` and `a: !!str &x 1` for the tag, the
+  property written first, all at column 4; `.inf: 1`
   for a key that is not a string, never for the infinity; `!!binary aGk=:
   1` for the tag before the key. In
   JSON, `[1e999, }` and `[1e999] 2` for the number at column 2,
@@ -1186,8 +1190,9 @@ any text and `serialization_of` names a text's serialization. They live in
   (`json_lone_surrogate_before_syntax_error`) also among the fifteen
   `*_before_*` texts; `yaml_anchor` and `yaml_alias` at the `&`; the nine
   `yaml_tag_*` texts at the tag (`yaml_tag_before_anchor` also among the
-  `*_before_*` texts); and `yaml_special_character_in_key` at the
-  character.
+  `*_before_*` texts); `yaml_special_character_in_key` at the character;
+  and `yaml_key_empty_trailing_space` (`?`, a space, a line feed, `: 1`)
+  right after the `?` at (1, 2).
 - **Columns count code points.** In both readers a character above U+FFFF
   counts once: the YAML anchor in `"😀": &x 1` is refused at column 6, and
   the escape `\ud800` in the JSON text `["😀", "\ud800"]` at column 8 (in

@@ -7,13 +7,14 @@
  * the safe range), a float a float (a `JsonFloat` where it is integral), an
  * object's keys in their written order. Every refusal is a `YamlSyntaxError`
  * at the offending token: an alias at its `*`, an anchor or a tag at the
- * node's first property, every other fault of a node at its first character.
+ * node's first property and named by it, an empty key right after its `?`,
+ * every other fault of a node at its first character.
  *
  * The first fault in document order is the one refused: the walk checks
  * each node as it reaches it, a key before its value (an alias, an anchor, a
  * tag, a key being a string, its depth, then its value), and the first fault
- * the walk finds is refused unless a problem of the parser lies at or before
- * it. A text whose value would be deeper than 256 is refused at the first
+ * the walk finds is refused unless a problem of the parser lies before it.
+ * A text whose value would be deeper than 256 is refused at the first
  * collection at depth 257. The parser composes collections recursively and,
  * where its stack runs out, reports it and stops composing; that happens
  * hundreds of levels deeper than 257, so the composed tree still holds the
@@ -43,7 +44,7 @@ import { hasLoneSurrogate } from "./text.js";
 const SAFE = BigInt(Number.MAX_SAFE_INTEGER);
 
 /** A character outside YAML 1.2's printable set (`c-printable`), a lone surrogate among them. */
-const SPECIAL = /[^\t\n\r\x20-\x7E\x85\xA0-퟿-�\u{10000}-\u{10FFFF}]/u;
+const SPECIAL = /[^\t\n\r\x20-\x7E\x85\xA0-\uD7FF\uE000-\uFFFD\u{10000}-\u{10FFFF}]/u;
 
 /**
  * Read a YAML text, from its first character, as `loads` reads it. An empty
@@ -86,7 +87,7 @@ export function readYaml(text: string): Lossless<Json> {
       error instanceof YamlSyntaxError &&
       problem !== undefined &&
       problem.code !== "RESOURCE_EXHAUSTION" &&
-      problem.pos[0] <= error.offset
+      problem.pos[0] < error.offset
     ) {
       throw parserError();
     }
@@ -123,10 +124,11 @@ function walk(contents: unknown, text: string): Lossless<Json> {
     return written.all[index] as number;
   };
 
-  /** Refuse a node holding an anchor or a tag, at its first property. */
+  /** Refuse a node holding an anchor or a tag at its first property, named by that property. */
   const checkProps = (node: DataNode): void => {
-    if (node.anchor !== undefined) fail("an anchor", propsOf(node));
-    if (node.tag !== undefined) fail("a tag", propsOf(node));
+    if (node.anchor === undefined && node.tag === undefined) return;
+    const at = propsOf(node);
+    fail(text[at] === "&" ? "an anchor" : "a tag", at);
   };
 
   const string = (value: string, node: Node): string =>
@@ -158,12 +160,23 @@ function walk(contents: unknown, text: string): Lossless<Json> {
     return { node, keys: [], values: [] };
   };
 
+  /**
+   * Where a key stands: an empty key, which has no token and which `yaml`
+   * places after the white space following its `?`, right after the `?`.
+   */
+  const keyStart = (key: Node): number => {
+    let at = startOf(key);
+    if (key.srcToken !== undefined) return at;
+    while (text[at - 1] === " " || text[at - 1] === "\t") at--;
+    return text[at - 1] === "?" ? at : startOf(key);
+  };
+
   const keyOf = (pair: Pair, map: YAMLMap): string => {
     const key = pair.key as DataNode | null;
     if (isAlias(key)) return fail("an alias", startOf(key));
     if (key !== null) checkProps(key);
     if (!isScalar(key) || typeof key.value !== "string") {
-      return fail("a key that is not a string", startOf(key ?? map));
+      return fail("a key that is not a string", key === null ? startOf(map) : keyStart(key));
     }
     return string(key.value, key);
   };

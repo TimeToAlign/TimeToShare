@@ -897,6 +897,7 @@ SHARED_PLACES = {
     "yaml_tag_timestamp.yaml": (1, 4),
     "yaml_anchor_before_unknown_tag.yaml": (1, 4),
     "yaml_tag_before_anchor.yaml": (1, 4),
+    "yaml_key_empty_trailing_space.yaml": (1, 2),
     "yaml_special_character_in_key.yaml": (1, 12),
     "yaml_duplicate_key_before_special_character.yaml": (3, 5),
     "json_astral_before_duplicate_key.json": (1, 10),
@@ -964,14 +965,8 @@ FIRST_FAULTS = {
         "a: &x !local 1\n",
         "an anchor is not read at line 1, column 4",
     ),
-    "tag, then anchor": (
-        "a: !local &x 1\n",
-        "an anchor is not read at line 1, column 4",
-    ),
-    "core tag, then anchor": (
-        "a: !!str &x 1\n",
-        "an anchor is not read at line 1, column 4",
-    ),
+    "tag, then anchor": ("a: !local &x 1\n", TAG),
+    "core tag, then anchor": ("a: !!str &x 1\n", TAG),
     "a key resolving to a float": (
         ".inf: 1\n",
         "a key that is not a string is not read at line 1, column 1",
@@ -1011,6 +1006,14 @@ def test_yaml_refuses_the_first_fault(text: str, message: str) -> None:
     with pytest.raises(ValueError) as caught:
         loads(text)
     assert str(caught.value) == message
+
+
+def test_yaml_refuses_a_syntax_error_met_reading_ahead() -> None:
+    # PyYAML meets the bad escape reading one token ahead and refuses it at
+    # (1, 8), before the anchor the TypeScript reader refuses at (1, 3): either
+    # may stand, so the place is not pinned.
+    with pytest.raises(ValueError):
+        loads('- &a "\\q"\n')
 
 
 @pytest.mark.parametrize(

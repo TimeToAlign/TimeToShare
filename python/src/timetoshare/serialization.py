@@ -705,11 +705,13 @@ def _read_yaml(text: str) -> Any:
     then read in one pass over the events of PyYAML's parser (the pure-Python
     ``SafeLoader``, so the value never depends on libyaml), every open
     collection on a stack rather than by recursion. Each node is checked as
-    its event arrives, a key before its value: an alias, an anchor, a tag, a
-    key being a string, a key repeating, its depth, then its value. The
-    parser is lazy and the pass stops at the first fault, so of several faults
-    the first in document order is refused. An empty text, one of comments
-    only and ``---`` alone read as null.
+    its event arrives, a key before its value: an alias, an anchor or a tag
+    (named by the property written first), a key being a string, a key
+    repeating, its depth, then its value. The pass stops at the first fault,
+    so of several faults the first in document order is refused, except that
+    a syntax error the parser meets reading one token ahead may be refused
+    before a fault of the token just before it. An empty text, one of
+    comments only and ``---`` alone read as null.
 
     Raises:
         ValueError: With the line and column, both counted from one, the
@@ -751,10 +753,10 @@ def _read_yaml(text: str) -> Any:
             else:
                 if isinstance(event, yaml.AliasEvent):
                     _refuse(event, "an alias is not read")
-                if event.anchor is not None:
-                    _refuse(event, "an anchor is not read")
-                if event.tag is not None:
-                    _refuse(event, "a tag is not read")
+                if event.anchor is not None or event.tag is not None:
+                    # Named by the property written first: & an anchor, ! a tag.
+                    anchor = text[event.start_mark.index] == "&"
+                    _refuse(event, f"{'an anchor' if anchor else 'a tag'} is not read")
                 holder = frames[-1] if frames else [None, None]
                 is_key = isinstance(holder[0], dict) and holder[1] is _NO_KEY
                 scalar = isinstance(event, yaml.ScalarEvent)

@@ -315,11 +315,11 @@ The unit tests beside the walk pin what the cases leave to a package:
   anchor at its `&`, an alias, a repeated key, a collection and an integer
   as keys, an escaped lone surrogate at the string, a lone surrogate as
   itself and U+007F where they stand (outside YAML's printable set),
-  `.inf`, `-.Inf`, `.nan`, `1e309`; every tag at the tag, `a tag` where
-  the walk refuses it (`!!binary`, `!!timestamp`, `!!set`, `!!omap`,
-  `!!str 1`, the non-specific `!`), the parser's `TAG_RESOLVE_FAILED`
-  where `yaml` reports the tag at the same place first (`!local`, `!!float
-  1`, `!!str` on a sequence); and a second document.
+  `.inf`, `-.Inf`, `.nan`, `1e309`; every tag at the tag as `a tag`,
+  whatever it names (`!!binary`, `!!timestamp`, `!!set`, `!!omap`,
+  `!local`, `!!str 1`, the non-specific `!`, `!!float 1`, `!!str` on a
+  sequence), never as the parser's `TAG_RESOLVE_FAILED` at the same
+  place; and a second document.
 - **The nesting limit** (`serialization.test.ts`): a scalar has depth 0,
   an object or array 1 more than its deepest member (an empty one 1). Both
   readers refuse a text whose value would be deeper than 256, at the first
@@ -357,16 +357,21 @@ The unit tests beside the walk pin what the cases leave to a package:
   offends, the same place Python names, so a pinned place proves the
   order. The YAML walk stops at its first fault, and a problem of the
   parser (errors and warnings alike, the one with the smallest offset)
-  is refused instead where it lies at or before that fault. Pinned as
+  is refused instead where it lies before that fault; at the same offset
+  the walk's fault stands. A parser reads one token ahead, so a syntax
+  error it meets there may be refused before a fault of the token just
+  before it: `- &a "\q"` is refused by Python at the bad escape (1, 8)
+  and here at the anchor (1, 3), so its test asserts only the
+  `YamlSyntaxError`, and no shared refusal pins such a pair. Pinned as
   (error, line, column): in YAML, a repeated key at (2, 1), `!foo`,
   `!!map [1]` and the escape `\ud800` at (1, 4) and the key `1` at (1, 1),
   each before a flow sequence at depth 257, and that depth at (1, 259)
   before a repeated key or `!foo`; `!foo` before a repeated key at (1, 4)
   and a repeated key before `!foo` at (2, 1); a repeated key before a
   second document, and a second document before a repeated key in it, at
-  (2, 1); an anchor and a tag at the node's first property, whichever is
-  written first: `a: &x !local 1`, `a: !local &x 1` and `a: !!str &x 1` at
-  (1, 4); `.inf: 1` as a key that is not a string at (1, 1); `!!binary
+  (2, 1); an anchor and a tag at the node's first property and named by
+  it, with message and offset: `a: &x !local 1` as `an anchor`, `a:
+  !local &x 1` and `a: !!str &x 1` as `a tag`, all at (3, 1, 4); `.inf: 1` as a key that is not a string at (1, 1); `!!binary
   aGk=: 1` for the tag at (1, 1); a character outside YAML's printable
   set, which `yaml` reads, looked for before the text is parsed and
   refused where it stands with Python's message (`special characters are
@@ -389,12 +394,15 @@ The unit tests beside the walk pin what the cases leave to a package:
   (`json_lone_surrogate_before_syntax_error`) also among the fifteen
   `*_before_*` texts; `yaml_anchor` and `yaml_alias` at the `&`; the nine
   `yaml_tag_*` texts at the tag (`yaml_tag_before_anchor` also among the
-  `*_before_*` texts); and `yaml_special_character_in_key` at the
-  character.
+  `*_before_*` texts); `yaml_special_character_in_key` at the character;
+  and `yaml_key_empty_trailing_space` (`?`, a space, a line feed, `: 1`)
+  right after the `?` at (1, 2), where `yaml` places the empty key after
+  the space.
 - **Columns count code points** (`serialization.test.ts`): `line` and
-  `column` of a `JsonSyntaxError`, a `YamlSyntaxError` and a JSON
-  `RangeError` count from 1, the column in code points, so a character
-  above U+FFFF counts once, while `offset` stays a UTF-16 index from 0:
+  `column` of a `JsonSyntaxError` and a `YamlSyntaxError`, and the line
+  and column the message of a JSON `RangeError` names, count from 1, the
+  column in code points, so a character above U+FFFF counts once, while
+  `offset` stays a UTF-16 index from 0:
   the YAML anchor in `"😀": &x 1` at (6, 1, 6) and the escape `\ud800` in
   the JSON text `["😀", "\ud800"]` at (8, 1, 8), as Python names them (in
   UTF-16 code units the columns would be 7 and 9); `1e999` after `"😀"`

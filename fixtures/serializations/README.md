@@ -140,17 +140,21 @@ A text holding several faults is refused for the first in document order,
 at the token that offends: a lone surrogate at its escape (or where it
 stands as itself), a number at its first character, a repeated key at its
 second occurrence, a collection at depth 257 at its `{` or `[`, an alias
-at its `*`, and every anchor and every tag, of whatever name, at the
-node's first property, the anchor or the tag written first. One fault
-comes before the order of the text: a character outside YAML's printable
-set (U+0001, U+007F) is looked for before a YAML text is parsed, and is
-refused where it stands even after another fault. A line and a column
-count from 1, the column in code points, so a character above U+FFFF
-counts once. The `*_before_*` refusals pin that order with two faults
-each, in both orders where the second is the nesting limit. Their deep
-part is `[` 256 times then `]` 256 times as the value of a key: in a YAML
-block mapping (`yaml_*`) the 256th `[` is the first collection at depth
-257, at column 259 of its line; after `{"a": `
+at its `*`, an empty key right after its `?`, and every anchor and every
+tag, of whatever name, at the node's first property, refused as the anchor
+or the tag written first. One fault comes before the order of the text: a
+character outside YAML's printable set (U+0001, U+007F) is looked for
+before a YAML text is parsed, and is refused where it stands even after
+another fault. A YAML parser reads one token ahead, so a syntax error it
+meets there may be refused before a fault of the token just before it
+(`- &a "\q"`: the escape at line 1, column 8, or the anchor at column 3);
+only there may two readers name different faults, and no refusal here holds
+such a pair. A line and a column count from 1, the column in code points,
+so a character above U+FFFF counts once. The `*_before_*` refusals pin
+that order with two faults each, in both orders where the second is the
+nesting limit. Their deep part is `[` 256 times then `]` 256 times as the
+value of a key: in a YAML block mapping (`yaml_*`) the 256th `[` is the
+first collection at depth 257, at column 259 of its line; after `{"a": `
 (`json_depth_257_before_duplicate_key`) at column 262. The two
 `*_astral_before_*` refusals hold one fault only, after U+1D11E, and pin
 the column.
@@ -263,8 +267,8 @@ the column.
 | `yaml_tag_str.yaml` | a tag, `!!str 1`, though the value would be a string (line 1, column 4) |
 | `yaml_tag_float.yaml` | a tag, `!!float 1` (line 1, column 4) |
 | `yaml_tag_nonspecific.yaml` | the non-specific tag `!` (line 1, column 4) |
-| `yaml_anchor_before_unknown_tag.yaml` | `a: &x !local 1`: an anchor, the node's first property (line 1, column 4) |
-| `yaml_tag_before_anchor.yaml` | `a: !local &x 1`: a tag and an anchor, refused at the node's first property, the tag (line 1, column 4) |
+| `yaml_anchor_before_unknown_tag.yaml` | `a: &x !local 1`: an anchor and a tag, refused as the anchor, the node's first property (line 1, column 4) |
+| `yaml_tag_before_anchor.yaml` | `a: !local &x 1`: a tag and an anchor, refused as the tag, the node's first property (line 1, column 4) |
 | `yaml_two_documents.yaml` | more than one document |
 | `yaml_unclosed_quote.yaml` | not YAML: an unclosed double-quoted scalar |
 | `yaml_special_character_in_key.yaml` | `x: {a: 1, a` U+0001 `: 2}`: U+0001, outside YAML's printable set, where it stands (line 1, column 12) |
@@ -274,6 +278,7 @@ the column.
 | `yaml_key_null.yaml` | a key that is `null` |
 | `yaml_key_tilde.yaml` | a key that is `~`, null |
 | `yaml_key_empty.yaml` | an empty key, null |
+| `yaml_key_empty_trailing_space.yaml` | `?`, a space and a line feed, then `: 1`: an empty key, refused right after its `?` (line 1, column 2), not after the space |
 | `yaml_key_true.yaml` | a key that is a boolean |
 | `yaml_key_collection.yaml` | a key that is a collection |
 | `yaml_nan_lower.yaml`, `yaml_nan_title.yaml`, `yaml_nan_upper.yaml` | `.nan`, `.NaN`, `.NAN` (one file each) |
