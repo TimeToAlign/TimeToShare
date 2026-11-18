@@ -1117,9 +1117,8 @@ JSON.
 
 ### Reading
 
-Both packages read every serialization with one reader, which also reads
-texts other writers wrote in any layout. The reader takes text, not
-bytes: decoding a file, as UTF-8, is the caller's.
+Both packages read every serialization with one reader, which takes text,
+not bytes: decoding a file, as UTF-8, is the caller's.
 
 - One U+FEFF, a byte order mark, at position 0 of a text is removed
   before the text is read, in every serialization and by every reading
@@ -1151,14 +1150,13 @@ bytes: decoding a file, as UTF-8, is the caller's.
   a float or a string as the core schema resolves it, an integer being
   exact at any size. Comments are ignored, and an empty text, or one of
   blank lines and comments only, is read as null. Refused besides are
-  - every text the parser refuses, more than one document and a tag it
-    does not know among them;
-  - anchors and aliases;
+  - a character outside YAML 1.2's printable set (`c-printable`), such as
+    U+0001, U+007F or a lone surrogate;
+  - every text the parser refuses, more than one document among them;
+  - anchors, aliases and tags, whatever the tag (`!!str 1`, `!!binary`,
+    `!local`, `!`);
   - a key that is not a string, such as `1`, `null`, `true` or a
     collection;
-  - a value outside [the data model](#the-data-model), such as a
-    timestamp, binary data, a set or an ordered map that an explicit tag
-    makes;
   - a float that is not finite: `.nan`, the infinities, and a literal that
     rounds to an infinity, such as `1e309`.
 - In every serialization, JSON and YAML alike, refused are
@@ -1171,31 +1169,38 @@ bytes: decoding a file, as UTF-8, is the caller's.
     through an escape such as `\ud800`. An escape of a high surrogate
     directly followed by an escape of a low surrogate, such as
     `\ud83d\ude00`, is one character, here U+1F600, in YAML as in JSON;
-  - a value deeper than 256 ([Shared spelling](#shared-spelling)), at the
-    first collection at depth 257. Manifests are far shallower.
+  - a value deeper than 256 ([Shared spelling](#shared-spelling));
+    manifests are far shallower.
 
-A text that holds several faults is refused at the first of them in the
-order of the text, by every reader of every serialization. The depth limit
-is one fault among them, ranked by its place in the text, the start of the
-first collection at depth 257: a fault before that start is refused in its
-stead, and a fault after it is never reached. A fault is reported at the
-position of its offending token, such as a lone surrogate written as an
-escape at that escape, and a number that rounds to an infinity at that
-number.
+Every reader refuses the texts these rules refuse and reads every other
+JSON text, and every other YAML text that uses only the constructs of
+canonical YAML, to the same value, as every conforming YAML 1.1 or 1.2
+parser reads such YAML. These constructs are block mappings and block
+sequences at any consistent indentation, one-line flow sequences of
+scalars, `{}` and `[]`, plain scalars that canonical YAML would write
+plain, numbers, booleans and null as canonical YAML spells them,
+double-quoted strings with the escapes canonical YAML writes, comments and
+blank lines, a blank line holding nothing but spaces. Canonical YAML holds
+no literal tab, since it escapes every tab in a string, so a text with a
+tab anywhere, such as a line of a tab alone or a tab before a comment,
+lies outside these constructs. Beyond these constructs a text is read as
+the package's parser reads it, and a difference between two parsers there
+is not a defect of the format. Tools write canonical YAML.
 
-Canonical YAML, and every YAML text that uses only its constructs, is
-read to the same value by both packages and by every conforming YAML 1.1
-or 1.2 parser. These constructs are block mappings and block sequences at
-any consistent indentation, one-line flow sequences of scalars, `{}` and
-`[]`, plain scalars that canonical YAML would write plain, numbers,
-booleans and null as canonical YAML spells them, double-quoted strings
-with the escapes canonical YAML writes, comments and blank lines, a blank
-line holding nothing but spaces. Canonical YAML holds no literal tab, since
-it escapes every tab in a string, so a text with a tab anywhere, such as a
-line of a tab alone or a tab before a comment, lies outside these
-constructs. Beyond these constructs a text is read as the package's parser
-reads it, and a difference between two parsers there is not a defect of
-the format. Tools write canonical YAML.
+Both packages refuse a text holding several faults at the first of them in
+the order of the text, as their shared refusals in
+`fixtures/serializations/` test; other readers are recommended to do the
+same. The one exception is a character outside YAML's printable set: the
+first one in a YAML text is refused, where it stands, before the text is
+parsed, so it outranks any fault before it, such as a repeated key. The
+depth limit is one fault among them, ranked by the start of the first
+collection at depth 257: a fault before that start is refused in its
+stead, and a fault after it is never reached. A fault is reported at its
+offending token: a fault of a node at its first character, or at its first
+property (anchor or tag) where it has one; an alias at its `*`; an escaped
+lone surrogate at its escape; a number that rounds to an infinity at that
+number. Lines and columns are counted from 1, columns in code points, JSON
+and YAML alike.
 
 Python's `serialization_of(text)` and npm's `serializationOf(text)` name a
 text's serialization without validating it, by the same choice between
@@ -1303,9 +1308,8 @@ else:
   resolvers and constructors in place of YAML 1.1's; it never uses the C
   loader, so that reading does not depend on whether libyaml is
   installed. A text the reading rules refuse, and every error of the YAML
-  parser, raises `ValueError` with the line and column of the fault, both
-  counted from 1, the column in code points; a value deeper than 256
-  raises it at the first collection at depth 257. It does not validate.
+  parser, raises `ValueError` with the line and column of the fault
+  ([Reading](#reading)). It does not validate.
 - `unknown_keys(value)` returns the unknown keys of a manifest as a list of
   `{path, key}` entries, sorted by path and then by key.
 - `unregistered_terms(value)` returns the unregistered terms of a
@@ -1417,14 +1421,12 @@ rewrite(text) === text; // true: the text is canonical YAML
 - For a text the reading rules refuse, the readers throw
   `JsonSyntaxError` when it is read as JSON, a `SyntaxError` with the
   `offset` (in UTF-16 code units, counted from 0), `line` and `column`
-  (counted from 1, the column in UTF-16 code units) of the fault, and
+  (counted from 1, the column in code points) of the fault, and
   `YamlSyntaxError` for every refusal
   of a text read as YAML, a `SyntaxError` with the same three fields. A
   JSON number that rounds to an infinity, such as `1e309`, throws a
-  `RangeError`. A value deeper than 256 throws `JsonSyntaxError` or
-  `YamlSyntaxError` at the first collection at depth 257, with the same
-  three fields, and `dumps` throws a `RangeError` for such a value, so
-  that every value that can be written can be read.
+  `RangeError`. `dumps` throws a `RangeError` for a value deeper than 256,
+  so that every value that can be written can be read.
 - `validate(value)` asserts that an unknown value is a
   `LosslessManifest` (its numbers may be bigints and `JsonFloat`s),
   checking it as Python's `validate` does; its `SchemaValidationError` carries the same
