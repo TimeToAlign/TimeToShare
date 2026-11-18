@@ -773,7 +773,7 @@ writes links, reads them back and builds them from URLs. What proves it
   `http://viaf.org/viaf/{value}`, false), `gnd` (`P227`, null,
   `https://d-nb.info/gnd/{value}`, false), `imslp` (`P839`, `work`, null,
   false), `doi` (`P356`, null, `https://doi.org/{value}`, false) and
-  `youtube_video` (`P1651`, `item`,
+  `youtube_video` (`P1651`, `manifestation`,
   `https://www.youtube.com/watch?v={value}`, false). An entity URI template
   is Wikidata's formatter URI for RDF resources (P1921) where one exists,
   unless the issuer prescribes the canonical form, as the DOI Foundation
@@ -809,7 +809,7 @@ writes links, reads them back and builds them from URLs. What proves it
   `http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284`,
   `work`, its value `4a622b0d-b0c0-405e-b49e-05b70c108284`;
   `https://www.youtube.com/watch?v=Ch2mrPm1JnM` is
-  `https://www.youtube.com/watch?v=Ch2mrPm1JnM` at the level `item`; and
+  `https://www.youtube.com/watch?v=Ch2mrPm1JnM` at the level `manifestation`; and
   `https://imslp.org/wiki/Special:ReverseLookup/534071` and
   `https://example.org/anything` are not recognised.
 - **The URL forms a scheme accepts.** `http` and `https`, an optional

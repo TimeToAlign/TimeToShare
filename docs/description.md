@@ -178,7 +178,7 @@ The registry holds nine entries, in this order (`wd:` stands for
 | `gnd` | `wd:P227` | null | `https://d-nb.info/gnd/{value}` | false |
 | `imslp` | `wd:P839` | `work` | null | false |
 | `doi` | `wd:P356` | null | `https://doi.org/{value}` | false |
-| `youtube_video` | `wd:P1651` | `item` | `https://www.youtube.com/watch?v={value}` | false |
+| `youtube_video` | `wd:P1651` | `manifestation` | `https://www.youtube.com/watch?v={value}` | false |
 
 An entity URI template is Wikidata's formatter URI for RDF resources
 (P1921) where one exists, unless the issuer prescribes the canonical form,
