@@ -720,9 +720,27 @@ def test_yaml_reads_a_surrogate_pair_written_as_two_escapes() -> None:
             "the tag tag:yaml.org,2002:omap names no value of the JSON data model "
             "at line 1, column 4",
         ),
+        (
+            "a: !!str [1]\n",
+            "the tag tag:yaml.org,2002:str does not fit the node it is given "
+            "at line 1, column 4",
+        ),
+        (
+            "a: !!int [1]\n",
+            "the tag tag:yaml.org,2002:int does not fit the node it is given "
+            "at line 1, column 4",
+        ),
         ("a: .inf\n", "'.inf' is not a finite float at line 1, column 4"),
         ("a: 1e309\n", "1e309 rounds to an infinity at line 1, column 4"),
         ('a: "\\ud800"\n', "a string holds a lone surrogate at line 1, column 4"),
+        (
+            "a: x\x7fy\n",
+            "special characters are not allowed #x007f at line 1, column 5",
+        ),
+        (
+            'a: "x\ud800"\n',
+            "special characters are not allowed #xd800 at line 1, column 6",
+        ),
         (
             "a\n---\nb\n",
             "expected a single document in the stream, but found another document "
@@ -739,9 +757,13 @@ def test_yaml_reads_a_surrogate_pair_written_as_two_escapes() -> None:
         "binary",
         "set",
         "omap",
+        "str on a sequence",
+        "int on a sequence",
         "infinity",
         "overflow",
         "lone surrogate",
+        "U+007F",
+        "lone surrogate as itself",
         "two documents",
     ],
 )
@@ -863,6 +885,16 @@ SHARED_PLACES = {
     "yaml_unknown_tag_before_depth_257.yaml": (1, 4),
     "yaml_depth_257_before_unknown_tag.yaml": (1, 259),
     "yaml_infinity_before_depth_257.yaml": (1, 4),
+    "yaml_anchor.yaml": (1, 4),
+    "yaml_alias.yaml": (1, 4),
+    "yaml_tag_binary.yaml": (1, 4),
+    "yaml_tag_omap.yaml": (1, 4),
+    "yaml_tag_set.yaml": (1, 4),
+    "yaml_tag_timestamp.yaml": (1, 4),
+    "yaml_anchor_before_unknown_tag.yaml": (1, 4),
+    "yaml_special_character_in_key.yaml": (1, 12),
+    "yaml_special_character_in_number.yaml": (1, 15),
+    "yaml_special_character_before_duplicate_key.yaml": (1, 5),
 }
 """The place of each shared refusal the cases' README places, as a line and a column."""
 
@@ -916,6 +948,26 @@ DEEP = "[" * 256 + "]" * 256
             "special characters are not allowed #x0001 at line 1, column 4",
         ),
         ("a: 1\na: 2\n---\nb\n", 'the key "a" repeats at line 2, column 1'),
+        ("a: &x !local 1\n", "an anchor is not read at line 1, column 4"),
+        (
+            "a: !local &x 1\n",
+            "the tag !local names no value of the JSON data model at line 1, column 4",
+        ),
+        ("a: !!str &x 1\n", "an anchor is not read at line 1, column 10"),
+        (".inf: 1\n", "a key that is not a string is not read at line 1, column 1"),
+        (
+            "!!binary aGk=: 1\n",
+            "the tag tag:yaml.org,2002:binary names no value of the JSON data "
+            "model at line 1, column 1",
+        ),
+        (
+            "x: {a: 1, a\x01: 2}\n",
+            "special characters are not allowed #x0001 at line 1, column 12",
+        ),
+        (
+            "x: [1, 1e99999\x01]\n",
+            "special characters are not allowed #x0001 at line 1, column 15",
+        ),
         (
             "a: 1\n---\nb: 1\nb: 2\n",
             "expected a single document in the stream, but found another document "
@@ -936,6 +988,13 @@ DEEP = "[" * 256 + "]" * 256
         "a character YAML does not allow, then repeated key",
         "repeated key, then a second document",
         "a second document, then repeated key",
+        "anchor, then unknown tag",
+        "unknown tag, then anchor",
+        "known tag, then anchor",
+        "a key resolving to a float",
+        "a tag outside the data model, then a key not a string",
+        "a character YAML does not allow, ending a repeated key",
+        "a character YAML does not allow, ending a float too large",
     ],
 )
 def test_yaml_refuses_the_first_fault(text: str, message: str) -> None:

@@ -1099,8 +1099,11 @@ any text and `serialization_of` names a text's serialization. They live in
   one of comments only and one of blank lines read as null; `"😀"`
   is U+1F600. Refused, with exactly the stated message naming the line and
   column: a repeated key, an anchor, an alias, an integer key and a
-  collection key, the tags `!!timestamp`, `!!binary`, `!!set` and `!!omap`,
-  `.inf`, `1e309`, the escape `\ud800` and a second document.
+  collection key, the tags `!!timestamp`, `!!binary`, `!!set` and `!!omap`
+  (each naming no value of the JSON data model), `!!str` and `!!int` on a
+  sequence (a core tag that does not fit the node it is given), `.inf`,
+  `1e309`, the escape `\ud800`, U+007F and a lone surrogate written as
+  itself (characters outside YAML's printable set) and a second document.
 - **The nesting limit.** A scalar has depth 0, an object or array 1 more
   than its deepest member (an empty one 1). Both readers refuse a text whose
   value would be deeper than 256 with the `ValueError` `collections nest
@@ -1135,8 +1138,10 @@ any text and `serialization_of` names a text's serialization. They live in
   first in document order, at the token that offends, by both readers; the
   place names the fault, so a test that pins it proves the order. The
   YAML reader checks each node as the parser's event for it arrives, a key
-  before its value (anchor, tag, a key being a string and not repeating,
-  depth, value), and stops there; the JSON reader refuses where it stands
+  before its value (its anchor and its tag in the order they are written,
+  a key being a string by its resolved tag, before its value is built, a
+  key not repeating, depth, value), and stops there; an anchor is placed
+  at its `&`, every other fault of a node at its first character; the JSON reader refuses where it stands
   when it meets a fault, the grammar's included. Pinned by message: in
   YAML, a repeated key, `!foo`, `!!map [1]`, the key `1` and the escape
   `\ud800` each before a flow sequence at depth 257 are refused for
@@ -1145,8 +1150,15 @@ any text and `serialization_of` names a text's serialization. They live in
   each for the first; `!foo` before U+0001 for the tag and U+0001 before a
   repeated key for the character (PyYAML checks every character before it
   parses any, so the reader looks for a fault in the text before the
-  character first); a repeated key before a second document for the key,
-  and a second document before a repeated key in it for the document. In
+  character first, that text read with U+FFFD in the character's place,
+  so no token is cut short: `x: {a: 1, a` U+0001 `: 2}` and `x: [1,
+  1e99999` U+0001 `]` are refused for the character, at columns 12 and 15,
+  not for a key `a` or an infinity the cut would invent); a repeated key
+  before a second document for the key, and a second document before a
+  repeated key in it for the document; `a: &x !local 1` for the anchor and
+  `a: !local &x 1` for the tag, both at column 4, `a: !!str &x 1` for the
+  anchor at column 10; `.inf: 1` for a key that is not a string, never for
+  the infinity; `!!binary aGk=: 1` for the tag before the key. In
   JSON, `[1e999, }` and `[1e999] 2` for the number at column 2,
   `["\ud800", }` for the surrogate at column 3, a repeated key before a
   missing key or extra data for the key, `1e999` as the value of a key
@@ -1160,8 +1172,11 @@ any text and `serialization_of` names a text's serialization. They live in
   control character, an escaped quote or a low surrogate standing as
   itself follows) is lone at its own escape. Every shared refusal whose
   place the cases' README gives is refused there (the test's table of
-  places): the two depth texts, the five `json_lone_surrogate_*` texts and
-  the ten `*_before_*` texts.
+  places): the two depth texts; the six `json_lone_surrogate_*` texts, one of them
+  (`json_lone_surrogate_before_syntax_error`) also among the twelve
+  `*_before_*` texts; `yaml_anchor` and `yaml_alias` at the `&`; the four
+  `yaml_tag_*` texts outside the data model at the tag; and the two
+  `yaml_special_character_in_*` texts at the character.
 - **Columns count code points.** In both readers a character above U+FFFF
   counts once: the YAML anchor in `"😀": &x 1` is refused at column 6, and
   the escape `\ud800` in the JSON text `["😀", "\ud800"]` at column 8 (in
