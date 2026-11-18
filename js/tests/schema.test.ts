@@ -211,7 +211,7 @@ describe("the schema document", () => {
     const entries = unit.oneOf as Node[];
     expect(entries.map((entry) => entry.const)).toEqual(Object.keys(UNIT_NUMBER_TYPES));
     const pattern =
-      /^(Logical|Physical|Graphical), (continuous|discrete); default number type (int|float|fraction)\.$/;
+      /^(Logical|Physical|Graphical), (continuous|discrete); default number type (int|float|fraction)\.(?: \S.*\.)?$/;
     for (const entry of entries) {
       expect(Object.keys(entry).sort()).toEqual(["const", "description"]);
       const match = pattern.exec(entry.description as string);

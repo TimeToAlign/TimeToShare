@@ -79,10 +79,12 @@ rejection cases that use them (`test_schema.py`):
   `floating_measures` (`FloatingMeasureMap`) or null (the other three).
 - **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
   `{const, description}` per unit and no `enum`. The consts, in order, are
-  exactly the keys of `UNIT_NUMBER_TYPES`, and each description is
+  exactly the keys of `UNIT_NUMBER_TYPES`, and each description begins
   `<Domain>, <modality>; default number type <t>.` with `t` that unit's
   value in the table, so the default number types the validators read
-  cannot drift from the ones the schema states.
+  cannot drift from the ones the schema states; a unit whose name does not
+  say what it measures (`css_pixels`, `user_units`) adds one sentence
+  after it.
 - **Shared definitions.** A shape that repeats is defined once: `Name`
   (string or null, default null) and `Meta` (a free object, default `{}`)
   are referred to by every `name` of the manifest, a timeline, a group, a
@@ -206,6 +208,20 @@ rejection cases that use them (`test_schema.py`):
 - the smallest file `{"timetoshare": "0.2.0", "timelines": [{"id": "piece",
   "unit": "quarters", "length": [32, 1]}]}` and the empty manifest
   `{"timetoshare": "0.2.0", "timelines": []}` validate.
+
+## The units
+
+The units are the consts of the schema's `TimeUnit`, and nothing else.
+The two vector-graphics units, `css_pixels` (the CSS pixel) and
+`user_units` (a document's own coordinate system), prove that a unit of
+the table is read like its neighbours (`test_validate.py`): a root of
+each, with the length `600.5` and `number_type` `float`, `[1201, 2]` and
+`fraction`, or `600` and `int`, validates exactly where the same root in
+`points`, the other continuous graphical unit, validates (all three).
+Neither has an abbreviation: a root in `px` or in `uu` is refused with the
+code `schema` at `["timelines", 0, "unit"]`, as the shared case
+`timeline_unit_unknown` refuses `beats`, so a short spelling can never be
+read as the discrete `pixels`.
 
 ## Reading by the declared number type
 
@@ -380,7 +396,8 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   "name"]` and keeps it in the minimal form; one stating `[]` keeps `[]` in
   both forms.
   The unit default of `number_type` is stated for ticks (`int`), seconds
-  (`float`) and whole_notes (`fraction`).
+  (`float`), whole_notes (`fraction`), pixels (`int`), and the two
+  vector-graphics units css_pixels and user_units (`float`).
 - **Never added, never removed.** `id`, `graphical` and a root's `offset`
   are absent from the completion of a manifest without them; a present
   `graphical: {}` completes to its four keys (`styles`, `statements`,

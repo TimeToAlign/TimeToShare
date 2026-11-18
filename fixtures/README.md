@@ -18,9 +18,9 @@ The directories sort the manifests by content only:
   or both, and manifests without timelines (`op106_work`, which links the
   manifest alone to a work and the parts of its reading).
 
-Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
-`groups/` and 12 under `bundles/`, 72 in all, each with its minimal twin, so
-144 files. Beside them lie 129 rejection cases and 17 warning cases.
+Version 0.2.0 has 50 manifests directly under `fixtures/0.2.0/`, 11 under
+`groups/` and 12 under `bundles/`, 73 in all, each with its minimal twin, so
+146 files. Beside them lie 129 rejection cases and 17 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -146,6 +146,7 @@ The structural fixtures add focused examples:
 | `flow_control.yaml` | the flow marker `fine`, a repeat end taken twice to a named repeat start, and a dal segno to a named segno |
 | `conversion_maps__*.yaml` | the conversion maps of one timeline per unit: `maps_quarters` every map type, a MeasureMap read through its `MeasureRecordMap` and the three other measure views, a `CombinationMap` holding a measure view, and `TableMap`s of both kinds and the three extrapolations; `maps_ticks`, `maps_samples` and `maps_seconds` a `LinearMap` each; `maps_whole_notes` a MeasureMap read through a `ChainMap` from whole notes |
 | `bare.yaml` | one named timeline |
+| `css_pixels.yaml` | 800.0 CSS pixels with children at 16.0 and 400.0: a continuous graphical axis in `css_pixels`, the unit of an SVG's outermost viewport |
 | `contiguous.yaml` | children that touch and overlap |
 | `map.yaml` | conversion maps on a root and a child |
 | `styled__score.yaml`, `styled__performance.yaml` | `graphical.statements` selecting elements by type, address, class, domain, modality, and `within`, with a colour of its own for every drawn element and label of the score; the score's band order in `graphical.order` lays its markers band against its line above it and its conversion maps band against its line below it |
@@ -367,7 +368,7 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 `unknown_length_segments` on every regions band, `{"element": "band",
 "facet": "regions"}` (`unknown_length_segments__regions-shown`), and
 `child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`): 78 drawings in all.
+"flow_control"}` (`child_flow_control__flow-shown`): 79 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings

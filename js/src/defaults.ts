@@ -32,7 +32,7 @@ import { clone, isJsonObject, JsonFloat, type JsonObject, type Lossless } from "
 import { orderDisplays } from "./manifest/order.js";
 import { respell } from "./manifest/spelling.js";
 import { exactValue, sameRational } from "./numbers/exact.js";
-import { numberTypeOf } from "./validate/diagnostics.js";
+import { numberTypeOf, UNIT_NUMBER_TYPES } from "./validate/diagnostics.js";
 
 /**
  * The default of every key that has one, by the kind of object holding it.
@@ -204,28 +204,9 @@ function visitManifest(manifest: unknown, pass: Pass): void {
   for (const timestamp of objects(graphical, "timestamps")) pass(timestamp, "timestamp");
 }
 
-const UNITS = new Set<string>([
-  "number",
-  "floating_measures",
-  "whole_notes",
-  "quarters",
-  "ticks",
-  "milliseconds",
-  "seconds",
-  "minutes",
-  "samples",
-  "frames",
-  "pixels",
-  "meters",
-  "centimeters",
-  "millimeters",
-  "inches",
-  "points",
-]);
-
 /** The default number type of a timeline, or `undefined` where its unit is none. */
 function defaultNumberType(timeline: JsonObject): NumberType | undefined {
-  return typeof timeline.unit === "string" && UNITS.has(timeline.unit)
+  return typeof timeline.unit === "string" && Object.hasOwn(UNIT_NUMBER_TYPES, timeline.unit)
     ? numberTypeOf({ unit: timeline.unit as TimeUnit })
     : undefined;
 }

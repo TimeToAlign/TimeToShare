@@ -204,7 +204,7 @@ def test_the_unit_table_states_the_default_number_types() -> None:
     assert [entry["const"] for entry in unit["oneOf"]] == list(UNIT_NUMBER_TYPES)
     pattern = re.compile(
         r"^(Logical|Physical|Graphical), (continuous|discrete); "
-        r"default number type (int|float|fraction)\.$"
+        r"default number type (int|float|fraction)\.(?: \S.*\.)?$"
     )
     for entry in unit["oneOf"]:
         assert sorted(entry) == ["const", "description"]

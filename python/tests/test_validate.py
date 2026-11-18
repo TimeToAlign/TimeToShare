@@ -166,6 +166,38 @@ def _problem(value: Any) -> tuple[tuple[str | int, ...], str]:
     return caught.value.path, caught.value.message
 
 
+# -- the units --------------------------------------------------------------------
+
+
+def _accepted(value: dict) -> bool:
+    try:
+        validate(value)
+    except SchemaValidationError:
+        return False
+    return True
+
+
+@pytest.mark.parametrize("unit", ["css_pixels", "user_units"])
+@pytest.mark.parametrize(
+    ("number_type", "length"), [("float", 600.5), ("fraction", [1201, 2]), ("int", 600)]
+)
+def test_a_vector_graphics_unit_is_read_as_points_is(
+    unit: str, number_type: str, length: Any
+) -> None:
+    points = manifest(timeline("page", "points", length, number_type=number_type))
+    root = manifest(timeline("page", unit, length, number_type=number_type))
+    assert _accepted(points)
+    assert _accepted(root)
+
+
+@pytest.mark.parametrize("unit", ["px", "uu"])
+def test_an_abbreviation_is_no_unit(unit: str) -> None:
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(manifest(timeline("page", unit, 600.5)))
+    assert caught.value.path == ("timelines", 0, "unit")
+    assert caught.value.code == "schema"
+
+
 # -- the version marker -----------------------------------------------------------
 
 

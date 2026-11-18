@@ -185,6 +185,48 @@ function problem(value: unknown): [readonly (string | number)[], string] {
   throw new Error("value was accepted");
 }
 
+/** Whether `validate` accepts a value; any other error than a refusal is thrown. */
+function accepted(value: unknown): boolean {
+  try {
+    validate(value);
+  } catch (error) {
+    if (!(error instanceof SchemaValidationError)) throw error;
+    return false;
+  }
+  return true;
+}
+
+describe("the units", () => {
+  it.each(
+    ["css_pixels", "user_units"].flatMap((unit) =>
+      (
+        [
+          ["float", 600.5],
+          ["fraction", [1201, 2]],
+          ["int", 600],
+        ] as const
+      ).map(([numberType, length]) => [unit, numberType, length] as const),
+    ),
+  )("reads %s with the number type %s as points is read", (unit, numberType, length) => {
+    const points = manifest([timeline("page", "points", length, { number_type: numberType })]);
+    const root = manifest([timeline("page", unit, length, { number_type: numberType })]);
+    expect(accepted(points)).toBe(true);
+    expect(accepted(root)).toBe(true);
+  });
+
+  it.each(["px", "uu"])("refuses the abbreviation %s as no unit", (unit) => {
+    try {
+      validate(manifest([timeline("page", unit, 600.5)]));
+    } catch (error) {
+      expect(error).toBeInstanceOf(SchemaValidationError);
+      expect((error as SchemaValidationError).path).toEqual(["timelines", 0, "unit"]);
+      expect((error as SchemaValidationError).code).toBe("schema");
+      return;
+    }
+    throw new Error(`${unit} was accepted`);
+  });
+});
+
 describe("the version marker", () => {
   it.each([
     ["no marker", { timelines: [] }],

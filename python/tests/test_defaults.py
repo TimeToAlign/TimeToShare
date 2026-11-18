@@ -215,6 +215,8 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         ("seconds", "float"),
         ("whole_notes", "fraction"),
         ("pixels", "int"),
+        ("css_pixels", "float"),
+        ("user_units", "float"),
     ],
 )
 def test_the_unit_decides_the_default_number_type(unit: str, number_type: str) -> None:

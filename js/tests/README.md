@@ -177,6 +177,16 @@ candidate the value does not match (the nested conversion map of
 `several_depths` proves it). The keys belong to one run, so a refused
 manifest's keys never appear in the next run's list (`validate.test.ts`).
 
+## The units
+
+`validate.test.ts` proves the Python README's section "The units" with
+the same roots: `css_pixels` and `user_units` validate with every number
+type exactly where `points` does, and `px` and `uu` are refused with the
+code `schema` at `["timelines", 0, "unit"]`. `defaults.ts` completes a
+timeline's `number_type` for exactly the keys of `UNIT_NUMBER_TYPES`, its
+one list of units, so the default number type of both new units is
+`float` in `defaults.test.ts` as in the Python suite.
+
 ## Defaults
 
 `defaults.test.ts` asserts the Python README's section "Defaults: the
@@ -187,7 +197,7 @@ left out as the defaults `1` and `0` are, and the complete form of what
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (72, one per fixture) completes to the canonical YAML of its
+minimal twin (73, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay

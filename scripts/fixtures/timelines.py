@@ -116,6 +116,16 @@ def discrete_graphical_timeline() -> Timeline:
     )
 
 
+def css_pixels_timeline() -> Timeline:
+    """Build 800 CSS pixels with two children at float graphical coordinates."""
+    return _with_children(
+        ContinuousGraphicalTimeline,
+        "css_pixels",
+        800.0,
+        [(320.0, 16.0), (240.5, 400.0)],
+    )
+
+
 def with_region_timeline() -> Timeline:
     """Build the continuous logical axis with a named region from 2 to 6."""
     timeline = continuous_logical_timeline()

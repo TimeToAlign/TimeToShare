@@ -255,6 +255,8 @@ describe("the complete and the minimal form", () => {
     ["seconds", "float"],
     ["whole_notes", "fraction"],
     ["pixels", "int"],
+    ["css_pixels", "float"],
+    ["user_units", "float"],
   ])("takes the number type of %s from the unit: %s", (unit, numberType) => {
     const value = complete(manifest([timeline("t", unit, null)]));
     expect(root(value).number_type).toBe(numberType);
@@ -535,7 +537,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(72);
+    expect(twins.length).toBe(73);
     expect(twins.map((twin) => twin.replace(/\.minimal$/, ""))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal")),
     );

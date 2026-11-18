@@ -199,6 +199,8 @@ export const UNIT_NUMBER_TYPES: Readonly<Record<TimeUnit, NumberType>> = {
   millimeters: "float",
   inches: "float",
   points: "float",
+  css_pixels: "float",
+  user_units: "float",
 };
 
 /** The number type of a timeline's axis: its own, or its unit's default. */

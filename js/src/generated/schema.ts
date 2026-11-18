@@ -485,6 +485,14 @@ export const schema = {
         {
           "const": "points",
           "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "css_pixels",
+          "description": "Graphical, continuous; default number type float. The CSS pixel (1/96 in), the unit of an SVG's outermost viewport."
+        },
+        {
+          "const": "user_units",
+          "description": "Graphical, continuous; default number type float. A document's own coordinate system, such as an SVG viewBox; sized only by that document, through a conversion map."
         }
       ]
     },

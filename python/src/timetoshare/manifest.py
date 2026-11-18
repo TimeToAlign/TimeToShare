@@ -55,6 +55,8 @@ UNIT_NUMBER_TYPES = {
     "millimeters": "float",
     "inches": "float",
     "points": "float",
+    "css_pixels": "float",
+    "user_units": "float",
 }
 """The default number type of each unit."""
 

@@ -38,7 +38,9 @@ export type TimeUnit =
   | "centimeters"
   | "millimeters"
   | "inches"
-  | "points";
+  | "points"
+  | "css_pixels"
+  | "user_units";
 /**
  * The number type of every coordinate on a timeline axis. It selects the representation of a coordinate's value: int is a JSON integer, float a JSON number, fraction a Fraction pair.
  *
