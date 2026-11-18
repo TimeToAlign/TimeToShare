@@ -1563,12 +1563,13 @@ them as they are.
 [Forms and defaults for
 applications](#forms-and-defaults-for-applications): each text
 `<name>.<ext>` beside the `<name>.expected.<ext>` that `dumps_file`
-writes back in its inferred file form. `neither.yaml` is neither minimal
-nor complete and comes back complete, `one_line.json` is JSON on one line
-and comes back in the pretty JSON layout, and `crlf.yaml` is canonical
-YAML with carriage returns and comes back with line feeds alone; both
-packages infer the same form for each text and write the same bytes. Its
-bytes are significant too (`fixtures/file_forms/** -text`).
+writes back in its inferred file form. The texts cover a manifest
+neither minimal nor complete, JSON on one line, canonical YAML with
+carriage returns, and RFC 8785 JSON on a float axis whose integral floats
+are written as integers, once minimal and once with a default stated;
+[`fixtures/README.md`](fixtures/README.md) lists them. Both packages
+infer the same form for each text and write the same bytes. Its bytes
+are significant too (`fixtures/file_forms/** -text`).
 
 ## Development
 
