@@ -959,20 +959,21 @@ describe("identity", () => {
   });
 
   it("ends a child on a float axis at the double sum", () => {
-    const page = (length: unknown, childLength: unknown, offset: unknown, numberType: string) =>
+    const nested = (length: unknown, childLength: unknown, offset: unknown, numberType: string) =>
       manifest([
-        timeline("page", "points", length, {
+        timeline("outer", "points", length, {
           number_type: numberType,
-          children: [timeline("axis", "points", childLength, { offset, number_type: numberType })],
+          children: [timeline("inner", "points", childLength, { offset, number_type: numberType })],
         }),
       ]);
-    const fits = page(932.2326510101616, 855.5289364103584, 76.70371459980326, "float");
+    // Three doubles whose exact sum exceeds the parent by 3/2^46 while their double sum equals it.
+    const fits = nested(932.2326510101616, 855.5289364103584, 76.70371459980326, "float");
     expect(76.70371459980326 + 855.5289364103584).toBe(932.2326510101616);
     expect(problems(fits)).toEqual([]);
     validate(fits);
-    expect(only(page(932.2326510101616, 855.53, 76.70371459980326, "float"))).toEqual([
+    expect(only(nested(932.2326510101616, 855.53, 76.70371459980326, "float"))).toEqual([
       ["timelines", 0, "children", 0, "length"],
-      "child 'axis' ends at 932.2337145998032, beyond the length 932.2326510101616 of its parent 'page'",
+      "child 'inner' ends at 932.2337145998032, beyond the length 932.2326510101616 of its parent 'outer'",
     ]);
     const pairs = [
       [2050001279156237, 2199023255552],
@@ -982,10 +983,34 @@ describe("identity", () => {
     expect(pairs.map((pair) => exact(pair))).toEqual(
       [932.2326510101616, 855.5289364103584, 76.70371459980326].map((value) => exact(value)),
     );
-    expect(only(page(pairs[0], pairs[1], pairs[2], "fraction"))).toEqual([
+    expect(only(nested(pairs[0], pairs[1], pairs[2], "fraction"))).toEqual([
       ["timelines", 0, "children", 0, "length"],
-      "child 'axis' ends at [65600040932999587, 70368744177664], beyond the length [2050001279156237, 2199023255552] of its parent 'page'",
+      "child 'inner' ends at [65600040932999587, 70368744177664], beyond the length [2050001279156237, 2199023255552] of its parent 'outer'",
     ]);
+  });
+
+  it("ends a child without a double sum at the exact sum", () => {
+    const nested = (length: unknown, childLength: unknown, offset: unknown) =>
+      manifest([
+        timeline("outer", "points", length, {
+          children: [timeline("inner", "points", childLength, { offset })],
+        }),
+      ]);
+    const huge = new JsonFloat(1e308);
+    expect(1e308 + 1e308).toBe(Number.POSITIVE_INFINITY);
+    expect(only(nested(new JsonFloat(1.7976931348623157e308), huge, huge))).toEqual([
+      ["timelines", 0, "children", 0, "length"],
+      `child 'inner' ends at [${2n * BigInt(1e308)}, 1], beyond the length 1.7976931348623157e+308 of its parent 'outer'`,
+    ]);
+    const beyond = nested(new JsonFloat(1), 10n ** 400n, 0.5);
+    expect(Number(10n ** 400n)).toBe(Number.POSITIVE_INFINITY);
+    expect(problems(beyond)).toEqual([
+      [
+        ["timelines", 0, "children", 0, "length"],
+        `child 'inner' ends at [${2n * 10n ** 400n + 1n}, 2], beyond the length 1.0 of its parent 'outer'`,
+      ],
+    ]);
+    expect(() => validate(beyond)).toThrow(expect.objectContaining({ code: "representation" }));
   });
 
   it.each([

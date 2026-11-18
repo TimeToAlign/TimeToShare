@@ -127,6 +127,9 @@ cases fail. The packages differ only where JavaScript must:
 - **Integers beyond 2^53.** `loads` reads `9007199254740993` as a
   `bigint`, so on a float axis it is "an int … write a float";
   `9007199254740992n` and `10n ** 20n` are exactly floats and validate.
+  `10n ** 400n` has no double (`Number` gives infinity), so containment
+  and segment lines add it exactly, as Python adds an integer that
+  `float` cannot convert, and both spell the end alike.
 - **Non-finite numbers.** The readers refuse them and a `JsonFloat` cannot
   hold one, so only a number built in code reaches the finite rule; the
   tests build infinity, NaN and negative infinity as Python's do.

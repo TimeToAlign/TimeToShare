@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from timetoshare import identity_problems, validate
+from timetoshare import SchemaValidationError, identity_problems, validate
 
 from .conftest import manifest, timeline
 
@@ -154,7 +154,9 @@ def test_a_float_line_adds_as_doubles() -> None:
 
 
 def test_the_double_sum_decides_where_the_exact_one_differs() -> None:
-    def page(b_offset: Any, b_length: Any, **b_rest: Any) -> dict:
+    # 76.70371459980326 and 855.5289364103584 are doubles whose exact sum exceeds
+    # 932.2326510101616 by 3/2^46 while their double sum equals it.
+    def with_b(b_offset: Any, b_length: Any, **b_rest: Any) -> dict:
         return _line(
             _segment("a", 0.0, 76.70371459980326, "points"),
             _segment("b", b_offset, b_length, "points", **b_rest),
@@ -171,11 +173,11 @@ def test_the_double_sum_decides_where_the_exact_one_differs() -> None:
     assert Fraction(932.2326510101616) + Fraction(67.7673489898384) == 1000 - Fraction(
         1, 2**46
     )
-    assert _problems(page(76.70371459980326, 855.5289364103584)) == []
+    assert _problems(with_b(76.70371459980326, 855.5289364103584)) == []
 
     assert math.nextafter(76.70371459980326, math.inf) == 76.70371459980328
     assert 76.70371459980328 + 855.5289364103584 == 932.2326510101616
-    assert _problems(page(76.70371459980328, 855.5289364103584)) == [
+    assert _problems(with_b(76.70371459980328, 855.5289364103584)) == [
         (
             (*AT, "children", 1, "offset"),
             f"segment 'b' of {ID} does not start where the one before it ends",
@@ -205,13 +207,40 @@ def test_the_double_sum_decides_where_the_exact_one_differs() -> None:
         ),
         ((*AT, "length"), f"the segments of {ID} do not end at its length"),
     ]
-    mixed = page(76.70371459980326, pairs[855.5289364103584], number_type="fraction")
+    mixed = with_b(76.70371459980326, pairs[855.5289364103584], number_type="fraction")
     assert _problems(mixed) == [
         (
             (*AT, "children", 2, "offset"),
             f"segment 'c' of {ID} does not start where the one before it ends",
         ),
     ]
+
+
+def test_a_segment_without_a_double_sum_ends_at_the_exact_sum() -> None:
+    assert math.isinf(1e308 + 1e308)
+    overflowing = _line(
+        _segment("a", 0.0, 1e308, "points"),
+        _segment("b", 1e308, 1e308, "points"),
+        _segment("c", 1.7976931348623157e308, 1.0, "points"),
+        length=None,
+        unit="points",
+    )
+    assert _problems(overflowing) == [
+        (
+            (*AT, "children", 2, "offset"),
+            f"segment 'c' of {ID} does not start where the one before it ends",
+        ),
+    ]
+    beyond = _line(
+        _segment("a", 0.0, 10**400, "points"),
+        _segment("b", 10**400, 1.0, "points"),
+        length=None,
+        unit="points",
+    )
+    assert list(identity_problems(beyond)) == []
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(beyond)
+    assert caught.value.code == "representation"
 
 
 @pytest.mark.parametrize(

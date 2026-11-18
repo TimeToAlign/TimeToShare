@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import math
 from fractions import Fraction
 from typing import Any
 
@@ -672,22 +673,26 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
 
 
 def test_a_child_on_a_float_axis_ends_at_the_double_sum() -> None:
-    def page(length: Any, child_length: Any, offset: Any, number_type: str) -> dict:
-        axis = timeline(
-            "axis", "points", child_length, offset=offset, number_type=number_type
+    def nested(length: Any, child_length: Any, offset: Any, number_type: str) -> dict:
+        inner = timeline(
+            "inner", "points", child_length, offset=offset, number_type=number_type
         )
         return manifest(
-            timeline("page", "points", length, number_type=number_type, children=[axis])
+            timeline(
+                "outer", "points", length, number_type=number_type, children=[inner]
+            )
         )
 
-    fits = page(932.2326510101616, 855.5289364103584, 76.70371459980326, "float")
+    # Three doubles whose exact sum exceeds the parent by 3/2^46 while their
+    # double sum equals it.
+    fits = nested(932.2326510101616, 855.5289364103584, 76.70371459980326, "float")
     assert 76.70371459980326 + 855.5289364103584 == 932.2326510101616
     assert _problems(fits) == []
     validate(fits)
-    assert _only(page(932.2326510101616, 855.53, 76.70371459980326, "float")) == (
+    assert _only(nested(932.2326510101616, 855.53, 76.70371459980326, "float")) == (
         ("timelines", 0, "children", 0, "length"),
-        "child 'axis' ends at 932.2337145998032, beyond the length 932.2326510101616 "
-        "of its parent 'page'",
+        "child 'inner' ends at 932.2337145998032, beyond the length 932.2326510101616 "
+        "of its parent 'outer'",
     )
     pairs = (
         [2050001279156237, 2199023255552],
@@ -699,12 +704,51 @@ def test_a_child_on_a_float_axis_ends_at_the_double_sum() -> None:
         Fraction(855.5289364103584),
         Fraction(76.70371459980326),
     ]
-    exact = page(*pairs, "fraction")
+    exact = nested(*pairs, "fraction")
     assert _only(exact) == (
         ("timelines", 0, "children", 0, "length"),
-        "child 'axis' ends at [65600040932999587, 70368744177664], beyond the length "
-        "[2050001279156237, 2199023255552] of its parent 'page'",
+        "child 'inner' ends at [65600040932999587, 70368744177664], beyond the length "
+        "[2050001279156237, 2199023255552] of its parent 'outer'",
     )
+
+
+def test_a_child_without_a_double_sum_ends_at_the_exact_sum() -> None:
+    largest = 1.7976931348623157e308
+    assert math.isinf(1e308 + 1e308)
+    assert _only(
+        manifest(
+            timeline(
+                "outer",
+                "points",
+                largest,
+                children=[timeline("inner", "points", 1e308, offset=1e308)],
+            )
+        )
+    ) == (
+        ("timelines", 0, "children", 0, "length"),
+        f"child 'inner' ends at [{2 * int(1e308)}, 1], beyond the length "
+        "1.7976931348623157e+308 of its parent 'outer'",
+    )
+    beyond = manifest(
+        timeline(
+            "outer",
+            "points",
+            1.0,
+            children=[timeline("inner", "points", 10**400, offset=0.5)],
+        )
+    )
+    with pytest.raises(OverflowError):
+        float(10**400)
+    assert _problems(beyond) == [
+        (
+            ("timelines", 0, "children", 0, "length"),
+            f"child 'inner' ends at [{2 * 10**400 + 1}, 2], beyond the length 1.0 "
+            "of its parent 'outer'",
+        )
+    ]
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(beyond)
+    assert caught.value.code == "representation"
 
 
 @pytest.mark.parametrize(

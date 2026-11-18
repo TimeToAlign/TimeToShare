@@ -605,13 +605,21 @@ documents that bound each rule from the other side:
   declared `fraction`, `[1, 3]` at `0.5` in `0.75`, at `[5, 6]`; `0.25` at
   `0.5` in `0.75` and `[2, 1]` at `[8, 1]` in `[10, 1]` end at the length
   and pass. The double sum decides even where it differs from the exact
-  one: `855.5289364103584` points at `76.70371459980326` in
-  `932.2326510101616` (a drawing's time axis) end at the length in double
-  arithmetic and pass, though their exact sum exceeds it by 3/2^46; one
-  decimal step longer, `855.53` ends at `932.2337145998032` and is
-  reported. The same three values written as the Fraction pairs that equal
-  them on a `fraction` axis are added exactly and reported, ending at
-  `[65600040932999587, 70368744177664]`.
+  one, as for three doubles whose exact sum exceeds the parent's length by
+  3/2^46 while their double sum equals it: `855.5289364103584` points at
+  `76.70371459980326` in `932.2326510101616` end at the length in double
+  arithmetic and pass; one decimal step longer, `855.53` ends at
+  `932.2337145998032` and is reported. The same three values written as
+  the Fraction pairs that equal them on a `fraction` axis are added exactly
+  and reported, ending at `[65600040932999587, 70368744177664]`. Where the
+  two `float` values have no double sum, because it overflows or because
+  one is an integer no double holds, they are added exactly and the end,
+  which no double equals, is spelled as a Fraction pair: `1e308` at
+  `1e308` in `1.7976931348623157e308`, the largest double, ends at
+  `[2n, 1]`, n being the integer the double `1e308` equals, and is
+  reported; `10^400` at `0.5` in `1.0` ends at `[2·10^400 + 1, 2]`, which
+  `identity_problems` reports while `validate` refuses the integer on a
+  `float` axis first, as a representation problem.
   An offset beyond the length is its child's one problem; a child of another
   unit gets only the unit problem, also between two continuous logical units
   (`number` under `quarters`); a parent of unknown length checks no
@@ -639,7 +647,13 @@ documents that bound each rule from the other side:
   them on a `fraction` line are added exactly and refused at `c`'s offset
   and at the line's length, and so are they on the `float` line where `b`
   alone is declared `fraction`, its length the pair: one problem, at `c`'s
-  offset. A segment of unknown length ends where its
+  offset. Where a segment's offset and length have no
+  double sum, it ends at their exact sum: on a `points` line of unknown
+  length, `b` of `1e308` at `1e308` after `a` of `1e308` at `0.0` ends
+  beyond every double, so `c` at `1.7976931348623157e308` is one problem
+  at its offset, while `b` of `1.0` at `10^400` after `a` of `10^400` at `0.0` meets
+  `a`'s end and `identity_problems` finds nothing (`validate` refuses the
+  integer as a representation problem). A segment of unknown length ends where its
   successor starts; the end check is skipped where the last segment's or the
   line's length is unknown, contiguity is not; a line without segments has
   one problem at a length of 8, none at 0 or null; a flag differing from the

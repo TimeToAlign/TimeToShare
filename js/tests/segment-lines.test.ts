@@ -143,7 +143,9 @@ describe("segment lines", () => {
   });
 
   it("lets the double sum decide where the exact one differs", () => {
-    const page = (bOffset: unknown, bLength: unknown, bRest: JsonObject = {}) =>
+    // 76.70371459980326 and 855.5289364103584 are doubles whose exact sum exceeds
+    // 932.2326510101616 by 3/2^46 while their double sum equals it.
+    const withB = (bOffset: unknown, bLength: unknown, bRest: JsonObject = {}) =>
       line(
         [
           segment("a", new JsonFloat(0), 76.70371459980326, "points"),
@@ -162,11 +164,11 @@ describe("segment lines", () => {
     expect(932.2326510101616 + 67.7673489898384).toBe(1000);
     expect(ulps(76.70371459980326) + ulps(855.5289364103584) - ulps(932.2326510101616)).toBe(3n);
     expect(ulps(1000) - ulps(932.2326510101616) - ulps(67.7673489898384)).toBe(1n);
-    expect(problems(page(76.70371459980326, 855.5289364103584))).toEqual([]);
+    expect(problems(withB(76.70371459980326, 855.5289364103584))).toEqual([]);
 
     expect(76.70371459980326 + 2 ** -46).toBe(76.70371459980328);
     expect(76.70371459980328 + 855.5289364103584).toBe(932.2326510101616);
-    expect(problems(page(76.70371459980328, 855.5289364103584))).toEqual([
+    expect(problems(withB(76.70371459980328, 855.5289364103584))).toEqual([
       [
         [...AT, "children", 1, "offset"],
         `segment 'b' of ${ID} does not start where the one before it ends`,
@@ -200,12 +202,42 @@ describe("segment lines", () => {
       ],
       [[...AT, "length"], `the segments of ${ID} do not end at its length`],
     ]);
-    expect(problems(page(76.70371459980326, b, fraction))).toEqual([
+    expect(problems(withB(76.70371459980326, b, fraction))).toEqual([
       [
         [...AT, "children", 2, "offset"],
         `segment 'c' of ${ID} does not start where the one before it ends`,
       ],
     ]);
+  });
+
+  it("ends a segment without a double sum at the exact sum", () => {
+    const huge = new JsonFloat(1e308);
+    expect(1e308 + 1e308).toBe(Number.POSITIVE_INFINITY);
+    const overflowing = line(
+      [
+        segment("a", new JsonFloat(0), huge, "points"),
+        segment("b", huge, huge, "points"),
+        segment("c", new JsonFloat(1.7976931348623157e308), new JsonFloat(1), "points"),
+      ],
+      null,
+      "points",
+    );
+    expect(problems(overflowing)).toEqual([
+      [
+        [...AT, "children", 2, "offset"],
+        `segment 'c' of ${ID} does not start where the one before it ends`,
+      ],
+    ]);
+    const beyond = line(
+      [
+        segment("a", new JsonFloat(0), 10n ** 400n, "points"),
+        segment("b", 10n ** 400n, new JsonFloat(1), "points"),
+      ],
+      null,
+      "points",
+    );
+    expect(identityProblems(beyond)).toEqual([]);
+    expect(() => validate(beyond)).toThrow(expect.objectContaining({ code: "representation" }));
   });
 
   it.each([
