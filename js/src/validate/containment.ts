@@ -70,7 +70,8 @@ export function childEnd(timeline: JsonObject, child: JsonObject, length: unknow
  * child both have number type `float`, the two JSON numbers are summed in IEEE
  * double arithmetic, as a reader adds them, so the end may differ from the
  * exact sum by a rounding. In every other case (`int`, `fraction`, mixed number
- * types, or a number beyond the range of doubles) the sum is exact. A child
+ * types, a value with no double such as a Fraction pair or an integer beyond the
+ * range of doubles, or a double sum that overflows) the sum is exact. A child
  * with no length, or on another unit than its parent, has end `null`, except a
  * child of a segment line without a length, whose end is the offset of the next
  * child in offset order.
