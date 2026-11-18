@@ -93,7 +93,7 @@ export const schemes: readonly KnownScheme[] = [
   {
     "entity_uri": "https://www.youtube.com/watch?v={value}",
     "id": "youtube_video",
-    "level": "item",
+    "level": "manifestation",
     "lowercase": false,
     "name": "YouTube video ID",
     "patterns": [

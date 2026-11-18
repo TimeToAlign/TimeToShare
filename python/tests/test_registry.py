@@ -52,7 +52,7 @@ ENTRIES = [
     (
         "youtube_video",
         f"{WIKIDATA}P1651",
-        "item",
+        "manifestation",
         "https://www.youtube.com/watch?v={value}",
         False,
     ),
@@ -129,7 +129,7 @@ RECOGNISED = [
         None,
         "work",
     ),
-    (VIDEO_URI, VIDEO_URI, None, "item"),
+    (VIDEO_URI, VIDEO_URI, None, "manifestation"),
 ]
 
 
@@ -237,7 +237,7 @@ def test_a_youtube_video_id_keeps_its_case() -> None:
             continue
         recognition = default_registry().recognize(url)
         assert recognition is not None, url
-        assert (recognition.value, recognition.level) == (VIDEO, "item"), url
+        assert (recognition.value, recognition.level) == (VIDEO, "manifestation"), url
 
 
 @pytest.mark.parametrize(

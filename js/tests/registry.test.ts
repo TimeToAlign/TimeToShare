@@ -49,7 +49,13 @@ const ENTRIES: [string, string, Level | null, string | null, boolean][] = [
   ["gnd", `${WIKIDATA}P227`, null, "https://d-nb.info/gnd/{value}", false],
   ["imslp", IMSLP, "work", null, false],
   ["doi", `${WIKIDATA}P356`, null, "https://doi.org/{value}", false],
-  ["youtube_video", `${WIKIDATA}P1651`, "item", "https://www.youtube.com/watch?v={value}", false],
+  [
+    "youtube_video",
+    `${WIKIDATA}P1651`,
+    "manifestation",
+    "https://www.youtube.com/watch?v={value}",
+    false,
+  ],
 ];
 
 const RECOGNISED: [string, string | null, Identifier | null, Level | null][] = [
@@ -87,7 +93,7 @@ const RECOGNISED: [string, string | null, Identifier | null, Level | null][] = [
     null,
     "work",
   ],
-  [VIDEO_URI, VIDEO_URI, null, "item"],
+  [VIDEO_URI, VIDEO_URI, null, "manifestation"],
 ];
 
 const FORMS: [string, string][] = [
@@ -241,7 +247,7 @@ describe("the registry of identifier schemes", () => {
     for (const [url, scheme] of FORMS) {
       if (scheme !== "youtube_video") continue;
       const recognition = recognize(url);
-      expect([recognition?.value, recognition?.level], url).toEqual([VIDEO, "item"]);
+      expect([recognition?.value, recognition?.level], url).toEqual([VIDEO, "manifestation"]);
     }
   });
 
