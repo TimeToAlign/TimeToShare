@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as api from "../src/index.js";
 import { childEnds, identityProblems, validate } from "../src/index.js";
 import { JsonFloat, type JsonObject } from "../src/json/value.js";
-import { exact } from "../src/numbers/exact.js";
+import { exact, rational, sameRational } from "../src/numbers/exact.js";
 import { manifest, timeline } from "./fixtures.js";
 
 type Problem = [readonly (string | number)[], string];
@@ -317,6 +317,23 @@ describe("childEnds", () => {
       children: [segment("a", new JsonFloat(0.1), new JsonFloat(0.2), "seconds")],
     });
     expect(childEnds(line)).toEqual([exact(0.1 + 0.2)]);
-    expect(exact(0.1 + 0.2)).not.toEqual(exact(0.1));
+    const [a, b] = [exact(0.1), exact(0.2)];
+    const exactSum = rational(
+      a.numerator * b.denominator + b.numerator * a.denominator,
+      a.denominator * b.denominator,
+    );
+    expect(sameRational(exact(0.1 + 0.2), exactSum)).toBe(false);
+  });
+
+  it("ends a segment of unknown length at its successor's offset", () => {
+    const line = timeline("line", "quarters", [8, 1], {
+      is_segment_line: true,
+      children: [
+        segment("a", [0, 1], [3, 1]),
+        segment("c", [5, 1], [3, 1]),
+        segment("b", [3, 1], null),
+      ],
+    });
+    expect(childEnds(line)).toEqual([exact([3, 1]), exact([8, 1]), exact([5, 1])]);
   });
 });

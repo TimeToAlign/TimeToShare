@@ -336,3 +336,18 @@ def test_child_ends_is_public_and_adds_floats_as_doubles() -> None:
     )
     assert child_ends(line) == [Fraction(0.1 + 0.2), Fraction(3, 4), None]
     assert Fraction(0.1 + 0.2) != Fraction(0.1) + Fraction(0.2)
+
+
+def test_child_ends_puts_an_unknown_segment_end_at_its_successor() -> None:
+    line = timeline(
+        "line",
+        "quarters",
+        (8, 1),
+        is_segment_line=True,
+        children=[
+            _segment("a", (0, 1), (3, 1)),
+            _segment("c", (5, 1), (3, 1)),
+            _segment("b", (3, 1), None),
+        ],
+    )
+    assert child_ends(line) == [Fraction(3), Fraction(8), Fraction(5)]
