@@ -1117,10 +1117,8 @@ any text and `serialization_of` names a text's serialization. They live in
   column 259; `{a: ` 257 times, then `1` and `}` 257 times, read as YAML
   after a comment line, at line 2, column 1025 (flow mappings); and the
   shared refusals `json_depth_257.json` at line 1, column 257 and
-  `yaml_depth_257.yaml` at line 128, column 385. A JSON text holding a
-  repeated key before the 257th collection is refused for the key. Every
-  text nested 257 deep, made one level shallower, is read, to a value nested
-  256 deep.
+  `yaml_depth_257.yaml` at line 128, column 385. Every text nested 257
+  deep, made one level shallower, is read, to a value nested 256 deep.
   The writers refuse a value deeper than 256 with the `ValueError` `a value
   nested deeper than 256 levels cannot be written` in every serialization:
   the array nested 257 deep (built in memory: no text a reader reads holds
@@ -1130,10 +1128,41 @@ any text and `serialization_of` names a text's serialization. They live in
   written in every serialization and reads back equal, its canonical YAML
   being `readings/json_depth_256.expected.yaml` and its RFC 8785 JSON `[`
   256 times then `]` 256 times.
+- **The first fault.** A text holding several faults is refused for the
+  first in document order, at the token that offends, by both readers; the
+  place names the fault, so a test that pins it proves the order. The
+  YAML reader checks each node as the parser's event for it arrives, a key
+  before its value (anchor, tag, a key being a string and not repeating,
+  depth, value), and stops there; the JSON reader refuses where it stands
+  when it meets a fault, the grammar's included. Pinned by message: in
+  YAML, a repeated key, `!foo`, `!!map [1]`, the key `1` and the escape
+  `\ud800` each before a flow sequence at depth 257 are refused for
+  themselves, and that depth (line 1, column 259) before a repeated key or
+  `!foo`; `!foo` before a repeated key and a repeated key before `!foo`,
+  each for the first; `!foo` before U+0001 for the tag and U+0001 before a
+  repeated key for the character (PyYAML checks every character before it
+  parses any, so the reader looks for a fault in the text before the
+  character first); a repeated key before a second document for the key,
+  and a second document before a repeated key in it for the document. In
+  JSON, `[1e999, }` and `[1e999] 2` for the number at column 2,
+  `["\ud800", }` for the surrogate at column 3, a repeated key before a
+  missing key or extra data for the key, `1e999` as the value of a key
+  that repeats later for the number, a lone surrogate before 300 unclosed
+  `[` for the surrogate, a collection at depth 257 before a repeated key
+  for the depth, and U+0001 in a string before `1e999` for the character.
+  A JSON string is refused at the token that offends: an invalid escape
+  (`\x`, `\u12G4`) at its backslash, a control character where it stands,
+  an unterminated string at the end of the text; a high-surrogate escape
+  not followed by a low-surrogate escape (an invalid escape, the end, a
+  control character, an escaped quote or a low surrogate standing as
+  itself follows) is lone at its own escape. Every shared refusal whose
+  place the cases' README gives is refused there (the test's table of
+  places): the two depth texts, the five `json_lone_surrogate_*` texts and
+  the ten `*_before_*` texts.
 - **Columns count code points.** In both readers a character above U+FFFF
   counts once: the YAML anchor in `"😀": &x 1` is refused at column 6, and
-  the escape `\ud800` in the JSON text `["😀", "\ud800"]` at column 7 (in
-  UTF-16 code units they would be 7 and 8).
+  the escape `\ud800` in the JSON text `["😀", "\ud800"]` at column 8 (in
+  UTF-16 code units they would be 7 and 9).
 - **The float spelling.** The README's examples: `2.0`, `123.25`, `0.1`,
   `0.0001`, `1.0e-05`, `-2.5e-07`, `1000000000000000.0`, `1.0e+16`,
   `1.5e+16`, `5.0e-324`, `1.7976931348623157e+308`, `-0.0`, `5.0e-05` and
@@ -1158,7 +1187,8 @@ any text and `serialization_of` names a text's serialization. They live in
   to an infinity) raise `ValueError`; `""`, `01`, `nul`, `NaN` and
   `-Infinity` are no JSON texts and open with neither `{` nor `[`, so they
   are read as YAML, to null, 1 and the strings `nul`, `NaN` and `-Infinity`; `{"a": 1, "a": 2}`, `["\ud800"]` and a string holding U+D800 as
-  itself raise `ValueError` naming the line and column. A single U+FEFF
+  itself raise `ValueError` naming the line and column, the repeated key
+  at its quote and the surrogate at its escape or where it stands. A single U+FEFF
   before a JSON text is removed; `serialization_of` gives `"json"` for `{}`
   after a U+FEFF, `"jcs"` for `{}`, `"yaml"` for `a: 1` and `"json"` for
   `{"a": "\ud800"}` and for `[1,` and never raises.

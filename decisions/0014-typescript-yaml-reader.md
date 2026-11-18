@@ -20,7 +20,8 @@ it needs a library for reading only. The reader must:
    more than one document; duplicate keys; anchors and aliases; a key that
    is not a string; a value outside the JSON data model; a non-finite float
    (`.inf`, `.nan`, and a literal such as `1e309` that rounds to an
-   infinity); a string holding an unpaired surrogate;
+   infinity); a string holding an unpaired surrogate; collections nested
+   deeper than 256 levels; of several faults, the first in document order;
 5. construct no objects from the text (safe loading only);
 6. throw an error with the offset, line and column for every refusal;
 7. run on the Node versions of the package's `engines` (`>=22.18.0`) and
@@ -59,13 +60,15 @@ Each candidate was installed and run against the requirements on Node on
 ## Decision
 
 Use `yaml` 2.9.1. The YAML reader calls `parseDocument(text, {schema:
-"core", intAsBigInt: true, uniqueKeys: true})` and refuses the text when
-`doc.errors` or `doc.warnings` is not empty, at the first error, else the
-first warning. It then builds the value by one walk over the node tree in
-document order (a key before its value, a value's items before the next
-key), with an explicit stack, so a text nested as deeply as `yaml`
-composes it never exhausts the call stack in the walk; it never calls
-`toJS` and never resolves an alias.
+"core", intAsBigInt: true, uniqueKeys: true})`, then builds the value by
+one walk over the node tree in document order (a key before its value, a
+value's items before the next key), with an explicit stack, so a text
+nested as deeply as `yaml` composes it never exhausts the call stack in
+the walk; it never calls `toJS` and never resolves an alias. At each node
+the walk checks, in this order, an alias or an anchor, the tag, a key
+being a string, the depth, then the value, and it stops at the first
+fault. Every error and warning of the parser is a fault as well; the
+reader refuses the one of them with the smallest `pos[0]`.
 
 | Refusal | How |
 | --- | --- |
@@ -76,6 +79,20 @@ composes it never exhausts the call stack in the walk; it never calls
 | Values outside the JSON data model | Collections by their tag: the walk refuses a mapping or sequence whose `tag` is set to anything but `tag:yaml.org,2002:map` or `tag:yaml.org,2002:seq`, so `!!set` (a `YAMLSet`, a mapping tagged `set`) and `!!omap` (a `YAMLOMap`, a sequence tagged `omap`) are refused; implicit resolution leaves `tag` unset. Scalars by their value: the walk keeps a scalar whose `value` is `null`, a boolean, a string, a `bigint` or a `number`, and refuses any other, so `!!timestamp` (a `Date`) and `!!binary` (a `Uint8Array`) are refused, and `!!str 1` reads as `"1"`. A node that is neither a mapping, a sequence nor a scalar is refused at the collection holding it. |
 | Non-finite floats | The walk refuses a scalar whose `value` is a `number` that is not `Number.isFinite`: `.inf`, `-.Inf` and `.nan`, which `yaml` resolves to `Infinity` and `NaN` with `tag` unset, and `1e309`, which `parseFloat` rounds to `Infinity`. |
 | Unpaired surrogates | The walk refuses a string, key or value, holding a high surrogate not followed by a low one or a low surrogate not preceded by a high one, by the package's own test, which the writers share. `yaml` joins a high-surrogate escape followed by a low one into one character (`"\ud83d\ude00"` gives U+1F600) and leaves an unpaired one in the string (`"\ud800"`). |
+| Nesting deeper than 256 levels | The walk knows the depth of each node from its stack (the root stands at depth 1) and refuses a mapping or a sequence at depth 257 at its `range[0]`, before it walks into it: the first collection at depth 257, in document order. |
+
+**The first fault.** Of several faults the reader refuses the first in
+document order. The walk meets its own faults in that order and stops at
+the first; the parser reports its errors and warnings in lists of their
+own, ordered by kind rather than by place, so the reader takes the one
+with the smallest `pos[0]`. A fault of the walk is refused unless that
+problem of the parser lies at or before its offset, and a problem of the
+parser alone is refused where the walk finds none. One problem never
+outranks the walk: `RESOURCE_EXHAUSTION`, which `yaml` reports where its
+stack ran out composing collections hundreds of levels deeper than 257 and
+where it stops composing. The tree it leaves still holds the collection at
+depth 257, which the walk reaches first, so a text nested 100,000 deep is
+refused at the same place as one nested 257 deep.
 
 Numbers stay lossless by the scalar's resolved kind: a `value` that is a
 `bigint` is an integer, one that is a `number` a float.

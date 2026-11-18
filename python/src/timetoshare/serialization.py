@@ -19,7 +19,8 @@ The depth of a value is 0 for a scalar and, for an object or an array, 1 more
 than the greatest depth of its members (1 for an empty one). The readers
 refuse a text whose value would be deeper than 256, at the first character
 of the first collection at depth 257, so that every value written can be read
-and the place of the refusal depends on the text alone.
+and the place of the refusal depends on the text alone. A text holding several
+faults is refused for the first in document order, where its token stands.
 """
 
 from __future__ import annotations
@@ -443,15 +444,25 @@ def _position(text: str, index: int) -> str:
     return f"line {line}, column {column}"
 
 
-class _JsonSyntaxError(ValueError):
-    """A text that is not one JSON value under the grammar of RFC 8259."""
-
-    def __init__(self, text: str, index: int, problem: str) -> None:
-        super().__init__(f"{problem} at {_position(text, index)}")
-
-
 _NUMBER = re.compile(r"-?(?:0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?")
 _LITERALS = (("true", True), ("false", False), ("null", None))
+_STRING_RUN = re.compile(r'[^"\\\x00-\x1f\ud800-\udfff]+')
+_STRING_ESCAPES = {
+    '"': '"',
+    "\\": "\\",
+    "/": "/",
+    "b": "\b",
+    "f": "\f",
+    "n": "\n",
+    "r": "\r",
+    "t": "\t",
+}
+_HEX4 = re.compile(r"[0-9A-Fa-f]{4}")
+_JSON_SCALAR = re.compile(
+    r'[ \t\n\r]*(?:"(?:[^"\\\x00-\x1f]|\\(?:["\\/bfnrt]|u[0-9A-Fa-f]{4}))*"'
+    r"|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?|true|false|null)[ \t\n\r]*"
+)
+"""One JSON scalar under the grammar of RFC 8259, with white space around it."""
 
 
 def _skip(text: str, index: int) -> int:
@@ -464,65 +475,104 @@ def _read_json(text: str) -> Any:
     """Read a JSON text losslessly.
 
     Integers stay exact at any size and floats stay floats; a float is the
-    double nearest to the decimal written. The whole text is checked against
-    the grammar first, so a text that is not JSON raises
-    :class:`_JsonSyntaxError` even where it also holds a refused value; only
-    a collection opening at depth 257 stops the reading where it stands,
-    refused for the first refused value before it if there is one.
+    double nearest to the decimal written. The text is read from its first
+    character and refused at its first fault, at the token that offends: a
+    string at the escape or the character that ends it wrongly, a lone
+    surrogate where it is written, a number that rounds to an infinity, a
+    repeated key, and a collection opening at depth 257 where they stand.
 
     Raises:
-        _JsonSyntaxError: If the text is not one JSON value.
-        ValueError: If it is, but repeats a key in an object, holds a lone
-            surrogate in a string or a key, or a number that rounds to an
-            infinity; and if it nests collections deeper than 256 levels.
+        ValueError: If the text is not one JSON value, repeats a key in an
+            object, holds a lone surrogate in a string or a key, or a number
+            that rounds to an infinity, or nests collections deeper than 256
+            levels.
     """
-    refusal: ValueError | None = None
 
-    def refuse(index: int, problem: str) -> None:
-        nonlocal refusal
-        if refusal is None:
-            refusal = ValueError(f"{problem} at {_position(text, index)}")
+    def fail(index: int, problem: str) -> NoReturn:
+        raise ValueError(f"{problem} at {_position(text, index)}")
 
     def string(index: int) -> tuple[str, int]:
-        try:
-            value, end = json.decoder.scanstring(text, index + 1, True)
-        except json.JSONDecodeError as error:
-            problem = error.msg.removesuffix(" at")
-            raise _JsonSyntaxError(text, error.pos, problem) from None
-        try:
-            value.encode("utf-8")
-        except UnicodeEncodeError:
-            refuse(index, "a string holds a lone surrogate")
-        return value, end
+        """The string whose opening quote is at ``index``, and the index after it.
 
-    def key(index: int) -> tuple[str, int]:
-        if text[index : index + 1] != '"':
-            raise _JsonSyntaxError(text, index, "expected a key")
-        name, index = string(index)
-        index = _skip(text, index)
-        if text[index : index + 1] != ":":
-            raise _JsonSyntaxError(text, index, "expected ':'")
-        return name, index + 1
+        A high-surrogate escape pairs only with the low-surrogate escape right
+        after it; one that does not is lone where it is written, whatever
+        follows it. A surrogate standing as itself is lone.
+        """
+        parts: list[str] = []
+        high = -1
+        index += 1
+        while True:
+            run = _STRING_RUN.match(text, index)
+            if run is not None and high < 0:
+                parts.append(run.group())
+                index = run.end()
+            at = index
+            if text.startswith("\\u", index) and _HEX4.match(text, index + 2):
+                unit = int(text[index + 2 : index + 6], 16)
+                index += 6
+                if high >= 0:
+                    if not 0xDC00 <= unit <= 0xDFFF:
+                        fail(high, "a string holds a lone surrogate")
+                    first = int(text[high + 2 : high + 6], 16)
+                    parts.append(
+                        chr(0x10000 + ((first - 0xD800) << 10) + unit - 0xDC00)
+                    )
+                    high = -1
+                elif 0xD800 <= unit <= 0xDBFF:
+                    high = at
+                elif 0xDC00 <= unit <= 0xDFFF:
+                    fail(at, "a string holds a lone surrogate")
+                else:
+                    parts.append(chr(unit))
+                continue
+            if high >= 0:
+                fail(high, "a string holds a lone surrogate")
+            character = text[index : index + 1]
+            if character == '"':
+                return "".join(parts), index + 1
+            if character == "\\":
+                escaped = text[index + 1 : index + 2]
+                if escaped not in _STRING_ESCAPES:
+                    fail(at, "an invalid escape")
+                parts.append(_STRING_ESCAPES[escaped])
+                index += 2
+            elif not character:
+                fail(at, "an unterminated string")
+            elif character < " ":
+                fail(at, "a control character in a string")
+            else:
+                fail(at, "a string holds a lone surrogate")
 
-    # Each open container: [value, closing bracket, pending key, key position].
+    # Each open container: [value, closing bracket, pending key].
     stack: list[list[Any]] = []
+
+    def key(index: int, container: dict[str, Any]) -> tuple[str, int]:
+        if text[index : index + 1] != '"':
+            fail(index, "expected a key")
+        name, after = string(index)
+        if name in container:
+            fail(index, f"the key {json.dumps(name)} repeats")
+        after = _skip(text, after)
+        if text[after : after + 1] != ":":
+            fail(after, "expected ':'")
+        return name, after + 1
+
     index = 0
     while True:
         index = _skip(text, index)
         character = text[index : index + 1]
         if character in ("{", "["):
             if len(stack) == _DEPTH_LIMIT:
-                raise refusal or ValueError(f"{_TOO_DEEP} at {_position(text, index)}")
+                fail(index, _TOO_DEEP)
             closing = "}" if character == "{" else "]"
             index = _skip(text, index + 1)
             if text[index : index + 1] == closing:
                 value: Any = {} if character == "{" else []
                 index += 1
             else:
-                frame: list[Any] = [{} if character == "{" else [], closing, None, 0]
+                frame: list[Any] = [{} if character == "{" else [], closing, None]
                 if character == "{":
-                    frame[3] = index
-                    frame[2], index = key(index)
+                    frame[2], index = key(index, frame[0])
                 stack.append(frame)
                 continue
         elif character == '"':
@@ -530,13 +580,13 @@ def _read_json(text: str) -> Any:
         elif character and character in "-0123456789":
             match = _NUMBER.match(text, index)
             if match is None:
-                raise _JsonSyntaxError(text, index, "invalid number")
+                fail(index, "invalid number")
             if match.group(1) is None and match.group(2) is None:
                 value = int(match.group())
             else:
                 value = float(match.group())
                 if not math.isfinite(value):
-                    refuse(index, f"{match.group()} rounds to an infinity")
+                    fail(index, f"{match.group()} rounds to an infinity")
             index = match.end()
         else:
             for word, literal in _LITERALS:
@@ -544,23 +594,19 @@ def _read_json(text: str) -> Any:
                     value, index = literal, index + len(word)
                     break
             else:
-                problem = (
-                    "unexpected end of text" if not character else "expected a value"
+                fail(
+                    index,
+                    "unexpected end of text" if not character else "expected a value",
                 )
-                raise _JsonSyntaxError(text, index, problem)
         while True:
             if not stack:
                 index = _skip(text, index)
                 if index != len(text):
-                    raise _JsonSyntaxError(text, index, "extra data after the value")
-                if refusal is not None:
-                    raise refusal
+                    fail(index, "extra data after the value")
                 return value
             frame = stack[-1]
             container, closing = frame[0], frame[1]
             if closing == "}":
-                if frame[2] in container:
-                    refuse(frame[3], f"the key {json.dumps(frame[2])} repeats")
                 container[frame[2]] = value
             else:
                 container.append(value)
@@ -569,11 +615,10 @@ def _read_json(text: str) -> Any:
             if character == ",":
                 index = _skip(text, index + 1)
                 if closing == "}":
-                    frame[3] = index
-                    frame[2], index = key(index)
+                    frame[2], index = key(index, container)
                 break
             if character != closing:
-                raise _JsonSyntaxError(text, index, f"expected ',' or '{closing}'")
+                fail(index, f"expected ',' or '{closing}'")
             stack.pop()
             value, index = container, index + 1
 
@@ -597,142 +642,119 @@ class _YamlLoader(yaml.SafeLoader):
     The implicit resolvers are the core schema's (null, booleans, integers in
     base 10, ``0o`` and ``0x``, floats), replacing YAML 1.1's, so ``no`` and
     ``2026-11-17`` are strings and ``1e-05`` is a float. Only the JSON data
-    model is constructed: a tag outside it, such as ``!!timestamp``,
-    ``!!binary``, ``!!set`` or ``!!omap``, is refused, and so are anchors and
-    aliases, a repeated key, a key that is not a string, a non-finite float
-    and a string holding an unpaired surrogate.
+    model is read: a tag outside it, such as ``!!timestamp``, ``!!binary``,
+    ``!!set`` or ``!!omap``, is refused, and so are anchors and aliases, a
+    repeated key, a key that is not a string, a non-finite float, a string
+    holding an unpaired surrogate and a collection opening at depth 257.
 
-    Collections are composed and constructed without recursion, each on a
-    stack of its own: the composer refuses a collection opening at depth 257
-    at its start, and the constructor walks the composed tree in document
-    order, a key before its value.
+    The value is built in one pass over the parser's events, every
+    collection on a stack rather than by recursion, and each node is checked
+    as its event arrives, a key before its value: its anchor, its tag, a key
+    being a string and not repeating, its depth, then its value. So the
+    refusal raised is the first in document order, and a parser error is
+    raised where the parser meets it.
     """
 
     yaml_implicit_resolvers: dict[Any, Any] = {}
     yaml_constructors: dict[Any, Any] = {}
 
-    def compose_node(self, parent: Any, index: Any) -> Any:
-        """Compose the node beginning at the next event, and every node in it."""
-        # The collections being composed, the innermost last, and for each
-        # the key node whose value is pending, if it is a mapping.
-        holders: list[Any] = []
-        keys: list[Any] = []
+    def get_single_data(self) -> Any:
+        """Read the one document of the stream; ``None`` for an empty stream."""
+        self.get_event()
+        value = None
+        if not self.check_event(yaml.StreamEndEvent):
+            self.get_event()
+            value = self._read_value()
+            self.get_event()
+        if not self.check_event(yaml.StreamEndEvent):
+            event = self.get_event()
+            raise yaml.composer.ComposerError(
+                "expected a single document in the stream",
+                None,
+                "but found another document",
+                event.start_mark,
+            )
+        self.get_event()
+        return value
+
+    def _read_value(self) -> Any:
+        """Read the value beginning at the next event, and every value in it."""
+        # The collections being read, the innermost last: [the value being
+        # built, the key whose value is pending, or _NO_KEY].
+        frames: list[list[Any]] = []
         while True:
             event = self.get_event()
-            if isinstance(event, yaml.AliasEvent):
-                raise yaml.composer.ComposerError(
-                    None, None, "an alias is not read", event.start_mark
-                )
             if isinstance(event, yaml.SequenceEndEvent | yaml.MappingEndEvent):
-                node = holders.pop()
-                keys.pop()
-                node.end_mark = event.end_mark
+                value = frames.pop()[0]
             else:
+                if isinstance(event, yaml.AliasEvent):
+                    _refuse(event, "an alias is not read")
                 if event.anchor is not None:
-                    raise yaml.composer.ComposerError(
-                        None, None, "an anchor is not read", event.start_mark
-                    )
+                    _refuse(event, "an anchor is not read")
+                holder = frames[-1] if frames else None
+                is_key = (
+                    holder is not None
+                    and isinstance(holder[0], dict)
+                    and holder[1] is _NO_KEY
+                )
                 if isinstance(event, yaml.ScalarEvent):
-                    tag = event.tag
-                    if tag is None or tag == "!":
-                        tag = self.resolve(yaml.ScalarNode, event.value, event.implicit)
-                    node = yaml.ScalarNode(
-                        tag, event.value, event.start_mark, event.end_mark, event.style
-                    )
+                    value = self._scalar(event)
+                    if is_key:
+                        if not isinstance(value, str):
+                            _refuse(event, "a key that is not a string is not read")
+                        if value in holder[0]:
+                            _refuse(event, f"the key {json.dumps(value)} repeats")
+                        holder[1] = value
+                        continue
                 else:
-                    if len(holders) == _DEPTH_LIMIT:
-                        raise yaml.composer.ComposerError(
-                            None, None, _TOO_DEEP, event.start_mark
-                        )
-                    kind = (
-                        yaml.SequenceNode
-                        if isinstance(event, yaml.SequenceStartEvent)
-                        else yaml.MappingNode
-                    )
-                    tag = event.tag
-                    if tag is None or tag == "!":
-                        tag = self.resolve(kind, None, event.implicit)
-                    holders.append(
-                        kind(tag, [], event.start_mark, None, event.flow_style)
-                    )
-                    keys.append(None)
+                    is_sequence = isinstance(event, yaml.SequenceStartEvent)
+                    _collection_tag(event, is_sequence, self.resolve)
+                    if is_key:
+                        _refuse(event, "a key that is not a string is not read")
+                    if len(frames) == _DEPTH_LIMIT:
+                        _refuse(event, _TOO_DEEP)
+                    frames.append([[] if is_sequence else {}, _NO_KEY])
                     continue
-            if not holders:
-                return node
-            holder = holders[-1]
-            if isinstance(holder, yaml.SequenceNode):
-                holder.value.append(node)
-            elif keys[-1] is None:
-                keys[-1] = node
+            if not frames:
+                return value
+            holder = frames[-1]
+            if isinstance(holder[0], list):
+                holder[0].append(value)
             else:
-                holder.value.append((keys[-1], node))
-                keys[-1] = None
+                holder[0][holder[1]] = value
+                holder[1] = _NO_KEY
 
-    def construct_document(self, node: Any) -> Any:
-        """Construct the value of a document, every collection in it on a stack."""
-        try:
-            if not _is_json_collection(node):
-                return self.construct_object(node, deep=True)
-            # Each frame: the node, the value being built, the key pending.
-            frames: list[list[Any]] = [[node, _empty(node), None]]
-            while True:
-                frame = frames[-1]
-                holder, built = frame[0], frame[1]
-                count = len(built)
-                if count == len(holder.value):
-                    frames.pop()
-                    if not frames:
-                        return built
-                    _place(frames[-1], built)
-                    continue
-                if isinstance(holder, yaml.MappingNode):
-                    key_node, item = holder.value[count]
-                    key = (
-                        self.construct_object(key_node, deep=True)
-                        if isinstance(key_node, yaml.ScalarNode)
-                        else None
-                    )
-                    if not isinstance(key, str):
-                        _refuse(key_node, "a key that is not a string is not read")
-                    if key in built:
-                        _refuse(key_node, f"the key {json.dumps(key)} repeats")
-                    frame[2] = key
-                else:
-                    item = holder.value[count]
-                if _is_json_collection(item):
-                    frames.append([item, _empty(item), None])
-                else:
-                    _place(frame, self.construct_object(item, deep=True))
-        finally:
-            self.constructed_objects = {}
-            self.recursive_objects = {}
+    def _scalar(self, event: Any) -> Any:
+        """The value of a scalar, built by the constructor of its tag."""
+        tag = event.tag
+        if tag is None or tag == "!":
+            tag = self.resolve(yaml.ScalarNode, event.value, event.implicit)
+        node = yaml.ScalarNode(
+            tag, event.value, event.start_mark, event.end_mark, event.style
+        )
+        constructor = self.yaml_constructors.get(tag, self.yaml_constructors[None])
+        return constructor(self, node)
 
 
-def _is_json_collection(node: Any) -> bool:
-    """Whether a node is a sequence or a mapping under the tag of its kind.
-
-    Every other node, a collection under another tag included, is
-    constructed by the constructor of its tag, which refuses a collection.
-    """
-    if isinstance(node, yaml.SequenceNode):
-        return node.tag == _TAG + "seq"
-    return isinstance(node, yaml.MappingNode) and node.tag == _TAG + "map"
+_NO_KEY = object()
+"""The key of a mapping whose next node is a key."""
 
 
-def _empty(node: Any) -> list[Any] | dict[str, Any]:
-    return [] if isinstance(node, yaml.SequenceNode) else {}
-
-
-def _place(frame: list[Any], value: Any) -> None:
-    """Put a value into the collection a frame builds, under its pending key."""
-    built = frame[1]
-    if isinstance(built, dict):
-        built[frame[2]] = value
-    else:
-        built.append(value)
+def _collection_tag(event: Any, is_sequence: bool, resolve: Callable[..., str]) -> None:
+    """Refuse a collection under a tag other than the plain one of its kind."""
+    kind = yaml.SequenceNode if is_sequence else yaml.MappingNode
+    tag = event.tag
+    if tag is None or tag == "!":
+        tag = resolve(kind, None, event.implicit)
+    if tag == _TAG + ("seq" if is_sequence else "map"):
+        return
+    if tag in (_TAG + "seq", _TAG + "map"):
+        _refuse(event, f"the tag {tag} does not fit the node it is given")
+    _refuse(event, f"the tag {tag} names no value of the JSON data model")
 
 
 def _refuse(node: Any, problem: str) -> NoReturn:
+    """Refuse a node, or the event that begins it, at its start."""
     raise yaml.constructor.ConstructorError(None, None, problem, node.start_mark)
 
 
@@ -809,40 +831,60 @@ _YamlLoader.add_constructor(None, _construct_other)
 def _read_yaml(text: str) -> Any:
     """Read a YAML text under the YAML 1.2 core schema.
 
-    An empty text, or one of comments only, reads as null.
+    An empty text, or one of comments only, reads as null. The text is
+    refused at its first fault in document order.
 
     Raises:
         ValueError: With the line and column, both counted from one, the
             column in code points, for every error of the parser (more than
-            one document and an unknown tag among them), collections nested
-            deeper than 256 levels, at the start of the first collection at
-            depth 257, and every value :class:`_YamlLoader` refuses.
+            one document, a character YAML does not allow, an unknown tag
+            among them), collections nested deeper than 256 levels, at the
+            start of the first collection at depth 257, and every value
+            :class:`_YamlLoader` refuses.
     """
     try:
-        loader = _YamlLoader(text)
-        try:
-            return loader.get_single_data()
-        finally:
-            loader.dispose()
-    except yaml.MarkedYAMLError as error:
-        mark = error.problem_mark or error.context_mark
-        problem = ", ".join(part for part in (error.context, error.problem) if part)
-        if mark is None:
-            raise ValueError(problem) from None
-        raise ValueError(
-            f"{problem} at line {mark.line + 1}, column {mark.column + 1}"
-        ) from None
+        return _load_yaml(text)
     except yaml.reader.ReaderError as error:
+        # PyYAML checks every character before it parses any, so a fault
+        # before the character it refuses is found in the text before it.
+        try:
+            _load_yaml(text[: error.position])
+        except yaml.MarkedYAMLError as earlier:
+            mark = earlier.problem_mark or earlier.context_mark
+            if mark is not None and mark.index < error.position:
+                raise _marked(earlier) from None
         where = _position(text, error.position)
         raise ValueError(f"{error.reason} #x{error.character:04x} at {where}") from None
+    except yaml.MarkedYAMLError as error:
+        raise _marked(error) from None
+
+
+def _load_yaml(text: str) -> Any:
+    loader = _YamlLoader(text)
+    try:
+        return loader.get_single_data()
+    finally:
+        loader.dispose()
+
+
+def _marked(error: yaml.MarkedYAMLError) -> ValueError:
+    """The refusal of a parser error or a refused node, with its line and column."""
+    mark = error.problem_mark or error.context_mark
+    problem = ", ".join(part for part in (error.context, error.problem) if part)
+    if mark is None:
+        return ValueError(problem)
+    return ValueError(f"{problem} at line {mark.line + 1}, column {mark.column + 1}")
 
 
 def _without_byte_order_mark(text: str) -> str:
     return text[1:] if text.startswith(_BYTE_ORDER_MARK) else text
 
 
-def _opens_json(text: str) -> bool:
-    return text.lstrip(_JSON_WHITESPACE)[:1] in ("{", "[")
+def _reads_as_json(text: str) -> bool:
+    """Whether a text is read as JSON: it opens with ``{`` or ``[`` after white
+    space, or it is one JSON scalar."""
+    opening = text.lstrip(_JSON_WHITESPACE)[:1]
+    return opening in ("{", "[") or _JSON_SCALAR.fullmatch(text) is not None
 
 
 def loads(text: str) -> Any:
@@ -855,28 +897,24 @@ def loads(text: str) -> Any:
     does not validate.
 
     Raises:
-        ValueError: With the line and column of the fault, both counted from
-            one, the column in code points (in the text after a leading
-            U+FEFF is removed), for a text the reading rules refuse: a JSON
-            text that is not one JSON value, an error of the YAML parser
-            (more than one document, an unknown tag), a key that repeats in
-            its object, a key that is not a string, an anchor or an alias, a
-            value outside the JSON data model, a non-finite number (``NaN``,
-            ``Infinity``, ``.inf``, ``.nan`` and a number that rounds to an
-            infinity), a lone surrogate in a string or a key, written as
-            itself or through an escape, and collections nested deeper than
-            256 levels, placed at the first collection at depth 257.
+        ValueError: With the line and column of the first fault in document
+            order, both counted from one, the column in code points (in the
+            text after a leading U+FEFF is removed), for a text the reading
+            rules refuse: a JSON text that is not one JSON value, an error of
+            the YAML parser (more than one document, an unknown tag), a key
+            that repeats in its object, a key that is not a string, an
+            anchor or an alias, a value outside the JSON data model, a
+            non-finite number (``NaN``, ``Infinity``, ``.inf``, ``.nan`` and
+            a number that rounds to an infinity), a lone surrogate in a
+            string or a key, written as itself or through an escape, and
+            collections nested deeper than 256 levels, placed at the first
+            collection at depth 257.
         TypeError: If ``text`` is not a ``str``.
     """
     if not isinstance(text, str):
         raise TypeError(f"loads reads a str, not {type(text).__name__}")
     text = _without_byte_order_mark(text)
-    try:
-        return _read_json(text)
-    except _JsonSyntaxError:
-        if _opens_json(text):
-            raise
-    return _read_yaml(text)
+    return _read_json(text) if _reads_as_json(text) else _read_yaml(text)
 
 
 def serialization_of(text: str) -> Serialization:
@@ -889,15 +927,11 @@ def serialization_of(text: str) -> Serialization:
     other text.
     """
     body = _without_byte_order_mark(text)
-    try:
-        value = _read_json(body)
-    except _JsonSyntaxError:
-        return "json" if _opens_json(body) else "yaml"
-    except ValueError:
-        return "json"
+    if not _reads_as_json(body):
+        return "yaml"
     if body is not text:
         return "json"
     try:
-        return "jcs" if dumps(value, serialization="jcs") == body else "json"
+        return "jcs" if dumps(_read_json(body), serialization="jcs") == body else "json"
     except (ValueError, TypeError):
         return "json"

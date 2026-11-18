@@ -625,9 +625,9 @@ def test_a_text_that_is_no_json_text_is_read_as_yaml(text: str, value: Any) -> N
     ("text", "message"),
     [
         ('{\n  "a": 1,\n  "a": 2\n}', 'the key "a" repeats at line 3, column 3'),
-        ('[\n  "\\ud800"\n]', "a string holds a lone surrogate at line 2, column 3"),
-        ('["x", "\ud800"]', "a string holds a lone surrogate at line 1, column 7"),
-        ('{"\\udc00": 1}', "a string holds a lone surrogate at line 1, column 2"),
+        ('[\n  "\\ud800"\n]', "a string holds a lone surrogate at line 2, column 4"),
+        ('["x", "\ud800"]', "a string holds a lone surrogate at line 1, column 8"),
+        ('{"\\udc00": 1}', "a string holds a lone surrogate at line 1, column 3"),
     ],
     ids=["duplicate key", "escaped surrogate", "surrogate as itself", "key"],
 )
@@ -843,16 +843,174 @@ def test_a_text_nested_far_deeper_is_refused_at_the_same_place(
     assert str(caught.value) == message
 
 
-@pytest.mark.parametrize(
-    ("name", "line", "column"),
-    [("json_depth_257.json", 1, 257), ("yaml_depth_257.yaml", 128, 385)],
-)
-def test_the_shared_refusals_of_depth_name_their_place(
-    name: str, line: int, column: int
-) -> None:
+# -- the first fault -----------------------------------------------------------------
+
+SHARED_PLACES = {
+    "json_depth_257.json": (1, 257),
+    "yaml_depth_257.yaml": (128, 385),
+    "json_lone_surrogate_high.json": (1, 8),
+    "json_lone_surrogate_low.json": (1, 8),
+    "json_lone_surrogate_reversed.json": (1, 8),
+    "json_lone_surrogate_then_letter.json": (1, 8),
+    "json_lone_surrogate_key.json": (1, 3),
+    "json_lone_surrogate_before_syntax_error.json": (1, 3),
+    "json_float_overflow_before_syntax_error.json": (1, 2),
+    "json_duplicate_key_before_syntax_error.json": (1, 10),
+    "json_duplicate_key_before_depth_257.json": (1, 10),
+    "json_depth_257_before_duplicate_key.json": (1, 262),
+    "yaml_duplicate_key_before_depth_257.yaml": (2, 1),
+    "yaml_depth_257_before_duplicate_key.yaml": (1, 259),
+    "yaml_unknown_tag_before_depth_257.yaml": (1, 4),
+    "yaml_depth_257_before_unknown_tag.yaml": (1, 259),
+    "yaml_infinity_before_depth_257.yaml": (1, 4),
+}
+"""The place of each shared refusal the cases' README places, as a line and a column."""
+
+
+@pytest.mark.parametrize("name", sorted(SHARED_PLACES))
+def test_the_shared_refusals_name_their_place(name: str) -> None:
+    line, column = SHARED_PLACES[name]
     with pytest.raises(ValueError) as caught:
         loads(_text(SERIALIZATIONS / "refusals" / name))
-    assert str(caught.value) == TOO_DEEP.format(line, column)
+    assert str(caught.value).endswith(f" at line {line}, column {column}")
+
+
+DEEP = "[" * 256 + "]" * 256
+"""Flow sequences that, as the value of a key, open a collection at depth 257."""
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ("a: 1\na: 2\nb: " + DEEP, 'the key "a" repeats at line 2, column 1'),
+        (
+            "a: !foo x\nb: " + DEEP,
+            "the tag !foo names no value of the JSON data model at line 1, column 4",
+        ),
+        (
+            "a: !!map [1]\nb: " + DEEP,
+            "the tag tag:yaml.org,2002:map does not fit the node it is given "
+            "at line 1, column 4",
+        ),
+        (
+            "1: a\nb: " + DEEP,
+            "a key that is not a string is not read at line 1, column 1",
+        ),
+        (
+            'a: "\\ud800"\nb: ' + DEEP,
+            "a string holds a lone surrogate at line 1, column 4",
+        ),
+        ("a: " + DEEP + "\nb: 1\nb: 2\n", TOO_DEEP.format(1, 259)),
+        ("a: " + DEEP + "\nb: !foo x\n", TOO_DEEP.format(1, 259)),
+        (
+            "b: !foo x\na: 1\na: 2\n",
+            "the tag !foo names no value of the JSON data model at line 1, column 4",
+        ),
+        ("a: 1\na: 2\nb: !foo x\n", 'the key "a" repeats at line 2, column 1'),
+        (
+            "a: !foo x\nb: \x01\n",
+            "the tag !foo names no value of the JSON data model at line 1, column 4",
+        ),
+        (
+            "b: \x01\na: 1\na: 2\n",
+            "special characters are not allowed #x0001 at line 1, column 4",
+        ),
+        ("a: 1\na: 2\n---\nb\n", 'the key "a" repeats at line 2, column 1'),
+        (
+            "a: 1\n---\nb: 1\nb: 2\n",
+            "expected a single document in the stream, but found another document "
+            "at line 2, column 1",
+        ),
+    ],
+    ids=[
+        "repeated key, then depth",
+        "unknown tag, then depth",
+        "!!map on a sequence, then depth",
+        "integer key, then depth",
+        "lone surrogate, then depth",
+        "depth, then repeated key",
+        "depth, then unknown tag",
+        "unknown tag, then repeated key",
+        "repeated key, then unknown tag",
+        "unknown tag, then a character YAML does not allow",
+        "a character YAML does not allow, then repeated key",
+        "repeated key, then a second document",
+        "a second document, then repeated key",
+    ],
+)
+def test_yaml_refuses_the_first_fault(text: str, message: str) -> None:
+    with pytest.raises(ValueError) as caught:
+        loads(text)
+    assert str(caught.value) == message
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ("[1e999, }", "1e999 rounds to an infinity at line 1, column 2"),
+        ("[1e999] 2", "1e999 rounds to an infinity at line 1, column 2"),
+        ('["\\ud800", }', "a string holds a lone surrogate at line 1, column 3"),
+        ('{"a":1,"a":2,}', 'the key "a" repeats at line 1, column 8'),
+        ('{"a":1,"a":2} x', 'the key "a" repeats at line 1, column 8'),
+        ('{"a":1e999,"a":1}', "1e999 rounds to an infinity at line 1, column 6"),
+        (
+            '["\\ud800",' + "[" * 300,
+            "a string holds a lone surrogate at line 1, column 3",
+        ),
+        ("[" + DEEP + ',{"a":1,"a":2}]', TOO_DEEP.format(1, 257)),
+        ('["\x01", 1e999]', "a control character in a string at line 1, column 3"),
+    ],
+    ids=[
+        "overflow, then a missing value",
+        "overflow, then extra data",
+        "lone surrogate, then a missing value",
+        "repeated key, then a missing key",
+        "repeated key, then extra data",
+        "overflow, then repeated key",
+        "lone surrogate, then depth",
+        "depth, then repeated key",
+        "control character, then overflow",
+    ],
+)
+def test_json_refuses_the_first_fault(text: str, message: str) -> None:
+    with pytest.raises(ValueError) as caught:
+        loads(text)
+    assert str(caught.value) == message
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ('["ab\\x"]', "an invalid escape at line 1, column 5"),
+        ('["\\u12G4"]', "an invalid escape at line 1, column 3"),
+        ('["a\x01"]', "a control character in a string at line 1, column 4"),
+        ('["abc', "an unterminated string at line 1, column 6"),
+        ('["\\ud800\\x"]', "a string holds a lone surrogate at line 1, column 3"),
+        ('["\\ud800\\u12G4"]', "a string holds a lone surrogate at line 1, column 3"),
+        ('["\\ud800', "a string holds a lone surrogate at line 1, column 3"),
+        ('["\\ud800\x01"]', "a string holds a lone surrogate at line 1, column 3"),
+        ('["\\ud800\\""]', "a string holds a lone surrogate at line 1, column 3"),
+        ('["\\ud800\udc00"]', "a string holds a lone surrogate at line 1, column 3"),
+    ],
+    ids=[
+        "invalid escape",
+        "invalid \\u escape",
+        "control character",
+        "unterminated",
+        "high surrogate, then an invalid escape",
+        "high surrogate, then an invalid \\u escape",
+        "high surrogate, then the end",
+        "high surrogate, then a control character",
+        "high surrogate, then an escaped quote",
+        "high-surrogate escape, then a low surrogate as itself",
+    ],
+)
+def test_a_json_string_is_refused_at_the_token_that_offends(
+    text: str, message: str
+) -> None:
+    with pytest.raises(ValueError) as caught:
+        loads(text)
+    assert str(caught.value) == message
 
 
 def _holding_itself() -> list[Any]:
@@ -898,7 +1056,7 @@ def test_a_value_256_deep_is_written_and_read_back(serialization: str) -> None:
         ('"\U0001f600": &x 1\n', "an anchor is not read at line 1, column 6"),
         (
             '["\U0001f600", "\\ud800"]',
-            "a string holds a lone surrogate at line 1, column 7",
+            "a string holds a lone surrogate at line 1, column 8",
         ),
     ],
     ids=["yaml", "json"],
