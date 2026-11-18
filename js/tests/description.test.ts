@@ -1010,23 +1010,21 @@ describe("the rules of links", () => {
 });
 
 describe("the description layer alone", () => {
-  it("gives each shared case of links its problem and every other case none", () => {
-    let described = 0;
-    for (const name of rejectionFileNames()) {
-      const testCase = rejectionCase(name);
-      const found = descriptionProblems(testCase.manifest as JsonObject).map((problem) => [
-        problem.path,
-        problem.code,
-      ]);
-      if (name.startsWith("description_")) {
-        described += 1;
-        expect(found, name).toEqual([[testCase.path, testCase.code]]);
-      } else expect(found, name).toEqual([]);
-    }
-    expect(described).toBe(19);
-    for (const file of fixtureFiles()) {
-      expect(descriptionProblems(loads(fixtureText(file)) as JsonObject), file).toEqual([]);
-    }
+  it("shares nineteen cases of links", () => {
+    expect(rejectionFileNames().filter((name) => name.startsWith("description_"))).toHaveLength(19);
+  });
+
+  it.each(rejectionFileNames())("gives the shared case %s its problem of links or none", (name) => {
+    const testCase = rejectionCase(name);
+    const found = descriptionProblems(testCase.manifest as JsonObject).map((problem) => [
+      problem.path,
+      problem.code,
+    ]);
+    expect(found).toEqual(name.startsWith("description_") ? [[testCase.path, testCase.code]] : []);
+  });
+
+  it.each(fixtureFiles())("finds no problem of links in %s", (file) => {
+    expect(descriptionProblems(loads(fixtureText(file)) as JsonObject)).toEqual([]);
   });
 
   const brokenElsewhere = (members: JsonObject = {}): JsonObject => ({

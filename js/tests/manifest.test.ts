@@ -137,7 +137,7 @@ describe("parseJson", () => {
       ["unexpected character at line 1, column 1 of the JSON text", 0, 1, 1],
       ['expected "]" at line 1, column 6 of the JSON text', 5, 1, 6],
       ["unterminated string at line 1, column 5 of the JSON text", 4, 1, 5],
-      ["malformed string at line 1, column 2 of the JSON text", 1, 1, 2],
+      ["malformed string at line 1, column 3 of the JSON text", 2, 1, 3],
       ["unexpected character at line 2, column 8 of the JSON text", 9, 2, 8],
       ['expected "}" at line 3, column 3 of the JSON text', 13, 3, 3],
     ]);
