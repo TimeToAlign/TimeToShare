@@ -261,6 +261,22 @@ export function compactJson(value: unknown): string {
 }
 
 /**
+ * The compact JSON text of a value with every object's keys sorted by code
+ * point at every depth: no whitespace, numbers spelled as canonical YAML and
+ * pretty JSON spell them (an integer apart from a float, `2` apart from
+ * `2.0`), strings as JSON writes them. Arrays keep their order, a manifest's
+ * included, and an integer beyond 2^53 is written, as RFC 8785 JSON would
+ * not. Two values that `loads` reads alike, whatever the order of their
+ * keys, give the same text.
+ *
+ * @throws {RangeError} for a non-finite number or a string with a lone surrogate.
+ * @throws {TypeError} for a value that is not JSON.
+ */
+export function compactSortedJson(value: unknown): string {
+  return compact(value, (object) => Object.keys(object).sort(compareCodePoints), numberText);
+}
+
+/**
  * Spell a value as a message quotes it: a number as the writers spell it, an
  * array as its items separated by `, ` within brackets (`[32, 1]`), anything
  * else as compact JSON. Python spells numbers and arrays the same way.

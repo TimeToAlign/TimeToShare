@@ -48,6 +48,7 @@ export {
   type SchemeRegistry,
   withSchemes,
 } from "./description/registry.js";
+export { dumpsFile, type FileForm, fileForm } from "./files.js";
 export { FONT_FILES, type FontMetrics, fontMetrics } from "./font.js";
 export { canonicalManifest, completeManifest, minimalManifest } from "./forms.js";
 export { schema } from "./generated/schema.js";
@@ -118,8 +119,14 @@ export { canonicalOrder, TIMESTAMP_DISPLAY } from "./manifest/order.js";
 export { JsonSyntaxError, YamlSyntaxError } from "./serialization/errors.js";
 export { parseJson } from "./serialization/json.js";
 export { loads, serializationOf } from "./serialization/read.js";
-export { compactJson } from "./serialization/text.js";
-export { type DumpsOptions, dumps, type Serialization } from "./serialization/write.js";
+export { compactJson, compactSortedJson } from "./serialization/text.js";
+export {
+  type DumpsOptions,
+  dumps,
+  isSerialization,
+  SERIALIZATIONS,
+  type Serialization,
+} from "./serialization/write.js";
 export { parseYaml } from "./serialization/yaml.js";
 export { completeStyles } from "./styles.js";
 export {
