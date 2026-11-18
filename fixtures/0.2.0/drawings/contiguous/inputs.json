@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "contiguous.json",
+  "manifest": "contiguous.yaml",
   "placement": {
     "height": null,
     "length": 400,

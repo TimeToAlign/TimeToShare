@@ -1,0 +1,70 @@
+graphical:
+  order: {}
+  statements: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: dpt_1
+    -
+      coordinate: 44100
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: dpt_1
+groups: []
+links: []
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+name: null
+schemes: []
+timelines:
+  -
+    children:
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: dpt_2
+        is_segment_line: false
+        length: 11025
+        links: []
+        locked: true
+        meta: {}
+        name: null
+        number_type: int
+        offset: 100
+        regions: []
+        unit: samples
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: dpt_3
+        is_segment_line: false
+        length: 2205
+        links: []
+        locked: true
+        meta: {}
+        name: null
+        number_type: int
+        offset: 20000
+        regions: []
+        unit: samples
+    conversion_maps: []
+    flow_control: []
+    id: dpt_1
+    is_segment_line: false
+    length: 44100
+    links: []
+    locked: false
+    meta: {}
+    name: null
+    number_type: int
+    regions: []
+    unit: samples
+timetoshare: "0.2.0"

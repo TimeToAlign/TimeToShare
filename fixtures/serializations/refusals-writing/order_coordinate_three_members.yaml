@@ -1,0 +1,17 @@
+timelines:
+  -
+    children:
+      -
+        id: a
+        length: [1, 1]
+        offset: [1, 2, 3]
+        unit: quarters
+      -
+        id: b
+        length: [1, 1]
+        offset: [0, 1]
+        unit: quarters
+    id: score
+    length: [4, 1]
+    unit: quarters
+timetoshare: "0.2.0"

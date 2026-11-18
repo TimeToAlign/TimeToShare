@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "timestamps.json",
+  "manifest": "timestamps.yaml",
   "placement": {
     "height": null,
     "length": 400,

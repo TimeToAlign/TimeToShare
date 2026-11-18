@@ -10,7 +10,6 @@ import pytest
 from timetoshare import (
     SchemaValidationError,
     UnsupportedVersionError,
-    canonical_json,
     dumps,
     json_pointer,
     loads,
@@ -394,10 +393,10 @@ def test_the_first_representation_problem_is_raised() -> None:
 
 def test_values_are_read_by_their_number_type() -> None:
     value = respellable()
-    written = canonical_json(value)
+    written = dumps([value], serialization="json")
     validate(value)
     assert unknown_keys(value) == []
-    assert canonical_json(value) == written
+    assert dumps([value], serialization="json") == written
 
 
 # -- unknown length ---------------------------------------------------------------
@@ -435,8 +434,6 @@ def test_the_rejection_cases_are_stated() -> None:
 
 @pytest.mark.parametrize("path", rejection_paths(), ids=lambda path: path.stem)
 def test_shared_rejection_is_rejected_at_its_path(path: Path) -> None:
-    text = path.read_text(encoding="utf-8")
-    assert dumps(json.loads(text)) == text
     case = rejection_case(path)
     if case.error == "UnsupportedVersionError":
         assert case.path == ("timetoshare",)
@@ -476,7 +473,7 @@ def test_the_rejection_reader_puts_the_non_finite_value_at_its_path() -> None:
 
 def test_the_rejection_reader_keeps_any_other_case_as_written() -> None:
     path = _rejection("id_empty")
-    stored = json.loads(path.read_text(encoding="utf-8"))
+    stored = loads(path.read_text(encoding="utf-8"))
     case = rejection_case(path)
     assert case.manifest == stored["manifest"]
     assert case.path == tuple(stored["path"])
@@ -490,9 +487,9 @@ def test_the_rejection_reader_keeps_any_other_case_as_written() -> None:
 def test_the_rejection_reader_refuses_an_unknown_non_finite_name(
     tmp_path: Path,
 ) -> None:
-    path = tmp_path / "huge.json"
+    path = tmp_path / "huge.yaml"
     path.write_text(
-        json.dumps(
+        dumps(
             {
                 "code": "finite_number",
                 "manifest": {"timetoshare": "0.2.0", "timelines": []},
@@ -530,28 +527,6 @@ def test_rejections_cover_every_rule_code() -> None:
         "timestamp_coordinate",
         "timestamp_timeline",
     }
-
-
-# -- reading JSON -------------------------------------------------------------------
-
-
-def test_loads_keeps_integers_exact_and_floats_floats() -> None:
-    half, two, big, minus_zero_integer, minus_zero, exponent = loads(
-        "[0.5, 2.0, 123456789012345678, -0, -0.0, 1E5]"
-    )
-    assert (half, two, big, exponent) == (0.5, 2.0, 123456789012345678, 100000.0)
-    assert [type(value) for value in (two, big, exponent)] == [float, int, float]
-    assert type(minus_zero_integer) is int and minus_zero_integer == 0
-    assert math.copysign(1.0, minus_zero) == -1.0
-    assert loads(str(2**64)) == 2**64
-
-
-@pytest.mark.parametrize(
-    "text", ["", "[1,]", "{1: 2}", "01", "[1] 2", "nul", "1e400", "NaN", "-Infinity"]
-)
-def test_loads_refuses_text_that_is_not_one_json_value(text: str) -> None:
-    with pytest.raises(ValueError):
-        loads(text)
 
 
 # -- the finite-number rule ---------------------------------------------------------
@@ -619,7 +594,7 @@ def test_json_pointer_rendering() -> None:
 def test_integer_boundaries_validate_and_preserve(value: int) -> None:
     document = manifest(timeline("midi", "ticks", value))
     validate(document)
-    assert json.loads(dumps(document))["timelines"][0]["length"] == value
+    assert loads(dumps(document))["timelines"][0]["length"] == value
 
 
 def _styled(declaration: dict) -> dict:

@@ -4,7 +4,7 @@ Thirty-three of the 78 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the metrics table
 of its two fonts alone. Their `figure.svg` files are never regenerated: the emitting script
 compares each with its writer's output instead. Every other figure in this
-directory, and every `figure.tex` and `inputs.json`, is emitted (see
+directory, and every `figure.tex` and `inputs.yaml`, is emitted (see
 [`fixtures/README.md`](../../README.md)). The key arithmetic of each
 hand-derived drawing is given below, so that any implementation can check
 where it first parts from the specification: the start and the term that
@@ -13,47 +13,48 @@ sets it, the largest right edge `R`, the block `W × H`, and the page.
 Section numbers (§) refer to the drawing specification. Every drawing here
 is placed alone at `(0, 0)` with the writer's scale `z` = 1, so the page is
 `PW = W + 32` by `PH = H + 32` and the drawing lies at `(16, 16)` (§7.1).
-An `inputs.json` here supplies an application layer only where the table
+An `inputs.yaml` here supplies an application layer only where the table
 names one: the layers are then the defaults, that layer and the manifest's
 own `graphical` object (§1), and otherwise the defaults and the manifest's
-`graphical` object. Exact values are given in full; a value as the writer prints it
+`graphical` object. Each `inputs.json` names its manifest's canonical YAML
+file in the same version's directory, as the table does. Exact values are given in full; a value as the writer prints it
 (§7.3) follows an arrow (`→`).
 
 | Drawing | Manifest | Non-default inputs |
 |---|---|---|
-| `bare` | `bare.json` | none |
-| `nested` | `nested.json` | none |
-| `map` | `map.json` | none |
-| `flow_control` | `flow_control.json` | none |
-| `with_region` | `with_region.json` | none |
-| `styled__score` | `styled__score.json` | none (the manifest's own `graphical` object styles it and orders its bands) |
-| `nested__length-800-card-spacing-8` | `nested.json` | `length` 800, `places` `{clt_1: {spacing: 8}}` |
-| `segment_line` | `segment_line.json` | none |
-| `segment_pages_accolades` | `segment_pages_accolades.json` | none |
-| `group__group_child_member` | `groups/group_child_member.json` | none |
-| `group__group_parents_mixed` | `groups/group_parents_mixed.json` | none |
-| `group__group_grandchild` | `groups/group_grandchild.json` | none |
-| `unknown_length` | `unknown_length.json` | none |
-| `unknown_length_empty` | `unknown_length_empty.json` | none |
-| `unknown_length_locked` | `unknown_length_locked.json` | none |
-| `unknown_length_child` | `unknown_length_child.json` | none |
-| `group__group_unknown_length` | `groups/group_unknown_length.json` | none |
-| `unknown_length_segments` | `unknown_length_segments.json` | none |
-| `bundle_ungrouped__places` | `bundles/bundle_ungrouped.json` | `places` `{score: {x: -60, y: -150, height: 120}}` |
-| `bundle_ungrouped__scale` | `bundles/bundle_ungrouped.json` | `places` `{recording: {scale: 1.5}}` |
-| `bundle_ungrouped__spacing` | `bundles/bundle_ungrouped.json` | `spacing` 24, `places` `{score: {spacing: 8}}` |
-| `styled_score_flow_inner` | `styled_score_flow_inner.json` | none (the manifest's own `graphical` object styles it and orders its bands) |
-| `map_child_band_order` | `map_child_band_order.json` | none |
-| `map_root_band_order` | `map_root_band_order.json` | none |
-| `joint_rows` | `joint_rows.json` | none |
-| `unknown_length_child__regions-shown` | `unknown_length_child.json` | the application layer `[{"select": {"addresses": [{"id": "movement", "facet": "regions"}]}, "set": {"display": "inline"}}]` |
-| `unknown_length_segments__regions-shown` | `unknown_length_segments.json` | the application layer `[{"select": {"element": "band", "facet": "regions"}, "set": {"display": "inline"}}]` |
-| `child_flow_control__flow-shown` | `child_flow_control.json` | the application layer `[{"select": {"addresses": [{"id": "verse", "facet": "flow_control"}]}, "set": {"display": "inline"}}]` |
-| `map_row_siblings` | `map_row_siblings.json` | none |
-| `map_row_subslots` | `map_row_subslots.json` | none |
-| `map_row_moved` | `map_row_moved.json` | none |
-| `label_float_rounding` | `label_float_rounding.json` | none |
-| `timestamps` | `timestamps.json` | none (each named timestamp's own `display` chooses what it draws) |
+| `bare` | `bare.yaml` | none |
+| `nested` | `nested.yaml` | none |
+| `map` | `map.yaml` | none |
+| `flow_control` | `flow_control.yaml` | none |
+| `with_region` | `with_region.yaml` | none |
+| `styled__score` | `styled__score.yaml` | none (the manifest's own `graphical` object styles it and orders its bands) |
+| `nested__length-800-card-spacing-8` | `nested.yaml` | `length` 800, `places` `{clt_1: {spacing: 8}}` |
+| `segment_line` | `segment_line.yaml` | none |
+| `segment_pages_accolades` | `segment_pages_accolades.yaml` | none |
+| `group__group_child_member` | `groups/group_child_member.yaml` | none |
+| `group__group_parents_mixed` | `groups/group_parents_mixed.yaml` | none |
+| `group__group_grandchild` | `groups/group_grandchild.yaml` | none |
+| `unknown_length` | `unknown_length.yaml` | none |
+| `unknown_length_empty` | `unknown_length_empty.yaml` | none |
+| `unknown_length_locked` | `unknown_length_locked.yaml` | none |
+| `unknown_length_child` | `unknown_length_child.yaml` | none |
+| `group__group_unknown_length` | `groups/group_unknown_length.yaml` | none |
+| `unknown_length_segments` | `unknown_length_segments.yaml` | none |
+| `bundle_ungrouped__places` | `bundles/bundle_ungrouped.yaml` | `places` `{score: {x: -60, y: -150, height: 120}}` |
+| `bundle_ungrouped__scale` | `bundles/bundle_ungrouped.yaml` | `places` `{recording: {scale: 1.5}}` |
+| `bundle_ungrouped__spacing` | `bundles/bundle_ungrouped.yaml` | `spacing` 24, `places` `{score: {spacing: 8}}` |
+| `styled_score_flow_inner` | `styled_score_flow_inner.yaml` | none (the manifest's own `graphical` object styles it and orders its bands) |
+| `map_child_band_order` | `map_child_band_order.yaml` | none |
+| `map_root_band_order` | `map_root_band_order.yaml` | none |
+| `joint_rows` | `joint_rows.yaml` | none |
+| `unknown_length_child__regions-shown` | `unknown_length_child.yaml` | the application layer `[{"select": {"addresses": [{"id": "movement", "facet": "regions"}]}, "set": {"display": "inline"}}]` |
+| `unknown_length_segments__regions-shown` | `unknown_length_segments.yaml` | the application layer `[{"select": {"element": "band", "facet": "regions"}, "set": {"display": "inline"}}]` |
+| `child_flow_control__flow-shown` | `child_flow_control.yaml` | the application layer `[{"select": {"addresses": [{"id": "verse", "facet": "flow_control"}]}, "set": {"display": "inline"}}]` |
+| `map_row_siblings` | `map_row_siblings.yaml` | none |
+| `map_row_subslots` | `map_row_subslots.yaml` | none |
+| `map_row_moved` | `map_row_moved.yaml` | none |
+| `label_float_rounding` | `label_float_rounding.yaml` | none |
+| `timestamps` | `timestamps.yaml` | none (each named timestamp's own `display` chooses what it draws) |
 
 ## Shared quantities
 

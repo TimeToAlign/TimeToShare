@@ -1,0 +1,41 @@
+timelines:
+  -
+    flow_control:
+      -
+        coordinate: 0.15
+        id: f_b
+        manifestation: fine
+        type: flow_marker
+      -
+        coordinate: [3.0, 16]
+        id: f_a
+        manifestation: fine
+        type: flow_marker
+    id: perf
+    length: 1.0
+    regions:
+      -
+        end: 0.5
+        id: r_b
+        start: [1, 8.0]
+      -
+        end: 0.5
+        id: r_a
+        start: 0.25
+    unit: seconds
+  -
+    children:
+      -
+        id: c_b
+        length: [1, 8]
+        offset: [1, 8]
+        unit: quarters
+      -
+        id: c_a
+        length: [1, 4]
+        offset: [1, 4]
+        unit: quarters
+    id: score
+    length: [1, 1]
+    unit: quarters
+timetoshare: "0.2.0"

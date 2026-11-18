@@ -1,0 +1,50 @@
+timelines:
+  -
+    id: a_int
+    length: 2.5
+    offset: [1, 2]
+    unit: samples
+  -
+    id: a_member
+    length: [1, 2.5]
+    unit: quarters
+  -
+    id: b_float
+    length: 9007199254740993
+    offset: [4, 8]
+    unit: seconds
+  -
+    id: b_float_beyond_double
+    length: 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137217
+    unit: seconds
+  -
+    id: c_fraction
+    length: 2.0
+    offset: 2
+    unit: quarters
+  -
+    id: d_negative_denominator
+    length: [3, -2]
+    unit: quarters
+  -
+    children:
+      -
+        id: e_child
+        length: [2, 4]
+        offset: [2, 4]
+        unit: furlongs
+    id: e_unknown_unit
+    length: [4, 8]
+    offset: 2.0
+    unit: furlongs
+  -
+    id: f_unknown_type
+    length: 2
+    number_type: decimal
+    offset: [4, 8]
+    unit: seconds
+  -
+    id: g_zero_denominator
+    length: [1, 0]
+    unit: quarters
+timetoshare: "0.2.0"

@@ -1,17 +1,17 @@
 /**
- * JSON values as `parseJson` reads them. A JSON number keeps its written
+ * JSON values as `loads` reads them. A JSON number keeps its written
  * kind: a safe integer or a float with a fractional part is a plain number,
  * an integer beyond `Number.MAX_SAFE_INTEGER` a `bigint`, an integral float
  * (`2.0`) a `JsonFloat`. `Lossless<T>` is any generated type with its numbers
- * read that way, tuples kept as tuples. An object read by `parseJson` keeps
+ * read that way, tuples kept as tuples. An object read by `loads` keeps
  * the written order of its keys, array-index keys included; `clone`, `plain`
- * and the compact writer honour that order.
+ * and `compactJson` honour that order.
  */
 
 /**
  * A float whose value is an integer, such as `2.0`, `1e+16` or `-0.0`.
  *
- * A JavaScript number cannot tell `2.0` from `2`. `parseJson` returns these floats
+ * A JavaScript number cannot tell `2.0` from `2`. `loads` returns these floats
  * wrapped, so that `dumps` writes them back as floats; every other float is a
  * plain number, which is never an integer.
  */
@@ -26,7 +26,7 @@ export class JsonFloat {
 }
 
 /**
- * A number as `parseJson` reads it: a `number` (a safe integer, or a
+ * A number as `loads` reads it: a `number` (a safe integer, or a
  * float with a fractional part), a `bigint` (an integer beyond
  * `Number.MAX_SAFE_INTEGER`), or a `JsonFloat` (an integral float).
  */
@@ -36,7 +36,7 @@ export type JsonNumber = number | bigint | JsonFloat;
 export type Json = null | boolean | number | string | Json[] | { [key: string]: Json };
 
 /**
- * The type `T` with every number as `parseJson` reads it. Arrays map element
+ * The type `T` with every number as `loads` reads it. Arrays map element
  * by element and tuples stay tuples, so a `[numerator, denominator]` Fraction
  * is a pair of `JsonNumber`s.
  */
@@ -59,7 +59,7 @@ export type JsonObject = Record<string, unknown>;
  * The order of an object's keys, where it differs from `Object.keys`.
  *
  * JavaScript lists array-index keys (`"2"`, `"10"`) first and in numeric order,
- * whatever order they were written in. `parseJson` records the written order of
+ * whatever order they were written in. `loads` records the written order of
  * an object holding such keys here, and `compactJson` honours it.
  */
 const KEY_ORDER = Symbol("timetoshare.keyOrder");
@@ -70,7 +70,7 @@ function isIndexKey(key: string): boolean {
   return INDEX_KEY.test(key) && Number(key) < 2 ** 32 - 1;
 }
 
-/** Whether a value is a `JsonFloat`, an integral float read by `parseJson`. */
+/** Whether a value is a `JsonFloat`, an integral float read by `loads`. */
 export function isJsonFloat(value: unknown): value is JsonFloat {
   return value instanceof JsonFloat;
 }

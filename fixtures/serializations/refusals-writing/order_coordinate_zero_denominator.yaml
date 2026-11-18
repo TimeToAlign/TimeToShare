@@ -1,0 +1,15 @@
+timelines:
+  -
+    id: score
+    length: [4, 1]
+    regions:
+      -
+        end: [2, 1]
+        id: r_1
+        start: [1, 0]
+      -
+        end: [4, 1]
+        id: r_2
+        start: [1, 1]
+    unit: quarters
+timetoshare: "0.2.0"

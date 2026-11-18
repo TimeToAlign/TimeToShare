@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "map_row_subslots.json",
+  "manifest": "map_row_subslots.yaml",
   "placement": {
     "height": null,
     "length": 400,

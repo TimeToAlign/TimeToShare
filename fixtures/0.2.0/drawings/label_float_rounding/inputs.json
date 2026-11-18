@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "label_float_rounding.json",
+  "manifest": "label_float_rounding.yaml",
   "placement": {
     "height": null,
     "length": 400,

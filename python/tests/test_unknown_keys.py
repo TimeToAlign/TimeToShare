@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from importlib import import_module
 from pathlib import Path
 
@@ -9,7 +8,7 @@ import pytest
 from timetoshare import (
     SchemaValidationError,
     UnsupportedVersionError,
-    dumps,
+    loads,
     unknown_keys,
     unregistered_terms,
     validate,
@@ -45,10 +44,8 @@ def test_the_warning_cases_are_stated() -> None:
 
 @pytest.mark.parametrize("path", warning_paths(), ids=lambda path: path.stem)
 def test_each_warning_case_lists_its_warnings(path: Path) -> None:
-    text = path.read_text(encoding="utf-8")
-    case = json.loads(text)
+    case = loads(path.read_text(encoding="utf-8"))
     assert sorted(case) == ["manifest", "unknown_keys", "unregistered_terms"]
-    assert dumps(case) == text
     validate(case["manifest"])
     assert unknown_keys(case["manifest"]) == case["unknown_keys"]
     assert unregistered_terms(case["manifest"]) == case["unregistered_terms"]
@@ -56,7 +53,7 @@ def test_each_warning_case_lists_its_warnings(path: Path) -> None:
 
 def test_unknown_keys_at_several_depths() -> None:
     (path,) = [p for p in warning_paths() if p.stem == "several_depths"]
-    expected = json.loads(path.read_text(encoding="utf-8"))["unknown_keys"]
+    expected = loads(path.read_text(encoding="utf-8"))["unknown_keys"]
     assert [(entry["path"], entry["key"]) for entry in expected] == [
         ([], "x-editor"),
         (["graphical"], "arrangement"),

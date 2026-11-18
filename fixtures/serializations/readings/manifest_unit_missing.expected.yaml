@@ -1,0 +1,16 @@
+timelines:
+  -
+    children:
+      -
+        id: a_child
+        length: [1, 2]
+        offset: [4, 8]
+        unit: quarters
+    id: a
+    length: 2.0
+    offset: 2
+  -
+    id: b
+    length: 2.0
+    number_type: int
+timetoshare: "0.2.0"

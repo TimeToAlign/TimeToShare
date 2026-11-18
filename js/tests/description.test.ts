@@ -17,12 +17,12 @@ import {
   type Link,
   linkFromUrl,
   linkFromUrls,
+  loads,
   METHODS,
   minimal,
   PARTS_RELATIONS,
   type PathSegment,
   parse,
-  parseJson,
   partSlotFromUrl,
   RELATIONS,
   SchemaValidationError,
@@ -178,7 +178,7 @@ describe("the work bundle of Op. 106", () => {
     expect(dumps(complete(MINIMAL))).toBe(dumps(COMPLETE));
     expect(dumps(minimal(COMPLETE))).toBe(dumps(MINIMAL));
     for (const form of [MINIMAL, COMPLETE]) {
-      const read = parse(dumps(form));
+      const read = parse(dumps(form, { serialization: "json" }));
       expect(unknownKeys(read)).toEqual([]);
       expect(unregisteredTerms(read)).toEqual([]);
       expect(completeManifest(read).links[0]).toEqual(link);
@@ -199,7 +199,7 @@ describe("the work bundle of Op. 106", () => {
     });
     const value = bundle(first, second);
     validate(value);
-    const read = completeManifest(parse(dumps(value)));
+    const read = completeManifest(parse(dumps(value, { serialization: "json" })));
     expect(read.links).toEqual([first, second]);
     expect(read.links.map((link) => link.parts.map((slot) => slot.label))).toEqual(
       [
@@ -998,7 +998,7 @@ describe("the rules of links", () => {
       "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD",
     ],
   ])("gives the shared case %s its message", (name, message) => {
-    const testCase = rejectionCase(`${name}.json`);
+    const testCase = rejectionCase(name);
     try {
       validate(testCase.manifest);
       expect.unreachable();
@@ -1025,7 +1025,7 @@ describe("the description layer alone", () => {
     }
     expect(described).toBe(19);
     for (const file of fixtureFiles()) {
-      expect(descriptionProblems(parseJson(fixtureText(file)) as JsonObject), file).toEqual([]);
+      expect(descriptionProblems(loads(fixtureText(file)) as JsonObject), file).toEqual([]);
     }
   });
 

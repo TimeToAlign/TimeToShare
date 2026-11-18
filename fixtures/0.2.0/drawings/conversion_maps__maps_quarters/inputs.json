@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "conversion_maps__maps_quarters.json",
+  "manifest": "conversion_maps__maps_quarters.yaml",
   "placement": {
     "height": null,
     "length": 400,

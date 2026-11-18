@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "map.json",
+  "manifest": "map.yaml",
   "placement": {
     "height": null,
     "length": 400,

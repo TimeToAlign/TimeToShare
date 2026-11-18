@@ -1,0 +1,15 @@
+timelines:
+  -
+    id: perf
+    length: 2.0
+    regions:
+      -
+        end: 1.0
+        id: r_1
+        start: "0.0"
+      -
+        end: 2.0
+        id: r_2
+        start: 1.0
+    unit: seconds
+timetoshare: "0.2.0"

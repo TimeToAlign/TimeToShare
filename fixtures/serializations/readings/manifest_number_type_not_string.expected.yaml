@@ -1,0 +1,17 @@
+timelines:
+  -
+    id: a
+    length: 2.0
+    number_type: 1
+    unit: samples
+  -
+    id: b
+    length: 2
+    number_type: null
+    unit: seconds
+  -
+    id: c
+    length: [4, 8]
+    number_type: [fraction]
+    unit: quarters
+timetoshare: "0.2.0"

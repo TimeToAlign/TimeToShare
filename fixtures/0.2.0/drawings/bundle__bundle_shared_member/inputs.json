@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "bundles/bundle_shared_member.json",
+  "manifest": "bundles/bundle_shared_member.yaml",
   "placement": {
     "height": null,
     "length": 400,

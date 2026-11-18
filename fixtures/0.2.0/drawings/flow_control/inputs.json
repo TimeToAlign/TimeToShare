@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "flow_control.json",
+  "manifest": "flow_control.yaml",
   "placement": {
     "height": null,
     "length": 400,

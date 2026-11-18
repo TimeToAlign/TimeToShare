@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "groups/group_number_types.json",
+  "manifest": "groups/group_number_types.yaml",
   "placement": {
     "height": null,
     "length": 400,

@@ -24,8 +24,8 @@ Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
-`<name>.minimal.json`, the same manifest in the minimal form, as
-timetoalign's `to_dict(minimal=True)` writes it. The two obey one law:
+`<name>.minimal.yaml`, the same manifest in the minimal form, as
+timetoalign's `to_dict()` writes it by default. The two obey one law:
 `minimal(fixture)` equals the twin, `complete(twin)` equals the fixture,
 and the library reads both to equal objects. The manifests are emitted by
 timetoalign through the catalogue and pipeline in `scripts/fixtures/`, with
@@ -37,6 +37,23 @@ refuses to replace the fixtures of a version whose tag
 The rejection cases under `fixtures/rejections/<version>/` and the warning
 cases under `fixtures/warnings/<version>/` are hand-authored. The emission
 script does not touch them.
+
+## Formats
+
+Every manifest fixture, its twin, every rejection case and every warning
+case is written in canonical YAML (`.yaml`) by `dumps` of either package,
+as the [main README](../README.md#serializations) specifies it, and read
+with `loads`. A rejection or warning case about JSON text itself would be
+written in JSON (`.json`); none is at present. The drawings' `inputs.json`
+files are JSON, read by the drawing writers alone.
+
+`fixtures/serializations/` holds the hand-derived cases of the three
+serializations (canonical YAML, pretty JSON and RFC 8785 JSON): values in
+each serialization, readings with their expected canonical YAML, texts every
+reader refuses and values a writer refuses. They are derived by hand from
+the main README, never written with `dumps`, which they test; their own
+[README](serializations/README.md) lists them and states how a package test
+uses them.
 
 The [drawing specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/drawing.md)
 pins how a manifest is drawn. A drawing is derived; these directories contain no drawing schema.
@@ -62,13 +79,14 @@ The package `scripts/fixtures/` holds the corpus: the builders in
 describes its case), the `graphical` objects and the band-order manifests in
 `graphical.py`, the ordered catalogue in `plan.py`, and the laws in
 `verify.py`. A new case is appended to the catalogue within its directory.
-The CLI writes each manifest and its twin with `timetoshare.dumps` (object
-keys sorted by code point, arrays in canonical order), reads both back,
+The CLI writes each manifest and its twin in canonical YAML with
+`timetoshare.dumps` (object keys sorted by code point, arrays in canonical
+order), reads both back with `timetoshare.loads`,
 validates them, checks the law above, and fails unless the manifest is
 stable through the library: read by the class that holds its content
 (`Timeline.from_dict` for one root and no group, `TimelineGroup.from_dict`
 for one group, `AlignmentBundle.from_dict` otherwise) and written back with
-`to_dict()` byte for byte, its arrays already in canonical order. A group's
+`to_dict(minimal=False)` byte for byte, its arrays already in canonical order. A group's
 display order in `graphical.order` is the library's own member order. The
 `graphical` object the script composes for a manifest, its styles,
 statements and band orders, is read back by the library, which keeps it as
@@ -85,9 +103,9 @@ map, region and flow-control element carries an ID; IDs the script does not give
 minted by timetoalign and depend on the construction order within the
 builder, which is part of the fixture contract.
 
-A catalogue case writes `<name>.json` in its directory. Several cases of
+A catalogue case writes `<name>.yaml` in its directory. Several cases of
 one name, such as the four of `conversion_maps`, write
-`<name>__<slug>.json` each, where `<slug>` is the built object's ID with
+`<name>__<slug>.yaml` each, where `<slug>` is the built object's ID with
 every character outside `[A-Za-z0-9_-]` replaced by `_`. The script refuses
 two IDs that would produce the same file name.
 
@@ -98,43 +116,43 @@ logical, physical, or graphical:
 
 | File | Construction | Coverage |
 | --- | --- | --- |
-| `continuous_logical.json` | 12 quarters with children at `1/3` and `2` | fraction coordinates |
-| `discrete_logical.json` | 480 ticks with two children | integer logical coordinates |
-| `continuous_physical.json` | 12.5 seconds with children at 0.5 and 6.0 | float physical coordinates |
-| `discrete_physical.json` | 44100 samples with two children | integer physical coordinates |
-| `continuous_graphical.json` | 600.0 points with two children | float graphical coordinates |
-| `discrete_graphical.json` | 1920 pixels with two children | integer graphical coordinates |
+| `continuous_logical.yaml` | 12 quarters with children at `1/3` and `2` | fraction coordinates |
+| `discrete_logical.yaml` | 480 ticks with two children | integer logical coordinates |
+| `continuous_physical.yaml` | 12.5 seconds with children at 0.5 and 6.0 | float physical coordinates |
+| `discrete_physical.yaml` | 44100 samples with two children | integer physical coordinates |
+| `continuous_graphical.yaml` | 600.0 points with two children | float graphical coordinates |
+| `discrete_graphical.yaml` | 1920 pixels with two children | integer graphical coordinates |
 
 The structural fixtures add focused examples:
 
 | File | Coverage |
 | --- | --- |
-| `with_region.json` | a named region |
-| `nested.json` | three levels of timelines |
-| `flow_control.json` | the flow marker `fine`, a repeat end taken twice to a named repeat start, and a dal segno to a named segno |
-| `conversion_maps__*.json` | the conversion maps of one timeline per unit: `maps_quarters` every map type, a MeasureMap read through its `MeasureRecordMap` and the three other measure views, a `CombinationMap` holding a measure view, and `TableMap`s of both kinds and the three extrapolations; `maps_ticks`, `maps_samples` and `maps_seconds` a `LinearMap` each; `maps_whole_notes` a MeasureMap read through a `ChainMap` from whole notes |
-| `bare.json` | one named timeline |
-| `contiguous.json` | children that touch and overlap |
-| `map.json` | conversion maps on a root and a child |
-| `styled__score.json`, `styled__performance.json` | `graphical.statements` selecting elements by type, address, class, domain, modality, and `within`, with a colour of its own for every drawn element and label of the score; the score's band order in `graphical.order` lays its markers band against its line above it and its conversion maps band against its line below it |
-| `locked_root.json` | a root of 16 quarters locked at construction, with a child `coda` of 4 quarters at 12 |
-| `segment_line.json` | a nested segment line of quarters: `form` (32) of the segments `a` (8), `b` (12) and `c` (12), each a segment line itself, `b` of `b1` and `b2` (6 each) |
-| `segment_pages.json` | an unlocked segment line `pages` of four pages of 1754 pixels |
-| `segment_pages_locked.json` | the same segment line, locked once built |
-| `segment_pages_accolades.json` | an unlocked segment line of four pages, each a segment line of four accolades of 400, 450, 452 and 452 pixels |
-| `segment_children.json` | an unlocked root of 32 quarters whose three children are segment lines, two of them overlapping |
-| `timestamps.json` | named timestamps: a root `clt_1` of 8 quarters with the child `clt_2` (4 at 2), the timestamps `Downbeat` at 3/2 and `Climax` at 6 on the root and `Entry` at 1 on the child; `Downbeat` draws the default `display` (wedge, name, cross-section line), `Climax` `["wedge", "name"]`, and `Entry` all five, its name, ID and coordinate stacked |
+| `with_region.yaml` | a named region |
+| `nested.yaml` | three levels of timelines |
+| `flow_control.yaml` | the flow marker `fine`, a repeat end taken twice to a named repeat start, and a dal segno to a named segno |
+| `conversion_maps__*.yaml` | the conversion maps of one timeline per unit: `maps_quarters` every map type, a MeasureMap read through its `MeasureRecordMap` and the three other measure views, a `CombinationMap` holding a measure view, and `TableMap`s of both kinds and the three extrapolations; `maps_ticks`, `maps_samples` and `maps_seconds` a `LinearMap` each; `maps_whole_notes` a MeasureMap read through a `ChainMap` from whole notes |
+| `bare.yaml` | one named timeline |
+| `contiguous.yaml` | children that touch and overlap |
+| `map.yaml` | conversion maps on a root and a child |
+| `styled__score.yaml`, `styled__performance.yaml` | `graphical.statements` selecting elements by type, address, class, domain, modality, and `within`, with a colour of its own for every drawn element and label of the score; the score's band order in `graphical.order` lays its markers band against its line above it and its conversion maps band against its line below it |
+| `locked_root.yaml` | a root of 16 quarters locked at construction, with a child `coda` of 4 quarters at 12 |
+| `segment_line.yaml` | a nested segment line of quarters: `form` (32) of the segments `a` (8), `b` (12) and `c` (12), each a segment line itself, `b` of `b1` and `b2` (6 each) |
+| `segment_pages.yaml` | an unlocked segment line `pages` of four pages of 1754 pixels |
+| `segment_pages_locked.yaml` | the same segment line, locked once built |
+| `segment_pages_accolades.yaml` | an unlocked segment line of four pages, each a segment line of four accolades of 400, 450, 452 and 452 pixels |
+| `segment_children.yaml` | an unlocked root of 32 quarters whose three children are segment lines, two of them overlapping |
+| `timestamps.yaml` | named timestamps: a root `clt_1` of 8 quarters with the child `clt_2` (4 at 2), the timestamps `Downbeat` at 3/2 and `Climax` at 6 on the root and `Entry` at 1 on the child; `Downbeat` draws the default `display` (wedge, name, cross-section line), `Climax` `["wedge", "name"]`, and `Entry` all five, its name, ID and coordinate stacked |
 
 The corpus fixtures exercise public timetoalign loaders; the synthetic
 fixtures are emitted first:
 
 | File or prefix | Loader input |
 | --- | --- |
-| `corpus_audio_audio.json` | an audio file, its timeline in samples with a map to seconds |
-| `corpus_midi_score_midi.json` | a score MIDI file |
-| `corpus_score_ms3.json` | an ms3 score with MeasureMap and flow-control data |
-| `corpus_supra_iiif.json` | an IIIF manifest |
-| `corpus_parangonar_parangonada__score_dlt_1.json` | the discrete score timeline of a Parangonada alignment |
+| `corpus_audio_audio.yaml` | an audio file, its timeline in samples with a map to seconds |
+| `corpus_midi_score_midi.yaml` | a score MIDI file |
+| `corpus_score_ms3.yaml` | an ms3 score with MeasureMap and flow-control data |
+| `corpus_supra_iiif.yaml` | an IIIF manifest |
+| `corpus_parangonar_parangonada__score_dlt_1.yaml` | the discrete score timeline of a Parangonada alignment |
 
 Every generated manifest is in the complete form timetoalign writes:
 `name` is `null` when absent, every timeline states `number_type`,
@@ -153,8 +171,8 @@ Two more manifests cover the manifest's own keys:
 
 | File | Coverage |
 | --- | --- |
-| `negative_offset.json` | a root carrying a negative `offset`, its origin on its unit's absolute axis |
-| `named_without_id.json` | a manifest with a `name` and no `id` |
+| `negative_offset.yaml` | a root carrying a negative `offset`, its origin on its unit's absolute axis |
+| `named_without_id.yaml` | a manifest with a `name` and no `id` |
 
 No fixture holds a child with a negative `offset`: the schema and the
 validators accept one, but timetoalign, which emits the fixtures, does not
@@ -165,24 +183,24 @@ each:
 
 | File | Coverage |
 | --- | --- |
-| `unknown_length.json` | a root of unknown length with content |
-| `unknown_length_empty.json` | a root of unknown length without content |
-| `unknown_length_locked.json` | a locked root of unknown length |
-| `unknown_length_child.json` | a child of unknown length in a parent of known length |
-| `groups/group_unknown_length.json` | a group with a member of unknown length |
-| `unknown_length_segments.json` | a segment line whose last segment has an unknown length |
+| `unknown_length.yaml` | a root of unknown length with content |
+| `unknown_length_empty.yaml` | a root of unknown length without content |
+| `unknown_length_locked.yaml` | a locked root of unknown length |
+| `unknown_length_child.yaml` | a child of unknown length in a parent of known length |
+| `groups/group_unknown_length.yaml` | a group with a member of unknown length |
+| `unknown_length_segments.yaml` | a segment line whose last segment has an unknown length |
 
 Six manifests cover band orders and the bands of children (drawing
 specification, section 6.4):
 
 | File | Coverage |
 | --- | --- |
-| `map_child_band_order.json` | the timelines of `map`, with a band order for the child `phrase` alone that lays its conversion maps against its line below it |
-| `map_root_band_order.json` | the timelines of `map`, with such a band order for the root `melody` and none for `phrase`, which follows the band order of `melody` |
-| `styled_score_flow_inner.json` | `styled__score` with a band order whose flow control band lies nearer the line than its regions band |
-| `joint_rows.json` | a root `piece` of 16 quarters whose children `b` and `d` each hold a child holding one more, so that each depth's two lines share a row and their children bands are laid out together, at two depths; `b` carries one map, `d1` and `d11` two each |
-| `child_flow_control.json` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the flow marker "Fine" at 4 and the jump origin "D.C. al Fine" at 8 back to 0, while the root holds no flow control |
-| `child_jumps.json` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds the jump target `segno` at 2, the jump origin "Repeat" at 4, a repeat end taken twice back to the child's start, and the jump origin "D.S." at 8, a dal segno to `segno`, while the root holds no flow control |
+| `map_child_band_order.yaml` | the timelines of `map`, with a band order for the child `phrase` alone that lays its conversion maps against its line below it |
+| `map_root_band_order.yaml` | the timelines of `map`, with such a band order for the root `melody` and none for `phrase`, which follows the band order of `melody` |
+| `styled_score_flow_inner.yaml` | `styled__score` with a band order whose flow control band lies nearer the line than its regions band |
+| `joint_rows.yaml` | a root `piece` of 16 quarters whose children `b` and `d` each hold a child holding one more, so that each depth's two lines share a row and their children bands are laid out together, at two depths; `b` carries one map, `d1` and `d11` two each |
+| `child_flow_control.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the flow marker "Fine" at 4 and the jump origin "D.C. al Fine" at 8 back to 0, while the root holds no flow control |
+| `child_jumps.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds the jump target `segno` at 2, the jump origin "Repeat" at 4, a repeat end taken twice back to the child's start, and the jump origin "D.S." at 8, a dal segno to `segno`, while the root holds no flow control |
 
 Three manifests cover the slots of conversion maps bands (drawing
 specification, section 6.4, Conversion maps), and one the label of a float
@@ -192,10 +210,10 @@ per quarter):
 
 | File | Coverage |
 | --- | --- |
-| `map_row_siblings.json` | a root `piece` of 8 quarters whose children `ante` (4 at 0) and `cons` (4 at 4) touch and so share a row; `ante` carries the maps `a_ticks` ("Ticks") and `b_tempo` ("Tempo"), `cons` the maps `a_tempo` ("Tempo") and `b_ticks` ("Ticks"), so both Tempo maps lie in slot 1 and both Ticks maps in slot 2, although `ante`'s Ticks map comes first in its canonical order |
-| `map_row_subslots.json` | an unlocked segment line `form` of 32 quarters of the unnamed segments `a` (8), `b` (12) and `c` (12), whose own map `ticks_form` and the maps `ticks_b` of `b` and `ticks_c` of `c` share the key "Ticks": `ticks_form` takes sub-slot 1, and `ticks_b` and `ticks_c`, which touch, share sub-slot 2 |
-| `map_row_moved.json` | a root `piece` of 8 quarters whose children `ante` (4 at 0, the maps `tempo_ante` and `ticks_ante`) and `cons` (4 at 3, the map `ticks_cons`) overlap and so lie in two rows, each with slots of its own: `ticks_cons` takes slot 1 of its row, where in one row with `ante` it would take slot 2 |
-| `label_float_rounding.json` | a root `take` of 312.48979591836735 seconds and its two named timestamps, `origin` at 0.0 and `length` at its length, each with the `display` `["wedge", "coordinate"]`; the coordinate label of `length` reads `5′12.49″`, its coordinate rounded to three decimals and split into minutes and seconds |
+| `map_row_siblings.yaml` | a root `piece` of 8 quarters whose children `ante` (4 at 0) and `cons` (4 at 4) touch and so share a row; `ante` carries the maps `a_ticks` ("Ticks") and `b_tempo` ("Tempo"), `cons` the maps `a_tempo` ("Tempo") and `b_ticks` ("Ticks"), so both Tempo maps lie in slot 1 and both Ticks maps in slot 2, although `ante`'s Ticks map comes first in its canonical order |
+| `map_row_subslots.yaml` | an unlocked segment line `form` of 32 quarters of the unnamed segments `a` (8), `b` (12) and `c` (12), whose own map `ticks_form` and the maps `ticks_b` of `b` and `ticks_c` of `c` share the key "Ticks": `ticks_form` takes sub-slot 1, and `ticks_b` and `ticks_c`, which touch, share sub-slot 2 |
+| `map_row_moved.yaml` | a root `piece` of 8 quarters whose children `ante` (4 at 0, the maps `tempo_ante` and `ticks_ante`) and `cons` (4 at 3, the map `ticks_cons`) overlap and so lie in two rows, each with slots of its own: `ticks_cons` takes slot 1 of its row, where in one row with `ante` it would take slot 2 |
+| `label_float_rounding.yaml` | a root `take` of 312.48979591836735 seconds and its two named timestamps, `origin` at 0.0 and `length` at its length, each with the `display` `["wedge", "coordinate"]`; the coordinate label of `length` reads `5′12.49″`, its coordinate rounded to three decimals and split into minutes and seconds |
 
 ## Coverage of groups and bundles
 
@@ -343,9 +361,10 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
 `map_child_band_order`, `map_root_band_order`). Each directory holds:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
-  the two fonts, written with `dumps`:
-  - `manifest`: the path of the manifest relative to the same version's
-    directory (`nested.json`, `groups/group_child_member.json`);
+  the two fonts, written with `dumps` in pretty JSON:
+  - `manifest`: the path of the manifest's canonical YAML file relative to
+    the same version's directory (`nested.yaml`,
+    `groups/group_child_member.yaml`);
   - `placement`: `length`, `spacing`, `width`, `height` and `places`, all
     five always written, defaults included (400, 8, `null`, `null`, `{}`);
     `spacing` is the block's, the gap between its items at their default
@@ -414,7 +433,7 @@ fifteen the schema, two `dangling_target`, one `duplicate_id` and one
 
 `version_unknown` names the version 0.1.0, which 0.2.0 replaces; its `code` is `null` and its
 `"error": "UnsupportedVersionError"` names the error both packages raise
-instead. JSON has no non-finite number, so the two `finite_number` cases hold
+instead. No serialization writes a non-finite number, so the two `finite_number` cases hold
 a finite placeholder at their path and name in `non_finite` (`"Infinity"` or
 `"NaN"`) the value a test puts there before validating; Python's
 `timetoshare.fixtures.rejection_case` reads a case with that value in place.
@@ -440,4 +459,4 @@ a writer might plausibly add, such as `support_policy`, a timeline's
 same files and compare their lists with it.
 
 See the [main README](../README.md) for the manifest shape, the schema API
-and the canonical writer.
+and the serializations.

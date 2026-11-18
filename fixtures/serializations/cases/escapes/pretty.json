@@ -1,0 +1,27 @@
+{
+  "backslash": "\\",
+  "backspace": "\b",
+  "bom": "﻿",
+  "carriage_return": "\r",
+  "del": "",
+  "escape_1b": "\u001b",
+  "form_feed": "\f",
+  "last_c0": "\u001f",
+  "last_c1": "",
+  "line_feed": "\n",
+  "line_separator": " ",
+  "mixed": "a\tb\"c\\d/é😀",
+  "nbsp": " ",
+  "nel": "",
+  "non_bmp": "😀",
+  "noncharacter_fffe": "￾",
+  "noncharacter_ffff": "￿",
+  "nul": "\u0000",
+  "paragraph_separator": " ",
+  "private_use": "",
+  "quote": "\"",
+  "replacement_fffd": "�",
+  "slash": "/",
+  "tab": "\t",
+  "vertical_tab": "\u000b"
+}

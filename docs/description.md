@@ -283,8 +283,8 @@ relation is `pertains_to` unless the level is `agent`, where the role must
 be given. `with_uri` and `with_identifier` refuse a URI recognised at a
 level other than the link's, and `with_parts` a part slot whose URI the
 registry recognises at such a level: the parts of a work are works. Python's
-objects write themselves with `to_dict()` in the complete form and with
-`to_dict(minimal=True)` in the minimal form; the TypeScript functions take
+objects write themselves with `to_dict()` in the minimal form and with
+`to_dict(minimal=False)` in the complete form; the TypeScript functions take
 a link in either form and return a new link in the complete form. Every
 refusal raises Python's `ValueError` or throws TypeScript's `Error`, with
 the same message.
@@ -732,86 +732,56 @@ packages give the same codes and paths, and the same messages but for a
 
 The manifest below describes Beethoven's Piano Sonata No. 29 as a work and
 holds no timeline. It is the bundle the tests of both packages build and
-read back, written by the standard writer in the minimal form; the fixture
+read back, written by `dumps` in canonical YAML (README,
+"Serializations") in the minimal form; the fixture
 `bundles/op106_work` holds the same manifest, with the generator that
 wrote it recorded in `meta`:
 
-```json
-{
-  "links": [
-    {
-      "assertion": {
-        "asserted_by": [
-          "https://example.org/people/editor"
-        ],
-        "asserted_on": "2026-11-17",
-        "method": "manual",
-        "status": "confirmed"
-      },
-      "identifiers": [
-        {
-          "scheme": "http://www.wikidata.org/entity/P839",
-          "value": "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"
-        },
-        {
-          "scheme": "mb_beethoven_opus",
-          "value": "op. 106"
-        }
-      ],
-      "label": "Piano Sonata No. 29 in B♭ major, Op. 106",
-      "level": "work",
-      "parts": [
-        {
-          "absent": "not_represented",
-          "label": "I. Allegro",
-          "uri": [
-            "http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980"
-          ]
-        },
-        {
-          "absent": "not_represented",
-          "label": "II. Scherzo. Assai vivace",
-          "uri": [
-            "http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
-          ]
-        },
-        {
-          "absent": "not_represented",
-          "label": "III. Adagio sostenuto",
-          "uri": [
-            "http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f"
-          ]
-        },
-        {
-          "absent": "not_represented",
-          "label": "IV. Introduzione. Largo – Allegro risoluto",
-          "uri": [
-            "http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
-          ]
-        }
-      ],
-      "parts_relation": "has_part",
-      "relation": "pertains_to",
-      "uri": [
-        "http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284",
-        "http://www.wikidata.org/entity/Q146730",
-        "http://viaf.org/viaf/186299955"
-      ]
-    }
-  ],
-  "name": "Beethoven, Piano Sonata No. 29, Op. 106",
-  "schemes": [
-    {
-      "id": "mb_beethoven_opus",
-      "name": "Works of Ludwig van Beethoven by opus number",
-      "uri": [
-        "https://musicbrainz.org/series/004f17aa-0f46-4fec-b939-c5dfc849e5c6"
-      ]
-    }
-  ],
-  "timelines": [],
-  "timetoshare": "0.2.0"
-}
+```yaml
+links:
+  -
+    assertion:
+      asserted_by: ["https://example.org/people/editor"]
+      asserted_on: "2026-11-17"
+      method: manual
+      status: confirmed
+    identifiers:
+      -
+        scheme: "http://www.wikidata.org/entity/P839"
+        value: "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"
+      -
+        scheme: mb_beethoven_opus
+        value: "op. 106"
+    label: "Piano Sonata No. 29 in B♭ major, Op. 106"
+    level: work
+    parts:
+      -
+        absent: not_represented
+        label: "I. Allegro"
+        uri: ["http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980"]
+      -
+        absent: not_represented
+        label: "II. Scherzo. Assai vivace"
+        uri: ["http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9"]
+      -
+        absent: not_represented
+        label: "III. Adagio sostenuto"
+        uri: ["http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f"]
+      -
+        absent: not_represented
+        label: "IV. Introduzione. Largo – Allegro risoluto"
+        uri: ["http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"]
+    parts_relation: has_part
+    relation: pertains_to
+    uri: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284", "http://www.wikidata.org/entity/Q146730", "http://viaf.org/viaf/186299955"]
+name: "Beethoven, Piano Sonata No. 29, Op. 106"
+schemes:
+  -
+    id: mb_beethoven_opus
+    name: "Works of Ludwig van Beethoven by opus number"
+    uri: ["https://musicbrainz.org/series/004f17aa-0f46-4fec-b939-c5dfc849e5c6"]
+timelines: []
+timetoshare: "0.2.0"
 ```
 
 - The manifest's one link pertains to the work. Its `uri` holds the entity
@@ -877,8 +847,8 @@ manifest = {
     "timetoshare": "0.2.0",
     "name": "Beethoven, Piano Sonata No. 29, Op. 106",
     "timelines": [],
-    "schemes": [scheme.to_dict(minimal=True)],
-    "links": [link.to_dict(minimal=True)],
+    "schemes": [scheme.to_dict()],
+    "links": [link.to_dict()],
 }
 text = dumps(manifest)
 ```

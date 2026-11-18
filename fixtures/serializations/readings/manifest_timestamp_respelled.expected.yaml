@@ -1,0 +1,37 @@
+graphical:
+  timestamps:
+    -
+      coordinate: 3.0
+      id: timestamp_1
+      name: Entry
+      timeline: perf
+    -
+      coordinate: 3
+      id: timestamp_3
+      name: Cue
+      timeline: take
+    -
+      coordinate: [1, 2]
+      id: timestamp_2
+      name: Verse
+      timeline: verse
+timelines:
+  -
+    id: perf
+    length: 10.0
+    unit: seconds
+  -
+    children:
+      -
+        id: verse
+        length: [4, 1]
+        offset: [0, 1]
+        unit: quarters
+    id: score
+    length: [8, 1]
+    unit: quarters
+  -
+    id: take
+    length: 96000
+    unit: samples
+timetoshare: "0.2.0"

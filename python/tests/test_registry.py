@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 
 import pytest
 
-from timetoshare import Identifier, KnownScheme, default_registry, dumps
+from timetoshare import Identifier, KnownScheme, default_registry, dumps, loads
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 REGISTRY = REPOSITORY_ROOT / "registry" / "schemes.json"
@@ -62,13 +61,13 @@ ENTRIES = [
 
 def test_the_default_registry_is_the_shipped_file() -> None:
     text = REGISTRY.read_text(encoding="utf-8")
-    assert dumps(json.loads(text)) == text
+    assert dumps(loads(text), serialization="json") == text
     schemes = default_registry().schemes
     assert [
         (scheme.id, scheme.uri, scheme.level, scheme.entity_uri, scheme.lowercase)
         for scheme in schemes
     ] == ENTRIES
-    assert [scheme.to_dict() for scheme in schemes] == json.loads(text)
+    assert [scheme.to_dict() for scheme in schemes] == loads(text)
     assert default_registry() is default_registry()
 
 

@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "continuous_graphical.json",
+  "manifest": "continuous_graphical.yaml",
   "placement": {
     "height": null,
     "length": 400,

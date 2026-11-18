@@ -17,14 +17,24 @@ These rules apply to every contributor, human or automated.
   validation). Both are part of the contract, and both packages ship
   them.
 - `registry/`: `schemes.json`, the registry of identifier schemes that
-  turns catalogue addresses into links, written with `dumps`; both
-  packages ship it and read it alike, and the validators never consult it.
-- `fixtures/`: generated manifests under `fixtures/<version>/`, each in the
-  complete form beside its minimal twin (the subdirectories `groups/` and
-  `bundles/` sort them by content only), hand-authored rejection cases
-  under `fixtures/rejections/<version>/`, hand-authored warning cases under
-  `fixtures/warnings/<version>/`, and the drawings (`inputs.json`,
-  `figure.svg` and `figure.tex` per drawing; the hand-derived `figure.svg`
+  turns catalogue addresses into links, written in pretty JSON with
+  `dumps`; both packages ship it and read it alike, and the validators
+  never consult it.
+- `fixtures/`: generated manifests under `fixtures/<version>/` in
+  canonical YAML, each in the complete form beside its minimal twin (the
+  subdirectories `groups/` and `bundles/` sort them by content only),
+  hand-authored rejection cases under `fixtures/rejections/<version>/`,
+  hand-authored warning cases under `fixtures/warnings/<version>/`,
+  hand-derived serialization cases under `fixtures/serializations/`
+  (`cases/<name>/` with `canonical.yaml`, `pretty.json` and
+  `rfc8785.json`, the last missing where that writer refuses the value;
+  `readings/<name>.<ext>` beside `<name>.expected.yaml` and, optionally,
+  `<name>.expected.rfc8785.json` (the RFC 8785 bytes of that value, no
+  final line feed); `refusals/`;
+  `refusals-writing/`; kept byte for byte by
+  `fixtures/serializations/** -text` in `.gitattributes`), and the
+  drawings (`inputs.json`, in pretty JSON and naming the `.yaml`
+  manifests, `figure.svg` and `figure.tex` per drawing; the hand-derived `figure.svg`
   files are listed with their arithmetic in `drawings/README.md`, everything
   else is emitted); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37 and Noto Music 2.004, their licences, and the
@@ -62,16 +72,24 @@ These rules apply to every contributor, human or automated.
   depends on TimeLineEditor in code or packages; only the emitted drawing
   figures are produced by TimeLineEditor's writers (its `emit-drawings`
   script, writing into a TimeToShare checkout).
-- Write every fixture, rejection case and warning case, and the registry,
-  with the standard writer `dumps` of either package: object keys sorted
-  by code point at every depth, arrays in canonical order, two-space indentation, final newline, and floats
-  spelled as Python's `repr`. Never keep a fixed list of key orders; key order
-  is sorted order, and `canonical_order` covers only the order of array
-  elements. In JavaScript, read
-  files with `parse` or `parseJson`, never `JSON.parse`, and write
-  them with `dumps` or `compactJson`, never `JSON.stringify`; the native
-  methods lose the distinction between `2.0` and `2`, integers beyond 2^53,
-  and the order of array-index keys.
+- Write every fixture, rejection case and warning case in canonical YAML
+  with `dumps` of either package; a rejection or warning case about JSON
+  text itself would be written in JSON, and none is at present. Write the
+  registry
+  `registry/schemes.json` in pretty JSON with `dumps(…,
+  serialization="json")`. Either way object keys are sorted by code point
+  at every depth, arrays are in canonical order, and floats are spelled as
+  the README's "Serializations" specifies. Never keep a fixed list of
+  key orders; key order is sorted order, and `canonical_order` covers only
+  the order of array elements. In JavaScript, read files with `loads`,
+  `parse`, `parseYaml` or `parseJson`, never `JSON.parse`, and write them with
+  `dumps`, never `JSON.stringify`; the native methods lose the distinction
+  between `2.0` and `2`, integers beyond 2^53, and the order of
+  array-index keys.
+- Derive the serialization cases under `fixtures/serializations/` by hand
+  from the README's "Serializations", never with `dumps`, which they test.
+  Both packages reproduce every text byte for byte. A case the README does
+  not determine is a defect of the README.
 - Author rejection cases under `fixtures/rejections/` by hand, one rule per
   case, and warning cases under `fixtures/warnings/` by hand; the fixture
   script emits neither.

@@ -1,0 +1,9 @@
+bom: "\ufeff"
+del: "\u007f"
+e_acute: "é"
+e_acute_upper: "é"
+letter: A
+nel: "\u0085"
+pair: "😀"
+slash: "/"
+tab: "\t"

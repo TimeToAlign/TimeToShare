@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "discrete_logical.json",
+  "manifest": "discrete_logical.yaml",
   "placement": {
     "height": null,
     "length": 400,

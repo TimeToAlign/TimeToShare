@@ -31,7 +31,7 @@ import type {
 import { clone, isJsonObject, JsonFloat, type JsonObject, type Lossless } from "./json/value.js";
 import { orderDisplays } from "./manifest/order.js";
 import { respell } from "./manifest/spelling.js";
-import { exactNumber } from "./numbers/exact.js";
+import { exactValue, sameRational } from "./numbers/exact.js";
 import { numberTypeOf } from "./validate/diagnostics.js";
 
 /**
@@ -240,27 +240,16 @@ const completeOne: Pass = (owner, kind) => {
   }
 };
 
-/** Whether a JSON number is written as an integer: a `bigint` or an integral plain number. */
-function integral(value: unknown): boolean {
-  return typeof value === "bigint" || (typeof value === "number" && Number.isInteger(value));
-}
-
 /**
- * Whether two JSON values are identical: numbers in type and value (a
- * `JsonFloat` 1 is not the integer 1), booleans only to booleans.
+ * Whether two JSON values are equal in value: numbers by exact value (an
+ * integer, a float and a Fraction pair of equal value are equal), arrays
+ * when their items are, objects when their members are, anything else only
+ * to itself.
  */
 function same(left: unknown, right: unknown): boolean {
-  const a = exactNumber(left);
-  const b = exactNumber(right);
-  if (a !== null || b !== null) {
-    return (
-      a !== null &&
-      b !== null &&
-      integral(left) === integral(right) &&
-      a.numerator === b.numerator &&
-      a.denominator === b.denominator
-    );
-  }
+  const a = exactValue(left);
+  const b = exactValue(right);
+  if (a !== null && b !== null) return sameRational(a, b);
   if (Array.isArray(left) || Array.isArray(right)) {
     return (
       Array.isArray(left) &&
@@ -312,9 +301,10 @@ export function complete(value: unknown): unknown {
 
 /**
  * Return a copy of a manifest in the minimal form: the complete form without
- * every key whose value is its default in type and value (`repeat_count:
- * 1.0`, read by `parseJson` as a `JsonFloat`, is not the default `1` and
- * stays). `minimal(complete(x))` equals `minimal(x)` and
+ * every key whose value equals its default in value, after own-axis values
+ * are respelled and each `display` put in canonical order (`repeat_count:
+ * 1.0` and a `LinearMap`'s `scalar: [1, 1]` are left out like `1`).
+ * `minimal(complete(x))` equals `minimal(x)` and
  * `complete(minimal(x))` equals `complete(x)`. Python's
  * `timetoshare.minimal` gives the same value.
  */

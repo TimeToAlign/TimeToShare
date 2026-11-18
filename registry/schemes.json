@@ -5,9 +5,7 @@
     "level": "work",
     "lowercase": true,
     "name": "MusicBrainz work ID",
-    "patterns": [
-      "https?://(?:www\\.)?musicbrainz\\.org/work/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"
-    ],
+    "patterns": ["https?://(?:www\\.)?musicbrainz\\.org/work/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"],
     "uri": "http://www.wikidata.org/entity/P435"
   },
   {
@@ -16,9 +14,7 @@
     "level": "expression",
     "lowercase": true,
     "name": "MusicBrainz recording ID",
-    "patterns": [
-      "https?://(?:www\\.)?musicbrainz\\.org/recording/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"
-    ],
+    "patterns": ["https?://(?:www\\.)?musicbrainz\\.org/recording/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"],
     "uri": "http://www.wikidata.org/entity/P4404"
   },
   {
@@ -27,9 +23,7 @@
     "level": "manifestation",
     "lowercase": true,
     "name": "MusicBrainz release ID",
-    "patterns": [
-      "https?://(?:www\\.)?musicbrainz\\.org/release/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"
-    ],
+    "patterns": ["https?://(?:www\\.)?musicbrainz\\.org/release/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"],
     "uri": "http://www.wikidata.org/entity/P5813"
   },
   {
@@ -38,9 +32,7 @@
     "level": null,
     "lowercase": false,
     "name": "Wikidata",
-    "patterns": [
-      "https?://(?:www\\.|m\\.)?wikidata\\.org/(?:wiki|entity)/(Q[1-9][0-9]*)/?(?:[?#].*)?"
-    ],
+    "patterns": ["https?://(?:www\\.|m\\.)?wikidata\\.org/(?:wiki|entity)/(Q[1-9][0-9]*)/?(?:[?#].*)?"],
     "uri": "http://id.loc.gov/vocabulary/identifiers/wikidata"
   },
   {
@@ -49,9 +41,7 @@
     "level": null,
     "lowercase": false,
     "name": "VIAF cluster ID",
-    "patterns": [
-      "https?://(?:www\\.)?viaf\\.org/(?:[a-z]{2}/)?viaf/([1-9](?:[0-9]{1,8}|[0-9]{18,21}))/?(?:[?#].*)?"
-    ],
+    "patterns": ["https?://(?:www\\.)?viaf\\.org/(?:[a-z]{2}/)?viaf/([1-9](?:[0-9]{1,8}|[0-9]{18,21}))/?(?:[?#].*)?"],
     "uri": "http://www.wikidata.org/entity/P214"
   },
   {
@@ -60,9 +50,7 @@
     "level": null,
     "lowercase": false,
     "name": "GND ID",
-    "patterns": [
-      "https?://(?:www\\.)?d-nb\\.info/gnd/(1[0-4]?[0-9]{7}[0-9X]|[47][0-9]{6}-[0-9]|[1-9][0-9]{0,7}-[0-9X]|3[0-9]{7}[0-9X])/?(?:[?#].*)?"
-    ],
+    "patterns": ["https?://(?:www\\.)?d-nb\\.info/gnd/(1[0-4]?[0-9]{7}[0-9X]|[47][0-9]{6}-[0-9]|[1-9][0-9]{0,7}-[0-9X]|3[0-9]{7}[0-9X])/?(?:[?#].*)?"],
     "uri": "http://www.wikidata.org/entity/P227"
   },
   {
@@ -71,9 +59,7 @@
     "level": "work",
     "lowercase": false,
     "name": "IMSLP ID",
-    "patterns": [
-      "https?://(?:www\\.)?imslp\\.org/wiki/(?!Main(?:_|%20)Page/?(?:[?#]|$)|(?:Media|Special|Talk|User|IMSLP|Project|File|Image|MediaWiki|Template|Help|Category|Module|(?:User|IMSLP|Project|File|Image|MediaWiki|Template|Help|Category|Module)(?:_|%20)talk)(?::|%3[Aa]))([^?#]+?)/?(?:[?#].*)?"
-    ],
+    "patterns": ["https?://(?:www\\.)?imslp\\.org/wiki/(?!Main(?:_|%20)Page/?(?:[?#]|$)|(?:Media|Special|Talk|User|IMSLP|Project|File|Image|MediaWiki|Template|Help|Category|Module|(?:User|IMSLP|Project|File|Image|MediaWiki|Template|Help|Category|Module)(?:_|%20)talk)(?::|%3[Aa]))([^?#]+?)/?(?:[?#].*)?"],
     "uri": "http://www.wikidata.org/entity/P839"
   },
   {
@@ -82,9 +68,7 @@
     "level": null,
     "lowercase": false,
     "name": "DOI",
-    "patterns": [
-      "https?://(?:www\\.|dx\\.)?doi\\.org/(10\\.[0-9]{4,9}/[^?#]+?)/?(?:[?#].*)?"
-    ],
+    "patterns": ["https?://(?:www\\.|dx\\.)?doi\\.org/(10\\.[0-9]{4,9}/[^?#]+?)/?(?:[?#].*)?"],
     "uri": "http://www.wikidata.org/entity/P356"
   },
   {

@@ -8,7 +8,7 @@
  */
 
 import { JsonFloat } from "../json/value.js";
-import { spell } from "../json/write.js";
+import { spell } from "../serialization/text.js";
 
 /** An exact rational number in lowest terms with a positive denominator. */
 export interface Rational {
@@ -66,28 +66,45 @@ export function exactNumber(value: unknown): Rational | null {
 }
 
 /**
- * The exact value of a bare Number: a JSON number, or a `[numerator,
- * denominator]` pair (an integral float in the pair counts as the integer it
+ * The exact value of a bare Number, or `null` if the value is none: a JSON
+ * number, or a `[numerator, denominator]` pair of integers whose denominator
+ * is at least 1 (an integral float in the pair counts as the integer it
  * equals, as in Python).
+ */
+export function exactValue(value: unknown): Rational | null {
+  if (Array.isArray(value)) {
+    if (value.length !== 2) return null;
+    const [numerator, denominator] = value.map(jsonInteger);
+    if (numerator === null || numerator === undefined) return null;
+    if (denominator === null || denominator === undefined || denominator < 1n) return null;
+    return rational(numerator, denominator);
+  }
+  return exactNumber(value);
+}
+
+/**
+ * The exact value of a bare Number, as `exactValue` reads it.
  *
  * @throws {TypeError} if the value is no Number.
  */
 export function exact(value: unknown): Rational {
-  if (Array.isArray(value) && value.length === 2) {
-    const [numerator, denominator] = value.map(jsonInteger);
-    if (numerator !== null && numerator !== undefined && denominator && denominator > 0n) {
-      return rational(numerator, denominator);
-    }
-  }
-  const result = exactNumber(value);
+  const result = exactValue(value);
   if (result === null) throw new TypeError(`not a Number: ${spell(value)}`);
   return result;
 }
 
-/** Compare two bare Numbers by exact value. */
-export function compareExact(left: unknown, right: unknown): number {
-  const a = exact(left);
-  const b = exact(right);
+/** Whether two exact values are equal. */
+export function sameRational(left: Rational, right: Rational): boolean {
+  return left.numerator === right.numerator && left.denominator === right.denominator;
+}
+
+/** Compare two exact values. */
+export function compareRationals(a: Rational, b: Rational): number {
   const difference = a.numerator * b.denominator - b.numerator * a.denominator;
   return difference < 0n ? -1 : difference > 0n ? 1 : 0;
+}
+
+/** Compare two bare Numbers by exact value. */
+export function compareExact(left: unknown, right: unknown): number {
+  return compareRationals(exact(left), exact(right));
 }

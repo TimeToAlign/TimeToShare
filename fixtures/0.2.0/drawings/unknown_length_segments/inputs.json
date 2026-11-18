@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "unknown_length_segments.json",
+  "manifest": "unknown_length_segments.yaml",
   "placement": {
     "height": null,
     "length": 400,

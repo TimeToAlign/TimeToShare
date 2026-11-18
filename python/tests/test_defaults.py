@@ -395,33 +395,74 @@ def test_values_other_than_the_default_stay() -> None:
     )
 
 
-def test_a_value_of_another_type_is_not_the_default() -> None:
+def _repeat(identifier: str, count: Any) -> dict[str, Any]:
+    return {
+        "id": identifier,
+        "type": "jump_from",
+        "manifestation": "repeat_end",
+        "coordinate": [1, 1],
+        "repeat_count": count,
+    }
+
+
+def _linear(identifier: str, **members: Any) -> dict[str, Any]:
+    return {
+        "type": "LinearMap",
+        "id": identifier,
+        "source_unit": "quarters",
+        "target_unit": "seconds",
+        **members,
+    }
+
+
+def test_numbers_equal_to_the_default_in_value_are_the_default() -> None:
     value = manifest(
         timeline(
             "score",
-            flow_control=[
-                {
-                    "id": "b",
-                    "type": "jump_from",
-                    "manifestation": "repeat_end",
-                    "coordinate": [1, 1],
-                    "repeat_count": 1.0,
-                }
-            ],
+            flow_control=[_repeat("a", 1.0), _repeat("b", 2.0)],
             conversion_maps=[
-                {
-                    "type": "LinearMap",
-                    "id": "l",
-                    "source_unit": "quarters",
-                    "target_unit": "seconds",
-                    "scalar": [1, 1],
-                    "offset": 0.0,
-                }
+                _linear("l1", scalar=1.0, offset=0.0),
+                _linear("l2", scalar=[1, 1], offset=[0, 3]),
+                _linear("l3", scalar=[1, 2], offset=False),
             ],
+            regions=[{**REGION, "name": 0}],
         )
     )
-    assert dumps(minimal(value)) == dumps(value)
-    assert dumps(complete(minimal(value))) == dumps(complete(value))
+    (root,) = minimal(value)["timelines"]
+    assert [entry.get("repeat_count") for entry in root["flow_control"]] == [None, 2.0]
+    maps = {entry["id"]: entry for entry in root["conversion_maps"]}
+    assert (
+        sorted(maps["l1"])
+        == sorted(maps["l2"])
+        == [
+            "id",
+            "source_unit",
+            "target_unit",
+            "type",
+        ]
+    )
+    assert (maps["l3"]["scalar"], maps["l3"]["offset"]) == ([1, 2], False)
+    assert root["regions"][0]["name"] == 0
+
+
+def test_values_are_compared_after_respelling_and_ordering() -> None:
+    value = manifest(
+        timeline("score", children=[timeline("c", length=(1, 1), offset=(4, 8))]),
+        graphical={
+            "timestamps": [
+                {
+                    "id": "timestamp_1",
+                    "timeline": "score",
+                    "coordinate": [0, 1],
+                    "name": "x",
+                    "display": ["name", "wedge", "cross_section"],
+                }
+            ]
+        },
+    )
+    done = minimal(value)
+    assert done["timelines"][0]["children"][0]["offset"] == [1, 2]
+    assert "display" not in done["graphical"]["timestamps"][0]
 
 
 def test_unknown_keys_pass_through() -> None:
@@ -476,7 +517,9 @@ def _documents() -> list[dict[str, Any]]:
 def test_the_round_trips(value: dict) -> None:
     given = json.dumps(value)
     assert dumps(minimal(complete(value))) == dumps(minimal(value))
-    assert dumps(complete(minimal(value))) == dumps(complete(value))
+    assert dumps(complete(minimal(value)), serialization="jcs") == dumps(
+        complete(value), serialization="jcs"
+    )
     assert complete(value) is not value and minimal(value) is not value
     assert json.dumps(value) == given
     validate(complete(value))

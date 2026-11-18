@@ -38,8 +38,9 @@ from .fixtures import (
     warning_paths,
 )
 from .font import FONT_FILES, font_metrics, font_paths
-from .manifest import TIMESTAMP_DISPLAY, canonical_json, canonical_order, dumps
+from .manifest import TIMESTAMP_DISPLAY, canonical_order
 from .registry import KnownScheme, Recognition, SchemeRegistry, default_registry
+from .serialization import dumps, loads, serialization_of
 from .styles import MissingStyleWarning, complete_styles
 from .validate import (
     SCHEMA_VERSION,
@@ -49,7 +50,6 @@ from .validate import (
     identity_problems,
     json_pointer,
     load_schema,
-    loads,
     number_type_of,
     schema_path,
     unknown_keys,
@@ -83,7 +83,6 @@ __all__ = [
     "MissingStyleWarning",
     "RejectionCase",
     "UnsupportedVersionError",
-    "canonical_json",
     "canonical_order",
     "complete",
     "complete_styles",
@@ -102,6 +101,7 @@ __all__ = [
     "rejection_case",
     "rejection_paths",
     "schema_path",
+    "serialization_of",
     "unknown_keys",
     "unregistered_terms",
     "validate",

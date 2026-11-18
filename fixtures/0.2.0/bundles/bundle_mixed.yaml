@@ -1,0 +1,242 @@
+graphical:
+  order:
+    group_1: [score, performance]
+    group_2: [page, excerpt]
+  statements: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: annotations
+    -
+      coordinate: [12, 1]
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: annotations
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: timestamp_3
+      name: origin
+      timeline: excerpt
+    -
+      coordinate: 88200
+      display: [wedge, coordinate]
+      id: timestamp_4
+      name: length
+      timeline: excerpt
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: timestamp_5
+      name: origin
+      timeline: page
+    -
+      coordinate: 1920
+      display: [wedge, coordinate]
+      id: timestamp_6
+      name: length
+      timeline: page
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_7
+      name: origin
+      timeline: performance
+    -
+      coordinate: 12.5
+      display: [wedge, coordinate]
+      id: timestamp_8
+      name: length
+      timeline: performance
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: timestamp_9
+      name: origin
+      timeline: score
+    -
+      coordinate: [12, 1]
+      display: [wedge, coordinate]
+      id: timestamp_10
+      name: length
+      timeline: score
+groups:
+  -
+    id: group_1
+    members: [performance, score]
+    meta: {}
+    name: Performance
+  -
+    id: group_2
+    members: [excerpt, page]
+    meta: {}
+    name: Facsimile
+links: []
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+name: Mixed
+schemes: []
+timelines:
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: annotations
+    is_segment_line: false
+    length: [12, 1]
+    links: []
+    locked: false
+    meta: {}
+    name: Annotations
+    number_type: fraction
+    regions:
+      -
+        end: [4, 1]
+        id: region_1
+        links: []
+        meta: {}
+        name: Verse
+        start: [0, 1]
+      -
+        end: [12, 1]
+        id: region_2
+        links: []
+        meta: {}
+        name: Chorus
+        start: [4, 1]
+    unit: quarters
+  -
+    children: []
+    conversion_maps:
+      -
+        id: cmap_4
+        name: null
+        offset: 0
+        scalar: [3, 4]
+        source_unit: pixels
+        target_unit: points
+        type: LinearMap
+    flow_control: []
+    id: page
+    is_segment_line: false
+    length: 1920
+    links: []
+    locked: false
+    meta: {}
+    name: Page
+    number_type: int
+    regions: []
+    unit: pixels
+  -
+    children: []
+    conversion_maps:
+      -
+        id: cmap_3
+        name: null
+        offset: 0
+        scalar: 44100
+        source_unit: seconds
+        target_unit: samples
+        type: LinearMap
+    flow_control: []
+    id: performance
+    is_segment_line: false
+    length: 12.5
+    links: []
+    locked: false
+    meta: {}
+    name: Performance
+    number_type: float
+    regions: []
+    unit: seconds
+  -
+    children:
+      -
+        children: []
+        conversion_maps:
+          -
+            id: cmap_6
+            name: null
+            offset: 0
+            scalar: [1, 44100]
+            source_unit: samples
+            target_unit: seconds
+            type: LinearMap
+        flow_control: []
+        id: excerpt
+        is_segment_line: false
+        length: 88200
+        links: []
+        locked: true
+        meta: {}
+        name: Excerpt
+        number_type: int
+        offset: 44100
+        regions: []
+        unit: samples
+    conversion_maps:
+      -
+        id: cmap_5
+        name: null
+        offset: 0
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    flow_control: []
+    id: recording
+    is_segment_line: false
+    length: 441000
+    links: []
+    locked: false
+    meta: {}
+    name: Recording
+    number_type: int
+    regions: []
+    unit: samples
+  -
+    children: []
+    conversion_maps:
+      -
+        id: cmap_1
+        name: null
+        offset: 0
+        scalar: 480
+        source_unit: quarters
+        target_unit: ticks
+        type: LinearMap
+      -
+        id: cmap_2
+        name: null
+        offset: 0
+        scalar: [1, 2]
+        source_unit: quarters
+        target_unit: seconds
+        type: LinearMap
+    flow_control:
+      -
+        coordinate: [8, 1]
+        id: jump_from_1
+        label: Repeat
+        manifestation: repeat_end
+        meta: {}
+        name: null
+        repeat_count: 1
+        type: jump_from
+    id: score
+    is_segment_line: false
+    length: [12, 1]
+    links: []
+    locked: false
+    meta: {}
+    name: Score
+    number_type: fraction
+    regions: []
+    unit: quarters
+timetoshare: "0.2.0"

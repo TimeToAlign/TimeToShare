@@ -1,0 +1,75 @@
+graphical:
+  order: {}
+  statements:
+    -
+      select:
+        element: label
+      set:
+        fill: "#404040"
+        stroke: "#404040"
+    -
+      select:
+        element: name
+      set:
+        fill: "#404040"
+        stroke: "#404040"
+    -
+      select:
+        domain: physical
+        element: wedge
+        within: performance
+      set:
+        fill: "#7F00FF"
+        stroke: "#7F00FF"
+  styles: {}
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: timestamp_1
+      name: origin
+      timeline: performance
+    -
+      coordinate: 10.0
+      display: [wedge, coordinate]
+      id: timestamp_2
+      name: length
+      timeline: performance
+groups: []
+links: []
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (df58bc9d)"
+name: null
+schemes: []
+timelines:
+  -
+    children:
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: excerpt
+        is_segment_line: false
+        length: 4.0
+        links: []
+        locked: true
+        meta: {}
+        name: null
+        number_type: float
+        offset: 1.0
+        regions: []
+        unit: seconds
+    conversion_maps: []
+    flow_control: []
+    id: performance
+    is_segment_line: false
+    length: 10.0
+    links: []
+    locked: false
+    meta: {}
+    name: Performance
+    number_type: float
+    regions: []
+    unit: seconds
+timetoshare: "0.2.0"

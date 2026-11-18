@@ -32,6 +32,7 @@ from timetoshare import (
     dumps,
     fixture_paths,
     identity_problems,
+    loads,
     minimal,
     rejection_case,
     rejection_paths,
@@ -198,8 +199,8 @@ def test_the_work_bundle_of_op_106_in_both_forms() -> None:
     built = _bundle(scheme, link, minimal_form=True)
     assert built == MINIMAL
     assert dumps(built) == dumps(MINIMAL)
-    assert [link.to_dict()] == COMPLETE["links"]
-    assert [scheme.to_dict()] == COMPLETE["schemes"]
+    assert [link.to_dict(minimal=False)] == COMPLETE["links"]
+    assert [scheme.to_dict(minimal=False)] == COMPLETE["schemes"]
     assert dumps(complete(MINIMAL)) == dumps(COMPLETE)
     assert dumps(minimal(COMPLETE)) == dumps(MINIMAL)
     for form in (MINIMAL, COMPLETE):
@@ -224,7 +225,7 @@ def test_two_readings_of_one_work_survive_in_their_order() -> None:
     )
     value = _bundle(scheme, first, second, minimal_form=True)
     validate(value)
-    read = json.loads(dumps(value))
+    read = loads(dumps(value))
     assert [Link.from_dict(entry) for entry in read["links"]] == [first, second]
     labels = [[slot["label"] for slot in entry["parts"]] for entry in read["links"]]
     assert labels == [
@@ -428,7 +429,7 @@ def test_every_error_of_the_model(build: Callable[[], object], message: str) -> 
 def test_an_assertion_reads_a_day_of_the_calendar() -> None:
     read = Assertion.from_dict({"asserted_on": "2024-02-29"})
     assert read.asserted_on == datetime.date(2024, 2, 29)
-    assert read.to_dict()["asserted_on"] == "2024-02-29"
+    assert read.to_dict(minimal=False)["asserted_on"] == "2024-02-29"
     built = Assertion(asserted_on="2024-02-29")  # type: ignore[arg-type]
     assert built.asserted_on == datetime.date(2024, 2, 29)
     assert built == read
@@ -471,7 +472,7 @@ def test_urls_collapse_into_their_first_normal_form() -> None:
 
 def test_every_change_gives_a_new_link() -> None:
     base = _work(label="Op. 106")
-    before = base.to_dict()
+    before = base.to_dict(minimal=False)
     extended = base.with_uri(
         "https://www.wikidata.org/wiki/Q146730",
         "http://www.wikidata.org/entity/Q146730",
@@ -496,7 +497,7 @@ def test_every_change_gives_a_new_link() -> None:
     assert (second.parts, second.parts_ordered) == (tuple(_slots([2])), True)
     whole = PartOf("has_part", label="The thirty-two piano sonatas", position=29)
     assert base.with_part_of(whole).with_part_of(whole).part_of == (whole, whole)
-    assert base.to_dict() == before
+    assert base.to_dict(minimal=False) == before
 
 
 def test_an_identifier_of_a_scheme_minting_uris_is_stored_as_its_uri() -> None:
@@ -596,14 +597,15 @@ _SAMPLES: dict[str, dict[str, Any]] = {
 @pytest.mark.parametrize("kind", list(_CLASSES))
 def test_both_forms_come_from_the_defaults_table(kind: str) -> None:
     value = _CLASSES[kind].from_dict(_SAMPLES[kind])
-    assert value.to_dict() == {**DEFAULTS[kind], **_SAMPLES[kind]}
-    assert value.to_dict(minimal=True) == _SAMPLES[kind]
+    assert value.to_dict(minimal=False) == {**DEFAULTS[kind], **_SAMPLES[kind]}
+    assert value.to_dict() == _SAMPLES[kind]
+    assert type(value).from_dict(value.to_dict(minimal=False)) == value
     assert type(value).from_dict(value.to_dict()) == value
 
 
 def test_identifiers_have_no_defaults() -> None:
     identifier = Identifier.from_dict({"scheme": "opus", "value": "106"})
-    assert identifier.to_dict() == identifier.to_dict(minimal=True)
+    assert identifier.to_dict() == identifier.to_dict(minimal=False)
     assert identifier.to_dict() == {"scheme": "opus", "value": "106"}
 
 
@@ -1051,7 +1053,7 @@ def test_the_shared_cases_through_the_description_layer_alone() -> None:
             assert problems == [], path.stem
     assert described == 19
     for path in fixture_paths():
-        assert description_problems(json.loads(path.read_text(encoding="utf-8"))) == []
+        assert description_problems(loads(path.read_text(encoding="utf-8"))) == []
 
 
 def _broken_elsewhere(**members: Any) -> dict[str, Any]:

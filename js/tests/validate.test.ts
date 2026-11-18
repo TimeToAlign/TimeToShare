@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-  canonicalJson,
   compactJson,
   dumps,
   type Json,
@@ -10,6 +9,7 @@ import {
   jsonPointer,
   type Lossless,
   type LosslessManifest,
+  loads,
   type Manifest,
   parse,
   parseJson,
@@ -18,8 +18,9 @@ import {
   unknownKeys,
   validate,
 } from "../src/index.js";
-import type { JsonObject } from "../src/json/value.js";
+import { type JsonObject, plain } from "../src/json/value.js";
 import {
+  expectWrittenAsStored,
   group,
   manifest,
   rejectionCase,
@@ -171,7 +172,7 @@ const REJECTIONS = [
  * The cases whose offending value `JSON.parse` cannot read: an integer beyond
  * 2^53 comes back as the float next to it.
  */
-const LOST_BY_JSON_PARSE = new Set(["float_axis_int_not_exact.json"]);
+const LOST_BY_JSON_PARSE = new Set(["float_axis_int_not_exact"]);
 
 /** The path and message of the error `validate` raises. */
 function problem(value: unknown): [readonly (string | number)[], string] {
@@ -373,7 +374,7 @@ describe("own-axis representation", () => {
 
   it("reads every value by its declared number type", () => {
     const value: unknown = respellable();
-    const text = () => canonicalJson(value as Lossless<Json>);
+    const text = () => compactJson(value);
     const written = text();
     validate(value);
     expect(unknownKeys(value)).toEqual([]);
@@ -414,12 +415,11 @@ describe("unknown length", () => {
 
 describe("the shared rejection cases", () => {
   it("are stated", () => {
-    expect(rejectionFileNames()).toEqual(REJECTIONS.map((name) => `${name}.json`));
+    expect(rejectionFileNames()).toEqual(REJECTIONS);
   });
 
   it.each(rejectionFileNames())("refuse %s at the stored path", (name) => {
-    const text = rejectionText(name);
-    expect(dumps(parseJson(text))).toBe(text);
+    expectWrittenAsStored(rejectionText(name));
     const testCase = rejectionCase(name);
     // JSON text holds no non-finite number, so a case about the finite rule
     // has one reading: the reader's, with the value in place.
@@ -428,7 +428,7 @@ describe("the shared rejection cases", () => {
         ? [() => validate(testCase.manifest)]
         : [
             () => validate(testCase.manifest),
-            () => validate((JSON.parse(text) as JsonObject).manifest),
+            () => validate(plain(testCase.manifest)),
             () => parse(compactJson(testCase.manifest)),
           ];
     for (const [index, read] of readings.entries()) {
@@ -457,14 +457,14 @@ describe("the shared rejection cases", () => {
   });
 
   it("are read with the non-finite value in place", () => {
-    const nan = rejectionCase("nan_offset.json");
+    const nan = rejectionCase("nan_offset");
     expect(nan.manifest).toMatchObject({ timelines: [{ children: [{ offset: Number.NaN }] }] });
     expect(nan.path).toEqual(["timelines", 0, "children", 0, "offset"]);
     expect(problem(nan.manifest)).toEqual([
       ["timelines", 0, "children", 0, "offset"],
       "offset of 'take' is not a finite number",
     ]);
-    const infinite = rejectionCase("infinite_length.json");
+    const infinite = rejectionCase("infinite_length");
     expect(infinite.manifest).toMatchObject({
       timelines: [{ length: Number.POSITIVE_INFINITY }],
     });
@@ -480,10 +480,10 @@ describe("the shared rejection cases", () => {
   });
 
   it("are read as written where no value is substituted", () => {
-    const text = rejectionText("id_empty.json");
-    const testCase = rejectionCase("id_empty.json");
+    const text = rejectionText("id_empty");
+    const testCase = rejectionCase("id_empty");
     expect(compactJson(testCase.manifest)).toBe(
-      compactJson((parseJson(text) as { manifest: Lossless<Json> }).manifest),
+      compactJson((loads(text) as { manifest: Lossless<Json> }).manifest),
     );
     expect([testCase.path, testCase.code, testCase.error, testCase.reason]).toEqual([
       ["timelines", 0, "flow_control", 0, "id"],
@@ -609,8 +609,8 @@ describe("integer boundaries", () => {
     const document = manifest([timeline("midi", "ticks", value)]);
     validate(document);
     const text = dumps(document);
-    expect(text).toContain(`"length": ${value},\n`);
-    const read = parseJson(text) as JsonObject;
+    expect(text).toContain(`\n    length: ${value}\n`);
+    const read = loads(text) as JsonObject;
     expect(((read.timelines as JsonObject[])[0] as JsonObject).length).toBe(value);
   });
 });

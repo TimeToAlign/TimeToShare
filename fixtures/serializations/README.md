@@ -1,0 +1,312 @@
+# Serialization cases
+
+These cases pin the three serializations of the repository README's
+"Serializations" section, and the "Canonical order" a writer applies, to
+the byte. Every text here is derived by hand from those sections, never
+written with `dumps`, which they test. Both packages must reproduce every
+text byte for byte, read every readable text to the value stated, and
+refuse every refused text. A case the README does not determine is a
+defect of the README; a change to a serialization rule changes the README
+and these cases together.
+
+## Layout
+
+| Path | Holds |
+| --- | --- |
+| `cases/<name>/canonical.yaml` | the canonical YAML of one value |
+| `cases/<name>/pretty.json` | the pretty JSON of the same value |
+| `cases/<name>/rfc8785.json` | its RFC 8785 JSON, without a final line feed; absent where the RFC 8785 writer refuses the value |
+| `readings/<name>.<ext>` | a text that is not canonical and that every reader reads, `<ext>` being `yaml` or `json`; the readings are the files of `readings/` whose names end neither in `.expected.yaml` nor in `.expected.rfc8785.json`, and a test collecting them skips both kinds of expected file |
+| `readings/<name>.expected.yaml` | the canonical YAML of the value that text is read as |
+| `readings/<name>.expected.rfc8785.json` | optional: the RFC 8785 JSON written from the value that text is read as, without a final line feed |
+| `refusals/<name>.<ext>` | a text that every reader refuses, one rule per text |
+| `refusals-writing/<name>.<ext>` | a text every reader reads, whose value a writer refuses in the serializations stated below |
+
+The extension names the language the text was written in, not the
+serialization a reader chooses: `refusals/flow_mapping_unquoted_key.yaml`
+is meant as YAML and is read as JSON. Every file is UTF-8, and only the
+`readings/bom_*` texts begin with a byte order mark (U+FEFF), one each;
+`readings/bom_only.yaml` is that mark alone. The bytes of every file are
+significant, line ends and final line feeds included
+(`readings/json_whitespace.json` holds carriage returns);
+`readings/empty.yaml` is empty.
+
+Every YAML reading but those named here uses only the constructs of
+canonical YAML, which every conforming YAML parser reads alike. The others pin what
+the README decides beyond them: the empty text and texts of blank lines
+(spaces only) or comments only (`empty`, `bom_only`, `whitespace_only`,
+`comments_only`), the core schema's resolution of plain scalars
+(`yaml_core_schema`, `yaml_unsorted_keys`, `yaml_top_level_tilde`,
+`yaml_top_level_minus_infinity`, `yaml_float_edges`,
+`yaml_float_underflow_negative`), a surrogate pair written as two
+escapes (`yaml_surrogate_pair_escape`) and flow sequences nested in flow
+sequences (`yaml_depth_256`, and the refusal `yaml_depth_257`). Canonical YAML holds no literal
+tab, escaping every tab as `\t`, so no YAML text here holds one: a tab
+anywhere in a YAML text, a line of a tab alone or a tab before a comment
+included, lies outside what these cases cover.
+
+## How a package test uses them
+
+Read each file as bytes and decode it as UTF-8, keeping a leading U+FEFF:
+in Python `data.decode("utf-8")` (not `"utf-8-sig"`), in TypeScript
+`new TextDecoder("utf-8", { ignoreBOM: true })` or
+`readFileSync(path, "utf8")`. "Read" below means the package's reader of
+any serialization, which chooses between JSON and YAML as the README's
+"Reading" states: Python's `loads`, TypeScript's `loads` (`parse` also
+validates, and most values here are not manifests). Values are compared
+kind for kind: an integer equals only an integer, a float only a float,
+`-0.0` differs from `0.0`, arrays compare in order and objects by their
+members.
+
+1. **Cases.** Let V be the value read from `canonical.yaml`.
+   - `pretty.json` reads to V.
+   - `rfc8785.json` reads to V with every float whose RFC 8785 spelling has
+     neither `.` nor an exponent (an integral float of magnitude below
+     2^53, a zero of either sign) replaced by the integer of equal value.
+   - `dumps(V)` in each serialization gives the bytes of its file; where
+     `rfc8785.json` is absent, `dumps(V, "jcs")` raises (Python
+     `ValueError`, TypeScript `RangeError`).
+   - Each text read and written again in the serialization its file name
+     names gives its own bytes.
+   - For the manifest cases (`readme_manifest`, `manifest_canonical_order`,
+     `manifest_order_by_value`, `manifest_ties_kept`,
+     `manifest_display_order`), the value read from
+     `rfc8785.json` written in canonical YAML gives the bytes of
+     `canonical.yaml`: the declared number types restore the floats RFC
+     8785 JSON spells as integers. These cases hold no float off a
+     timeline's own axis.
+2. **Readings.** `dumps(read(text), "yaml")` gives the bytes of
+   `<name>.expected.yaml`, and the expected text read and written again
+   gives its own bytes. Where `<name>.expected.rfc8785.json` is present,
+   `dumps(read(text), "jcs")` and `dumps(read(expected), "jcs")`, the
+   expected text being `<name>.expected.yaml`, give its bytes.
+3. **Refusals.** Reading the text raises: Python `ValueError`; TypeScript
+   `JsonSyntaxError` for a text read as JSON and `YamlSyntaxError` for
+   every text read as YAML, except a `RangeError` for a JSON number that
+   rounds to an infinity (`json_float_overflow*`,
+   `json_top_level_float_overflow`).
+4. **Writer refusals.** The text reads; writing its value raises in each
+   serialization the table names, and succeeds in the others: Python
+   `ValueError`; TypeScript `RangeError` for a value a serialization
+   refuses and `TypeError` for a manifest that cannot be put in canonical
+   order (the `order_*` texts).
+5. **`serialization_of`** (`serializationOf`) never raises on any file
+   here and returns:
+   - for `canonical.yaml`: `"json"` for the cases `top_level_empty_object`,
+     `top_level_empty_array`, `top_level_integer`, `top_level_float`,
+     `top_level_null`, `top_level_true`, `top_level_quoted_string` and
+     `top_level_string_yaml_escapes`, whose texts are JSON texts and, ending
+     in a line feed, not RFC 8785 JSON; `"yaml"` for every other case;
+   - `"json"` for every `pretty.json` and `"jcs"` for every `rfc8785.json`
+     and every `readings/<name>.expected.rfc8785.json`, the scalar ones
+     included;
+   - for a reading, refusal or writer refusal: `"json"` for every `.json`
+     text (the `.expected.rfc8785.json` files, which give `"jcs"`,
+     excepted) and for `refusals/flow_mapping_unquoted_key.yaml`,
+     `refusals/flow_sequence_plain.yaml` and
+     `refusals/flow_sequence_then_comment.yaml`, and `"yaml"` for every
+     other text (`readings/empty.yaml`, `readings/bom_only.yaml`,
+     `readings/whitespace_only.yaml` and `readings/comments_only.yaml`
+     included). None of the readings,
+     refusals and writer refusals is RFC 8785 JSON: the compact ones are
+     unsorted (`readings/json_compact.json`), begin with U+FEFF
+     (`readings/bom_rfc8785.json`), or hold values the RFC 8785 writer
+     refuses (`refusals-writing/integer_2_53.json`, `key_1025_*.json`).
+
+A lone surrogate standing as itself, which only a text held in memory can
+hold, cannot be stored in a UTF-8 file; package tests build such a text in
+memory. Likewise no text a reader reads holds a value nested deeper than 256
+levels, so `refusals-writing/` cannot hold one: the writers' refusal of the
+array nested 257 deep, the value `refusals/json_depth_257.json` would hold,
+is proven by the package tests on that value built in memory, refused in
+every serialization.
+
+The long texts of the nesting limit are made by repeating fixed strings:
+`json_depth_256.json` is `[` 256 times, `]` 256 times and a line feed (513
+bytes), `json_depth_257.json` the same with 257 of each (515 bytes).
+`yaml_depth_256.yaml` (16,769 bytes) is 127 lines of `-` alone, the first
+at column 1 and each next two columns further, then, at column 255, `- `
+followed by `[` 128 times and `]` 128 times: 128 block sequences, the
+innermost holding 128 flow sequences. `yaml_depth_257.yaml` (16,771 bytes)
+holds 129 flow sequences there, and the first collection at depth 257, the
+129th `[`, lies at line 128, column 385 (offset 16,640). Both readings are
+read as the array nested 256 deep, whose canonical YAML (65,283 bytes) is,
+by the rule that `-` stands alone before a block sequence, 254 lines of `-`
+alone, the first at column 1 and each next two columns further, then `- []`
+at column 509.
+
+## Cases
+
+| Case | Exercises | Rule pinned |
+| --- | --- | --- |
+| `integers` | 0, a negative integer, ±(2^53 − 1) | Shared spelling: integers; RFC 8785 integer range |
+| `integers_beyond_double` | ±2^53, 2^53 + 1, ±2^64 | integers exact at any size; RFC 8785 refuses them (no `rfc8785.json`) |
+| `floats` | zero, `-0.0`, integral floats, k = −10, −7, −6, −5, −4, 15, 21, 22, 308, −324, a 17-digit value, a 17-digit tie broken to the even digit (1234567890123456.75 → `…56.8`) | float algorithm steps 1–4; RFC 8785 number spelling at k = −7, −6, 20 < k |
+| `floats_integral_large` | integral floats 2^53, 10^16, 1.5 × 10^16, 12345678901234568, 10^20 (k = 15, 16, 20) | exponent form from k = 16; RFC 8785 refuses an integral float of magnitude from 2^53 below 10^21 (no `rfc8785.json`) |
+| `floats_integral_safe` | integral floats ±(2^53 − 1) | the largest integral floats RFC 8785 JSON writes, as integers' digits |
+| `string_values` | plain and quoted strings at every edge of the plain rule: each reserved word in several cases, `_x`, `_`, `a/b`, `a.b`, `a-b`, `1a`, `-a`, `""`, `" "`, `#`, `:`, a URI, `NaN`, `e5`; long scalar sequences | Canonical YAML: plain or double-quoted strings |
+| `string_keys` | the same edges as keys, sorted by code point after unquoting | plain and quoted keys; key order |
+| `escapes` | U+0000, U+0008–U+000D, U+001B, U+001F, U+007F, U+0085, U+009F, U+00A0, U+2028, U+2029, U+E000, U+FEFF, U+FFFD, U+FFFE, U+FFFF, `"`, `\`, `/`, a non-BMP character | the escapes of canonical YAML and of JSON |
+| `key_escapes` | escaped keys; U+FEFF beside U+1F600 | key escapes; code-point order against UTF-16 order |
+| `key_order_utf16` | keys `z`, U+E000, U+FF61, U+1F600 | RFC 8785 sorts by UTF-16 code units |
+| `empty_collections` | `[]` and `{}` as values, in a sequence, beside a scalar | empty collections; a sequence holding one is a block sequence |
+| `top_level_empty_object`, `top_level_empty_array` | `{}` and `[]` alone | top level; canonical YAML texts that are JSON texts read as JSON |
+| `top_level_scalar_sequence` | a top-level array of scalars | top-level arrays are block sequences in canonical YAML |
+| `top_level_block_sequence` | a top-level array holding an object and a nested block sequence | `-` alone before a non-empty mapping or block sequence |
+| `top_level_integer`, `top_level_float`, `top_level_null`, `top_level_true`, `top_level_plain_string`, `top_level_quoted_string` | a scalar alone | a top-level scalar stands alone on the one line; a scalar that is a JSON text is read as JSON, a plain string as YAML |
+| `top_level_string_yaml_escapes` | the string `x`, U+007F, U+0085, U+2028, U+FFFE, `y` alone | canonical YAML escapes what pretty and RFC 8785 JSON write as itself; a scalar that is a JSON text is read as JSON, even one holding characters outside YAML's printable set |
+| `readme_nesting_example` | the nesting example of the README | block sequences, nested objects, `{}` |
+| `nested_sequences` | three levels of block sequences, a mapping inside a sequence inside a mapping, `[[]]` | indentation at c + 2 |
+| `scalar_sequences` | a 60-item line, mixed scalars, a one-item sequence | scalar sequences on one line however long |
+| `fractions` | Fraction pairs, negative and zero, a sequence of pairs | a Fraction pair is a scalar sequence |
+| `key_length_1024_plain` | a plain key of 1024 characters | the key limit, reached and not exceeded |
+| `key_length_1024_quoted` | a key whose quoted, escaped form is 1024 UTF-16 code units | quotes and escapes count |
+| `key_length_1024_non_bmp` | 511 characters above U+FFFF: 1024 UTF-16 code units quoted | non-BMP characters count two units |
+| `embedded_manifest_kept` | a value holding a manifest that is not itself one | arrays of a value that is not a manifest keep their order |
+| `readme_manifest` | the manifest of "One manifest in three serializations" | the README's three texts and their byte counts (canonical YAML 259 bytes, pretty JSON 380, RFC 8785 JSON 242) |
+| `manifest_canonical_order` | timelines, nested children, conversion maps, a ChainMap's maps (kept), flow control, regions, groups and members, named timestamps and their `display`, `graphical.order` (kept) | canonical order; ties broken by ID in code-point order (`region_10` before `region_2`) |
+| `manifest_order_by_value` | children at 3/10 before 1/3, regions and flow control at 9.5 before 10.0, timestamps at 9 before 10, a child at the Fraction pair 1/10 before one at the float 0.1 (whose exact value is greater) on a `float` axis; `measure_maps` and `schemes` by ID; MeasureMap rows and the manifest's `links` kept | coordinates compare by exact numeric value, never by spelling; a value its number type cannot take is written as given |
+| `manifest_ties_kept` | duplicate IDs: two timelines, groups, children, conversion maps, regions, flow-control elements, and two named timestamps at `[1, 2]` and `0.5` on a `float` axis, each pair tying on every member it is ordered by and given `Second` before `First` | entries that tie keep their given order |
+| `manifest_display_order` | a named timestamp whose `display` holds the five known words, the strings `"2"`, `Alpha`, `Wedge`, `label` and `zeta`, and the values `2`, `null` and `1` | a `display` in canonical order: the known words in their order, other strings by code point, then other values in their given order |
+
+## Readings
+
+| Reading | Exercises | Rule pinned |
+| --- | --- | --- |
+| `bom_yaml` | U+FEFF before a YAML text | a leading byte order mark is ignored; `serialization_of` gives `"yaml"` |
+| `bom_pretty_json` | U+FEFF before pretty JSON | the same; `"json"` |
+| `bom_rfc8785` | U+FEFF before RFC 8785 JSON | the same; `"json"`, since the text is not byte for byte RFC 8785 JSON |
+| `empty` | the empty text | an empty text reads as null |
+| `bom_only` | U+FEFF alone | the empty text once the byte order mark is removed: null |
+| `whitespace_only` | spaces and line feeds only | a text of blank lines reads as null |
+| `comments_only` | two comments, the second indented | a text of comments only reads as null |
+| `json_bom_in_string` | a literal U+FEFF inside a JSON string | in JSON a U+FEFF inside a string is content; written `\ufeff` in canonical YAML |
+| `yaml_comments` | comments on every kind of line | comments are ignored |
+| `yaml_indentation` | four-space indentation, sequences not indented under their key | block collections at any consistent indentation |
+| `yaml_core_schema` | every core-schema null and boolean spelling, `+12`, `007`, `0o17`, `0x1F`, `-0`, `.5`, `1.`, `1e5`, `+2.5`, `-0.0`, rounding to the nearest double; and plain scalars that stay strings: `yes`, `On`, `y`, `2001-12-14`, `1:20`, `1_000`, `0b101`, `-0x10`, `.Nan`, `inf`, `.` | the core-schema resolution the README states, not YAML 1.1's |
+| `yaml_surrogate_pair_escape` | `\ud83d\ude00` and `\uD83D\uDE00` in YAML | a high-surrogate escape followed by a low-surrogate escape is one character |
+| `yaml_comment_before_flow` | `["a", 1]` after a comment | neither `{` nor `[` first, and not a JSON text: read as YAML |
+| `yaml_quoted_first_key` | `"b": 1` then `a: 2` | a mapping whose first key is quoted is not a JSON text: read as YAML |
+| `yaml_unsorted_keys` | unsorted keys, a plain key `y` | keys sorted when written; `y` is the string `"y"` under YAML 1.2 |
+| `yaml_top_level_tilde` | `~` alone | not a JSON text: read as YAML, null |
+| `yaml_top_level_minus_infinity` | `-Infinity` alone | not a JSON text: read as YAML, where it is a plain string |
+| `yaml_float_edges` | `1.7976931348623158e308`, `1e-400` | a float rounding to the largest double, and one underflowing to 0.0, are read |
+| `yaml_float_underflow_negative` | `-1e-400` | a negative float underflowing to zero is read as `-0.0` |
+| `manifest_unsorted` | `manifest_canonical_order` with every reorderable array shuffled, sequences not indented under their key | canonical order applied by the writer |
+| `manifest_respelled` | `2.0` on an `int` axis, `2` on a `float` axis, `[33, 2.0]`, a child's `offset`, a region, a flow-control coordinate, a root's `offset`, a `number_type` overriding the unit's default | own-axis values respelled as their number type selects |
+| `manifest_fraction_reduced` | `[64, 2]`, `[4, 8]`, `[4.0, 2]`, `[6.0, 4.0]`, `[0, 5]`, `[-6, 4]`, `[0, 3]`; a child whose `number_type` is `float` under a `fraction` parent | Fraction pairs reduced to lowest terms, members integers; a child's `offset` takes the parent's number type, its `length` its own; RFC 8785 JSON is written from the respelled value (`manifest_fraction_reduced.expected.rfc8785.json`, 429 bytes) |
+| `manifest_respelled_edges` | `-0.0` and `1.0e+20` on an `int` axis, 2^53 on a `float` axis | an integral float on an `int` axis written as the integer of its exact value; an integer a float equals written as that float |
+| `manifest_written_as_given` | `2.5` and `[1, 2]` on an `int` axis; 2^53 + 1, 2^1024 + 1 (beyond every double) and `[4, 8]` on a `float` axis; `2`, `2.0`, `[1, 2.5]`, `[3, -2]` and `[1, 0]` on a `fraction` axis; an unknown `unit` (with a child) and an unknown `number_type` | a value its number type cannot take, an integer no float can hold included, and every value on an axis whose unit or number type is unknown, is written as given |
+| `manifest_maps_as_given` | a `LinearMap` whose `scalar` is `[4, 8]` and `offset` `2.0`, a `MeasureNumberMap`, and a MeasureMap row whose `nominal_length` and `actual_length` are `[4, 8]`, beside the timeline's `length` `[64, 8]` on a `fraction` axis | the numbers of conversion maps and MeasureMap rows are written as given, neither respelled nor reduced, while the own-axis `length` is reduced to `[8, 1]`; conversion maps ordered by ID |
+| `manifest_timestamp_respelled` | named-timestamp coordinates `3` on a `float` axis, `3.0` on an `int` axis, `[2, 4]` on a child's `fraction` axis | named-timestamp coordinates are own-axis values of the timeline they name, at any depth |
+| `timelines_without_version` | an object whose `timelines` is an array, without `timetoshare`, with values to respell | it is a manifest: its timelines are ordered and its own-axis values respelled |
+| `embedded_manifest_unsorted` | a manifest inside a value that is not one, with unsorted keys, unordered timelines and values a manifest would respell | of an embedded manifest only the keys are sorted |
+| `manifest_display_unsorted` | `manifest_display_order` with its `display` shuffled, the non-strings kept in their order, and the coordinate `1` | a `display` put in canonical order by the writer |
+| `manifest_children_not_array` | `children: x`, `regions: 7`, `flow_control: {}` and `groups: g` | a member that should hold an ordered array but holds no array is written as given |
+| `manifest_fraction_integral_float` | children at `[1, 8.0]` and `[1, 4]` on a `fraction` axis; regions at `[1, 8.0]` and 0.25, flow control at `[3.0, 16]` and 0.15, on a `float` axis | a Fraction pair with an integral float member counts as the pair of integers it equals: ordered by its value, reduced on a `fraction` axis and written as given on a `float` axis |
+| `manifest_unit_missing` | a root without `unit` holding a child in `quarters`, and a root without `unit` whose `number_type` is `int` | a missing `unit` is unknown: the root's values and the child's `offset` written as given, the child's `length` respelled on its own axis |
+| `manifest_unit_not_string` | `unit: 1`, and `unit: [seconds]` beside `number_type: float` | a `unit` that is not a string is unknown, whatever the `number_type` |
+| `manifest_number_type_not_string` | `number_type` `1`, `null` and `[fraction]` | a `number_type` that is not a string, `null` included, is unknown |
+| `manifest_number_type_missing` | roots in `samples` and in `quarters` with `number_type: float`, the latter holding a child in `quarters` without `number_type` | a missing `number_type` is the unit's default, so values are respelled; a child's `offset` takes the parent's number type, its `length` its unit's default |
+| `manifest_timestamp_timeline_duplicate` | two timelines `score` in `quarters` and two `take` in `seconds`; named timestamps on `score` at `[2, 4]`, on `take` at `3`, and on the single timeline `perf` at `1` | a timestamp whose `timeline` names more than one timeline has its coordinate written as given, still ordered by value; timelines of equal ID keep their given order |
+| `manifest_timestamp_timeline_unknown` | named timestamps on `ghost`, which no timeline is, at `[4, 8]`, `2` and `0.25`, and one on `perf` at `1` | a timestamp whose `timeline` names no timeline has its coordinate written as given, still ordered by value |
+| `json_compact` | JSON without whitespace, keys unsorted | JSON in any layout |
+| `json_whitespace` | tabs, CR LF, spaces around tokens, leading whitespace | the first-character rule skips whitespace |
+| `json_escapes` | `\/`, `\u00e9`, `\u00E9`, a surrogate pair `\ud83d\ude00`, `\u0041`, `\u0009`, `\u007f`, `\ufeff`, `\u0085` | JSON escapes read; written in canonical form |
+| `json_numbers` | `1E2`, `-0`, `1.50`, `0.1e1`, `1e-5`, 2^64, `-0.0`, `4.9e-324`, `10E-1`, `1e+2` | a number without `.`, `e`, `E` is an integer; every other a float |
+| `json_float_edges` | `1.7976931348623158e308`, `1e-400` | as `yaml_float_edges`, in JSON |
+| `json_float_underflow_negative` | `-1e-400` | as `yaml_float_underflow_negative`, in JSON |
+| `json_depth_256` | `[` 256 times, then `]` 256 times | a value nested 256 deep, the deepest a reader reads |
+| `yaml_depth_256` | 128 block sequences, the innermost holding 128 flow sequences | the same in YAML: block and flow collections count alike; canonical YAML writes every level as a block sequence |
+
+## Refusals
+
+| Text | Reason |
+| --- | --- |
+| `yaml_duplicate_key.yaml` | a key repeats in its object |
+| `yaml_duplicate_key_quoted.yaml` | a key repeats, once plain and once single-quoted |
+| `yaml_duplicate_key_escaped.yaml` | a key repeats, once through the escape `\u0061` |
+| `yaml_duplicate_key_nested.yaml` | a key repeats in a nested object |
+| `yaml_duplicate_key_flow.yaml` | a key repeats in a flow mapping |
+| `yaml_lone_surrogate_high.yaml` | a lone high surrogate through an escape |
+| `yaml_lone_surrogate_low.yaml` | a lone low surrogate through an escape |
+| `yaml_lone_surrogate_reversed.yaml` | a low-surrogate escape before a high-surrogate one pairs neither |
+| `yaml_lone_surrogate_32bit_escape.yaml` | a surrogate through the escape `\U0000D800` |
+| `yaml_lone_surrogate_key.yaml` | a lone surrogate in a key |
+| `yaml_anchor.yaml` | an anchor |
+| `yaml_alias.yaml` | an alias |
+| `yaml_tag_local.yaml` | an unknown tag, `!local` |
+| `yaml_tag_binary.yaml` | a value outside the JSON data model: `!!binary` |
+| `yaml_tag_timestamp.yaml` | a value outside the JSON data model: `!!timestamp` |
+| `yaml_tag_set.yaml` | a value outside the JSON data model: `!!set` |
+| `yaml_tag_omap.yaml` | a value outside the JSON data model: `!!omap` |
+| `yaml_two_documents.yaml` | more than one document |
+| `yaml_unclosed_quote.yaml` | not YAML: an unclosed double-quoted scalar |
+| `yaml_key_integer.yaml` | a key that is an integer |
+| `yaml_key_float.yaml` | a key that is a float |
+| `yaml_key_null.yaml` | a key that is `null` |
+| `yaml_key_tilde.yaml` | a key that is `~`, null |
+| `yaml_key_empty.yaml` | an empty key, null |
+| `yaml_key_true.yaml` | a key that is a boolean |
+| `yaml_key_collection.yaml` | a key that is a collection |
+| `yaml_nan_lower.yaml`, `yaml_nan_title.yaml`, `yaml_nan_upper.yaml` | `.nan`, `.NaN`, `.NAN` (one file each) |
+| `yaml_inf_lower.yaml`, `yaml_inf_title.yaml`, `yaml_inf_upper.yaml` | `.inf`, `.Inf`, `.INF` (one file each) |
+| `yaml_inf_plus_lower.yaml`, `yaml_inf_plus_title.yaml`, `yaml_inf_plus_upper.yaml` | `+.inf`, `+.Inf`, `+.INF` (one file each) |
+| `yaml_inf_minus_lower.yaml`, `yaml_inf_minus_title.yaml`, `yaml_inf_minus_upper.yaml` | `-.inf`, `-.Inf`, `-.INF` (one file each) |
+| `yaml_float_overflow.yaml` | a float that rounds to an infinity, `1e309` |
+| `yaml_float_overflow_negative.yaml` | a negative float that rounds to an infinity |
+| `yaml_float_overflow_above_largest.yaml` | `1.7976931348623159e308`, beyond the midpoint between the largest double and 2^1024 |
+| `flow_mapping_unquoted_key.yaml` | YAML flow style from the first character is read as JSON, and `{a: 1}` is not JSON |
+| `flow_sequence_plain.yaml` | the same for `[a, b]` |
+| `flow_sequence_then_comment.yaml` | read as JSON, and a comment is not JSON |
+| `json_duplicate_key.json` | a key repeats in its object |
+| `json_duplicate_key_escaped.json` | a key repeats, once through the escape `\u0061` |
+| `json_duplicate_key_nested.json` | a key repeats in an object inside an array |
+| `json_lone_surrogate_high.json` | a lone high surrogate through an escape |
+| `json_lone_surrogate_low.json` | a lone low surrogate through an escape |
+| `json_lone_surrogate_reversed.json` | a low-surrogate escape before a high-surrogate one pairs neither |
+| `json_lone_surrogate_then_letter.json` | a high-surrogate escape followed by a letter |
+| `json_lone_surrogate_key.json` | a lone surrogate in a key |
+| `json_u0001_in_string.json` | a literal U+0001, a C0 control, inside a JSON string |
+| `json_nan.json` | `NaN` |
+| `json_infinity.json` | `Infinity` |
+| `json_negative_infinity.json` | `-Infinity` |
+| `json_float_overflow.json` | a float that rounds to an infinity, `1e309` |
+| `json_float_overflow_negative.json` | a negative float that rounds to an infinity |
+| `json_float_overflow_above_largest.json` | `1.7976931348623159e308`, as in YAML |
+| `json_top_level_float_overflow.json` | `1e309` alone: a JSON text, read as JSON and refused |
+| `json_two_values.json` | not one JSON value: two |
+| `json_trailing_comma.json` | not JSON: a trailing comma |
+| `json_single_quotes.json` | not JSON: a single-quoted string |
+| `json_unclosed.json` | not JSON: an unclosed object |
+| `json_comment.json` | not JSON: a comment |
+| `json_bom_between_tokens.json` | U+FEFF between `{` and a key: read as JSON, which refuses it outside a string |
+| `json_bom_after_value.json` | U+FEFF after `{"a": 1}`: read as JSON, which refuses it outside a string |
+| `json_depth_257.json` | collections nested 257 deep, refused at the 257th `[` (line 1, column 257) |
+| `yaml_depth_257.yaml` | 128 block sequences holding 129 flow sequences, refused at the 129th `[` (line 128, column 385) |
+
+## Writer refusals
+
+| Text | Refused in | Reason |
+| --- | --- | --- |
+| `key_1025_plain.json` | `yaml`, `json`, `jcs` | a plain key of 1025 characters |
+| `key_1025_quoted.json` | `yaml`, `json`, `jcs` | a key whose quoted form `"\t…"` is 1025 UTF-16 code units |
+| `key_1025_utf16_units.json` | `yaml`, `json`, `jcs` | a key of 512 characters whose quoted form is 1025 UTF-16 code units |
+| `key_1025_nested.yaml` | `yaml`, `json`, `jcs` | an explicit key of 1025 characters inside an object |
+| `integer_2_53.json` | `jcs` | the integer 2^53 |
+| `integer_minus_2_53.yaml` | `jcs` | the integer −2^53 |
+| `integer_2_64.yaml` | `jcs` | the integer 2^64 |
+| `float_2_53.yaml` | `jcs` | the integral float 2^53, which RFC 8785 JSON spells as an integer |
+| `float_minus_1e16.yaml` | `jcs` | the integral float −10^16 |
+| `float_1e20.json` | `jcs` | the integral float 10^20 |
+| `float_below_1e21.yaml` | `jcs` | the integral float 10^21 − 2^17, the largest double below 10^21 |
+| `order_entry_not_object.yaml` | `yaml`, `json`, `jcs` | an entry of `timelines` that is not an object |
+| `order_entries_not_objects_without_version.json` | `yaml`, `json`, `jcs` | `{"timelines": ["b", "a"]}`: without `timetoshare` still a manifest, whose `timelines` entries are not objects |
+| `order_member_missing.yaml` | `yaml`, `json`, `jcs` | a child without the `offset` children are ordered by |
+| `order_member_wrong_type.yaml` | `yaml`, `json`, `jcs` | a region whose `start` is a string |
+| `order_id_wrong_type.yaml` | `yaml`, `json`, `jcs` | a timeline whose `id` is an integer |
+| `order_timestamp_timeline_not_string.yaml` | `yaml`, `json`, `jcs` | a named timestamp whose `timeline` is an integer |
+| `order_group_member_not_string.yaml` | `yaml`, `json`, `jcs` | a group whose `members` holds an integer |
+| `order_coordinate_zero_denominator.yaml` | `yaml`, `json`, `jcs` | a region whose `start` is `[1, 0]`, a pair whose denominator is below 1 |
+| `order_coordinate_three_members.yaml` | `yaml`, `json`, `jcs` | a child whose `offset` is `[1, 2, 3]`, neither a number nor a pair |
+| `order_coordinate_boolean.yaml` | `yaml`, `json`, `jcs` | a flow-control element whose `coordinate` is `true` |

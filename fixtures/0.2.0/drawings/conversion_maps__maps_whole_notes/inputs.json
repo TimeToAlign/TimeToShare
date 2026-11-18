@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "conversion_maps__maps_whole_notes.json",
+  "manifest": "conversion_maps__maps_whole_notes.yaml",
   "placement": {
     "height": null,
     "length": 400,

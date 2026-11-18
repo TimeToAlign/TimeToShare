@@ -7,7 +7,8 @@ from collections.abc import Iterator, Mapping
 from fractions import Fraction
 from typing import Any
 
-from ..manifest import _exact, spell
+from ..manifest import _exact
+from ..serialization import spell
 from .diagnostics import (
     SchemaValidationError,
     _entries,

@@ -1,7 +1,7 @@
 import type { NumberType, TimeUnit } from "../generated/types.js";
 import { isJsonObject, JsonFloat, type JsonObject } from "../json/value.js";
-import { spell } from "../json/write.js";
 import { exact, exactNumber, jsonInteger, type Rational } from "../numbers/exact.js";
+import { spell } from "../serialization/text.js";
 import {
   entries,
   jsonPointer,

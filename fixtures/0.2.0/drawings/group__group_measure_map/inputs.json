@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "groups/group_measure_map.json",
+  "manifest": "groups/group_measure_map.yaml",
   "placement": {
     "height": null,
     "length": 400,

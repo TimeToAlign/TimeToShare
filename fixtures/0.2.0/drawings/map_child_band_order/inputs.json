@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "map_child_band_order.json",
+  "manifest": "map_child_band_order.yaml",
   "placement": {
     "height": null,
     "length": 400,

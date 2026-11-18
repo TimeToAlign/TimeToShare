@@ -1,5 +1,5 @@
 /**
- * The canonical order and the standard writer of a TimeToShare manifest.
+ * The canonical order of a TimeToShare manifest.
  *
  * Every array of a manifest whose order carries no meaning has one canonical
  * order: `timelines` by id; in every timeline, `children` by offset, then id,
@@ -12,31 +12,14 @@
  * display order and is never re-ordered, nor are the `links` of the
  * manifest, a timeline or a region (a display order), a link's `uri` (the
  * first preferred) and `parts` (the order of its reading), or any other
- * array of a link. Readers accept any order; `dumps` writes the canonical
- * one, every object's keys sorted by code point, two-space indentation and a
- * final newline, the same bytes as Python's `timetoshare.dumps`.
+ * array of a link. Readers accept any order; every writer writes the
+ * canonical one (`../serialization/write.ts`).
  */
 
 import { clone, isJsonObject, type JsonObject } from "../json/value.js";
-import { compareCodePoints, emit } from "../json/write.js";
-import { compareExact } from "../numbers/exact.js";
+import { compareRationals, exactValue, type Rational } from "../numbers/exact.js";
+import { compareCodePoints, spell } from "../serialization/text.js";
 import { respell } from "./spelling.js";
-
-function text(member: unknown): string {
-  if (typeof member !== "string") throw new TypeError(`not a string: ${String(member)}`);
-  return member;
-}
-
-/** Order by the first comparison that does not tie. */
-function by<T>(...comparisons: ((left: T, right: T) => number)[]) {
-  return (left: T, right: T): number => {
-    for (const compare of comparisons) {
-      const result = compare(left, right);
-      if (result !== 0) return result;
-    }
-    return 0;
-  };
-}
 
 function member(entry: unknown, key: string): unknown {
   return isJsonObject(entry) ? entry[key] : undefined;
@@ -73,86 +56,147 @@ export function orderDisplays(manifest: unknown): void {
   }
 }
 
-const byId = (a: unknown, b: unknown): number =>
-  compareCodePoints(text(member(a, "id")), text(member(b, "id")));
+/** What an entry is ordered by: strings by code point, coordinates by exact value. */
+type SortKey = string | Rational;
 
-const at =
-  (key: string) =>
-  (a: unknown, b: unknown): number =>
-    compareExact(member(a, key), member(b, key));
+function compareKeys(left: readonly SortKey[], right: readonly SortKey[]): number {
+  for (const [index, a] of left.entries()) {
+    const b = right[index] as SortKey;
+    const result =
+      typeof a === "string"
+        ? compareCodePoints(a, b as string)
+        : compareRationals(a, b as Rational);
+    if (result !== 0) return result;
+  }
+  return 0;
+}
+
+/** A member an entry is ordered by, as a string. */
+function text(entry: JsonObject, key: string, where: string): string {
+  const value = entry[key];
+  if (typeof value === "string") return value;
+  throw new TypeError(
+    `${where} cannot be put in canonical order: its ${key} ${spell(value)} is not a string`,
+  );
+}
+
+/** A member an entry is ordered by, as a coordinate: a number or a Fraction pair. */
+function coordinate(entry: JsonObject, key: string, where: string): Rational {
+  const value = exactValue(entry[key]);
+  if (value !== null) return value;
+  throw new TypeError(
+    `${where} cannot be put in canonical order: its ${key} ${spell(entry[key])} is no number or Fraction pair`,
+  );
+}
+
+/**
+ * Sort an array of objects, in place and stably, by the keys `keyOf` gives
+ * each entry; entries that tie keep their given order.
+ *
+ * @throws {TypeError} if an entry is not an object or lacks a member it is
+ * ordered by, or holds it in a wrong type.
+ */
+function sortBy(
+  entries: unknown[],
+  where: string,
+  keyOf: (entry: JsonObject, where: string) => SortKey[],
+): void {
+  const keyed = entries.map((entry, index) => {
+    const at = `${where}[${index}]`;
+    if (!isJsonObject(entry)) {
+      throw new TypeError(`${at} cannot be put in canonical order: it is not an object`);
+    }
+    return { entry, key: keyOf(entry, at) };
+  });
+  keyed.sort((left, right) => compareKeys(left.key, right.key));
+  for (const [index, { entry }] of keyed.entries()) entries[index] = entry;
+}
+
+const byId = (entry: JsonObject, where: string): SortKey[] => [text(entry, "id", where)];
 
 /** Order the arrays of one timeline and of its descendants, in place. */
-function orderTimeline(timeline: JsonObject): void {
-  if (Array.isArray(timeline.children)) {
-    for (const child of timeline.children) if (isJsonObject(child)) orderTimeline(child);
-    timeline.children.sort(by(at("offset"), byId));
+function orderTimeline(timeline: JsonObject, where: string): void {
+  const { children, conversion_maps: maps, regions, flow_control: flow } = timeline;
+  if (Array.isArray(children)) {
+    sortBy(children, `${where}.children`, (child, at) => [
+      coordinate(child, "offset", at),
+      text(child, "id", at),
+    ]);
+    for (const [index, child] of children.entries()) {
+      orderTimeline(child as JsonObject, `${where}.children[${index}]`);
+    }
   }
-  if (Array.isArray(timeline.conversion_maps)) timeline.conversion_maps.sort(byId);
-  if (Array.isArray(timeline.regions)) timeline.regions.sort(by(at("start"), at("end"), byId));
-  if (Array.isArray(timeline.flow_control)) {
-    timeline.flow_control.sort(by(at("coordinate"), byId));
+  if (Array.isArray(maps)) sortBy(maps, `${where}.conversion_maps`, byId);
+  if (Array.isArray(regions)) {
+    sortBy(regions, `${where}.regions`, (region, at) => [
+      coordinate(region, "start", at),
+      coordinate(region, "end", at),
+      text(region, "id", at),
+    ]);
+  }
+  if (Array.isArray(flow)) {
+    sortBy(flow, `${where}.flow_control`, (entry, at) => [
+      coordinate(entry, "coordinate", at),
+      text(entry, "id", at),
+    ]);
   }
 }
 
 /**
  * Return a deep copy of `value`, its manifest in canonical order and spelling.
  *
- * A value with a top-level `timelines` array is a manifest: every timeline in
- * it is ordered at every depth and the array itself by id, its `groups` are
- * ordered by id, each with its `members` by code point, its `measure_maps`
- * and its `schemes` by id and its `graphical.timestamps` by timeline, then coordinate, then id,
- * each with its `display` in canonical order. Every value it reads by a number type is spelled as
- * that type selects (`./spelling.ts`).
- * Object keys are left as they are (`dumps` sorts them), and any other JSON
- * value is copied unchanged. Python's `timetoshare.canonical_order` gives
- * the same value.
+ * A value with a top-level `timelines` array is a manifest: its own-axis
+ * values are respelled as their number type selects (`./spelling.ts`), every
+ * timeline in it is ordered at every depth and the array itself by id, its
+ * `groups` by id, each with its `members` by code point, its `measure_maps`
+ * and `schemes` by id and its `graphical.timestamps` by timeline, then
+ * coordinate, then id, each with its `display` in canonical order. Entries
+ * that tie keep their given order, and a member that should hold an ordered
+ * array but holds no array is left as it is. Object keys are left as they
+ * are (the writers sort them), and any other JSON value is copied unchanged.
+ * Python's `timetoshare.canonical_order` gives the same value.
  *
- * @throws {TypeError} if a collection holds an entry whose ordering members are missing or of the wrong type.
+ * @throws {TypeError} if an entry of an ordered array of objects is not an
+ * object, lacks a member it is ordered by or holds it in a wrong type, or an
+ * entry of a group's `members` is not a string.
  */
 export function canonicalOrder<T>(value: T): T {
   const result = clone(value);
-  const timelines = member(result, "timelines");
-  if (!Array.isArray(timelines)) return result;
+  if (!isJsonObject(result) || !Array.isArray(result.timelines)) return result;
   respell(result);
-  for (const timeline of timelines) if (isJsonObject(timeline)) orderTimeline(timeline);
-  timelines.sort(byId);
-  const groups = member(result, "groups");
+  const timelines = result.timelines;
+  sortBy(timelines, "timelines", byId);
+  for (const [index, timeline] of timelines.entries()) {
+    orderTimeline(timeline as JsonObject, `timelines[${index}]`);
+  }
+  const groups = result.groups;
   if (Array.isArray(groups)) {
-    for (const group of groups) {
-      const members = member(group, "members");
-      if (Array.isArray(members)) {
-        members.sort((a: unknown, b: unknown) => compareCodePoints(text(a), text(b)));
+    sortBy(groups, "groups", byId);
+    for (const [index, group] of groups.entries()) {
+      const members = (group as JsonObject).members;
+      if (!Array.isArray(members)) continue;
+      for (const [position, entry] of members.entries()) {
+        if (typeof entry !== "string") {
+          throw new TypeError(
+            `groups[${index}].members[${position}] cannot be put in canonical order: ${spell(entry)} is not a string`,
+          );
+        }
       }
+      members.sort(compareCodePoints);
     }
-    groups.sort(byId);
   }
   for (const key of ["measure_maps", "schemes"]) {
-    const entries = member(result, key);
-    if (Array.isArray(entries)) entries.sort(byId);
+    const entries = result[key];
+    if (Array.isArray(entries)) sortBy(entries, key, byId);
   }
-  const timestamps = member(member(result, "graphical"), "timestamps");
+  const timestamps = member(result.graphical, "timestamps");
   if (Array.isArray(timestamps)) {
-    const byTimeline = (a: unknown, b: unknown): number =>
-      compareCodePoints(text(member(a, "timeline")), text(member(b, "timeline")));
-    timestamps.sort(by(byTimeline, at("coordinate"), byId));
+    sortBy(timestamps, "graphical.timestamps", (timestamp, at) => [
+      text(timestamp, "timeline", at),
+      coordinate(timestamp, "coordinate", at),
+      text(timestamp, "id", at),
+    ]);
   }
   orderDisplays(result);
   return result;
-}
-
-/**
- * Return the standard text of a TimeToShare manifest, or of any JSON value.
- *
- * The value is put in `canonicalOrder`, then written with the keys of every
- * object sorted by code point, two-space indentation and a final newline,
- * characters unescaped, every float spelled as Python's `repr` spells it (a
- * plain number with a fractional part, a `JsonFloat`) and every integer
- * without a decimal point (a plain integral number, a `bigint`). Python's
- * `timetoshare.dumps` writes the same bytes.
- *
- * @throws {RangeError} for a non-finite number or a string with a lone surrogate.
- * @throws {TypeError} for a value that is not JSON, or a collection that cannot be put in canonical order.
- */
-export function dumps(value: unknown): string {
-  return `${emit(canonicalOrder(value), "  ", true, "")}\n`;
 }

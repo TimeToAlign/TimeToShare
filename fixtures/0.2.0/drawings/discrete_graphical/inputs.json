@@ -1,6 +1,6 @@
 {
   "layers": [],
-  "manifest": "discrete_graphical.json",
+  "manifest": "discrete_graphical.yaml",
   "placement": {
     "height": null,
     "length": 400,

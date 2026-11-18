@@ -1,0 +1,17 @@
+timelines:
+  -
+    children:
+      -
+        id: verse
+        length: [1, 2]
+        offset: 2.0
+        unit: quarters
+    id: score
+    length: 8.0
+    number_type: float
+    unit: quarters
+  -
+    id: take
+    length: 2
+    unit: samples
+timetoshare: "0.2.0"

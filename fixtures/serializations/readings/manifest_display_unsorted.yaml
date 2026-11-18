@@ -1,0 +1,12 @@
+timetoshare: "0.2.0"
+timelines:
+  - id: perf
+    unit: seconds
+    length: 2.0
+graphical:
+  timestamps:
+    - id: timestamp_1
+      timeline: perf
+      coordinate: 1
+      name: Cue
+      display: [zeta, 2, cross_section, Wedge, coordinate, null, Alpha, name, "2", 1, id, label, wedge]
