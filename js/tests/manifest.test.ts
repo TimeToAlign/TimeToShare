@@ -76,7 +76,11 @@ describe("the writers", () => {
       state ^= (state << 17n) & 0xffffffffffffffffn;
       // Odd draws are raw bit patterns (every exponent, subnormals included);
       // even draws scatter around the switch between fixed and exponent notation.
-      view.setFloat64(0, (Number(state >> 11n) / 2 ** 53) * 10 ** (Number(state % 44n) - 22));
+      // The power is built from a string, which ECMAScript rounds correctly; `10 **` need not.
+      view.setFloat64(
+        0,
+        (Number(state >> 11n) / 2 ** 53) * Number(`1e${Number(state % 44n) - 22}`),
+      );
       if (values.length % 2 === 1) view.setBigUint64(0, state);
       const value = view.getFloat64(0);
       if (Number.isFinite(value)) values.push(value);
