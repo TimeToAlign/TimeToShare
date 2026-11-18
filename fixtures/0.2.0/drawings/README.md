@@ -2,23 +2,25 @@
 
 Thirty-three of the 78 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the metrics table
-of its two fonts alone. Their `figure.svg` files are never regenerated: the emitting script
-compares each with its writer's output instead. Every other figure in this
-directory, and every `figure.tex` and `inputs.yaml`, is emitted (see
-[`fixtures/README.md`](../../README.md)). The key arithmetic of each
-hand-derived drawing is given below, so that any implementation can check
-where it first parts from the specification: the start and the term that
-sets it, the largest right edge `R`, the block `W × H`, and the page.
+of its two fonts alone. Their `figure.svg` files are never regenerated:
+the emitting script compares each with its writer's output instead. Every
+other figure in this directory, and every `figure.tex` and `inputs.json`,
+is emitted (see [`fixtures/README.md`](../../README.md)). The key
+arithmetic of each hand-derived drawing is given below, so that any
+implementation can check where it first parts from the specification: the
+start and the term that sets it, the largest right edge `R`, the block
+`W × H`, and the page.
 
 Section numbers (§) refer to the drawing specification. Every drawing here
 is placed alone at `(0, 0)` with the writer's scale `z` = 1, so the page is
 `PW = W + 32` by `PH = H + 32` and the drawing lies at `(16, 16)` (§7.1).
-An `inputs.yaml` here supplies an application layer only where the table
+An `inputs.json` here supplies an application layer only where the table
 names one: the layers are then the defaults, that layer and the manifest's
 own `graphical` object (§1), and otherwise the defaults and the manifest's
 `graphical` object. Each `inputs.json` names its manifest's canonical YAML
-file in the same version's directory, as the table does. Exact values are given in full; a value as the writer prints it
-(§7.3) follows an arrow (`→`).
+file in the same version's directory, as the table does. Exact values are
+given in full; a value as the writer prints it (§7.3) follows an arrow
+(`→`).
 
 | Drawing | Manifest | Non-default inputs |
 |---|---|---|
