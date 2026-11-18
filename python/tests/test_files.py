@@ -24,6 +24,10 @@ CASES = {
     "neither.yaml": FileForm(minimal=False, styling=True, serialization="yaml"),
     "one_line.json": FileForm(minimal=True, styling=False, serialization="json"),
     "crlf.yaml": FileForm(minimal=True, styling=True, serialization="yaml"),
+    "jcs_minimal.json": FileForm(minimal=True, styling=False, serialization="jcs"),
+    "jcs_float_default.json": FileForm(
+        minimal=False, styling=False, serialization="jcs"
+    ),
 }
 """The form each text of ``fixtures/file_forms/`` is read as, as the test README
 states it."""
@@ -97,6 +101,39 @@ def test_the_cases_come_back_as_the_fixtures_they_derive_from() -> None:
     assert _text(FILE_FORMS / "crlf.expected.yaml") == twin
     assert _text(FILE_FORMS / "crlf.yaml") == twin.replace("\n", "\r\n")
     assert "\n" not in _text(FILE_FORMS / "one_line.json")
+
+
+JCS_MINIMAL_AS_YAML = """\
+timelines:
+  -
+    conversion_maps:
+      -
+        id: cmap_1
+        scalar: 0.5
+        source_unit: seconds
+        target_unit: samples
+        type: LinearMap
+    id: s
+    length: 8.0
+    offset: 0.0
+    regions:
+      -
+        end: 4.5
+        id: region_1
+        start: 0.0
+    unit: seconds
+timetoshare: "0.2.0"
+"""
+
+
+def test_rfc8785_json_reads_integers_that_the_number_type_respells() -> None:
+    value = loads(_text(FILE_FORMS / "jcs_minimal.json"))
+    (root,) = value["timelines"]
+    assert [type(root["length"]), type(root["offset"])] == [int, int]
+    form = file_form(_text(FILE_FORMS / "jcs_minimal.json"))
+    as_yaml = dataclasses.replace(form, serialization="yaml")
+    assert dumps_file(value, as_yaml) == JCS_MINIMAL_AS_YAML
+    assert file_form(JCS_MINIMAL_AS_YAML) == as_yaml
 
 
 def test_dumps_file_leaves_its_value_unchanged() -> None:

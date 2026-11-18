@@ -24,7 +24,31 @@ const CASES: Record<string, FileForm> = {
   "neither.yaml": { minimal: false, styling: true, serialization: "yaml" },
   "one_line.json": { minimal: true, styling: false, serialization: "json" },
   "crlf.yaml": { minimal: true, styling: true, serialization: "yaml" },
+  "jcs_minimal.json": { minimal: true, styling: false, serialization: "jcs" },
+  "jcs_float_default.json": { minimal: false, styling: false, serialization: "jcs" },
 };
+
+/** `jcs_minimal.json` in canonical YAML, its own-axis floats spelled as floats. */
+const JCS_MINIMAL_AS_YAML = `timelines:
+  -
+    conversion_maps:
+      -
+        id: cmap_1
+        scalar: 0.5
+        source_unit: seconds
+        target_unit: samples
+        type: LinearMap
+    id: s
+    length: 8.0
+    offset: 0.0
+    regions:
+      -
+        end: 4.5
+        id: region_1
+        start: 0.0
+    unit: seconds
+timetoshare: "0.2.0"
+`;
 
 /** A file decoded as UTF-8, its line ends kept. */
 function text(path: string): string {
@@ -98,6 +122,17 @@ describe("manifest files", () => {
     expect(text(resolve(directory, "crlf.expected.yaml"))).toBe(twin);
     expect(text(resolve(directory, "crlf.yaml"))).toBe(twin.replaceAll("\n", "\r\n"));
     expect(text(resolve(directory, "one_line.json"))).not.toContain("\n");
+  });
+
+  it("read RFC 8785 integers that the declared number type respells", () => {
+    const given = text(resolve(directory, "jcs_minimal.json"));
+    const value = loads(given);
+    const [root] = (value as { timelines: { length: unknown; offset: unknown }[] }).timelines;
+    expect([typeof root?.length, typeof root?.offset]).toEqual(["number", "number"]);
+    expect([root?.length, root?.offset]).toEqual([8, 0]);
+    const asYaml: FileForm = { ...fileForm(given), serialization: "yaml" };
+    expect(dumpsFile(value, asYaml)).toBe(JCS_MINIMAL_AS_YAML);
+    expect(fileForm(JCS_MINIMAL_AS_YAML)).toEqual(asYaml);
   });
 
   it("leave the value unchanged", () => {
