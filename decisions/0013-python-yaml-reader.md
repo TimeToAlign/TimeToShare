@@ -54,12 +54,10 @@ against the requirements on 2026-11-17.
 - **ruamel.yaml 0.19.1.** YAML 1.2 by declaration, but its resolver is not
   the core schema even with `version=(1, 2)`: `2026-11-17` gives a
   `datetime.date`, `1_000` and `0b101` integers, and `=` and `<<` are
-  refused as unknown tags. It takes U+0085, U+2028 and U+2029 for line
-  breaks, as YAML 1.1 did, and so misreads silently a text that holds them
-  as themselves (`k: a`U+0085`b` gives `"a b"`). It has one maintainer and
-  stays at 0.x, whose minor releases remove API (0.18 turned the
-  module-level `load` and `parse` into errors), and its project description
-  warns that PEP 625 may force a change of the project name.
+  refused as unknown tags. It has one maintainer and stays at 0.x, whose
+  minor releases remove API (0.18 turned the module-level `load` and
+  `parse` into errors), and its project description warns that PEP 625
+  may force a change of the project name.
 - **Write the parser here.** A YAML parser is several thousand lines
   (PyYAML's pure-Python reader, scanner, parser and composer, with their
   tokens, events and errors, are about 2,600); a reader restricted to the canonical layout would refuse the
@@ -67,16 +65,17 @@ against the requirements on 2026-11-17.
 
 ## Decision
 
-Use PyYAML's documented low-level API and nothing beyond it: `yaml.parse(text,
-Loader=yaml.SafeLoader)`, the event classes with their attributes
-(`anchor`, `tag`, `implicit`, `value`, `style`, `start_mark.line`,
-`start_mark.column`) and `yaml.MarkedYAMLError` with its marks, whose
-`problem_mark` the documentation's own example of error handling reads
+Use PyYAML's documented low-level API and nothing beyond it:
+`yaml.parse(text, Loader=yaml.SafeLoader)`, the event classes with their
+attributes (`anchor`, `tag`, `implicit`, `value`, `style`,
+`start_mark.line`, `start_mark.column`, `start_mark.index`) and
+`yaml.MarkedYAMLError` with its marks, whose `problem_mark` the
+documentation's own example of error handling reads
 (https://pyyaml.org/wiki/PyYAMLDocumentation, "The yaml package", "Mark",
 "YAMLError", "Events"). No PyYAML class is subclassed, no resolver or
-constructor registered, no node built, no internal method or module
-used, so a PyYAML release that keeps its documented interface keeps the
-reader working. The format's core-schema table is the reader's own.
+constructor registered, no node built, no internal method or module used,
+so a PyYAML release that keeps its documented interface keeps the reader
+working. The format's core-schema table is the reader's own.
 
 The loader named is the pure-Python `yaml.SafeLoader`, never
 `yaml.CSafeLoader`, so that the value a text reads to never depends on
@@ -114,9 +113,12 @@ value:
 
 The anchor, the tag and every other check are placed at the event's
 `start_mark`, which PyYAML puts at the node's first property where it has
-one. **Resolution**: a plain scalar (`style` is `None`) is resolved by the
-core schema of YAML 1.2.2 (§10.3.2), each pattern anchored with `\Z`, in
-this order; every quoted or block scalar is a string:
+one, and a node holding both an anchor and a tag is refused for the one
+written first, the character at `start_mark.index` (`&` or `!`); an empty
+key's `start_mark` is right after its `?`. **Resolution**: a plain scalar
+(`style` is `None`) is resolved by the core schema of YAML 1.2.2
+(§10.3.2), each pattern anchored with `\Z`, in this order; every quoted or
+block scalar is a string:
 
 | Kind | Pattern | Value |
 | --- | --- | --- |
@@ -133,9 +135,12 @@ A string passes through `s.encode("utf-16-le",
 followed by a low one into one character (`"\ud83d\ude00"` gives
 U+1F600) and refuses an unpaired one (`"\ud800"`, `"\udc00\ud800"`).
 
-`yaml.parse` is a lazy generator and the pass stops at the first fault,
-so of several faults the first in document order is refused, the
-character check excepted; an error of the parser (`ScannerError`,
+The pass stops at the first fault, so of several faults the first in
+document order is refused, the character check excepted, and except that a
+syntax error the parser meets reading one token ahead (a scalar may turn
+out to be a key) may be refused before a fault of the token just before
+it: `- &a "\q"` is refused at the bad escape (1, 8), where the TypeScript
+reader names the anchor (1, 3); an error of the parser (`ScannerError`,
 `ParserError`, both a `MarkedYAMLError`) is raised where the parser meets
 it. Every refusal is a `ValueError` naming the line and column, counted
 from one, from the event's `start_mark` or the error's `problem_mark`
