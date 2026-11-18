@@ -30,6 +30,7 @@ from .description import (
     PartSlot,
     Scheme,
 )
+from .files import FileForm, dumps_file, file_form
 from .fixtures import (
     RejectionCase,
     fixture_paths,
@@ -40,7 +41,7 @@ from .fixtures import (
 from .font import FONT_FILES, font_metrics, font_paths
 from .manifest import TIMESTAMP_DISPLAY, canonical_order
 from .registry import KnownScheme, Recognition, SchemeRegistry, default_registry
-from .serialization import dumps, loads, serialization_of
+from .serialization import SERIALIZATIONS, dumps, loads, serialization_of
 from .styles import MissingStyleWarning, complete_styles
 from .validate import (
     SCHEMA_VERSION,
@@ -67,9 +68,11 @@ __all__ = [
     "PARTS_RELATIONS",
     "RELATIONS",
     "SCHEMA_VERSION",
+    "SERIALIZATIONS",
     "STATUSES",
     "Assertion",
     "Descriptor",
+    "FileForm",
     "Identifier",
     "KnownScheme",
     "Link",
@@ -89,6 +92,8 @@ __all__ = [
     "default_registry",
     "description_problems",
     "dumps",
+    "dumps_file",
+    "file_form",
     "font_metrics",
     "font_paths",
     "fixture_paths",

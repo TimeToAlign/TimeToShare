@@ -27,7 +27,13 @@ import {
 /** The name of a serialization: canonical YAML, pretty JSON or RFC 8785 JSON. */
 export type Serialization = "yaml" | "json" | "jcs";
 
-const SERIALIZATIONS: readonly Serialization[] = ["yaml", "json", "jcs"];
+/** Every serialization's name: canonical YAML, pretty JSON and RFC 8785 JSON. */
+export const SERIALIZATIONS: readonly Serialization[] = ["yaml", "json", "jcs"];
+
+/** Whether a value names a serialization, one of `SERIALIZATIONS`. */
+export function isSerialization(value: unknown): value is Serialization {
+  return (SERIALIZATIONS as readonly unknown[]).includes(value);
+}
 
 type JsonRecord = Record<string, unknown>;
 
@@ -197,7 +203,7 @@ export interface DumpsOptions {
  */
 export function dumps(value: unknown, options: DumpsOptions = {}): string {
   const serialization = options.serialization ?? "yaml";
-  if (!SERIALIZATIONS.includes(serialization)) {
+  if (!isSerialization(serialization)) {
     throw new RangeError(`unknown serialization ${jsonString(String(serialization))}`);
   }
   checkDepth(value);

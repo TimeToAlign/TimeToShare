@@ -28,7 +28,9 @@ Where the two packages answer differently by design, this README says so.
 4. `dumps` writes every value in canonical YAML, pretty JSON and RFC 8785
    JSON as the README's "Serializations" specifies, the bytes of the shared
    hand-derived cases, which Python's `dumps` writes too; `loads` reads every
-   serialization as "Reading" states.
+   serialization as "Reading" states. `fileForm` infers how a manifest
+   file writes its manifest and `dumpsFile` writes a value back in that
+   form, the same bytes as Python's `file_form` and `dumps_file`.
 5. The generated files are the generator's output, and the npm package
    ships the schema document, the drawing specification, the registry of
    identifier schemes and the licence.
@@ -393,6 +395,41 @@ The unit tests beside the walk pin what the cases leave to a package:
   are stored in `python-repr.ts`, produced once by CPython from the same
   doubles (its comment states how), so the suite runs no other
   interpreter.
+
+## Manifest files
+
+`fileForm(text)` gives a `FileForm`, `{ minimal, styling, serialization }`,
+and `dumpsFile(value, form)` writes a value back in it, as Python's
+`file_form` and `dumps_file` do (`src/files.ts`). The form is minimal when
+`minimal(value)` and `value` write the same canonical YAML, the equality
+of the fixtures' twin law, which tells an integer from a float and ignores
+the order canonical order sorts. What proves them (`files.test.ts`):
+
+- **Every fixture comes back byte for byte.** For every fixture and every
+  minimal twin (bundles and groups included), its value and its value
+  without `graphical` are each written in all three serializations; every
+  such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
+  serialization: <the one it was written in> }`, and
+  `dumpsFile(loads(text), fileForm(text))` gives the text byte for byte.
+- **The cases of `fixtures/file_forms/`**, shared with Python and stated in
+  its test README: each text not named `*.expected.*` reads to the form
+  the test's table states (the table naming exactly the directory's
+  texts) and is written back as the bytes of its `.expected` file:
+  `neither.yaml` (neither minimal nor complete) as `minimal: false` and
+  the complete form, `one_line.json` in the pretty JSON layout,
+  `crlf.yaml` with line feeds alone.
+- **The serialization names.** `SERIALIZATIONS` is `["yaml", "json",
+  "jcs"]`; `isSerialization` is true for those three and false for
+  `"YAML"`, `"toml"`, `""`, `null`, `undefined` and `1`.
+- **The key-sorted compact writer.** `compactSortedJson` writes
+  `{ b: 1, z: { y: 1, x: 2 }, "😀": null, "｡": true, a: [JsonFloat(2),
+  0.5, 2n ** 60n, JsonFloat(1e21)] }` as
+  `{"a":[2.0,0.5,1152921504606846976,1.0e+21],"b":1,"z":{"x":2,"y":1},"｡":true,"😀":null}`:
+  keys by code point at every depth (U+FF61 before U+1F600, which UTF-16
+  code units order the other way), no whitespace, a float spelled apart
+  from an integer, an integer beyond 2^53 written; a manifest's arrays
+  keep their order. `compactJson` writes the same value with its keys in
+  their own order.
 
 ## Lossless reading in JavaScript
 

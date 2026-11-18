@@ -17,9 +17,9 @@ trim_trailing_whitespace = false
 [Makefile]
 indent_style = tab
 
-# Byte-exact serialization cases: carriage returns, missing final line
+# Byte-exact serialization and file-form cases: carriage returns, missing final line
 # feeds and trailing whitespace inside them are deliberate.
-[fixtures/serializations/**]
+[fixtures/{serializations,file_forms}/**]
 end_of_line = unset
 insert_final_newline = unset
 trim_trailing_whitespace = unset

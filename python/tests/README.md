@@ -28,6 +28,9 @@ suite, so both validators are held to the same paths and the same lists.
    own-axis values respelled first, in canonical YAML, pretty JSON and RFC
    8785 JSON, the same bytes as the JavaScript package; `loads` reads every
    serialization and `serialization_of` names a text's.
+   `file_form` infers how a manifest file writes its manifest and
+   `dumps_file` writes a value back in that form, the same bytes as the
+   JavaScript package's `fileForm` and `dumpsFile`.
 6. Schema, fixture, font and registry accessors resolve package data
    independently of the working directory; the wheel and the sdist ship the
    schema document, `docs/drawing.md`, the registry of identifier schemes and
@@ -1165,6 +1168,47 @@ any text and `serialization_of` names a text's serialization. They live in
 - **Every standard file.** The registry and the font metrics are reproduced
   byte for byte by `dumps(loads(text), serialization="json")`; every fixture,
   rejection case and warning case written in canonical YAML by `dumps`.
+
+## Manifest files
+
+`file_form(text)` gives a `FileForm`: whether the manifest is `minimal`,
+whether it holds its `styling` (the top-level `graphical` key) and its
+`serialization` (`serialization_of`). `dumps_file(value, form)` drops a
+top-level `graphical` unless `form.styling`, writes the minimal form if
+`form.minimal`, else the complete form, and writes it in
+`form.serialization`. They live in `timetoshare.files`. The form is
+minimal when `minimal(value)` and `value` write the same canonical YAML:
+the equality the twin law of the fixtures uses, which tells an integer
+from a float (`1.0` where the default is `1` is no default) and ignores
+the order canonical order sorts. What proves them (`test_files.py`):
+
+- **Every fixture comes back byte for byte.** For every fixture and every
+  minimal twin under `fixtures/0.2.0/` (bundles and groups included), its
+  value V and V without `graphical` are each written in all three
+  serializations; every such text T is read back as the form its name
+  states, `FileForm(minimal=<is a twin>, styling=<"graphical" in T's value>,
+  serialization=<the serialization T was written in>)`, and
+  `dumps_file(loads(T), file_form(T))` gives T byte for byte. A fixture
+  is written complete and a twin minimal, so a test of the form cannot be
+  passed by a reader that guesses one form for every file.
+- **The cases of `fixtures/file_forms/`.** Each text there that is not
+  named `*.expected.*` is read to the exact form the test's table states,
+  and written back with `dumps_file` gives the bytes of its
+  `<name>.expected.<ext>`; the table names exactly the texts of the
+  directory. The expected texts are written by hand from the fixtures,
+  never by `dumps`: `neither.yaml` holds `bare`'s minimal twin with two of
+  its defaults written (`groups: []` and the root's `locked: false`), so
+  it is neither minimal nor complete and reads as `minimal=False`; it
+  comes back as the complete form, `bare.yaml` itself. `one_line.json` is
+  that twin without `graphical`, on one line with a space after each
+  separator, so pretty JSON but no RFC 8785 JSON; it comes back in the
+  layout of pretty JSON. `crlf.yaml` is the twin in canonical YAML with
+  every line feed preceded by a carriage return; it comes back with line
+  feeds alone, the twin's own bytes.
+- **The shape.** `FileForm` is frozen (assigning a field raises
+  `FrozenInstanceError`) and equal by its three fields; `SERIALIZATIONS`
+  is `("yaml", "json", "jcs")`. `FileForm`, `file_form`, `dumps_file` and
+  `SERIALIZATIONS` are exported from the package root.
 
 ## The fixture set
 

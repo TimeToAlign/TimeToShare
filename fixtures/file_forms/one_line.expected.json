@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (df58bc9d)"
+  },
+  "timelines": [
+    {
+      "id": "bare",
+      "length": [8, 1],
+      "name": "Bare",
+      "unit": "quarters"
+    }
+  ],
+  "timetoshare": "0.2.0"
+}

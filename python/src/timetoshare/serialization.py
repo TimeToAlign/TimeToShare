@@ -34,12 +34,20 @@ import yaml
 
 from .manifest import canonical_order, is_manifest
 
-__all__ = ["Serialization", "dumps", "loads", "serialization_of", "spell"]
+__all__ = [
+    "SERIALIZATIONS",
+    "Serialization",
+    "dumps",
+    "loads",
+    "serialization_of",
+    "spell",
+]
 
 Serialization = Literal["yaml", "json", "jcs"]
 """The name of a serialization."""
 
-_SERIALIZATIONS = ("yaml", "json", "jcs")
+SERIALIZATIONS: tuple[Serialization, ...] = ("yaml", "json", "jcs")
+"""Every serialization's name: canonical YAML, pretty JSON, RFC 8785 JSON."""
 
 _KEY_LIMIT = 1024
 """The longest canonical YAML form of a key a writer writes, in UTF-16 code units."""
@@ -400,7 +408,7 @@ def dumps(value: Any, serialization: Serialization = "yaml") -> str:
             string keys, ``list``, ``str``, ``int``, ``float``, ``bool`` and
             ``None``.
     """
-    if serialization not in _SERIALIZATIONS:
+    if serialization not in SERIALIZATIONS:
         raise ValueError(f"unknown serialization {serialization!r}")
     _within_depth(value)
     _all_finite(value)
