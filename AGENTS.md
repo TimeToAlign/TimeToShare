@@ -32,7 +32,10 @@ These rules apply to every contributor, human or automated.
   `<name>.expected.rfc8785.json` (the RFC 8785 bytes of that value, no
   final line feed); `refusals/`;
   `refusals-writing/`; kept byte for byte by
-  `fixtures/serializations/** -text` in `.gitattributes`), and the
+  `fixtures/serializations/** -text` in `.gitattributes`), hand-written
+  file-form cases under `fixtures/file_forms/` (`<name>.<ext>` beside the
+  `<name>.expected.<ext>` written back in its inferred file form, kept
+  byte for byte by `fixtures/file_forms/** -text`), and the
   drawings (`inputs.json`, in pretty JSON and naming the `.yaml`
   manifests, `figure.svg` and `figure.tex` per drawing; the hand-derived `figure.svg`
   files are listed with their arithmetic in `drawings/README.md`, everything

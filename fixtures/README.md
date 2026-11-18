@@ -55,6 +55,16 @@ the main README, never written with `dumps`, which they test; their own
 [README](serializations/README.md) lists them and states how a package test
 uses them.
 
+`fixtures/file_forms/` holds the hand-written cases of a manifest file's
+form ([main README](../README.md#forms-and-defaults-for-applications)):
+each text `<name>.<ext>` beside the `<name>.expected.<ext>` that both
+packages write back in the file form they infer for it. `neither.yaml`
+states some defaults and leaves out others, so it is neither minimal nor
+complete and comes back complete; `one_line.json` comes back in the pretty
+JSON layout; `crlf.yaml`, canonical YAML with carriage returns, comes back
+with line feeds alone. The package test READMEs state the form each text
+is read as.
+
 The [drawing specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/drawing.md)
 pins how a manifest is drawn. A drawing is derived; these directories contain no drawing schema.
 

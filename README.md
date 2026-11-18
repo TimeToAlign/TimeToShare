@@ -1174,6 +1174,15 @@ bytes: decoding a file, as UTF-8, is the caller's.
   - a value deeper than 256 ([Shared spelling](#shared-spelling)), at the
     first collection at depth 257. Manifests are far shallower.
 
+A text that holds several faults is refused at the first of them in the
+order of the text, by every reader of every serialization. The depth limit
+is one fault among them, ranked by its place in the text, the start of the
+first collection at depth 257: a fault before that start is refused in its
+stead, and a fault after it is never reached. A fault is reported at the
+position of its offending token, such as a lone surrogate written as an
+escape at that escape, and a number that rounds to an infinity at that
+number.
+
 Canonical YAML, and every YAML text that uses only its constructs, is
 read to the same value by both packages and by every conforming YAML 1.1
 or 1.2 parser. These constructs are block mappings and block sequences at
@@ -1214,20 +1223,30 @@ history of the repository that keeps it.
 An application that writes manifests writes the minimal form
 ([Defaults](#defaults)) unless it is asked for the complete one, in
 canonical YAML unless it is asked for another serialization. A manifest
-read from a file is written back in the form, styling and serialization it
-came in, each inferred when the file is read:
+read from a file is written back in the file's **file form**: its form,
+its styling and its serialization, which the format defines and both
+packages infer from the file's text:
 
-- the form is minimal when no key of the manifest holds its default value,
-  compared in value as the minimal form compares it, after own-axis values
-  are respelled and each `display` put in canonical order, and complete
-  otherwise;
-- styling, the `graphical` object, is written when the file held one and
-  left out when it did not;
-- the serialization is the one `serialization_of` names for the file's
-  text.
+- the form is minimal when no key at its default is present, that is when
+  `minimal(value)` and the value read are written as the same canonical
+  YAML, which tells an integer from a float (`repeat_count: 1.0` is not
+  the default `1`) and ignores the order canonical order sorts, and
+  complete otherwise;
+- the manifest is styled when it holds the top-level `graphical` key;
+- the serialization is the one the text is read in, as `serialization_of`
+  names it.
 
-A manifest file that a writer wrote so keeps its bytes when it is read and
-written back unchanged.
+A value is written back in a file form by dropping its `graphical` key
+when the form is not styled, then putting it in the minimal or the
+complete form, then writing it in that serialization. A text in the
+minimal or the complete form and in canonical YAML, pretty JSON or RFC
+8785 JSON so comes back byte for byte when it is read and written back
+unchanged; a text in no canonical layout, such as
+YAML written by hand, comes back in the canonical layout of its
+serialization; and a text neither minimal nor complete comes back
+complete. Python's `file_form(text)` and npm's `fileForm(text)` return a
+text's `FileForm`, and Python's `dumps_file(value, form)` and npm's
+`dumpsFile(value, form)` write a value in it.
 
 ## Install
 
@@ -1247,16 +1266,16 @@ npm install @timetoalign/timetoshare
 
 Python validation raises `SchemaValidationError` with the `code` of the
 rule broken, a tuple `path` to the offending value and a `message`. Read a
-manifest in any serialization with `loads`, and write it with `dumps`,
-here back in the serialization it came in:
+manifest in any serialization with `loads`, and write it with `dumps`, or
+with `dumps_file`, here back in the file form it came in:
 
 ```python
 from timetoshare import (
     SchemaValidationError,
-    dumps,
+    dumps_file,
+    file_form,
     fixture_paths,
     loads,
-    serialization_of,
     validate,
 )
 
@@ -1267,7 +1286,7 @@ try:
 except SchemaValidationError as error:
     print(error.code, error.path)
 else:
-    assert dumps(value, serialization=serialization_of(text)) == text
+    assert dumps_file(value, file_form(text)) == text
 ```
 
 - `validate(value)` reads the version marker first, then checks the value
@@ -1317,6 +1336,12 @@ else:
   value that is not JSON.
 - `serialization_of(text)` returns `"yaml"`, `"json"` or `"jcs"`, the
   serialization of a text ([Reading](#reading)).
+- `file_form(text)` returns the `FileForm` of a manifest's text, a frozen
+  dataclass of `minimal`, `styling` and `serialization`, and
+  `dumps_file(value, form)` writes a manifest back in it ([Forms and
+  defaults for applications](#forms-and-defaults-for-applications));
+  `dumps_file(loads(text), file_form(text))` gives back every text a
+  writer wrote. `SERIALIZATIONS` is `("yaml", "json", "jcs")`.
 - `canonical_order(value)` returns a deep copy with the manifest's arrays in
   canonical order.
 - `TIMESTAMP_DISPLAY` holds the words of a named timestamp's `display`,
@@ -1348,10 +1373,10 @@ serialization without losing either:
 
 ```ts
 import {
-  dumps,
+  dumpsFile,
+  fileForm,
   parse,
   SchemaValidationError,
-  serializationOf,
 } from "@timetoalign/timetoshare";
 
 const text = `timelines:
@@ -1364,7 +1389,7 @@ timetoshare: "0.2.0"
 
 function rewrite(text: string): string {
   try {
-    return dumps(parse(text), { serialization: serializationOf(text) });
+    return dumpsFile(parse(text), fileForm(text));
   } catch (error) {
     if (error instanceof SchemaValidationError) {
       console.error(error.code, error.path);
@@ -1433,10 +1458,17 @@ rewrite(text) === text; // true: the text is canonical YAML
   that is not JSON.
 - `serializationOf(text)` returns `"yaml"`, `"json"` or `"jcs"`, as
   Python's `serialization_of` does.
+- `fileForm(text)` returns a text's `FileForm` (`minimal`, `styling`,
+  `serialization`, all read-only) and `dumpsFile(value, form)` writes a
+  manifest back in it, as Python's `file_form` and `dumps_file` do.
+  `SERIALIZATIONS` is `["yaml", "json", "jcs"]`, and `isSerialization(value)`
+  tells whether a value is one of them.
 - `compactJson(value)` writes JSON without whitespace, every object's keys
   in their own order and numbers spelled as in [Shared
   spelling](#shared-spelling); it is a utility, not a serialization of the
-  format.
+  format. `compactSortedJson(value)` writes it likewise with every
+  object's keys sorted by code point at every depth, so that two values
+  `loads` reads alike give the same text.
 - `canonicalOrder(value)` returns a deep copy with the manifest's arrays in
   canonical order.
 - `TIMESTAMP_DISPLAY` holds the words of a named timestamp's `display`,
@@ -1526,6 +1558,17 @@ each value of `refusals-writing/` in the serializations that
 returns and final line feeds included, are significant, so
 `.gitattributes` marks `fixtures/serializations/** -text` and git keeps
 them as they are.
+
+`fixtures/file_forms/` holds the file-form cases, written by hand from
+[Forms and defaults for
+applications](#forms-and-defaults-for-applications): each text
+`<name>.<ext>` beside the `<name>.expected.<ext>` that `dumps_file`
+writes back in its inferred file form. `neither.yaml` is neither minimal
+nor complete and comes back complete, `one_line.json` is JSON on one line
+and comes back in the pretty JSON layout, and `crlf.yaml` is canonical
+YAML with carriage returns and comes back with line feeds alone; both
+packages infer the same form for each text and write the same bytes. Its
+bytes are significant too (`fixtures/file_forms/** -text`).
 
 ## Development
 
