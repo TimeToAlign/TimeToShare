@@ -20,7 +20,8 @@ than the greatest depth of its members (1 for an empty one). The readers
 refuse a text whose value would be deeper than 256, at the first character
 of the first collection at depth 257, so that every value written can be read
 and the place of the refusal depends on the text alone. A text holding several
-faults is refused for the first in document order, where its token stands.
+faults is refused for the first in document order, where its token stands; a
+YAML text is first searched for a character outside YAML's printable set.
 """
 
 from __future__ import annotations
@@ -631,6 +632,12 @@ def _read_json(text: str) -> Any:
             value, index = container, index + 1
 
 
+_SPECIAL = re.compile(
+    r"[^\t\n\r\x20-\x7e\x85\xa0-\ud7ff\ue000-\ufffd\U00010000-\U0010ffff]"
+)
+"""A character outside YAML 1.2's printable set (``c-printable``), a lone
+surrogate among them."""
+
 _CORE_NULL = re.compile(r"(?:~|null|Null|NULL|)\Z")
 _CORE_BOOL = re.compile(r"(?:true|True|TRUE|false|False|FALSE)\Z")
 _CORE_INT = re.compile(r"(?:[-+]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)\Z")
@@ -641,256 +648,145 @@ _CORE_FLOAT = re.compile(
 _CORE_FINITE_FLOAT = re.compile(
     r"[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?\Z"
 )
-_TAG = "tag:yaml.org,2002:"
-
-
-class _YamlLoader(yaml.SafeLoader):
-    """PyYAML's safe loader reading under the YAML 1.2 core schema.
-
-    The implicit resolvers are the core schema's (null, booleans, integers in
-    base 10, ``0o`` and ``0x``, floats), replacing YAML 1.1's, so ``no`` and
-    ``2026-11-17`` are strings and ``1e-05`` is a float. Only the JSON data
-    model is read: a tag outside it, such as ``!!timestamp``, ``!!binary``,
-    ``!!set`` or ``!!omap``, is refused, and so are a core tag on a node of
-    another kind (``!!str [1]``, ``!!map [1]``), anchors and aliases, a
-    repeated key, a key that is not a string, a non-finite float, a string
-    holding an unpaired surrogate and a collection opening at depth 257.
-
-    The value is built in one pass over the parser's events, every
-    collection on a stack rather than by recursion, and each node is checked
-    as its event arrives, a key before its value: its anchor and its tag, in
-    the order they are written, a key being a string, a key repeating, its
-    depth, then its value. So the refusal raised is the first in document
-    order, and a parser error is raised where the parser meets it. An anchor
-    is refused at its ``&``; every other refusal of a node at the node's
-    first character, its tag where it has one.
-    """
-
-    yaml_implicit_resolvers: dict[Any, Any] = {}
-    yaml_constructors: dict[Any, Any] = {}
-
-    def get_token(self) -> Any:
-        """The next token, noting where the last anchor began."""
-        token = super().get_token()
-        if isinstance(token, yaml.AnchorToken):
-            self._anchor_mark = token.start_mark
-        return token
-
-    def get_single_data(self) -> Any:
-        """Read the one document of the stream; ``None`` for an empty stream."""
-        self.get_event()
-        value = None
-        if not self.check_event(yaml.StreamEndEvent):
-            self.get_event()
-            value = self._read_value()
-            self.get_event()
-        if not self.check_event(yaml.StreamEndEvent):
-            event = self.get_event()
-            raise yaml.composer.ComposerError(
-                "expected a single document in the stream",
-                None,
-                "but found another document",
-                event.start_mark,
-            )
-        self.get_event()
-        return value
-
-    def _read_value(self) -> Any:
-        """Read the value beginning at the next event, and every value in it."""
-        # The collections being read, the innermost last: [the value being
-        # built, the key whose value is pending, or _NO_KEY].
-        frames: list[list[Any]] = []
-        while True:
-            event = self.get_event()
-            if isinstance(event, yaml.SequenceEndEvent | yaml.MappingEndEvent):
-                value = frames.pop()[0]
-            else:
-                if isinstance(event, yaml.AliasEvent):
-                    _refuse(event, "an alias is not read")
-                kind = _KINDS[type(event)]
-                tag = event.tag
-                if tag is None or tag == "!":
-                    value = getattr(event, "value", None)
-                    tag = self.resolve(kind, value, event.implicit)
-                if event.anchor is not None:
-                    # The tag is checked first where it is written first:
-                    # then the event begins at the tag, not at the anchor.
-                    if self._anchor_mark.index != event.start_mark.index:
-                        _check_tag(event, tag, kind)
-                    _refuse(self._anchor_mark, "an anchor is not read")
-                _check_tag(event, tag, kind)
-                holder = frames[-1] if frames else None
-                is_key = (
-                    holder is not None
-                    and isinstance(holder[0], dict)
-                    and holder[1] is _NO_KEY
-                )
-                if is_key and tag != _TAG + "str":
-                    _refuse(event, "a key that is not a string is not read")
-                if kind is yaml.ScalarNode:
-                    node = yaml.ScalarNode(
-                        tag, event.value, event.start_mark, event.end_mark, event.style
-                    )
-                    value = self.yaml_constructors[tag](self, node)
-                    if is_key:
-                        if value in holder[0]:
-                            _refuse(event, f"the key {json.dumps(value)} repeats")
-                        holder[1] = value
-                        continue
-                else:
-                    if len(frames) == _DEPTH_LIMIT:
-                        _refuse(event, _TOO_DEEP)
-                    frames.append([[] if kind is yaml.SequenceNode else {}, _NO_KEY])
-                    continue
-            if not frames:
-                return value
-            holder = frames[-1]
-            if isinstance(holder[0], list):
-                holder[0].append(value)
-            else:
-                holder[0][holder[1]] = value
-                holder[1] = _NO_KEY
-
+_NOT_STRING = (_CORE_NULL, _CORE_BOOL, _CORE_INT, _CORE_FLOAT)
+"""The core schema's patterns of the plain scalars that are not strings."""
 
 _NO_KEY = object()
 """The key of a mapping whose next node is a key."""
 
-_KINDS: dict[type, type] = {
-    yaml.ScalarEvent: yaml.ScalarNode,
-    yaml.SequenceStartEvent: yaml.SequenceNode,
-    yaml.MappingStartEvent: yaml.MappingNode,
-}
-"""The kind of node each event that begins a node begins."""
 
-_CORE_TAGS = {
-    yaml.ScalarNode: {_TAG + name for name in ("null", "bool", "int", "float", "str")},
-    yaml.SequenceNode: {_TAG + "seq"},
-    yaml.MappingNode: {_TAG + "map"},
-}
-"""The tags of the JSON data model, by the kind of node each fits."""
+def _at(mark: Any) -> str:
+    """The line and column of a mark of PyYAML's, counted from one."""
+    return f"line {mark.line + 1}, column {mark.column + 1}"
 
 
-def _check_tag(event: Any, tag: str, kind: type) -> None:
-    """Refuse a node under a tag that names no value of the JSON data model,
-    or under a core tag that does not fit its kind (``!!str [1]``)."""
-    if tag in _CORE_TAGS[kind]:
-        return
-    if any(tag in tags for tags in _CORE_TAGS.values()):
-        _refuse(event, f"the tag {tag} does not fit the node it is given")
-    _refuse(event, f"the tag {tag} names no value of the JSON data model")
+def _refuse(event: Any, problem: str) -> NoReturn:
+    """Refuse a node at the start of its event: its first property where it has one."""
+    raise ValueError(f"{problem} at {_at(event.start_mark)}")
 
 
-def _refuse(node: Any, problem: str) -> NoReturn:
-    """Refuse a node, or the event that begins it, at its start, or at a mark."""
-    mark = node if isinstance(node, yaml.Mark) else node.start_mark
-    raise yaml.constructor.ConstructorError(None, None, problem, mark)
+def _is_string(event: Any) -> bool:
+    """Whether a scalar is a string: quoted, a block scalar, or plain and no other."""
+    return event.style is not None or not any(
+        pattern.match(event.value) for pattern in _NOT_STRING
+    )
 
 
-def _construct_null(loader: _YamlLoader, node: Any) -> None:
-    if not _CORE_NULL.match(loader.construct_scalar(node)):
-        _refuse(node, "not a null")
-
-
-def _construct_bool(loader: _YamlLoader, node: Any) -> bool:
-    text = loader.construct_scalar(node)
-    if not _CORE_BOOL.match(text):
-        _refuse(node, "not a boolean")
-    return text in ("true", "True", "TRUE")
-
-
-def _construct_int(loader: _YamlLoader, node: Any) -> int:
-    text = loader.construct_scalar(node)
-    if not _CORE_INT.match(text):
-        _refuse(node, f"{text!r} is not an integer")
-    if text.startswith(("0o", "0x")):
-        return int(text[2:], 8 if text[1] == "o" else 16)
-    return int(text)
-
-
-def _construct_float(loader: _YamlLoader, node: Any) -> float:
-    text = loader.construct_scalar(node)
+def _resolved(event: Any) -> Any:
+    """The value of a scalar under the YAML 1.2 core schema."""
+    text = event.value
+    if _is_string(event):
+        try:
+            # Join a high surrogate and a low one, written as two escapes, into
+            # one character; an unpaired surrogate cannot be decoded.
+            return text.encode("utf-16-le", "surrogatepass").decode("utf-16-le")
+        except UnicodeDecodeError:
+            _refuse(event, "a string holds a lone surrogate")
+    if _CORE_NULL.match(text):
+        return None
+    if _CORE_BOOL.match(text):
+        return text in ("true", "True", "TRUE")
+    if _CORE_INT.match(text):
+        if text.startswith(("0o", "0x")):
+            return int(text[2:], 8 if text[1] == "o" else 16)
+        return int(text)
     if not _CORE_FINITE_FLOAT.match(text):
-        _refuse(node, f"{text!r} is not a finite float")
+        _refuse(event, f"{text!r} is not a finite float")
     value = float(text)
     if not math.isfinite(value):
-        _refuse(node, f"{text} rounds to an infinity")
+        _refuse(event, f"{text} rounds to an infinity")
     return value
-
-
-def _construct_str(loader: _YamlLoader, node: Any) -> str:
-    text = loader.construct_scalar(node)
-    try:
-        # Join a high surrogate and a low one, written as two escapes, into
-        # one character; an unpaired surrogate cannot be decoded.
-        return text.encode("utf-16-le", "surrogatepass").decode("utf-16-le")
-    except UnicodeDecodeError:
-        _refuse(node, "a string holds a lone surrogate")
-
-
-for _name, _pattern, _first in (
-    ("null", _CORE_NULL, ["~", "n", "N", ""]),
-    ("bool", _CORE_BOOL, list("tTfF")),
-    ("int", _CORE_INT, list("-+0123456789")),
-    ("float", _CORE_FLOAT, list("-+.0123456789")),
-):
-    _YamlLoader.add_implicit_resolver(_TAG + _name, _pattern, _first)
-for _name, _constructor in (
-    ("null", _construct_null),
-    ("bool", _construct_bool),
-    ("int", _construct_int),
-    ("float", _construct_float),
-    ("str", _construct_str),
-):
-    _YamlLoader.add_constructor(_TAG + _name, _constructor)
 
 
 def _read_yaml(text: str) -> Any:
     """Read a YAML text under the YAML 1.2 core schema.
 
-    An empty text, or one of comments only, reads as null. The text is
-    refused at its first fault in document order.
+    A character outside YAML's printable set is looked for first. The text is
+    then read in one pass over the events of PyYAML's parser (the pure-Python
+    ``SafeLoader``, so the value never depends on libyaml), every open
+    collection on a stack rather than by recursion. Each node is checked as
+    its event arrives, a key before its value: an alias, an anchor, a tag, a
+    key being a string, a key repeating, its depth, then its value. The
+    parser is lazy and the pass stops at the first fault, so of several faults
+    the first in document order is refused. An empty text, one of comments
+    only and ``---`` alone read as null.
 
     Raises:
         ValueError: With the line and column, both counted from one, the
-            column in code points, for every error of the parser (more than
-            one document, a character YAML does not allow, an unknown tag
-            among them), collections nested deeper than 256 levels, at the
-            start of the first collection at depth 257, and every value
-            :class:`_YamlLoader` refuses.
+            column in code points: at a character outside YAML's printable
+            set, at an error of the parser, at the start of a second
+            document, at the first property of a node with an anchor or a
+            tag, and at the first character of an alias, a key that is not
+            a string or repeats, the first collection at depth 257, a float
+            that is not finite and a string holding a lone surrogate.
     """
+    special = _SPECIAL.search(text)
+    if special is not None:
+        code = f"#x{ord(special[0]):04x}"
+        where = _position(text, special.start())
+        raise ValueError(f"special characters are not allowed {code} at {where}")
+    # The open collections, the innermost last: [the value being built, the
+    # key whose value is pending, or _NO_KEY].
+    frames: list[list[Any]] = []
+    value: Any = None
+    documents = 0
     try:
-        return _load_yaml(text)
-    except yaml.reader.ReaderError as error:
-        # PyYAML checks every character before it parses any, so a fault
-        # before the character it refuses is found in the text before it,
-        # read with a printable character in its place, which ends no token.
-        try:
-            _load_yaml(text[: error.position] + "\ufffd")
-        except yaml.MarkedYAMLError as earlier:
-            mark = earlier.problem_mark or earlier.context_mark
-            if mark is not None and mark.index < error.position:
-                raise _marked(earlier) from None
-        where = _position(text, error.position)
-        raise ValueError(f"{error.reason} #x{error.character:04x} at {where}") from None
+        for event in yaml.parse(text, Loader=yaml.SafeLoader):
+            if isinstance(
+                event,
+                yaml.StreamStartEvent | yaml.DocumentEndEvent | yaml.StreamEndEvent,
+            ):
+                continue
+            if isinstance(event, yaml.DocumentStartEvent):
+                documents += 1
+                if documents > 1:
+                    _refuse(
+                        event,
+                        "expected a single document in the stream, "
+                        "but found another document",
+                    )
+                continue
+            if isinstance(event, yaml.SequenceEndEvent | yaml.MappingEndEvent):
+                node = frames.pop()[0]
+            else:
+                if isinstance(event, yaml.AliasEvent):
+                    _refuse(event, "an alias is not read")
+                if event.anchor is not None:
+                    _refuse(event, "an anchor is not read")
+                if event.tag is not None:
+                    _refuse(event, "a tag is not read")
+                holder = frames[-1] if frames else [None, None]
+                is_key = isinstance(holder[0], dict) and holder[1] is _NO_KEY
+                scalar = isinstance(event, yaml.ScalarEvent)
+                if is_key and not (scalar and _is_string(event)):
+                    _refuse(event, "a key that is not a string is not read")
+                if scalar:
+                    node = _resolved(event)
+                    if is_key:
+                        if node in holder[0]:
+                            _refuse(event, f"the key {json.dumps(node)} repeats")
+                        holder[1] = node
+                        continue
+                else:
+                    if len(frames) == _DEPTH_LIMIT:
+                        _refuse(event, _TOO_DEEP)
+                    sequence = isinstance(event, yaml.SequenceStartEvent)
+                    frames.append([[] if sequence else {}, _NO_KEY])
+                    continue
+            if not frames:
+                value = node
+            elif isinstance(frames[-1][0], list):
+                frames[-1][0].append(node)
+            else:
+                frames[-1][0][frames[-1][1]] = node
+                frames[-1][1] = _NO_KEY
     except yaml.MarkedYAMLError as error:
-        raise _marked(error) from None
-
-
-def _load_yaml(text: str) -> Any:
-    loader = _YamlLoader(text)
-    try:
-        return loader.get_single_data()
-    finally:
-        loader.dispose()
-
-
-def _marked(error: yaml.MarkedYAMLError) -> ValueError:
-    """The refusal of a parser error or a refused node, with its line and column."""
-    mark = error.problem_mark or error.context_mark
-    problem = ", ".join(part for part in (error.context, error.problem) if part)
-    if mark is None:
-        return ValueError(problem)
-    return ValueError(f"{problem} at line {mark.line + 1}, column {mark.column + 1}")
+        mark = error.problem_mark or error.context_mark
+        problem = ", ".join(part for part in (error.context, error.problem) if part)
+        raise ValueError(
+            problem if mark is None else f"{problem} at {_at(mark)}"
+        ) from None
+    return value
 
 
 def _without_byte_order_mark(text: str) -> str:
@@ -918,14 +814,14 @@ def loads(text: str) -> Any:
             order, both counted from one, the column in code points (in the
             text after a leading U+FEFF is removed), for a text the reading
             rules refuse: a JSON text that is not one JSON value, an error of
-            the YAML parser (more than one document, an unknown tag), a key
-            that repeats in its object, a key that is not a string, an
-            anchor or an alias, a value outside the JSON data model, a
-            non-finite number (``NaN``, ``Infinity``, ``.inf``, ``.nan`` and
-            a number that rounds to an infinity), a lone surrogate in a
-            string or a key, written as itself or through an escape, and
-            collections nested deeper than 256 levels, placed at the first
-            collection at depth 257.
+            the YAML parser, more than one YAML document, a character outside
+            YAML's printable set (found before any other fault), a key that
+            repeats in its object, a key that is not a string, an anchor, an
+            alias or a tag, a non-finite number (``NaN``, ``Infinity``,
+            ``.inf``, ``.nan`` and a number that rounds to an infinity), a
+            lone surrogate in a string or a key, written as itself or through
+            an escape, and collections nested deeper than 256 levels, placed
+            at the first collection at depth 257.
         TypeError: If ``text`` is not a ``str``.
     """
     if not isinstance(text, str):

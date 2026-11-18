@@ -14,11 +14,12 @@ it needs a library for reading only. The reader must:
 2. keep integers exact at any size, and read a float literal as the
    nearest double;
 3. refuse, with the line and column of the offending node: malformed text
-   and more than one document; duplicate keys; anchors and aliases; a key
-   that is not a string; a value outside the JSON data model; a non-finite
-   float (`.inf`, `.nan`, and a literal such as `1e309` that rounds to an
-   infinity); a string holding an unpaired surrogate; collections nested
-   deeper than 256 levels; of several faults, the first in document order;
+   and more than one document; a character outside YAML's printable set;
+   duplicate keys; anchors, aliases and tags; a key that is not a string;
+   a non-finite float (`.inf`, `.nan`, and a literal such as `1e309` that
+   rounds to an infinity); a string holding an unpaired surrogate;
+   collections nested deeper than 256 levels; of several faults, the first
+   in document order;
 4. construct no objects from the text (safe loading only);
 5. raise `ValueError` for every refusal;
 6. run on every Python the package supports (`requires-python >= 3.11`),
@@ -45,10 +46,11 @@ against the requirements on 2026-11-17.
 
 - **PyYAML 6.0.3 as it is.** Fails requirement 1 (`no`, `1e-5`, `017`,
   `1_000`, dates) and keeps duplicate keys silently.
-- **PyYAML 6.0.3 with the core-schema resolvers.** A loader subclass
-  replaces the 1.1 implicit resolvers by the core schema's through
-  PyYAML's resolver API and makes the checks of requirement 3 in one pass
-  over the parser's events (see Decision). Meets every requirement.
+- **PyYAML 6.0.3's parser events with the core-schema table.** The
+  reader takes the events of PyYAML's documented low-level API, resolves
+  plain scalars by the core schema itself and makes the checks of
+  requirement 3 in one pass over the events (see Decision). Meets every
+  requirement.
 - **ruamel.yaml 0.19.1.** YAML 1.2 by declaration, but its resolver is not
   the core schema even with `version=(1, 2)`: `2026-11-17` gives a
   `datetime.date`, `1_000` and `0b101` integers, and `=` and `<<` are
@@ -65,90 +67,97 @@ against the requirements on 2026-11-17.
 
 ## Decision
 
-Use PyYAML. The reader is a loader subclass of the pure-Python
-`yaml.SafeLoader` only, never of `yaml.CSafeLoader`, so that the value a
-text reads to never depends on whether PyYAML was built with libyaml.
-The two loaders read differently: libyaml refuses every `\u` escape of a
-surrogate, so `CSafeLoader` refuses `"\ud83d\ude00"`, which `SafeLoader`
-reads as two surrogates that the check below joins into U+1F600; and
-`CSafeLoader` reads a tab after `key:` or inside a plain scalar
-(`a:\t1`, `k: a\tb`), which `SafeLoader` refuses. Manifests are small,
-so the speed of the C loader does not matter.
+Use PyYAML's documented low-level API and nothing beyond it: `yaml.parse(text,
+Loader=yaml.SafeLoader)`, the event classes with their attributes
+(`anchor`, `tag`, `implicit`, `value`, `style`, `start_mark.line`,
+`start_mark.column`) and `yaml.MarkedYAMLError` with its marks, whose
+`problem_mark` the documentation's own example of error handling reads
+(https://pyyaml.org/wiki/PyYAMLDocumentation, "The yaml package", "Mark",
+"YAMLError", "Events"). No PyYAML class is subclassed, no resolver or
+constructor registered, no node built, no internal method or module
+used, so a PyYAML release that keeps its documented interface keeps the
+reader working. The format's core-schema table is the reader's own.
 
-**Resolution.** The subclass sets `yaml_implicit_resolvers = {}` and
-registers with `add_implicit_resolver` the patterns of the core schema
-(YAML 1.2.2 §10.3.2), each anchored with `\Z`, integers before floats:
+The loader named is the pure-Python `yaml.SafeLoader`, never
+`yaml.CSafeLoader`, so that the value a text reads to never depends on
+whether PyYAML was built with libyaml. The two read differently: libyaml
+refuses every `\u` escape of a surrogate, so `CSafeLoader` refuses
+`"\ud83d\ude00"`, which `SafeLoader` reads as two surrogates that the
+reader joins into U+1F600; and `CSafeLoader` reads a tab after `key:` or
+inside a plain scalar (`a:\t1`, `k: a\tb`), which `SafeLoader` refuses.
+Manifests are small, so the speed of the C loader does not matter.
 
-| Tag | Pattern | First characters |
-| --- | --- | --- |
-| `null` | `null\|Null\|NULL\|~\|` (the empty scalar included) | `~ n N` and the empty string |
-| `bool` | `true\|True\|TRUE\|false\|False\|FALSE` | `t T f F` |
-| `int` | `[-+]?[0-9]+` | `- + 0`–`9` |
-| `int` | `0o[0-7]+` | `0` |
-| `int` | `0x[0-9a-fA-F]+` | `0` |
-| `float` | `[-+]?(\.[0-9]+\|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?` | `- + .` `0`–`9` |
-| `float` | `[-+]?(\.inf\|\.Inf\|\.INF)` | `- + .` |
-| `float` | `\.nan\|\.NaN\|\.NAN` | `.` |
+**Characters first.** Before parsing, the reader looks for the first
+character outside YAML 1.2's `c-printable` (tab, line feed, carriage
+return, U+0020 to U+007E, U+0085, U+00A0 to U+D7FF, U+E000 to U+FFFD,
+U+10000 to U+10FFFF; a lone surrogate is outside) with one regular
+expression and refuses it where it stands (`special characters are not
+allowed #x0001`), whatever fault comes before it in the text. PyYAML
+checks the same set, for the whole text, before it parses anything.
 
-Every other plain scalar is a string. The loader needs its own
-constructor of `int` as well, since PyYAML's follows YAML 1.1: it reads a
-leading `0` as octal (`010` as 8, where the core schema reads 10), `0b`
-as binary and `_` as a separator, and fails on `0o17`. The new one reads
-`0o` in base 8, `0x` in base 16 and every other integer in base 10,
-exactly. The
-constructors of `null`, `bool`, `float` and `str` stay; `float(text)`
-rounds a core float to the nearest double (`1.7976931348623158e308` gives
-the largest double, `1e-400` gives `0.0`, `-1e-400` gives `-0.0`).
-
-**Checks.**
-
-| Refusal | Where |
-| --- | --- |
-The subclass replaces PyYAML's composer and constructor by one pass over
-the parser's events (`get_single_data`): it builds the value as the events
+**One pass over the events.** The reader builds the value as the events
 arrive, every open collection on a stack of its own rather than by
 recursion, and checks each node when its event arrives, a key before its
-value: its anchor, its tag, a key being a string and not repeating, its
-depth, then its value. No node tree is composed.
+value:
 
-| Refusal | Where |
+| Check | Refusal |
 | --- | --- |
-| Malformed text, more than one document | PyYAML's scanner and parser raise a `MarkedYAMLError` (`ScannerError`, `ParserError`) when the pass asks for the event they cannot make; after the first document the pass raises `ComposerError` at the start of the second. |
-| Anchors and aliases | The pass refuses an `AliasEvent` and any event whose `anchor` is set, so an alias is never expanded. |
-| Duplicate keys | The pass constructs each key as its event arrives and refuses one the mapping already holds; `a` and `"a"` are the same key. A merge key (`<<`) is an ordinary key, never merged. |
-| Keys that are not strings | The pass refuses a key whose value is not a `str` (`1:`, `null:`) and a key that opens a collection (`[1]:`). |
-| Values outside the JSON data model | A scalar is built by the constructor of its tag, and only `str`, `int`, `float`, `bool` and `null` of `tag:yaml.org,2002:` have one; a collection must carry the `seq` or `map` tag of its kind. This refuses `!!timestamp`, `!!binary`, `!!set`, `!!omap`, `!!pairs`, `!!merge` and every unknown tag (`!foo`), and `!!map` on a sequence. `!!str 1` reads as `"1"`. |
-| Non-finite floats | The constructor of `float` refuses one that is not finite: `.inf`, `-.Inf`, `.nan`, `1e309`. |
-| Unpaired surrogates | The constructor of `str` passes each string through `s.encode("utf-16-le", "surrogatepass").decode("utf-16-le")`, which joins a high surrogate followed by a low one into one character (`"\ud83d\ude00"` gives U+1F600) and refuses an unpaired one (`"\ud800"`, `"\udc00\ud800"`). |
-| Nesting deeper than 256 levels | The pass refuses an event that opens a collection while 256 are open, at its start: the first collection at depth 257, in document order. The parser keeps its own state on a stack, so a text nested 100,000 deep is refused at the same place, never by Python's recursion limit. |
+| `AliasEvent` | an alias, never expanded |
+| `anchor` set | an anchor |
+| `tag` set, whatever it names (`!!str`, `!!float`, `!local`, `!`) | a tag; `!!str 1` too, so no value of the format is written with a tag |
+| a key that is not a plain or quoted scalar resolving to a string | a key that is not a string (`1:`, `null:`, `.inf:`, `[1]:`) |
+| a key already in its mapping | a repeated key; `a` and `"a"` are the same key, and a merge key (`<<`) is an ordinary key, never merged |
+| a collection opening while 256 are open | the first collection at depth 257, in document order |
+| a float `.inf`, `.nan` (any spelling) or rounding to an infinity (`1e309`) | a float that is not finite |
+| a string or key holding an unpaired surrogate | a lone surrogate |
+| a second `DocumentStartEvent` | more than one document |
 
-Every refusal is raised when the pass meets it, so of several faults the
-first in document order is the one raised; the pass never reads past it.
-A refusal by the subclass raises `ConstructorError` with the offending
-event's `start_mark`. The reader wraps every error as `ValueError` with
-the line and column counted from one: a `MarkedYAMLError` from its
-`problem_mark`; a `ReaderError` (a character YAML forbids, such as U+0001
-or a lone surrogate written as itself) from its `position`, an index into
-the text. PyYAML checks every character of a text before it parses any,
-so for a `ReaderError` the reader first reads the text before the
-forbidden character, and raises a fault found there instead.
-Columns count code points.
-An empty text, or one of comments only, reads as null; `---` alone too.
+The anchor, the tag and every other check are placed at the event's
+`start_mark`, which PyYAML puts at the node's first property where it has
+one. **Resolution**: a plain scalar (`style` is `None`) is resolved by the
+core schema of YAML 1.2.2 (§10.3.2), each pattern anchored with `\Z`, in
+this order; every quoted or block scalar is a string:
 
-Verified on 2026-11-17 with PyYAML 6.0.3 on Python 3.11: `k: no` →
+| Kind | Pattern | Value |
+| --- | --- | --- |
+| null | `null\|Null\|NULL\|~\|` (the empty scalar included) | `None` |
+| bool | `true\|True\|TRUE\|false\|False\|FALSE` | `True` for the first three |
+| int | `[-+]?[0-9]+`, `0o[0-7]+`, `0x[0-9a-fA-F]+` | base 10, `0o` base 8, `0x` base 16, exact |
+| float | `[-+]?(\.[0-9]+\|[0-9]+(\.[0-9]*)?)([eE][-+]?[0-9]+)?`, `[-+]?\.(inf\|Inf\|INF)`, `\.(nan\|NaN\|NAN)` | `float(text)`, the non-finite ones refused |
+| string | every other plain scalar | the text |
+
+`float(text)` rounds to the nearest double (`1.7976931348623158e308`
+gives the largest double, `1e-400` gives `0.0`, `-1e-400` gives `-0.0`).
+A string passes through `s.encode("utf-16-le",
+"surrogatepass").decode("utf-16-le")`, which joins a high surrogate
+followed by a low one into one character (`"\ud83d\ude00"` gives
+U+1F600) and refuses an unpaired one (`"\ud800"`, `"\udc00\ud800"`).
+
+`yaml.parse` is a lazy generator and the pass stops at the first fault,
+so of several faults the first in document order is refused, the
+character check excepted; an error of the parser (`ScannerError`,
+`ParserError`, both a `MarkedYAMLError`) is raised where the parser meets
+it. Every refusal is a `ValueError` naming the line and column, counted
+from one, from the event's `start_mark` or the error's `problem_mark`
+(else `context_mark`); PyYAML's marks count code points, so a character
+above U+FFFF counts once. An empty text, one of comments only and `---`
+alone read as null. A text nested 100,000 deep is refused at its 257th
+collection, never by Python's recursion limit, since neither the parser
+nor the pass recurses.
+
+Verified on 2026-11-18 with PyYAML 6.0.3 on Python 3.13: `k: no` →
 `"no"`, `k: 1e-5` → `1e-05`, `k: 0o17` → `15`, `k: 017` → `17`,
 `k: 010` → `10`, `k: 1_000` → `"1_000"`,
 `k: 2026-11-17` → `"2026-11-17"`, `k: 0b101` → `"0b101"`, `k: =` → `"="`,
 `<<: 1` → `{"<<": 1}`, `k: 2.0` → `2.0`, a 30-digit integer exact; and
 refused: `.inf`, `.nan`, `1e309`, `a: 1` with `"a": 2`, `1: x`,
-`a: &x 1`, `!!timestamp`, `!!set`, `!!omap`, `!foo`,
-`!!python/name:os.system`, `"\ud800"`, two documents.
+`a: &x 1`, `a: *x`, `!!timestamp`, `!!set`, `!!omap`, `!foo`, `!!str 1`,
+`!`, `!!python/name:os.system`, `"\ud800"`, U+0001, two documents.
 
 - **Fit.** The standard parser of the Python ecosystem reads every
-  construct of canonical YAML as YAML 1.2 does once its resolver is the
-  core schema; the format's own rules are a resolver table, the
-  constructors of the JSON data model and one pass over the parser's
-  events.
+  construct of canonical YAML as YAML 1.2 does once plain scalars are
+  resolved by the core schema; the format's own rules are that table and
+  one pass over the parser's events.
 - **Maintenance.** PyYAML is developed under the YAML project's
   organisation on GitHub (https://github.com/yaml/pyyaml), which also
   hosts libyaml; Kirill Simonov wrote it, and its recent releases and
@@ -159,8 +168,8 @@ refused: `.inf`, `.nan`, `1e309`, `a: 1` with `"a": 2`, `1: x`,
   and Windows on Arm). The main branch, at 7.0.0.dev0, had its last commit
   on 2026-10-07. PyYAML was downloaded about 1.2 billion times in the
   month before this record (https://pypistats.org/packages/pyyaml). The
-  package's exposure is one loader subclass on documented extension
-  points.
+  package's exposure is `yaml.parse`, the event classes and
+  `MarkedYAMLError`, all documented.
 - **Writing it ourselves.** Owning a YAML grammar and its edge cases is out
   of proportion to reading manifests.
 - **Audited version.** PyYAML 6.0.3, uploaded to PyPI on 2025-09-25, 418
@@ -192,8 +201,8 @@ https://osv.dev/ (queried through its API).
 ## Consequences
 
 The package adds one runtime dependency with no transitive dependencies.
-It owns the core-schema resolver table, the integer constructor and the
-checks, which are small and fixed by the specification and the format.
+It owns the core-schema table and the checks, which are small and fixed
+by the specification and the format.
 
 Beyond the constructs of canonical YAML, `SafeLoader` reads by YAML
 1.1's grammar. Found in 6.0.3: it refuses a tab after `key:` or inside a
@@ -203,7 +212,9 @@ which YAML 1.2 reads; and it takes U+0085, U+2028 and U+2029 written as
 themselves for line breaks. Canonical YAML writes none of these: it
 escapes the tab and those three characters. Such a text is read as
 `SafeLoader` reads it, and a difference there is not a defect of the
-format.
+format. Within those constructs, the package's tests check that PyYAML's
+unmodified `yaml.safe_load` reads every canonical YAML fixture to the
+value the reader gives.
 
 `CSafeLoader` is ruled out for one more reason: with libyaml's composer,
 a sequence nested 3,000 deep ended the Python 3.11 process on Windows

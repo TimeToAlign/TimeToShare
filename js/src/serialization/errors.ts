@@ -13,16 +13,20 @@ export const DEPTH_LIMIT = 256;
 /** The reason the readers give for a text nested deeper than `DEPTH_LIMIT`. */
 export const TOO_DEEP = `collections nest deeper than ${DEPTH_LIMIT} levels`;
 
-/** The line and column, both counted from 1, of an offset in a text; a line ends at each `\n`. */
+/**
+ * The line and column, both counted from 1, of an offset in a text; a line
+ * ends at each `\n`, and the column counts code points, so a character above
+ * U+FFFF counts once.
+ */
 export function positionOf(text: string, offset: number): { line: number; column: number } {
   const lines = text.slice(0, offset).split("\n");
-  return { line: lines.length, column: (lines.at(-1) as string).length + 1 };
+  return { line: lines.length, column: Array.from(lines.at(-1) as string).length + 1 };
 }
 
 /**
  * A text the reading rules refuse, and where: `offset` counts UTF-16 code
- * units from 0, `line` and `column` count from 1, the column in UTF-16 code
- * units. A `SyntaxError`, so a caller catching `SyntaxError` catches it.
+ * units from 0, `line` and `column` count from 1, the column in code points.
+ * A `SyntaxError`, so a caller catching `SyntaxError` catches it.
  */
 abstract class TextSyntaxError extends SyntaxError {
   readonly offset: number;
