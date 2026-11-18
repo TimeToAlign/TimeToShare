@@ -1229,9 +1229,10 @@ packages infer from the file's text:
 
 - the form is minimal when no key at its default is present, that is when
   `minimal(value)` and the value read are written as the same canonical
-  YAML, which tells an integer from a float (`repeat_count: 1.0` is not
-  the default `1`) and ignores the order canonical order sorts, and
-  complete otherwise;
+  YAML, and complete otherwise. Defaults are recognised by exact value
+  (`repeat_count: 1.0` is the default `1`, so a text stating it is not
+  minimal); otherwise canonical YAML tells an integer from a float of
+  equal value, and it ignores the order canonical order sorts;
 - the manifest is styled when it holds the top-level `graphical` key;
 - the serialization is the one the text is read in, as `serialization_of`
   names it.
