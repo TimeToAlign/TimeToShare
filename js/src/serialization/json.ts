@@ -6,6 +6,8 @@
  * string or a key, whether it stands as itself or is written as an escape;
  * a surrogate escape pairs only with an escape, so an escaped high surrogate
  * before a low one standing as itself is two lone surrogates, as in Python.
+ * A text holding several faults is refused for the first in document order,
+ * at the token that offends.
  */
 
 import { type Json, JsonFloat, type JsonNumber, type Lossless, objectFrom } from "../json/value.js";
@@ -80,51 +82,57 @@ export function readJson(text: string): Lossless<Json> {
     index += token.length;
   };
 
+  /**
+   * The string at `index`, its opening quote. A fault is refused where it
+   * stands: an invalid escape at its backslash, a control character where
+   * it is, an unterminated string at the end of the text. A high surrogate
+   * pairs only with the low surrogate right after it, written the same way;
+   * one that does not is lone where it stands, whatever follows it.
+   */
   const string = (): string => {
-    const start = index;
     index++;
     let result = "";
     let high = -1;
     let highViaEscape = false;
     for (;;) {
-      if (index >= text.length) fail("unterminated string");
       const at = index;
       let unit = text.charCodeAt(index);
-      if (unit === 0x22) break;
-      if (unit < 0x20) fail("malformed string", start);
       const viaEscape = unit === 0x5c;
+      let length = 1;
       if (viaEscape) {
         const escaped = text[index + 1] as string;
-        if (escaped === "u") {
-          const digits = text.slice(index + 2, index + 6);
-          if (!/^[0-9A-Fa-f]{4}$/.test(digits)) fail("malformed string", start);
-          unit = Number.parseInt(digits, 16);
-          index += 6;
+        if (escaped === "u" && /^[0-9A-Fa-f]{4}$/.test(text.slice(index + 2, index + 6))) {
+          unit = Number.parseInt(text.slice(index + 2, index + 6), 16);
+          length = 6;
         } else {
           const character = ESCAPES[escaped];
-          if (character === undefined) fail("malformed string", start);
+          if (high >= 0) fail("lone surrogate", high);
+          if (character === undefined) fail("malformed string");
           unit = (character as string).charCodeAt(0);
-          index += 2;
+          length = 2;
         }
-      } else {
-        index++;
       }
       if (high >= 0) {
         // A surrogate written as an escape pairs only with an escape, and one
         // standing as itself only with one standing as itself, as in Python.
         if (!isLow(unit) || viaEscape !== highViaEscape) fail("lone surrogate", high);
         high = -1;
+      } else if (index >= text.length) {
+        fail("unterminated string");
+      } else if (unit === 0x22 && !viaEscape) {
+        index++;
+        return result;
+      } else if (unit < 0x20 && !viaEscape) {
+        fail("malformed string");
       } else if (isHigh(unit)) {
         high = at;
         highViaEscape = viaEscape;
       } else if (isLow(unit)) {
-        fail("lone surrogate", at);
+        fail("lone surrogate");
       }
+      index += length;
       result += String.fromCharCode(unit);
     }
-    if (high >= 0) fail("lone surrogate", high);
-    index++;
-    return result;
   };
 
   const number = (source: string, at: number): JsonNumber => {

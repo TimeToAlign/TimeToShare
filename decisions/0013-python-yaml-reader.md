@@ -17,7 +17,8 @@ it needs a library for reading only. The reader must:
    and more than one document; duplicate keys; anchors and aliases; a key
    that is not a string; a value outside the JSON data model; a non-finite
    float (`.inf`, `.nan`, and a literal such as `1e309` that rounds to an
-   infinity); a string holding an unpaired surrogate;
+   infinity); a string holding an unpaired surrogate; collections nested
+   deeper than 256 levels; of several faults, the first in document order;
 4. construct no objects from the text (safe loading only);
 5. raise `ValueError` for every refusal;
 6. run on every Python the package supports (`requires-python >= 3.11`),
@@ -46,8 +47,8 @@ against the requirements on 2026-11-17.
   `1_000`, dates) and keeps duplicate keys silently.
 - **PyYAML 6.0.3 with the core-schema resolvers.** A loader subclass
   replaces the 1.1 implicit resolvers by the core schema's through
-  PyYAML's resolver API and adds the checks of requirement 3 in its
-  composer and constructor (see Decision). Meets every requirement.
+  PyYAML's resolver API and makes the checks of requirement 3 in one pass
+  over the parser's events (see Decision). Meets every requirement.
 - **ruamel.yaml 0.19.1.** YAML 1.2 by declaration, but its resolver is not
   the core schema even with `version=(1, 2)`: `2026-11-17` gives a
   `datetime.date`, `1_000` and `0b101` integers, and `=` and `<<` are
@@ -103,24 +104,34 @@ the largest double, `1e-400` gives `0.0`, `-1e-400` gives `-0.0`).
 
 | Refusal | Where |
 | --- | --- |
-| Malformed text, more than one document | PyYAML's scanner, parser and composer raise a `MarkedYAMLError` (`ScannerError`, `ParserError`, `ComposerError`). |
-| Anchors and aliases | The composer's `compose_node` refuses an `AliasEvent` and any event whose `anchor` is set, before the node is built, so an alias is never expanded. |
-| Duplicate keys | `construct_mapping` is replaced: it constructs the keys of the mapping node one by one and refuses a key it has already seen; `a` and `"a"` are the same key. It does not call `flatten_mapping`, so a merge key (`<<`) is never merged. |
-| Keys that are not strings | The same `construct_mapping` refuses a key whose value is not a `str` (`1:`, `null:`, `[1]:`). |
-| Values outside the JSON data model | `construct_object` refuses a node whose tag is not `str`, `int`, `float`, `bool`, `null`, `seq` or `map` of `tag:yaml.org,2002:`. This covers `!!timestamp`, `!!binary`, `!!set`, `!!omap`, `!!pairs`, `!!merge` and every unknown tag (`!foo`). `!!str 1` reads as `"1"`. |
-| Non-finite floats | `construct_object` refuses a `float` that is not finite: `.inf`, `-.Inf`, `.nan`, `1e309`. |
-| Unpaired surrogates | `construct_object` passes each string through `s.encode("utf-16-le", "surrogatepass").decode("utf-16-le")`, which joins a high surrogate followed by a low one into one character (`"\ud83d\ude00"` gives U+1F600) and refuses an unpaired one (`"\ud800"`, `"\udc00\ud800"`). |
+The subclass replaces PyYAML's composer and constructor by one pass over
+the parser's events (`get_single_data`): it builds the value as the events
+arrive, every open collection on a stack of its own rather than by
+recursion, and checks each node when its event arrives, a key before its
+value: its anchor, its tag, a key being a string and not repeating, its
+depth, then its value. No node tree is composed.
 
-Every refusal by the subclass raises `ConstructorError` with the offending
-node's `start_mark`. The reader wraps every error as `ValueError` with the
-line and column counted from one: a `MarkedYAMLError` from its
+| Refusal | Where |
+| --- | --- |
+| Malformed text, more than one document | PyYAML's scanner and parser raise a `MarkedYAMLError` (`ScannerError`, `ParserError`) when the pass asks for the event they cannot make; after the first document the pass raises `ComposerError` at the start of the second. |
+| Anchors and aliases | The pass refuses an `AliasEvent` and any event whose `anchor` is set, so an alias is never expanded. |
+| Duplicate keys | The pass constructs each key as its event arrives and refuses one the mapping already holds; `a` and `"a"` are the same key. A merge key (`<<`) is an ordinary key, never merged. |
+| Keys that are not strings | The pass refuses a key whose value is not a `str` (`1:`, `null:`) and a key that opens a collection (`[1]:`). |
+| Values outside the JSON data model | A scalar is built by the constructor of its tag, and only `str`, `int`, `float`, `bool` and `null` of `tag:yaml.org,2002:` have one; a collection must carry the `seq` or `map` tag of its kind. This refuses `!!timestamp`, `!!binary`, `!!set`, `!!omap`, `!!pairs`, `!!merge` and every unknown tag (`!foo`), and `!!map` on a sequence. `!!str 1` reads as `"1"`. |
+| Non-finite floats | The constructor of `float` refuses one that is not finite: `.inf`, `-.Inf`, `.nan`, `1e309`. |
+| Unpaired surrogates | The constructor of `str` passes each string through `s.encode("utf-16-le", "surrogatepass").decode("utf-16-le")`, which joins a high surrogate followed by a low one into one character (`"\ud83d\ude00"` gives U+1F600) and refuses an unpaired one (`"\ud800"`, `"\udc00\ud800"`). |
+| Nesting deeper than 256 levels | The pass refuses an event that opens a collection while 256 are open, at its start: the first collection at depth 257, in document order. The parser keeps its own state on a stack, so a text nested 100,000 deep is refused at the same place, never by Python's recursion limit. |
+
+Every refusal is raised when the pass meets it, so of several faults the
+first in document order is the one raised; the pass never reads past it.
+A refusal by the subclass raises `ConstructorError` with the offending
+event's `start_mark`. The reader wraps every error as `ValueError` with
+the line and column counted from one: a `MarkedYAMLError` from its
 `problem_mark`; a `ReaderError` (a character YAML forbids, such as U+0001
-or a lone surrogate written as itself) from its `position`, an index
-into the text; and a `RecursionError`, raised when
-collections nest deeper than Python's recursion limit allows (about 330
-levels under the default limit), from the start mark of the node the
-loader last began to compose or construct (the parser's own state may be
-left mid-token by the error, so the next event cannot be asked for).
+or a lone surrogate written as itself) from its `position`, an index into
+the text. PyYAML checks every character of a text before it parses any,
+so for a `ReaderError` the reader first reads the text before the
+forbidden character, and raises a fault found there instead.
 Columns count code points.
 An empty text, or one of comments only, reads as null; `---` alone too.
 
@@ -135,8 +146,9 @@ refused: `.inf`, `.nan`, `1e309`, `a: 1` with `"a": 2`, `1: x`,
 
 - **Fit.** The standard parser of the Python ecosystem reads every
   construct of canonical YAML as YAML 1.2 does once its resolver is the
-  core schema; the format's own rules are a resolver table, one
-  constructor and three overridden methods.
+  core schema; the format's own rules are a resolver table, the
+  constructors of the JSON data model and one pass over the parser's
+  events.
 - **Maintenance.** PyYAML is developed under the YAML project's
   organisation on GitHub (https://github.com/yaml/pyyaml), which also
   hosts libyaml; Kirill Simonov wrote it, and its recent releases and
@@ -164,8 +176,8 @@ refused: `.inf`, `.nan`, `1e309`, `a: 1` with `"a": 2`, `1: x`,
   full or unsafe loaders and all fixed by 5.4 (queried 2026-11-17). A fix
   for exponential expansion through merge keys and aliases
   (https://github.com/yaml/pyyaml/pull/937, merged 2026-06-17) is not yet
-  released; the reader is not exposed to it, since it refuses aliases in
-  the composer and never merges.
+  released; the reader is not exposed to it, since it refuses aliases as
+  their events arrive and never merges.
 - **Range.** `pyproject.toml` declares `PyYAML>=6.0.3,<7`; the lockfile
   pins 6.0.3. The next major release is excluded until reviewed.
 
@@ -195,8 +207,9 @@ format.
 
 `CSafeLoader` is ruled out for one more reason: with libyaml's composer,
 a sequence nested 3,000 deep ended the Python 3.11 process on Windows
-without an exception, where `SafeLoader` raises `RecursionError`, which
-the reader wraps.
+without an exception, where `SafeLoader`'s composer raises
+`RecursionError`. The reader composes no tree and so is exposed to
+neither.
 
 The exit cost is the reader module. The review revisits the choice if
 PyYAML releases a YAML 1.2 loader of its own, or a major version.

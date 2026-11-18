@@ -281,11 +281,11 @@ fails. No test is skipped:
   whose RFC 8785 JSON is its `.expected.rfc8785.json`; each expected text
   gives its own bytes; `serializationOf` names a `.json` reading `"json"`, a
   `.yaml` one `"yaml"` and every expected RFC 8785 text `"jcs"`.
-- **Refusals.** The table names each of the 69 files with the error it
+- **Refusals.** The table names each of the 79 files with the error it
   throws: a text read as YAML a `YamlSyntaxError`, through `loads` and
   `parseYaml`; a text read as JSON a `JsonSyntaxError`, through `loads`
   and `parseJson` (the three `flow_*` texts meant as YAML among them), a
-  `RangeError` for the four whose float rounds to an infinity
+  `RangeError` for the five whose float rounds to an infinity
   (`json_float_overflow*`, `json_top_level_float_overflow`).
   `serializationOf` names each `"yaml"` or `"json"` as it is read, never
   throwing.
@@ -324,10 +324,11 @@ The unit tests beside the walk pin what the cases leave to a package:
   `YamlSyntaxError` whose offset (UTF-16 code units from 0), line and
   column are pinned, the same places Python names. The JSON reader counts
   the collections it opens and refuses before its recursion could go
-  deeper; the YAML reader finds the first collection at depth 257 in the
-  parsed tree, in document order, before any other refusal of a later
-  place, also where the parser stopped composing for want of stack, so a
-  text nested 100,000 deep is refused where one nested 257 deep is. Pinned
+  deeper; the YAML reader's walk knows each node's depth from its stack and
+  refuses the first collection at depth 257 in document order, also where
+  the parser stopped composing for want of stack, a problem that never
+  outranks the walk, so a text nested 100,000 deep is refused where one
+  nested 257 deep is. Pinned
   (offset, line, column): JSON `[` 257 times then `]` 257 times, and `[`
   100,000 times unclosed, at (256, 1, 257); `{"a":` 257 times, then `1`
   and `}` 257 times, at (1280, 1, 1281); YAML `- ` 257 times then `1`, and
@@ -338,10 +339,8 @@ The unit tests beside the walk pin what the cases leave to a package:
   then `[` 256 times and `]` 256 times at (258, 1, 259); `# x`, a line
   feed, then `{a: ` 257 times, `1` and `}` 257 times at (1028, 2, 1025);
   the shared refusals `json_depth_257.json` at (256, 1, 257) and
-  `yaml_depth_257.yaml` at (16640, 128, 385). A JSON text holding a
-  repeated key before the 257th collection is refused for the key. Every
-  text nested 257 deep, made one level shallower, is read, to a value
-  nested 256 deep. The writers throw the `RangeError` `a value nested
+  `yaml_depth_257.yaml` at (16640, 128, 385). Every text nested 257 deep,
+  made one level shallower, is read, to a value nested 256 deep. The writers throw the `RangeError` `a value nested
   deeper than 256 levels cannot be written` in every serialization for the
   array nested 257 deep (built in memory: no text a reader reads holds
   it), an object whose member holds an array 256 deep, the array nested
@@ -349,6 +348,33 @@ The unit tests beside the walk pin what the cases leave to a package:
   itself; the array nested 256 deep is written in every serialization and
   reads back equal, its canonical YAML `readings/json_depth_256.expected.yaml`
   and its RFC 8785 JSON `[` 256 times then `]` 256 times.
+- **The first fault** (`serialization.test.ts`): a text holding several
+  faults is refused for the first in document order, at the token that
+  offends, the same place Python names, so a pinned place proves the
+  order. The YAML walk stops at its first fault, and a problem of the
+  parser (errors and warnings alike, the one with the smallest offset)
+  is refused instead where it lies at or before that fault. Pinned as
+  (error, line, column): in YAML, a repeated key at (2, 1), `!foo`,
+  `!!map [1]` and the escape `\ud800` at (1, 4) and the key `1` at (1, 1),
+  each before a flow sequence at depth 257, and that depth at (1, 259)
+  before a repeated key or `!foo`; `!foo` before a repeated key at (1, 4)
+  and a repeated key before `!foo` at (2, 1); a repeated key before a
+  second document, and a second document before a repeated key in it, at
+  (2, 1). In JSON, `[1e999, }` and `[1e999] 2` as a `RangeError` at column
+  2, `["\ud800", }` at 3, a repeated key before a missing key or extra
+  data at 8, `1e999` as the value of a key that repeats later as a
+  `RangeError` at 6, a lone surrogate before 300 unclosed `[` at 3, a
+  collection at depth 257 before a repeated key at 257, and U+0001 in a
+  string before `1e999` at 3. A JSON string is refused at the token that
+  offends: an invalid escape (`\x` at 5, `\u12G4` at 3) at its
+  backslash, a control character where it stands, an unterminated string
+  at the end of the text; a high-surrogate escape not followed by a
+  low-surrogate escape (an invalid escape, the end, a control character,
+  an escaped quote or a low surrogate standing as itself follows) is lone
+  at its own escape, column 3. Every shared refusal whose place the
+  cases' README gives is refused there (`SHARED_PLACES`): the two depth
+  texts, the five `json_lone_surrogate_*` texts and the ten `*_before_*`
+  texts.
 - **The choice** between JSON and YAML: leading white space, a JSON
   scalar, a quoted YAML scalar, a YAML escape, `-Infinity`, `{a: 1}`
   refused as JSON, `"a": 1` read as YAML, a JSON string holding U+2028; and

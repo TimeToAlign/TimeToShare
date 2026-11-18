@@ -84,7 +84,8 @@ members.
    `JsonSyntaxError` for a text read as JSON and `YamlSyntaxError` for
    every text read as YAML, except a `RangeError` for a JSON number that
    rounds to an infinity (`json_float_overflow*`,
-   `json_top_level_float_overflow`).
+   `json_top_level_float_overflow`). Where the table names a line and a
+   column, the message of the error names that place, in both packages.
 4. **Writer refusals.** The text reads; writing its value raises in each
    serialization the table names, and succeeds in the others: Python
    `ValueError`; TypeScript `RangeError` for a value a serialization
@@ -134,6 +135,17 @@ read as the array nested 256 deep, whose canonical YAML (65,283 bytes) is,
 by the rule that `-` stands alone before a block sequence, 254 lines of `-`
 alone, the first at column 1 and each next two columns further, then `- []`
 at column 509.
+
+A text holding several faults is refused for the first in document order,
+at the token that offends: a lone surrogate at its escape (or where it
+stands as itself), a number at its first character, a repeated key at its
+second occurrence, a collection at depth 257 at its `{` or `[`. The
+`*_before_*` refusals pin that order with two faults each, in both
+orders where the second is the nesting limit. Their deep part is `[` 256
+times then `]` 256 times as the value of a key: in a YAML block mapping
+(`yaml_*`) the 256th `[` is the first collection at depth 257, at column
+259 of its line; after `{"a": ` (`json_depth_257_before_duplicate_key`)
+at column 262.
 
 ## Cases
 
@@ -262,11 +274,12 @@ at column 509.
 | `json_duplicate_key.json` | a key repeats in its object |
 | `json_duplicate_key_escaped.json` | a key repeats, once through the escape `\u0061` |
 | `json_duplicate_key_nested.json` | a key repeats in an object inside an array |
-| `json_lone_surrogate_high.json` | a lone high surrogate through an escape |
-| `json_lone_surrogate_low.json` | a lone low surrogate through an escape |
-| `json_lone_surrogate_reversed.json` | a low-surrogate escape before a high-surrogate one pairs neither |
-| `json_lone_surrogate_then_letter.json` | a high-surrogate escape followed by a letter |
-| `json_lone_surrogate_key.json` | a lone surrogate in a key |
+| `json_lone_surrogate_high.json` | a lone high surrogate through an escape, at the escape (line 1, column 8) |
+| `json_lone_surrogate_low.json` | a lone low surrogate through an escape (line 1, column 8) |
+| `json_lone_surrogate_reversed.json` | a low-surrogate escape before a high-surrogate one pairs neither, refused at the first (line 1, column 8) |
+| `json_lone_surrogate_then_letter.json` | a high-surrogate escape followed by a letter (line 1, column 8) |
+| `json_lone_surrogate_key.json` | a lone surrogate in a key (line 1, column 3) |
+| `json_lone_surrogate_before_syntax_error.json` | a lone surrogate (line 1, column 3) before a missing value |
 | `json_u0001_in_string.json` | a literal U+0001, a C0 control, inside a JSON string |
 | `json_nan.json` | `NaN` |
 | `json_infinity.json` | `Infinity` |
@@ -275,6 +288,10 @@ at column 509.
 | `json_float_overflow_negative.json` | a negative float that rounds to an infinity |
 | `json_float_overflow_above_largest.json` | `1.7976931348623159e308`, as in YAML |
 | `json_top_level_float_overflow.json` | `1e309` alone: a JSON text, read as JSON and refused |
+| `json_float_overflow_before_syntax_error.json` | `1e999`, which rounds to an infinity (line 1, column 2), before a missing value |
+| `json_duplicate_key_before_syntax_error.json` | a key repeats (line 1, column 10) before a trailing comma |
+| `json_duplicate_key_before_depth_257.json` | a key repeats (line 1, column 10) before a collection at depth 257 |
+| `json_depth_257_before_duplicate_key.json` | a collection at depth 257 (line 1, column 262) before a repeated key |
 | `json_two_values.json` | not one JSON value: two |
 | `json_trailing_comma.json` | not JSON: a trailing comma |
 | `json_single_quotes.json` | not JSON: a single-quoted string |
@@ -284,6 +301,11 @@ at column 509.
 | `json_bom_after_value.json` | U+FEFF after `{"a": 1}`: read as JSON, which refuses it outside a string |
 | `json_depth_257.json` | collections nested 257 deep, refused at the 257th `[` (line 1, column 257) |
 | `yaml_depth_257.yaml` | 128 block sequences holding 129 flow sequences, refused at the 129th `[` (line 128, column 385) |
+| `yaml_duplicate_key_before_depth_257.yaml` | a key repeats (line 2, column 1) before a collection at depth 257 |
+| `yaml_depth_257_before_duplicate_key.yaml` | a collection at depth 257 (line 1, column 259) before a repeated key |
+| `yaml_unknown_tag_before_depth_257.yaml` | the unknown tag `!local` (line 1, column 4) before a collection at depth 257 |
+| `yaml_depth_257_before_unknown_tag.yaml` | a collection at depth 257 (line 1, column 259) before the unknown tag `!local` |
+| `yaml_infinity_before_depth_257.yaml` | `.inf` (line 1, column 4) before a collection at depth 257 |
 
 ## Writer refusals
 

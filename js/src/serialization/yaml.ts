@@ -7,12 +7,16 @@
  * keys in their written order. Every refusal is a `YamlSyntaxError` at the
  * offending node.
  *
+ * The first fault in document order is the one refused: the walk checks
+ * each node as it reaches it, a key before its value (its anchor, its tag,
+ * a key being a string, its depth, then its value), and the first fault the
+ * walk finds is refused unless a problem of the parser lies at or before it.
  * A text whose value would be deeper than 256 is refused at the first
- * collection at depth 257 in document order. The parser composes collections
- * recursively and, where its stack runs out, reports it and stops composing;
- * that happens hundreds of levels deeper than 257, so the composed tree still
- * holds the collection the refusal names, and the place depends on the text
- * alone.
+ * collection at depth 257. The parser composes collections recursively and,
+ * where its stack runs out, reports it and stops composing; that happens
+ * hundreds of levels deeper than 257, so the composed tree still holds the
+ * collection the refusal names, and that report never outranks a fault the
+ * walk finds.
  */
 
 import {
@@ -24,6 +28,7 @@ import {
   type Pair,
   parseDocument,
   type Scalar,
+  type YAMLError,
   type YAMLMap,
   type YAMLSeq,
 } from "yaml";
@@ -38,32 +43,48 @@ const SAFE = BigInt(Number.MAX_SAFE_INTEGER);
  * Read a YAML text, from its first character, as `loads` reads it. An empty
  * text, or one of comments only, reads as `null`.
  *
- * @throws {YamlSyntaxError} for a text the parser refuses (more than one
- * document, an unknown tag and a repeated key among them), collections
- * nested deeper than 256 levels (before a problem of the parser at a later
- * place, and before the problem that its stack ran out), an anchor or an
- * alias, a key that is not a string, a value outside the JSON data model, a
- * float that is not finite (`.inf`, `.nan` and a literal that rounds to an
- * infinity) and a string or key with a lone surrogate.
+ * @throws {YamlSyntaxError} at the first fault in document order: a problem
+ * of the parser (more than one document, an unknown tag and a repeated key
+ * among them), collections nested deeper than 256 levels (never outranked by
+ * the problem that the parser's stack ran out), an anchor or an alias, a key
+ * that is not a string, a value outside the JSON data model, a float that is
+ * not finite (`.inf`, `.nan` and a literal that rounds to an infinity) and a
+ * string or key with a lone surrogate.
  */
 export function readYaml(text: string): Lossless<Json> {
   const document = parseDocument(text, { schema: "core", intAsBigInt: true, uniqueKeys: true });
-  const problem = document.errors[0] ?? document.warnings[0];
-  const deep = tooDeep(document.contents);
-  if (
-    deep !== undefined &&
-    (problem === undefined || problem.code === "RESOURCE_EXHAUSTION" || problem.pos[0] >= deep)
-  ) {
-    throw new YamlSyntaxError(TOO_DEEP, text, deep);
+  let problem: YAMLError | undefined;
+  for (const found of [...document.errors, ...document.warnings]) {
+    if (problem === undefined || found.pos[0] < problem.pos[0]) problem = found;
   }
-  if (problem !== undefined) {
-    throw new YamlSyntaxError(
-      `${problem.code}: ${reasonOf(problem.message)}`,
-      text,
-      problem.pos[0],
-    );
-  }
+  const parserError = (): YamlSyntaxError | undefined =>
+    problem &&
+    new YamlSyntaxError(`${problem.code}: ${reasonOf(problem.message)}`, text, problem.pos[0]);
 
+  let value: Lossless<Json>;
+  try {
+    value = walk(document.contents, text);
+  } catch (error) {
+    if (
+      error instanceof YamlSyntaxError &&
+      problem !== undefined &&
+      problem.code !== "RESOURCE_EXHAUSTION" &&
+      problem.pos[0] <= error.offset
+    ) {
+      throw parserError();
+    }
+    throw error;
+  }
+  const refused = parserError();
+  if (refused !== undefined) throw refused;
+  return value;
+}
+
+/**
+ * Build the lossless value of a composed tree, refusing its first fault in
+ * document order with a `YamlSyntaxError`.
+ */
+function walk(contents: unknown, text: string): Lossless<Json> {
   const fail = (reason: string, node: { range?: unknown } | null | undefined): never => {
     const range = node?.range;
     const offset = Array.isArray(range) && typeof range[0] === "number" ? range[0] : 0;
@@ -85,8 +106,11 @@ export function readYaml(text: string): Lossless<Json> {
     return fail("a value outside the JSON data model", node);
   };
 
-  /** A node's value where it is a scalar, else a frame to fill with its items. */
-  const visit = (node: unknown, parent: Node | null): { value: unknown } | Frame => {
+  /**
+   * A node's value where it is a scalar, else a frame to fill with its
+   * items; `depth` is the depth the node stands at, 1 for the root.
+   */
+  const visit = (node: unknown, parent: Node | null, depth: number): { value: unknown } | Frame => {
     if (node === null || node === undefined) return { value: null };
     if (isAlias(node)) return fail("an alias", node);
     if (!isMap(node) && !isSeq(node) && !isScalar(node)) {
@@ -95,19 +119,18 @@ export function readYaml(text: string): Lossless<Json> {
     if (node.anchor !== undefined) return fail("an anchor", node);
     if (isScalar(node)) return { value: scalar(node) };
     if (!COLLECTION_TAGS.has(node.tag)) return fail("a value outside the JSON data model", node);
+    if (depth > DEPTH_LIMIT) return fail(TOO_DEEP, node);
     return { node, keys: [], values: [] };
   };
 
   const keyOf = (pair: Pair, map: YAMLMap): string => {
     const { key } = pair;
     if (isAlias(key)) return fail("an alias", key);
+    const node = isMap(key) || isSeq(key) || isScalar(key) ? key : undefined;
+    if (node?.anchor !== undefined) return fail("an anchor", node);
     if (!isScalar(key) || typeof key.value !== "string") {
-      return fail(
-        "a key that is not a string",
-        isMap(key) || isSeq(key) || isScalar(key) ? key : map,
-      );
+      return fail("a key that is not a string", node ?? map);
     }
-    if (key.anchor !== undefined) return fail("an anchor", key);
     return string(key.value, key);
   };
 
@@ -115,7 +138,7 @@ export function readYaml(text: string): Lossless<Json> {
   // composes it is read without exhausting the call stack. It visits the
   // nodes in document order, a key before its value, and a value's items
   // before the next key, so the first refusal is the first in the text.
-  const root = visit(document.contents, null);
+  const root = visit(contents, null, 1);
   if (!("node" in root)) return root.value as Lossless<Json>;
   const stack: Frame[] = [root];
   for (;;) {
@@ -140,37 +163,10 @@ export function readYaml(text: string): Lossless<Json> {
     } else {
       item = node.items[index];
     }
-    const visited = visit(item, node);
+    const visited = visit(item, node, stack.length + 1);
     if ("node" in visited) stack.push(visited);
     else values.push(visited.value);
   }
-}
-
-/**
- * The offset of the first collection at depth 257, in document order, a key
- * before its value; `undefined` where there is none, or where an anchor or an
- * alias comes first, which the walk refuses. The walk keeps its own stack and
- * goes no deeper than 257.
- */
-function tooDeep(root: unknown): number | undefined {
-  const pending: [unknown, number][] = [[root, 1]];
-  for (let next = pending.pop(); next !== undefined; next = pending.pop()) {
-    const [node, depth] = next;
-    if (isAlias(node)) return undefined;
-    if (!isMap(node) && !isSeq(node)) {
-      if (isScalar(node) && node.anchor !== undefined) return undefined;
-      continue;
-    }
-    if (node.anchor !== undefined) return undefined;
-    if (depth > DEPTH_LIMIT) return node.range?.[0] ?? 0;
-    const members: unknown[] = isMap(node)
-      ? node.items.flatMap((pair) => [pair.key, pair.value])
-      : node.items;
-    for (let index = members.length - 1; index >= 0; index--) {
-      pending.push([members[index], depth + 1]);
-    }
-  }
-  return undefined;
 }
 
 /** A mapping or a sequence being read: the keys and values of its items read so far. */

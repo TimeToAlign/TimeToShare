@@ -194,13 +194,18 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "json_bom_between_tokens.json": JsonSyntaxError,
   "json_comment.json": JsonSyntaxError,
   "json_depth_257.json": JsonSyntaxError,
+  "json_depth_257_before_duplicate_key.json": JsonSyntaxError,
   "json_duplicate_key.json": JsonSyntaxError,
+  "json_duplicate_key_before_depth_257.json": JsonSyntaxError,
+  "json_duplicate_key_before_syntax_error.json": JsonSyntaxError,
   "json_duplicate_key_escaped.json": JsonSyntaxError,
   "json_duplicate_key_nested.json": JsonSyntaxError,
   "json_float_overflow.json": RangeError,
   "json_float_overflow_above_largest.json": RangeError,
+  "json_float_overflow_before_syntax_error.json": RangeError,
   "json_float_overflow_negative.json": RangeError,
   "json_infinity.json": JsonSyntaxError,
+  "json_lone_surrogate_before_syntax_error.json": JsonSyntaxError,
   "json_lone_surrogate_high.json": JsonSyntaxError,
   "json_lone_surrogate_key.json": JsonSyntaxError,
   "json_lone_surrogate_low.json": JsonSyntaxError,
@@ -217,7 +222,10 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "yaml_alias.yaml": YamlSyntaxError,
   "yaml_anchor.yaml": YamlSyntaxError,
   "yaml_depth_257.yaml": YamlSyntaxError,
+  "yaml_depth_257_before_duplicate_key.yaml": YamlSyntaxError,
+  "yaml_depth_257_before_unknown_tag.yaml": YamlSyntaxError,
   "yaml_duplicate_key.yaml": YamlSyntaxError,
+  "yaml_duplicate_key_before_depth_257.yaml": YamlSyntaxError,
   "yaml_duplicate_key_escaped.yaml": YamlSyntaxError,
   "yaml_duplicate_key_flow.yaml": YamlSyntaxError,
   "yaml_duplicate_key_nested.yaml": YamlSyntaxError,
@@ -234,6 +242,7 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "yaml_inf_plus_upper.yaml": YamlSyntaxError,
   "yaml_inf_title.yaml": YamlSyntaxError,
   "yaml_inf_upper.yaml": YamlSyntaxError,
+  "yaml_infinity_before_depth_257.yaml": YamlSyntaxError,
   "yaml_key_collection.yaml": YamlSyntaxError,
   "yaml_key_empty.yaml": YamlSyntaxError,
   "yaml_key_float.yaml": YamlSyntaxError,
@@ -256,6 +265,7 @@ const REFUSALS: Readonly<Record<string, Refusal>> = {
   "yaml_tag_timestamp.yaml": YamlSyntaxError,
   "yaml_two_documents.yaml": YamlSyntaxError,
   "yaml_unclosed_quote.yaml": YamlSyntaxError,
+  "yaml_unknown_tag_before_depth_257.yaml": YamlSyntaxError,
 };
 
 describe("the refusals", () => {
@@ -517,23 +527,6 @@ describe("the nesting limit", () => {
     ]);
   });
 
-  it("names the place of the shared refusals", () => {
-    expect(refusal(text("refusals/json_depth_257.json"))).toEqual([
-      "JsonSyntaxError",
-      `${TOO_DEEP} at line 1, column 257 of the JSON text`,
-      256,
-      1,
-      257,
-    ]);
-    expect(refusal(text("refusals/yaml_depth_257.yaml"))).toEqual([
-      "YamlSyntaxError",
-      `${TOO_DEEP} at line 128, column 385 of the YAML text`,
-      16640,
-      128,
-      385,
-    ]);
-  });
-
   it.for(ALL)("refuses in %s to write a value deeper than 256", (serialization) => {
     const itself: unknown[] = [];
     itself.push(itself);
@@ -556,6 +549,98 @@ describe("the nesting limit", () => {
     if (serialization === "yaml")
       expect(written).toBe(text("readings/json_depth_256.expected.yaml"));
     if (serialization === "jcs") expect(written).toBe("[".repeat(256) + "]".repeat(256));
+  });
+});
+
+/**
+ * The place of each shared refusal the cases' README places, as a line and a
+ * column, the same in both packages.
+ */
+const SHARED_PLACES: Readonly<Record<string, readonly [number, number]>> = {
+  "json_depth_257.json": [1, 257],
+  "yaml_depth_257.yaml": [128, 385],
+  "json_lone_surrogate_high.json": [1, 8],
+  "json_lone_surrogate_low.json": [1, 8],
+  "json_lone_surrogate_reversed.json": [1, 8],
+  "json_lone_surrogate_then_letter.json": [1, 8],
+  "json_lone_surrogate_key.json": [1, 3],
+  "json_lone_surrogate_before_syntax_error.json": [1, 3],
+  "json_float_overflow_before_syntax_error.json": [1, 2],
+  "json_duplicate_key_before_syntax_error.json": [1, 10],
+  "json_duplicate_key_before_depth_257.json": [1, 10],
+  "json_depth_257_before_duplicate_key.json": [1, 262],
+  "yaml_duplicate_key_before_depth_257.yaml": [2, 1],
+  "yaml_depth_257_before_duplicate_key.yaml": [1, 259],
+  "yaml_unknown_tag_before_depth_257.yaml": [1, 4],
+  "yaml_depth_257_before_unknown_tag.yaml": [1, 259],
+  "yaml_infinity_before_depth_257.yaml": [1, 4],
+};
+
+/** The name of the error reading a text throws, and the line and column its message names. */
+function place(given: string): [string, number, number] {
+  try {
+    loads(given);
+  } catch (error) {
+    const found = /at line (\d+), column (\d+) of the (?:JSON|YAML) text$/.exec(
+      (error as Error).message,
+    );
+    if (found === null) throw error;
+    return [(error as Error).name, Number(found[1]), Number(found[2])];
+  }
+  throw new Error("the text was read");
+}
+
+/** Flow sequences that, as the value of a key, open a collection at depth 257. */
+const DEEP = "[".repeat(256) + "]".repeat(256);
+
+describe("the first fault", () => {
+  it.for(Object.entries(SHARED_PLACES))("%s is refused at its place", ([file, [line, column]]) => {
+    expect(place(text(`refusals/${file}`)).slice(1)).toEqual([line, column]);
+  });
+
+  it.for([
+    ["repeated key, then depth", `a: 1\na: 2\nb: ${DEEP}`, 2, 1],
+    ["unknown tag, then depth", `a: !foo x\nb: ${DEEP}`, 1, 4],
+    ["!!map on a sequence, then depth", `a: !!map [1]\nb: ${DEEP}`, 1, 4],
+    ["integer key, then depth", `1: a\nb: ${DEEP}`, 1, 1],
+    ["lone surrogate, then depth", `a: "\\ud800"\nb: ${DEEP}`, 1, 4],
+    ["depth, then repeated key", `a: ${DEEP}\nb: 1\nb: 2\n`, 1, 259],
+    ["depth, then unknown tag", `a: ${DEEP}\nb: !foo x\n`, 1, 259],
+    ["unknown tag, then repeated key", "b: !foo x\na: 1\na: 2\n", 1, 4],
+    ["repeated key, then unknown tag", "a: 1\na: 2\nb: !foo x\n", 2, 1],
+    ["repeated key, then a second document", "a: 1\na: 2\n---\nb\n", 2, 1],
+    ["a second document, then repeated key", "a: 1\n---\nb: 1\nb: 2\n", 2, 1],
+  ] as const)("refuses in YAML %s at the first", ([, given, line, column]) => {
+    expect(place(given)).toEqual(["YamlSyntaxError", line, column]);
+  });
+
+  it.for([
+    ["overflow, then a missing value", "[1e999, }", "RangeError", 2],
+    ["overflow, then extra data", "[1e999] 2", "RangeError", 2],
+    ["lone surrogate, then a missing value", '["\\ud800", }', "JsonSyntaxError", 3],
+    ["repeated key, then a missing key", '{"a":1,"a":2,}', "JsonSyntaxError", 8],
+    ["repeated key, then extra data", '{"a":1,"a":2} x', "JsonSyntaxError", 8],
+    ["overflow, then repeated key", '{"a":1e999,"a":1}', "RangeError", 6],
+    ["lone surrogate, then depth", `["\\ud800",${"[".repeat(300)}`, "JsonSyntaxError", 3],
+    ["depth, then repeated key", `[${DEEP},{"a":1,"a":2}]`, "JsonSyntaxError", 257],
+    ["control character, then overflow", '["\u0001", 1e999]', "JsonSyntaxError", 3],
+  ] as const)("refuses in JSON %s at the first", ([, given, name, column]) => {
+    expect(place(given)).toEqual([name, 1, column]);
+  });
+
+  it.for([
+    ["invalid escape", '["ab\\x"]', 5],
+    ["invalid \\u escape", '["\\u12G4"]', 3],
+    ["control character", '["a\u0001"]', 4],
+    ["unterminated", '["abc', 6],
+    ["high surrogate, then an invalid escape", '["\\ud800\\x"]', 3],
+    ["high surrogate, then an invalid \\u escape", '["\\ud800\\u12G4"]', 3],
+    ["high surrogate, then the end", '["\\ud800', 3],
+    ["high surrogate, then a control character", '["\\ud800\u0001"]', 3],
+    ["high surrogate, then an escaped quote", '["\\ud800\\""]', 3],
+    ["high-surrogate escape, then a low surrogate as itself", '["\\ud800\udc00"]', 3],
+  ] as const)("refuses a JSON string at the token that offends: %s", ([, given, column]) => {
+    expect(place(given)).toEqual(["JsonSyntaxError", 1, column]);
   });
 });
 
