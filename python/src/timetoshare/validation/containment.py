@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterator, Mapping
 from fractions import Fraction
 from itertools import pairwise
@@ -21,11 +22,40 @@ def offset_order(children: list[Any]) -> list[int]:
     )
 
 
+def _double(value: Any) -> float | None:
+    """Return a JSON number as the double a reader reads, or ``None`` for none.
+
+    A Fraction pair and an integer beyond the range of doubles have none.
+    """
+    if isinstance(value, list):
+        return None
+    try:
+        return float(value)
+    except OverflowError:
+        return None
+
+
+def _child_end(timeline: Mapping[str, Any], child: Mapping[str, Any]) -> Fraction:
+    """Return where a child of known length ends on its parent's axis.
+
+    The offset lies on the parent's axis and the length on the child's. Where
+    both axes are ``float``, a reader adds the two JSON numbers as doubles, so
+    the end is their double sum, which may differ from the exact sum by a
+    rounding; wherever either axis is ``int`` or ``fraction``, the end is the
+    exact sum.
+    """
+    if number_type_of(timeline) == number_type_of(child) == "float":
+        offset, length = _double(child["offset"]), _double(child["length"])
+        if offset is not None and length is not None and math.isfinite(offset + length):
+            return Fraction(offset + length)
+    return _exact(child["offset"]) + _exact(child["length"])
+
+
 def child_ends(timeline: Mapping[str, Any]) -> list[Fraction | None]:
     """Return each child's end, deriving an unknown segment end from its successor."""
     children = _entries(timeline, "children")
     ends: list[Fraction | None] = [
-        _exact(child["offset"]) + _exact(child["length"])
+        _child_end(timeline, child)
         if child.get("length") is not None and child["unit"] == timeline["unit"]
         else None
         for child in children

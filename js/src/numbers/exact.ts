@@ -3,7 +3,7 @@
  * `[numerator, denominator]` Fraction has one exact rational value (a finite
  * double is a dyadic rational), so values written in different number types
  * compare without rounding, as the canonical order and the validator's
- * containment rules compare them. An integral float counts as the integer it
+ * comparisons compare them. An integral float counts as the integer it
  * equals, as in Python.
  */
 

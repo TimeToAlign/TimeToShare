@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import copy
+from fractions import Fraction
+from typing import Any
 
 import pytest
 
@@ -592,8 +594,13 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
     )
     assert _only(recording(0.3, take(0.2, 0.1))) == (
         ("timelines", 0, "children", 0, "length"),
-        "child 'take' ends at [10808639105689191, 36028797018963968], beyond the "
-        "length 0.3 of its parent 'recording'",
+        "child 'take' ends at 0.30000000000000004, beyond the length 0.3 of its "
+        "parent 'recording'",
+    )
+    third = timeline("take", "seconds", [1, 3], offset=0.5, number_type="fraction")
+    assert _only(recording(0.75, third)) == (
+        ("timelines", 0, "children", 0, "length"),
+        "child 'take' ends at [5, 6], beyond the length 0.75 of its parent 'recording'",
     )
     midi = timeline(
         "midi", "ticks", 480, children=[timeline("m", "ticks", 240, offset=480)]
@@ -662,6 +669,42 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
     ):
         assert _problems(document) == []
         validate(document)
+
+
+def test_a_child_on_a_float_axis_ends_at_the_double_sum() -> None:
+    def page(length: Any, child_length: Any, offset: Any, number_type: str) -> dict:
+        axis = timeline(
+            "axis", "points", child_length, offset=offset, number_type=number_type
+        )
+        return manifest(
+            timeline("page", "points", length, number_type=number_type, children=[axis])
+        )
+
+    fits = page(932.2326510101616, 855.5289364103584, 76.70371459980326, "float")
+    assert 76.70371459980326 + 855.5289364103584 == 932.2326510101616
+    assert _problems(fits) == []
+    validate(fits)
+    assert _only(page(932.2326510101616, 855.53, 76.70371459980326, "float")) == (
+        ("timelines", 0, "children", 0, "length"),
+        "child 'axis' ends at 932.2337145998032, beyond the length 932.2326510101616 "
+        "of its parent 'page'",
+    )
+    pairs = (
+        [2050001279156237, 2199023255552],
+        [7525312107856185, 8796093022208],
+        [5397544070150107, 70368744177664],
+    )
+    assert [Fraction(*pair) for pair in pairs] == [
+        Fraction(932.2326510101616),
+        Fraction(855.5289364103584),
+        Fraction(76.70371459980326),
+    ]
+    exact = page(*pairs, "fraction")
+    assert _only(exact) == (
+        ("timelines", 0, "children", 0, "length"),
+        "child 'axis' ends at [65600040932999587, 70368744177664], beyond the length "
+        "[2050001279156237, 2199023255552] of its parent 'page'",
+    )
 
 
 @pytest.mark.parametrize(

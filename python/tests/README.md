@@ -592,13 +592,26 @@ documents that bound each rule from the other side:
   a group, a MeasureMap and the manifest: `identity_problems` finds nothing
   and `validate` accepts each manifest.
 - **Containment.** A child's end is its offset plus its length, or, for a
-  segment of unknown length, its successor's offset; values compare exactly
-  and the end is spelled in the parent's number type, a fraction pair where
-  that type has no exact spelling: `0.2` at `0.1` in `0.3` seconds ends at
-  `[10808639105689191, 36028797018963968]`, `0.5` at `0.5` in `0.75` at
+  segment of unknown length, its successor's offset. Where the parent's
+  axis and the child's are both `float`, the offset and the length are
+  added as doubles, as a reader adds the JSON numbers it reads, and that
+  sum is compared with the parent's length; wherever either axis is `int`
+  or `fraction`, the values are added and compared exactly. The end is
+  spelled in the parent's number type, a fraction pair where that type has
+  no exact spelling: `0.2` at `0.1` in `0.3` seconds ends at
+  `0.30000000000000004`, their double sum, `0.5` at `0.5` in `0.75` at
   `1.0`, `240` ticks at `480` in `480` at `720`, a quarters child declared
-  `float`, `2.5` at `[7, 1]` in `[8, 1]`, at `[19, 2]`; `0.25` at `0.5` in
-  `0.75` and `[2, 1]` at `[8, 1]` in `[10, 1]` end at the length and pass.
+  `float`, `2.5` at `[7, 1]` in `[8, 1]`, at `[19, 2]`, and a seconds child
+  declared `fraction`, `[1, 3]` at `0.5` in `0.75`, at `[5, 6]`; `0.25` at
+  `0.5` in `0.75` and `[2, 1]` at `[8, 1]` in `[10, 1]` end at the length
+  and pass. The double sum decides even where it differs from the exact
+  one: `855.5289364103584` points at `76.70371459980326` in
+  `932.2326510101616` (a drawing's time axis) end at the length in double
+  arithmetic and pass, though their exact sum exceeds it by 3/2^46; one
+  decimal step longer, `855.53` ends at `932.2337145998032` and is
+  reported. The same three values written as the Fraction pairs that equal
+  them on a `fraction` axis are added exactly and reported, ending at
+  `[65600040932999587, 70368744177664]`.
   An offset beyond the length is its child's one problem; a child of another
   unit gets only the unit problem, also between two continuous logical units
   (`number` under `quarters`); a parent of unknown length checks no

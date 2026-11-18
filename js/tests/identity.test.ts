@@ -7,6 +7,7 @@ import {
   validate,
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
+import { exact } from "../src/numbers/exact.js";
 import { bundle, group, manifest, rejectionCase, timeline } from "./fixtures.js";
 
 type Problem = [readonly (string | number)[], string];
@@ -896,7 +897,12 @@ describe("identity", () => {
     ]);
     expect(only(recording(0.3, take(0.2, 0.1)))).toEqual([
       ["timelines", 0, "children", 0, "length"],
-      "child 'take' ends at [10808639105689191, 36028797018963968], beyond the length 0.3 of its parent 'recording'",
+      "child 'take' ends at 0.30000000000000004, beyond the length 0.3 of its parent 'recording'",
+    ]);
+    const third = timeline("take", "seconds", [1, 3], { offset: 0.5, number_type: "fraction" });
+    expect(only(recording(0.75, third))).toEqual([
+      ["timelines", 0, "children", 0, "length"],
+      "child 'take' ends at [5, 6], beyond the length 0.75 of its parent 'recording'",
     ]);
     const midi = timeline("midi", "ticks", 480, {
       children: [timeline("m", "ticks", 240, { offset: 480 })],
@@ -950,6 +956,36 @@ describe("identity", () => {
       expect(problems(value)).toEqual([]);
       validate(value);
     }
+  });
+
+  it("ends a child on a float axis at the double sum", () => {
+    const page = (length: unknown, childLength: unknown, offset: unknown, numberType: string) =>
+      manifest([
+        timeline("page", "points", length, {
+          number_type: numberType,
+          children: [timeline("axis", "points", childLength, { offset, number_type: numberType })],
+        }),
+      ]);
+    const fits = page(932.2326510101616, 855.5289364103584, 76.70371459980326, "float");
+    expect(76.70371459980326 + 855.5289364103584).toBe(932.2326510101616);
+    expect(problems(fits)).toEqual([]);
+    validate(fits);
+    expect(only(page(932.2326510101616, 855.53, 76.70371459980326, "float"))).toEqual([
+      ["timelines", 0, "children", 0, "length"],
+      "child 'axis' ends at 932.2337145998032, beyond the length 932.2326510101616 of its parent 'page'",
+    ]);
+    const pairs = [
+      [2050001279156237, 2199023255552],
+      [7525312107856185, 8796093022208],
+      [5397544070150107, 70368744177664],
+    ];
+    expect(pairs.map((pair) => exact(pair))).toEqual(
+      [932.2326510101616, 855.5289364103584, 76.70371459980326].map((value) => exact(value)),
+    );
+    expect(only(page(pairs[0], pairs[1], pairs[2], "fraction"))).toEqual([
+      ["timelines", 0, "children", 0, "length"],
+      "child 'axis' ends at [65600040932999587, 70368744177664], beyond the length [2050001279156237, 2199023255552] of its parent 'page'",
+    ]);
   });
 
   it.each([
