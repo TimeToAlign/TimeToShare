@@ -120,7 +120,14 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   | `milliseconds`, `seconds`, `minutes` | physical | continuous | `float` |
   | `samples`, `frames` | physical | discrete | `int` |
   | `pixels` | graphical | discrete | `int` |
-  | `meters`, `centimeters`, `millimeters`, `inches`, `points` | graphical | continuous | `float` |
+  | `meters`, `centimeters`, `millimeters`, `inches`, `points`, `css_pixels`, `user_units` | graphical | continuous | `float` |
+
+  `pixels` counts the pixels of a raster image. `css_pixels` is the CSS
+  pixel, 1/96 inch, the unit of an SVG's outermost viewport, and is
+  continuous. `user_units` is a document's own coordinate system, such as
+  the space of an SVG `viewBox`; only that document knows its size, so it
+  is related to another unit only through a conversion map of the timeline
+  that measures in it.
 
   The domain and modality decide the timeline's class (`seconds` makes a
   `ContinuousPhysicalTimeline`), which a timeline never writes.
@@ -142,7 +149,19 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   offset is not supported yet: …`). Where its
   parent's length is known, a child starts at or before the parent's end
   and ends at or before it, locked or not: no child reaches past a known
-  length. A root may carry an `offset` too, negative included:
+  length. A child's **end** is its offset plus its length, both known.
+  Where the parent's number type and the child's are both `float`, it is
+  the sum of the two doubles in IEEE 754 binary64 arithmetic, rounding to
+  nearest, ties to even, as a reader adding the two JSON numbers finds it;
+  wherever either number type is `int` or `fraction`, and where a value
+  has no double (a Fraction pair, an integer beyond the range of doubles)
+  or the double sum overflows, it is the exact sum. The end is then
+  compared with the parent's length by exact value. So a child of length
+  855.5289364103584 at offset 76.70371459980326 ends at the length
+  932.2326510101616 of its `float` parent, though the exact sum of the two
+  doubles lies 3/2^46 beyond it, and a child of length 0.2 at offset 0.1
+  ends at 0.30000000000000004, beyond a `float` parent of length 0.3. A
+  root may carry an `offset` too, negative included:
   it places the root's origin on its unit's absolute axis, such as a
   recording whose origin is a moment in UNIX time. A root without `offset`
   has none.
@@ -161,7 +180,8 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   lifting it yet.
 - `is_segment_line` marks a **segment line**, a timeline containing only
   contiguous segments: its children are its segments, contiguous from 0 in
-  offset order to its length, all sharing its unit as every child does,
+  offset order to its length, each starting where the one before it ends
+  (a child's end, as above), all sharing its unit as every child does,
   and all with one `is_segment_line` value. Segments that are segment lines
   themselves make a nested segment line.
 - `conversion_maps`, `regions`, `flow_control` and `links` hold the
@@ -537,7 +557,9 @@ order of their names, then its children's), then children off their
 parent's axis (child by child, each followed by its
 own children: its unit, then an offset beyond its parent's known length
 or else an end beyond it), then segment lines, whose
-segments are visited in canonical order and compared by exact value. Across the manifest, the problems come in this
+segments are visited in canonical order and each segment's end, a
+child's end ([The timeline](#the-timeline)), is compared by exact value
+with the next segment's offset and the last one's with the line's length. Across the manifest, the problems come in this
 order: each root's own problems, roots in array order; then the IDs
 repeated across roots (root by root, each ID of its tree in identity order,
 the IDs of the maps other maps hold last), the group IDs, the MeasureMap
@@ -556,9 +578,9 @@ is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
 `json_pointer(path)` and npm's `jsonPointer(path)` render a path. Both
 packages write the messages above alike, an ID verbatim in single quotes
 and every value spelled as canonical YAML and pretty JSON spell it
-(`720`, `[19, 2]`, `75.0`). A child's end, its offset plus its length, or for a
-segment of unknown length its successor's offset, is compared exactly and
-spelled as its parent's number type writes it, or as a `[numerator,
+(`720`, `[19, 2]`, `75.0`). A child's end ([The timeline](#the-timeline)), or for a
+segment of unknown length its successor's offset, is compared by exact
+value and spelled as its parent's number type writes it, or as a `[numerator,
 denominator]` pair where that type cannot write it exactly. A repeated
 entry within one display or band order or within one group's `members` is
 refused by the schema.

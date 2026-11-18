@@ -68,7 +68,7 @@ y downwards, and the block-local position `(Ox, Oy)` of the **place origin**,
 from which places are measured (section 8.6). Every element carries its
 **address** (section 2.2) and, where it shows a coordinate, the exact
 coordinate it shows, whatever its label's text (section 5.2). Canvas units become
-pixels in SVG and points in TikZ (section 7).
+CSS pixels in SVG and points in TikZ (section 7).
 
 A drawing does not depend on its position on a canvas, nor on its scale: a
 canvas or a writer places the block at a position and scales it uniformly by
@@ -236,10 +236,10 @@ timelines it converts to:
 |---|---|
 | `logical` | `number`, `floating_measures`, `whole_notes`, `quarters`, `ticks` |
 | `physical` | `milliseconds`, `seconds`, `minutes`, `samples`, `frames` |
-| `graphical` | `pixels`, `meters`, `centimeters`, `millimeters`, `inches`, `points` |
+| `graphical` | `pixels`, `meters`, `centimeters`, `millimeters`, `inches`, `points`, `css_pixels`, `user_units` |
 
-`ticks`, `samples`, `frames` and `pixels` are discrete, every other unit
-continuous. A map whose `target_unit` is null has no domain and no
+`ticks`, `samples`, `frames` and `pixels` are discrete, every other unit,
+`css_pixels` and `user_units` included, continuous. A map whose `target_unit` is null has no domain and no
 modality, so no selector naming them matches it and it inherits its style
 through its band (section 2.5). An element's **class** is the timeline
 class its timeline's unit decides: `Continuous` or `Discrete` for the
@@ -736,8 +736,8 @@ cannot carry most of them. IDs hold none: the schema refuses them.
 A coordinate is labelled with its **pretty text**, rounded for the
 drawing: its number, a space (U+0020) and the **pretty unit** of its
 unit, or, in seconds, a clock with no pretty unit after it. A pretty unit
-is a symbol (`♩`, `𝅝`), an abbreviation (`ms`, `smp`), or else the
-unit's name. Only the text is rounded: the element carries the exact
+is a symbol (`♩`, `𝅝`), an abbreviation (`ms`, `smp`, `uu`), or else the
+unit's name (`ticks`, `css_pixels`). Only the text is rounded: the element carries the exact
 coordinate (section 1), and no position is computed from its label.
 
 | Unit | Pretty unit |
@@ -750,7 +750,12 @@ coordinate (section 1), and no position is computed from its label.
 | `pixels` | `px` |
 | `points` | `pt` |
 | `meters`, `centimeters`, `millimeters`, `inches` | `m`, `cm`, `mm`, `in` |
-| any other unit | the unit's name (`ticks`, `frames`, `number`, `floating_measures`) |
+| `user_units` | `uu` |
+| any other unit | the unit's name (`ticks`, `frames`, `number`, `floating_measures`, `css_pixels`) |
+
+`css_pixels` has no abbreviation, since `px` is the pretty unit of the
+discrete `pixels`: a coordinate in CSS pixels is labelled with the unit's
+name, `800.0 css_pixels`.
 
 The value a label shows is a position of section 3.1, a float or an exact
 value, and its number is written as follows; a negative value is written
@@ -1487,7 +1492,8 @@ bounding box of the placed blocks, each `W × z` by `H × z`, plus a margin of
 `right` and `bottom` the largest `X + W × z` and `Y + H × z`, the page is
 `PW = right − left + 32` wide and `PH = bottom − top + 32` high, and a
 drawing at `(X, Y)` lies at the page position `(X − left + 16, Y − top +
-16)`, y downwards. Canvas units are pixels in SVG and points in TikZ.
+16)`, y downwards. Canvas units are CSS pixels in SVG, whose `viewBox`
+matches its unitless `width` and `height`, and points in TikZ.
 
 ### 7.2 Element descriptors
 
