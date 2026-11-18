@@ -1190,17 +1190,23 @@ is not a defect of the format. Tools write canonical YAML.
 Both packages refuse a text holding several faults at the first of them in
 the order of the text, as their shared refusals in
 `fixtures/serializations/` test; other readers are recommended to do the
-same. The one exception is a character outside YAML's printable set: the
-first one in a YAML text is refused, where it stands, before the text is
-parsed, so it outranks any fault before it, such as a repeated key. The
-depth limit is one fault among them, ranked by the start of the first
-collection at depth 257: a fault before that start is refused in its
-stead, and a fault after it is never reached. A fault is reported at its
-offending token: a fault of a node at its first character, or at its first
-property (anchor or tag) where it has one; an alias at its `*`; an escaped
-lone surrogate at its escape; a number that rounds to an infinity at that
-number. Lines and columns are counted from 1, columns in code points, JSON
-and YAML alike.
+same. Two exceptions follow from how YAML is read. A character outside
+YAML's printable set is refused before the text is parsed: the first one
+in a YAML text is refused where it stands, so it outranks any fault before
+it, such as a repeated key. And a YAML parser reads one token ahead, since
+a scalar may turn out to be a key, so a syntax error it meets while
+reading ahead may be named before a fault of the token just before it, as
+in `- &a "\q"`, an anchor followed by an invalid escape; only there may the
+two packages name different faults. The depth limit is one fault among
+them, ranked by the start of the first collection at depth 257: a fault
+before that start is refused in its stead, and a fault after it is never
+reached. A fault is reported at its offending token: a fault of a node at
+its first character; a node with properties, an anchor, a tag or both, at
+its first property, which the error names, whichever is written first
+(`&a !!str x` at `&a`, `!!str &a x` at `!!str`); an alias at its `*`; an
+escaped lone surrogate at its escape; a number that rounds to an infinity
+at that number. Lines and columns are counted from 1, columns in code
+points, JSON and YAML alike.
 
 Python's `serialization_of(text)` and npm's `serializationOf(text)` name a
 text's serialization without validating it, by the same choice between
@@ -1304,9 +1310,10 @@ else:
 - `loads(text)` reads a text, a `str`, in any serialization, JSON or YAML,
   as [Reading](#reading) states, after removing one U+FEFF at position 0:
   integers stay exact at any size and floats stay floats. It reads YAML
-  with PyYAML's pure-Python `SafeLoader`, given the YAML 1.2 core schema's
-  resolvers and constructors in place of YAML 1.1's; it never uses the C
-  loader, so that reading does not depend on whether libyaml is
+  through PyYAML's event API (`yaml.parse`) over its pure-Python parser
+  and resolves plain scalars by the YAML 1.2 core schema itself, so no
+  PyYAML loader, resolver or constructor takes part; it never uses the C
+  parser, so that reading does not depend on whether libyaml is
   installed. A text the reading rules refuse, and every error of the YAML
   parser, raises `ValueError` with the line and column of the fault
   ([Reading](#reading)). It does not validate.
