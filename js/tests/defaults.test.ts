@@ -14,6 +14,7 @@ import { type Json, JsonFloat, type Lossless } from "../src/json/value.js";
 import { loads } from "../src/serialization/read.js";
 import { compactJson } from "../src/serialization/text.js";
 import { dumps } from "../src/serialization/write.js";
+import { FORMAT_CONTEXT } from "../src/statements/statements.js";
 import { parse } from "../src/validate.js";
 import { bundle, fixtureFiles, fixtureText, manifest, timeline, validate } from "./fixtures.js";
 
@@ -24,35 +25,31 @@ const SMALLEST = {
 const REGION = { id: "r", start: [0, 1], end: [1, 1] };
 const REPEAT = { id: "b", type: "jump_from", manifestation: "repeat_end" };
 const root = (value: unknown) => ((value as JsonObject).timelines as JsonObject[])[0] as JsonObject;
-const ASSERTION = {
-  asserted_by: [],
-  asserted_on: null,
-  method: null,
-  service: null,
-  based_on: [],
-  match: null,
-  status: null,
-};
-const LINK = {
-  relation: "pertains_to",
-  level: "work",
-  records: [{ url: "records/op106.json" }],
-  assertion: { method: "manual" },
-  parts_relation: "has_part",
-  parts: [{ absent: "lost", assertion: { status: "confirmed" } }],
-  part_of: [{ parts_relation: "has_part" }],
-};
+const STATEMENTS = { type: ["schema:MusicRecording"], "schema:position": [1] };
+const PROVENANCE = [
+  { property: "rdf:type", value: { id: "schema:MusicRecording" }, status: "confirmed" },
+];
 
-/** A manifest with a scheme and one link on itself, its root and a region. */
+/** A manifest with statements and provenance on itself, its root and a region. */
 function described(): JsonObject {
   return manifest(
     [
       timeline("score", "quarters", [8, 1], {
-        links: [LINK],
-        regions: [{ ...REGION, links: [LINK] }],
+        statements: STATEMENTS,
+        provenance: PROVENANCE,
+        regions: [{ ...REGION, statements: STATEMENTS }],
       }),
     ],
-    { schemes: [{ id: "opus" }], links: [LINK] },
+    {
+      id: "op106",
+      "@context": {
+        ...FORMAT_CONTEXT,
+        rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        schema: "http://schema.org/",
+      },
+      statements: STATEMENTS,
+      provenance: PROVENANCE,
+    },
   );
 }
 
@@ -64,8 +61,6 @@ describe("the complete and the minimal form", () => {
       meta: {},
       groups: [],
       measure_maps: [],
-      schemes: [],
-      links: [],
       timelines: [
         {
           id: "piece",
@@ -80,7 +75,6 @@ describe("the complete and the minimal form", () => {
           conversion_maps: [],
           regions: [],
           flow_control: [],
-          links: [],
         },
       ],
     });
@@ -162,7 +156,6 @@ describe("the complete and the minimal form", () => {
       end: [1, 1],
       name: null,
       meta: {},
-      links: [],
     });
     const defaults = { name: null, label: null, meta: {} };
     expect(done.flow_control).toEqual([
@@ -204,50 +197,24 @@ describe("the complete and the minimal form", () => {
     validate(value);
   });
 
-  it("gives every object of the description layer exactly its defaults", () => {
+  it("neither adds nor drops a context, statements or provenance", () => {
     const value = described();
     const done = complete(value);
-    const link = {
-      relation: "pertains_to",
-      level: "work",
-      uri: [],
-      identifiers: [],
-      records: [{ url: "records/op106.json", media_type: null, size: null, integrity: null }],
-      label: null,
-      assertion: { ...ASSERTION, method: "manual" },
-      parts_relation: "has_part",
-      parts: [
-        {
-          uri: [],
-          identifiers: [],
-          label: null,
-          represented_by: [],
-          absent: "lost",
-          assertion: { ...ASSERTION, status: "confirmed" },
-        },
-      ],
-      parts_ordered: true,
-      part_of: [
-        {
-          parts_relation: "has_part",
-          uri: [],
-          identifiers: [],
-          label: null,
-          position: null,
-          assertion: null,
-        },
-      ],
-    };
-    expect(done.schemes).toEqual([{ id: "opus", name: null, uri: [], criteria: null }]);
     const first = root(done);
-    expect([done.links, first.links, (first.regions as JsonObject[])[0]?.links]).toEqual([
-      [link],
-      [link],
-      [link],
-    ]);
+    expect(done["@context"]).toEqual(value["@context"]);
+    expect([
+      done.statements,
+      first.statements,
+      (first.regions as JsonObject[])[0]?.statements,
+    ]).toEqual([STATEMENTS, STATEMENTS, STATEMENTS]);
+    expect([done.provenance, first.provenance]).toEqual([PROVENANCE, PROVENANCE]);
+    expect(Object.hasOwn((first.regions as JsonObject[])[0] as JsonObject, "provenance")).toBe(
+      false,
+    );
     expect(minimal(value)).toEqual(value);
     expect(dumps(minimal(done))).toBe(dumps(value));
     validate(done);
+    expect(Object.hasOwn(complete(SMALLEST), "@context")).toBe(false);
   });
 
   it.each([
@@ -447,7 +414,6 @@ describe("the typed forms", () => {
     conversion_maps: [],
     regions: [],
     flow_control: [],
-    links: [],
   };
   const COMPLETE: CompleteManifest = {
     timetoshare: "0.2.0",
@@ -455,8 +421,6 @@ describe("the typed forms", () => {
     meta: {},
     groups: [],
     measure_maps: [],
-    schemes: [],
-    links: [],
     timelines: [COMPLETE_ROOT],
   };
 

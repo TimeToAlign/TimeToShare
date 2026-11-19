@@ -2,14 +2,15 @@ import { describe, expect, it } from "vitest";
 import { CONTAINERS, definitionsOf, ID_POSITIONS, MEASURE_VIEWS } from "../src/ids.js";
 import {
   compactJson,
-  descriptionProblems,
   FileIdError,
+  FORMAT_CONTEXT,
   fromFileId,
   isJsonObject,
   JsonFloat,
   loads,
   SchemaValidationError,
   schema,
+  statementProblems,
   toFileId,
   validate,
   withBareIds,
@@ -41,12 +42,8 @@ timelines:
       out: {type: ConstantMap, id: constant}
   regions:
   - id: intro
-    links:
-    - parts:
-      - represented_by: [verse, intro]
-        identifiers: [{scheme: opus, value: "1"}]
-      part_of:
-      - identifiers: [{scheme: opus, value: "2"}]
+    statements:
+      dcterms:source: [{id: "#verse"}]
   flow_control:
   - {id: jump_to_1, type: jump_to}
   - {id: jump_from_1, type: jump_from, target: jump_to_1}
@@ -54,12 +51,6 @@ groups:
 - {id: g, members: [score]}
 measure_maps:
 - {id: mm, rows: []}
-schemes:
-- {id: opus}
-links:
-- identifiers:
-  - {scheme: opus, value: "3"}
-  - {scheme: "http://www.wikidata.org/entity/P839", value: "4"}
 graphical:
   order:
     score: [line, children]
@@ -96,12 +87,8 @@ timelines:
       out: {type: ConstantMap, id: "#constant"}
   regions:
   - id: "#intro"
-    links:
-    - parts:
-      - represented_by: ["#verse", "#intro"]
-        identifiers: [{scheme: "#opus", value: "1"}]
-      part_of:
-      - identifiers: [{scheme: "#opus", value: "2"}]
+    statements:
+      dcterms:source: [{id: "#verse"}]
   flow_control:
   - {id: "#jump_to_1", type: jump_to}
   - {id: "#jump_from_1", type: jump_from, target: "#jump_to_1"}
@@ -109,12 +96,6 @@ groups:
 - {id: "#g", members: ["#score"]}
 measure_maps:
 - {id: "#mm", rows: []}
-schemes:
-- {id: "#opus"}
-links:
-- identifiers:
-  - {scheme: "#opus", value: "3"}
-  - {scheme: "http://www.wikidata.org/entity/P839", value: "4"}
 graphical:
   order:
     "#score": [line, children]
@@ -216,12 +197,12 @@ describe("a whole manifest", () => {
     expect(compactJson(file)).toBe(compactJson(filed()));
   });
 
-  it("leaves band words and URIs as written", () => {
+  it("leaves band words and the IRIs of statements as written", () => {
     const value = withBareIds(filed());
     expect(at(value, "graphical", "order", "score")).toEqual(["line", "children"]);
-    expect(at(value, "links", 0, "identifiers", 1, "scheme")).toBe(
-      "http://www.wikidata.org/entity/P839",
-    );
+    const reference = ["timelines", 0, "regions", 0, "statements", "dcterms:source", 0, "id"];
+    expect(at(value, ...reference)).toBe("#verse");
+    expect(at(withFileIds(bare()), ...reference)).toBe("#verse");
   });
 
   it.each([
@@ -253,13 +234,6 @@ describe("a whole manifest", () => {
       ["graphical", "timestamps", 0, "timeline"],
       "'#' is not written as an ID: nothing follows the '#'",
     ],
-    [
-      (m: JsonObject) => {
-        (at(m, "links", 0, "identifiers", 0) as JsonObject).scheme = "opus";
-      },
-      ["links", 0, "identifiers", 0, "scheme"],
-      "'opus' names a scheme of this manifest, so it is written '#opus'",
-    ],
   ])("refuses a bare ID in a file where it stands (%#)", (change, path, message) => {
     const value = filed();
     change(value);
@@ -285,7 +259,6 @@ const HOW: Record<string, string> = {
   id: "value",
   ids: "items",
   order: "propertyNames",
-  scheme: "anyOf",
 };
 
 type Node = Record<string, unknown>;
@@ -394,12 +367,10 @@ describe("every fixture", () => {
 });
 
 describe("the validators", () => {
-  const small = (orderValue: string, scheme: string): JsonObject => ({
+  const small = (orderValue: string): JsonObject => ({
     timetoshare: "0.2.0",
     timelines: [{ id: "#score", unit: "quarters", length: [8, 1] }],
     groups: [{ id: "#g", members: ["#score"] }],
-    schemes: [{ id: "#opus" }],
-    links: [{ relation: "pertains_to", level: "work", identifiers: [{ scheme, value: "1" }] }],
     graphical: {
       order: {
         "#g": [orderValue],
@@ -409,55 +380,44 @@ describe("the validators", () => {
   });
 
   it("accept a manifest in the file form", () => {
-    validate(small("#score", "#opus"));
+    validate(small("#score"));
   });
 
-  it.each([
-    [
-      "score",
-      "#opus",
-      ["graphical", "order", "#g", 0],
-      "'score' is not written as an ID: it does not start with '#'",
-    ],
-    [
-      "#score",
-      "opus",
-      ["links", 0, "identifiers", 0, "scheme"],
-      "'opus' names a scheme of this manifest, so it is written '#opus'",
-    ],
-  ])("refuse %j or %j where the schema cannot type it", (orderValue, scheme, path, message) => {
+  it("refuse a bare member ID in a group's order, where the schema cannot type it", () => {
     let thrown: unknown;
     try {
-      validate(small(orderValue, scheme));
+      validate(small("score"));
     } catch (error) {
       thrown = error;
     }
     expect(thrown).toBeInstanceOf(SchemaValidationError);
-    const { code, detail } = thrown as SchemaValidationError;
-    expect([code, (thrown as SchemaValidationError).path, detail]).toEqual([
+    const { code, path, detail } = thrown as SchemaValidationError;
+    expect([code, path, detail]).toEqual([
       "schema",
-      path,
-      message,
+      ["graphical", "order", "#g", 0],
+      "'score' is not written as an ID: it does not start with '#'",
     ]);
   });
 
-  it("refuse a bare scheme reference in the description check too", () => {
-    const problems = descriptionProblems(small("#score", "opus"));
-    expect(problems.map((problem) => [problem.code, problem.path, problem.detail])).toEqual([
-      [
-        "schema",
-        ["links", 0, "identifiers", 0, "scheme"],
-        "'opus' names a scheme of this manifest, so it is written '#opus'",
-      ],
-    ]);
+  it("read IDs outside the statements as they stand in the statement check", () => {
+    expect(statementProblems(small("score"))).toEqual([]);
   });
 
-  it("read IDs outside the description layer as they stand in the description check", () => {
-    expect(descriptionProblems(small("score", "#opus"))).toEqual([]);
+  it("resolve an element named by a statement against the bare IDs", () => {
+    const value = small("#score");
+    value["@context"] = { ...FORMAT_CONTEXT, dcterms: "http://purl.org/dc/terms/" };
+    (value.timelines as JsonObject[])[0] = {
+      id: "#score",
+      unit: "quarters",
+      length: [8, 1],
+      statements: { "dcterms:source": [{ id: "#g" }] },
+    };
+    validate(value);
+    expect(statementProblems(value)).toEqual([]);
   });
 
   it.each(["s", "score", "#"])("refuse the bare ID %j by the # rule", (written) => {
-    const value = small("#score", "#opus");
+    const value = small("#score");
     (value.timelines as JsonObject[])[0] = { id: written, unit: "quarters", length: [8, 1] };
     let thrown: unknown;
     try {
@@ -475,7 +435,7 @@ describe("the validators", () => {
   });
 
   it("accept any character after the # as an ID", () => {
-    const value = small("#score", "#opus");
+    const value = small("#score");
     (value.timelines as JsonObject[])[0] = { id: "#\u2028", unit: "quarters", length: [8, 1] };
     value.groups = [{ id: "#g", members: ["#\u2028"] }];
     value.graphical = {

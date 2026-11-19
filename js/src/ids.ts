@@ -5,15 +5,14 @@
  * (`"id": "#clt_1"`) as well as every reference to one (a group's members,
  * the keys of `graphical.order`, a named timestamp's timeline, an address's
  * `id`, a selector's `within`, a flow-control element's `target`, a measure
- * view's `measure_map`, a part slot's `represented_by`). In memory an ID is
- * bare: `clt_1`. Exactly one `#` is stripped, so the file text `##x` is the
- * bare ID `#x`.
+ * view's `measure_map`). In memory an ID is bare: `clt_1`. Exactly one `#`
+ * is stripped, so the file text `##x` is the bare ID `#x`.
  *
- * Two positions hold an ID or something else, and the `#` tells them apart:
- * the values of a group's entry in `graphical.order` are member IDs, while a
- * timeline's entry holds band words, which stay bare; and an identifier's
- * `scheme` is either the ID of a scheme of the manifest (`#opus`) or an
- * absolute URI, which is written as it is.
+ * One position holds an ID or something else: the values of a group's entry
+ * in `graphical.order` are member IDs, while a timeline's entry holds band
+ * words, which stay bare. The IRIs of `statements` and `provenance`, an
+ * element named `#clt_1` among them, are IRI references, the same text in
+ * the file and in memory, and are never converted.
  *
  * `withFileIds` and `withBareIds` convert a whole manifest between the two
  * forms. Both are pure: they return a new value, keep unknown keys and the
@@ -33,10 +32,9 @@ export const HASH = "#";
 /**
  * How a member holds IDs: `id` the member is one ID; `ids` a list of IDs;
  * `order` an object keyed by IDs whose value, where the key names a group, is
- * a list of member IDs (a timeline's value holds band words); `scheme` an ID
- * or an absolute URI, the `#` telling them apart.
+ * a list of member IDs (a timeline's value holds band words).
  */
-export type IdShape = "id" | "ids" | "order" | "scheme";
+export type IdShape = "id" | "ids" | "order";
 
 /** Every member of a schema definition that holds IDs, and how it holds them. */
 export const ID_POSITIONS: readonly (readonly [string, string, IdShape])[] = [
@@ -55,9 +53,6 @@ export const ID_POSITIONS: readonly (readonly [string, string, IdShape])[] = [
   ["Selector", "within", "id"],
   ["MapBase", "id", "id"],
   ["MeasureView", "measure_map", "id"],
-  ["PartSlot", "represented_by", "ids"],
-  ["Scheme", "id", "id"],
-  ["Identifier", "scheme", "scheme"],
 ];
 
 /** How a member holds a definition: one object, a list, or an object's values. */
@@ -68,15 +63,11 @@ export const CONTAINERS: readonly (readonly [string, string, Holding, string])[]
   ["Manifest", "timelines", "list", "Timeline"],
   ["Manifest", "groups", "list", "Group"],
   ["Manifest", "measure_maps", "list", "MeasureMap"],
-  ["Manifest", "schemes", "list", "Scheme"],
-  ["Manifest", "links", "list", "Link"],
   ["Manifest", "graphical", "one", "Graphical"],
   ["Timeline", "children", "list", "Timeline"],
   ["Timeline", "conversion_maps", "list", "ConversionMap"],
   ["Timeline", "regions", "list", "Region"],
   ["Timeline", "flow_control", "list", "FlowControlElement"],
-  ["Timeline", "links", "list", "Link"],
-  ["Region", "links", "list", "Link"],
   ["Graphical", "rules", "list", "Rule"],
   ["Graphical", "timestamps", "list", "Timestamp"],
   ["Rule", "select", "one", "Selector"],
@@ -84,11 +75,6 @@ export const CONTAINERS: readonly (readonly [string, string, Holding, string])[]
   ["ChainMap", "maps", "list", "ConversionMap"],
   ["PiecewiseMap", "maps", "list", "ConversionMap"],
   ["CombinationMap", "maps", "values", "ConversionMap"],
-  ["Link", "identifiers", "list", "Identifier"],
-  ["Link", "parts", "list", "PartSlot"],
-  ["Link", "part_of", "list", "PartOf"],
-  ["PartSlot", "identifiers", "list", "Identifier"],
-  ["PartOf", "identifiers", "list", "Identifier"],
 ];
 
 /** The conversion-map types built on `MeasureView`; every other one on `MapBase`. */
@@ -177,13 +163,11 @@ class Converter {
   readonly #toFile: boolean;
   readonly #strict: boolean;
   readonly #groups: ReadonlySet<string>;
-  readonly #schemes: ReadonlySet<string>;
 
   constructor(manifest: JsonObject, toFile: boolean, strict = true) {
     this.#toFile = toFile;
     this.#strict = strict;
     this.#groups = this.#ids(manifest, "groups");
-    this.#schemes = this.#ids(manifest, "schemes");
   }
 
   /** The bare IDs of a top-level list, read leniently: a check comes later. */
@@ -209,19 +193,6 @@ class Converter {
   ids(value: unknown, path: Path): unknown {
     if (!Array.isArray(value)) return clone(value);
     return value.map((item, index) => this.id(item, [...path, index]));
-  }
-
-  scheme(text: unknown, path: Path): unknown {
-    if (typeof text !== "string") return clone(text);
-    if (this.#toFile) return this.#schemes.has(text) ? toFileId(text) : text;
-    if (text.startsWith(HASH)) return this.#strict ? bare(text, path) : leniently(text);
-    if (this.#strict && this.#schemes.has(text)) {
-      throw new FileIdError(
-        `'${text}' names a scheme of this manifest, so it is written '#${text}'`,
-        path,
-      );
-    }
-    return text;
   }
 
   order(value: unknown, path: Path): unknown {
@@ -274,9 +245,8 @@ class Converter {
 }
 
 /**
- * The manifest with every ID in the file form, `#` + the bare ID. An
- * identifier's `scheme` gains the `#` where it names a scheme of the
- * manifest, a value of `graphical.order` where its key names a group.
+ * The manifest with every ID in the file form, `#` + the bare ID; a value of
+ * `graphical.order` gains the `#` where its key names a group.
  */
 export function withFileIds<T>(manifest: T): T {
   if (!isJsonObject(manifest)) return clone(manifest);
@@ -284,48 +254,16 @@ export function withFileIds<T>(manifest: T): T {
 }
 
 /**
- * The manifest with every ID bare, read from its file form `#id`. An
- * identifier's `scheme` without `#` is an absolute URI and stays as it is; a
+ * The manifest with every ID bare, read from its file form `#id`. A
  * timeline's entry in `graphical.order` holds band words, which stay as they
  * are.
  *
  * @throws {FileIdError} a `RangeError` with the `path` of the first text
- * that is not an ID in the file form, or of an identifier's `scheme` written
- * without `#` that names a scheme of the manifest.
+ * that is not an ID in the file form.
  */
 export function withBareIds<T>(manifest: T): T {
   if (!isJsonObject(manifest)) return clone(manifest);
   return new Converter(manifest, false).held(manifest, "Manifest", []) as T;
-}
-
-/**
- * The member at `path` in `manifest` (the member `member` of a `definition`
- * object) with every ID bare, read as `withBareIds` reads it: the IDs it
- * holds must be in the file form, and an identifier's `scheme` written
- * without `#` must name no scheme of `manifest`. Nothing outside the member
- * is read but the manifest's scheme IDs.
- *
- * @throws {FileIdError} a `RangeError` with the `path` of the first text in
- * the member that is not an ID in the file form, or of an identifier's
- * `scheme` written without `#` that names a scheme of the manifest.
- */
-export function memberWithBareIds(
-  manifest: JsonObject,
-  definition: string,
-  member: string,
-  path: Path,
-): unknown {
-  let value: unknown = manifest;
-  for (const step of path) {
-    value = Array.isArray(value)
-      ? value[step as number]
-      : isJsonObject(value)
-        ? value[step as string]
-        : undefined;
-  }
-  const held = HELD.get(definition)?.get(member);
-  if (held === undefined) throw new RangeError(`${definition}.${member} holds no IDs`);
-  return new Converter(manifest, false).holding(value, held[0], held[1], path);
 }
 
 /**

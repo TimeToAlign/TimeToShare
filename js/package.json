@@ -28,7 +28,7 @@
     "./fixtures/*": "./fixtures/*",
     "./fonts/*": "./fonts/*",
     "./docs/*": "./docs/*",
-    "./registry/*": "./registry/*",
+    "./catalogue/*": "./catalogue/*",
     "./package.json": "./package.json"
   },
   "files": [
@@ -37,7 +37,7 @@
     "fixtures",
     "fonts",
     "docs",
-    "registry"
+    "catalogue"
   ],
   "sideEffects": false,
   "publishConfig": {

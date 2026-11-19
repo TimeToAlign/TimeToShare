@@ -5,14 +5,13 @@
  * order: `timelines` by id; in every timeline, `children` by offset, then id,
  * `conversion_maps` by id, `regions` by start, then end, then id,
  * `flow_control` by coordinate, then id; `groups` by id and every group's `members` by
- * code point; `measure_maps` and `schemes` by id; `graphical.timestamps` by timeline, then
+ * code point; `measure_maps` by id; `graphical.timestamps` by timeline, then
  * coordinate, then id, and every timestamp's `display` in the order of
  * `TIMESTAMP_DISPLAY`. Own-axis values compare by exact numeric
  * value, strings by Unicode code point. A `graphical.order` array is a
- * display order and is never re-ordered, nor are the `links` of the
- * manifest, a timeline or a region (a display order), a link's `uri` (the
- * first preferred) and `parts` (the order of its reading), or any other
- * array of a link. Readers accept any order; every writer writes the
+ * display order and is never re-ordered, nor is any array of `statements`
+ * or `provenance` (the values of a pair and the annotations keep the order
+ * they are given in). Readers accept any order; every writer writes the
  * canonical one (`../serialization/write.ts`).
  */
 
@@ -149,7 +148,7 @@ function orderTimeline(timeline: JsonObject, where: string): void {
  * values are respelled as their number type selects (`./spelling.ts`), every
  * timeline in it is ordered at every depth and the array itself by id, its
  * `groups` by id, each with its `members` by code point, its `measure_maps`
- * and `schemes` by id and its `graphical.timestamps` by timeline, then
+ * by id and its `graphical.timestamps` by timeline, then
  * coordinate, then id, each with its `display` in canonical order. Entries
  * that tie keep their given order, and a member that should hold an ordered
  * array but holds no array is left as it is. Object keys are left as they
@@ -185,10 +184,8 @@ export function canonicalOrder<T>(value: T): T {
       members.sort(compareCodePoints);
     }
   }
-  for (const key of ["measure_maps", "schemes"]) {
-    const entries = result[key];
-    if (Array.isArray(entries)) sortBy(entries, key, byId);
-  }
+  const measureMaps = result.measure_maps;
+  if (Array.isArray(measureMaps)) sortBy(measureMaps, "measure_maps", byId);
   const timestamps = member(result.graphical, "timestamps");
   if (Array.isArray(timestamps)) {
     sortBy(timestamps, "graphical.timestamps", (timestamp, at) => [

@@ -7,73 +7,36 @@
  * A TimeToShare manifest is one JSON object holding the version marker
  * `timetoshare` and an array of root timelines, each describing a musical
  * timeline as timetoalign serializes it, optionally named, optionally
- * attributing timelines to groups, optionally linking the manifest, its
- * timelines and its regions to external entities (built from URLs through
- * the registry of known identifier schemes) and optionally styled for
- * drawing. An
+ * attributing timelines to groups, optionally describing the manifest, its
+ * timelines and its regions by property–value statements with their
+ * provenance (the catalogue of identifier systems, verbs and types guiding
+ * tools that write them) and optionally styled for drawing. A manifest
+ * carrying statements is a YAML-LD document through its inline `@context`.
+ * An
  * editor can place many manifests on a canvas, but a manifest knows nothing
  * about where or how often it is placed.
  */
 
 export { complete, DEFAULTS, minimal } from "./defaults.js";
-export {
-  ABSENCE_REASONS,
-  assertionFor,
-  LEVELS,
-  type LinkOptions,
-  linkFromUrl,
-  linkFromUrls,
-  MATCHES,
-  METHODS,
-  PARTS_RELATIONS,
-  type PartSlotOptions,
-  type PartsOptions,
-  partSlotFromUrl,
-  RELATIONS,
-  STATUSES,
-  withAssertion,
-  withIdentifier,
-  withLabel,
-  withPartOf,
-  withParts,
-  withRecord,
-  withUri,
-} from "./description/link.js";
-export {
-  defaultRegistry,
-  type KnownScheme,
-  type Recognition,
-  recognize,
-  type SchemeEntry,
-  type SchemeRegistry,
-  withSchemes,
-} from "./description/registry.js";
 export { dumpsFile, type FileForm, fileForm } from "./files.js";
 export { FONT_FILES, type FontMetrics, fontMetrics } from "./font.js";
 export { canonicalManifest, completeManifest, minimalManifest } from "./forms.js";
 export { schema } from "./generated/schema.js";
 export type {
   Address,
-  Assertion,
-  CompleteAssertion,
   CompleteConversionMap,
-  CompleteDescriptor,
   CompleteFlowControlElement,
   CompleteGraphical,
   CompleteGroup,
-  CompleteLink,
   CompleteManifest,
   CompleteMeasureMap,
-  CompletePartOf,
-  CompletePartSlot,
   CompleteRegion,
-  CompleteScheme,
   CompleteTimeline,
   CompleteTimestamp,
+  Context,
   ConversionMap,
   Coordinate,
   Declaration,
-  Descriptor,
   ElementType,
   Facet,
   FlowControlElement,
@@ -81,10 +44,9 @@ export type {
   Graphical,
   Group,
   Id,
-  Identifier,
-  Level,
+  Iri,
+  IriReference,
   LinearMap,
-  Link,
   LosslessManifest,
   Manifest,
   MeasureMap,
@@ -94,18 +56,18 @@ export type {
   Order,
   Paint,
   Part,
-  PartOf,
-  PartSlot,
+  Provenance,
+  ProvenanceEntry,
   Region,
   Rule,
-  Scheme,
   Selector,
-  Term,
+  Statements,
+  StatementValue,
   Timeline,
   Timestamp,
   TimeUnit,
-  Uri,
-  UriReference,
+  ValueNode,
+  ValueObject,
 } from "./generated/types.js";
 export { FileIdError, fromFileId, toFileId, withBareIds, withFileIds } from "./ids.js";
 export {
@@ -129,22 +91,67 @@ export {
   type Serialization,
 } from "./serialization/write.js";
 export { parseYaml } from "./serialization/yaml.js";
+export {
+  type Alternative,
+  type Catalogue,
+  type CatalogueSystem,
+  type CatalogueThing,
+  type CatalogueType,
+  type CatalogueVerb,
+  defaultCatalogue,
+  type InstantiateOptions,
+  instantiate,
+  type Lookup,
+  type Recognition,
+  type Rectangle,
+  readCatalogue,
+  recognize,
+  rectangles,
+  verbOf,
+} from "./statements/catalogue.js";
+export {
+  BLANK,
+  type DecisionOptions,
+  entries,
+  expandIri,
+  FORMAT_CONTEXT,
+  MATCHES,
+  METHODS,
+  NAMESPACE,
+  type Pair,
+  type PairProvenance,
+  type ProposalOptions,
+  pairs,
+  STATUSES,
+  type Status,
+  type Subject,
+  samePair,
+  subjectPath,
+  usedPrefixes,
+  withConfirmation,
+  withContext,
+  withoutPair,
+  withPair,
+  withProposal,
+  withRejection,
+} from "./statements/statements.js";
 export { completeStyles } from "./styles.js";
 export {
   childEnds,
-  descriptionProblems,
   identityProblems,
   jsonPointer,
+  type ManifestWarning,
+  manifestWarnings,
   numberTypeOf,
   type PathSegment,
   parse,
   SCHEMA_VERSION,
   SchemaValidationError,
+  statementProblems,
   type UnknownKey,
-  type UnregisteredTerm,
   UnsupportedVersionError,
   unknownKeys,
-  unregisteredTerms,
   type ValidationCode,
   validate,
+  type WarningCode,
 } from "./validate.js";

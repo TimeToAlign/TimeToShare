@@ -16,10 +16,10 @@ Where the two packages answer differently by design, this README says so.
    one test assigns it to `LosslessManifest` and, by a
    `@ts-expect-error` line, not to `Manifest`, and reads its lengths
    back as `9007199254740993n` and `JsonFloat(2)`.
-2. `unknownKeys` and `unregisteredTerms` return, for every manifest, the
-   lists Python's `unknown_keys` and `unregistered_terms` return, byte for
-   byte once written by `dumps`; `descriptionProblems` returns the problems
-   Python's `description_problems` returns, with the same codes and paths
+2. `unknownKeys` and `manifestWarnings` return, for every manifest, the
+   lists Python's `unknown_keys` and `manifest_warnings` return, byte for
+   byte once written by `dumps`; `statementProblems` returns the problems
+   Python's `statement_problems` returns, with the same codes and paths
    and, but for a schema violation's, the same messages.
 3. `complete` and `minimal` give the values Python's functions give, from a
    `DEFAULTS` table equal to the schema's `default`s, as Python's is; their
@@ -32,20 +32,24 @@ Where the two packages answer differently by design, this README says so.
    file writes its manifest and `dumpsFile` writes a value back in that
    form, the same bytes as Python's `file_form` and `dumps_file`.
 5. The generated files are the generator's output, and the npm package
-   ships the schema document, the drawing specification, the registry of
-   identifier schemes and the licence.
-6. The description functions (`linkFromUrls`, `withUri`, …) build the same
-   links as Python's description model, through the same registry, and
-   throw an `Error` with Python's message wherever Python raises
-   `ValueError`.
+   ships the schema document, the drawing specification, the catalogue with
+   its schema and the licence.
+6. The statement functions (`withPair`, `withProposal`, `withContext`, …)
+   and the catalogue functions (`readCatalogue`, `recognize`,
+   `instantiate`, `verbOf`, `rectangles`) give the values Python's
+   `timetoshare.statements` and `timetoshare.catalogue` give, and throw an
+   `Error` with Python's message wherever Python raises `ValueError`.
+7. A statement fixture read by a JSON-LD processor gives exactly the RDF
+   dataset stored beside it, and no other manifest states anything.
 
 ## The fixtures
 
 `fixtures.test.ts`: every manifest fixture (every `*.json` below
 `fixtures/0.2.0/` except the drawings, found by its name in either
 `.yaml` or `.json`), read by `loads`, validates, has
-no unknown keys, and satisfies both round trips of `complete` and `minimal`,
-as in the Python suite's "The fixture set".
+no unknown keys and no warnings (each states `@context`, and a bundle with
+statements has an ID), and satisfies both round trips of `complete` and
+`minimal`, as in the Python suite's "The fixture set".
 
 ## The schema document and the generated files
 
@@ -64,7 +68,7 @@ refers to (a measure view through `MeasureView`, whose `allOf` is
 `MapBase`, as in the Python suite), the
 references are `Id`s and `Selector.addresses` holds `Address`es, `Id` and
 `Address` accepting and refusing the Python suite's values; the patterns
-ending in `$` are exactly the Python suite's five, each refusing its value
+ending in `$` are exactly the Python suite's four, each refusing its value
 followed by a newline, and an `Order` refusing a trailing newline too, so
 Ajv and Python's `jsonschema` agree on every trailing newline; no node
 carries `additionalProperties: false` or `unevaluatedProperties`, `Address`
@@ -72,18 +76,28 @@ included, and no key begins with `x-`; every object
 declares, itself or in its `allOf` bases at any depth, what its branches declare; every
 discriminated union tags each branch with a distinct required constant; the
 `default`s, read through references and bases, are exactly `DEFAULTS`;
-the description layer's invariants of the Python README ("The schema
-document", "The description layer": `links` on exactly `Manifest`,
-`Timeline` and `Region`, `schemes` on `Manifest`, the closed vocabularies
-equal to `LEVELS`, `MATCHES` and `STATUSES`, no `position` on a slot and no
-`name` on a link, the values `Uri`, `Term` and `UriReference` accept and
-refuse, the white-space class pinned against the registry's). `generated.test.ts`: a fresh generator run exports the committed
+the statements' invariants: `statements` and `provenance` on exactly
+`Manifest`, `Timeline` and `Region` (besides `Context`, which declares every
+format term), without a default, `@context` on `Manifest` only, no `links`
+and no `schemes` anywhere, a provenance entry's `status`, `match` and
+`method` words equal to `STATUSES`, `MATCHES` and `METHODS`, the white-space
+class of `Iri`, `IriReference` and `PrefixIri` equal to `BLANK`; the
+`Context` definition fixes, required and in order, exactly the terms of
+`FORMAT_CONTEXT` with their values, and takes every other key as a prefix
+(`PrefixIri`); and the values `Iri`, `IriReference`, `PrefixName`,
+`PrefixIri` and `LanguageTag` accept and refuse (a compact IRI, an absolute
+one, a URN; a bare word, an empty prefix or suffix, a leading digit, white
+space and a trailing newline; a relative reference, never a blank node
+`_:b0` or a keyword `@id`; a prefix name that is no element key and no URI
+scheme; a namespace ending in `/` or `#`; a language tag of subtags up to
+eight characters). The patterns ending in `$` are four. `generated.test.ts`: a fresh generator run exports the committed
 names, which are every definition, the complete form of exactly the
-definitions holding a default, and `LosslessManifest`, and `registry.ts`
-exports the registry file's entries as `schemes` (equal, as `compactJson`
-texts, to the value `loads` reads from the file, which holds byte for
-byte the pretty JSON `dumps` writes for that value); the committed
-text is `check:drift`'s oracle. Statements marked `@ts-expect-error` (a
+definitions holding a default, and `LosslessManifest`, and `catalogue.ts`
+exports the catalogue file's value as `catalogue` (equal, as `compactJson`
+texts, to the value `loads` reads from the file); the committed text is
+`check:drift`'s oracle. The generation view drops `not` and names the type
+an `additionalProperties` reference stands for, so a value node, whose
+values hold value nodes, is typed once. Statements marked `@ts-expect-error` (a
 misspelt key, a missing `length` or child `offset`, a complete form missing
 a defaulted key, a three-member Fraction) make a looser generation break
 the typecheck gate. A complete flow-control element without `repeat_count`
@@ -136,7 +150,7 @@ cases fail. The packages differ only where JavaScript must:
 
 ## Shared rejection cases
 
-Each of the 130 cases (`validate.test.ts`), found by its name whatever
+Each of the 159 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -150,9 +164,9 @@ of Python's `rejection_case`, which puts the infinity or NaN a
 reader's value, since no text carries it, and a test pins the two values in
 place. One plain reading is exempt: `float_axis_int_not_exact`, since
 `9007199254740993` becomes `9007199254740992`, exactly a float; the test
-asserts that this lossy reading validates. The set of names and the nineteen codes are stated
-literally, and the sixteen cases whose messages the Python suite pins carry
-the same messages here (`identity.test.ts`, `description.test.ts`).
+asserts that this lossy reading validates. The set of names and the twenty-five codes are stated
+literally, and the cases whose messages the Python suite pins carry the same
+messages here (`identity.test.ts`, `statements.test.ts`).
 
 The path rule is the Python README's ("One path rule for both validators");
 Ajv applies a discriminated `oneOf` to the candidate its tag selects through
@@ -161,12 +175,12 @@ its `discriminator` option. The shared cases pin the paths.
 ## Unknown keys
 
 `unknown-keys.test.ts`: every shared warning case validates, holds exactly
-`manifest`, `unknown_keys` and `unregistered_terms`, its text is stored
+`manifest`, `unknown_keys` and `warnings`, its text is stored
 as the writers write it, `dumps(unknownKeys(manifest))` equals
-`dumps(case.unknown_keys)` and `dumps(unregisteredTerms(manifest))` equals
-`dumps(case.unregistered_terms)`; the cases of terms, and the other
-documents of the Python README's "Unregistered terms", are asserted in
-`description.test.ts`; `several_depths` lists its sixteen entries in the
+`dumps(case.unknown_keys)` and `dumps(manifestWarnings(manifest))` equals
+`dumps(case.warnings)`; the three cases of warnings (`context_absent`,
+`bundle_blank_statements`, `bundle_blank_provenance`) are among them;
+`several_depths` lists its sixteen entries in the
 stated order; keys inside `meta`, `styles`,
 `graphical.order` and unknown values are not reported; the sort (keys by
 code point, `ﬀ` before `😀`, indices by number, `timelines[2]` before
@@ -200,67 +214,113 @@ left out as the defaults `1` and `0` are, and the complete form of what
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (73, one per fixture) completes to the canonical YAML of its
+minimal twin (75, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
 optional.
 
-## The description layer
+## Statements and provenance
 
-`registry.test.ts` and `description.test.ts` assert the Python README's
-sections "The description layer", "Links", "The description layer alone"
-and "Unregistered terms" with the same documents, the same values and the
-same messages: the nine shipped entries in order with their `lowercase`,
-the recognition table (the MusicBrainz ID in capitals among it) and the URL
-forms (every IMSLP page that is no work page refused, plainly and with
-`%3A`, and the two work pages beginning with such a word recognised), the
-addresses of a YouTube video (one entity URI, the ID's case kept, the
-legacy `/v/` with `&` straight after the ID and on `youtube-nocookie.com`
-recognised, the embedded playlist `videoseries` and a channel's embedded
-live stream `live_stream` refused), the one rule per scheme,
-`withSchemes`, its reading of an entry without
-`level`, `entity_uri` and `lowercase` as null, null and false (the entry
-Python reads alike) and its refusals, a `lowercase` that is no boolean
-among them, the work bundle of Op. 106 in both forms (built with
-`linkFromUrls`, `partSlotFromUrl` and `withParts`, read back through
-`parse` to the same complete link), the two readings, every error, the two
-rules of a link without parts among them, normalisation, each fact stored
-once (`linkFromUrls` and `withIdentifier`, whose `registry` option is
-Python's keyword), copy-on-write and `assertionFor`; and
-`descriptionProblems` with the shared cases (each `description_*` case its
-one problem, every other case and every fixture none), the manifest whose
-other parts break every kind of rule, and the manifest whose five arrays
-each break once. The packages differ only where JavaScript must:
+`statements.test.ts` asserts the Python README's sections on statements with
+the same documents, values and messages. Its oracles are the two manifests
+of the specification, read from YAML text by `loads` in the file form:
 
-- **Plain objects.** A link is a plain object of the generated types, not a
-  class: every function takes a link in either form and returns a new link
-  in the complete form (`CompleteLink`), built through the defaults table
-  as `complete` builds a manifest's; `minimal` of a manifest holding it
-  gives the minimal form. Unknown keys are kept because nothing is rebuilt,
-  so the Python README's unknown keys are proved on what `withLabel` and
-  `withParts` return. An assertion's date is the string `2026-11-17`.
-- **Schema messages.** `descriptionProblems` reports a schema violation
-  with Ajv's message, as `validate` does; its code and path are Python's.
-- **Dates.** Python refuses a date the calendar lacks, or one not written
-  `YYYY-MM-DD`, when it reads or constructs an assertion; a JavaScript
-  assertion stays a plain object, so every function that takes or returns one refuses such a
-  date with Python's message (`'2026-02-30' is no Gregorian calendar date
-  written YYYY-MM-DD`): `linkFromUrls` and `partSlotFromUrl` given it in
-  their `assertion`, `withAssertion`, `withParts` given it in a slot's,
-  `withPartOf` given it in the entry's, `withLabel` given a link holding
-  it, and `assertionFor` reading it; `17 November 2026`, `20261117`,
-  `2100-02-29` and `0000-01-01` are refused alike, `2024-02-29` kept as
-  written. The validator's `calendar_date` gives the Python README's
-  verdicts and messages.
-- **Patterns.** A registry pattern is compiled as `^(?:pattern)$` with the
-  `u` flag, which matches what Python's `re.fullmatch` matches for every
-  URL the registry reads (the URL holds no white space or control
-  character, the one place the two engines read `.` and `$` differently).
-  Percent-decoding mirrors Python's `unquote` with strict UTF-8: a `%`
-  followed by two hexadecimal digits is a byte, any other `%` is kept, and
-  a byte sequence that is not UTF-8 refuses the URL; a leading byte-order
-  mark is kept, as Python keeps it.
+- **M1**: `@context` the format's terms with `schema`, `wd` and `wdt`; `id`
+  `#rec`; one root `#cpt_1` in seconds of unknown length with a region
+  `#region_1` and a child `#cpt_2`. `subjectPath` gives `[]` for `null` and
+  the paths of the root, the child and the region for their IDs as written;
+  a bare ID names nothing (Python's message). A performer stated with
+  provenance writes exactly the stated pair and one `confirmed` entry whose
+  value is the thing's `id` alone; the same pair again, and the same thing
+  by its full IRI, are refused as "already has this value", which proves
+  that pairs compare by expanded IRI. A type stated with provenance writes
+  `type` and an entry `rdf:type` / `{id}`. Removing both leaves neither
+  `statements` nor `provenance`: emptied lists, containers and annotations
+  go. The proposal, confirmation and rejection of one pair walk the three
+  statuses: the proposal leaves `statements` as they were, the confirmation
+  states the value with its label and keeps the entry's `basis` and
+  `method` while replacing `stated_by` and `date`, the rejection removes
+  the pair and keeps the entry with its note. Every function leaves its
+  arguments as they were.
+- **M2**: the two timelines of the LayerIt recording, a score encoding and
+  a video, with the vocabulary of every kind of value (a datatyped
+  literal, nodes with labels and `schema:sameAs`, several classes, a full
+  IRI). `usedPrefixes` lists the nine prefixes, and `withContext` of M2
+  without its `@context`, given the test catalogue's prefixes, rebuilds
+  exactly M2's `@context`; a prefix declared nowhere is refused with
+  Python's message.
+
+Every error message of the statement functions is asserted once: a
+property that is no IRI, a pair stated twice, a pair missing, a stated pair
+proposed, a confirmation without a proposal, a path addressing nothing, an
+impossible date. `samePair` is proved by pairs that are equal (a compact
+and a full IRI, `type` and `rdf:type` with `{id}`, a node with a label and
+one without, blank nodes with keys in another order) and unequal (`true`
+and `1`, `1` and `"1"`, value objects of other languages, lists in another
+order); `expandIri` by each of its branches.
+
+The statement rules are proved by inline documents built on the base
+manifest of the shared rejection cases (the terms with `schema`, `wd` and
+`wdt`, one root `#clt_1` in quarters): each code by its smallest document,
+raised by `validate` with Python's path and message; `statementProblems`
+lists every problem of one document breaking each rule once, in rule order,
+and checks the members' schema first (a schema problem hides the rules);
+`manifestWarnings` gives `context_absent` and `bundle_blank` at their paths,
+sorted, and nothing for a manifest with a context and an ID. M2 itself
+validates and has no warnings.
+
+## The catalogue
+
+`catalogue.test.ts` reads the test catalogue of the specification, held
+inline in `tests/catalogue.ts` (`CATALOGUE_TEST`: ten prefixes, the
+schema.org alias, the systems `wikidata`, `musicbrainz`, `melody`,
+`fallback`, the verbs `is_a`, `same_as`, `performed_by`, `conducted_by`,
+`version_or_edition_of`, `part_of`, one type `video`), and asserts the
+specification's values: `recognize` of a Wikidata page, of a MusicBrainz
+work in capitals (value and IRI lowered) and of a text that is no URL;
+`verbOf` of a relator, of a contributor node with the role `conductor` and
+with `pianist` (most constants win), of `dcterms:hasPart` (the inverse
+reading), of `dcterms:created` (none), of a type and of a full
+`https://schema.org/` key (the alias); `instantiate` with a label, with a
+role slot, without it (refused) and of a type; `rectangles` of both
+timelines of M2, with their verbs, pairs, things and labels. Every
+cross-reference error of `readCatalogue` is raised in its order by a
+catalogue holding that one fault. The shipped `catalogue/catalogue.yaml`
+validates against `catalogue/catalogue.schema.json` (Ajv), passes
+`readCatalogue`, is what `dumps` writes for its value, and is what
+`defaultCatalogue` returns.
+
+## RDF
+
+`rdf.test.ts` reads each statement fixture under `fixtures/0.2.0/statements/`
+and its minimal twin with jsonld.js (decision record 0016), handing it a
+plain value (every `JsonFloat` and `bigint` a number), with base
+`https://example.org/manifests/<name>.yaml`, `safe: false` (the format's own
+keys are dropped by design) and a document loader that refuses every fetch,
+so the inline context is all a processor reads. For both, it asserts:
+
+1. the canonical N-Quads (RDFC-1.0) equal `fixtures/rdf/0.2.0/<name>.nq`
+   byte for byte, the bytes Python's PyLD gives;
+2. every other fixture under `fixtures/0.2.0/` (drawings excluded) gives the
+   empty dataset: no element states anything by being written;
+3. no IRI of the dataset begins with `p:` for a prefix `p` of the fixture's
+   context, and every IRI begins with `http:`, `https:`, `urn:`, `tag:`,
+   `mailto:` or `info:`: every compact IRI was expanded;
+4. every predicate is an expanded key of a statements container or node,
+   `rdf:type`, `rdfs:label`, or one of the annotation's properties
+   (`rdf:subject`, `rdf:predicate`, `rdf:object`, `prov:wasAttributedTo`,
+   `dcterms:date`, `prov:hadPrimarySource`, `rdfs:comment` and the format's
+   `method`, `service`, `match`, `status`);
+5. for every `proposed` or `rejected` entry whose subject has an IRI and
+   whose value is a thing or a plain literal, the triple subject–property–
+   value is absent: a proposal is never asserted;
+6. the distinct subjects of `rdf:subject` are as many as the provenance
+   entries of the fixture: one reified statement per entry.
+
+The statement fixtures and their `.nq` files are emitted by the fixture
+scripts; until they exist, (1), (3) to (6) have no case and (2) runs over
+the fixtures there are.
 
 ## The serializations
 
@@ -447,7 +507,7 @@ The unit tests beside the walk pin what the cases leave to a package:
   with the expected ID sequences, ties broken by ID and entries tying on
   every member kept in their order, values compared by exact value; a
   `display` holding anything ordered; a member holding no array written
-  as given; display orders, rules and links kept; a `TypeError` for
+  as given; display orders, rules and the values of a pair kept; a `TypeError` for
   an entry that is not an object, lacks a member or holds a wrong type,
   even alone in its array, and for a group member that is not a string.
 - **Refusals of the writers**: a lone surrogate in a string or key, NaN and
@@ -481,14 +541,17 @@ object's own key order, and one case more pins an order key that reads as an
 array index (`#2` becomes `2` and stays after `b`), the order JavaScript
 would otherwise change. The tables equal the schema's ID positions as in
 the Python suite, and every fixture round-trips. The validators read the
-file form as the Python suite's "IDs in a file" states, with its two
-refusals the schema cannot type, the bare `scheme` refused by
-`descriptionProblems` too, and a bare ID of any length refused by the `#`
-rule (Ajv's message `must match pattern "^#[\s\S]"`); the inline
-documents write IDs bare and reach the checks through the file-form
-helpers of `tests/fixtures.ts` (`validate`, `unknownKeys`, `unregisteredTerms`, `identityProblems`,
-`descriptionProblems`), while the shared cases and the fixtures, which are
-files, reach the package's functions as they are.
+file form as the Python suite's "IDs in a file" states, with its one
+refusal the schema cannot type (a bare member ID in a group's order), and a
+bare ID of any length refused by the `#` rule (Ajv's message `must match
+pattern "^#[\s\S]"`). The IRIs of statements are no IDs: `#verse` in a
+region's statements stays `#verse` in both forms, `statementProblems` reads
+an ID outside the statements as it stands, and an element named by a
+statement resolves against the bare IDs. The inline documents write IDs
+bare and reach the checks through the file-form helpers of
+`tests/fixtures.ts` (`validate`, `unknownKeys`, `manifestWarnings`,
+`identityProblems`, `statementProblems`), while the shared cases and the
+fixtures, which are files, reach the package's functions as they are.
 
 ## Manifest files
 
@@ -501,7 +564,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (bundles and groups included), its value and its value
+  minimal twin (150 files: bundles, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and
@@ -585,7 +648,8 @@ the same table:
 
 After `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists
 `docs/drawing.md`, `schema/0.2.0/timetoshare.schema.json`,
-`registry/schemes.json` (and `package.json` exports `./registry/*`),
+`catalogue/catalogue.yaml` and `catalogue/catalogue.schema.json` (and
+`package.json` exports `./catalogue/*`, no longer `./registry/*`),
 `LICENSE` and
 exactly the five files of `fonts/` (both TrueType files, `DejaVuSans-LICENSE`,
 `NotoMusic-LICENSE` and the metrics table

@@ -34,7 +34,13 @@ export type ValidationCode =
   | "timestamp_timeline"
   | "timestamp_coordinate"
   | "calendar_date"
-  | "finite_number";
+  | "finite_number"
+  | "context"
+  | "reserved_key"
+  | "iri"
+  | "element_value"
+  | "provenance_match"
+  | "provenance_duplicate";
 
 /** Order paths segment by segment: indices by number, keys by code point, prefixes first. */
 export function comparePaths(left: readonly PathSegment[], right: readonly PathSegment[]): number {

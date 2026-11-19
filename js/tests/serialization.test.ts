@@ -798,12 +798,12 @@ describe("canonical order in the writers", () => {
         { id: "a", n: 2 },
         { id: "b", n: 3 },
       ],
-      links: [{ uri: ["z", "a"] }, { uri: [] }],
+      statements: { "schema:name": ["z", "a"] },
       graphical: { order: { b: ["z", "a"] }, rules: [{ s: 2 }, { s: 1 }] },
     };
     expect(dumps(value, { serialization: "jcs" })).toBe(
       '{"graphical":{"order":{"b":["z","a"]},"rules":[{"s":2},{"s":1}]},' +
-        '"links":[{"uri":["z","a"]},{"uri":[]}],' +
+        '"statements":{"schema:name":["z","a"]},' +
         '"timelines":[{"id":"a","n":2},{"id":"b","n":1},{"id":"b","n":3}]}',
     );
   });

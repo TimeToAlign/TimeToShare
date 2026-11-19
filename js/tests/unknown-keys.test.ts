@@ -14,13 +14,12 @@ import {
 
 const WARNINGS = [
   "address_unknown_member",
+  "bundle_blank_provenance",
+  "bundle_blank_statements",
   "combination_map_names",
+  "context_absent",
   "declaration_show_projections",
   "declaration_unknown_key",
-  "description_absent_unregistered",
-  "description_method_unregistered",
-  "description_parts_relation_unregistered",
-  "description_relation_unregistered",
   "graphical_unknown_key",
   "group_unknown_key",
   "measure_map_row_offset_key",
@@ -40,17 +39,11 @@ describe("unknown keys", () => {
   it.each(warningFileNames())("lists the warnings of %s as Python does", (name) => {
     const text = warningText(name);
     const testCase = loads(text) as JsonObject;
-    expect(Object.keys(testCase).sort()).toEqual([
-      "manifest",
-      "unknown_keys",
-      "unregistered_terms",
-    ]);
+    expect(Object.keys(testCase).sort()).toEqual(["manifest", "unknown_keys", "warnings"]);
     expectWrittenAsStored(text);
     timetoshare.validate(testCase.manifest);
     expect(dumps(timetoshare.unknownKeys(testCase.manifest))).toBe(dumps(testCase.unknown_keys));
-    expect(dumps(timetoshare.unregisteredTerms(testCase.manifest))).toBe(
-      dumps(testCase.unregistered_terms),
-    );
+    expect(dumps(timetoshare.manifestWarnings(testCase.manifest))).toBe(dumps(testCase.warnings));
   });
 
   it("finds them at several depths, in order", () => {

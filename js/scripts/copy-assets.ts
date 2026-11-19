@@ -1,5 +1,5 @@
 /**
- * Copy the repository's `schema/`, `fixtures/`, `fonts/`, `docs/` and `registry/` directories, its
+ * Copy the repository's `schema/`, `fixtures/`, `fonts/`, `docs/` and `catalogue/` directories, its
  * `README.md` and its `LICENSE` into the package directory so that `npm publish`
  * ships them (see the `files` field; npm always includes a README and a LICENSE). The copies are
  * ignored by git; the files at the repository root are the only originals.
@@ -15,7 +15,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(here, "../..");
 const packageDirectory = resolve(here, "..");
 
-for (const name of ["schema", "fixtures", "fonts", "docs", "registry", "README.md", "LICENSE"]) {
+for (const name of ["schema", "fixtures", "fonts", "docs", "catalogue", "README.md", "LICENSE"]) {
   const source = resolve(repository, name);
   const destination = resolve(packageDirectory, name);
   rmSync(destination, { recursive: true, force: true });

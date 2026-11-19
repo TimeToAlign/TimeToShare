@@ -1,10 +1,9 @@
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { DEFAULTS } from "../src/defaults.js";
-import { LEVELS, MATCHES, STATUSES } from "../src/description/link.js";
-import { BLANK } from "../src/description/registry.js";
 import { schema } from "../src/generated/schema.js";
 import { TIMESTAMP_DISPLAY } from "../src/manifest/order.js";
+import { BLANK, FORMAT_CONTEXT, MATCHES, METHODS, STATUSES } from "../src/statements/statements.js";
 import { UNIT_NUMBER_TYPES } from "../src/validate.js";
 import { loadSchemaFile } from "./fixtures.js";
 
@@ -24,8 +23,10 @@ const PUBLIC = [
   "Id",
   "MeasureMap",
   "MeasureMapRow",
-  "Link",
-  "Scheme",
+  "Context",
+  "Statements",
+  "StatementValue",
+  "ProvenanceEntry",
 ];
 
 /** Every node whose pattern ends in `$`, by its path below `$defs`, with a value its pattern accepts. */
@@ -33,8 +34,7 @@ const ANCHORED: [string[], string][] = [
   [["Timestamp", "properties", "id"], "#timestamp_1"],
   [["Paint"], "none"],
   [["Declaration", "properties", "stroke-dasharray"], "4 2"],
-  [["Assertion", "properties", "asserted_on"], "2026-11-17"],
-  [["Descriptor", "properties", "integrity"], "sha256-AAAA"],
+  [["ProvenanceEntry", "properties", "date"], "2026-11-17"],
 ];
 
 const MAP_TYPES = [
@@ -413,12 +413,6 @@ describe("the schema document", () => {
       group: ["Group"],
       graphical: ["Graphical"],
       timestamp: ["Timestamp"],
-      scheme: ["Scheme"],
-      link: ["Link"],
-      descriptor: ["Descriptor"],
-      assertion: ["Assertion"],
-      part_slot: ["PartSlot"],
-      part_of: ["PartOf"],
     };
     const own: Readonly<Record<string, Kind>> = { LinearMap: "linear_map", TableMap: "table_map" };
     const element = ["flow_control_element", "repeat_end"];
@@ -453,59 +447,75 @@ describe("the schema document", () => {
     expect(properties("Timeline").number_type?.default).toBeUndefined();
   });
 
-  it("describes links on the manifest, its timelines and its regions only", () => {
+  it("states statements on the manifest, its timelines and its regions only", () => {
     const holding = (key: string) =>
       Object.entries(defs)
+        .filter(([name]) => name !== "Context")
         .filter(([, definition]) => key in ((definition.properties ?? {}) as Node))
         .map(([name]) => name)
         .sort();
-    expect(holding("links")).toEqual(["Manifest", "Region", "Timeline"]);
-    expect(holding("schemes")).toEqual(["Manifest"]);
-    expect(defs.Level?.enum).toEqual([...LEVELS]);
-    expect(properties("Assertion").match?.enum).toEqual([...MATCHES, null]);
-    expect(properties("Assertion").status?.enum).toEqual([...STATUSES, null]);
-    expect(Object.keys(properties("PartSlot"))).not.toContain("position");
-    const link = Object.keys(properties("Link"));
-    expect(link).toContain("label");
-    for (const key of ["name", "same_as", "equivalent"]) expect(link).not.toContain(key);
-    for (const name of ["Term", "Uri", "UriReference"]) {
-      expect(defs[name]?.not, name).toEqual({ pattern: BLANK });
+    // `Context` declares every format term, `statements` and `provenance` among them.
+    expect(holding("statements")).toEqual(["Manifest", "Region", "Timeline"]);
+    expect(holding("@context")).toEqual(["Manifest"]);
+    expect(holding("links")).toEqual([]);
+    expect(holding("schemes")).toEqual([]);
+    for (const name of ["Manifest", "Region", "Timeline"]) {
+      expect(properties(name).statements, name).toMatchObject({ $ref: "#/$defs/Statements" });
+      expect(properties(name).provenance, name).toMatchObject({ $ref: "#/$defs/Provenance" });
+      expect("default" in (properties(name).statements as Node)).toBe(false);
+      expect("default" in (properties(name).provenance as Node)).toBe(false);
     }
+    expect(properties("ProvenanceEntry").status?.enum).toEqual([...STATUSES]);
+    expect(properties("ProvenanceEntry").match?.enum).toEqual([...MATCHES]);
+    const method = properties("ProvenanceEntry").method?.anyOf as Node[];
+    expect(method[0]?.enum).toEqual([...METHODS]);
+    expect(defs.Iri?.not).toEqual({ pattern: BLANK });
+    expect(defs.PrefixIri?.not).toEqual({ pattern: BLANK });
+    const reference = (defs.IriReference as Node).not as Node;
+    expect((reference.anyOf as Node[])[0]).toEqual({ pattern: BLANK });
   });
 
-  it("accepts and refuses URIs, terms and URI references as the Python suite does", () => {
+  it("fixes the format's terms of the context as the package states them", () => {
+    const context = defs.Context as Node;
+    const terms = context.properties as Record<string, Node>;
+    expect(Object.keys(terms)).toEqual(Object.keys(FORMAT_CONTEXT));
+    expect(context.required).toEqual(Object.keys(FORMAT_CONTEXT));
+    for (const [term, value] of Object.entries(FORMAT_CONTEXT)) {
+      expect(terms[term]?.const, term).toEqual(value);
+    }
+    expect(context.additionalProperties).toEqual({ $ref: "#/$defs/PrefixIri" });
+  });
+
+  it("accepts and refuses IRIs, prefixes and language tags", () => {
     const ajv = new Ajv2020({ strict: false });
     const accepts = (name: string, value: string) =>
       ajv.compile({ $ref: `#/$defs/${name}`, $defs: defs })(value);
-    for (const value of [
-      "http://musicbrainz.org/work/x",
-      "urn:isbn:0451450523",
-      "mailto:a@example.org",
-    ]) {
-      expect(accepts("Uri", value), value).toBe(true);
+    const cases: [string, string[], string[]][] = [
+      [
+        "Iri",
+        ["wdt:P175", "http://schema.org/name", "urn:isbn:0451450523", "melodTerms:Performer"],
+        ["type", "P175", ":x", "1wd:Q1", "wd:", "wd:Q 1", "wd:Q1\n", "wd:Q\u00a01", "wd:Q1\ufeff"],
+      ],
+      [
+        "IriReference",
+        ["#clt_1", "other.yaml#clt_1", "wd:Q1", "records/op106.json"],
+        ["", "_:b0", "@id", "#a b", "#a\n"],
+      ],
+      [
+        "PrefixName",
+        ["wd", "melodTerms", "my-vocab_2"],
+        ["1wd", "w.d", "unit", "http", "urn", "members"],
+      ],
+      [
+        "PrefixIri",
+        ["http://schema.org/", "http://www.w3.org/2001/XMLSchema#"],
+        ["http://www.wikidata.org/entity", "schema.org/", "http://a b/", "http://x/\n"],
+      ],
+      ["LanguageTag", ["en", "de-CH", "zh-Hant-TW"], ["", "en_GB", "toolonglanguage", "en-"]],
+    ];
+    for (const [name, accepted, refused] of cases) {
+      for (const value of accepted) expect(accepts(name, value), `${name} ${value}`).toBe(true);
+      for (const value of refused) expect(accepts(name, value), `${name} ${value}`).toBe(false);
     }
-    for (const value of [
-      "musicbrainz.org/work/x",
-      "1http://x",
-      "http:",
-      "http://a b",
-      "http://a\n",
-      "http://a\u00a0b",
-      "http://a\ufeff",
-    ]) {
-      expect(accepts("Uri", value), value).toBe(false);
-    }
-    for (const value of [
-      "pertains_to",
-      "marcrel:cmp",
-      "http://id.loc.gov/vocabulary/relators/cmp",
-    ]) {
-      expect(accepts("Term", value), value).toBe(true);
-    }
-    for (const value of ["", "has part", "has_part\n"]) {
-      expect(accepts("Term", value), value).toBe(false);
-    }
-    expect(accepts("UriReference", "records/op106.json")).toBe(true);
-    for (const value of ["", "a b"]) expect(accepts("UriReference", value), value).toBe(false);
   });
 });

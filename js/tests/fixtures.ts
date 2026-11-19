@@ -344,14 +344,14 @@ export function unknownKeys(value: unknown): timetoshare.UnknownKey[] {
   return timetoshare.unknownKeys(filed(value));
 }
 
-export function unregisteredTerms(value: unknown): timetoshare.UnregisteredTerm[] {
-  return timetoshare.unregisteredTerms(filed(value));
+export function manifestWarnings(value: unknown): timetoshare.ManifestWarning[] {
+  return timetoshare.manifestWarnings(filed(value));
 }
 
 export function identityProblems(value: JsonObject): timetoshare.SchemaValidationError[] {
   return timetoshare.identityProblems(filed(value) as JsonObject);
 }
 
-export function descriptionProblems(value: JsonObject): timetoshare.SchemaValidationError[] {
-  return timetoshare.descriptionProblems(filed(value) as JsonObject);
+export function statementProblems(value: JsonObject): timetoshare.SchemaValidationError[] {
+  return timetoshare.statementProblems(filed(value) as JsonObject);
 }

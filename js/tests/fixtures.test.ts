@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { complete, loads, minimal, unknownKeys, validate } from "../src/index.js";
+import { complete, loads, manifestWarnings, minimal, unknownKeys, validate } from "../src/index.js";
 import { fixtureFiles, fixtureText } from "./fixtures.js";
 
 describe("the fixtures", () => {
@@ -8,10 +8,11 @@ describe("the fixtures", () => {
     expect(fixtureFiles().filter((file) => file.startsWith("drawings"))).toEqual([]);
   });
 
-  it.each(fixtureFiles())("%s is a manifest without unknown keys", (file) => {
+  it.each(fixtureFiles())("%s is a manifest without unknown keys or warnings", (file) => {
     const value = loads(fixtureText(file));
     validate(value);
     expect(unknownKeys(value)).toEqual([]);
+    expect(manifestWarnings(value)).toEqual([]);
     expect(minimal(complete(value))).toEqual(minimal(value));
     expect(complete(minimal(value))).toEqual(complete(value));
   });

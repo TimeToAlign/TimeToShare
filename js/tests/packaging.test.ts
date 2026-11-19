@@ -49,12 +49,14 @@ describe("the npm package", () => {
     expect(copied(path)).toBe(true);
   });
 
-  it("ships the registry of identifier schemes", () => {
-    const path = "registry/schemes.json";
-    expect(shipped.filter((file) => file.startsWith("registry/"))).toEqual([path]);
-    expect(copied(path)).toBe(true);
+  it("ships the catalogue and its schema", () => {
+    const paths = ["catalogue/catalogue.schema.json", "catalogue/catalogue.yaml"];
+    expect(shipped.filter((file) => file.startsWith("catalogue/")).sort()).toEqual(paths);
+    for (const path of paths) expect(copied(path), path).toBe(true);
+    expect(shipped.filter((file) => file.startsWith("registry/"))).toEqual([]);
     const manifest = JSON.parse(readFileSync(resolve(packageDirectory, "package.json"), "utf8"));
-    expect(manifest.exports["./registry/*"]).toBe("./registry/*");
+    expect(manifest.exports["./catalogue/*"]).toBe("./catalogue/*");
+    expect(manifest.exports["./registry/*"]).toBeUndefined();
   });
 
   it("ships both fonts, their licences and the metrics table", () => {

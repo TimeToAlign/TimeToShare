@@ -1244,16 +1244,6 @@ describe("identity", () => {
       id: "g2",
       groups: [group("first", ["ghost", "second"]), group("g2", ["second"])],
       measure_maps: [{ id: "first", rows: ROWS }],
-      schemes: [{ id: "first" }],
-      links: [
-        {
-          relation: "pertains_to",
-          level: "work",
-          identifiers: [{ scheme: "opus", value: "106" }],
-          parts_relation: "has_part",
-          parts: [{ represented_by: ["ghost"] }],
-        },
-      ],
       graphical: {
         order: {
           zz: [],
@@ -1306,7 +1296,6 @@ describe("identity", () => {
         ["graphical", "timestamps", 2, "id"],
         "'timestamp_2' is not unique in the manifest, first at #/graphical/timestamps/1/id",
       ],
-      [["schemes", 0, "id"], "'first' is not unique in the manifest, first at #/timelines/0/id"],
       [["id"], "'g2' is not unique in the manifest, first at #/groups/1/id"],
       [["groups", 0, "members", 0], "'ghost' names no timeline of this manifest"],
       [["graphical", "order", "g2", 0], "'stranger' is not a member of group 'g2'"],
@@ -1326,14 +1315,6 @@ describe("identity", () => {
         ["graphical", "timestamps", 2, "coordinate"],
         "coordinate [-1, 1] of 'timestamp_2' lies before the start of its timeline 'first'",
       ],
-      [
-        ["links", 0, "identifiers", 0, "scheme"],
-        "'opus' names no scheme of this manifest and is no absolute URI",
-      ],
-      [
-        ["links", 0, "parts", 0, "represented_by", 0],
-        "'ghost' names no timeline or region of this manifest",
-      ],
     ]);
     expect(identityProblems(value).map((problem) => problem.code)).toEqual([
       ...Array<string>(2).fill("dangling_target"),
@@ -1341,7 +1322,7 @@ describe("identity", () => {
       "child_unit",
       "child_offset",
       "child_end",
-      ...Array<string>(6).fill("duplicate_id"),
+      ...Array<string>(5).fill("duplicate_id"),
       "manifest_id",
       "group_member",
       ...Array<string>(2).fill("display_order"),
@@ -1349,7 +1330,6 @@ describe("identity", () => {
       "order_key",
       "timestamp_timeline",
       ...Array<string>(2).fill("timestamp_coordinate"),
-      ...Array<string>(2).fill("dangling_target"),
     ]);
     expect(() => validate(value)).toThrow(identityProblems(value)[0]?.message);
   });

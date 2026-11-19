@@ -7,7 +7,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!src/generated", "!schema", "!fixtures", "!registry", "!dist"]
+    "includes": ["**", "!src/generated", "!schema", "!fixtures", "!catalogue", "!dist"]
   },
   "formatter": {
     "enabled": true,

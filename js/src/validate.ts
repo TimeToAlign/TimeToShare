@@ -12,17 +12,11 @@
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
 import { schema } from "./generated/schema.js";
 import type { LosslessManifest } from "./generated/types.js";
-import { FileIdError, lenientlyBareIds, memberWithBareIds, withBareIds } from "./ids.js";
+import { FileIdError, lenientlyBareIds, withBareIds } from "./ids.js";
 import { isJsonObject, type JsonObject, plain } from "./json/value.js";
 import { loads } from "./serialization/read.js";
 import { compareCodePoints, spell } from "./serialization/text.js";
-import {
-  descriptionArrays,
-  linkProblems,
-  schemeProblems,
-  type UnregisteredTerm,
-  unregisteredTermsOf,
-} from "./validate/description.js";
+import { subjectElements } from "./statements/statements.js";
 import {
   comparePaths,
   jsonPointer,
@@ -31,10 +25,10 @@ import {
 } from "./validate/diagnostics.js";
 import { identityProblems as semanticProblems } from "./validate/identity.js";
 import { finiteNumberProblems, representationProblems } from "./validate/representation.js";
+import { type ManifestWarning, statementRuleProblems, warningsOf } from "./validate/statements.js";
 
 export type { JsonObject } from "./json/value.js";
 export { childEnds } from "./validate/containment.js";
-export type { UnregisteredTerm } from "./validate/description.js";
 export {
   entries,
   jsonPointer,
@@ -46,6 +40,7 @@ export {
   UNIT_NUMBER_TYPES,
   type ValidationCode,
 } from "./validate/diagnostics.js";
+export type { ManifestWarning, WarningCode } from "./validate/statements.js";
 
 /** The schema version this package reads and writes, the only one it supports. */
 export const SCHEMA_VERSION = "0.2.0";
@@ -185,13 +180,13 @@ function first(problems: Iterable<SchemaValidationError>): SchemaValidationError
   return problems[Symbol.iterator]().next().value;
 }
 
-/** What a valid manifest is warned of: its unknown keys and its unregistered terms. */
+/** What a valid manifest is warned of: its unknown keys and its warnings. */
 interface Warnings {
   readonly keys: UnknownKey[];
-  readonly terms: UnregisteredTerm[];
+  readonly warnings: ManifestWarning[];
 }
 
-/** Check a value through every rule and return its unknown keys and unregistered terms. */
+/** Check a value through every rule and return its unknown keys and warnings. */
 function run(value: unknown): Warnings {
   if (!isJsonObject(value) || !Object.hasOwn(value, "timetoshare")) {
     throw new SchemaValidationError("not_a_manifest", [], "not a TimeToShare manifest");
@@ -220,20 +215,20 @@ function run(value: unknown): Warnings {
   if (representation !== undefined) throw representation;
   const semantic = first(semanticProblems(bare));
   if (semantic !== undefined) throw semantic;
+  const statement = first(statementRuleProblems(bare));
+  if (statement !== undefined) throw statement;
 
   const unique = new Map(found.map((entry) => [`${jsonPointer(entry.path)} ${entry.key}`, entry]));
   const keys = [...unique.values()].sort(
     (a, b) => comparePaths(a.path, b.path) || compareCodePoints(a.key, b.key),
   );
-  return { keys, terms: unregisteredTermsOf(bare) };
+  return { keys, warnings: warningsOf(bare) };
 }
 
 /**
  * The manifest with bare IDs; an ID the schema cannot see unwritten is
- * refused. The schema types every position but two: a group's entry in
- * `graphical.order` holds member IDs where a timeline's holds band words, and
- * an identifier's `scheme` written without `#` is a URI unless it names a
- * scheme of the manifest.
+ * refused. The schema types every position but one: a group's entry in
+ * `graphical.order` holds member IDs where a timeline's holds band words.
  */
 function bareManifest(value: JsonObject): JsonObject {
   try {
@@ -261,16 +256,14 @@ export function unknownKeys(value: unknown): UnknownKey[] {
 }
 
 /**
- * Return the bare terms of a valid manifest outside their registered words.
- * Validates `value` as `validate` does, then lists every term of an open
- * vocabulary (a link's `relation` and `parts_relation`, an assertion's
- * `method`, a part slot's `absent`, a `part_of` entry's `parts_relation`)
- * that holds no colon and is not registered for its key, sorted by path. Such
- * a term is kept and read as its key's fallback; it is never refused.
- * Python's `unregistered_terms` returns the same list.
+ * Return the warnings of a valid manifest, sorted by path, then code:
+ * `context_absent` (no `@context`) and `bundle_blank` (statements or
+ * provenance on a manifest without ID, whose subject is a blank node).
+ * Validates `value` as `validate` does. Python's `manifest_warnings` returns
+ * the same list.
  */
-export function unregisteredTerms(value: unknown): UnregisteredTerm[] {
-  return run(value).terms;
+export function manifestWarnings(value: unknown): ManifestWarning[] {
+  return run(value).warnings;
 }
 
 function reject(errors: readonly ErrorObject[], instance: unknown): never {
@@ -295,66 +288,88 @@ export function parse(text: string): LosslessManifest {
   return value;
 }
 
+/** One member of a subject the partial check reads: its definition, key, value, path and owner. */
+interface StatementMember {
+  readonly definition: "Manifest" | "Timeline" | "Region";
+  readonly member: "@context" | "provenance" | "statements";
+  readonly value: unknown;
+  readonly path: readonly PathSegment[];
+  readonly owner: string | null;
+}
+
+const DEFINITIONS = { manifest: "Manifest", timeline: "Timeline", region: "Region" } as const;
+
 /**
- * Return the problems of the description layer of `value` alone, as Python's
- * `description_problems` does. First, array by array, the manifest's `schemes`
- * and every `links` array (the manifest's, then root by root each timeline's,
- * its regions' and its children's, depth first) checked as `validate` checks
- * them, each array's first problem at its path: a number that is not finite
- * (`finite_number`), else the schema's `#/$defs/Scheme` or `#/$defs/Link`
- * (`schema`), reported by the one path rule, else an ID the schema cannot
- * see unwritten (`schema`, as `validate` refuses it: an identifier's
- * `scheme` written without `#` that names a scheme of the manifest). Where
- * no array has a problem,
- * the reference rules follow over the whole manifest, in the order of
- * `identityProblems`: each scheme ID unique across every ID of the manifest
- * (`duplicate_id`), the manifest ID that is a scheme's (`manifest_id`), then
- * link by link the dates (`calendar_date`) and references
- * (`dangling_target`) of links.
- *
- * Nothing outside the description layer is refused, and the version marker
- * is not read: a manifest whose timelines break other rules but whose links
- * and schemes are sound has no problem here. A library that reads only part
- * of a manifest checks its description layer with this function. The
- * messages are those of `validate`. `value` is in the file form; every ID of
- * the description layer must be written so, the reference rules read the
- * IDs bare, and an ID outside the description layer written without `#` is
- * read as it stands.
+ * The members of `value` the partial check reads: the manifest's
+ * `@context`, then subject by subject (the manifest, then root by root the
+ * timeline, its regions and its children, depth first) its `provenance` and
+ * its `statements`, each with the ID of the element holding it.
  */
-export function descriptionProblems(value: LosslessManifest | JsonObject): SchemaValidationError[] {
+function* statementMembers(value: JsonObject): Generator<StatementMember> {
+  const owner = typeof value.id === "string" ? value.id : null;
+  if (Object.hasOwn(value, "@context")) {
+    yield {
+      definition: "Manifest",
+      member: "@context",
+      value: value["@context"],
+      path: ["@context"],
+      owner,
+    };
+  }
+  for (const { element, path, kind } of subjectElements(value)) {
+    for (const member of ["provenance", "statements"] as const) {
+      if (!Object.hasOwn(element, member)) continue;
+      yield {
+        definition: DEFINITIONS[kind],
+        member,
+        value: element[member],
+        path: [...path, member],
+        owner: typeof element.id === "string" ? element.id : null,
+      };
+    }
+  }
+}
+
+/**
+ * Return the problems of the statements of `value` alone, as Python's
+ * `statement_problems` does. First, member by member, the manifest's
+ * `@context` and every `provenance` and `statements` member (subject order:
+ * the manifest, then root by root the timeline, its regions and its
+ * children, depth first; on one element `provenance` first), each checked as
+ * `validate` checks it, its first problem at its path: a number that is not
+ * finite (`finite_number`), else the schema's definition of the member
+ * (`schema`), reported by the one path rule. Where no member has a problem,
+ * every problem of the statement rules follows, not only the first:
+ * `context`, `reserved_key`, then the walk of every subject (`iri`,
+ * `dangling_target`, `calendar_date`, `representation`, `element_value`,
+ * `provenance_match`, `provenance_duplicate`).
+ *
+ * Nothing outside the statements is refused but a reserved key, and the
+ * version marker is not read: a library that reads only part of a manifest
+ * checks its statements with this function. The messages are those of
+ * `validate`. `value` is in the file form; the rules read its IDs bare, an
+ * ID written without `#` as it stands.
+ */
+export function statementProblems(value: LosslessManifest | JsonObject): SchemaValidationError[] {
   if (!isJsonObject(value)) return [];
-  const problems: SchemaValidationError[] = [];
   const bare = lenientlyBareIds(value);
-  const plainArrays = [...descriptionArrays(bare)];
-  for (const [index, { definition, member, value: array, path }] of [
-    ...descriptionArrays(value),
-  ].entries()) {
-    const owner = plainArrays[index]?.owner ?? null;
-    const finite = first(finiteNumberProblems(plainArrays[index]?.value, path, owner, member));
+  const problems: SchemaValidationError[] = [];
+  for (const { definition, member, value: given, path, owner } of statementMembers(bare)) {
+    const finite = first(finiteNumberProblems(given, path, owner, member));
     if (finite !== undefined) {
       problems.push(finite);
       continue;
     }
-    const instance = plain(array);
+    const instance = plain(given);
     const checkMember = memberCheck(definition, member);
     const error = checkMember(instance) ? undefined : select(checkMember.errors ?? []);
     if (error !== undefined) {
       const at = [...path, ...toPath(error.instancePath, instance)];
       problems.push(new SchemaValidationError("schema", at, error.message ?? error.keyword));
-      continue;
-    }
-    try {
-      memberWithBareIds(value, definition, member, path);
-    } catch (refused) {
-      if (!(refused instanceof FileIdError)) throw refused;
-      problems.push(new SchemaValidationError("schema", [...refused.path], refused.message));
     }
   }
   if (problems.length > 0) return problems;
-  // Every ID of the description layer is now known to be in the file form;
-  // the reference rules compare it with IDs outside the layer, which are read
-  // leniently so that this function refuses nothing outside it.
-  return [...schemeProblems(bare), ...linkProblems(bare)];
+  return [...statementRuleProblems(bare)];
 }
 
 /**
