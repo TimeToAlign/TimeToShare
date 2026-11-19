@@ -47,6 +47,7 @@ from .statements import (
     _context,
     _is_iri,
     _is_node,
+    _is_value_object,
     _prefix_of,
     _strictly_equal,
     container_pairs,
@@ -156,17 +157,23 @@ def _things(document: Mapping[str, Any]) -> Iterator[tuple[str, dict[str, Any]]]
             yield system["id"], thing
 
 
-def _strings(value: Any) -> Iterator[str]:
-    """Every key and string of a pattern, at any depth."""
-    if isinstance(value, str):
-        yield value
-    elif isinstance(value, list):
+def _pattern_iris(value: Any) -> Iterator[str]:
+    """The places of a pattern that hold IRIs: its keys, ``type`` items and ``id``\\ s.
+
+    At any depth; a literal constant (``"foo:bar"`` as a value) is no IRI.
+    """
+    if isinstance(value, list):
         for item in value:
-            yield from _strings(item)
+            yield from _pattern_iris(item)
     elif isinstance(value, Mapping):
         for key, item in value.items():
             yield key
-            yield from _strings(item)
+            if key == "type" and isinstance(item, list):
+                yield from (entry for entry in item if isinstance(entry, str))
+            elif key == "id" and isinstance(item, str):
+                yield item
+            else:
+                yield from _pattern_iris(item)
 
 
 def _used_prefixes(document: Mapping[str, Any]) -> Iterator[str]:
@@ -178,7 +185,7 @@ def _used_prefixes(document: Mapping[str, Any]) -> Iterator[str]:
             if isinstance(thing.get("lrmoo_class"), str):
                 yield from _compact_prefixes([thing["lrmoo_class"]])
     for _, alternative in _cells(document):
-        yield from _compact_prefixes(_strings(alternative.get("pattern")))
+        yield from _compact_prefixes(_pattern_iris(alternative.get("pattern")))
 
 
 def _compact_prefixes(texts: Any) -> Iterator[str]:
@@ -261,10 +268,10 @@ def read_catalogue(document: Mapping[str, Any]) -> Catalogue:
     against ``catalogue/catalogue.schema.json``); the references are, and
     the first problem raised, in this order: an ID held twice (systems,
     things, verbs, types); a prefix used without being declared (a system's
-    ``prefixes``, a thing's ``prefix`` and ``lrmoo_class``, the keys and
-    values of every pattern); a system, thing, verb or type named but not
-    held; a thing pattern that is no regular expression of the shared
-    subset with exactly one capturing group.
+    ``prefixes``, a thing's ``prefix`` and ``lrmoo_class``, the keys,
+    ``type`` items and node ``id``\\ s of every pattern); a system, thing,
+    verb or type named but not held; a thing pattern that is no regular
+    expression of the shared subset with exactly one capturing group.
 
     Raises:
         ValueError: With the first problem.
@@ -442,7 +449,10 @@ class _Reading:
     def matches(self, template: Any, value: Any) -> int | None:
         """The number of constants of a template that ``value`` matches, or ``None``."""
         if isinstance(template, str) and template.startswith("?"):
-            return None if _is_node(value) or isinstance(value, list) else 0
+            literal = not isinstance(value, list) and (
+                not isinstance(value, Mapping) or _is_value_object(value)
+            )
+            return 0 if literal else None
         if not isinstance(template, Mapping):
             return 1 if self.constant(template, value) else None
         if not _is_node(value):

@@ -22,7 +22,8 @@ annotations read as RDF reification of those triples.
 
 A subject is addressed by its path in the manifest: ``()`` the bundle, a path
 ending in ``("timelines" | "children" | "regions", i)`` an element, a path
-passing on through ``statements`` a value node. Every function is pure: it
+passing on through ``statements`` to an item of a list of values a value
+node. Every function is pure: it
 returns a new value and leaves its argument as it is. IRIs inside
 ``statements`` and ``provenance``, the references to elements (``{"id":
 "#clt_1"}``) included, are identical in a manifest file and in memory, so
@@ -565,7 +566,13 @@ def _holder(manifest: Any, subject: Sequence[str | int]) -> tuple[dict, bool]:
         raise missing
     if position == len(path):
         return target, True
-    if path[position] != "statements" or "provenance" in path[position:]:
+    last = path[-1]
+    if (
+        path[position] != "statements"
+        or "provenance" in path[position:]
+        or not isinstance(last, int)
+        or isinstance(last, bool)
+    ):
         raise missing
     for step in path[position:]:
         if isinstance(target, dict) and isinstance(step, str) and step in target:

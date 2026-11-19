@@ -37,9 +37,7 @@ from .diagnostics import (
     SchemaValidationError,
     _entries,
     _Path,
-    string_id,
-    timestamps_of,
-    tree_ids,
+    manifest_ids,
 )
 
 _FRAGMENT = re.compile(
@@ -110,26 +108,6 @@ def _reserved_key_problems(
                 )
 
 
-def _manifest_ids(manifest: Mapping[str, Any]) -> set[str]:
-    """Every ID of the manifest, of any kind, read wherever it is a string."""
-    found = {identifier for identifier in (string_id(manifest),) if identifier}
-    for index, root in enumerate(_entries(manifest, "timelines")):
-        found.update(
-            identifier for identifier, _ in tree_ids(root, ("timelines", index))
-        )
-    for entries in (
-        _entries(manifest, "groups"),
-        _entries(manifest, "measure_maps"),
-        timestamps_of(manifest),
-    ):
-        found.update(
-            identifier
-            for identifier in (string_id(entry) for entry in entries)
-            if identifier is not None
-        )
-    return found
-
-
 def _is_fragment(text: str) -> bool:
     return _FRAGMENT.fullmatch(text) is not None and _BLANK.search(text) is None
 
@@ -141,7 +119,7 @@ class _Walk:
         context = manifest.get("@context")
         self.context = context if isinstance(context, Mapping) else None
         self.prefixes = _prefixes(context)
-        self.ids = _manifest_ids(manifest)
+        self.ids = {identifier for identifier, _ in manifest_ids(manifest)}
 
     def iri(self, text: str, path: _Path) -> Iterator[SchemaValidationError]:
         prefix, _, rest = text.partition(":")

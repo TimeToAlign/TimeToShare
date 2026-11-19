@@ -182,6 +182,8 @@ def test_a_subject_is_addressed_by_its_path() -> None:
         ("groups", 0),
         ("timelines", 1, "statements", "dcterms:created", 0),
         ("timelines", 1, "statements", "rel:prf"),
+        ("timelines", 1, "statements"),
+        ("timelines", 1, "statements", "wdt:P175", 0, "schema:sameAs"),
         ("timelines", 0, "regions", 0),
         ("timelines", 1, "provenance", 0, "value"),
         ("timelines", 1, "statements", "wdt:P175", 0, "label"),

@@ -800,11 +800,13 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   "children", 0)` and `("timelines", 0, "regions", 0)`; the bare `cpt_1`
   raises `no timeline or region of the manifest has the ID 'cpt_1'`. A
   path reaching nothing (`("timelines", 9)`), a group (`("groups", 0)`), a
-  provenance entry's value, a value object or a literal raises
+  provenance entry's value, a value object, a literal, a key's list of
+  values and the `statements` container itself (`("timelines", 1,
+  "statements")`, which is the element's, never a value node) raises
   `#/timelines/9 addresses no element and no value node` (its own pointer).
-  A node is addressed through `statements` (`("timelines", 1,
-  "statements", "wdt:P175", 0)`): its pairs are its `schema:sameAs` values,
-  in list order.
+  A node is addressed through `statements` down to its item in a list of
+  values (`("timelines", 1, "statements", "wdt:P175", 0)`): its pairs are
+  its `schema:sameAs` values, in list order.
 - **Pairs and entries.** `pairs` of M2's `#cpt_1` lists `rel:prf`,
   `schema:sameAs`, `("type", "schema:VideoObject")`, `("type",
   "melod:Manifestation")`, `wdt:P175`, `wdt:P31` in that order (keys by
@@ -921,7 +923,10 @@ inverse alternative) and the type `video`. What proves it
   `when.subject`, a type's `verbs` and `lookup`, a verb's pattern system);
   a thing pattern with two capturing groups, with a named group and with
   an unbalanced parenthesis. Of a copy breaking two rules, the earlier
-  rule's message is raised.
+  rule's message is raised. Only a pattern's keys, `type` items and node
+  `id`s are read as IRIs: a copy whose pattern holds the literal constant
+  `"nope:bar"` as a value (`schema:roleName: ["nope:bar"]`) is read
+  without a problem.
 - **Recognising URLs.** `https://www.wikidata.org/wiki/Q235650` gives
   `("wikidata", "wikidata", "Q235650",
   "http://www.wikidata.org/entity/Q235650")`; the MusicBrainz work's URL in
@@ -949,7 +954,21 @@ inverse alternative) and the type `video`. What proves it
   `("part_of", True)`; `dcterms:created` is `None`; `("type",
   "schema:VideoObject")` is `("is_a", False)`;
   `https://schema.org/sameAs` is `("same_as", False)` through the alias; a
-  `rel:prf` literal (not a node) is `None`.
+  `rel:prf` literal (not a node) is `None`. Under M2's context with `rdf`
+  declared, `("rdf:type", "schema:MusicRecording")` is `("is_a", False)`:
+  the key `type` of a pattern and `rdf:type` expand alike. A slot `"?"`
+  takes a literal, never an ordered value: `("type", {"list":
+  ["schema:VideoObject"]})` is `None`, and so is a contributor node whose
+  `schema:roleName` holds `{"list": ["pianist"]}` (the `?role` slot
+  refuses it, the constant `conductor` is not it). A template's item
+  matches where it matches any item of the value's list, and a key's best
+  match counts once: in a copy whose verb `about_subject` (`{schema:about:
+  [{schema:subjectOf: [{type: [schema:Thing]}]}]}`) precedes `about_named`
+  (`{schema:about: [{type: [schema:Thing], schema:name: [A]}]}`), a node
+  typed `schema:Thing` named `["B", "A"]` whose `schema:subjectOf` holds
+  two nodes typed `schema:Thing` is `("about_named", False)`: two
+  constants against one, where counting each matching item would tie and
+  give the earlier verb.
 - **Rectangles.** `rectangles(CATALOGUE_TEST, M2, ("timelines", 1))` is
   exactly: `is_a` with the two `type` pairs and `wdt:P31`, its things
   `http://schema.org/VideoObject`,
@@ -963,7 +982,12 @@ inverse alternative) and the type `video`. What proves it
   `wdt:P629` (joined by the MusicBrainz work), its things the MusicBrainz,
   Wikidata and GND IRIs, label `Clair de lune`. A subject stating nothing
   gives one empty `is_a` rectangle; two `rel:prf` values naming different
-  things give two `performed_by` rectangles.
+  things give two `performed_by` rectangles. A node without `id` still
+  names the things under its `schema:sameAs` and `owl:sameAs`: a `rel:prf`
+  node `{schema:sameAs: [{id: viaf:1}], owl:sameAs: [{id: wd:Q1}]}` (which
+  no verb reads, since every pattern of `rel:prf` wants an `id`) is one
+  rectangle of verb `None` whose things are
+  `http://viaf.org/viaf/1` and `http://www.wikidata.org/entity/Q1`.
 
 ## The RDF of the statements
 
@@ -987,7 +1011,13 @@ each statement fixture and its twin:
    `status`): no key of the format gives a triple;
 4. for every `proposed` or `rejected` entry whose subject has an IRI and
    whose value is a thing or a plain literal, the triple subject, property,
-   value is absent: a pair that is not stated is asserted nowhere;
+   value is absent: a pair that is not stated is asserted nowhere. So that
+   the check cannot pass on nothing, the number of entries it checks is
+   exact, in both forms: 2 of the DJ set's segment, 3 of the LayerIt
+   recording, 2 of the Nielsen record, none of the Op. 106 work (which
+   holds no such entry); the `proposed` and `rejected` entries it passes
+   over, their value a node with more than an `id`, a value object or an
+   ordered value, are 1, 0, 3 and 0;
 5. the number of distinct subjects of `rdf:subject` equals the number of
    provenance entries in the fixture: each entry is one reified statement.
 

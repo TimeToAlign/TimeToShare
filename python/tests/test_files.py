@@ -129,7 +129,10 @@ spelled as floats."""
 
 
 def _context_block() -> str:
-    """The canonical YAML of the format's ``@context``, with which every fixture opens."""
+    """The canonical YAML of the format's ``@context``.
+
+    Every fixture opens with it.
+    """
     text = _text(FIXTURES / "bare.minimal.yaml")
     return text[: text.index("\ngraphical:") + 1]
 

@@ -1,10 +1,10 @@
 """The validator's diagnostics and the small readers every rule module shares.
 
 The error a rule raises with its code and path, the JSON pointer of a path,
-the readers of a schema-checked object's members, and the walk of the IDs of
-a root's tree, which reads any value. A leaf module: it imports no rule
-module and no validator, so the rule modules and ``timetoshare.validate``
-both import it without a cycle.
+the readers of a schema-checked object's members, and the walks of the IDs
+of a root's tree and of the whole manifest, which read any value. A leaf
+module: it imports no rule module and no validator, so the rule modules and
+``timetoshare.validate`` both import it without a cycle.
 """
 
 from __future__ import annotations
@@ -144,6 +144,38 @@ def tree_ids(root: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
     """
     yield from _element_ids(root, path)
     yield from _nested_map_ids(root, path)
+
+
+def listed_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
+    """Yield the IDs of a manifest's groups, MeasureMaps and named timestamps.
+
+    In that order, each with its path. An entry that is no object or holds no
+    string ``id`` is passed over, so the walk reads any value.
+    """
+    for key, entries in (
+        (("groups",), _entries(manifest, "groups")),
+        (("measure_maps",), _entries(manifest, "measure_maps")),
+        (("graphical", "timestamps"), timestamps_of(manifest)),
+    ):
+        for index, entry in enumerate(entries):
+            identifier = string_id(entry)
+            if identifier is not None:
+                yield identifier, (*key, index, "id")
+
+
+def manifest_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
+    """Yield every ID of a manifest with its path, in the order of the rules.
+
+    Each root's tree (``tree_ids``), then the listed elements
+    (``listed_ids``), then the manifest's own ``id``. The walk reads any
+    value.
+    """
+    for index, root in enumerate(_entries(manifest, "timelines")):
+        yield from tree_ids(root, ("timelines", index))
+    yield from listed_ids(manifest)
+    identifier = string_id(manifest)
+    if identifier is not None:
+        yield identifier, ("id",)
 
 
 def timelines_by_id(manifest: Any) -> dict[str, Mapping[str, Any]]:

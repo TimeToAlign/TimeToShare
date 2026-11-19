@@ -39,6 +39,15 @@ FORMAT_PREDICATES = {
     NAMESPACE + "status",
 }
 SCHEMES = ("http:", "https:", "urn:", "tag:", "mailto:", "info:")
+UNSTATED = {
+    "djset_segment": (2, 1),
+    "layerit_recording": (3, 0),
+    "nielsen_record": (2, 3),
+    "op106_work": (0, 0),
+}
+"""Per statement fixture, its ``proposed`` and ``rejected`` entries whose
+subject has an IRI: those whose value is a thing or a plain literal, which
+the triple check reads, and those it passes over."""
 STATEMENTS = [path for path in fixture_paths() if path.parent.name == "statements"]
 OTHERS = [path for path in fixture_paths() if path.parent.name != "statements"]
 
@@ -186,6 +195,7 @@ def test_a_pair_that_is_not_stated_is_asserted_nowhere(path: Path) -> None:
         )
         for quad in _quads(path)
     }
+    checked = passed_over = 0
     for subject, entry in _entries(path):
         if entry["status"] == "confirmed":
             continue
@@ -196,8 +206,12 @@ def test_a_pair_that_is_not_stated_is_asserted_nowhere(path: Path) -> None:
         elif _literal(value) is not None:
             target = _literal(value)
         else:
+            passed_over += 1
             continue
+        checked += 1
         assert (subject, predicate, *target) not in triples
+    name = path.name.removesuffix(".yaml").removesuffix(".minimal")
+    assert (checked, passed_over) == UNSTATED[name]
 
 
 @pytest.mark.parametrize("path", STATEMENTS, ids=lambda path: path.name)

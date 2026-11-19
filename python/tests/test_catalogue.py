@@ -183,6 +183,15 @@ def test_each_cross_reference_rule_has_its_message(name: str) -> None:
     assert str(raised.value) == message
 
 
+def test_a_literal_constant_of_a_pattern_is_no_compact_iri() -> None:
+    document = copy.deepcopy(CATALOGUE_TEST)
+    _verb(document, "conducted_by")["patterns"]["musicbrainz"][0]["pattern"][
+        "schema:contributor"
+    ][0]["schema:roleName"] = ["nope:bar"]
+    catalogue = read_catalogue(document)
+    assert catalogue.verbs == tuple(document["verbs"])
+
+
 # -- recognising URLs -----------------------------------------------------------------
 
 
@@ -315,10 +324,55 @@ def _role(name: str) -> dict:
         ("https://schema.org/sameAs", {"id": "wd:Q1"}, ("same_as", False)),
         ("rel:prf", "Maria João Pires", None),
         ("wdtt:P175", {"id": "wd:Q1"}, None),
+        ("rdf:type", "schema:MusicRecording", ("is_a", False)),
+        ("type", {"list": ["schema:VideoObject"]}, None),
+        (
+            "schema:contributor",
+            {**_role("pianist"), "schema:roleName": [{"list": ["pianist"]}]},
+            None,
+        ),
     ],
 )
 def test_a_pair_is_read_as_a_verb(property: str, value: Any, expected: Any) -> None:
-    assert verb_of(_test(), m2()["@context"], property, value) == expected
+    context = {**m2()["@context"], "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"}
+    assert verb_of(_test(), context, property, value) == expected
+
+
+def test_a_template_item_matches_any_item_and_counts_once() -> None:
+    document = copy.deepcopy(CATALOGUE_TEST)
+    thing = {"type": ["schema:Thing"]}
+    document["verbs"].extend(
+        [
+            {
+                "id": "about_subject",
+                "label": "about a subject",
+                "patterns": {
+                    "fallback": [
+                        {"pattern": {"schema:about": [{"schema:subjectOf": [thing]}]}}
+                    ]
+                },
+            },
+            {
+                "id": "about_named",
+                "label": "about a named thing",
+                "patterns": {
+                    "fallback": [
+                        {"pattern": {"schema:about": [{**thing, "schema:name": ["A"]}]}}
+                    ]
+                },
+            },
+        ]
+    )
+    value = {
+        **thing,
+        "schema:name": ["B", "A"],
+        "schema:subjectOf": [thing, {**thing, "schema:name": ["C"]}],
+    }
+    catalogue = read_catalogue(document)
+    assert verb_of(catalogue, m2()["@context"], "schema:about", value) == (
+        "about_named",
+        False,
+    )
 
 
 # -- rectangles -----------------------------------------------------------------------
@@ -418,4 +472,28 @@ def test_an_empty_is_a_and_values_naming_different_things() -> None:
         ("is_a", ()),
         ("performed_by", ("http://www.wikidata.org/entity/Q1",)),
         ("performed_by", ("http://www.wikidata.org/entity/Q2",)),
+    ]
+
+
+def test_a_node_without_id_names_the_things_it_is_the_same_as() -> None:
+    value = m1()
+    value["@context"].update(
+        rel=CATALOGUE_TEST["prefixes"]["rel"],
+        viaf=CATALOGUE_TEST["prefixes"]["viaf"],
+        owl="http://www.w3.org/2002/07/owl#",
+    )
+    node = {
+        "schema:sameAs": [{"id": "viaf:1"}],
+        "owl:sameAs": [{"id": "wd:Q1"}],
+    }
+    value["timelines"][0]["statements"] = {"rel:prf": [node]}
+    assert rectangles(_test(), value, ("timelines", 0)) == [
+        Rectangle("is_a", False, (), (), None),
+        Rectangle(
+            None,
+            False,
+            (("rel:prf", node),),
+            ("http://viaf.org/viaf/1", "http://www.wikidata.org/entity/Q1"),
+            None,
+        ),
     ]

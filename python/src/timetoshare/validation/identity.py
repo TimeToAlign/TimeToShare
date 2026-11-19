@@ -11,7 +11,7 @@ from .diagnostics import (
     _entries,
     _Path,
     duplicate_problem,
-    timestamps_of,
+    listed_ids,
     tree_ids,
 )
 from .maps import MEASURE_VIEWS, timeline_map_problems, timeline_maps
@@ -146,17 +146,11 @@ def identity_problems(
                 yield duplicate_problem(identifier, path, first[identifier])
         for identifier, path in seen.items():
             first.setdefault(identifier, path)
-    for key, entries in (
-        (("groups",), groups),
-        (("measure_maps",), measure_maps),
-        (("graphical", "timestamps"), timestamps_of(value)),
-    ):
-        for index, entry in enumerate(entries):
-            path = (*key, index, "id")
-            if entry["id"] in first:
-                yield duplicate_problem(entry["id"], path, first[entry["id"]])
-            else:
-                first[entry["id"]] = path
+    for identifier, path in listed_ids(value):
+        if identifier in first:
+            yield duplicate_problem(identifier, path, first[identifier])
+        else:
+            first[identifier] = path
     manifest_id = value.get("id")
     if manifest_id in first:
         yield duplicate_problem(manifest_id, ("id",), first[manifest_id], "manifest_id")
