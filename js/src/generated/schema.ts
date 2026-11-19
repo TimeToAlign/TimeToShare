@@ -58,7 +58,7 @@ export const schema = {
         },
         "statements": {
           "$ref": "#/$defs/Statements",
-          "description": "Property–value pairs about the thing the bundle stands for: the work, the set or the compilation it is about."
+          "description": "Property–value pairs about the bundle, which names the work it bundles manifestations of (`schema:about`)."
         },
         "provenance": {
           "$ref": "#/$defs/Provenance",

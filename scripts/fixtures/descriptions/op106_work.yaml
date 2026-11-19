@@ -2,150 +2,180 @@ prefixes:
   mbw: "http://musicbrainz.org/work/"
 subjects:
   "#clt_1":
-    provenance:
-      -
-        date: "2026-11-18"
-        match: exact
-        method: reconciled
-        property: "schema:sameAs"
-        service: "https://www.wikidata.org/w/api.php"
-        stated_by: ["https://example.org/people/editor"]
-        status: confirmed
-        value:
-          id: "wd:Q146730"
-      -
-        basis: ["http://www.wikidata.org/entity/Q146730"]
-        date: "2026-11-18"
-        match: exact
-        method: reconciled
-        note: "proposed from Wikidata's P227, confirmed on lobid (sameAs Q146730 and VIAF 186299955)"
-        property: "schema:sameAs"
-        service: "https://lobid.org/gnd/search"
-        stated_by: ["https://example.org/people/editor"]
-        status: confirmed
-        value:
-          id: "gnd:300016867"
-      -
-        basis: ["https://d-nb.info/gnd/300016867"]
-        date: "2026-11-18"
-        method: imported
-        property: "gndo:firstComposer"
-        stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
-        value:
-          id: "gnd:118508288"
-      -
-        basis: ["https://d-nb.info/gnd/300016867"]
-        date: "2026-11-18"
-        method: imported
-        property: "gndo:opusNumericDesignationOfMusicalWork"
-        stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
-        value: "op. 106"
-      -
-        basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
-        date: "2026-11-19"
-        method: imported
-        note: "MusicBrainz 'parts' relationship, ordering key 1"
-        property: "schema:includedComposition"
-        stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
-        value:
-          id: "mbw:80cbaf7b-a1da-3fc5-b650-6eb72a803980"
-      -
-        basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
-        date: "2026-11-19"
-        method: imported
-        note: "MusicBrainz 'parts' relationship, ordering key 2"
-        property: "schema:includedComposition"
-        stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
-        value:
-          id: "mbw:7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
-      -
-        basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
-        date: "2026-11-19"
-        method: imported
-        note: "MusicBrainz 'parts' relationship, ordering key 3"
-        property: "schema:includedComposition"
-        stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
-        value:
-          id: "mbw:7d110747-f011-41d4-9ce5-a1fad9abed2f"
-      -
-        basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
-        date: "2026-11-19"
-        method: imported
-        note: "MusicBrainz 'parts' relationship, ordering key 4"
-        property: "schema:includedComposition"
-        stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
-        value:
-          id: "mbw:cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
     statements:
-      "gndo:firstComposer":
+      "schema:exampleOfWork":
         -
-          id: "gnd:118508288"
-      "gndo:opusNumericDesignationOfMusicalWork": ["op. 106"]
-      "schema:includedComposition":
+          id: "mbw:4a622b0d-b0c0-405e-b49e-05b70c108284"
+          label: "Piano Sonata No. 29, Op. 106"
+      "schema:publication":
+        -
+          "schema:location":
+            -
+              label: Vienna
+          "schema:publishedBy":
+            -
+              label: Artaria
+          "schema:startDate":
+            -
+              "@type": "xsd:gYear"
+              "@value": "1819"
+          type: ["schema:PublicationEvent"]
+      type: ["melod:Manifestation", "schema:SheetMusic"]
+      "wdt:P629":
+        -
+          id: "wd:Q146730"
+          label: "Piano Sonata No. 29, Op. 106"
+  "#clt_2":
+    statements:
+      "schema:exampleOfWork":
         -
           id: "mbw:80cbaf7b-a1da-3fc5-b650-6eb72a803980"
           label: "I. Allegro"
-          "schema:position": [1]
+      type: ["melod:Manifestation"]
+  "#clt_3":
+    statements:
+      "schema:exampleOfWork":
         -
           id: "mbw:7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
           label: "II. Scherzo. Assai vivace"
-          "schema:position": [2]
+      type: ["melod:Manifestation"]
+  "#clt_4":
+    statements:
+      "schema:exampleOfWork":
         -
           id: "mbw:7d110747-f011-41d4-9ce5-a1fad9abed2f"
           label: "III. Adagio sostenuto"
-          "schema:position": [3]
+      type: ["melod:Manifestation"]
+  "#clt_5":
+    statements:
+      "schema:exampleOfWork":
         -
           id: "mbw:cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
           label: "IV. Largo – Allegro risoluto"
-          "schema:position": [4]
-      "schema:sameAs":
+      type: ["melod:Manifestation"]
+  "#op106":
+    statements:
+      "schema:about":
         -
-          id: "mbw:4a622b0d-b0c0-405e-b49e-05b70c108284"
-        -
-          id: "wd:Q146730"
-        -
-          id: "gnd:300016867"
-        -
-          id: "viaf:186299955"
-      type: ["schema:MusicComposition", "gndo:MusicalWork", "melod:Work"]
-      "wdt:P31":
-        -
-          id: "wd:Q105543609"
-      "wdt:P839": ["Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"]
-      "wdt:P86":
-        -
-          id: "wd:Q255"
-          label: "Ludwig van Beethoven"
-          "schema:sameAs":
+          "gndo:firstComposer":
             -
               id: "gnd:118508288"
-  "#clt_2":
-    statements:
-      "schema:sameAs":
-        -
-          id: "mbw:80cbaf7b-a1da-3fc5-b650-6eb72a803980"
-      type: ["schema:MusicComposition", "melod:Work"]
-  "#clt_3":
-    statements:
-      "schema:sameAs":
-        -
-          id: "mbw:7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
-      type: ["schema:MusicComposition", "melod:Work"]
-  "#clt_4":
-    statements:
-      "schema:sameAs":
-        -
-          id: "mbw:7d110747-f011-41d4-9ce5-a1fad9abed2f"
-      type: ["schema:MusicComposition", "melod:Work"]
-  "#clt_5":
-    statements:
-      "schema:sameAs":
-        -
-          id: "mbw:cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
-      type: ["schema:MusicComposition", "melod:Work"]
+          "gndo:opusNumericDesignationOfMusicalWork": ["op. 106"]
+          id: "mbw:4a622b0d-b0c0-405e-b49e-05b70c108284"
+          label: "Piano Sonata No. 29, Op. 106"
+          provenance:
+            -
+              date: "2026-11-18"
+              match: exact
+              method: reconciled
+              property: "schema:sameAs"
+              service: "https://www.wikidata.org/w/api.php"
+              stated_by: ["https://example.org/people/editor"]
+              status: confirmed
+              value:
+                id: "wd:Q146730"
+            -
+              basis: ["http://www.wikidata.org/entity/Q146730"]
+              date: "2026-11-18"
+              match: exact
+              method: reconciled
+              note: "proposed from Wikidata's P227, confirmed on lobid (sameAs Q146730 and VIAF 186299955)"
+              property: "schema:sameAs"
+              service: "https://lobid.org/gnd/search"
+              stated_by: ["https://example.org/people/editor"]
+              status: confirmed
+              value:
+                id: "gnd:300016867"
+            -
+              basis: ["https://d-nb.info/gnd/300016867"]
+              date: "2026-11-18"
+              method: imported
+              property: "gndo:firstComposer"
+              stated_by: ["https://example.org/agents/tilie"]
+              status: confirmed
+              value:
+                id: "gnd:118508288"
+            -
+              basis: ["https://d-nb.info/gnd/300016867"]
+              date: "2026-11-18"
+              method: imported
+              property: "gndo:opusNumericDesignationOfMusicalWork"
+              stated_by: ["https://example.org/agents/tilie"]
+              status: confirmed
+              value: "op. 106"
+            -
+              basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+              date: "2026-11-19"
+              method: imported
+              note: "MusicBrainz 'parts' relationship, ordering key 1"
+              property: "schema:includedComposition"
+              stated_by: ["https://example.org/agents/tilie"]
+              status: confirmed
+              value:
+                id: "mbw:80cbaf7b-a1da-3fc5-b650-6eb72a803980"
+            -
+              basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+              date: "2026-11-19"
+              method: imported
+              note: "MusicBrainz 'parts' relationship, ordering key 2"
+              property: "schema:includedComposition"
+              stated_by: ["https://example.org/agents/tilie"]
+              status: confirmed
+              value:
+                id: "mbw:7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
+            -
+              basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+              date: "2026-11-19"
+              method: imported
+              note: "MusicBrainz 'parts' relationship, ordering key 3"
+              property: "schema:includedComposition"
+              stated_by: ["https://example.org/agents/tilie"]
+              status: confirmed
+              value:
+                id: "mbw:7d110747-f011-41d4-9ce5-a1fad9abed2f"
+            -
+              basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+              date: "2026-11-19"
+              method: imported
+              note: "MusicBrainz 'parts' relationship, ordering key 4"
+              property: "schema:includedComposition"
+              stated_by: ["https://example.org/agents/tilie"]
+              status: confirmed
+              value:
+                id: "mbw:cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
+          "schema:includedComposition":
+            -
+              id: "mbw:80cbaf7b-a1da-3fc5-b650-6eb72a803980"
+              label: "I. Allegro"
+              "schema:position": [1]
+            -
+              id: "mbw:7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
+              label: "II. Scherzo. Assai vivace"
+              "schema:position": [2]
+            -
+              id: "mbw:7d110747-f011-41d4-9ce5-a1fad9abed2f"
+              label: "III. Adagio sostenuto"
+              "schema:position": [3]
+            -
+              id: "mbw:cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
+              label: "IV. Largo – Allegro risoluto"
+              "schema:position": [4]
+          "schema:sameAs":
+            -
+              id: "wd:Q146730"
+            -
+              id: "gnd:300016867"
+            -
+              id: "viaf:186299955"
+          type: ["schema:MusicComposition", "gndo:MusicalWork", "melod:Work"]
+          "wdt:P31":
+            -
+              id: "wd:Q105543609"
+          "wdt:P839": ["Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"]
+          "wdt:P86":
+            -
+              id: "wd:Q255"
+              label: "Ludwig van Beethoven"
+              "schema:sameAs":
+                -
+                  id: "gnd:118508288"

@@ -18,6 +18,7 @@
 <https://example.org/manifests/layerit_recording.yaml#cpt_1> <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q98069877> .
 <https://example.org/manifests/layerit_recording.yaml#dpt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/AudioObject> .
 <https://example.org/manifests/layerit_recording.yaml#dpt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/layerit_recording.yaml#layerit_clair_de_lune> <http://schema.org/about> <http://www.wikidata.org/entity/Q29117946> .
 <https://example.org/manifests/layerit_recording.yaml#layerit_clair_de_lune> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://github.com/FernandoAze/LayerIt/tree/c88ca33065d49f622fca7225b784240df34a0fe8/src/input_files/ClairDeLune> .
 _:c14n0 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
 _:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q29117946> .

@@ -23,28 +23,39 @@ from . import parts
 
 
 def op106_work() -> AlignmentBundle:
-    """Build ``op106_work``, Beethoven's Piano Sonata No. 29, Op. 106.
+    """Build ``op106_work``, sources of Beethoven's Piano Sonata No. 29, Op. 106.
 
     The bundle ``op106`` ("Beethoven, Piano Sonata No. 29, Op. 106") holds
-    five roots side by side, none nesting another: the work ``clt_1``
-    ("Op. 106") of unknown length and its four movements ``clt_2`` ("I.
-    Allegro", 1645 quarters), ``clt_3`` ("II. Scherzo. Assai vivace", 510),
-    ``clt_4`` ("III. Adagio sostenuto", 561) and ``clt_5`` ("IV.
-    Introduzione. Largo – Allegro risoluto", 9911/8). The statements say
-    what the work is, who composed it, its catalogue number and the parts
-    MusicBrainz lists; how the movements lie in time is not stated.
+    five roots side by side, none nesting another: the first edition
+    ``clt_1`` ("Op. 106, first edition (Vienna: Artaria, 1819)") of unknown
+    length and the Humdrum encodings of the four movements, whose written
+    lengths (both endings counted) give the lengths: ``clt_2`` ("I. Allegro
+    (sonata29-1.krn)", 1645 quarters), ``clt_3`` ("II. Scherzo. Assai vivace
+    (sonata29-2.krn)", 510), ``clt_4`` ("III. Adagio sostenuto
+    (sonata29-3.krn)", 561) and ``clt_5`` ("IV. Introduzione. Largo –
+    Allegro risoluto (sonata29-4.krn)", 9911/8). The statements name the
+    sonata as what the bundle is about, the edition as an example of it and
+    each encoding as an example of its movement; how the timelines lie in
+    time is not stated.
     """
     bundle = AlignmentBundle(id="op106", name="Beethoven, Piano Sonata No. 29, Op. 106")
     bundle.add_timeline(
         ContinuousLogicalTimeline(
-            length=None, unit="quarters", uid="clt_1", name="Op. 106"
+            length=None,
+            unit="quarters",
+            uid="clt_1",
+            name="Op. 106, first edition (Vienna: Artaria, 1819)",
         )
     )
     for uid, name, length in (
-        ("clt_2", "I. Allegro", Fraction(1645)),
-        ("clt_3", "II. Scherzo. Assai vivace", Fraction(510)),
-        ("clt_4", "III. Adagio sostenuto", Fraction(561)),
-        ("clt_5", "IV. Introduzione. Largo – Allegro risoluto", Fraction(9911, 8)),
+        ("clt_2", "I. Allegro (sonata29-1.krn)", Fraction(1645)),
+        ("clt_3", "II. Scherzo. Assai vivace (sonata29-2.krn)", Fraction(510)),
+        ("clt_4", "III. Adagio sostenuto (sonata29-3.krn)", Fraction(561)),
+        (
+            "clt_5",
+            "IV. Introduzione. Largo – Allegro risoluto (sonata29-4.krn)",
+            Fraction(9911, 8),
+        ),
     ):
         bundle.add_timeline(parts.named(ContinuousLogicalTimeline, uid, name, length))
     return bundle
@@ -92,15 +103,19 @@ def layerit_recording() -> AlignmentBundle:
 
 
 def djset_segment() -> AlignmentBundle:
-    """Build ``djset_segment``, a DJ set and one segment of it.
+    """Build ``djset_segment``, the recording of a DJ set and one segment of it.
 
     The bundle ``moriero_halloween_xxl_2025`` ("Samuel Moriero, Impact
-    Halloween XXL 2025 (full set)") holds the set ``cpt_1`` ("the set",
-    5277.0 seconds) with the segment ``cpt_2`` ("HUMBLE. (Skrillex Remix /
-    Samuel Moriero Remix)", 91.0 seconds) at 437.0.
+    Halloween XXL 2025 (full set)") holds the recording of the set ``cpt_1``
+    ("the set's recording", 5277.0 seconds) with the segment ``cpt_2``
+    ("HUMBLE. (Skrillex Remix / Samuel Moriero Remix)", 91.0 seconds) at
+    437.0. The set itself, a work of its own, has no time axis apart from its
+    recording and is named by the statements alone.
     """
-    the_set = parts.named(ContinuousPhysicalTimeline, "cpt_1", "the set", 5277.0)
-    the_set.add_child(
+    recording = parts.named(
+        ContinuousPhysicalTimeline, "cpt_1", "the set's recording", 5277.0
+    )
+    recording.add_child(
         parts.named(
             ContinuousPhysicalTimeline,
             "cpt_2",
@@ -113,24 +128,21 @@ def djset_segment() -> AlignmentBundle:
         id="moriero_halloween_xxl_2025",
         name="Samuel Moriero, Impact Halloween XXL 2025 (full set)",
     )
-    return bundle.add_timeline(the_set)
+    return bundle.add_timeline(recording)
 
 
 def nielsen_record() -> AlignmentBundle:
     """Build ``nielsen_record``, a catalogue record of a song and its sources.
 
     The bundle ``cnw0133`` ("Carl Nielsen, Hr. Olufs Sang (CNW 133)") holds
-    the version ``clt_1`` (quarters, of unknown length) and the two sources
-    ``cgt_1`` ("Score, print (Wilhelm Hansen, 1906)") and ``cgt_2`` ("Score,
-    autograph, printer's manuscript"), millimeters of unknown length, which
-    no scan gives a length yet. No timeline nests another: work, version and
-    sources are related by statements alone.
+    the two sources ``cgt_1`` ("Score, print (Wilhelm Hansen, 1906)") and
+    ``cgt_2`` ("Score, autograph, printer's manuscript"), millimeters of
+    unknown length, which no scan gives a length yet. No timeline nests
+    another; the work and its version have no time axis of their own and are
+    named by the statements alone.
     """
     bundle = AlignmentBundle(
         id="cnw0133", name="Carl Nielsen, Hr. Olufs Sang (CNW 133)"
-    )
-    bundle.add_timeline(
-        ContinuousLogicalTimeline(length=None, unit="quarters", uid="clt_1")
     )
     for uid, name in (
         ("cgt_1", "Score, print (Wilhelm Hansen, 1906)"),

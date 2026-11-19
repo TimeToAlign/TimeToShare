@@ -1,3 +1,19 @@
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://schema.org/includedComposition> <http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://schema.org/includedComposition> <http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://schema.org/includedComposition> <http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://schema.org/includedComposition> <http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://schema.org/sameAs> <http://viaf.org/viaf/186299955> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://schema.org/sameAs> <http://www.wikidata.org/entity/Q146730> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://schema.org/sameAs> <https://d-nb.info/gnd/300016867> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/MusicComposition> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://d-nb.info/standards/elementset/gnd#MusicalWork> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Work> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://www.w3.org/2000/01/rdf-schema#label> "Piano Sonata No. 29, Op. 106" .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q105543609> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://www.wikidata.org/prop/direct/P839> "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)" .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <http://www.wikidata.org/prop/direct/P86> <http://www.wikidata.org/entity/Q255> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <https://d-nb.info/standards/elementset/gnd#firstComposer> <https://d-nb.info/gnd/118508288> .
+<http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> <https://d-nb.info/standards/elementset/gnd#opusNumericDesignationOfMusicalWork> "op. 106" .
 <http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9> <http://schema.org/position> "2"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9> <http://www.w3.org/2000/01/rdf-schema#label> "II. Scherzo. Assai vivace" .
 <http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f> <http://schema.org/position> "3"^^<http://www.w3.org/2001/XMLSchema#integer> .
@@ -6,105 +22,98 @@
 <http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980> <http://www.w3.org/2000/01/rdf-schema#label> "I. Allegro" .
 <http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84> <http://schema.org/position> "4"^^<http://www.w3.org/2001/XMLSchema#integer> .
 <http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84> <http://www.w3.org/2000/01/rdf-schema#label> "IV. Largo – Allegro risoluto" .
+<http://www.wikidata.org/entity/Q146730> <http://www.w3.org/2000/01/rdf-schema#label> "Piano Sonata No. 29, Op. 106" .
 <http://www.wikidata.org/entity/Q255> <http://schema.org/sameAs> <https://d-nb.info/gnd/118508288> .
 <http://www.wikidata.org/entity/Q255> <http://www.w3.org/2000/01/rdf-schema#label> "Ludwig van Beethoven" .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/includedComposition> <http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/includedComposition> <http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/includedComposition> <http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/includedComposition> <http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/sameAs> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/sameAs> <http://viaf.org/viaf/186299955> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/sameAs> <http://www.wikidata.org/entity/Q146730> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/sameAs> <https://d-nb.info/gnd/300016867> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/MusicComposition> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://d-nb.info/standards/elementset/gnd#MusicalWork> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Work> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q105543609> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.wikidata.org/prop/direct/P839> "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)" .
-<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.wikidata.org/prop/direct/P86> <http://www.wikidata.org/entity/Q255> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <https://d-nb.info/standards/elementset/gnd#firstComposer> <https://d-nb.info/gnd/118508288> .
-<https://example.org/manifests/op106_work.yaml#clt_1> <https://d-nb.info/standards/elementset/gnd#opusNumericDesignationOfMusicalWork> "op. 106" .
-<https://example.org/manifests/op106_work.yaml#clt_2> <http://schema.org/sameAs> <http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980> .
-<https://example.org/manifests/op106_work.yaml#clt_2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/MusicComposition> .
-<https://example.org/manifests/op106_work.yaml#clt_2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Work> .
-<https://example.org/manifests/op106_work.yaml#clt_3> <http://schema.org/sameAs> <http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9> .
-<https://example.org/manifests/op106_work.yaml#clt_3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/MusicComposition> .
-<https://example.org/manifests/op106_work.yaml#clt_3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Work> .
-<https://example.org/manifests/op106_work.yaml#clt_4> <http://schema.org/sameAs> <http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f> .
-<https://example.org/manifests/op106_work.yaml#clt_4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/MusicComposition> .
-<https://example.org/manifests/op106_work.yaml#clt_4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Work> .
-<https://example.org/manifests/op106_work.yaml#clt_5> <http://schema.org/sameAs> <http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84> .
-<https://example.org/manifests/op106_work.yaml#clt_5> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/MusicComposition> .
-<https://example.org/manifests/op106_work.yaml#clt_5> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Work> .
+<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/exampleOfWork> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
+<https://example.org/manifests/op106_work.yaml#clt_1> <http://schema.org/publication> _:c14n8 .
+<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/SheetMusic> .
+<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/op106_work.yaml#clt_1> <http://www.wikidata.org/prop/direct/P629> <http://www.wikidata.org/entity/Q146730> .
+<https://example.org/manifests/op106_work.yaml#clt_2> <http://schema.org/exampleOfWork> <http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980> .
+<https://example.org/manifests/op106_work.yaml#clt_2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/op106_work.yaml#clt_3> <http://schema.org/exampleOfWork> <http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9> .
+<https://example.org/manifests/op106_work.yaml#clt_3> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/op106_work.yaml#clt_4> <http://schema.org/exampleOfWork> <http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f> .
+<https://example.org/manifests/op106_work.yaml#clt_4> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/op106_work.yaml#clt_5> <http://schema.org/exampleOfWork> <http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84> .
+<https://example.org/manifests/op106_work.yaml#clt_5> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/op106_work.yaml#op106> <http://schema.org/about> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
 _:c14n0 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> "op. 106" .
-_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <https://d-nb.info/standards/elementset/gnd#opusNumericDesignationOfMusicalWork> .
-_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/op106_work.yaml#clt_1> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <https://d-nb.info/gnd/118508288> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <https://d-nb.info/standards/elementset/gnd#firstComposer> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
 _:c14n0 <http://www.w3.org/ns/prov#hadPrimarySource> <https://d-nb.info/gnd/300016867> .
 _:c14n0 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
 _:c14n0 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
 _:c14n0 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
 _:c14n1 <http://purl.org/dc/terms/date> "2026-11-19"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980> .
 _:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/includedComposition> .
-_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/op106_work.yaml#clt_1> .
-_:c14n1 <http://www.w3.org/2000/01/rdf-schema#comment> "MusicBrainz 'parts' relationship, ordering key 3" .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
+_:c14n1 <http://www.w3.org/2000/01/rdf-schema#comment> "MusicBrainz 'parts' relationship, ordering key 1" .
 _:c14n1 <http://www.w3.org/ns/prov#hadPrimarySource> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
 _:c14n1 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
 _:c14n1 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
 _:c14n1 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
-_:c14n2 <http://purl.org/dc/terms/date> "2026-11-19"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980> .
-_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/includedComposition> .
-_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/op106_work.yaml#clt_1> .
-_:c14n2 <http://www.w3.org/2000/01/rdf-schema#comment> "MusicBrainz 'parts' relationship, ordering key 1" .
-_:c14n2 <http://www.w3.org/ns/prov#hadPrimarySource> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
-_:c14n2 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
-_:c14n2 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
+_:c14n10 <http://purl.org/dc/terms/date> "2026-11-19"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9> .
+_:c14n10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/includedComposition> .
+_:c14n10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
+_:c14n10 <http://www.w3.org/2000/01/rdf-schema#comment> "MusicBrainz 'parts' relationship, ordering key 2" .
+_:c14n10 <http://www.w3.org/ns/prov#hadPrimarySource> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
+_:c14n10 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
+_:c14n10 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
+_:c14n10 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n2 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <https://d-nb.info/gnd/300016867> .
+_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/sameAs> .
+_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
+_:c14n2 <http://www.w3.org/2000/01/rdf-schema#comment> "proposed from Wikidata's P227, confirmed on lobid (sameAs Q146730 and VIAF 186299955)" .
+_:c14n2 <http://www.w3.org/ns/prov#hadPrimarySource> <http://www.wikidata.org/entity/Q146730> .
+_:c14n2 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
+_:c14n2 <https://timetoalign.github.io/timetoshare/ns#match> <http://www.w3.org/2004/02/skos/core#exactMatch> .
+_:c14n2 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
+_:c14n2 <https://timetoalign.github.io/timetoshare/ns#service> <https://lobid.org/gnd/search> .
 _:c14n2 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
-_:c14n3 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <https://d-nb.info/gnd/118508288> .
-_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <https://d-nb.info/standards/elementset/gnd#firstComposer> .
-_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/op106_work.yaml#clt_1> .
-_:c14n3 <http://www.w3.org/ns/prov#hadPrimarySource> <https://d-nb.info/gnd/300016867> .
-_:c14n3 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
-_:c14n3 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
-_:c14n3 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n3 <http://www.w3.org/2000/01/rdf-schema#label> "Artaria" .
 _:c14n4 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
 _:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q146730> .
 _:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/sameAs> .
-_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/op106_work.yaml#clt_1> .
+_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
 _:c14n4 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
 _:c14n4 <https://timetoalign.github.io/timetoshare/ns#match> <http://www.w3.org/2004/02/skos/core#exactMatch> .
 _:c14n4 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
 _:c14n4 <https://timetoalign.github.io/timetoshare/ns#service> <https://www.wikidata.org/w/api.php> .
 _:c14n4 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
 _:c14n5 <http://purl.org/dc/terms/date> "2026-11-19"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/work/7813c9cf-6054-3ef3-b9ed-8ae4690581c9> .
+_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/work/7d110747-f011-41d4-9ce5-a1fad9abed2f> .
 _:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/includedComposition> .
-_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/op106_work.yaml#clt_1> .
-_:c14n5 <http://www.w3.org/2000/01/rdf-schema#comment> "MusicBrainz 'parts' relationship, ordering key 2" .
+_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
+_:c14n5 <http://www.w3.org/2000/01/rdf-schema#comment> "MusicBrainz 'parts' relationship, ordering key 3" .
 _:c14n5 <http://www.w3.org/ns/prov#hadPrimarySource> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
 _:c14n5 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
 _:c14n5 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
 _:c14n5 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
-_:c14n6 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <https://d-nb.info/gnd/300016867> .
-_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/sameAs> .
-_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/op106_work.yaml#clt_1> .
-_:c14n6 <http://www.w3.org/2000/01/rdf-schema#comment> "proposed from Wikidata's P227, confirmed on lobid (sameAs Q146730 and VIAF 186299955)" .
-_:c14n6 <http://www.w3.org/ns/prov#hadPrimarySource> <http://www.wikidata.org/entity/Q146730> .
-_:c14n6 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
-_:c14n6 <https://timetoalign.github.io/timetoshare/ns#match> <http://www.w3.org/2004/02/skos/core#exactMatch> .
-_:c14n6 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
-_:c14n6 <https://timetoalign.github.io/timetoshare/ns#service> <https://lobid.org/gnd/search> .
-_:c14n6 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n6 <http://www.w3.org/2000/01/rdf-schema#label> "Vienna" .
 _:c14n7 <http://purl.org/dc/terms/date> "2026-11-19"^^<http://www.w3.org/2001/XMLSchema#date> .
 _:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/work/cfa82cd6-bcb5-39dd-9beb-c98e275c7c84> .
 _:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/includedComposition> .
-_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/op106_work.yaml#clt_1> .
+_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
 _:c14n7 <http://www.w3.org/2000/01/rdf-schema#comment> "MusicBrainz 'parts' relationship, ordering key 4" .
 _:c14n7 <http://www.w3.org/ns/prov#hadPrimarySource> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
 _:c14n7 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
 _:c14n7 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
 _:c14n7 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n8 <http://schema.org/location> _:c14n6 .
+_:c14n8 <http://schema.org/publishedBy> _:c14n3 .
+_:c14n8 <http://schema.org/startDate> "1819"^^<http://www.w3.org/2001/XMLSchema#gYear> .
+_:c14n8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/PublicationEvent> .
+_:c14n9 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> "op. 106" .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <https://d-nb.info/standards/elementset/gnd#opusNumericDesignationOfMusicalWork> .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284> .
+_:c14n9 <http://www.w3.org/ns/prov#hadPrimarySource> <https://d-nb.info/gnd/300016867> .
+_:c14n9 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
+_:c14n9 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
+_:c14n9 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .

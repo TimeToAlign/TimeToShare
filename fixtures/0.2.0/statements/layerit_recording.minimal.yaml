@@ -75,6 +75,10 @@ statements:
   "rdfs:seeAlso":
     -
       id: "https://github.com/FernandoAze/LayerIt/tree/c88ca33065d49f622fca7225b784240df34a0fe8/src/input_files/ClairDeLune"
+  "schema:about":
+    -
+      id: "wd:Q29117946"
+      label: "Clair de lune"
 timelines:
   -
     id: "#clt_6"

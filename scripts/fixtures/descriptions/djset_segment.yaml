@@ -13,9 +13,12 @@ subjects:
           label: "Samuel Moriero"
     statements:
       type: ["schema:MusicRecording", "schema:AudioObject"]
-      "wdt:P31":
+      "wdt:P2550":
         -
-          id: "wd:Q2619673"
+          label: "Samuel Moriero, Impact Halloween XXL 2025"
+          "wdt:P31":
+            -
+              id: "wd:Q2619673"
   "#cpt_2":
     provenance:
       -
@@ -80,3 +83,11 @@ subjects:
           "schema:sameAs":
             -
               id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
+  "#moriero_halloween_xxl_2025":
+    statements:
+      "schema:about":
+        -
+          label: "Samuel Moriero, Impact Halloween XXL 2025"
+          "wdt:P31":
+            -
+              id: "wd:Q2619673"

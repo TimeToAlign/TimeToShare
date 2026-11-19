@@ -57,6 +57,13 @@ id: "#moriero_halloween_xxl_2025"
 meta:
   generator: "timetoalign 1.2.0 (40161e42)"
 name: "Samuel Moriero, Impact Halloween XXL 2025 (full set)"
+statements:
+  "schema:about":
+    -
+      label: "Samuel Moriero, Impact Halloween XXL 2025"
+      "wdt:P31":
+        -
+          id: "wd:Q2619673"
 timelines:
   -
     children:
@@ -132,7 +139,7 @@ timelines:
         unit: seconds
     id: "#cpt_1"
     length: 5277.0
-    name: "the set"
+    name: "the set's recording"
     provenance:
       -
         basis: ["1001tracklists-1pp3704t_mapping.csv"]
@@ -146,8 +153,11 @@ timelines:
           label: "Samuel Moriero"
     statements:
       type: ["schema:MusicRecording", "schema:AudioObject"]
-      "wdt:P31":
+      "wdt:P2550":
         -
-          id: "wd:Q2619673"
+          label: "Samuel Moriero, Impact Halloween XXL 2025"
+          "wdt:P31":
+            -
+              id: "wd:Q2619673"
     unit: seconds
 timetoshare: "0.2.0"

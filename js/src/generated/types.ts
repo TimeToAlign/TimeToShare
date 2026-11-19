@@ -810,7 +810,7 @@ export interface Manifest {
    */
   measure_maps?: MeasureMap[];
   /**
-   * Property–value pairs about the thing the bundle stands for: the work, the set or the compilation it is about.
+   * Property–value pairs about the bundle, which names the work it bundles manifestations of (`schema:about`).
    */
   statements?: Statements;
   /**
