@@ -77,6 +77,7 @@ REJECTIONS = [
     "id_duplicate_across_kinds",
     "id_empty",
     "id_without_hash",
+    "id_without_hash_short",
     "infinite_length",
     "jump_target_flow_marker",
     "jump_to_target",

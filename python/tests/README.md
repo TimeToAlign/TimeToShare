@@ -757,7 +757,7 @@ documents that bound each rule from the other side:
   its links without knowing which parts the rules read. Its oracle is the
   shared set: each of the nineteen `description_*` rejection cases gives
   exactly one problem, the case's path and code (and, for the four cases
-  whose message is pinned above, that message), and each of the other 110
+  whose message is pinned above, that message), and each of the other 111
   cases (the `version_unknown` case and the case that is no manifest
   among them) and every fixture gives none. Every document of the rules
   of links above gives the list `identity_problems` gives, as each breaks
@@ -1348,10 +1348,20 @@ definition is held (`CONTAINERS`). What proves them:
   followed by at least one character, so a timeline ID written bare
   (`id_without_hash`) and a group member written bare
   (`reference_without_hash`) are refused by the schema where they stand.
+  The `#` rule is the one reported whatever the length: a timeline ID
+  written `s` (`id_without_hash_short`), `score` or `#` alone is refused at
+  `timelines/0/id` with the same schema message, `'s' does not match
+  '^#[\\s\\S]'` for the first, never one about the length. The rule
+  reads any character after the `#` alike in both languages, so the ID
+  `#\u2028` (a line separator, no control character) validates.
   Where the schema cannot tell, `validate` refuses with code `schema`, the
   path and `FileIdError`'s message: a member written bare in a group's
   order entry, and an identifier's `scheme` written bare that names a
-  declared scheme; the same manifest with both written `#` validates. The
+  declared scheme; the same manifest with both written `#` validates.
+  `description_problems` refuses the same bare `scheme` with the same
+  code, path and message, as the problem of the manifest's `links`, while
+  the manifest whose bare member stands in the group's order entry, outside
+  the description layer, gives none. The
   schema check and the search for unknown keys report paths through
   `graphical.order` with the key as written (`#score`); every other check,
   the finite rule included, reads the bare IDs and quotes them bare, so

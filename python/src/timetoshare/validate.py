@@ -21,7 +21,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-from .ids import FileIdError, leniently_bare_ids, with_bare_ids
+from .ids import FileIdError, leniently_bare_ids, member_with_bare_ids, with_bare_ids
 from .serialization import spell
 from .validation.containment import child_ends as child_ends
 from .validation.description import description_arrays, link_problems, scheme_problems
@@ -326,7 +326,10 @@ def description_problems(value: Mapping[str, Any]) -> list[SchemaValidationError
     and its children's, depth first) checked as :func:`validate` checks
     them, each array's first problem at its path: a number that is not
     finite (``finite_number``), else the schema's ``#/$defs/Scheme`` or
-    ``#/$defs/Link`` (``schema``), reported by the one path rule. Where no
+    ``#/$defs/Link`` (``schema``), reported by the one path rule, else an
+    ID the schema cannot see unwritten (``schema``, as :func:`validate`
+    refuses it: an identifier's ``scheme`` written without ``#`` that names
+    a scheme of the manifest). Where no
     array has a problem, the reference rules follow over the whole
     manifest, in the order of :func:`identity_problems`: each scheme ID
     unique across every ID of the manifest (``duplicate_id``), the manifest
@@ -338,8 +341,9 @@ def description_problems(value: Mapping[str, Any]) -> list[SchemaValidationError
     whose links and schemes are sound has no problem here. A library that
     reads only part of a manifest checks its description layer with this
     function. The messages are those of :func:`validate`. ``value`` is in the
-    file form; the reference rules read its IDs bare, and an ID outside the
-    description layer written without ``#`` is read as it stands.
+    file form; every ID of the description layer must be written so, the
+    reference rules read the IDs bare, and an ID outside the description
+    layer written without ``#`` is read as it stands.
     """
     problems: list[SchemaValidationError] = []
     bare = leniently_bare_ids(value)
@@ -354,8 +358,16 @@ def description_problems(value: Mapping[str, Any]) -> list[SchemaValidationError
         if error is not None:
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, error.message))
+            continue
+        try:
+            member_with_bare_ids(value, definition, member, path)
+        except FileIdError as refused:
+            problems.append(SchemaValidationError("schema", refused.path, str(refused)))
     if problems:
         return problems
+    # Every ID of the description layer is now known to be in the file form;
+    # the reference rules compare it with IDs outside the layer, which are
+    # read leniently so that this function refuses nothing outside it.
     return [*scheme_problems(bare), *link_problems(bare)]
 
 

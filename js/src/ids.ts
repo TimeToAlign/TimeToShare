@@ -299,6 +299,36 @@ export function withBareIds<T>(manifest: T): T {
 }
 
 /**
+ * The member at `path` in `manifest` (the member `member` of a `definition`
+ * object) with every ID bare, read as `withBareIds` reads it: the IDs it
+ * holds must be in the file form, and an identifier's `scheme` written
+ * without `#` must name no scheme of `manifest`. Nothing outside the member
+ * is read but the manifest's scheme IDs.
+ *
+ * @throws {FileIdError} a `RangeError` with the `path` of the first text in
+ * the member that is not an ID in the file form, or of an identifier's
+ * `scheme` written without `#` that names a scheme of the manifest.
+ */
+export function memberWithBareIds(
+  manifest: JsonObject,
+  definition: string,
+  member: string,
+  path: Path,
+): unknown {
+  let value: unknown = manifest;
+  for (const step of path) {
+    value = Array.isArray(value)
+      ? value[step as number]
+      : isJsonObject(value)
+        ? value[step as string]
+        : undefined;
+  }
+  const held = HELD.get(definition)?.get(member);
+  if (held === undefined) throw new RangeError(`${definition}.${member} holds no IDs`);
+  return new Converter(manifest, false).holding(value, held[0], held[1], path);
+}
+
+/**
  * `withBareIds` that keeps every text not in the file form as it is: for a
  * check of one part of a manifest, which must not refuse an ID outside that
  * part.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CONTAINERS, definitionsOf, ID_POSITIONS, MEASURE_VIEWS } from "../src/ids.js";
 import {
   compactJson,
+  descriptionProblems,
   FileIdError,
   fromFileId,
   isJsonObject,
@@ -438,5 +439,51 @@ describe("the validators", () => {
       path,
       message,
     ]);
+  });
+
+  it("refuse a bare scheme reference in the description check too", () => {
+    const problems = descriptionProblems(small("#score", "opus"));
+    expect(problems.map((problem) => [problem.code, problem.path, problem.detail])).toEqual([
+      [
+        "schema",
+        ["links", 0, "identifiers", 0, "scheme"],
+        "'opus' names a scheme of this manifest, so it is written '#opus'",
+      ],
+    ]);
+  });
+
+  it("read IDs outside the description layer as they stand in the description check", () => {
+    expect(descriptionProblems(small("score", "#opus"))).toEqual([]);
+  });
+
+  it.each(["s", "score", "#"])("refuse the bare ID %j by the # rule", (written) => {
+    const value = small("#score", "#opus");
+    (value.timelines as JsonObject[])[0] = { id: written, unit: "quarters", length: [8, 1] };
+    let thrown: unknown;
+    try {
+      validate(value);
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(SchemaValidationError);
+    const { code, path, detail } = thrown as SchemaValidationError;
+    expect([code, path, detail]).toEqual([
+      "schema",
+      ["timelines", 0, "id"],
+      'must match pattern "^#[\\s\\S]"',
+    ]);
+  });
+
+  it("accept any character after the # as an ID", () => {
+    const value = small("#score", "#opus");
+    (value.timelines as JsonObject[])[0] = { id: "#\u2028", unit: "quarters", length: [8, 1] };
+    value.groups = [{ id: "#g", members: ["#\u2028"] }];
+    value.graphical = {
+      order: {
+        "#g": ["#\u2028"],
+        "#\u2028": ["line", "markers", "conversion_maps", "children", "regions", "flow_control"],
+      },
+    };
+    validate(value);
   });
 });

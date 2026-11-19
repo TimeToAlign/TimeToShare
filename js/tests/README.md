@@ -136,7 +136,7 @@ cases fail. The packages differ only where JavaScript must:
 
 ## Shared rejection cases
 
-Each of the 129 cases (`validate.test.ts`), found by its name whatever
+Each of the 130 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -482,9 +482,11 @@ array index (`#2` becomes `2` and stays after `b`), the order JavaScript
 would otherwise change. The tables equal the schema's ID positions as in
 the Python suite, and every fixture round-trips. The validators read the
 file form as the Python suite's "IDs in a file" states, with its two
-refusals the schema cannot type; the inline documents write IDs bare and
-reach the checks through the file-form helpers of `tests/fixtures.ts`
-(`validate`, `unknownKeys`, `unregisteredTerms`, `identityProblems`,
+refusals the schema cannot type, the bare `scheme` refused by
+`descriptionProblems` too, and a bare ID of any length refused by the `#`
+rule (Ajv's message `must match pattern "^#[\s\S]"`); the inline
+documents write IDs bare and reach the checks through the file-form
+helpers of `tests/fixtures.ts` (`validate`, `unknownKeys`, `unregisteredTerms`, `identityProblems`,
 `descriptionProblems`), while the shared cases and the fixtures, which are
 files, reach the package's functions as they are.
 

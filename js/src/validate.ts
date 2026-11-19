@@ -12,7 +12,7 @@
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
 import { schema } from "./generated/schema.js";
 import type { LosslessManifest } from "./generated/types.js";
-import { FileIdError, lenientlyBareIds, withBareIds } from "./ids.js";
+import { FileIdError, lenientlyBareIds, memberWithBareIds, withBareIds } from "./ids.js";
 import { isJsonObject, type JsonObject, plain } from "./json/value.js";
 import { loads } from "./serialization/read.js";
 import { compareCodePoints, spell } from "./serialization/text.js";
@@ -302,7 +302,10 @@ export function parse(text: string): LosslessManifest {
  * its regions' and its children's, depth first) checked as `validate` checks
  * them, each array's first problem at its path: a number that is not finite
  * (`finite_number`), else the schema's `#/$defs/Scheme` or `#/$defs/Link`
- * (`schema`), reported by the one path rule. Where no array has a problem,
+ * (`schema`), reported by the one path rule, else an ID the schema cannot
+ * see unwritten (`schema`, as `validate` refuses it: an identifier's
+ * `scheme` written without `#` that names a scheme of the manifest). Where
+ * no array has a problem,
  * the reference rules follow over the whole manifest, in the order of
  * `identityProblems`: each scheme ID unique across every ID of the manifest
  * (`duplicate_id`), the manifest ID that is a scheme's (`manifest_id`), then
@@ -313,9 +316,10 @@ export function parse(text: string): LosslessManifest {
  * is not read: a manifest whose timelines break other rules but whose links
  * and schemes are sound has no problem here. A library that reads only part
  * of a manifest checks its description layer with this function. The
- * messages are those of `validate`. `value` is in the file form; the
- * reference rules read its IDs bare, and an ID outside the description layer
- * written without `#` is read as it stands.
+ * messages are those of `validate`. `value` is in the file form; every ID of
+ * the description layer must be written so, the reference rules read the
+ * IDs bare, and an ID outside the description layer written without `#` is
+ * read as it stands.
  */
 export function descriptionProblems(value: LosslessManifest | JsonObject): SchemaValidationError[] {
   if (!isJsonObject(value)) return [];
@@ -337,9 +341,19 @@ export function descriptionProblems(value: LosslessManifest | JsonObject): Schem
     if (error !== undefined) {
       const at = [...path, ...toPath(error.instancePath, instance)];
       problems.push(new SchemaValidationError("schema", at, error.message ?? error.keyword));
+      continue;
+    }
+    try {
+      memberWithBareIds(value, definition, member, path);
+    } catch (refused) {
+      if (!(refused instanceof FileIdError)) throw refused;
+      problems.push(new SchemaValidationError("schema", [...refused.path], refused.message));
     }
   }
   if (problems.length > 0) return problems;
+  // Every ID of the description layer is now known to be in the file form;
+  // the reference rules compare it with IDs outside the layer, which are read
+  // leniently so that this function refuses nothing outside it.
   return [...schemeProblems(bare), ...linkProblems(bare)];
 }
 

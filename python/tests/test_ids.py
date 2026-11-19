@@ -413,3 +413,58 @@ def test_an_id_the_schema_cannot_type_is_refused_where_it_stands(
         path,
         message,
     )
+
+
+def test_the_description_check_refuses_a_bare_scheme_reference() -> None:
+    problems = timetoshare.description_problems(_small("#score", "opus"))
+    assert [(p.code, p.path, p.message) for p in problems] == [
+        (
+            "schema",
+            ("links", 0, "identifiers", 0, "scheme"),
+            "'opus' names a scheme of this manifest, so it is written '#opus'",
+        )
+    ]
+
+
+def test_the_description_check_reads_ids_outside_it_as_they_stand() -> None:
+    assert timetoshare.description_problems(_small("score", "#opus")) == []
+
+
+@pytest.mark.parametrize(
+    ("written", "message"),
+    [
+        ("s", "'s' does not match '^#[\\\\s\\\\S]'"),
+        ("score", "'score' does not match '^#[\\\\s\\\\S]'"),
+        ("#", "'#' does not match '^#[\\\\s\\\\S]'"),
+    ],
+)
+def test_a_bare_id_of_any_length_is_refused_by_the_hash_rule(
+    written: str, message: str
+) -> None:
+    value = _small("#score", "#opus")
+    value["timelines"][0]["id"] = written
+    with pytest.raises(SchemaValidationError) as raised:
+        timetoshare.validate(value)
+    assert (raised.value.code, raised.value.path, raised.value.message) == (
+        "schema",
+        ("timelines", 0, "id"),
+        message,
+    )
+
+
+def test_any_character_after_the_hash_writes_an_id() -> None:
+    value = _small("#score", "#opus")
+    value["timelines"][0]["id"] = "# "
+    value["groups"][0]["members"] = ["# "]
+    value["graphical"]["order"] = {
+        "#g": ["# "],
+        "# ": [
+            "line",
+            "markers",
+            "conversion_maps",
+            "children",
+            "regions",
+            "flow_control",
+        ],
+    }
+    timetoshare.validate(value)

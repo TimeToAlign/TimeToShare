@@ -507,8 +507,7 @@ export const schema = {
     },
     "Id": {
       "type": "string",
-      "minLength": 2,
-      "pattern": "^#",
+      "pattern": "^#[\\s\\S]",
       "not": {
         "pattern": "[\\u0000-\\u001f]"
       },
