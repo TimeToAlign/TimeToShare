@@ -4,15 +4,15 @@ A manifest file writes every ID with a leading ``#``: an element's own ID
 (``"id": "#clt_1"``) as well as every reference to one (a group's members,
 the keys of ``graphical.order``, a named timestamp's timeline, an address's
 ``id``, a selector's ``within``, a flow-control element's ``target``, a
-measure view's ``measure_map``, a part slot's ``represented_by``). In
+measure view's ``measure_map``). In
 memory an ID is bare: ``clt_1``. Exactly one ``#`` is stripped, so the file
 text ``##x`` is the bare ID ``#x``.
 
-Two positions hold an ID or something else, and the ``#`` tells them apart:
-the values of a group's entry in ``graphical.order`` are member IDs, while a
-timeline's entry holds band words, which stay bare; and an identifier's
-``scheme`` is either the ID of a scheme of the manifest (``#opus``) or an
-absolute URI, which is written as it is.
+One position holds an ID or something else: the values of a group's entry
+in ``graphical.order`` are member IDs, while a timeline's entry holds band
+words, which stay bare. The IRIs of ``statements`` and ``provenance``, a
+reference to an element (``{"id": "#clt_1"}``) among them, are no ID
+position: they are written the same in a file and in memory.
 
 ``with_file_ids`` and ``with_bare_ids`` convert a whole manifest between the
 two forms. Both are pure: they return a new value, keep unknown keys and
@@ -31,13 +31,12 @@ from typing import Any, Literal
 HASH = "#"
 """The character that marks an ID in a manifest file."""
 
-Shape = Literal["id", "ids", "order", "scheme"]
+Shape = Literal["id", "ids", "order"]
 """How a member holds IDs.
 
 ``id`` the member is one ID; ``ids`` a list of IDs; ``order`` an object
 keyed by IDs whose value, where the key names a group, is a list of member
-IDs (a timeline's value holds band words); ``scheme`` an ID or an absolute
-URI, the ``#`` telling them apart.
+IDs (a timeline's value holds band words).
 """
 
 ID_POSITIONS: tuple[tuple[str, str, Shape], ...] = (
@@ -56,9 +55,6 @@ ID_POSITIONS: tuple[tuple[str, str, Shape], ...] = (
     ("Selector", "within", "id"),
     ("MapBase", "id", "id"),
     ("MeasureView", "measure_map", "id"),
-    ("PartSlot", "represented_by", "ids"),
-    ("Scheme", "id", "id"),
-    ("Identifier", "scheme", "scheme"),
 )
 """Every member of a schema definition that holds IDs, and how it holds them."""
 
@@ -69,15 +65,11 @@ CONTAINERS: tuple[tuple[str, str, Holding, str], ...] = (
     ("Manifest", "timelines", "list", "Timeline"),
     ("Manifest", "groups", "list", "Group"),
     ("Manifest", "measure_maps", "list", "MeasureMap"),
-    ("Manifest", "schemes", "list", "Scheme"),
-    ("Manifest", "links", "list", "Link"),
     ("Manifest", "graphical", "one", "Graphical"),
     ("Timeline", "children", "list", "Timeline"),
     ("Timeline", "conversion_maps", "list", "ConversionMap"),
     ("Timeline", "regions", "list", "Region"),
     ("Timeline", "flow_control", "list", "FlowControlElement"),
-    ("Timeline", "links", "list", "Link"),
-    ("Region", "links", "list", "Link"),
     ("Graphical", "rules", "list", "Rule"),
     ("Graphical", "timestamps", "list", "Timestamp"),
     ("Rule", "select", "one", "Selector"),
@@ -85,11 +77,6 @@ CONTAINERS: tuple[tuple[str, str, Holding, str], ...] = (
     ("ChainMap", "maps", "list", "ConversionMap"),
     ("PiecewiseMap", "maps", "list", "ConversionMap"),
     ("CombinationMap", "maps", "values", "ConversionMap"),
-    ("Link", "identifiers", "list", "Identifier"),
-    ("Link", "parts", "list", "PartSlot"),
-    ("Link", "part_of", "list", "PartOf"),
-    ("PartSlot", "identifiers", "list", "Identifier"),
-    ("PartOf", "identifiers", "list", "Identifier"),
 )
 """Every member through which a definition holds another that holds IDs."""
 
@@ -183,7 +170,6 @@ class _Converter:
         self.to_file = to_file
         self.strict = strict
         self.groups = self._ids(manifest, "groups")
-        self.schemes = self._ids(manifest, "schemes")
 
     def _ids(self, manifest: Mapping[str, Any], member: str) -> frozenset[str]:
         """The bare IDs of a top-level list, read leniently: a check comes later."""
@@ -211,20 +197,6 @@ class _Converter:
         if not isinstance(value, list):
             return copy.deepcopy(value)
         return [self.id(item, (*path, index)) for index, item in enumerate(value)]
-
-    def scheme(self, text: Any, path: _Path) -> Any:
-        if not isinstance(text, str):
-            return copy.deepcopy(text)
-        if self.to_file:
-            return to_file_id(text) if text in self.schemes else text
-        if text.startswith(HASH):
-            return _bare(text, path) if self.strict else _leniently_bare(text)
-        if text in self.schemes and self.strict:
-            raise FileIdError(
-                f"'{text}' names a scheme of this manifest, so it is written '#{text}'",
-                path,
-            )
-        return text
 
     def order(self, value: Any, path: _Path) -> Any:
         if not isinstance(value, Mapping):
@@ -277,8 +249,8 @@ class _Converter:
 def with_file_ids(manifest: Mapping[str, Any]) -> dict[str, Any]:
     """Return the manifest with every ID in the file form, ``#`` + the bare ID.
 
-    An identifier's ``scheme`` gains the ``#`` where it names a scheme of
-    the manifest, a value of ``graphical.order`` where its key names a group.
+    A value of ``graphical.order`` gains the ``#`` where its key names a
+    group.
     """
     return _Converter(manifest, True).held(manifest, "Manifest", ())
 
@@ -286,41 +258,14 @@ def with_file_ids(manifest: Mapping[str, Any]) -> dict[str, Any]:
 def with_bare_ids(manifest: Mapping[str, Any]) -> dict[str, Any]:
     """Return the manifest with every ID bare, read from its file form ``#id``.
 
-    An identifier's ``scheme`` without ``#`` is an absolute URI and stays as
-    it is; a timeline's entry in ``graphical.order`` holds band words, which
-    stay as they are.
+    A timeline's entry in ``graphical.order`` holds band words, which stay
+    as they are.
 
     Raises:
         FileIdError: A ``ValueError``, with the ``path`` of the first text
-            that is not an ID in the file form, or of an identifier's
-            ``scheme`` written without ``#`` that names a scheme of the
-            manifest.
+            that is not an ID in the file form.
     """
     return _Converter(manifest, False).held(manifest, "Manifest", ())
-
-
-def member_with_bare_ids(
-    manifest: Mapping[str, Any], definition: str, member: str, path: _Path
-) -> Any:
-    """Return the member at ``path`` in ``manifest`` with every ID bare.
-
-    The value at ``path``, the member ``member`` of a ``definition`` object, read as
-    ``with_bare_ids`` reads it: the IDs it holds must be in the file form,
-    and an identifier's ``scheme`` written without ``#`` must name no scheme
-    of ``manifest``. Nothing outside the member is read but the manifest's
-    scheme IDs.
-
-    Raises:
-        FileIdError: A ``ValueError``, with the ``path`` of the first text in
-            the member that is not an ID in the file form, or of an
-            identifier's ``scheme`` written without ``#`` that names a
-            scheme of the manifest.
-    """
-    value: Any = manifest
-    for step in path:
-        value = value[step]
-    holding, child = _HELD[definition][member]
-    return _Converter(manifest, False).holding(value, holding, child, path)
 
 
 def leniently_bare_ids(manifest: Mapping[str, Any]) -> dict[str, Any]:

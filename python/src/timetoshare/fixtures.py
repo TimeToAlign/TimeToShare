@@ -1,11 +1,12 @@
 """The bundled cases of the current version: fixtures, rejections and warnings.
 
 The emitted manifests under ``fixtures/<version>/`` (drawings excluded), the
-hand-authored rejection cases under ``fixtures/rejections/<version>/`` and the
-hand-authored warning cases under ``fixtures/warnings/<version>/``, found
-beside the schema. They are written in canonical YAML (``.yaml``); a rejection
-or warning case about JSON text itself would be written in JSON (``.json``);
-none is at present. Every
+canonical N-Quads expected of the statement fixtures under
+``fixtures/rdf/<version>/``, the hand-authored rejection cases under
+``fixtures/rejections/<version>/`` and the hand-authored warning cases under
+``fixtures/warnings/<version>/``, found beside the schema. The cases are
+written in canonical YAML (``.yaml``); a rejection or warning case about JSON
+text itself would be written in JSON (``.json``); none is at present. Every
 case is read with :func:`~timetoshare.serialization.loads`, as the JavaScript
 package reads it.
 """
@@ -30,6 +31,18 @@ def fixture_paths() -> list[Path]:
         for path in directory.rglob("*.yaml")
         if "drawings" not in path.relative_to(directory).parts
     )
+
+
+def rdf_expectation(path: Path) -> Path:
+    """Return the canonical N-Quads file expected of a statement fixture.
+
+    ``fixtures/rdf/<version>/<name>.nq`` for the fixture
+    ``statements/<name>.yaml`` and for its minimal twin
+    ``statements/<name>.minimal.yaml`` alike: both read to the same graph.
+    The file may not exist yet; the caller reads it.
+    """
+    name = path.name.removesuffix(".yaml").removesuffix(".minimal")
+    return _data_root() / "fixtures" / "rdf" / SCHEMA_VERSION / f"{name}.nq"
 
 
 def _cases(directory: Path) -> list[Path]:

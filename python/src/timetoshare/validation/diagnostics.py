@@ -10,7 +10,7 @@ both import it without a cycle.
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Mapping
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal, TypeAlias, TypedDict
 
 from ..manifest import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
 
@@ -35,7 +35,24 @@ ValidationCode: TypeAlias = Literal[
     "timestamp_coordinate",
     "calendar_date",
     "finite_number",
+    "context",
+    "reserved_key",
+    "iri",
+    "element_value",
+    "provenance_match",
+    "provenance_duplicate",
 ]
+
+WarningCode: TypeAlias = Literal["context_absent", "bundle_blank"]
+"""The codes of the warnings a valid manifest may draw."""
+
+
+class ManifestWarning(TypedDict):
+    """A warning about a valid manifest: its code, its path and its message."""
+
+    code: WarningCode
+    path: list[str | int]
+    message: str
 
 
 def json_pointer(path: Iterable[str | int]) -> str:

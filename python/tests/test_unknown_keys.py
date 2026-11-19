@@ -23,13 +23,12 @@ from .conftest import (
 
 WARNINGS = [
     "address_unknown_member",
+    "bundle_blank_provenance",
+    "bundle_blank_statements",
     "combination_map_names",
+    "context_absent",
     "declaration_show_projections",
     "declaration_unknown_key",
-    "description_absent_unregistered",
-    "description_method_unregistered",
-    "description_parts_relation_unregistered",
-    "description_relation_unregistered",
     "graphical_unknown_key",
     "group_unknown_key",
     "measure_map_row_offset_key",
@@ -49,12 +48,10 @@ def test_the_warning_cases_are_stated() -> None:
 @pytest.mark.parametrize("path", warning_paths(), ids=lambda path: path.stem)
 def test_each_warning_case_lists_its_warnings(path: Path) -> None:
     case = loads(path.read_text(encoding="utf-8"))
-    assert sorted(case) == ["manifest", "unknown_keys", "unregistered_terms"]
+    assert sorted(case) == ["manifest", "unknown_keys", "warnings"]
     timetoshare.validate(case["manifest"])
     assert timetoshare.unknown_keys(case["manifest"]) == case["unknown_keys"]
-    assert (
-        timetoshare.unregistered_terms(case["manifest"]) == case["unregistered_terms"]
-    )
+    assert timetoshare.manifest_warnings(case["manifest"]) == case["warnings"]
 
 
 def test_unknown_keys_at_several_depths() -> None:

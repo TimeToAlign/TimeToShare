@@ -1,15 +1,14 @@
 """Bundle the repository-level files into the package.
 
-The schema, fixture, font, documentation and registry directories and the
-README live
-at the repository root, beside ``python/``, so that one copy serves the Python
-package, the npm package and the fixture script. A static ``force-include``
-cannot reach them when the wheel is built from the sdist (hatchling raises
-``FileNotFoundError`` for a missing source), so two hooks resolve them at build
-time:
+The schema, fixture, font, documentation and catalogue directories and the
+README live at the repository root, beside ``python/``, so that one copy
+serves the Python package, the npm package and the fixture script. A static
+``force-include`` cannot reach them when the wheel is built from the sdist
+(hatchling raises ``FileNotFoundError`` for a missing source), so two hooks
+resolve them at build time:
 
 * ``AssetsHook`` (build hook): in a repository checkout, the root
-  ``schema/``, ``fixtures/``, ``fonts/``, ``docs/`` and ``registry/``
+  ``schema/``, ``fixtures/``, ``fonts/``, ``docs/`` and ``catalogue/``
   directories go into the
   sdist under ``src/timetoshare/`` and into the wheel under ``timetoshare/``,
   and the root ``README.md`` goes into the sdist. In an unpacked sdist those copies
@@ -31,7 +30,7 @@ from typing import Any
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatchling.metadata.plugin.interface import MetadataHookInterface
 
-ASSETS = ("schema", "fixtures", "fonts", "docs", "registry")
+ASSETS = ("schema", "fixtures", "fonts", "docs", "catalogue")
 README = "README.md"
 LICENSE = "LICENSE"
 

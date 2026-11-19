@@ -71,8 +71,8 @@ def test_every_fixture_comes_back_byte_for_byte(path: Path) -> None:
 
 def test_the_fixtures_cover_bundles_and_groups() -> None:
     folders = {path.parent.relative_to(FIXTURES).as_posix() for path in fixture_paths()}
-    assert folders == {".", "bundles", "groups"}
-    assert len(fixture_paths()) == 146
+    assert folders == {".", "bundles", "groups", "statements"}
+    assert len(fixture_paths()) == 150
 
 
 def test_the_case_table_names_every_text() -> None:

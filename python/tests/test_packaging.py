@@ -15,9 +15,10 @@ DOCUMENTS = {
     "schema/0.2.0/timetoshare.schema.json": (
         REPOSITORY_ROOT / "schema" / "0.2.0" / "timetoshare.schema.json"
     ).read_bytes(),
-    "registry/schemes.json": (
-        REPOSITORY_ROOT / "registry" / "schemes.json"
-    ).read_bytes(),
+    **{
+        f"catalogue/{name}": (REPOSITORY_ROOT / "catalogue" / name).read_bytes()
+        for name in ("catalogue.yaml", "catalogue.schema.json")
+    },
 }
 FONT_FILES = (
     "DejaVuSans-LICENSE",
@@ -38,7 +39,7 @@ FONTS = {
     [["--sdist", "--wheel"], []],
     ids=["wheel from the checkout", "wheel from the sdist"],
 )
-def test_the_distributions_ship_the_specification_schemas_registry_fonts_licences(
+def test_the_distributions_ship_the_specification_schemas_catalogue_fonts_licences(
     arguments: list[str], tmp_path: Path
 ) -> None:
     uv = shutil.which("uv")

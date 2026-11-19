@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from timetoshare import complete, dumps, minimal
+from timetoshare import FORMAT_CONTEXT, complete, dumps, minimal
 
 from .conftest import bundle, manifest, timeline, validate
 
@@ -23,8 +23,6 @@ def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
         "meta": {},
         "groups": [],
         "measure_maps": [],
-        "schemes": [],
-        "links": [],
         "timelines": [
             {
                 "id": "piece",
@@ -39,7 +37,6 @@ def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
                 "conversion_maps": [],
                 "regions": [],
                 "flow_control": [],
-                "links": [],
             }
         ],
     }
@@ -138,7 +135,6 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         "end": [1, 1],
         "name": None,
         "meta": {},
-        "links": [],
     }
     defaults = {"name": None, "label": None, "meta": {}}
     marker, origin, repeat, target = done["flow_control"]
@@ -241,83 +237,51 @@ def test_absent_defaults_are_never_added_or_removed() -> None:
     assert minimal(child)["timelines"][0]["children"][0]["offset"] == [0, 1]
 
 
-_ASSERTION = {
-    "asserted_by": [],
-    "asserted_on": None,
-    "method": None,
-    "service": None,
-    "based_on": [],
-    "match": None,
-    "status": None,
-}
-_LINK = {
-    "relation": "pertains_to",
-    "level": "work",
-    "records": [{"url": "records/op106.json"}],
-    "assertion": {"method": "manual"},
-    "parts_relation": "has_part",
-    "parts": [{"absent": "lost", "assertion": {"status": "confirmed"}}],
-    "part_of": [{"parts_relation": "has_part"}],
-}
-
-
 def _described() -> dict[str, Any]:
-    """A manifest with a scheme and one link on itself, its root and a region."""
-    return manifest(
-        timeline("score", links=[_LINK], regions=[{**REGION, "links": [_LINK]}]),
-        schemes=[{"id": "opus"}],
-        links=[_LINK],
-    )
+    """A manifest with statements and provenance on itself, its root and a region."""
+    statements = {
+        "type": ["schema:MusicComposition"],
+        "wdt:P86": [{"id": "wd:Q255", "label": "Beethoven"}],
+    }
+    provenance = [
+        {
+            "property": "wdt:P86",
+            "value": {"id": "wd:Q255"},
+            "status": "confirmed",
+            "date": "2026-11-18",
+        }
+    ]
+    described = {"statements": statements, "provenance": provenance}
+    context = {
+        **FORMAT_CONTEXT,
+        "schema": "http://schema.org/",
+        "wd": "http://www.wikidata.org/entity/",
+        "wdt": "http://www.wikidata.org/prop/direct/",
+    }
+    return {
+        "@context": context,
+        **manifest(
+            timeline("score", **described, regions=[{**REGION, **described}]),
+            id="op106",
+            **described,
+        ),
+    }
 
 
-def test_every_object_of_the_description_layer_gains_exactly_its_defaults() -> None:
+def test_statements_provenance_and_the_context_have_no_default() -> None:
     value = _described()
     done = complete(value)
-    link = {
-        "relation": "pertains_to",
-        "level": "work",
-        "uri": [],
-        "identifiers": [],
-        "records": [
-            {
-                "url": "records/op106.json",
-                "media_type": None,
-                "size": None,
-                "integrity": None,
-            }
-        ],
-        "label": None,
-        "assertion": {**_ASSERTION, "method": "manual"},
-        "parts_relation": "has_part",
-        "parts": [
-            {
-                "uri": [],
-                "identifiers": [],
-                "label": None,
-                "represented_by": [],
-                "absent": "lost",
-                "assertion": {**_ASSERTION, "status": "confirmed"},
-            }
-        ],
-        "parts_ordered": True,
-        "part_of": [
-            {
-                "parts_relation": "has_part",
-                "uri": [],
-                "identifiers": [],
-                "label": None,
-                "position": None,
-                "assertion": None,
-            }
-        ],
-    }
-    assert done["schemes"] == [
-        {"id": "opus", "name": None, "uri": [], "criteria": None}
-    ]
+    for key in ("@context", "statements", "provenance"):
+        assert done[key] == value[key]
     root = done["timelines"][0]
-    assert [done["links"], root["links"], root["regions"][0]["links"]] == [[link]] * 3
+    for element, given in (
+        (root, value["timelines"][0]),
+        (root["regions"][0], value["timelines"][0]["regions"][0]),
+    ):
+        assert element["statements"] == given["statements"]
+        assert element["provenance"] == given["provenance"]
+    assert minimal(done) == value
     assert minimal(value) == value
-    assert dumps(minimal(done)) == dumps(value)
     validate(done)
 
 

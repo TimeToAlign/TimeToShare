@@ -3,37 +3,34 @@
 A TimeToShare manifest is one JSON object holding the version marker
 ``timetoshare`` and an array of root timelines, each describing a musical
 timeline as timetoalign serializes it, optionally named, optionally
-attributing timelines to groups, optionally linking the manifest, its
-timelines and its regions to external entities (``Link``, built from URLs
-through the registry of known identifier schemes) and optionally styled for
-drawing. An editor
-can place many manifests on a canvas, but a manifest knows nothing about
-where or how often it is placed.
+attributing timelines to groups, optionally describing the things the
+manifest, its timelines and its regions stand for by property–value
+statements with their provenance (``timetoshare.statements``, read in words
+through the catalogue of identifier systems, verbs and types,
+``timetoshare.catalogue``) and optionally styled for drawing. An editor can
+place many manifests on a canvas, but a manifest knows nothing about where
+or how often it is placed.
 """
 
 from __future__ import annotations
 
-from .defaults import DEFAULTS, complete, minimal
-from .description import (
-    ABSENCE_REASONS,
-    LEVELS,
-    MATCHES,
-    METHODS,
-    PARTS_RELATIONS,
-    RELATIONS,
-    STATUSES,
-    Assertion,
-    Descriptor,
-    Identifier,
-    Link,
-    PartOf,
-    PartSlot,
-    Scheme,
+from .catalogue import (
+    Catalogue,
+    Recognition,
+    Rectangle,
+    instantiate,
+    load_catalogue,
+    read_catalogue,
+    recognize,
+    rectangles,
+    verb_of,
 )
+from .defaults import DEFAULTS, complete, minimal
 from .files import FileForm, dumps_file, file_form
 from .fixtures import (
     RejectionCase,
     fixture_paths,
+    rdf_expectation,
     rejection_case,
     rejection_paths,
     warning_paths,
@@ -41,82 +38,115 @@ from .fixtures import (
 from .font import FONT_FILES, font_metrics, font_paths
 from .ids import FileIdError, from_file_id, to_file_id, with_bare_ids, with_file_ids
 from .manifest import TIMESTAMP_DISPLAY, canonical_order
-from .registry import KnownScheme, Recognition, SchemeRegistry, default_registry
 from .serialization import SERIALIZATIONS, dumps, loads, serialization_of
+from .statements import (
+    BLANK,
+    FORMAT_CONTEXT,
+    MATCHES,
+    METHODS,
+    NAMESPACE,
+    STATUSES,
+    entries,
+    expand_iri,
+    pairs,
+    same_pair,
+    subject_path,
+    used_prefixes,
+    with_confirmation,
+    with_context,
+    with_pair,
+    with_proposal,
+    with_rejection,
+    without_pair,
+)
 from .styles import MissingStyleWarning, complete_styles
 from .validate import (
     SCHEMA_VERSION,
+    ManifestWarning,
     SchemaValidationError,
     UnsupportedVersionError,
+    WarningCode,
     child_ends,
-    description_problems,
     identity_problems,
     json_pointer,
     load_schema,
+    manifest_warnings,
     number_type_of,
     schema_path,
+    statement_problems,
     unknown_keys,
-    unregistered_terms,
     validate,
 )
 
 __all__ = [
-    "ABSENCE_REASONS",
+    "BLANK",
     "DEFAULTS",
     "FONT_FILES",
-    "LEVELS",
+    "FORMAT_CONTEXT",
     "MATCHES",
     "METHODS",
-    "PARTS_RELATIONS",
-    "RELATIONS",
+    "NAMESPACE",
     "SCHEMA_VERSION",
     "SERIALIZATIONS",
     "STATUSES",
-    "Assertion",
-    "Descriptor",
+    "TIMESTAMP_DISPLAY",
+    "Catalogue",
     "FileForm",
     "FileIdError",
-    "Identifier",
-    "KnownScheme",
-    "Link",
-    "PartOf",
-    "PartSlot",
-    "Recognition",
-    "Scheme",
-    "SchemaValidationError",
-    "SchemeRegistry",
-    "TIMESTAMP_DISPLAY",
+    "ManifestWarning",
     "MissingStyleWarning",
+    "Recognition",
+    "Rectangle",
     "RejectionCase",
+    "SchemaValidationError",
     "UnsupportedVersionError",
+    "WarningCode",
     "canonical_order",
     "child_ends",
     "complete",
     "complete_styles",
-    "default_registry",
-    "description_problems",
     "dumps",
     "dumps_file",
+    "entries",
+    "expand_iri",
     "file_form",
+    "fixture_paths",
     "font_metrics",
     "font_paths",
-    "fixture_paths",
     "from_file_id",
     "identity_problems",
+    "instantiate",
     "json_pointer",
+    "load_catalogue",
     "load_schema",
     "loads",
+    "manifest_warnings",
     "minimal",
     "number_type_of",
+    "pairs",
+    "rdf_expectation",
+    "read_catalogue",
+    "recognize",
+    "rectangles",
     "rejection_case",
     "rejection_paths",
+    "same_pair",
     "schema_path",
     "serialization_of",
+    "statement_problems",
+    "subject_path",
     "to_file_id",
     "unknown_keys",
-    "unregistered_terms",
+    "used_prefixes",
     "validate",
+    "verb_of",
     "warning_paths",
     "with_bare_ids",
+    "with_confirmation",
+    "with_context",
     "with_file_ids",
+    "with_pair",
+    "with_proposal",
+    "with_rejection",
+    "without_pair",
 ]

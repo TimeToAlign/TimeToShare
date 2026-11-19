@@ -8,16 +8,17 @@ from typing import Any
 from jsonschema import Draft202012Validator
 
 from timetoshare import (
+    BLANK,
     DEFAULTS,
-    LEVELS,
+    FORMAT_CONTEXT,
     MATCHES,
+    METHODS,
     SCHEMA_VERSION,
     STATUSES,
     TIMESTAMP_DISPLAY,
     load_schema,
     schema_path,
 )
-from timetoshare.registry import BLANK
 from timetoshare.validate import UNIT_NUMBER_TYPES
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -36,8 +37,10 @@ PUBLIC = [
     "Id",
     "MeasureMap",
     "MeasureMapRow",
-    "Link",
-    "Scheme",
+    "Context",
+    "Statements",
+    "StatementValue",
+    "ProvenanceEntry",
 ]
 
 MAP_TYPES = [
@@ -346,8 +349,7 @@ ANCHORED = {
     ("Timestamp", "properties", "id"): "#timestamp_1",
     ("Paint",): "none",
     ("Declaration", "properties", "stroke-dasharray"): "4 2",
-    ("Assertion", "properties", "asserted_on"): "2026-11-17",
-    ("Descriptor", "properties", "integrity"): "sha256-AAAA",
+    ("ProvenanceEntry", "properties", "date"): "2026-11-17",
 }
 """Every node whose pattern ends in ``$``, with a value its pattern accepts."""
 
@@ -456,12 +458,6 @@ def test_the_defaults_are_the_table() -> None:
         "group": ["Group"],
         "graphical": ["Graphical"],
         "timestamp": ["Timestamp"],
-        "scheme": ["Scheme"],
-        "link": ["Link"],
-        "descriptor": ["Descriptor"],
-        "assertion": ["Assertion"],
-        "part_slot": ["PartSlot"],
-        "part_of": ["PartOf"],
     }
     own = {"LinearMap": "linear_map", "TableMap": "table_map"}
     element = ["flow_control_element", "repeat_end"]
@@ -488,62 +484,80 @@ def test_the_defaults_are_the_table() -> None:
     assert "default" not in defs["Timeline"]["properties"]["number_type"]
 
 
-def test_the_description_layer() -> None:
+def test_statements_provenance_and_the_context() -> None:
     defs = _defs()
-    holders = sorted(
-        name
-        for name, definition in defs.items()
-        if "links" in definition.get("properties", {})
-    )
-    assert holders == ["Manifest", "Region", "Timeline"]
-    assert [
-        name
-        for name, definition in defs.items()
-        if "schemes" in definition.get("properties", {})
-    ] == ["Manifest"]
-    assert defs["Level"]["enum"] == list(LEVELS)
-    assertion = defs["Assertion"]["properties"]
-    assert assertion["match"]["enum"] == [*MATCHES, None]
-    assert assertion["status"]["enum"] == [*STATUSES, None]
-    assert "position" not in defs["PartSlot"]["properties"]
-    link = set(defs["Link"]["properties"])
-    assert "label" in link
-    assert not link & {"name", "same_as", "equivalent"}
-    for name in ("Term", "Uri", "UriReference"):
+    expected = {
+        "statements": ["Manifest", "Region", "Timeline"],
+        "provenance": ["Manifest", "Region", "Timeline", "ValueNode"],
+        "@context": ["Manifest"],
+    }
+    for member, holders in expected.items():
+        assert (
+            sorted(
+                name
+                for name, definition in defs.items()
+                if name != "Context" and member in definition.get("properties", {})
+            )
+            == holders
+        ), member
+    for name in ("Manifest", "Timeline", "Region"):
+        for member in ("links", "schemes"):
+            assert member not in defs[name]["properties"]
+    removed = ("Link", "PartSlot", "PartOf", "Assertion", "Descriptor", "Identifier")
+    for name in (*removed, "Scheme", "Level", "Term", "Uri", "UriReference"):
+        assert name not in defs, name
+    entry = defs["ProvenanceEntry"]["properties"]
+    assert entry["status"]["enum"] == list(STATUSES)
+    assert entry["method"]["anyOf"][0]["enum"] == list(METHODS)
+    assert entry["match"]["enum"] == list(MATCHES)
+    context = defs["Context"]
+    consts = {term: rule["const"] for term, rule in context["properties"].items()}
+    assert consts == FORMAT_CONTEXT
+    assert context["required"] == list(FORMAT_CONTEXT)
+    assert context["propertyNames"]["anyOf"][0]["enum"] == list(FORMAT_CONTEXT)
+    for name in ("Iri", "PrefixIri"):
         assert defs[name]["not"] == {"pattern": BLANK}, name
+    assert defs["IriReference"]["not"]["anyOf"][0] == {"pattern": BLANK}
 
 
-def _accepts(name: str, value: str) -> bool:
+def _accepts(name: str, value: Any) -> bool:
     return Draft202012Validator({"$ref": f"#/$defs/{name}", "$defs": _defs()}).is_valid(
         value
     )
 
 
-def test_uris_terms_and_uri_references() -> None:
+def test_iris_prefixes_and_language_tags() -> None:
     for value in (
+        "schema:MusicRecording",
         "http://musicbrainz.org/work/x",
         "urn:isbn:0451450523",
         "mailto:a@example.org",
+        "wdt:P175",
     ):
-        assert _accepts("Uri", value), value
+        assert _accepts("Iri", value), value
     for value in (
-        "musicbrainz.org/work/x",
+        "MusicRecording",
         "1http://x",
         "http:",
-        "http://a b",
-        "http://a\n",
-        "http://a\u00a0b",
-        "http://a\ufeff",
+        "schema:a b",
+        "schema:a\n",
+        "schema:a\u00a0b",
+        "schema:a\ufeff",
     ):
-        assert not _accepts("Uri", value), value
-    for value in (
-        "pertains_to",
-        "marcrel:cmp",
-        "http://id.loc.gov/vocabulary/relators/cmp",
-    ):
-        assert _accepts("Term", value), value
-    for value in ("", "has part", "has_part\n"):
-        assert not _accepts("Term", value), value
-    assert _accepts("UriReference", "records/op106.json")
-    for value in ("", "a b"):
-        assert not _accepts("UriReference", value), value
+        assert not _accepts("Iri", value), value
+    for value in ("#clt_1", "other.yaml#clt_1", "wd:Q1", "records/op106.json"):
+        assert _accepts("IriReference", value), value
+    for value in ("", "a b", "_:b0", "@id"):
+        assert not _accepts("IriReference", value), value
+    for value in ("http://schema.org/", "https://d-nb.info/standards/elementset/gnd#"):
+        assert _accepts("PrefixIri", value), value
+    for value in ("http://www.wikidata.org/entity", "http://a/\n", "schema/"):
+        assert not _accepts("PrefixIri", value), value
+    for value in ("schema", "melodTerms", "wd", "a_b-1"):
+        assert _accepts("PrefixName", value), value
+    for value in ("unit", "http", "urn", "1a", "a:b", "a.b", ""):
+        assert not _accepts("PrefixName", value), value
+    for value in ("en", "de-CH", "zh-Hant-TW"):
+        assert _accepts("LanguageTag", value), value
+    for value in ("", "en_GB", "en\n", "toolongtag"):
+        assert not _accepts("LanguageTag", value), value

@@ -1348,16 +1348,6 @@ def test_every_step_in_order() -> None:
             group("g2", "second"),
         ],
         measure_maps=[{"id": "first", "rows": ROWS}],
-        schemes=[{"id": "first"}],
-        links=[
-            {
-                "relation": "pertains_to",
-                "level": "work",
-                "identifiers": [{"scheme": "opus", "value": "106"}],
-                "parts_relation": "has_part",
-                "parts": [{"represented_by": ["ghost"]}],
-            }
-        ],
         graphical={
             "order": {
                 "zz": [],
@@ -1425,10 +1415,6 @@ def test_every_step_in_order() -> None:
             "'timestamp_2' is not unique in the manifest, "
             "first at #/graphical/timestamps/1/id",
         ),
-        (
-            ("schemes", 0, "id"),
-            "'first' is not unique in the manifest, first at #/timelines/0/id",
-        ),
         (("id",), "'g2' is not unique in the manifest, first at #/groups/1/id"),
         (("groups", 0, "members", 0), "'ghost' names no timeline of this manifest"),
         (("graphical", "order", "g2", 0), "'stranger' is not a member of group 'g2'"),
@@ -1459,14 +1445,6 @@ def test_every_step_in_order() -> None:
             "coordinate [-1, 1] of 'timestamp_2' lies before the start of its "
             "timeline 'first'",
         ),
-        (
-            ("links", 0, "identifiers", 0, "scheme"),
-            "'opus' names no scheme of this manifest and is no absolute URI",
-        ),
-        (
-            ("links", 0, "parts", 0, "represented_by", 0),
-            "'ghost' names no timeline or region of this manifest",
-        ),
     ]
     assert [problem.code for problem in identity_problems(value)] == [
         *["dangling_target"] * 2,
@@ -1474,7 +1452,7 @@ def test_every_step_in_order() -> None:
         "child_unit",
         "child_offset",
         "child_end",
-        *["duplicate_id"] * 6,
+        *["duplicate_id"] * 5,
         "manifest_id",
         "group_member",
         *["display_order"] * 2,
@@ -1482,7 +1460,6 @@ def test_every_step_in_order() -> None:
         "order_key",
         "timestamp_timeline",
         *["timestamp_coordinate"] * 2,
-        *["dangling_target"] * 2,
     ]
     with pytest.raises(SchemaValidationError) as caught:
         validate(value)

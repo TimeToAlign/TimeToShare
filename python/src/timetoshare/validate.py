@@ -5,7 +5,10 @@ the ID: the schema check and the search for unknown keys read the value as
 given. Every other check reads the manifest with bare IDs (``with_bare_ids``),
 the finite rule, which runs first, included: their messages quote IDs bare
 (``'clt_1'``) and the paths of the checks after the schema name the keys of
-``graphical.order`` bare too.
+``graphical.order`` bare too. The rules run in one order: the version
+marker, the finite rule, the schema, the representation of own-axis values,
+the identity rules, then the statement rules
+(``timetoshare.validation.statements``).
 """
 
 from __future__ import annotations
@@ -21,14 +24,15 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-from .ids import FileIdError, leniently_bare_ids, member_with_bare_ids, with_bare_ids
+from .ids import FileIdError, leniently_bare_ids, with_bare_ids
 from .serialization import spell
+from .statements import subjects
 from .validation.containment import child_ends as child_ends
-from .validation.description import description_arrays, link_problems, scheme_problems
-from .validation.description import unregistered_terms as _terms
 from .validation.diagnostics import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
-from .validation.diagnostics import SchemaValidationError, _Path
+from .validation.diagnostics import ManifestWarning as ManifestWarning
+from .validation.diagnostics import SchemaValidationError, _Path, string_id
 from .validation.diagnostics import ValidationCode as ValidationCode
+from .validation.diagnostics import WarningCode as WarningCode
 from .validation.diagnostics import json_pointer as json_pointer
 from .validation.diagnostics import number_type_of as number_type_of
 from .validation.identity import identity_problems as _semantic_problems
@@ -36,6 +40,7 @@ from .validation.representation import (
     finite_number_problems,
     representation_problems,
 )
+from .validation.statements import statement_rule_problems, statement_warnings
 
 SCHEMA_VERSION = "0.2.0"
 """The schema version this package reads and writes, the only one it supports."""
@@ -246,7 +251,7 @@ def _keys(errors: Iterable[ValidationError]) -> Iterator[tuple[_Path, str]]:
 
 
 def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    """Check ``value`` through every rule; return its unknown keys and terms."""
+    """Check ``value`` through every rule; return its unknown keys and warnings."""
     if not isinstance(value, Mapping) or "timetoshare" not in value:
         raise SchemaValidationError("not_a_manifest", (), "not a TimeToShare manifest")
     if value["timetoshare"] != SCHEMA_VERSION:
@@ -268,22 +273,23 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     semantic = next(_semantic_problems(bare), None)
     if semantic is not None:
         raise semantic
+    statement = next(statement_rule_problems(bare), None)
+    if statement is not None:
+        raise statement
 
     found = set(_keys(errors))
     keys = [
         {"path": list(path), "key": key}
         for path, key in sorted(found, key=lambda entry: (entry[0], entry[1]))
     ]
-    return keys, _terms(bare)
+    return keys, statement_warnings(bare)
 
 
 def _bare_manifest(value: Mapping[str, Any]) -> dict[str, Any]:
     """The manifest with bare IDs; an ID the schema cannot see unwritten is refused.
 
-    The schema types every position but two: a group's entry in
-    ``graphical.order`` holds member IDs where a timeline's holds band words,
-    and an identifier's ``scheme`` written without ``#`` is a URI unless it
-    names a scheme of the manifest.
+    The schema types every position but one: a group's entry in
+    ``graphical.order`` holds member IDs where a timeline's holds band words.
     """
     try:
         return with_bare_ids(value)
@@ -301,15 +307,14 @@ def unknown_keys(value: Mapping[str, Any]) -> list[dict[str, Any]]:
     return _check(value)[0]
 
 
-def unregistered_terms(value: Mapping[str, Any]) -> list[dict[str, Any]]:
-    """Return the bare terms of a valid manifest outside their registered words.
+def manifest_warnings(value: Mapping[str, Any]) -> list[ManifestWarning]:
+    """Return the warnings of a valid manifest, sorted by path, then code.
 
-    Validates ``value`` as :func:`validate` does, then lists every term of an
-    open vocabulary (a link's ``relation`` and ``parts_relation``, an
-    assertion's ``method``, a part slot's ``absent``, a ``part_of`` entry's
-    ``parts_relation``) that holds no colon and is not registered for its
-    key, as ``{"path": [...], "term": ...}`` sorted by path. Such a term is
-    kept and read as its key's fallback; it is never refused.
+    Validates ``value`` as :func:`validate` does, then lists
+    ``context_absent`` at the root for a manifest without ``@context`` and
+    ``bundle_blank`` at ``statements`` (else ``provenance``) for a manifest
+    stating pairs or provenance without an ``id``, whose subject is a blank
+    node, each as ``{"code": ..., "path": [...], "message": ...}``.
 
     Raises:
         SchemaValidationError: If the manifest violates a rule.
@@ -318,57 +323,70 @@ def unregistered_terms(value: Mapping[str, Any]) -> list[dict[str, Any]]:
     return _check(value)[1]
 
 
-def description_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
-    """Return the problems of the description layer of ``value`` alone.
+def _statement_members(
+    value: Mapping[str, Any], bare: Mapping[str, Any]
+) -> Iterator[tuple[str, str, Any, _Path, str | None]]:
+    """``@context``, then each ``statements`` and ``provenance`` in subject order.
 
-    First, array by array, the manifest's ``schemes`` and every ``links``
-    array (the manifest's, then root by root each timeline's, its regions'
-    and its children's, depth first) checked as :func:`validate` checks
-    them, each array's first problem at its path: a number that is not
-    finite (``finite_number``), else the schema's ``#/$defs/Scheme`` or
-    ``#/$defs/Link`` (``schema``), reported by the one path rule, else an
-    ID the schema cannot see unwritten (``schema``, as :func:`validate`
-    refuses it: an identifier's ``scheme`` written without ``#`` that names
-    a scheme of the manifest). Where no
-    array has a problem, the reference rules follow over the whole
-    manifest, in the order of :func:`identity_problems`: each scheme ID
-    unique across every ID of the manifest (``duplicate_id``), the manifest
-    ID that is a scheme's (``manifest_id``), then link by link the dates
-    (``calendar_date``) and references (``dangling_target``) of links.
-
-    Nothing outside the description layer is refused, and the version
-    marker is not read: a manifest whose timelines break other rules but
-    whose links and schemes are sound has no problem here. A library that
-    reads only part of a manifest checks its description layer with this
-    function. The messages are those of :func:`validate`. ``value`` is in the
-    file form; every ID of the description layer must be written so, the
-    reference rules read the IDs bare, and an ID outside the description
-    layer written without ``#`` is read as it stands.
+    Each with the definition declaring it, its value, its path and the bare
+    ID of the element holding it, as the finite rule names an owner.
     """
+    if "@context" in value:
+        yield "Manifest", "@context", value["@context"], ("@context",), string_id(bare)
+    definitions = {"manifest": "Manifest", "timeline": "Timeline", "region": "Region"}
+    for (path, element, kind), (_, plain, _) in zip(
+        subjects(value), subjects(bare), strict=True
+    ):
+        for member in ("provenance", "statements"):
+            if member in element:
+                yield (
+                    definitions[kind],
+                    member,
+                    element[member],
+                    (*path, member),
+                    string_id(plain),
+                )
+
+
+def statement_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
+    """Return the problems of the statements of ``value`` alone.
+
+    First, member by member, the manifest's ``@context`` and every
+    ``statements`` and ``provenance`` member of the manifest, a timeline at
+    any depth or a region (subject order: the manifest, then root by root
+    the timeline, its regions and its children, depth first; within an
+    element ``provenance`` before ``statements``) checked as
+    :func:`validate` checks them, each member's first problem at its path:
+    a number that is not finite (``finite_number``), else the schema
+    (``schema``), reported by the one path rule. Where no member has a
+    problem, every problem of the statement rules follows, not only the
+    first: ``context``, ``reserved_key``, then subject by subject ``iri``,
+    ``dangling_target``, ``element_value``, ``representation``,
+    ``calendar_date``, ``provenance_match`` and ``provenance_duplicate``.
+
+    Nothing outside the statements is refused, and the version marker is not
+    read: a manifest whose timelines break other rules but whose statements
+    are sound has no problem here. A library that reads only part of a
+    manifest checks its statements with this function. The messages are
+    those of :func:`validate`. ``value`` is in the file form; the rules read
+    its IDs bare, and an ID written without ``#`` is read as it stands.
+    """
+    if not isinstance(value, Mapping):
+        return []
     problems: list[SchemaValidationError] = []
     bare = leniently_bare_ids(value)
-    for (definition, member, array, path, _), (*_, plain, _, owner) in zip(
-        description_arrays(value), description_arrays(bare), strict=True
-    ):
-        finite = next(finite_number_problems(plain, path, owner, member), None)
+    for definition, member, content, path, owner in _statement_members(value, bare):
+        finite = next(finite_number_problems(content, path, owner, member), None)
         if finite is not None:
             problems.append(finite)
             continue
-        error = _select(_member_validator(definition, member).iter_errors(array))
+        error = _select(_member_validator(definition, member).iter_errors(content))
         if error is not None:
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, error.message))
-            continue
-        try:
-            member_with_bare_ids(value, definition, member, path)
-        except FileIdError as refused:
-            problems.append(SchemaValidationError("schema", refused.path, str(refused)))
     if problems:
         return problems
-    # Every ID of the description layer is now known to be in the file form;
-    # the reference rules compare it with IDs outside the layer, which are
-    # read leniently so that this function refuses nothing outside it.
-    return [*scheme_problems(bare), *link_problems(bare)]
+    return list(statement_rule_problems(bare))
 
 
 def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
@@ -377,9 +395,8 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     Root by root: duplicates, dangling targets, conversion maps, containment
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
-    scheme IDs, the manifest ID), group members, graphical orders, named
-    timestamps and the dates and references of links. ``value`` is in the
-    file form; the rules read its IDs bare.
+    manifest ID), group members, graphical orders and named timestamps.
+    ``value`` is in the file form; the rules read its IDs bare.
 
     Raises:
         SchemaValidationError: If an ID is not written in the file form.

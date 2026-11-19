@@ -14,14 +14,15 @@ suite, so both validators are held to the same paths and the same lists.
 ## What the package promises
 
 1. Every manifest is `{timetoshare, timelines, id?, name?, meta?, groups?,
-   measure_maps?, schemes?, links?, graphical?}`; `validate` accepts exactly the values the schema and the
-   rules below accept, and raises the first violation with its code and
+   measure_maps?, graphical?, @context?, statements?, provenance?}`;
+   `validate` accepts exactly the values the schema and the rules below
+   accept, and raises the first violation with its code and
    path.
 2. A value without the version marker is refused at the root, a value with
    another version raises `UnsupportedVersionError`.
-3. Unknown keys are kept and listed by `unknown_keys`, and bare words outside
-   a registered vocabulary are kept and listed by `unregistered_terms`;
-   neither is ever refused.
+3. Unknown keys are kept and listed by `unknown_keys`, and a valid manifest
+   without `@context`, or describing a bundle without an ID, draws the
+   warnings `manifest_warnings` lists; neither is ever refused.
 4. `complete` and `minimal` convert between the complete and the minimal
    form, both pure, from one table of defaults that agrees with the schema.
 5. `dumps` writes every JSON value, a manifest put in canonical order and its
@@ -31,14 +32,16 @@ suite, so both validators are held to the same paths and the same lists.
    `file_form` infers how a manifest file writes its manifest and
    `dumps_file` writes a value back in that form, the same bytes as the
    JavaScript package's `fileForm` and `dumpsFile`.
-6. Schema, fixture, font and registry accessors resolve package data
+6. Schema, fixture, font and catalogue accessors resolve package data
    independently of the working directory; the wheel and the sdist ship the
-   schema document, `docs/drawing.md`, the registry of identifier schemes and
+   schema document, `docs/drawing.md`, the catalogue with its schema and
    the licence.
-7. The description model (`timetoshare.description`) builds links from URLs
-   through the registry of identifier schemes (`timetoshare.registry`), and
-   writes and reads them in both forms, with the same values, the same
-   errors and the same messages as the JavaScript package.
+7. `timetoshare.statements` reads and writes the property–value pairs of
+   the bundle, its timelines and its regions with their provenance, and
+   `timetoshare.catalogue` reads them in words through the catalogue of
+   identifier systems, verbs and types, with the same values, the same
+   errors and the same messages as the JavaScript package; an independent
+   JSON-LD processor reads the statement fixtures to the expected RDF.
 
 ## The schema document
 
@@ -53,10 +56,11 @@ rejection cases that use them (`test_schema.py`):
   and `schema/` holds exactly the directory `0.2.0` with exactly that file.
   Every `$ref` is local (`#/$defs/<name>`) and names a definition; no node
   carries `$anchor`.
-- **The public definitions.** The definitions include the fifteen public
+- **The public definitions.** The definitions include the seventeen public
   ones `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
   `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
-  `MeasureMap`, `MeasureMapRow`, `Link` and `Scheme`, and the root's
+  `MeasureMap`, `MeasureMapRow`, `Context`, `Statements`, `StatementValue`
+  and `ProvenanceEntry`, and the root's
   description, which tells a host what it may refer to, names exactly
   these, in this order.
 - **The map types.** `ConversionMap` chooses between exactly the ten types
@@ -135,39 +139,39 @@ rejection cases that use them (`test_schema.py`):
 - **Discriminated unions.** Exactly two nodes carry a `discriminator`, on
   `number_type` and on `type`; each tags every branch with a distinct
   required string constant.
-- **The description layer.** `links` is a property of exactly the
-  definitions `Manifest`, `Timeline` and `Region`, and `schemes` of
-  `Manifest` alone, so no group, map, MeasureMap, flow-control element or
-  timestamp carries links. `Level` is exactly `work`, `expression`,
-  `manifestation`, `item` and `agent`, `Assertion.match` exactly `exact`,
-  `close`, `broad`, `narrow`, `related` and null, `Assertion.status` exactly
-  `confirmed`, `unconfirmed`, `rejected` and null; the package's `LEVELS`,
-  `MATCHES` and `STATUSES` equal them, so the model cannot drift from the
-  closed vocabularies. A `PartSlot` declares no `position` (its place in
-  `parts` is its position) and a `Link` declares `label` and no `name`,
-  `same_as` or `equivalent`. `Uri` accepts `http://musicbrainz.org/work/x`,
-  `urn:isbn:0451450523` and `mailto:a@example.org`, and refuses
-  `musicbrainz.org/work/x` (no scheme), `1http://x` (a scheme begins with a
-  letter), `http:` (nothing after the colon), `http://a b`, `http://a\n` (a
-  trailing newline, which a pattern ending in `$` lets through Python's
-  `re.search`; the definitions therefore refuse white space with a separate
-  unanchored `not`, which both libraries read alike), `http://a b` and
-  `http://a﻿`. `Term` accepts `pertains_to`, `marcrel:cmp` and
-  `http://id.loc.gov/vocabulary/relators/cmp`, and refuses `""`,
-  `has part` and `has_part\n`; `UriReference` accepts `records/op106.json`
-  and refuses `""` and `a b`. The white-space class of those definitions is
-  the one the registry uses to refuse a URL before matching it, pinned
-  against the schema.
+- **Statements.** `statements` is a property of exactly `Manifest`,
+  `Timeline` and `Region`, `provenance` of those and `ValueNode`, and
+  `@context` of `Manifest` alone; no definition declares `links` or
+  `schemes`, and `Link`, `PartSlot`, `PartOf`, `Assertion`, `Descriptor`,
+  `Identifier`, `Scheme`, `Level`, `Term`, `Uri` and `UriReference` are
+  gone. `ProvenanceEntry`'s `status`, its `method` words and its `match`
+  are exactly `STATUSES`, `METHODS` and `MATCHES`; `Context`'s consts are
+  exactly `FORMAT_CONTEXT`, its `required` and its term names the 33 terms
+  in that order. `Iri` accepts `schema:MusicRecording`,
+  `http://musicbrainz.org/work/x`, `urn:isbn:0451450523`,
+  `mailto:a@example.org` and `wdt:P175`, and refuses `MusicRecording` (no
+  prefix), `1http://x`, `http:` (nothing after the colon), `schema:a b`, a
+  trailing newline, U+00A0 and U+FEFF; `IriReference` accepts `#clt_1`,
+  `other.yaml#clt_1`, `wd:Q1` and `records/op106.json` and refuses `""`,
+  `a b`, `_:b0` (a blank node) and `@id` (a keyword); `PrefixIri` accepts
+  namespaces ending in `/` or `#` and refuses one ending otherwise, a
+  trailing newline and a relative path; `PrefixName` accepts `schema`,
+  `melodTerms`, `wd`, `a_b-1` and refuses `unit` (an element's key),
+  `http`, `urn` (schemes the format reads as such), `1a`, `a:b`, `a.b` and
+  `""`; `LanguageTag` accepts `en`, `de-CH`, `zh-Hant-TW` and refuses `""`,
+  `en_GB`, a trailing newline and a subtag longer than eight letters. The
+  white-space class the IRI definitions refuse with an unanchored `not` is
+  `BLANK`, pinned against the schema.
 - **Both libraries read every pattern alike.** A pattern ending in `$`
   lets a trailing newline through Python's `re.search` and not through
   JavaScript's `RegExp`, so a definition that needs to refuse control
   characters says so with an unanchored `not`, never with an anchored
   class: `Id` is a string of `minLength` 1 whose `not` refuses U+0000 to
-  U+001F, and an entry of an `Order` has the same two keywords. The five
+  U+001F, and an entry of an `Order` has the same two keywords. The four
   patterns that still end in `$`, a named timestamp's `id`, `Paint`,
-  `stroke-dasharray`, `asserted_on` and a record's `integrity`, are
-  exactly those the document holds, and each refuses a value it accepts
-  (`timestamp_1`, `none`, `4 2`, `2026-11-17`, `sha256-AAAA`) once a
+  `stroke-dasharray` and a provenance entry's `date`, are exactly those
+  the document holds, and each refuses a value it accepts (`timestamp_1`,
+  `none`, `4 2`, `2026-11-17`) once a
   newline follows it, through `Id`'s `not`, a `not` of its own or its
   `maxLength`; an `Order` refuses `["line\n"]`. The JavaScript suite
   asserts the same values, so the two validators cannot part on a
@@ -175,8 +179,7 @@ rejection cases that use them (`test_schema.py`):
 - **Defaults agree with the table.** For every kind of `DEFAULTS` the
   schema's corresponding definitions (`Manifest`, `Timeline`,
   `Region`, `FlowControlElement`, `MeasureMap`, `Group`, `Graphical`,
-  `Scheme`, `Link`, `PartSlot`, `PartOf`, `Assertion`, `Descriptor`, every
-  conversion map) declare `default` on exactly the keys
+  `Timestamp`, every conversion map) declare `default` on exactly the keys
   of that kind's table, each equal to the table's value, and on no other
   key; a conversion map's kind is `conversion_map`, joined by `linear_map`
   for a `LinearMap` (`scalar` 1, `offset` 0) and by `table_map` for a
@@ -325,12 +328,13 @@ sorted by path (segment by segment, indices by number, keys by code point,
 an object before its descendants) and then by key (`test_unknown_keys.py`):
 
 - **The shared warning cases.** Every case of `fixtures/warnings/0.2.0/`
-  holds exactly `manifest`, `unknown_keys` and `unregistered_terms`;
-  `validate` accepts the manifest, `unknown_keys` returns exactly its
-  `unknown_keys` list and `unregistered_terms` exactly its
-  `unregistered_terms` list (empty in the thirteen cases of unknown keys,
-  empty `unknown_keys` in the four cases of terms); the JavaScript suite
-  asserts the same lists. `several_depths` holds unknown keys on the
+  holds exactly `manifest`, `unknown_keys` and `warnings`; `validate`
+  accepts the manifest, `unknown_keys` returns exactly its `unknown_keys`
+  list and `manifest_warnings` exactly its `warnings` list (empty in the
+  thirteen cases of unknown keys, which state the format's `@context`;
+  empty `unknown_keys` in the three cases of warnings, `context_absent`,
+  `bundle_blank_statements` and `bundle_blank_provenance`); the
+  JavaScript suite asserts the same lists. `several_depths` holds unknown keys on the
   manifest, a timeline, a child, a region, a flow marker, a jump origin, a
   jump target, a conversion map and the map nested in it, a MeasureMap and
   one of its rows, a group, the `graphical` object, a rule, a selector
@@ -375,17 +379,14 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
 `minimal`:
 
 - **Literal forms.** The smallest file completes to the literal complete
-  manifest (`name` null, `meta` `{}`, `groups`, `measure_maps`, `schemes`
-  and `links` `[]`, and
-  on the timeline `name` null, `number_type` `fraction`, `locked` false,
-  `is_segment_line` false, `meta` `{}`, `children`, `conversion_maps`,
-  `regions`, `flow_control` and `links` `[]`), and that minimizes back to the
-  smallest file. A manifest holding a scheme, and a link (on the manifest, a
-  timeline and a region) with a record, an assertion, a part slot with an
-  assertion of its own and a `part_of` entry, gains exactly the keys of
-  `scheme`, `link`, `descriptor`, `assertion`, `part_slot` and `part_of`
-  (every array `[]`, `parts_ordered` true, every other key null), and its
-  minimal form is the literal input. A region (gaining `links` too), a flow-control element (a `repeat_end` gains
+  manifest (`name` null, `meta` `{}`, `groups` and `measure_maps` `[]`,
+  and on the timeline `name` null, `number_type` `fraction`, `locked`
+  false, `is_segment_line` false, `meta` `{}`, `children`,
+  `conversion_maps`, `regions` and `flow_control` `[]`), and that minimizes
+  back to the smallest file. `@context`, `statements` and `provenance`
+  have no default: a manifest stating all three on itself, its root and a
+  region keeps each exactly in both forms, and its minimal form is the
+  literal input. A region, a flow-control element (a `repeat_end` gains
   `repeat_count` 1 besides, no other element does), a group, a MeasureMap, a conversion map (and the maps nested in a
   `ChainMap`, a `CombinationMap` and a `PiecewiseMap`), a `LinearMap`, a
   `TableMap` and a `graphical` object each gain exactly their table's keys.
@@ -432,7 +433,7 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
 `SchemaValidationError` carrying `code`, `path` and `message`: the version
 marker; `finite_number`; the schema, in one walk that also collects the
 unknown keys; `representation`; then the semantic rules in the order of the
-table, root by root for the first six (a root's duplicates, then its
+table, the statement rules last, root by root for the first six (a root's duplicates, then its
 targets, then its conversion maps, then child by child, each followed by its
 own children, the containment rules, then its segment lines), the rest over
 the whole manifest. A timeline's maps are read in array order, each before
@@ -456,7 +457,7 @@ violation's is the same text in both packages.
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
 | `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
 | `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
-| `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, then each named timestamp's ID, then each scheme's ID, against every ID before it | the later ID | as above |
+| `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, then each named timestamp's ID, against every ID before it | the later ID | as above |
 | `manifest_id` | the manifest ID is no other ID of the manifest | `id` | `'g2' is not unique in the manifest, first at #/groups/1/id` |
 | `group_member` | a member names a timeline and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `member 'b' lies inside member 'a' of the same group` |
 | `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
@@ -464,8 +465,15 @@ violation's is the same text in both packages.
 | `band_order` | a timeline's order permutes `line` and the five facets | the entry, then the order | `'annotations' is not 'line' or a facet, in the band order of 'score'`, `'flow_control' is missing from the band order of 'score'` |
 | `timestamp_timeline` | a named timestamp's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
 | `timestamp_coordinate` | its `coordinate` lies from 0 to its timeline's length, from 0 on where the length is null | its `coordinate` | `coordinate [9, 1] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'`, `coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'` |
-| `calendar_date` | link by link, with the row below: an assertion's `asserted_on` names a day of the Gregorian calendar from 0001-01-01 to 9999-12-31 | the `asserted_on` | `'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD` |
-| `dangling_target` | link by link, an identifier's `scheme` names a scheme of the manifest or is an absolute URI, and a part slot's `represented_by` entry names a timeline (any depth) or a region of the manifest | the `scheme`, the entry | `'opus' names no scheme of this manifest and is no absolute URI`, `'ghost' names no timeline or region of this manifest` |
+| `context` | a manifest whose manifest, timeline or region carries `statements` or `provenance` holds `@context` | the first such key in subject order, `provenance` before `statements` | `statements and provenance need the manifest's @context` |
+| `reserved_key` | no key of the manifest, a timeline, a region or a group begins with `@` (but the manifest's `@context`), holds a `:`, is a term of the context the element may not use or names a prefix of `@context` | the key | `'label' is reserved on a timeline` |
+| `iri` | subject by subject: the ID of an element with statements is an IRI fragment; every compact IRI names a prefix of `@context`, unless it is `//`-absolute or of the schemes `info`, `mailto`, `tag`, `urn` | the `id`, the key or value | `the ID 'Bass Kick' of an element with statements is no IRI fragment`, `'wdtt:P175': the prefix 'wdtt' is not declared in @context` |
+| `dangling_target` | with the row above: a reference `#x` in a node's `id`, an entry's `basis`, `stated_by` or `service` names an ID of the manifest, of any kind | the reference | `'#cpt_9' names no element of this manifest` |
+| `element_value` | a node naming an element holds its `id` alone | the node | `'#clt_2' names an element; a value naming an element holds its id alone` |
+| `representation` | with the rows above: a statement value is no float (an integral one passes the schema) | the value | `a statement value is an integer or a string, never a float: 1.0` |
+| `calendar_date` | with the rows above: an entry's `date` names a day of the Gregorian calendar from 0001-01-01 to 9999-12-31 | the `date` | `'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD` |
+| `provenance_match` | after a subject's pairs and entries: a `confirmed` entry matches a pair of its subject, a `proposed` or `rejected` one none | the entry | `no pair of this subject matches the entry; an entry that matches none is proposed or rejected`, `the pair is stated; a rejected pair is never stated` |
+| `provenance_duplicate` | no entry repeats the pair of an earlier entry of its subject | the entry | `the entry repeats the pair of entry 0` |
 
 The keys of `graphical.order` are read in code-point order, each order's
 strangers before its missing entries, missing members in the order of
@@ -473,37 +481,44 @@ strangers before its missing entries, missing members in the order of
 `conversion_maps`, `line`, `markers`, `regions`, `flow_control`).
 A key naming a group and a timeline never reaches `validate` (the duplicate
 ID comes first); `identity_problems` reads it as the group's. The named
-timestamps are read after the orders, in array order, and the links last:
-the manifest's, then root by root each timeline's own, its regions' in array
-order and its children's, depth first; within a link its assertion's
-`asserted_on`, then its `identifiers`, then each part slot's `asserted_on`,
-`identifiers` and `represented_by`, then each `part_of` entry's
-`asserted_on` and `identifiers`. The schema checks that a date is written
-`YYYY-MM-DD`; `calendar_date` checks that the calendar has it, as the
-description model does when it reads an assertion, so a manifest
-`validate` accepts is one the model reads. The Gregorian calendar counts
-months 1 to 12 and the days of each month, February having 29 in a year
-divisible by 4 and not by 100, or by 400; its years run from 1 (the first
-year of Python's `datetime.date`), so `0000-01-01` is refused too. What
-proves it (`test_description.py`): `2024-02-29`, `2000-02-29`,
-`0001-01-01` and `9999-12-31` validate, and `2026-02-30`, `2023-02-29`,
-`2100-02-29`, `2026-11-31`, `2026-13-01`, `2026-00-10`, `2026-11-00` and
-`0000-01-01` are each one `calendar_date` problem with the message above;
-a manifest holding one in the assertion of a link, of its slot and of its
-`part_of` entry, its slot also represented by `ghost` and its identifier
-naming `opus`, lists its problems in the order stated. The coordinate of a
+timestamps are read after the orders, in array order. The coordinate of a
 timestamp on a timeline of the manifest is an own-axis value of that
-timeline and is checked with the `representation` rule (`coordinate 3 of 'timestamp_1' is
-an int on a fraction axis: write [3, 1]`, at its `coordinate`); a timestamp
-naming no timeline is checked for its timeline alone.
+timeline and is checked with the `representation` rule (`coordinate 3 of
+'timestamp_1' is an int on a fraction axis: write [3, 1]`, at its
+`coordinate`); a timestamp naming no timeline is checked for its timeline
+alone.
+
+The statement rules read the manifest with bare IDs and its statements as
+written (they are the same in both forms). Subject order is the manifest,
+then root by root the timeline, its regions in array order and its
+children, depth first; the reserved keys add the groups after the
+subjects, each element's keys in code-point order. Within a subject the
+rules follow its container's keys in code-point order (each `type` item an
+IRI; any other key an IRI, then each of its values: a value object's
+`@type`, an ordered list's items, a node's `id`, then whether it names an
+element, then the node's own pairs and provenance as a subject's), then
+its provenance entries, each entry's keys in code-point order (`basis`,
+`date`, `method` unless one of the four words, `property`, `service`,
+`stated_by`, `value`), then each entry again for `provenance_match` and
+`provenance_duplicate`. The schema checks that a date is written
+`YYYY-MM-DD`; `calendar_date` checks that the calendar has it. The
+Gregorian calendar counts months 1 to 12 and the days of each month,
+February having 29 in a year divisible by 4 and not by 100, or by 400; its
+years run from 1 (the first year of Python's `datetime.date`), so
+`0000-01-01` is refused too. What proves it (`test_statements.py`):
+`2024-02-29`, `2000-02-29`, `0001-01-01` and `9999-12-31` validate, and
+`2026-02-30`, `2023-02-29`, `2100-02-29`, `2026-11-31`, `2026-13-01`,
+`2026-00-10`, `2026-11-00` and `0000-01-01` are each one `calendar_date`
+problem with the message above. Pairs match as `same_pair` says (the
+section "Statements").
 
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 131 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 159 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
-exactly the nineteen of the table, so every code is reached by a case both
+exactly the twenty-five of the table, so every code is reached by a case both
 suites read. `version_unknown` raises `UnsupportedVersionError` and stores
 `["timetoshare"]` and the code `null`. Every case is read through the
 package's one reader, `rejection_case`, which every consumer uses too; it
@@ -513,41 +528,41 @@ value in place and are reported at their path with the exact message, a
 case without one (`id_empty`) reads as written, and an unknown name is
 refused with `ValueError`. Each case's text is the
 standard writer's, and the set of names is stated literally, so a case cannot
-disappear unnoticed. Sixteen cases pin their message too (`test_identity.py`
-and `test_description.py`):
+disappear unnoticed. Twenty cases pin their message too (`test_identity.py`
+and `test_statements.py`):
 `child_unit_differs`, `child_offset_beyond_parent`, `child_end_beyond_parent`,
 `region_id_duplicate_across_roots`, `band_order_unknown_entry`,
 `band_order_missing_band`, `band_order_old_form`, `order_unknown_group`,
 `timestamp_timeline_unknown`, `timestamp_coordinate_beyond_length`,
 `timestamp_coordinate_negative`, `timestamp_id_is_timeline_id`,
-`description_slot_represented_by_unresolved`,
-`description_identifier_scheme_unresolved`,
-`description_scheme_id_duplicate` and
-`description_asserted_on_impossible_date`. The nineteen cases named
-`description_*` break one rule each of a manifest whose one root `score`
-(8 quarters) holds the region `intro` and whose one link, at the level `work`, reads two
-parts; every case is in the complete form, so its slots state both
-`represented_by` and `absent` and its paths are those of the complete form:
-a link without `relation` or without `level` (`schema` at the link), with
-the level `score` (`schema` at `level`), at the level `agent` with the
-relation `pertains_to` (`schema` at the link, the definition's `not`), a
-slot represented by `score` and absent as `lost` (`schema` at its `absent`,
-the `then` arm), a slot with `represented_by` empty and `absent` null
-(`schema` at its `absent`, the `else` arm), a slot represented by `ghost`
-(`dangling_target` at `represented_by/0`), an identifier of the scheme
-`opus` that no scheme declares (`dangling_target` at its `scheme`), a
-scheme whose ID is `score` (`duplicate_id` at `schemes/0/id`, first at the
-timeline's), parts with `parts_relation` null (`schema` at
-`parts_relation`), empty parts with `parts_relation` `has_part`
-(`description_parts_relation_without_parts`, `schema` at
-`parts_relation`, the link's `else` arm) and with `parts_ordered` false
-(`description_parts_ordered_without_parts`, `schema` at `parts_ordered`,
-the same arm), a `part_of` entry without `parts_relation` (`schema` at
-the entry), an assertion with `match` `equivalent` and with `status`
-`approved` (`schema` at the member), `asserted_on` `17 November 2026`
-(`schema` at the member) and `2026-02-30` (`calendar_date` at the
-member), a `uri` entry `musicbrainz.org/work/x` (`schema`
-at the entry) and a record without `url` (`schema` at the record).
+`context_absent_with_statements`, `reserved_key_term_on_timeline`,
+`subject_id_not_fragment`, `iri_prefix_undeclared_key`,
+`element_value_dangling`, `element_value_with_label`,
+`provenance_date_impossible` and `provenance_repeated`. The 46 statement
+cases break one rule each of the manifest `B`: the format's `@context`
+with `schema`, `wd` and `wdt` (others as a case needs), and one root
+`clt_1` (8 quarters), its `statements` and `provenance` as the case says,
+in the complete form: the context absent beside statements or the
+bundle's provenance (`context`), a term altered or missing, a prefix that
+is no namespace or an element's key (`schema` at the term, at
+`@context`), an undeclared prefix in a key, a node's `id`, a `type` item
+and an entry's `basis` (`iri`), a bare word as a `type`, a key, an entry's
+`property` and a keyword as a key, empty statements, values and
+provenance, repeated values, a float, `null` in the values and in an
+ordered list, a value object with both a language and a datatype, an
+empty node, a blank-node `id`, an entry without `status`, with an unknown
+status, method, match and a date not written `YYYY-MM-DD` (`schema` at the
+member, the value or the container), an integral float
+(`representation`), an impossible date (`calendar_date`), a confirmed
+entry matching no pair, a proposed and a rejected entry of a stated pair,
+a confirmed `rdf:type` entry of another class and a confirmed entry on a
+value node matching none of its pairs (`provenance_match`), a repeated
+entry (`provenance_duplicate`), a reference to no element
+(`dangling_target`), a node naming an element with a label
+(`element_value`), a subject whose ID is no IRI fragment (`iri`), and a
+reserved key: a term on a timeline, an IRI on a region, `statements` on a
+group, a prefix on the manifest, `@context` on a timeline, `children` on a
+region (`reserved_key`).
 `id_control_character_trailing_newline` names its one root `score`
 followed by a newline and is refused at that `id` (`schema`), the case on
 which an anchored pattern would part the two validators. The five
@@ -726,84 +741,6 @@ documents that bound each rule from the other side:
   `display`, `["wedge", "Wedge"]` at `display/1` (words are exact),
   `["line"]` at `display/0` (a part word, not a display word), `[1]` at
   `display/0`, and `["name", "name"]` at `display` (`uniqueItems`).
-- **Links** (`test_description.py`). A slot represented by a root, a child,
-  a segment and a region passes; one represented by `ghost`, by a group's ID
-  or by a MeasureMap's ID (neither a timeline nor a region) is one
-  `dangling_target` at that entry. An identifier whose scheme is a scheme's
-  ID or an absolute URI passes, and one whose scheme is `opus` is one
-  `dangling_target` at its `scheme`, wherever the identifier stands: on the
-  link, on a part slot, on a `part_of` entry, and on links of the
-  manifest, a root, a child and a region, each reported at its own path. A
-  scheme's ID equal to a timeline's, a region's or another scheme's is one
-  `duplicate_id` at the later `schemes/<i>/id`, and the manifest's ID equal
-  to a scheme's one `manifest_id`. Of a link breaking two rules,
-  `identity_problems` lists its identifier's problem before its slot's.
-  The schema's own rules: a slot both represented and absent is refused at
-  its `absent`, a slot that is neither at its `absent` in the complete form
-  and at the slot in the minimal form; a link at the level `agent` with the
-  relation `pertains_to` at the link, the same link with the relation
-  `marcrel:cmp` passes; parts with `parts_relation` null or absent are
-  refused at `parts_relation` or at the link, and empty parts with neither
-  pass. The other side of the same rule: a `parts_relation` `has_part`
-  with `parts` empty or absent is refused at `parts_relation`, and
-  `parts_ordered` false with `parts` empty or absent at `parts_ordered`,
-  while `parts_ordered` false beside one slot under `has_part` passes. A
-  scheme's `criteria` is a URI reference: `criteria/opus-numbers.html` and
-  `https://example.org/criteria` pass, `""` and `criteria/opus numbers` are
-  refused at `schemes/0/criteria`.
-- **The description layer alone** (`test_description.py`).
-  `description_problems` returns the problems of the description layer of
-  any manifest and nothing else, so a reader of part of a manifest checks
-  its links without knowing which parts the rules read. Its oracle is the
-  shared set: each of the nineteen `description_*` rejection cases gives
-  exactly one problem, the case's path and code (and, for the four cases
-  whose message is pinned above, that message), and each of the other 111
-  cases (the `version_unknown` case and the case that is no manifest
-  among them) and every fixture gives none. Every document of the rules
-  of links above gives the list `identity_problems` gives, as each breaks
-  description rules only. A manifest whose other parts break every kind of
-  rule (the version `9.9.9`, two roots `a`, the unit `beats`, a child of
-  another unit beyond its parent's length, a region that is no object, a
-  group naming `ghost`, `graphical` that is no object) and whose links
-  are sound gives none: its one slot represented by the region `r`
-  passes, and a scheme `a` is one `duplicate_id` at `schemes/0/id`, first
-  at `#/timelines/0/id`, followed by the manifest ID `g` equal to the
-  scheme `g` (`manifest_id` at `id`, first at `#/schemes/1/id`) and then by
-  the identifier naming `q` (`dangling_target`): the scheme rules come
-  before the links' as in `identity_problems`. The arrays are checked one
-  by one, each giving its first problem at its own path, in the order
-  `schemes`, the manifest's `links`, then root by root each timeline's,
-  its regions' and its children's: in one manifest, `schemes` holding a
-  scheme without `id` (`schema` at `schemes/0`), the manifest's `links`
-  being `"none"` (`schema` at `links`), the root's link without `level`
-  (`schema` at `timelines/0/links/0`), its region `r`'s link with the
-  level `score` (`schema` at `timelines/0/regions/0/links/0/level`) and
-  the child `verse`'s link with a record of size infinity (`finite_number`
-  at `timelines/0/children/0/links/0/records/0/size`, `size of 'verse' is
-  not a finite number`, built in code) are five problems in that order; a
-  sound link of the same manifest whose identifier names `q` adds none,
-  because the reference rules read a schema-checked layer and run only
-  where no array has a problem. A schema problem's message is the schema
-  library's, as for `validate`.
-- **Unregistered terms** (`test_description.py`). `unregistered_terms`
-  validates the manifest, then lists every bare term of an open vocabulary
-  that is not registered for its key, as `{"path": [...], "term": ...}`
-  sorted by path as unknown keys are. Every registered word of every key
-  (`pertains_to`; `manual`, `reconciled`, `imported`, `inferred`;
-  `has_part`, `aggregates`, `incorporates`; `not_represented`, `lost`,
-  `unfinished`, `unknown`, `not_recorded`) and every extension term
-  (`marcrel:cmp`, `http://id.loc.gov/vocabulary/relators/cmp`, a PREMIS URI)
-  lists nothing; a word registered for another key is listed (`has_part` as
-  a `relation`, `lost` as a `method`). The keys read are a link's
-  `relation` and `parts_relation`, every assertion's `method` (the link's,
-  a slot's and a `part_of` entry's), a slot's `absent` and a `part_of`
-  entry's `parts_relation`; one manifest holding an unregistered word in
-  each of these places, on links of the manifest, a timeline and a region,
-  lists them in path order. An invalid manifest raises before any term is
-  listed. The four shared warning cases each hold one such word: a relation
-  `about`, a method `guessed`, a parts relation `contains` and an absence
-  reason `destroyed`.
-
 **One document breaks every step once** (`test_every_step_in_order` and its
 JavaScript twin): `identity_problems` returns exactly the stated problems, in
 the stated order, with the stated codes, and `validate` raises the first.
@@ -813,238 +750,250 @@ in a fraction pair of a region and negative infinity in a style, each in a
 manifest whose repeated root also breaks the identity rules, raise
 `finite_number` at the leaf with the message of the table.
 
-## The description layer
+## Statements
 
-A link describes its element by pointing to an external entity; the model
-writes links, reads them back and builds them from URLs. What proves it
-(`test_description.py`, `test_registry.py`):
+The bundle, every timeline and every region may state property–value pairs
+about the thing it stands for (`statements`) and annotate them
+(`provenance`); `timetoshare.statements` reads and writes them. Two
+documents serve every test (`conftest.py`, the same in the JavaScript
+suite), both in the file form, since the IRIs of statements are the same in
+either form: **M1**, the recording `#rec` (context: the 33 terms and
+`schema`, `wd`, `wdt`) with the root `#cpt_1` (seconds, length null), its
+region `#region_1` (0.0 to 10.0) and its child `#cpt_2` (5.0 at 0.0),
+stating nothing; and **M2**, the two described timelines `#clt_6` (a score
+encoding: `dcterms:created` a typed literal, `schema:exampleOfWork` the
+MusicBrainz work with its label, `type` `melod:Manifestation` and
+`schema:SheetMusic`, `wdt:P629` the Wikidata item with its label and two
+`schema:sameAs`) and `#cpt_1` (a video: `rel:prf` a VIAF cluster,
+`schema:sameAs` its YouTube address, `type` `schema:VideoObject` and
+`melod:Manifestation`, `wdt:P175` the performer with her label and two
+`schema:sameAs`, `wdt:P31` `wd:Q98069877`), its context the terms and the
+nine prefixes it uses. What proves the package (`test_statements.py`):
 
-- **The registry is the shipped file.** `registry/schemes.json` is written
-  in pretty JSON by `dumps(…, serialization="json")`, and the default
-  registry holds exactly its nine entries, in this order, each with its
-  scheme URI, level, entity URI template and `lowercase`:
-  `musicbrainz_work` (`http://www.wikidata.org/entity/P435`, `work`,
-  `http://musicbrainz.org/work/{value}`, true), `musicbrainz_recording`
-  (`P4404`, `expression`, `http://musicbrainz.org/recording/{value}`,
-  true), `musicbrainz_release` (`P5813`, `manifestation`,
-  `http://musicbrainz.org/release/{value}`, true), `wikidata`
-  (`http://id.loc.gov/vocabulary/identifiers/wikidata`, null,
-  `http://www.wikidata.org/entity/{value}`, false), `viaf` (`P214`, null,
-  `http://viaf.org/viaf/{value}`, false), `gnd` (`P227`, null,
-  `https://d-nb.info/gnd/{value}`, false), `imslp` (`P839`, `work`, null,
-  false), `doi` (`P356`, null, `https://doi.org/{value}`, false) and
-  `youtube_video` (`P1651`, `manifestation`,
-  `https://www.youtube.com/watch?v={value}`, false). An entity URI template
-  is Wikidata's formatter URI for RDF resources (P1921) where one exists,
-  unless the issuer prescribes the canonical form, as the DOI Foundation
-  does with `https://doi.org/`; YouTube has no such formatter, so its
-  template is the watch page, the first formatter URL (P1630) Wikidata
-  states for P1651. Every entry is written with
-  all seven keys, so the file reads back to the entries it was written from.
-  Every pattern has exactly one capturing group and no syntax that Python's
-  `re` and JavaScript's `RegExp` read differently (no named group, no
-  lookbehind, no inline flag).
-- **One rule per scheme.** A scheme with an entity URI template yields an
-  entity URI and never an identifier; one without yields an identifier
-  `{scheme: <scheme URI>, value}` and never a URI.
-- **The recognition table** (the same table in the JavaScript suite):
-  `https://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284` is the
-  URI `http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284` at
-  the level `work`; `http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980/`
-  is `http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980`,
-  `work`; `https://musicbrainz.org/release/814c53fd-0732-4819-9753-4578f5ab992c`
-  is `http://musicbrainz.org/release/814c53fd-0732-4819-9753-4578f5ab992c`,
-  `manifestation`; `https://www.wikidata.org/wiki/Q146730` is
-  `http://www.wikidata.org/entity/Q146730`, no level;
-  `https://viaf.org/viaf/186299955` is `http://viaf.org/viaf/186299955`, no
-  level; `https://imslp.org/wiki/Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)`
-  and its percent-encoded form
-  `https://imslp.org/wiki/Piano_Sonata_No.29%2C_Op.106_%28Beethoven%2C_Ludwig_van%29`
-  are the identifier `{scheme: "http://www.wikidata.org/entity/P839", value:
-  "Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"}` at the level
-  `work`; `https://doi.org/10.5281/zenodo.7473560` is
-  `https://doi.org/10.5281/zenodo.7473560`, no level;
-  `https://musicbrainz.org/work/4A622B0D-B0C0-405E-B49E-05B70C108284`, the
-  same work's ID in capitals, is
-  `http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284`,
-  `work`, its value `4a622b0d-b0c0-405e-b49e-05b70c108284`;
-  `https://www.youtube.com/watch?v=Ch2mrPm1JnM` is
-  `https://www.youtube.com/watch?v=Ch2mrPm1JnM` at the level `manifestation`; and
-  `https://imslp.org/wiki/Special:ReverseLookup/534071` and
-  `https://example.org/anything` are not recognised.
-- **The URL forms a scheme accepts.** `http` and `https`, an optional
-  `www.` (`m.` for Wikidata), Wikidata's `/wiki/` and `/entity/`, VIAF's
-  language segment (`https://viaf.org/en/viaf/186299955`, the form Wikidata
-  states as VIAF's formatter URL today), a trailing `/`, a query and a
-  fragment all give the same URI, and so does a MusicBrainz ID in capitals
-  or in mixed case, for a work, a recording (`5F1A7C3E-…` gives
-  `http://musicbrainz.org/recording/5f1a7c3e-2b4d-4e6f-8a9b-0c1d2e3f4a5b`)
-  and a release, since the MusicBrainz entries state `lowercase`. An IMSLP
-  page that is no work page is not recognised: `Main_Page` (also with a
-  trailing `/`, a query, or written `Main%20Page`) and a page of each
-  namespace IMSLP's wiki declares, under its canonical and its local name
-  and their aliases, and of `Module`: `Media:`, `Special:`, `Talk:`,
-  `User:`, `User_talk:`, `IMSLP:`, `IMSLP_talk:`, `Project:`,
-  `Project_talk:`, `File:`, `File_talk:`, `Image:`, `Image_talk:`,
-  `MediaWiki:`, `MediaWiki_talk:`, `Template:`, `Template_talk:`, `Help:`,
-  `Help_talk:`, `Category:`, `Category_talk:`, `Module:` and
-  `Module_talk:`, each written plainly, with `%3A` or `%3a` for the colon,
-  and the two-word ones with `%20` for the underscore. A work page whose
-  name begins with such a word is recognised: `Main_Page_(Example)` and
-  `Talk_Show_Suite_(Example,_Anna)` are identifiers of those values.
-  Nor is a URL holding white space recognised, nor an IMSLP name whose
-  percent-encoding is not UTF-8 (`%E2%80`); an IMSLP name written with
-  spaces (`%20`) gives underscores. A captured value is substituted into
-  the entity URI as written, lowered where the entry states `lowercase`
-  (only the letters `A` to `Z`), and decoded only for an identifier.
-- **The addresses of a YouTube video.** A video's ID is eleven letters,
-  digits, `_` and `-`, and its case matters, so the entry does not state
-  `lowercase`. Every address a video is shared at gives the one entity URI
-  `https://www.youtube.com/watch?v=Ch2mrPm1JnM` and the value
-  `Ch2mrPm1JnM` as written: `https://youtu.be/Ch2mrPm1JnM?t=42`,
-  `https://m.youtube.com/watch?feature=share&v=Ch2mrPm1JnM` (`v` need not
-  open the query), `https://www.youtube.com/embed/Ch2mrPm1JnM`,
-  `http://youtube.com/watch?v=Ch2mrPm1JnM&t=42s#x`,
-  `https://music.youtube.com/watch?v=Ch2mrPm1JnM`,
-  `https://www.youtube.com/shorts/Ch2mrPm1JnM`,
-  `https://youtube.com/live/Ch2mrPm1JnM?feature=share`,
-  `https://www.youtube.com/watch?v=Ch2mrPm1JnM#t=1m`, the privacy-enhanced
-  embed `https://www.youtube-nocookie.com/embed/Ch2mrPm1JnM` (also without
-  `www.`) and the legacy `https://www.youtube.com/v/Ch2mrPm1JnM`, which
-  was shared with its parameters joined straight to the ID by `&`
-  (`https://www.youtube.com/v/Ch2mrPm1JnM&hl=en_US&fs=1`) and on the
-  privacy-enhanced host too (`https://www.youtube-nocookie.com/v/Ch2mrPm1JnM`).
-  An address that names no video is not recognised: a channel
-  (`https://www.youtube.com/channel/UCabcdefghijklmnopqrstuv`), a `v`
-  shorter than eleven characters (`https://www.youtube.com/watch?v=short`),
-  a playlist without `v` (`https://www.youtube.com/watch?list=PL123`), and
-  the two embeds whose path segment is eleven characters long like an ID
-  but names no video: the embedded playlist `videoseries`
-  (`https://www.youtube.com/embed/videoseries?list=PL123`,
-  `https://www.youtube-nocookie.com/embed/videoseries?list=PL123`) and a
-  channel's live stream `live_stream`
-  (`https://www.youtube.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv`,
-  `https://www.youtube-nocookie.com/embed/live_stream?channel=UCabcdefghijklmnopqrstuv`).
-- **A user extension.** `with_schemes` returns a new registry and leaves the
-  default as it was; an entry whose ID the registry holds replaces it in
-  place, any other is appended, and a URL is recognised by the first entry
-  whose pattern matches it. An entry that leaves out `level`, `entity_uri`
-  and `lowercase` is read as stating null, null and false, as the
-  JavaScript package reads it: written back, it holds all seven keys, and
-  `https://example.org/page/12` is the identifier `{scheme:
-  "https://example.org/scheme", value: "12"}` without a level. An entry
-  stating `lowercase` gives its values lowered: with `lowercase` true and
-  the pattern `https://example\.org/page/([0-9A-Za-z]+)`,
-  `https://example.org/page/AbC` is `https://example.org/entity/abc`. An
-  entry is refused with `ValueError` for a
-  pattern with no or two capturing groups (`pattern '…' of scheme 'x' has 0
-  capturing groups; it needs exactly one`), one using `(?<`, `(?P` or an
-  inline flag (`… uses syntax outside the shared subset; only (?:, (?= and
-  (?! may follow '(?'`), one that is no regular expression, a level outside
-  `LEVELS` (`scheme 'x' has the level 'score', which is no level`), an
-  entity URI template without `{value}` and a `lowercase` that is no
-  boolean, `"yes"` or null (`the lowercase of scheme 'x' is no boolean`).
-- **The work bundle of Op. 106.** Built through the API from the URLs of
-  its MusicBrainz work, its Wikidata item, its VIAF cluster and its IMSLP
-  page, with `identifiers={"mb_beethoven_opus": "op. 106"}`, a label, an
-  assertion (`asserted_by` `https://example.org/people/editor`,
-  `asserted_on` 2026-11-17, `method` `manual`, `status` `confirmed`) and
-  four `PartSlot.from_url` slots of its movements, each `not_represented`,
-  under `has_part`, beside the scheme `mb_beethoven_opus` and in a manifest
-  without timelines, its minimal form is exactly the stated manifest and
-  its complete form the stated complete manifest, the flat (U+266D) and the
-  dash (U+2013) kept; both validate, both list no unknown key and no
-  unregistered term, `minimal` and `complete` map each to the other, and
-  `Link.from_dict` and `Scheme.from_dict` read both forms back to objects
-  equal to the built ones.
-- **Two readings of one work** in one manifest, the movements in two orders
-  with two assertions, validate and survive `dumps` and a read back in the
-  order given; the canonical order moves neither the links, nor a link's
-  `uri`, nor its `parts`, and sorts `schemes` by ID.
-- **The errors of the model**, each with its message: a part slot both
-  represented and absent (`a part slot is represented or absent, not
-  both`) and neither (`a part slot is represented by an element or
-  absent`); a URL that is neither recognised nor an absolute URI (`'x' is no
-  absolute URI`); no URL (`a link from URLs needs one URL at least`); two
-  URLs recognised at two levels (`'b' is recognised at the level
-  'manifestation', 'a' at 'work'`); a level contradicting a recognised one
-  (`the level 'expression' contradicts 'a', recognised at the level
-  'work'`), from `from_urls` and from `with_uri`; no level at all (`no level
-  is recognised from 'a', 'b'; state the level`); a level outside `LEVELS`
-  (`'score' is no level`); an agent link without a relation (`an agent link
-  states its relation, the agent's role`) or with `pertains_to` (`an agent
-  link never uses the relation 'pertains_to'`); parts without a parts
-  relation (`a link with parts states its parts_relation`); a parts
-  relation without parts (`a link without parts states no
-  parts_relation`), from the constructor and from `with_parts` given no
-  slot; `parts_ordered` false without parts (`a link without parts keeps
-  parts_ordered true`); `with_parts`
-  given a slot recognised at another level (`part slot 2 is recognised at
-  the level 'manifestation', the link's level is 'work'`); an identifier
-  given in a scheme that mints entity URIs whose value is no value of the
-  scheme (`'op. 106' is no value of the scheme 'MusicBrainz work ID'`, and
-  `'x'` alike), from `from_urls` and from `with_identifier`; an entity URI
-  from `with_identifier` at another level than the link's (`the level
-  'expression' contradicts 'http://musicbrainz.org/work/4a622b0d-…',
-  recognised at the level 'work'`); and an
-  `asserted_on` the calendar lacks or not written `YYYY-MM-DD`, read by
-  `Assertion.from_dict` (`2026-02-30`, `2100-02-29`, `0000-01-01`,
-  `20261117` and `17 November 2026`, each `'<date>' is no Gregorian
-  calendar date written YYYY-MM-DD`), given to the constructor
-  `Assertion(asserted_on=…)` (the same five strings, and the integer
-  `20261117` and the `datetime.datetime(2026, 11, 17)`, neither a
-  `datetime.date`, as `'20261117'` and `'2026-11-17 00:00:00'`) or read by
-  `Link.from_dict` in the
-  assertion of a slot or of a `part_of` entry, the message of the
-  validator's `calendar_date`. `Assertion.from_dict` and the constructor
-  read `2024-02-29` as `datetime.date(2024, 2, 29)`, and the constructor
-  keeps `datetime.date(2024, 2, 29)` as given.
-- **Normalisation.** `from_urls` collapses URLs that normalise to one URI or
-  one identifier, keeping the first, puts the identifiers from URLs before
-  the given ones (a mapping or a list of `Identifier`), keeps an absolute
-  URI the registry does not recognise verbatim, and takes `pertains_to` as
-  the relation of every level but `agent`. `with_uri` normalises and
-  appends the same way; `with_identifier`, `with_record` and `with_part_of`
-  append, `with_label` and `with_assertion` replace, `with_parts` replaces
-  the reading's parts; each returns a new link and leaves the old one
-  equal to what it was. `assertion_for` gives an entry's own assertion, or
-  else its link's.
-- **Each fact stored once.** A given identifier whose scheme is the scheme
-  URI of a registry entry that mints entity URIs is stored as that entity
-  URI, read back through the registry as a URL of the scheme, never as an
-  identifier beside it. `from_urls` of the Wikidata item with
-  `identifiers={"http://www.wikidata.org/entity/P435":
-  "4A622B0D-B0C0-405E-B49E-05B70C108284"}` has `uri`
-  `("http://www.wikidata.org/entity/Q146730",
-  "http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284")`, no
-  identifier, and the level `work` the entity URI tells; `from_urls` of the
-  MusicBrainz work's URL with the same identifier keeps the one URI; an
-  identifier `{"http://www.wikidata.org/entity/P356":
-  "10.5281/zenodo.7473560"}` becomes `https://doi.org/10.5281/zenodo.7473560`;
-  identifiers of IMSLP (`P839`, a scheme that mints none) and of the
-  manifest's scheme `mb_beethoven_opus` (no entry) stay identifiers.
-  `with_identifier` of the P435 identifier, in capitals, appends the
-  entity URI to a link without it and returns a link equal to one already
-  holding it; through a registry extended by an entry `x` (scheme
-  `https://example.org/scheme`, template `https://example.org/entity/{value}`,
-  pattern `https://example\.org/entity/([0-9]+)`) the identifier
-  `{"https://example.org/scheme": "12"}` becomes
-  `https://example.org/entity/12`, while the default registry keeps it an
-  identifier. The validators do not read the registry: an identifier in
-  the scheme `P435` validates.
-- **The case of a value.** `with_uri` of
-  `https://musicbrainz.org/work/4A622B0D-B0C0-405E-B49E-05B70C108284` on a
-  link holding the work's URI returns a link equal to it: one URI.
-- **Unknown keys** on a scheme, a link, an identifier, a record, an
-  assertion, a part slot and a `part_of` entry survive `from_dict` and
-  `to_dict` in both forms, take no part in equality, and are each listed by
-  `unknown_keys` at its object (eight entries, an assertion held by a slot
-  included).
-- **One mechanism for both forms.** `to_dict()`, by default, leaves out
-  every key of the object's kind in `DEFAULTS` equal to its default and
-  `to_dict(minimal=False)` writes every one of them, so `complete` of a
-  minimal link equals its complete link and `minimal` of a complete one its
-  minimal link.
+- **The format's context.** `FORMAT_CONTEXT` holds the 33 terms, no prefix,
+  and equals the schema's `Context` consts (`test_schema.py`); `NAMESPACE`
+  is `https://timetoalign.github.io/timetoshare/ns#`; `STATUSES`, `METHODS`
+  and `MATCHES` are the schema's enums in its order; `BLANK` is the class
+  the schema's `Iri` refuses.
+- **Expanding an IRI.** Under M2's context `type` is `rdf:type`'s IRI,
+  `label` `rdfs:label`'s, `property` `rdf:predicate`'s and `confirmed`
+  `NAMESPACE + "Confirmed"`; `statements`, `id` and `provenance` (keywords)
+  expand to nothing; `wdt:P175` gives
+  `http://www.wikidata.org/prop/direct/P175`; `http://schema.org/name`,
+  `urn:isbn:1`, `tag:x`, `mailto:a@b`, `info:x` stay as written; `wdtt:P1`
+  (undeclared), `MusicRecording` (no colon) and the context's term `label`
+  used as a prefix (`label:x`) expand to nothing.
+- **Used prefixes and the context.** `used_prefixes(M2)` is exactly
+  `["dcterms", "gnd", "melod", "rel", "schema", "viaf", "wd", "wdt",
+  "xsd"]`: keys, `type` items, node `id`s, node keys and a value object's
+  `@type`. A provenance entry adds its `property`, a `method` that is an
+  IRI (not one of the four words), `basis`, `stated_by` and `service` and
+  its value's IRIs, at a value node's depth too; an absolute IRI, the four
+  URI schemes and a relative reference (`#cpt_1`, `other.yaml#x`) add
+  none. `with_context(M2 without @context, CATALOGUE_TEST.prefixes)` equals
+  M2's `@context`: the catalogue's unused `melodTerms` is dropped. A
+  prefix the manifest declares wins over the given one; a prefix declared
+  nowhere raises `the prefix 'p' is declared neither in the manifest's
+  @context nor in the given prefixes`; the argument is left unchanged.
+- **Subjects by path.** `subject_path(M1, None) == ()`; `#cpt_1`,
+  `#cpt_2` and `#region_1` give `("timelines", 0)`, `("timelines", 0,
+  "children", 0)` and `("timelines", 0, "regions", 0)`; the bare `cpt_1`
+  raises `no timeline or region of the manifest has the ID 'cpt_1'`. A
+  path reaching nothing (`("timelines", 9)`), a group (`("groups", 0)`), a
+  provenance entry's value, a value object or a literal raises
+  `#/timelines/9 addresses no element and no value node` (its own pointer).
+  A node is addressed through `statements` (`("timelines", 1,
+  "statements", "wdt:P175", 0)`): its pairs are its `schema:sameAs` values,
+  in list order.
+- **Pairs and entries.** `pairs` of M2's `#cpt_1` lists `rel:prf`,
+  `schema:sameAs`, `("type", "schema:VideoObject")`, `("type",
+  "melod:Manifestation")`, `wdt:P175`, `wdt:P31` in that order (keys by
+  code point, values in list order); `entries` filters by status.
+- **The same pair** (`same_pair`). Properties compare expanded: `type` and
+  `rdf:type` (which an entry writes for `type`, read so even where the
+  context declares no `rdf`), `wdt:P175` and its full IRI. A node with an `id` equals any
+  node with the same expanded `id`, its label and pairs ignored; a `type`
+  item `T` equals `{id: T}`; `true` is not `1`, `"1"` is not `1`; value
+  objects compare `@value`, `@language` and the expanded `@type`; nodes
+  without `id` compare as JSON without their own `provenance`; ordered
+  values item by item; `#cpt_1` compares as written, never resolved.
+- **Writing pairs.** The values, exactly: `with_pair(M1,
+  ("timelines", 0), "wdt:P175", {Pires}, provenance={stated_by, date,
+  method})` states the node as given and appends the `confirmed` entry
+  whose `value` is `{"id": "wd:Q235650"}`; the same pair again, or written
+  with the full IRI, raises `'wdt:P175' already has this value`; a `type`
+  pair stores the class in `type` and writes its entry `property:
+  "rdf:type"`, `value: {"id": "schema:VideoObject"}`; `without_pair` of
+  both leaves no `statements` and no `provenance` key; `without_pair` of a
+  pair not stated raises `'wdt:P175' does not have this value`.
+  `with_proposal(…, "wdt:P2550", {"id": "wd:Q29117946"}, …, basis=["#cpt_2"])`
+  leaves the statements as they were and adds one `proposed` entry (with
+  `basis`, without `service`, `match`, `note`); proposing a stated pair
+  raises `'wdt:P2550' already has this value; a stated pair is not
+  proposed`; proposing it again replaces the entry in place.
+  `with_confirmation(…, {Clair de lune with label}, stated_by=[editor],
+  date="2026-11-19")` states the value with its label and turns the entry
+  `confirmed` with the editor and the date, `basis` and `method` kept;
+  confirming a pair with no proposed or rejected entry raises `no proposal
+  or rejection of this value of 'wdt:P2550'`. `with_rejection(…,
+  date="2026-11-20", note=…)` removes the pair and turns its entry
+  `rejected` with the note, `method` and its other members kept; a
+  rejection of a pair never stated creates the entry. Stating a rejected
+  pair with `with_pair` removes its rejected entry. A property `performer`
+  raises `'performer' is no property: write 'type', a compact IRI or an
+  absolute IRI`, a date `2026-02-30` the calendar message. A node's own
+  pairs are written the same way at its path. Every function is pure: its
+  argument is unchanged, deep-equal, after the call. Each result
+  validates.
+- **The statement rules.** Every rejection case of a statement rule is the
+  shared oracle (`test_validate.py`); the inline documents add what the
+  cases cannot show. The messages, exactly: `statements and provenance
+  need the manifest's @context`; `'label' is reserved on a timeline` (and
+  `the manifest`, `a region`, `a group`); `the ID 'Bass Kick' of an element
+  with statements is no IRI fragment` (an ID with `%41` passes, one with
+  `%4` or `a|b` does not, one with `é` passes); `'wdtt:P175': the prefix
+  'wdtt' is not declared in @context`; `'#cpt_9' names no element of this
+  manifest`; `'#clt_2' names an element; a value naming an element holds
+  its id alone`; `a statement value is an integer or a string, never a
+  float: 1.0`; `'2026-02-30' is no Gregorian calendar date written
+  YYYY-MM-DD`; `no pair of this subject matches the entry; an entry that
+  matches none is proposed or rejected`; `the pair is stated; a rejected
+  pair is never stated`; `the entry repeats the pair of entry 0`. The
+  reference rule reaches every kind of ID: an element value naming a
+  group, a MeasureMap, a nested conversion map, a flow-control element, a
+  named timestamp and the manifest itself passes. The four URI schemes and
+  `//` IRIs need no prefix. Allowed keys stay allowed: `timelines`,
+  `groups`, `statements`, `provenance` and `@context` on the manifest,
+  `children`, `regions` on a timeline, `id` everywhere. A manifest without
+  statements and without `@context` validates (only the warning). Order:
+  one manifest breaking the context rule, a reserved key and a prefix lists
+  them in that order through `statement_problems`, and `validate` raises
+  the first.
+- **Statements alone.** `statement_problems` (no manifest, no problem: a
+  value that is no object gives none) checks `@context` and every
+  `statements` and `provenance` member as `validate` does, each member's
+  first problem at its path, then, where none has one, every problem of
+  the statement rules. Its oracle is the shared set: each statement
+  rejection case gives exactly one problem, the case's path and code, but
+  the two cases without `@context`, whose first problem is the case's and
+  whose others are the `iri` problems of their compact IRIs (no prefix is
+  declared where no context is); every other case and every fixture gives
+  none. A manifest whose other
+  parts break every kind of rule (the version `9.9.9`, two roots `a`, the
+  unit `beats`, a group naming `ghost`) and whose statements are sound
+  gives none; three broken members (the context missing a term, a root's
+  statements `{}`, a region's provenance entry with the date infinity, the
+  last built in code) give three problems in subject order, the date's
+  `finite_number` with the region's ID as owner.
+- **Warnings.** `manifest_warnings` validates first, then lists
+  `context_absent` (`the manifest has no @context`, at `[]`) for a manifest
+  without `@context`, and `bundle_blank` (`the manifest has statements but
+  no ID; its subject is a blank node`) at `["statements"]`, or at
+  `["provenance"]` where only that is present, for a bundle without `id`;
+  a manifest with `@context`, an `id` and statements has none. The shared
+  warning cases hold `manifest`, `unknown_keys` and `warnings` and every
+  one is asserted exactly (`test_unknown_keys.py`).
+
+## The catalogue
+
+`timetoshare.catalogue` reads the catalogue of identifier systems, verbs and
+types; the validators never consult it. The test catalogue `CATALOGUE_TEST`
+(`conftest.py`, the same in the JavaScript suite) holds ten prefixes, the
+alias `https://schema.org/` → `http://schema.org/`, four systems
+(`wikidata` with its thing, `musicbrainz` with `musicbrainz_work`,
+`melody`, `fallback`), six verbs (`is_a` first, `same_as`, `performed_by`
+in four systems, `conducted_by`, `version_or_edition_of`, `part_of` with an
+inverse alternative) and the type `video`. What proves it
+(`test_catalogue.py`):
+
+- **The shipped file.** `catalogue/catalogue.yaml` is canonical YAML
+  (`dumps(loads(text)) == text`), validates against
+  `catalogue/catalogue.schema.json` (whose `$id` is
+  `https://timetoalign.github.io/timetoshare/0.2.0/catalogue.schema.json`),
+  and `load_catalogue()` reads it once (the same object twice); its first
+  verb is `is_a`.
+- **Reading.** `read_catalogue(CATALOGUE_TEST)` keeps every member as
+  given. Each cross-reference rule raises its exact message, one broken
+  copy each: a system, a thing, a verb and a type held twice; the prefix
+  `nope` used by a system's `prefixes`, a thing's `prefix`, a thing's
+  `lrmoo_class` and a pattern's key, `type` item and nested node `id`; the
+  system, thing, verb and type named but not held (`when.value`,
+  `when.subject`, a type's `verbs` and `lookup`, a verb's pattern system);
+  a thing pattern with two capturing groups, with a named group and with
+  an unbalanced parenthesis. Of a copy breaking two rules, the earlier
+  rule's message is raised.
+- **Recognising URLs.** `https://www.wikidata.org/wiki/Q235650` gives
+  `("wikidata", "wikidata", "Q235650",
+  "http://www.wikidata.org/entity/Q235650")`; the MusicBrainz work's URL in
+  capitals gives the value and the IRI in lower case; `not a url`, a URL
+  with a space and an unknown site give `None`. A thing without an IRI
+  template gives its percent-decoded value with underscores and the IRI
+  `None` (a copy with an IMSLP thing: `Piano%20Sonata` gives
+  `Piano_Sonata`), and an undecodable value `None`.
+- **Instantiating.** `performed_by` in `wikidata` of `wd:Q235650` with the
+  label gives `[("wdt:P175", {"id": "wd:Q235650", "label": "Maria João
+  Pires"})]`; in `musicbrainz` with `slots={"role": "piano"}` the
+  contributor node with `"schema:roleName": ["piano"]` and its inner
+  `{"id": …}`; without slots `the pattern of 'performed_by' in
+  'musicbrainz' needs a value for '?role'`; `is_a` in `fallback` of
+  `schema:VideoObject` gives `[("type", "schema:VideoObject")]`; `part_of`
+  alternative 1 gives `dcterms:hasPart`, alternative 2 raises `the verb
+  'part_of' has 2 patterns in 'fallback'`; an unknown verb `the catalogue
+  has no verb 'x'`, a system without a pattern `the verb 'conducted_by' has
+  no pattern in 'wikidata'`.
+- **Reading a pair as a verb.** Under M2's context: `rel:prf` of
+  `{id: viaf:113931950}` is `("performed_by", False)`; a
+  `schema:contributor` node typed `schema:OrganizationRole` with the role
+  `conductor` is `("conducted_by", False)` (two constants against one),
+  with `pianist` `("performed_by", False)`; `dcterms:hasPart` is
+  `("part_of", True)`; `dcterms:created` is `None`; `("type",
+  "schema:VideoObject")` is `("is_a", False)`;
+  `https://schema.org/sameAs` is `("same_as", False)` through the alias; a
+  `rel:prf` literal (not a node) is `None`.
+- **Rectangles.** `rectangles(CATALOGUE_TEST, M2, ("timelines", 1))` is
+  exactly: `is_a` with the two `type` pairs and `wdt:P31`, its things
+  `http://schema.org/VideoObject`,
+  `https://lod.academy/melod/vocab/ontology#Manifestation`,
+  `http://www.wikidata.org/entity/Q98069877`, no label; `performed_by`
+  with `rel:prf` and `wdt:P175` (joined by the VIAF cluster both name),
+  its things the VIAF, Wikidata and GND IRIs in that order, label `Maria
+  João Pires`; `same_as` with the YouTube address. `("timelines", 0)`
+  gives `is_a` (the two types), the unread `dcterms:created` (verb `None`,
+  no thing), then `version_or_edition_of` with `schema:exampleOfWork` and
+  `wdt:P629` (joined by the MusicBrainz work), its things the MusicBrainz,
+  Wikidata and GND IRIs, label `Clair de lune`. A subject stating nothing
+  gives one empty `is_a` rectangle; two `rel:prf` values naming different
+  things give two `performed_by` rectangles.
+
+## The RDF of the statements
+
+The statement fixtures are YAML-LD documents; their RDF is computed by an
+independent processor, PyLD (dev dependency, `decisions/0015`), with the
+fixture's base `https://example.org/manifests/<name>.yaml`, the algorithm
+`URDNA2015` (RDFC-1.0) and a document loader that refuses every fetch, so
+the inline context is all that is read. What proves it (`test_rdf.py`), for
+each statement fixture and its twin:
+
+1. its canonical N-Quads equal `fixtures/rdf/0.2.0/<name>.nq`
+   (`rdf_expectation`) byte for byte;
+2. no IRI of the dataset begins with `p:` for a prefix `p` of the fixture's
+   context, and every IRI begins with `http:`, `https:`, `urn:`, `tag:`,
+   `mailto:` or `info:`: no compact IRI leaks unexpanded;
+3. every predicate is the expanded key of a statements container or a
+   node, `rdf:type`, `rdfs:label`, or one of the reification and
+   provenance predicates (`rdf:subject`, `rdf:predicate`, `rdf:object`,
+   `prov:wasAttributedTo`, `dcterms:date`, `prov:hadPrimarySource`,
+   `rdfs:comment` and `NAMESPACE` + `method`, `service`, `match`,
+   `status`): no key of the format gives a triple;
+4. for every `proposed` or `rejected` entry whose subject has an IRI and
+   whose value is a thing or a plain literal, the triple subject, property,
+   value is absent: a pair that is not stated is asserted nowhere;
+5. the number of distinct subjects of `rdf:subject` equals the number of
+   provenance entries in the fixture: each entry is one reified statement.
+
+Every other fixture under `fixtures/0.2.0/` yields the empty dataset, both
+forms: a manifest without statements says nothing in RDF. `rdf_expectation`
+maps a fixture and its twin to the same file.
 
 ## One path rule for both validators
 
@@ -1066,11 +1015,10 @@ without a `target` the element.
 Every array whose order carries no meaning has one order: `timelines` by ID;
 in every timeline `children` by offset then ID, `conversion_maps` by ID,
 `regions` by start, end, ID, `flow_control` by coordinate then ID; `groups`
-by ID and `members` by code point; `measure_maps` by ID; `schemes` by ID;
+by ID and `members` by code point; `measure_maps` by ID;
 `graphical.timestamps` by timeline (code point), then coordinate, then ID.
-The arrays of the description layer keep their order: `links` (a display
-order), a link's `uri` (the first preferred) and `parts` (the reading's
-order), and every other array of a link.
+The arrays of statements keep their order: the values of a pair, an
+ordered list's items and the entries of `provenance`.
 Values compare exactly; strings by code point. The timestamps
 `timestamp_4` on `b` at `[1, 1]`, `timestamp_3` and `timestamp_2` on `a` at
 `[3, 2]` and `timestamp_1` on `a` at `[5, 1]` come out `timestamp_2`,
@@ -1288,9 +1236,9 @@ any text and `serialization_of` names a text's serialization. They live in
   before a JSON text is removed; `serialization_of` gives `"json"` for `{}`
   after a U+FEFF, `"jcs"` for `{}`, `"yaml"` for `a: 1` and `"json"` for
   `{"a": "\ud800"}` and for `[1,` and never raises.
-- **Every standard file.** The registry and the font metrics are reproduced
-  byte for byte by `dumps(loads(text), serialization="json")`; every fixture,
-  rejection case and warning case written in canonical YAML by `dumps`.
+- **Every standard file.** The font metrics are reproduced byte for byte by
+  `dumps(loads(text), serialization="json")`; the catalogue, every fixture,
+  rejection case and warning case are written in canonical YAML by `dumps`.
 
 ## IDs in a file
 
@@ -1306,18 +1254,18 @@ definition is held (`CONTAINERS`). What proves them:
 - **Every position, nothing else.** One bare manifest names an ID at every
   position of the table once (the manifest's own, a root, a child, a
   `ChainMap` with a nested `LinearMap` and a nested measure view naming its
-  MeasureMap, a `CombinationMap` holding a map by output name, a region with
-  a link whose part slot is represented by a timeline and the region and
-  whose slot and `part_of` entry carry identifiers in a declared scheme, a
-  jump_to and the jump_from targeting it, a group, a MeasureMap, a scheme,
-  an identifier in the declared scheme beside one in a URI scheme, a
-  timeline's and a group's `graphical.order` entry, a rule with an
-  address and `within`, a named timestamp), plus the unknown key `extra: score` on
-  the root and a `meta` holding `id: untouched`;
-  `with_file_ids` gives exactly the hand-written file form and
-  `with_bare_ids` gives the bare manifest back. The unknown key, `meta`, the
-  band words of the timeline's order entry and the URI scheme stay as
-  written.
+  MeasureMap, a `CombinationMap` holding a map by output name, a region, a
+  jump_to and the jump_from targeting it, a group, a MeasureMap, a
+  timeline's and a group's `graphical.order` entry, a rule with an address
+  and `within`, a named timestamp), plus the unknown key `extra: score` on
+  the root, a `meta` holding `id: untouched`, the bundle's statement
+  naming `#score` and the region's statement naming `#verse` with its
+  provenance's `basis` `#intro` and `other.yaml#score`; `with_file_ids`
+  gives exactly the hand-written file form and `with_bare_ids` gives the
+  bare manifest back. The unknown key, `meta`, the band words of the
+  timeline's order entry, `@context` and every IRI of the statements and
+  their provenance stay as written in both directions: a reference to an
+  element is an IRI, the same in a file and in memory.
 - **Order and numbers kept.** Keys keep their order at every level, an
   order key renamed in place included (`#score` before `#g`); a float `2.0`
   stays a float, an integer an integer. The JavaScript suite adds an order
@@ -1328,13 +1276,11 @@ definition is held (`CONTAINERS`). What proves them:
 - **Refusals where they stand.** `with_bare_ids` raises `FileIdError` with
   the exact path and message for a timeline ID without `#`, a group member
   without `#`, a member ID without `#` in a group's order entry, a
-  timestamp's `timeline` that is `#` alone, and an identifier's `scheme`
-  written without `#` that names a declared scheme (bare form could not tell
-  it from the URI it would otherwise be).
+  and a timestamp's `timeline` that is `#` alone.
 - **The tables are the schema's.** The rows of `ID_POSITIONS` are exactly
   the positions where the schema types a value as `#/$defs/Id`, each shape
   matching how: `id` the member itself, `ids` its items, `order` its property
-  names, `scheme` one branch of its `anyOf`. The `order` shape covers one
+  names. The `order` shape covers one
   more thing the schema cannot type: the values of a group's entry, which
   the schema types as `Order` because a timeline's entry holds band words.
   `CONTAINERS` is exactly the set of members through which a definition
@@ -1356,12 +1302,12 @@ definition is held (`CONTAINERS`). What proves them:
   `#\u2028` (a line separator, no control character) validates.
   Where the schema cannot tell, `validate` refuses with code `schema`, the
   path and `FileIdError`'s message: a member written bare in a group's
-  order entry, and an identifier's `scheme` written bare that names a
-  declared scheme; the same manifest with both written `#` validates.
-  `description_problems` refuses the same bare `scheme` with the same
-  code, path and message, as the problem of the manifest's `links`, while
-  the manifest whose bare member stands in the group's order entry, outside
-  the description layer, gives none. The
+  order entry; the same manifest with it written `#` validates.
+  `statement_problems` gives none for the manifest whose bare member stands
+  in the group's order entry, outside the statements, nor for one whose
+  root's ID is written bare (read as it stands, so the bundle's statement
+  naming `#score` resolves), and one `dangling_target` once the statement
+  names `#ghost`. The
   schema check and the search for unknown keys report paths through
   `graphical.order` with the key as written (`#score`); every other check,
   the finite rule included, reads the bare IDs and quotes them bare, so
@@ -1369,7 +1315,7 @@ definition is held (`CONTAINERS`). What proves them:
   `#`.
 - **Inline documents.** The suite's inline documents write IDs bare, as in
   memory; the helpers of `conftest.py` (`validate`, `unknown_keys`,
-  `unregistered_terms`, `identity_problems`, `description_problems`) hand
+  `manifest_warnings`, `identity_problems`) hand
   the checks their file form through `with_file_ids`, which the cases above
   prove. The shared rejection and warning cases and the fixtures are files
   and go to the package's functions as they are.
@@ -1438,8 +1384,13 @@ not count. What proves them (`test_files.py`):
 
 The fixtures under `fixtures/0.2.0/` are emitted by timetoalign, never
 written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
-it, `unknown_keys` lists nothing, `dumps` reproduces it, and the two round
-trips of `complete` and `minimal` hold. `fixture_paths()` lists every
+it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
+states the format's `@context`), `dumps` reproduces it, and the two round
+trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
+`groups` and `statements`, 150 files (`test_files.py`); the four statement
+fixtures `op106_work`, `layerit_recording`, `djset_segment` and
+`nielsen_record` with their twins are read to RDF as the section "The RDF
+of the statements" says. `fixture_paths()` lists every
 `*.yaml` under `fixtures/0.2.0/` except the drawings. The styled fixtures
 `styled__score.yaml` and `styled__performance.yaml` carry the literally
 stated `graphical` objects (20 and 3 rules, and the score's band order
@@ -1453,8 +1404,8 @@ score, the wedges and coordinate labels of its timestamps `origin` and
 cascade ranking of `docs/drawing.md`, to thirteen distinct colours, and no
 rule hides anything but child `a`.
 
-The case accessors `fixture_paths`, `rejection_paths`, `rejection_case`,
-`RejectionCase` and `warning_paths` are defined in `timetoshare.fixtures`,
+The case accessors `fixture_paths`, `rdf_expectation`, `rejection_paths`,
+`rejection_case`, `RejectionCase` and `warning_paths` are defined in `timetoshare.fixtures`,
 and the top level exports those same objects; `timetoshare.validate`
 defines none of them, so each has one home.
 
@@ -1587,7 +1538,8 @@ The test builds the sdist and the wheel with `uv build` twice (the wheel
 from the checkout, and from the sdist as the release does) and requires
 `timetoshare/docs/drawing.md`,
 `timetoshare/schema/0.2.0/timetoshare.schema.json`,
-`timetoshare/registry/schemes.json` and the five files of
+`timetoshare/catalogue/catalogue.yaml`,
+`timetoshare/catalogue/catalogue.schema.json` and the five files of
 `fonts/` in the wheel, the same under `src/timetoshare/` in the sdist, each
 byte for byte the repository's file, and the root `LICENSE` in the wheel's
 `.dist-info/licenses/` and at the sdist root. The five font files are both

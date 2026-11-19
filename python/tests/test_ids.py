@@ -61,19 +61,13 @@ def every_position() -> dict:
                 "regions": [
                     {
                         "id": "intro",
-                        "links": [
+                        "statements": {"dcterms:source": [{"id": "#verse"}]},
+                        "provenance": [
                             {
-                                "parts": [
-                                    {
-                                        "represented_by": ["verse", "intro"],
-                                        "identifiers": [
-                                            {"scheme": "opus", "value": "1"}
-                                        ],
-                                    }
-                                ],
-                                "part_of": [
-                                    {"identifiers": [{"scheme": "opus", "value": "2"}]}
-                                ],
+                                "property": "dcterms:source",
+                                "value": {"id": "#verse"},
+                                "status": "confirmed",
+                                "basis": ["#intro", "other.yaml#score"],
                             }
                         ],
                     }
@@ -86,15 +80,8 @@ def every_position() -> dict:
         ],
         "groups": [{"id": "g", "members": ["score"]}],
         "measure_maps": [{"id": "mm", "rows": []}],
-        "schemes": [{"id": "opus"}],
-        "links": [
-            {
-                "identifiers": [
-                    {"scheme": "opus", "value": "3"},
-                    {"scheme": "http://www.wikidata.org/entity/P839", "value": "4"},
-                ]
-            }
-        ],
+        "@context": {"id": "@id", "dcterms": "http://purl.org/dc/terms/"},
+        "statements": {"dcterms:hasPart": [{"id": "#score"}]},
         "graphical": {
             "order": {"score": ["line", "children"], "g": ["score"]},
             "rules": [
@@ -127,16 +114,11 @@ def every_position_in_file_form() -> dict:
     combined["maps"]["out"]["id"] = "#constant"
     region = score["regions"][0]
     region["id"] = "#intro"
-    region["links"][0]["parts"][0]["represented_by"] = ["#verse", "#intro"]
-    region["links"][0]["parts"][0]["identifiers"][0]["scheme"] = "#opus"
-    region["links"][0]["part_of"][0]["identifiers"][0]["scheme"] = "#opus"
     score["flow_control"][0]["id"] = "#jump_to_1"
     score["flow_control"][1]["id"] = "#jump_from_1"
     score["flow_control"][1]["target"] = "#jump_to_1"
     value["groups"][0] = {"id": "#g", "members": ["#score"]}
     value["measure_maps"][0]["id"] = "#mm"
-    value["schemes"][0]["id"] = "#opus"
-    value["links"][0]["identifiers"][0]["scheme"] = "#opus"
     graphical = value["graphical"]
     graphical["order"] = {"#score": ["line", "children"], "#g": ["#score"]}
     graphical["rules"][0]["select"] = {
@@ -225,11 +207,6 @@ def test_conversion_is_pure() -> None:
             ("graphical", "timestamps", 0, "timeline"),
             "'#' is not written as an ID: nothing follows the '#'",
         ),
-        (
-            lambda m: m["links"][0]["identifiers"][0].update(scheme="opus"),
-            ("links", 0, "identifiers", 0, "scheme"),
-            "'opus' names a scheme of this manifest, so it is written '#opus'",
-        ),
     ],
 )
 def test_a_bare_id_in_a_file_is_refused_where_it_stands(change, path, message) -> None:
@@ -241,17 +218,20 @@ def test_a_bare_id_in_a_file_is_refused_where_it_stands(change, path, message) -
     assert str(raised.value) == message
 
 
-def test_band_words_and_uris_stay_as_written() -> None:
+def test_band_words_and_the_iris_of_statements_stay_as_written() -> None:
     value = with_bare_ids(every_position_in_file_form())
     assert value["graphical"]["order"]["score"] == ["line", "children"]
-    scheme = value["links"][0]["identifiers"][1]["scheme"]
-    assert scheme == "http://www.wikidata.org/entity/P839"
+    region = value["timelines"][0]["regions"][0]
+    assert region["statements"] == {"dcterms:source": [{"id": "#verse"}]}
+    assert region["provenance"][0]["basis"] == ["#intro", "other.yaml#score"]
+    assert value["statements"] == {"dcterms:hasPart": [{"id": "#score"}]}
+    assert with_file_ids(every_position())["statements"] == value["statements"]
 
 
 # -- the tables against the schema ------------------------------------------------
 
 ID = "#/$defs/Id"
-HOW = {"id": "value", "ids": "items", "order": "propertyNames", "scheme": "anyOf"}
+HOW = {"id": "value", "ids": "items", "order": "propertyNames"}
 
 
 def _schema_id_positions(defs: dict[str, Any]) -> Iterator[tuple[str, str, str]]:
@@ -264,8 +244,6 @@ def _schema_id_positions(defs: dict[str, Any]) -> Iterator[tuple[str, str, str]]
                 yield definition, member, "items"
             if declared.get("propertyNames", {}).get("$ref") == ID:
                 yield definition, member, "propertyNames"
-            if any(branch.get("$ref") == ID for branch in declared.get("anyOf", ())):
-                yield definition, member, "anyOf"
 
 
 def _name(reference: str) -> str:
@@ -353,19 +331,17 @@ def test_every_fixture_round_trips(path) -> None:
 # -- the validators read the file form ----------------------------------------------
 
 
-def _small(order_value: str, scheme: str) -> dict:
+def _small(order_value: str) -> dict:
     return {
+        "@context": {
+            **timetoshare.FORMAT_CONTEXT,
+            "dcterms": "http://purl.org/dc/terms/",
+        },
         "timetoshare": "0.2.0",
+        "id": "#bundle",
         "timelines": [{"id": "#score", "unit": "quarters", "length": [8, 1]}],
         "groups": [{"id": "#g", "members": ["#score"]}],
-        "schemes": [{"id": "#opus"}],
-        "links": [
-            {
-                "relation": "pertains_to",
-                "level": "work",
-                "identifiers": [{"scheme": scheme, "value": "1"}],
-            }
-        ],
+        "statements": {"dcterms:hasPart": [{"id": "#score"}]},
         "graphical": {
             "order": {
                 "#g": [order_value],
@@ -383,51 +359,35 @@ def _small(order_value: str, scheme: str) -> dict:
 
 
 def test_a_file_form_manifest_validates() -> None:
-    timetoshare.validate(_small("#score", "#opus"))
+    timetoshare.validate(_small("#score"))
 
 
-@pytest.mark.parametrize(
-    ("order_value", "scheme", "path", "message"),
-    [
-        (
-            "score",
-            "#opus",
-            ("graphical", "order", "#g", 0),
-            "'score' is not written as an ID: it does not start with '#'",
-        ),
-        (
-            "#score",
-            "opus",
-            ("links", 0, "identifiers", 0, "scheme"),
-            "'opus' names a scheme of this manifest, so it is written '#opus'",
-        ),
-    ],
-)
-def test_an_id_the_schema_cannot_type_is_refused_where_it_stands(
-    order_value: str, scheme: str, path: tuple, message: str
-) -> None:
+def test_an_id_the_schema_cannot_type_is_refused_where_it_stands() -> None:
     with pytest.raises(SchemaValidationError) as raised:
-        timetoshare.validate(_small(order_value, scheme))
+        timetoshare.validate(_small("score"))
     assert (raised.value.code, raised.value.path, raised.value.message) == (
         "schema",
-        path,
-        message,
+        ("graphical", "order", "#g", 0),
+        "'score' is not written as an ID: it does not start with '#'",
     )
 
 
-def test_the_description_check_refuses_a_bare_scheme_reference() -> None:
-    problems = timetoshare.description_problems(_small("#score", "opus"))
-    assert [(p.code, p.path, p.message) for p in problems] == [
+def test_the_statement_check_reads_ids_outside_it_as_they_stand() -> None:
+    assert timetoshare.statement_problems(_small("score")) == []
+    value = _small("#score")
+    value["timelines"][0]["id"] = "score"
+    assert timetoshare.statement_problems(value) == []
+    value["statements"] = {"dcterms:hasPart": [{"id": "#ghost"}]}
+    assert [
+        (problem.code, problem.path, problem.message)
+        for problem in timetoshare.statement_problems(value)
+    ] == [
         (
-            "schema",
-            ("links", 0, "identifiers", 0, "scheme"),
-            "'opus' names a scheme of this manifest, so it is written '#opus'",
+            "dangling_target",
+            ("statements", "dcterms:hasPart", 0, "id"),
+            "'#ghost' names no element of this manifest",
         )
     ]
-
-
-def test_the_description_check_reads_ids_outside_it_as_they_stand() -> None:
-    assert timetoshare.description_problems(_small("score", "#opus")) == []
 
 
 @pytest.mark.parametrize(
@@ -441,7 +401,7 @@ def test_the_description_check_reads_ids_outside_it_as_they_stand() -> None:
 def test_a_bare_id_of_any_length_is_refused_by_the_hash_rule(
     written: str, message: str
 ) -> None:
-    value = _small("#score", "#opus")
+    value = _small("#score")
     value["timelines"][0]["id"] = written
     with pytest.raises(SchemaValidationError) as raised:
         timetoshare.validate(value)
@@ -453,8 +413,9 @@ def test_a_bare_id_of_any_length_is_refused_by_the_hash_rule(
 
 
 def test_any_character_after_the_hash_writes_an_id() -> None:
-    value = _small("#score", "#opus")
+    value = _small("#score")
     value["timelines"][0]["id"] = "# "
+    value["statements"] = {"dcterms:hasPart": [{"id": "#g"}]}
     value["groups"][0]["members"] = ["# "]
     value["graphical"]["order"] = {
         "#g": ["# "],

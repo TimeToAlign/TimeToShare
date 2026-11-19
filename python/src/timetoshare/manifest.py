@@ -3,7 +3,7 @@
 Readers accept a manifest's arrays in any order; writers emit one canonical
 order (the README's "Canonical order"):
 
-* ``timelines``, ``groups``, ``measure_maps`` and ``schemes`` by ID, and
+* ``timelines``, ``groups`` and ``measure_maps`` by ID, and
   every group's ``members`` by code point;
 * in every timeline, ``children`` by offset, then ID; ``conversion_maps`` by
   ID; ``regions`` by start, then end, then ID; ``flow_control`` by
@@ -323,9 +323,8 @@ def canonical_order(value: Any) -> Any:
             if isinstance(group.get("members"), list):
                 group["members"] = _sorted(group["members"], _identifier, "members")
         result["groups"] = _sorted(groups, _by_id, "groups")
-    for key in ("measure_maps", "schemes"):
-        if isinstance(result.get(key), list):
-            result[key] = _sorted(result[key], _by_id, key)
+    if isinstance(result.get("measure_maps"), list):
+        result["measure_maps"] = _sorted(result["measure_maps"], _by_id, "measure_maps")
     timestamps = _timestamps(result)
     if isinstance(timestamps, list):
         result["graphical"]["timestamps"] = _sorted(

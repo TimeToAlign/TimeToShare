@@ -19,16 +19,12 @@ def unknown_keys(value: Any) -> list[dict]:
     return timetoshare.unknown_keys(filed(value))
 
 
-def unregistered_terms(value: Any) -> list[dict]:
-    return timetoshare.unregistered_terms(filed(value))
+def manifest_warnings(value: Any) -> list[dict]:
+    return timetoshare.manifest_warnings(filed(value))
 
 
 def identity_problems(value: Any) -> list:
     return timetoshare.identity_problems(filed(value))
-
-
-def description_problems(value: Any) -> list:
-    return timetoshare.description_problems(filed(value))
 
 
 def filed(value: Any) -> Any:
@@ -178,3 +174,260 @@ def respellable() -> dict:
 def respelled() -> dict:
     """``respellable()`` with every own-axis value respelled by its number type."""
     return _respellable(canonical=True)
+
+
+# Statements ------------------------------------------------------------------
+# The documents below are written in the file form: the IRIs of statements are
+# the same in a file and in memory, and the functions of
+# ``timetoshare.statements`` read either ID form.
+
+WIKIDATA_PATTERN = "https?://(?:www\\.|m\\.)?wikidata\\.org/(?:wiki|entity)/(Q[1-9][0-9]*)/?(?:[?#].*)?"
+MUSICBRAINZ_WORK_PATTERN = (
+    "https?://(?:www\\.)?musicbrainz\\.org/work/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-"
+    "[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/?(?:[?#].*)?"
+)
+
+
+def _contributor(role: str) -> dict:
+    return {
+        "type": ["schema:OrganizationRole"],
+        "schema:contributor": [{"id": "?"}],
+        "schema:roleName": [role],
+    }
+
+
+CATALOGUE_TEST: dict = {
+    "prefixes": {
+        "dcterms": "http://purl.org/dc/terms/",
+        "gnd": "https://d-nb.info/gnd/",
+        "melod": "https://lod.academy/melod/vocab/ontology#",
+        "melodTerms": "https://lod.academy/melod/vocab/terms#",
+        "rel": "http://id.loc.gov/vocabulary/relators/",
+        "schema": "http://schema.org/",
+        "viaf": "http://viaf.org/viaf/",
+        "wd": "http://www.wikidata.org/entity/",
+        "wdt": "http://www.wikidata.org/prop/direct/",
+        "xsd": "http://www.w3.org/2001/XMLSchema#",
+    },
+    "aliases": {"https://schema.org/": "http://schema.org/"},
+    "systems": [
+        {
+            "id": "wikidata",
+            "name": "Wikidata",
+            "prefixes": ["wd", "wdt"],
+            "things": [
+                {
+                    "id": "wikidata",
+                    "kind": "item",
+                    "name": "Wikidata",
+                    "iri": "http://www.wikidata.org/entity/{value}",
+                    "prefix": "wd",
+                    "scheme_uri": "http://id.loc.gov/vocabulary/identifiers/wikidata",
+                    "lrmoo_class": None,
+                    "lowercase": False,
+                    "patterns": [WIKIDATA_PATTERN],
+                }
+            ],
+            "lookup": {"route": "browser"},
+        },
+        {
+            "id": "musicbrainz",
+            "name": "MusicBrainz",
+            "prefixes": ["schema"],
+            "things": [
+                {
+                    "id": "musicbrainz_work",
+                    "kind": "work",
+                    "name": "MusicBrainz work ID",
+                    "iri": "http://musicbrainz.org/work/{value}",
+                    "scheme_uri": "http://www.wikidata.org/entity/P435",
+                    "lrmoo_class": None,
+                    "lowercase": True,
+                    "patterns": [MUSICBRAINZ_WORK_PATTERN],
+                }
+            ],
+            "lookup": {"route": "server"},
+        },
+        {
+            "id": "melody",
+            "name": "MeLODy",
+            "prefixes": ["melod", "melodTerms"],
+            "things": [],
+            "lookup": {"route": "none"},
+        },
+        {
+            "id": "fallback",
+            "name": "Fallback",
+            "prefixes": ["dcterms", "rel", "schema"],
+            "things": [],
+            "lookup": {"route": "none"},
+        },
+    ],
+    "verbs": [
+        {
+            "id": "is_a",
+            "label": "is a",
+            "patterns": {
+                "wikidata": [{"pattern": {"wdt:P31": [{"id": "?"}]}}],
+                "fallback": [{"pattern": {"type": ["?"]}}],
+            },
+        },
+        {
+            "id": "same_as",
+            "label": "same as",
+            "patterns": {"fallback": [{"pattern": {"schema:sameAs": [{"id": "?"}]}}]},
+        },
+        {
+            "id": "performed_by",
+            "label": "performed by",
+            "patterns": {
+                "wikidata": [{"pattern": {"wdt:P175": [{"id": "?"}]}}],
+                "musicbrainz": [
+                    {"pattern": {"schema:contributor": [_contributor("?role")]}}
+                ],
+                "melody": [
+                    {
+                        "pattern": {
+                            "melod:hasContribution": [
+                                {
+                                    "type": ["melod:Contribution"],
+                                    "melod:hasAgent": [{"id": "?"}],
+                                    "melod:hasRole": [{"id": "melodTerms:Performer"}],
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "fallback": [{"pattern": {"rel:prf": [{"id": "?"}]}}],
+            },
+        },
+        {
+            "id": "conducted_by",
+            "label": "conducted by",
+            "patterns": {
+                "musicbrainz": [
+                    {"pattern": {"schema:contributor": [_contributor("conductor")]}}
+                ]
+            },
+        },
+        {
+            "id": "version_or_edition_of",
+            "label": "version or edition of",
+            "patterns": {
+                "wikidata": [{"pattern": {"wdt:P629": [{"id": "?"}]}}],
+                "fallback": [{"pattern": {"schema:exampleOfWork": [{"id": "?"}]}}],
+            },
+        },
+        {
+            "id": "part_of",
+            "label": "part of",
+            "inverse_label": "has part",
+            "patterns": {
+                "fallback": [
+                    {"pattern": {"dcterms:isPartOf": [{"id": "?"}]}},
+                    {"pattern": {"dcterms:hasPart": [{"id": "?"}]}, "inverse": True},
+                ]
+            },
+        },
+    ],
+    "types": [
+        {
+            "id": "video",
+            "label": "video",
+            "is_a": {
+                "wikidata": [{"pattern": {"wdt:P31": [{"id": "wd:Q98069877"}]}}],
+                "fallback": [{"pattern": {"type": ["schema:VideoObject"]}}],
+            },
+            "verbs": ["performed_by", "same_as"],
+            "lookup": ["wikidata"],
+        }
+    ],
+}
+"""The test catalogue, the same in the JavaScript suite."""
+
+
+def _terms(*prefixes: str) -> dict:
+    context = dict(timetoshare.FORMAT_CONTEXT)
+    names = {**CATALOGUE_TEST["prefixes"], "gnd": "https://d-nb.info/gnd/"}
+    context.update((prefix, names[prefix]) for prefix in prefixes)
+    return context
+
+
+def m1() -> dict:
+    """A recording with a root, a region and a child, without statements."""
+    return {
+        "@context": _terms("schema", "wd", "wdt"),
+        "timetoshare": "0.2.0",
+        "id": "#rec",
+        "timelines": [
+            {
+                "id": "#cpt_1",
+                "unit": "seconds",
+                "length": None,
+                "regions": [{"id": "#region_1", "start": 0.0, "end": 10.0}],
+                "children": [
+                    {"id": "#cpt_2", "unit": "seconds", "offset": 0.0, "length": 5.0}
+                ],
+            }
+        ],
+    }
+
+
+MUSICBRAINZ_WORK = "http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96"
+
+
+def m2() -> dict:
+    """The two described timelines of a score encoding and its video."""
+    return {
+        "@context": _terms(
+            "dcterms", "gnd", "melod", "rel", "schema", "viaf", "wd", "wdt", "xsd"
+        ),
+        "timetoshare": "0.2.0",
+        "timelines": [
+            {
+                "id": "#clt_6",
+                "unit": "quarters",
+                "length": [27, 1],
+                "statements": {
+                    "dcterms:created": [{"@value": "2025-12-05", "@type": "xsd:date"}],
+                    "schema:exampleOfWork": [
+                        {"id": MUSICBRAINZ_WORK, "label": "Clair de lune"}
+                    ],
+                    "type": ["melod:Manifestation", "schema:SheetMusic"],
+                    "wdt:P629": [
+                        {
+                            "id": "wd:Q29117946",
+                            "label": "Clair de lune",
+                            "schema:sameAs": [
+                                {"id": MUSICBRAINZ_WORK},
+                                {"id": "gnd:300042558"},
+                            ],
+                        }
+                    ],
+                },
+            },
+            {
+                "id": "#cpt_1",
+                "unit": "seconds",
+                "length": None,
+                "statements": {
+                    "rel:prf": [{"id": "viaf:113931950"}],
+                    "schema:sameAs": [
+                        {"id": "https://www.youtube.com/watch?v=Ch2mrPm1JnM"}
+                    ],
+                    "type": ["schema:VideoObject", "melod:Manifestation"],
+                    "wdt:P175": [
+                        {
+                            "id": "wd:Q235650",
+                            "label": "Maria João Pires",
+                            "schema:sameAs": [
+                                {"id": "viaf:113931950"},
+                                {"id": "gnd:124927521"},
+                            ],
+                        }
+                    ],
+                    "wdt:P31": [{"id": "wd:Q98069877"}],
+                },
+            },
+        ],
+    }

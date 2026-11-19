@@ -15,6 +15,7 @@ from timetoshare import (
     fixture_paths,
     identity_problems,
     loads,
+    manifest_warnings,
     minimal,
     rejection_paths,
     serialization_of,
@@ -71,6 +72,7 @@ def test_every_fixture_is_a_manifest_without_unknown_keys(path: Path) -> None:
     value = _load(path)
     validate(value)
     assert unknown_keys(value) == []
+    assert manifest_warnings(value) == []
     assert dumps(minimal(complete(value))) == dumps(minimal(value))
     assert dumps(complete(minimal(value))) == dumps(complete(value))
 
