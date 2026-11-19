@@ -3,16 +3,19 @@ export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json",
   "title": "TimeToShare manifest",
-  "description": "The TimeToShare! 0.2.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and MeasureMaps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of root timelines, possibly empty, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key an object does not declare is kept and reported as unknown by the TimeToShare validators, never refused. The `discriminator` annotations follow OpenAPI: they serve validators that understand them and change nothing for the others. Every key with a default may be left out; a reader supplies the default. The definitions Manifest, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap, MeasureMapRow, Link and Scheme are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.2.x.",
+  "description": "The TimeToShare! 0.2.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and MeasureMaps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of root timelines, possibly empty, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open but `@context`, the `statements` container and the values within it, whose keys JSON-LD reads: elsewhere a key an object does not declare is kept and reported as unknown by the TimeToShare validators, never refused. The `discriminator` annotations follow OpenAPI: they serve validators that understand them and change nothing for the others. Every key with a default may be left out; a reader supplies the default. The definitions Manifest, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap, MeasureMapRow, Context, Statements, StatementValue and ProvenanceEntry are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.2.x.",
   "$ref": "#/$defs/Manifest",
   "$defs": {
     "Manifest": {
       "type": "object",
-      "description": "A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp and scheme. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the schemes are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry links to external entities (`Link`); no other element carries any. Links keep the order they are given in.",
+      "description": "A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element and named timestamp. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups and the MeasureMaps are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry `statements` and `provenance`; no other element carries any. A manifest carrying either holds the inline JSON-LD context `@context`, which makes it a YAML-LD document. The values of a pair and the entries of `provenance` keep the order they are given in.",
       "properties": {
         "$schema": {
           "type": "string",
           "description": "The URL of this schema, a hint for editors. It is never read."
+        },
+        "@context": {
+          "$ref": "#/$defs/Context"
         },
         "timetoshare": {
           "const": "0.2.0",
@@ -53,21 +56,13 @@ export const schema = {
           },
           "default": []
         },
-        "schemes": {
-          "type": "array",
-          "description": "The identifier schemes the manifest declares, so that an identifier may name one by ID (`Identifier`). A scheme identified by an absolute URI needs no element. Written sorted by ID.",
-          "items": {
-            "$ref": "#/$defs/Scheme"
-          },
-          "default": []
+        "statements": {
+          "$ref": "#/$defs/Statements",
+          "description": "Property–value pairs about the thing the bundle stands for: the work, the set or the compilation it is about."
         },
-        "links": {
-          "type": "array",
-          "description": "The links of the manifest as a whole, in the order given, which writers keep.",
-          "items": {
-            "$ref": "#/$defs/Link"
-          },
-          "default": []
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "description": "Annotations of the bundle's pairs, and the proposed and rejected pairs, which are never stated."
         },
         "graphical": {
           "$ref": "#/$defs/Graphical"
@@ -159,13 +154,13 @@ export const schema = {
           },
           "default": []
         },
-        "links": {
-          "type": "array",
-          "description": "The links of this timeline, in the order given, which writers keep.",
-          "items": {
-            "$ref": "#/$defs/Link"
-          },
-          "default": []
+        "statements": {
+          "$ref": "#/$defs/Statements",
+          "description": "Property–value pairs about the thing this timeline is the axis of: this recording, this edition, this encoding."
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "description": "Annotations of this element's pairs, and its proposed and rejected pairs, which are never stated."
         }
       },
       "required": [
@@ -784,13 +779,13 @@ export const schema = {
         "meta": {
           "$ref": "#/$defs/Meta"
         },
-        "links": {
-          "type": "array",
-          "description": "The links of this region, in the order given, which writers keep.",
-          "items": {
-            "$ref": "#/$defs/Link"
-          },
-          "default": []
+        "statements": {
+          "$ref": "#/$defs/Statements",
+          "description": "Property–value pairs about the thing this region is the axis of: this recording, this edition, this encoding."
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance",
+          "description": "Annotations of this element's pairs, and its proposed and rejected pairs, which are never stated."
         }
       },
       "required": [
@@ -1534,518 +1529,595 @@ export const schema = {
         "type"
       ]
     },
-    "Link": {
+    "Context": {
       "type": "object",
-      "description": "A typed relation from the element holding it (the manifest, a timeline or a region) to an external entity at a stated level: a work, an expression, a manifestation, an item or an agent, identified by URIs and identifiers and described by records. A link never claims that its element is the entity: it states that the element pertains to it or, for an agent, in which role. One link is one attributed reading. Where sources disagree, as two editions that order the movements of a work differently, each reading is a link of its own with its own assertion. A link may state the parts of the linked entity (`parts`, under `parts_relation`), each represented by elements of this manifest or absent from it, and the wholes the entity belongs to (`part_of`). A non-empty `parts` requires a `parts_relation`; a link whose `parts` is empty or absent states `parts_relation` null and `parts_ordered` true, where it states them; and a link at the level `agent` never uses the relation `pertains_to`.",
+      "description": "The inline JSON-LD 1.1 context that makes the manifest a YAML-LD document: the format's terms, each exactly as given here, and the prefixes the manifest's statements and provenance use, each an absolute IRI ending in `/` or `#`. Nothing is fetched.",
       "properties": {
-        "relation": {
-          "$ref": "#/$defs/Term",
-          "description": "How the element relates to the linked entity. Registered word: `pertains_to`, the relation of a link at one of the four bibliographic levels. A link at the level `agent` names the agent's role instead, as an extension term (a relator from a published vocabulary, written as its URI or a prefixed name), and never uses `pertains_to`. Fallback: an unspecified relation at the stated level."
+        "@version": {
+          "const": 1.1
         },
-        "level": {
-          "$ref": "#/$defs/Level"
+        "id": {
+          "const": "@id"
         },
-        "uri": {
-          "type": "array",
-          "description": "URIs of the linked entity, the first preferred.",
-          "items": {
-            "$ref": "#/$defs/Uri"
-          },
-          "default": []
+        "type": {
+          "const": "@type"
         },
-        "identifiers": {
-          "type": "array",
-          "description": "Identifiers of the linked entity in schemes that mint no URI for it.",
-          "items": {
-            "$ref": "#/$defs/Identifier"
-          },
-          "default": []
+        "statements": {
+          "const": "@nest"
         },
-        "records": {
-          "type": "array",
-          "description": "Documents that describe the linked entity.",
-          "items": {
-            "$ref": "#/$defs/Descriptor"
-          },
-          "default": []
+        "list": {
+          "const": "@list"
+        },
+        "timelines": {
+          "const": "@included"
+        },
+        "children": {
+          "const": "@included"
+        },
+        "regions": {
+          "const": "@included"
+        },
+        "groups": {
+          "const": "@included"
         },
         "label": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "A human-readable label of the linked entity, or null.",
-          "default": null
+          "const": "http://www.w3.org/2000/01/rdf-schema#label"
         },
-        "assertion": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Assertion"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Who stated the link, when, how and how surely, or null.",
-          "default": null
+        "provenance": {
+          "const": {
+            "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+          }
         },
-        "parts_relation": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Term"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "How the linked entity holds the parts of `parts`: a term where `parts` is non-empty, and null where `parts` is empty or absent. Registered words: `has_part` (the parts make up the entity, as movements make up a sonata), `aggregates` (the entity gathers entities that exist on their own, as an album gathers recordings) and `incorporates` (the entity takes in, as an integral part of its own, an entity that realises another work, as a pasticcio takes in an aria or a DJ mix a track). Fallback: an unspecified structural relation.",
-          "default": null
+        "property": {
+          "const": {
+            "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate",
+            "@type": "@vocab"
+          }
         },
-        "parts": {
-          "type": "array",
-          "description": "The parts of the linked entity in this reading, complete and in order: the position of a part is its position in the list, counted from 1.",
-          "items": {
-            "$ref": "#/$defs/PartSlot"
-          },
-          "default": []
+        "value": {
+          "const": "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
         },
-        "parts_ordered": {
-          "type": "boolean",
-          "description": "Whether the order of `parts` is an order of the parts in the linked entity (true) or a display order only (false); true where `parts` is empty or absent.",
-          "default": true
+        "stated_by": {
+          "const": {
+            "@id": "http://www.w3.org/ns/prov#wasAttributedTo",
+            "@type": "@id"
+          }
         },
-        "part_of": {
-          "type": "array",
-          "description": "The wholes the linked entity belongs to, each with its position in it where stated.",
-          "items": {
-            "$ref": "#/$defs/PartOf"
-          },
-          "default": []
+        "date": {
+          "const": {
+            "@id": "http://purl.org/dc/terms/date",
+            "@type": "http://www.w3.org/2001/XMLSchema#date"
+          }
+        },
+        "method": {
+          "const": {
+            "@id": "https://timetoalign.github.io/timetoshare/ns#method",
+            "@type": "@vocab"
+          }
+        },
+        "service": {
+          "const": {
+            "@id": "https://timetoalign.github.io/timetoshare/ns#service",
+            "@type": "@id"
+          }
+        },
+        "basis": {
+          "const": {
+            "@id": "http://www.w3.org/ns/prov#hadPrimarySource",
+            "@type": "@id"
+          }
+        },
+        "match": {
+          "const": {
+            "@id": "https://timetoalign.github.io/timetoshare/ns#match",
+            "@type": "@vocab"
+          }
+        },
+        "note": {
+          "const": "http://www.w3.org/2000/01/rdf-schema#comment"
+        },
+        "status": {
+          "const": {
+            "@id": "https://timetoalign.github.io/timetoshare/ns#status",
+            "@type": "@vocab"
+          }
+        },
+        "manual": {
+          "const": "https://timetoalign.github.io/timetoshare/ns#Manual"
+        },
+        "reconciled": {
+          "const": "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+        },
+        "imported": {
+          "const": "https://timetoalign.github.io/timetoshare/ns#Imported"
+        },
+        "inferred": {
+          "const": "https://timetoalign.github.io/timetoshare/ns#Inferred"
+        },
+        "confirmed": {
+          "const": "https://timetoalign.github.io/timetoshare/ns#Confirmed"
+        },
+        "proposed": {
+          "const": "https://timetoalign.github.io/timetoshare/ns#Proposed"
+        },
+        "rejected": {
+          "const": "https://timetoalign.github.io/timetoshare/ns#Rejected"
+        },
+        "exact": {
+          "const": "http://www.w3.org/2004/02/skos/core#exactMatch"
+        },
+        "close": {
+          "const": "http://www.w3.org/2004/02/skos/core#closeMatch"
+        },
+        "broad": {
+          "const": "http://www.w3.org/2004/02/skos/core#broadMatch"
+        },
+        "narrow": {
+          "const": "http://www.w3.org/2004/02/skos/core#narrowMatch"
+        },
+        "related": {
+          "const": "http://www.w3.org/2004/02/skos/core#relatedMatch"
         }
       },
       "required": [
-        "relation",
-        "level"
+        "@version",
+        "id",
+        "type",
+        "statements",
+        "list",
+        "timelines",
+        "children",
+        "regions",
+        "groups",
+        "label",
+        "provenance",
+        "property",
+        "value",
+        "stated_by",
+        "date",
+        "method",
+        "service",
+        "basis",
+        "match",
+        "note",
+        "status",
+        "manual",
+        "reconciled",
+        "imported",
+        "inferred",
+        "confirmed",
+        "proposed",
+        "rejected",
+        "exact",
+        "close",
+        "broad",
+        "narrow",
+        "related"
       ],
-      "if": {
-        "properties": {
-          "parts": {
-            "minItems": 1
-          }
-        },
-        "required": [
-          "parts"
-        ]
-      },
-      "then": {
-        "properties": {
-          "parts_relation": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "parts_relation"
-        ]
-      },
-      "else": {
-        "properties": {
-          "parts_relation": {
-            "type": "null"
+      "propertyNames": {
+        "anyOf": [
+          {
+            "enum": [
+              "@version",
+              "id",
+              "type",
+              "statements",
+              "list",
+              "timelines",
+              "children",
+              "regions",
+              "groups",
+              "label",
+              "provenance",
+              "property",
+              "value",
+              "stated_by",
+              "date",
+              "method",
+              "service",
+              "basis",
+              "match",
+              "note",
+              "status",
+              "manual",
+              "reconciled",
+              "imported",
+              "inferred",
+              "confirmed",
+              "proposed",
+              "rejected",
+              "exact",
+              "close",
+              "broad",
+              "narrow",
+              "related"
+            ]
           },
-          "parts_ordered": {
-            "const": true
+          {
+            "$ref": "#/$defs/PrefixName"
           }
-        }
+        ]
       },
+      "additionalProperties": {
+        "$ref": "#/$defs/PrefixIri"
+      }
+    },
+    "PrefixName": {
+      "type": "string",
+      "description": "The name of a prefix of the context: a letter, then letters, digits, `_` or `-`; never a key of the manifest's elements and never a URI scheme the format reads as such.",
+      "pattern": "^[A-Za-z]",
       "not": {
-        "properties": {
-          "level": {
-            "const": "agent"
+        "anyOf": [
+          {
+            "pattern": "[^A-Za-z0-9_-]"
           },
-          "relation": {
-            "const": "pertains_to"
+          {
+            "enum": [
+              "conversion_maps",
+              "end",
+              "flow_control",
+              "graphical",
+              "http",
+              "https",
+              "info",
+              "is_segment_line",
+              "length",
+              "locked",
+              "mailto",
+              "measure_maps",
+              "members",
+              "meta",
+              "name",
+              "number_type",
+              "offset",
+              "start",
+              "tag",
+              "timetoshare",
+              "unit",
+              "urn"
+            ]
           }
-        },
-        "required": [
-          "level",
-          "relation"
         ]
       }
     },
-    "PartSlot": {
-      "type": "object",
-      "description": "One part of the linked entity in a link's reading: an external entity, and either the elements of this manifest that represent it or the reason none does. Exactly one of the two is stated: `represented_by` non-empty and `absent` null, or `absent` a term and `represented_by` empty. A slot has no position of its own: its position is its place in its reading's `parts`. A slot without an assertion inherits its link's.",
-      "properties": {
-        "uri": {
-          "type": "array",
-          "description": "URIs of the part, the first preferred.",
-          "items": {
-            "$ref": "#/$defs/Uri"
+    "PrefixIri": {
+      "type": "string",
+      "description": "The namespace a prefix stands for: an absolute IRI ending in `/` or `#`.",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:.*[/#](?!.)",
+      "not": {
+        "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
+      }
+    },
+    "Iri": {
+      "type": "string",
+      "description": "A compact IRI (`prefix:suffix`, the prefix declared in `@context`) or an absolute IRI. Whether the prefix is declared is checked after the schema.",
+      "pattern": "^[A-Za-z][A-Za-z0-9_+.-]*:.",
+      "not": {
+        "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
+      }
+    },
+    "IriReference": {
+      "type": "string",
+      "description": "An `Iri` or a relative reference, resolved against the manifest's address: `#clt_1` names an element of this manifest, `other.yaml#clt_1` one of another.",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
           },
-          "default": []
-        },
-        "identifiers": {
-          "type": "array",
-          "description": "Identifiers of the part.",
-          "items": {
-            "$ref": "#/$defs/Identifier"
+          {
+            "pattern": "^_:"
           },
-          "default": []
-        },
-        "label": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "A human-readable label of the part, or null.",
-          "default": null
-        },
-        "represented_by": {
-          "type": "array",
-          "description": "The IDs of the timelines (at any depth, segments included) and regions of this manifest that represent the part; checked after the schema.",
-          "items": {
-            "$ref": "#/$defs/Id"
-          },
-          "default": []
-        },
-        "absent": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Term"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Why no element of this manifest represents the part, or null where one does. Registered words: `not_represented` (the part exists and is identified, and no element of this manifest represents it), `lost` (the part existed and no source of it survives), `unfinished` (the part was begun or planned and never completed), `unknown` (whether a part occupies this position, or which part does, is not known) and `not_recorded` (the slot exists and the publisher states nothing about how the part is represented). Fallback: read as `not_represented`.",
-          "default": null
-        },
-        "assertion": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Assertion"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Who stated the slot, or null, where the link's assertion holds.",
-          "default": null
-        }
-      },
-      "if": {
-        "properties": {
-          "represented_by": {
-            "minItems": 1
+          {
+            "pattern": "^@"
           }
-        },
-        "required": [
-          "represented_by"
-        ]
-      },
-      "then": {
-        "properties": {
-          "absent": {
-            "type": "null"
-          }
-        }
-      },
-      "else": {
-        "properties": {
-          "absent": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "absent"
         ]
       }
     },
-    "PartOf": {
+    "LanguageTag": {
+      "type": "string",
+      "pattern": "^[A-Za-z]{1,8}(?:-[A-Za-z0-9]{1,8})*(?![A-Za-z0-9-])",
+      "not": {
+        "pattern": "[^A-Za-z0-9-]"
+      }
+    },
+    "Statements": {
       "type": "object",
-      "description": "A whole the linked entity belongs to, such as the work a movement belongs to or the series an edition appears in, with the linked entity's position in it where stated. An entry without an assertion inherits its link's.",
+      "description": "Property–value pairs about the thing an element stands for. Each key is `type` (\"is a\", its values class IRIs) or a property IRI; each value is the non-empty list of that property's values, in the order given.",
       "properties": {
-        "parts_relation": {
-          "$ref": "#/$defs/Term",
-          "description": "How the whole holds the linked entity, a term of the vocabulary of a link's `parts_relation`, with its registered words and fallback."
-        },
-        "uri": {
-          "type": "array",
-          "description": "URIs of the whole, the first preferred.",
-          "items": {
-            "$ref": "#/$defs/Uri"
-          },
-          "default": []
-        },
-        "identifiers": {
-          "type": "array",
-          "description": "Identifiers of the whole.",
-          "items": {
-            "$ref": "#/$defs/Identifier"
-          },
-          "default": []
-        },
-        "label": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "A human-readable label of the whole, or null.",
-          "default": null
-        },
-        "position": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 1,
-          "description": "The position of the linked entity among the parts of the whole, counted from 1, or null where it is not stated.",
-          "default": null
-        },
-        "assertion": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Assertion"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "Who stated the entry, or null, where the link's assertion holds.",
-          "default": null
+        "type": {
+          "$ref": "#/$defs/Types"
         }
       },
-      "required": [
-        "parts_relation"
+      "propertyNames": {
+        "anyOf": [
+          {
+            "const": "type"
+          },
+          {
+            "$ref": "#/$defs/Iri"
+          }
+        ]
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Values"
+      },
+      "minProperties": 1
+    },
+    "Types": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Iri"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "Values": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/StatementValue"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "StatementValue": {
+      "description": "One value of a pair: a single value, or an ordered list of them.",
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SingleValue"
+        },
+        {
+          "$ref": "#/$defs/OrderedValues"
+        }
       ]
     },
-    "Assertion": {
-      "type": "object",
-      "description": "Who stated a link, a part slot or a `part_of` entry, when, how and how surely. Every key is optional.",
-      "properties": {
-        "asserted_by": {
-          "type": "array",
-          "description": "URIs of the agents (people, organisations, software) who made the assertion.",
-          "items": {
-            "$ref": "#/$defs/Uri"
-          },
-          "default": []
+    "SingleValue": {
+      "description": "A literal (a string, an integer or a boolean, never a float), a value object, or a node. A string is never read as an IRI: a thing is a node with an `id`.",
+      "anyOf": [
+        {
+          "type": "string"
         },
-        "asserted_on": {
-          "type": [
-            "string",
-            "null"
-          ],
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "if": {
+            "required": [
+              "@value"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ValueObject"
+          },
+          "else": {
+            "$ref": "#/$defs/ValueNode"
+          }
+        }
+      ]
+    },
+    "OrderedValues": {
+      "type": "object",
+      "description": "Values in order (an RDF list).",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SingleValue"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "list"
+      ],
+      "propertyNames": {
+        "const": "list"
+      }
+    },
+    "ValueObject": {
+      "type": "object",
+      "description": "A literal with a language (`@language`) or a datatype (`@type`).",
+      "properties": {
+        "@value": {
+          "type": "string"
+        },
+        "@language": {
+          "$ref": "#/$defs/LanguageTag"
+        },
+        "@type": {
+          "$ref": "#/$defs/Iri"
+        }
+      },
+      "required": [
+        "@value"
+      ],
+      "propertyNames": {
+        "enum": [
+          "@value",
+          "@language",
+          "@type"
+        ]
+      },
+      "oneOf": [
+        {
+          "required": [
+            "@language"
+          ]
+        },
+        {
+          "required": [
+            "@type"
+          ]
+        }
+      ]
+    },
+    "ValueNode": {
+      "type": "object",
+      "description": "A thing: its `id` where it has one (a node without `id` is a blank node, such as a name not yet reconciled), its classes, a label kept as a cache, its own pairs as property-IRI keys and the annotations of those pairs. A node whose `id` names an element of this manifest holds that `id` alone.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/IriReference"
+        },
+        "type": {
+          "$ref": "#/$defs/Types"
+        },
+        "label": {
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "propertyNames": {
+        "anyOf": [
+          {
+            "enum": [
+              "id",
+              "type",
+              "label",
+              "provenance"
+            ]
+          },
+          {
+            "$ref": "#/$defs/Iri"
+          }
+        ]
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Values"
+      },
+      "minProperties": 1
+    },
+    "Provenance": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ProvenanceEntry"
+      },
+      "minItems": 1
+    },
+    "ProvenanceEntry": {
+      "type": "object",
+      "description": "Who stated one pair of the holding element or node, when, how, on what basis, and its status. A `confirmed` entry matches a pair; a `proposed` or `rejected` one matches none, and its pair is never stated. The pair `type` X is written `property: rdf:type`, `value: {id: X}`.",
+      "properties": {
+        "property": {
+          "$ref": "#/$defs/Iri"
+        },
+        "value": {
+          "$ref": "#/$defs/EntryValue"
+        },
+        "status": {
+          "enum": [
+            "confirmed",
+            "proposed",
+            "rejected"
+          ]
+        },
+        "stated_by": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/IriReference"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "date": {
+          "type": "string",
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
-          "maxLength": 10,
-          "description": "The date of the assertion, written `YYYY-MM-DD`, or null.",
-          "default": null
+          "maxLength": 10
         },
         "method": {
           "anyOf": [
             {
-              "$ref": "#/$defs/Term"
+              "enum": [
+                "manual",
+                "reconciled",
+                "imported",
+                "inferred"
+              ]
             },
             {
-              "type": "null"
+              "$ref": "#/$defs/Iri"
             }
-          ],
-          "description": "How the assertion was reached, or null. Registered words: `manual` (stated by a person), `reconciled` (matched by a reconciliation service, named by `service`), `imported` (taken from other data, named by `based_on`) and `inferred` (derived from other statements). The event types of PREMIS enter as their URIs at id.loc.gov, which are extension terms. Fallback: the method is not stated.",
-          "default": null
+          ]
         },
         "service": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Uri"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "The service that reached the assertion, such as a reconciliation endpoint, or null.",
-          "default": null
+          "$ref": "#/$defs/IriReference"
         },
-        "based_on": {
+        "basis": {
           "type": "array",
-          "description": "The sources the assertion rests on.",
           "items": {
-            "$ref": "#/$defs/UriReference"
+            "$ref": "#/$defs/IriReference"
           },
-          "default": []
+          "minItems": 1,
+          "uniqueItems": true
         },
         "match": {
-          "type": [
-            "string",
-            "null"
-          ],
           "enum": [
             "exact",
             "close",
             "broad",
             "narrow",
-            "related",
-            null
-          ],
-          "description": "How closely the linked entity corresponds to what the element represents, read as the mapping relations of SKOS: `exact`, `close`, `broad` (the linked entity is broader), `narrow` (it is narrower) or `related`; null where it is not stated. The vocabulary is closed.",
-          "default": null
+            "related"
+          ]
         },
-        "status": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "enum": [
-            "confirmed",
-            "unconfirmed",
-            "rejected",
-            null
-          ],
-          "description": "Whether the assertion stands: `confirmed`, `unconfirmed` (proposed and not yet checked) or `rejected` (checked and found wrong, kept so that it is not proposed again); null where it is not stated. The vocabulary is closed.",
-          "default": null
-        }
-      }
-    },
-    "Descriptor": {
-      "type": "object",
-      "description": "A document about the linked entity, such as its record in a catalogue or a database. A database may change a record's bytes, so its size and integrity are optional.",
-      "properties": {
-        "url": {
-          "$ref": "#/$defs/UriReference",
-          "description": "Where the document lies."
-        },
-        "media_type": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "The media type of the document, such as `application/ld+json`, or null.",
-          "default": null
-        },
-        "size": {
-          "type": [
-            "integer",
-            "null"
-          ],
-          "minimum": 0,
-          "description": "The size of the document in bytes, or null.",
-          "default": null
-        },
-        "integrity": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "pattern": "^(sha256|sha384|sha512)-[A-Za-z0-9+/]+={0,2}$",
-          "not": {
-            "type": "string",
-            "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
-          },
-          "description": "A digest of the document's bytes as Subresource Integrity writes one (`sha256-`, `sha384-` or `sha512-` followed by the base64 digest), or null.",
-          "default": null
+        "note": {
+          "type": "string"
         }
       },
       "required": [
-        "url"
+        "property",
+        "value",
+        "status"
       ]
     },
-    "Identifier": {
-      "type": "object",
-      "description": "An identifier of an external entity: its `value` in the identifier scheme `scheme`. Where a scheme mints a URI for the entity, the URI belongs in the `uri` of the link, slot or entry instead.",
-      "properties": {
-        "scheme": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Id"
-            },
-            {
-              "type": "string",
-              "pattern": "^[^#]",
-              "description": "An absolute URI identifying the scheme."
+    "EntryValue": {
+      "description": "The value of an annotated pair: a literal, a value object, a thing by its `id` alone, or a node without `id` compared as a whole.",
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "id": {
+              "$ref": "#/$defs/IriReference"
             }
-          ],
-          "description": "The scheme: the ID of a `Scheme` of this manifest, written as every ID is (`#opus`), or an absolute URI identifying the scheme, such as the URI of a Wikidata property (`http://www.wikidata.org/entity/P839`, the IMSLP ID). An ID must name a Scheme of the manifest, and a value without `#` must be an absolute URI that names no Scheme of the manifest; checked after the schema."
-        },
-        "value": {
-          "type": "string",
-          "minLength": 1,
-          "description": "The identifier in its scheme, as the scheme writes it."
-        }
-      },
-      "required": [
-        "scheme",
-        "value"
-      ]
-    },
-    "Scheme": {
-      "type": "object",
-      "description": "An identifier scheme the manifest declares, so that identifiers may name it by ID: a numbering such as a composer's opus numbers or a thematic catalogue, or any scheme without a URI of its own.",
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/Id",
-          "description": "The scheme ID, unique across every ID of the manifest."
-        },
-        "name": {
-          "$ref": "#/$defs/Name"
-        },
-        "uri": {
-          "type": "array",
-          "description": "URIs that identify or describe the scheme, the first preferred.",
-          "items": {
-            "$ref": "#/$defs/Uri"
           },
-          "default": []
-        },
-        "criteria": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/UriReference"
-            },
-            {
-              "type": "null"
-            }
+          "required": [
+            "id"
           ],
-          "description": "Where a document stating how the scheme assigns its values lies, a URI reference, or null.",
-          "default": null
+          "propertyNames": {
+            "const": "id"
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "@value"
+            ]
+          },
+          "then": {
+            "$ref": "#/$defs/ValueObject"
+          },
+          "else": {
+            "$ref": "#/$defs/ValueNode",
+            "not": {
+              "required": [
+                "id"
+              ]
+            }
+          }
         }
-      },
-      "required": [
-        "id"
       ]
-    },
-    "Level": {
-      "type": "string",
-      "enum": [
-        "work",
-        "expression",
-        "manifestation",
-        "item",
-        "agent"
-      ],
-      "description": "The kind of entity a link points to. The four bibliographic levels are those of the IFLA Library Reference Model: a `work`, a creation in the abstract; an `expression`, one realisation of a work, such as a version, an arrangement or a recorded performance; a `manifestation`, one embodiment of an expression, such as an edition or a release; an `item`, one exemplar of a manifestation, such as a copy or a file. An `agent` is a person or a corporate body. The vocabulary is closed."
-    },
-    "Term": {
-      "type": "string",
-      "minLength": 1,
-      "not": {
-        "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
-      },
-      "description": "A word of an open vocabulary: a non-empty string without white space or a control character (U+0000 to U+0020, U+007F to U+00A0, U+1680, U+2000 to U+200A, U+2028, U+2029, U+202F, U+205F, U+3000 and U+FEFF). A term holding a colon is an extension term, a prefixed name or a URI, and is read as written. A bare term is meant to be one of the words registered for its key; one that is not is kept, reported as a warning and read as that key's fallback states."
-    },
-    "Uri": {
-      "type": "string",
-      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:.",
-      "not": {
-        "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
-      },
-      "description": "An absolute URI: a scheme name (a letter, then letters, digits, `+`, `.` or `-`), a colon and at least one more character, without white space or a control character, as for `Term`."
-    },
-    "UriReference": {
-      "type": "string",
-      "minLength": 1,
-      "not": {
-        "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
-      },
-      "description": "A URI reference: an absolute URI or a relative reference, non-empty and without white space or a control character, as for `Term`. A relative reference resolves against the location of the manifest."
     }
   }
 } as const;
