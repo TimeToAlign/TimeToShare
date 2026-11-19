@@ -133,6 +133,7 @@ const REJECTIONS = [
   "provenance_repeated",
   "provenance_status_unknown",
   "provenance_type_pair_unmatched",
+  "provenance_type_value_literal",
   "provenance_without_status",
   "reference_without_hash",
   "region_id_duplicate_across_roots",
