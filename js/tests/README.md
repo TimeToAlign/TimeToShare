@@ -286,6 +286,19 @@ validates and has no warnings. The rule `provenance_match` also refuses a
 the stated `type: [schema:X]` (`rdf` declared), at the entry's path, since
 the entry states a literal and the timeline a class.
 
+`withReferencesRenamed` and `compactIri` are proved by the Python README's
+values ("References to elements renamed and dropped", "Compact IRIs"): M1
+with each reference position holding `#cpt_2` once, renamed to `#cpt_3`
+(the whole result equal to the document built by hand, the other
+manifest's `other.yaml#cpt_2` unchanged), dropped (the root keeps its type
+and that pair's entry without `basis` and `service`, the bundle keeps the
+other manifest's reference and no `provenance`) and renamed where nothing
+names the ID (equal to the input); and `compactIri` over the shipped
+catalogue's prefixes and aliases (`defaultCatalogue`) for the nine IRIs of
+the specification, plus the longest-namespace rule, the code-point tie and
+a rest outside the compact form. Both functions leave their arguments as
+they were.
+
 ## The catalogue
 
 `catalogue.test.ts` reads the test catalogue of the specification, held

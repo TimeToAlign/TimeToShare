@@ -38,7 +38,7 @@ from timetoshare import (
     without_pair,
 )
 
-from .conftest import CATALOGUE_TEST, m1, m2
+from .conftest import CATALOGUE_TEST, MUSICBRAINZ_WORK, m1, m2
 
 RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 EDITOR = "https://example.org/people/editor"
@@ -944,3 +944,184 @@ def test_the_warnings_of_a_valid_manifest() -> None:
     assert manifest_warnings(m1()) == []
     with pytest.raises(SchemaValidationError):
         manifest_warnings({**m1(), "statements": {}})
+
+
+# -- references to elements --------------------------------------------------------
+
+RECORD = "https://example.org/record"
+
+
+def _referring(reference: str) -> dict:
+    """M1 naming an element by ``reference`` at every reference position once."""
+    value = m1()
+    value["@context"]["dcterms"] = "http://purl.org/dc/terms/"
+    value["@context"]["rdfs"] = "http://www.w3.org/2000/01/rdf-schema#"
+    value["statements"] = {
+        "rdfs:seeAlso": [{"id": reference}, {"id": "other.yaml#cpt_2"}]
+    }
+    value["timelines"][0]["statements"] = {
+        "dcterms:source": [{"id": reference}],
+        "type": ["schema:VideoObject"],
+    }
+    value["timelines"][0]["provenance"] = [
+        {
+            "property": "dcterms:source",
+            "value": {"id": reference},
+            "status": "confirmed",
+            "basis": [reference, RECORD],
+        },
+        {
+            "property": "rdf:type",
+            "value": {"id": "schema:VideoObject"},
+            "status": "confirmed",
+            "basis": [reference],
+            "service": reference,
+        },
+        {
+            "property": "dcterms:isPartOf",
+            "value": {"id": reference},
+            "status": "proposed",
+        },
+    ]
+    return value
+
+
+def _nesting(reference: str) -> dict:
+    """M1 whose region names an element in nodes, ordered values and ``stated_by``."""
+    value = m1()
+    value["timelines"][0]["regions"][0]["statements"] = {
+        "schema:about": [
+            {"schema:mentions": [{"id": reference}]},
+            {"label": "Intro", "schema:mentions": [{"id": reference}]},
+        ],
+        "schema:hasPart": [
+            {"list": [{"id": reference}, {"id": reference}]},
+            {"list": [{"id": reference}, {"id": "wd:Q1"}]},
+        ],
+    }
+    value["timelines"][0]["regions"][0]["provenance"] = [
+        {
+            "property": "schema:about",
+            "value": {"id": "wd:Q2"},
+            "status": "proposed",
+            "stated_by": [reference, EDITOR],
+        },
+        {
+            "property": "schema:about",
+            "value": {"id": "wd:Q3"},
+            "status": "proposed",
+            "stated_by": [reference],
+        },
+    ]
+    return value
+
+
+def test_references_to_a_renamed_element_are_renamed() -> None:
+    for build in (_referring, _nesting):
+        given = build("#cpt_2")
+        kept = copy.deepcopy(given)
+        assert timetoshare.with_references_renamed(given, {"cpt_2": "cpt_3"}) == build(
+            "#cpt_3"
+        )
+        assert given == kept
+
+
+def test_references_to_a_dropped_element_are_dropped() -> None:
+    given = _referring("#cpt_2")
+    kept = copy.deepcopy(given)
+    result = timetoshare.with_references_renamed(given, {"cpt_2": None})
+    expected = _referring("#cpt_2")
+    expected["statements"] = {"rdfs:seeAlso": [{"id": "other.yaml#cpt_2"}]}
+    expected["timelines"][0]["statements"] = {"type": ["schema:VideoObject"]}
+    expected["timelines"][0]["provenance"] = [
+        {
+            "property": "rdf:type",
+            "value": {"id": "schema:VideoObject"},
+            "status": "confirmed",
+        }
+    ]
+    assert result == expected
+    assert "provenance" not in result
+    assert given == kept
+
+
+def test_nodes_and_ordered_values_left_empty_are_dropped() -> None:
+    result = timetoshare.with_references_renamed(_nesting("#cpt_2"), {"cpt_2": None})
+    region = result["timelines"][0]["regions"][0]
+    assert region["statements"] == {
+        "schema:about": [{"label": "Intro"}],
+        "schema:hasPart": [{"list": [{"id": "wd:Q1"}]}],
+    }
+    assert region["provenance"] == [
+        {
+            "property": "schema:about",
+            "value": {"id": "wd:Q2"},
+            "status": "proposed",
+            "stated_by": [EDITOR],
+        },
+        {"property": "schema:about", "value": {"id": "wd:Q3"}, "status": "proposed"},
+    ]
+
+
+def test_a_rename_of_an_id_nothing_names_changes_nothing() -> None:
+    for build in (_referring, _nesting):
+        assert timetoshare.with_references_renamed(
+            build("#cpt_2"), {"cpt_9": "x"}
+        ) == build("#cpt_2")
+
+
+def test_renames_are_read_in_one_pass() -> None:
+    result = timetoshare.with_references_renamed(
+        _referring("#cpt_1"), {"cpt_1": "cpt_2", "cpt_2": "cpt_3"}
+    )
+    assert result == _referring("#cpt_2")
+
+
+# -- compact IRIs ------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("iri", "compact"),
+    [
+        ("http://www.wikidata.org/entity/Q235650", "wd:Q235650"),
+        ("http://www.wikidata.org/prop/direct/P175", "wdt:P175"),
+        ("https://schema.org/name", "https://schema.org/name"),
+        ("http://d-nb.info/gnd/11862119X", "http://d-nb.info/gnd/11862119X"),
+        ("https://d-nb.info/gnd/119018934", "gnd:119018934"),
+        ("https://lod.academy/melod/vocab/ontology#Work", "melod:Work"),
+        ("http://www.wikidata.org/entity/", "http://www.wikidata.org/entity/"),
+        ("urn:uuid:works/1", "urn:uuid:works/1"),
+        (MUSICBRAINZ_WORK, MUSICBRAINZ_WORK),
+    ],
+)
+def test_an_iri_is_compacted_by_the_catalogues_prefixes(iri: str, compact: str) -> None:
+    prefixes = timetoshare.load_catalogue().prefixes
+    assert timetoshare.compact_iri(prefixes, iri) == compact
+
+
+def test_an_alias_is_read_before_compacting() -> None:
+    catalogue = timetoshare.load_catalogue()
+    compact = timetoshare.compact_iri(
+        catalogue.prefixes, "https://schema.org/name", aliases=catalogue.aliases
+    )
+    assert compact == "schema:name"
+    unaliased = timetoshare.compact_iri(
+        catalogue.prefixes, "https://example.org/x/y", aliases=catalogue.aliases
+    )
+    assert unaliased == "https://example.org/x/y"
+
+
+def test_the_longest_namespace_wins_and_a_tie_goes_to_the_smaller_name() -> None:
+    prefixes = {
+        "ex": "http://a.example/",
+        "exs": "http://a.example/sub/",
+        "a": "http://b/",
+    }
+    assert timetoshare.compact_iri(prefixes, "http://a.example/sub/x") == "exs:x"
+    assert timetoshare.compact_iri(prefixes, "http://a.example/x.1_-") == "ex:x.1_-"
+    tied = {"z": "http://b/", "b": "http://b/", "é": "http://b/"}
+    assert timetoshare.compact_iri(tied, "http://b/x") == "b:x"
+    for rest in ("a/b", "a:b", ".a", "-a", "a b", "a\n"):
+        assert (
+            timetoshare.compact_iri(prefixes, "http://b/" + rest) == "http://b/" + rest
+        )

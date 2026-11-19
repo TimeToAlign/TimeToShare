@@ -111,6 +111,7 @@ export {
 } from "./statements/catalogue.js";
 export {
   BLANK,
+  compactIri,
   type DecisionOptions,
   entries,
   expandIri,
@@ -133,6 +134,7 @@ export {
   withoutPair,
   withPair,
   withProposal,
+  withReferencesRenamed,
   withRejection,
 } from "./statements/statements.js";
 export { completeStyles } from "./styles.js";

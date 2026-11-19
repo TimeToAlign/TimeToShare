@@ -850,6 +850,57 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   pairs are written the same way at its path. Every function is pure: its
   argument is unchanged, deep-equal, after the call. Each result
   validates.
+- **References to elements renamed and dropped.** A reference is the text
+  `#` + ID at a reference position (a node's `id`, an entry's `basis` and
+  `stated_by` items and its `service`) of any subject, a node at any depth
+  of a container or inside an entry's `value` included. One document,
+  built on M1 (its context plus `dcterms` and `rdfs`), holds each position
+  once: on the root the pair `dcterms:source` `{"id": "#cpt_2"}` with a
+  `confirmed` entry whose `basis` is `["#cpt_2",
+  "https://example.org/record"]`, the pair `type` `schema:VideoObject`
+  with a `confirmed` entry whose `basis` is `["#cpt_2"]` and whose
+  `service` is `#cpt_2`, and a `proposed` entry `dcterms:isPartOf` `{"id":
+  "#cpt_2"}`; on the bundle `rdfs:seeAlso` `[{"id": "#cpt_2"}, {"id":
+  "other.yaml#cpt_2"}]`. Renaming `cpt_2` to `cpt_3` gives the document
+  with every `#cpt_2` written `#cpt_3`, built by hand, and the reference
+  to another manifest (`other.yaml#cpt_2`) left as it is, since only an
+  exact `#` + ID is a reference. Dropping `cpt_2` gives, exactly, a root
+  stating only `type: ["schema:VideoObject"]` with its one entry left
+  without `basis` and `service`, and a bundle stating only the other
+  manifest's reference and holding no `provenance`: a value naming the
+  element leaves its list, an entry whose value names it leaves
+  `provenance`, a `basis` item leaves its list, a `service` naming it is
+  deleted, and every list, container and annotation emptied so is deleted;
+  a node without `id` whose every pair named the element, and ordered
+  values whose every item did, leave their list too, so no value is left
+  empty. A second document proves the deeper positions: M1's region states
+  `schema:about` a node without `id` holding only `schema:mentions` the
+  reference beside one that also holds the label `Intro` (the first
+  leaves, the second keeps its label), `schema:hasPart` ordered values of
+  two references beside ordered values of a reference and `wd:Q1` (the
+  first leave, the second keep `wd:Q1`), and two `proposed` entries whose
+  `stated_by` hold the reference with and without the editor (the first
+  keeps the editor, the second loses `stated_by`); renamed, it is the same
+  document written with `#cpt_3`. Each reference is renamed once:
+  `{"cpt_1": "cpt_2", "cpt_2": "cpt_3"}` turns `#cpt_1` into `#cpt_2` and
+  leaves it there.
+  A rename of an ID nothing names (`cpt_9`) gives a document equal to the
+  input. The argument is unchanged in every case.
+- **Compact IRIs.** `compact_iri` is proved against the shipped
+  catalogue's prefixes and aliases, the ones an editor compacts by: a
+  Wikidata item and property take the prefix whose namespace begins them
+  (`wd:Q235650`, `wdt:P175`; `wd`'s namespace does not begin a property's
+  IRI); `https://schema.org/name` stays unchanged without aliases and
+  becomes `schema:name` once the alias reads it as `http://schema.org/`; a
+  GND identifier compacts under `https://` only, the namespace the
+  catalogue declares (`gnd:119018934`), never under `http://`; a namespace
+  ending in `#` compacts (`melod:Work`); and an IRI whose rest after the
+  namespace is empty (`http://www.wikidata.org/entity/`), an IRI of no
+  declared namespace (`urn:uuid:works/1`) and a MusicBrainz work, whose
+  namespace the catalogue does not declare, stay as written. The longest
+  namespace wins (a prefix of a nested namespace beats its parent's), a
+  tie goes to the code-point-smaller name, and a rest with a character
+  outside the compact form (`/`, `:`) leaves the IRI as written.
 - **The statement rules.** Every rejection case of a statement rule is the
   shared oracle (`test_validate.py`); the inline documents add what the
   cases cannot show. The messages, exactly: `statements and provenance

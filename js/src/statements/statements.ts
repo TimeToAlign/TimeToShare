@@ -422,6 +422,164 @@ export function withContext<T>(manifest: T, prefixes: Readonly<Record<string, st
   return result as T;
 }
 
+const LOCAL_NAME = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/u;
+
+/** The number of code points of a text, as Python's `len` counts them. */
+function codePoints(text: string): number {
+  return [...text].length;
+}
+
+/**
+ * `iri` written `name:rest` with one of `prefixes`, or as given. Where a
+ * namespace of `aliases` (the first in its order) begins `iri`, it is first
+ * replaced by the namespace it is read as. Among the prefixes whose
+ * namespace begins the IRI so read and leaves a rest of letters, digits,
+ * `_`, `.` and `-` that does not begin with `.` or `-`, the longest
+ * namespace (in code points) wins, a tie going to the code-point-smaller
+ * name. Without such a prefix the IRI is returned as given, no alias
+ * applied. Python's `compact_iri` gives the same texts.
+ */
+export function compactIri(
+  prefixes: Readonly<Record<string, string>>,
+  iri: string,
+  aliases: Readonly<Record<string, string>> = {},
+): string {
+  let read = iri;
+  for (const [namespace, target] of Object.entries(aliases)) {
+    if (iri.startsWith(namespace)) {
+      read = target + iri.slice(namespace.length);
+      break;
+    }
+  }
+  let best: readonly [name: string, namespace: string] | null = null;
+  for (const [name, namespace] of Object.entries(prefixes)) {
+    if (!read.startsWith(namespace) || !LOCAL_NAME.test(read.slice(namespace.length))) continue;
+    if (
+      best === null ||
+      codePoints(namespace) > codePoints(best[1]) ||
+      (codePoints(namespace) === codePoints(best[1]) && compareCodePoints(name, best[0]) < 0)
+    ) {
+      best = [name, namespace];
+    }
+  }
+  return best === null ? iri : `${best[0]}:${read.slice(best[1].length)}`;
+}
+
+/** Renames and drops the references to elements in one copy of a manifest. */
+class References {
+  readonly #renamed: ReadonlyMap<string, string | null>;
+
+  constructor(renamed: Readonly<Record<string, string | null>>) {
+    this.#renamed = new Map(
+      Object.entries(renamed).map(([old, renewed]) => [
+        `#${old}`,
+        renewed === null ? null : `#${renewed}`,
+      ]),
+    );
+  }
+
+  dropped(text: unknown): boolean {
+    return typeof text === "string" && this.#renamed.get(text) === null;
+  }
+
+  /** A reference renamed; any other value as it is. */
+  text(text: unknown): unknown {
+    if (typeof text !== "string") return text;
+    return this.#renamed.get(text) ?? text;
+  }
+
+  /** The values of a list kept, each renamed. */
+  values(items: readonly unknown[]): unknown[] {
+    return items.filter((value) => this.value(value));
+  }
+
+  /** Rename the references of a value in place; whether it is kept. */
+  value(value: unknown): boolean {
+    if (isOrderedValues(value)) {
+      const items = value.list;
+      if (!Array.isArray(items)) return true;
+      const kept = this.values(items);
+      value.list = kept;
+      return kept.length > 0;
+    }
+    if (!isNode(value)) return true;
+    if (this.dropped(value.id)) return false;
+    if (Object.hasOwn(value, "id")) value.id = this.text(value.id);
+    this.subject(value, true);
+    return Object.keys(value).length > 0;
+  }
+
+  /** Rename the references of a subject's pairs and entries in place. */
+  subject(owner: JsonObject, node: boolean): void {
+    const [container] = containerOf(owner, node);
+    if (container !== null) {
+      for (const key of Object.keys(container)) {
+        if (key === "type" || (node && NODE_KEYS.has(key))) continue;
+        const values = container[key];
+        if (!Array.isArray(values)) continue;
+        const kept = this.values(values);
+        if (kept.length === 0) delete container[key];
+        else container[key] = kept;
+      }
+      if (!node && Object.keys(container).length === 0) delete owner.statements;
+    }
+    const list = owner.provenance;
+    if (Array.isArray(list)) {
+      const kept = list.filter((entry) => !isJsonObject(entry) || this.entry(entry));
+      if (kept.length === 0) delete owner.provenance;
+      else owner.provenance = kept;
+    }
+  }
+
+  /** Rename the references of an entry in place; whether it is kept. */
+  entry(entry: JsonObject): boolean {
+    if (Object.hasOwn(entry, "value") && !this.value(entry.value)) return false;
+    for (const key of ["basis", "stated_by"]) {
+      const items = entry[key];
+      if (!Array.isArray(items)) continue;
+      const kept = items.filter((item) => !this.dropped(item)).map((item) => this.text(item));
+      if (kept.length === 0) delete entry[key];
+      else entry[key] = kept;
+    }
+    if (this.dropped(entry.service)) delete entry.service;
+    else if (Object.hasOwn(entry, "service")) {
+      entry.service = this.text(entry.service);
+    }
+    return true;
+  }
+}
+
+/**
+ * The manifest with the references to renamed elements renamed or dropped.
+ * The keys and values of `renamed` are bare IDs. A reference is the text
+ * `"#" + old` exactly (`other.yaml#old` names an element of another manifest
+ * and is none) where statements name things: a node's `id`, a provenance
+ * entry's `basis` and `stated_by` items and its `service`, in the statements
+ * and provenance of the manifest, of every timeline at any depth and of every
+ * region, and of every node within them, a node in an entry's `value`
+ * included. Where `renamed[old]` is an ID, each reference becomes
+ * `"#" + renamed[old]`. Where it is null, a value that is a node naming the
+ * element leaves its list, an entry whose `value` names it leaves
+ * `provenance`, a `basis` or `stated_by` item naming it leaves its list and a
+ * `service` naming it is deleted; then every list of values, container,
+ * `basis`, `stated_by` and `provenance` left empty is deleted, as are a node
+ * without `id` and ordered values left without anything. Each reference is
+ * renamed once: with `{a: "b", b: "c"}`, `#a` becomes `#b` and `#b` becomes
+ * `#c`. The elements' own IDs are never read, so either ID form is taken.
+ * Python's `with_references_renamed` gives the same values.
+ */
+export function withReferencesRenamed<T>(
+  manifest: T,
+  renamed: Readonly<Record<string, string | null>>,
+): T {
+  const references = new References(renamed);
+  const result = clone(manifest);
+  for (const { element } of subjectElements(result)) {
+    references.subject(element, false);
+  }
+  return result;
+}
+
 /**
  * The path of the subject an element ID names: `[]` for `null`, the bundle;
  * else the timeline (at any depth) or region whose `id` equals `elementId`

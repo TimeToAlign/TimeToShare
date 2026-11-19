@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  compactIri,
   compactJson,
+  defaultCatalogue,
   dumps,
   entries,
   expandIri,
@@ -23,6 +25,7 @@ import {
   withoutPair,
   withPair,
   withProposal,
+  withReferencesRenamed,
   withRejection,
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
@@ -899,5 +902,155 @@ describe("the warnings", () => {
       ["provenance"],
     ]);
     expect(manifestWarnings(based({}, { id: "#op106", ...proposal }))).toEqual([]);
+  });
+});
+
+describe("references to elements", () => {
+  const RECORD = "https://example.org/record";
+
+  /** M1 naming an element by `reference` at every reference position once. */
+  function referring(reference: string): JsonObject {
+    const value = m1();
+    const context = value["@context"] as JsonObject;
+    context.dcterms = "http://purl.org/dc/terms/";
+    context.rdfs = "http://www.w3.org/2000/01/rdf-schema#";
+    value.statements = { "rdfs:seeAlso": [{ id: reference }, { id: "other.yaml#cpt_2" }] };
+    const timeline = root(value);
+    timeline.statements = { "dcterms:source": [{ id: reference }], type: ["schema:VideoObject"] };
+    timeline.provenance = [
+      {
+        property: "dcterms:source",
+        value: { id: reference },
+        status: "confirmed",
+        basis: [reference, RECORD],
+      },
+      {
+        property: "rdf:type",
+        value: { id: "schema:VideoObject" },
+        status: "confirmed",
+        basis: [reference],
+        service: reference,
+      },
+      { property: "dcterms:isPartOf", value: { id: reference }, status: "proposed" },
+    ];
+    return value;
+  }
+
+  /** M1 whose region names an element in nodes, ordered values and `stated_by`. */
+  function nesting(reference: string): JsonObject {
+    const value = m1();
+    const region = (root(value).regions as JsonObject[])[0] as JsonObject;
+    region.statements = {
+      "schema:about": [
+        { "schema:mentions": [{ id: reference }] },
+        { label: "Intro", "schema:mentions": [{ id: reference }] },
+      ],
+      "schema:hasPart": [
+        { list: [{ id: reference }, { id: reference }] },
+        { list: [{ id: reference }, { id: "wd:Q1" }] },
+      ],
+    };
+    region.provenance = [
+      {
+        property: "schema:about",
+        value: { id: "wd:Q2" },
+        status: "proposed",
+        stated_by: [reference, EDITOR],
+      },
+      {
+        property: "schema:about",
+        value: { id: "wd:Q3" },
+        status: "proposed",
+        stated_by: [reference],
+      },
+    ];
+    return value;
+  }
+
+  it("renames every reference to a renamed element", () => {
+    for (const build of [referring, nesting]) {
+      const given = build("#cpt_2");
+      const kept = structuredClone(given);
+      expect(withReferencesRenamed(given, { cpt_2: "cpt_3" })).toEqual(build("#cpt_3"));
+      expect(given).toEqual(kept);
+    }
+  });
+
+  it("drops every reference to a dropped element", () => {
+    const given = referring("#cpt_2");
+    const kept = structuredClone(given);
+    const result = withReferencesRenamed(given, { cpt_2: null });
+    const expected = referring("#cpt_2");
+    expected.statements = { "rdfs:seeAlso": [{ id: "other.yaml#cpt_2" }] };
+    root(expected).statements = { type: ["schema:VideoObject"] };
+    root(expected).provenance = [
+      { property: "rdf:type", value: { id: "schema:VideoObject" }, status: "confirmed" },
+    ];
+    expect(result).toEqual(expected);
+    expect(Object.hasOwn(result, "provenance")).toBe(false);
+    expect(given).toEqual(kept);
+  });
+
+  it("drops nodes and ordered values left empty", () => {
+    const result = withReferencesRenamed(nesting("#cpt_2"), { cpt_2: null });
+    const region = (root(result).regions as JsonObject[])[0] as JsonObject;
+    expect(region.statements).toEqual({
+      "schema:about": [{ label: "Intro" }],
+      "schema:hasPart": [{ list: [{ id: "wd:Q1" }] }],
+    });
+    expect(region.provenance).toEqual([
+      { property: "schema:about", value: { id: "wd:Q2" }, status: "proposed", stated_by: [EDITOR] },
+      { property: "schema:about", value: { id: "wd:Q3" }, status: "proposed" },
+    ]);
+  });
+
+  it("changes nothing for an ID nothing names", () => {
+    for (const build of [referring, nesting]) {
+      expect(withReferencesRenamed(build("#cpt_2"), { cpt_9: "x" })).toEqual(build("#cpt_2"));
+    }
+  });
+
+  it("renames each reference once", () => {
+    const result = withReferencesRenamed(referring("#cpt_1"), { cpt_1: "cpt_2", cpt_2: "cpt_3" });
+    expect(result).toEqual(referring("#cpt_2"));
+  });
+});
+
+describe("compact IRIs", () => {
+  const MUSICBRAINZ_WORK = "http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96";
+  const CASES: readonly (readonly [string, string])[] = [
+    ["http://www.wikidata.org/entity/Q235650", "wd:Q235650"],
+    ["http://www.wikidata.org/prop/direct/P175", "wdt:P175"],
+    ["https://schema.org/name", "https://schema.org/name"],
+    ["http://d-nb.info/gnd/11862119X", "http://d-nb.info/gnd/11862119X"],
+    ["https://d-nb.info/gnd/119018934", "gnd:119018934"],
+    ["https://lod.academy/melod/vocab/ontology#Work", "melod:Work"],
+    ["http://www.wikidata.org/entity/", "http://www.wikidata.org/entity/"],
+    ["urn:uuid:works/1", "urn:uuid:works/1"],
+    [MUSICBRAINZ_WORK, MUSICBRAINZ_WORK],
+  ];
+
+  it.each(CASES)("compacts %s by the catalogue's prefixes", (iri, compact) => {
+    expect(compactIri(defaultCatalogue().prefixes, iri)).toBe(compact);
+  });
+
+  it("reads an alias before compacting", () => {
+    const { prefixes, aliases } = defaultCatalogue();
+    expect(compactIri(prefixes, "https://schema.org/name", aliases)).toBe("schema:name");
+    expect(compactIri(prefixes, "https://example.org/x/y", aliases)).toBe(
+      "https://example.org/x/y",
+    );
+  });
+
+  it("takes the longest namespace and the smaller name of a tie", () => {
+    const prefixes = { ex: "http://a.example/", exs: "http://a.example/sub/", a: "http://b/" };
+    expect(compactIri(prefixes, "http://a.example/sub/x")).toBe("exs:x");
+    expect(compactIri(prefixes, "http://a.example/x.1_-")).toBe("ex:x.1_-");
+    expect(compactIri({ z: "http://b/", b: "http://b/", é: "http://b/" }, "http://b/x")).toBe(
+      "b:x",
+    );
+    for (const rest of ["a/b", "a:b", ".a", "-a", "a b", "a\n"]) {
+      expect(compactIri(prefixes, `http://b/${rest}`)).toBe(`http://b/${rest}`);
+    }
   });
 });

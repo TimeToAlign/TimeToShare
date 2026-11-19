@@ -46,6 +46,7 @@ from .statements import (
     METHODS,
     NAMESPACE,
     STATUSES,
+    compact_iri,
     entries,
     expand_iri,
     pairs,
@@ -56,6 +57,7 @@ from .statements import (
     with_context,
     with_pair,
     with_proposal,
+    with_references_renamed,
     with_rejection,
     without_pair,
 )
@@ -103,6 +105,7 @@ __all__ = [
     "WarningCode",
     "canonical_order",
     "child_ends",
+    "compact_iri",
     "complete",
     "complete_styles",
     "dumps",
@@ -147,6 +150,7 @@ __all__ = [
     "with_file_ids",
     "with_pair",
     "with_proposal",
+    "with_references_renamed",
     "with_rejection",
     "without_pair",
 ]

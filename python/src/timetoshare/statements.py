@@ -49,6 +49,7 @@ __all__ = [
     "METHODS",
     "NAMESPACE",
     "STATUSES",
+    "compact_iri",
     "entries",
     "expand_iri",
     "pairs",
@@ -59,6 +60,7 @@ __all__ = [
     "with_context",
     "with_pair",
     "with_proposal",
+    "with_references_renamed",
     "with_rejection",
     "without_pair",
 ]
@@ -431,6 +433,165 @@ def with_context(
             )
     result = copy.deepcopy(dict(manifest))
     result["@context"] = context
+    return result
+
+
+_LOCAL_NAME = re.compile("[A-Za-z0-9_][A-Za-z0-9_.-]*")
+
+
+def compact_iri(
+    prefixes: Mapping[str, str],
+    iri: str,
+    *,
+    aliases: Mapping[str, str] | None = None,
+) -> str:
+    """Return ``iri`` written ``name:rest`` with one of ``prefixes``, or as given.
+
+    Where a namespace of ``aliases`` (the first in its order) begins ``iri``,
+    it is first replaced by the namespace it is read as. Among the prefixes
+    whose namespace begins the IRI so read and leaves a rest of letters,
+    digits, ``_``, ``.`` and ``-`` that does not begin with ``.`` or ``-``,
+    the longest namespace wins, a tie going to the code-point-smaller name.
+    Without such a prefix the IRI is returned as given, no alias applied.
+    The JavaScript package's ``compactIri`` gives the same texts.
+
+    Args:
+        prefixes: Prefix name to namespace, as a catalogue or a context
+            declares them.
+        iri: An absolute IRI.
+        aliases: Namespace to the namespace it is read as.
+    """
+    read = iri
+    for namespace, target in (aliases or {}).items():
+        if iri.startswith(namespace):
+            read = target + iri[len(namespace) :]
+            break
+    best: tuple[str, str] | None = None
+    for name, namespace in prefixes.items():
+        if not read.startswith(namespace):
+            continue
+        if _LOCAL_NAME.fullmatch(read[len(namespace) :]) is None:
+            continue
+        if best is None or (-len(namespace), name) < (-len(best[1]), best[0]):
+            best = (name, namespace)
+    if best is None:
+        return iri
+    return f"{best[0]}:{read[len(best[1]) :]}"
+
+
+# References to elements -----------------------------------------------------
+
+
+class _References:
+    """Renames and drops the references to elements in one copy of a manifest."""
+
+    def __init__(self, renamed: Mapping[str, str | None]) -> None:
+        self.renamed = {
+            "#" + old: None if new is None else "#" + new
+            for old, new in renamed.items()
+        }
+
+    def dropped(self, text: Any) -> bool:
+        return (
+            isinstance(text, str)
+            and text in self.renamed
+            and self.renamed[text] is None
+        )
+
+    def text(self, text: Any) -> Any:
+        """A reference renamed; any other value as it is."""
+        if isinstance(text, str) and self.renamed.get(text) is not None:
+            return self.renamed[text]
+        return text
+
+    def values(self, items: list[Any]) -> list[Any]:
+        """The values of a list kept, each renamed."""
+        return [value for value in items if self.value(value)]
+
+    def value(self, value: Any) -> bool:
+        """Rename the references of a value in place; whether it is kept."""
+        if _is_ordered(value) and isinstance(value["list"], list):
+            value["list"] = self.values(value["list"])
+            return bool(value["list"])
+        if not _is_node(value):
+            return True
+        if self.dropped(value.get("id")):
+            return False
+        if "id" in value:
+            value["id"] = self.text(value["id"])
+        self.subject(value, node=True)
+        return bool(value)
+
+    def subject(self, holder: dict[str, Any], *, node: bool) -> None:
+        """Rename the references of a subject's pairs and entries in place."""
+        container = holder if node else holder.get("statements")
+        if isinstance(container, dict):
+            for key in list(container):
+                if key == "type" or (node and key in NODE_MEMBERS):
+                    continue
+                if isinstance(container[key], list):
+                    container[key] = self.values(container[key])
+                    if not container[key]:
+                        del container[key]
+            if not node and not container:
+                del holder["statements"]
+        provenance = holder.get("provenance")
+        if isinstance(provenance, list):
+            holder["provenance"] = [
+                entry
+                for entry in provenance
+                if not isinstance(entry, dict) or self.entry(entry)
+            ]
+            if not holder["provenance"]:
+                del holder["provenance"]
+
+    def entry(self, entry: dict[str, Any]) -> bool:
+        """Rename the references of an entry in place; whether it is kept."""
+        if "value" in entry and not self.value(entry["value"]):
+            return False
+        for key in ("basis", "stated_by"):
+            if isinstance(entry.get(key), list):
+                entry[key] = [
+                    self.text(item) for item in entry[key] if not self.dropped(item)
+                ]
+                if not entry[key]:
+                    del entry[key]
+        if self.dropped(entry.get("service")):
+            del entry["service"]
+        elif "service" in entry:
+            entry["service"] = self.text(entry["service"])
+        return True
+
+
+def with_references_renamed(
+    manifest: Mapping[str, Any], renamed: Mapping[str, str | None]
+) -> dict[str, Any]:
+    """Return the manifest with the references to renamed elements renamed or dropped.
+
+    The keys and values of ``renamed`` are bare IDs. A reference is the text
+    ``"#" + old`` exactly (``other.yaml#old`` names an element of another
+    manifest and is none) where statements name things: a node's ``id``, a
+    provenance entry's ``basis`` and ``stated_by`` items and its ``service``,
+    in the statements and provenance of the manifest, of every timeline at
+    any depth and of every region, and of every node within them, a node in
+    an entry's ``value`` included. Where ``renamed[old]`` is an ID, each
+    reference becomes ``"#" + renamed[old]``. Where it is ``None``, a value
+    that is a node naming the element leaves its list, an entry whose
+    ``value`` names it leaves ``provenance``, a ``basis`` or ``stated_by``
+    item naming it leaves its list and a ``service`` naming it is deleted;
+    then every list of values, container, ``basis``, ``stated_by`` and
+    ``provenance`` left empty is deleted, as are a node without ``id`` and
+    ordered values left without anything. Each reference is renamed once:
+    with ``{"a": "b", "b": "c"}``, ``#a`` becomes ``#b`` and ``#b`` becomes
+    ``#c``. The elements' own IDs are never read, so either ID form is
+    taken. The JavaScript package's ``withReferencesRenamed`` gives the same
+    values.
+    """
+    references = _References(renamed)
+    result = copy.deepcopy(dict(manifest))
+    for _, element, _ in subjects(result):
+        if isinstance(element, dict):
+            references.subject(element, node=False)
     return result
 
 
