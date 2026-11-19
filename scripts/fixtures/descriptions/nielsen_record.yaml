@@ -144,7 +144,7 @@ subjects:
         stated_by: ["https://example.org/agents/timetoalign"]
         status: confirmed
         value:
-          "melod:usesMeterSymbol": [common]
+          "melod:UsesMeterSymbol": [common]
           type: ["melod:Meter"]
       -
         basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#perfRes_10033bb5"]
@@ -178,7 +178,7 @@ subjects:
     statements:
       "melod:hasMeter":
         -
-          "melod:usesMeterSymbol": [common]
+          "melod:UsesMeterSymbol": [common]
           type: ["melod:Meter"]
       "melod:hasReproduction":
         -
