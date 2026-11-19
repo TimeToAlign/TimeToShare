@@ -1,0 +1,153 @@
+"@context":
+  "@version": 1.1
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
+  rel: "http://id.loc.gov/vocabulary/relators/"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  schema: "http://schema.org/"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  status:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#status"
+    "@type": "@vocab"
+  timelines: "@included"
+  type: "@type"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+  wd: "http://www.wikidata.org/entity/"
+  wdt: "http://www.wikidata.org/prop/direct/"
+id: "#moriero_halloween_xxl_2025"
+meta:
+  generator: "timetoalign 1.2.0 (40161e42)"
+name: "Samuel Moriero, Impact Halloween XXL 2025 (full set)"
+timelines:
+  -
+    children:
+      -
+        id: "#cpt_2"
+        length: 91.0
+        locked: true
+        name: "HUMBLE. (Skrillex Remix / Samuel Moriero Remix)"
+        offset: 437.0
+        provenance:
+          -
+            date: "2026-11-18"
+            match: exact
+            method: reconciled
+            note: "Wikidata: 2017 studio recording, P4404 398bf241…, ISRC USUM71703085"
+            property: "wdt:P144"
+            service: "https://www.wikidata.org/w/api.php"
+            stated_by: ["https://example.org/people/editor"]
+            status: confirmed
+            value:
+              id: "wd:Q65658996"
+          -
+            basis: ["http://www.wikidata.org/entity/Q65658996"]
+            date: "2026-11-18"
+            method: reconciled
+            note: "+ vocabulary: from Wikidata's P4404"
+            property: "schema:isBasedOn"
+            stated_by: ["https://example.org/agents/tilie"]
+            status: confirmed
+            value:
+              id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
+          -
+            date: "2026-11-18"
+            method: reconciled
+            note: "proposed by title match; the mix plays a remix, a different recording"
+            property: "schema:sameAs"
+            stated_by: ["https://example.org/people/editor"]
+            status: rejected
+            value:
+              id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
+          -
+            basis: ["http://www.wikidata.org/entity/Q65658996"]
+            date: "2026-11-18"
+            method: inferred
+            property: "wdt:P175"
+            stated_by: ["https://example.org/agents/tilie"]
+            status: proposed
+            value:
+              id: "wd:Q130798"
+        statements:
+          "schema:isBasedOn":
+            -
+              id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
+              label: HUMBLE.
+          type: ["schema:MusicRecording"]
+          "wdt:P144":
+            -
+              id: "wd:Q65658996"
+              label: HUMBLE.
+              provenance:
+                -
+                  basis: ["http://www.wikidata.org/entity/Q65658996"]
+                  date: "2026-11-18"
+                  method: imported
+                  property: "schema:isrcCode"
+                  stated_by: ["https://example.org/agents/tilie"]
+                  status: confirmed
+                  value: USUM71703085
+              "schema:isrcCode": [USUM71703085]
+              "schema:sameAs":
+                -
+                  id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
+        unit: seconds
+    id: "#cpt_1"
+    length: 5277.0
+    name: "the set"
+    provenance:
+      -
+        basis: ["1001tracklists-1pp3704t_mapping.csv"]
+        date: "2026-11-18"
+        method: imported
+        note: "no Wikidata item found on 2026-11-18; MusicBrainz not searched"
+        property: "rel:prf"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: proposed
+        value:
+          label: "Samuel Moriero"
+    statements:
+      type: ["schema:MusicRecording", "schema:AudioObject"]
+      "wdt:P31":
+        -
+          id: "wd:Q2619673"
+    unit: seconds
+timetoshare: "0.2.0"

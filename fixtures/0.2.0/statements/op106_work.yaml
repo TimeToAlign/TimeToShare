@@ -1,0 +1,275 @@
+"@context":
+  "@version": 1.1
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  gnd: "https://d-nb.info/gnd/"
+  gndo: "https://d-nb.info/standards/elementset/gnd#"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  mbw: "http://musicbrainz.org/work/"
+  melod: "https://lod.academy/melod/vocab/ontology#"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  schema: "http://schema.org/"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  status:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#status"
+    "@type": "@vocab"
+  timelines: "@included"
+  type: "@type"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+  viaf: "http://viaf.org/viaf/"
+  wd: "http://www.wikidata.org/entity/"
+  wdt: "http://www.wikidata.org/prop/direct/"
+groups: []
+id: "#op106"
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (40161e42)"
+name: "Beethoven, Piano Sonata No. 29, Op. 106"
+timelines:
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#clt_1"
+    is_segment_line: false
+    length: null
+    locked: false
+    meta: {}
+    name: "Op. 106"
+    number_type: fraction
+    provenance:
+      -
+        date: "2026-11-18"
+        match: exact
+        method: reconciled
+        property: "schema:sameAs"
+        service: "https://www.wikidata.org/w/api.php"
+        stated_by: ["https://example.org/people/editor"]
+        status: confirmed
+        value:
+          id: "wd:Q146730"
+      -
+        basis: ["http://www.wikidata.org/entity/Q146730"]
+        date: "2026-11-18"
+        match: exact
+        method: reconciled
+        note: "proposed from Wikidata's P227, confirmed on lobid (sameAs Q146730 and VIAF 186299955)"
+        property: "schema:sameAs"
+        service: "https://lobid.org/gnd/search"
+        stated_by: ["https://example.org/people/editor"]
+        status: confirmed
+        value:
+          id: "gnd:300016867"
+      -
+        basis: ["https://d-nb.info/gnd/300016867"]
+        date: "2026-11-18"
+        method: imported
+        property: "gndo:firstComposer"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: confirmed
+        value:
+          id: "gnd:118508288"
+      -
+        basis: ["https://d-nb.info/gnd/300016867"]
+        date: "2026-11-18"
+        method: imported
+        property: "gndo:opusNumericDesignationOfMusicalWork"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: confirmed
+        value: "op. 106"
+      -
+        basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+        date: "2026-11-19"
+        method: imported
+        note: "MusicBrainz 'parts' relationship, ordering key 1"
+        property: "schema:includedComposition"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: confirmed
+        value:
+          id: "mbw:80cbaf7b-a1da-3fc5-b650-6eb72a803980"
+      -
+        basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+        date: "2026-11-19"
+        method: imported
+        note: "MusicBrainz 'parts' relationship, ordering key 2"
+        property: "schema:includedComposition"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: confirmed
+        value:
+          id: "mbw:7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
+      -
+        basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+        date: "2026-11-19"
+        method: imported
+        note: "MusicBrainz 'parts' relationship, ordering key 3"
+        property: "schema:includedComposition"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: confirmed
+        value:
+          id: "mbw:7d110747-f011-41d4-9ce5-a1fad9abed2f"
+      -
+        basis: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
+        date: "2026-11-19"
+        method: imported
+        note: "MusicBrainz 'parts' relationship, ordering key 4"
+        property: "schema:includedComposition"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: confirmed
+        value:
+          id: "mbw:cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
+    regions: []
+    statements:
+      "gndo:firstComposer":
+        -
+          id: "gnd:118508288"
+      "gndo:opusNumericDesignationOfMusicalWork": ["op. 106"]
+      "schema:includedComposition":
+        -
+          id: "mbw:80cbaf7b-a1da-3fc5-b650-6eb72a803980"
+          label: "I. Allegro"
+          "schema:position": [1]
+        -
+          id: "mbw:7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
+          label: "II. Scherzo. Assai vivace"
+          "schema:position": [2]
+        -
+          id: "mbw:7d110747-f011-41d4-9ce5-a1fad9abed2f"
+          label: "III. Adagio sostenuto"
+          "schema:position": [3]
+        -
+          id: "mbw:cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
+          label: "IV. Largo – Allegro risoluto"
+          "schema:position": [4]
+      "schema:sameAs":
+        -
+          id: "mbw:4a622b0d-b0c0-405e-b49e-05b70c108284"
+        -
+          id: "wd:Q146730"
+        -
+          id: "gnd:300016867"
+        -
+          id: "viaf:186299955"
+      type: ["schema:MusicComposition", "gndo:MusicalWork", "melod:Work"]
+      "wdt:P31":
+        -
+          id: "wd:Q105543609"
+      "wdt:P839": ["Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"]
+      "wdt:P86":
+        -
+          id: "wd:Q255"
+          label: "Ludwig van Beethoven"
+          "schema:sameAs":
+            -
+              id: "gnd:118508288"
+    unit: quarters
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#clt_2"
+    is_segment_line: false
+    length: [1645, 1]
+    locked: false
+    meta: {}
+    name: "I. Allegro"
+    number_type: fraction
+    regions: []
+    statements:
+      "schema:sameAs":
+        -
+          id: "mbw:80cbaf7b-a1da-3fc5-b650-6eb72a803980"
+      type: ["schema:MusicComposition", "melod:Work"]
+    unit: quarters
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#clt_3"
+    is_segment_line: false
+    length: [510, 1]
+    locked: false
+    meta: {}
+    name: "II. Scherzo. Assai vivace"
+    number_type: fraction
+    regions: []
+    statements:
+      "schema:sameAs":
+        -
+          id: "mbw:7813c9cf-6054-3ef3-b9ed-8ae4690581c9"
+      type: ["schema:MusicComposition", "melod:Work"]
+    unit: quarters
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#clt_4"
+    is_segment_line: false
+    length: [561, 1]
+    locked: false
+    meta: {}
+    name: "III. Adagio sostenuto"
+    number_type: fraction
+    regions: []
+    statements:
+      "schema:sameAs":
+        -
+          id: "mbw:7d110747-f011-41d4-9ce5-a1fad9abed2f"
+      type: ["schema:MusicComposition", "melod:Work"]
+    unit: quarters
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#clt_5"
+    is_segment_line: false
+    length: [9911, 8]
+    locked: false
+    meta: {}
+    name: "IV. Introduzione. Largo – Allegro risoluto"
+    number_type: fraction
+    regions: []
+    statements:
+      "schema:sameAs":
+        -
+          id: "mbw:cfa82cd6-bcb5-39dd-9beb-c98e275c7c84"
+      type: ["schema:MusicComposition", "melod:Work"]
+    unit: quarters
+timetoshare: "0.2.0"

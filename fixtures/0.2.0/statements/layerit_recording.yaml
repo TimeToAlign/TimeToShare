@@ -1,0 +1,291 @@
+"@context":
+  "@version": 1.1
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  dcterms: "http://purl.org/dc/terms/"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  gnd: "https://d-nb.info/gnd/"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  melod: "https://lod.academy/melod/vocab/ontology#"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  rdfs: "http://www.w3.org/2000/01/rdf-schema#"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
+  rel: "http://id.loc.gov/vocabulary/relators/"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  schema: "http://schema.org/"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  status:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#status"
+    "@type": "@vocab"
+  timelines: "@included"
+  type: "@type"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+  viaf: "http://viaf.org/viaf/"
+  wd: "http://www.wikidata.org/entity/"
+  wdt: "http://www.wikidata.org/prop/direct/"
+  xsd: "http://www.w3.org/2001/XMLSchema#"
+graphical:
+  order:
+    "#group_1": ["#cpt_2", "#dpt_1"]
+  rules: []
+  styles: {}
+  timestamps: []
+groups:
+  -
+    id: "#group_1"
+    members: ["#cpt_2", "#dpt_1"]
+    meta: {}
+    name: recording
+id: "#layerit_clair_de_lune"
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (40161e42)"
+name: "LayerIt, Clair de lune mm. 1–6 (Pires)"
+statements:
+  "rdfs:seeAlso":
+    -
+      id: "https://github.com/FernandoAze/LayerIt/tree/c88ca33065d49f622fca7225b784240df34a0fe8/src/input_files/ClairDeLune"
+timelines:
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#clt_6"
+    is_segment_line: false
+    length: [27, 1]
+    locked: false
+    meta: {}
+    name: "Clair de lune, mm. 1–6 (MEI)"
+    number_type: fraction
+    provenance:
+      -
+        date: "2026-11-18"
+        match: broad
+        method: manual
+        property: "schema:exampleOfWork"
+        stated_by: ["https://example.org/people/editor"]
+        status: confirmed
+        value:
+          id: "http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96"
+      -
+        basis: ["http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96"]
+        date: "2026-11-18"
+        match: broad
+        method: reconciled
+        note: "+ vocabulary: proposed from the Wikidata item carrying P435 8d331505…"
+        property: "wdt:P629"
+        service: "https://www.wikidata.org/w/api.php"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: confirmed
+        value:
+          id: "wd:Q29117946"
+      -
+        date: "2026-11-18"
+        method: reconciled
+        note: "GND 'Clair de lune' is Debussy's song L 32 on Verlaine (voice and piano, 1882), not the piano piece"
+        property: "schema:exampleOfWork"
+        service: "https://lobid.org/gnd/search"
+        stated_by: ["https://example.org/people/editor"]
+        status: rejected
+        value:
+          id: "gnd:1156628156"
+      -
+        basis: ["clair-de-lune%20M6-basic.mei"]
+        date: "2026-11-18"
+        method: imported
+        note: "meiHead/fileDesc/pubStmt/date[@type='encoding-date'], which has no xml:id"
+        property: "dcterms:created"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          "@type": "xsd:date"
+          "@value": "2025-12-05"
+    regions: []
+    statements:
+      "dcterms:created":
+        -
+          "@type": "xsd:date"
+          "@value": "2025-12-05"
+      "schema:exampleOfWork":
+        -
+          id: "http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96"
+          label: "Clair de lune"
+      type: ["melod:Manifestation", "schema:SheetMusic"]
+      "wdt:P629":
+        -
+          id: "wd:Q29117946"
+          label: "Clair de lune"
+          provenance:
+            -
+              date: "2026-11-18"
+              match: exact
+              method: reconciled
+              note: "GND 'Suite bergamasque. Clair de lune'; lobid gives sameAs VIAF 265616918, as Wikidata's P214 does"
+              property: "schema:sameAs"
+              service: "https://lobid.org/gnd/search"
+              stated_by: ["https://example.org/agents/tilie"]
+              status: confirmed
+              value:
+                id: "gnd:300042558"
+          "schema:sameAs":
+            -
+              id: "http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96"
+            -
+              id: "gnd:300042558"
+    unit: quarters
+  -
+    children:
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: "#cpt_2"
+        is_segment_line: false
+        length: 33.353016
+        locked: true
+        meta: {}
+        name: null
+        number_type: float
+        offset: 0.0
+        regions: []
+        unit: seconds
+    conversion_maps: []
+    flow_control: []
+    id: "#cpt_1"
+    is_segment_line: false
+    length: null
+    locked: false
+    meta: {}
+    name: "C.Debussy - Clair de Lune, Maria João Pires live at Jardin Musical"
+    number_type: float
+    provenance:
+      -
+        date: "2026-11-18"
+        method: manual
+        note: "pasted URL; label and thumbnail from YouTube's oEmbed"
+        property: "schema:sameAs"
+        stated_by: ["https://example.org/people/editor"]
+        status: confirmed
+        value:
+          id: "https://www.youtube.com/watch?v=Ch2mrPm1JnM"
+      -
+        date: "2026-11-18"
+        method: reconciled
+        note: "Portuguese pianist; the video's title names her"
+        property: "wdt:P175"
+        service: "https://www.wikidata.org/w/api.php"
+        stated_by: ["https://example.org/people/editor"]
+        status: confirmed
+        value:
+          id: "wd:Q235650"
+      -
+        basis: ["http://www.wikidata.org/entity/Q235650", "https://d-nb.info/gnd/124927521"]
+        date: "2026-11-18"
+        method: reconciled
+        note: "+ vocabulary: Wikidata P214 and lobid's sameAs agree"
+        property: "rel:prf"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: confirmed
+        value:
+          id: "viaf:113931950"
+      -
+        basis: ["#clt_6", "#dpt_1"]
+        date: "2026-11-18"
+        method: inferred
+        note: "from the encoding's work and the WAV's source; whether the video holds the whole movement is unchecked"
+        property: "wdt:P2550"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: proposed
+        value:
+          id: "wd:Q29117946"
+    regions: []
+    statements:
+      "rel:prf":
+        -
+          id: "viaf:113931950"
+      "schema:sameAs":
+        -
+          id: "https://www.youtube.com/watch?v=Ch2mrPm1JnM"
+      type: ["schema:VideoObject", "melod:Manifestation"]
+      "wdt:P175":
+        -
+          id: "wd:Q235650"
+          label: "Maria João Pires"
+          "schema:sameAs":
+            -
+              id: "viaf:113931950"
+            -
+              id: "gnd:124927521"
+      "wdt:P31":
+        -
+          id: "wd:Q98069877"
+    unit: seconds
+  -
+    children: []
+    conversion_maps:
+      -
+        id: "#cmap_1"
+        name: null
+        offset: 0
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    flow_control: []
+    id: "#dpt_1"
+    is_segment_line: false
+    length: 1470868
+    locked: false
+    meta: {}
+    name: ClairDeLune_MariaJoaoPires_untilM6.wav
+    number_type: int
+    provenance:
+      -
+        date: "2026-11-18"
+        method: inferred
+        note: "assumed ripped from the video's sound and cut"
+        property: "dcterms:source"
+        stated_by: ["https://example.org/people/editor"]
+        status: proposed
+        value:
+          id: "#cpt_1"
+    regions: []
+    statements:
+      type: ["schema:AudioObject", "melod:Manifestation"]
+    unit: samples
+timetoshare: "0.2.0"

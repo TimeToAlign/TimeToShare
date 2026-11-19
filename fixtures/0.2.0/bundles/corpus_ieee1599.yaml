@@ -1,3 +1,54 @@
+"@context":
+  "@version": 1.1
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  status:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#status"
+    "@type": "@vocab"
+  timelines: "@included"
+  type: "@type"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
   order:
     "#group_1": ["#spine:dlt_1"]
@@ -40,12 +91,10 @@ groups:
     members: ["#khomus_video:cpt_2"]
     meta: {}
     name: "khomus_video:cpt_2"
-links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (dd2d8291)"
+  generator: "timetoalign 1.2.0 (40161e42)"
 name: khomus
-schemes: []
 timelines:
   -
     children:
@@ -58,7 +107,6 @@ timelines:
             id: "#dgt_7"
             is_segment_line: false
             length: 4264
-            links: []
             locked: false
             meta: {}
             name: accolade_1
@@ -73,7 +121,6 @@ timelines:
             id: "#dgt_8"
             is_segment_line: false
             length: 4372
-            links: []
             locked: false
             meta: {}
             name: accolade_2
@@ -88,7 +135,6 @@ timelines:
             id: "#dgt_9"
             is_segment_line: false
             length: 4180
-            links: []
             locked: false
             meta: {}
             name: accolade_3
@@ -103,7 +149,6 @@ timelines:
             id: "#dgt_10"
             is_segment_line: false
             length: 4110
-            links: []
             locked: false
             meta: {}
             name: accolade_4
@@ -116,7 +161,6 @@ timelines:
         id: "#dgt_6"
         is_segment_line: true
         length: 16926
-        links: []
         locked: true
         meta:
           page:
@@ -150,7 +194,6 @@ timelines:
     id: "#finale_transcription:dgt_2"
     is_segment_line: true
     length: 16926
-    links: []
     locked: true
     meta:
       description: "Finale transcription"
@@ -172,7 +215,6 @@ timelines:
     id: "#khomus_audio:cpt_1"
     is_segment_line: false
     length: 46.98
-    links: []
     locked: false
     meta:
       encoding_format: audio_wav
@@ -194,7 +236,6 @@ timelines:
     id: "#khomus_video:cpt_2"
     is_segment_line: false
     length: 45.88
-    links: []
     locked: false
     meta:
       encoding_format: video_avi
@@ -216,7 +257,6 @@ timelines:
     id: "#los:dlt_2"
     is_segment_line: false
     length: 48128
-    links: []
     locked: false
     meta: {}
     name: "Logically organised symbols"
@@ -234,7 +274,6 @@ timelines:
             id: "#dgt_2"
             is_segment_line: false
             length: 1843
-            links: []
             locked: false
             meta: {}
             name: accolade_1
@@ -249,7 +288,6 @@ timelines:
             id: "#dgt_3"
             is_segment_line: false
             length: 1943
-            links: []
             locked: false
             meta: {}
             name: accolade_2
@@ -264,7 +302,6 @@ timelines:
             id: "#dgt_4"
             is_segment_line: false
             length: 1804
-            links: []
             locked: false
             meta: {}
             name: accolade_3
@@ -279,7 +316,6 @@ timelines:
             id: "#dgt_5"
             is_segment_line: false
             length: 1828
-            links: []
             locked: false
             meta: {}
             name: accolade_4
@@ -292,7 +328,6 @@ timelines:
         id: "#dgt_1"
         is_segment_line: true
         length: 7418
-        links: []
         locked: true
         meta:
           page:
@@ -326,7 +361,6 @@ timelines:
     id: "#original_score:dgt_1"
     is_segment_line: true
     length: 7418
-    links: []
     locked: true
     meta:
       description: "Original score"
@@ -348,7 +382,6 @@ timelines:
     id: "#spine:dlt_1"
     is_segment_line: false
     length: 48128
-    links: []
     locked: false
     meta: {}
     name: Spine

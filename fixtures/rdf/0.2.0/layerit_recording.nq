@@ -1,0 +1,113 @@
+<http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96> <http://www.w3.org/2000/01/rdf-schema#label> "Clair de lune" .
+<http://www.wikidata.org/entity/Q235650> <http://schema.org/sameAs> <http://viaf.org/viaf/113931950> .
+<http://www.wikidata.org/entity/Q235650> <http://schema.org/sameAs> <https://d-nb.info/gnd/124927521> .
+<http://www.wikidata.org/entity/Q235650> <http://www.w3.org/2000/01/rdf-schema#label> "Maria João Pires" .
+<http://www.wikidata.org/entity/Q29117946> <http://schema.org/sameAs> <http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96> .
+<http://www.wikidata.org/entity/Q29117946> <http://schema.org/sameAs> <https://d-nb.info/gnd/300042558> .
+<http://www.wikidata.org/entity/Q29117946> <http://www.w3.org/2000/01/rdf-schema#label> "Clair de lune" .
+<https://example.org/manifests/layerit_recording.yaml#clt_6> <http://purl.org/dc/terms/created> "2025-12-05"^^<http://www.w3.org/2001/XMLSchema#date> .
+<https://example.org/manifests/layerit_recording.yaml#clt_6> <http://schema.org/exampleOfWork> <http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96> .
+<https://example.org/manifests/layerit_recording.yaml#clt_6> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/SheetMusic> .
+<https://example.org/manifests/layerit_recording.yaml#clt_6> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/layerit_recording.yaml#clt_6> <http://www.wikidata.org/prop/direct/P629> <http://www.wikidata.org/entity/Q29117946> .
+<https://example.org/manifests/layerit_recording.yaml#cpt_1> <http://id.loc.gov/vocabulary/relators/prf> <http://viaf.org/viaf/113931950> .
+<https://example.org/manifests/layerit_recording.yaml#cpt_1> <http://schema.org/sameAs> <https://www.youtube.com/watch?v=Ch2mrPm1JnM> .
+<https://example.org/manifests/layerit_recording.yaml#cpt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/VideoObject> .
+<https://example.org/manifests/layerit_recording.yaml#cpt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/layerit_recording.yaml#cpt_1> <http://www.wikidata.org/prop/direct/P175> <http://www.wikidata.org/entity/Q235650> .
+<https://example.org/manifests/layerit_recording.yaml#cpt_1> <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q98069877> .
+<https://example.org/manifests/layerit_recording.yaml#dpt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/AudioObject> .
+<https://example.org/manifests/layerit_recording.yaml#dpt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <https://lod.academy/melod/vocab/ontology#Manifestation> .
+<https://example.org/manifests/layerit_recording.yaml#layerit_clair_de_lune> <http://www.w3.org/2000/01/rdf-schema#seeAlso> <https://github.com/FernandoAze/LayerIt/tree/c88ca33065d49f622fca7225b784240df34a0fe8/src/input_files/ClairDeLune> .
+_:c14n0 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q29117946> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://www.wikidata.org/prop/direct/P629> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#clt_6> .
+_:c14n0 <http://www.w3.org/2000/01/rdf-schema#comment> "+ vocabulary: proposed from the Wikidata item carrying P435 8d331505…" .
+_:c14n0 <http://www.w3.org/ns/prov#hadPrimarySource> <http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96> .
+_:c14n0 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
+_:c14n0 <https://timetoalign.github.io/timetoshare/ns#match> <http://www.w3.org/2004/02/skos/core#broadMatch> .
+_:c14n0 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
+_:c14n0 <https://timetoalign.github.io/timetoshare/ns#service> <https://www.wikidata.org/w/api.php> .
+_:c14n0 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n1 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q235650> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://www.wikidata.org/prop/direct/P175> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#cpt_1> .
+_:c14n1 <http://www.w3.org/2000/01/rdf-schema#comment> "Portuguese pianist; the video's title names her" .
+_:c14n1 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
+_:c14n1 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
+_:c14n1 <https://timetoalign.github.io/timetoshare/ns#service> <https://www.wikidata.org/w/api.php> .
+_:c14n1 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n2 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> "2025-12-05"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://purl.org/dc/terms/created> .
+_:c14n2 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#clt_6> .
+_:c14n2 <http://www.w3.org/2000/01/rdf-schema#comment> "meiHead/fileDesc/pubStmt/date[@type='encoding-date'], which has no xml:id" .
+_:c14n2 <http://www.w3.org/ns/prov#hadPrimarySource> <https://example.org/manifests/clair-de-lune%20M6-basic.mei> .
+_:c14n2 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/timetoalign> .
+_:c14n2 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
+_:c14n2 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n3 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <https://d-nb.info/gnd/1156628156> .
+_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/exampleOfWork> .
+_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#clt_6> .
+_:c14n3 <http://www.w3.org/2000/01/rdf-schema#comment> "GND 'Clair de lune' is Debussy's song L 32 on Verlaine (voice and piano, 1882), not the piano piece" .
+_:c14n3 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
+_:c14n3 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
+_:c14n3 <https://timetoalign.github.io/timetoshare/ns#service> <https://lobid.org/gnd/search> .
+_:c14n3 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Rejected> .
+_:c14n4 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <https://example.org/manifests/layerit_recording.yaml#cpt_1> .
+_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://purl.org/dc/terms/source> .
+_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#dpt_1> .
+_:c14n4 <http://www.w3.org/2000/01/rdf-schema#comment> "assumed ripped from the video's sound and cut" .
+_:c14n4 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
+_:c14n4 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Inferred> .
+_:c14n4 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Proposed> .
+_:c14n5 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <https://www.youtube.com/watch?v=Ch2mrPm1JnM> .
+_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/sameAs> .
+_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#cpt_1> .
+_:c14n5 <http://www.w3.org/2000/01/rdf-schema#comment> "pasted URL; label and thumbnail from YouTube's oEmbed" .
+_:c14n5 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
+_:c14n5 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Manual> .
+_:c14n5 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n6 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q29117946> .
+_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://www.wikidata.org/prop/direct/P2550> .
+_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#cpt_1> .
+_:c14n6 <http://www.w3.org/2000/01/rdf-schema#comment> "from the encoding's work and the WAV's source; whether the video holds the whole movement is unchecked" .
+_:c14n6 <http://www.w3.org/ns/prov#hadPrimarySource> <https://example.org/manifests/layerit_recording.yaml#clt_6> .
+_:c14n6 <http://www.w3.org/ns/prov#hadPrimarySource> <https://example.org/manifests/layerit_recording.yaml#dpt_1> .
+_:c14n6 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
+_:c14n6 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Inferred> .
+_:c14n6 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Proposed> .
+_:c14n7 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <https://d-nb.info/gnd/300042558> .
+_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/sameAs> .
+_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <http://www.wikidata.org/entity/Q29117946> .
+_:c14n7 <http://www.w3.org/2000/01/rdf-schema#comment> "GND 'Suite bergamasque. Clair de lune'; lobid gives sameAs VIAF 265616918, as Wikidata's P214 does" .
+_:c14n7 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
+_:c14n7 <https://timetoalign.github.io/timetoshare/ns#match> <http://www.w3.org/2004/02/skos/core#exactMatch> .
+_:c14n7 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
+_:c14n7 <https://timetoalign.github.io/timetoshare/ns#service> <https://lobid.org/gnd/search> .
+_:c14n7 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n8 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://viaf.org/viaf/113931950> .
+_:c14n8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://id.loc.gov/vocabulary/relators/prf> .
+_:c14n8 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#cpt_1> .
+_:c14n8 <http://www.w3.org/2000/01/rdf-schema#comment> "+ vocabulary: Wikidata P214 and lobid's sameAs agree" .
+_:c14n8 <http://www.w3.org/ns/prov#hadPrimarySource> <http://www.wikidata.org/entity/Q235650> .
+_:c14n8 <http://www.w3.org/ns/prov#hadPrimarySource> <https://d-nb.info/gnd/124927521> .
+_:c14n8 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
+_:c14n8 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
+_:c14n8 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
+_:c14n9 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96> .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/exampleOfWork> .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/layerit_recording.yaml#clt_6> .
+_:c14n9 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
+_:c14n9 <https://timetoalign.github.io/timetoshare/ns#match> <http://www.w3.org/2004/02/skos/core#broadMatch> .
+_:c14n9 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Manual> .
+_:c14n9 <https://timetoalign.github.io/timetoshare/ns#status> <https://timetoalign.github.io/timetoshare/ns#Confirmed> .
