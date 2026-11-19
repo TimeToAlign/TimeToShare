@@ -274,7 +274,10 @@ function completeDefinitions(definitions: Record<string, Node>): Record<string, 
  * The emitted schema keeps the source document unchanged. This view affects
  * only TypeScript generation:
  *
- * - conditionals (`if`, `then`, `else`), negations (`not`) and an `anyOf`
+ * - a node that is a conditional alone (`if`, `then`, `else` and nothing
+ *   else: a statement value is a value object where it holds `@value`, else
+ *   a node) becomes the `anyOf` of its two arms;
+ * - other conditionals (`if`, `then`, `else`), negations (`not`) and an `anyOf`
  *   whose branches only require members are removed, as the generator cannot
  *   express them, and so are defaults, which would make it copy a referenced
  *   definition;
@@ -315,6 +318,9 @@ function schemaForTypes(schema: Node): Node {
       return;
     }
     const node = value as Node;
+    if (Object.keys(node).sort().join() === "else,if,then") {
+      node.anyOf = [node.then, node.else];
+    }
     for (const keyword of ["if", "then", "else", "default", "not"]) {
       delete node[keyword];
     }

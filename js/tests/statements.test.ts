@@ -502,6 +502,42 @@ describe("the statement rules", () => {
       "",
     ],
     [
+      "a value object with a language and a type",
+      based(
+        {
+          statements: {
+            "schema:name": [{ "@value": "Op. 106", "@language": "en", "@type": "xsd:string" }],
+          },
+        },
+        {},
+        { xsd: "http://www.w3.org/2001/XMLSchema#" },
+      ),
+      "schema",
+      ["timelines", 0, "statements", "schema:name", 0],
+      "",
+    ],
+    [
+      "a value node without keys",
+      based({ statements: { "schema:sameAs": [{}] } }),
+      "schema",
+      ["timelines", 0, "statements", "schema:sameAs", 0],
+      "",
+    ],
+    [
+      "a value node naming a blank node",
+      based({ statements: { "schema:sameAs": [{ id: "_:b0" }] } }),
+      "schema",
+      ["timelines", 0, "statements", "schema:sameAs", 0, "id"],
+      "",
+    ],
+    [
+      "a null in ordered values",
+      based({ statements: { "schema:hasPart": [{ list: [{ id: "wd:Q1" }, null] }] } }),
+      "schema",
+      ["timelines", 0, "statements", "schema:hasPart", 0, "list", 1],
+      "",
+    ],
+    [
       "an integral float",
       based({ statements: { "schema:position": [new JsonFloat(1)] } }),
       "representation",

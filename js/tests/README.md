@@ -95,9 +95,11 @@ names, which are every definition, the complete form of exactly the
 definitions holding a default, and `LosslessManifest`, and `catalogue.ts`
 exports the catalogue file's value as `catalogue` (equal, as `compactJson`
 texts, to the value `loads` reads from the file); the committed text is
-`check:drift`'s oracle. The generation view drops `not` and names the type
-an `additionalProperties` reference stands for, so a value node, whose
-values hold value nodes, is typed once. Statements marked `@ts-expect-error` (a
+`check:drift`'s oracle. The generation view turns a lone conditional (a
+statement value is a value object where it holds `@value`, else a node)
+into the union of its two arms, drops `not` and names the type an
+`additionalProperties` reference stands for, so a value node, whose values
+hold value nodes, is typed once. Statements marked `@ts-expect-error` (a
 misspelt key, a missing `length` or child `offset`, a complete form missing
 a defaulted key, a three-member Fraction) make a looser generation break
 the typecheck gate. A complete flow-control element without `repeat_count`
@@ -263,7 +265,11 @@ order); `expandIri` by each of its branches.
 The statement rules are proved by inline documents built on the base
 manifest of the shared rejection cases (the terms with `schema`, `wd` and
 `wdt`, one root `#clt_1` in quarters): each code by its smallest document,
-raised by `validate` with Python's path and message; `statementProblems`
+raised by `validate` with Python's path and message, and the schema's
+refusals of a value at the value's own path (a value object with both a
+language and a type, an empty node, a blank-node `id`, a `null` in ordered
+values), which the conditional between value object and node makes
+deterministic; `statementProblems`
 lists every problem of one document breaking each rule once, in rule order,
 and checks the members' schema first (a schema problem hides the rules);
 `manifestWarnings` gives `context_absent` and `bundle_blank` at their paths,
