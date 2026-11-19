@@ -48,7 +48,9 @@ case is written in canonical YAML (`.yaml`) by `dumps` of either package,
 as the [main README](../README.md#serializations) specifies it, and read
 with `loads`. A rejection or warning case about JSON text itself would be
 written in JSON (`.json`); none is at present. The drawings' `inputs.json`
-files are JSON, read by the drawing writers alone.
+files are JSON, read by the drawing writers alone: TiLiE's drawing input, no
+manifest file, so the addresses of its layers and the keys of its `places`
+hold bare IDs, without the `#` a manifest file writes.
 
 `fixtures/serializations/` holds the hand-derived cases of the three
 serializations (canonical YAML, pretty JSON and RFC 8785 JSON): values in
