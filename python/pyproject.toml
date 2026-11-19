@@ -29,6 +29,7 @@ Issues = "https://github.com/TimeToAlign/TimeToShare/issues"
 [dependency-groups]
 dev = [
     "fonttools==4.66.0",
+    "pyld==3.3.0",
     "pytest==9.1.1",
     "ruff==0.16.9",
 ]
