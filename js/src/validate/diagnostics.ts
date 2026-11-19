@@ -157,6 +157,34 @@ export function* treeIds(root: unknown, path: readonly PathSegment[]): Generator
   yield* nestedMapIds(root, path);
 }
 
+/** An ID of a manifest, its path, and the index of the root whose tree holds it (else null). */
+export type ManifestId = readonly [id: string, path: PathSegment[], root: number | null];
+
+/**
+ * Every ID of a manifest with its path, in the order of the identity rules:
+ * each root's tree (as `treeIds` walks it), the groups', the MeasureMaps' and
+ * the named timestamps' IDs, then the manifest's own at `["id"]`. What holds
+ * no string `id` is passed over.
+ */
+export function* manifestIds(manifest: unknown): Generator<ManifestId> {
+  for (const [index, root] of entries(manifest, "timelines").entries()) {
+    for (const [id, path] of treeIds(root, ["timelines", index])) yield [id, path, index];
+  }
+  const keyed: [PathSegment[], JsonObject[]][] = [
+    [["groups"], entries(manifest, "groups")],
+    [["measure_maps"], entries(manifest, "measure_maps")],
+    [["graphical", "timestamps"], timestampsOf(manifest)],
+  ];
+  for (const [key, list] of keyed) {
+    for (const [index, entry] of list.entries()) {
+      const id = stringId(entry);
+      if (id !== null) yield [id, [...key, index, "id"], null];
+    }
+  }
+  const own = stringId(manifest);
+  if (own !== null) yield [own, ["id"], null];
+}
+
 /** A string member of an object the schema has already checked. */
 export function text(owner: JsonObject, key: string): string {
   return owner[key] as string;

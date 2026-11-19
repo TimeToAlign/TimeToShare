@@ -3,10 +3,10 @@ import { timelineContainmentProblems } from "./containment.js";
 import {
   duplicateProblem,
   entries,
+  manifestIds,
   type PathSegment,
   SchemaValidationError,
   text,
-  timestampsOf,
   treeIds,
 } from "./diagnostics.js";
 import { MEASURE_VIEWS, timelineMapProblems, timelineMaps } from "./maps.js";
@@ -149,34 +149,26 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
     yield* rootProblems(root, ["timelines", index], measureMapIds);
   }
 
+  // A root's repeated IDs were reported with the root; across roots each ID
+  // counts from its first root, and the manifest's own ID is checked last.
   const first = new Map<string, PathSegment[]>();
-  for (const [index, root] of roots.entries()) {
-    const seen = new Map<string, PathSegment[]>();
-    for (const [id, path] of treeIds(root, ["timelines", index])) {
+  let seen = new Map<string, PathSegment[]>();
+  let current: number | null = null;
+  for (const [id, path, root] of manifestIds(manifest)) {
+    if (root !== current) {
+      for (const [earlierId, at] of seen) if (!first.has(earlierId)) first.set(earlierId, at);
+      seen = new Map();
+      current = root;
+    }
+    const earlier = first.get(id);
+    if (root !== null) {
       if (seen.has(id)) continue;
       seen.set(id, path);
-      const earlier = first.get(id);
       if (earlier !== undefined) yield duplicateProblem(id, path, earlier);
-    }
-    for (const [id, path] of seen) if (!first.has(id)) first.set(id, path);
-  }
-  const keyed: [PathSegment[], JsonObject[]][] = [
-    [["groups"], groups],
-    [["measure_maps"], measureMaps],
-    [["graphical", "timestamps"], timestampsOf(manifest)],
-  ];
-  for (const [key, list] of keyed) {
-    for (const [index, entry] of list.entries()) {
-      const id = text(entry, "id");
-      const path = [...key, index, "id"];
-      const earlier = first.get(id);
-      if (earlier === undefined) first.set(id, path);
-      else yield duplicateProblem(id, path, earlier);
-    }
-  }
-  if (typeof manifest.id === "string") {
-    const earlier = first.get(manifest.id);
-    if (earlier !== undefined) yield duplicateProblem(manifest.id, ["id"], earlier, "manifest_id");
+    } else if (path.length === 1) {
+      if (earlier !== undefined) yield duplicateProblem(id, path, earlier, "manifest_id");
+    } else if (earlier === undefined) first.set(id, path);
+    else yield duplicateProblem(id, path, earlier);
   }
 
   const parents = parentsOf(roots);

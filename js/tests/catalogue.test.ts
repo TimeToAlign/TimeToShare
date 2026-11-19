@@ -230,10 +230,10 @@ describe("recognize", () => {
 
 describe("verbOf", () => {
   const context = m2()["@context"];
-  const contributor = (role: string) => ({
+  const contributor = (...roles: unknown[]) => ({
     type: ["schema:OrganizationRole"],
     "schema:contributor": [{ id: "wd:Q84148" }],
-    "schema:roleName": [role],
+    "schema:roleName": roles,
   });
   it.each<[string, unknown, [string, boolean] | null]>([
     ["rel:prf", { id: "viaf:113931950" }, ["performed_by", false]],
@@ -250,6 +250,49 @@ describe("verbOf", () => {
     ["wdt:P175", "Maria João Pires", null],
   ])("reads %s %j as %j", (property, value, expected) => {
     expect(verbOf(CATALOGUE_TEST, context, property, value)).toEqual(expected);
+  });
+
+  it("reads rdf:type by its IRI as the key type", () => {
+    const withRdf = {
+      ...(context as JsonObject),
+      rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    };
+    expect(verbOf(CATALOGUE_TEST, withRdf, "rdf:type", "schema:X")).toEqual(["is_a", false]);
+  });
+
+  it("matches no ordered values by a slot", () => {
+    expect(verbOf(CATALOGUE_TEST, context, "type", { list: ["schema:X"] })).toBeNull();
+    const ordered = contributor({ list: ["piano"] });
+    expect(verbOf(CATALOGUE_TEST, context, "schema:contributor", ordered)).toBeNull();
+  });
+
+  it("counts the best match of a template key's items once", () => {
+    const accompanied: Catalogue["verbs"][number] = {
+      id: "accompanied_by",
+      label: "accompanied by",
+      patterns: {
+        fallback: [
+          {
+            pattern: {
+              "schema:contributor": [
+                {
+                  type: ["schema:OrganizationRole"],
+                  "schema:contributor": [{ id: "?" }],
+                  "schema:roleName": ["accompanist", "conductor"],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    };
+    const catalogue = { ...CATALOGUE_TEST, verbs: [...CATALOGUE_TEST.verbs, accompanied] };
+    const both = contributor("conductor", "accompanist");
+    expect(verbOf(catalogue, context, "schema:contributor", both)).toEqual(["conducted_by", false]);
+    expect(verbOf(catalogue, context, "schema:contributor", contributor("accompanist"))).toEqual([
+      "accompanied_by",
+      false,
+    ]);
   });
 });
 
@@ -384,6 +427,33 @@ describe("rectangles", () => {
           "https://d-nb.info/gnd/300042558",
         ],
         label: "Clair de lune",
+      },
+    ]);
+  });
+
+  it("join a node without id by the things under its sameAs", () => {
+    const value = m2();
+    const performer = {
+      type: ["schema:OrganizationRole"],
+      "schema:contributor": [{ id: "wd:Q235650" }],
+      "schema:roleName": ["piano"],
+      "schema:sameAs": [{ id: "viaf:113931950" }],
+    };
+    ((value.timelines as JsonObject[])[1] as JsonObject).statements = {
+      "rel:prf": [{ id: "viaf:113931950" }],
+      "schema:contributor": [performer],
+    };
+    expect(rectangles(CATALOGUE_TEST, value, ["timelines", 1])).toEqual([
+      { verb: "is_a", inverse: false, pairs: [], things: [], label: null },
+      {
+        verb: "performed_by",
+        inverse: false,
+        pairs: [
+          ["rel:prf", { id: "viaf:113931950" }],
+          ["schema:contributor", performer],
+        ],
+        things: ["http://viaf.org/viaf/113931950"],
+        label: null,
       },
     ]);
   });

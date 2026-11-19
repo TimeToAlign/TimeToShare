@@ -310,6 +310,30 @@ describe("proposals, confirmations and rejections", () => {
     expect(thrown(() => withPair(m1(), ["timelines"], "wdt:P175", WORK))).toBe(
       "#/timelines addresses no element and no value node",
     );
+    const container = ["timelines", 0, "statements"];
+    expect(thrown(() => pairs(stated, container))).toBe(
+      "#/timelines/0/statements addresses no element and no value node",
+    );
+    expect(thrown(() => withPair(stated, container, "wdt:P175", WORK))).toBe(
+      "#/timelines/0/statements addresses no element and no value node",
+    );
+    const nested = m1();
+    root(nested).statements = {
+      "schema:p": [
+        {
+          id: "wd:Q1",
+          "schema:sameAs": [{ id: "wd:Q2" }],
+          provenance: [{ property: "schema:sameAs", value: { id: "wd:Q2" }, status: "confirmed" }],
+        },
+      ],
+    };
+    const throughProvenance = [...ROOT, "statements", "schema:p", 0, "provenance", 0, "value"];
+    expect(thrown(() => pairs(nested, throughProvenance))).toBe(
+      "#/timelines/0/statements/schema:p/0/provenance/0/value addresses no element and no value node",
+    );
+    expect(pairs(nested, [...ROOT, "statements", "schema:p", 0])).toEqual([
+      ["schema:sameAs", { id: "wd:Q2" }],
+    ]);
     expect(
       thrown(() => withProposal(m1(), ROOT, "wdt:P2550", WORK, { ...options, date: "2026-02-30" })),
     ).toBe("'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD");
@@ -379,6 +403,14 @@ describe("samePair", () => {
     [
       ["schema:author", { label: "A" }],
       ["schema:author", { label: "B" }],
+    ],
+    [
+      ["type", "schema:X"],
+      ["rdf:type", "schema:X"],
+    ],
+    [
+      ["rdf:type", "schema:X"],
+      ["type", "schema:X"],
     ],
   ])("fails for %j and %j", (left, right) => {
     expect(samePair(context, left as [string, unknown], right as [string, unknown])).toBe(false);
@@ -611,6 +643,20 @@ describe("the statement rules", () => {
         {
           statements: COMPOSITION,
           provenance: [entry("rdf:type", { id: "schema:MusicRecording" }, "confirmed")],
+        },
+        {},
+        RDF,
+      ),
+      "provenance_match",
+      ["timelines", 0, "provenance", 0],
+      "no pair of this subject matches the entry; an entry that matches none is proposed or rejected",
+    ],
+    [
+      "a type pair whose entry gives the class as a literal",
+      based(
+        {
+          statements: { type: ["schema:X"] },
+          provenance: [entry("rdf:type", "schema:X", "confirmed")],
         },
         {},
         RDF,

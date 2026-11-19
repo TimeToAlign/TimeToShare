@@ -448,88 +448,175 @@ export function instantiate(
   return result;
 }
 
-/** An IRI with the catalogue's aliases applied. */
-function aliased(catalogue: Catalogue, iri: string): string {
-  for (const [from, to] of Object.entries(catalogue.aliases)) {
-    if (iri.startsWith(from)) return to + iri.slice(from.length);
-  }
-  return iri;
-}
-
-/** A reference as an IRI under a context with aliases applied; a relative reference as written. */
-function thingIri(catalogue: Catalogue, context: unknown, text: string): string {
-  return isAbsoluteReference(text) ? aliased(catalogue, expandIri(context, text) ?? text) : text;
-}
+/** The keys of a node that hold no pairs, and its `type`, which the reading takes apart. */
+const NOT_PAIRED = new Set(["id", "label", "provenance", "type"]);
 
 /**
- * The number of constants by which a template matches a value, or null. A
- * slot matches a value of its kind (`"?"` and a named slot a literal or
- * value object, a node template `{id: "?"}` a node with `id`); a constant
- * `id` or `type` item matches by expanded IRI, any other constant by JSON
- * equality; a node template's keys must be among the value's, its `type`
- * items among the value's, and each item of its other keys must match an
- * item of the value's list under the same expanded key.
+ * How a catalogue reads the pairs of one manifest: its own strings expanded
+ * by its prefixes, the manifest's by the manifest's `@context`, both with the
+ * catalogue's aliases applied.
  */
-function matches(
-  catalogue: Catalogue,
-  context: unknown,
-  template: unknown,
-  value: unknown,
-  iri: boolean,
-): number | null {
-  if (isSlot(template)) {
-    const literal =
-      typeof value === "string" ||
-      typeof value === "boolean" ||
-      typeof value === "bigint" ||
-      (typeof value === "number" && Number.isInteger(value)) ||
-      isFloat(value) ||
-      isValueObject(value);
-    return literal ? 0 : null;
+class Reading {
+  readonly #catalogue: Catalogue;
+  readonly #context: unknown;
+
+  constructor(catalogue: Catalogue, context: unknown) {
+    this.#catalogue = catalogue;
+    this.#context = context;
   }
-  if (typeof template === "string") {
-    if (typeof value !== "string") return null;
-    if (iri) {
-      const expected = thingIri(catalogue, catalogue.prefixes, template);
-      return expected === thingIri(catalogue, context, value) ? 1 : null;
+
+  aliased(iri: string): string {
+    for (const [from, to] of Object.entries(this.#catalogue.aliases)) {
+      if (iri.startsWith(from)) return to + iri.slice(from.length);
     }
-    return template === value ? 1 : null;
+    return iri;
   }
-  if (!isJsonObject(template)) return template === value ? 1 : null;
-  if (!isNode(value)) return null;
-  let count = 0;
-  for (const [key, member] of Object.entries(template)) {
-    if (key === "id") {
-      if (typeof value.id !== "string") return null;
-      const found = matches(catalogue, context, member, value.id, true);
-      if (found === null) return null;
-      count += isSlot(member) ? 0 : found;
-      continue;
-    }
-    const expected = key === "type" ? "type" : thingIri(catalogue, catalogue.prefixes, key);
-    const valueKey = Object.keys(value).find(
-      (candidate) =>
-        (candidate === "type" ? "type" : thingIri(catalogue, context, candidate)) === expected,
-    );
-    const items = valueKey === undefined ? undefined : value[valueKey];
-    if (!Array.isArray(items) || !Array.isArray(member)) return null;
-    for (const wanted of member) {
-      const counts = items
-        .map((item) => matches(catalogue, context, wanted, item, key === "type"))
-        .filter((found): found is number => found !== null);
-      if (counts.length === 0) return null;
-      count += Math.max(...counts);
-    }
+
+  /** An IRI of the catalogue (`type` is `rdf:type`). */
+  own(text: string): string {
+    return this.aliased(expandIri(this.#catalogue.prefixes, text) ?? text);
   }
-  return count;
+
+  /** An IRI of the manifest (`type` is `rdf:type`). */
+  held(text: string): string {
+    return this.aliased(expandIri(this.#context, text) ?? text);
+  }
+
+  /** A node's `id` as its IRI; a relative reference as written. */
+  reference(text: string): string {
+    return isAbsoluteReference(text) ? this.held(text) : text;
+  }
+
+  constant(template: unknown, value: unknown): boolean {
+    if (typeof template === "string" && typeof value === "string") {
+      return (
+        template === value ||
+        (isAbsoluteReference(template) && this.own(template) === this.held(value))
+      );
+    }
+    return template === value;
+  }
+
+  /**
+   * The number of constants by which a template matches a value, or null. A
+   * slot matches a literal or value object (never a node or ordered values);
+   * a node template's `id` matches by IRI, each of its `type` items must be
+   * among the value's (`"?"` wants any), and each other key is matched by
+   * `member`.
+   */
+  matches(template: unknown, value: unknown): number | null {
+    if (isSlot(template)) {
+      const literal =
+        typeof value === "string" ||
+        typeof value === "boolean" ||
+        typeof value === "bigint" ||
+        (typeof value === "number" && Number.isInteger(value)) ||
+        isFloat(value) ||
+        isValueObject(value);
+      return literal ? 0 : null;
+    }
+    if (!isJsonObject(template)) return this.constant(template, value) ? 1 : null;
+    if (!isNode(value)) return null;
+    let count = 0;
+    for (const [key, member] of Object.entries(template)) {
+      if (key === "id") {
+        if (typeof value.id !== "string") return null;
+        if (member !== "?") {
+          if (typeof member !== "string" || this.own(member) !== this.reference(value.id)) {
+            return null;
+          }
+          count += 1;
+        }
+      } else if (key === "type") {
+        const held = (Array.isArray(value.type) ? value.type : [])
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => this.held(item));
+        for (const wanted of Array.isArray(member) ? member : []) {
+          if (wanted === "?") {
+            if (held.length === 0) return null;
+          } else if (typeof wanted === "string" && held.includes(this.own(wanted))) {
+            count += 1;
+          } else {
+            return null;
+          }
+        }
+      } else {
+        const found = this.member(key, member, value);
+        if (found === null) return null;
+        count += found;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * How a node's values under a template key match the key's template: the
+   * best count of any template item against any value of every key of the
+   * node expanding to the same IRI, counted once; null when none matches.
+   */
+  member(key: string, templates: unknown, node: JsonObject): number | null {
+    const iri = this.own(key);
+    let best: number | null = null;
+    for (const [held, values] of Object.entries(node)) {
+      if (NOT_PAIRED.has(held) || this.held(held) !== iri || !Array.isArray(values)) continue;
+      for (const value of values) {
+        for (const template of Array.isArray(templates) ? templates : []) {
+          const found = this.matches(template, value);
+          if (found !== null && (best === null || found > best)) best = found;
+        }
+      }
+    }
+    return best;
+  }
+
+  verbOf(property: string, value: unknown): [verb: string, inverse: boolean] | null {
+    const iri = this.held(property);
+    let best: [string, boolean] | null = null;
+    let most = -1;
+    for (const verb of this.#catalogue.verbs) {
+      for (const [, alternative] of alternativesOf(verb.patterns)) {
+        for (const [key, templates] of Object.entries(alternative.pattern)) {
+          if (this.own(key) !== iri || !Array.isArray(templates)) continue;
+          for (const template of templates) {
+            const found = this.matches(template, value);
+            if (found !== null && found > most) {
+              best = [verb.id, alternative.inverse === true];
+              most = found;
+            }
+          }
+        }
+      }
+    }
+    return best;
+  }
+
+  /**
+   * The IRIs of the things a pair names: a `type` pair's class; a node's `id`
+   * where it has one, then the `id`s under its `schema:sameAs` and
+   * `owl:sameAs`.
+   */
+  things([property, value]: Pair): string[] {
+    if (property === "type" && typeof value === "string") return [this.held(value)];
+    if (!isNode(value)) return [];
+    const found = typeof value.id === "string" ? [this.reference(value.id)] : [];
+    for (const [key, items] of Object.entries(value)) {
+      if (NOT_PAIRED.has(key) || !SAME_AS.includes(this.held(key)) || !Array.isArray(items)) {
+        continue;
+      }
+      for (const item of items) {
+        if (isNode(item) && typeof item.id === "string") found.push(this.reference(item.id));
+      }
+    }
+    return found;
+  }
 }
 
 /**
  * The verb a pair states and whether it is the verb's inverse reading, or
  * null: among the alternatives whose key expands (aliases applied) to the
- * property's IRI and whose template matches the value, the one with most
- * constants, ties to the first in catalogue order. `context` is the
- * manifest's `@context`.
+ * property's IRI (`type` and an expanded `rdf:type` alike) and whose template
+ * matches the value, the one with most constants, ties to the first in
+ * catalogue order. `context` is the manifest's `@context`.
  */
 export function verbOf(
   catalogue: Catalogue,
@@ -537,42 +624,7 @@ export function verbOf(
   property: string,
   value: unknown,
 ): [verb: string, inverse: boolean] | null {
-  const target =
-    property === "type" ? "type" : aliased(catalogue, expandIri(context, property) ?? property);
-  let best: [string, boolean] | null = null;
-  let most = -1;
-  for (const verb of catalogue.verbs) {
-    for (const [, alternative] of alternativesOf(verb.patterns)) {
-      for (const [key, templates] of Object.entries(alternative.pattern)) {
-        const expected = key === "type" ? "type" : thingIri(catalogue, catalogue.prefixes, key);
-        if (expected !== target || !Array.isArray(templates)) continue;
-        for (const template of templates) {
-          const found = matches(catalogue, context, template, value, key === "type");
-          if (found !== null && found > most) {
-            best = [verb.id, alternative.inverse === true];
-            most = found;
-          }
-        }
-      }
-    }
-  }
-  return best;
-}
-
-/** The expanded IRIs of the things a pair names. */
-function thingsOf(catalogue: Catalogue, context: unknown, [property, value]: Pair): string[] {
-  if (property === "type")
-    return typeof value === "string" ? [thingIri(catalogue, context, value)] : [];
-  if (!isNode(value) || typeof value.id !== "string") return [];
-  const found = [thingIri(catalogue, context, value.id)];
-  for (const [key, items] of Object.entries(value)) {
-    if (!SAME_AS.includes(thingIri(catalogue, context, key)) || !Array.isArray(items)) continue;
-    for (const item of items) {
-      if (isNode(item) && typeof item.id === "string")
-        found.push(thingIri(catalogue, context, item.id));
-    }
-  }
-  return found;
+  return new Reading(catalogue, context).verbOf(property, value);
 }
 
 /**
@@ -591,11 +643,11 @@ export function rectangles(
   manifest: unknown,
   subject: readonly PathSegment[],
 ): Rectangle[] {
-  const context = isJsonObject(manifest) ? manifest["@context"] : undefined;
+  const reading = new Reading(catalogue, isJsonObject(manifest) ? manifest["@context"] : undefined);
   const read = pairs(manifest, subject).map((pair) => ({
     pair,
-    verb: verbOf(catalogue, context, pair[0], pair[1]),
-    things: thingsOf(catalogue, context, pair),
+    verb: reading.verbOf(pair[0], pair[1]),
+    things: reading.things(pair),
   }));
   const parent = read.map((_, index) => index);
   const root = (index: number): number => {

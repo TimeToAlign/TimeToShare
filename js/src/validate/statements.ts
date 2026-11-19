@@ -41,11 +41,9 @@ import {
 import {
   comparePaths,
   entries,
+  manifestIds,
   type PathSegment,
   SchemaValidationError,
-  stringId,
-  timestampsOf,
-  treeIds,
 } from "./diagnostics.js";
 
 /** The names of the format's terms. */
@@ -153,27 +151,6 @@ export function* reservedKeyProblems(manifest: JsonObject): Generator<SchemaVali
   }
 }
 
-/** Every ID of a manifest: its own, every root's tree, groups, MeasureMaps, named timestamps. */
-function manifestIds(manifest: JsonObject): Set<string> {
-  const found = new Set<string>();
-  const own = stringId(manifest);
-  if (own !== null) found.add(own);
-  for (const [index, root] of entries(manifest, "timelines").entries()) {
-    for (const [id] of treeIds(root, ["timelines", index])) found.add(id);
-  }
-  for (const list of [
-    entries(manifest, "groups"),
-    entries(manifest, "measure_maps"),
-    timestampsOf(manifest),
-  ]) {
-    for (const entry of list) {
-      const id = stringId(entry);
-      if (id !== null) found.add(id);
-    }
-  }
-  return found;
-}
-
 /** The problem of an IRI whose prefix is not declared, or null. */
 function iriProblem(
   context: unknown,
@@ -256,7 +233,7 @@ function* entryProblems(
  */
 export function* subjectProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const context = manifest["@context"];
-  const ids = manifestIds(manifest);
+  const ids = new Set([...manifestIds(manifest)].map(([id]) => id));
   for (const { element, path } of subjectElements(manifest)) {
     if (!carries(element)) continue;
     const id = element.id;

@@ -437,33 +437,57 @@ export function subjectPath(manifest: unknown, elementId: string | null): PathSe
   throw new Error(`no timeline or region of the manifest has the ID '${elementId}'`);
 }
 
-const ELEMENT_LISTS = new Set(["timelines", "children", "regions"]);
+/** The value at one step of a path, or undefined where the step leads nowhere. */
+function stepInto(value: unknown, step: PathSegment): unknown {
+  if (Array.isArray(value)) {
+    return typeof step === "number" && Number.isInteger(step) && step >= 0 && step < value.length
+      ? value[step]
+      : undefined;
+  }
+  return isJsonObject(value) && typeof step === "string" && Object.hasOwn(value, step)
+    ? value[step]
+    : undefined;
+}
 
-/** The object a subject's path addresses, and whether it is a value node. */
+/**
+ * The element a subject's path begins with and the length of that prefix:
+ * `timelines` then `children` or `regions` steps, each followed by an index,
+ * a region ending the walk.
+ */
+function elementAt(manifest: unknown, subject: Subject): [unknown, number] {
+  let target: unknown = manifest;
+  let position = 0;
+  let expected: readonly PathSegment[] = ["timelines"];
+  while (position + 1 < subject.length && expected.includes(subject[position] as PathSegment)) {
+    const key = subject[position] as string;
+    const list = isJsonObject(target) ? target[key] : undefined;
+    target = Array.isArray(list) ? stepInto(list, subject[position + 1] as PathSegment) : undefined;
+    if (target === undefined) return [undefined, position];
+    position += 2;
+    if (key === "regions") break;
+    expected = ["children", "regions"];
+  }
+  return [target, position];
+}
+
+/**
+ * The object a subject's path addresses, and whether it is a value node: an
+ * element's path, or an element's path through its `statements` to a node
+ * held in a list (never through a `provenance`, never the container itself).
+ */
 function resolve(manifest: unknown, subject: Subject): { owner: JsonObject; node: boolean } {
-  let value: unknown = manifest;
-  for (const step of subject) {
-    if (Array.isArray(value) && typeof step === "number") value = value[step];
-    else if (isJsonObject(value) && typeof step === "string" && Object.hasOwn(value, step)) {
-      value = value[step];
-    } else {
-      value = undefined;
-      break;
-    }
+  const missing = new Error(`${jsonPointer(subject)} addresses no element and no value node`);
+  const [element, position] = elementAt(manifest, subject);
+  if (!isJsonObject(element)) throw missing;
+  if (position === subject.length) return { owner: element, node: false };
+  const rest = subject.slice(position);
+  if (rest[0] !== "statements" || rest.includes("provenance") || typeof rest.at(-1) !== "number") {
+    throw missing;
   }
-  if (isJsonObject(value)) {
-    if (subject.includes("statements")) {
-      if (isNode(value)) return { owner: value, node: true };
-    } else if (
-      subject.length === 0 ||
-      (subject.length >= 2 &&
-        typeof subject.at(-1) === "number" &&
-        ELEMENT_LISTS.has(String(subject.at(-2))))
-    ) {
-      return { owner: value, node: false };
-    }
-  }
-  throw new Error(`${jsonPointer(subject)} addresses no element and no value node`);
+  let value: unknown = element;
+  for (const step of rest) value = stepInto(value, step);
+  if (!isNode(value)) throw missing;
+  return { owner: value, node: true };
 }
 
 /** The `@context` of a manifest, or null. */
@@ -554,6 +578,11 @@ function sameValue(context: unknown, left: unknown, right: unknown): boolean {
   return jsonEqual(left, right);
 }
 
+/** A pair's value, a `type` item T read as the thing `{id: T}`; only the key `type` reads so. */
+function asThing([property, value]: Pair): unknown {
+  return property === "type" && typeof value === "string" ? { id: value } : value;
+}
+
 /**
  * Whether two pairs are the same pair under `context`: their properties
  * expand to the same IRI (`type` is `rdf:type`) and their values are equal.
@@ -565,11 +594,8 @@ function sameValue(context: unknown, left: unknown, right: unknown): boolean {
  * as written.
  */
 export function samePair(context: unknown, left: Pair, right: Pair): boolean {
-  const property = propertyIri(context, left[0]);
-  if (property !== propertyIri(context, right[0])) return false;
-  const thing = (value: unknown): unknown =>
-    property === RDF_TYPE && typeof value === "string" ? { id: value } : value;
-  return sameValue(context, thing(left[1]), thing(right[1]));
+  if (propertyIri(context, left[0]) !== propertyIri(context, right[0])) return false;
+  return sameValue(context, asThing(left), asThing(right));
 }
 
 /** The pairs of a subject's container, keys in code-point order, values in list order. */

@@ -257,11 +257,17 @@ of the specification, read from YAML text by `loads` in the file form:
 Every error message of the statement functions is asserted once: a
 property that is no IRI, a pair stated twice, a pair missing, a stated pair
 proposed, a confirmation without a proposal, a path addressing nothing, an
-impossible date. `samePair` is proved by pairs that are equal (a compact
-and a full IRI, `type` and `rdf:type` with `{id}`, a node with a label and
-one without, blank nodes with keys in another order) and unequal (`true`
-and `1`, `1` and `"1"`, value objects of other languages, lists in another
-order); `expandIri` by each of its branches.
+impossible date. A path addresses an element, or a node held in a list
+under an element's `statements`: the path of the container itself and a
+path through a node's `provenance` (to an entry's node `value`, which
+exists) are refused with the same message, while the node holding that
+`provenance` is read. `samePair` is proved by pairs that are equal (a
+compact and a full IRI, `type` and `rdf:type` with `{id}`, a node with a
+label and one without, blank nodes with keys in another order) and unequal
+(`true` and `1`, `1` and `"1"`, value objects of other languages, lists in
+another order, and `type` against `rdf:type` with the same string in either
+order: only the key `type` reads a string as the thing `{id}`, so an
+entry's literal class is no class); `expandIri` by each of its branches.
 
 The statement rules are proved by inline documents built on the base
 manifest of the shared rejection cases (the terms with `schema`, `wd` and
@@ -275,7 +281,10 @@ lists every problem of one document breaking each rule once, in rule order,
 and checks the members' schema first (a schema problem hides the rules);
 `manifestWarnings` gives `context_absent` and `bundle_blank` at their paths,
 sorted, and nothing for a manifest with a context and an ID. M2 itself
-validates and has no warnings.
+validates and has no warnings. The rule `provenance_match` also refuses a
+`confirmed` entry `rdf:type` whose value is the string `schema:X` beside
+the stated `type: [schema:X]` (`rdf` declared), at the entry's path, since
+the entry states a literal and the timeline a class.
 
 ## The catalogue
 
@@ -291,7 +300,29 @@ with `pianist` (most constants win), of `dcterms:hasPart` (the inverse
 reading), of `dcterms:created` (none), of a type and of a full
 `https://schema.org/` key (the alias); `instantiate` with a label, with a
 role slot, without it (refused) and of a type; `rectangles` of both
-timelines of M2, with their verbs, pairs, things and labels. Every
+timelines of M2, with their verbs, pairs, things and labels.
+
+Four readings are pinned beside them, each with a value that the other
+reading would answer differently:
+
+- `verbOf` of `rdf:type` with `schema:X`, under M2's context with `rdf`
+  declared, is `is_a`: a property is read by its IRI, and the pattern key
+  `type` is `rdf:type`.
+- A slot matches no ordered values: `type` with `{list: [schema:X]}` is
+  read by no verb, nor is a contributor node whose role is `{list:
+  [piano]}`.
+- A template key's items are matched against every value under a key of
+  the same IRI, and the best match counts once: with a verb
+  `accompanied_by` appended whose role template lists `accompanist` and
+  `conductor`, a contributor (type `schema:OrganizationRole`) with the roles
+  `conductor` and `accompanist` ties `conducted_by` at two constants and
+  the earlier verb wins, `conducted_by`; with the role `accompanist` alone
+  it is `accompanied_by`, whose two items need not both be present.
+- The things of a node without `id` are the `id`s under its `schema:sameAs`
+  (and `owl:sameAs`): on a subject stating `rel:prf` `{id: viaf:113931950}`
+  and a MusicBrainz contributor node without `id` whose `schema:sameAs` is
+  that VIAF ID, both pairs are `performed_by` and share the thing, so they
+  form one rectangle with the one thing `http://viaf.org/viaf/113931950`. Every
 cross-reference error of `readCatalogue` is raised in its order by a
 catalogue holding that one fault. The shipped `catalogue/catalogue.yaml`
 validates against `catalogue/catalogue.schema.json` (Ajv), passes
@@ -657,7 +688,7 @@ the same table:
 After `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists
 `docs/drawing.md`, `schema/0.2.0/timetoshare.schema.json`,
 `catalogue/catalogue.yaml` and `catalogue/catalogue.schema.json` (and
-`package.json` exports `./catalogue/*`, no longer `./registry/*`),
+`package.json` exports `./catalogue/*`),
 `LICENSE` and
 exactly the five files of `fonts/` (both TrueType files, `DejaVuSans-LICENSE`,
 `NotoMusic-LICENSE` and the metrics table
