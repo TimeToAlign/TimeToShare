@@ -3,21 +3,21 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: score
+      timeline: "#score"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: score
+      timeline: "#score"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: Sketch
 timelines:
   -
-    id: score
+    id: "#score"
     length: [16, 1]
     name: Score
     unit: quarters

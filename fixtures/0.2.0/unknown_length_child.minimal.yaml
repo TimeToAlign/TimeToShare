@@ -3,32 +3,32 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: score
+      timeline: "#score"
     -
       coordinate: [32, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: score
+      timeline: "#score"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
-        id: movement
+        id: "#movement"
         length: null
         locked: true
         offset: [8, 1]
         regions:
           -
             end: [6, 1]
-            id: region_1
+            id: "#region_1"
             start: [0, 1]
         unit: quarters
-    id: score
+    id: "#score"
     length: [32, 1]
     unit: quarters
 timetoshare: "0.2.0"

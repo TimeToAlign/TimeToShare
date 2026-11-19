@@ -3,60 +3,60 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: form
+      timeline: "#form"
     -
       coordinate: [32, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: form
+      timeline: "#form"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
-        id: a
+        id: "#a"
         length: [8, 1]
         offset: [0, 1]
         unit: quarters
       -
         conversion_maps:
           -
-            id: ticks_b
+            id: "#ticks_b"
             name: Ticks
             scalar: 480
             source_unit: quarters
             target_unit: ticks
             type: LinearMap
-        id: b
+        id: "#b"
         length: [12, 1]
         offset: [8, 1]
         unit: quarters
       -
         conversion_maps:
           -
-            id: ticks_c
+            id: "#ticks_c"
             name: Ticks
             scalar: 480
             source_unit: quarters
             target_unit: ticks
             type: LinearMap
-        id: c
+        id: "#c"
         length: [12, 1]
         offset: [20, 1]
         unit: quarters
     conversion_maps:
       -
-        id: ticks_form
+        id: "#ticks_form"
         name: Ticks
         scalar: 480
         source_unit: quarters
         target_unit: ticks
         type: LinearMap
-    id: form
+    id: "#form"
     is_segment_line: true
     length: [32, 1]
     name: Form

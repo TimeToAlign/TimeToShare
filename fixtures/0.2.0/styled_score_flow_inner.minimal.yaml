@@ -1,7 +1,7 @@
 graphical:
   order:
-    score: [children, markers, line, conversion_maps, flow_control, regions]
-  statements:
+    "#score": [children, markers, line, conversion_maps, flow_control, regions]
+  rules:
     -
       select:
         element: label
@@ -18,7 +18,7 @@ graphical:
       select:
         addresses:
           -
-            id: a
+            id: "#a"
       set:
         display: none
     -
@@ -64,7 +64,7 @@ graphical:
     -
       select:
         element: wedge
-        within: score
+        within: "#score"
       set:
         fill: "#65A30D"
         stroke: "#65A30D"
@@ -72,27 +72,27 @@ graphical:
       select:
         addresses:
           -
-            id: timestamp_2
+            id: "#timestamp_2"
       set:
         fill: "#B45309"
         stroke: "#B45309"
     -
       select:
         element: child
-        within: score
+        within: "#score"
       set:
         display: inline
     -
       select:
         element: child
-        within: b
+        within: "#b"
       set:
         fill: "#EA580C"
         stroke: "#EA580C"
     -
       select:
         element: label
-        within: score
+        within: "#score"
       set:
         fill: "#4D7C0F"
         font-size: 10
@@ -100,7 +100,7 @@ graphical:
       select:
         addresses:
           -
-            id: timestamp_2
+            id: "#timestamp_2"
             part: [coordinate]
       set:
         fill: "#A16207"
@@ -108,7 +108,7 @@ graphical:
       select:
         addresses:
           -
-            id: intro
+            id: "#intro"
             part: [label]
       set:
         fill: "#0E7490"
@@ -116,7 +116,7 @@ graphical:
       select:
         addresses:
           -
-            id: da-capo
+            id: "#da-capo"
             part: [label]
       set:
         fill: "#9D174D"
@@ -124,7 +124,7 @@ graphical:
       select:
         addresses:
           -
-            id: score
+            id: "#score"
             part: [name]
       set:
         content: "Styled score"
@@ -134,7 +134,7 @@ graphical:
     -
       select:
         element: name
-        within: b
+        within: "#b"
       set:
         fill: "#0369A1"
   styles:
@@ -147,35 +147,35 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: score
+      timeline: "#score"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: score
+      timeline: "#score"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
-        id: a
+        id: "#a"
         length: [4, 1]
         locked: true
         offset: [0, 1]
         unit: quarters
       -
-        id: b
+        id: "#b"
         length: [4, 1]
         locked: true
         offset: [4, 1]
         unit: quarters
     conversion_maps:
       -
-        id: ticks
+        id: "#ticks"
         name: Ticks
         scalar: 480
         source_unit: quarters
@@ -184,17 +184,17 @@ timelines:
     flow_control:
       -
         coordinate: [8, 1]
-        id: da-capo
+        id: "#da-capo"
         label: D.C.
         manifestation: da_capo
         type: jump_from
-    id: score
+    id: "#score"
     length: [8, 1]
     name: Score
     regions:
       -
         end: [2, 1]
-        id: intro
+        id: "#intro"
         name: intro
         start: [0, 1]
     unit: quarters

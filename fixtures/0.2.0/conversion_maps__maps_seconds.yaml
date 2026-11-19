@@ -1,25 +1,25 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: "maps:seconds"
+      timeline: "#maps:seconds"
     -
       coordinate: 2.0
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: "maps:seconds"
+      timeline: "#maps:seconds"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -27,7 +27,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_1
+        id: "#cmap_1"
         name: null
         offset: 0
         scalar: 48000
@@ -35,7 +35,7 @@ timelines:
         target_unit: samples
         type: LinearMap
     flow_control: []
-    id: "maps:seconds"
+    id: "#maps:seconds"
     is_segment_line: false
     length: 2.0
     links: []

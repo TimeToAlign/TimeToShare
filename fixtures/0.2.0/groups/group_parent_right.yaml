@@ -1,43 +1,43 @@
 graphical:
   order:
-    group_1: [first-half, recording]
-  statements: []
+    "#group_1": ["#first-half", "#recording"]
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: first-half
+      timeline: "#first-half"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: first-half
+      timeline: "#first-half"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: recording
+      timeline: "#recording"
     -
       coordinate: 10.0
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: recording
+      timeline: "#recording"
 groups:
   -
-    id: group_1
-    members: [first-half, recording]
+    id: "#group_1"
+    members: ["#first-half", "#recording"]
     meta: {}
     name: "First half"
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -47,7 +47,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: first-half
+        id: "#first-half"
         is_segment_line: false
         length: [8, 1]
         links: []
@@ -60,7 +60,7 @@ timelines:
         unit: quarters
     conversion_maps: []
     flow_control: []
-    id: piece
+    id: "#piece"
     is_segment_line: false
     length: [16, 1]
     links: []
@@ -74,7 +74,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: recording
+    id: "#recording"
     is_segment_line: false
     length: 10.0
     links: []

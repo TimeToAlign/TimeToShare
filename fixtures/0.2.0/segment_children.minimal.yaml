@@ -3,35 +3,35 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: piece
+      timeline: "#piece"
     -
       coordinate: [32, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: piece
+      timeline: "#piece"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
         children:
           -
-            id: i1
+            id: "#i1"
             length: [3, 1]
             name: i1
             offset: [0, 1]
             unit: quarters
           -
-            id: i2
+            id: "#i2"
             length: [3, 1]
             name: i2
             offset: [3, 1]
             unit: quarters
-        id: intro
+        id: "#intro"
         is_segment_line: true
         length: [6, 1]
         locked: true
@@ -41,24 +41,24 @@ timelines:
       -
         children:
           -
-            id: t1
+            id: "#t1"
             length: [4, 1]
             name: t1
             offset: [0, 1]
             unit: quarters
           -
-            id: t2
+            id: "#t2"
             length: [4, 1]
             name: t2
             offset: [4, 1]
             unit: quarters
           -
-            id: t3
+            id: "#t3"
             length: [4, 1]
             name: t3
             offset: [8, 1]
             unit: quarters
-        id: theme
+        id: "#theme"
         is_segment_line: true
         length: [12, 1]
         locked: true
@@ -68,25 +68,25 @@ timelines:
       -
         children:
           -
-            id: c1
+            id: "#c1"
             length: [5, 1]
             name: c1
             offset: [0, 1]
             unit: quarters
           -
-            id: c2
+            id: "#c2"
             length: [3, 1]
             name: c2
             offset: [5, 1]
             unit: quarters
-        id: coda
+        id: "#coda"
         is_segment_line: true
         length: [8, 1]
         locked: true
         name: Coda
         offset: [22, 1]
         unit: quarters
-    id: piece
+    id: "#piece"
     length: [32, 1]
     name: Piece
     unit: quarters

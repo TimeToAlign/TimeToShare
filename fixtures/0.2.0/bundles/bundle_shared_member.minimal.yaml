@@ -1,69 +1,69 @@
 graphical:
   order:
-    g1: [t, u]
-    g2: [t, v]
+    "#g1": ["#t", "#u"]
+    "#g2": ["#t", "#v"]
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: t
+      timeline: "#t"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: t
+      timeline: "#t"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: u
+      timeline: "#u"
     -
       coordinate: 4.0
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: u
+      timeline: "#u"
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_5
+      id: "#timestamp_5"
       name: origin
-      timeline: v
+      timeline: "#v"
     -
       coordinate: 800
       display: [wedge, coordinate]
-      id: timestamp_6
+      id: "#timestamp_6"
       name: length
-      timeline: v
+      timeline: "#v"
 groups:
   -
-    id: g1
-    members: [t, u]
+    id: "#g1"
+    members: ["#t", "#u"]
     name: Performance
   -
-    id: g2
-    members: [t, v]
+    id: "#g2"
+    members: ["#t", "#v"]
     name: Page
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: Shared
 timelines:
   -
-    id: t
+    id: "#t"
     length: [8, 1]
     name: Score
     unit: quarters
   -
-    id: u
+    id: "#u"
     length: 4.0
     name: Performance
     unit: seconds
   -
-    id: v
+    id: "#v"
     length: 800
     name: Page
     unit: pixels

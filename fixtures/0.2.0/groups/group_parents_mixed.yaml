@@ -1,67 +1,67 @@
 graphical:
   order:
-    group_1: [exposition, take, system, audio]
-  statements: []
+    "#group_1": ["#exposition", "#take", "#system", "#audio"]
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: audio
+      timeline: "#audio"
     -
       coordinate: 1323000
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: audio
+      timeline: "#audio"
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: exposition
+      timeline: "#exposition"
     -
       coordinate: [32, 1]
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: exposition
+      timeline: "#exposition"
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_5
+      id: "#timestamp_5"
       name: origin
-      timeline: system
+      timeline: "#system"
     -
       coordinate: 600
       display: [wedge, coordinate]
-      id: timestamp_6
+      id: "#timestamp_6"
       name: length
-      timeline: system
+      timeline: "#system"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_7
+      id: "#timestamp_7"
       name: origin
-      timeline: take
+      timeline: "#take"
     -
       coordinate: 25.5
       display: [wedge, coordinate]
-      id: timestamp_8
+      id: "#timestamp_8"
       name: length
-      timeline: take
+      timeline: "#take"
 groups:
   -
-    id: group_1
-    members: [audio, exposition, system, take]
+    id: "#group_1"
+    members: ["#audio", "#exposition", "#system", "#take"]
     meta: {}
     name: Exposition
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -69,7 +69,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_2
+        id: "#cmap_2"
         name: null
         offset: 0
         scalar: [1, 44100]
@@ -77,7 +77,7 @@ timelines:
         target_unit: seconds
         type: LinearMap
     flow_control: []
-    id: audio
+    id: "#audio"
     is_segment_line: false
     length: 1323000
     links: []
@@ -93,7 +93,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: system
+        id: "#system"
         is_segment_line: false
         length: 600
         links: []
@@ -106,7 +106,7 @@ timelines:
         unit: pixels
     conversion_maps: []
     flow_control: []
-    id: page
+    id: "#page"
     is_segment_line: false
     length: 1754
     links: []
@@ -122,7 +122,7 @@ timelines:
         children: []
         conversion_maps:
           -
-            id: cmap_1
+            id: "#cmap_1"
             name: null
             offset: 0
             scalar: 44100
@@ -130,7 +130,7 @@ timelines:
             target_unit: samples
             type: LinearMap
         flow_control: []
-        id: take
+        id: "#take"
         is_segment_line: false
         length: 25.5
         links: []
@@ -143,7 +143,7 @@ timelines:
         unit: seconds
     conversion_maps: []
     flow_control: []
-    id: session
+    id: "#session"
     is_segment_line: false
     length: 90.0
     links: []
@@ -159,7 +159,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: exposition
+        id: "#exposition"
         is_segment_line: false
         length: [32, 1]
         links: []
@@ -172,7 +172,7 @@ timelines:
         unit: quarters
     conversion_maps: []
     flow_control: []
-    id: sonata
+    id: "#sonata"
     is_segment_line: false
     length: [48, 1]
     links: []

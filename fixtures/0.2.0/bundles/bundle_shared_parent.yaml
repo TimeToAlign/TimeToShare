@@ -1,85 +1,85 @@
 graphical:
   order:
-    group_1: [exposition, take_1]
-    group_2: [recapitulation, take_2]
-  statements: []
+    "#group_1": ["#exposition", "#take_1"]
+    "#group_2": ["#recapitulation", "#take_2"]
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: exposition
+      timeline: "#exposition"
     -
       coordinate: [12, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: exposition
+      timeline: "#exposition"
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: page
+      timeline: "#page"
     -
       coordinate: 1754
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: page
+      timeline: "#page"
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_5
+      id: "#timestamp_5"
       name: origin
-      timeline: recapitulation
+      timeline: "#recapitulation"
     -
       coordinate: [12, 1]
       display: [wedge, coordinate]
-      id: timestamp_6
+      id: "#timestamp_6"
       name: length
-      timeline: recapitulation
+      timeline: "#recapitulation"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_7
+      id: "#timestamp_7"
       name: origin
-      timeline: take_1
+      timeline: "#take_1"
     -
       coordinate: 30.0
       display: [wedge, coordinate]
-      id: timestamp_8
+      id: "#timestamp_8"
       name: length
-      timeline: take_1
+      timeline: "#take_1"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_9
+      id: "#timestamp_9"
       name: origin
-      timeline: take_2
+      timeline: "#take_2"
     -
       coordinate: 28.5
       display: [wedge, coordinate]
-      id: timestamp_10
+      id: "#timestamp_10"
       name: length
-      timeline: take_2
+      timeline: "#take_2"
 groups:
   -
-    id: group_1
-    members: [exposition, take_1]
+    id: "#group_1"
+    members: ["#exposition", "#take_1"]
     meta: {}
     name: Exposition
   -
-    id: group_2
-    members: [recapitulation, take_2]
+    id: "#group_2"
+    members: ["#recapitulation", "#take_2"]
     meta: {}
     name: Recapitulation
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: Sonata
 schemes: []
 timelines:
@@ -87,7 +87,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: page
+    id: "#page"
     is_segment_line: false
     length: 1754
     links: []
@@ -105,7 +105,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: exposition_first
+            id: "#exposition_first"
             is_segment_line: false
             length: [6, 1]
             links: []
@@ -120,7 +120,7 @@ timelines:
             children: []
             conversion_maps:
               -
-                id: cmap_3
+                id: "#cmap_3"
                 name: null
                 offset: 0
                 scalar: [1, 2]
@@ -128,7 +128,7 @@ timelines:
                 target_unit: seconds
                 type: LinearMap
             flow_control: []
-            id: exposition_second
+            id: "#exposition_second"
             is_segment_line: false
             length: [6, 1]
             links: []
@@ -141,7 +141,7 @@ timelines:
             unit: quarters
         conversion_maps:
           -
-            id: cmap_2
+            id: "#cmap_2"
             name: null
             offset: 0
             scalar: 480
@@ -149,7 +149,7 @@ timelines:
             target_unit: ticks
             type: LinearMap
         flow_control: []
-        id: exposition
+        id: "#exposition"
         is_segment_line: true
         length: [12, 1]
         links: []
@@ -168,7 +168,7 @@ timelines:
                 children: []
                 conversion_maps: []
                 flow_control: []
-                id: recapitulation_first_1
+                id: "#recapitulation_first_1"
                 is_segment_line: false
                 length: [3, 1]
                 links: []
@@ -183,7 +183,7 @@ timelines:
                 children: []
                 conversion_maps: []
                 flow_control: []
-                id: recapitulation_first_2
+                id: "#recapitulation_first_2"
                 is_segment_line: false
                 length: [3, 1]
                 links: []
@@ -196,7 +196,7 @@ timelines:
                 unit: quarters
             conversion_maps: []
             flow_control: []
-            id: recapitulation_first
+            id: "#recapitulation_first"
             is_segment_line: true
             length: [6, 1]
             links: []
@@ -213,7 +213,7 @@ timelines:
                 children: []
                 conversion_maps: []
                 flow_control: []
-                id: recapitulation_second_1
+                id: "#recapitulation_second_1"
                 is_segment_line: false
                 length: [3, 1]
                 links: []
@@ -228,7 +228,7 @@ timelines:
                 children: []
                 conversion_maps: []
                 flow_control: []
-                id: recapitulation_second_2
+                id: "#recapitulation_second_2"
                 is_segment_line: false
                 length: [3, 1]
                 links: []
@@ -241,7 +241,7 @@ timelines:
                 unit: quarters
             conversion_maps:
               -
-                id: cmap_4
+                id: "#cmap_4"
                 name: null
                 offset: 0
                 scalar: 480
@@ -249,7 +249,7 @@ timelines:
                 target_unit: ticks
                 type: LinearMap
             flow_control: []
-            id: recapitulation_second
+            id: "#recapitulation_second"
             is_segment_line: true
             length: [6, 1]
             links: []
@@ -262,7 +262,7 @@ timelines:
             unit: quarters
         conversion_maps: []
         flow_control: []
-        id: recapitulation
+        id: "#recapitulation"
         is_segment_line: true
         length: [12, 1]
         links: []
@@ -275,7 +275,7 @@ timelines:
         unit: quarters
     conversion_maps:
       -
-        id: cmap_1
+        id: "#cmap_1"
         name: null
         offset: 0
         scalar: 480
@@ -285,14 +285,14 @@ timelines:
     flow_control:
       -
         coordinate: [12, 1]
-        id: jump_from_1
+        id: "#jump_from_1"
         label: Repeat
         manifestation: repeat_end
         meta: {}
         name: null
         repeat_count: 1
         type: jump_from
-    id: score
+    id: "#score"
     is_segment_line: false
     length: [32, 1]
     links: []
@@ -303,7 +303,7 @@ timelines:
     regions:
       -
         end: [20, 1]
-        id: region_1
+        id: "#region_1"
         links: []
         meta: {}
         name: Development
@@ -315,7 +315,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: take_1_first
+        id: "#take_1_first"
         is_segment_line: false
         length: 14.0
         links: []
@@ -330,7 +330,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: take_1_second
+        id: "#take_1_second"
         is_segment_line: false
         length: 16.0
         links: []
@@ -343,7 +343,7 @@ timelines:
         unit: seconds
     conversion_maps:
       -
-        id: cmap_5
+        id: "#cmap_5"
         name: null
         offset: 0
         scalar: 44100
@@ -351,7 +351,7 @@ timelines:
         target_unit: samples
         type: LinearMap
     flow_control: []
-    id: take_1
+    id: "#take_1"
     is_segment_line: true
     length: 30.0
     links: []
@@ -365,7 +365,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: take_2
+    id: "#take_2"
     is_segment_line: false
     length: 28.5
     links: []

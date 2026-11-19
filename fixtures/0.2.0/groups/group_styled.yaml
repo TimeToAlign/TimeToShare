@@ -1,7 +1,7 @@
 graphical:
   order:
-    group_1: [score, page, performance]
-  statements:
+    "#group_1": ["#score", "#page", "#performance"]
+  rules:
     -
       select:
         element: frame
@@ -10,7 +10,7 @@ graphical:
       select:
         addresses:
           -
-            id: group_1
+            id: "#group_1"
             part: [name]
         element: name
       set:
@@ -29,49 +29,49 @@ graphical:
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: page
+      timeline: "#page"
     -
       coordinate: 1920
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: page
+      timeline: "#page"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: performance
+      timeline: "#performance"
     -
       coordinate: 12.5
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: performance
+      timeline: "#performance"
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_5
+      id: "#timestamp_5"
       name: origin
-      timeline: score
+      timeline: "#score"
     -
       coordinate: [12, 1]
       display: [wedge, coordinate]
-      id: timestamp_6
+      id: "#timestamp_6"
       name: length
-      timeline: score
+      timeline: "#score"
 groups:
   -
-    id: group_1
-    members: [page, performance, score]
+    id: "#group_1"
+    members: ["#page", "#performance", "#score"]
     meta: {}
     name: Edition
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -79,7 +79,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_3
+        id: "#cmap_3"
         name: null
         offset: 0
         scalar: [3, 4]
@@ -87,7 +87,7 @@ timelines:
         target_unit: points
         type: LinearMap
     flow_control: []
-    id: page
+    id: "#page"
     is_segment_line: false
     length: 1920
     links: []
@@ -101,7 +101,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_2
+        id: "#cmap_2"
         name: null
         offset: 0
         scalar: 44100
@@ -109,7 +109,7 @@ timelines:
         target_unit: samples
         type: LinearMap
     flow_control: []
-    id: performance
+    id: "#performance"
     is_segment_line: false
     length: 12.5
     links: []
@@ -123,7 +123,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_1
+        id: "#cmap_1"
         name: null
         offset: 0
         scalar: 480
@@ -133,14 +133,14 @@ timelines:
     flow_control:
       -
         coordinate: [8, 1]
-        id: jump_from_1
+        id: "#jump_from_1"
         label: Repeat
         manifestation: repeat_end
         meta: {}
         name: null
         repeat_count: 1
         type: jump_from
-    id: score
+    id: "#score"
     is_segment_line: false
     length: [12, 1]
     links: []
@@ -151,7 +151,7 @@ timelines:
     regions:
       -
         end: [8, 1]
-        id: region_1
+        id: "#region_1"
         links: []
         meta: {}
         name: Theme

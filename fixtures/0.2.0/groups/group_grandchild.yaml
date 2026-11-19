@@ -1,43 +1,43 @@
 graphical:
   order:
-    group_1: [theme, recording]
-  statements: []
+    "#group_1": ["#theme", "#recording"]
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: recording
+      timeline: "#recording"
     -
       coordinate: 12.0
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: recording
+      timeline: "#recording"
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: theme
+      timeline: "#theme"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: theme
+      timeline: "#theme"
 groups:
   -
-    id: group_1
-    members: [recording, theme]
+    id: "#group_1"
+    members: ["#recording", "#theme"]
     meta: {}
     name: Theme
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -45,7 +45,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: recording
+    id: "#recording"
     is_segment_line: false
     length: 12.0
     links: []
@@ -63,7 +63,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: theme
+            id: "#theme"
             is_segment_line: false
             length: [8, 1]
             links: []
@@ -76,7 +76,7 @@ timelines:
             unit: quarters
         conversion_maps: []
         flow_control: []
-        id: movement
+        id: "#movement"
         is_segment_line: false
         length: [16, 1]
         links: []
@@ -89,7 +89,7 @@ timelines:
         unit: quarters
     conversion_maps: []
     flow_control: []
-    id: score
+    id: "#score"
     is_segment_line: false
     length: [64, 1]
     links: []

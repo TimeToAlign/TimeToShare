@@ -1,37 +1,37 @@
 graphical:
   order:
-    group_1: [performance, score]
-  statements: []
+    "#group_1": ["#performance", "#score"]
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: performance
+      timeline: "#performance"
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: origin
-      timeline: score
+      timeline: "#score"
     -
       coordinate: [12, 1]
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: length
-      timeline: score
+      timeline: "#score"
 groups:
   -
-    id: group_1
-    members: [performance, score]
+    id: "#group_1"
+    members: ["#performance", "#score"]
     meta: {}
     name: Edition
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -39,7 +39,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: performance
+    id: "#performance"
     is_segment_line: false
     length: null
     links: []
@@ -50,7 +50,7 @@ timelines:
     regions:
       -
         end: 9.5
-        id: region_1
+        id: "#region_1"
         links: []
         meta: {}
         name: null
@@ -60,7 +60,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: score
+    id: "#score"
     is_segment_line: false
     length: [12, 1]
     links: []

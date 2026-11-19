@@ -1,15 +1,15 @@
 meta:
-  generator: "timetoalign 1.2.0 (f6199577)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     conversion_maps:
       -
-        id: cmap_1
+        id: "#cmap_1"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
         type: LinearMap
-    id: "Bass Kick"
+    id: "#Bass Kick"
     length: 10188800
     name: "Bass Kick.mp3"
     unit: samples

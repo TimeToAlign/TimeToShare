@@ -1,25 +1,25 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: score
+      timeline: "#score"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: score
+      timeline: "#score"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: Sketch
 schemes: []
 timelines:
@@ -27,7 +27,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: score
+    id: "#score"
     is_segment_line: false
     length: [16, 1]
     links: []

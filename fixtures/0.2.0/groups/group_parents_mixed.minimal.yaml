@@ -1,85 +1,85 @@
 graphical:
   order:
-    group_1: [exposition, take, system, audio]
+    "#group_1": ["#exposition", "#take", "#system", "#audio"]
   timestamps:
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: audio
+      timeline: "#audio"
     -
       coordinate: 1323000
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: audio
+      timeline: "#audio"
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: exposition
+      timeline: "#exposition"
     -
       coordinate: [32, 1]
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: exposition
+      timeline: "#exposition"
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_5
+      id: "#timestamp_5"
       name: origin
-      timeline: system
+      timeline: "#system"
     -
       coordinate: 600
       display: [wedge, coordinate]
-      id: timestamp_6
+      id: "#timestamp_6"
       name: length
-      timeline: system
+      timeline: "#system"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_7
+      id: "#timestamp_7"
       name: origin
-      timeline: take
+      timeline: "#take"
     -
       coordinate: 25.5
       display: [wedge, coordinate]
-      id: timestamp_8
+      id: "#timestamp_8"
       name: length
-      timeline: take
+      timeline: "#take"
 groups:
   -
-    id: group_1
-    members: [audio, exposition, system, take]
+    id: "#group_1"
+    members: ["#audio", "#exposition", "#system", "#take"]
     name: Exposition
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     conversion_maps:
       -
-        id: cmap_2
+        id: "#cmap_2"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
         type: LinearMap
-    id: audio
+    id: "#audio"
     length: 1323000
     name: Audio
     unit: samples
   -
     children:
       -
-        id: system
+        id: "#system"
         length: 600
         locked: true
         name: System
         offset: 0
         unit: pixels
-    id: page
+    id: "#page"
     length: 1754
     name: Page
     unit: pixels
@@ -88,31 +88,31 @@ timelines:
       -
         conversion_maps:
           -
-            id: cmap_1
+            id: "#cmap_1"
             scalar: 44100
             source_unit: seconds
             target_unit: samples
             type: LinearMap
-        id: take
+        id: "#take"
         length: 25.5
         locked: true
         name: Take
         offset: 30.0
         unit: seconds
-    id: session
+    id: "#session"
     length: 90.0
     name: Session
     unit: seconds
   -
     children:
       -
-        id: exposition
+        id: "#exposition"
         length: [32, 1]
         locked: true
         name: Exposition
         offset: [16, 1]
         unit: quarters
-    id: sonata
+    id: "#sonata"
     length: [48, 1]
     locked: true
     name: Sonata

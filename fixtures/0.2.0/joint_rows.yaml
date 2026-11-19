@@ -1,25 +1,25 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: piece
+      timeline: "#piece"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: piece
+      timeline: "#piece"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -33,7 +33,7 @@ timelines:
                 children: []
                 conversion_maps: []
                 flow_control: []
-                id: b11
+                id: "#b11"
                 is_segment_line: false
                 length: [2, 1]
                 links: []
@@ -46,7 +46,7 @@ timelines:
                 unit: quarters
             conversion_maps: []
             flow_control: []
-            id: b1
+            id: "#b1"
             is_segment_line: false
             length: [4, 1]
             links: []
@@ -59,7 +59,7 @@ timelines:
             unit: quarters
         conversion_maps:
           -
-            id: ticks_b
+            id: "#ticks_b"
             name: null
             offset: 0
             scalar: 480
@@ -67,7 +67,7 @@ timelines:
             target_unit: ticks
             type: LinearMap
         flow_control: []
-        id: b
+        id: "#b"
         is_segment_line: false
         length: [6, 1]
         links: []
@@ -86,7 +86,7 @@ timelines:
                 children: []
                 conversion_maps:
                   -
-                    id: tempo_d11
+                    id: "#tempo_d11"
                     name: null
                     offset: 0
                     scalar: [1, 2]
@@ -94,7 +94,7 @@ timelines:
                     target_unit: seconds
                     type: LinearMap
                   -
-                    id: ticks_d11
+                    id: "#ticks_d11"
                     name: null
                     offset: 0
                     scalar: 480
@@ -102,7 +102,7 @@ timelines:
                     target_unit: ticks
                     type: LinearMap
                 flow_control: []
-                id: d11
+                id: "#d11"
                 is_segment_line: false
                 length: [2, 1]
                 links: []
@@ -115,7 +115,7 @@ timelines:
                 unit: quarters
             conversion_maps:
               -
-                id: tempo_d1
+                id: "#tempo_d1"
                 name: null
                 offset: 0
                 scalar: [1, 2]
@@ -123,7 +123,7 @@ timelines:
                 target_unit: seconds
                 type: LinearMap
               -
-                id: ticks_d1
+                id: "#ticks_d1"
                 name: null
                 offset: 0
                 scalar: 480
@@ -131,7 +131,7 @@ timelines:
                 target_unit: ticks
                 type: LinearMap
             flow_control: []
-            id: d1
+            id: "#d1"
             is_segment_line: false
             length: [4, 1]
             links: []
@@ -144,7 +144,7 @@ timelines:
             unit: quarters
         conversion_maps: []
         flow_control: []
-        id: d
+        id: "#d"
         is_segment_line: false
         length: [8, 1]
         links: []
@@ -157,7 +157,7 @@ timelines:
         unit: quarters
     conversion_maps: []
     flow_control: []
-    id: piece
+    id: "#piece"
     is_segment_line: false
     length: [16, 1]
     links: []

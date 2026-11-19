@@ -1,25 +1,25 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: piece
+      timeline: "#piece"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: piece
+      timeline: "#piece"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -31,7 +31,7 @@ timelines:
         flow_control:
           -
             coordinate: [2, 1]
-            id: segno
+            id: "#segno"
             label: null
             manifestation: segno
             meta: {}
@@ -39,7 +39,7 @@ timelines:
             type: jump_to
           -
             coordinate: [4, 1]
-            id: repeat
+            id: "#repeat"
             label: Repeat
             manifestation: repeat_end
             meta: {}
@@ -48,14 +48,14 @@ timelines:
             type: jump_from
           -
             coordinate: [8, 1]
-            id: dal_segno
+            id: "#dal_segno"
             label: D.S.
             manifestation: dal_segno
             meta: {}
             name: null
-            target: segno
+            target: "#segno"
             type: jump_from
-        id: verse
+        id: "#verse"
         is_segment_line: false
         length: [8, 1]
         links: []
@@ -68,7 +68,7 @@ timelines:
         unit: quarters
     conversion_maps: []
     flow_control: []
-    id: piece
+    id: "#piece"
     is_segment_line: false
     length: [16, 1]
     links: []

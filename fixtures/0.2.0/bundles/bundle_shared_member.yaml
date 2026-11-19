@@ -1,61 +1,61 @@
 graphical:
   order:
-    g1: [t, u]
-    g2: [t, v]
-  statements: []
+    "#g1": ["#t", "#u"]
+    "#g2": ["#t", "#v"]
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: t
+      timeline: "#t"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: t
+      timeline: "#t"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: u
+      timeline: "#u"
     -
       coordinate: 4.0
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: u
+      timeline: "#u"
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_5
+      id: "#timestamp_5"
       name: origin
-      timeline: v
+      timeline: "#v"
     -
       coordinate: 800
       display: [wedge, coordinate]
-      id: timestamp_6
+      id: "#timestamp_6"
       name: length
-      timeline: v
+      timeline: "#v"
 groups:
   -
-    id: g1
-    members: [t, u]
+    id: "#g1"
+    members: ["#t", "#u"]
     meta: {}
     name: Performance
   -
-    id: g2
-    members: [t, v]
+    id: "#g2"
+    members: ["#t", "#v"]
     meta: {}
     name: Page
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: Shared
 schemes: []
 timelines:
@@ -63,7 +63,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: t
+    id: "#t"
     is_segment_line: false
     length: [8, 1]
     links: []
@@ -77,7 +77,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: u
+    id: "#u"
     is_segment_line: false
     length: 4.0
     links: []
@@ -91,7 +91,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: v
+    id: "#v"
     is_segment_line: false
     length: 800
     links: []

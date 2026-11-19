@@ -3,40 +3,40 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: form
+      timeline: "#form"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
-        id: a
+        id: "#a"
         length: null
         offset: [0, 1]
         regions:
           -
             end: [4, 1]
-            id: region_1
+            id: "#region_1"
             start: [0, 1]
         unit: quarters
       -
-        id: b
+        id: "#b"
         length: [6, 1]
         offset: [8, 1]
         unit: quarters
       -
-        id: c
+        id: "#c"
         length: null
         offset: [14, 1]
         regions:
           -
             end: [3, 1]
-            id: region_2
+            id: "#region_2"
             start: [0, 1]
         unit: quarters
-    id: form
+    id: "#form"
     is_segment_line: true
     length: null
     unit: quarters

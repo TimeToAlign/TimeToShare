@@ -3,20 +3,20 @@ graphical:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: take
+      timeline: "#take"
     -
       coordinate: 312.48979591836735
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: take
+      timeline: "#take"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
-    id: take
+    id: "#take"
     length: 312.48979591836735
     name: Take
     unit: seconds

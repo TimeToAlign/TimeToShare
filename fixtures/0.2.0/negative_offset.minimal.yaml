@@ -3,20 +3,20 @@ graphical:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: recording
+      timeline: "#recording"
     -
       coordinate: 30.0
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: recording
+      timeline: "#recording"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
-    id: recording
+    id: "#recording"
     length: 30.0
     name: Recording
     offset: -2.5

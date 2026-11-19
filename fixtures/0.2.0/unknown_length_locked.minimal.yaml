@@ -3,21 +3,21 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: score
+      timeline: "#score"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
-        id: coda
+        id: "#coda"
         length: [4, 1]
         locked: true
         offset: [12, 1]
         unit: quarters
-    id: score
+    id: "#score"
     length: null
     locked: true
     unit: quarters

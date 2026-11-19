@@ -3,47 +3,47 @@ graphical:
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: pages
+      timeline: "#pages"
     -
       coordinate: 7016
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: pages
+      timeline: "#pages"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
         children:
           -
-            id: page_1_accolade_1
+            id: "#page_1_accolade_1"
             length: 400
             name: "1"
             offset: 0
             unit: pixels
           -
-            id: page_1_accolade_2
+            id: "#page_1_accolade_2"
             length: 450
             name: "2"
             offset: 400
             unit: pixels
           -
-            id: page_1_accolade_3
+            id: "#page_1_accolade_3"
             length: 452
             name: "3"
             offset: 850
             unit: pixels
           -
-            id: page_1_accolade_4
+            id: "#page_1_accolade_4"
             length: 452
             name: "4"
             offset: 1302
             unit: pixels
-        id: page_1
+        id: "#page_1"
         is_segment_line: true
         length: 1754
         locked: true
@@ -53,30 +53,30 @@ timelines:
       -
         children:
           -
-            id: page_2_accolade_1
+            id: "#page_2_accolade_1"
             length: 400
             name: "1"
             offset: 0
             unit: pixels
           -
-            id: page_2_accolade_2
+            id: "#page_2_accolade_2"
             length: 450
             name: "2"
             offset: 400
             unit: pixels
           -
-            id: page_2_accolade_3
+            id: "#page_2_accolade_3"
             length: 452
             name: "3"
             offset: 850
             unit: pixels
           -
-            id: page_2_accolade_4
+            id: "#page_2_accolade_4"
             length: 452
             name: "4"
             offset: 1302
             unit: pixels
-        id: page_2
+        id: "#page_2"
         is_segment_line: true
         length: 1754
         locked: true
@@ -86,30 +86,30 @@ timelines:
       -
         children:
           -
-            id: page_3_accolade_1
+            id: "#page_3_accolade_1"
             length: 400
             name: "1"
             offset: 0
             unit: pixels
           -
-            id: page_3_accolade_2
+            id: "#page_3_accolade_2"
             length: 450
             name: "2"
             offset: 400
             unit: pixels
           -
-            id: page_3_accolade_3
+            id: "#page_3_accolade_3"
             length: 452
             name: "3"
             offset: 850
             unit: pixels
           -
-            id: page_3_accolade_4
+            id: "#page_3_accolade_4"
             length: 452
             name: "4"
             offset: 1302
             unit: pixels
-        id: page_3
+        id: "#page_3"
         is_segment_line: true
         length: 1754
         locked: true
@@ -119,37 +119,37 @@ timelines:
       -
         children:
           -
-            id: page_4_accolade_1
+            id: "#page_4_accolade_1"
             length: 400
             name: "1"
             offset: 0
             unit: pixels
           -
-            id: page_4_accolade_2
+            id: "#page_4_accolade_2"
             length: 450
             name: "2"
             offset: 400
             unit: pixels
           -
-            id: page_4_accolade_3
+            id: "#page_4_accolade_3"
             length: 452
             name: "3"
             offset: 850
             unit: pixels
           -
-            id: page_4_accolade_4
+            id: "#page_4_accolade_4"
             length: 452
             name: "4"
             offset: 1302
             unit: pixels
-        id: page_4
+        id: "#page_4"
         is_segment_line: true
         length: 1754
         locked: true
         name: "Page 4"
         offset: 5262
         unit: pixels
-    id: pages
+    id: "#pages"
     is_segment_line: true
     length: 7016
     name: Pages

@@ -1,25 +1,25 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: "flow:quarters"
+      timeline: "#flow:quarters"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: "flow:quarters"
+      timeline: "#flow:quarters"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -29,7 +29,7 @@ timelines:
     flow_control:
       -
         coordinate: [2, 1]
-        id: jump_to_1
+        id: "#jump_to_1"
         label: null
         manifestation: repeat_start
         meta: {}
@@ -37,7 +37,7 @@ timelines:
         type: jump_to
       -
         coordinate: [4, 1]
-        id: jump_to_2
+        id: "#jump_to_2"
         label: null
         manifestation: segno
         meta: {}
@@ -45,18 +45,18 @@ timelines:
         type: jump_to
       -
         coordinate: [8, 1]
-        id: jump_from_1
+        id: "#jump_from_1"
         label: Repeat
         manifestation: repeat_end
         meta:
           source: synthetic
         name: null
         repeat_count: 2
-        target: jump_to_1
+        target: "#jump_to_1"
         type: jump_from
       -
         coordinate: [12, 1]
-        id: flow_marker_1
+        id: "#flow_marker_1"
         label: Fine
         manifestation: fine
         meta:
@@ -65,14 +65,14 @@ timelines:
         type: flow_marker
       -
         coordinate: [16, 1]
-        id: jump_from_2
+        id: "#jump_from_2"
         label: D.S.
         manifestation: dal_segno
         meta: {}
         name: null
-        target: jump_to_2
+        target: "#jump_to_2"
         type: jump_from
-    id: "flow:quarters"
+    id: "#flow:quarters"
     is_segment_line: false
     length: [16, 1]
     links: []

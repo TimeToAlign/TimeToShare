@@ -1,25 +1,25 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: form
+      timeline: "#form"
     -
       coordinate: [32, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: form
+      timeline: "#form"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -29,7 +29,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: a
+        id: "#a"
         is_segment_line: false
         length: [8, 1]
         links: []
@@ -44,7 +44,7 @@ timelines:
         children: []
         conversion_maps:
           -
-            id: ticks_b
+            id: "#ticks_b"
             name: Ticks
             offset: 0
             scalar: 480
@@ -52,7 +52,7 @@ timelines:
             target_unit: ticks
             type: LinearMap
         flow_control: []
-        id: b
+        id: "#b"
         is_segment_line: false
         length: [12, 1]
         links: []
@@ -67,7 +67,7 @@ timelines:
         children: []
         conversion_maps:
           -
-            id: ticks_c
+            id: "#ticks_c"
             name: Ticks
             offset: 0
             scalar: 480
@@ -75,7 +75,7 @@ timelines:
             target_unit: ticks
             type: LinearMap
         flow_control: []
-        id: c
+        id: "#c"
         is_segment_line: false
         length: [12, 1]
         links: []
@@ -88,7 +88,7 @@ timelines:
         unit: quarters
     conversion_maps:
       -
-        id: ticks_form
+        id: "#ticks_form"
         name: Ticks
         offset: 0
         scalar: 480
@@ -96,7 +96,7 @@ timelines:
         target_unit: ticks
         type: LinearMap
     flow_control: []
-    id: form
+    id: "#form"
     is_segment_line: true
     length: [32, 1]
     links: []

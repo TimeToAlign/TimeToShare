@@ -1,20 +1,20 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: recording
+      timeline: "#recording"
     -
       coordinate: 690.0
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: recording
+      timeline: "#recording"
 groups: []
 links:
   -
@@ -36,7 +36,7 @@ links:
         assertion: null
         identifiers: []
         label: "I. Allegro"
-        represented_by: [movement_1]
+        represented_by: ["#movement_1"]
         uri: ["http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980"]
       -
         absent: not_represented
@@ -66,7 +66,7 @@ links:
     uri: ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"]
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -74,7 +74,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: recording
+    id: "#recording"
     is_segment_line: false
     length: 690.0
     links:
@@ -104,7 +104,7 @@ timelines:
     regions:
       -
         end: 688.0
-        id: movement_1
+        id: "#movement_1"
         links:
           -
             assertion: null

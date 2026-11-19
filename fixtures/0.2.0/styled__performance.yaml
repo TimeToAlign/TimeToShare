@@ -1,6 +1,6 @@
 graphical:
   order: {}
-  statements:
+  rules:
     -
       select:
         element: label
@@ -17,7 +17,7 @@ graphical:
       select:
         domain: physical
         element: wedge
-        within: performance
+        within: "#performance"
       set:
         fill: "#7F00FF"
         stroke: "#7F00FF"
@@ -26,20 +26,20 @@ graphical:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: performance
+      timeline: "#performance"
     -
       coordinate: 10.0
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: performance
+      timeline: "#performance"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -49,7 +49,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: excerpt
+        id: "#excerpt"
         is_segment_line: false
         length: 4.0
         links: []
@@ -62,7 +62,7 @@ timelines:
         unit: seconds
     conversion_maps: []
     flow_control: []
-    id: performance
+    id: "#performance"
     is_segment_line: false
     length: 10.0
     links: []

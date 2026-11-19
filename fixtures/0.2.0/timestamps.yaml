@@ -1,31 +1,31 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [3, 2]
       display: [wedge, name, cross_section]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: Downbeat
-      timeline: clt_1
+      timeline: "#clt_1"
     -
       coordinate: [6, 1]
       display: [wedge, name]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: Climax
-      timeline: clt_1
+      timeline: "#clt_1"
     -
       coordinate: [1, 1]
       display: [wedge, name, id, coordinate, cross_section]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: Entry
-      timeline: clt_2
+      timeline: "#clt_2"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -35,7 +35,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: clt_2
+        id: "#clt_2"
         is_segment_line: false
         length: [4, 1]
         links: []
@@ -48,7 +48,7 @@ timelines:
         unit: quarters
     conversion_maps: []
     flow_control: []
-    id: clt_1
+    id: "#clt_1"
     is_segment_line: false
     length: [8, 1]
     links: []

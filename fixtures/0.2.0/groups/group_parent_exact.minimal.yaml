@@ -1,54 +1,54 @@
 graphical:
   order:
-    group_1: [whole, recording]
+    "#group_1": ["#whole", "#recording"]
   timestamps:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: recording
+      timeline: "#recording"
     -
       coordinate: 10.0
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: recording
+      timeline: "#recording"
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: whole
+      timeline: "#whole"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: whole
+      timeline: "#whole"
 groups:
   -
-    id: group_1
-    members: [recording, whole]
+    id: "#group_1"
+    members: ["#recording", "#whole"]
     name: Whole
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
-        id: whole
+        id: "#whole"
         length: [16, 1]
         locked: true
         name: Whole
         offset: [0, 1]
         unit: quarters
-    id: piece
+    id: "#piece"
     length: [16, 1]
     name: Piece
     unit: quarters
   -
-    id: recording
+    id: "#recording"
     length: 10.0
     name: Recording
     unit: seconds

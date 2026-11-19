@@ -1,49 +1,49 @@
 graphical:
   order:
-    group_1: ["spine:dlt_1"]
-    group_2: ["los:dlt_2"]
-    group_3: ["original_score:dgt_1"]
-    group_4: ["finale_transcription:dgt_2"]
-    group_5: ["khomus_audio:cpt_1"]
-    group_6: ["khomus_video:cpt_2"]
-  statements: []
+    "#group_1": ["#spine:dlt_1"]
+    "#group_2": ["#los:dlt_2"]
+    "#group_3": ["#original_score:dgt_1"]
+    "#group_4": ["#finale_transcription:dgt_2"]
+    "#group_5": ["#khomus_audio:cpt_1"]
+    "#group_6": ["#khomus_video:cpt_2"]
+  rules: []
   styles: {}
   timestamps: []
 groups:
   -
-    id: group_1
-    members: ["spine:dlt_1"]
+    id: "#group_1"
+    members: ["#spine:dlt_1"]
     meta: {}
     name: "spine:dlt_1"
   -
-    id: group_2
-    members: ["los:dlt_2"]
+    id: "#group_2"
+    members: ["#los:dlt_2"]
     meta: {}
     name: "los:dlt_2"
   -
-    id: group_3
-    members: ["original_score:dgt_1"]
+    id: "#group_3"
+    members: ["#original_score:dgt_1"]
     meta: {}
     name: "original_score:dgt_1"
   -
-    id: group_4
-    members: ["finale_transcription:dgt_2"]
+    id: "#group_4"
+    members: ["#finale_transcription:dgt_2"]
     meta: {}
     name: "finale_transcription:dgt_2"
   -
-    id: group_5
-    members: ["khomus_audio:cpt_1"]
+    id: "#group_5"
+    members: ["#khomus_audio:cpt_1"]
     meta: {}
     name: "khomus_audio:cpt_1"
   -
-    id: group_6
-    members: ["khomus_video:cpt_2"]
+    id: "#group_6"
+    members: ["#khomus_video:cpt_2"]
     meta: {}
     name: "khomus_video:cpt_2"
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: khomus
 schemes: []
 timelines:
@@ -55,7 +55,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: dgt_7
+            id: "#dgt_7"
             is_segment_line: false
             length: 4264
             links: []
@@ -70,7 +70,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: dgt_8
+            id: "#dgt_8"
             is_segment_line: false
             length: 4372
             links: []
@@ -85,7 +85,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: dgt_9
+            id: "#dgt_9"
             is_segment_line: false
             length: 4180
             links: []
@@ -100,7 +100,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: dgt_10
+            id: "#dgt_10"
             is_segment_line: false
             length: 4110
             links: []
@@ -113,7 +113,7 @@ timelines:
             unit: pixels
         conversion_maps: []
         flow_control: []
-        id: dgt_6
+        id: "#dgt_6"
         is_segment_line: true
         length: 16926
         links: []
@@ -133,10 +133,10 @@ timelines:
     conversion_maps:
       -
         breaks: [0, 16926]
-        id: cmap_3
+        id: "#cmap_3"
         maps:
           -
-            id: cmap_4
+            id: "#cmap_4"
             name: null
             source_unit: pixels
             target_unit: null
@@ -147,7 +147,7 @@ timelines:
         target_unit: null
         type: PiecewiseMap
     flow_control: []
-    id: "finale_transcription:dgt_2"
+    id: "#finale_transcription:dgt_2"
     is_segment_line: true
     length: 16926
     links: []
@@ -169,7 +169,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "khomus_audio:cpt_1"
+    id: "#khomus_audio:cpt_1"
     is_segment_line: false
     length: 46.98
     links: []
@@ -191,7 +191,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "khomus_video:cpt_2"
+    id: "#khomus_video:cpt_2"
     is_segment_line: false
     length: 45.88
     links: []
@@ -213,7 +213,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "los:dlt_2"
+    id: "#los:dlt_2"
     is_segment_line: false
     length: 48128
     links: []
@@ -231,7 +231,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: dgt_2
+            id: "#dgt_2"
             is_segment_line: false
             length: 1843
             links: []
@@ -246,7 +246,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: dgt_3
+            id: "#dgt_3"
             is_segment_line: false
             length: 1943
             links: []
@@ -261,7 +261,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: dgt_4
+            id: "#dgt_4"
             is_segment_line: false
             length: 1804
             links: []
@@ -276,7 +276,7 @@ timelines:
             children: []
             conversion_maps: []
             flow_control: []
-            id: dgt_5
+            id: "#dgt_5"
             is_segment_line: false
             length: 1828
             links: []
@@ -289,7 +289,7 @@ timelines:
             unit: pixels
         conversion_maps: []
         flow_control: []
-        id: dgt_1
+        id: "#dgt_1"
         is_segment_line: true
         length: 7418
         links: []
@@ -309,10 +309,10 @@ timelines:
     conversion_maps:
       -
         breaks: [0, 7418]
-        id: cmap_1
+        id: "#cmap_1"
         maps:
           -
-            id: cmap_2
+            id: "#cmap_2"
             name: null
             source_unit: pixels
             target_unit: null
@@ -323,7 +323,7 @@ timelines:
         target_unit: null
         type: PiecewiseMap
     flow_control: []
-    id: "original_score:dgt_1"
+    id: "#original_score:dgt_1"
     is_segment_line: true
     length: 7418
     links: []
@@ -345,7 +345,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "spine:dlt_1"
+    id: "#spine:dlt_1"
     is_segment_line: false
     length: 48128
     links: []

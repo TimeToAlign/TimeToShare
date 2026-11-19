@@ -1,12 +1,12 @@
 graphical:
   order:
-    group_1: ["https://example.org/piece/score", "perf/take 2"]
-  statements:
+    "#group_1": ["#https://example.org/piece/score", "#perf/take 2"]
+  rules:
     -
       select:
         addresses:
           -
-            id: "take 2/intro"
+            id: "#take 2/intro"
       set:
         stroke: "#0F766E"
   styles: {}
@@ -14,37 +14,37 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: "https://example.org/piece/score"
+      timeline: "#https://example.org/piece/score"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: "https://example.org/piece/score"
+      timeline: "#https://example.org/piece/score"
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: "perf/take 2"
+      timeline: "#perf/take 2"
     -
       coordinate: 4.0
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: "perf/take 2"
+      timeline: "#perf/take 2"
 groups:
   -
-    id: group_1
-    members: ["https://example.org/piece/score", "perf/take 2"]
+    id: "#group_1"
+    members: ["#https://example.org/piece/score", "#perf/take 2"]
     meta: {}
     name: Piece
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: "Free IDs"
 schemes: []
 timelines:
@@ -52,7 +52,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "https://example.org/piece/score"
+    id: "#https://example.org/piece/score"
     is_segment_line: false
     length: [8, 1]
     links: []
@@ -63,7 +63,7 @@ timelines:
     regions:
       -
         end: [4, 1]
-        id: "https://example.org/piece/score#exposition"
+        id: "#https://example.org/piece/score#exposition"
         links: []
         meta: {}
         name: Exposition
@@ -73,7 +73,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "perf/take 2"
+    id: "#perf/take 2"
     is_segment_line: false
     length: 4.0
     links: []
@@ -84,7 +84,7 @@ timelines:
     regions:
       -
         end: 1.0
-        id: "take 2/intro"
+        id: "#take 2/intro"
         links: []
         meta: {}
         name: Intro

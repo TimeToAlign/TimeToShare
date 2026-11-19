@@ -3,30 +3,30 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: melody
+      timeline: "#melody"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: melody
+      timeline: "#melody"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
         conversion_maps:
           -
-            id: ticks
+            id: "#ticks"
             name: Ticks
             scalar: 480
             source_unit: quarters
             target_unit: ticks
             type: LinearMap
-        id: phrase
+        id: "#phrase"
         length: [4, 1]
         locked: true
         name: Phrase
@@ -34,13 +34,13 @@ timelines:
         unit: quarters
     conversion_maps:
       -
-        id: tempo
+        id: "#tempo"
         name: Tempo
         scalar: [1, 2]
         source_unit: quarters
         target_unit: seconds
         type: LinearMap
-    id: melody
+    id: "#melody"
     length: [8, 1]
     name: Melody
     unit: quarters

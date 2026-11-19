@@ -1,39 +1,39 @@
 graphical:
   order:
-    group_1: [score, midi]
+    "#group_1": ["#score", "#midi"]
   timestamps:
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: midi
+      timeline: "#midi"
     -
       coordinate: 7680
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: midi
+      timeline: "#midi"
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_3
+      id: "#timestamp_3"
       name: origin
-      timeline: score
+      timeline: "#score"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_4
+      id: "#timestamp_4"
       name: length
-      timeline: score
+      timeline: "#score"
 groups:
   -
-    id: group_1
-    members: [midi, score]
+    id: "#group_1"
+    members: ["#midi", "#score"]
     name: Edition
 measure_maps:
   -
-    id: measuremap_1
+    id: "#measuremap_1"
     rows:
       -
         actual_length: [4, 1]
@@ -57,41 +57,41 @@ measure_maps:
         start_repeat: false
         time_signature: "4/4"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     conversion_maps:
       -
-        id: cmap_3
+        id: "#cmap_3"
         maps:
           -
-            id: ppq
+            id: "#ppq"
             scalar: [1, 480]
             source_unit: ticks
             target_unit: quarters
             type: LinearMap
           -
-            id: cmap_2
-            measure_map: measuremap_1
+            id: "#cmap_2"
+            measure_map: "#measuremap_1"
             source_unit: quarters
             target_unit: null
             type: MeasureRecordMap
         source_unit: ticks
         target_unit: null
         type: ChainMap
-    id: midi
+    id: "#midi"
     length: 7680
     name: MIDI
     unit: ticks
   -
     conversion_maps:
       -
-        id: cmap_1
-        measure_map: measuremap_1
+        id: "#cmap_1"
+        measure_map: "#measuremap_1"
         source_unit: quarters
         target_unit: null
         type: MeasureRecordMap
-    id: score
+    id: "#score"
     length: [16, 1]
     name: Score
     unit: quarters

@@ -3,17 +3,17 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: piece
+      timeline: "#piece"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: piece
+      timeline: "#piece"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
@@ -22,13 +22,13 @@ timelines:
           -
             children:
               -
-                id: b11
+                id: "#b11"
                 length: [2, 1]
                 locked: true
                 name: B11
                 offset: [1, 1]
                 unit: quarters
-            id: b1
+            id: "#b1"
             length: [4, 1]
             locked: true
             name: B1
@@ -36,12 +36,12 @@ timelines:
             unit: quarters
         conversion_maps:
           -
-            id: ticks_b
+            id: "#ticks_b"
             scalar: 480
             source_unit: quarters
             target_unit: ticks
             type: LinearMap
-        id: b
+        id: "#b"
         length: [6, 1]
         locked: true
         name: B
@@ -54,18 +54,18 @@ timelines:
               -
                 conversion_maps:
                   -
-                    id: tempo_d11
+                    id: "#tempo_d11"
                     scalar: [1, 2]
                     source_unit: quarters
                     target_unit: seconds
                     type: LinearMap
                   -
-                    id: ticks_d11
+                    id: "#ticks_d11"
                     scalar: 480
                     source_unit: quarters
                     target_unit: ticks
                     type: LinearMap
-                id: d11
+                id: "#d11"
                 length: [2, 1]
                 locked: true
                 name: D11
@@ -73,30 +73,30 @@ timelines:
                 unit: quarters
             conversion_maps:
               -
-                id: tempo_d1
+                id: "#tempo_d1"
                 scalar: [1, 2]
                 source_unit: quarters
                 target_unit: seconds
                 type: LinearMap
               -
-                id: ticks_d1
+                id: "#ticks_d1"
                 scalar: 480
                 source_unit: quarters
                 target_unit: ticks
                 type: LinearMap
-            id: d1
+            id: "#d1"
             length: [4, 1]
             locked: true
             name: D1
             offset: [2, 1]
             unit: quarters
-        id: d
+        id: "#d"
         length: [8, 1]
         locked: true
         name: D
         offset: [8, 1]
         unit: quarters
-    id: piece
+    id: "#piece"
     length: [16, 1]
     name: Piece
     unit: quarters

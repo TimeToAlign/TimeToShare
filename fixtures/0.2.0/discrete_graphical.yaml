@@ -1,25 +1,25 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: 0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: dgt_1
+      timeline: "#dgt_1"
     -
       coordinate: 1920
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: dgt_1
+      timeline: "#dgt_1"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -29,7 +29,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: dgt_2
+        id: "#dgt_2"
         is_segment_line: false
         length: 640
         links: []
@@ -44,7 +44,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: dgt_3
+        id: "#dgt_3"
         is_segment_line: false
         length: 480
         links: []
@@ -57,7 +57,7 @@ timelines:
         unit: pixels
     conversion_maps: []
     flow_control: []
-    id: dgt_1
+    id: "#dgt_1"
     is_segment_line: false
     length: 1920
     links: []

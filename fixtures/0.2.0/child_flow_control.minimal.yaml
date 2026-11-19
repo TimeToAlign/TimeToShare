@@ -3,17 +3,17 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: piece
+      timeline: "#piece"
     -
       coordinate: [16, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: piece
+      timeline: "#piece"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
@@ -21,23 +21,23 @@ timelines:
         flow_control:
           -
             coordinate: [4, 1]
-            id: fine
+            id: "#fine"
             label: Fine
             manifestation: fine
             type: flow_marker
           -
             coordinate: [8, 1]
-            id: da_capo_al_fine
+            id: "#da_capo_al_fine"
             label: "D.C. al Fine"
             manifestation: da_capo_al_fine
             type: jump_from
-        id: verse
+        id: "#verse"
         length: [8, 1]
         locked: true
         name: Verse
         offset: [4, 1]
         unit: quarters
-    id: piece
+    id: "#piece"
     length: [16, 1]
     name: Piece
     unit: quarters

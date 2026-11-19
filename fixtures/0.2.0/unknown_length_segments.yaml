@@ -1,19 +1,19 @@
 graphical:
   order: {}
-  statements: []
+  rules: []
   styles: {}
   timestamps:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: form
+      timeline: "#form"
 groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -23,7 +23,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: a
+        id: "#a"
         is_segment_line: false
         length: null
         links: []
@@ -35,7 +35,7 @@ timelines:
         regions:
           -
             end: [4, 1]
-            id: region_1
+            id: "#region_1"
             links: []
             meta: {}
             name: null
@@ -45,7 +45,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: b
+        id: "#b"
         is_segment_line: false
         length: [6, 1]
         links: []
@@ -60,7 +60,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: c
+        id: "#c"
         is_segment_line: false
         length: null
         links: []
@@ -72,7 +72,7 @@ timelines:
         regions:
           -
             end: [3, 1]
-            id: region_2
+            id: "#region_2"
             links: []
             meta: {}
             name: null
@@ -80,7 +80,7 @@ timelines:
         unit: quarters
     conversion_maps: []
     flow_control: []
-    id: form
+    id: "#form"
     is_segment_line: true
     length: null
     links: []

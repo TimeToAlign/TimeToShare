@@ -2,7 +2,7 @@ groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -10,7 +10,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: lmap_1
+        id: "#lmap_1"
         name: null
         offset: [-1, 2]
         scalar: [1, 32]
@@ -18,7 +18,7 @@ timelines:
         target_unit: quarters
         type: LinearMap
     flow_control: []
-    id: "score:dlt_1"
+    id: "#score:dlt_1"
     is_segment_line: false
     length: 2064
     links: []

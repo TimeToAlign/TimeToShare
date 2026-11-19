@@ -1,25 +1,25 @@
 graphical:
   order:
-    group_1: ["score:clt_1", "score:dlt_1"]
-    group_2: ["perf:cpt_1", "perf:dpt_1", "perf:dgt_1"]
-  statements: []
+    "#group_1": ["#score:clt_1", "#score:dlt_1"]
+    "#group_2": ["#perf:cpt_1", "#perf:dpt_1", "#perf:dgt_1"]
+  rules: []
   styles: {}
   timestamps: []
 groups:
   -
-    id: group_1
-    members: ["score:clt_1", "score:dlt_1"]
+    id: "#group_1"
+    members: ["#score:clt_1", "#score:dlt_1"]
     meta: {}
     name: score
   -
-    id: group_2
-    members: ["perf:cpt_1", "perf:dgt_1", "perf:dpt_1"]
+    id: "#group_2"
+    members: ["#perf:cpt_1", "#perf:dgt_1", "#perf:dpt_1"]
     meta: {}
     name: perf
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: Beethoven_op35_1971Curzon_Var14only
 schemes: []
 timelines:
@@ -27,7 +27,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "perf:cpt_1"
+    id: "#perf:cpt_1"
     is_segment_line: false
     length: 75.37598985608956
     links: []
@@ -41,15 +41,15 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_3
+        id: "#cmap_3"
         name: null
         offset: 0
-        scalar: 0.0029024943310657597
+        scalar: [32, 11025]
         source_unit: pixels
         target_unit: seconds
         type: LinearMap
     flow_control: []
-    id: "perf:dgt_1"
+    id: "#perf:dgt_1"
     is_segment_line: false
     length: 26469
     links: []
@@ -63,7 +63,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_2
+        id: "#cmap_2"
         name: null
         offset: 0
         scalar: [1, 44100]
@@ -71,7 +71,7 @@ timelines:
         target_unit: seconds
         type: LinearMap
     flow_control: []
-    id: "perf:dpt_1"
+    id: "#perf:dpt_1"
     is_segment_line: false
     length: 3324081
     links: []
@@ -86,7 +86,7 @@ timelines:
     conversion_maps:
       -
         extrapolate: linear
-        id: tmap_1
+        id: "#tmap_1"
         kind: linear
         name: null
         source_unit: quarters
@@ -103,7 +103,7 @@ timelines:
           - [46439, 720]
         y_values: [0.0, 23.7, 24.9, 34.199999999999996, 35.4, 39.3, 42.9, 43.278691983122364]
     flow_control: []
-    id: "score:clt_1"
+    id: "#score:clt_1"
     is_segment_line: false
     length: [46439, 720]
     links: []
@@ -117,7 +117,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_1
+        id: "#cmap_1"
         name: null
         offset: 0
         scalar: [1, 720]
@@ -125,7 +125,7 @@ timelines:
         target_unit: quarters
         type: LinearMap
     flow_control: []
-    id: "score:dlt_1"
+    id: "#score:dlt_1"
     is_segment_line: false
     length: 46440
     links: []

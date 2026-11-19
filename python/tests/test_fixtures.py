@@ -21,6 +21,7 @@ from timetoshare import (
     unknown_keys,
     validate,
     warning_paths,
+    with_bare_ids,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -29,6 +30,11 @@ FIXTURES = REPOSITORY_ROOT / "fixtures" / "0.2.0"
 
 def _load(path: Path) -> dict:
     return loads(path.read_text(encoding="utf-8"))
+
+
+def _read(path: Path) -> dict:
+    """A fixture with its IDs bare, as the assertions below spell them."""
+    return with_bare_ids(_load(path))
 
 
 def test_fixture_paths_list_every_manifest_but_the_drawings() -> None:
@@ -180,7 +186,7 @@ _STYLED_SCORE = {
 
 
 def _styled(name: str) -> dict:
-    return _load(FIXTURES / name)["graphical"]
+    return _read(FIXTURES / name)["graphical"]
 
 
 def test_the_styled_manifests_carry_their_rules() -> None:
@@ -330,13 +336,14 @@ def test_every_styled_score_item_is_visible() -> None:
     "name", ["bundle_shared_member.yaml", "bundle_shared_member.minimal.yaml"]
 )
 def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
-    value = _load(FIXTURES / "bundles" / name)
+    file = _load(FIXTURES / "bundles" / name)
+    value = with_bare_ids(file)
     assert [(group["id"], group["members"]) for group in value["groups"]] == [
         ("g1", ["t", "u"]),
         ("g2", ["t", "v"]),
     ]
-    validate(value)
-    assert identity_problems(value) == []
+    validate(file)
+    assert identity_problems(file) == []
 
 
 @pytest.mark.parametrize(
@@ -349,7 +356,8 @@ def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
 def test_named_timestamps_pass_through_the_emitter(
     name: str, downbeat: dict[str, Any]
 ) -> None:
-    value = _load(FIXTURES / name)
+    file = _load(FIXTURES / name)
+    value = with_bare_ids(file)
     assert value["graphical"]["timestamps"] == [
         {
             "coordinate": [3, 2],
@@ -374,8 +382,8 @@ def test_named_timestamps_pass_through_the_emitter(
         },
     ]
     assert value["graphical"].get("rules", []) == []
-    validate(value)
-    assert identity_problems(value) == []
+    validate(file)
+    assert identity_problems(file) == []
 
 
 def _marks(*marks: tuple[str, str, object]) -> list[dict[str, Any]]:
@@ -415,24 +423,26 @@ _ORIGIN_AND_LENGTH = {
 @pytest.mark.parametrize("suffix", [".yaml", ".minimal.yaml"])
 @pytest.mark.parametrize("name", list(_ORIGIN_AND_LENGTH))
 def test_drawn_roots_carry_their_origin_and_length(name: str, suffix: str) -> None:
-    value = _load(FIXTURES / f"{name}{suffix}")
+    file = _load(FIXTURES / f"{name}{suffix}")
+    value = with_bare_ids(file)
     assert value["graphical"]["timestamps"] == _ORIGIN_AND_LENGTH[name]
-    validate(value)
-    assert identity_problems(value) == []
+    validate(file)
+    assert identity_problems(file) == []
 
 
 def test_no_corpus_fixture_carries_a_named_timestamp() -> None:
     corpora = [path for path in fixture_paths() if path.name.startswith("corpus_")]
     assert len(corpora) == 24
     for path in corpora:
-        assert _load(path).get("graphical", {}).get("timestamps", []) == []
+        assert _read(path).get("graphical", {}).get("timestamps", []) == []
 
 
 @pytest.mark.parametrize(
     "name", ["bundle_free_ids.yaml", "bundle_free_ids.minimal.yaml"]
 )
 def test_free_ids_are_written_as_given(name: str) -> None:
-    value = _load(FIXTURES / "bundles" / name)
+    file = _load(FIXTURES / "bundles" / name)
+    value = with_bare_ids(file)
     score, take = "https://example.org/piece/score", "perf/take 2"
     assert [
         (root["id"], [region["id"] for region in root.get("regions", [])])
@@ -445,8 +455,8 @@ def test_free_ids_are_written_as_given(name: str) -> None:
     assert [rule["select"] for rule in value["graphical"]["rules"]] == [
         {"addresses": [{"id": "take 2/intro"}]}
     ]
-    validate(value)
-    assert identity_problems(value) == []
+    validate(file)
+    assert identity_problems(file) == []
 
 
 def _flow_control(timeline: dict) -> list[tuple[str, str]]:
@@ -463,7 +473,7 @@ def test_generated_flow_control_ids_carry_their_type() -> None:
         element
         for path in fixture_paths()
         if not path.name.endswith(".minimal.yaml")
-        for root in _load(path)["timelines"]
+        for root in _read(path)["timelines"]
         for element in _flow_control(root)
     ]
     generated = Counter(

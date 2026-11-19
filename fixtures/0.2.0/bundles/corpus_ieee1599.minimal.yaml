@@ -1,38 +1,38 @@
 graphical:
   order:
-    group_1: ["spine:dlt_1"]
-    group_2: ["los:dlt_2"]
-    group_3: ["original_score:dgt_1"]
-    group_4: ["finale_transcription:dgt_2"]
-    group_5: ["khomus_audio:cpt_1"]
-    group_6: ["khomus_video:cpt_2"]
+    "#group_1": ["#spine:dlt_1"]
+    "#group_2": ["#los:dlt_2"]
+    "#group_3": ["#original_score:dgt_1"]
+    "#group_4": ["#finale_transcription:dgt_2"]
+    "#group_5": ["#khomus_audio:cpt_1"]
+    "#group_6": ["#khomus_video:cpt_2"]
 groups:
   -
-    id: group_1
-    members: ["spine:dlt_1"]
+    id: "#group_1"
+    members: ["#spine:dlt_1"]
     name: "spine:dlt_1"
   -
-    id: group_2
-    members: ["los:dlt_2"]
+    id: "#group_2"
+    members: ["#los:dlt_2"]
     name: "los:dlt_2"
   -
-    id: group_3
-    members: ["original_score:dgt_1"]
+    id: "#group_3"
+    members: ["#original_score:dgt_1"]
     name: "original_score:dgt_1"
   -
-    id: group_4
-    members: ["finale_transcription:dgt_2"]
+    id: "#group_4"
+    members: ["#finale_transcription:dgt_2"]
     name: "finale_transcription:dgt_2"
   -
-    id: group_5
-    members: ["khomus_audio:cpt_1"]
+    id: "#group_5"
+    members: ["#khomus_audio:cpt_1"]
     name: "khomus_audio:cpt_1"
   -
-    id: group_6
-    members: ["khomus_video:cpt_2"]
+    id: "#group_6"
+    members: ["#khomus_video:cpt_2"]
     name: "khomus_video:cpt_2"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: khomus
 timelines:
   -
@@ -40,30 +40,30 @@ timelines:
       -
         children:
           -
-            id: dgt_7
+            id: "#dgt_7"
             length: 4264
             name: accolade_1
             offset: 0
             unit: pixels
           -
-            id: dgt_8
+            id: "#dgt_8"
             length: 4372
             name: accolade_2
             offset: 4264
             unit: pixels
           -
-            id: dgt_9
+            id: "#dgt_9"
             length: 4180
             name: accolade_3
             offset: 8636
             unit: pixels
           -
-            id: dgt_10
+            id: "#dgt_10"
             length: 4110
             name: accolade_4
             offset: 12816
             unit: pixels
-        id: dgt_6
+        id: "#dgt_6"
         is_segment_line: true
         length: 16926
         locked: true
@@ -80,10 +80,10 @@ timelines:
     conversion_maps:
       -
         breaks: [0, 16926]
-        id: cmap_3
+        id: "#cmap_3"
         maps:
           -
-            id: cmap_4
+            id: "#cmap_4"
             source_unit: pixels
             target_unit: null
             type: ConstantMap
@@ -92,7 +92,7 @@ timelines:
         source_unit: pixels
         target_unit: null
         type: PiecewiseMap
-    id: "finale_transcription:dgt_2"
+    id: "#finale_transcription:dgt_2"
     is_segment_line: true
     length: 16926
     locked: true
@@ -108,7 +108,7 @@ timelines:
     name: "Finale transcription"
     unit: pixels
   -
-    id: "khomus_audio:cpt_1"
+    id: "#khomus_audio:cpt_1"
     length: 46.98
     meta:
       encoding_format: audio_wav
@@ -122,7 +122,7 @@ timelines:
     name: khomus_audio
     unit: seconds
   -
-    id: "khomus_video:cpt_2"
+    id: "#khomus_video:cpt_2"
     length: 45.88
     meta:
       encoding_format: video_avi
@@ -136,7 +136,7 @@ timelines:
     name: khomus_video
     unit: seconds
   -
-    id: "los:dlt_2"
+    id: "#los:dlt_2"
     length: 48128
     name: "Logically organised symbols"
     unit: ticks
@@ -145,30 +145,30 @@ timelines:
       -
         children:
           -
-            id: dgt_2
+            id: "#dgt_2"
             length: 1843
             name: accolade_1
             offset: 0
             unit: pixels
           -
-            id: dgt_3
+            id: "#dgt_3"
             length: 1943
             name: accolade_2
             offset: 1843
             unit: pixels
           -
-            id: dgt_4
+            id: "#dgt_4"
             length: 1804
             name: accolade_3
             offset: 3786
             unit: pixels
           -
-            id: dgt_5
+            id: "#dgt_5"
             length: 1828
             name: accolade_4
             offset: 5590
             unit: pixels
-        id: dgt_1
+        id: "#dgt_1"
         is_segment_line: true
         length: 7418
         locked: true
@@ -185,10 +185,10 @@ timelines:
     conversion_maps:
       -
         breaks: [0, 7418]
-        id: cmap_1
+        id: "#cmap_1"
         maps:
           -
-            id: cmap_2
+            id: "#cmap_2"
             source_unit: pixels
             target_unit: null
             type: ConstantMap
@@ -197,7 +197,7 @@ timelines:
         source_unit: pixels
         target_unit: null
         type: PiecewiseMap
-    id: "original_score:dgt_1"
+    id: "#original_score:dgt_1"
     is_segment_line: true
     length: 7418
     locked: true
@@ -213,7 +213,7 @@ timelines:
     name: "Original score"
     unit: pixels
   -
-    id: "spine:dlt_1"
+    id: "#spine:dlt_1"
     length: 48128
     name: Spine
     unit: ticks

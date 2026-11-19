@@ -3,27 +3,27 @@ graphical:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: "maps:seconds"
+      timeline: "#maps:seconds"
     -
       coordinate: 2.0
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: "maps:seconds"
+      timeline: "#maps:seconds"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     conversion_maps:
       -
-        id: cmap_1
+        id: "#cmap_1"
         scalar: 48000
         source_unit: seconds
         target_unit: samples
         type: LinearMap
-    id: "maps:seconds"
+    id: "#maps:seconds"
     length: 2.0
     name: "Second maps"
     unit: seconds

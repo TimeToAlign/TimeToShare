@@ -3,37 +3,37 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: piece
+      timeline: "#piece"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: piece
+      timeline: "#piece"
 meta:
-  generator: "timetoalign 1.2.0 (df58bc9d)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 timelines:
   -
     children:
       -
         conversion_maps:
           -
-            id: tempo_ante
+            id: "#tempo_ante"
             name: Tempo
             scalar: [1, 2]
             source_unit: quarters
             target_unit: seconds
             type: LinearMap
           -
-            id: ticks_ante
+            id: "#ticks_ante"
             name: Ticks
             scalar: 480
             source_unit: quarters
             target_unit: ticks
             type: LinearMap
-        id: ante
+        id: "#ante"
         length: [4, 1]
         locked: true
         name: Ante
@@ -42,19 +42,19 @@ timelines:
       -
         conversion_maps:
           -
-            id: ticks_cons
+            id: "#ticks_cons"
             name: Ticks
             scalar: 480
             source_unit: quarters
             target_unit: ticks
             type: LinearMap
-        id: cons
+        id: "#cons"
         length: [4, 1]
         locked: true
         name: Cons
         offset: [3, 1]
         unit: quarters
-    id: piece
+    id: "#piece"
     length: [8, 1]
     name: Piece
     unit: quarters

@@ -2,7 +2,7 @@ groups: []
 links: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (f6199577)"
+  generator: "timetoalign 1.2.0 (dd2d8291)"
 name: null
 schemes: []
 timelines:
@@ -10,7 +10,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: cmap_1
+        id: "#cmap_1"
         name: null
         offset: 0
         scalar: [1, 44100]
@@ -18,7 +18,7 @@ timelines:
         target_unit: seconds
         type: LinearMap
     flow_control: []
-    id: "Bass Kick"
+    id: "#Bass Kick"
     is_segment_line: false
     length: 10188800
     links: []
