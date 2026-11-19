@@ -1350,7 +1350,9 @@ else:
 - `pairs`, `entries`, `with_pair`, `without_pair`, `with_proposal`,
   `with_confirmation` and `with_rejection` read and edit the pairs and
   provenance of a subject, which `subject_path` finds by its ID;
-  `with_context` writes the manifest's `@context`, the format's terms in
+  `subjects` walks every element that may carry statements with its path
+  and kind, the manifest first, then root by root the timeline, its
+  regions and its children, depth first; `with_context` writes the manifest's `@context`, the format's terms in
   `FORMAT_CONTEXT` and the prefixes the statements use; `same_pair`,
   `expand_iri` and `used_prefixes` serve them (the description
   specification, section 11). They live in `timetoshare.statements`.
@@ -1482,8 +1484,8 @@ rewrite(text) === text; // true: the text is canonical YAML
   paths; a `schema` problem carries the TypeScript schema validator's own
   message.
 - `pairs`, `entries`, `withPair`, `withoutPair`, `withProposal`,
-  `withConfirmation`, `withRejection`, `subjectPath`, `withContext`,
-  `samePair`, `expandIri` and `usedPrefixes` do what Python's functions of
+  `withConfirmation`, `withRejection`, `subjectPath`, `subjects`,
+  `withContext`, `samePair`, `expandIri` and `usedPrefixes` do what Python's functions of
   `timetoshare.statements` do, with the same messages;
   `defaultCatalogue()`, `readCatalogue`, `recognize`, `instantiate`,
   `verbOf` and `rectangles` what those of `timetoshare.catalogue` do.
