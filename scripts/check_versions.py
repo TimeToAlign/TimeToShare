@@ -10,6 +10,8 @@ A TimeToShare release is one version carried by:
 * the schema document ``schema/<version>/timetoshare.schema.json``, whose
   ``$id`` names the version and whose version marker ``timetoshare`` is the
   constant of the version; it is the only version under ``schema/``,
+* the catalogue's schema ``catalogue/catalogue.schema.json``, whose ``$id``
+  names the version the catalogue ships with,
 * a non-empty fixture directory ``fixtures/<version>/``.
 
 Usage::
@@ -32,7 +34,9 @@ import tomllib
 from pathlib import Path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
-CONSTANT = re.compile(r'^(?:export const |)SCHEMA_VERSION(?:: str)? = "([^"]+)";?$', re.M)
+CONSTANT = re.compile(
+    r'^(?:export const |)SCHEMA_VERSION(?:: str)? = "([^"]+)";?$', re.M
+)
 
 
 def declarations() -> dict[str, str | None]:
@@ -68,14 +72,28 @@ def schema_declarations(version: str) -> dict[str, str | None]:
         schema = _read(path)
         schema_id = schema.get("$id", "")
         found["schema $id"] = (
-            version if schema_id.endswith(f"/{version}/timetoshare.schema.json") else schema_id
+            version
+            if schema_id.endswith(f"/{version}/timetoshare.schema.json")
+            else schema_id
         )
         root = schema.get("$defs", {}).get("Manifest", {})
         marker = root.get("properties", {}).get("timetoshare", {})
         found["schema timetoshare const"] = marker.get("const")
     else:
         found["schema document"] = None
-    others = sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir() if p.name != version)
+    catalogue = REPOSITORY_ROOT / "catalogue" / "catalogue.schema.json"
+    if catalogue.is_file():
+        catalogue_id = _read(catalogue).get("$id", "")
+        found["catalogue schema $id"] = (
+            version
+            if catalogue_id.endswith(f"/{version}/catalogue.schema.json")
+            else catalogue_id
+        )
+    else:
+        found["catalogue schema"] = None
+    others = sorted(
+        p.name for p in (REPOSITORY_ROOT / "schema").iterdir() if p.name != version
+    )
     found["schema versions"] = version if not others else ", ".join([version, *others])
     fixtures = REPOSITORY_ROOT / "fixtures" / version
     found["fixtures directory"] = version if any(fixtures.glob("*.yaml")) else None
@@ -84,7 +102,9 @@ def schema_declarations(version: str) -> dict[str, str | None]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--tag", help="release tag that must carry the version, e.g. v0.2.0")
+    parser.add_argument(
+        "--tag", help="release tag that must carry the version, e.g. v0.2.0"
+    )
     args = parser.parse_args(argv)
 
     found = declarations()
@@ -97,13 +117,18 @@ def main(argv: list[str] | None = None) -> int:
         found.update(schema_declarations(version))
 
     disagreements = {
-        name: value for name, value in found.items() if value is None or value != version
+        name: value
+        for name, value in found.items()
+        if value is None or value != version
     }
     if disagreements:
         print("version declarations disagree:", file=sys.stderr)
         for name, value in found.items():
             marker = "  " if name not in disagreements else "! "
-            print(f"{marker}{name}: {value if value is not None else '(missing)'}", file=sys.stderr)
+            print(
+                f"{marker}{name}: {value if value is not None else '(missing)'}",
+                file=sys.stderr,
+            )
         return 1
     print(version)
     return 0
