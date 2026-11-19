@@ -1370,7 +1370,9 @@ not count. What proves them (`test_files.py`):
   JSON keeps, and the canonical YAML that compares the forms respells every
   own-axis value by the declared number type on both sides. Written in
   canonical YAML instead, its value gives `length: 8.0`, `offset: 0.0` and
-  `start: 0.0` (the exact text is pinned in the test).
+  `start: 0.0` (the exact text is pinned in the test, after the
+  `@context` block with which `bare`'s twin opens). Every text carries the
+  format's `@context`, as every fixture does.
   `jcs_float_default.json` is the same manifest with the LinearMap's
   default `offset` stated (0.0, written `0`) and every other default left
   out: it reads as `minimal=False`, as a YAML text stating `offset: 0.0`

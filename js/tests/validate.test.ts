@@ -201,9 +201,10 @@ const REJECTIONS = [
 
 /**
  * The cases whose offending value `JSON.parse` cannot read: an integer beyond
- * 2^53 comes back as the float next to it.
+ * 2^53 comes back as the float next to it, and an integral float as the
+ * integer it equals.
  */
-const LOST_BY_JSON_PARSE = new Set(["float_axis_int_not_exact"]);
+const LOST_BY_JSON_PARSE = new Set(["float_axis_int_not_exact", "statement_value_integral_float"]);
 
 /** The path and message of the error `validate` raises. */
 function problem(value: unknown): [readonly (string | number)[], string] {
@@ -506,7 +507,7 @@ describe("the shared rejection cases", () => {
           ];
     for (const [index, read] of readings.entries()) {
       if (index === 1 && LOST_BY_JSON_PARSE.has(name)) {
-        // JSON.parse rounds the integer to the float next to it, which validates.
+        // JSON.parse reads the offending number as another one, which validates.
         read();
         continue;
       }

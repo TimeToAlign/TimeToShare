@@ -124,6 +124,14 @@ timelines:
     unit: seconds
 timetoshare: "0.2.0"
 """
+"""``jcs_minimal.json`` in canonical YAML after its ``@context``, its own-axis floats
+spelled as floats."""
+
+
+def _context_block() -> str:
+    """The canonical YAML of the format's ``@context``, with which every fixture opens."""
+    text = _text(FIXTURES / "bare.minimal.yaml")
+    return text[: text.index("\ngraphical:") + 1]
 
 
 def test_rfc8785_json_reads_integers_that_the_number_type_respells() -> None:
@@ -132,8 +140,9 @@ def test_rfc8785_json_reads_integers_that_the_number_type_respells() -> None:
     assert [type(root["length"]), type(root["offset"])] == [int, int]
     form = file_form(_text(FILE_FORMS / "jcs_minimal.json"))
     as_yaml = dataclasses.replace(form, serialization="yaml")
-    assert dumps_file(value, as_yaml) == JCS_MINIMAL_AS_YAML
-    assert file_form(JCS_MINIMAL_AS_YAML) == as_yaml
+    expected = _context_block() + JCS_MINIMAL_AS_YAML
+    assert dumps_file(value, as_yaml) == expected
+    assert file_form(expected) == as_yaml
 
 
 def test_dumps_file_leaves_its_value_unchanged() -> None:

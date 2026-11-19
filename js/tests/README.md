@@ -164,9 +164,10 @@ through `parse` of its compact text; `version_unknown` raises
 of Python's `rejection_case`, which puts the infinity or NaN a
 `finite_number` case names at its path; such a case has one reading, the
 reader's value, since no text carries it, and a test pins the two values in
-place. One plain reading is exempt: `float_axis_int_not_exact`, since
-`9007199254740993` becomes `9007199254740992`, exactly a float; the test
-asserts that this lossy reading validates. The set of names and the twenty-five codes are stated
+place. Two plain readings are exempt: `float_axis_int_not_exact`, since
+`9007199254740993` becomes `9007199254740992`, exactly a float, and
+`statement_value_integral_float`, since the statement value `1.0` becomes
+the integer `1`; the test asserts that these lossy readings validate. The set of names and the twenty-five codes are stated
 literally, and the cases whose messages the Python suite pins carry the same
 messages here (`identity.test.ts`, `statements.test.ts`).
 
@@ -587,7 +588,8 @@ does not count. What proves them (`files.test.ts`):
   with a LinearMap's default `offset` 0.0 stated as `0`) as
   `minimal: false` and the complete form. `jcs_minimal.json` written in
   canonical YAML gives the floats its declared number type selects, the
-  same text Python's test pins.
+  same text Python's test pins after the `@context` block of `bare`'s
+  twin.
 - **The serialization names.** `SERIALIZATIONS` is `["yaml", "json",
   "jcs"]`; `isSerialization` is true for those three and false for
   `"YAML"`, `"toml"`, `""`, `null`, `undefined` and `1`.

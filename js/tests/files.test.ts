@@ -28,7 +28,7 @@ const CASES: Record<string, FileForm> = {
   "jcs_float_default.json": { minimal: false, styling: false, serialization: "jcs" },
 };
 
-/** `jcs_minimal.json` in canonical YAML, its own-axis floats spelled as floats. */
+/** `jcs_minimal.json` in canonical YAML after its `@context`, its own-axis floats spelled as floats. */
 const JCS_MINIMAL_AS_YAML = `timelines:
   -
     conversion_maps:
@@ -53,6 +53,12 @@ timetoshare: "0.2.0"
 /** A file decoded as UTF-8, its line ends kept. */
 function text(path: string): string {
   return readFileSync(path, "utf8");
+}
+
+/** The canonical YAML of the format's `@context`, with which every fixture opens. */
+function contextBlock(): string {
+  const twin = text(resolve(fixtureDirectory, "bare.minimal.yaml"));
+  return twin.slice(0, twin.indexOf("\ngraphical:") + 1);
 }
 
 function expectedName(name: string): string {
@@ -131,8 +137,9 @@ describe("manifest files", () => {
     expect([typeof root?.length, typeof root?.offset]).toEqual(["number", "number"]);
     expect([root?.length, root?.offset]).toEqual([8, 0]);
     const asYaml: FileForm = { ...fileForm(given), serialization: "yaml" };
-    expect(dumpsFile(value, asYaml)).toBe(JCS_MINIMAL_AS_YAML);
-    expect(fileForm(JCS_MINIMAL_AS_YAML)).toEqual(asYaml);
+    const expected = contextBlock() + JCS_MINIMAL_AS_YAML;
+    expect(dumpsFile(value, asYaml)).toBe(expected);
+    expect(fileForm(expected)).toEqual(asYaml);
   });
 
   it("leave the value unchanged", () => {

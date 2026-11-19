@@ -15,14 +15,6 @@
       }
     ]
   },
-  "links": [
-    {
-      "label": "Second"
-    },
-    {
-      "label": "First"
-    }
-  ],
   "measure_maps": [
     {
       "id": "mm_a",
@@ -44,14 +36,9 @@
       ]
     }
   ],
-  "schemes": [
-    {
-      "id": "s_a"
-    },
-    {
-      "id": "s_b"
-    }
-  ],
+  "statements": {
+    "schema:name": ["Second", "First"]
+  },
   "timelines": [
     {
       "children": [
