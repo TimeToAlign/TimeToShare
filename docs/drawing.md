@@ -1,7 +1,7 @@
 # Drawing a TimeToShare manifest
 
 This specification states how one TimeToShare manifest is drawn: the
-`graphical` object of style statements (section 2), the arithmetic of
+`graphical` object of style rules (section 2), the arithmetic of
 positions (section 3), the default style (section 4), the fonts that
 measure every text (section 5), the layout that turns a manifest into a
 **drawing** (section 6), and the writers that serialize a drawing as SVG and
@@ -30,7 +30,7 @@ containers are the **boxes** of a drawing.
   key the manifest leaves out taking its default (README, "Defaults"), and
   in canonical order (README, "Canonical order"), whatever form and order it
   was written in. Its `graphical` object holds the manifest's own style
-  statements and its `order` (section 2).
+  rules and its `order` (section 2).
 - `placement`: chosen by whoever places the drawing, such as an editor's
   canvas or a script:
   - `length`, the **graphical length** `L` of every item of the block
@@ -54,7 +54,7 @@ containers are the **boxes** of a drawing.
     the `width`, `height`, `spacing` and `margin` of `T`'s card in that group's
     frame, so that `places[G].cards[T]` is the card of member `T` in the
     frame of group `G` (default `{}`).
-- `layers`: the statement lists that style the drawing, from the lowest to
+- `layers`: the rule lists that style the drawing, from the lowest to
   the highest precedence: the defaults of section 4, then any lists an
   application supplies below the manifest (such as an editor's settings),
   then the manifest's own `graphical` object. No layer lies above the
@@ -135,20 +135,20 @@ its gaps or its margins, its own and its frame's.
   "styles": {
     "highlight": {"stroke": "#7F00FF", "fill": "#7F00FF"}
   },
-  "statements": [
+  "rules": [
     {"select": {"element": "label"}, "set": {"fill": "#404040"}},
-    {"select": {"element": "wedge", "within": "performance"}, "set": "highlight"},
-    {"select": {"addresses": [{"id": "region_1"}]}, "set": {"display": "none"}}
+    {"select": {"element": "wedge", "within": "#performance"}, "set": "highlight"},
+    {"select": {"addresses": [{"id": "#region_1"}]}, "set": {"display": "none"}}
   ]
 }
 ```
 
 The object is optional; an absent `graphical` draws with the other layers alone.
 `styles` maps a style name to a **declaration**, an object of properties
-(section 2.4) and their values. `statements` is a list of **statements**,
+(section 2.4) and their values. `rules` is a list of **rules**,
 each a selector (`select`, section 2.3) and either a declaration or the name
 of a style in the same layer's `styles` (`set`). The order of the
-statements matters, so writers never reorder them. Every layer of section 1
+rules matters, so writers never reorder them. Every layer of section 1
 has this shape. The manifest's own `graphical` also holds `order` and
 `timestamps`, which no other layer holds. `order` maps a group's ID to the
 display order of the group's members (section 8.1) and a timeline's ID to
@@ -179,9 +179,9 @@ Its order means nothing: writers write it in the canonical order `wedge`,
 `display` does not list is not displayed, whatever the cascade sets
 (section 2.4).
 
-A reader that meets statements naming styles its `styles` does not hold
+A reader that meets rules naming styles its `styles` does not hold
 issues one warning naming every missing style, and adds each to `styles` as
-an empty declaration; such a statement then sets nothing, and the
+an empty declaration; such a rule then sets nothing, and the
 `graphical` object is valid.
 
 ### 2.1 Elements
@@ -225,7 +225,7 @@ and the titles of a group or of the manifest belong to none, and have no
 domain, modality or class. A card belongs to the timeline it holds, and so
 has its domain, modality and class. A band belongs to its timeline but has
 no domain and no modality, so no selector naming them matches it, and what
-it holds inherits through it its timeline's values unless a statement
+it holds inherits through it its timeline's values unless a rule
 matches the band itself (section 2.5). An element has the **domain**
 (`graphical`, `logical` or `physical`) and the **modality** (`continuous`
 or `discrete`) of its timeline's `unit`. A map instead has the domain and
@@ -288,7 +288,11 @@ label of an element is addressed by the element's address with `name` or
 `label` appended to its `part`; a named timestamp has no row and so no
 `name` element, and the part `name` of its address names its first label,
 a `label` element like its other two. One rule addresses every element of
-every manifest, one timeline or many. In this table `T` is a timeline's ID
+every manifest, one timeline or many. This specification states IDs bare, as
+the `data-id` attributes of the SVG hold them; in a manifest file the `id` of
+an address, the `within` of a selector and every other ID reference are
+written `#` followed by the ID (README, "Written in a file"), as the snippets
+of section 2 show. In this table `T` is a timeline's ID
 and `X` an element's ID:
 
 | Element | Address | Belongs to |
@@ -339,7 +343,7 @@ lines (section 8.3). An element drawn more than once,
 such a timeline with its cards, descendants, bands, maps, regions,
 flow-control elements and named timestamps, an ancestor line with its marks, and the parts of
 each, keeps one address, which every drawing of it carries. No address
-names a group but the group's own frame and title. So a statement
+names a group but the group's own frame and title. So a rule
 selecting that address styles every drawing of it (section 2.5), and an
 application that selects or marks an element by its address marks every
 drawing of it.
@@ -392,7 +396,7 @@ to TikZ (section 7.4).
 | `content` | a text, or `none` | no | `name` (a row's own name, section 6.6) |
 | `max-width` | a number > 0, or `none` | no | `name` (section 6.6) |
 
-A statement may set any property on any element; an element ignores the
+A rule may set any property on any element; an element ignores the
 properties its type does not read. `display: none` is the filter: an element
 that is not displayed is not drawn and takes no room. An element is
 **displayed** when its `display` is `inline`, no rule of this list hides
@@ -449,7 +453,7 @@ displayed. The defaults hide some bands (section 4).
 
 The value of a property on an element is found per property:
 
-1. Of the statements matching the element that set this property, the
+1. Of the rules matching the element that set this property, the
    highest-ranking sets it.
 2. When none sets it and the property is inherited, the element takes its
    parent's value in the tree of section 2.1.
@@ -458,9 +462,9 @@ The value of a property on an element is found per property:
    `font-size` 9, `rx` 0, `shadow` `none`, `display` `inline`, `content`
    `none`, `max-width` `none`.
 
-The rank of a statement is, from the most to the least significant:
+The rank of a rule is, from the most to the least significant:
 
-1. its layer: a statement of a later layer outranks every statement of an
+1. its layer: a rule of a later layer outranks every rule of an
    earlier one;
 2. whether its selector names `addresses`;
 3. the depth of its `within`: none is 0, the root 1, its children 2, and
@@ -469,7 +473,7 @@ The rank of a statement is, from the most to the least significant:
 5. whether its selector names `element`;
 6. whether its selector names `inside`;
 7. how many of `domain` and `modality` its selector names;
-8. its position: the later statement of one list wins.
+8. its position: the later rule of one list wins.
 
 The cascade runs on each drawing of an element at its own place in the
 tree. Drawings that share an address (section 2.2) match the same `addresses`,
@@ -614,7 +618,7 @@ between them and the manifest's own `graphical` object (section 1).
     "logical-domain": {"stroke": "#00CC00", "fill": "#00CC00"},
     "physical-domain": {"stroke": "#0050EF", "fill": "#0050EF"}
   },
-  "statements": [
+  "rules": [
     {"select": {"element": "block"}, "set": {"fill": "#F3F4F6", "rx": 10}},
     {"select": {"domain": "graphical"}, "set": "graphical-domain"},
     {"select": {"domain": "logical"}, "set": "logical-domain"},
@@ -657,14 +661,14 @@ origins are thin, black and dotted, and flow markers dotted red; a name longer t
 cut (section 6.6). Segment
 boundaries are thin black rules; a named timestamp's cross-section line is
 thin, dashed and light blue, a blue distinct from the physical domain's
-(its statement names `element`, which outranks the domain statements, so a
+(its rule names `element`, which outranks the domain rules, so a
 cross-section line of a physical timeline keeps it, section 2.5); an
 ancestor line is its timeline's line,
 faded, with faded marks and labels, and its name small and grey; a group's
 frame is white with a light grey outline; a card is white with a grey
 outline and a grey offset shadow, so that it stands out from the grey block
 and from a frame alike. A card has its timeline's domain and modality, so
-a statement can style the cards of one domain. The last two statements
+a rule can style the cards of one domain. The last two rules
 hide the regions and flow control bands of every timeline that is
 held by a band, which is every timeline of a member drawing but its root
 (a child is held by its parent's children band, a segment without a line
@@ -1724,7 +1728,7 @@ root of unknown length is drawn with its reach at the shared end (section
   element, its markers band draws its named timestamps, and positions are
   on `M`'s axis (section 3.1). A
   member that is a child timeline in `timelines` is still a `timeline`
-  element in its member drawing, so statements selecting `child` do not
+  element in its member drawing, so rules selecting `child` do not
   reach its line, and it ends with the diamond, or with three chevrons
   when its length is `null` (section 6.6). Such a member's drawing also has an
   **ancestor band** (section 8.3).

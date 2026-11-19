@@ -63,14 +63,14 @@ whatever it holds: one timeline, several, a group of timelines, or several
 groups beside ungrouped timelines. The smallest manifest is
 
 ```json
-{"timetoshare": "0.2.0", "timelines": [{"id": "piece", "unit": "quarters", "length": [32, 1]}]}
+{"timetoshare": "0.2.0", "timelines": [{"id": "#piece", "unit": "quarters", "length": [32, 1]}]}
 ```
 
 | Member | Required | Holds |
 | --- | --- | --- |
 | `timetoshare` | yes | the version marker, `"0.2.0"` |
 | `timelines` | yes | the root timelines, an array that may be empty |
-| `id` | no | the manifest's ID |
+| `id` | no | the manifest's ID, written `#` followed by the ID ([Identity](#identity)) |
 | `name` | no | the manifest's displayed name |
 | `meta` | no | an object of anything an application wants to record |
 | `groups` | no | timeline groups whose members name timelines of the manifest |
@@ -140,7 +140,7 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   its parent's `unit`, here `seconds`:
 
   ```json
-  "children": [{"id": "perf", "offset": 4.0, "unit": "seconds", "length": 1503.2}]
+  "children": [{"id": "#perf", "offset": 4.0, "unit": "seconds", "length": 1503.2}]
   ```
 
   A child requires `offset`. The schema and both validators accept a
@@ -347,7 +347,7 @@ both forms.
 | a `TableMap` besides (`table_map`) | `kind`: `"linear"`; `extrapolate`: `"none"` |
 | MeasureMap (`measure_map`) | `name`: `null`; `meta`: `{}` |
 | group | `name`: `null`; `meta`: `{}` |
-| graphical | `styles`: `{}`; `statements`: `[]`; `order`: `{}`; `timestamps`: `[]` |
+| graphical | `styles`: `{}`; `rules`: `[]`; `order`: `{}`; `timestamps`: `[]` |
 | named timestamp (`timestamp`) | `display`: `["wedge", "name", "cross_section"]` |
 | scheme | `name`, `criteria`: `null`; `uri`: `[]` |
 | link | `uri`, `identifiers`, `records`, `parts`, `part_of`: `[]`; `label`, `assertion`, `parts_relation`: `null`; `parts_ordered`: `true` |
@@ -403,9 +403,9 @@ roots that no group names, and that contain no member, are ungrouped. A
 manifest holding a group always holds its members' roots, so a member that
 is a child keeps its parent.
 
-`graphical` is `{styles?, statements?, order?, timestamps?}`, at the
+`graphical` is `{styles?, rules?, order?, timestamps?}`, at the
 manifest's top level only, never on a timeline: a timeline holds time, and
-what is graphical lies in this object. `styles` and `statements` style the
+what is graphical lies in this object. `styles` and `rules` style the
 drawing ([Drawing a manifest](#drawing-a-manifest)). `timestamps` lists the
 **named timestamps**, each `{id, timeline, coordinate, name, display?}`: a
 position `coordinate` on the own axis of the timeline `timeline`, a root or
@@ -442,7 +442,7 @@ writers never reorder it:
   every descendant without an entry of its own.
 
 ```json
-"order": {"score": ["children", "markers", "line", "conversion_maps", "regions", "flow_control"]}
+"order": {"#score": ["children", "markers", "line", "conversion_maps", "regions", "flow_control"]}
 ```
 
 draws the coordinate markers of `score`, the wedges and labels of its named
@@ -479,7 +479,8 @@ timeline (root or descendant), group, MeasureMap, conversion map at any
 depth of nesting, region, flow-control element, named timestamp and
 scheme. A named timestamp's ID has one shape, `timestamp_` followed by a
 positive integer without leading zeros. An ID is never parsed
-and never composed with another. A reference is an ID: a jump origin's
+and never composed with another. A reference is an ID, written in a file
+as an ID is ([Written in a file](#written-in-a-file)): a jump origin's
 `target` names a jump target of the same timeline, a measure view's
 `measure_map` an entry of `measure_maps`, a group's `members` name
 timelines of the manifest, a key of `graphical.order` a group or a
@@ -494,12 +495,41 @@ smallest positive integer whose ID the manifest does not hold; an ID that
 is given is kept verbatim. An ID that is an
 absolute URI identifies its element globally. A manifest published at a
 stable location gives every local ID a global identity too: the
-manifest's URI with the ID as its fragment, `<manifest location>#<id>`.
+manifest's URI with the ID as its fragment, `<manifest location>#<id>`,
+which is what the written form of the ID resolves to.
+
+#### Written in a file
+
+In a manifest file every ID and every reference to an ID is written `#`
+followed by the ID: `"id": "#clt_1"`, `"members": ["#clt_1", "#clt_2"]`.
+Exactly one leading `#` is stripped to get the ID, so `##x` is the ID `#x`.
+The `#` stands on the manifest's own `id` and on the IDs of timelines at any
+depth, groups, MeasureMaps, conversion maps (nested ones included), regions,
+flow-control elements, named timestamps (`#timestamp_1`) and schemes; and on
+the references: a group's `members`, the keys of `graphical.order` and the
+member IDs of a group's entry, a named timestamp's `timeline`, an address's
+`id`, a selector's `within`, a flow-control element's `target`, a measure
+view's `measure_map` and a part slot's `represented_by`, and an identifier's `scheme` that names a scheme of the manifest (an absolute URI there stays as it is). The reason is the
+reading of a manifest as YAML-LD or JSON-LD, which takes `#clt_1` as a
+reference relative to the manifest's own address and resolves it to
+`<manifest location>#clt_1`; a bare ID would resolve to the wrong address,
+and an ID with a space would be dropped.
+
+The schema states the written form: an ID without its `#` and a reference
+without its `#` are refused, with the code `schema`. Every check after the
+schema, the identity rules and the messages that report them, works on the
+bare IDs and quotes them bare (`'clt_1'`). Inside timetoalign and TiLiE IDs
+are bare too: their readers strip the `#` and their writers add it, through
+the helpers of both packages, Python's `timetoshare.ids.to_file_id`,
+`from_file_id`, `with_file_ids` and `with_bare_ids`, and npm's `toFileId`,
+`fromFileId`, `withFileIds` and `withBareIds`. TiLiE's workspace file keeps
+bare IDs, and the `data-id` attributes of a drawing's SVG are bare.
 
 The drawing addresses its elements by **address objects** `{id?, facet?,
 part?}` built from these IDs and compared as whole objects, never by
 strings composed from them; the band drawing the regions facet of a
-timeline `T`, for instance, is `{"id": T, "facet": "regions"}`. The
+timeline `T`, for instance, is `{"id": T, "facet": "regions"}`, its `id`
+written `#T` in a file. The
 drawing specification, section 2.2, gives every form.
 
 The JSON Schema cannot express that IDs are unique, nor that a reference
@@ -576,7 +606,7 @@ checked as every such value is (`representation`, at its `coordinate`); a
 timestamp naming no timeline is checked for its timeline alone. `<pointer>`
 is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
 `json_pointer(path)` and npm's `jsonPointer(path)` render a path. Both
-packages write the messages above alike, an ID verbatim in single quotes
+packages write the messages above alike, a bare ID verbatim in single quotes
 and every value spelled as canonical YAML and pretty JSON spell it
 (`720`, `[19, 2]`, `75.0`). A child's end ([The timeline](#the-timeline)), or for a
 segment of unknown length its successor's offset, is compared by exact
@@ -632,14 +662,14 @@ in the manifest's `schemes` and named by its ID:
 
 ```json
 "schemes": [
-  {"id": "mb_beethoven_opus", "name": "Works of Ludwig van Beethoven by opus number", "uri": ["https://musicbrainz.org/series/004f17aa-0f46-4fec-b939-c5dfc849e5c6"]}
+  {"id": "#mb_beethoven_opus", "name": "Works of Ludwig van Beethoven by opus number", "uri": ["https://musicbrainz.org/series/004f17aa-0f46-4fec-b939-c5dfc849e5c6"]}
 ],
 "links": [
   {
     "relation": "pertains_to",
     "level": "work",
     "uri": ["http://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284", "http://www.wikidata.org/entity/Q146730"],
-    "identifiers": [{"scheme": "mb_beethoven_opus", "value": "op. 106"}],
+    "identifiers": [{"scheme": "#mb_beethoven_opus", "value": "op. 106"}],
     "label": "Piano Sonata No. 29 in B♭ major, Op. 106"
   }
 ]
@@ -683,22 +713,22 @@ Both packages contain the specification, the wheel as
 ## Drawing a manifest
 
 The optional `graphical` object of a manifest contains named declarations
-in `styles` and an ordered list of `statements`:
+in `styles` and an ordered list of `rules`:
 
 ```json
 "graphical": {
   "styles": {
     "highlight": {"stroke": "#7F00FF", "fill": "#7F00FF"}
   },
-  "statements": [
+  "rules": [
     {"select": {"element": "label"}, "set": {"fill": "#404040"}},
-    {"select": {"element": "wedge", "within": "performance"}, "set": "highlight"}
+    {"select": {"element": "wedge", "within": "#performance"}, "set": "highlight"}
   ]
 }
 ```
 
-Each statement has a selector in `select` and either a declaration or a style
-name in `set`. Statement order matters. The complete selectors, presentation
+Each rule has a selector in `select` and either a declaration or a style
+name in `set`. Rule order matters. The complete selectors, presentation
 properties, cascade, defaults, element addresses, layout, and writer profiles
 are defined by the
 [drawing specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/drawing.md).
@@ -731,10 +761,10 @@ violet, and gives every card in a frame a light violet shadow:
 
 ```json
 "graphical": {
-  "order": {"group_1": ["score", "page", "performance"]},
-  "statements": [
+  "order": {"#group_1": ["#score", "#page", "#performance"]},
+  "rules": [
     {"select": {"element": "frame"}, "set": "frame-highlight"},
-    {"select": {"element": "name", "addresses": [{"id": "group_1", "part": ["name"]}]}, "set": {"fill": "#7F00FF"}},
+    {"select": {"element": "name", "addresses": [{"id": "#group_1", "part": ["name"]}]}, "set": {"fill": "#7F00FF"}},
     {"select": {"element": "card", "inside": "frame"}, "set": {"rx": 2, "shadow": "#C4B5FD"}}
   ],
   "styles": {
@@ -743,12 +773,12 @@ violet, and gives every card in a frame a light violet shadow:
 }
 ```
 
-A statement may name a style missing from the `styles` of its `graphical`
+A rule may name a style missing from the `styles` of its `graphical`
 object. Python's `complete_styles(graphical)` and npm's
 `completeStyles(graphical)` return a copied `graphical` object with every such
 name added as an empty declaration, together with the sorted missing names.
 Python issues one `MissingStyleWarning` and npm one `console.warn` call, each
-naming all missing styles. The completed `graphical` object is valid, and a statement that names one of those empty declarations sets nothing.
+naming all missing styles. The completed `graphical` object is valid, and a rule that names one of those empty declarations sets nothing.
 
 A drawing is derived and is not exchanged as JSON. The drawing specification
 pins the drawing, and both packages contain it: the wheel as
@@ -800,7 +830,7 @@ denominator at least 1); and one in which an entry of a group's `members`
 is not a string. A `display` is put in order whatever it holds, and a
 member that should hold an ordered array but holds no array, such as
 `children: "x"`, has nothing to order and is written as given. No other
-array is reordered: `graphical` statements, display orders,
+array is reordered: `graphical` rules, display orders,
 conversion-map payloads, MeasureMap rows, the links of the
 manifest, a timeline or a region, and every array of a link keep their
 order.
@@ -962,7 +992,7 @@ Canonical YAML is YAML 1.2 under its core schema, written in one layout:
   across lines.
 
 So `score`, `take_1`, `quarters` and `has_part` are plain, while `"0.2.0"`,
-`"Sonata in B♭"`, `"https://example.org/"`, `"$schema"`, `"No"` and `""`
+`"Sonata in B♭"`, `"#score"`, `"https://example.org/"`, `"$schema"`, `"No"` and `""`
 are quoted. The value `{"a": [[1, 2], [{"b": null}], {"c": {"d": "x y"}}],
 "e": {}}` is written
 
@@ -1070,7 +1100,7 @@ This manifest is valid and in the minimal form. It holds a Fraction
 (`length` of `score`), floats (`length` and `offset` of `take_1`), an
 integer (`pages`), plain and quoted strings, an empty array (`errata`), a
 nested object (`meta`) and an array of objects (`timelines`). In canonical
-YAML, 259 bytes:
+YAML, 265 bytes:
 
 ```yaml
 meta:
@@ -1081,18 +1111,18 @@ meta:
 name: "Sonata in B♭"
 timelines:
   -
-    id: score
+    id: "#score"
     length: [32, 1]
     unit: quarters
   -
-    id: take_1
+    id: "#take_1"
     length: 1503.25
     offset: 1700000000.0
     unit: seconds
 timetoshare: "0.2.0"
 ```
 
-In pretty JSON, 380 bytes:
+In pretty JSON, 382 bytes:
 
 ```json
 {
@@ -1106,12 +1136,12 @@ In pretty JSON, 380 bytes:
   "name": "Sonata in B♭",
   "timelines": [
     {
-      "id": "score",
+      "id": "#score",
       "length": [32, 1],
       "unit": "quarters"
     },
     {
-      "id": "take_1",
+      "id": "#take_1",
       "length": 1503.25,
       "offset": 1700000000.0,
       "unit": "seconds"
@@ -1121,10 +1151,10 @@ In pretty JSON, 380 bytes:
 }
 ```
 
-In RFC 8785 JSON, 242 bytes, one line ending in `}` without a line feed:
+In RFC 8785 JSON, 244 bytes, one line ending in `}` without a line feed:
 
 ```json
-{"meta":{"source":{"edition":"Urtext","errata":[],"pages":12}},"name":"Sonata in B♭","timelines":[{"id":"score","length":[32,1],"unit":"quarters"},{"id":"take_1","length":1503.25,"offset":1700000000,"unit":"seconds"}],"timetoshare":"0.2.0"}
+{"meta":{"source":{"edition":"Urtext","errata":[],"pages":12}},"name":"Sonata in B♭","timelines":[{"id":"#score","length":[32,1],"unit":"quarters"},{"id":"#take_1","length":1503.25,"offset":1700000000,"unit":"seconds"}],"timetoshare":"0.2.0"}
 ```
 
 The first two texts end in a line feed and count `♭` (U+266D) as its three
@@ -1384,6 +1414,11 @@ else:
 - `identity_problems(value)` returns every violation of the identity rules in
   a schema-valid manifest, in the order described above; `validate` raises
   the first.
+- `to_file_id(id)` writes an ID as it stands in a file, with a leading `#`,
+  and `from_file_id(value)` strips one leading `#`; `with_file_ids(manifest)`
+  returns a copy of a manifest whose every ID and reference is written
+  `#`-first, and `with_bare_ids(manifest)` the copy with every one bare
+  ([Written in a file](#written-in-a-file)). They live in `timetoshare.ids`.
 - `complete_styles(graphical)` returns `(completed, missing)` and warns with
   `MissingStyleWarning` when `missing` is non-empty.
 - `SCHEMA_VERSION` is `"0.2.0"`, the one version the package reads.
@@ -1415,7 +1450,7 @@ import {
 
 const text = `timelines:
   -
-    id: piece
+    id: "#piece"
     length: [32, 1]
     unit: quarters
 timetoshare: "0.2.0"
@@ -1508,6 +1543,9 @@ rewrite(text) === text; // true: the text is canonical YAML
   order, as Python's constant does.
 - `identityProblems(value)` returns the same identity problems as Python's
   `identity_problems`.
+- `toFileId(id)`, `fromFileId(value)`, `withFileIds(manifest)` and
+  `withBareIds(manifest)` do what Python's `to_file_id`, `from_file_id`,
+  `with_file_ids` and `with_bare_ids` do.
 - `completeStyles(graphical)` returns `{graphical: completed, missing}`.
 - `FONT_FILES` names the bundled TrueType files, as Python's constant does,
   and `fontMetrics` contains the merged advance-width metrics of both.

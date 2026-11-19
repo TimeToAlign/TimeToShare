@@ -332,7 +332,7 @@ The root `clt_1` (12 quarters) with two children and the region
 
 The root `score` (8 quarters) with the children `a` (hidden) and `b`, the
 map `ticks`, the region `intro` and the jump origin `da-capo`, styled by its
-own statements: the root's line is 4 wide and its name, at size 12, reads
+own rules: the root's line is 4 wide and its name, at size 12, reads
 `Styled score`. Its band order `children`, `markers`, `line`,
 `conversion_maps`, `regions`, `flow_control` (§6.4) lays the markers band against the line above
 it and the children band beyond, and below it the conversion maps band, then
@@ -1430,7 +1430,7 @@ The root `clt_1` (8 quarters) and its locked child `clt_2` (4 at 2), with
 three named timestamps (§2): `timestamp_1` `Downbeat` at 3/2 and
 `timestamp_2` `Climax` at 6 on `clt_1`, and `timestamp_3` `Entry` at 1 on
 `clt_2`. No timeline has a name, so each row shows its ID, and the
-manifest's `graphical` object has no statement. `Downbeat` draws the
+manifest's `graphical` object has no rule. `Downbeat` draws the
 default `display`, its wedge, its name and its cross-section line;
 `Climax` draws `["wedge", "name"]`, so no cross-section line; `Entry`
 draws all five, its labels stacked name, ID, coordinate (§6.4, Markers).
