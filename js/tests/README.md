@@ -152,7 +152,7 @@ cases fail. The packages differ only where JavaScript must:
 
 ## Shared rejection cases
 
-Each of the 159 cases (`validate.test.ts`), found by its name whatever
+Each of the 160 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises

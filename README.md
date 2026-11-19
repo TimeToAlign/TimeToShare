@@ -76,7 +76,7 @@ groups beside ungrouped timelines. The smallest manifest is
 | `groups` | no | timeline groups whose members name timelines of the manifest |
 | `measure_maps` | no | the MeasureMaps the conversion maps read, each with an ID; they belong to no timeline |
 | `@context` | no | the inline JSON-LD context: the format's terms and the prefixes the statements use; required where any element carries `statements` or `provenance`, and warned of where absent (`context_absent`) ([Describing a manifest](#describing-a-manifest)) |
-| `statements` | no | property–value pairs about what the manifest as a whole is about: a work, a set, a compilation ([Describing a manifest](#describing-a-manifest)) |
+| `statements` | no | property–value pairs about the manifest as a whole, among them the work it is about under `schema:about` ([Describing a manifest](#describing-a-manifest)) |
 | `provenance` | no | the annotations of those pairs, and the pairs proposed or rejected, which are never stated |
 | `graphical` | no | the styling of the manifest's drawing, its groups' display orders and its timelines' band orders |
 | `$schema` | no | a string naming the schema, for editors; never read |
@@ -648,10 +648,14 @@ the one document.
 ## Describing a manifest
 
 The manifest, every timeline at any depth and every region may state what
-it stands for: the manifest stands for the work, set or compilation it is
-about, a timeline for the thing it is the time axis of, such as a
-recording, an edition or an encoding, and a region for the stretch of
-that thing it marks. They state it in `statements`, property–value pairs
+it stands for. A manifest bundles the manifestations of one or more
+expressions of one work: the manifest stands for the bundle and names
+that work, which it never packages, by `schema:about`; a timeline stands
+for the manifestation it is the time axis of, such as an edition, an
+encoding, a recording file or a video; and a region for the stretch of
+that manifestation it marks. Works and expressions occur only as values,
+named by the bundle and by the timelines that manifest them. The
+elements state all this in `statements`, property–value pairs
 whose properties and things are IRIs of published vocabularies (Wikidata,
 schema.org as MusicBrainz writes it, the GND ontology, LRMoo and MeLODy,
 the MARC relators and others), with a list `provenance` beside them recording who

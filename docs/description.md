@@ -58,12 +58,13 @@ timestamp have none, and the validators refuse the two keys on a group
 
 As the subject of statements, each of these elements stands for a thing:
 
-- the **bundle**, the manifest itself, for what the manifest as a whole is
-  about: a work, a set, a compilation;
-- a **timeline** for the thing it is the time axis of: this recording,
-  this upload, this edition, this encoding, this scan;
-- a **region** for the stretch of that thing it marks, such as a movement
-  of a recording or a track of a set.
+- the **bundle**, the manifest itself, for the package it is, which names
+  the work it is about, a sonata or a DJ set, by `schema:about` and is
+  never that work;
+- a **timeline** for the manifestation it is the time axis of: this
+  edition, this encoding, this scan, this recording file, this video;
+- a **region** for the stretch of that manifestation it marks, such as a
+  movement of a recording or a track of a set.
 
 The subject's IRI is the manifest's address with the element's ID as its
 fragment, `<manifest address>#<id>` (README, "Identity"), and an element
@@ -80,41 +81,70 @@ expressions that work's expression aggregates or incorporates.
 
 | Class | The thing | In a manifest |
 | --- | --- | --- |
-| work | a creation in the abstract, intangible and without fixed bounds | never packaged; named by the bundle's statements, or by a value |
-| expression | one realisation of a work: the notated text of a version, a recorded performance | named by statements; a performance is an event, and its recording an expression of its own |
-| manifestation | one embodiment of an expression: an edition, an encoding, a scan of a score; a release, an upload, an audio file | the thing a timeline is the axis of, each timeline of exactly one |
-| item | one exemplar of a manifestation: a copy in a library, a file at an address | statements on its manifestation's timeline: its location and, for a file, its digest |
+| work | a creation in the abstract, intangible and without fixed bounds | never packaged; a value node, named by the bundle's `schema:about` and by a timeline's "example of work" |
+| expression | one realisation of a work: the notated text of a version, a recorded performance | a value node, named by a timeline's "embodies"; a performance is an event, and its recording an expression of its own |
+| manifestation | one embodiment of an expression: an edition, an encoding, a scan of a score; a release, an upload, an audio file, a video | the thing a timeline is the axis of, each timeline of exactly one |
+| item | one exemplar of a manifestation: a copy in a library, a file at an address | a value node on its manifestation's timeline, holding its location and, for a file, its digest |
 
-A work has no time axis, and a manifest never delineates one: the bundle's
-statements say which work the manifest is about, by "is a" and by "same
-as" an authority's IRI. An edition, an encoding and a scan of the score
-are manifestations of the notated expression; a release, an upload or a
-file of a recording are manifestations of the recorded expression. A copy
-adds its location, and for a file its digest, to its manifestation's
-timeline; for a digital carrier the location is the item statement. A
-compound is itself the one work. A disc is an aggregate whose release
-embodies the compilation's expression and the pieces' expressions with
-it, so the disc's timeline and its tracks' children are axes of that one
-manifestation. A DJ set is a work of its own whose recorded expression
-incorporates the tracks' expressions in altered form; the tracks' own
-timelines, where a manifest holds them, are manifestations of those
-expressions and relate to the set by alignment alone.
+A work has no time axis, and a manifest never delineates one; an
+expression has none of its own either. Works and expressions therefore
+occur only as values. The bundle names its work by `schema:about` and is
+typed as nothing that is a work; a timeline names what it manifests, an
+expression by `lrmoo:R4_embodies`, a work by Wikidata's `wdt:P629` or
+schema.org's `schema:exampleOfWork`. Such a value node states its own
+"is a" and its identity with an authority's IRI by "same as". The "is a"
+of a timeline or a region names a manifestation class or a kind of
+manifestation, never a class of work or expression (section 5). Whatever
+has no axis in the manifest stays a value node.
+
+An edition, an encoding and a scan of the score are manifestations of the
+notated expression; a release, an upload or a file of a recording are
+manifestations of the recorded expression. A copy is an item, a value
+node on its manifestation's timeline that holds its location and, for a
+file, its digest; for a digital carrier the location is the item
+statement. A compound is itself the one work. A disc is an aggregate
+whose release embodies the compilation's expression and the pieces'
+expressions with it, so the disc's timeline and its tracks' children are
+axes of that one manifestation. A DJ set is a work of its own whose
+recorded expression incorporates the tracks' expressions in altered form.
+Its timeline is the axis of the set's recording, which names the set by
+"recording of" (`wdt:P2550`); the tracks' own timelines, where a manifest
+holds them, are manifestations of those expressions and relate to the
+set by alignment alone.
 
 The four classes are types of published vocabularies, and the format has
 no key for them: a manifest states them where it wants them, as
 `type: ["lrmoo:F3_Manifestation"]` or `type: ["melod:Manifestation"]`
 (section 5). In `nielsen_record`, a catalogue record of Carl Nielsen's
-song CNW 133, the bundle stands for the work and the print for a
-manifestation, and the one copy of the autograph, held by the Royal
-Danish Library under the shelfmark CNS 342e, is proposed as its exemplar
-on the autograph's timeline, the library's siglum awaiting reconciliation
-(abridged):
+song CNW 133, the bundle is about the catalogue's work, which is realised
+in one expression. The print and the autograph are manifestations, each a
+timeline; the print embodies the expression, a value node. The one copy
+of the autograph, held by the Royal Danish Library under the shelfmark
+CNS 342e, is proposed as its exemplar on the autograph's timeline, the
+library's siglum awaiting reconciliation (abridged):
 
 ```yaml
 id: "#cnw0133"
 statements:
-  type: ["melod:Work"]
+  "schema:about":
+    -
+      id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#work_d1e191187"
+      "lrmoo:R3_is_realised_in":
+        -
+          id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1"
+      type: ["melod:Work"]
 timelines:
+  -
+    id: "#cgt_1"
+    length: null
+    name: "Score, print (Wilhelm Hansen, 1906)"
+    statements:
+      "lrmoo:R4_embodies":
+        -
+          id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1"
+          type: ["melod:Expression"]
+      type: ["melod:Manifestation"]
+    unit: millimeters
   -
     id: "#cgt_2"
     length: null
@@ -133,6 +163,29 @@ timelines:
     statements:
       type: ["melod:Manifestation"]
     unit: millimeters
+```
+
+Read as linked data, the excerpt types no element of the manifest as a
+work or an expression, and the proposed exemplar is reified only
+(section 9):
+
+```turtle
+:cnw0133 schema:about
+    <https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#work_d1e191187> .
+
+<https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#work_d1e191187>
+    a melod:Work ;
+    lrmoo:R3_is_realised_in
+        <https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1> .
+
+:cgt_1 a melod:Manifestation ;
+    lrmoo:R4_embodies
+        <https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1> .
+
+<https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1>
+    a melod:Expression .
+
+:cgt_2 a melod:Manifestation .
 ```
 
 ## 4. Pairs
@@ -164,14 +217,19 @@ remains authoritative for it. A node's own pairs are written directly
 as its keys, so a node is described as an element is. A node whose `id`
 names an element of the manifest holds that `id` alone (section 7).
 
-The literals of `op106_work` are a catalogue number in GND's ontology and
-the work's IMSLP page name, Wikidata's external-identifier property
-holding a string:
+The literals of `op106_work` are pairs of the work the bundle is about, a
+value node: a catalogue number in GND's ontology and the work's IMSLP
+page name, Wikidata's external-identifier property holding a string
+(abridged):
 
 ```yaml
 statements:
-  "gndo:opusNumericDesignationOfMusicalWork": ["op. 106"]
-  "wdt:P839": ["Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"]
+  "schema:about":
+    -
+      "gndo:opusNumericDesignationOfMusicalWork": ["op. 106"]
+      id: "mbw:4a622b0d-b0c0-405e-b49e-05b70c108284"
+      label: "Piano Sonata No. 29, Op. 106"
+      "wdt:P839": ["Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"]
 ```
 
 and the encoding of `layerit_recording` states its encoding date as a
@@ -196,9 +254,15 @@ statements:
       id: "wd:Q98069877"
 ```
 
+On a timeline or a region every "is a" names a manifestation class or a
+kind of manifestation, as each of these three does; a class of work or
+expression is stated on the value node that stands for the work or the
+expression (section 3).
+
 `type` holds one or more distinct IRIs and never a literal. In
 `provenance`, the pair `type` X is written with the property `rdf:type`
-and the value `{id: X}` (section 9).
+and the value `{id: X}`; an entry giving the class as a literal string
+names no pair (section 9).
 
 ## 6. Vocabularies and patterns
 
@@ -272,7 +336,9 @@ A node whose `id` begins with `#` names an element of the same manifest,
 that element as a subject. An element of another manifest is named by
 that manifest's address with the ID as fragment, relative
 (`other.yaml#clt_1`) or absolute. Any property may take such a value;
-"derived from" and "embodies" are the usual cases. A node naming an
+"derived from", relating one manifestation to another, is the usual case.
+A work or an expression is never such a value, since no element stands
+for one (section 3). A node naming an
 element of the manifest holds its `id` alone: the element describes
 itself through its own statements, so a label or pair beside the `id`
 would describe it a second time.
@@ -499,7 +565,7 @@ suits a subject is never refused. It holds five members:
   `"?value"` and `"?position"` named literals; `inverse: true` marks the
   inverse reading, and `when` limits an alternative to subjects of some
   types or values of some things.
-- `types`: the kinds of thing a subject is, each with a `label`, its "is
+- `types`: the kinds of thing a subject or a value node is, each with a `label`, its "is
   a" patterns per system, the verbs usually stated of it in order and the
   systems to look its values up in: musical work, recorded performance,
   release, video, printed or scanned edition, score encoding and DJ set.
@@ -681,10 +747,10 @@ statements and provenance are attached from
 
 | Fixture | Holds |
 | --- | --- |
-| `op106_work` | Beethoven's Piano Sonata No. 29, Op. 106, in five roots side by side, one for the sonata and one for each movement; identity with Wikidata, the GND, VIAF and MusicBrainz, the composer, the opus number, the IMSLP page name, and the parts MusicBrainz lists with their positions; the manifest's own prefix `mbw` |
-| `layerit_recording` | an MEI encoding of the opening of Debussy's "Clair de lune", a filmed performance by Maria João Pires and an audio file cut from it; "is a" in three vocabularies, the performer in two, a rejected GND candidate, provenance on a value node, and a proposal whose value is an element |
-| `djset_segment` | a DJ set and one segment of it, based on a recording stated in Wikidata and MusicBrainz with its ISRC; a performer known only by name, proposed, and a rejected identity |
-| `nielsen_record` | the catalogue record of Carl Nielsen's song CNW 133 taken over from its MEI header: titles in two languages, catalogue numbers, the medium of performance, the date, the relations between work, version and sources, every pair imported with its provenance, and names awaiting reconciliation |
+| `op106_work` | a bundle about Beethoven's Piano Sonata No. 29, Op. 106, whose five roots side by side are manifestations: the first edition and an encoding of each movement, each naming its work; under `schema:about`, the sonata with its identity in Wikidata, the GND, VIAF and MusicBrainz, the composer, the opus number, the IMSLP page name, and the parts MusicBrainz lists with their positions; the manifest's own prefix `mbw` |
+| `layerit_recording` | a bundle about Debussy's "Clair de lune": an MEI encoding of its opening, a video of a performance by Maria João Pires and an audio file cut from it, each a manifestation; "is a" in three vocabularies, the encoding's work in two, the performer in two, a rejected GND candidate, provenance on a value node, and a proposal whose value is an element |
+| `djset_segment` | a bundle about a DJ set: the set's recording, naming the set by "recording of", and one segment of it, based on a recording stated in Wikidata and MusicBrainz with its ISRC; a performer known only by name, proposed, and a rejected identity |
+| `nielsen_record` | the catalogue record of Carl Nielsen's song CNW 133 taken over from its MEI header: the work under `schema:about` with titles in two languages, catalogue numbers and the date; the print and the autograph as manifestation timelines, the print embodying the expression, a value node with the medium of performance; every pair imported with its provenance, and names awaiting reconciliation |
 
 `fixtures/rdf/0.2.0/<name>.nq` holds the expected reading of each, the
 canonical N-Quads (RDFC-1.0) of its JSON-LD reading with the base
