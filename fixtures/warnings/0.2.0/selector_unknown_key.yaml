@@ -1,7 +1,7 @@
 manifest:
   graphical:
     order: {}
-    statements:
+    rules:
       -
         select:
           element: label
@@ -23,7 +23,7 @@ manifest:
         select:
           addresses:
             -
-              id: a
+              id: "#a"
         set:
           display: none
       -
@@ -69,7 +69,7 @@ manifest:
       -
         select:
           element: wedge
-          within: score
+          within: "#score"
         set:
           fill: "#65A30D"
           stroke: "#65A30D"
@@ -77,7 +77,7 @@ manifest:
         select:
           addresses:
             -
-              id: score
+              id: "#score"
               part: [end]
         set:
           fill: "#B45309"
@@ -85,20 +85,20 @@ manifest:
       -
         select:
           element: child
-          within: score
+          within: "#score"
         set:
           display: inline
       -
         select:
           element: child
-          within: b
+          within: "#b"
         set:
           fill: "#EA580C"
           stroke: "#EA580C"
       -
         select:
           element: label
-          within: score
+          within: "#score"
         set:
           fill: "#4D7C0F"
           font-size: 10
@@ -106,7 +106,7 @@ manifest:
         select:
           addresses:
             -
-              id: score
+              id: "#score"
               part: [end, label]
         set:
           fill: "#A16207"
@@ -114,7 +114,7 @@ manifest:
         select:
           addresses:
             -
-              id: intro
+              id: "#intro"
               part: [label]
         set:
           fill: "#0E7490"
@@ -122,7 +122,7 @@ manifest:
         select:
           addresses:
             -
-              id: da-capo
+              id: "#da-capo"
               part: [label]
         set:
           fill: "#9D174D"
@@ -130,7 +130,7 @@ manifest:
         select:
           addresses:
             -
-              id: score
+              id: "#score"
               part: [name]
         set:
           content: "Styled score"
@@ -140,7 +140,7 @@ manifest:
       -
         select:
           element: name
-          within: b
+          within: "#b"
         set:
           fill: "#0369A1"
     styles:
@@ -163,7 +163,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: a
+          id: "#a"
           is_segment_line: false
           length: [4, 1]
           links: []
@@ -178,7 +178,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: b
+          id: "#b"
           is_segment_line: false
           length: [4, 1]
           links: []
@@ -191,7 +191,7 @@ manifest:
           unit: quarters
       conversion_maps:
         -
-          id: ticks
+          id: "#ticks"
           name: Ticks
           offset: 0
           scalar: 480
@@ -201,13 +201,13 @@ manifest:
       flow_control:
         -
           coordinate: [8, 1]
-          id: da-capo
+          id: "#da-capo"
           label: D.C.
           manifestation: da_capo
           meta: {}
           name: null
           type: jump_from
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -218,7 +218,7 @@ manifest:
       regions:
         -
           end: [2, 1]
-          id: intro
+          id: "#intro"
           links: []
           meta: {}
           name: intro
@@ -228,5 +228,5 @@ manifest:
 unknown_keys:
   -
     key: kind
-    path: [graphical, statements, 0, select]
+    path: [graphical, rules, 0, select]
 unregistered_terms: []

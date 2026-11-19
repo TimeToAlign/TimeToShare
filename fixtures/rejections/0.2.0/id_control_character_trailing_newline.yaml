@@ -11,7 +11,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: "score\n"
+      id: "#score\n"
       is_segment_line: false
       length: [8, 1]
       links: []

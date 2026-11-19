@@ -14,8 +14,8 @@ import { type Json, JsonFloat, type Lossless } from "../src/json/value.js";
 import { loads } from "../src/serialization/read.js";
 import { compactJson } from "../src/serialization/text.js";
 import { dumps } from "../src/serialization/write.js";
-import { parse, validate } from "../src/validate.js";
-import { bundle, fixtureFiles, fixtureText, manifest, timeline } from "./fixtures.js";
+import { parse } from "../src/validate.js";
+import { bundle, fixtureFiles, fixtureText, manifest, timeline, validate } from "./fixtures.js";
 
 const SMALLEST = {
   timetoshare: "0.2.0",
@@ -200,7 +200,7 @@ describe("the complete and the minimal form", () => {
     expect(pieces.maps).toEqual([{ ...table, name: null, kind: "linear", extrapolate: "none" }]);
     expect(value.groups).toEqual([{ id: "g", members: ["score"], name: null, meta: {} }]);
     expect(value.measure_maps).toEqual([{ id: "bars", rows, name: null, meta: {} }]);
-    expect(value.graphical).toEqual({ styles: {}, statements: [], order: {}, timestamps: [] });
+    expect(value.graphical).toEqual({ styles: {}, rules: [], order: {}, timestamps: [] });
     validate(value);
   });
 
@@ -272,7 +272,7 @@ describe("the complete and the minimal form", () => {
     expect(minimal(styled).graphical).toEqual({});
     expect(complete(styled).graphical).toEqual({
       styles: {},
-      statements: [],
+      rules: [],
       order: {},
       timestamps: [],
     });
@@ -496,7 +496,7 @@ describe("the typed forms", () => {
     const named: CompleteManifest = {
       ...COMPLETE,
       id: "op35",
-      graphical: { styles: {}, statements: [], order: {}, timestamps: [] },
+      graphical: { styles: {}, rules: [], order: {}, timestamps: [] },
     };
     const placed: CompleteTimeline = { ...COMPLETE_ROOT, offset: [-1, 2] };
     // Numbers are lossless and a Fraction stays a pair.

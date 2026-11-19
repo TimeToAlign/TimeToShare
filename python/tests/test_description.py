@@ -9,6 +9,7 @@ from typing import Any
 
 import pytest
 
+import timetoshare
 from timetoshare import (
     ABSENCE_REASONS,
     DEFAULTS,
@@ -28,20 +29,24 @@ from timetoshare import (
     canonical_order,
     complete,
     default_registry,
-    description_problems,
     dumps,
     fixture_paths,
-    identity_problems,
     loads,
     minimal,
     rejection_case,
     rejection_paths,
+)
+
+from .conftest import (
+    description_problems,
+    group,
+    identity_problems,
+    manifest,
+    timeline,
     unknown_keys,
     unregistered_terms,
     validate,
 )
-
-from .conftest import group, manifest, timeline
 
 MB = "http://musicbrainz.org/work/"
 MB_WORK = "4a622b0d-b0c0-405e-b49e-05b70c108284"
@@ -1028,7 +1033,7 @@ def test_the_messages_of_the_shared_cases_of_links(name: str, message: str) -> N
     (path,) = [path for path in rejection_paths() if path.stem == name]
     case = rejection_case(path)
     with pytest.raises(SchemaValidationError) as caught:
-        validate(case.manifest)
+        timetoshare.validate(case.manifest)
     assert (caught.value.path, caught.value.code, caught.value.message) == (
         case.path,
         case.code,
@@ -1043,7 +1048,7 @@ def test_the_shared_cases_through_the_description_layer_alone() -> None:
     described = 0
     for path in rejection_paths():
         case = rejection_case(path)
-        problems = description_problems(case.manifest)
+        problems = timetoshare.description_problems(case.manifest)
         if path.stem.startswith("description_"):
             described += 1
             assert [(problem.path, problem.code) for problem in problems] == [
@@ -1053,7 +1058,10 @@ def test_the_shared_cases_through_the_description_layer_alone() -> None:
             assert problems == [], path.stem
     assert described == 19
     for path in fixture_paths():
-        assert description_problems(loads(path.read_text(encoding="utf-8"))) == []
+        assert (
+            timetoshare.description_problems(loads(path.read_text(encoding="utf-8")))
+            == []
+        )
 
 
 def _broken_elsewhere(**members: Any) -> dict[str, Any]:

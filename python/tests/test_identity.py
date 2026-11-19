@@ -9,13 +9,12 @@ import pytest
 
 from timetoshare import (
     SchemaValidationError,
-    identity_problems,
     rejection_case,
     rejection_paths,
-    validate,
+    with_bare_ids,
 )
 
-from .conftest import bundle, group, manifest, timeline
+from .conftest import bundle, group, identity_problems, manifest, timeline, validate
 
 
 def _problems(value: dict) -> list[tuple[tuple[str | int, ...], str]]:
@@ -813,7 +812,7 @@ def test_the_shared_identity_rejections_carry_their_messages(
 ) -> None:
     (path,) = [path for path in rejection_paths() if path.stem == name]
     case = rejection_case(path)
-    assert _only(case.manifest) == (case.path, message)
+    assert _only(with_bare_ids(case.manifest)) == (case.path, message)
 
 
 def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:

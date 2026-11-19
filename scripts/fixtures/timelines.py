@@ -794,7 +794,7 @@ def child_flow_control_timeline() -> Timeline:
     marker ``fine`` ("Fine") at 4 and the jump origin ``da_capo_al_fine``
     ("D.C. al Fine") from 8 back to 0, which names no target. The defaults
     hide the flow control band of a child, so a drawing shows them only under
-    a statement that displays the band ``{"id": "verse", "facet":
+    a rule that displays the band ``{"id": "verse", "facet":
     "flow_control"}``.
     """
     piece = parts.named(ContinuousLogicalTimeline, "piece", "Piece", Fraction(16))

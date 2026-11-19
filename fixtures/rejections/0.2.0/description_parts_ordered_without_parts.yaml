@@ -30,7 +30,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -41,7 +41,7 @@ manifest:
       regions:
         -
           end: [4, 1]
-          id: intro
+          id: "#intro"
           links: []
           meta: {}
           name: null

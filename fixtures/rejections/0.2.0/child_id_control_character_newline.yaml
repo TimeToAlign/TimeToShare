@@ -13,7 +13,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: "child\nid"
+          id: "#child\nid"
           is_segment_line: false
           length: [8, 1]
           links: []
@@ -26,7 +26,7 @@ manifest:
           unit: quarters
       conversion_maps: []
       flow_control: []
-      id: bare
+      id: "#bare"
       is_segment_line: false
       length: [8, 1]
       links: []

@@ -11,10 +11,10 @@ manifest:
       children: []
       conversion_maps:
         -
-          id: cmap_1
+          id: "#cmap_1"
           maps:
             -
-              id: lmap_1
+              id: "#lmap_1"
               name: null
               offset: 0
               scalar: [1, 2]
@@ -22,7 +22,7 @@ manifest:
               target_unit: seconds
               type: LinearMap
             -
-              id: lmap_1
+              id: "#lmap_1"
               name: null
               offset: 0
               scalar: [1, 60]
@@ -34,7 +34,7 @@ manifest:
           target_unit: minutes
           type: ChainMap
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []

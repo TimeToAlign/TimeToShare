@@ -2,14 +2,14 @@ code: schema
 manifest:
   graphical:
     order:
-      group_1: [recording]
-    statements: []
+      "#group_1": ["#recording"]
+    rules: []
     styles: {}
     timestamps: []
   groups:
     -
-      id: group_1
-      members: [recording, recording]
+      id: "#group_1"
+      members: ["#recording", "#recording"]
       meta: {}
       name: "Second half"
   links: []
@@ -24,7 +24,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: second-half
+          id: "#second-half"
           is_segment_line: false
           length: [4, 1]
           links: []
@@ -37,7 +37,7 @@ manifest:
           unit: quarters
       conversion_maps: []
       flow_control: []
-      id: piece
+      id: "#piece"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -51,7 +51,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: recording
+      id: "#recording"
       is_segment_line: false
       length: [8, 1]
       links: []

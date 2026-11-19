@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { completeDescription, DEFAULTS, type DescriptionKind } from "../src/defaults.js";
+import * as timetoshare from "../src/index.js";
 import {
   ABSENCE_REASONS,
   type Assertion,
@@ -10,9 +11,7 @@ import {
   complete,
   completeManifest,
   defaultRegistry,
-  descriptionProblems,
   dumps,
-  identityProblems,
   LEVELS,
   type Link,
   linkFromUrl,
@@ -27,9 +26,6 @@ import {
   RELATIONS,
   SchemaValidationError,
   UnsupportedVersionError,
-  unknownKeys,
-  unregisteredTerms,
-  validate,
   withAssertion,
   withIdentifier,
   withLabel,
@@ -41,13 +37,18 @@ import {
 } from "../src/index.js";
 import type { JsonObject, Lossless } from "../src/json/value.js";
 import {
+  descriptionProblems,
   fixtureFiles,
   fixtureText,
   group,
+  identityProblems,
   manifest,
   rejectionCase,
   rejectionFileNames,
   timeline,
+  unknownKeys,
+  unregisteredTerms,
+  validate,
 } from "./fixtures.js";
 
 const MB = "http://musicbrainz.org/work/";
@@ -178,9 +179,10 @@ describe("the work bundle of Op. 106", () => {
     expect(dumps(complete(MINIMAL))).toBe(dumps(COMPLETE));
     expect(dumps(minimal(COMPLETE))).toBe(dumps(MINIMAL));
     for (const form of [MINIMAL, COMPLETE]) {
-      const read = parse(dumps(form, { serialization: "json" }));
-      expect(unknownKeys(read)).toEqual([]);
-      expect(unregisteredTerms(read)).toEqual([]);
+      const file = parse(dumps(timetoshare.withFileIds(form), { serialization: "json" }));
+      expect(timetoshare.unknownKeys(file)).toEqual([]);
+      expect(timetoshare.unregisteredTerms(file)).toEqual([]);
+      const read = timetoshare.withBareIds(file);
       expect(completeManifest(read).links[0]).toEqual(link);
       expect(completeManifest(read).schemes[0]).toEqual(COMPLETE.schemes[0]);
     }
@@ -199,7 +201,8 @@ describe("the work bundle of Op. 106", () => {
     });
     const value = bundle(first, second);
     validate(value);
-    const read = completeManifest(parse(dumps(value, { serialization: "json" })));
+    const file = parse(dumps(timetoshare.withFileIds(value), { serialization: "json" }));
+    const read = completeManifest(timetoshare.withBareIds(file));
     expect(read.links).toEqual([first, second]);
     expect(read.links.map((link) => link.parts.map((slot) => slot.label))).toEqual(
       [
@@ -1000,7 +1003,7 @@ describe("the rules of links", () => {
   ])("gives the shared case %s its message", (name, message) => {
     const testCase = rejectionCase(name);
     try {
-      validate(testCase.manifest);
+      timetoshare.validate(testCase.manifest);
       expect.unreachable();
     } catch (error) {
       const { path, code, detail } = error as SchemaValidationError;
@@ -1016,15 +1019,14 @@ describe("the description layer alone", () => {
 
   it.each(rejectionFileNames())("gives the shared case %s its problem of links or none", (name) => {
     const testCase = rejectionCase(name);
-    const found = descriptionProblems(testCase.manifest as JsonObject).map((problem) => [
-      problem.path,
-      problem.code,
-    ]);
+    const found = timetoshare
+      .descriptionProblems(testCase.manifest as JsonObject)
+      .map((problem) => [problem.path, problem.code]);
     expect(found).toEqual(name.startsWith("description_") ? [[testCase.path, testCase.code]] : []);
   });
 
   it.each(fixtureFiles())("finds no problem of links in %s", (file) => {
-    expect(descriptionProblems(loads(fixtureText(file)) as JsonObject)).toEqual([]);
+    expect(timetoshare.descriptionProblems(loads(fixtureText(file)) as JsonObject)).toEqual([]);
   });
 
   const brokenElsewhere = (members: JsonObject = {}): JsonObject => ({

@@ -1,7 +1,7 @@
 manifest:
   graphical:
     order: {}
-    statements:
+    rules:
       -
         select:
           ids: [score]
@@ -20,7 +20,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -34,5 +34,5 @@ manifest:
 unknown_keys:
   -
     key: ids
-    path: [graphical, statements, 0, select]
+    path: [graphical, rules, 0, select]
 unregistered_terms: []

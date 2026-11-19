@@ -2,15 +2,29 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from typing import Any
+
 import pytest
 
+import timetoshare
 from timetoshare import (
+    SchemaValidationError,
+    fixture_paths,
     from_file_id,
+    load_schema,
+    loads,
     to_file_id,
     with_bare_ids,
     with_file_ids,
 )
-from timetoshare.ids import FileIdError
+from timetoshare.ids import (
+    CONTAINERS,
+    ID_POSITIONS,
+    MEASURE_VIEWS,
+    FileIdError,
+    definitions_of,
+)
 
 
 def every_position() -> dict:
@@ -83,7 +97,7 @@ def every_position() -> dict:
         ],
         "graphical": {
             "order": {"score": ["line", "children"], "g": ["score"]},
-            "statements": [
+            "rules": [
                 {
                     "select": {
                         "addresses": [{"id": "verse", "part": ["name"]}],
@@ -125,7 +139,7 @@ def every_position_in_file_form() -> dict:
     value["links"][0]["identifiers"][0]["scheme"] = "#opus"
     graphical = value["graphical"]
     graphical["order"] = {"#score": ["line", "children"], "#g": ["#score"]}
-    graphical["statements"][0]["select"] = {
+    graphical["rules"][0]["select"] = {
         "addresses": [{"id": "#verse", "part": ["name"]}],
         "within": "#score",
     }
@@ -232,3 +246,170 @@ def test_band_words_and_uris_stay_as_written() -> None:
     assert value["graphical"]["order"]["score"] == ["line", "children"]
     scheme = value["links"][0]["identifiers"][1]["scheme"]
     assert scheme == "http://www.wikidata.org/entity/P839"
+
+
+# -- the tables against the schema ------------------------------------------------
+
+ID = "#/$defs/Id"
+HOW = {"id": "value", "ids": "items", "order": "propertyNames", "scheme": "anyOf"}
+
+
+def _schema_id_positions(defs: dict[str, Any]) -> Iterator[tuple[str, str, str]]:
+    """Where the schema types a value as ``$defs/Id``, and how."""
+    for definition, node in defs.items():
+        for member, declared in node.get("properties", {}).items():
+            if declared.get("$ref") == ID:
+                yield definition, member, "value"
+            if declared.get("items", {}).get("$ref") == ID:
+                yield definition, member, "items"
+            if declared.get("propertyNames", {}).get("$ref") == ID:
+                yield definition, member, "propertyNames"
+            if any(branch.get("$ref") == ID for branch in declared.get("anyOf", ())):
+                yield definition, member, "anyOf"
+
+
+def _name(reference: str) -> str:
+    return reference.removeprefix("#/$defs/")
+
+
+def _held(declared: dict[str, Any]) -> Iterator[tuple[str, str]]:
+    """The definitions a member refers to, and how it holds them."""
+    if "$ref" in declared:
+        yield "one", _name(declared["$ref"])
+    if "$ref" in declared.get("items", {}):
+        yield "list", _name(declared["items"]["$ref"])
+    if "$ref" in declared.get("additionalProperties", {}):
+        yield "values", _name(declared["additionalProperties"]["$ref"])
+
+
+def _reaching(defs: dict[str, Any]) -> set[str]:
+    """The definitions that hold an ID position or hold one that does."""
+    reaching = {definition for definition, _, _ in _schema_id_positions(defs)}
+    changed = True
+    while changed:
+        changed = False
+        for definition, node in defs.items():
+            if definition in reaching:
+                continue
+            refers = {_name(entry["$ref"]) for entry in node.get("allOf", ())}
+            refers |= {
+                _name(entry["$ref"])
+                for entry in node.get("oneOf", ())
+                if "$ref" in entry
+            }
+            for declared in node.get("properties", {}).values():
+                refers |= {child for _, child in _held(declared)}
+            if refers & reaching:
+                reaching.add(definition)
+                changed = True
+    return reaching
+
+
+def test_the_id_positions_are_the_schemas() -> None:
+    defs = load_schema()["$defs"]
+    table = {
+        (definition, member, HOW[shape]) for definition, member, shape in ID_POSITIONS
+    }
+    assert table == set(_schema_id_positions(defs))
+    assert len(table) == len(ID_POSITIONS)
+
+
+def test_the_containers_are_the_schemas() -> None:
+    defs = load_schema()["$defs"]
+    reaching = _reaching(defs) - {"Id"}
+    expected = {
+        (definition, member, holding, child)
+        for definition, node in defs.items()
+        for member, declared in node.get("properties", {}).items()
+        for holding, child in _held(declared)
+        if child in reaching
+    }
+    assert set(CONTAINERS) == expected
+    assert len(CONTAINERS) == len(expected)
+
+
+def test_a_conversion_map_carries_its_types_definitions() -> None:
+    defs = load_schema()["$defs"]
+    views = {
+        name
+        for name, node in defs.items()
+        if node.get("allOf") == [{"$ref": "#/$defs/MeasureView"}]
+    }
+    assert set(MEASURE_VIEWS) == views
+    for branch in defs["ConversionMap"]["oneOf"]:
+        name = _name(branch["$ref"])
+        bases = [_name(entry["$ref"]) for entry in defs[name]["allOf"]]
+        while bases[-1] != "MapBase":
+            bases += [_name(entry["$ref"]) for entry in defs[bases[-1]]["allOf"]]
+        assert definitions_of("ConversionMap", {"type": name}) == (name, *bases)
+
+
+@pytest.mark.parametrize("path", fixture_paths(), ids=lambda path: path.name)
+def test_every_fixture_round_trips(path) -> None:
+    value = loads(path.read_text(encoding="utf-8"))
+    assert with_file_ids(with_bare_ids(value)) == value
+
+
+# -- the validators read the file form ----------------------------------------------
+
+
+def _small(order_value: str, scheme: str) -> dict:
+    return {
+        "timetoshare": "0.2.0",
+        "timelines": [{"id": "#score", "unit": "quarters", "length": [8, 1]}],
+        "groups": [{"id": "#g", "members": ["#score"]}],
+        "schemes": [{"id": "#opus"}],
+        "links": [
+            {
+                "relation": "pertains_to",
+                "level": "work",
+                "identifiers": [{"scheme": scheme, "value": "1"}],
+            }
+        ],
+        "graphical": {
+            "order": {
+                "#g": [order_value],
+                "#score": [
+                    "line",
+                    "markers",
+                    "conversion_maps",
+                    "children",
+                    "regions",
+                    "flow_control",
+                ],
+            }
+        },
+    }
+
+
+def test_a_file_form_manifest_validates() -> None:
+    timetoshare.validate(_small("#score", "#opus"))
+
+
+@pytest.mark.parametrize(
+    ("order_value", "scheme", "path", "message"),
+    [
+        (
+            "score",
+            "#opus",
+            ("graphical", "order", "#g", 0),
+            "'score' is not written as an ID: it does not start with '#'",
+        ),
+        (
+            "#score",
+            "opus",
+            ("links", 0, "identifiers", 0, "scheme"),
+            "'opus' names a scheme of this manifest, so it is written '#opus'",
+        ),
+    ],
+)
+def test_an_id_the_schema_cannot_type_is_refused_where_it_stands(
+    order_value: str, scheme: str, path: tuple, message: str
+) -> None:
+    with pytest.raises(SchemaValidationError) as raised:
+        timetoshare.validate(_small(order_value, scheme))
+    assert (raised.value.code, raised.value.path, raised.value.message) == (
+        "schema",
+        path,
+        message,
+    )

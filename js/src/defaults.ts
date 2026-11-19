@@ -71,7 +71,7 @@ export const DEFAULTS = {
   table_map: { kind: "linear", extrapolate: "none" },
   measure_map: { name: null, meta: {} },
   group: { name: null, meta: {} },
-  graphical: { styles: {}, statements: [], order: {}, timestamps: [] },
+  graphical: { styles: {}, rules: [], order: {}, timestamps: [] },
   timestamp: { display: ["wedge", "name", "cross_section"] },
   scheme: { name: null, uri: [], criteria: null },
   link: {

@@ -2,8 +2,8 @@ code: band_order
 manifest:
   graphical:
     order:
-      score: [children, conversion_maps, line, markers, regions, flow_control, annotations]
-    statements: []
+      "#score": [children, conversion_maps, line, markers, regions, flow_control, annotations]
+    rules: []
     styles: {}
     timestamps: []
   groups: []
@@ -17,7 +17,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []

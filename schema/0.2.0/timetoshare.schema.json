@@ -7,7 +7,7 @@
   "$defs": {
     "Manifest": {
       "type": "object",
-      "description": "A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp and scheme. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a statement selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the schemes are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry links to external entities (`Link`); no other element carries any. Links keep the order they are given in.",
+      "description": "A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp and scheme. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the schemes are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry links to external entities (`Link`); no other element carries any. Links keep the order they are given in.",
       "properties": {
         "$schema": {
           "type": "string",
@@ -203,7 +203,7 @@
     },
     "Graphical": {
       "type": "object",
-      "description": "How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members, the band order of each timeline and the named timestamps. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent `graphical` object draws every element with the other style layers alone.",
+      "description": "How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of rules, the display order of each group's members, the band order of each timeline and the named timestamps. A rule selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the rules or an order. An absent `graphical` object draws every element with the other style layers alone.",
       "properties": {
         "styles": {
           "type": "object",
@@ -213,11 +213,11 @@
           },
           "default": {}
         },
-        "statements": {
+        "rules": {
           "type": "array",
-          "description": "Statements in order; of two statements of equal rank the later one decides.",
+          "description": "Rules in order; of two rules of equal rank the later one decides.",
           "items": {
-            "$ref": "#/$defs/Statement"
+            "$ref": "#/$defs/Rule"
           },
           "default": []
         },
@@ -248,8 +248,8 @@
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "pattern": "^timestamp_[1-9][0-9]*$",
-          "description": "The timestamp ID: `timestamp_` followed by a positive integer without leading zeros."
+          "pattern": "^#timestamp_[1-9][0-9]*$",
+          "description": "The timestamp ID: `timestamp_` followed by a positive integer without leading zeros, written `#timestamp_1` and so on."
         },
         "timeline": {
           "$ref": "#/$defs/Id",
@@ -506,11 +506,12 @@
     },
     "Id": {
       "type": "string",
-      "minLength": 1,
+      "minLength": 2,
+      "pattern": "^#",
       "not": {
         "pattern": "[\\u0000-\\u001f]"
       },
-      "description": "An identifier: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed."
+      "description": "An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed."
     },
     "Facet": {
       "type": "string",
@@ -993,7 +994,7 @@
     },
     "Order": {
       "type": "array",
-      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.",
+      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs (each written as every ID is, `#` followed by the ID), or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.",
       "items": {
         "type": "string",
         "minLength": 1,
@@ -1003,9 +1004,9 @@
       },
       "uniqueItems": true
     },
-    "Statement": {
+    "Rule": {
       "type": "object",
-      "description": "One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.",
+      "description": "One rule: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.",
       "properties": {
         "select": {
           "$ref": "#/$defs/Selector"
@@ -1952,9 +1953,17 @@
       "description": "An identifier of an external entity: its `value` in the identifier scheme `scheme`. Where a scheme mints a URI for the entity, the URI belongs in the `uri` of the link, slot or entry instead.",
       "properties": {
         "scheme": {
-          "type": "string",
-          "minLength": 1,
-          "description": "The scheme: the ID of a `Scheme` of this manifest, or an absolute URI identifying the scheme, such as the URI of a Wikidata property (`http://www.wikidata.org/entity/P839`, the IMSLP ID). A scheme that names no Scheme of the manifest must be an absolute URI; checked after the schema."
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "string",
+              "pattern": "^[^#]",
+              "description": "An absolute URI identifying the scheme."
+            }
+          ],
+          "description": "The scheme: the ID of a `Scheme` of this manifest, written as every ID is (`#opus`), or an absolute URI identifying the scheme, such as the URI of a Wikidata property (`http://www.wikidata.org/entity/P839`, the IMSLP ID). An ID must name a Scheme of the manifest, and a value without `#` must be an absolute URI that names no Scheme of the manifest; checked after the schema."
         },
         "value": {
           "type": "string",

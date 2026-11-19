@@ -101,7 +101,7 @@ _STYLED_SCORE = {
             "opacity": 0.8,
         }
     },
-    "statements": [
+    "rules": [
         *_SHARED,
         {"select": {"addresses": [{"id": "a"}]}, "set": {"display": "none"}},
         {"select": {"element": "block"}, "set": {"rx": 4}},
@@ -183,11 +183,11 @@ def _styled(name: str) -> dict:
     return _load(FIXTURES / name)["graphical"]
 
 
-def test_the_styled_manifests_carry_their_statements() -> None:
+def test_the_styled_manifests_carry_their_rules() -> None:
     expected = {
         "styled__score.yaml": _STYLED_SCORE,
         "styled__performance.yaml": {
-            "statements": [
+            "rules": [
                 *_SHARED,
                 {
                     "select": {
@@ -202,10 +202,10 @@ def test_the_styled_manifests_carry_their_statements() -> None:
     }
     for name, graphical in expected.items():
         styled = _styled(name)
-        assert styled["statements"] == graphical["statements"]
+        assert styled["rules"] == graphical["rules"]
         assert styled["styles"] == graphical.get("styles", {})
         assert styled["order"] == graphical.get("order", {})
-    assert [len(value["statements"]) for value in expected.values()] == [20, 3]
+    assert [len(value["rules"]) for value in expected.values()] == [20, 3]
 
 
 # The drawn elements and texts of styled__score: (type, address, timeline it
@@ -239,17 +239,17 @@ _DEPTH = {"score": 1, "b": 2}
 
 
 def _resolve(graphical: dict, element: tuple, prop: str) -> str:
-    """Return the value the manifest's own statements give ``prop``.
+    """Return the value the manifest's own rules give ``prop``.
 
     Ranks follow docs/drawing.md section 2.5 within one layer: addresses, depth of
     within, class, element, the count of domain and modality, position. An
-    inherited property no statement sets is taken from the parent.
+    inherited property no rule sets is taken from the parent.
     """
     kind, address, owner, cls, domain, modality, parent = element
     ranked = []
-    for position, statement in enumerate(graphical["statements"]):
-        select = statement["select"]
-        declaration = statement["set"]
+    for position, rule in enumerate(graphical["rules"]):
+        select = rule["select"]
+        declaration = rule["set"]
         if isinstance(declaration, str):
             declaration = graphical["styles"][declaration]
         if prop not in declaration:
@@ -311,9 +311,9 @@ def test_every_styled_score_item_has_its_own_colour() -> None:
 def test_every_styled_score_item_is_visible() -> None:
     graphical = _styled("styled__score.yaml")
     declarations = [
-        (statement["select"], statement["set"])
-        for statement in graphical["statements"]
-        if isinstance(statement["set"], dict)
+        (rule["select"], rule["set"])
+        for rule in graphical["rules"]
+        if isinstance(rule["set"], dict)
     ] + [(None, style) for style in graphical["styles"].values()]
     for select, declaration in declarations:
         assert declaration.get("stroke-width", 1) > 0
@@ -373,7 +373,7 @@ def test_named_timestamps_pass_through_the_emitter(
             "timeline": "clt_2",
         },
     ]
-    assert value["graphical"].get("statements", []) == []
+    assert value["graphical"].get("rules", []) == []
     validate(value)
     assert identity_problems(value) == []
 
@@ -442,7 +442,7 @@ def test_free_ids_are_written_as_given(name: str) -> None:
         (take, ["take 2/intro"]),
     ]
     assert [sorted(group["members"]) for group in value["groups"]] == [[score, take]]
-    assert [statement["select"] for statement in value["graphical"]["statements"]] == [
+    assert [rule["select"] for rule in value["graphical"]["rules"]] == [
         {"addresses": [{"id": "take 2/intro"}]}
     ]
     validate(value)

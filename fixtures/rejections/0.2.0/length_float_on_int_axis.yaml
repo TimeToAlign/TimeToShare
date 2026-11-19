@@ -13,7 +13,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: dlt_2
+          id: "#dlt_2"
           is_segment_line: false
           length: 120
           links: []
@@ -28,7 +28,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: dlt_3
+          id: "#dlt_3"
           is_segment_line: false
           length: 96
           links: []
@@ -41,7 +41,7 @@ manifest:
           unit: ticks
       conversion_maps: []
       flow_control: []
-      id: dlt_1
+      id: "#dlt_1"
       is_segment_line: false
       length: 480.5
       links: []

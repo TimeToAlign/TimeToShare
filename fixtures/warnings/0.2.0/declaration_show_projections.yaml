@@ -1,7 +1,7 @@
 manifest:
   graphical:
     order: {}
-    statements:
+    rules:
       -
         select: {}
         set:
@@ -19,7 +19,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: bare
+      id: "#bare"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -33,5 +33,5 @@ manifest:
 unknown_keys:
   -
     key: show-projections
-    path: [graphical, statements, 0, set]
+    path: [graphical, rules, 0, set]
 unregistered_terms: []

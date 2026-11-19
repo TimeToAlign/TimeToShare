@@ -14,7 +14,7 @@ import { parseJson } from "../src/serialization/json.js";
 import { loads } from "../src/serialization/read.js";
 import { compactJson } from "../src/serialization/text.js";
 import { dumps } from "../src/serialization/write.js";
-import { parse, validate } from "../src/validate.js";
+import { parse } from "../src/validate.js";
 import {
   bundle,
   expectWrittenAsStored,
@@ -26,6 +26,7 @@ import {
   respellable,
   respelled,
   timeline,
+  validate,
   warningFileNames,
   warningText,
 } from "./fixtures.js";
@@ -497,7 +498,7 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
       ? []
       : "timelines" in value
         ? ["timelines", "groups", "measure_maps", "schemes"]
-        : "timestamps" in value && "statements" in value
+        : "timestamps" in value && "rules" in value
           ? ["timestamps"]
           : "timeline" in value && "display" in value
             ? ["display"]
@@ -720,9 +721,9 @@ describe("values the writers refuse", () => {
 describe("parse", () => {
   it("reads and validates a manifest without losing a float", () => {
     const value = parse(
-      '{"timetoshare": "0.2.0", "timelines": [{"id": "take", "unit": "seconds", "length": 12.0,' +
-        ' "children": [{"id": "a", "unit": "seconds", "length": 1.5, "offset": 0.5},' +
-        ' {"id": "b", "unit": "seconds", "length": 1.5, "offset": 6.0}]}]}',
+      '{"timetoshare": "0.2.0", "timelines": [{"id": "#take", "unit": "seconds", "length": 12.0,' +
+        ' "children": [{"id": "#a", "unit": "seconds", "length": 1.5, "offset": 0.5},' +
+        ' {"id": "#b", "unit": "seconds", "length": 1.5, "offset": 6.0}]}]}',
     ) as unknown as JsonObject;
     const root = (value.timelines as JsonObject[])[0] as JsonObject;
     const offsets = (root.children as JsonObject[]).map((child) => child.offset);

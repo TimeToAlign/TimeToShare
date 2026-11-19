@@ -108,18 +108,18 @@ timelines:
   -
     conversion_maps:
       -
-        id: cmap_1
+        id: "#cmap_1"
         scalar: 0.5
         source_unit: seconds
         target_unit: samples
         type: LinearMap
-    id: s
+    id: "#s"
     length: 8.0
     offset: 0.0
     regions:
       -
         end: 4.5
-        id: region_1
+        id: "#region_1"
         start: 0.0
     unit: seconds
 timetoshare: "0.2.0"

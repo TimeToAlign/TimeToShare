@@ -1,0 +1,31 @@
+code: schema
+manifest:
+  groups:
+    -
+      id: "#group_1"
+      members: [clt_1]
+      meta: {}
+      name: null
+  links: []
+  measure_maps: []
+  meta: {}
+  name: null
+  schemes: []
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#clt_1"
+      is_segment_line: false
+      length: [8, 1]
+      links: []
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+path: [groups, 0, members, 0]
+reason: "A reference to an ID is written '#' followed by the ID; the member clt_1 has no '#'."

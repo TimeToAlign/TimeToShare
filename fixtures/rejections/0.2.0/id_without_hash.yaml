@@ -1,14 +1,5 @@
 code: schema
 manifest:
-  graphical:
-    order: {}
-    statements:
-      -
-        select:
-          element: projection
-        set: {}
-    styles: {}
-    timestamps: []
   groups: []
   links: []
   measure_maps: []
@@ -20,16 +11,16 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: bare
+      id: clt_1
       is_segment_line: false
       length: [8, 1]
       links: []
       locked: false
       meta: {}
-      name: Bare
+      name: null
       number_type: fraction
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
-path: [graphical, statements, 0, select, element]
-reason: "Projection is not an element type."
+path: [timelines, 0, id]
+reason: "A timeline's ID is written '#' followed by the ID; clt_1 has no '#'."

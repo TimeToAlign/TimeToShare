@@ -27,7 +27,7 @@ manifest:
           assertion: null
           identifiers: []
           label: "I. Allegro"
-          represented_by: [intro]
+          represented_by: ["#intro"]
           uri: ["http://musicbrainz.org/work/80cbaf7b-a1da-3fc5-b650-6eb72a803980"]
         -
           absent: not_represented
@@ -50,7 +50,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -61,7 +61,7 @@ manifest:
       regions:
         -
           end: [4, 1]
-          id: intro
+          id: "#intro"
           links: []
           meta: {}
           name: null

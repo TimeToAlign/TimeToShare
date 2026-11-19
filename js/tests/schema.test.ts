@@ -30,7 +30,7 @@ const PUBLIC = [
 
 /** Every node whose pattern ends in `$`, by its path below `$defs`, with a value its pattern accepts. */
 const ANCHORED: [string[], string][] = [
-  [["Timestamp", "properties", "id"], "timestamp_1"],
+  [["Timestamp", "properties", "id"], "#timestamp_1"],
   [["Paint"], "none"],
   [["Declaration", "properties", "stroke-dasharray"], "4 2"],
   [["Assertion", "properties", "asserted_on"], "2026-11-17"],
@@ -287,43 +287,45 @@ describe("the schema document", () => {
     const ajv = new Ajv2020({ strict: false });
     const identifier = ajv.compile({ $ref: "#/$defs/Id", $defs: defs });
     for (const accepted of [
-      "score",
-      "Bass Kick",
-      "perf/take 2",
-      "https://example.org/piece/score#exposition",
-      "start",
-      "regions_1",
+      "#score",
+      "#Bass Kick",
+      "#perf/take 2",
+      "#https://example.org/piece/score#exposition",
+      "#start",
+      "#regions_1",
+      "##x",
+      "# ",
     ]) {
       expect(identifier(accepted), accepted).toBe(true);
     }
-    for (const refused of ["", "score\t", "score\n"]) {
+    for (const refused of ["", "#", "score", "score#", "#score\t", "#score\n", "#\u001f"]) {
       expect(identifier(refused), refused).toBe(false);
     }
     const address = ajv.compile({ $ref: "#/$defs/Address", $defs: defs });
     for (const accepted of [
       {},
       { part: ["name"] },
-      { id: "score" },
-      { id: "perf/take 2" },
-      { id: "score", facet: "regions" },
-      { id: "score", part: ["card"] },
-      { id: "score", part: ["end", "label"] },
-      { id: "timestamp_1", part: ["line"] },
-      { id: "timestamp_1", part: ["label"] },
-      { id: "timestamp_1", part: ["name"] },
-      { id: "timestamp_1", part: ["id"] },
-      { id: "timestamp_1", part: ["coordinate"] },
-      { id: "score", root: "score" },
+      { id: "#score" },
+      { id: "#perf/take 2" },
+      { id: "#score", facet: "regions" },
+      { id: "#score", part: ["card"] },
+      { id: "#score", part: ["end", "label"] },
+      { id: "#timestamp_1", part: ["line"] },
+      { id: "#timestamp_1", part: ["label"] },
+      { id: "#timestamp_1", part: ["name"] },
+      { id: "#timestamp_1", part: ["id"] },
+      { id: "#timestamp_1", part: ["coordinate"] },
+      { id: "#score", root: "score" },
     ]) {
       expect(address(accepted), JSON.stringify(accepted)).toBe(true);
     }
     for (const refused of [
       "score",
       { facet: "regions" },
-      { id: "score", facet: "regions", part: ["label"] },
-      { id: "score", part: [] },
-      { id: "score", part: ["wedge"] },
-      { id: "score", facet: "regions_1" },
+      { id: "#score", facet: "regions", part: ["label"] },
+      { id: "#score", part: [] },
+      { id: "#score", part: ["wedge"] },
+      { id: "#score", facet: "regions_1" },
     ]) {
       expect(address(refused), JSON.stringify(refused)).toBe(false);
     }

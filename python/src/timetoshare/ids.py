@@ -25,7 +25,7 @@ one table of where each definition occurs, ``CONTAINERS``.
 from __future__ import annotations
 
 import copy
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from typing import Any, Literal
 
 HASH = "#"
@@ -78,9 +78,9 @@ CONTAINERS: tuple[tuple[str, str, Holding, str], ...] = (
     ("Timeline", "flow_control", "list", "FlowControlElement"),
     ("Timeline", "links", "list", "Link"),
     ("Region", "links", "list", "Link"),
-    ("Graphical", "statements", "list", "Statement"),
+    ("Graphical", "rules", "list", "Rule"),
     ("Graphical", "timestamps", "list", "Timestamp"),
-    ("Statement", "select", "one", "Selector"),
+    ("Rule", "select", "one", "Selector"),
     ("Selector", "addresses", "list", "Address"),
     ("ChainMap", "maps", "list", "ConversionMap"),
     ("PiecewiseMap", "maps", "list", "ConversionMap"),
@@ -155,6 +155,11 @@ def _bare(text: str, path: _Path) -> str:
     return text[1:]
 
 
+def _leniently_bare(text: str) -> str:
+    """The bare ID of a text in the file form; any other text as it is."""
+    return text[1:] if text.startswith(HASH) and len(text) > 1 else text
+
+
 def definitions_of(definition: str, value: Mapping[str, Any]) -> tuple[str, ...]:
     """The definitions whose members ``value``, held as ``definition``, carries.
 
@@ -172,8 +177,11 @@ def definitions_of(definition: str, value: Mapping[str, Any]) -> tuple[str, ...]
 class _Converter:
     """One conversion of a whole manifest, to the file form or to the bare form."""
 
-    def __init__(self, manifest: Mapping[str, Any], to_file: bool) -> None:
+    def __init__(
+        self, manifest: Mapping[str, Any], to_file: bool, strict: bool = True
+    ) -> None:
         self.to_file = to_file
+        self.strict = strict
         self.groups = self._ids(manifest, "groups")
         self.schemes = self._ids(manifest, "schemes")
 
@@ -195,7 +203,9 @@ class _Converter:
     def id(self, text: Any, path: _Path) -> Any:
         if not isinstance(text, str):
             return copy.deepcopy(text)
-        return to_file_id(text) if self.to_file else _bare(text, path)
+        if self.to_file:
+            return to_file_id(text)
+        return _bare(text, path) if self.strict else _leniently_bare(text)
 
     def ids(self, value: Any, path: _Path) -> Any:
         if not isinstance(value, list):
@@ -208,8 +218,8 @@ class _Converter:
         if self.to_file:
             return to_file_id(text) if text in self.schemes else text
         if text.startswith(HASH):
-            return _bare(text, path)
-        if text in self.schemes:
+            return _bare(text, path) if self.strict else _leniently_bare(text)
+        if text in self.schemes and self.strict:
             raise FileIdError(
                 f"'{text}' names a scheme of this manifest, so it is written '#{text}'",
                 path,
@@ -289,23 +299,10 @@ def with_bare_ids(manifest: Mapping[str, Any]) -> dict[str, Any]:
     return _Converter(manifest, False).held(manifest, "Manifest", ())
 
 
-def id_positions(schema: Mapping[str, Any]) -> Iterator[tuple[str, str, str]]:
-    """Yield where the schema types a value as ``$defs/Id``.
+def leniently_bare_ids(manifest: Mapping[str, Any]) -> dict[str, Any]:
+    """``with_bare_ids`` that keeps every text not in the file form as it is.
 
-    Each position is ``(definition, member, how)``: ``value`` the member
-    itself, ``items`` its items, ``propertyNames`` its keys, ``anyOf`` one
-    branch of its value.
+    For a check of one part of a manifest, which must not refuse an ID
+    outside that part.
     """
-    reference = "#/$defs/Id"
-    for definition, node in schema["$defs"].items():
-        for member, declared in node.get("properties", {}).items():
-            if declared.get("$ref") == reference:
-                yield definition, member, "value"
-            if declared.get("items", {}).get("$ref") == reference:
-                yield definition, member, "items"
-            if declared.get("propertyNames", {}).get("$ref") == reference:
-                yield definition, member, "propertyNames"
-            if any(
-                branch.get("$ref") == reference for branch in declared.get("anyOf", ())
-            ):
-                yield definition, member, "anyOf"
+    return _Converter(manifest, False, strict=False).held(manifest, "Manifest", ())

@@ -103,22 +103,23 @@ rejection cases that use them (`test_schema.py`):
   of the bases' other keys.
 - **References are IDs, addresses are `Address`.** `Selector.within`,
   `FlowControlElement.target` and the `measure_map` of each of the four measure views
-  refer to `Id`, the items of `Selector.addresses` to `Address`. `Id`
-  accepts `score`, `Bass Kick`, `perf/take 2`,
-  `https://example.org/piece/score#exposition`, `start` and `regions_1`,
-  and refuses `""`, `score` followed by a tab and `score` followed by a
-  newline. `Address` accepts `{}`,
-  `{"part": ["name"]}`, `{"id": "score"}`, `{"id": "perf/take 2"}`,
-  `{"id": "score", "facet": "regions"}`, `{"id": "score", "part":
-  ["card"]}`, `{"id": "score", "part": ["end", "label"]}`, `{"id":
-  "timestamp_1", "part": ["line"]}`, `{"id": "timestamp_1", "part":
-  ["label"]}`, `{"id": "timestamp_1", "part": ["name"]}`, `{"id": "timestamp_1", "part": ["id"]}` and `{"id":
-  "timestamp_1", "part": ["coordinate"]}`, and refuses
+  refer to `Id`, the items of `Selector.addresses` to `Address`. `Id`, an
+  ID written `#` followed by the ID, accepts `#score`, `#Bass Kick`,
+  `#perf/take 2`, `#https://example.org/piece/score#exposition`, `#start`,
+  `#regions_1`, `##x` and `# `, and refuses `""`, `#`, `score`, `score#`,
+  `#score` followed by a tab, `#score` followed by a newline and `#`
+  followed by U+001F; every address below writes its ID so. `Address` accepts `{}`,
+  `{"part": ["name"]}`, `{"id": "#score"}`, `{"id": "#perf/take 2"}`,
+  `{"id": "#score", "facet": "regions"}`, `{"id": "#score", "part":
+  ["card"]}`, `{"id": "#score", "part": ["end", "label"]}`, `{"id":
+  "#timestamp_1", "part": ["line"]}`, `{"id": "#timestamp_1", "part":
+  ["label"]}`, `{"id": "#timestamp_1", "part": ["name"]}`, `{"id": "#timestamp_1", "part": ["id"]}` and `{"id":
+  "#timestamp_1", "part": ["coordinate"]}`, and refuses
   the string `"score"`, `{"facet": "regions"}` (a facet needs an ID),
-  `{"id": "score", "facet": "regions", "part": ["label"]}` (a facet never
-  stands with a part), `{"id": "score", "part": []}`, `{"id": "score",
-  "part": ["wedge"]}` and `{"id": "score", "facet": "regions_1"}`. It
-  accepts `{"id": "score", "root": "score"}`: an address is open like
+  `{"id": "#score", "facet": "regions", "part": ["label"]}` (a facet never
+  stands with a part), `{"id": "#score", "part": []}`, `{"id": "#score",
+  "part": ["wedge"]}` and `{"id": "#score", "facet": "regions_1"}`. It
+  accepts `{"id": "#score", "root": "score"}`: an address is open like
   every object.
 - **Open objects.** No node anywhere has `additionalProperties: false`
   or `unevaluatedProperties`, and no key anywhere in the document begins
@@ -332,7 +333,7 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   asserts the same lists. `several_depths` holds unknown keys on the
   manifest, a timeline, a child, a region, a flow marker, a jump origin, a
   jump target, a conversion map and the map nested in it, a MeasureMap and
-  one of its rows, a group, the `graphical` object, a statement, a selector
+  one of its rows, a group, the `graphical` object, a rule, a selector
   and a declaration (sixteen entries). The other cases are keys the format does
   not declare that a writer might plausibly add: a timeline `class`,
   a manifest `support_policy`, a group's `order`, `arrangement` in
@@ -342,10 +343,10 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `CombinationMap`'s `names`, and an address's `root`
   (`address_unknown_member`: the address equals no element's address and
   matches nothing, and its key is reported like any other).
-- **An undeclared key of a declaration and of a style.** `side`: a manifest whose statement
+- **An undeclared key of a declaration and of a style.** `side`: a manifest whose rule
   sets `{"fill": "#000000", "side": "above"}` on maps and whose style
   `below` is `{"side": "below"}` validates, and `unknown_keys` lists exactly
-  `{"path": ["graphical", "statements", 0, "set"], "key": "side"}` and
+  `{"path": ["graphical", "rules", 0, "set"], "key": "side"}` and
   `{"path": ["graphical", "styles", "below"], "key": "side"}`.
 - **A base of a base.** A measure view's base is `MeasureView`, whose own
   base is `MapBase`: a `MeasureNumberMap` carrying the unknown key
@@ -400,7 +401,7 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   vector-graphics units css_pixels and user_units (`float`).
 - **Never added, never removed.** `id`, `graphical` and a root's `offset`
   are absent from the completion of a manifest without them; a present
-  `graphical: {}` completes to its four keys (`styles`, `statements`,
+  `graphical: {}` completes to its four keys (`styles`, `rules`,
   `order`, `timestamps`) and minimizes to `{}`; a
   child's `offset` stays in the minimal form.
 - **Values that differ from the default stay.** `locked: true`,
@@ -499,7 +500,7 @@ naming no timeline is checked for its timeline alone.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 129 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 131 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the nineteen of the table, so every code is reached by a case both
@@ -1310,7 +1311,7 @@ definition is held (`CONTAINERS`). What proves them:
   whose slot and `part_of` entry carry identifiers in a declared scheme, a
   jump_to and the jump_from targeting it, a group, a MeasureMap, a scheme,
   an identifier in the declared scheme beside one in a URI scheme, a
-  timeline's and a group's `graphical.order` entry, a statement with an
+  timeline's and a group's `graphical.order` entry, a rule with an
   address and `within`, a named timestamp), plus the unknown key `extra: score` on
   the root and a `meta` holding `id: untouched`;
   `with_file_ids` gives exactly the hand-written file form and
@@ -1330,16 +1331,38 @@ definition is held (`CONTAINERS`). What proves them:
   timestamp's `timeline` that is `#` alone, and an identifier's `scheme`
   written without `#` that names a declared scheme (bare form could not tell
   it from the URI it would otherwise be).
-- **The tables are the schema's.** Every position where the schema types a
-  value as `#/$defs/Id` (a member, its items, its property names, one branch
-  of its `anyOf`) is a row of `ID_POSITIONS`, and every row but one is such a
-  position: the one row beyond it is a group's entry in `graphical.order`,
-  whose values the schema types as `Order` because a timeline's entry holds
-  band words. `CONTAINERS` is exactly the set of members through which a
-  definition refers (by `$ref`, items or `additionalProperties`) to a
-  definition that holds an ID position or reaches one, a conversion map
-  standing for its ten types, and `MEASURE_VIEWS` exactly the map types
-  whose `allOf` is `MeasureView`. A future schema ID cannot be missed.
+- **The tables are the schema's.** The rows of `ID_POSITIONS` are exactly
+  the positions where the schema types a value as `#/$defs/Id`, each shape
+  matching how: `id` the member itself, `ids` its items, `order` its property
+  names, `scheme` one branch of its `anyOf`. The `order` shape covers one
+  more thing the schema cannot type: the values of a group's entry, which
+  the schema types as `Order` because a timeline's entry holds band words.
+  `CONTAINERS` is exactly the set of members through which a definition
+  refers (by `$ref`, items or `additionalProperties`) to a definition that
+  holds an ID position or reaches one (through its members, its `allOf`
+  bases or its `oneOf` branches), and a conversion map carries the members
+  of its type's definition and of every base up to `MapBase`, the measure
+  views being exactly the map types whose `allOf` is `MeasureView`. A
+  future schema ID cannot be missed.
+- **The validators read the file form.** The schema types an ID as `#`
+  followed by at least one character, so a timeline ID written bare
+  (`id_without_hash`) and a group member written bare
+  (`reference_without_hash`) are refused by the schema where they stand.
+  Where the schema cannot tell, `validate` refuses with code `schema`, the
+  path and `FileIdError`'s message: a member written bare in a group's
+  order entry, and an identifier's `scheme` written bare that names a
+  declared scheme; the same manifest with both written `#` validates. The
+  schema check and the search for unknown keys report paths through
+  `graphical.order` with the key as written (`#score`); every other check,
+  the finite rule included, reads the bare IDs and quotes them bare, so
+  every message of a shared case is the one it was before IDs were written
+  `#`.
+- **Inline documents.** The suite's inline documents write IDs bare, as in
+  memory; the helpers of `conftest.py` (`validate`, `unknown_keys`,
+  `unregistered_terms`, `identity_problems`, `description_problems`) hand
+  the checks their file form through `with_file_ids`, which the cases above
+  prove. The shared rejection and warning cases and the fixtures are files
+  and go to the package's functions as they are.
 - **Every fixture round-trips.** For every fixture, `with_file_ids(
   with_bare_ids(fixture)) == fixture`: the fixtures are written in the file
   form and every ID in them converts.
@@ -1409,7 +1432,7 @@ it, `unknown_keys` lists nothing, `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. `fixture_paths()` lists every
 `*.yaml` under `fixtures/0.2.0/` except the drawings. The styled fixtures
 `styled__score.yaml` and `styled__performance.yaml` carry the literally
-stated `graphical` objects (20 and 3 statements, and the score's band order
+stated `graphical` objects (20 and 3 rules, and the score's band order
 with its markers band above its line and its map below), the
 score's elements addressed by `Address` objects (`{"id": "intro", "part":
 ["label"]}`, `{"id": "da-capo", "part": ["label"]}`, and the wedge
@@ -1418,7 +1441,7 @@ score's elements addressed by `Address` objects (`{"id": "intro", "part":
 score, the wedges and coordinate labels of its timestamps `origin` and
 `length` among them, resolve, by the
 cascade ranking of `docs/drawing.md`, to thirteen distinct colours, and no
-statement hides anything but child `a`.
+rule hides anything but child `a`.
 
 The case accessors `fixture_paths`, `rejection_paths`, `rejection_case`,
 `RejectionCase` and `warning_paths` are defined in `timetoshare.fixtures`,
@@ -1436,14 +1459,14 @@ cannot prove that the emitter produces them:
 - **Free IDs.** `bundles/bundle_free_ids.yaml` holds the roots
   `https://example.org/piece/score` and `perf/take 2`, their regions
   `https://example.org/piece/score#exposition` and `take 2/intro`, one
-  group holding both roots, and one statement selecting `{"id": "take
+  group holding both roots, and one rule selecting `{"id": "take
   2/intro"}`, each ID written as given, so the emitter keeps an ID holding
   a slash, a space, a colon or a `#` verbatim.
 - **Named timestamps.** `timestamps.yaml` and its twin hold the three
   timestamps `timestamp_1` (`Downbeat`, `[3, 2]` on the root `clt_1`),
   `timestamp_2` (`Climax`, `[6, 1]` on `clt_1`) and `timestamp_3` (`Entry`,
   `[1, 1]` on the child `clt_2`), in that canonical order, and no
-  statement. In the fixture `timestamp_1` states the default `display`
+  rule. In the fixture `timestamp_1` states the default `display`
   `["wedge", "name", "cross_section"]`, `timestamp_2` `["wedge", "name"]`
   and `timestamp_3` all five words in canonical order; the twin leaves out
   only `timestamp_1`'s `display`. `identity_problems` finds nothing in
@@ -1475,9 +1498,9 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 30 statements),
+`docs/drawing.md` section 4's defaults block (three styles, 30 rules),
 read from the file, validates as the `graphical` of the smallest file; the
-statements naming `card`, `frame`, `inside: ancestor` and `shadow`
+rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate; so do the band selectors, `{"element": "band"}`, `{"element":
 "band", "facet": <facet>}` for each of the five facets `markers`,
 `conversion_maps`, `children`, `regions` and `flow_control`,
@@ -1499,7 +1522,7 @@ timeline name holding control characters validates.
 ## Completing missing styles
 
 `complete_styles` returns a new `graphical` object and never changes its input.
-Every distinct style name named by a statement but absent from `styles` is
+Every distinct style name named by a rule but absent from `styles` is
 added as an empty declaration, and the returned missing names are sorted by
 code point. With missing names it emits exactly one `MissingStyleWarning`
 whose exact text names all of them; with none no warning. Tests pin an absent

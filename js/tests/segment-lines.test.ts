@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import * as api from "../src/index.js";
-import { childEnds, identityProblems, validate } from "../src/index.js";
+import { childEnds } from "../src/index.js";
 import { JsonFloat, type JsonObject } from "../src/json/value.js";
 import { exact, rational, sameRational } from "../src/numbers/exact.js";
-import { manifest, timeline } from "./fixtures.js";
+import { identityProblems, manifest, timeline, validate } from "./fixtures.js";
 
 type Problem = [readonly (string | number)[], string];
 

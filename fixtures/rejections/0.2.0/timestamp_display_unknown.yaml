@@ -2,15 +2,15 @@ code: schema
 manifest:
   graphical:
     order: {}
-    statements: []
+    rules: []
     styles: {}
     timestamps:
       -
         coordinate: [1, 1]
         display: [wedge, flag]
-        id: timestamp_1
+        id: "#timestamp_1"
         name: Entry
-        timeline: score
+        timeline: "#score"
   groups: []
   links: []
   measure_maps: []
@@ -24,7 +24,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: verse
+          id: "#verse"
           is_segment_line: false
           length: [4, 1]
           links: []
@@ -37,7 +37,7 @@ manifest:
           unit: quarters
       conversion_maps: []
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []

@@ -44,7 +44,7 @@ def styled_group() -> TimelineGroup:
     The score ``score`` carries a map to ticks, the region "Theme" from 0 to 8
     and a repeat jump from 8 back to 0; the performance ``performance`` a map
     to samples; the page ``page`` a map to points. Every id of a map, region or
-    jump is minted. ``group_styled`` holds it with the styles and statements
+    jump is minted. ``group_styled`` holds it with the styles and rules
     of ``GRAPHICAL``.
     """
     group = number_types_group()

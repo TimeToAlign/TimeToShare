@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect } from "vitest";
+import * as timetoshare from "../src/index.js";
 import {
   dumps,
   isJsonObject,
@@ -12,6 +13,7 @@ import {
   type PathSegment,
   SCHEMA_VERSION,
   serializationOf,
+  withFileIds,
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
 
@@ -322,4 +324,34 @@ export function bundle(): JsonObject {
       graphical: { order: { group_1: ["score", "performance"], group_2: ["page", "excerpt"] } },
     },
   );
+}
+
+// The inline documents of this suite write IDs bare, as in memory; a check
+// reads a manifest file, so these wrappers hand it the file form, every ID
+// written '#' + the ID (`withFileIds`, proven in `ids.test.ts`).
+
+/** The file form of an inline document; any other value as it is. */
+export function filed(value: unknown): unknown {
+  return isJsonObject(value) ? withFileIds(value) : value;
+}
+
+/** `validate` of the file form of an inline document. */
+export function validate(value: unknown): void {
+  timetoshare.validate(filed(value));
+}
+
+export function unknownKeys(value: unknown): timetoshare.UnknownKey[] {
+  return timetoshare.unknownKeys(filed(value));
+}
+
+export function unregisteredTerms(value: unknown): timetoshare.UnregisteredTerm[] {
+  return timetoshare.unregisteredTerms(filed(value));
+}
+
+export function identityProblems(value: JsonObject): timetoshare.SchemaValidationError[] {
+  return timetoshare.identityProblems(filed(value) as JsonObject);
+}
+
+export function descriptionProblems(value: JsonObject): timetoshare.SchemaValidationError[] {
+  return timetoshare.descriptionProblems(filed(value) as JsonObject);
 }

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import * as timetoshare from "../src/index.js";
 import {
   compactJson,
   dumps,
@@ -15,8 +16,6 @@ import {
   parseJson,
   SchemaValidationError,
   UnsupportedVersionError,
-  unknownKeys,
-  validate,
 } from "../src/index.js";
 import { type JsonObject, plain } from "../src/json/value.js";
 import {
@@ -29,6 +28,8 @@ import {
   repositoryRoot,
   respellable,
   timeline,
+  unknownKeys,
+  validate,
 } from "./fixtures.js";
 
 const SMALLEST = {
@@ -86,6 +87,7 @@ const REJECTIONS = [
   "id_control_character_trailing_newline",
   "id_duplicate_across_kinds",
   "id_empty",
+  "id_without_hash",
   "infinite_length",
   "jump_target_flow_marker",
   "jump_to_target",
@@ -123,29 +125,30 @@ const REJECTIONS = [
   "order_unknown_group",
   "piecewise_map_breaks_not_increasing",
   "piecewise_map_maps_count",
+  "reference_without_hash",
   "region_id_duplicate_across_roots",
   "region_id_is_timeline_id",
   "region_start_float_on_fraction_axis",
   "repeat_count_zero",
   "root_missing_marker",
   "root_missing_timelines",
+  "rule_select_empty_addresses",
+  "rule_select_inside_unknown_element",
+  "rule_select_projection",
+  "rule_select_unknown_element",
+  "rule_set_content_not_string",
+  "rule_set_dasharray_malformed",
+  "rule_set_max_width_zero",
+  "rule_set_neither_object_nor_string",
+  "rule_set_opacity_above_one",
+  "rule_set_shadow_lower_case",
+  "rule_set_stroke_lower_case",
   "segment_line_flag_not_boolean",
   "segment_line_gap",
   "segment_line_gap_in_later_root",
   "segment_line_not_from_zero",
   "segment_line_segment_flag",
   "segment_line_short_of_length",
-  "statement_select_empty_addresses",
-  "statement_select_inside_unknown_element",
-  "statement_select_projection",
-  "statement_select_unknown_element",
-  "statement_set_content_not_string",
-  "statement_set_dasharray_malformed",
-  "statement_set_max_width_zero",
-  "statement_set_neither_object_nor_string",
-  "statement_set_opacity_above_one",
-  "statement_set_shadow_lower_case",
-  "statement_set_stroke_lower_case",
   "table_map_kind_nearest",
   "table_map_lengths_differ",
   "table_map_missing_x_values",
@@ -467,10 +470,10 @@ describe("the shared rejection cases", () => {
     // has one reading: the reader's, with the value in place.
     const readings =
       testCase.code === "finite_number"
-        ? [() => validate(testCase.manifest)]
+        ? [() => timetoshare.validate(testCase.manifest)]
         : [
-            () => validate(testCase.manifest),
-            () => validate(plain(testCase.manifest)),
+            () => timetoshare.validate(testCase.manifest),
+            () => timetoshare.validate(plain(testCase.manifest)),
             () => parse(compactJson(testCase.manifest)),
           ];
     for (const [index, read] of readings.entries()) {
@@ -502,7 +505,7 @@ describe("the shared rejection cases", () => {
     const nan = rejectionCase("nan_offset");
     expect(nan.manifest).toMatchObject({ timelines: [{ children: [{ offset: Number.NaN }] }] });
     expect(nan.path).toEqual(["timelines", 0, "children", 0, "offset"]);
-    expect(problem(nan.manifest)).toEqual([
+    expect(problem(timetoshare.withBareIds(nan.manifest))).toEqual([
       ["timelines", 0, "children", 0, "offset"],
       "offset of 'take' is not a finite number",
     ]);
@@ -515,7 +518,7 @@ describe("the shared rejection cases", () => {
       "finite_number",
       null,
     ]);
-    expect(problem(infinite.manifest)).toEqual([
+    expect(problem(timetoshare.withBareIds(infinite.manifest))).toEqual([
       ["timelines", 0, "length"],
       "length of 'recording' is not a finite number",
     ]);
@@ -626,10 +629,10 @@ describe("a checked value", () => {
   it("is typed as the lossless form the reader returns", () => {
     const value: unknown = parseJson(
       '{"timetoshare": "0.2.0", "timelines": [' +
-        '{"id": "midi", "unit": "ticks", "length": 9007199254740993},' +
-        '{"id": "audio", "unit": "seconds", "length": 2.0}]}',
+        '{"id": "#midi", "unit": "ticks", "length": 9007199254740993},' +
+        '{"id": "#audio", "unit": "seconds", "length": 2.0}]}',
     );
-    validate(value);
+    timetoshare.validate(value);
     // The compiler is the test of the next two lines: a checked value is a
     // LosslessManifest, whose numbers may be bigints and JsonFloats.
     const checked: LosslessManifest = value;
@@ -660,7 +663,7 @@ describe("integer boundaries", () => {
 describe("the graphical object", () => {
   const styled = (declaration: JsonObject) =>
     manifest([timeline("score")], {
-      graphical: { statements: [{ select: { element: "timeline" }, set: declaration }] },
+      graphical: { rules: [{ select: { element: "timeline" }, set: declaration }] },
     });
 
   it.each([
@@ -685,7 +688,7 @@ describe("the graphical object", () => {
     [{ content: 5 }, "content"],
     [{ "stroke-dasharray": "4,2" }, "stroke-dasharray"],
   ])("refuses %o at the property", (declaration, member) => {
-    expect(problem(styled(declaration))[0]).toEqual(["graphical", "statements", 0, "set", member]);
+    expect(problem(styled(declaration))[0]).toEqual(["graphical", "rules", 0, "set", member]);
   });
 
   it.each([
@@ -700,17 +703,17 @@ describe("the graphical object", () => {
       select: { element: "band", facet },
       set: { display: "none" },
     })),
-  ])("accepts %o", (statement) => {
-    validate(manifest([timeline("score")], { graphical: { statements: [statement] } }));
+  ])("accepts %o", (rule) => {
+    validate(manifest([timeline("score")], { graphical: { rules: [rule] } }));
   });
 
   it("accepts a selector naming every card of a timeline in several groups", () => {
     const card = { id: "t", part: ["card"] };
-    const statement = { select: { addresses: [card] }, set: { stroke: "#B8BEC8" } };
+    const rule = { select: { addresses: [card] }, set: { stroke: "#B8BEC8" } };
     validate(
       manifest([timeline("t"), timeline("u"), timeline("v")], {
         groups: [group("g1", ["t", "u"]), group("g2", ["t", "v"])],
-        graphical: { statements: [statement] },
+        graphical: { rules: [rule] },
       }),
     );
   });
@@ -718,7 +721,7 @@ describe("the graphical object", () => {
   it("refuses an empty order entry by the schema", () => {
     const value = manifest([timeline("score")], { graphical: { order: { score: [""] } } });
     expect(problem(value)).toEqual([
-      ["graphical", "order", "score", 0],
+      ["graphical", "order", "#score", 0],
       "must NOT have fewer than 1 characters",
     ]);
   });
@@ -728,7 +731,7 @@ describe("the graphical object", () => {
       graphical: { order: { score: ["line", "markers", "line"] } },
     });
     expect(problem(value)).toEqual([
-      ["graphical", "order", "score"],
+      ["graphical", "order", "#score"],
       "must NOT have duplicate items (items ## 2 and 0 are identical)",
     ]);
   });
@@ -740,9 +743,9 @@ describe("the graphical object", () => {
     [{ inside: "group" }, "inside"],
     [{ addresses: [] }, "addresses"],
   ])("refuses the older vocabulary %o at the selector's member", (select, member) => {
-    const statement = { select, set: { display: "none" } };
-    const value = manifest([timeline("score")], { graphical: { statements: [statement] } });
-    expect(problem(value)[0]).toEqual(["graphical", "statements", 0, "select", member]);
+    const rule = { select, set: { display: "none" } };
+    const value = manifest([timeline("score")], { graphical: { rules: [rule] } });
+    expect(problem(value)[0]).toEqual(["graphical", "rules", 0, "select", member]);
   });
 
   it("needs no target on a da capo or a repeat end", () => {
@@ -776,7 +779,7 @@ describe("the graphical object", () => {
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.statements as unknown[]).length).toBe(30);
+    expect((defaults.rules as unknown[]).length).toBe(30);
     validate({ ...SMALLEST, graphical: defaults });
   });
 

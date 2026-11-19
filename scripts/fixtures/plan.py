@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from timetoalign import AlignmentBundle, Timeline, TimelineGroup
+from timetoshare import with_bare_ids, with_file_ids
 
 from . import bundles, graphical, groups, timelines
 from .graphical import GRAPHICAL
@@ -184,8 +185,12 @@ def _slug(identifier: str) -> str:
 def _compose(data: dict[str, Any], generator: str, case: FixtureCase) -> dict[str, Any]:
     """Add the provenance, any ``graphical`` entry and the origin and length
     timestamps to a manifest the library wrote.
+
+    The library writes a manifest in the file form, every ID written ``#`` +
+    the ID; the entries are written with bare IDs, so the manifest is composed
+    with bare IDs and returned in the file form.
     """
-    result = copy.deepcopy(data)
+    result = with_bare_ids(data)
     result["meta"]["generator"] = generator
     if case.graphical is not None:
         result.setdefault("graphical", {}).update(copy.deepcopy(case.graphical))
@@ -193,7 +198,7 @@ def _compose(data: dict[str, Any], generator: str, case: FixtureCase) -> dict[st
         drawn = graphical.origin_and_length(result)
         written = result.setdefault("graphical", {})
         written["timestamps"] = [*written.get("timestamps", []), *drawn]
-    return result
+    return with_file_ids(result)
 
 
 def plan(output: Path, generator: str) -> tuple[PlannedFixture, ...]:

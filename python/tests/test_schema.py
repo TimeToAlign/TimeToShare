@@ -303,45 +303,47 @@ def test_references_are_ids_and_addresses() -> None:
     assert defs["MeasureView"]["properties"]["measure_map"]["$ref"] == "#/$defs/Id"
     identifier = Draft202012Validator({"$ref": "#/$defs/Id", "$defs": defs})
     for accepted in (
-        "score",
-        "Bass Kick",
-        "perf/take 2",
-        "https://example.org/piece/score#exposition",
-        "start",
-        "regions_1",
+        "#score",
+        "#Bass Kick",
+        "#perf/take 2",
+        "#https://example.org/piece/score#exposition",
+        "#start",
+        "#regions_1",
+        "##x",
+        "# ",
     ):
         assert identifier.is_valid(accepted), accepted
-    for refused in ("", "score\t", "score\n"):
+    for refused in ("", "#", "score", "score#", "#score\t", "#score\n", "#\u001f"):
         assert not identifier.is_valid(refused), refused
     address = Draft202012Validator({"$ref": "#/$defs/Address", "$defs": defs})
     for accepted in (
         {},
         {"part": ["name"]},
-        {"id": "score"},
-        {"id": "perf/take 2"},
-        {"id": "score", "facet": "regions"},
-        {"id": "score", "part": ["card"]},
-        {"id": "score", "part": ["end", "label"]},
-        {"id": "timestamp_1", "part": ["line"]},
-        {"id": "timestamp_1", "part": ["name"]},
-        {"id": "timestamp_1", "part": ["id"]},
-        {"id": "timestamp_1", "part": ["coordinate"]},
-        {"id": "score", "root": "score"},
+        {"id": "#score"},
+        {"id": "#perf/take 2"},
+        {"id": "#score", "facet": "regions"},
+        {"id": "#score", "part": ["card"]},
+        {"id": "#score", "part": ["end", "label"]},
+        {"id": "#timestamp_1", "part": ["line"]},
+        {"id": "#timestamp_1", "part": ["name"]},
+        {"id": "#timestamp_1", "part": ["id"]},
+        {"id": "#timestamp_1", "part": ["coordinate"]},
+        {"id": "#score", "root": "score"},
     ):
         assert address.is_valid(accepted), accepted
     for refused in (
         "score",
         {"facet": "regions"},
-        {"id": "score", "facet": "regions", "part": ["label"]},
-        {"id": "score", "part": []},
-        {"id": "score", "part": ["wedge"]},
-        {"id": "score", "facet": "regions_1"},
+        {"id": "#score", "facet": "regions", "part": ["label"]},
+        {"id": "#score", "part": []},
+        {"id": "#score", "part": ["wedge"]},
+        {"id": "#score", "facet": "regions_1"},
     ):
         assert not address.is_valid(refused), refused
 
 
 ANCHORED = {
-    ("Timestamp", "properties", "id"): "timestamp_1",
+    ("Timestamp", "properties", "id"): "#timestamp_1",
     ("Paint",): "none",
     ("Declaration", "properties", "stroke-dasharray"): "4 2",
     ("Assertion", "properties", "asserted_on"): "2026-11-17",

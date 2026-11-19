@@ -3,7 +3,7 @@ manifest:
   links: []
   measure_maps:
     -
-      id: measures
+      id: "#measures"
       meta: {}
       name: null
       rows:
@@ -179,7 +179,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: controls
+          id: "#controls"
           is_segment_line: false
           length: [37, 1]
           links: []
@@ -194,7 +194,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: notes
+          id: "#notes"
           is_segment_line: false
           length: [37, 1]
           links: []
@@ -207,7 +207,7 @@ manifest:
           unit: quarters
       conversion_maps:
         -
-          id: cmap_1
+          id: "#cmap_1"
           name: quarters_to_ticks
           offset: 0
           scalar: 480
@@ -217,7 +217,7 @@ manifest:
       flow_control:
         -
           coordinate: [6, 1]
-          id: jump_1
+          id: "#jump_1"
           label: "MC 3 → MC 1"
           manifestation: repeat_end
           meta: {}
@@ -226,7 +226,7 @@ manifest:
           type: jump_from
         -
           coordinate: [6, 1]
-          id: jump_2_target
+          id: "#jump_2_target"
           label: null
           manifestation: repeat_start
           meta: {}
@@ -234,17 +234,17 @@ manifest:
           type: jump_to
         -
           coordinate: [9, 1]
-          id: jump_2
+          id: "#jump_2"
           label: "MC 5 → MC 4"
           manifestation: repeat_end
           meta: {}
           name: null
           repeat_count: 1
-          target: jump_2_target
+          target: "#jump_2_target"
           type: jump_from
         -
           coordinate: [10, 1]
-          id: marker_1
+          id: "#marker_1"
           label: null
           manifestation: segno
           meta: {}
@@ -252,7 +252,7 @@ manifest:
           type: jump_to
         -
           coordinate: [12, 1]
-          id: break_1
+          id: "#break_1"
           label: "fine at MC 7"
           manifestation: fine
           meta: {}
@@ -260,7 +260,7 @@ manifest:
           type: flow_marker
         -
           coordinate: [16, 1]
-          id: jump_3_target
+          id: "#jump_3_target"
           label: null
           manifestation: repeat_start
           meta: {}
@@ -268,7 +268,7 @@ manifest:
           type: jump_to
         -
           coordinate: [16, 1]
-          id: marker_2
+          id: "#marker_2"
           label: null
           manifestation: coda
           meta: {}
@@ -276,17 +276,17 @@ manifest:
           type: jump_to
         -
           coordinate: [28, 1]
-          id: jump_3
+          id: "#jump_3"
           label: "MC 11 → MC 9"
           manifestation: repeat_end
           meta: {}
           name: null
           repeat_count: 1
-          target: jump_3_target
+          target: "#jump_3_target"
           type: jump_from
         -
           coordinate: [30, 1]
-          id: marker_3
+          id: "#marker_3"
           label: null
           manifestation: coda
           meta: {}
@@ -294,13 +294,13 @@ manifest:
           type: jump_to
         -
           coordinate: [37, 1]
-          id: jump_4
+          id: "#jump_4"
           label: "MC 15 → start (MC 1)"
           manifestation: da_capo_al_fine
           meta: {}
           name: null
           type: jump_from
-      id: clt_1
+      id: "#clt_1"
       is_segment_line: false
       length: [37, 1]
       links: []

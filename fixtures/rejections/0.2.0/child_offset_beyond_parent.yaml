@@ -13,7 +13,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: take
+          id: "#take"
           is_segment_line: false
           length: null
           links: []
@@ -26,7 +26,7 @@ manifest:
           unit: seconds
       conversion_maps: []
       flow_control: []
-      id: recording
+      id: "#recording"
       is_segment_line: false
       length: 60.0
       links: []

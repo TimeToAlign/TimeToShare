@@ -11,10 +11,9 @@ from timetoshare import (
     complete,
     dumps,
     minimal,
-    validate,
 )
 
-from .conftest import bundle, manifest, respellable, respelled, timeline
+from .conftest import bundle, manifest, respellable, respelled, timeline, validate
 
 
 def _text(value: Any) -> str:

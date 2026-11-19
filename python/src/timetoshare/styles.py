@@ -7,7 +7,7 @@ import warnings
 
 
 class MissingStyleWarning(UserWarning):
-    """Warn that statements name styles absent from their ``graphical`` object."""
+    """Warn that rules name styles absent from their ``graphical`` object."""
 
 
 def complete_styles(graphical: dict) -> tuple[dict, list[str]]:
@@ -16,9 +16,9 @@ def complete_styles(graphical: dict) -> tuple[dict, list[str]]:
     styles = completed.get("styles", {})
     missing = sorted(
         {
-            statement["set"]
-            for statement in completed.get("statements", [])
-            if isinstance(statement["set"], str) and statement["set"] not in styles
+            rule["set"]
+            for rule in completed.get("rules", [])
+            if isinstance(rule["set"], str) and rule["set"] not in styles
         }
     )
     if missing:

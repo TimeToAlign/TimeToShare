@@ -3,7 +3,7 @@
 import type {JsonNumber, Lossless} from "../json/value.js";
 
 /**
- * An identifier: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
+ * An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Id".
@@ -374,7 +374,7 @@ export type Facet = "markers" | "conversion_maps" | "children" | "regions" | "fl
  */
 export type Part = "start" | "end" | "name" | "label" | "card" | "line" | "id" | "coordinate";
 /**
- * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.
+ * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs (each written as every ID is, `#` followed by the ID), or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Order".
@@ -770,7 +770,7 @@ export type CompleteGraphical = {
   styles: {
     [k: string]: Lossless<Declaration>;
   };
-  statements: Lossless<Statement>[];
+  rules: Lossless<Rule>[];
   order: {
     [k: string]: Order;
   };
@@ -791,7 +791,7 @@ export type CompleteTimestamp = {
 };
 
 /**
- * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp and scheme. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a statement selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the schemes are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry links to external entities (`Link`); no other element carries any. Links keep the order they are given in.
+ * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp and scheme. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the schemes are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry links to external entities (`Link`); no other element carries any. Links keep the order they are given in.
  */
 export interface Manifest {
   /**
@@ -1007,9 +1007,9 @@ export interface Link {
  */
 export interface Identifier {
   /**
-   * The scheme: the ID of a `Scheme` of this manifest, or an absolute URI identifying the scheme, such as the URI of a Wikidata property (`http://www.wikidata.org/entity/P839`, the IMSLP ID). A scheme that names no Scheme of the manifest must be an absolute URI; checked after the schema.
+   * The scheme: the ID of a `Scheme` of this manifest, written as every ID is (`#opus`), or an absolute URI identifying the scheme, such as the URI of a Wikidata property (`http://www.wikidata.org/entity/P839`, the IMSLP ID). An ID must name a Scheme of the manifest, and a value without `#` must be an absolute URI that names no Scheme of the manifest; checked after the schema.
    */
-  scheme: string;
+  scheme: Id;
   /**
    * The identifier in its scheme, as the scheme writes it.
    */
@@ -1307,7 +1307,7 @@ export interface Scheme {
   criteria?: UriReference | null;
 }
 /**
- * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members, the band order of each timeline and the named timestamps. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent `graphical` object draws every element with the other style layers alone.
+ * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of rules, the display order of each group's members, the band order of each timeline and the named timestamps. A rule selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the rules or an order. An absent `graphical` object draws every element with the other style layers alone.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Graphical".
@@ -1320,9 +1320,9 @@ export interface Graphical {
     [k: string]: Declaration;
   };
   /**
-   * Statements in order; of two statements of equal rank the later one decides.
+   * Rules in order; of two rules of equal rank the later one decides.
    */
-  statements?: Statement[];
+  rules?: Rule[];
   /**
    * The order of what a group or a timeline stacks, top to bottom, keyed by a group's ID (the display order of its members) or by a timeline's ID, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, and a root without one the default band order of the drawing specification.
    */
@@ -1357,12 +1357,12 @@ export interface Declaration {
   shadow?: Paint;
 }
 /**
- * One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.
+ * One rule: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
- * via the `definition` "Statement".
+ * via the `definition` "Rule".
  */
-export interface Statement {
+export interface Rule {
   select: Selector;
   set: Declaration | string;
 }
@@ -1443,7 +1443,7 @@ export interface Address {
  */
 export interface Timestamp {
   /**
-   * An identifier: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
+   * An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
    */
   id: string;
   /**

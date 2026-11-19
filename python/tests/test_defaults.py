@@ -5,9 +5,9 @@ from typing import Any
 
 import pytest
 
-from timetoshare import complete, dumps, minimal, validate
+from timetoshare import complete, dumps, minimal
 
-from .conftest import bundle, manifest, timeline
+from .conftest import bundle, manifest, timeline, validate
 
 SMALLEST = {
     "timetoshare": "0.2.0",
@@ -201,7 +201,7 @@ def test_every_object_gains_exactly_its_defaults() -> None:
     ]
     assert value["graphical"] == {
         "styles": {},
-        "statements": [],
+        "rules": [],
         "order": {},
         "timestamps": [],
     }
@@ -233,7 +233,7 @@ def test_absent_defaults_are_never_added_or_removed() -> None:
     assert minimal(styled)["graphical"] == {}
     assert complete(styled)["graphical"] == {
         "styles": {},
-        "statements": [],
+        "rules": [],
         "order": {},
         "timestamps": [],
     }

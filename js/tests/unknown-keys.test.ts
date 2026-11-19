@@ -1,19 +1,13 @@
 import { describe, expect, it } from "vitest";
-import {
-  dumps,
-  loads,
-  SchemaValidationError,
-  UnsupportedVersionError,
-  unknownKeys,
-  unregisteredTerms,
-  validate,
-} from "../src/index.js";
+import * as timetoshare from "../src/index.js";
+import { dumps, loads, SchemaValidationError, UnsupportedVersionError } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
 import {
   expectWrittenAsStored,
   group,
   manifest,
   timeline,
+  unknownKeys,
   warningFileNames,
   warningText,
 } from "./fixtures.js";
@@ -52,19 +46,23 @@ describe("unknown keys", () => {
       "unregistered_terms",
     ]);
     expectWrittenAsStored(text);
-    validate(testCase.manifest);
-    expect(dumps(unknownKeys(testCase.manifest))).toBe(dumps(testCase.unknown_keys));
-    expect(dumps(unregisteredTerms(testCase.manifest))).toBe(dumps(testCase.unregistered_terms));
+    timetoshare.validate(testCase.manifest);
+    expect(dumps(timetoshare.unknownKeys(testCase.manifest))).toBe(dumps(testCase.unknown_keys));
+    expect(dumps(timetoshare.unregisteredTerms(testCase.manifest))).toBe(
+      dumps(testCase.unregistered_terms),
+    );
   });
 
   it("finds them at several depths, in order", () => {
     const testCase = loads(warningText("several_depths")) as JsonObject;
-    expect(unknownKeys(testCase.manifest).map((entry) => [entry.path, entry.key])).toEqual([
+    expect(
+      timetoshare.unknownKeys(testCase.manifest).map((entry) => [entry.path, entry.key]),
+    ).toEqual([
       [[], "x-editor"],
       [["graphical"], "arrangement"],
-      [["graphical", "statements", 0], "comment"],
-      [["graphical", "statements", 0, "select"], "kind"],
-      [["graphical", "statements", 0, "set"], "colour"],
+      [["graphical", "rules", 0], "comment"],
+      [["graphical", "rules", 0, "select"], "kind"],
+      [["graphical", "rules", 0, "set"], "colour"],
       [["groups", 0], "colour"],
       [["measure_maps", 0], "source"],
       [["measure_maps", 0, "rows", 0], "tempo"],
@@ -93,7 +91,7 @@ describe("unknown keys", () => {
         graphical: {
           styles: { "any-name": { stroke: "#000000" } },
           order: { g: ["score"] },
-          statements: [{ select: {}, set: "any-name" }],
+          rules: [{ select: {}, set: "any-name" }],
         },
       },
     );
@@ -106,11 +104,11 @@ describe("unknown keys", () => {
     const value = manifest([timeline("score")], {
       graphical: {
         styles: { below: { side: "below" } },
-        statements: [{ select: { element: "map" }, set: { fill: "#000000", side: "above" } }],
+        rules: [{ select: { element: "map" }, set: { fill: "#000000", side: "above" } }],
       },
     });
     expect(unknownKeys(value)).toEqual([
-      { path: ["graphical", "statements", 0, "set"], key: "side" },
+      { path: ["graphical", "rules", 0, "set"], key: "side" },
       { path: ["graphical", "styles", "below"], key: "side" },
     ]);
   });

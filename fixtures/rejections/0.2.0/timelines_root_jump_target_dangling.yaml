@@ -2,14 +2,14 @@ code: dangling_target
 manifest:
   graphical:
     order:
-      group_1: [second-half, recording]
-    statements: []
+      "#group_1": ["#second-half", "#recording"]
+    rules: []
     styles: {}
     timestamps: []
   groups:
     -
-      id: group_1
-      members: [recording, second-half]
+      id: "#group_1"
+      members: ["#recording", "#second-half"]
       meta: {}
       name: "Second half"
   links: []
@@ -24,7 +24,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: second-half
+          id: "#second-half"
           is_segment_line: false
           length: [4, 1]
           links: []
@@ -37,7 +37,7 @@ manifest:
           unit: quarters
       conversion_maps: []
       flow_control: []
-      id: piece
+      id: "#piece"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -53,15 +53,15 @@ manifest:
       flow_control:
         -
           coordinate: [4, 1]
-          id: jump_from_1
+          id: "#jump_from_1"
           label: null
           manifestation: repeat_end
           meta: {}
           name: null
           repeat_count: 1
-          target: nowhere
+          target: "#nowhere"
           type: jump_from
-      id: recording
+      id: "#recording"
       is_segment_line: false
       length: [8, 1]
       links: []

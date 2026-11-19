@@ -13,7 +13,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: coda
+          id: "#coda"
           is_segment_line: false
           length: [4, 1]
           links: []
@@ -26,7 +26,7 @@ manifest:
           unit: quarters
       conversion_maps: []
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [10, 1]
       links: []

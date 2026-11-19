@@ -12,7 +12,7 @@ manifest:
       conversion_maps:
         -
           extrapolate: none
-          id: tempo
+          id: "#tempo"
           kind: linear
           name: null
           source_unit: quarters
@@ -23,7 +23,7 @@ manifest:
             - [0, 1]
           y_values: [60, 72]
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [16, 1]
       links: []

@@ -77,9 +77,9 @@ export const CONTAINERS: readonly (readonly [string, string, Holding, string])[]
   ["Timeline", "flow_control", "list", "FlowControlElement"],
   ["Timeline", "links", "list", "Link"],
   ["Region", "links", "list", "Link"],
-  ["Graphical", "statements", "list", "Statement"],
+  ["Graphical", "rules", "list", "Rule"],
   ["Graphical", "timestamps", "list", "Timestamp"],
-  ["Statement", "select", "one", "Selector"],
+  ["Rule", "select", "one", "Selector"],
   ["Selector", "addresses", "list", "Address"],
   ["ChainMap", "maps", "list", "ConversionMap"],
   ["PiecewiseMap", "maps", "list", "ConversionMap"],
@@ -153,6 +153,11 @@ export function fromFileId(text: string): string {
   return bare(text, []);
 }
 
+/** The bare ID of a text in the file form; any other text as it is. */
+function leniently(text: string): string {
+  return text.startsWith(HASH) && text.length > 1 ? text.slice(1) : text;
+}
+
 /**
  * The definitions whose members `value`, held as `definition`, carries: a
  * conversion map is its type's definition and that definition's bases; every
@@ -170,11 +175,13 @@ export function definitionsOf(definition: string, value: JsonObject): readonly s
 /** One conversion of a whole manifest, to the file form or to the bare form. */
 class Converter {
   readonly #toFile: boolean;
+  readonly #strict: boolean;
   readonly #groups: ReadonlySet<string>;
   readonly #schemes: ReadonlySet<string>;
 
-  constructor(manifest: JsonObject, toFile: boolean) {
+  constructor(manifest: JsonObject, toFile: boolean, strict = true) {
     this.#toFile = toFile;
+    this.#strict = strict;
     this.#groups = this.#ids(manifest, "groups");
     this.#schemes = this.#ids(manifest, "schemes");
   }
@@ -195,7 +202,8 @@ class Converter {
 
   id(text: unknown, path: Path): unknown {
     if (typeof text !== "string") return clone(text);
-    return this.#toFile ? toFileId(text) : bare(text, path);
+    if (this.#toFile) return toFileId(text);
+    return this.#strict ? bare(text, path) : leniently(text);
   }
 
   ids(value: unknown, path: Path): unknown {
@@ -206,8 +214,8 @@ class Converter {
   scheme(text: unknown, path: Path): unknown {
     if (typeof text !== "string") return clone(text);
     if (this.#toFile) return this.#schemes.has(text) ? toFileId(text) : text;
-    if (text.startsWith(HASH)) return bare(text, path);
-    if (this.#schemes.has(text)) {
+    if (text.startsWith(HASH)) return this.#strict ? bare(text, path) : leniently(text);
+    if (this.#strict && this.#schemes.has(text)) {
       throw new FileIdError(
         `'${text}' names a scheme of this manifest, so it is written '#${text}'`,
         path,
@@ -288,4 +296,14 @@ export function withFileIds<T>(manifest: T): T {
 export function withBareIds<T>(manifest: T): T {
   if (!isJsonObject(manifest)) return clone(manifest);
   return new Converter(manifest, false).held(manifest, "Manifest", []) as T;
+}
+
+/**
+ * `withBareIds` that keeps every text not in the file form as it is: for a
+ * check of one part of a manifest, which must not refuse an ID outside that
+ * part.
+ */
+export function lenientlyBareIds<T>(manifest: T): T {
+  if (!isJsonObject(manifest)) return clone(manifest);
+  return new Converter(manifest, false, false).held(manifest, "Manifest", []) as T;
 }

@@ -4,11 +4,11 @@ manifest:
     -
       children:
         -
-          id: take
+          id: "#take"
           length: 4.0
           offset: 0.0
           unit: seconds
-      id: recording
+      id: "#recording"
       length: 60.0
       unit: seconds
   timetoshare: "0.2.0"

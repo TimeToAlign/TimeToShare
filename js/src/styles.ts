@@ -22,8 +22,8 @@ export function completeStyles(graphical: Graphical): {
   const styles = completed.styles ?? {};
   const missing = Array.from(
     new Set(
-      (completed.statements ?? [])
-        .map((statement) => statement.set)
+      (completed.rules ?? [])
+        .map((rule) => rule.set)
         .filter((setting): setting is string => typeof setting === "string")
         .filter((name) => !Object.hasOwn(styles, name)),
     ),

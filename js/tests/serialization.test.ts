@@ -799,10 +799,10 @@ describe("canonical order in the writers", () => {
         { id: "b", n: 3 },
       ],
       links: [{ uri: ["z", "a"] }, { uri: [] }],
-      graphical: { order: { b: ["z", "a"] }, statements: [{ s: 2 }, { s: 1 }] },
+      graphical: { order: { b: ["z", "a"] }, rules: [{ s: 2 }, { s: 1 }] },
     };
     expect(dumps(value, { serialization: "jcs" })).toBe(
-      '{"graphical":{"order":{"b":["z","a"]},"statements":[{"s":2},{"s":1}]},' +
+      '{"graphical":{"order":{"b":["z","a"]},"rules":[{"s":2},{"s":1}]},' +
         '"links":[{"uri":["z","a"]},{"uri":[]}],' +
         '"timelines":[{"id":"a","n":2},{"id":"b","n":1},{"id":"b","n":3}]}',
     );

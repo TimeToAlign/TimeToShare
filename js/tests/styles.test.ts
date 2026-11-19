@@ -4,7 +4,7 @@ import { completeStyles, type Graphical } from "../src/index.js";
 describe("completeStyles", () => {
   it("completes each missing style once in code-point order", () => {
     const graphical: Graphical = {
-      statements: [
+      rules: [
         { select: {}, set: "😀" },
         { select: {}, set: "ﬀ" },
         { select: {}, set: "😀" },
@@ -18,7 +18,7 @@ describe("completeStyles", () => {
 
     expect(result).toEqual({
       graphical: {
-        statements: original.statements,
+        rules: original.rules,
         styles: { ﬀ: {}, "😀": {} },
       },
       missing: ["ﬀ", "😀"],
@@ -33,7 +33,7 @@ describe("completeStyles", () => {
   it("preserves existing declarations without console output", () => {
     const graphical: Graphical = {
       styles: { kept: { fill: "#ABCDEF" } },
-      statements: [{ select: {}, set: "kept" }],
+      rules: [{ select: {}, set: "kept" }],
     };
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
@@ -49,7 +49,7 @@ describe("completeStyles", () => {
   it("adds missing styles beside existing ones without changing the input", () => {
     const graphical: Graphical = {
       styles: { kept: { fill: "#000000" } },
-      statements: [
+      rules: [
         { select: {}, set: "kept" },
         { select: {}, set: "absent" },
       ],
@@ -68,7 +68,7 @@ describe("completeStyles", () => {
 
   it("completes a style whose name is __proto__", () => {
     const graphical: Graphical = {
-      statements: [{ select: {}, set: "__proto__" }],
+      rules: [{ select: {}, set: "__proto__" }],
     };
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
 
@@ -80,6 +80,6 @@ describe("completeStyles", () => {
     expect(
       Object.getOwnPropertyDescriptor(result.graphical.styles ?? {}, "__proto__")?.value,
     ).toEqual({});
-    expect(graphical).toEqual({ statements: [{ select: {}, set: "__proto__" }] });
+    expect(graphical).toEqual({ rules: [{ select: {}, set: "__proto__" }] });
   });
 });

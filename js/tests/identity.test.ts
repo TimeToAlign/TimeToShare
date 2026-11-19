@@ -1,14 +1,17 @@
 import { describe, expect, it } from "vitest";
-import {
-  identityProblems,
-  isJsonObject,
-  JsonFloat,
-  SchemaValidationError,
-  validate,
-} from "../src/index.js";
+import * as timetoshare from "../src/index.js";
+import { isJsonObject, JsonFloat, SchemaValidationError } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
 import { exact } from "../src/numbers/exact.js";
-import { bundle, group, manifest, rejectionCase, timeline } from "./fixtures.js";
+import {
+  bundle,
+  group,
+  identityProblems,
+  manifest,
+  rejectionCase,
+  timeline,
+  validate,
+} from "./fixtures.js";
 
 type Problem = [readonly (string | number)[], string];
 
@@ -1053,7 +1056,7 @@ describe("identity", () => {
   ])("states the message of the shared case %s", (name, message) => {
     const testCase = rejectionCase(name);
     if (!isJsonObject(testCase.manifest)) throw new Error(`${name} holds no manifest object`);
-    expect(only(testCase.manifest)).toEqual([testCase.path, message]);
+    expect(only(timetoshare.withBareIds(testCase.manifest))).toEqual([testCase.path, message]);
   });
 
   it("accepts named timestamps on their timelines", () => {

@@ -1,4 +1,12 @@
-"""The TimeToShare schema, its validator and its public diagnostics."""
+"""The TimeToShare schema, its validator and its public diagnostics.
+
+A manifest is validated in its file form, every ID written ``#`` followed by
+the ID: the schema check and the search for unknown keys read the value as
+given. Every other check reads the manifest with bare IDs (``with_bare_ids``),
+the finite rule, which runs first, included: their messages quote IDs bare
+(``'clt_1'``) and the paths of the checks after the schema name the keys of
+``graphical.order`` bare too.
+"""
 
 from __future__ import annotations
 
@@ -13,6 +21,7 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
+from .ids import FileIdError, leniently_bare_ids, with_bare_ids
 from .serialization import spell
 from .validation.containment import child_ends as child_ends
 from .validation.description import description_arrays, link_problems, scheme_problems
@@ -243,7 +252,7 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if value["timetoshare"] != SCHEMA_VERSION:
         raise UnsupportedVersionError(value["timetoshare"])
 
-    finite = next(finite_number_problems(value), None)
+    finite = next(finite_number_problems(leniently_bare_ids(value)), None)
     if finite is not None:
         raise finite
 
@@ -252,10 +261,11 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if error is not None:
         raise SchemaValidationError("schema", tuple(error.absolute_path), error.message)
 
-    representation = next(representation_problems(value), None)
+    bare = _bare_manifest(value)
+    representation = next(representation_problems(bare), None)
     if representation is not None:
         raise representation
-    semantic = next(_semantic_problems(value), None)
+    semantic = next(_semantic_problems(bare), None)
     if semantic is not None:
         raise semantic
 
@@ -264,7 +274,21 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         {"path": list(path), "key": key}
         for path, key in sorted(found, key=lambda entry: (entry[0], entry[1]))
     ]
-    return keys, _terms(value)
+    return keys, _terms(bare)
+
+
+def _bare_manifest(value: Mapping[str, Any]) -> dict[str, Any]:
+    """The manifest with bare IDs; an ID the schema cannot see unwritten is refused.
+
+    The schema types every position but two: a group's entry in
+    ``graphical.order`` holds member IDs where a timeline's holds band words,
+    and an identifier's ``scheme`` written without ``#`` is a URI unless it
+    names a scheme of the manifest.
+    """
+    try:
+        return with_bare_ids(value)
+    except FileIdError as error:
+        raise SchemaValidationError("schema", error.path, str(error)) from None
 
 
 def validate(value: Mapping[str, Any]) -> None:
@@ -313,11 +337,16 @@ def description_problems(value: Mapping[str, Any]) -> list[SchemaValidationError
     marker is not read: a manifest whose timelines break other rules but
     whose links and schemes are sound has no problem here. A library that
     reads only part of a manifest checks its description layer with this
-    function. The messages are those of :func:`validate`.
+    function. The messages are those of :func:`validate`. ``value`` is in the
+    file form; the reference rules read its IDs bare, and an ID outside the
+    description layer written without ``#`` is read as it stands.
     """
     problems: list[SchemaValidationError] = []
-    for definition, member, array, path, owner in description_arrays(value):
-        finite = next(finite_number_problems(array, path, owner, member), None)
+    bare = leniently_bare_ids(value)
+    for (definition, member, array, path, _), (*_, plain, _, owner) in zip(
+        description_arrays(value), description_arrays(bare), strict=True
+    ):
+        finite = next(finite_number_problems(plain, path, owner, member), None)
         if finite is not None:
             problems.append(finite)
             continue
@@ -327,7 +356,7 @@ def description_problems(value: Mapping[str, Any]) -> list[SchemaValidationError
             problems.append(SchemaValidationError("schema", at, error.message))
     if problems:
         return problems
-    return [*scheme_problems(value), *link_problems(value)]
+    return [*scheme_problems(bare), *link_problems(bare)]
 
 
 def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
@@ -337,6 +366,10 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
     scheme IDs, the manifest ID), group members, graphical orders, named
-    timestamps and the dates and references of links.
+    timestamps and the dates and references of links. ``value`` is in the
+    file form; the rules read its IDs bare.
+
+    Raises:
+        SchemaValidationError: If an ID is not written in the file form.
     """
-    return list(_semantic_problems(value))
+    return list(_semantic_problems(_bare_manifest(value)))

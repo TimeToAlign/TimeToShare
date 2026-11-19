@@ -1,12 +1,12 @@
 manifest:
   graphical:
     order: {}
-    statements:
+    rules:
       -
         select:
           addresses:
             -
-              id: intro
+              id: "#intro"
               root: score
         set:
           stroke: "#B45309"
@@ -23,7 +23,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -34,7 +34,7 @@ manifest:
       regions:
         -
           end: [4, 1]
-          id: intro
+          id: "#intro"
           links: []
           meta: {}
           name: null
@@ -44,5 +44,5 @@ manifest:
 unknown_keys:
   -
     key: root
-    path: [graphical, statements, 0, select, addresses, 0]
+    path: [graphical, rules, 0, select, addresses, 0]
 unregistered_terms: []

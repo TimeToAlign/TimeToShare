@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 
+import timetoshare
 from timetoshare import (
     SchemaValidationError,
     UnsupportedVersionError,
@@ -15,11 +16,9 @@ from timetoshare import (
     loads,
     rejection_case,
     rejection_paths,
-    unknown_keys,
-    validate,
 )
 
-from .conftest import group, manifest, respellable, timeline
+from .conftest import group, manifest, respellable, timeline, unknown_keys, validate
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SMALLEST = {
@@ -77,6 +76,7 @@ REJECTIONS = [
     "id_control_character_trailing_newline",
     "id_duplicate_across_kinds",
     "id_empty",
+    "id_without_hash",
     "infinite_length",
     "jump_target_flow_marker",
     "jump_to_target",
@@ -114,29 +114,30 @@ REJECTIONS = [
     "order_unknown_group",
     "piecewise_map_breaks_not_increasing",
     "piecewise_map_maps_count",
+    "reference_without_hash",
     "region_id_duplicate_across_roots",
     "region_id_is_timeline_id",
     "region_start_float_on_fraction_axis",
     "repeat_count_zero",
     "root_missing_marker",
     "root_missing_timelines",
+    "rule_select_empty_addresses",
+    "rule_select_inside_unknown_element",
+    "rule_select_projection",
+    "rule_select_unknown_element",
+    "rule_set_content_not_string",
+    "rule_set_dasharray_malformed",
+    "rule_set_max_width_zero",
+    "rule_set_neither_object_nor_string",
+    "rule_set_opacity_above_one",
+    "rule_set_shadow_lower_case",
+    "rule_set_stroke_lower_case",
     "segment_line_flag_not_boolean",
     "segment_line_gap",
     "segment_line_gap_in_later_root",
     "segment_line_not_from_zero",
     "segment_line_segment_flag",
     "segment_line_short_of_length",
-    "statement_select_empty_addresses",
-    "statement_select_inside_unknown_element",
-    "statement_select_projection",
-    "statement_select_unknown_element",
-    "statement_set_content_not_string",
-    "statement_set_dasharray_malformed",
-    "statement_set_max_width_zero",
-    "statement_set_neither_object_nor_string",
-    "statement_set_opacity_above_one",
-    "statement_set_shadow_lower_case",
-    "statement_set_stroke_lower_case",
     "table_map_kind_nearest",
     "table_map_lengths_differ",
     "table_map_missing_x_values",
@@ -471,11 +472,11 @@ def test_shared_rejection_is_rejected_at_its_path(path: Path) -> None:
         assert case.path == ("timetoshare",)
         assert case.code is None
         with pytest.raises(UnsupportedVersionError):
-            validate(case.manifest)
+            timetoshare.validate(case.manifest)
         return
     assert case.error is None
     with pytest.raises(SchemaValidationError) as caught:
-        validate(case.manifest)
+        timetoshare.validate(case.manifest)
     assert caught.value.path == case.path
     assert caught.value.code == case.code
 
@@ -499,7 +500,7 @@ def test_the_rejection_reader_puts_the_non_finite_value_at_its_path() -> None:
         (infinite, "length of 'recording' is not a finite number"),
     ]:
         with pytest.raises(SchemaValidationError) as caught:
-            validate(case.manifest)
+            timetoshare.validate(case.manifest)
         assert (caught.value.path, caught.value.message) == (case.path, message)
 
 
@@ -632,9 +633,7 @@ def test_integer_boundaries_validate_and_preserve(value: int) -> None:
 def _styled(declaration: dict) -> dict:
     return manifest(
         timeline("score"),
-        graphical={
-            "statements": [{"select": {"element": "timeline"}, "set": declaration}]
-        },
+        graphical={"rules": [{"select": {"element": "timeline"}, "set": declaration}]},
     )
 
 
@@ -671,11 +670,11 @@ def test_graphical_property_bounds_reject_at_the_property(
     declaration: dict, member: str
 ) -> None:
     path = _problem(_styled(declaration))[0]
-    assert path == ("graphical", "statements", 0, "set", member)
+    assert path == ("graphical", "rules", 0, "set", member)
 
 
 @pytest.mark.parametrize(
-    "statement",
+    "rule",
     [
         {"select": {"element": "card"}, "set": {"rx": 5}},
         {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
@@ -683,8 +682,8 @@ def test_graphical_property_bounds_reject_at_the_property(
         {"select": {"element": "frame"}, "set": {"stroke": "#7F00FF"}},
     ],
 )
-def test_card_frame_inside_and_shadow_validate(statement: dict) -> None:
-    validate(manifest(timeline("score"), graphical={"statements": [statement]}))
+def test_card_frame_inside_and_shadow_validate(rule: dict) -> None:
+    validate(manifest(timeline("score"), graphical={"rules": [rule]}))
 
 
 @pytest.mark.parametrize(
@@ -701,33 +700,33 @@ def test_card_frame_inside_and_shadow_validate(statement: dict) -> None:
     ],
 )
 def test_band_selectors_validate(select: dict) -> None:
-    statement = {"select": select, "set": {"display": "none"}}
-    validate(manifest(timeline("score"), graphical={"statements": [statement]}))
+    rule = {"select": select, "set": {"display": "none"}}
+    validate(manifest(timeline("score"), graphical={"rules": [rule]}))
 
 
 def test_a_selector_names_every_card_of_a_timeline_in_several_groups() -> None:
     card = {"id": "t", "part": ["card"]}
-    statement = {"select": {"addresses": [card]}, "set": {"stroke": "#B8BEC8"}}
+    rule = {"select": {"addresses": [card]}, "set": {"stroke": "#B8BEC8"}}
     validate(
         manifest(
             timeline("t"),
             timeline("u"),
             timeline("v"),
             groups=[group("g1", "t", "u"), group("g2", "t", "v")],
-            graphical={"statements": [statement]},
+            graphical={"rules": [rule]},
         )
     )
 
 
 def test_the_schema_shapes_each_order_entry() -> None:
     value = manifest(timeline("score"), graphical={"order": {"score": [""]}})
-    assert _problem(value)[0] == ("graphical", "order", "score", 0)
+    assert _problem(value)[0] == ("graphical", "order", "#score", 0)
 
 
 def test_the_schema_refuses_a_repeated_order_entry() -> None:
     order = ["line", "markers", "line"]
     value = manifest(timeline("score"), graphical={"order": {"score": order}})
-    assert _problem(value)[0] == ("graphical", "order", "score")
+    assert _problem(value)[0] == ("graphical", "order", "#score")
 
 
 def test_a_da_capo_and_a_repeat_end_need_no_target() -> None:
@@ -763,9 +762,9 @@ def test_a_da_capo_and_a_repeat_end_need_no_target() -> None:
     ],
 )
 def test_the_selector_refuses_the_older_vocabulary(select: dict, member: str) -> None:
-    statement = {"select": select, "set": {"display": "none"}}
-    value = manifest(timeline("score"), graphical={"statements": [statement]})
-    assert _problem(value)[0] == ("graphical", "statements", 0, "select", member)
+    rule = {"select": select, "set": {"display": "none"}}
+    value = manifest(timeline("score"), graphical={"rules": [rule]})
+    assert _problem(value)[0] == ("graphical", "rules", 0, "select", member)
 
 
 def _defaults_block() -> dict:
@@ -779,7 +778,7 @@ def _defaults_block() -> dict:
 def test_the_defaults_are_a_valid_graphical_object() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["statements"]) == 30
+    assert len(defaults["rules"]) == 30
     validate({**SMALLEST, "graphical": defaults})
 
 

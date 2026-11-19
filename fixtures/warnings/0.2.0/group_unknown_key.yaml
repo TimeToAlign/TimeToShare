@@ -1,14 +1,14 @@
 manifest:
   graphical:
     order:
-      group_1: [second-half, recording]
-    statements: []
+      "#group_1": ["#second-half", "#recording"]
+    rules: []
     styles: {}
     timestamps: []
   groups:
     -
-      id: group_1
-      members: [recording, second-half]
+      id: "#group_1"
+      members: ["#recording", "#second-half"]
       meta: {}
       name: "Second half"
       order: []
@@ -24,7 +24,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: second-half
+          id: "#second-half"
           is_segment_line: false
           length: [4, 1]
           links: []
@@ -37,7 +37,7 @@ manifest:
           unit: quarters
       conversion_maps: []
       flow_control: []
-      id: piece
+      id: "#piece"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -51,7 +51,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: recording
+      id: "#recording"
       is_segment_line: false
       length: [8, 1]
       links: []

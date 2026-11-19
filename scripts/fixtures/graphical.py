@@ -12,7 +12,7 @@ from .timelines import map_timeline, styled_score_timeline, timestamps_timeline
 
 _GREY = {"stroke": "#404040", "fill": "#404040"}
 
-_SHARED_STATEMENTS: list[dict[str, Any]] = [
+_SHARED_RULES: list[dict[str, Any]] = [
     {"select": {"element": "label"}, "set": _GREY},
     {"select": {"element": "name"}, "set": _GREY},
 ]
@@ -23,8 +23,8 @@ _ACCENT = {"stroke": "#1D4ED8", "fill": "#1D4ED8", "stroke-width": 4, "opacity":
 
 _STYLED_SCORE: dict[str, Any] = {
     "styles": {"accent": _ACCENT},
-    "statements": [
-        *_SHARED_STATEMENTS,
+    "rules": [
+        *_SHARED_RULES,
         {"select": {"addresses": [{"id": "a"}]}, "set": {"display": "none"}},
         {"select": {"element": "block"}, "set": {"rx": 4}},
         {
@@ -106,8 +106,8 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             },
         },
         "performance": {
-            "statements": [
-                *_SHARED_STATEMENTS,
+            "rules": [
+                *_SHARED_RULES,
                 {
                     "select": {
                         "element": "wedge",
@@ -122,7 +122,7 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     "group_styled": {
         "group_1": {
             "styles": {"frame-highlight": {"stroke": "#7F00FF"}},
-            "statements": [
+            "rules": [
                 {"select": {"element": "frame"}, "set": "frame-highlight"},
                 {
                     "select": {
@@ -209,7 +209,7 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     },
     "bundle_free_ids": {
         "group_1": {
-            "statements": [
+            "rules": [
                 {
                     "select": {"addresses": [{"id": "take 2/intro"}]},
                     "set": {"stroke": "#0F766E"},
@@ -224,11 +224,11 @@ orders, by fixture name and the id of its root (a manifest of one root) or of
 its group (a manifest of one group).
 
 The script adds an entry to the manifest's ``graphical``. The library reads
-its ``styles``, ``statements`` and ``timestamps`` back as styling it keeps
+its ``styles``, ``rules`` and ``timestamps`` back as styling it keeps
 unread, and each
 entry of its ``order``, a band order keyed by a timeline's id, as an order
 it keeps unchecked; it writes both back, the band orders beside the display
-orders of its own groups. A statement selects elements by their address
+orders of its own groups. A rule selects elements by their address
 objects: an element by its own id (``{"id": "intro"}``), a part of it by its
 id and the part words (``{"id": "intro", "part": ["label"]}``), and a
 band by its timeline's id and its facet (``{"id": "score", "facet":
@@ -243,7 +243,7 @@ shadow and a corner radius of 2.
 address ``{"id": "take 2/intro"}``, teal.
 
 In ``styled__score`` every drawn element and every text takes its own colour
-under the cascade of ``docs/drawing.md`` (statements numbered from 0 in the
+under the cascade of ``docs/drawing.md`` (rules numbered from 0 in the
 list, the two shared ones first):
 
 ==========================  =========  =============================================
@@ -264,17 +264,17 @@ label of ``intro``          #0E7490    16 (``addresses``)
 label of ``da-capo``        #9D174D    17 (``addresses``)
 ==========================  =========  =============================================
 
-A stroke and the fill of one element share its colour. Statement 12 displays
-every child of ``score``; statement 2, which names ``addresses``, outranks it
+A stroke and the fill of one element share its colour. Rule 12 displays
+every child of ``score``; rule 2, which names ``addresses``, outranks it
 and hides the child ``a``. ``origin`` (``timestamp_1``) and ``length``
 (``timestamp_2``) are the root's two timestamps of ``origin_and_length``,
-statements 11 and 15 address the wedge and the coordinate label of
+rules 11 and 15 address the wedge and the coordinate label of
 ``length``. The band order of ``score`` lays the timestamps' wedges against
 its line above it and its children beyond them, and its map against
 its line below it, then its region and its jump.
 
 ``styled_score_flow_inner`` holds the same root with the same styles and
-statements, so every colour above, and a band order that differs only in its
+rules, so every colour above, and a band order that differs only in its
 last two bands: below the line, the jump lies nearer the line than the
 region.
 

@@ -3,20 +3,20 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
-      id: timestamp_1
+      id: "#timestamp_1"
       name: origin
-      timeline: bare
+      timeline: "#bare"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
-      id: timestamp_2
+      id: "#timestamp_2"
       name: length
-      timeline: bare
+      timeline: "#bare"
 meta:
   generator: "timetoalign 1.2.0 (df58bc9d)"
 timelines:
   -
-    id: bare
+    id: "#bare"
     length: [8, 1]
     name: Bare
     unit: quarters

@@ -7,9 +7,9 @@ from typing import Any
 import pytest
 
 import timetoshare
-from timetoshare import SchemaValidationError, child_ends, identity_problems, validate
+from timetoshare import SchemaValidationError, child_ends
 
-from .conftest import manifest, timeline
+from .conftest import identity_problems, manifest, timeline, validate
 
 ID = "segment line 'line'"
 

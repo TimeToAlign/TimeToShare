@@ -5,17 +5,21 @@ from pathlib import Path
 
 import pytest
 
+import timetoshare
 from timetoshare import (
     SchemaValidationError,
     UnsupportedVersionError,
     loads,
-    unknown_keys,
-    unregistered_terms,
-    validate,
     warning_paths,
 )
 
-from .conftest import group, manifest, timeline
+from .conftest import (
+    group,
+    manifest,
+    timeline,
+    unknown_keys,
+    validate,
+)
 
 WARNINGS = [
     "address_unknown_member",
@@ -46,9 +50,11 @@ def test_the_warning_cases_are_stated() -> None:
 def test_each_warning_case_lists_its_warnings(path: Path) -> None:
     case = loads(path.read_text(encoding="utf-8"))
     assert sorted(case) == ["manifest", "unknown_keys", "unregistered_terms"]
-    validate(case["manifest"])
-    assert unknown_keys(case["manifest"]) == case["unknown_keys"]
-    assert unregistered_terms(case["manifest"]) == case["unregistered_terms"]
+    timetoshare.validate(case["manifest"])
+    assert timetoshare.unknown_keys(case["manifest"]) == case["unknown_keys"]
+    assert (
+        timetoshare.unregistered_terms(case["manifest"]) == case["unregistered_terms"]
+    )
 
 
 def test_unknown_keys_at_several_depths() -> None:
@@ -57,9 +63,9 @@ def test_unknown_keys_at_several_depths() -> None:
     assert [(entry["path"], entry["key"]) for entry in expected] == [
         ([], "x-editor"),
         (["graphical"], "arrangement"),
-        (["graphical", "statements", 0], "comment"),
-        (["graphical", "statements", 0, "select"], "kind"),
-        (["graphical", "statements", 0, "set"], "colour"),
+        (["graphical", "rules", 0], "comment"),
+        (["graphical", "rules", 0, "select"], "kind"),
+        (["graphical", "rules", 0, "set"], "colour"),
         (["groups", 0], "colour"),
         (["measure_maps", 0], "source"),
         (["measure_maps", 0, "rows", 0], "tempo"),
@@ -86,7 +92,7 @@ def test_free_objects_maps_and_unknown_values_are_not_looked_into() -> None:
         graphical={
             "styles": {"any-name": {"stroke": "#000000"}},
             "order": {"g": ["score"]},
-            "statements": [{"select": {}, "set": "any-name"}],
+            "rules": [{"select": {}, "set": "any-name"}],
         },
     )
     assert unknown_keys(value) == []
@@ -95,17 +101,17 @@ def test_free_objects_maps_and_unknown_values_are_not_looked_into() -> None:
 
 
 def test_an_undeclared_key_of_a_declaration_and_a_style() -> None:
-    statement = {
+    rule = {
         "select": {"element": "map"},
         "set": {"fill": "#000000", "side": "above"},
     }
     value = manifest(
         timeline("score"),
-        graphical={"styles": {"below": {"side": "below"}}, "statements": [statement]},
+        graphical={"styles": {"below": {"side": "below"}}, "rules": [rule]},
     )
     validate(value)
     assert unknown_keys(value) == [
-        {"path": ["graphical", "statements", 0, "set"], "key": "side"},
+        {"path": ["graphical", "rules", 0, "set"], "key": "side"},
         {"path": ["graphical", "styles", "below"], "key": "side"},
     ]
 

@@ -2,22 +2,22 @@ code: group_member
 manifest:
   graphical:
     order:
-      group_2: [page, excerpt]
-    statements: []
+      "#group_2": ["#page", "#excerpt"]
+    rules: []
     styles: {}
     timestamps: []
   groups:
     -
-      id: group_1
-      members: [performance, score, tempo]
+      id: "#group_1"
+      members: ["#performance", "#score", "#tempo"]
       meta: {}
       name: Performance
     -
-      id: group_2
-      members: [excerpt, page]
+      id: "#group_2"
+      members: ["#excerpt", "#page"]
       meta: {}
       name: Facsimile
-  id: bundle_1
+  id: "#bundle_1"
   links: []
   measure_maps: []
   meta: {}
@@ -28,7 +28,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: annotations
+      id: "#annotations"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -42,7 +42,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: page
+      id: "#page"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -56,7 +56,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: performance
+      id: "#performance"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -72,7 +72,7 @@ manifest:
           children: []
           conversion_maps: []
           flow_control: []
-          id: excerpt
+          id: "#excerpt"
           is_segment_line: false
           length: [4, 1]
           links: []
@@ -85,7 +85,7 @@ manifest:
           unit: quarters
       conversion_maps: []
       flow_control: []
-      id: recording
+      id: "#recording"
       is_segment_line: false
       length: [8, 1]
       links: []
@@ -99,7 +99,7 @@ manifest:
       children: []
       conversion_maps: []
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [8, 1]
       links: []

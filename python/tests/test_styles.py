@@ -8,7 +8,7 @@ from timetoshare import MissingStyleWarning, complete_styles
 
 def test_missing_styles_are_completed_once_in_code_point_order() -> None:
     graphical = {
-        "statements": [
+        "rules": [
             {"select": {}, "set": "😀"},
             {"select": {}, "set": "ﬀ"},
             {"select": {}, "set": "😀"},
@@ -23,7 +23,7 @@ def test_missing_styles_are_completed_once_in_code_point_order() -> None:
 
     assert missing == ["ﬀ", "😀"]
     assert completed == {
-        "statements": original["statements"],
+        "rules": original["rules"],
         "styles": {"ﬀ": {}, "😀": {}},
     }
     assert graphical == original
@@ -36,7 +36,7 @@ def test_missing_styles_are_completed_once_in_code_point_order() -> None:
 def test_existing_styles_are_preserved_without_a_warning() -> None:
     graphical = {
         "styles": {"kept": {"fill": "#ABCDEF"}},
-        "statements": [{"select": {}, "set": "kept"}],
+        "rules": [{"select": {}, "set": "kept"}],
     }
 
     with warnings.catch_warnings(record=True) as caught:
@@ -53,7 +53,7 @@ def test_existing_styles_are_preserved_without_a_warning() -> None:
 def test_missing_styles_are_added_beside_existing_ones() -> None:
     graphical = {
         "styles": {"kept": {"fill": "#000000"}},
-        "statements": [
+        "rules": [
             {"select": {}, "set": "kept"},
             {"select": {}, "set": "absent"},
         ],

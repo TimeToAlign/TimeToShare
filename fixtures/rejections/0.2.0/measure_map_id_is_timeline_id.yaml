@@ -4,7 +4,7 @@ manifest:
   links: []
   measure_maps:
     -
-      id: measures
+      id: "#measures"
       meta: {}
       name: null
       rows:
@@ -16,7 +16,7 @@ manifest:
           qstamp: [0, 1]
           time_signature: "4/4"
     -
-      id: score
+      id: "#score"
       meta: {}
       name: null
       rows:
@@ -35,14 +35,14 @@ manifest:
       children: []
       conversion_maps:
         -
-          id: bars
-          measure_map: measures
+          id: "#bars"
+          measure_map: "#measures"
           name: null
           source_unit: quarters
           target_unit: null
           type: MeasureNumberMap
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [16, 1]
       links: []

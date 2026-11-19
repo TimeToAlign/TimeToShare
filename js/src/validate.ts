@@ -1,8 +1,18 @@
-/** The TimeToShare schema validator and its public diagnostics. */
+/**
+ * The TimeToShare schema validator and its public diagnostics.
+ *
+ * A manifest is validated in its file form, every ID written `#` followed by
+ * the ID: the schema check and the search for unknown keys read the value as
+ * given. Every other check reads the manifest with bare IDs (`withBareIds`),
+ * the finite rule, which runs first, included: their messages quote IDs bare
+ * (`'clt_1'`) and the paths of the checks after the schema name the keys of
+ * `graphical.order` bare too.
+ */
 
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
 import { schema } from "./generated/schema.js";
 import type { LosslessManifest } from "./generated/types.js";
+import { FileIdError, lenientlyBareIds, withBareIds } from "./ids.js";
 import { isJsonObject, type JsonObject, plain } from "./json/value.js";
 import { loads } from "./serialization/read.js";
 import { compareCodePoints, spell } from "./serialization/text.js";
@@ -188,7 +198,7 @@ function run(value: unknown): Warnings {
   }
   if (value.timetoshare !== SCHEMA_VERSION) throw new UnsupportedVersionError(value.timetoshare);
 
-  const finite = first(finiteNumberProblems(value));
+  const finite = first(finiteNumberProblems(lenientlyBareIds(value)));
   if (finite !== undefined) throw finite;
 
   const instance = plain(value);
@@ -205,16 +215,35 @@ function run(value: unknown): Warnings {
     }
   }
 
-  const representation = first(representationProblems(value));
+  const bare = bareManifest(value);
+  const representation = first(representationProblems(bare));
   if (representation !== undefined) throw representation;
-  const semantic = first(semanticProblems(value));
+  const semantic = first(semanticProblems(bare));
   if (semantic !== undefined) throw semantic;
 
   const unique = new Map(found.map((entry) => [`${jsonPointer(entry.path)} ${entry.key}`, entry]));
   const keys = [...unique.values()].sort(
     (a, b) => comparePaths(a.path, b.path) || compareCodePoints(a.key, b.key),
   );
-  return { keys, terms: unregisteredTermsOf(value) };
+  return { keys, terms: unregisteredTermsOf(bare) };
+}
+
+/**
+ * The manifest with bare IDs; an ID the schema cannot see unwritten is
+ * refused. The schema types every position but two: a group's entry in
+ * `graphical.order` holds member IDs where a timeline's holds band words, and
+ * an identifier's `scheme` written without `#` is a URI unless it names a
+ * scheme of the manifest.
+ */
+function bareManifest(value: JsonObject): JsonObject {
+  try {
+    return withBareIds(value);
+  } catch (error) {
+    if (error instanceof FileIdError) {
+      throw new SchemaValidationError("schema", [...error.path], error.message);
+    }
+    throw error;
+  }
 }
 
 /**
@@ -284,13 +313,20 @@ export function parse(text: string): LosslessManifest {
  * is not read: a manifest whose timelines break other rules but whose links
  * and schemes are sound has no problem here. A library that reads only part
  * of a manifest checks its description layer with this function. The
- * messages are those of `validate`.
+ * messages are those of `validate`. `value` is in the file form; the
+ * reference rules read its IDs bare, and an ID outside the description layer
+ * written without `#` is read as it stands.
  */
 export function descriptionProblems(value: LosslessManifest | JsonObject): SchemaValidationError[] {
   if (!isJsonObject(value)) return [];
   const problems: SchemaValidationError[] = [];
-  for (const { definition, member, value: array, path, owner } of descriptionArrays(value)) {
-    const finite = first(finiteNumberProblems(array, path, owner, member));
+  const bare = lenientlyBareIds(value);
+  const plainArrays = [...descriptionArrays(bare)];
+  for (const [index, { definition, member, value: array, path }] of [
+    ...descriptionArrays(value),
+  ].entries()) {
+    const owner = plainArrays[index]?.owner ?? null;
+    const finite = first(finiteNumberProblems(plainArrays[index]?.value, path, owner, member));
     if (finite !== undefined) {
       problems.push(finite);
       continue;
@@ -304,10 +340,15 @@ export function descriptionProblems(value: LosslessManifest | JsonObject): Schem
     }
   }
   if (problems.length > 0) return problems;
-  return [...schemeProblems(value), ...linkProblems(value)];
+  return [...schemeProblems(bare), ...linkProblems(bare)];
 }
 
-/** Return every semantic violation in the long-established identity order. */
+/**
+ * Return every semantic violation in the long-established identity order.
+ * `value` is in the file form; the rules read its IDs bare.
+ *
+ * @throws {SchemaValidationError} if an ID is not written in the file form.
+ */
 export function identityProblems(value: LosslessManifest | JsonObject): SchemaValidationError[] {
-  return [...semanticProblems(value)];
+  return [...semanticProblems(bareManifest(value))];
 }

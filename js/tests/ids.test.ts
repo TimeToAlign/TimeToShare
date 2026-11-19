@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CONTAINERS, definitionsOf, ID_POSITIONS, MEASURE_VIEWS } from "../src/ids.js";
 import {
   compactJson,
   FileIdError,
@@ -6,11 +7,15 @@ import {
   isJsonObject,
   JsonFloat,
   loads,
+  SchemaValidationError,
+  schema,
   toFileId,
+  validate,
   withBareIds,
   withFileIds,
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
+import { fixtureFiles, fixtureText } from "./fixtures.js";
 
 /** A bare manifest naming an ID at every position of the table, once each (as in Python). */
 const EVERY_POSITION = `
@@ -58,7 +63,7 @@ graphical:
   order:
     score: [line, children]
     g: [score]
-  statements:
+  rules:
   - select:
       addresses: [{id: verse, part: [name]}]
       within: score
@@ -113,7 +118,7 @@ graphical:
   order:
     "#score": [line, children]
     "#g": ["#score"]
-  statements:
+  rules:
   - select:
       addresses: [{id: "#verse", part: [name]}]
       within: "#score"
@@ -271,5 +276,167 @@ describe("a whole manifest", () => {
   it("returns a value that is no manifest as a copy", () => {
     expect(withFileIds([1])).toEqual([1]);
     expect(isJsonObject(withBareIds({}))).toBe(true);
+  });
+});
+
+const ID = "#/$defs/Id";
+const HOW: Record<string, string> = {
+  id: "value",
+  ids: "items",
+  order: "propertyNames",
+  scheme: "anyOf",
+};
+
+type Node = Record<string, unknown>;
+const definitions = (schema as unknown as { $defs: Record<string, Node> }).$defs;
+const nameOf = (reference: unknown) => String(reference).slice("#/$defs/".length);
+const refOf = (node: unknown) => (isJsonObject(node) ? node.$ref : undefined);
+
+/** Where the schema types a value as `$defs/Id`, and how. */
+function schemaIdPositions(): string[] {
+  const found: string[] = [];
+  for (const [definition, node] of Object.entries(definitions)) {
+    for (const [member, declared] of Object.entries((node.properties ?? {}) as Node)) {
+      const at = declared as Node;
+      if (at.$ref === ID) found.push(`${definition}.${member}.value`);
+      if (refOf(at.items) === ID) found.push(`${definition}.${member}.items`);
+      if (refOf(at.propertyNames) === ID) found.push(`${definition}.${member}.propertyNames`);
+      if (((at.anyOf ?? []) as Node[]).some((branch) => branch.$ref === ID)) {
+        found.push(`${definition}.${member}.anyOf`);
+      }
+    }
+  }
+  return found.sort();
+}
+
+/** The definitions a member refers to, and how it holds them. */
+function held(declared: Node): [string, string][] {
+  const found: [string, string][] = [];
+  if (declared.$ref !== undefined) found.push(["one", nameOf(declared.$ref)]);
+  if (refOf(declared.items) !== undefined) found.push(["list", nameOf(refOf(declared.items))]);
+  if (refOf(declared.additionalProperties) !== undefined) {
+    found.push(["values", nameOf(refOf(declared.additionalProperties))]);
+  }
+  return found;
+}
+
+/** The definitions that hold an ID position or hold one that does. */
+function reaching(): Set<string> {
+  const found = new Set(schemaIdPositions().map((position) => position.split(".")[0] as string));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const [definition, node] of Object.entries(definitions)) {
+      if (found.has(definition)) continue;
+      const refers = [
+        ...((node.allOf ?? []) as Node[]).map((entry) => nameOf(entry.$ref)),
+        ...((node.oneOf ?? []) as Node[]).filter((e) => e.$ref).map((e) => nameOf(e.$ref)),
+        ...Object.values((node.properties ?? {}) as Node).flatMap((declared) =>
+          held(declared as Node).map(([, child]) => child),
+        ),
+      ];
+      if (refers.some((name) => found.has(name))) {
+        found.add(definition);
+        changed = true;
+      }
+    }
+  }
+  return found;
+}
+
+describe("the tables", () => {
+  it("are the schema's ID positions", () => {
+    const table = ID_POSITIONS.map(([d, m, shape]) => `${d}.${m}.${HOW[shape]}`).sort();
+    expect(table).toEqual(schemaIdPositions());
+  });
+
+  it("are the schema's containers", () => {
+    const reach = reaching();
+    reach.delete("Id");
+    const expected: string[] = [];
+    for (const [definition, node] of Object.entries(definitions)) {
+      for (const [member, declared] of Object.entries((node.properties ?? {}) as Node)) {
+        for (const [holding, child] of held(declared as Node)) {
+          if (reach.has(child)) expected.push(`${definition}.${member}.${holding}.${child}`);
+        }
+      }
+    }
+    expect(CONTAINERS.map((row) => row.join(".")).sort()).toEqual(expected.sort());
+  });
+
+  it("give a conversion map its type's definitions", () => {
+    const views = Object.entries(definitions)
+      .filter(([, node]) => {
+        const bases = (node.allOf ?? []) as Node[];
+        return bases.length === 1 && bases[0]?.$ref === "#/$defs/MeasureView";
+      })
+      .map(([name]) => name);
+    expect([...MEASURE_VIEWS].sort()).toEqual(views.sort());
+    for (const branch of (definitions.ConversionMap as Node).oneOf as Node[]) {
+      const name = nameOf(branch.$ref);
+      const bases: string[] = [];
+      let current = name;
+      while (current !== "MapBase") {
+        current = nameOf(((definitions[current] as Node).allOf as Node[])[0]?.$ref);
+        bases.push(current);
+      }
+      expect(definitionsOf("ConversionMap", { type: name })).toEqual([name, ...bases]);
+    }
+  });
+});
+
+describe("every fixture", () => {
+  it.each(fixtureFiles())("%s round-trips", (file) => {
+    const value = loads(fixtureText(file));
+    expect(compactJson(withFileIds(withBareIds(value)))).toBe(compactJson(value));
+  });
+});
+
+describe("the validators", () => {
+  const small = (orderValue: string, scheme: string): JsonObject => ({
+    timetoshare: "0.2.0",
+    timelines: [{ id: "#score", unit: "quarters", length: [8, 1] }],
+    groups: [{ id: "#g", members: ["#score"] }],
+    schemes: [{ id: "#opus" }],
+    links: [{ relation: "pertains_to", level: "work", identifiers: [{ scheme, value: "1" }] }],
+    graphical: {
+      order: {
+        "#g": [orderValue],
+        "#score": ["line", "markers", "conversion_maps", "children", "regions", "flow_control"],
+      },
+    },
+  });
+
+  it("accept a manifest in the file form", () => {
+    validate(small("#score", "#opus"));
+  });
+
+  it.each([
+    [
+      "score",
+      "#opus",
+      ["graphical", "order", "#g", 0],
+      "'score' is not written as an ID: it does not start with '#'",
+    ],
+    [
+      "#score",
+      "opus",
+      ["links", 0, "identifiers", 0, "scheme"],
+      "'opus' names a scheme of this manifest, so it is written '#opus'",
+    ],
+  ])("refuse %j or %j where the schema cannot type it", (orderValue, scheme, path, message) => {
+    let thrown: unknown;
+    try {
+      validate(small(orderValue, scheme));
+    } catch (error) {
+      thrown = error;
+    }
+    expect(thrown).toBeInstanceOf(SchemaValidationError);
+    const { code, detail } = thrown as SchemaValidationError;
+    expect([code, (thrown as SchemaValidationError).path, detail]).toEqual([
+      "schema",
+      path,
+      message,
+    ]);
   });
 });

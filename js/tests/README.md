@@ -447,7 +447,7 @@ The unit tests beside the walk pin what the cases leave to a package:
   with the expected ID sequences, ties broken by ID and entries tying on
   every member kept in their order, values compared by exact value; a
   `display` holding anything ordered; a member holding no array written
-  as given; display orders, statements and links kept; a `TypeError` for
+  as given; display orders, rules and links kept; a `TypeError` for
   an entry that is not an object, lacks a member or holds a wrong type,
   even alone in its array, and for a group member that is not a string.
 - **Refusals of the writers**: a lone surrogate in a string or key, NaN and
@@ -480,7 +480,13 @@ The unit tests beside the walk pin what the cases leave to a package:
 object's own key order, and one case more pins an order key that reads as an
 array index (`#2` becomes `2` and stays after `b`), the order JavaScript
 would otherwise change. The tables equal the schema's ID positions as in
-the Python suite, and every fixture round-trips.
+the Python suite, and every fixture round-trips. The validators read the
+file form as the Python suite's "IDs in a file" states, with its two
+refusals the schema cannot type; the inline documents write IDs bare and
+reach the checks through the file-form helpers of `tests/fixtures.ts`
+(`validate`, `unknownKeys`, `unregisteredTerms`, `identityProblems`,
+`descriptionProblems`), while the shared cases and the fixtures, which are
+files, reach the package's functions as they are.
 
 ## Manifest files
 
@@ -545,7 +551,7 @@ back as the same integer.
 ## Completing missing styles
 
 `completeStyles` returns a new `graphical` object and never changes its
-input; every distinct style name a statement names but `styles` lacks is
+input; every distinct style name a rule names but `styles` lacks is
 added as an empty declaration, `missing` lists them in code-point order (`ﬀ` before
 `😀`), and with missing names it calls `console.warn` exactly once with the
 text of Python's `MissingStyleWarning`, with none never.

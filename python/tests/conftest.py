@@ -2,6 +2,39 @@ from __future__ import annotations
 
 from typing import Any
 
+import timetoshare
+from timetoshare import with_file_ids
+
+# The inline documents of this suite write IDs bare, as in memory; a check
+# reads a manifest file, so these wrappers hand it the file form, every ID
+# written '#' + the ID (``with_file_ids``, proven in ``test_ids.py``).
+
+
+def validate(value: Any) -> None:
+    """``timetoshare.validate`` of the file form of an inline document."""
+    timetoshare.validate(filed(value))
+
+
+def unknown_keys(value: Any) -> list[dict]:
+    return timetoshare.unknown_keys(filed(value))
+
+
+def unregistered_terms(value: Any) -> list[dict]:
+    return timetoshare.unregistered_terms(filed(value))
+
+
+def identity_problems(value: Any) -> list:
+    return timetoshare.identity_problems(filed(value))
+
+
+def description_problems(value: Any) -> list:
+    return timetoshare.description_problems(filed(value))
+
+
+def filed(value: Any) -> Any:
+    """The file form of an inline document; any other value as it is."""
+    return with_file_ids(value) if isinstance(value, dict) else value
+
 
 def timeline(
     identifier: str, unit: str = "quarters", length: Any = (8, 1), **members: Any

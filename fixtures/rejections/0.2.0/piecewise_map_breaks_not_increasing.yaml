@@ -11,17 +11,17 @@ manifest:
       children: []
       conversion_maps:
         -
-          id: chain
+          id: "#chain"
           maps:
             -
               breaks:
                 - [0, 1]
                 - [8, 1]
                 - [4, 1]
-              id: sections
+              id: "#sections"
               maps:
                 -
-                  id: piece_1
+                  id: "#piece_1"
                   name: null
                   offset: 0
                   scalar: [1, 2]
@@ -29,7 +29,7 @@ manifest:
                   target_unit: seconds
                   type: LinearMap
                 -
-                  id: piece_2
+                  id: "#piece_2"
                   name: null
                   offset: 0
                   scalar: [1, 2]
@@ -45,7 +45,7 @@ manifest:
           target_unit: seconds
           type: ChainMap
       flow_control: []
-      id: score
+      id: "#score"
       is_segment_line: false
       length: [16, 1]
       links: []
