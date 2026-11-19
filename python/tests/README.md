@@ -1291,6 +1291,59 @@ any text and `serialization_of` names a text's serialization. They live in
   byte for byte by `dumps(loads(text), serialization="json")`; every fixture,
   rejection case and warning case written in canonical YAML by `dumps`.
 
+## IDs in a file
+
+A manifest file writes every ID as `#` followed by the ID; in memory an ID
+is bare. `to_file_id` adds one `#`, `from_file_id` strips exactly one
+(`##x` is the bare ID `#x`) and raises `FileIdError`, a `ValueError` with an
+empty `path`, for a text without the leading `#` and for `#` alone; the
+messages are pinned exactly (`test_ids.py`). `with_file_ids` and
+`with_bare_ids` convert a whole manifest, driven by one table of ID positions
+(`ID_POSITIONS`, by definition and member) and one table of where each
+definition is held (`CONTAINERS`). What proves them:
+
+- **Every position, nothing else.** One bare manifest names an ID at every
+  position of the table once (the manifest's own, a root, a child, a
+  `ChainMap` with a nested `LinearMap` and a nested measure view naming its
+  MeasureMap, a `CombinationMap` holding a map by output name, a region with
+  a link whose part slot is represented by a timeline and the region and
+  whose slot and `part_of` entry carry identifiers in a declared scheme, a
+  jump_to and the jump_from targeting it, a group, a MeasureMap, a scheme,
+  an identifier in the declared scheme beside one in a URI scheme, a
+  timeline's and a group's `graphical.order` entry, a statement with an
+  address and `within`, a named timestamp), plus the unknown key `extra: score` on
+  the root and a `meta` holding `id: untouched`;
+  `with_file_ids` gives exactly the hand-written file form and
+  `with_bare_ids` gives the bare manifest back. The unknown key, `meta`, the
+  band words of the timeline's order entry and the URI scheme stay as
+  written.
+- **Order and numbers kept.** Keys keep their order at every level, an
+  order key renamed in place included (`#score` before `#g`); a float `2.0`
+  stays a float, an integer an integer. The JavaScript suite adds an order
+  key that reads as an array index (`#2` → `2`), which JavaScript would
+  otherwise move first.
+- **Pure.** Changing the result leaves the input unchanged, and converting
+  changes neither input.
+- **Refusals where they stand.** `with_bare_ids` raises `FileIdError` with
+  the exact path and message for a timeline ID without `#`, a group member
+  without `#`, a member ID without `#` in a group's order entry, a
+  timestamp's `timeline` that is `#` alone, and an identifier's `scheme`
+  written without `#` that names a declared scheme (bare form could not tell
+  it from the URI it would otherwise be).
+- **The tables are the schema's.** Every position where the schema types a
+  value as `#/$defs/Id` (a member, its items, its property names, one branch
+  of its `anyOf`) is a row of `ID_POSITIONS`, and every row but one is such a
+  position: the one row beyond it is a group's entry in `graphical.order`,
+  whose values the schema types as `Order` because a timeline's entry holds
+  band words. `CONTAINERS` is exactly the set of members through which a
+  definition refers (by `$ref`, items or `additionalProperties`) to a
+  definition that holds an ID position or reaches one, a conversion map
+  standing for its ten types, and `MEASURE_VIEWS` exactly the map types
+  whose `allOf` is `MeasureView`. A future schema ID cannot be missed.
+- **Every fixture round-trips.** For every fixture, `with_file_ids(
+  with_bare_ids(fixture)) == fixture`: the fixtures are written in the file
+  form and every ID in them converts.
+
 ## Manifest files
 
 `file_form(text)` gives a `FileForm`: whether the manifest is `minimal`,

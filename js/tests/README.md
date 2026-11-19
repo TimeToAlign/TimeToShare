@@ -469,6 +469,19 @@ The unit tests beside the walk pin what the cases leave to a package:
   doubles (its comment states how), so the suite runs no other
   interpreter.
 
+## IDs in a file
+
+`ids.test.ts` proves `toFileId`, `fromFileId`, `withFileIds` and
+`withBareIds` with the cases, values and messages of the Python suite's
+"IDs in a file"; `FileIdError` is a `RangeError` here where Python's is a
+`ValueError`. The manifest is the same, written as YAML text and read by
+`loads`, so its numbers are the lossless form: `2.0` comes back as
+`JsonFloat(2)`. Values are compared by `compactJson`, which keeps each
+object's own key order, and one case more pins an order key that reads as an
+array index (`#2` becomes `2` and stays after `b`), the order JavaScript
+would otherwise change. The tables equal the schema's ID positions as in
+the Python suite, and every fixture round-trips.
+
 ## Manifest files
 
 `fileForm(text)` gives a `FileForm`, `{ minimal, styling, serialization }`,

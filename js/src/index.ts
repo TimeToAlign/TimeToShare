@@ -107,6 +107,7 @@ export type {
   Uri,
   UriReference,
 } from "./generated/types.js";
+export { FileIdError, fromFileId, toFileId, withBareIds, withFileIds } from "./ids.js";
 export {
   isJsonFloat,
   isJsonObject,

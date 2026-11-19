@@ -39,6 +39,7 @@ from .fixtures import (
     warning_paths,
 )
 from .font import FONT_FILES, font_metrics, font_paths
+from .ids import FileIdError, from_file_id, to_file_id, with_bare_ids, with_file_ids
 from .manifest import TIMESTAMP_DISPLAY, canonical_order
 from .registry import KnownScheme, Recognition, SchemeRegistry, default_registry
 from .serialization import SERIALIZATIONS, dumps, loads, serialization_of
@@ -74,6 +75,7 @@ __all__ = [
     "Assertion",
     "Descriptor",
     "FileForm",
+    "FileIdError",
     "Identifier",
     "KnownScheme",
     "Link",
@@ -99,6 +101,7 @@ __all__ = [
     "font_metrics",
     "font_paths",
     "fixture_paths",
+    "from_file_id",
     "identity_problems",
     "json_pointer",
     "load_schema",
@@ -109,8 +112,11 @@ __all__ = [
     "rejection_paths",
     "schema_path",
     "serialization_of",
+    "to_file_id",
     "unknown_keys",
     "unregistered_terms",
     "validate",
     "warning_paths",
+    "with_bare_ids",
+    "with_file_ids",
 ]
