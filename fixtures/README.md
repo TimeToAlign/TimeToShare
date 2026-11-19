@@ -18,12 +18,15 @@ The directories sort the manifests by content only:
   group;
 - under `groups/`, manifests holding one group;
 - under `bundles/`, manifests of several groups, several ungrouped roots,
-  or both, and manifests without timelines (`op106_work`, which links the
-  manifest alone to a work and the parts of its reading).
+  or both;
+- under `statements/`, manifests whose elements carry statements and
+  provenance ([Statement fixtures](#statement-fixtures)).
 
-Version 0.2.0 has 50 manifests directly under `fixtures/0.2.0/`, 11 under
-`groups/` and 12 under `bundles/`, 73 in all, each with its minimal twin, so
-146 files. Beside them lie 132 rejection cases and 17 warning cases.
+Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
+`groups/`, 11 under `bundles/` and 4 under `statements/`, 75 in all, each
+with its minimal twin, so 150 files. Beside them lie the expected RDF of
+the 4 statement fixtures under `fixtures/rdf/0.2.0/`, 159 rejection cases
+and 16 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -101,7 +104,8 @@ describes its case), the `graphical` objects and the band-order manifests in
 The CLI writes each manifest and its twin in canonical YAML with
 `timetoshare.dumps` (object keys sorted by code point, arrays in canonical
 order), reads both back with `timetoshare.loads`,
-validates them, checks the law above, and fails unless the manifest is
+validates them, checks that neither draws a warning, checks the law
+above, and fails unless the manifest is
 stable through the library: read by the class that holds its content
 (`Timeline.from_dict` for one root and no group, `TimelineGroup.from_dict`
 for one group, `AlignmentBundle.from_dict` otherwise) and written back with
@@ -120,7 +124,13 @@ leaves free, minted by timeline ID and then coordinate
 (`origin_and_length` in `graphical.py`). Every timeline, MeasureMap, conversion
 map, region and flow-control element carries an ID; IDs the script does not give are
 minted by timetoalign and depend on the construction order within the
-builder, which is part of the fixture contract.
+builder, which is part of the fixture contract. Every manifest carries the
+inline `@context` of the
+[description specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/description.md),
+written last by `with_context`: the format's terms and the prefixes its
+statements use, their namespaces taken from the catalogue
+(`catalogue/catalogue.yaml`), so a manifest without statements holds the
+terms alone.
 
 A catalogue case writes `<name>.yaml` in its directory. Several cases of
 one name, such as the four of `conversion_maps`, write
@@ -333,6 +343,45 @@ or an application layer displays its band: the drawings
 `unknown_length_segments__regions-shown` and
 `child_flow_control__flow-shown` add such a layer (Drawings, below).
 
+## Statement fixtures
+
+The four manifests under `statements/` exercise the statements and
+provenance of the
+[description specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/description.md).
+Their builders in `statements.py` build the temporal structure through
+timetoalign, read as a whole by `AlignmentBundle.from_dict`; the
+statements and provenance of each subject are attached when the manifest
+is composed, from `descriptions/<name>.yaml`, which holds `{prefixes?,
+subjects}`: the prefixes a manifest declares beside the catalogue's, and
+for each subject, named by its ID as written in the file (the manifest's
+own ID naming the bundle), its `statements` and `provenance` as they are
+written. A subject naming no element stops the run. The statement
+fixtures are not drawn and name no origin or length timestamps.
+
+| File | Structure | Statements |
+| --- | --- | --- |
+| `op106_work.yaml` | the bundle `op106` ("Beethoven, Piano Sonata No. 29, Op. 106") of five roots of quarters side by side, none nesting another: `clt_1` ("Op. 106", of unknown length) and the movements `clt_2` ("I. Allegro", 1645), `clt_3` ("II. Scherzo. Assai vivace", 510), `clt_4` ("III. Adagio sostenuto", 561) and `clt_5` ("IV. Introduzione. Largo – Allegro risoluto", 9911/8) | on `clt_1` "is a" in three vocabularies and Wikidata's, identity with MusicBrainz, Wikidata, the GND and VIAF, the composer in Wikidata's and the GND's terms, the opus number and the IMSLP page name as literals, and the four parts MusicBrainz lists with `schema:position`; on each movement "is a" and its MusicBrainz work; the manifest's own prefix `mbw`; 8 entries, all `confirmed` |
+| `layerit_recording.yaml` | the bundle `layerit_clair_de_lune` of the MEI encoding `clt_6` (27 quarters), the video `cpt_1` (seconds, of unknown length) with the stretch `cpt_2` (33.353016 seconds at 0.0), and the audio file `dpt_1` (1470868 samples, with the map `cmap_1` of 44100 samples per second); the group `group_1` ("recording") aligns `cpt_2` with `dpt_1` | the bundle's `rdfs:seeAlso`; the encoding's work in Wikidata's and MusicBrainz's terms, tied by `schema:sameAs`, and its encoding date as an `xsd:date`; the video's performer in two vocabularies; a proposal whose value is the element `#cpt_1`; provenance on a value node; 10 entries: 7 `confirmed`, 2 `proposed`, 1 `rejected` |
+| `djset_segment.yaml` | the bundle `moriero_halloween_xxl_2025` of the set `cpt_1` (5277.0 seconds) and its segment `cpt_2` (91.0 seconds at 437.0) | the set "is a" DJ mix; the segment based on a recording in Wikidata's and MusicBrainz's terms, with its ISRC on the value node; a performer known by name alone, proposed; a rejected identity; 6 entries: 3 `confirmed`, 2 `proposed`, 1 `rejected` |
+| `nielsen_record.yaml` | the bundle `cnw0133` of `clt_1` (quarters, of unknown length) and the sources `cgt_1` ("Score, print (Wilhelm Hansen, 1906)") and `cgt_2` ("Score, autograph, printer's manuscript"), millimeters of unknown length; no timeline nests another | a record taken over from an MEI header in MeLODy's and LRMoo's terms: titles with languages, identifier nodes, the medium of performance, a date node, the relations between work, version and sources as element values, and names awaiting reconciliation; 29 entries: 24 `confirmed`, 4 `proposed`, 1 `rejected` |
+
+`fixtures/rdf/<version>/<name>.nq` holds the expected RDF of each statement
+fixture: the canonical N-Quads (RDFC-1.0) of its JSON-LD reading with the
+base `https://example.org/manifests/<name>.yaml`, line feeds only.
+`scripts/emit_rdf.py` writes them with PyLD (run from `python/` as `uv run
+python ../scripts/emit_rdf.py`, after the fixtures), with a document
+loader that refuses every fetch; it rewrites a file only when its bytes
+change, removes the file of a fixture that is gone, and refuses to replace
+the files of a version whose tag `v<version>` exists. The RDF tests of both
+packages, PyLD in Python and jsonld.js in TypeScript, read each statement
+fixture and its twin, and check that their canonical N-Quads equal the
+file byte for byte; that every other fixture reads to the empty graph;
+that every IRI is expanded and absolute; that every predicate is a
+property of a statement, `rdf:type`, `rdfs:label` or a term of the
+format's context; that no proposed or rejected pair whose subject has an
+IRI and whose value is a thing or a plain literal is asserted; and that
+each provenance entry gives one reified statement.
+
 ## Drawings
 
 Each directory `fixtures/<version>/drawings/<name>/` pins one drawing of the
@@ -342,11 +391,8 @@ current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
-ones (`corpus_*`) at the default placement, and eighteen variants.
-`bundles/op106_work` holds no timeline, so its drawing
-(`bundle__op106_work`) is its block alone, opened by its title, the
-manifest's name cut to the default maximum width of a name. The links of
-`links` are not drawn, so its drawing is that of its one root. The
+ones (`corpus_*`) and the statement fixtures at the default placement, and
+eighteen variants. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -373,7 +419,7 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 `unknown_length_segments` on every regions band, `{"element": "band",
 "facet": "regions"}` (`unknown_length_segments__regions-shown`), and
 `child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`): 79 drawings in all.
+"flow_control"}` (`child_flow_control__flow-shown`): 77 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
@@ -430,10 +476,10 @@ code with the case's. The cases cover every code:
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timetoshare` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 76 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, and a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, and the links of the description layer, whose fifteen cases are named `description_*`: a link without `relation` or `level`, an unknown level, an agent link using `pertains_to`, a part slot both represented and absent or neither, parts or a `part_of` entry without `parts_relation`, a `parts_relation` without parts (`description_parts_relation_without_parts`), `parts_ordered` false without parts (`description_parts_ordered_without_parts`), an unknown `match` or `status`, an `asserted_on` that is no `YYYY-MM-DD` date, a `uri` that is no absolute URI and a record without `url` |
-| `representation` | an own-axis value can be read as its axis's number type, however it is spelled | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis` |
-| `duplicate_id` | every ID unique across the manifest, that of a map another map holds, of a named timestamp and of a scheme included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id`, `description_scheme_id_duplicate` |
-| `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps`, a part slot's `represented_by` a timeline or a region, and an identifier's `scheme` a scheme of the manifest unless it is an absolute URI | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling`, `description_slot_represented_by_unresolved`, `description_identifier_scheme_unresolved` |
+| `schema` | the schema document | 84 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, and a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, and 23 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an entry without `status`, an unknown status, method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`) |
+| `representation` | an own-axis value can be read as its axis's number type, however it is spelled; a statement value is never a float | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis`, `statement_value_integral_float` |
+| `duplicate_id` | every ID unique across the manifest, that of a map another map holds and of a named timestamp included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `region_id_duplicate_across_roots`, `region_id_is_timeline_id`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id` |
+| `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps`, and a `#` reference of the statements an element of the manifest | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling`, `element_value_dangling` |
 | `conversion_map` | a map attached to a timeline converts from the timeline's unit, and a map a `PiecewiseMap` or `CombinationMap` holds, or a `ChainMap`'s first map, from its holder's source unit, wherever both are stated; a `TableMap`'s x and y values agree in length and its x values increase strictly; a `PiecewiseMap` has one map fewer than breaks, and its breaks increase strictly | `map_source_unit_mismatch`, `table_map_lengths_differ`, `table_map_x_not_increasing`, `piecewise_map_maps_count`, `piecewise_map_breaks_not_increasing` |
 | `child_unit` | a child has its parent's unit | `child_unit_differs` |
 | `child_offset` | a child starts within its parent's known length | `child_offset_beyond_parent` |
@@ -443,14 +489,20 @@ code with the case's. The cases cover every code:
 | `group_member` | a member names a timeline of the manifest, and neither contains nor lies inside another member of its group | `member_dangling`, `members_contain_member`, `members_inside_member` |
 | `order_key` | a key of `graphical.order` names a group or a timeline | `order_unknown_group` |
 | `display_order` | a group's display order is a permutation of its members | `group_order_not_member`, `order_missing_member` |
-| `band_order` | a band order is a permutation of `line` and the five facets | `band_order_unknown_entry`, `band_order_missing_band` |
+| `band_order` | a band order is a permutation of `line` and the five facets | `band_order_unknown_entry`, `band_order_missing_band`, `band_order_old_form` |
 | `timestamp_timeline` | a named timestamp names a timeline of the manifest | `timestamp_timeline_unknown` |
 | `timestamp_coordinate` | a named timestamp's coordinate lies from 0 to its timeline's own length, from 0 on where the length is unknown | `timestamp_coordinate_beyond_length`, `timestamp_coordinate_negative` |
-| `calendar_date` | an assertion's `asserted_on` names a day of the Gregorian calendar from 0001-01-01 | `description_asserted_on_impossible_date` |
+| `context` | a manifest whose elements carry `statements` or `provenance` holds `@context` | `context_absent_with_statements`, `context_absent_with_provenance` |
+| `reserved_key` | no element key is one JSON-LD would read | `reserved_key_term_on_timeline` (`label`), `reserved_key_iri_on_region`, `reserved_key_statements_on_group`, `reserved_key_prefix_on_manifest`, `reserved_key_context_on_timeline`, `reserved_key_children_on_region` |
+| `iri` | every compact IRI names a declared prefix, and every element with statements has an ID that is an IRI fragment | `iri_prefix_undeclared_key`, `iri_prefix_undeclared_id`, `iri_prefix_undeclared_type`, `provenance_basis_prefix_undeclared`, `subject_id_not_fragment` |
+| `element_value` | a value naming an element holds its `id` alone | `element_value_with_label` |
+| `calendar_date` | a provenance entry's `date` names a day of the Gregorian calendar from 0001-01-01 | `provenance_date_impossible` |
+| `provenance_match` | a `confirmed` entry matches a pair of its subject, and a `proposed` or `rejected` one matches none | `provenance_confirmed_unmatched`, `provenance_proposed_stated`, `provenance_rejected_stated`, `provenance_type_pair_unmatched`, `provenance_on_value_node_unmatched` |
+| `provenance_duplicate` | a subject has one entry per pair | `provenance_repeated` |
 
-The nineteen cases named `description_*` break the description layer:
-fifteen the schema, two `dangling_target`, one `duplicate_id` and one
-`calendar_date`.
+Every case of statements starts from one manifest: the format's context
+with the prefixes `schema`, `wd` and `wdt` (others where a case says so)
+and one root `clt_1` of 8 quarters, in the complete form.
 
 `version_unknown` names the version 0.1.0, which 0.2.0 replaces; its `code` is `null` and its
 `"error": "UnsupportedVersionError"` names the error both packages raise
@@ -461,23 +513,23 @@ a finite placeholder at their path and name in `non_finite` (`"Infinity"` or
 
 ## Warning cases
 
-An unknown key is never an error, and neither is a bare word of an open
-vocabulary that is not registered for its key. Each of the 17 warning
-cases under `fixtures/warnings/<version>/` holds a manifest together with
-the two lists both packages must return for it: `unknown_keys`, the
-`{path, key}` entries `unknown_keys` and `unknownKeys` return, sorted by
-path and then by key, and `unregistered_terms`, the `{path, term}` entries
-`unregistered_terms` and `unregisteredTerms` return, sorted by path. Four
-cases, named `description_*`, hold one unregistered word each (a link's
-relation `about`, an assertion's method `guessed`, a parts relation
-`contains`, an absence reason `destroyed`) and no unknown key; the other
-thirteen hold unknown keys and no unregistered word.
-`several_depths` places unknown keys at every depth of a manifest; each
-of the other twelve holds one or two keys its object does not declare,
-among them keys
-a writer might plausibly add, such as `support_policy`, a timeline's
-`class`, a selector's former `ids` or an address's `root`. Python's `warning_paths()` lists the cases. Both packages read the
-same files and compare their lists with it.
+A warning is never an error. Each of the 16 warning cases under
+`fixtures/warnings/<version>/` holds a manifest together with the two lists
+both packages must return for it: `unknown_keys`, the `{path, key}`
+entries `unknown_keys` and `unknownKeys` return, sorted by path and then by
+key, and `warnings`, the `{code, path, message}` entries
+`manifest_warnings` and `manifestWarnings` return, sorted by path and then
+by code. Three cases hold one warning each and no unknown key:
+`context_absent`, a manifest without `@context` (`context_absent` at the
+root), and `bundle_blank_statements` and `bundle_blank_provenance`, a
+manifest without `id` that carries `statements` or only `provenance`
+(`bundle_blank` at that key). The other thirteen hold the format's context,
+unknown keys and no warning. `several_depths` places unknown keys at every
+depth of a manifest; each of the other twelve holds one or two keys its
+object does not declare, among them keys a writer might plausibly add,
+such as `support_policy`, a timeline's `class`, a selector's former `ids`
+or an address's `root`. Python's `warning_paths()` lists the cases. Both
+packages read the same files and compare their lists with them.
 
 See the [main README](../README.md) for the manifest shape, the schema API
 and the serializations.

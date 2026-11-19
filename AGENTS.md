@@ -7,23 +7,24 @@ These rules apply to every contributor, human or automated.
 - `schema/`: the JSON Schema of the current version, one document
   `<version>/timetoshare.schema.json` describing the one manifest shape
   `{timetoshare, timelines, id?, name?, meta?, groups?, measure_maps?,
-  schemes?, links?, graphical?}`; it is the format contract and source of
-  truth.
+  "@context"?, statements?, provenance?, graphical?}`; it is the format
+  contract and source of truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
   the block of frames, cards and bands (the boxes) that draws every
   manifest, and SVG and TikZ writers; and `description.md`, the
-  specification of the description layer (links, schemes, records,
-  assertions, parts and absence, the registry of identifier schemes and
-  validation). Both are part of the contract, and both packages ship
-  them.
-- `registry/`: `schemes.json`, the registry of identifier schemes that
-  turns catalogue addresses into links, written in pretty JSON with
-  `dumps`; both packages ship it and read it alike, and the validators
-  never consult it.
+  specification of statements (the subject, pairs and their values, the
+  inline JSON-LD context, provenance, the catalogue and validation). Both
+  are part of the contract, and both packages ship them.
+- `catalogue/`: `catalogue.yaml`, the catalogue of identifier systems,
+  verbs and types that guides the writing of statements, and
+  `catalogue.schema.json`, its JSON Schema; both packages ship the
+  catalogue and read it alike, and the validators never consult it.
 - `fixtures/`: generated manifests under `fixtures/<version>/` in
   canonical YAML, each in the complete form beside its minimal twin (the
-  subdirectories `groups/` and `bundles/` sort them by content only),
-  hand-authored rejection cases under `fixtures/rejections/<version>/`,
+  subdirectories `groups/`, `bundles/` and `statements/` sort them by
+  content only), the expected RDF of the statement fixtures under
+  `fixtures/rdf/<version>/` (canonical N-Quads, emitted), hand-authored
+  rejection cases under `fixtures/rejections/<version>/`,
   hand-authored warning cases under `fixtures/warnings/<version>/`,
   hand-derived serialization cases under `fixtures/serializations/`
   (`cases/<name>/` with `canonical.yaml`, `pretty.json` and
@@ -44,8 +45,9 @@ These rules apply to every contributor, human or automated.
   one table of advance-width metrics used by the drawing.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
 - `js/`: the npm package, generated TypeScript types, tests, and lockfile.
-- `scripts/`: fixture emission, font-metrics extraction, and the check
-  that every version declaration agrees.
+- `scripts/`: fixture emission (`emit_fixtures.py`, and `emit_rdf.py`
+  for the expected RDF of the statement fixtures), font-metrics
+  extraction, and the check that every version declaration agrees.
 - `decisions/`: numbered MADR decision records.
 - `.github/workflows/`: continuous integration and the release automation,
   which publishes both packages and the schema document on both sites.
@@ -64,8 +66,10 @@ These rules apply to every contributor, human or automated.
 - Write tests README-first: update the relevant `tests/README.md` with what
   proves the behavior, then implement tests with exact expected values.
 - Emit the manifests under `fixtures/<version>/` only through
-  `scripts/emit_fixtures.py`; never hand-edit them. The script refuses to
-  overwrite the fixtures of a version whose `v<version>` tag exists. Emit
+  `scripts/emit_fixtures.py`, and their expected RDF under
+  `fixtures/rdf/<version>/` only through `scripts/emit_rdf.py` after
+  them; never hand-edit either. Both scripts refuse to overwrite the
+  files of a version whose `v<version>` tag exists. Emit
   the drawings under `fixtures/<version>/drawings/` only through
   TimeLineEditor's `emit-drawings` script, which never rewrites the
   hand-derived figures but compares them with its own output.
@@ -78,9 +82,9 @@ These rules apply to every contributor, human or automated.
 - Write every fixture, rejection case and warning case in canonical YAML
   with `dumps` of either package; a rejection or warning case about JSON
   text itself would be written in JSON, and none is at present. Write the
-  registry
-  `registry/schemes.json` in pretty JSON with `dumps(…,
-  serialization="json")`. Either way object keys are sorted by code point
+  catalogue `catalogue/catalogue.yaml` in canonical YAML with `dumps`,
+  without comments (a note goes in a `note` field). In every such file
+  object keys are sorted by code point
   at every depth, arrays are in canonical order, and floats are spelled as
   the README's "Serializations" specifies. Never keep a fixed list of
   key orders; key order is sorted order, and `canonical_order` covers only
@@ -114,6 +118,7 @@ Run these commands from the stated directory.
 | --- | --- | --- |
 | repository root | `python3 scripts/check_versions.py` | Check version declarations agree. |
 | repository root | `python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"` | Emit and round-trip the fixtures with an environment containing timetoalign. |
+| `python/` | `uv run python ../scripts/emit_rdf.py` | Write the expected RDF of the statement fixtures. |
 | `python/` | `uv sync` | Synchronize Python dependencies. |
 | `python/` | `uv run ruff check .` | Run Python lint checks. |
 | `python/` | `uv run ruff format --check .` | Check Python formatting. |
