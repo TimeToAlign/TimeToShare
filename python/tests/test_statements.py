@@ -589,6 +589,10 @@ PINNED = {
         "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD"
     ),
     "provenance_repeated": "the entry repeats the pair of entry 0",
+    "provenance_type_value_literal": (
+        "no pair of this subject matches the entry; an entry that matches none is "
+        "proposed or rejected"
+    ),
 }
 
 

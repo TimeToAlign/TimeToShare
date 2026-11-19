@@ -515,7 +515,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 159 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 160 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the twenty-five of the table, so every code is reached by a case both
@@ -528,7 +528,7 @@ value in place and are reported at their path with the exact message, a
 case without one (`id_empty`) reads as written, and an unknown name is
 refused with `ValueError`. Each case's text is the
 standard writer's, and the set of names is stated literally, so a case cannot
-disappear unnoticed. Twenty cases pin their message too (`test_identity.py`
+disappear unnoticed. Twenty-one cases pin their message too (`test_identity.py`
 and `test_statements.py`):
 `child_unit_differs`, `child_offset_beyond_parent`, `child_end_beyond_parent`,
 `region_id_duplicate_across_roots`, `band_order_unknown_entry`,
@@ -538,7 +538,8 @@ and `test_statements.py`):
 `context_absent_with_statements`, `reserved_key_term_on_timeline`,
 `subject_id_not_fragment`, `iri_prefix_undeclared_key`,
 `element_value_dangling`, `element_value_with_label`,
-`provenance_date_impossible` and `provenance_repeated`. The 46 statement
+`provenance_date_impossible`, `provenance_repeated` and
+`provenance_type_value_literal`. The 47 statement
 cases break one rule each of the manifest `B`: the format's `@context`
 with `schema`, `wd` and `wdt` (others as a case needs), and one root
 `clt_1` (8 quarters), its `statements` and `provenance` as the case says,
@@ -555,8 +556,10 @@ status, method, match and a date not written `YYYY-MM-DD` (`schema` at the
 member, the value or the container), an integral float
 (`representation`), an impossible date (`calendar_date`), a confirmed
 entry matching no pair, a proposed and a rejected entry of a stated pair,
-a confirmed `rdf:type` entry of another class and a confirmed entry on a
-value node matching none of its pairs (`provenance_match`), a repeated
+a confirmed `rdf:type` entry of another class, a confirmed `rdf:type`
+entry naming its class as a literal string rather than as a thing `{id:
+…}`, and a confirmed entry on a value node matching none of its pairs
+(`provenance_match`), a repeated
 entry (`provenance_duplicate`), a reference to no element
 (`dangling_target`), a node naming an element with a label
 (`element_value`), a subject whose ID is no IRI fragment (`iri`), and a
