@@ -1,11 +1,9 @@
 code: schema
 manifest:
   groups: []
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children:
@@ -16,7 +14,6 @@ manifest:
           id: "#child\nid"
           is_segment_line: false
           length: [8, 1]
-          links: []
           locked: true
           meta: {}
           name: null
@@ -29,7 +26,6 @@ manifest:
       id: "#bare"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: Bare

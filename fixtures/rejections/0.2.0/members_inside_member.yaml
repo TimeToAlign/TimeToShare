@@ -12,11 +12,9 @@ manifest:
       members: ["#piece", "#recording", "#second-half"]
       meta: {}
       name: "Second half"
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children:
@@ -27,7 +25,6 @@ manifest:
           id: "#second-half"
           is_segment_line: false
           length: [4, 1]
-          links: []
           locked: false
           meta: {}
           name: null
@@ -40,7 +37,6 @@ manifest:
       id: "#piece"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -54,7 +50,6 @@ manifest:
       id: "#recording"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null

@@ -18,11 +18,9 @@ manifest:
       meta: {}
       name: Facsimile
   id: "#bundle_1"
-  links: []
   measure_maps: []
   meta: {}
   name: Mixed
-  schemes: []
   timelines:
     -
       children: []
@@ -31,7 +29,6 @@ manifest:
       id: "#annotations"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -45,7 +42,6 @@ manifest:
       id: "#page"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -59,7 +55,6 @@ manifest:
       id: "#performance"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -75,7 +70,6 @@ manifest:
           id: "#excerpt"
           is_segment_line: false
           length: [4, 1]
-          links: []
           locked: false
           meta: {}
           name: null
@@ -88,7 +82,6 @@ manifest:
       id: "#recording"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -102,7 +95,6 @@ manifest:
       id: "#score"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null

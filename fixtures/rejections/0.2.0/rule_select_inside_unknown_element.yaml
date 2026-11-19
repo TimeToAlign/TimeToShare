@@ -151,11 +151,9 @@ manifest:
         stroke-width: 4
     timestamps: []
   groups: []
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children:
@@ -166,7 +164,6 @@ manifest:
           id: "#a"
           is_segment_line: false
           length: [4, 1]
-          links: []
           locked: true
           meta: {}
           name: null
@@ -181,7 +178,6 @@ manifest:
           id: "#b"
           is_segment_line: false
           length: [4, 1]
-          links: []
           locked: true
           meta: {}
           name: null
@@ -210,7 +206,6 @@ manifest:
       id: "#score"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: Score
@@ -219,7 +214,6 @@ manifest:
         -
           end: [2, 1]
           id: "#intro"
-          links: []
           meta: {}
           name: intro
           start: [0, 1]

@@ -1,4 +1,55 @@
 manifest:
+  "@context":
+    "@version": 1.1
+    basis:
+      "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+      "@type": "@id"
+    broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+    children: "@included"
+    close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+    confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
+    date:
+      "@id": "http://purl.org/dc/terms/date"
+      "@type": "http://www.w3.org/2001/XMLSchema#date"
+    exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+    groups: "@included"
+    id: "@id"
+    imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+    inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+    label: "http://www.w3.org/2000/01/rdf-schema#label"
+    list: "@list"
+    manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+    match:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+      "@type": "@vocab"
+    method:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+      "@type": "@vocab"
+    narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+    note: "http://www.w3.org/2000/01/rdf-schema#comment"
+    property:
+      "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+      "@type": "@vocab"
+    proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
+    provenance:
+      "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+    reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+    regions: "@included"
+    rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
+    related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+    service:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+      "@type": "@id"
+    stated_by:
+      "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+      "@type": "@id"
+    statements: "@nest"
+    status:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#status"
+      "@type": "@vocab"
+    timelines: "@included"
+    type: "@type"
+    value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
   graphical:
     order:
       "#group_1": ["#score", "#performance"]
@@ -18,11 +69,9 @@ manifest:
       meta: {}
       name: Facsimile
   id: "#bundle_1"
-  links: []
   measure_maps: []
   meta: {}
   name: Mixed
-  schemes: []
   support_policy: omit
   timelines:
     -
@@ -32,7 +81,6 @@ manifest:
       id: "#annotations"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -46,7 +94,6 @@ manifest:
       id: "#page"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -60,7 +107,6 @@ manifest:
       id: "#performance"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -76,7 +122,6 @@ manifest:
           id: "#excerpt"
           is_segment_line: false
           length: [4, 1]
-          links: []
           locked: false
           meta: {}
           name: null
@@ -89,7 +134,6 @@ manifest:
       id: "#recording"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -103,7 +147,6 @@ manifest:
       id: "#score"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -115,4 +158,4 @@ unknown_keys:
   -
     key: support_policy
     path: []
-unregistered_terms: []
+warnings: []

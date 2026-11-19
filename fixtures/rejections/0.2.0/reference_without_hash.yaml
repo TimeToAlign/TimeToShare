@@ -6,11 +6,9 @@ manifest:
       members: [clt_1]
       meta: {}
       name: null
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children: []
@@ -19,7 +17,6 @@ manifest:
       id: "#clt_1"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null

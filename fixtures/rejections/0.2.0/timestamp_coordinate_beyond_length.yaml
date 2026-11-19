@@ -12,11 +12,9 @@ manifest:
         name: Entry
         timeline: "#verse"
   groups: []
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children:
@@ -27,7 +25,6 @@ manifest:
           id: "#verse"
           is_segment_line: false
           length: [4, 1]
-          links: []
           locked: true
           meta: {}
           name: null
@@ -40,7 +37,6 @@ manifest:
       id: "#score"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null

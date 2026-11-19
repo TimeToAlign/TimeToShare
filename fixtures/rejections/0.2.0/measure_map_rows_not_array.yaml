@@ -1,7 +1,6 @@
 code: schema
 manifest:
   groups: []
-  links: []
   measure_maps:
     -
       id: "#measures"
@@ -11,7 +10,6 @@ manifest:
         measures: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children:
@@ -22,7 +20,6 @@ manifest:
           id: "#controls"
           is_segment_line: false
           length: [37, 1]
-          links: []
           locked: true
           meta: {}
           name: null
@@ -37,7 +34,6 @@ manifest:
           id: "#notes"
           is_segment_line: false
           length: [37, 1]
-          links: []
           locked: true
           meta: {}
           name: null
@@ -143,7 +139,6 @@ manifest:
       id: "#clt_1"
       is_segment_line: false
       length: [37, 1]
-      links: []
       locked: false
       meta: {}
       name: null

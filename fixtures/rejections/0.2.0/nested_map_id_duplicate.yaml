@@ -1,11 +1,9 @@
 code: duplicate_id
 manifest:
   groups: []
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children: []
@@ -37,7 +35,6 @@ manifest:
       id: "#score"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null

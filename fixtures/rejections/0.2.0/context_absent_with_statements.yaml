@@ -1,0 +1,25 @@
+code: context
+manifest:
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#clt_1"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions: []
+      statements:
+        type: ["schema:MusicComposition"]
+      unit: quarters
+  timetoshare: "0.2.0"
+path: [timelines, 0, statements]
+reason: "Statements need the manifest's @context; the timeline carries statements and the manifest has no @context."

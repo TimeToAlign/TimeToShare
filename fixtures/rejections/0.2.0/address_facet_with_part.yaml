@@ -15,11 +15,9 @@ manifest:
     styles: {}
     timestamps: []
   groups: []
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children: []
@@ -28,7 +26,6 @@ manifest:
       id: "#score"
       is_segment_line: false
       length: [8, 1]
-      links: []
       locked: false
       meta: {}
       name: null
@@ -37,7 +34,6 @@ manifest:
         -
           end: [4, 1]
           id: "#intro"
-          links: []
           meta: {}
           name: null
           start: [0, 1]

@@ -1,0 +1,26 @@
+manifest:
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#clt_1"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+unknown_keys: []
+warnings:
+  -
+    code: context_absent
+    message: "the manifest has no @context"
+    path: []

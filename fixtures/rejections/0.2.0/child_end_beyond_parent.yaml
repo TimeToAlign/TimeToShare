@@ -1,11 +1,9 @@
 code: child_end
 manifest:
   groups: []
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children:
@@ -16,7 +14,6 @@ manifest:
           id: "#coda"
           is_segment_line: false
           length: [4, 1]
-          links: []
           locked: false
           meta: {}
           name: null
@@ -29,7 +26,6 @@ manifest:
       id: "#score"
       is_segment_line: false
       length: [10, 1]
-      links: []
       locked: true
       meta: {}
       name: null

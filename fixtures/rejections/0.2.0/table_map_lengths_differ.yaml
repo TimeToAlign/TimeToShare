@@ -1,11 +1,9 @@
 code: conversion_map
 manifest:
   groups: []
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children: []
@@ -27,7 +25,6 @@ manifest:
       id: "#score"
       is_segment_line: false
       length: [16, 1]
-      links: []
       locked: false
       meta: {}
       name: null

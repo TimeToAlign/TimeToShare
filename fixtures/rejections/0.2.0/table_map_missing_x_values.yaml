@@ -1,7 +1,6 @@
 code: schema
 manifest:
   groups: []
-  links: []
   measure_maps:
     -
       id: "#measures"
@@ -17,7 +16,6 @@ manifest:
           time_signature: "4/4"
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children: []
@@ -161,7 +159,6 @@ manifest:
       id: "#maps:quarters"
       is_segment_line: false
       length: [16, 1]
-      links: []
       locked: false
       meta: {}
       name: "Quarter-note maps"

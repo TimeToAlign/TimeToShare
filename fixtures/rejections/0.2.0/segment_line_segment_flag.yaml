@@ -1,11 +1,9 @@
 code: segment_line
 manifest:
   groups: []
-  links: []
   measure_maps: []
   meta: {}
   name: null
-  schemes: []
   timelines:
     -
       children:
@@ -16,7 +14,6 @@ manifest:
           id: "#a"
           is_segment_line: false
           length: [3, 1]
-          links: []
           locked: false
           meta: {}
           name: null
@@ -31,7 +28,6 @@ manifest:
           id: "#b"
           is_segment_line: true
           length: [0, 1]
-          links: []
           locked: false
           meta: {}
           name: null
@@ -44,7 +40,6 @@ manifest:
       id: "#bare"
       is_segment_line: true
       length: [3, 1]
-      links: []
       locked: false
       meta: {}
       name: Bare
