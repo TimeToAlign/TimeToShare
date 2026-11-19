@@ -70,8 +70,10 @@ Add PyLD 3.3.0 to the `dev` dependency group, pinned exactly
 fails the test if it is ever called. The JavaScript suite uses jsonld.js
 (decision 0016) and compares with the same files.
 
-- **Fit.** PyLD and jsonld.js come from the same maintainers and implement
-  the same specifications; both give the canonical N-Quads byte for byte
+- **Fit.** PyLD and jsonld.js are two implementations of one
+  specification, by the same maintainers, in the two languages the packages
+  are written in: each package's suite reads the fixtures with a processor
+  of its own language, and both give the canonical N-Quads byte for byte
   (verified on the four manifests), so one expected file per fixture serves
   both suites.
 - **Maintenance.** PyLD is maintained by Digital Bazaar, who edit the
@@ -80,7 +82,7 @@ fails the test if it is ever called. The JavaScript suite uses jsonld.js
   (2026-06-19), 3.2.0 (2026-08-17) and 3.3.0 (2026-09-02) followed 2.0.4
   (2024-02-16). The exposure is two functions and four options. A new
   release that changes canonical output would show as a difference in the
-  expected bytes, which the JavaScript suite checks independently.
+  expected bytes.
 - **Writing it ourselves.** Out of proportion, and it would defeat the
   independence the test needs (see above).
 - **Audited version.** PyLD 3.3.0, uploaded to PyPI on 2026-09-02, 78 days

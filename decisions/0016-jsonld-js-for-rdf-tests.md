@@ -63,7 +63,7 @@ that throws for every URL.
 - **Maintenance.** Published by Digital Bazaar since 2011, five maintainers
   on npm; 8.3.3 on 2024-12-21, 9.0.0 on 2025-11-21. Its dependencies:
   `rdf-canonize` 5.0.0 (2025-11-20), `canonicalize` 2.1.0 (2025-03-18),
-  `lru-cache` 6.0.0 and `@digitalbazaar/http-client` 4.4.0 (2026-08-06),
+  `lru-cache` 6.0.0 (2020-07-11) and `@digitalbazaar/http-client` 4.4.0 (2026-08-06),
   which brings `ky` 1.14.3 (2026-01-25) and `undici` 6.29.1 (2026-10-15) for
   fetching, which the tests never do. OSV lists no advisory for any of these
   versions (queried 2026-11-19); `undici` has many advisories, every one
