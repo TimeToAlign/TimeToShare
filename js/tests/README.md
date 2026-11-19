@@ -286,6 +286,11 @@ validates and has no warnings. The rule `provenance_match` also refuses a
 the stated `type: [schema:X]` (`rdf` declared), at the entry's path, since
 the entry states a literal and the timeline a class.
 
+`subjects` walks the subjects in subject order, proved by the Python
+README's manifest ("The subjects in subject order"): the same `(path,
+kind, id)` sequence, each element yielded as the object it is, and nothing
+for a value that is no object.
+
 `withReferencesRenamed` and `compactIri` are proved by the Python README's
 values ("References to elements renamed and dropped", "Compact IRIs"): M1
 with each reference position holding `#cpt_2` once, renamed to `#cpt_3`

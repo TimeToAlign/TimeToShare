@@ -16,7 +16,7 @@ import { FileIdError, lenientlyBareIds, withBareIds } from "./ids.js";
 import { isJsonObject, type JsonObject, plain } from "./json/value.js";
 import { loads } from "./serialization/read.js";
 import { compareCodePoints, spell } from "./serialization/text.js";
-import { subjectElements } from "./statements/statements.js";
+import { subjects } from "./statements/statements.js";
 import {
   comparePaths,
   jsonPointer,
@@ -316,7 +316,7 @@ function* statementMembers(value: JsonObject): Generator<StatementMember> {
       owner,
     };
   }
-  for (const { element, path, kind } of subjectElements(value)) {
+  for (const { element, path, kind } of subjects(value)) {
     for (const member of ["provenance", "statements"] as const) {
       if (!Object.hasOwn(element, member)) continue;
       yield {

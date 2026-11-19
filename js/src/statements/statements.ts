@@ -211,7 +211,7 @@ function* timelineSubjects(
  * then root by root the timeline, its regions in array order and its
  * children, depth first. Any value is read; what is no object is passed over.
  */
-export function* subjectElements(manifest: unknown): Generator<SubjectElement> {
+export function* subjects(manifest: unknown): Generator<SubjectElement> {
   if (!isJsonObject(manifest)) return;
   yield { element: manifest, path: [], kind: "manifest" };
   for (const [index, root] of listed(manifest, "timelines").entries()) {
@@ -371,8 +371,7 @@ export function* visitSubject(
 
 /** Every position of every subject's statements and provenance, in subject order. */
 export function* visitManifest(manifest: unknown): Generator<Visit> {
-  for (const { element, path } of subjectElements(manifest))
-    yield* visitSubject(element, path, false);
+  for (const { element, path } of subjects(manifest)) yield* visitSubject(element, path, false);
 }
 
 /**
@@ -574,7 +573,7 @@ export function withReferencesRenamed<T>(
 ): T {
   const references = new References(renamed);
   const result = clone(manifest);
-  for (const { element } of subjectElements(result)) {
+  for (const { element } of subjects(result)) {
     references.subject(element, false);
   }
   return result;
@@ -589,7 +588,7 @@ export function withReferencesRenamed<T>(
  */
 export function subjectPath(manifest: unknown, elementId: string | null): PathSegment[] {
   if (elementId === null) return [];
-  for (const { element, path, kind } of subjectElements(manifest)) {
+  for (const { element, path, kind } of subjects(manifest)) {
     if (kind !== "manifest" && element.id === elementId) return [...path];
   }
   throw new Error(`no timeline or region of the manifest has the ID '${elementId}'`);

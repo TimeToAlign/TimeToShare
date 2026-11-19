@@ -1125,3 +1125,40 @@ def test_the_longest_namespace_wins_and_a_tie_goes_to_the_smaller_name() -> None
         assert (
             timetoshare.compact_iri(prefixes, "http://b/" + rest) == "http://b/" + rest
         )
+
+
+def _walked() -> dict[str, Any]:
+    """Two roots: ``a`` with regions and nested children, then ``e``."""
+    return {
+        "timetoshare": "0.2.0",
+        "timelines": [
+            {
+                "id": "a",
+                "regions": [{"id": "a1"}, 7, {"id": "a2"}],
+                "children": [
+                    {"id": "b", "regions": [{"id": "b1"}], "children": [{"id": "c"}]},
+                    {"id": "d"},
+                ],
+            },
+            {"id": "e"},
+        ],
+        "groups": [{"id": "g", "members": ["a", "e"]}],
+    }
+
+
+def test_subjects_are_walked_in_subject_order() -> None:
+    manifest = _walked()
+    walked = list(timetoshare.subjects(manifest))
+    assert [(path, kind, element.get("id")) for path, element, kind in walked] == [
+        ((), "manifest", None),
+        (("timelines", 0), "timeline", "a"),
+        (("timelines", 0, "regions", 0), "region", "a1"),
+        (("timelines", 0, "regions", 2), "region", "a2"),
+        (("timelines", 0, "children", 0), "timeline", "b"),
+        (("timelines", 0, "children", 0, "regions", 0), "region", "b1"),
+        (("timelines", 0, "children", 0, "children", 0), "timeline", "c"),
+        (("timelines", 0, "children", 1), "timeline", "d"),
+        (("timelines", 1), "timeline", "e"),
+    ]
+    assert walked[0][1] is manifest
+    assert list(timetoshare.subjects([manifest])) == []

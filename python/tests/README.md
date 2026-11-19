@@ -850,6 +850,20 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   pairs are written the same way at its path. Every function is pure: its
   argument is unchanged, deep-equal, after the call. Each result
   validates.
+- **The subjects in subject order.** `subjects` walks every element that
+  may carry statements: the manifest, then root by root the timeline, its
+  regions in array order and its children, depth first. One manifest of
+  two roots proves the order: `a` holding the regions `a1`, the number
+  `7` and `a2` and the children `b` (holding the region `b1` and the
+  child `c`) and `d`; then `e`. The walk gives exactly `(path, kind, id)`
+  for the manifest `()`, `a` `("timelines", 0)`, `a1`
+  `("timelines", 0, "regions", 0)`, `a2` `("timelines", 0, "regions", 2)`,
+  `b` `("timelines", 0, "children", 0)`, `b1`, `c`
+  `("timelines", 0, "children", 0, "children", 0)`, `d`
+  `("timelines", 0, "children", 1)`, `e` `("timelines", 1)`: a region
+  before the children, the number passed over with its index kept, and
+  the groups no subject. A value that is no object yields nothing. The
+  JavaScript package's `subjects` gives the same walk.
 - **References to elements renamed and dropped.** A reference is the text
   `#` + ID at a reference position (a node's `id`, an entry's `basis` and
   `stated_by` items and its `service`) of any subject, a node at any depth

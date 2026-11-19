@@ -55,6 +55,7 @@ __all__ = [
     "pairs",
     "same_pair",
     "subject_path",
+    "subjects",
     "used_prefixes",
     "with_confirmation",
     "with_context",

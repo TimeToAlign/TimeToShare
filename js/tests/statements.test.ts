@@ -18,6 +18,7 @@ import {
   samePair,
   statementProblems,
   subjectPath,
+  subjects,
   usedPrefixes,
   validate,
   withConfirmation,
@@ -98,6 +99,37 @@ describe("subjectPath", () => {
     expect(thrown(() => subjectPath(value, "cpt_1"))).toBe(
       "no timeline or region of the manifest has the ID 'cpt_1'",
     );
+  });
+});
+
+describe("subjects", () => {
+  it("walks the manifest, then each root's timeline, its regions and its children", () => {
+    const manifest: JsonObject = {
+      timetoshare: "0.2.0",
+      timelines: [
+        {
+          id: "a",
+          regions: [{ id: "a1" }, 7, { id: "a2" }],
+          children: [{ id: "b", regions: [{ id: "b1" }], children: [{ id: "c" }] }, { id: "d" }],
+        },
+        { id: "e" },
+      ],
+      groups: [{ id: "g", members: ["a", "e"] }],
+    };
+    const walked = [...subjects(manifest)];
+    expect(walked.map(({ path, kind, element }) => [path, kind, element.id ?? null])).toEqual([
+      [[], "manifest", null],
+      [["timelines", 0], "timeline", "a"],
+      [["timelines", 0, "regions", 0], "region", "a1"],
+      [["timelines", 0, "regions", 2], "region", "a2"],
+      [["timelines", 0, "children", 0], "timeline", "b"],
+      [["timelines", 0, "children", 0, "regions", 0], "region", "b1"],
+      [["timelines", 0, "children", 0, "children", 0], "timeline", "c"],
+      [["timelines", 0, "children", 1], "timeline", "d"],
+      [["timelines", 1], "timeline", "e"],
+    ]);
+    expect(walked[0]?.element).toBe(manifest);
+    expect([...subjects([manifest])]).toEqual([]);
   });
 });
 

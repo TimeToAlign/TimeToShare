@@ -34,7 +34,7 @@ import {
   type Pair,
   pairsOf,
   samePair,
-  subjectElements,
+  subjects,
   URI_SCHEMES,
   visitSubject,
 } from "../statements/statements.js";
@@ -101,7 +101,7 @@ function carries(element: JsonObject): boolean {
  */
 export function* contextProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   if (Object.hasOwn(manifest, "@context")) return;
-  for (const { element, path } of subjectElements(manifest)) {
+  for (const { element, path } of subjects(manifest)) {
     for (const key of CARRIERS) {
       if (Object.hasOwn(element, key)) {
         yield new SchemaValidationError(
@@ -132,7 +132,7 @@ export function* reservedKeyProblems(manifest: JsonObject): Generator<SchemaVali
     isJsonObject(context) ? Object.keys(context).filter((key) => !TERMS.includes(key)) : [],
   );
   const elements: { element: JsonObject; path: readonly PathSegment[]; kind: ElementKind }[] = [
-    ...subjectElements(manifest),
+    ...subjects(manifest),
   ];
   for (const [index, group] of entries(manifest, "groups").entries()) {
     if (isJsonObject(group))
@@ -234,7 +234,7 @@ function* entryProblems(
 export function* subjectProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const context = manifest["@context"];
   const ids = new Set([...manifestIds(manifest)].map(([id]) => id));
-  for (const { element, path } of subjectElements(manifest)) {
+  for (const { element, path } of subjects(manifest)) {
     if (!carries(element)) continue;
     const id = element.id;
     if (typeof id === "string" && !isFragment(id)) {
