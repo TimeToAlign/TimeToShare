@@ -2,19 +2,15 @@
 
 from __future__ import annotations
 
-import datetime
 from fractions import Fraction
 from typing import Any
 
 from timetoalign import (
-    Assertion,
     ContinuousLogicalTimeline,
     ContinuousPhysicalTimeline,
     DiscreteGraphicalTimeline,
     DiscreteLogicalTimeline,
     DiscretePhysicalTimeline,
-    Link,
-    PartSlot,
     Timeline,
 )
 from timetoalign.core import FlowControlElement
@@ -29,53 +25,6 @@ from timetoalign.timelines.flowcontrol import Jump
 TILIA = "bruckner5_scherzo/harnoncourt/Bruckner5_Scherzo.json"
 
 """The TiLiA export, in the ``score`` corpus, whose group and bundle are emitted."""
-
-OP_106_WORK = "https://musicbrainz.org/work/4a622b0d-b0c0-405e-b49e-05b70c108284"
-"""The MusicBrainz page of Beethoven's Piano Sonata No. 29, Op. 106."""
-
-OP_106_LABEL = "Piano Sonata No. 29 in B♭ major, Op. 106"
-"""The label of the links to Op. 106."""
-
-OP_106_MOVEMENTS = (
-    ("80cbaf7b-a1da-3fc5-b650-6eb72a803980", "I. Allegro"),
-    ("7813c9cf-6054-3ef3-b9ed-8ae4690581c9", "II. Scherzo. Assai vivace"),
-    ("7d110747-f011-41d4-9ce5-a1fad9abed2f", "III. Adagio sostenuto"),
-    (
-        "cfa82cd6-bcb5-39dd-9beb-c98e275c7c84",
-        "IV. Introduzione. Largo – Allegro risoluto",
-    ),
-)
-"""The MusicBrainz work IDs and labels of the four movements of Op. 106."""
-
-EDITOR = Assertion(
-    asserted_by=("https://example.org/people/editor",),
-    asserted_on=datetime.date(2026, 11, 17),
-    method="manual",
-    status="confirmed",
-)
-"""The editor's assertion of the links of the description fixtures."""
-
-
-def movement(index: int) -> str:
-    """Return the URL of the MusicBrainz page of movement ``index`` of Op. 106."""
-    return f"https://musicbrainz.org/work/{OP_106_MOVEMENTS[index][0]}"
-
-
-def op_106(
-    *urls: str,
-    slots: list[PartSlot],
-    assertion: Assertion | None = EDITOR,
-    **options: Any,
-) -> Link:
-    """Return a link to Op. 106 from ``urls``, its four movements as ``slots``.
-
-    The link is labelled with ``OP_106_LABEL``, its reading has the parts
-    ``slots`` (``has_part``), and the ``options`` are those of
-    ``Link.from_urls``.
-    """
-    return Link.from_urls(
-        *urls, label=OP_106_LABEL, assertion=assertion, **options
-    ).with_parts("has_part", slots)
 
 
 def ticks(uid: str | None = None) -> QuartersToTicks:

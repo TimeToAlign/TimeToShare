@@ -14,7 +14,6 @@ from timetoalign import (
     ContinuousPhysicalTimeline,
     DiscreteGraphicalTimeline,
     DiscretePhysicalTimeline,
-    PartSlot,
     Timeline,
     TimelineGroup,
 )
@@ -321,48 +320,6 @@ def bundle_free_ids() -> AlignmentBundle:
     take.create_region(0.0, 1.0, id="take 2/intro", name="Intro")
     bundle = AlignmentBundle(name="Free IDs")
     bundle.add_group(TimelineGroup(name="Piece", timelines=[score, take]))
-    return bundle
-
-
-def op106_work_bundle() -> AlignmentBundle:
-    """Build ``op106_work``, the work bundle of Beethoven's Op. 106.
-
-    The bundle "Beethoven, Piano Sonata No. 29, Op. 106" holds no timeline:
-    it describes the work alone. It declares the scheme ``mb_beethoven_opus``
-    ("Works of Ludwig van Beethoven by opus number", the URI of its
-    MusicBrainz series) and links to the work, built from the URLs of its
-    MusicBrainz, Wikidata, VIAF and IMSLP pages with the identifier
-    ``op. 106`` in that scheme and the label "Piano Sonata No. 29 in B♭
-    major, Op. 106": the first three give entity URIs, the IMSLP page an
-    identifier in the scheme of its Wikidata property. The link's reading
-    has the four movements as its parts (``has_part``), each a part slot
-    from the URL of its MusicBrainz page, labelled and ``absent``
-    ``not_represented``, since the bundle holds no timeline. The editor
-    ``https://example.org/people/editor`` asserted the link on 2026-11-17
-    (``manual``, ``confirmed``). The minimal form is the work bundle the
-    TimeToShare package's tests pin, with the generator in ``meta``.
-    """
-    bundle = AlignmentBundle(name="Beethoven, Piano Sonata No. 29, Op. 106")
-    bundle.add_scheme(
-        "mb_beethoven_opus",
-        name="Works of Ludwig van Beethoven by opus number",
-        uri="https://musicbrainz.org/series/004f17aa-0f46-4fec-b939-c5dfc849e5c6",
-    )
-    bundle.add_link(
-        parts.op_106(
-            parts.OP_106_WORK,
-            "https://www.wikidata.org/wiki/Q146730",
-            "https://viaf.org/viaf/186299955",
-            "https://imslp.org/wiki/Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)",
-            identifiers={"mb_beethoven_opus": "op. 106"},
-            slots=[
-                PartSlot.from_url(
-                    parts.movement(index), label=label, absent="not_represented"
-                )
-                for index, (_, label) in enumerate(parts.OP_106_MOVEMENTS)
-            ],
-        )
-    )
     return bundle
 
 

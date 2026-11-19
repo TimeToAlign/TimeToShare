@@ -6,7 +6,15 @@ import json
 from pathlib import Path
 from typing import Any
 
-from timetoshare import canonical_order, complete, dumps, loads, minimal, unknown_keys
+from timetoshare import (
+    canonical_order,
+    complete,
+    dumps,
+    loads,
+    manifest_warnings,
+    minimal,
+    unknown_keys,
+)
 
 
 def twin_path(path: Path) -> Path:
@@ -27,11 +35,11 @@ def check(
 ) -> tuple[str, ...]:
     """Return the laws a fixture and its minimal twin break, empty if none.
 
-    Both validate without unknown keys (a manifest that does not validate
-    raises); ``minimal`` of the fixture is the twin and ``complete`` of the
-    twin the fixture; the library, through ``reader``, reads both to objects
-    that write the fixture and the twin byte for byte, each already in
-    canonical order; and ``complete`` of the composed ``source`` is the
+    Both validate without unknown keys and without warnings (a manifest that
+    does not validate raises); ``minimal`` of the fixture is the twin and
+    ``complete`` of the twin the fixture; the library, through ``reader``,
+    reads both to objects that write the fixture and the twin byte for byte,
+    each already in canonical order; and ``complete`` of the composed ``source`` is the
     fixture, so the library wrote back what the catalogue composed.
     """
     fixture, twin = loads(fixture_text), loads(twin_text)
@@ -40,6 +48,9 @@ def check(
         keys = unknown_keys(value)
         if keys:
             problems.append(f"the {label} has unknown keys {keys}")
+        warnings = manifest_warnings(value)
+        if warnings:
+            problems.append(f"the {label} has warnings {warnings}")
     if dumps(minimal(fixture)) != twin_text:
         problems.append("minimal(fixture) is not the twin")
     if dumps(complete(twin)) != fixture_text:

@@ -11,10 +11,15 @@ from pathlib import Path
 from typing import Any
 
 from timetoalign import AlignmentBundle, Timeline, TimelineGroup
-from timetoshare import with_bare_ids, with_file_ids
 
-from . import bundles, graphical, groups, timelines
+from timetoshare import load_catalogue, loads, with_bare_ids, with_file_ids
+from timetoshare.statements import subject_path, with_context
+
+from . import bundles, graphical, groups, statements, timelines
 from .graphical import GRAPHICAL
+
+DESCRIPTIONS = Path(__file__).resolve().parent / "descriptions"
+"""The statements and provenance of the ``statements`` fixtures, one file each."""
 
 
 @dataclass(frozen=True)
@@ -24,13 +29,14 @@ class FixtureCase:
     The reader is the class that reads the directory's manifests as a whole:
     ``Timeline`` a manifest of one root and no group (the top directory),
     ``TimelineGroup`` an anonymous manifest of one group (``groups``) and
-    ``AlignmentBundle`` any manifest (``bundles``). Cases sharing a name and
-    directory write ``<name>__<slug>.yaml`` each, the slug spelled from the
-    built object's id. A fixture drawn under ``drawings/`` names the origin and
-    length of each root it draws (``origin_and_length``), as an editor marks
-    them; a corpus fixture, which is not drawn, ``timestamps``, whose
-    drawing shows its own timestamps alone, and ``op106_work``, which holds
-    no timeline to draw, do not.
+    ``AlignmentBundle`` any manifest (``bundles``, ``statements``). Cases
+    sharing a name and directory write ``<name>__<slug>.yaml`` each, the slug
+    spelled from the built object's id. A fixture drawn under ``drawings/``
+    names the origin and length of each root it draws (``origin_and_length``),
+    as an editor marks them; a corpus fixture, which is not drawn,
+    ``timestamps``, whose drawing shows its own timestamps alone, and a fixture
+    with statements, which is not drawn, do not. A fixture with statements
+    (``described``) takes them from ``descriptions/<name>.yaml``.
     """
 
     name: str
@@ -39,6 +45,7 @@ class FixtureCase:
     build: Callable[[], Any]
     graphical: Mapping[str, Any] | None = None
     origin_and_length: bool = True
+    described: bool = False
 
 
 def _case(directory: str, reader: type[Any]) -> Callable[..., FixtureCase]:
@@ -66,6 +73,14 @@ def _case(directory: str, reader: type[Any]) -> Callable[..., FixtureCase]:
 _root = _case("", Timeline)
 _group = _case("groups", TimelineGroup)
 _bundle = _case("bundles", AlignmentBundle)
+
+
+def _described(name: str, build: Callable[[], Any]) -> FixtureCase:
+    """Return a case of the ``statements`` directory, which is not drawn."""
+    return FixtureCase(
+        name, "statements", AlignmentBundle, build, None, False, described=True
+    )
+
 
 CATALOGUE = (
     _root("continuous_logical", timelines.continuous_logical_timeline),
@@ -132,7 +147,6 @@ CATALOGUE = (
     _root("map_row_moved", timelines.map_row_moved_timeline),
     _root("label_float_rounding", timelines.label_float_rounding_timeline),
     _root("timestamps", graphical.timestamps, "clt_1", origin_and_length=False),
-    _root("links", timelines.links_bundle),
     _root("css_pixels", timelines.css_pixels_timeline),
     _group("group_number_types", groups.number_types_group),
     _group("group_child_member", groups.group_child_member),
@@ -162,7 +176,10 @@ CATALOGUE = (
     _bundle("corpus_tilia", bundles.corpus_tilia_bundle, origin_and_length=False),
     _bundle("bundle_shared_member", bundles.bundle_shared_member),
     _bundle("bundle_free_ids", bundles.bundle_free_ids, "group_1"),
-    _bundle("op106_work", bundles.op106_work_bundle, origin_and_length=False),
+    _described("op106_work", statements.op106_work),
+    _described("layerit_recording", statements.layerit_recording),
+    _described("djset_segment", statements.djset_segment),
+    _described("nielsen_record", statements.nielsen_record),
 )
 """The fixture cases in emission order; append new cases within their directory."""
 
@@ -182,13 +199,46 @@ def _slug(identifier: str) -> str:
     return re.sub(r"[^A-Za-z0-9_-]", "_", identifier)
 
 
+def _subject(manifest: Mapping[str, Any], name: str, key: str) -> tuple[Any, ...]:
+    """Return the path of the subject ``key`` names: the manifest's own ID the
+    bundle, any other ID the timeline or region of that ID, written ``#`` +
+    the ID; a key naming neither stops the run.
+    """
+    if key == manifest.get("id"):
+        return ()
+    try:
+        return tuple(subject_path(manifest, key))
+    except ValueError as error:
+        raise SystemExit(f"descriptions/{name}.yaml: {error}") from None
+
+
+def _describe(manifest: dict[str, Any], name: str) -> dict[str, str]:
+    """Attach the statements and provenance of ``descriptions/<name>.yaml`` to
+    ``manifest`` in place and return the prefixes the file declares.
+
+    The file holds ``{prefixes?: {name: IRI}, subjects: {<file ID>:
+    {statements?, provenance?}}}``; each subject's members are set as given.
+    """
+    data = loads((DESCRIPTIONS / f"{name}.yaml").read_text(encoding="utf-8"))
+    for key, members in data["subjects"].items():
+        element: Any = manifest
+        for step in _subject(manifest, name, key):
+            element = element[step]
+        element.update(copy.deepcopy(members))
+    return dict(data.get("prefixes", {}))
+
+
 def _compose(data: dict[str, Any], generator: str, case: FixtureCase) -> dict[str, Any]:
-    """Add the provenance, any ``graphical`` entry and the origin and length
-    timestamps to a manifest the library wrote.
+    """Add the provenance, any ``graphical`` entry, the origin and length
+    timestamps, any statements and the inline context to a manifest the
+    library wrote.
 
     The library writes a manifest in the file form, every ID written ``#`` +
     the ID; the entries are written with bare IDs, so the manifest is composed
-    with bare IDs and returned in the file form.
+    with bare IDs and returned in the file form. Statements are IRI
+    references, identical in both forms, and are attached to the file form;
+    the context then declares the format's terms and every prefix the
+    statements use, from the catalogue and the description's own prefixes.
     """
     result = with_bare_ids(data)
     result["meta"]["generator"] = generator
@@ -198,7 +248,11 @@ def _compose(data: dict[str, Any], generator: str, case: FixtureCase) -> dict[st
         drawn = graphical.origin_and_length(result)
         written = result.setdefault("graphical", {})
         written["timestamps"] = [*written.get("timestamps", []), *drawn]
-    return with_file_ids(result)
+    result = with_file_ids(result)
+    prefixes = dict(load_catalogue().prefixes)
+    if case.described:
+        prefixes |= _describe(result, case.name)
+    return with_context(result, prefixes)
 
 
 def plan(output: Path, generator: str) -> tuple[PlannedFixture, ...]:

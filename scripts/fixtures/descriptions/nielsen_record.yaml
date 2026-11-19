@@ -1,0 +1,464 @@
+subjects:
+  "#cgt_1":
+    provenance:
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#source_3358d542"]
+        date: "2026-11-18"
+        method: imported
+        note: manifestationList/manifestation
+        property: "rdf:type"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "melod:Manifestation"
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#title_e55e181d"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasTitle"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: "Score, print"
+          type: ["melod:Title"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#identifier_N202F8"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasIdentifier"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: "CNU Source"
+          "owl:hasValue": [A]
+          type: ["melod:Identifier"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#pubStmt_N202FF"]
+        date: "2026-11-18"
+        method: imported
+        note: "publisher and place are text, unreconciled"
+        property: "schema:publication"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: proposed
+        value:
+          "schema:location":
+            -
+              label: Copenhagen
+          "schema:publishedBy":
+            -
+              label: "Wilhelm Hansen"
+          "schema:startDate":
+            -
+              "@type": "xsd:gYear"
+              "@value": "1906"
+          type: ["schema:PublicationEvent"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#relation_cf8e9a83"]
+        date: "2026-11-18"
+        method: imported
+        note: "rel='isEmbodimentOf' target='#expression_1'"
+        property: "lrmoo:R4_embodies"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "#clt_1"
+    statements:
+      "lrmoo:R4_embodies":
+        -
+          id: "#clt_1"
+      "melod:hasIdentifier":
+        -
+          label: "CNU Source"
+          "owl:hasValue": [A]
+          type: ["melod:Identifier"]
+      "melod:hasTitle":
+        -
+          label: "Score, print"
+          type: ["melod:Title"]
+      type: ["melod:Manifestation"]
+  "#cgt_2":
+    provenance:
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#source_f795748f"]
+        date: "2026-11-18"
+        method: imported
+        note: manifestationList/manifestation
+        property: "rdf:type"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "melod:Manifestation"
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#title_2117718b"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasTitle"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: "Score, autograph, printer's manuscript"
+          type: ["melod:Title"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#item_55a9285a"]
+        date: "2026-11-18"
+        method: imported
+        note: "manifestation/itemList/item nesting; the repository is a RISM siglum, unreconciled"
+        property: "lrmoo:R7i_is_exemplified_by"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: proposed
+        value:
+          "bf:heldBy":
+            -
+              label: DK-Kk
+              "skos:notation": [DK-Kk]
+          "melod:hasIdentifier":
+            -
+              label: "CNU Source"
+              "owl:hasValue": [B]
+              type: ["melod:Identifier"]
+          "melod:hasShelfmark": ["CNS 342e"]
+          type: ["melod:Item"]
+    statements:
+      "melod:hasTitle":
+        -
+          label: "Score, autograph, printer's manuscript"
+          type: ["melod:Title"]
+      type: ["melod:Manifestation"]
+  "#clt_1":
+    provenance:
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1"]
+        date: "2026-11-18"
+        method: imported
+        note: work/expressionList/expression
+        property: "rdf:type"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "melod:Expression"
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#meter_N20410"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasMeter"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          "melod:usesMeterSymbol": [common]
+          type: ["melod:Meter"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#perfRes_10033bb5"]
+        date: "2026-11-18"
+        method: imported
+        property: "mus:U2_foresees_use_of_medium_of_performance"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: voice
+          "skos:notation": [vn]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#perfRes_34a9ee8b"]
+        date: "2026-11-18"
+        method: imported
+        property: "mus:U2_foresees_use_of_medium_of_performance"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: pf.
+          "skos:notation": [ka]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#relation_e23a9893"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasReproduction"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "http://www.kb.dk/export/sites/kb_dk/da/nb/dcm/cnu/pdf/CNU_III_04_songs_1.pdf#page=66"
+    statements:
+      "melod:hasMeter":
+        -
+          "melod:usesMeterSymbol": [common]
+          type: ["melod:Meter"]
+      "melod:hasReproduction":
+        -
+          id: "http://www.kb.dk/export/sites/kb_dk/da/nb/dcm/cnu/pdf/CNU_III_04_songs_1.pdf#page=66"
+          label: "Carl Nielsen Edition"
+      "mus:U2_foresees_use_of_medium_of_performance":
+        -
+          label: voice
+          "skos:notation": [vn]
+        -
+          label: pf.
+          "skos:notation": [ka]
+      type: ["melod:Expression"]
+  "#cnw0133":
+    provenance:
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#work_d1e191187"]
+        date: "2026-11-18"
+        method: imported
+        note: meiHead/workList/work
+        property: "rdf:type"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "melod:Work"
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#identifier_N2038E"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasIdentifier"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: CNW
+          "owl:hasValue": ["133"]
+          type: ["melod:Identifier"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#identifier_N20391"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasIdentifier"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: CNU
+          "owl:hasValue": ["III/4, 18; I/7"]
+          type: ["melod:Identifier"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#identifier_N20394"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasIdentifier"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: CNS
+          "owl:hasValue": ["342"]
+          type: ["melod:Identifier"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#identifier_N20397"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasIdentifier"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          label: FS
+          "owl:hasValue": ["37"]
+          type: ["melod:Identifier"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#title_6e49bd53"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasTitle"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          "melod:hasTitleType":
+            -
+              id: "melodTerms:MainTitle"
+          "rdfs:label":
+            -
+              "@language": da
+              "@value": "Hr. Olufs Sang"
+          type: ["melod:Title"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#title_447e3db1"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasTitle"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          "melod:hasTitleType":
+            -
+              id: "melodTerms:MainTitle"
+          "rdfs:label":
+            -
+              "@language": en
+              "@value": "Sir Oluf's Song"
+          type: ["melod:Title"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#title_23729652"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasTitle"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          "melod:hasTitleType":
+            -
+              id: "melodTerms:AlternativeTitle"
+          "rdfs:label":
+            -
+              "@language": da
+              "@value": "Vegen er Dagen"
+          type: ["melod:Title"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#title_b858ce01"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:hasTitle"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          "melod:hasTitleType":
+            -
+              id: "melodTerms:AlternativeTitle"
+          "rdfs:label":
+            -
+              "@language": en
+              "@value": "Gone is the daytime"
+          type: ["melod:Title"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#persName_460957b0"]
+        date: "2026-11-18"
+        method: imported
+        note: "unreconciled; candidates wd:Q205139, gnd:118786180, viaf:197250"
+        property: "rel:cmp"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: proposed
+        value:
+          label: "Carl Nielsen"
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#persName_1979f68f"]
+        date: "2026-11-18"
+        match: exact
+        method: reconciled
+        note: "lobid: 'Drachmann, Holger', sameAs VIAF 76335990 and Wikidata Q966764"
+        property: "rel:aut"
+        service: "https://lobid.org/gnd/search"
+        stated_by: ["https://example.org/agents/tilie"]
+        status: proposed
+        value:
+          id: "gnd:119018934"
+      -
+        date: "2026-11-18"
+        method: reconciled
+        note: "'Holger Drachmann', a 1906 film, not the poet"
+        property: "rel:aut"
+        service: "https://www.wikidata.org/w/api.php"
+        stated_by: ["https://example.org/people/editor"]
+        status: rejected
+        value:
+          id: "wd:Q33539319"
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#date_N203BA"]
+        date: "2026-11-18"
+        method: imported
+        property: "schema:dateCreated"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          "melod:isodate":
+            -
+              "@type": "xsd:gYear"
+              "@value": "1906"
+          type: ["melod:ExactDate"]
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1"]
+        date: "2026-11-18"
+        method: imported
+        note: "work/expressionList/expression nesting"
+        property: "lrmoo:R3_is_realised_in"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "#clt_1"
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#relation_01d1c819"]
+        date: "2026-11-18"
+        method: imported
+        note: "target 'cnw0007.xml' resolved to the catalogue's page for CNW 7; CNW mints no work IRIs"
+        property: "dcterms:source"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0007.xml"
+      -
+        basis: ["https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#relation_01d1c819"]
+        date: "2026-11-18"
+        method: imported
+        property: "melod:isArrangementOf"
+        stated_by: ["https://example.org/agents/timetoalign"]
+        status: confirmed
+        value:
+          id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0007.xml"
+    statements:
+      "dcterms:source":
+        -
+          id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0007.xml"
+          label: "Musik til Holger Drachmanns drama \"Hr. Oluf han rider–\""
+      "lrmoo:R3_is_realised_in":
+        -
+          id: "#clt_1"
+      "melod:hasIdentifier":
+        -
+          label: CNW
+          "owl:hasValue": ["133"]
+          type: ["melod:Identifier"]
+        -
+          label: CNU
+          "owl:hasValue": ["III/4, 18; I/7"]
+          type: ["melod:Identifier"]
+        -
+          label: CNS
+          "owl:hasValue": ["342"]
+          type: ["melod:Identifier"]
+        -
+          label: FS
+          "owl:hasValue": ["37"]
+          type: ["melod:Identifier"]
+      "melod:hasTitle":
+        -
+          "melod:hasTitleType":
+            -
+              id: "melodTerms:MainTitle"
+          "rdfs:label":
+            -
+              "@language": da
+              "@value": "Hr. Olufs Sang"
+          type: ["melod:Title"]
+        -
+          "melod:hasTitleType":
+            -
+              id: "melodTerms:MainTitle"
+          "rdfs:label":
+            -
+              "@language": en
+              "@value": "Sir Oluf's Song"
+          type: ["melod:Title"]
+        -
+          "melod:hasTitleType":
+            -
+              id: "melodTerms:AlternativeTitle"
+          "rdfs:label":
+            -
+              "@language": da
+              "@value": "Vegen er Dagen"
+          type: ["melod:Title"]
+        -
+          "melod:hasTitleType":
+            -
+              id: "melodTerms:AlternativeTitle"
+          "rdfs:label":
+            -
+              "@language": en
+              "@value": "Gone is the daytime"
+          type: ["melod:Title"]
+      "melod:isArrangementOf":
+        -
+          id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0007.xml"
+      "rdfs:seeAlso":
+        -
+          id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml"
+      "schema:dateCreated":
+        -
+          "melod:isodate":
+            -
+              "@type": "xsd:gYear"
+              "@value": "1906"
+          type: ["melod:ExactDate"]
+      type: ["melod:Work"]

@@ -7,16 +7,13 @@ from typing import Any
 
 from timetoalign import (
     AlignmentBundle,
-    Assertion,
     ContinuousGraphicalTimeline,
     ContinuousLogicalTimeline,
     ContinuousPhysicalTimeline,
     DiscreteGraphicalTimeline,
     DiscreteLogicalTimeline,
     DiscretePhysicalTimeline,
-    Link,
     Ms3Loader,
-    PartSlot,
     Timeline,
 )
 from timetoalign.core import FlowControlElement
@@ -615,61 +612,6 @@ def named_without_id_bundle() -> AlignmentBundle:
         parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(16))
     )
     return bundle
-
-
-def links_bundle() -> AlignmentBundle:
-    """Build ``links``, links on a manifest, on its one root and on a region.
-
-    The root ``recording`` ("Recording", 690.0 seconds) is a recording of the
-    first movement of Beethoven's Op. 106. It links to a MusicBrainz release
-    (level ``manifestation``) that the editor asserted on 2026-11-17 as a
-    broad match (``manual``, ``match`` ``broad``): the recording is one track
-    of what the release holds. Its region ``movement_1`` ("I. Allegro", from
-    1.5 to 688.0) links to the movement's MusicBrainz work, labelled "I.
-    Allegro", without an assertion. The manifest, given no id and no name,
-    links to the work of Op. 106 from its MusicBrainz page, labelled "Piano
-    Sonata No. 29 in B♭ major, Op. 106" and asserted by the editor
-    (``manual``, ``confirmed``): its reading has the four movements as its
-    parts (``has_part``), the first represented by the region
-    ``movement_1``, the other three ``absent`` ``not_represented``.
-    """
-    recording = parts.named(ContinuousPhysicalTimeline, "recording", "Recording", 690.0)
-    recording.add_link(
-        "https://musicbrainz.org/release/814c53fd-0732-4819-9753-4578f5ab992c",
-        assertion=Assertion(
-            asserted_by=parts.EDITOR.asserted_by,
-            asserted_on=parts.EDITOR.asserted_on,
-            method="manual",
-            match="broad",
-        ),
-    )
-    label = parts.OP_106_MOVEMENTS[0][1]
-    recording.create_region(
-        1.5,
-        688.0,
-        id="movement_1",
-        name=label,
-        links=[Link.from_url(parts.movement(0), label=label)],
-    )
-    bundle = AlignmentBundle()
-    bundle.add_link(
-        parts.op_106(
-            parts.OP_106_WORK,
-            slots=[
-                PartSlot.from_url(
-                    parts.movement(0), label=label, represented_by=["movement_1"]
-                ),
-                *(
-                    PartSlot.from_url(
-                        parts.movement(index), label=name, absent="not_represented"
-                    )
-                    for index, (_, name) in enumerate(parts.OP_106_MOVEMENTS)
-                    if index > 0
-                ),
-            ],
-        )
-    )
-    return bundle.add_timeline(recording)
 
 
 def unknown_length_timeline() -> Timeline:
