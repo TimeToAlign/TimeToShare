@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timetoalign.github.io/timetoshare/0.2.0/provenance.schema.json",
+  "title": "TimeToShare provenance entry",
+  "description": "The one provenance entry of TimeToShare 0.2.0, shared by the statements of a manifest (`timetoshare.schema.json`, whose entries add the pair they are about, `property` and `value`) and the rows of a MatchClaim table (its `provenance` column). It holds how an item was made (paradata: who stated it, when, how, by which service, on what basis, how closely it matches, a note) and who believes it (`beliefs`). Nothing in the format derives a truth value from the beliefs: one actor's belief leaves another's standing. A person stating an item through an editor or a library is recorded with the belief `true`; a loader or a service records how the item was made and holds no belief. Every key is optional. Each actor holds at most one belief, which the TimeToShare validators check after the schema; a later belief of an actor replaces the earlier one.",
+  "type": "object",
+  "properties": {
+    "stated_by": {
+      "type": "array",
+      "description": "Who stated the item: persons, organisations or software, each an IRI or a reference.",
+      "items": {
+        "$ref": "timetoshare.schema.json#/$defs/IriReference"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "date": {
+      "$ref": "#/$defs/CalendarDate",
+      "description": "When the item was stated."
+    },
+    "method": {
+      "description": "How the item was made: `manual`, `reconciled`, `imported`, `inferred`, or an IRI.",
+      "anyOf": [
+        {
+          "enum": [
+            "manual",
+            "reconciled",
+            "imported",
+            "inferred"
+          ]
+        },
+        {
+          "$ref": "timetoshare.schema.json#/$defs/Iri"
+        }
+      ]
+    },
+    "service": {
+      "$ref": "timetoshare.schema.json#/$defs/IriReference",
+      "description": "The service the item was made with or taken from."
+    },
+    "basis": {
+      "type": "array",
+      "description": "The sources the item rests on.",
+      "items": {
+        "$ref": "timetoshare.schema.json#/$defs/IriReference"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "match": {
+      "description": "How closely a reconciled value matches what was meant, as the SKOS mapping properties say.",
+      "enum": [
+        "exact",
+        "close",
+        "broad",
+        "narrow",
+        "related"
+      ]
+    },
+    "note": {
+      "type": "string",
+      "description": "A note on the item."
+    },
+    "beliefs": {
+      "type": "array",
+      "description": "Who believes the item, each actor at most once.",
+      "items": {
+        "$ref": "#/$defs/Belief"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "Belief": {
+      "type": "object",
+      "description": "One actor's belief in an item: `true` (the actor holds it true), `false` (the actor holds it false) or `unlikely`, since `date`.",
+      "properties": {
+        "actor": {
+          "$ref": "timetoshare.schema.json#/$defs/IriReference",
+          "description": "Who holds the belief: a person or an organisation, an IRI or a reference."
+        },
+        "belief": {
+          "enum": [
+            true,
+            false,
+            "unlikely"
+          ]
+        },
+        "date": {
+          "$ref": "#/$defs/CalendarDate",
+          "description": "When the actor stated the belief."
+        },
+        "note": {
+          "type": "string",
+          "description": "A note on the belief."
+        }
+      },
+      "required": [
+        "actor",
+        "belief",
+        "date"
+      ]
+    },
+    "CalendarDate": {
+      "type": "string",
+      "description": "A day written YYYY-MM-DD; that it is a day of the Gregorian calendar is checked after the schema.",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "maxLength": 10
+    }
+  }
+}

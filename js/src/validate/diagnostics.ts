@@ -33,14 +33,19 @@ export type ValidationCode =
   | "band_order"
   | "timestamp_timeline"
   | "timestamp_coordinate"
+  | "match_timestamp"
+  | "alignment_anchor"
+  | "matchstamp"
+  | "resource_timeline"
+  | "resource_type"
   | "calendar_date"
   | "finite_number"
   | "context"
   | "reserved_key"
   | "iri"
   | "element_value"
-  | "provenance_match"
-  | "provenance_duplicate";
+  | "provenance_duplicate"
+  | "belief_actor";
 
 /** Order paths segment by segment: indices by number, keys by code point, prefixes first. */
 export function comparePaths(left: readonly PathSegment[], right: readonly PathSegment[]): number {
@@ -162,9 +167,10 @@ export type ManifestId = readonly [id: string, path: PathSegment[], root: number
 
 /**
  * Every ID of a manifest with its path, in the order of the identity rules:
- * each root's tree (as `treeIds` walks it), the groups', the MeasureMaps' and
- * the named timestamps' IDs, then the manifest's own at `["id"]`. What holds
- * no string `id` is passed over.
+ * each root's tree (as `treeIds` walks it), the groups', the MeasureMaps',
+ * the named timestamps' IDs, the named MatchStamps', each followed by its
+ * alignment anchors', the resources', then the manifest's own at `["id"]`.
+ * What holds no string `id` is passed over.
  */
 export function* manifestIds(manifest: unknown): Generator<ManifestId> {
   for (const [index, root] of entries(manifest, "timelines").entries()) {
@@ -180,6 +186,19 @@ export function* manifestIds(manifest: unknown): Generator<ManifestId> {
       const id = stringId(entry);
       if (id !== null) yield [id, [...key, index, "id"], null];
     }
+  }
+  for (const [index, matchstamp] of matchstampsOf(manifest).entries()) {
+    const at = ["graphical", "matchstamps", index];
+    const id = stringId(matchstamp);
+    if (id !== null) yield [id, [...at, "id"], null];
+    for (const [number, anchor] of entries(matchstamp, "alignment_anchors").entries()) {
+      const anchorId = stringId(anchor);
+      if (anchorId !== null) yield [anchorId, [...at, "alignment_anchors", number, "id"], null];
+    }
+  }
+  for (const [index, resource] of entries(manifest, "resources").entries()) {
+    const id = stringId(resource);
+    if (id !== null) yield [id, ["resources", index, "id"], null];
   }
   const own = stringId(manifest);
   if (own !== null) yield [own, ["id"], null];
@@ -208,6 +227,11 @@ export function timelinesById(manifest: unknown): Map<string, JsonObject> {
 /** The named timestamps of a manifest's `graphical` object, or none. */
 export function timestampsOf(manifest: unknown): JsonObject[] {
   return entries(isJsonObject(manifest) ? manifest.graphical : undefined, "timestamps");
+}
+
+/** The named MatchStamps of a manifest's `graphical` object, or none. */
+export function matchstampsOf(manifest: unknown): JsonObject[] {
+  return entries(isJsonObject(manifest) ? manifest.graphical : undefined, "matchstamps");
 }
 
 /** A timeline's length, or `null` where it is not known. */

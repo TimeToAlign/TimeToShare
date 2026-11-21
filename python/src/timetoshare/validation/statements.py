@@ -8,10 +8,11 @@ a manifest carrying statements or provenance holds ``@context``
 fragment, every compact IRI names a declared prefix (``iri``), every ``#``
 reference names an element (``dangling_target``), a node naming an element
 holds its ID alone (``element_value``), a statement value is no float
-(``representation``), a date is a calendar day (``calendar_date``), and each
-provenance entry matches a pair exactly when it is ``confirmed``
-(``provenance_match``) and repeats no earlier entry's pair
-(``provenance_duplicate``). The manifest is read with bare IDs; the IRIs of
+(``representation``), a date is a calendar day (``calendar_date``), each
+provenance entry repeats no earlier entry's pair (``provenance_duplicate``)
+and no actor holds two beliefs in one entry (``belief_actor``). An entry
+may match a stated pair or none: an entry of a pair not stated is a
+candidate. The manifest is read with bare IDs; the IRIs of
 statements are the same in either form. The walks read any value, so a
 reader of part of a manifest can check its statements alone.
 """
@@ -28,6 +29,7 @@ from ..statements import (
     FORMAT_CONTEXT,
     URI_SCHEMES,
     _prefixes,
+    _reference_iri,
     calendar_date,
     same_pair,
     statement_positions,
@@ -146,21 +148,7 @@ class _Walk:
         for index, entry in enumerate(provenance):
             pair = (entry["property"], entry["value"])
             at = (*path, index)
-            stated = any(same_pair(self.context, held, pair) for held in pairs)
-            status = entry["status"]
-            if status == "confirmed" and not stated:
-                yield SchemaValidationError(
-                    "provenance_match",
-                    at,
-                    "no pair of this subject matches the entry; an entry that "
-                    "matches none is proposed or rejected",
-                )
-            elif status != "confirmed" and stated:
-                yield SchemaValidationError(
-                    "provenance_match",
-                    at,
-                    f"the pair is stated; a {status} pair is never stated",
-                )
+            yield from self.beliefs(entry, at)
             earlier = next(
                 (
                     number
@@ -176,6 +164,22 @@ class _Walk:
                     f"the entry repeats the pair of entry {earlier}",
                 )
             written.append(pair)
+
+    def beliefs(
+        self, entry: Mapping[str, Any], path: _Path
+    ) -> Iterator[SchemaValidationError]:
+        actors: dict[Any, int] = {}
+        for index, belief in enumerate(_entries(entry, "beliefs")):
+            actor = _reference_iri(self.context, belief["actor"])
+            if actor in actors:
+                yield SchemaValidationError(
+                    "belief_actor",
+                    (*path, "beliefs", index, "actor"),
+                    f"'{belief['actor']}' already holds belief {actors[actor]} of "
+                    "this entry; an actor holds one belief",
+                )
+            else:
+                actors[actor] = index
 
     def problems(self, manifest: Mapping[str, Any]) -> Iterator[SchemaValidationError]:
         for kind, path, value in statement_positions(manifest):

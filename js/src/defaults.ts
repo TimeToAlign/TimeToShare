@@ -30,13 +30,16 @@ import { numberTypeOf, UNIT_NUMBER_TYPES } from "./validate/diagnostics.js";
  * those of `table_map`. Every flow-control element has the keys of
  * `flow_control_element`, and one whose manifestation is `repeat_end` adds
  * those of `repeat_end`, as no other element carries a repeat count. Every named timestamp of
- * `graphical.timestamps` has the keys of `timestamp`. `@context`,
+ * `graphical.timestamps` has the keys of `timestamp`, a match timestamp
+ * (`matchstamp: true`) those of `match_timestamp` instead, and every
+ * alignment anchor of a named MatchStamp those of `alignment_anchor`. A
+ * resource has no defaults. `@context`,
  * `statements` and `provenance` have no default and are never added or
  * removed. Python's
  * `timetoshare.defaults` holds the same table, and the schema declares each value as the key's `default`.
  */
 export const DEFAULTS = {
-  manifest: { name: null, meta: {}, groups: [], measure_maps: [] },
+  manifest: { name: null, meta: {}, groups: [], measure_maps: [], resources: [] },
   timeline: {
     name: null,
     locked: false,
@@ -55,8 +58,10 @@ export const DEFAULTS = {
   table_map: { kind: "linear", extrapolate: "none" },
   measure_map: { name: null, meta: {} },
   group: { name: null, meta: {} },
-  graphical: { styles: {}, rules: [], order: {}, timestamps: [] },
+  graphical: { styles: {}, rules: [], order: {}, timestamps: [], matchstamps: [] },
   timestamp: { display: ["wedge", "name", "cross_section"] },
+  match_timestamp: { display: ["cross_section"] },
+  alignment_anchor: { display: ["line"] },
 } as const;
 
 type Kind = keyof typeof DEFAULTS;
@@ -109,7 +114,12 @@ function visitManifest(manifest: unknown, pass: Pass): void {
   const { graphical } = manifest;
   if (!isJsonObject(graphical)) return;
   pass(graphical, "graphical");
-  for (const timestamp of objects(graphical, "timestamps")) pass(timestamp, "timestamp");
+  for (const timestamp of objects(graphical, "timestamps")) {
+    pass(timestamp, timestamp.matchstamp === true ? "match_timestamp" : "timestamp");
+  }
+  for (const matchstamp of objects(graphical, "matchstamps")) {
+    for (const anchor of objects(matchstamp, "alignment_anchors")) pass(anchor, "alignment_anchor");
+  }
 }
 
 /** The default number type of a timeline, or `undefined` where its unit is none. */

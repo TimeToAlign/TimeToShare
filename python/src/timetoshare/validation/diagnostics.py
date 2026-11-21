@@ -33,14 +33,19 @@ ValidationCode: TypeAlias = Literal[
     "band_order",
     "timestamp_timeline",
     "timestamp_coordinate",
+    "match_timestamp",
+    "alignment_anchor",
+    "matchstamp",
+    "resource_timeline",
+    "resource_type",
     "calendar_date",
     "finite_number",
     "context",
     "reserved_key",
     "iri",
     "element_value",
-    "provenance_match",
     "provenance_duplicate",
+    "belief_actor",
 ]
 
 WarningCode: TypeAlias = Literal["context_absent", "bundle_blank"]
@@ -147,10 +152,12 @@ def tree_ids(root: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
 
 
 def listed_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
-    """Yield the IDs of a manifest's groups, MeasureMaps and named timestamps.
+    """Yield the IDs of the elements a manifest lists outside its timelines.
 
-    In that order, each with its path. An entry that is no object or holds no
-    string ``id`` is passed over, so the walk reads any value.
+    The groups, the MeasureMaps, the named timestamps, the named
+    MatchStamps, each followed by its alignment anchors, and the resources,
+    in that order, each with its path. An entry that is no object or holds
+    no string ``id`` is passed over, so the walk reads any value.
     """
     for key, entries in (
         (("groups",), _entries(manifest, "groups")),
@@ -161,6 +168,19 @@ def listed_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
             identifier = string_id(entry)
             if identifier is not None:
                 yield identifier, (*key, index, "id")
+    for index, matchstamp in enumerate(matchstamps_of(manifest)):
+        at = ("graphical", "matchstamps", index)
+        identifier = string_id(matchstamp)
+        if identifier is not None:
+            yield identifier, (*at, "id")
+        for number, anchor in enumerate(_entries(matchstamp, "alignment_anchors")):
+            identifier = string_id(anchor)
+            if identifier is not None:
+                yield identifier, (*at, "alignment_anchors", number, "id")
+    for index, resource in enumerate(_entries(manifest, "resources")):
+        identifier = string_id(resource)
+        if identifier is not None:
+            yield identifier, ("resources", index, "id")
 
 
 def manifest_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
@@ -199,6 +219,12 @@ def timestamps_of(manifest: Any) -> list[Any]:
     """Return the named timestamps of a manifest's ``graphical`` object, or none."""
     graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
     return _entries(graphical, "timestamps")
+
+
+def matchstamps_of(manifest: Any) -> list[Any]:
+    """Return the named MatchStamps of a manifest's ``graphical`` object, or none."""
+    graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
+    return _entries(graphical, "matchstamps")
 
 
 def number_type_of(timeline: Mapping[str, Any]) -> str:

@@ -3,9 +3,12 @@
  *
  * A manifest file writes every ID with a leading `#`: an element's own ID
  * (`"id": "#clt_1"`) as well as every reference to one (a group's members,
- * the keys of `graphical.order`, a named timestamp's timeline, an address's
- * `id`, a selector's `within`, a flow-control element's `target`, a measure
- * view's `measure_map`). In memory an ID is bare: `clt_1`. Exactly one `#`
+ * the keys of `graphical.order`, a named timestamp's timeline, an alignment
+ * anchor's timestamps, a resource's timelines, an address's `id`, a
+ * selector's `within`, a flow-control element's `target`, a measure view's
+ * `measure_map`). The IDs of MatchClaims a MatchStamp lists name rows of a
+ * MatchClaim table, not elements, and are no ID position. In memory an ID
+ * is bare: `clt_1`. Exactly one `#`
  * is stripped, so the file text `##x` is the bare ID `#x`.
  *
  * One position holds an ID or something else: the values of a group's entry
@@ -45,6 +48,11 @@ export const ID_POSITIONS: readonly (readonly [string, string, IdShape])[] = [
   ["Graphical", "order", "order"],
   ["Timestamp", "id", "id"],
   ["Timestamp", "timeline", "id"],
+  ["MatchStamp", "id", "id"],
+  ["AlignmentAnchor", "id", "id"],
+  ["AlignmentAnchor", "timestamps", "ids"],
+  ["Resource", "id", "id"],
+  ["Resource", "timelines", "ids"],
   ["Address", "id", "id"],
   ["MeasureMap", "id", "id"],
   ["Region", "id", "id"],
@@ -63,6 +71,7 @@ export const CONTAINERS: readonly (readonly [string, string, Holding, string])[]
   ["Manifest", "timelines", "list", "Timeline"],
   ["Manifest", "groups", "list", "Group"],
   ["Manifest", "measure_maps", "list", "MeasureMap"],
+  ["Manifest", "resources", "list", "Resource"],
   ["Manifest", "graphical", "one", "Graphical"],
   ["Timeline", "children", "list", "Timeline"],
   ["Timeline", "conversion_maps", "list", "ConversionMap"],
@@ -70,6 +79,8 @@ export const CONTAINERS: readonly (readonly [string, string, Holding, string])[]
   ["Timeline", "flow_control", "list", "FlowControlElement"],
   ["Graphical", "rules", "list", "Rule"],
   ["Graphical", "timestamps", "list", "Timestamp"],
+  ["Graphical", "matchstamps", "list", "MatchStamp"],
+  ["MatchStamp", "alignment_anchors", "list", "AlignmentAnchor"],
   ["Rule", "select", "one", "Selector"],
   ["Selector", "addresses", "list", "Address"],
   ["ChainMap", "maps", "list", "ConversionMap"],

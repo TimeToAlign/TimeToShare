@@ -29,9 +29,16 @@ SMALLEST = {
 REJECTIONS = [
     "address_facet_with_part",
     "address_facet_without_id",
+    "alignment_anchor_id_repeated",
+    "alignment_anchor_one_timeline",
+    "alignment_anchor_timestamp_not_match",
+    "alignment_anchor_timestamp_unknown",
     "band_order_missing_band",
     "band_order_old_form",
     "band_order_unknown_entry",
+    "belief_actor_repeated",
+    "belief_date_impossible",
+    "belief_value_unknown",
     "child_end_beyond_parent",
     "child_id_control_character_newline",
     "child_missing_offset",
@@ -87,6 +94,11 @@ REJECTIONS = [
     "manifest_id_is_group_id",
     "manifest_id_is_measure_map_id",
     "map_source_unit_mismatch",
+    "match_timestamp_coordinate_repeated",
+    "match_timestamp_in_no_matchstamp",
+    "matchstamp_claims_repeated",
+    "matchstamp_id_malformed",
+    "matchstamp_not_connected",
     "measure_map_id_is_timeline_id",
     "measure_map_row_actual_length_negative",
     "measure_map_row_offset_within_measure_zero",
@@ -109,21 +121,13 @@ REJECTIONS = [
     "piecewise_map_breaks_not_increasing",
     "piecewise_map_maps_count",
     "provenance_basis_prefix_undeclared",
-    "provenance_confirmed_unmatched",
     "provenance_date_impossible",
     "provenance_date_not_written_so",
     "provenance_empty",
     "provenance_match_unknown",
     "provenance_method_unknown",
-    "provenance_on_value_node_unmatched",
     "provenance_property_bare_word",
-    "provenance_proposed_stated",
-    "provenance_rejected_stated",
     "provenance_repeated",
-    "provenance_status_unknown",
-    "provenance_type_pair_unmatched",
-    "provenance_type_value_literal",
-    "provenance_without_status",
     "reference_without_hash",
     "region_id_duplicate_across_roots",
     "region_id_is_timeline_id",
@@ -135,6 +139,10 @@ REJECTIONS = [
     "reserved_key_prefix_on_manifest",
     "reserved_key_statements_on_group",
     "reserved_key_term_on_timeline",
+    "resource_integrity_algorithm_unknown",
+    "resource_match_claim_twice",
+    "resource_projection_twice",
+    "resource_timeline_unknown",
     "root_missing_marker",
     "root_missing_timelines",
     "rule_select_empty_addresses",
@@ -587,13 +595,18 @@ def test_rejections_cover_every_rule_code() -> None:
         "not_a_manifest",
         "order_key",
         "provenance_duplicate",
-        "provenance_match",
         "representation",
         "reserved_key",
         "schema",
         "segment_line",
         "timestamp_coordinate",
         "timestamp_timeline",
+        "match_timestamp",
+        "alignment_anchor",
+        "matchstamp",
+        "resource_timeline",
+        "resource_type",
+        "belief_actor",
     }
 
 
@@ -819,3 +832,78 @@ def test_the_defaults_are_a_valid_graphical_object() -> None:
 
 def test_names_remain_unrestricted() -> None:
     validate(manifest(timeline("score", name="tab\there\nnewline")))
+
+
+MATCHSTAMP_MESSAGES = {
+    "alignment_anchor_timestamp_unknown": (
+        "'timestamp_99' names no timestamp of this manifest"
+    ),
+    "alignment_anchor_timestamp_not_match": "'timestamp_2' is no match timestamp",
+    "alignment_anchor_one_timeline": (
+        "the timestamps of 'anchor_2' both lie on the timeline 'score'"
+    ),
+    "match_timestamp_in_no_matchstamp": (
+        "the match timestamp 'timestamp_11' belongs to no MatchStamp"
+    ),
+    "match_timestamp_coordinate_repeated": (
+        "'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'"
+    ),
+    "matchstamp_not_connected": (
+        "the alignment anchors of 'matchstamp_1' are not one connected set"
+    ),
+    "alignment_anchor_id_repeated": (
+        "'anchor_1' is not unique in the manifest, first at "
+        "#/graphical/matchstamps/0/alignment_anchors/0/id"
+    ),
+    "resource_timeline_unknown": "'take_3' names no timeline of this manifest",
+    "resource_match_claim_twice": (
+        "a manifest names at most one resource of the type MatchClaim; "
+        "'resource_1' is one"
+    ),
+    "resource_projection_twice": (
+        "a manifest names at most one resource of the type Projection; "
+        "'resource_2' is one"
+    ),
+}
+
+
+@pytest.mark.parametrize("name", sorted(MATCHSTAMP_MESSAGES))
+def test_a_matchstamp_or_resource_case_pins_its_message(name: str) -> None:
+    (path,) = [path for path in rejection_paths() if path.stem == name]
+    case = rejection_case(path)
+    with pytest.raises(SchemaValidationError) as raised:
+        timetoshare.validate(case.manifest)
+    assert raised.value.message == MATCHSTAMP_MESSAGES[name]
+
+
+def test_the_matchstamp_rules_report_every_problem() -> None:
+    (path,) = [
+        path for path in rejection_paths() if path.stem == "matchstamp_not_connected"
+    ]
+    value = rejection_case(path).manifest
+    value["graphical"]["timestamps"].append(
+        {
+            "coordinate": [6, 1],
+            "display": ["cross_section"],
+            "id": "#timestamp_12",
+            "matchstamp": True,
+            "timeline": "#score",
+        }
+    )
+    value["graphical"]["matchstamps"][0]["alignment_anchors"][0]["timestamps"] = [
+        "#timestamp_7",
+        "#timestamp_8",
+    ]
+    found = [
+        (problem.code, problem.path) for problem in timetoshare.identity_problems(value)
+    ]
+    anchors = ("graphical", "matchstamps", 0, "alignment_anchors")
+    assert found == [
+        ("alignment_anchor", (*anchors, 0, "timestamps", 0)),
+        ("alignment_anchor", (*anchors, 0, "timestamps", 1)),
+        ("matchstamp", anchors),
+        ("match_timestamp", ("graphical", "timestamps", 1)),
+        ("match_timestamp", ("graphical", "timestamps", 4)),
+        ("match_timestamp", ("graphical", "timestamps", 10)),
+        ("match_timestamp", ("graphical", "timestamps", 10)),
+    ]

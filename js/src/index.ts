@@ -78,7 +78,7 @@ export {
   type JsonNumber,
   type Lossless,
 } from "./json/value.js";
-export { canonicalOrder, TIMESTAMP_DISPLAY } from "./manifest/order.js";
+export { ANCHOR_DISPLAY, canonicalOrder, TIMESTAMP_DISPLAY } from "./manifest/order.js";
 export { JsonSyntaxError, YamlSyntaxError } from "./serialization/errors.js";
 export { parseJson } from "./serialization/json.js";
 export { loads, serializationOf } from "./serialization/read.js";
@@ -110,9 +110,13 @@ export {
   verbOf,
 } from "./statements/catalogue.js";
 export {
+  BELIEFS,
+  type Belief,
+  type BeliefOptions,
   BLANK,
+  type CandidateOptions,
+  candidates,
   compactIri,
-  type DecisionOptions,
   entries,
   expandIri,
   FORMAT_CONTEXT,
@@ -120,24 +124,21 @@ export {
   METHODS,
   NAMESPACE,
   type Pair,
+  type PairOptions,
   type PairProvenance,
-  type ProposalOptions,
   pairs,
-  STATUSES,
-  type Status,
   type Subject,
   type SubjectElement,
   samePair,
   subjectPath,
   subjects,
   usedPrefixes,
-  withConfirmation,
+  withBelief,
+  withCandidate,
   withContext,
   withoutPair,
   withPair,
-  withProposal,
   withReferencesRenamed,
-  withRejection,
 } from "./statements/statements.js";
 export { completeStyles } from "./styles.js";
 export {

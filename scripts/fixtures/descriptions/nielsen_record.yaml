@@ -8,7 +8,6 @@ subjects:
         note: manifestationList/manifestation
         property: "rdf:type"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: confirmed
         value:
           id: "melod:Manifestation"
       -
@@ -17,7 +16,6 @@ subjects:
         method: imported
         property: "melod:hasTitle"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: confirmed
         value:
           label: "Score, print"
           type: ["melod:Title"]
@@ -27,7 +25,6 @@ subjects:
         method: imported
         property: "melod:hasIdentifier"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: confirmed
         value:
           label: "CNU Source"
           "owl:hasValue": [A]
@@ -39,7 +36,6 @@ subjects:
         note: "publisher and place are text, unreconciled"
         property: "schema:publication"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: proposed
         value:
           "schema:location":
             -
@@ -59,7 +55,6 @@ subjects:
         note: "rel='isEmbodimentOf' target='#expression_1'"
         property: "lrmoo:R4_embodies"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: confirmed
         value:
           id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1"
     statements:
@@ -89,7 +84,6 @@ subjects:
               note: work/expressionList/expression
               property: "rdf:type"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 id: "melod:Expression"
             -
@@ -98,7 +92,6 @@ subjects:
               method: imported
               property: "melod:hasMeter"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 "melod:UsesMeterSymbol": [common]
                 type: ["melod:Meter"]
@@ -108,7 +101,6 @@ subjects:
               method: imported
               property: "mus:U2_foresees_use_of_medium_of_performance"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 label: voice
                 "skos:notation": [vn]
@@ -118,7 +110,6 @@ subjects:
               method: imported
               property: "mus:U2_foresees_use_of_medium_of_performance"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 label: pf.
                 "skos:notation": [ka]
@@ -128,7 +119,6 @@ subjects:
               method: imported
               property: "melod:hasReproduction"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 id: "http://www.kb.dk/export/sites/kb_dk/da/nb/dcm/cnu/pdf/CNU_III_04_songs_1.pdf#page=66"
           type: ["melod:Expression"]
@@ -151,7 +141,6 @@ subjects:
         note: manifestationList/manifestation
         property: "rdf:type"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: confirmed
         value:
           id: "melod:Manifestation"
       -
@@ -160,7 +149,6 @@ subjects:
         method: imported
         property: "melod:hasTitle"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: confirmed
         value:
           label: "Score, autograph, printer's manuscript"
           type: ["melod:Title"]
@@ -171,7 +159,6 @@ subjects:
         note: "manifestation/itemList/item nesting; the repository is a RISM siglum, unreconciled"
         property: "lrmoo:R7i_is_exemplified_by"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: proposed
         value:
           "bf:heldBy":
             -
@@ -270,7 +257,6 @@ subjects:
               note: meiHead/workList/work
               property: "rdf:type"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 id: "melod:Work"
             -
@@ -279,7 +265,6 @@ subjects:
               method: imported
               property: "melod:hasIdentifier"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 label: CNW
                 "owl:hasValue": ["133"]
@@ -290,7 +275,6 @@ subjects:
               method: imported
               property: "melod:hasIdentifier"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 label: CNU
                 "owl:hasValue": ["III/4, 18; I/7"]
@@ -301,7 +285,6 @@ subjects:
               method: imported
               property: "melod:hasIdentifier"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 label: CNS
                 "owl:hasValue": ["342"]
@@ -312,7 +295,6 @@ subjects:
               method: imported
               property: "melod:hasIdentifier"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 label: FS
                 "owl:hasValue": ["37"]
@@ -323,7 +305,6 @@ subjects:
               method: imported
               property: "melod:hasTitle"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 "melod:hasTitleType":
                   -
@@ -339,7 +320,6 @@ subjects:
               method: imported
               property: "melod:hasTitle"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 "melod:hasTitleType":
                   -
@@ -355,7 +335,6 @@ subjects:
               method: imported
               property: "melod:hasTitle"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 "melod:hasTitleType":
                   -
@@ -371,7 +350,6 @@ subjects:
               method: imported
               property: "melod:hasTitle"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 "melod:hasTitleType":
                   -
@@ -388,7 +366,6 @@ subjects:
               note: "unreconciled; candidates wd:Q205139, gnd:118786180, viaf:197250"
               property: "rel:cmp"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: proposed
               value:
                 label: "Carl Nielsen"
             -
@@ -400,17 +377,20 @@ subjects:
               property: "rel:aut"
               service: "https://lobid.org/gnd/search"
               stated_by: ["https://example.org/agents/tilie"]
-              status: proposed
               value:
                 id: "gnd:119018934"
             -
+              beliefs:
+                -
+                  actor: "https://example.org/people/editor"
+                  belief: false
+                  date: "2026-11-18"
               date: "2026-11-18"
               method: reconciled
               note: "'Holger Drachmann', a 1906 film, not the poet"
               property: "rel:aut"
               service: "https://www.wikidata.org/w/api.php"
               stated_by: ["https://example.org/people/editor"]
-              status: rejected
               value:
                 id: "wd:Q33539319"
             -
@@ -419,7 +399,6 @@ subjects:
               method: imported
               property: "schema:dateCreated"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 "melod:isodate":
                   -
@@ -433,7 +412,6 @@ subjects:
               note: "work/expressionList/expression nesting"
               property: "lrmoo:R3_is_realised_in"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1"
             -
@@ -443,7 +421,6 @@ subjects:
               note: "target 'cnw0007.xml' resolved to the catalogue's page for CNW 7; CNW mints no work IRIs"
               property: "dcterms:source"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0007.xml"
             -
@@ -452,7 +429,6 @@ subjects:
               method: imported
               property: "melod:isArrangementOf"
               stated_by: ["https://example.org/agents/timetoalign"]
-              status: confirmed
               value:
                 id: "https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0007.xml"
           "schema:dateCreated":

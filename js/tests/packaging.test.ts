@@ -42,11 +42,10 @@ describe("the npm package", () => {
     expect(manifest.exports["./docs/*"]).toBe("./docs/*");
   });
 
-  it("ships the schema document", () => {
-    const path = "schema/0.2.0/timetoshare.schema.json";
-    expect(shipped).toContain(path);
-    expect(shipped.filter((file) => file.startsWith("schema/"))).toEqual([path]);
-    expect(copied(path)).toBe(true);
+  it("ships the schema documents", () => {
+    const paths = ["schema/0.2.0/provenance.schema.json", "schema/0.2.0/timetoshare.schema.json"];
+    expect(shipped.filter((file) => file.startsWith("schema/")).sort()).toEqual(paths);
+    for (const path of paths) expect(copied(path), path).toBe(true);
   });
 
   it("ships the catalogue and its schema", () => {

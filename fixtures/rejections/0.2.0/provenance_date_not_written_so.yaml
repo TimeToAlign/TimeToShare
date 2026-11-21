@@ -2,13 +2,17 @@ code: schema
 manifest:
   "@context":
     "@version": 1.1
+    actor:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+      "@type": "@id"
     basis:
       "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
       "@type": "@id"
+    belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue"
+    beliefs: "https://timetoalign.github.io/timetoshare/ns#belief"
     broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
     children: "@included"
     close: "http://www.w3.org/2004/02/skos/core#closeMatch"
-    confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
     date:
       "@id": "http://purl.org/dc/terms/date"
       "@type": "http://www.w3.org/2001/XMLSchema#date"
@@ -31,13 +35,11 @@ manifest:
     property:
       "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
       "@type": "@vocab"
-    proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
     provenance:
       "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
     rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
     regions: "@included"
-    rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
     related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
     schema: "http://schema.org/"
     service:
@@ -47,9 +49,6 @@ manifest:
       "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
       "@type": "@id"
     statements: "@nest"
-    status:
-      "@id": "https://timetoalign.github.io/timetoshare/ns#status"
-      "@type": "@vocab"
     timelines: "@included"
     type: "@type"
     value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
@@ -75,7 +74,6 @@ manifest:
         -
           date: "18 Nov 2026"
           property: "rdf:type"
-          status: confirmed
           value:
             id: "schema:MusicComposition"
       regions: []

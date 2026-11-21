@@ -1,12 +1,16 @@
 "@context":
   "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
   basis:
     "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
     "@type": "@id"
+  belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#belief"
   broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
   children: "@included"
   close: "http://www.w3.org/2004/02/skos/core#closeMatch"
-  confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
   date:
     "@id": "http://purl.org/dc/terms/date"
     "@type": "http://www.w3.org/2001/XMLSchema#date"
@@ -32,13 +36,11 @@
   property:
     "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
     "@type": "@vocab"
-  proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
   provenance:
     "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
   rdfs: "http://www.w3.org/2000/01/rdf-schema#"
   reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
   regions: "@included"
-  rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
   rel: "http://id.loc.gov/vocabulary/relators/"
   related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
   schema: "http://schema.org/"
@@ -49,9 +51,6 @@
     "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
     "@type": "@id"
   statements: "@nest"
-  status:
-    "@id": "https://timetoalign.github.io/timetoshare/ns#status"
-    "@type": "@vocab"
   timelines: "@included"
   type: "@type"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
@@ -86,12 +85,16 @@ timelines:
     name: "Clair de lune, mm. 1–6 (MEI)"
     provenance:
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: true
+            date: "2026-11-18"
         date: "2026-11-18"
         match: broad
         method: manual
         property: "schema:exampleOfWork"
         stated_by: ["https://example.org/people/editor"]
-        status: confirmed
         value:
           id: "http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96"
       -
@@ -103,17 +106,20 @@ timelines:
         property: "wdt:P629"
         service: "https://www.wikidata.org/w/api.php"
         stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
         value:
           id: "wd:Q29117946"
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: false
+            date: "2026-11-18"
         date: "2026-11-18"
         method: reconciled
         note: "GND 'Clair de lune' is Debussy's song L 32 on Verlaine (voice and piano, 1882), not the piano piece"
         property: "schema:exampleOfWork"
         service: "https://lobid.org/gnd/search"
         stated_by: ["https://example.org/people/editor"]
-        status: rejected
         value:
           id: "gnd:1156628156"
       -
@@ -123,7 +129,6 @@ timelines:
         note: "meiHead/fileDesc/pubStmt/date[@type='encoding-date'], which has no xml:id"
         property: "dcterms:created"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: confirmed
         value:
           "@type": "xsd:date"
           "@value": "2025-12-05"
@@ -150,7 +155,6 @@ timelines:
               property: "schema:sameAs"
               service: "https://lobid.org/gnd/search"
               stated_by: ["https://example.org/agents/tilie"]
-              status: confirmed
               value:
                 id: "gnd:300042558"
           "schema:sameAs":
@@ -172,22 +176,30 @@ timelines:
     name: "C.Debussy - Clair de Lune, Maria João Pires live at Jardin Musical"
     provenance:
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: true
+            date: "2026-11-18"
         date: "2026-11-18"
         method: manual
         note: "pasted URL; label and thumbnail from YouTube's oEmbed"
         property: "schema:sameAs"
         stated_by: ["https://example.org/people/editor"]
-        status: confirmed
         value:
           id: "https://www.youtube.com/watch?v=Ch2mrPm1JnM"
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: true
+            date: "2026-11-18"
         date: "2026-11-18"
         method: reconciled
         note: "Portuguese pianist; the video's title names her"
         property: "wdt:P175"
         service: "https://www.wikidata.org/w/api.php"
         stated_by: ["https://example.org/people/editor"]
-        status: confirmed
         value:
           id: "wd:Q235650"
       -
@@ -197,7 +209,6 @@ timelines:
         note: "+ vocabulary: Wikidata P214 and lobid's sameAs agree"
         property: "rel:prf"
         stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
         value:
           id: "viaf:113931950"
       -
@@ -207,7 +218,6 @@ timelines:
         note: "from the encoding's work and the WAV's source; whether the video holds the whole movement is unchecked"
         property: "wdt:P2550"
         stated_by: ["https://example.org/agents/tilie"]
-        status: proposed
         value:
           id: "wd:Q29117946"
     statements:
@@ -249,7 +259,6 @@ timelines:
         note: "assumed ripped from the video's sound and cut"
         property: "dcterms:source"
         stated_by: ["https://example.org/people/editor"]
-        status: proposed
         value:
           id: "#cpt_1"
     statements:

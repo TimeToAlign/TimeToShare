@@ -342,7 +342,7 @@ function* statementMembers(value: JsonObject): Generator<StatementMember> {
  * every problem of the statement rules follows, not only the first:
  * `context`, `reserved_key`, then the walk of every subject (`iri`,
  * `dangling_target`, `calendar_date`, `representation`, `element_value`,
- * `provenance_match`, `provenance_duplicate`).
+ * `provenance_duplicate`, `belief_actor`).
  *
  * Nothing outside the statements is refused but a reserved key, and the
  * version marker is not read: a library that reads only part of a manifest

@@ -40,9 +40,16 @@ const SMALLEST = {
 const REJECTIONS = [
   "address_facet_with_part",
   "address_facet_without_id",
+  "alignment_anchor_id_repeated",
+  "alignment_anchor_one_timeline",
+  "alignment_anchor_timestamp_not_match",
+  "alignment_anchor_timestamp_unknown",
   "band_order_missing_band",
   "band_order_old_form",
   "band_order_unknown_entry",
+  "belief_actor_repeated",
+  "belief_date_impossible",
+  "belief_value_unknown",
   "child_end_beyond_parent",
   "child_id_control_character_newline",
   "child_missing_offset",
@@ -98,6 +105,11 @@ const REJECTIONS = [
   "manifest_id_is_group_id",
   "manifest_id_is_measure_map_id",
   "map_source_unit_mismatch",
+  "match_timestamp_coordinate_repeated",
+  "match_timestamp_in_no_matchstamp",
+  "matchstamp_claims_repeated",
+  "matchstamp_id_malformed",
+  "matchstamp_not_connected",
   "measure_map_id_is_timeline_id",
   "measure_map_row_actual_length_negative",
   "measure_map_row_offset_within_measure_zero",
@@ -120,21 +132,13 @@ const REJECTIONS = [
   "piecewise_map_breaks_not_increasing",
   "piecewise_map_maps_count",
   "provenance_basis_prefix_undeclared",
-  "provenance_confirmed_unmatched",
   "provenance_date_impossible",
   "provenance_date_not_written_so",
   "provenance_empty",
   "provenance_match_unknown",
   "provenance_method_unknown",
-  "provenance_on_value_node_unmatched",
   "provenance_property_bare_word",
-  "provenance_proposed_stated",
-  "provenance_rejected_stated",
   "provenance_repeated",
-  "provenance_status_unknown",
-  "provenance_type_pair_unmatched",
-  "provenance_type_value_literal",
-  "provenance_without_status",
   "reference_without_hash",
   "region_id_duplicate_across_roots",
   "region_id_is_timeline_id",
@@ -146,6 +150,10 @@ const REJECTIONS = [
   "reserved_key_prefix_on_manifest",
   "reserved_key_statements_on_group",
   "reserved_key_term_on_timeline",
+  "resource_integrity_algorithm_unknown",
+  "resource_match_claim_twice",
+  "resource_projection_twice",
+  "resource_timeline_unknown",
   "root_missing_marker",
   "root_missing_timelines",
   "rule_select_empty_addresses",
@@ -571,7 +579,9 @@ describe("the shared rejection cases", () => {
   it("covers every schema and semantic rule code", () => {
     const codes = new Set(rejectionFileNames().map((name) => rejectionCase(name).code));
     expect([...codes].filter((code) => code !== null).sort()).toEqual([
+      "alignment_anchor",
       "band_order",
+      "belief_actor",
       "calendar_date",
       "child_end",
       "child_offset",
@@ -586,12 +596,15 @@ describe("the shared rejection cases", () => {
       "group_member",
       "iri",
       "manifest_id",
+      "match_timestamp",
+      "matchstamp",
       "not_a_manifest",
       "order_key",
       "provenance_duplicate",
-      "provenance_match",
       "representation",
       "reserved_key",
+      "resource_timeline",
+      "resource_type",
       "schema",
       "segment_line",
       "timestamp_coordinate",
@@ -821,5 +834,62 @@ describe("the graphical object", () => {
 
   it("leaves names unrestricted", () => {
     validate(manifest([timeline("score", "quarters", [8, 1], { name: "tab\there\nnewline" })]));
+  });
+});
+
+describe("the MatchStamp and resource rules", () => {
+  const MESSAGES: Readonly<Record<string, string>> = {
+    alignment_anchor_timestamp_unknown: "'timestamp_99' names no timestamp of this manifest",
+    alignment_anchor_timestamp_not_match: "'timestamp_2' is no match timestamp",
+    alignment_anchor_one_timeline: "the timestamps of 'anchor_2' both lie on the timeline 'score'",
+    match_timestamp_in_no_matchstamp: "the match timestamp 'timestamp_11' belongs to no MatchStamp",
+    match_timestamp_coordinate_repeated:
+      "'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'",
+    matchstamp_not_connected: "the alignment anchors of 'matchstamp_1' are not one connected set",
+    alignment_anchor_id_repeated:
+      "'anchor_1' is not unique in the manifest, first at #/graphical/matchstamps/0/alignment_anchors/0/id",
+    resource_timeline_unknown: "'take_3' names no timeline of this manifest",
+    resource_match_claim_twice:
+      "a manifest names at most one resource of the type MatchClaim; 'resource_1' is one",
+    resource_projection_twice:
+      "a manifest names at most one resource of the type Projection; 'resource_2' is one",
+  };
+
+  it.each(Object.keys(MESSAGES).sort())("pin the message of %s", (name) => {
+    const testCase = rejectionCase(name);
+    let message: string | undefined;
+    try {
+      timetoshare.validate(testCase.manifest);
+    } catch (error) {
+      message = (error as timetoshare.SchemaValidationError).detail;
+    }
+    expect(message).toBe(MESSAGES[name]);
+  });
+
+  it("report every problem", () => {
+    const value = plain(rejectionCase("matchstamp_not_connected").manifest) as JsonObject;
+    const graphical = value.graphical as JsonObject;
+    (graphical.timestamps as JsonObject[]).push({
+      coordinate: [6, 1],
+      display: ["cross_section"],
+      id: "#timestamp_12",
+      matchstamp: true,
+      timeline: "#score",
+    });
+    const [first] = graphical.matchstamps as JsonObject[];
+    const [anchor] = (first as JsonObject).alignment_anchors as JsonObject[];
+    (anchor as JsonObject).timestamps = ["#timestamp_7", "#timestamp_8"];
+    const anchors = ["graphical", "matchstamps", 0, "alignment_anchors"];
+    expect(
+      timetoshare.identityProblems(value).map((problem) => [problem.code, problem.path]),
+    ).toEqual([
+      ["alignment_anchor", [...anchors, 0, "timestamps", 0]],
+      ["alignment_anchor", [...anchors, 0, "timestamps", 1]],
+      ["matchstamp", anchors],
+      ["match_timestamp", ["graphical", "timestamps", 1]],
+      ["match_timestamp", ["graphical", "timestamps", 4]],
+      ["match_timestamp", ["graphical", "timestamps", 10]],
+      ["match_timestamp", ["graphical", "timestamps", 10]],
+    ]);
   });
 });

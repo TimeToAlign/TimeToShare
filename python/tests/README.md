@@ -144,9 +144,14 @@ rejection cases that use them (`test_schema.py`):
   `@context` of `Manifest` alone; no definition declares `links` or
   `schemes`, and `Link`, `PartSlot`, `PartOf`, `Assertion`, `Descriptor`,
   `Identifier`, `Scheme`, `Level`, `Term`, `Uri` and `UriReference` are
-  gone. `ProvenanceEntry`'s `status`, its `method` words and its `match`
-  are exactly `STATUSES`, `METHODS` and `MATCHES`; `Context`'s consts are
-  exactly `FORMAT_CONTEXT`, its `required` and its term names the 33 terms
+  gone. `ProvenanceEntry` is the bundled `ProvenanceRecord` (the root of
+  `provenance.schema.json`) with `property` and `value`, both required;
+  `ProvenanceRecord` declares exactly `basis`, `beliefs`, `date`, `match`,
+  `method`, `note`, `service` and `stated_by` and requires none, `status`
+  among none of them; `Belief` requires `actor`, `belief` and `date`, and
+  its `belief`, the `method` words and `match` are exactly `BELIEFS`,
+  `METHODS` and `MATCHES`; `Context`'s consts are
+  exactly `FORMAT_CONTEXT`, its `required` and its term names the 32 terms
   in that order. `Iri` accepts `schema:MusicRecording`,
   `http://musicbrainz.org/work/x`, `urn:isbn:0451450523`,
   `mailto:a@example.org` and `wdt:P175`, and refuses `MusicRecording` (no
@@ -472,7 +477,7 @@ violation's is the same text in both packages.
 | `element_value` | a node naming an element holds its `id` alone | the node | `'#clt_2' names an element; a value naming an element holds its id alone` |
 | `representation` | with the rows above: a statement value is no float (an integral one passes the schema) | the value | `a statement value is an integer or a string, never a float: 1.0` |
 | `calendar_date` | with the rows above: an entry's `date` names a day of the Gregorian calendar from 0001-01-01 to 9999-12-31 | the `date` | `'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD` |
-| `provenance_match` | after a subject's pairs and entries: a `confirmed` entry matches a pair of its subject, a `proposed` or `rejected` one none | the entry | `no pair of this subject matches the entry; an entry that matches none is proposed or rejected`, `the pair is stated; a rejected pair is never stated` |
+| `belief_actor` | an actor holds at most one belief in an entry, actors compared as their expanded IRIs | the later belief's `actor` | `'http://www.wikidata.org/entity/Q1' already holds belief 0 of this entry; an actor holds one belief` |
 | `provenance_duplicate` | no entry repeats the pair of an earlier entry of its subject | the entry | `the entry repeats the pair of entry 0` |
 
 The keys of `graphical.order` are read in code-point order, each order's
@@ -499,8 +504,9 @@ IRI; any other key an IRI, then each of its values: a value object's
 element, then the node's own pairs and provenance as a subject's), then
 its provenance entries, each entry's keys in code-point order (`basis`,
 `date`, `method` unless one of the four words, `property`, `service`,
-`stated_by`, `value`), then each entry again for `provenance_match` and
-`provenance_duplicate`. The schema checks that a date is written
+`stated_by`, `value`, and `beliefs`: each belief's `actor` a reference and
+its `date` a date), then each entry again for `belief_actor` and
+`provenance_duplicate`; an entry may match a stated pair or none. The schema checks that a date is written
 `YYYY-MM-DD`; `calendar_date` checks that the calendar has it. The
 Gregorian calendar counts months 1 to 12 and the days of each month,
 February having 29 in a year divisible by 4 and not by 100, or by 400; its
@@ -515,10 +521,10 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 160 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 168 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
-exactly the twenty-five of the table, so every code is reached by a case both
+exactly the thirty of the table, so every code is reached by a case both
 suites read. `version_unknown` raises `UnsupportedVersionError` and stores
 `["timetoshare"]` and the code `null`. Every case is read through the
 package's one reader, `rejection_case`, which every consumer uses too; it
@@ -528,7 +534,7 @@ value in place and are reported at their path with the exact message, a
 case without one (`id_empty`) reads as written, and an unknown name is
 refused with `ValueError`. Each case's text is the
 standard writer's, and the set of names is stated literally, so a case cannot
-disappear unnoticed. Twenty-one cases pin their message too (`test_identity.py`
+disappear unnoticed. Twenty-two cases pin their message too (`test_identity.py`
 and `test_statements.py`):
 `child_unit_differs`, `child_offset_beyond_parent`, `child_end_beyond_parent`,
 `region_id_duplicate_across_roots`, `band_order_unknown_entry`,
@@ -538,8 +544,10 @@ and `test_statements.py`):
 `context_absent_with_statements`, `reserved_key_term_on_timeline`,
 `subject_id_not_fragment`, `iri_prefix_undeclared_key`,
 `element_value_dangling`, `element_value_with_label`,
-`provenance_date_impossible`, `provenance_repeated` and
-`provenance_type_value_literal`. The 47 statement
+`provenance_date_impossible`, `provenance_repeated`,
+`belief_actor_repeated` and `belief_date_impossible`; ten MatchStamp and
+resource cases pin theirs in `test_validate.py` (the table "MatchStamps
+and resources" below). The 44 statement
 cases break one rule each of the manifest `B`: the format's `@context`
 with `schema`, `wd` and `wdt` (others as a case needs), and one root
 `clt_1` (8 quarters), its `statements` and `provenance` as the case says,
@@ -551,15 +559,12 @@ and an entry's `basis` (`iri`), a bare word as a `type`, a key, an entry's
 `property` and a keyword as a key, empty statements, values and
 provenance, repeated values, a float, `null` in the values and in an
 ordered list, a value object with both a language and a datatype, an
-empty node, a blank-node `id`, an entry without `status`, with an unknown
-status, method, match and a date not written `YYYY-MM-DD` (`schema` at the
-member, the value or the container), an integral float
-(`representation`), an impossible date (`calendar_date`), a confirmed
-entry matching no pair, a proposed and a rejected entry of a stated pair,
-a confirmed `rdf:type` entry of another class, a confirmed `rdf:type`
-entry naming its class as a literal string rather than as a thing `{id:
-…}`, and a confirmed entry on a value node matching none of its pairs
-(`provenance_match`), a repeated
+empty node, a blank-node `id`, an entry with an unknown method, match,
+a belief none of the three and a date not written `YYYY-MM-DD` (`schema`
+at the member, the value or the container), an integral float
+(`representation`), an impossible date of an entry and of a belief
+(`calendar_date`), an actor holding two beliefs in one entry
+(`belief_actor`), a repeated
 entry (`provenance_duplicate`), a reference to no element
 (`dangling_target`), a node naming an element with a label
 (`element_value`), a subject whose ID is no IRI fragment (`iri`), and a
@@ -753,6 +758,57 @@ in a fraction pair of a region and negative infinity in a style, each in a
 manifest whose repeated root also breaks the identity rules, raise
 `finite_number` at the leaf with the message of the table.
 
+## MatchStamps and resources
+
+A manifest names its files in `resources` and draws named MatchStamps from
+`graphical.matchstamps`; the rules beyond the schema are checked after the
+named timestamps, in `validation/timestamps.py`. What proves them:
+
+- **IDs** (`test_ids.py`). A MatchStamp's and an anchor's `id`, an
+  anchor's `timestamps` and a resource's `id` and `timelines` lose and
+  regain their `#`; the IDs of `match_claims` (rows of a MatchClaim table)
+  and a resource's `url` keep theirs (`#claim_2`, `#fragment.parquet`).
+  Every ID of a MatchStamp, an anchor and a resource is unique across the
+  manifest (`alignment_anchor_id_repeated`).
+- **Order and defaults** (`test_manifest.py`, `test_defaults.py`).
+  `resources` and `graphical.matchstamps` are ordered by ID, each
+  MatchStamp's anchors by ID, and an anchor's `display` as
+  `ANCHOR_DISPLAY` (`line`, `name`, then other words); `resources` and
+  `matchstamps` default to `[]`; a match timestamp's `display` defaults to
+  `["cross_section"]`, an ordinary one's stays `["wedge", "name",
+  "cross_section"]`, so `minimal` strips each only against its own
+  default; an anchor's `display` defaults to `["line"]`; the schema states
+  the match timestamp's default in the `then` arm of `matchstamp: true`
+  and requires `name` in the `else` arm (`test_schema.py`).
+- **The rules** (`test_validate.py`). Each rejection case pins its message:
+
+| Code | Case | Message |
+| --- | --- | --- |
+| `alignment_anchor` | `alignment_anchor_timestamp_unknown` | `'timestamp_99' names no timestamp of this manifest` |
+| `alignment_anchor` | `alignment_anchor_timestamp_not_match` | `'timestamp_2' is no match timestamp` |
+| `alignment_anchor` | `alignment_anchor_one_timeline` | `the timestamps of 'anchor_2' both lie on the timeline 'score'` |
+| `match_timestamp` | `match_timestamp_in_no_matchstamp` | `the match timestamp 'timestamp_11' belongs to no MatchStamp` |
+| `match_timestamp` | `match_timestamp_coordinate_repeated` | `'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'` |
+| `matchstamp` | `matchstamp_not_connected` | `the alignment anchors of 'matchstamp_1' are not one connected set` |
+| `duplicate_id` | `alignment_anchor_id_repeated` | `'anchor_1' is not unique in the manifest, first at #/graphical/matchstamps/0/alignment_anchors/0/id` |
+| `resource_timeline` | `resource_timeline_unknown` | `'take_3' names no timeline of this manifest` |
+| `resource_type` | `resource_match_claim_twice` | `a manifest names at most one resource of the type MatchClaim; 'resource_1' is one` |
+| `resource_type` | `resource_projection_twice` | `a manifest names at most one resource of the type Projection; 'resource_2' is one` |
+
+  `identity_problems` lists every problem in order: per MatchStamp its
+  anchors (each timestamp, then the pair), then whether they connect; then
+  each match timestamp, a shared coordinate before an unnamed one. One
+  manifest proves it: `matchstamp_not_connected` with its first anchor
+  naming two ordinary timestamps and a match timestamp added at the
+  coordinate of `timestamp_11` gives exactly two `alignment_anchor`
+  problems, one `matchstamp`, and `match_timestamp` at timestamps 1, 4, 10
+  and 10.
+- **The bundle** (`test_schema.py`). `provenance.schema.json` lies beside
+  the manifest schema with its own `$id`, defines `Belief` and
+  `CalendarDate` and refers to the manifest schema's `Iri` and
+  `IriReference`; `load_schema()` equals `bundle_schemas` of the two files,
+  every reference local; a definition of both names is refused.
+
 ## Statements
 
 The bundle, every timeline and every region may state property–value pairs
@@ -760,7 +816,7 @@ about the thing it stands for (`statements`) and annotate them
 (`provenance`); `timetoshare.statements` reads and writes them. Two
 documents serve every test (`conftest.py`, the same in the JavaScript
 suite), both in the file form, since the IRIs of statements are the same in
-either form: **M1**, the recording `#rec` (context: the 33 terms and
+either form: **M1**, the recording `#rec` (context: the 32 terms and
 `schema`, `wd`, `wdt`) with the root `#cpt_1` (seconds, length null), its
 region `#region_1` (0.0 to 10.0) and its child `#cpt_2` (5.0 at 0.0),
 stating nothing; and **M2**, the two described timelines `#clt_6` (a score
@@ -773,14 +829,17 @@ MusicBrainz work with its label, `type` `melod:Manifestation` and
 `schema:sameAs`, `wdt:P31` `wd:Q98069877`), its context the terms and the
 nine prefixes it uses. What proves the package (`test_statements.py`):
 
-- **The format's context.** `FORMAT_CONTEXT` holds the 33 terms, no prefix,
+- **The format's context.** `FORMAT_CONTEXT` holds the 32 terms, no prefix,
   and equals the schema's `Context` consts (`test_schema.py`); `NAMESPACE`
-  is `https://timetoalign.github.io/timetoshare/ns#`; `STATUSES`, `METHODS`
+  is `https://timetoalign.github.io/timetoshare/ns#`; `beliefs`, `actor`
+  (an `@id`) and `belief` are its `belief`, `actor` and `beliefValue`, and
+  `status`, `confirmed`, `proposed` and `rejected` are no term; `BELIEFS`
+  is `(True, False, "unlikely")`; `METHODS`
   and `MATCHES` are the schema's enums in its order; `BLANK` is the class
   the schema's `Iri` refuses.
 - **Expanding an IRI.** Under M2's context `type` is `rdf:type`'s IRI,
-  `label` `rdfs:label`'s, `property` `rdf:predicate`'s and `confirmed`
-  `NAMESPACE + "Confirmed"`; `statements`, `id` and `provenance` (keywords)
+  `label` `rdfs:label`'s, `property` `rdf:predicate`'s, `beliefs`
+  `NAMESPACE + "belief"` and `actor` `NAMESPACE + "actor"`; `statements`, `id` and `provenance` (keywords)
   expand to nothing; `wdt:P175` gives
   `http://www.wikidata.org/prop/direct/P175`; `http://schema.org/name`,
   `urn:isbn:1`, `tag:x`, `mailto:a@b`, `info:x` stay as written; `wdtt:P1`
@@ -813,7 +872,12 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
 - **Pairs and entries.** `pairs` of M2's `#cpt_1` lists `rel:prf`,
   `schema:sameAs`, `("type", "schema:VideoObject")`, `("type",
   "melod:Manifestation")`, `wdt:P175`, `wdt:P31` in that order (keys by
-  code point, values in list order); `entries` filters by status.
+  code point, values in list order); `entries` lists a subject's entries in
+  order; `candidates` those whose pair the subject does not state (a
+  candidate of `wdt:P175` beside a stated `type`), and given an actor, those
+  the actor does not believe `False`: after the editor's belief `False` the
+  candidate is offered to `TILIE` and to no actor named, never to the
+  editor.
 - **The same pair** (`same_pair`). Properties compare expanded: `type` and
   `rdf:type` (which an entry writes for `type`, read so even where the
   context declares no `rdf`), `wdt:P175` and its full IRI. A node with an `id` equals any
@@ -824,27 +888,29 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   values item by item; `#cpt_1` compares as written, never resolved.
 - **Writing pairs.** The values, exactly: `with_pair(M1,
   ("timelines", 0), "wdt:P175", {Pires}, provenance={stated_by, date,
-  method})` states the node as given and appends the `confirmed` entry
+  method})` states the node as given and appends the entry
   whose `value` is `{"id": "wd:Q235650"}`; the same pair again, or written
   with the full IRI, raises `'wdt:P175' already has this value`; a `type`
   pair stores the class in `type` and writes its entry `property:
   "rdf:type"`, `value: {"id": "schema:VideoObject"}`; `without_pair` of
   both leaves no `statements` and no `provenance` key; `without_pair` of a
   pair not stated raises `'wdt:P175' does not have this value`.
-  `with_proposal(…, "wdt:P2550", {"id": "wd:Q29117946"}, …, basis=["#cpt_2"])`
-  leaves the statements as they were and adds one `proposed` entry (with
-  `basis`, without `service`, `match`, `note`); proposing a stated pair
-  raises `'wdt:P2550' already has this value; a stated pair is not
-  proposed`; proposing it again replaces the entry in place.
-  `with_confirmation(…, {Clair de lune with label}, stated_by=[editor],
-  date="2026-11-19")` states the value with its label and turns the entry
-  `confirmed` with the editor and the date, `basis` and `method` kept;
-  confirming a pair with no proposed or rejected entry raises `no proposal
-  or rejection of this value of 'wdt:P2550'`. `with_rejection(…,
-  date="2026-11-20", note=…)` removes the pair and turns its entry
-  `rejected` with the note, `method` and its other members kept; a
-  rejection of a pair never stated creates the entry. Stating a rejected
-  pair with `with_pair` removes its rejected entry. A property `performer`
+  `with_candidate(…, "wdt:P2550", {"id": "wd:Q29117946"}, …, basis=["#cpt_2"])`
+  leaves the statements as they were and adds one entry (with `basis`,
+  without `service`, `match`, `note`); a stated pair raises `'wdt:P2550'
+  already has this value; a stated pair is no candidate`; a candidate
+  again replaces the entry in place and keeps its `beliefs` (the
+  editor's `unlikely` with its note). `with_pair(…, {Clair de lune with
+  label}, actor=editor, date="2026-11-20")` states the value with its
+  label, keeps the candidate's entry and records the editor's belief
+  `True` on that date; no candidate is left. `with_belief` of `TILIE`
+  `False`, then of the editor `False`, leaves the pair stated and replaces
+  the editor's belief in place: `[editor False 2026-11-22, TILIE False
+  2026-11-21]`; `without_pair` then gives M1 back. A belief in a pair
+  never stated creates the entry `{property, value, beliefs}`; `actor`
+  without `date` raises `a belief needs a date`, a belief `1`, `0`,
+  `"likely"` or `None` raises `1 is no belief: write true, false or
+  'unlikely'` (the value spelled as JSON spells it). A property `performer`
   raises `'performer' is no property: write 'type', a compact IRI or an
   absolute IRI`, a date `2026-02-30` the calendar message. A node's own
   pairs are written the same way at its path. Every function is pure: its
@@ -869,11 +935,11 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   `stated_by` items and its `service`) of any subject, a node at any depth
   of a container or inside an entry's `value` included. One document,
   built on M1 (its context plus `dcterms` and `rdfs`), holds each position
-  once: on the root the pair `dcterms:source` `{"id": "#cpt_2"}` with a
-  `confirmed` entry whose `basis` is `["#cpt_2",
+  once: on the root the pair `dcterms:source` `{"id": "#cpt_2"}` with an
+  entry whose `basis` is `["#cpt_2",
   "https://example.org/record"]`, the pair `type` `schema:VideoObject`
-  with a `confirmed` entry whose `basis` is `["#cpt_2"]` and whose
-  `service` is `#cpt_2`, and a `proposed` entry `dcterms:isPartOf` `{"id":
+  with an entry whose `basis` is `["#cpt_2"]` and whose
+  `service` is `#cpt_2`, and a candidate `dcterms:isPartOf` `{"id":
   "#cpt_2"}`; on the bundle `rdfs:seeAlso` `[{"id": "#cpt_2"}, {"id":
   "other.yaml#cpt_2"}]`. Renaming `cpt_2` to `cpt_3` gives the document
   with every `#cpt_2` written `#cpt_3`, built by hand, and the reference
@@ -892,9 +958,9 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   reference beside one that also holds the label `Intro` (the first
   leaves, the second keeps its label), `schema:hasPart` ordered values of
   two references beside ordered values of a reference and `wd:Q1` (the
-  first leave, the second keep `wd:Q1`), and two `proposed` entries whose
+  first leave, the second keep `wd:Q1`), and two candidates whose
   `stated_by` hold the reference with and without the editor (the first
-  keeps the editor, the second loses `stated_by`); renamed, it is the same
+  keeps the editor, the second loses `stated_by`; `test_the_actors_of_beliefs_are_renamed_and_dropped`: a belief of `#cpt_2` is renamed with it, and dropped with it, an emptied `beliefs` going too); renamed, it is the same
   document written with `#cpt_3`. Each reference is renamed once:
   `{"cpt_1": "cpt_2", "cpt_2": "cpt_3"}` turns `#cpt_1` into `#cpt_2` and
   leaves it there.
@@ -926,9 +992,10 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   manifest`; `'#clt_2' names an element; a value naming an element holds
   its id alone`; `a statement value is an integer or a string, never a
   float: 1.0`; `'2026-02-30' is no Gregorian calendar date written
-  YYYY-MM-DD`; `no pair of this subject matches the entry; an entry that
-  matches none is proposed or rejected`; `the pair is stated; a rejected
-  pair is never stated`; `the entry repeats the pair of entry 0`. The
+  YYYY-MM-DD`; `'http://www.wikidata.org/entity/Q1' already holds belief 0
+  of this entry; an actor holds one belief` (the actor `wd:Q1` written
+  in full the second time; a belief of `#cpt_9` is `dangling_target`);
+  `the entry repeats the pair of entry 0`. The
   reference rule reaches every kind of ID: an element value naming a
   group, a MeasureMap, a nested conversion map, a flow-control element, a
   named timestamp and the manifest itself passes. The four URI schemes and
@@ -1076,8 +1143,9 @@ each statement fixture and its twin:
    provenance predicates (`rdf:subject`, `rdf:predicate`, `rdf:object`,
    `prov:wasAttributedTo`, `dcterms:date`, `prov:hadPrimarySource`,
    `rdfs:comment` and `NAMESPACE` + `method`, `service`, `match`,
-   `status`): no key of the format gives a triple;
-4. for every `proposed` or `rejected` entry whose subject has an IRI and
+   `belief`, `actor`, `beliefValue`): no key of the format gives a triple;
+4. for every candidate (an entry whose pair its subject does not state)
+   whose subject has an IRI and
    whose value is a thing or a plain literal, the triple subject, property,
    value is absent: a pair that is not stated is asserted nowhere. So that
    the check cannot pass on nothing, the number of entries it checks is

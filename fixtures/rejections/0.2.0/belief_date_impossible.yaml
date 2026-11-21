@@ -1,19 +1,22 @@
-code: provenance_match
+code: calendar_date
 manifest:
   "@context":
     "@version": 1.1
+    actor:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+      "@type": "@id"
     basis:
       "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
       "@type": "@id"
+    belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue"
+    beliefs: "https://timetoalign.github.io/timetoshare/ns#belief"
     broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
     children: "@included"
     close: "http://www.w3.org/2004/02/skos/core#closeMatch"
-    confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
     date:
       "@id": "http://purl.org/dc/terms/date"
       "@type": "http://www.w3.org/2001/XMLSchema#date"
     exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
-    gnd: "https://d-nb.info/gnd/"
     groups: "@included"
     id: "@id"
     imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
@@ -32,12 +35,10 @@ manifest:
     property:
       "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
       "@type": "@vocab"
-    proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
     provenance:
       "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
     reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
     regions: "@included"
-    rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
     related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
     schema: "http://schema.org/"
     service:
@@ -47,9 +48,6 @@ manifest:
       "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
       "@type": "@id"
     statements: "@nest"
-    status:
-      "@id": "https://timetoalign.github.io/timetoshare/ns#status"
-      "@type": "@vocab"
     timelines: "@included"
     type: "@type"
     value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
@@ -71,21 +69,22 @@ manifest:
       meta: {}
       name: null
       number_type: fraction
+      provenance:
+        -
+          beliefs:
+            -
+              actor: "https://example.org/people/editor"
+              belief: true
+              date: "2026-02-30"
+          property: "wdt:P86"
+          value:
+            id: "wd:Q255"
       regions: []
       statements:
-        "wdt:P629":
+        "wdt:P86":
           -
-            id: "wd:Q29117946"
-            provenance:
-              -
-                property: "schema:sameAs"
-                status: confirmed
-                value:
-                  id: "gnd:1156628156"
-            "schema:sameAs":
-              -
-                id: "gnd:300042558"
+            id: "wd:Q255"
       unit: quarters
   timetoshare: "0.2.0"
-path: [timelines, 0, statements, "wdt:P629", 0, provenance, 0]
-reason: "A confirmed provenance entry of a value node matches a pair of that node; its schema:sameAs names gnd:300042558, not gnd:1156628156."
+path: [timelines, 0, provenance, 0, beliefs, 0, date]
+reason: "A belief's date is a day of the Gregorian calendar; February has no 30th."

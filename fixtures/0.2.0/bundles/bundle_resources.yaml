@@ -1,0 +1,130 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#belief"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  type: "@type"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+graphical:
+  matchstamps: []
+  order: {}
+  rules: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_1"
+      name: origin
+      timeline: "#clt_6"
+    -
+      coordinate: [27, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_2"
+      name: length
+      timeline: "#clt_6"
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: "#timestamp_3"
+      name: origin
+      timeline: "#dpt_1"
+    -
+      coordinate: 1470868
+      display: [wedge, coordinate]
+      id: "#timestamp_4"
+      name: length
+      timeline: "#dpt_1"
+groups: []
+id: "#layerit_step_1"
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (40161e42)"
+name: "LayerIt, step 1"
+resources:
+  -
+    id: "#resource_1"
+    integrity:
+      algorithm: SHA-256
+      digest: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+    media_type: application/vnd.apache.parquet
+    size: 18432
+    timelines: ["#clt_6", "#dpt_1"]
+    type: MatchClaim
+    url: match_claims.parquet
+  -
+    id: "#resource_2"
+    timelines: ["#dpt_1"]
+    type: Projection
+    url: projections.parquet
+timelines:
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#clt_6"
+    is_segment_line: false
+    length: [27, 1]
+    locked: false
+    meta: {}
+    name: "Clair de lune, mm. 1–6 (MEI)"
+    number_type: fraction
+    regions: []
+    unit: quarters
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#dpt_1"
+    is_segment_line: false
+    length: 1470868
+    locked: false
+    meta: {}
+    name: ClairDeLune_MariaJoaoPires_untilM6.wav
+    number_type: int
+    regions: []
+    unit: samples
+timetoshare: "0.2.0"

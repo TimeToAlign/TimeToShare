@@ -5,9 +5,11 @@
  * order: `timelines` by id; in every timeline, `children` by offset, then id,
  * `conversion_maps` by id, `regions` by start, then end, then id,
  * `flow_control` by coordinate, then id; `groups` by id and every group's `members` by
- * code point; `measure_maps` by id; `graphical.timestamps` by timeline, then
- * coordinate, then id, and every timestamp's `display` in the order of
- * `TIMESTAMP_DISPLAY`. Own-axis values compare by exact numeric
+ * code point; `measure_maps` by id; `resources` by id; `graphical.timestamps`
+ * by timeline, then coordinate, then id, and every timestamp's `display` in
+ * the order of `TIMESTAMP_DISPLAY`; `graphical.matchstamps` by id, each one's
+ * `alignment_anchors` by id, and every anchor's `display` in the order of
+ * `ANCHOR_DISPLAY`. Own-axis values compare by exact numeric
  * value, strings by Unicode code point. A `graphical.order` array is a
  * display order and is never re-ordered, nor is any array of `statements`
  * or `provenance` (the values of a pair and the annotations keep the order
@@ -27,31 +29,46 @@ function member(entry: unknown, key: string): unknown {
 /** The words of a named timestamp's `display`, in canonical order. */
 export const TIMESTAMP_DISPLAY = ["wedge", "name", "id", "coordinate", "cross_section"] as const;
 
-/** A `display` word's rank: its canonical index, then any other string, then any other value. */
-function displayRank(word: unknown): number {
-  const index = (TIMESTAMP_DISPLAY as readonly unknown[]).indexOf(word);
-  if (index >= 0) return index;
-  return typeof word === "string" ? TIMESTAMP_DISPLAY.length : TIMESTAMP_DISPLAY.length + 1;
-}
+/** The words of an alignment anchor's `display`, in canonical order. */
+export const ANCHOR_DISPLAY = ["line", "name"] as const;
 
 /**
- * Order the words of `display`: the known ones canonically, then any other
- * string by code point, then any other value in its given order, so ordering
- * never fails. Python's `timetoshare.manifest` orders them alike.
+ * Order the words of a `display`: the known `words` canonically, then any
+ * other string by code point, then any other value in its given order, so
+ * ordering never fails. Python's `timetoshare.manifest` orders them alike.
  */
-function byDisplay(a: unknown, b: unknown): number {
-  const difference = displayRank(a) - displayRank(b);
-  if (difference !== 0) return difference;
-  return typeof a === "string" && typeof b === "string" ? compareCodePoints(a, b) : 0;
+function byDisplay(words: readonly string[]): (a: unknown, b: unknown) => number {
+  const rank = (word: unknown): number => {
+    const index = (words as readonly unknown[]).indexOf(word);
+    if (index >= 0) return index;
+    return typeof word === "string" ? words.length : words.length + 1;
+  };
+  return (a, b) => {
+    const difference = rank(a) - rank(b);
+    if (difference !== 0) return difference;
+    return typeof a === "string" && typeof b === "string" ? compareCodePoints(a, b) : 0;
+  };
 }
 
-/** Put the `display` of every named timestamp in canonical order, in place. */
+function orderDisplay(owner: unknown, words: readonly string[]): void {
+  const display = member(owner, "display");
+  if (Array.isArray(display)) display.sort(byDisplay(words));
+}
+
+/** Put every timestamp's and alignment anchor's `display` in canonical order, in place. */
 export function orderDisplays(manifest: unknown): void {
-  const timestamps = member(member(manifest, "graphical"), "timestamps");
-  if (!Array.isArray(timestamps)) return;
-  for (const timestamp of timestamps) {
-    const display = member(timestamp, "display");
-    if (Array.isArray(display)) display.sort(byDisplay);
+  const graphical = member(manifest, "graphical");
+  const timestamps = member(graphical, "timestamps");
+  if (Array.isArray(timestamps)) {
+    for (const timestamp of timestamps) orderDisplay(timestamp, TIMESTAMP_DISPLAY);
+  }
+  const matchstamps = member(graphical, "matchstamps");
+  if (Array.isArray(matchstamps)) {
+    for (const matchstamp of matchstamps) {
+      const anchors = member(matchstamp, "alignment_anchors");
+      if (!Array.isArray(anchors)) continue;
+      for (const anchor of anchors) orderDisplay(anchor, ANCHOR_DISPLAY);
+    }
   }
 }
 
@@ -148,8 +165,10 @@ function orderTimeline(timeline: JsonObject, where: string): void {
  * values are respelled as their number type selects (`./spelling.ts`), every
  * timeline in it is ordered at every depth and the array itself by id, its
  * `groups` by id, each with its `members` by code point, its `measure_maps`
- * by id and its `graphical.timestamps` by timeline, then
- * coordinate, then id, each with its `display` in canonical order. Entries
+ * by id, its `resources` by id, its `graphical.timestamps` by timeline, then
+ * coordinate, then id, each with its `display` in canonical order, and its
+ * `graphical.matchstamps` by id, each with its `alignment_anchors` by id and
+ * every anchor's `display` in canonical order. Entries
  * that tie keep their given order, and a member that should hold an ordered
  * array but holds no array is left as it is. Object keys are left as they
  * are (the writers sort them), and any other JSON value is copied unchanged.
@@ -193,6 +212,18 @@ export function canonicalOrder<T>(value: T): T {
       coordinate(timestamp, "coordinate", at),
       text(timestamp, "id", at),
     ]);
+  }
+  const resources = result.resources;
+  if (Array.isArray(resources)) sortBy(resources, "resources", byId);
+  const matchstamps = member(result.graphical, "matchstamps");
+  if (Array.isArray(matchstamps)) {
+    sortBy(matchstamps, "graphical.matchstamps", byId);
+    for (const [index, matchstamp] of matchstamps.entries()) {
+      const anchors = (matchstamp as JsonObject).alignment_anchors;
+      if (Array.isArray(anchors)) {
+        sortBy(anchors, `graphical.matchstamps[${index}].alignment_anchors`, byId);
+      }
+    }
   }
   orderDisplays(result);
   return result;

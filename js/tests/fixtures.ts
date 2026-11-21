@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { expect } from "vitest";
+import { bundleSchemas } from "../scripts/generate.js";
 import * as timetoshare from "../src/index.js";
 import {
   dumps,
@@ -194,8 +195,12 @@ export function warningText(name: string): string {
 
 /** Parse the schema document from the repository root. */
 export function loadSchemaFile(): Record<string, unknown> {
-  const path = resolve(repositoryRoot, "schema", SCHEMA_VERSION, "timetoshare.schema.json");
-  return loads(readFileSync(path, "utf8")) as Record<string, unknown>;
+  const read = (name: string) =>
+    loads(readFileSync(resolve(repositoryRoot, "schema", SCHEMA_VERSION, name), "utf8")) as Record<
+      string,
+      unknown
+    >;
+  return bundleSchemas(read("timetoshare.schema.json"), read("provenance.schema.json"));
 }
 
 /** A timeline of the minimal form. */

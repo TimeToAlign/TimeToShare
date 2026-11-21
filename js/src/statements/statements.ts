@@ -5,11 +5,14 @@
  * The manifest, every timeline at any depth and every region may carry
  * `statements`, an object whose keys are `type` ("is a") or property IRIs
  * and whose values are non-empty lists of values, and `provenance`, a list
- * of annotations, each naming one pair of its element with who stated it,
- * when, how, on what basis and its status. A `confirmed` entry annotates a
- * stated pair; a `proposed` or `rejected` one names a pair that is never
- * stated. A value node holds its own pairs directly, as property-IRI keys,
- * and its own `provenance`.
+ * of entries (the entry of the provenance schema, `provenance.schema.json`),
+ * each naming one pair of its element with who stated it, when, how, on what
+ * basis, and who believes it (`beliefs`: per actor `true`, `false` or
+ * `"unlikely"`). An entry whose pair is stated annotates it; an entry whose
+ * pair is not stated is a candidate, which an actor believing it `false` is
+ * not offered again. Nothing derives a truth value from the beliefs. A value
+ * node holds its own pairs directly, as property-IRI keys, and its own
+ * `provenance`.
  *
  * A subject is addressed by its path in the manifest: `[]` the manifest,
  * a path ending in `"timelines"`, `"children"` or `"regions"` and an index an
@@ -21,10 +24,10 @@
  */
 
 import { clone, isJsonFloat, isJsonObject, type JsonObject } from "../json/value.js";
-import { compareCodePoints } from "../serialization/text.js";
+import { compareCodePoints, spell } from "../serialization/text.js";
 import { jsonPointer, entries as listed, type PathSegment } from "../validate/diagnostics.js";
 
-/** The namespace of the format's own terms: `method`, `service`, `match`, `status` and their words. */
+/** The namespace of the format's own terms: `method`, `service`, `match`, the beliefs and their words. */
 export const NAMESPACE = "https://timetoalign.github.io/timetoshare/ns#";
 
 const RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
@@ -61,14 +64,13 @@ export const FORMAT_CONTEXT = Object.freeze({
   basis: Object.freeze({ "@id": "http://www.w3.org/ns/prov#hadPrimarySource", "@type": "@id" }),
   match: Object.freeze({ "@id": `${NAMESPACE}match`, "@type": "@vocab" }),
   note: "http://www.w3.org/2000/01/rdf-schema#comment",
-  status: Object.freeze({ "@id": `${NAMESPACE}status`, "@type": "@vocab" }),
+  beliefs: `${NAMESPACE}belief`,
+  actor: Object.freeze({ "@id": `${NAMESPACE}actor`, "@type": "@id" }),
+  belief: `${NAMESPACE}beliefValue`,
   manual: `${NAMESPACE}Manual`,
   reconciled: `${NAMESPACE}Reconciled`,
   imported: `${NAMESPACE}Imported`,
   inferred: `${NAMESPACE}Inferred`,
-  confirmed: `${NAMESPACE}Confirmed`,
-  proposed: `${NAMESPACE}Proposed`,
-  rejected: `${NAMESPACE}Rejected`,
   exact: "http://www.w3.org/2004/02/skos/core#exactMatch",
   close: "http://www.w3.org/2004/02/skos/core#closeMatch",
   broad: "http://www.w3.org/2004/02/skos/core#broadMatch",
@@ -76,8 +78,8 @@ export const FORMAT_CONTEXT = Object.freeze({
   related: "http://www.w3.org/2004/02/skos/core#relatedMatch",
 });
 
-/** The statuses of a provenance entry, in the schema's order. */
-export const STATUSES = ["confirmed", "proposed", "rejected"] as const;
+/** The beliefs an actor may hold in an item, in the schema's order. */
+export const BELIEFS = [true, false, "unlikely"] as const;
 
 /** The words of a provenance entry's `method`, in the schema's order; any other method is an IRI. */
 export const METHODS = ["manual", "reconciled", "imported", "inferred"] as const;
@@ -85,8 +87,8 @@ export const METHODS = ["manual", "reconciled", "imported", "inferred"] as const
 /** The words of a provenance entry's `match`, in the schema's order. */
 export const MATCHES = ["exact", "close", "broad", "narrow", "related"] as const;
 
-/** A provenance entry's status. */
-export type Status = (typeof STATUSES)[number];
+/** An actor's belief in an item. */
+export type Belief = (typeof BELIEFS)[number];
 
 /**
  * White space and control characters, which no IRI holds: the class the
@@ -324,7 +326,8 @@ function propertyKeys(container: JsonObject, node: boolean): string[] {
  * item an IRI; any other key an IRI, then each of its values), then each
  * provenance entry's keys in code-point order (`basis` references, `date`,
  * `method` an IRI unless one of the four words, `property` an IRI, `service`
- * a reference, `stated_by` references, `value` a value), then the subject.
+ * a reference, `stated_by` references, `value` a value, `beliefs` each
+ * belief's `actor` a reference and its `date`), then the subject.
  */
 export function* visitSubject(
   owner: JsonObject,
@@ -364,9 +367,24 @@ export function* visitSubject(
       } else if (key === "service" && typeof member === "string") {
         yield { kind: "reference", text: member, path: [...at, key] };
       } else if (key === "value") yield* visitValue(member, [...at, key]);
+      else if (key === "beliefs") yield* visitBeliefs(member, [...at, key]);
     }
   }
   yield { kind: "subject", owner, node, path: [...path] };
+}
+
+/** Visit the beliefs of an entry: each one's `actor` a reference, its `date` a date. */
+function* visitBeliefs(beliefs: unknown, path: readonly PathSegment[]): Generator<Visit> {
+  if (!Array.isArray(beliefs)) return;
+  for (const [index, belief] of beliefs.entries()) {
+    if (!isJsonObject(belief)) continue;
+    for (const key of Object.keys(belief).sort(compareCodePoints)) {
+      const member = belief[key];
+      if (typeof member !== "string") continue;
+      if (key === "actor") yield { kind: "reference", text: member, path: [...path, index, key] };
+      else if (key === "date") yield { kind: "date", text: member, path: [...path, index, key] };
+    }
+  }
 }
 
 /** Every position of every subject's statements and provenance, in subject order. */
@@ -544,6 +562,18 @@ class References {
     else if (Object.hasOwn(entry, "service")) {
       entry.service = this.text(entry.service);
     }
+    const beliefs = entry.beliefs;
+    if (Array.isArray(beliefs)) {
+      const kept = beliefs
+        .filter((belief) => !isJsonObject(belief) || !this.dropped(belief.actor))
+        .map((belief) =>
+          isJsonObject(belief) && Object.hasOwn(belief, "actor")
+            ? { ...belief, actor: this.text(belief.actor) }
+            : belief,
+        );
+      if (kept.length === 0) delete entry.beliefs;
+      else entry.beliefs = kept;
+    }
     return true;
   }
 }
@@ -553,15 +583,16 @@ class References {
  * The keys and values of `renamed` are bare IDs. A reference is the text
  * `"#" + old` exactly (`other.yaml#old` names an element of another manifest
  * and is none) where statements name things: a node's `id`, a provenance
- * entry's `basis` and `stated_by` items and its `service`, in the statements
- * and provenance of the manifest, of every timeline at any depth and of every
- * region, and of every node within them, a node in an entry's `value`
- * included. Where `renamed[old]` is an ID, each reference becomes
- * `"#" + renamed[old]`. Where it is null, a value that is a node naming the
- * element leaves its list, an entry whose `value` names it leaves
- * `provenance`, a `basis` or `stated_by` item naming it leaves its list and a
- * `service` naming it is deleted; then every list of values, container,
- * `basis`, `stated_by` and `provenance` left empty is deleted, as are a node
+ * entry's `basis` and `stated_by` items, its `service` and a belief's
+ * `actor`, in the statements and provenance of the manifest, of every
+ * timeline at any depth and of every region, and of every node within them,
+ * a node in an entry's `value` included. Where `renamed[old]` is an ID, each
+ * reference becomes `"#" + renamed[old]`. Where it is null, a value that is
+ * a node naming the element leaves its list, an entry whose `value` names it
+ * leaves `provenance`, a `basis` or `stated_by` item naming it leaves its
+ * list, a belief whose `actor` it is leaves `beliefs` and a `service` naming
+ * it is deleted; then every list of values, container, `basis`, `stated_by`,
+ * `beliefs` and `provenance` left empty is deleted, as are a node
  * without `id` and ordered values left without anything. Each reference is
  * renamed once: with `{a: "b", b: "c"}`, `#a` becomes `#b` and `#b` becomes
  * `#c`. The elements' own IDs are never read, so either ID form is taken.
@@ -658,7 +689,7 @@ function propertyIri(context: unknown, property: string): string {
 }
 
 /** The IRI a reference stands for: an IRI expanded, a relative reference as written. */
-function referenceIri(context: unknown, text: string): string {
+export function referenceIri(context: unknown, text: string): string {
   return isAbsoluteReference(text) ? (expandIri(context, text) ?? text) : text;
 }
 
@@ -781,18 +812,46 @@ export function pairs(manifest: unknown, subject: Subject): Pair[] {
 }
 
 /**
- * The provenance entries of a subject, or those of one status.
+ * The provenance entries of a subject, in their order.
  *
  * @throws {Error} if the path addresses no element and no value node.
  */
-export function entries(manifest: unknown, subject: Subject, status?: Status): JsonObject[] {
+export function entries(manifest: unknown, subject: Subject): JsonObject[] {
   const { owner } = resolve(manifest, subject);
+  return listed(owner, "provenance").map(clone);
+}
+
+/** Whether `actor` holds `belief` in an entry's pair, actors compared as IRIs. */
+function believes(context: unknown, entry: JsonObject, actor: string, belief: Belief): boolean {
+  const wanted = referenceIri(context, actor);
+  return listed(entry, "beliefs").some(
+    (held) =>
+      typeof held.actor === "string" &&
+      referenceIri(context, held.actor) === wanted &&
+      held.belief === belief,
+  );
+}
+
+/**
+ * The candidates of a subject: the entries of pairs the subject does not
+ * state. Given `actor`, a candidate the actor believes `false` is left out:
+ * it is not offered to that actor again. Actors compare as their IRIs.
+ *
+ * @throws {Error} if the path addresses no element and no value node.
+ */
+export function candidates(manifest: unknown, subject: Subject, actor?: string): JsonObject[] {
+  const { owner, node } = resolve(manifest, subject);
+  const context = contextOf(manifest);
   return listed(owner, "provenance")
-    .filter((entry) => status === undefined || entry.status === status)
+    .filter(
+      (entry) =>
+        !states(context, owner, node, entryPair(entry)) &&
+        (actor === undefined || !believes(context, entry, actor, false)),
+    )
     .map(clone);
 }
 
-/** What `withPair` writes into the confirmed entry: an entry's keys but its pair and status. */
+/** What `withPair` sets on the pair's entry: an entry's keys but its pair and its beliefs. */
 export interface PairProvenance {
   readonly stated_by?: readonly string[];
   readonly date?: string;
@@ -803,8 +862,16 @@ export interface PairProvenance {
   readonly note?: string;
 }
 
-/** What `withProposal` takes besides the pair. */
-export interface ProposalOptions {
+/** What `withPair` takes besides the pair. */
+export interface PairOptions {
+  readonly provenance?: PairProvenance;
+  /** The person stating the pair, recorded as believing it `true` on `date`. */
+  readonly actor?: string;
+  readonly date?: string;
+}
+
+/** What `withCandidate` takes besides the pair. */
+export interface CandidateOptions {
   readonly stated_by: readonly string[];
   readonly date: string;
   readonly method: string;
@@ -814,10 +881,12 @@ export interface ProposalOptions {
   readonly note?: string;
 }
 
-/** What `withConfirmation` and `withRejection` take besides the pair. */
-export interface DecisionOptions {
-  readonly stated_by: readonly string[];
+/** What `withBelief` takes besides the pair. */
+export interface BeliefOptions {
+  readonly actor: string;
+  readonly belief: Belief;
   readonly date: string;
+  readonly note?: string;
 }
 
 function checkedProperty(property: string): void {
@@ -830,6 +899,12 @@ function checkedDate(date: unknown): void {
   if (typeof date !== "string") return;
   const problem = calendarDateProblem(date);
   if (problem !== null) throw new Error(problem);
+}
+
+function checkedBelief(belief: unknown): void {
+  if (!(BELIEFS as readonly unknown[]).includes(belief)) {
+    throw new Error(`${spell(belief)} is no belief: write true, false or 'unlikely'`);
+  }
 }
 
 /** The property an entry writes for a pair: `type` as `rdf:type`. */
@@ -876,21 +951,43 @@ function entryPair(entry: JsonObject): Pair {
   return [String(entry.property), entry.value];
 }
 
-/** The index of the first entry of the pair whose status is one of `statuses`, or -1. */
-function entryIndex(
+/** The pair's entry of a subject, or undefined. */
+function entryOf(context: unknown, owner: JsonObject, pair: Pair): JsonObject | undefined {
+  return listed(owner, "provenance").find((entry) => samePair(context, entryPair(entry), pair));
+}
+
+/** The pair's entry of a subject, appended with the pair alone where it has none. */
+function theEntry(context: unknown, owner: JsonObject, pair: Pair): JsonObject {
+  const found = entryOf(context, owner, pair);
+  if (found !== undefined) return found;
+  const [property, value] = pair;
+  const created: JsonObject = {
+    property: entryProperty(property),
+    value: entryValue(property, value),
+  };
+  provenanceOf(owner).push(created);
+  return created;
+}
+
+/** Record an actor's belief in the pair's entry, replacing the actor's earlier one in place. */
+function believe(
   context: unknown,
   owner: JsonObject,
   pair: Pair,
-  statuses: readonly string[],
-): number {
-  const list = owner.provenance;
-  if (!Array.isArray(list)) return -1;
-  return list.findIndex(
-    (entry) =>
-      isJsonObject(entry) &&
-      statuses.includes(String(entry.status)) &&
-      samePair(context, entryPair(entry), pair),
+  { actor, belief, date, note }: BeliefOptions,
+): void {
+  const held: JsonObject = { actor, belief, date };
+  if (note !== undefined) held.note = note;
+  const beliefs = valuesOf(theEntry(context, owner, pair), "beliefs");
+  const wanted = referenceIri(context, actor);
+  const index = beliefs.findIndex(
+    (earlier) =>
+      isJsonObject(earlier) &&
+      typeof earlier.actor === "string" &&
+      referenceIri(context, earlier.actor) === wanted,
   );
+  if (index >= 0) beliefs[index] = held;
+  else beliefs.push(held);
 }
 
 /** Remove a subject's values and entries a test picks, and every list and container left empty. */
@@ -926,54 +1023,51 @@ function stated(owner: JsonObject, node: boolean, property: string, value: unkno
 
 /**
  * Return the manifest with the pair stated on the subject: the value appended
- * to the property's list (`type` takes a class IRI), a `proposed` or
- * `rejected` entry of the pair removed. Given `provenance` (an entry's keys
- * but `property`, `value` and `status`), a `confirmed` entry of the pair is
- * appended: its property `rdf:type` for `type`, its value `{id}` for a node
- * with `id` or a type, else the value.
+ * to the property's list (`type` takes a class IRI). An entry of the pair, a
+ * candidate until now, stays as the stated pair's entry. Given `provenance`
+ * (an entry's keys but `property`, `value` and `beliefs`), they are set on
+ * the pair's entry, appended where the pair has none: its property
+ * `rdf:type` for `type`, its value `{id}` for a node with `id` or a type,
+ * else the value. Given `actor`, the person stating the pair, the entry
+ * records that actor's belief `true` on `date`, replacing the actor's
+ * earlier belief.
  *
- * @throws {Error} if the property is none, the subject has the pair, the
- * entry's date is no calendar date, or the path addresses no subject.
+ * @throws {Error} if the property is none, the subject has the pair, a date
+ * is no calendar date, `actor` is given without `date`, or the path
+ * addresses no subject.
  */
 export function withPair<T>(
   manifest: T,
   subject: Subject,
   property: string,
   value: unknown,
-  options: { readonly provenance?: PairProvenance } = {},
+  options: PairOptions = {},
 ): T {
+  const { provenance, actor, date } = options;
+  if (actor !== undefined && date === undefined) throw new Error("a belief needs a date");
   checkedProperty(property);
-  checkedDate(options.provenance?.date);
+  checkedDate(provenance?.date);
+  checkedDate(date);
   const result = clone(manifest);
   const { owner, node } = resolve(result, subject);
   const context = contextOf(result);
   const pair: Pair = [property, value];
   if (states(context, owner, node, pair)) throw new Error(`'${property}' already has this value`);
   stated(owner, node, property, value);
-  prune(
-    owner,
-    node,
-    () => false,
-    (entry) =>
-      (entry.status === "proposed" || entry.status === "rejected") &&
-      samePair(context, entryPair(entry), pair),
-  );
-  if (options.provenance !== undefined) {
-    const { property: _p, value: _v, status: _s, ...given } = options.provenance as JsonObject;
-    provenanceOf(owner).push({
-      ...clone(given),
-      property: entryProperty(property),
-      value: entryValue(property, value),
-      status: "confirmed",
-    });
+  if (provenance !== undefined) {
+    const { property: _p, value: _v, beliefs: _b, ...given } = provenance as JsonObject;
+    Object.assign(theEntry(context, owner, pair), clone(given));
+  }
+  if (actor !== undefined) {
+    believe(context, owner, pair, { actor, belief: true, date: date as string });
   }
   return result;
 }
 
 /**
  * Return the manifest without the pair on the subject: the value and its
- * `confirmed` entry removed; a list, a container or a `provenance` left
- * empty is removed.
+ * entry removed; a list, a container or a `provenance` left empty is
+ * removed.
  *
  * @throws {Error} if the subject does not have the pair, or the path
  * addresses no subject.
@@ -987,37 +1081,31 @@ export function withoutPair<T>(manifest: T, subject: Subject, property: string, 
   if (!states(context, owner, node, pair)) {
     throw new Error(`'${property}' does not have this value`);
   }
+  const entry = entryOf(context, owner, pair);
   prune(
     owner,
     node,
-    (stated) => samePair(context, stated, pair),
-    (entry) => entry.status === "confirmed" && samePair(context, entryPair(entry), pair),
+    (held) => samePair(context, held, pair),
+    (item) => item === entry,
   );
   return result;
 }
 
-/** Write an entry of the pair in place of the subject's first, else append it. */
-function placed(context: unknown, owner: JsonObject, pair: Pair, entry: JsonObject): void {
-  const index = entryIndex(context, owner, pair, STATUSES);
-  const list = provenanceOf(owner);
-  if (index >= 0) list[index] = entry;
-  else list.push(entry);
-}
-
 /**
- * Return the manifest with the pair proposed for the subject: a `proposed`
- * entry, replacing another entry of the pair in place, else appended; the
- * statements are left as they are.
+ * Return the manifest with a candidate for the subject: an entry of a pair
+ * it does not state, replacing in place another entry of the pair, whose
+ * `beliefs` it keeps, else appended; the statements are left as they are.
+ * A service or a loader proposing a pair holds no belief.
  *
  * @throws {Error} if the property is none, the subject has the pair, the
  * date is no calendar date, or the path addresses no subject.
  */
-export function withProposal<T>(
+export function withCandidate<T>(
   manifest: T,
   subject: Subject,
   property: string,
   value: unknown,
-  options: ProposalOptions,
+  options: CandidateOptions,
 ): T {
   checkedProperty(property);
   checkedDate(options.date);
@@ -1026,12 +1114,11 @@ export function withProposal<T>(
   const context = contextOf(result);
   const pair: Pair = [property, value];
   if (states(context, owner, node, pair)) {
-    throw new Error(`'${property}' already has this value; a stated pair is not proposed`);
+    throw new Error(`'${property}' already has this value; a stated pair is no candidate`);
   }
   const entry: JsonObject = {
     property: entryProperty(property),
     value: entryValue(property, value),
-    status: "proposed",
     stated_by: [...options.stated_by],
     date: options.date,
     method: options.method,
@@ -1040,81 +1127,41 @@ export function withProposal<T>(
   if (options.basis !== undefined && options.basis.length > 0) entry.basis = [...options.basis];
   if (options.match !== undefined) entry.match = options.match;
   if (options.note !== undefined) entry.note = options.note;
-  placed(context, owner, pair, entry);
+  const earlier = entryOf(context, owner, pair);
+  if (earlier === undefined) provenanceOf(owner).push(entry);
+  else {
+    if (Object.hasOwn(earlier, "beliefs")) entry.beliefs = earlier.beliefs as unknown[];
+    for (const key of Object.keys(earlier)) delete earlier[key];
+    Object.assign(earlier, entry);
+  }
   return result;
 }
 
 /**
- * Return the manifest with a proposed or rejected pair confirmed: the value
- * as given (its label included) appended to the property's list, the entry
- * `confirmed` in place, its `stated_by` and `date` replaced and its other
- * keys kept.
+ * Return the manifest with an actor's belief in a pair of the subject:
+ * `true`, `false` or `"unlikely"`. The pair's entry, appended with the pair
+ * alone where it has none, records `{actor, belief, date}` (and `note` where
+ * given), replacing in place the actor's earlier belief; actors compare as
+ * their IRIs. Whether the pair is stated is left as it is: one actor's
+ * belief leaves the statement and every other actor's belief standing. A
+ * candidate an actor believes `false` is not offered to that actor again
+ * (`candidates`).
  *
- * @throws {Error} if the subject has no proposed or rejected entry of the
- * pair, already has the pair, the date is no calendar date, or the path
- * addresses no subject.
+ * @throws {Error} if the property is none, the belief is none of the three,
+ * the date is no calendar date, or the path addresses no subject.
  */
-export function withConfirmation<T>(
+export function withBelief<T>(
   manifest: T,
   subject: Subject,
   property: string,
   value: unknown,
-  options: DecisionOptions,
+  options: BeliefOptions,
 ): T {
+  checkedBelief(options.belief);
   checkedProperty(property);
   checkedDate(options.date);
   const result = clone(manifest);
-  const { owner, node } = resolve(result, subject);
-  const context = contextOf(result);
-  const pair: Pair = [property, value];
-  const index = entryIndex(context, owner, pair, ["proposed", "rejected"]);
-  if (index < 0) throw new Error(`no proposal or rejection of this value of '${property}'`);
-  if (states(context, owner, node, pair)) throw new Error(`'${property}' already has this value`);
-  stated(owner, node, property, value);
-  const entry = provenanceOf(owner)[index] as JsonObject;
-  entry.status = "confirmed";
-  entry.stated_by = [...options.stated_by];
-  entry.date = options.date;
-  return result;
-}
-
-/**
- * Return the manifest with the pair rejected for the subject: a stated pair
- * removed, and the pair's entry (appended where it has none) `rejected` with
- * the given `stated_by`, `date` and, where given, `note`; its other keys,
- * `method` among them, are kept.
- *
- * @throws {Error} if the property is none, the date is no calendar date, or
- * the path addresses no subject.
- */
-export function withRejection<T>(
-  manifest: T,
-  subject: Subject,
-  property: string,
-  value: unknown,
-  options: DecisionOptions & { readonly note?: string },
-): T {
-  checkedProperty(property);
-  checkedDate(options.date);
-  const result = clone(manifest);
-  const { owner, node } = resolve(result, subject);
-  const context = contextOf(result);
-  const pair: Pair = [property, value];
-  const index = entryIndex(context, owner, pair, STATUSES);
-  const entry: JsonObject =
-    index >= 0
-      ? (provenanceOf(owner)[index] as JsonObject)
-      : { property: entryProperty(property), value: entryValue(property, value) };
-  entry.status = "rejected";
-  entry.stated_by = [...options.stated_by];
-  entry.date = options.date;
-  if (options.note !== undefined) entry.note = options.note;
-  if (index < 0) provenanceOf(owner).push(entry);
-  prune(
-    owner,
-    node,
-    (stated) => samePair(context, stated, pair),
-    () => false,
-  );
+  const { owner } = resolve(result, subject);
+  believe(contextOf(result), owner, [property, value], options);
   return result;
 }

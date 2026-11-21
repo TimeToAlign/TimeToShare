@@ -34,7 +34,7 @@ Where the two packages answer differently by design, this README says so.
 5. The generated files are the generator's output, and the npm package
    ships the schema document, the drawing specification, the catalogue with
    its schema and the licence.
-6. The statement functions (`withPair`, `withProposal`, `withContext`, …)
+6. The statement functions (`withPair`, `withCandidate`, `withBelief`, `withContext`, …)
    and the catalogue functions (`readCatalogue`, `recognize`,
    `instantiate`, `verbOf`, `rectangles`) give the values Python's
    `timetoshare.statements` and `timetoshare.catalogue` give, and throw an
@@ -79,8 +79,13 @@ discriminated union tags each branch with a distinct required constant; the
 the statements' invariants: `statements` and `provenance` on exactly
 `Manifest`, `Timeline` and `Region` (besides `Context`, which declares every
 format term), without a default, `@context` on `Manifest` only, no `links`
-and no `schemes` anywhere, a provenance entry's `status`, `match` and
-`method` words equal to `STATUSES`, `MATCHES` and `METHODS`, the white-space
+and no `schemes` anywhere, a provenance entry the bundled `ProvenanceRecord`
+(`provenance.schema.json`, beside the manifest schema, bundled by
+`bundleSchemas`: the generated `schema` equals the bundle of the two files,
+every reference local, a definition of both names refused) with `property`
+and `value`, its keys exactly `basis`, `beliefs`, `date`, `match`, `method`,
+`note`, `service` and `stated_by`, a belief's `belief`, the `match` and
+`method` words equal to `BELIEFS`, `MATCHES` and `METHODS`, the white-space
 class of `Iri`, `IriReference` and `PrefixIri` equal to `BLANK`; the
 `Context` definition fixes, required and in order, exactly the terms of
 `FORMAT_CONTEXT` with their values, and takes every other key as a prefix
@@ -150,9 +155,21 @@ cases fail. The packages differ only where JavaScript must:
   hold one, so only a number built in code reaches the finite rule; the
   tests build infinity, NaN and negative infinity as Python's do.
 
+## MatchStamps and resources
+
+The Python README's section "MatchStamps and resources" is proved here with
+the same values: the ID positions of MatchStamps, anchors and resources
+and the IDs of `match_claims`, which keep their `#` (`ids.test.ts`); the
+order by ID and `ANCHOR_DISPLAY` (`manifest.test.ts`, whose reversal walk
+reverses `resources`, `matchstamps`, `alignment_anchors` and an anchor's
+`display`); the defaults of a match timestamp and an anchor
+(`defaults.test.ts`, and the `then` and `else` arms in `schema.test.ts`);
+the ten messages of its table and the one list of every problem
+(`validate.test.ts`, "the MatchStamp and resource rules").
+
 ## Shared rejection cases
 
-Each of the 160 cases (`validate.test.ts`), found by its name whatever
+Each of the 168 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -234,18 +251,22 @@ of the specification, read from YAML text by `loads` in the file form:
   `#region_1` and a child `#cpt_2`. `subjectPath` gives `[]` for `null` and
   the paths of the root, the child and the region for their IDs as written;
   a bare ID names nothing (Python's message). A performer stated with
-  provenance writes exactly the stated pair and one `confirmed` entry whose
+  provenance writes exactly the stated pair and one entry whose
   value is the thing's `id` alone; the same pair again, and the same thing
   by its full IRI, are refused as "already has this value", which proves
   that pairs compare by expanded IRI. A type stated with provenance writes
   `type` and an entry `rdf:type` / `{id}`. Removing both leaves neither
   `statements` nor `provenance`: emptied lists, containers and annotations
-  go. The proposal, confirmation and rejection of one pair walk the three
-  statuses: the proposal leaves `statements` as they were, the confirmation
-  states the value with its label and keeps the entry's `basis` and
-  `method` while replacing `stated_by` and `date`, the rejection removes
-  the pair and keeps the entry with its note. Every function leaves its
-  arguments as they were.
+  go. A candidate, a person's statement and beliefs walk one pair, with
+  the values of the Python README ("Writing pairs"): `withCandidate`
+  leaves `statements` as they were and is the one candidate; again, it
+  replaces the entry in place and keeps its beliefs; `withPair` with
+  `actor` and `date` states the value with its label, keeps the entry and
+  records the person's belief `true`; `withBelief` of two actors `false`
+  leaves the pair stated, the editor's replaced in place; `withoutPair`
+  gives M1 back; `candidates` offers a candidate the editor believes
+  `false` to every actor but the editor; a belief in a pair never stated
+  creates the entry. Every function leaves its arguments as they were.
 - **M2**: the two timelines of the LayerIt recording, a score encoding and
   a video, with the vocabulary of every kind of value (a datatyped
   literal, nodes with labels and `schema:sameAs`, several classes, a full
@@ -256,8 +277,9 @@ of the specification, read from YAML text by `loads` in the file form:
 
 Every error message of the statement functions is asserted once: a
 property that is no IRI, a pair stated twice, a pair missing, a stated pair
-proposed, a confirmation without a proposal, a path addressing nothing, an
-impossible date. A path addresses an element, or a node held in a list
+as a candidate, an actor without a date, a belief none of the three
+(`1`, `0`, `"likely"`, `null`, spelled as JSON spells them), a path
+addressing nothing, an impossible date. A path addresses an element, or a node held in a list
 under an element's `statements`: the path of the container itself and a
 path through a node's `provenance` (to an entry's node `value`, which
 exists) are refused with the same message, while the node holding that
@@ -281,10 +303,12 @@ lists every problem of one document breaking each rule once, in rule order,
 and checks the members' schema first (a schema problem hides the rules);
 `manifestWarnings` gives `context_absent` and `bundle_blank` at their paths,
 sorted, and nothing for a manifest with a context and an ID. M2 itself
-validates and has no warnings. The rule `provenance_match` also refuses a
-`confirmed` entry `rdf:type` whose value is the string `schema:X` beside
-the stated `type: [schema:X]` (`rdf` declared), at the entry's path, since
-the entry states a literal and the timeline a class.
+validates and has no warnings. An entry may match a stated pair or none;
+`belief_actor` refuses an actor's second belief in one entry, actors
+compared as their expanded IRIs (`wd:Q1`, then
+`http://www.wikidata.org/entity/Q1`), and a belief's `actor` is a
+reference the rule `dangling_target` reads. The actors of beliefs are
+renamed and dropped with their element by `withReferencesRenamed`.
 
 `subjects` walks the subjects in subject order, proved by the Python
 README's manifest ("The subjects in subject order"): the same `(path,
@@ -367,10 +391,11 @@ so the inline context is all a processor reads. For both, it asserts:
    `rdf:type`, `rdfs:label`, or one of the annotation's properties
    (`rdf:subject`, `rdf:predicate`, `rdf:object`, `prov:wasAttributedTo`,
    `dcterms:date`, `prov:hadPrimarySource`, `rdfs:comment` and the format's
-   `method`, `service`, `match`, `status`);
-5. for every `proposed` or `rejected` entry whose subject has an IRI and
-   whose value is a thing or a plain literal, the triple subject–property–
-   value is absent: a proposal is never asserted;
+   `method`, `service`, `match`, `belief`, `actor`, `beliefValue`);
+5. for every candidate (an entry whose pair its subject does not state)
+   whose subject has an IRI and whose value is a thing or a plain literal,
+   the triple subject–property–value is absent: a candidate is never
+   asserted;
 6. the distinct subjects of `rdf:subject` are as many as the provenance
    entries of the fixture: one reified statement per entry.
 
@@ -620,7 +645,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (150 files: bundles, groups and statements included), its value and its value
+  minimal twin (154 files: bundles, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and

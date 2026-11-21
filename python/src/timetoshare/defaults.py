@@ -27,6 +27,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "meta": {},
         "groups": [],
         "measure_maps": [],
+        "resources": [],
     },
     "timeline": {
         "name": None,
@@ -46,8 +47,16 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "table_map": {"kind": "linear", "extrapolate": "none"},
     "measure_map": {"name": None, "meta": {}},
     "group": {"name": None, "meta": {}},
-    "graphical": {"styles": {}, "rules": [], "order": {}, "timestamps": []},
+    "graphical": {
+        "styles": {},
+        "rules": [],
+        "order": {},
+        "timestamps": [],
+        "matchstamps": [],
+    },
     "timestamp": {"display": ["wedge", "name", "cross_section"]},
+    "match_timestamp": {"display": ["cross_section"]},
+    "alignment_anchor": {"display": ["line"]},
 }
 """The default of every key that has one, by the kind of object holding it.
 
@@ -57,7 +66,10 @@ those of ``linear_map`` and a ``TableMap`` those of ``table_map``. Every
 flow-control element has the keys of ``flow_control_element``, and one whose
 manifestation is ``repeat_end`` adds those of ``repeat_end``, as no other
 element carries a repeat count. Every named timestamp of
-``graphical.timestamps`` has the keys of ``timestamp``. ``@context``,
+``graphical.timestamps`` has the keys of ``timestamp``, a match timestamp
+(``matchstamp: true``) those of ``match_timestamp`` instead, and every
+alignment anchor of a named MatchStamp those of ``alignment_anchor``. A
+resource has no defaults. ``@context``,
 ``statements`` and ``provenance`` have no default: ``complete`` and
 ``minimal`` neither add nor drop them. The JavaScript package's
 ``DEFAULTS`` holds the same table, and the schema declares each value as the
@@ -128,7 +140,11 @@ def _visit_manifest(manifest: Any, apply: _Pass) -> None:
     if isinstance(graphical, dict):
         apply(graphical, "graphical")
         for timestamp in _objects(graphical, "timestamps"):
-            apply(timestamp, "timestamp")
+            matched = timestamp.get("matchstamp") is True
+            apply(timestamp, "match_timestamp" if matched else "timestamp")
+        for matchstamp in _objects(graphical, "matchstamps"):
+            for anchor in _objects(matchstamp, "alignment_anchors"):
+                apply(anchor, "alignment_anchor")
 
 
 def _default_number_type(timeline: dict[str, Any]) -> str | None:
@@ -202,9 +218,9 @@ def complete(value: Any) -> Any:
     every depth (a timeline's ``number_type`` is its unit's default). Keys
     whose default is "absent" are never added, present keys keep their
     values, own-axis values respelled as their number type selects (as
-    ``canonical_order`` respells them), a named timestamp's ``display`` in
-    canonical order, and unknown keys pass through. The JavaScript package's
-    ``complete`` gives the same value.
+    ``canonical_order`` respells them), a named timestamp's and an alignment
+    anchor's ``display`` in canonical order, and unknown keys pass through.
+    The JavaScript package's ``complete`` gives the same value.
     """
     result = copy.deepcopy(value)
     _respell(result)
