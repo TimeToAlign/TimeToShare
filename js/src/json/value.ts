@@ -67,7 +67,8 @@ const KEY_ORDER = Symbol("timetoshare.keyOrder");
 const INDEX_KEY = /^(?:0|[1-9]\d{0,9})$/;
 
 function isIndexKey(key: string): boolean {
-  return INDEX_KEY.test(key) && Number(key) < 2 ** 32 - 1;
+  const first = key.charCodeAt(0);
+  return first >= 48 && first <= 57 && INDEX_KEY.test(key) && Number(key) < 2 ** 32 - 1;
 }
 
 /** Whether a value is a `JsonFloat`, an integral float read by `loads`. */
@@ -85,21 +86,34 @@ export function isJsonObject(value: unknown): value is JsonObject {
   );
 }
 
-/** Build an object whose keys keep the given order, the last value of a repeated key winning. */
+/**
+ * Build an object whose keys keep the given order, the last value of a repeated key winning
+ * at the key's first position.
+ *
+ * Keys are set by plain assignment, which keeps the object in the engine's fast layout;
+ * only `__proto__` is defined as an own property, since assigning it would set the
+ * prototype instead.
+ */
 export function objectFrom(entries: Iterable<readonly [string, unknown]>): JsonObject {
   const result: JsonObject = {};
-  const order: string[] = [];
+  const written: string[] = [];
+  let indexed = false;
   for (const [key, value] of entries) {
-    if (!Object.hasOwn(result, key)) order.push(key);
-    Object.defineProperty(result, key, {
-      value,
-      enumerable: true,
-      writable: true,
-      configurable: true,
-    });
+    written.push(key);
+    if (!indexed && isIndexKey(key)) indexed = true;
+    if (key === "__proto__") {
+      Object.defineProperty(result, key, {
+        value,
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+    } else {
+      result[key] = value;
+    }
   }
-  if (order.some(isIndexKey)) {
-    Object.defineProperty(result, KEY_ORDER, { value: order, writable: true });
+  if (indexed) {
+    Object.defineProperty(result, KEY_ORDER, { value: [...new Set(written)], writable: true });
   }
   return result;
 }

@@ -7,6 +7,7 @@ import {
   type Json,
   JsonFloat,
   type Lossless,
+  objectFrom,
 } from "../src/json/value.js";
 import { ANCHOR_DISPLAY, canonicalOrder } from "../src/manifest/order.js";
 import { JsonSyntaxError } from "../src/serialization/errors.js";
@@ -113,6 +114,42 @@ describe("parseJson", () => {
     const value = parseJson(text) as JsonObject;
     expect(Object.keys(value)).toEqual(["2", "10", "b"]);
     expect(compactJson(value)).toBe('{"b":1,"10":2,"2":3}');
+  });
+
+  it("reads a key __proto__ as an own key in JSON and YAML", () => {
+    for (const value of [
+      parseJson('{"a": 1, "__proto__": {"b": 2}, "c": 3}'),
+      loads("a: 1\n__proto__:\n  b: 2\nc: 3\n"),
+    ] as JsonObject[]) {
+      expect(Object.getPrototypeOf(value)).toBe(Object.prototype);
+      expect(Object.keys(value)).toEqual(["a", "__proto__", "c"]);
+      expect(Object.getOwnPropertyDescriptor(value, "__proto__")).toEqual({
+        value: { b: 2 },
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+      expect(compactJson(value)).toBe('{"a":1,"__proto__":{"b":2},"c":3}');
+    }
+  });
+
+  it("keeps a repeated key at its first position with its last value", () => {
+    const value = objectFrom([
+      ["b", 1],
+      ["a", 2],
+      ["b", 3],
+    ]);
+    expect(Object.keys(value)).toEqual(["b", "a"]);
+    expect(value.b).toBe(3);
+    const indexed = objectFrom([
+      ["b", 1],
+      ["10", 2],
+      ["a", 3],
+      ["2", 4],
+      ["10", 5],
+      ["b", 6],
+    ]);
+    expect(compactJson(indexed)).toBe('{"b":6,"10":5,"a":3,"2":4}');
   });
 
   it("refuses text that is not one JSON value where it breaks", () => {

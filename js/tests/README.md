@@ -697,6 +697,15 @@ writers do (`2.0`, `1.0e-07`, `1.0e+16`, `-0.0`, and `-0` as `0`).
 `JsonFloat` is told apart by `instanceof` or `isJsonFloat`, and
 `isJsonObject` is false for it.
 
+Every object these readers and the ID conversions build comes from one
+helper, and three cases pin what it keeps, whatever way it sets keys: a
+key `__proto__` read from JSON and from YAML is an own enumerable key
+holding its value, the object's prototype still `Object.prototype`, and
+it is written back in its place (`{"a":1,"__proto__":{"b":2},"c":3}`); a
+key given twice keeps its first position and its last value; and
+array-index keys given twice among other keys keep the order in which each
+was first given, which `compactJson` writes.
+
 `JSON.parse("9007199254740993")` gives `9007199254740992`, while `parseJson`
 reads `9007199254740993n`; lengths of `9007199254740993n` and
 `9223372036854775807n` on a ticks axis validate and are written and read
