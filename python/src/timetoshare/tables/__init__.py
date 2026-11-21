@@ -21,6 +21,7 @@ except ImportError as error:  # pragma: no cover - depends on the environment
     ) from error
 
 from .anchors import (
+    BELIEF_FILTERS,
     AlignmentAnchor,
     PotentialMatchStamp,
     TimelineCoordinate,
@@ -44,7 +45,6 @@ from .columns import (
     ANCHOR_TYPE,
     BELIEF_KEYS,
     BELIEF_TYPE,
-    BELIEFS,
     COORDINATE_KEYS,
     COORDINATE_TYPE,
     MATCH_CLAIM_COLUMNS,
@@ -61,7 +61,7 @@ from .columns import (
 
 __all__ = [
     "ANCHOR_TYPE",
-    "BELIEFS",
+    "BELIEF_FILTERS",
     "BELIEF_KEYS",
     "BELIEF_TYPE",
     "COORDINATE_KEYS",

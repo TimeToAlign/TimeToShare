@@ -73,16 +73,18 @@
   "$defs": {
     "Belief": {
       "type": "object",
-      "description": "One actor's belief in an item: `true` (the actor holds it true), `false` (the actor holds it false) or `unlikely`, since `date`.",
+      "description": "One actor's belief in an item, since `date`: one of the strings `true` (the actor holds it true), `false` (the actor holds it false) or `unlikely`.",
       "properties": {
         "actor": {
           "$ref": "timetoshare.schema.json#/$defs/IriReference",
           "description": "Who holds the belief: a person or an organisation, an IRI or a reference."
         },
         "belief": {
+          "type": "string",
+          "description": "The belief, a string: `true`, `false` or `unlikely`.",
           "enum": [
-            true,
-            false,
+            "true",
+            "false",
             "unlikely"
           ]
         },

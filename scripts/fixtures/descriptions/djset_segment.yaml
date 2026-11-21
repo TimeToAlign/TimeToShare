@@ -24,7 +24,7 @@ subjects:
         beliefs:
           -
             actor: "https://example.org/people/editor"
-            belief: true
+            belief: "true"
             date: "2026-11-18"
         date: "2026-11-18"
         match: exact
@@ -48,7 +48,7 @@ subjects:
         beliefs:
           -
             actor: "https://example.org/people/editor"
-            belief: false
+            belief: "false"
             date: "2026-11-18"
         date: "2026-11-18"
         method: reconciled

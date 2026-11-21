@@ -26,8 +26,11 @@ These rules apply to every contributor, human or automated.
   canonical YAML, each in the complete form beside its minimal twin (the
   subdirectories `groups/`, `bundles/` and `statements/` sort them by
   content only), the expected RDF of the statement fixtures under
-  `fixtures/rdf/<version>/` (canonical N-Quads, emitted), hand-authored
-  rejection cases under `fixtures/rejections/<version>/`,
+  `fixtures/rdf/<version>/` (canonical N-Quads, emitted), the table
+  fixture under `fixtures/tables/<version>/` (a manifest naming its
+  MatchClaim table and its Projections table, the two Parquet files and
+  the anchors and potential MatchStamps expected of them, emitted),
+  hand-authored rejection cases under `fixtures/rejections/<version>/`,
   hand-authored warning cases under `fixtures/warnings/<version>/`,
   hand-derived serialization cases under `fixtures/serializations/`
   (`cases/<name>/` with `canonical.yaml`, `pretty.json` and
@@ -48,8 +51,9 @@ These rules apply to every contributor, human or automated.
   one table of advance-width metrics used by the drawing.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
 - `js/`: the npm package, generated TypeScript types, tests, and lockfile.
-- `scripts/`: fixture emission (`emit_fixtures.py`, and `emit_rdf.py`
-  for the expected RDF of the statement fixtures), font-metrics
+- `scripts/`: fixture emission (`emit_fixtures.py`, `emit_rdf.py`
+  for the expected RDF of the statement fixtures, and `emit_tables.py` for
+  the table fixture), font-metrics
   extraction, and the check that every version declaration agrees.
 - `decisions/`: numbered MADR decision records.
 - `.github/workflows/`: continuous integration and the release automation,
@@ -71,8 +75,11 @@ These rules apply to every contributor, human or automated.
 - Emit the manifests under `fixtures/<version>/` only through
   `scripts/emit_fixtures.py`, and their expected RDF under
   `fixtures/rdf/<version>/` only through `scripts/emit_rdf.py` after
-  them; never hand-edit either. Both scripts refuse to overwrite the
-  files of a version whose `v<version>` tag exists. Emit
+  them, and the table fixture under `fixtures/tables/<version>/` only
+  through `scripts/emit_tables.py`, whose expected anchors and MatchStamps
+  are literal data written in the script; never hand-edit any of them. The
+  three scripts refuse to overwrite the files of a version whose
+  `v<version>` tag exists. Emit
   the drawings under `fixtures/<version>/drawings/` only through
   TimeLineEditor's `emit-drawings` script, which never rewrites the
   hand-derived figures but compares them with its own output.
@@ -122,6 +129,7 @@ Run these commands from the stated directory.
 | repository root | `python3 scripts/check_versions.py` | Check version declarations agree. |
 | repository root | `python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"` | Emit and round-trip the fixtures with an environment containing timetoalign. |
 | `python/` | `uv run python ../scripts/emit_rdf.py` | Write the expected RDF of the statement fixtures. |
+| `python/` | `uv run python ../scripts/emit_tables.py` | Write the table fixture (needs pyarrow, a development dependency). |
 | `python/` | `uv sync` | Synchronize Python dependencies. |
 | `python/` | `uv run ruff check .` | Run Python lint checks. |
 | `python/` | `uv run ruff format --check .` | Check Python formatting. |

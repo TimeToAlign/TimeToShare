@@ -54,7 +54,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "timestamps": [],
         "matchstamps": [],
     },
-    "timestamp": {"display": ["wedge", "name", "cross_section"]},
+    "timestamp": {"display": ["wedge", "name", "cross_section"], "matchstamp": False},
     "match_timestamp": {"display": ["cross_section"]},
     "alignment_anchor": {"display": ["line"]},
 }

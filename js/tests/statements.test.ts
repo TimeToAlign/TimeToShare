@@ -56,15 +56,20 @@ const root = (value: JsonObject): JsonObject => (value.timelines as JsonObject[]
 describe("the constants", () => {
   it("name the format's namespace, terms and words", () => {
     expect(NAMESPACE).toBe("https://timetoalign.github.io/timetoshare/ns#");
-    expect(Object.keys(FORMAT_CONTEXT)).toHaveLength(32);
+    expect(Object.keys(FORMAT_CONTEXT)).toHaveLength(35);
     expect(FORMAT_CONTEXT.statements).toBe("@nest");
-    expect(FORMAT_CONTEXT.beliefs).toBe(`${NAMESPACE}belief`);
+    expect(FORMAT_CONTEXT.beliefs).toBe(`${NAMESPACE}beliefs`);
     expect(FORMAT_CONTEXT.actor).toEqual({ "@id": `${NAMESPACE}actor`, "@type": "@id" });
-    expect(FORMAT_CONTEXT.belief).toBe(`${NAMESPACE}beliefValue`);
+    expect(FORMAT_CONTEXT.belief).toEqual({ "@id": `${NAMESPACE}belief`, "@type": "@vocab" });
+    expect([FORMAT_CONTEXT.true, FORMAT_CONTEXT.false, FORMAT_CONTEXT.unlikely]).toEqual([
+      `${NAMESPACE}True`,
+      `${NAMESPACE}False`,
+      `${NAMESPACE}Unlikely`,
+    ]);
     for (const word of ["status", "confirmed", "proposed", "rejected"]) {
       expect(Object.hasOwn(FORMAT_CONTEXT, word)).toBe(false);
     }
-    expect([...BELIEFS]).toEqual([true, false, "unlikely"]);
+    expect([...BELIEFS]).toEqual(["true", "false", "unlikely"]);
     expect([...METHODS]).toEqual(["manual", "reconciled", "imported", "inferred"]);
     expect([...MATCHES]).toEqual(["exact", "close", "broad", "narrow", "related"]);
   });
@@ -76,7 +81,8 @@ describe("expandIri", () => {
     ["type", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"],
     ["label", "http://www.w3.org/2000/01/rdf-schema#label"],
     ["stated_by", "http://www.w3.org/ns/prov#wasAttributedTo"],
-    ["beliefs", `${NAMESPACE}belief`],
+    ["beliefs", `${NAMESPACE}beliefs`],
+    ["belief", `${NAMESPACE}belief`],
     ["actor", `${NAMESPACE}actor`],
     ["wdt:P175", "http://www.wikidata.org/prop/direct/P175"],
     ["http://schema.org/name", "http://schema.org/name"],
@@ -270,24 +276,24 @@ describe("candidates and beliefs", () => {
     });
     expect(root(stated).statements).toEqual({ "wdt:P2550": [labelled] });
     expect(root(stated).provenance).toEqual([
-      { ...PROPOSED, beliefs: [{ actor: EDITOR, belief: true, date: "2026-11-20" }] },
+      { ...PROPOSED, beliefs: [{ actor: EDITOR, belief: "true", date: "2026-11-20" }] },
     ]);
     expect(candidates(stated, ROOT)).toEqual([]);
     validate(stated);
     const disbelieved = withBelief(stated, ROOT, "wdt:P2550", WORK, {
       actor: TILIE,
-      belief: false,
+      belief: "false",
       date: "2026-11-21",
     });
     const changed = withBelief(disbelieved, ROOT, "wdt:P2550", WORK, {
       actor: EDITOR,
-      belief: false,
+      belief: "false",
       date: "2026-11-22",
     });
     expect(root(changed).statements).toEqual({ "wdt:P2550": [labelled] });
     expect((root(changed).provenance as JsonObject[])[0]?.beliefs).toEqual([
-      { actor: EDITOR, belief: false, date: "2026-11-22" },
-      { actor: TILIE, belief: false, date: "2026-11-21" },
+      { actor: EDITOR, belief: "false", date: "2026-11-22" },
+      { actor: TILIE, belief: "false", date: "2026-11-21" },
     ]);
     validate(changed);
     expect(withoutPair(changed, ROOT, "wdt:P2550", WORK)).toEqual(m1());
@@ -296,7 +302,7 @@ describe("candidates and beliefs", () => {
   it("offer a candidate to every actor but one who believes it false", () => {
     const believed = withBelief(candidate(), ROOT, "wdt:P2550", WORK, {
       actor: EDITOR,
-      belief: false,
+      belief: "false",
       date: "2026-11-19",
     });
     const [held] = entries(believed, ROOT);
@@ -308,14 +314,14 @@ describe("candidates and beliefs", () => {
   it("record a belief in a pair never stated with an entry of its own", () => {
     const value = withBelief(m1(), [...ROOT, "regions", 0], "type", "schema:MusicVideoObject", {
       actor: EDITOR,
-      belief: false,
+      belief: "false",
       date: "2026-11-18",
     });
     expect((root(value).regions as JsonObject[])[0]?.provenance).toEqual([
       {
         property: "rdf:type",
         value: { id: "schema:MusicVideoObject" },
-        beliefs: [{ actor: EDITOR, belief: false, date: "2026-11-18" }],
+        beliefs: [{ actor: EDITOR, belief: "false", date: "2026-11-18" }],
       },
     ]);
   });
@@ -329,10 +335,17 @@ describe("candidates and beliefs", () => {
     expect(thrown(() => withPair(m1(), ROOT, "wdt:P2550", WORK, { actor: EDITOR }))).toBe(
       "a belief needs a date",
     );
-    for (const belief of [1, 0, "likely", null]) {
+    const spelled: [unknown, string][] = [
+      [true, "true"],
+      [false, "false"],
+      [1, "1"],
+      ["likely", '"likely"'],
+      [null, "null"],
+    ];
+    for (const [belief, written] of spelled) {
       const given = { actor: EDITOR, belief: belief as never, date: "2026-11-18" };
       expect(thrown(() => withBelief(m1(), ROOT, "type", "schema:Thing", given))).toBe(
-        `${belief === "likely" ? '"likely"' : String(belief)} is no belief: write true, false or 'unlikely'`,
+        `${written} is no belief: write 'true', 'false' or 'unlikely'`,
       );
     }
     expect(thrown(() => withPair(m1(), ROOT, "performer", "x"))).toBe(
@@ -653,9 +666,9 @@ describe("the statement rules", () => {
             { id: "wd:Q255" },
             {
               beliefs: [
-                { actor: "wd:Q1", belief: true, date: "2026-11-18" },
+                { actor: "wd:Q1", belief: "true", date: "2026-11-18" },
                 { actor: "#clt_1", belief: "unlikely", date: "2026-11-18" },
-                { actor: "http://www.wikidata.org/entity/Q1", belief: false, date: "2026-11-19" },
+                { actor: "http://www.wikidata.org/entity/Q1", belief: "false", date: "2026-11-19" },
               ],
             },
           ),
@@ -673,7 +686,7 @@ describe("the statement rules", () => {
             "wdt:P86",
             { id: "wd:Q255" },
             {
-              beliefs: [{ actor: "#cpt_9", belief: false, date: "2026-11-18" }],
+              beliefs: [{ actor: "#cpt_9", belief: "false", date: "2026-11-18" }],
             },
           ),
         ],
@@ -802,8 +815,8 @@ describe("the statement rules", () => {
             { id: "wd:Q255" },
             {
               beliefs: [
-                { actor: "#clt_2", belief: true, date: "2026-11-18" },
-                { actor: "#clt_2", belief: false, date: "2026-11-19" },
+                { actor: "#clt_2", belief: "true", date: "2026-11-18" },
+                { actor: "#clt_2", belief: "false", date: "2026-11-19" },
               ],
             },
           ),
@@ -988,7 +1001,7 @@ describe("references to elements", () => {
   });
 
   it("renames and drops the actors of beliefs", () => {
-    const held = { belief: true, date: "2026-11-18" };
+    const held = { belief: "true", date: "2026-11-18" };
     const given = m1();
     root(given).provenance = [
       {

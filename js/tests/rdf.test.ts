@@ -34,9 +34,9 @@ const ANNOTATION_PREDICATES = [
   `${NAMESPACE}method`,
   `${NAMESPACE}service`,
   `${NAMESPACE}match`,
-  `${NAMESPACE}belief`,
+  `${NAMESPACE}beliefs`,
   `${NAMESPACE}actor`,
-  `${NAMESPACE}beliefValue`,
+  `${NAMESPACE}belief`,
 ];
 
 const SCHEMES = ["http:", "https:", "urn:", "tag:", "mailto:", "info:"];

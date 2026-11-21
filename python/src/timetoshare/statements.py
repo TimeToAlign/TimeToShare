@@ -14,10 +14,11 @@ Beside the container, ``provenance`` holds an entry per pair (the entry of
 the provenance schema, ``provenance.schema.json``): it repeats a pair's
 ``property`` and ``value`` and says who stated it (``stated_by``), when
 (``date``), how (``method``, ``service``, ``basis``, ``match``), with a
-``note``, and who believes it (``beliefs``: per actor ``true``, ``false`` or
-``"unlikely"``). An entry whose pair is stated annotates it; an entry whose
-pair is not stated is a candidate, which an actor believing it ``false`` is
-not offered again. Nothing derives a truth value from the beliefs.
+``note``, and who believes it (``beliefs``: per actor one of the strings
+``"true"``, ``"false"`` and ``"unlikely"``). An entry whose pair is stated
+annotates it; an entry whose pair is not stated is a candidate, which an
+actor believing it ``"false"`` is not offered again. Nothing derives a
+truth value from the beliefs.
 The manifest's inline JSON-LD context ``@context`` holds the format's terms
 (``FORMAT_CONTEXT``) and the prefixes the statements use, which makes the
 manifest a YAML-LD document whose statements read as plain triples and whose
@@ -102,13 +103,16 @@ FORMAT_CONTEXT: dict[str, Any] = {
     "basis": {"@id": _PROV + "hadPrimarySource", "@type": "@id"},
     "match": {"@id": NAMESPACE + "match", "@type": "@vocab"},
     "note": _RDFS + "comment",
-    "beliefs": NAMESPACE + "belief",
+    "beliefs": NAMESPACE + "beliefs",
     "actor": {"@id": NAMESPACE + "actor", "@type": "@id"},
-    "belief": NAMESPACE + "beliefValue",
+    "belief": {"@id": NAMESPACE + "belief", "@type": "@vocab"},
     "manual": NAMESPACE + "Manual",
     "reconciled": NAMESPACE + "Reconciled",
     "imported": NAMESPACE + "Imported",
     "inferred": NAMESPACE + "Inferred",
+    "true": NAMESPACE + "True",
+    "false": NAMESPACE + "False",
+    "unlikely": NAMESPACE + "Unlikely",
     "exact": _SKOS + "exactMatch",
     "close": _SKOS + "closeMatch",
     "broad": _SKOS + "broadMatch",
@@ -117,12 +121,12 @@ FORMAT_CONTEXT: dict[str, Any] = {
 }
 """The format's terms of ``@context``, each exactly as the schema fixes it.
 
-The 32 terms and no prefix; treat it as read-only. ``with_context`` adds the
+The 35 terms and no prefix; treat it as read-only. ``with_context`` adds the
 prefixes a manifest uses.
 """
 
-BELIEFS = (True, False, "unlikely")
-"""The beliefs an actor may hold in an item, in the schema's order."""
+BELIEFS = ("true", "false", "unlikely")
+"""The beliefs an actor may hold in an item, strings in the schema's order."""
 
 METHODS = ("manual", "reconciled", "imported", "inferred")
 """The words of a provenance entry's ``method``; any other method is an IRI."""
@@ -851,7 +855,7 @@ def candidates(
 ) -> list[dict[str, Any]]:
     """Return a subject's candidates: the entries of pairs the subject does not state.
 
-    With ``actor``, a candidate the actor believes ``false`` is left out:
+    With ``actor``, a candidate the actor believes ``"false"`` is left out:
     it is not offered to that actor again. Actors compare as their IRIs.
 
     Raises:
@@ -868,7 +872,7 @@ def candidates(
             same_pair(context, pair, (entry.get("property"), entry.get("value")))
             for pair in stated
         )
-        and (actor is None or not _believes(context, entry, actor, False))
+        and (actor is None or not _believes(context, entry, actor, "false"))
     ]
 
 
@@ -887,10 +891,12 @@ def _checked_property(property: Any) -> str:
     )
 
 
-def _checked_belief(belief: Any) -> Any:
-    if belief is True or belief is False or belief == "unlikely":
+def _checked_belief(belief: Any) -> str:
+    if isinstance(belief, str) and belief in BELIEFS:
         return belief
-    raise ValueError(f"{spell(belief)} is no belief: write true, false or 'unlikely'")
+    raise ValueError(
+        f"{spell(belief)} is no belief: write 'true', 'false' or 'unlikely'"
+    )
 
 
 class _Edit:
@@ -1023,7 +1029,7 @@ def with_pair(
     ``{"id": ...}`` for a node with an ``id`` and for a ``type`` pair, else
     the value itself, and a ``type`` pair's property is written
     ``rdf:type``. With ``actor``, the person stating the pair, the entry
-    records that actor's belief ``true`` on ``date``, replacing the actor's
+    records that actor's belief ``"true"`` on ``date``, replacing the actor's
     earlier belief.
 
     Raises:
@@ -1045,7 +1051,7 @@ def with_pair(
             if key not in ("property", "value", "beliefs")
         )
     if actor is not None:
-        edit.believe(actor, True, date, None)
+        edit.believe(actor, "true", date, None)
     return edit.done()
 
 
@@ -1134,19 +1140,20 @@ def with_belief(
     value: Any,
     *,
     actor: str,
-    belief: bool | str,
+    belief: str,
     date: str,
     note: str | None = None,
 ) -> dict[str, Any]:
     """Return the manifest with an actor's belief in a pair of a subject.
 
-    ``belief`` is ``True``, ``False`` or ``"unlikely"``. The pair's entry,
+    ``belief`` is one of the strings ``"true"``, ``"false"`` and
+    ``"unlikely"`` (:data:`BELIEFS`). The pair's entry,
     appended with the pair alone where it has none, records ``{"actor",
     "belief", "date"}`` (and ``note`` where given), replacing in place the
     actor's earlier belief; actors compare as their IRIs. Whether the pair
     is stated is left as it is: one actor's belief leaves the statement and
     every other actor's belief standing. A candidate an actor believes
-    ``False`` is not offered to that actor again (:func:`candidates`).
+    ``"false"`` is not offered to that actor again (:func:`candidates`).
 
     Raises:
         ValueError: If ``property`` is no property, the path addresses no

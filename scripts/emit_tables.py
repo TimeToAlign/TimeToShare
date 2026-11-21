@@ -4,7 +4,9 @@ table, and the AlignmentAnchors and potential MatchStamps expected of the
 MatchClaim table, to ``fixtures/tables/<version>/``.
 
 Every value is written here by hand; the expected anchors and MatchStamps in
-particular are literal data, never computed by the derivation they test. A
+particular are literal data, never computed by the derivation they test. The
+one exception is what the manifest's resources state of the two Parquet
+files, their size and SHA-256 digest, read from the bytes written. A
 Parquet file is rewritten only when its table changes, and the files of a
 released version, whose tag ``v<version>`` exists, are never overwritten.
 
@@ -31,6 +33,7 @@ quarter lasts one second, 44100 samples) and one child of the first:
 
 from __future__ import annotations
 
+import hashlib
 import subprocess
 import sys
 from fractions import Fraction
@@ -74,7 +77,39 @@ MANIFEST: dict[str, Any] = {
         {"id": "cpt_1", "unit": "seconds", "length": 16.0},
     ],
 }
-"""The manifest, IDs bare as in memory."""
+"""The manifest without its resources, IDs bare as in memory."""
+
+PARQUET = "application/vnd.apache.parquet"
+
+RESOURCES: list[dict[str, Any]] = [
+    {
+        "id": "resource_1",
+        "type": "MatchClaim",
+        "timelines": ["clt_1", "clt_2", "dpt_1", "cpt_1"],
+        "url": "match_claims.parquet",
+        "media_type": PARQUET,
+    },
+    {
+        "id": "resource_2",
+        "type": "Projection",
+        "timelines": ["dpt_1", "cpt_1"],
+        "url": "projections.parquet",
+        "media_type": PARQUET,
+    },
+]
+"""The two tables the manifest names, IDs bare; :func:`manifest` adds each
+file's size and SHA-256 digest as written."""
+
+
+def manifest(directory: Path = TABLE_DIR) -> dict[str, Any]:
+    """The manifest naming the two tables of ``directory`` with the size and
+    the SHA-256 digest of their bytes, IDs written ``#``."""
+    resources = []
+    for resource in RESOURCES:
+        data = (directory / resource["url"]).read_bytes()
+        integrity = {"algorithm": "SHA-256", "digest": hashlib.sha256(data).hexdigest()}
+        resources.append({**resource, "size": len(data), "integrity": integrity})
+    return with_file_ids({**MANIFEST, "resources": resources})
 
 
 def quarters(numerator: int, denominator: int = 1) -> dict[str, Any]:
@@ -410,8 +445,8 @@ EVERY_ANCHOR = [
 EXPECTED: dict[str, Any] = {
     "cases": [
         {
-            "actor": None,
-            "only_true": False,
+            "believer": None,
+            "belief": "not_false",
             "alignment_anchors": EVERY_ANCHOR,
             "potential_matchstamps": [
                 S_1,
@@ -428,8 +463,8 @@ EXPECTED: dict[str, Any] = {
             ],
         },
         {
-            "actor": ACTOR,
-            "only_true": False,
+            "believer": ACTOR,
+            "belief": "not_false",
             "alignment_anchors": [
                 anchor for anchor in EVERY_ANCHOR if anchor is not A_11
             ],
@@ -448,14 +483,14 @@ EXPECTED: dict[str, Any] = {
             ],
         },
         {
-            "actor": ACTOR,
-            "only_true": True,
+            "believer": ACTOR,
+            "belief": "true",
             "alignment_anchors": [A_1, A_14],
             "potential_matchstamps": [S_1, S_10_WITHOUT_13],
         },
         {
-            "actor": OTHER_ACTOR,
-            "only_true": True,
+            "believer": OTHER_ACTOR,
+            "belief": "true",
             "alignment_anchors": [A_11],
             "potential_matchstamps": [S_13_ALONE],
         },
@@ -494,15 +529,15 @@ def main() -> int:
     ).stdout.split()
     if tag in tagged:
         raise SystemExit(f"{tag} is released; its tables in {TABLE_DIR} are frozen.")
-    manifest = with_file_ids(MANIFEST)
-    validate(manifest)
     claims, projections = match_claims_table(), projections_table()
-    check_match_claims(claims, manifest)
-    check_projections(projections, manifest)
     TABLE_DIR.mkdir(parents=True, exist_ok=True)
-    _write_text(TABLE_DIR / "manifest.yaml", dumps(manifest))
     _write_table(TABLE_DIR / "match_claims.parquet", claims)
     _write_table(TABLE_DIR / "projections.parquet", projections)
+    named = manifest()
+    validate(named)
+    check_match_claims(claims, named)
+    check_projections(projections, named)
+    _write_text(TABLE_DIR / "manifest.yaml", dumps(named))
     _write_text(TABLE_DIR / "expected.yaml", dumps(EXPECTED))
     return 0
 

@@ -169,7 +169,7 @@ the ten messages of its table and the one list of every problem
 
 ## Shared rejection cases
 
-Each of the 168 cases (`validate.test.ts`), found by its name whatever
+Each of the 169 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -262,10 +262,10 @@ of the specification, read from YAML text by `loads` in the file form:
   leaves `statements` as they were and is the one candidate; again, it
   replaces the entry in place and keeps its beliefs; `withPair` with
   `actor` and `date` states the value with its label, keeps the entry and
-  records the person's belief `true`; `withBelief` of two actors `false`
+  records the person's belief `"true"`; `withBelief` of two actors `"false"`
   leaves the pair stated, the editor's replaced in place; `withoutPair`
   gives M1 back; `candidates` offers a candidate the editor believes
-  `false` to every actor but the editor; a belief in a pair never stated
+  `"false"` to every actor but the editor; a belief in a pair never stated
   creates the entry. Every function leaves its arguments as they were.
 - **M2**: the two timelines of the LayerIt recording, a score encoding and
   a video, with the vocabulary of every kind of value (a datatyped
@@ -391,7 +391,7 @@ so the inline context is all a processor reads. For both, it asserts:
    `rdf:type`, `rdfs:label`, or one of the annotation's properties
    (`rdf:subject`, `rdf:predicate`, `rdf:object`, `prov:wasAttributedTo`,
    `dcterms:date`, `prov:hadPrimarySource`, `rdfs:comment` and the format's
-   `method`, `service`, `match`, `belief`, `actor`, `beliefValue`);
+   `method`, `service`, `match`, `beliefs`, `actor`, `belief`);
 5. for every candidate (an entry whose pair its subject does not state)
    whose subject has an IRI and whose value is a thing or a plain literal,
    the triple subject–property–value is absent: a candidate is never

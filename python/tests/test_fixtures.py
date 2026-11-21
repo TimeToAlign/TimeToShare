@@ -349,14 +349,18 @@ def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
 
 
 @pytest.mark.parametrize(
-    ("name", "downbeat"),
+    ("name", "downbeat", "stated"),
     [
-        ("timestamps.yaml", {"display": ["wedge", "name", "cross_section"]}),
-        ("timestamps.minimal.yaml", {}),
+        (
+            "timestamps.yaml",
+            {"display": ["wedge", "name", "cross_section"]},
+            {"matchstamp": False},
+        ),
+        ("timestamps.minimal.yaml", {}, {}),
     ],
 )
 def test_named_timestamps_pass_through_the_emitter(
-    name: str, downbeat: dict[str, Any]
+    name: str, downbeat: dict[str, Any], stated: dict[str, Any]
 ) -> None:
     file = _load(FIXTURES / name)
     value = with_bare_ids(file)
@@ -367,6 +371,7 @@ def test_named_timestamps_pass_through_the_emitter(
             "name": "Downbeat",
             "timeline": "clt_1",
             **downbeat,
+            **stated,
         },
         {
             "coordinate": [6, 1],
@@ -374,6 +379,7 @@ def test_named_timestamps_pass_through_the_emitter(
             "id": "timestamp_2",
             "name": "Climax",
             "timeline": "clt_1",
+            **stated,
         },
         {
             "coordinate": [1, 1],
@@ -381,6 +387,7 @@ def test_named_timestamps_pass_through_the_emitter(
             "id": "timestamp_3",
             "name": "Entry",
             "timeline": "clt_2",
+            **stated,
         },
     ]
     assert value["graphical"].get("rules", []) == []
@@ -427,7 +434,9 @@ _ORIGIN_AND_LENGTH = {
 def test_drawn_roots_carry_their_origin_and_length(name: str, suffix: str) -> None:
     file = _load(FIXTURES / f"{name}{suffix}")
     value = with_bare_ids(file)
-    assert value["graphical"]["timestamps"] == _ORIGIN_AND_LENGTH[name]
+    stated = {"matchstamp": False} if suffix == ".yaml" else {}
+    expected = [{**mark, **stated} for mark in _ORIGIN_AND_LENGTH[name]]
+    assert value["graphical"]["timestamps"] == expected
     validate(file)
     assert identity_problems(file) == []
 

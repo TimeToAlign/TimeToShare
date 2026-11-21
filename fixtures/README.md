@@ -25,8 +25,9 @@ The directories sort the manifests by content only:
 Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
 `groups/`, 13 under `bundles/` and 4 under `statements/`, 77 in all, each
 with its minimal twin, so 154 files. Beside them lie the expected RDF of
-the 4 statement fixtures under `fixtures/rdf/0.2.0/`, 168 rejection cases
-and 16 warning cases.
+the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
+under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
+169 rejection cases and 16 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -272,7 +273,7 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the flow marker "Fine" at 8 (`fine`) and the jump origin "D.C. al Fine" at 16 back to 0 (`da_capo_al_fine`); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
 | `bundle_shared_member` | the bundle "Shared" of two groups that share a member: the score `t` ("Score", 8 quarters) is a member of the group `g1` ("Performance") beside the performance `u` (4.0 seconds) and of the group `g2` ("Page") beside the page `v` (800 pixels); no timeline carries a map, a region or flow control |
 | `bundle_free_ids` | the bundle "Free IDs" of the group `group_1` ("Piece") of two roots whose IDs are free strings: the score `https://example.org/piece/score` ("Score", 8 quarters) with the region "Exposition" `https://example.org/piece/score#exposition` from 0 to 4, and the take `perf/take 2` ("Take 2", 4.0 seconds) with the region "Intro" `take 2/intro` from 0.0 to 1.0; one rule selects the take's region by its address `{"id": "#take 2/intro"}` and strokes it teal |
-| `bundle_resources` | the bundle `layerit_step_1` ("LayerIt, step 1") of the MEI encoding `clt_6` (27 quarters) and the audio file `dpt_1` (1470868 samples), with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, its size and its SHA-256 digest, and `resource_2`, the Projections table `projections.parquet` holding data for `dpt_1`, with nothing optional |
+| `bundle_resources` | the bundle "Resources" of the score `score` (8 quarters) and the recording `take_1` (352800 samples), ungrouped, with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, and `resource_2`, the Projections table `projections.parquet` holding data for `take_1`, with nothing optional; neither file lies beside the fixture, so neither states a size or a digest (the table fixture's manifest states both of its own tables')
 | `bundle_matchstamps` | the bundle "MatchStamps" of the score `score` ("Score", 8 quarters) and the takes `take_1` ("Take 1", 352800 samples) and `take_2` ("Take 2", 396900 samples), ungrouped; the match timestamp `timestamp_1` at quarter 4 of the score, without a name, shared by two MatchStamps: `matchstamp_1` ("Bar 2, downbeat (take 1)") joins it to sample 88200 of `take_1` by the anchor `anchor_1`, which also draws the name, from the MatchClaims `claim_1` and `claim_2`; `matchstamp_2` ("Bar 2, downbeat (take 2)") to sample 99225 of `take_2` (the match timestamp `timestamp_3`, named "Take 2, bar 2" and drawing its name) by `anchor_2`, from `claim_3` |
 | `group_measure_map` | the group "Edition" of a score of 16 quarters and its MIDI rendering of 7680 ticks, both reading one entry of `measure_maps`, four bars of 4/4: the score through its `MeasureRecordMap`, the rendering through a `ChainMap` of the `LinearMap` `ppq` to quarters (480 ticks per quarter) and its `MeasureRecordMap` |
 
@@ -385,6 +386,27 @@ not state) whose subject has an IRI and whose value is a thing or a plain
 literal is asserted; and that
 each provenance entry gives one reified statement.
 
+## The table fixture
+
+`fixtures/tables/<version>/` holds the fixture of the two table types,
+outside `fixtures/<version>/` so that no reader of the manifest fixtures
+takes it for one: `manifest.yaml`, the MatchClaim table
+`match_claims.parquet`, the Projections table `projections.parquet` and
+`expected.yaml`, the AlignmentAnchors and potential MatchStamps expected
+of the MatchClaim table under four belief filters (no believer; one
+actor's `not_false` and `true`; a second actor's `true`). The manifest
+holds three roots (`clt_1`, quarters, with the child `clt_2`; `dpt_1`,
+samples; `cpt_1`, seconds) and names both tables in its `resources`, each
+with its media type, its size and its SHA-256 digest. The script
+`scripts/emit_tables.py` (run from `python/` as `uv run python
+../scripts/emit_tables.py`; it needs pyarrow, a development dependency) is
+its only writer: every row and every expected value is literal data in the
+script, never computed by the derivation the tests check, and only the
+sizes and digests are read from the bytes written. It rewrites a Parquet
+file only when its table changes and refuses to replace the files of a
+version whose tag `v<version>` exists. Python's
+`timetoshare.tables.fixture_path(name)` gives the path of each file.
+
 ## Drawings
 
 Each directory `fixtures/<version>/drawings/<name>/` pins one drawing of the
@@ -479,7 +501,7 @@ code with the case's. The cases cover every code:
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timetoshare` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 86 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, and a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, 22 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an unknown method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`), and a belief that is none of `true`, `false` and `unlikely` (`belief_value_unknown`); and 3 cases of MatchStamps and resources: a MatchStamp ID that is no `matchstamp_N` (`matchstamp_id_malformed`), a MatchClaim ID listed twice (`matchstamp_claims_repeated`) and a digest whose hash function the PREMIS vocabulary does not name (`resource_integrity_algorithm_unknown`) |
+| `schema` | the schema document | 87 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (a named timestamp's `timestamp_01`, `timestamp_id_malformed`, and a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, 23 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an unknown method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`), and a belief that is none of the strings `true`, `false` and `unlikely`, a word or the JSON boolean `true` (`belief_value_unknown`, `belief_value_boolean`); and 3 cases of MatchStamps and resources: a MatchStamp ID that is no `matchstamp_N` (`matchstamp_id_malformed`), a MatchClaim ID listed twice (`matchstamp_claims_repeated`) and a digest whose hash function the PREMIS vocabulary does not name (`resource_integrity_algorithm_unknown`) |
 | `representation` | an own-axis value can be read as its axis's number type, however it is spelled; a statement value is never a float | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis`, `statement_value_integral_float` |
 | `duplicate_id` | every ID unique across the manifest, that of a map another map holds of a named timestamp, a MatchStamp, an alignment anchor and a resource included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `region_id_duplicate_across_roots`, `region_id_is_timeline_id`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id`, `alignment_anchor_id_repeated` |
 | `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps`, and a `#` reference of the statements an element of the manifest | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling`, `element_value_dangling` |

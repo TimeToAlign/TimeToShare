@@ -475,10 +475,10 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     Root by root: duplicates, dangling targets, conversion maps, containment
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
-    manifest ID, the named MatchStamps' and alignment anchors' IDs, the
-    resources' IDs), group members, graphical orders, named timestamps, named
-    MatchStamps and resources. ``value`` is in the file form; the rules read its
-    IDs bare.
+    named MatchStamps' IDs each followed by its alignment anchors' IDs, the
+    resources' IDs, and last the manifest ID); then group members, graphical
+    orders, named timestamps, named MatchStamps and resources. ``value`` is in
+    the file form; the rules read its IDs bare.
 
     Raises:
         SchemaValidationError: If an ID is not written in the file form.
