@@ -665,10 +665,14 @@ catalogue:
   states it inversely: `rel:prf` with a VIAF ID gives `performed_by`,
   `dcterms:hasPart` gives `part_of` read inversely;
 - `rectangles(catalogue, manifest, subject)` groups a subject's pairs by
-  verb and thing, the unit an editor displays: pairs of one verb whose
-  values are one thing, through their `id`s and the IDs under their
-  `schema:sameAs` and `owl:sameAs`, form one group, "is a" always first.
-  The two performer pairs of the video in section 6 form one group.
+  verb and thing, the unit an editor displays: pairs of one verb, read the
+  same way, form one group, transitively, when their values are one
+  thing, through their `id`s and the IDs under their `schema:sameAs` and
+  `owl:sameAs`, or when their value nodes carry the same string `label`,
+  compared as written; "is a" comes always first. The two performer pairs
+  of the video in section 6 form one group, and so do
+  `schema:exampleOfWork` and `wdt:P629` naming one work in two systems
+  under one label.
 
 ## 11. Editing statements
 

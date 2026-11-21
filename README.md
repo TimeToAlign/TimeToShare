@@ -117,17 +117,24 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
 
 - `unit` decides the timeline's domain (logical, physical or graphical)
   and modality (continuous or discrete), since each unit belongs to exactly
-  one of the six combinations, and the default of its number type:
+  one of the six combinations, the default of its number type, and the
+  number types it admits:
 
-  | Unit | Domain | Modality | Default number type |
-  | --- | --- | --- | --- |
-  | `number`, `floating_measures` | logical | continuous | `float` |
-  | `whole_notes`, `quarters` | logical | continuous | `fraction` |
-  | `ticks` | logical | discrete | `int` |
-  | `milliseconds`, `seconds`, `minutes` | physical | continuous | `float` |
-  | `samples`, `frames` | physical | discrete | `int` |
-  | `pixels` | graphical | discrete | `int` |
-  | `meters`, `centimeters`, `millimeters`, `inches`, `points`, `css_pixels`, `user_units` | graphical | continuous | `float` |
+  | Unit | Domain | Modality | Default number type | Admits |
+  | --- | --- | --- | --- | --- |
+  | `number` | logical | continuous | `float` | `int`, `float`, `fraction` |
+  | `floating_measures` | logical | continuous | `float` | `float`, `fraction` |
+  | `whole_notes`, `quarters` | logical | continuous | `fraction` | `float`, `fraction` |
+  | `ticks` | logical | discrete | `int` | `int` |
+  | `milliseconds`, `seconds`, `minutes` | physical | continuous | `float` | `float`, `fraction` |
+  | `samples`, `frames` | physical | discrete | `int` | `int` |
+  | `pixels` | graphical | discrete | `int` | `int` |
+  | `meters`, `centimeters`, `millimeters`, `inches`, `points`, `css_pixels`, `user_units` | graphical | continuous | `float` | `float`, `fraction` |
+
+  Both packages hold this table as `UNITS`, keyed by unit, each row a
+  `UnitEntry` of the unit's domain, modality, default number type and
+  admitted number types (Python `number_type` and `number_types`, npm
+  `numberType` and `numberTypes`).
 
   `pixels` counts the pixels of a raster image. `css_pixels` is the CSS
   pixel, 1/96 inch, the unit of an SVG's outermost viewport, and is
@@ -138,8 +145,11 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
 
   The domain and modality decide the timeline's class (`seconds` makes a
   `ContinuousPhysicalTimeline`), which a timeline never writes.
-- `number_type` is `int`, `float` or `fraction`; absent, it is the unit's
-  default number type above.
+- `number_type` is `int`, `float` or `fraction`, one its unit admits: a
+  discrete unit `int` alone, a continuous unit `float` or `fraction`, and
+  `number` any of the three; the schema refuses any other (`ticks` with
+  `float`, `seconds` with `int`). Absent, it is the unit's default number
+  type above.
 - `length` is the timeline's length on its own axis, or `null` when it is
   not known (section [Unknown length](#unknown-length)).
 - `children` is an array of timelines, each carrying its `offset` on the
@@ -280,30 +290,40 @@ for `int`, a JSON number for `float`, and a `[numerator, denominator]` pair
 of integers with a strictly positive denominator for `fraction`, mirroring
 BOPP. A child's `offset` takes the parent's number type.
 
-The declared number type decides how a value is read, never its spelling,
-and a reader coerces: `2.0` on an `int` axis is the integer 2, `2` on a
-`float` axis the float 2.0, and `[1, 8.0]` the Fraction 1/8. A round trip
-that respells numbers, such as one through RFC 8785 JSON, therefore never
-invalidates a manifest. Writers respell every own-axis value of a manifest
+The number type fixes the form of a value; the spelling within the form
+is free. An `int` takes a JSON number without a fractional part, a `float`
+a JSON number (an integer only where a double equals it), and a
+`fraction` a `[numerator, denominator]` pair, and a reader reads every
+spelling within the form as the value it states: `480.0` on an `int` axis
+is the integer 480, `2` on a `float` axis the float 2.0, and a pair in
+any terms, its members integers or integral floats, the Fraction it
+equals (`[2, 4]` and `[4, 8.0]` are 1/2, `[-3, 6]` is −1/2). A value in
+another form is refused with the code `representation`, even where its
+value could be read: a Fraction pair on an `int` axis (`[480, 1]`) or a
+`float` axis (`[25, 2]`), a bare number on a `fraction` axis (`12`,
+`12.0`), a number with a fractional part on an `int` axis (`2.5`), and an
+integer that no double equals on a `float` axis (`9007199254740993`). A
+Fraction member with a fractional part or a denominator below 1 is
+refused by the schema. The acceptance table
+`fixtures/acceptances/0.2.0/numbers.yaml` states these readings and
+refusals as rows that every reader runs ([fixture
+guide](fixtures/README.md#acceptance-cases)). A round trip that respells
+numbers, such as one through RFC 8785 JSON, therefore never invalidates a
+manifest. Writers respell every own-axis value of a manifest
 as its number type selects ([Shared spelling](#shared-spelling)): an
 integral float on an `int` axis as an integer (`2.0` as `2`), an integer
 on a `float` axis as a float (`2` as `2.0`), and a Fraction pair reduced
 to lowest terms with a positive denominator, its members integers
 (`[4, 8.0]` as `[1, 2]`). A value its number type cannot take, any of
-those refused below, and every value on an axis whose `unit` or
+those refused above, and every value on an axis whose `unit` or
 `number_type` is unknown, is written as given; a `unit` that is missing,
 not a string or a string not in the unit table, and a `number_type` that
 is not a string, `null`
 included, count as unknown, while a missing `number_type` is the unit's
 default. A child's own-axis values are respelled by the child's own
 `unit` and `number_type` even under a parent whose axis is unknown; the
-child's `offset`, on the parent's axis, is then written as given. What a
-value cannot be read as stays refused: a number with a fractional part on
-an `int` axis, an integer that no float equals exactly on a `float` axis, a
-Fraction pair on an `int` or `float` axis and a bare number on a
-`fraction` axis, each with the code `representation`; and a Fraction
-member with a fractional part or a denominator below 1, which the schema
-refuses. The schema types own-axis values as `Number`; both validators then
+child's `offset`, on the parent's axis, is then written as given. The schema
+types own-axis values as `Number`; both validators then
 check the representation and report a mismatch such as
 `length 32 of 'score' is an int on a fraction axis: write [32, 1]`, or, for
 an integer no float holds exactly,
@@ -316,7 +336,8 @@ A conversion map's numbers and a MeasureMap row's lengths are numbers of
 the same kind, each a JSON number or a Fraction pair. Writers write the
 numbers of conversion maps and of MeasureMap rows as given, neither
 respelled nor reduced. The self-describing
-coordinate object `{unit, number_type, value}` (`$defs/Coordinate`) serves
+coordinate object `{unit, number_type, value}` (`$defs/Coordinate`), its
+`number_type` one its `unit` admits, serves
 a position outside such a container, as hosts exchange single positions;
 inside a manifest every position lies on an axis its container declares.
 
@@ -430,7 +451,8 @@ stored, never a map's value at it. `display` lists what the timestamp
 draws, distinct words from `wedge` (its coordinate marker), `name`, `id`
 and `coordinate` (its labels, stacked beyond the wedge in this order: its
 name, its ID, its coordinate with its unit) and `cross_section` (a vertical
-line across its timeline's line, children band and conversion maps band);
+line across its timeline's line, children band and conversion maps band
+and, for a member that is a child timeline, its ancestor lines);
 its order means nothing and writers write it in the order just given. A
 timestamp draws by default its wedge, its name and its cross-section line,
 a match timestamp its cross-section line alone (the drawing
@@ -447,25 +469,32 @@ never stored; the line is drawn in the style of the timestamp's own line,
 without a wedge or labels, has no settings of its own, and leaves out the
 lines on which the timestamp's labels lie; the timestamp's own wedge is
 turned −45° by default, so that the line leaves it aside (the drawing
-specification, sections 2.5 and 6.6). Both validators refuse a groupstamp
-whose timeline lies in no group, and a groupstamp that is also a match
-timestamp. `order` maps the
+specification, sections 2.5 and 6.6). A match timestamp may be a
+groupstamp too. Both validators refuse a groupstamp whose timeline lies in
+no group. `order` maps the
 ID of a group or of a timeline to the order of what it stacks, top to bottom, and
 writers never reorder it:
 
 - a group's ID to the **display order** of its members, a permutation of
   their IDs; a group without an entry is displayed in the order of
   `members`;
-- a timeline's ID, of a root or a descendant, to its **band order**, a
-  permutation of `line`, the timeline's own line, and of its five facets
-  `markers`, `conversion_maps`, `children`, `regions` and `flow_control`,
-  each drawn as a band: the bands before `line` lie above the line, the
-  nearest last, and those after it below, the nearest first. A timeline
-  without an entry follows its parent's band order, a member that is a
-  child included, and a root without one the default
+- a timeline's ID, of a root or a descendant, to its **band order**:
+  `line`, the timeline's own line, and any of its five facets `markers`,
+  `conversion_maps`, `children`, `regions` and `flow_control`, each drawn
+  as a band, each at most once: the bands before `line` lie above the
+  line, the nearest last, and those after it below, the nearest first. A
+  timeline without an entry follows its parent's band order, a member
+  that is a child included, and a root without one the default
   `["children", "conversion_maps", "line", "markers", "regions",
   "flow_control"]`; changing a timeline's band order so changes that of
-  every descendant without an entry of its own.
+  every descendant without an entry of its own. An entry that leaves a
+  facet out is completed against the order the timeline would follow
+  without it: the listed entries keep their order, and each facet left
+  out keeps the side of `line` it has there and lies beyond the listed
+  entries on that side, in that order's sequence (the drawing
+  specification, section 6.4): for a root, `["markers", "line"]` stands
+  for `["children", "conversion_maps", "markers", "line", "regions",
+  "flow_control"]`, which a child without an entry follows.
 
 ```json
 "order": {"#score": ["children", "markers", "line", "conversion_maps", "regions", "flow_control"]}
@@ -587,7 +616,7 @@ of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor that a named timestamp lies
 on a timeline of the manifest and within it, nor that a groupstamp lies
-in a group and is no match timestamp, nor that a resource's
+in a group, nor that a resource's
 timelines are timelines of the manifest, nor the rules of named
 MatchStamps ([Named MatchStamps](#named-matchstamps)), nor the representation of
 own-axis values, so both validators check them after the schema. Each
@@ -618,15 +647,14 @@ stable code:
 | An entry of a display order is not a member of its group | `display_order` | the entry | `'<id>' is not a member of group '<group id>'` |
 | A member of a group is missing from its display order | `display_order` | the order | `member '<id>' of group '<group id>' is missing` |
 | An entry of a band order is neither `line` nor a facet | `band_order` | the entry | `'<entry>' is not 'line' or a facet, in the band order of '<id>'` |
-| A facet, or `line`, is missing from its band order | `band_order` | the order | `'<entry>' is missing from the band order of '<id>'` |
+| `line` is missing from a band order | `band_order` | the order | `'line' is missing from the band order of '<id>'` |
 | A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
-| A groupstamp that is no match timestamp lies on a timeline that lies in no group (neither it nor any of its ancestors is a member) | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group and lies in none` |
+| A groupstamp lies on a timeline that lies in no group (neither it nor any of its ancestors is a member) | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group and lies in none` |
 | An entry of an alignment anchor's `timestamps` names no named timestamp | `alignment_anchor` | the entry | `'<id>' names no timestamp of this manifest` |
 | An entry of an alignment anchor's `timestamps` names a timestamp that is no match timestamp | `alignment_anchor` | the entry | `'<id>' is no match timestamp` |
 | The two match timestamps of an alignment anchor lie on one timeline | `alignment_anchor` | the anchor's second entry of `timestamps` | `the timestamps of '<anchor id>' both lie on the timeline '<timeline id>'` |
 | The alignment anchors of a named MatchStamp are not one connected set of timestamps | `matchstamp` | its `alignment_anchors` | `the alignment anchors of '<id>' are not one connected set` |
-| A match timestamp is a groupstamp | `groupstamp` | its `groupstamp` | `'<id>' is both a match timestamp and a groupstamp` |
 | A match timestamp lies on the coordinate of an earlier match timestamp of its timeline, compared by exact value | `match_timestamp` | the later timestamp | `'<id>' lies on the coordinate of the match timestamp '<earlier id>'` |
 | No named MatchStamp's anchor names a match timestamp | `match_timestamp` | the timestamp | `the match timestamp '<id>' belongs to no MatchStamp` |
 | An entry of a resource's `timelines` names no timeline of the manifest | `resource_timeline` | the entry | `'<id>' names no timeline of this manifest` |
@@ -654,13 +682,13 @@ IDs, the named timestamps' IDs, the named MatchStamps' IDs, each followed
 by its anchors' IDs, the resources' IDs, the manifest's ID; members
 (member by member: dangling, nested); the entries of `graphical.order` in
 code-point order of their keys: an order's strangers first, in its order,
-then its missing entries, in the order of the group's `members` or of the
-default band order; then the named timestamps, in array order, each its
+then what it misses, a display order's members in the order of the group's
+`members` and a band order's `line`; then the named timestamps, in array order, each its
 timeline, its coordinate, then whether it may be a groupstamp; then the
 named MatchStamps in array order, each anchor in turn (its two
 timestamps in order, then whether they lie on one timeline) before
 whether the MatchStamp's anchors connect, followed by the match
-timestamps in array order, for each whether it is a groupstamp, then a
+timestamps in array order, for each a
 coordinate shared with an earlier one, then belonging to no MatchStamp; and last the resources, in array order, each its
 `timelines` in order before its `type`. A repeated anchor ID is a
 `duplicate_id` wherever the earlier ID stands, and a repeated ID within
@@ -683,20 +711,25 @@ refused by the schema.
 
 ### The schema document
 
-Version 0.2.0 is one manifest document,
-`schema/0.2.0/timetoshare.schema.json`, with the identifier
+Version 0.2.0 is three documents in `schema/0.2.0/`: the manifest
+document `timetoshare.schema.json`, with the identifier
 `https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json`,
-so the document lies below `schema/` at the path of its identifier, and
-beside it the provenance document `schema/0.2.0/provenance.schema.json`,
-which defines the one provenance entry that the manifest's statements and
-the MatchClaim table's rows share ([Provenance and
-beliefs](#provenance-and-beliefs)); the manifest document refers to it
-for every `provenance` entry. Every
-released version's documents are served at their identifiers and, by this
-repository's own GitHub Pages site, at
+so the document lies below `schema/` at the path of its identifier; beside
+it the provenance document `provenance.schema.json`, which defines the one
+provenance entry that the manifest's statements and the MatchClaim
+table's rows share ([Provenance and beliefs](#provenance-and-beliefs)),
+and to which the manifest document refers for every `provenance` entry;
+and `tables.json`, the column types of the two tables as data ([Resources
+and tables](#resources-and-tables)). Every released version's documents,
+and with them the catalogue's schema `catalogue/catalogue.schema.json` as
+`<version>/catalogue.schema.json`, are served at their identifiers and,
+by this repository's own GitHub Pages site, at
 `https://timetoalign.github.io/TimeToShare/0.2.0/timetoshare.schema.json`
 (its version in place of `0.2.0`, its file name in place of
-`timetoshare.schema.json`); the release workflow publishes both. The
+`timetoshare.schema.json`). The release workflow publishes every one of
+them on both sites, assembled by `scripts/check_published.py`, which
+refuses a document whose `$id` is not the address it is served at and a
+reference to a document or member that is not served. The
 manifest document's root is
 `{"$ref": "#/$defs/Manifest"}`. These definitions are public and may be
 embedded by a host schema; within 0.2.x they change only by addition:
@@ -717,7 +750,7 @@ embeds either a whole manifest, version marker included, or a bare
 The schema is the source of truth for timetoalign and TimeLineEditor.
 timetoalign's hand-written serialization is tested for schema conformance and
 fixture round trips. TypeScript types are generated in this repository from
-the two documents.
+the manifest and provenance documents.
 
 ## Resources and tables
 
@@ -756,7 +789,11 @@ At most one resource has the type `MatchClaim`, and at most one the type
 `Projection`. A table of events is named by the same entry, its `type`
 the type of its events; the Projections table is the one such table this
 version defines. Parquet is the form in which packages read and write
-these tables.
+these tables. `schema/0.2.0/tables.json` publishes the column types of
+both tables as data ([The schema document](#the-schema-document)), each
+table with its `status`: the MatchClaim table is `stable`; the
+Projections table, like every event type a resource names, is
+`experimental` and may change in any version.
 
 ### The MatchClaim table
 
@@ -766,7 +803,8 @@ relates them without stating a time, and a NOMATCH states that an event
 has no counterpart on the other timeline. MatchClaims are data, not
 structure, and a manifest holds none. They live in one table per package,
 the **MatchClaim table**, named by the resource of type `MatchClaim`, and
-it is the one place they live. It holds one row per MatchClaim and one
+it is the one place they live. A MatchClaim table belongs to one
+manifest, and a MatchClaim is addressed by its ID alone. It holds one row per MatchClaim and one
 column per property of a MatchClaim, each of the Arrow type given; a
 column whose Null is "never" holds a value in every row:
 
@@ -782,12 +820,7 @@ column whose Null is "never" holds a value in every row:
 | `id` | string | never | the MatchClaim's ID, never changed once given (below) |
 
 The columns may stand in any order, and a table may hold further
-columns, which are kept and never checked. A table that mixes the
-MatchClaims of several scopes adds the optional key column `scope`
-(string, null allowed): null for a MatchClaim of the package's own, else
-the name of the scope the row comes from, the ID of the manifest whose
-MatchClaim it is. A table of the package's own MatchClaims alone needs no
-such column. A provenance that every row shares is stated once, as JSON
+columns, which are kept and never checked. A provenance that every row shares is stated once, as JSON
 under the key `timetoshare:provenance` of the file's schema metadata; the
 `provenance` of every row is then null, and a row stating its own is
 refused.
@@ -820,7 +853,8 @@ a `fraction` its `numerator` and its `denominator`, a `float` its
 `value` alone, and every other member is null. A float is never written
 as a fraction, nor a fraction as a float. Every cell that is not null
 states a `unit` of the format's units and a `number_type` of `int`,
-`float` and `fraction`; its `value` is finite, its integers are 64-bit,
+`float` and `fraction` that the unit admits ([The timeline](#the-timeline));
+its `value` is finite, its integers are 64-bit,
 and a fraction has a `denominator` of at least 1, so that exact ratios
 survive Parquet. A fraction in any terms is accepted and read as its
 value: `(2, 4, null)` is the value 1/2, equal to `(1, 2, null)` wherever
@@ -845,9 +879,9 @@ gives their codes and messages):
   anchors. An `end_anchor` comes only with a `start_anchor`.
 - Both coordinates of an anchor are cells, never null.
 - A stated `certainty` lies in [0, 1].
-- The ID, a `scope` and an event ID are non-empty strings without control
+- The ID and an event ID are non-empty strings without control
   characters (U+0000 to U+001F), as every ID of the format
-  ([Identity](#identity)); an ID is given once in its scope.
+  ([Identity](#identity)); an ID is given once in the table.
 - The provenance is a provenance entry ([Provenance and
   beliefs](#provenance-and-beliefs)): valid against
   `provenance.schema.json`, without a key the entry or a belief does not
@@ -861,12 +895,10 @@ other.
 **IDs and succession.** A MatchClaim is never deleted, and its ID never
 changes. A MatchClaim found wrong is invalidated by a belief `false`
 ([Provenance and beliefs](#provenance-and-beliefs)); a correction is
-another MatchClaim under a new ID. Joining packages keeps every ID in its
-scope: a MatchClaim is its scope and its ID, an ID is given once per
-scope, and two scopes may each hold `claim_1`. A table that mixes the rows
-of several manifests names each row's in its `scope` column, never in a
-string joined to the ID. Whoever writes a table over an existing one keeps the **succession
-rule**: every MatchClaim of the old table, by its scope and its ID, is in
+another MatchClaim under a new ID. Joining the tables of two packages
+that hold one ID gives a table the check refuses (`duplicate_id`).
+Whoever writes a table over an existing one keeps the **succession
+rule**: every MatchClaim of the old table, by its ID, is in
 the new one with the same value in every column of the table's type but
 `provenance`, which alone may differ; coordinates compare by unit, number
 type and exact value, and the further columns of a table are not
@@ -885,7 +917,7 @@ of them, the **Projections table**, named by the resource of type
 
 | Column | Arrow type | Null | Holds |
 | --- | --- | --- | --- |
-| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise. An event's ID is unique on its timeline: a Projection is its timeline and its ID, so two timelines may each hold `projection_1`, and one timeline holds an ID once |
+| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise. An event's ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on |
 | `timeline_id` | string | never | the timeline the Projection is an event of, a timeline of the manifest |
 | `unit`, `number_type` | string | never | the unit and the number type of its `start` and `duration`, stated once for both: those of the timeline's own axis |
 | `start` | number | never | its position on that timeline's own axis |
@@ -990,11 +1022,11 @@ timeline's axis. Each problem is a `TableProblem` of a `code`, a `row`
 (its index from 0, or `None` for the whole table), a `column` (a tuple
 path such as `("start_anchor", "coordinate_a")`, written
 `start_anchor.coordinate_a` below) and a `message`. A table missing a
-column of its type, or holding one of another type (`scope` included), is
+column of its type, or holding one of another type, is
 reported for those alone, column by column in the type's order; next, a
 table holding a null where its type allows none is reported for those
 alone, row by row. Otherwise the table's own problems come first, then
-row by row, each row's `scope` and ID before the rules below in their
+row by row, each row's ID before the rules below in their
 order, its provenance last. Every check reports a cell's first problem
 only. `check_match_claims(table, manifest=None)` and
 `check_projections(table, manifest=None)` raise the first problem as a
@@ -1004,11 +1036,10 @@ The MatchClaim table:
 
 | Rule | Code | Column | Message |
 | --- | --- | --- | --- |
-| A column of the type is missing, or it or `scope` is of another type | `schema_violation` | the column, row `None` | `the table has no column '<name>'`, `the column '<name>' is <type>, not <type>` |
+| A column of the type is missing, or of another type | `schema_violation` | the column, row `None` | `the table has no column '<name>'`, `the column '<name>' is <type>, not <type>` |
 | `timeline_a_id`, `timeline_b_id`, `is_synchronous` or `id` is null | `schema_violation` | the column | `'<name>' is null` |
-| A `scope` is empty or holds a control character | `invalid_id` | `scope` | `the scope is empty`, `the scope '<scope>' holds a control character` |
 | An ID is empty or holds a control character | `invalid_id` | `id` | `the ID is empty`, `the ID '<id>' holds a control character` |
-| An ID repeats the ID of an earlier row of its scope | `duplicate_id` | `id` | `the ID '<id>' is given twice`, followed by ` in the scope '<scope>'` for a scope that is not null |
+| An ID repeats the ID of an earlier row | `duplicate_id` | `id` | `the ID '<id>' is given twice` |
 | The file's provenance is no JSON text, no object or no provenance entry | `invalid_provenance` | `provenance`, row `None` | `the file's provenance is no JSON text`, `the file's provenance is no object`, `the file's provenance <pointer>: <problem>` |
 | A timeline names no timeline of the manifest | `unknown_timeline` | `timeline_a_id`, `timeline_b_id` | `the manifest has no timeline '<id>'` |
 | Both timelines are one | `claim_timelines` | `timeline_b_id` | `both sides are '<id>'` |
@@ -1032,9 +1063,9 @@ The Projections table:
 | A column of the type is missing or of another type | `schema_violation` | the column, row `None` | as in the MatchClaim table |
 | `id`, `timeline_id`, `unit`, `number_type` or `start` is null | `schema_violation` | the column | `'<name>' is null` |
 | An ID is empty or holds a control character | `invalid_id` | `id` | as in the MatchClaim table |
-| An ID repeats the ID of an earlier row on its timeline | `duplicate_id` | `id` | `the ID '<id>' is given twice on the timeline '<timeline id>'` |
+| An ID repeats the ID of an earlier row | `duplicate_id` | `id` | as in the MatchClaim table |
 | `timeline_id` names no timeline of the manifest | `unknown_timeline` | `timeline_id` | `the manifest has no timeline '<id>'` |
-| `unit` is none of the format's units, or `number_type` none of `int`, `float` and `fraction` | `invalid_coordinate` | `unit`, else `number_type` | `'<unit>' is no unit`, `'<number type>' is no number type` |
+| `unit` is none of the format's units, or `number_type` none of `int`, `float` and `fraction` or one the unit does not admit | `invalid_coordinate` | `unit`, else `number_type` | `'<unit>' is no unit`, `'<number type>' is no number type`, `'<unit>' admits no number type '<number type>'` |
 | The row's unit and number type are not those of its timeline in the manifest, or of an earlier row on its timeline | `axis_mismatch` | `unit` where the units differ, else `number_type` | an axis message (below) |
 | `start`, then `duration`, is malformed | `invalid_coordinate` | the number | a number's message (below) |
 | A well-formed `duration` is negative | `invalid_duration` | `duration` | `the duration is negative` |
@@ -1047,7 +1078,9 @@ A cell's message names the first of: an anchor's coordinate that is null
 (`the coordinate has no unit`, `the coordinate has no number_type`); a
 unit that is none of the format's (`'<unit>' is no unit`); a number type
 other than `int`, `float` and `fraction` (`'<number type>' is no number
-type`); then the problem of its number. A number's message calls a
+type`); a number type its unit does not admit (`'<unit>' admits no number
+type '<number type>'`), so that a table checked alone refuses it too; then
+the problem of its number. A number's message calls a
 cell and a Projection's `start` the coordinate and a Projection's
 `duration` the duration, and names the first of: a member its number type
 fills that is null, in the order `numerator`, `denominator`, `value` (`a
@@ -1093,8 +1126,8 @@ columns in the type's order; `check_succession` raises the first.
 
 | Rule | Code | Column | Message |
 | --- | --- | --- | --- |
-| A MatchClaim of the old table is missing from the new one | `succession_missing` | `id`, row `None` | `the MatchClaim '<id>' is missing`, `the MatchClaim '<id>' of the scope '<scope>' is missing` |
-| A MatchClaim of the old table has another value in a column but `provenance` | `succession_changed` | that column, the row in the new table | `the MatchClaim '<id>' changed its '<column>'`, the scope named as above |
+| A MatchClaim of the old table is missing from the new one | `succession_missing` | `id`, row `None` | `the MatchClaim '<id>' is missing` |
+| A MatchClaim of the old table has another value in a column but `provenance` | `succession_changed` | that column, the row in the new table | `the MatchClaim '<id>' changed its '<column>'` |
 
 ## MatchStamps
 
@@ -1123,13 +1156,9 @@ MatchClaims and 58 Projections; the notes of a chord share their onset, so
 the MatchClaims give 31 unique anchors, which join 62 coordinates into 31
 potential MatchStamps of two coordinates each.
 
-In this version the derivation covers the package's own MatchClaims,
-whose `scope` is null. It takes its anchors from every row the belief
-filter keeps, whatever the row's scope, but names the MatchClaims behind
-an anchor or a potential MatchStamp by their IDs alone, so that in a table
-mixing scopes, `claim_1` of two scopes counts as one MatchClaim. Python's
-reference derivation, `alignment_anchors` and `potential_matchstamps`,
-does the same.
+Python's reference derivation, `alignment_anchors` and
+`potential_matchstamps`, names the MatchClaims behind each anchor and
+each potential MatchStamp by their IDs.
 
 ### Named MatchStamps
 
@@ -1169,9 +1198,8 @@ graphical:
   MatchStamp turns `name` on for the middle anchor in screen order. The
   timestamps of a MatchStamp are those its anchors name.
 - `match_claims` records the IDs of the MatchClaims behind the MatchStamp
-  when it was named or last updated. In this version they are MatchClaims
-  of the package's own (`scope` null): a MatchStamp names no MatchClaim of
-  another scope. The manifest is valid whatever the
+  when it was named or last updated, MatchClaims of the manifest's own
+  table. The manifest is valid whatever the
   table says: comparing a named MatchStamp with the current table is an
   editor's work. A MatchStamp, unlike a MatchClaim, may be changed and
   removed.
@@ -1181,8 +1209,7 @@ or is no match timestamp, and an anchor naming two timestamps of one
 timeline (`alignment_anchor`); a MatchStamp whose anchors do not form one
 connected set of timestamps (`matchstamp`); two match timestamps at one
 coordinate of one timeline, and a match timestamp that no MatchStamp
-names (`match_timestamp`); a match timestamp that is a groupstamp
-(`groupstamp`); an anchor ID that repeats any ID of the
+names (`match_timestamp`); an anchor ID that repeats any ID of the
 manifest (`duplicate_id`, as every ID); and a MatchClaim ID repeated
 within one MatchStamp's `match_claims` or an anchor's `display` word
 other than `line` and `name` (`schema`). The table of
@@ -1254,8 +1281,11 @@ by its title: its `name`, or its `id` when it has no name; an anonymous
 bundle has none. Each group is a frame; each ungrouped root lies in a card
 of its own, and each member in one card in the frame of each group that
 has it as a member; a member that is a child timeline is drawn with the
-faded lines of its ancestors. The element types are the containers
-`block`, `frame`, `card` and `band` (a band draws one of a timeline's five
+faded lines of its ancestors and, where a rule displays it, with its
+root's **ancestor card** behind its group's frame, the root drawn whole
+at the proportions of its own axis, its line continuing the faded one.
+The element types are the containers `block`, `frame`, `card`,
+`ancestor_card` (hidden by default) and `band` (a band draws one of a timeline's five
 facets and lies above or below its line as the timeline's band order
 places it; a band that is not displayed hides everything it holds, and by
 default the regions and flow control bands are hidden on every timeline
@@ -1978,7 +2008,8 @@ else:
   ([Written in a file](#written-in-a-file)). They live in `timetoshare.ids`.
 - `complete_styles(graphical)` returns `(completed, missing)` and warns with
   `MissingStyleWarning` when `missing` is non-empty.
-- `SCHEMA_VERSION` is `"0.2.0"`, the one version the package reads.
+- `SCHEMA_VERSION` is `"0.2.0"`, the one version the package reads, and
+  `UNITS` the unit table ([The timeline](#the-timeline)).
 - `schema_path()` returns the path of the manifest document and
   `provenance_schema_path()` that of the provenance document beside it;
   `load_schema()` returns the manifest document with the provenance
@@ -1986,11 +2017,14 @@ else:
 - `timetoshare.tables`, which needs the extra `tables`
   (`pip install "timetoshare[tables]"`, which installs pyarrow), reads
   the two tables as Arrow tables ([Resources and
-  tables](#resources-and-tables)). `MATCH_CLAIM_SCHEMA` and
-  `PROJECTION_SCHEMA` declare their columns, `SCOPE_FIELD` the MatchClaim
-  table's optional key column `scope`, `NUMBER_TYPE` a number,
-  `NUMBER_KEYS` its members and `NUMBER_MEMBERS` the members each number
-  type fills; `number_cell(value, number_type)` writes a number's
+  tables](#resources-and-tables)). `tables_path()` returns the path of
+  `tables.json` (`TABLES_DOCUMENT`), from which `MATCH_CLAIM_SCHEMA` and
+  `PROJECTION_SCHEMA` declare their columns, `MATCH_CLAIM_REQUIRED` and
+  `PROJECTION_REQUIRED` name the columns that hold no null, and
+  `NUMBER_TYPE`, `COORDINATE_TYPE`, `ANCHOR_TYPE`, `PROJECTION_OF_TYPE`
+  and `PROVENANCE_TYPE` declare the struct types; `NUMBER_KEYS` holds a
+  number's members and `NUMBER_MEMBERS` the members each number type
+  fills; `number_cell(value, number_type)` writes a number's
   members, raising `ValueError` for a value its number type does not
   hold (a float where an exact number belongs, a float that is not
   finite, a Fraction on a `float` axis or an integer no double holds
@@ -2150,9 +2184,18 @@ rewrite(text) === text; // true: the text is canonical YAML
 - `toFileId(id)`, `fromFileId(value)`, `withFileIds(manifest)` and
   `withBareIds(manifest)` do what Python's `to_file_id`, `from_file_id`,
   `with_file_ids` and `with_bare_ids` do.
-- `completeStyles(graphical)` returns `{graphical: completed, missing}`.
+- `completeStyles(graphical)` returns `{graphical: completed, missing}`,
+  the copy keeping every number as `loads` read it (a `JsonFloat` stays
+  one).
 - `FONT_FILES` names the bundled TrueType files, as Python's constant does,
   and `fontMetrics` contains the merged advance-width metrics of both.
+- `UNITS` holds the unit table as Python's does ([The
+  timeline](#the-timeline)). `exactValue(value)` returns the exact value
+  of a number as the format writes one, a JSON number or a `[numerator,
+  denominator]` pair in any terms (its members integers or integral
+  floats, its denominator at least 1), as a `Rational` of two bigints, or
+  `null` for a value that is none; `jsonInteger(value)` returns the
+  integer a JSON number states, an integral float included, or `null`.
 - `SCHEMA_VERSION` is `"0.2.0"`, and `schema` holds the schema document.
   The generated types are generated from it, with the root type
   `Manifest` and one type per definition, such as `Timeline`, `Group`
@@ -2190,14 +2233,18 @@ its tag and in the packages released with it.
 
 A TimeToShare release is a schema-version event: one `vX.Y.Z` tag publishes
 both packages through trusted publishing and publishes the version's
-schema document at both its URLs ([The schema
-document](#the-schema-document)). `scripts/check_versions.py` checks that all
+documents at both their addresses ([The schema
+document](#the-schema-document)); `scripts/check_published.py` checks those
+addresses. `scripts/check_versions.py` checks that all
 version declarations agree.
 
 ## Fixtures
 
 The [fixture guide](fixtures/README.md) describes the generated manifests
-and the drawings, the hand-authored rejection cases, and the warning cases.
+and the drawings, the hand-authored rejection cases, the warning cases,
+and the acceptance table of own-axis values
+(`fixtures/acceptances/0.2.0/numbers.yaml`, [Values on a timeline's own
+axis](#values-on-a-timelines-own-axis)).
 Every accepted fixture is written in canonical YAML (`.yaml`), the complete
 form beside its minimal twin (`.minimal.yaml`). The manifests are emitted
 only by timetoalign through the catalogue of builders in
@@ -2309,6 +2356,13 @@ From the repository root, check version declarations with:
 
 ```bash
 python3 scripts/check_versions.py
+```
+
+and the documents a release publishes, with their `$id`s and references
+([The schema document](#the-schema-document)), with:
+
+```bash
+python3 scripts/check_published.py
 ```
 
 ## Releasing

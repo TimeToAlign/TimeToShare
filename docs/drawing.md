@@ -172,8 +172,8 @@ lies in no group through it. The groupstamp's line extends across the
 frame of each group its timeline lies in, from the upper border of the
 topmost member card drawn there to the lower border of the bottommost
 (section 6.6, Cross-section lines); the members' coordinates at that line
-are derived from the group and never stored. A timestamp is never both a
-groupstamp and a match timestamp. Their canonical order is by `timeline`,
+are derived from the group and never stored. A match timestamp may be a
+groupstamp too. Their canonical order is by `timeline`,
 compared by Unicode code point, then by `coordinate`, compared by exact
 value, then by `id`, compared by code point.
 
@@ -183,7 +183,8 @@ A named timestamp draws up to five elements, each named by one word of its
 (section 6.4, Markers): its `name`, its ID, and its coordinate in its
 timeline's unit (section 5.2); and `cross_section`, its **cross-section
 line**, across its timeline's line, children band and conversion maps band
-(section 6.6). `display` is an array of distinct words from these five,
+and, for a member that is a child timeline, its ancestor lines (section
+6.6). `display` is an array of distinct words from these five,
 listing what the timestamp draws; when it is absent the timestamp draws
 `["wedge", "name", "cross_section"]`, a match timestamp
 `["cross_section"]`, and an empty array draws nothing. A timestamp
@@ -225,6 +226,7 @@ of a timeline, which draws nothing of its own:
 | `block` | the block: the background of the drawing, holding everything drawn (section 8) |
 | `frame` | a group's frame (section 8) |
 | `card` | the raised container of a member drawing: one in the frame of each group that has the timeline as a member, or one for an ungrouped root (section 8) |
+| `ancestor_card` | the card of a root that contains a member, behind the frame of that member's group, at the proportions of the root's axis; hidden by default (section 8.8) |
 | `timeline` | the line of a timeline drawn in a card (section 8) |
 | `child` | a child timeline's line, at any depth |
 | `band` | one of the five bands of a timeline, each drawing one of its facets: its markers, conversion maps, children, regions or flow control (below; section 6.4) |
@@ -235,7 +237,7 @@ of a timeline, which draws nothing of its own:
 | `flow_marker` | a flow marker, a `flow_marker` element of `flow_control`, drawn as a vertical line |
 | `jump_from` | a jump origin, a `jump_from` element of `flow_control`, drawn as an arc with an arrowhead to where it jumps; a jump target, a `jump_to` element, draws nothing of its own |
 | `wedge` | a coordinate marker: of a named timestamp of any timeline (section 2); on an ancestor line, the member's start or end on the ancestor's axis (section 8.3) |
-| `cross_section` | the cross-section line of a named timestamp, a vertical line across its timeline's line, children band and conversion maps band, and for a groupstamp also one line across the frame of each group its timeline lies in (section 6.6) |
+| `cross_section` | the cross-section line of a named timestamp, a vertical line across its timeline's line, children band and conversion maps band and, for a member that is a child timeline, its ancestor lines, and for a groupstamp also one line across the frame of each group its timeline lies in (section 6.6) |
 | `alignment_anchor` | the line of an alignment anchor of a named MatchStamp, the shortest line between the cross-section lines of its two timestamps (section 8.7) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
 | `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the coordinate of a mark on an ancestor line, or the label of a region, jump origin, flow marker or segment |
@@ -304,8 +306,8 @@ its five bands and its named timestamps' cross-section lines as a line
 does, whose content is drawn at its segment line's line (section 6.4), and
 has no element type, so `inside` never names it; one that is a segment
 line is drawn as a `child` (section 6.1).
-Section 8 states the top of the tree: the block, frames, cards and
-ancestor lines; the block also holds every `alignment_anchor`, and an
+Section 8 states the top of the tree: the block, frames, cards, ancestor
+cards and ancestor lines; the block also holds every `alignment_anchor`, and an
 `alignment_anchor` holds its label.
 
 ### 2.2 Addresses
@@ -343,7 +345,7 @@ and `X` an element's ID:
 | the MatchStamp's name at that anchor, a `label` element | `{"id": A, "part": ["name"]}` | none |
 | the name of an element with ID `X` | `{"id": X, "part": ["name"]}` | that element's timeline |
 | the label of an element with ID `X` | `{"id": X, "part": ["label"]}` | that element's timeline |
-| every card of a timeline with ID `T`: an ungrouped root's, or one in the frame of each group that has `T` as a member | `{"id": T, "part": ["card"]}` | `T` |
+| every card of a timeline with ID `T`: an ungrouped root's, one in the frame of each group that has `T` as a member, or an ancestor card behind the frame of each group having a member below `T` | `{"id": T, "part": ["card"]}` | `T` |
 | the boundary of a segment with ID `S` | `{"id": S, "part": ["start"]}` | `S` |
 | the label of a segment with ID `S` | `{"id": S, "part": ["label"]}` | `S` |
 | the ancestor line of a timeline with ID `A` | `{"id": A}` | `A` |
@@ -373,8 +375,9 @@ addressed like a region but draws nothing. A MeasureMap belongs to no
 timeline and is not drawn; `{"id": X}` with its ID `X` addresses it.
 
 One timeline may be drawn more than once: as a member in the frame of each
-group that has it as a member, as an ancestor line of several members, or
-as both; and a member's start and end are marked on each of its ancestor
+group that has it as a member, as an ancestor line of several members, in
+the ancestor card behind each frame holding a member below it (section
+8.8), or in several of these; and a member's start and end are marked on each of its ancestor
 lines (section 8.3). An element drawn more than once,
 such a timeline with its cards, descendants, bands, maps, regions,
 flow-control elements and named timestamps, an ancestor line with its marks, and the parts of
@@ -425,11 +428,11 @@ wedge is written by its points, never with a `transform` (section 7.2).
 | `stroke` | `#RRGGBB` (upper-case) or `none` | yes | every type but `block`, `band`, `wedge`, `name` and `label` |
 | `stroke-width` | a number ≥ 0 | yes | as `stroke` |
 | `stroke-dasharray` | `none`, or numbers separated by single spaces | yes | as `stroke` |
-| `fill` | `#RRGGBB` or `none` | yes | `block`, `frame`, `card`, `timeline`, `child`, `ancestor` (the circles at their start and end, the arrowhead at their end), `jump_from` (its arrowhead), `wedge`, `name`, `label` |
+| `fill` | `#RRGGBB` or `none` | yes | `block`, `frame`, `card`, `ancestor_card`, `timeline`, `child`, `ancestor` (the circles at their start and end, the arrowhead at their end), `jump_from` (its arrowhead), `wedge`, `name`, `label` |
 | `opacity` | a number from 0 to 1 | no | every type but `band` |
 | `font-size` | a number > 0 | yes | `name`, `label` |
-| `rx` | a number ≥ 0 | no | `block`, `frame`, `card` (the corner radius) |
-| `shadow` | `#RRGGBB` or `none` | no | `card` (the colour of its offset shadow, section 8.4) |
+| `rx` | a number ≥ 0 | no | `block`, `frame`, `card`, `ancestor_card` (the corner radius) |
+| `shadow` | `#RRGGBB` or `none` | no | `card`, `ancestor_card` (the colour of its offset shadow, section 8.4) |
 | `display` | `inline` or `none` | no | every type but `block` |
 | `content` | a text, or `none` | no | `name` (a row's own name, section 6.6) |
 | `max-width` | a number > 0, or `none` | no | `name` (section 6.6) |
@@ -476,6 +479,9 @@ refer to it:
 - **An ancestor line hides its name and its marks.** An ancestor line
   (section 8.3) that is not displayed hides its name and its marks of the
   member's start and end, with their labels, and has no row.
+- **An ancestor card hides its drawing.** An ancestor card (section 8.8)
+  that is not displayed draws nothing of its member drawing, takes no
+  room, and the block does not grow for it.
 
 No other element hides another. A frame or card that is not displayed
 keeps everything drawn in it (section 8.4); a member's line keeps its
@@ -715,7 +721,9 @@ faded, with faded marks and labels, and its name small and grey; a group's
 frame is white with a light grey outline; a card is white with a grey
 outline and a grey offset shadow, so that it stands out from the grey block
 and from a frame alike. A card has its timeline's domain and modality, so
-a rule can style the cards of one domain. The last two rules
+a rule can style the cards of one domain. An ancestor card looks like a
+card and is hidden: a rule setting its `display` to `inline` shows it
+(section 8.8). The last two rules
 hide the regions and flow control bands of every timeline that is
 held by a band, which is every timeline of a member drawing but its root
 (a child is held by its parent's children band, a segment without a line
@@ -736,8 +744,9 @@ wedges, with their labels) against its line below it, then its regions and
 its flow control; its descendants follow it, so every child's maps lie
 against the child's line above it and its own children beyond them, and
 its named timestamps' wedges against its line below it. A cross-section
-line spans its timeline's line, children band and conversion maps band
-(section 6.6), and so never reaches the wedges in this order; in an order
+line spans its timeline's line, children band and conversion maps band,
+and a member's ancestor lines, which lie above every band (section 6.6),
+and so never reaches the wedges in this order; in an order
 that puts the markers band between them, it crosses the wedges unless
 their `rotation` turns them aside (section 6.6).
 
@@ -975,14 +984,26 @@ line).
 
 **The band order.** The **band order** of a timeline lists `line`, its
 own line, and its five facets, each standing for the band drawing it, from
-top to bottom: the entry of the manifest's `graphical.order` under the
-timeline's ID (section 2; README, "Groups and the `graphical` object");
-without one, its parent's band order; and for a root of `timelines`
-without one, the default band order of section 4. A member that is a child
-timeline follows its parent so too. Changing a timeline's band order
-therefore changes that of every descendant without an entry of its own.
-The bands listed before `line` lie **above** its line, those after it
-**below**: up and down, whichever side of its parent's line it lies on.
+top to bottom. A timeline without an entry in the manifest's
+`graphical.order` (section 2; README, "Groups and the `graphical`
+object") follows its **inherited order**: its parent's band order, and
+for a root of `timelines` the default band order of section 4. A member
+that is a child timeline follows its parent so too. Changing a timeline's
+band order therefore changes that of every descendant without an entry of
+its own. An entry lists `line` and any of the facets; it is completed
+against the inherited order: the listed entries keep their order, and
+every facet it leaves out keeps the side of `line` it has in the inherited
+order and lies beyond the listed entries on that side, in the inherited
+order's sequence, the facets left out above the line before the listed
+entries and those below after them. For a root, `["markers", "line"]` is
+so `["children", "conversion_maps", "markers", "line", "regions",
+"flow_control"]`, `["regions", "line"]` is `["children",
+"conversion_maps", "regions", "line", "markers", "flow_control"]`, and
+`["line"]` the default; a child of that first root stating `["line",
+"children"]` has `["conversion_maps", "markers", "line", "children",
+"regions", "flow_control"]`. The bands listed before `line` lie **above**
+its line, those after it **below**: up and down, whichever side of its
+parent's line it lies on.
 
 **What a band holds.** A band draws what its own timeline holds of its
 facet (section 2.1), and what another timeline holds only where a segment
@@ -1466,12 +1487,16 @@ one below it.
   ordinates of the start and the outer edge (section 6.4, Where a band
   lies) of `T`'s children band and of `T`'s conversion maps band, each of
   those bands counting only when it is present, `y1` is the smallest and
-  `y2` the largest, and the line runs from `(X, y1)` to `(X, y2)`. Each of
+  `y2` the largest, and the line runs from `(X, y1)` to `(X, y2)`. When
+  `T` is the root of a member drawing that has an ancestor band (section
+  8.3), the ordinate of its outermost displayed ancestor line counts too,
+  so that the line crosses every ancestor line drawn for the member as it
+  crosses the member's children; it does not reach their marks. Each of
   these ordinates is `y ± o`, `y` the ordinate of `T`'s line and `o` the
-  distance outwards, summed whole first (section 3.3). When neither band is
-  present, the line has no length and is not drawn. Nothing else bounds
-  it: it reaches no card margin, no ancestor band, no other band of `T` and
-  no row beyond these two bands. In the default band order (section 4)
+  distance outwards, summed whole first (section 3.3). When none of these
+  is present, the line has no length and is not drawn. Nothing else bounds
+  it: it reaches no card margin, no other band of `T` and no row beyond
+  these. In the default band order (section 4)
   both bands lie above `T`'s line and its markers band below, so the line
   never meets a wedge; a band order that puts the markers band between the
   line and either of the two bands makes it cross the wedges, unless their
@@ -1504,10 +1529,9 @@ one below it.
   the lower border of the bottommost, across the gaps between the cards
   and whatever lies between, less two spans in `M`'s card:
 
-  - where the line holding the timestamp's own cross-section line has a
-    children band or a conversion maps band, the span of that
-    cross-section line, from `y1` to `y2`; where it has neither, the line
-    runs through the point on it;
+  - the span of the timestamp's own cross-section line, from `y1` to
+    `y2`; where none of the bands and lines it spans is present, the line
+    runs through the point on the line holding it;
   - where the timestamp draws a label there, the lines its stack lies on
     (section 6.4, Markers): with its stack in tier `k`, `j` the number of
     its labels and `n1 = m1 + … + m(k−1) + 1` its first line, from the
@@ -1672,7 +1696,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 |---|---|
 | background | `<rect x="0" y="0" width="{W}" height="{H}" rx="{rx}" fill="{fill}"/>` |
 | frame | `<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}">` filled and stroked (section 8) |
-| card | when its `shadow` is not `none`, `<rect x="{x+2}" y="{y+2}" width="{w}" height="{h}" rx="{rx}" fill="{shadow}">`, not stroked; then `<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}">` filled and stroked (section 8.4) |
+| card, ancestor card | when its `shadow` is not `none`, `<rect x="{x+2}" y="{y+2}" width="{w}" height="{h}" rx="{rx}" fill="{shadow}">`, not stroked; then `<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}">` filled and stroked (section 8.4) |
 | a line's start | `<line x1="{Xs}" y1="{y}" x2="{Xl}" y2="{y}">`, `Xl` where the line stops; `<circle cx="{Xs}" cy="{y}" r="{w}">`, except where an ancestor line runs on |
 | arrowhead | the line stops at `Xe`; `<polygon points="{Xe+3w},{y} {Xe},{y−1.5w} {Xe},{y+1.5w}">` |
 | open arrowhead | the line stops at `Xe`; the same `<polygon>` with `fill="none"`, stroked in the line's `stroke` with width `w/2` and no dash |
@@ -1696,8 +1720,8 @@ The **stroke attributes** are `stroke`, `stroke-width` and, unless it is
 and a text carry `fill`, and the open arrowhead, the diamond and the map's
 outline, the stroked polygons, also the stroke attributes (the map's dash
 included); a polyline carries `fill="none"` and the stroke attributes; a
-group frame and a card carry `fill` and the stroke attributes, a card's
-shadow `fill` alone. A line's descriptors are, in this order, its `<line>`,
+group frame, a card and an ancestor card carry `fill` and the stroke
+attributes, a card's shadow `fill` alone. A line's descriptors are, in this order, its `<line>`,
 its start circle or left chevrons, and its end or right chevrons. Every
 descriptor of an element, a card's shadow included, carries the element's
 `opacity`, written when it is not 1. An
@@ -1833,7 +1857,8 @@ root of unknown length is drawn with its reach at the shared end (section
   then every **ungrouped root**, a root of `timelines` that no group names
   as a member and that contains no member, in canonical order (by ID). A
   root that contains a member is drawn only as an ancestor line of that
-  member.
+  member and, where displayed, as an ancestor card behind its frame
+  (section 8.8).
 - **Frames.** Each group is a **frame**, a `frame` element: a rounded
   rectangle holding the group's title and then its members' cards, one
   under the other, in the group's display order: the entry of
@@ -1863,10 +1888,11 @@ root of unknown length is drawn with its reach at the shared end (section
   G, "part": ["name"]}`, opens its frame. The manifest's title, a `name`
   element with the address `{"part": ["name"]}`, opens the block.
 
-The tree of section 2.1: the `block` holds the manifest's title, the frames,
+The tree of section 2.1: the `block` holds the manifest's title, the
+ancestor cards and the `timeline` elements of their roots, the frames,
 and the cards and `timeline` elements of the ungrouped roots; a frame holds
-its title and its members' cards and `timeline` elements; a card holds
-nothing; a member's `timeline` element holds what a root holds (section
+its title and its members' cards and `timeline` elements; a card or
+ancestor card holds nothing; a member's `timeline` element holds what a root holds (section
 2.1) and its ancestor lines; an ancestor line holds its `name` and its
 marks of the member's start and end, each mark holding its `label`.
 `within` names a timeline at any depth of `timelines`; a timeline's depth
@@ -2031,12 +2057,13 @@ on every side. Every position is first computed in **place coordinates**,
 measured from the place origin, as sections 6 and 8 write it (an item's
 positions through its item coordinates and its place, section 8.6). In place
 coordinates the content runs from `Xl`, the smaller of 0 and the smallest
-left edge of any frame or card minus `P`, to `Xr`, `P` plus the largest
-right edge of any frame or card, a card's shadow included, or of the
+left edge of any frame, card or displayed ancestor card (section 8.8)
+minus `P`, to `Xr`, `P` plus the largest right edge of any of these, a
+shadow included, or of the
 manifest's displayed title, whose right edge is `Xl + P` plus its width;
-and from `Yt`, the smaller of 0 and the smallest top of any frame or card
+and from `Yt`, the smaller of 0 and the smallest top of any of these
 minus `Pt`, to `Yb`, `P` plus the larger of the largest bottom edge of any
-frame or card, a card's shadow included, plus the block's margin `Vb`
+of these, a shadow included, plus the block's margin `Vb`
 (section 8.6), and of the manifest's displayed title, whose slot
 ends at `Yt + P + h(s)` (`Xr = 2P + K` and `Yb = P` when the block holds none
 of these). `Pt` is `P + h(s) + F + Vb` when the manifest's title is displayed,
@@ -2063,7 +2090,9 @@ background is a rectangle filling it with corner radius `rx`.
 ### 8.5 Descriptors
 
 A manifest becomes element descriptors in this order: the background; the
-manifest's title; then, for each frame in drawing order, the frame, its
+manifest's title; then each displayed ancestor card in the order of
+section 8.8 and the descriptors of its member drawing; then, for each
+frame in drawing order, the frame, its
 title, and for each of its members in display order, the member's card and
 the descriptors of its member drawing; then, for each ungrouped root, its
 card and the descriptors of its member drawing. The descriptors of a member
@@ -2181,10 +2210,12 @@ Every alignment anchor of a named MatchStamp (section 2) is placed
 between the cross-section lines of its two timestamps, in the block's
 coordinates, after every item is drawn at its place (section 8.6) with
 `Ox` and `Oy` added (section 8.4). A timestamp has one **cross-section
-segment** in every member drawing that draws its timeline's line, or for
+segment** in every member drawing in a frame or card, an ancestor card's
+excepted, that draws its timeline's line, or for
 a segment without a line its segment line's line: the vertical segment
 from `(X, y1)` to `(X, y2)` of section 6.6 as drawn in the block, or the
-point `(X, y)` on that line when neither of its two bands is present. A
+point `(X, y)` on that line when none of the bands and lines it spans is
+present. A
 segment counts whether or not its cross-section line is displayed. An
 anchor one of whose timestamps has no cross-section segment draws
 nothing.
@@ -2224,3 +2255,102 @@ The lines are written after the last item's descriptors, MatchStamp by
 MatchStamp in the order of `matchstamps` and each MatchStamp's anchors in
 the order of its `alignment_anchors`, and then their labels in the same
 order (section 8.5).
+
+### 8.8 Ancestor cards
+
+A member that is a child timeline is drawn with the faded lines of its
+ancestors (section 8.3). Its root may also be drawn whole, behind the
+member's frame, in an **ancestor card**: an `ancestor_card` element with
+the root's card address `{"id": R, "part": ["card"]}` (section 2.2),
+belonging to the root `R`, drawn as a card is (section 7.2), with the
+member drawing of `R` in it. Every ancestor between `R` and the member is
+a row of that drawing at its true proportions, and `R`'s own line
+continues the member's faded ancestor line of `R` beyond the frame's
+borders. In the tree of section 2.1 the block holds the ancestor card and
+the `timeline` element of `R` drawn in it, and the ancestor card holds
+nothing, so nothing of its drawing lies inside an `ancestor` element and
+none of it is faded. The defaults hide every ancestor card (section 4);
+a rule of a later layer shows them, all of them with
+
+```json
+{"select": {"element": "ancestor_card"}, "set": {"display": "inline"}}
+```
+
+and those of one root `R` with `"addresses": [{"id": "#R", "part":
+["card"]}]` added to the selector.
+
+**Which.** The groups are taken in drawing order (section 8.1), and the
+members of each group `G` in its display order. Each member `M` that is a
+child timeline gives one ancestor card of its root `R` (`A1` of section
+8.3) behind `G`'s frame, aligned to `M`, unless an earlier member of `G`
+lies below the same `R`: a root has at most one ancestor card behind a
+frame, aligned to the first member below it in display order, and a later
+member below it adds none, whether or not that card is drawn. A root with
+members below it in the frames of several groups has one ancestor card
+behind each of them, each laid out with its own frame's length and drawn
+at its own frame's place and scale; several roots with members in one
+frame have one ancestor card each. A root that is a member of another
+group keeps its card in that group's frame too.
+
+**When it is drawn.** An ancestor card is drawn when it is displayed
+(section 2.4), the line of `R` in its member drawing (below) is displayed,
+and the line it is aligned to is drawn in `M`'s card in `G`'s frame:
+`R`'s ancestor line there, or `M`'s own line where that ancestor line is
+not displayed. Otherwise nothing of it is drawn, it takes no room and the
+block does not grow for it.
+
+**Geometry.** Let `ts` be the start of `R` on `M`'s axis (section 8.3,
+with `Aj = A1 = R`), `λ` `M`'s length, or its reach when its length is
+`null`, and `λR` `R`'s length, or its reach when its length is `null`
+(section 3.4); `te = ts + λR`, combined as section 3.1 combines values.
+`us = ts / λ` and `ue = te / λ` are proportions formed as section 3.2
+forms them. With `x0` the start of the member drawings of `G`'s frame and
+`L` its graphical length (section 8.2), in item coordinates and binary64:
+
+    xs = x0 + L × us
+    xe = x0 + L × ue
+    LA = xe − xs
+
+1. **Alone.** `R` is laid out by sections 3 to 6, 8.2 and 8.4 as the one
+   ungrouped root of a block that holds nothing else and has no title: at
+   the graphical length `LA`, with the card spacing 4 and the card margin
+   0 whatever `places` states, the name column at `n = K`, and its own
+   `N`, `G'`, start `s0'` and right margin, so that its card spans `0` to
+   `Ri' + K` and is `Hm` high, its top at 0. `R` is a root, so its drawing
+   has no ancestor band. `yR` is the ordinate of `R`'s line in it.
+2. **Placed.** `yA` is the ordinate, in `G`'s item coordinates, of `R`'s
+   ancestor line in `M`'s card, or of `M`'s line where that ancestor line
+   is not displayed. Every position `(px, py)` of the layout of 1, its
+   card's included, becomes `(px + dx, py + dy)` with `dx = xs − s0'` and
+   `dy = yA − yR`, so that `R`'s line starts at `xs` and lies at `yA`.
+   The ancestor card is then drawn at `G`'s place and scale, as every
+   element of the frame (section 8.6).
+3. **No room.** No item's default `y` (section 8.6), no quantity of the
+   block's one horizontal layout (section 8.2) and no size of `G`'s frame
+   or cards counts it. The block grows to hold it as it holds a card: its
+   left edge, top, right and bottom edges, its shadow included, count
+   among the edges of section 8.4, so the block may grow to the left or
+   upwards, moving the place origin within it while every item keeps its
+   place.
+4. **Order.** Ancestor cards are written before every frame and card,
+   in the order of **Which** (section 8.5), so that every item and every
+   alignment anchor lies over them, and a later ancestor card over an
+   earlier one where they meet.
+5. **Nothing else.** `places` states nothing of it: a key
+   `places[G].cards[R]` names no member of `G` and is not used (section
+   8.6). It gives no cross-section segment to an alignment anchor (section
+   8.7), and no groupstamp line is drawn for it, since those lines span
+   the member cards of a frame alone (section 6.6, Cross-section lines);
+   the named timestamps of its drawing draw their own cross-section lines
+   in it, as in every member drawing.
+
+The fixture `group_parent_both` drawn with the rule above shows the root
+`piece` (16 quarters) behind the frame of its child `middle` (8 quarters
+at offset 4), so `us = −0.5` and `ue = 1.5` and `LA = 800` at the
+length 400: the card is written at `x` 8 and `y` 18.8047, 869.3354 wide
+and 63.3789 high, `piece`'s line runs from 60.3354 to 860.3354 at
+`y` 67.7812, on the faded ancestor line of `piece` in `middle`'s card,
+and the block grows to the left, its place origin at `(148.6318, 0)`.
+In `group_parents_mixed`, three roots lie behind one frame, each aligned
+to the first of its members in the display order, the root `page`, of
+unknown length, at its reach.
