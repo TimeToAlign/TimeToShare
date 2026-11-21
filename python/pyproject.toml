@@ -22,6 +22,11 @@ classifiers = [
 ]
 dependencies = ["jsonschema>=4.26.0,<5", "PyYAML>=6.0.3,<7"]
 
+[project.optional-dependencies]
+# The table types (`timetoshare.tables`): the MatchClaim table and the
+# Projections table, read and checked as Arrow tables.
+tables = ["pyarrow>=25.0.0,<26"]
+
 [project.urls]
 Repository = "https://github.com/TimeToAlign/TimeToShare"
 Issues = "https://github.com/TimeToAlign/TimeToShare/issues"
@@ -29,6 +34,7 @@ Issues = "https://github.com/TimeToAlign/TimeToShare/issues"
 [dependency-groups]
 dev = [
     "fonttools==4.66.0",
+    "pyarrow==25.0.0",
     "pyld==3.3.0",
     "pytest==9.1.1",
     "ruff==0.16.9",

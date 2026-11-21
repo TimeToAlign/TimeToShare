@@ -1,0 +1,637 @@
+"""The checks of the MatchClaim table and the Projections table.
+
+Each ``*_problems`` function lists every problem it finds, the table's own
+first, then row by row; each ``check_*`` function raises the first as a
+``TableError``. A table may hold columns its type does not declare; they are
+kept and never checked.
+"""
+
+from __future__ import annotations
+
+import json
+import math
+import re
+from collections.abc import Iterator, Mapping
+from dataclasses import dataclass
+from typing import Any, Literal
+
+import pyarrow as pa
+
+from ..ids import with_bare_ids
+from ..manifest import UNIT_NUMBER_TYPES
+from ..statements import MATCHES, METHODS
+from ..validation.diagnostics import number_type_of, timelines_by_id
+from .columns import (
+    BELIEFS,
+    COORDINATE_KEYS,
+    MATCH_CLAIM_SCHEMA,
+    PROJECTION_SCHEMA,
+    PROVENANCE_KEYS,
+    PROVENANCE_METADATA_KEY,
+    coordinate_value,
+)
+
+__all__ = [
+    "TableCode",
+    "TableError",
+    "TableProblem",
+    "check_match_claims",
+    "check_projections",
+    "check_succession",
+    "match_claim_problems",
+    "projection_problems",
+    "row_provenance",
+    "succession_problems",
+]
+
+TableCode = Literal[
+    "schema_violation",
+    "invalid_id",
+    "duplicate_id",
+    "invalid_coordinate",
+    "claim_timelines",
+    "claim_anchors",
+    "anchor_timelines",
+    "invalid_certainty",
+    "invalid_provenance",
+    "axis_mismatch",
+    "unknown_timeline",
+    "invalid_projection_of",
+    "invalid_duration",
+    "succession_missing",
+    "succession_changed",
+]
+
+Column = tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class TableProblem:
+    """One problem of a table: its code, its row (``None`` for the whole
+    table), the path of its column and its message."""
+
+    code: TableCode
+    row: int | None
+    column: Column
+    message: str
+
+
+class TableError(ValueError):
+    """A table breaks a rule; ``problem`` is the first problem found."""
+
+    def __init__(self, problem: TableProblem) -> None:
+        super().__init__(problem.message)
+        self.problem = problem
+
+
+_CONTROL = re.compile("[\u0000-\u001f]")
+_DATE = re.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}")
+_SCHEME = re.compile("[A-Za-z][A-Za-z0-9_+.-]*:.")
+_NUMBER_TYPES = ("int", "float", "fraction")
+_REQUIRED_CLAIM = (
+    "timeline_a_id",
+    "timeline_b_id",
+    "is_synchronous",
+    "is_explicit",
+    "id",
+    "id_minted",
+)
+_REQUIRED_PROJECTION = ("id", "timeline_id", "start")
+
+
+def _shape(data_type: pa.DataType) -> Any:
+    """A type's shape, blind to nullability and to the name of list items."""
+    if pa.types.is_struct(data_type):
+        return ("struct", tuple((f.name, _shape(f.type)) for f in data_type))
+    if pa.types.is_list(data_type):
+        return ("list", _shape(data_type.value_type))
+    return str(data_type)
+
+
+def _schema_problems(table: pa.Table, schema: pa.Schema) -> list[TableProblem]:
+    problems = []
+    for field in schema:
+        if field.name not in table.column_names:
+            problems.append(
+                TableProblem(
+                    "schema_violation",
+                    None,
+                    (field.name,),
+                    f"the table has no column '{field.name}'",
+                )
+            )
+        elif _shape(table.schema.field(field.name).type) != _shape(field.type):
+            problems.append(
+                TableProblem(
+                    "schema_violation",
+                    None,
+                    (field.name,),
+                    f"the column '{field.name}' is "
+                    f"{table.schema.field(field.name).type}, not {field.type}",
+                )
+            )
+    return problems
+
+
+def _id_problem(value: Any, what: str) -> str | None:
+    if value == "":
+        return f"{what} is empty"
+    if _CONTROL.search(value):
+        return f"{what} {value!r} holds a control character"
+    return None
+
+
+def _coordinate_problem(cell: Mapping[str, Any]) -> str | None:
+    """Why a non-null coordinate cell is malformed, or ``None``."""
+    missing = [key for key in COORDINATE_KEYS if cell[key] is None]
+    if missing:
+        return f"the coordinate has no {', '.join(missing)}"
+    if cell["unit"] not in UNIT_NUMBER_TYPES:
+        return f"'{cell['unit']}' is no unit"
+    if cell["number_type"] not in _NUMBER_TYPES:
+        return f"'{cell['number_type']}' is no number type"
+    if not math.isfinite(cell["value"]):
+        return f"the coordinate's value {cell['value']} is not finite"
+    if cell["denominator"] < 1:
+        return f"the coordinate's denominator {cell['denominator']} is below 1"
+    if cell["number_type"] == "int" and cell["denominator"] != 1:
+        return f"an int coordinate has the denominator {cell['denominator']}"
+    return None
+
+
+def _date_problem(value: Any, what: str) -> str | None:
+    if value is not None and _DATE.fullmatch(value) is None:
+        return f"{what} '{value}' is not a date YYYY-MM-DD"
+    return None
+
+
+def _iri_list_problem(value: Any, key: str) -> str | None:
+    if value is None:
+        return None
+    if not value:
+        return f"'{key}' is empty"
+    if any(not member for member in value):
+        return f"'{key}' holds an empty reference"
+    if len(set(value)) != len(value):
+        return f"'{key}' names one reference twice"
+    return None
+
+
+def _provenance_problem(entry: Mapping[str, Any]) -> str | None:
+    """Why a provenance entry (every key present) is malformed, or ``None``."""
+    for key in ("stated_by", "basis"):
+        problem = _iri_list_problem(entry[key], key)
+        if problem:
+            return problem
+    problem = _date_problem(entry["date"], "the date")
+    if problem:
+        return problem
+    method = entry["method"]
+    if method is not None and method not in METHODS and not _SCHEME.match(method):
+        return f"'{method}' is neither a method word nor an IRI"
+    if entry["service"] == "":
+        return "'service' is empty"
+    if entry["match"] is not None and entry["match"] not in MATCHES:
+        return f"'{entry['match']}' is no match word"
+    actors: set[str] = set()
+    for belief in entry["beliefs"] or ():
+        if not belief["actor"]:
+            return "a belief has no actor"
+        if belief["belief"] not in BELIEFS:
+            return f"'{belief['belief']}' is no belief"
+        if belief["date"] is None:
+            return f"the belief of '{belief['actor']}' has no date"
+        problem = _date_problem(belief["date"], "the belief's date")
+        if problem:
+            return problem
+        if belief["actor"] in actors:
+            return f"'{belief['actor']}' holds two beliefs"
+        actors.add(belief["actor"])
+    return None
+
+
+def _shared_provenance(table: pa.Table) -> tuple[dict[str, Any] | None, str | None]:
+    """The provenance the file's metadata states for every row, and a problem."""
+    metadata = table.schema.metadata or {}
+    text = metadata.get(PROVENANCE_METADATA_KEY.encode())
+    if text is None:
+        return None, None
+    try:
+        entry = json.loads(text)
+    except ValueError:
+        return None, "the file's provenance is no JSON text"
+    if not isinstance(entry, dict):
+        return None, "the file's provenance is no object"
+    unknown = sorted(set(entry) - set(PROVENANCE_KEYS))
+    if unknown:
+        return None, f"the file's provenance holds the unknown key '{unknown[0]}'"
+    entry = {key: entry.get(key) for key in PROVENANCE_KEYS}
+    if entry["beliefs"] is not None:
+        entry["beliefs"] = [
+            {"actor": None, "belief": None, "date": None, "note": None, **belief}
+            for belief in entry["beliefs"]
+        ]
+    return entry, None
+
+
+def row_provenance(table: pa.Table) -> list[dict[str, Any] | None]:
+    """The provenance of every row of a checked MatchClaim table: its own, or
+    the file's where the row states none."""
+    shared, _ = _shared_provenance(table)
+    return [
+        cell if cell is not None else shared
+        for cell in table.column("provenance").to_pylist()
+    ]
+
+
+class _Axes:
+    """Collects the axis of each timeline a table's cells lie on."""
+
+    def __init__(self, manifest: Mapping[str, Any] | None) -> None:
+        self.seen: dict[str, tuple[str, str]] = {}
+        self.timelines = (
+            None if manifest is None else timelines_by_id(with_bare_ids(manifest))
+        )
+
+    def timeline(
+        self, row: int, column: Column, timeline_id: Any
+    ) -> TableProblem | None:
+        if self.timelines is not None and timeline_id not in self.timelines:
+            return TableProblem(
+                "unknown_timeline",
+                row,
+                column,
+                f"the manifest has no timeline '{timeline_id}'",
+            )
+        return None
+
+    def cell(
+        self, row: int, column: Column, timeline_id: str, cell: Mapping[str, Any]
+    ) -> TableProblem | None:
+        axis = (cell["unit"], cell["number_type"])
+        if self.timelines is not None:
+            timeline = self.timelines.get(timeline_id)
+            if timeline is None:
+                return None
+            own = (timeline["unit"], number_type_of(timeline))
+            if axis != own:
+                return TableProblem(
+                    "axis_mismatch",
+                    row,
+                    column,
+                    f"a coordinate in {axis[0]} ({axis[1]}) on the timeline "
+                    f"'{timeline_id}' in {own[0]} ({own[1]})",
+                )
+        first = self.seen.setdefault(timeline_id, axis)
+        if first != axis:
+            return TableProblem(
+                "axis_mismatch",
+                row,
+                column,
+                f"the timeline '{timeline_id}' has coordinates in {first[0]} "
+                f"({first[1]}) and in {axis[0]} ({axis[1]})",
+            )
+        return None
+
+
+def _ids(rows: list[dict[str, Any]], key: str = "id") -> Iterator[TableProblem]:
+    seen: set[str] = set()
+    for index, row in enumerate(rows):
+        value = row[key]
+        if value is None:
+            continue
+        problem = _id_problem(value, "the ID")
+        if problem:
+            yield TableProblem("invalid_id", index, (key,), problem)
+        elif value in seen:
+            yield TableProblem(
+                "duplicate_id", index, (key,), f"the ID '{value}' is given twice"
+            )
+        seen.add(value)
+
+
+def _nulls(
+    rows: list[dict[str, Any]], required: tuple[str, ...]
+) -> Iterator[TableProblem]:
+    for index, row in enumerate(rows):
+        for key in required:
+            if row[key] is None:
+                yield TableProblem(
+                    "schema_violation", index, (key,), f"'{key}' is null"
+                )
+
+
+def _claim_problems(
+    index: int, row: dict[str, Any], axes: _Axes
+) -> Iterator[TableProblem]:
+    a, b = row["timeline_a_id"], row["timeline_b_id"]
+    for key in ("timeline_a_id", "timeline_b_id"):
+        problem = axes.timeline(index, (key,), row[key])
+        if problem:
+            yield problem
+    if a == b:
+        yield TableProblem(
+            "claim_timelines", index, ("timeline_b_id",), f"both sides are '{a}'"
+        )
+    for key in ("event_a_id", "event_b_id"):
+        if row[key] is not None:
+            problem = _id_problem(row[key], "the event ID")
+            if problem:
+                yield TableProblem("invalid_id", index, (key,), problem)
+    event_a, event_b = row["event_a_id"], row["event_b_id"]
+    start, end = row["start_anchor"], row["end_anchor"]
+    if event_a is None and event_b is None:
+        yield TableProblem(
+            "claim_timelines", index, ("event_a_id",), "the MatchClaim names no event"
+        )
+    elif event_a is None or event_b is None:
+        if row["is_synchronous"]:
+            yield TableProblem(
+                "claim_anchors",
+                index,
+                ("is_synchronous",),
+                "a NOMATCH MatchClaim is not synchronous",
+            )
+        elif start is not None or end is not None:
+            yield TableProblem(
+                "claim_anchors",
+                index,
+                ("start_anchor" if start is not None else "end_anchor",),
+                "a NOMATCH MatchClaim has no anchors",
+            )
+    elif row["is_synchronous"]:
+        if start is None:
+            yield TableProblem(
+                "claim_anchors",
+                index,
+                ("start_anchor",),
+                "a synchronous MatchClaim has a start anchor",
+            )
+    elif start is not None or end is not None:
+        yield TableProblem(
+            "claim_anchors",
+            index,
+            ("start_anchor" if start is not None else "end_anchor",),
+            "a conceptual MatchClaim has no anchors",
+        )
+    if end is not None and start is None:
+        yield TableProblem(
+            "claim_anchors",
+            index,
+            ("end_anchor",),
+            "an end anchor needs a start anchor",
+        )
+    nomatch = (event_a is None) != (event_b is None)
+    if row["source_coordinate"] is not None and not nomatch:
+        yield TableProblem(
+            "claim_anchors",
+            index,
+            ("source_coordinate",),
+            "only a NOMATCH MatchClaim has a source coordinate",
+        )
+    for name, anchor in (("start_anchor", start), ("end_anchor", end)):
+        if anchor is None:
+            continue
+        if (anchor["timeline_a_id"], anchor["timeline_b_id"]) != (a, b):
+            yield TableProblem(
+                "anchor_timelines",
+                index,
+                (name,),
+                f"the anchor joins '{anchor['timeline_a_id']}' and "
+                f"'{anchor['timeline_b_id']}', the MatchClaim '{a}' and '{b}'",
+            )
+            continue
+        for side in ("a", "b"):
+            yield from _cell_problems(
+                index,
+                (name, f"coordinate_{side}"),
+                anchor[f"timeline_{side}_id"],
+                anchor[f"coordinate_{side}"],
+                axes,
+            )
+    if row["source_coordinate"] is not None and nomatch:
+        yield from _cell_problems(
+            index,
+            ("source_coordinate",),
+            a if event_a is not None else b,
+            row["source_coordinate"],
+            axes,
+        )
+    certainty = row["certainty"]
+    if certainty is not None and not 0 <= certainty <= 1:
+        yield TableProblem(
+            "invalid_certainty",
+            index,
+            ("certainty",),
+            f"the certainty {certainty} lies outside [0, 1]",
+        )
+
+
+def _cell_problems(
+    index: int,
+    column: Column,
+    timeline_id: str,
+    cell: Mapping[str, Any] | None,
+    axes: _Axes,
+) -> Iterator[TableProblem]:
+    if cell is None:
+        yield TableProblem(
+            "invalid_coordinate", index, column, "the coordinate is null"
+        )
+        return
+    problem = _coordinate_problem(cell)
+    if problem:
+        yield TableProblem("invalid_coordinate", index, column, problem)
+        return
+    axis = axes.cell(index, column, timeline_id, cell)
+    if axis:
+        yield axis
+
+
+def match_claim_problems(
+    table: pa.Table, manifest: Mapping[str, Any] | None = None
+) -> list[TableProblem]:
+    """Every problem of a MatchClaim table, checked against a manifest (as
+    read from its file, IDs written ``#``) where one is given."""
+    problems = _schema_problems(table, MATCH_CLAIM_SCHEMA)
+    if problems:
+        return problems
+    rows = table.select(list(MATCH_CLAIM_SCHEMA.names)).to_pylist()
+    problems = [*_nulls(rows, _REQUIRED_CLAIM)]
+    if problems:
+        return problems
+    problems.extend(_ids(rows))
+    shared, problem = _shared_provenance(table)
+    if problem:
+        problems.append(
+            TableProblem("invalid_provenance", None, ("provenance",), problem)
+        )
+    elif shared is not None:
+        problem = _provenance_problem(shared)
+        if problem:
+            problems.append(
+                TableProblem("invalid_provenance", None, ("provenance",), problem)
+            )
+    axes = _Axes(manifest)
+    for index, row in enumerate(rows):
+        problems.extend(_claim_problems(index, row, axes))
+        cell = row["provenance"]
+        if cell is not None:
+            problem = (
+                "the provenance is stated in the file's metadata and in the row"
+                if shared is not None
+                else _provenance_problem(cell)
+            )
+            if problem:
+                problems.append(
+                    TableProblem("invalid_provenance", index, ("provenance",), problem)
+                )
+    return sorted(problems, key=_order)
+
+
+def projection_problems(
+    table: pa.Table, manifest: Mapping[str, Any] | None = None
+) -> list[TableProblem]:
+    """Every problem of a Projections table, checked against a manifest (as
+    read from its file, IDs written ``#``) where one is given."""
+    problems = _schema_problems(table, PROJECTION_SCHEMA)
+    if problems:
+        return problems
+    rows = table.select(list(PROJECTION_SCHEMA.names)).to_pylist()
+    problems = [*_nulls(rows, _REQUIRED_PROJECTION)]
+    if problems:
+        return problems
+    problems.extend(_ids(rows))
+    axes = _Axes(manifest)
+    for index, row in enumerate(rows):
+        timeline_id = row["timeline_id"]
+        problem = axes.timeline(index, ("timeline_id",), timeline_id)
+        if problem:
+            problems.append(problem)
+        problems.extend(
+            _cell_problems(index, ("start",), timeline_id, row["start"], axes)
+        )
+        duration = row["duration"]
+        if duration is not None:
+            found = list(
+                _cell_problems(index, ("duration",), timeline_id, duration, axes)
+            )
+            problems.extend(found)
+            if not found and coordinate_value(duration) < 0:
+                problems.append(
+                    TableProblem(
+                        "invalid_duration",
+                        index,
+                        ("duration",),
+                        "the duration is negative",
+                    )
+                )
+        source = row["projection_of"]
+        if source is None:
+            continue
+        for key in ("timeline_id", "event_id"):
+            if not source[key]:
+                problems.append(
+                    TableProblem(
+                        "invalid_projection_of",
+                        index,
+                        ("projection_of", key),
+                        f"the projected event has no {key}",
+                    )
+                )
+        if source["timeline_id"] == timeline_id:
+            problems.append(
+                TableProblem(
+                    "invalid_projection_of",
+                    index,
+                    ("projection_of", "timeline_id"),
+                    f"a Projection stands for an event of another timeline than "
+                    f"'{timeline_id}'",
+                )
+            )
+        elif source["timeline_id"]:
+            problem = axes.timeline(
+                index, ("projection_of", "timeline_id"), source["timeline_id"]
+            )
+            if problem:
+                problems.append(problem)
+    return sorted(problems, key=_order)
+
+
+def _order(problem: TableProblem) -> int:
+    return -1 if problem.row is None else problem.row
+
+
+def _comparable(value: Any) -> Any:
+    """A value with every coordinate cell read as (unit, number type, exact value)."""
+    if isinstance(value, dict):
+        if set(value) == set(COORDINATE_KEYS):
+            return (value["unit"], value["number_type"], coordinate_value(value))
+        return {key: _comparable(member) for key, member in value.items()}
+    if isinstance(value, list):
+        return [_comparable(member) for member in value]
+    return value
+
+
+def succession_problems(old: pa.Table, new: pa.Table) -> list[TableProblem]:
+    """Every breach of the succession rule by ``new`` written over ``old``.
+
+    Both are checked MatchClaim tables. Every ID of ``old`` is in ``new``,
+    and its row has the same value in every column but ``provenance``; a
+    coordinate is the same when its unit, number type and exact value are.
+    The rows of ``new`` are reported by their index in ``new``.
+    """
+    columns = [name for name in MATCH_CLAIM_SCHEMA.names if name != "provenance"]
+    later = {
+        row["id"]: (index, row)
+        for index, row in reversed(list(enumerate(new.select(columns).to_pylist())))
+    }
+    problems = []
+    for row in old.select(columns).to_pylist():
+        found = later.get(row["id"])
+        if found is None:
+            problems.append(
+                TableProblem(
+                    "succession_missing",
+                    None,
+                    ("id",),
+                    f"the MatchClaim '{row['id']}' is missing",
+                )
+            )
+            continue
+        index, successor = found
+        for column in columns:
+            if _comparable(row[column]) != _comparable(successor[column]):
+                problems.append(
+                    TableProblem(
+                        "succession_changed",
+                        index,
+                        (column,),
+                        f"the MatchClaim '{row['id']}' changed its '{column}'",
+                    )
+                )
+    return problems
+
+
+def _first(problems: list[TableProblem]) -> None:
+    if problems:
+        raise TableError(problems[0])
+
+
+def check_match_claims(
+    table: pa.Table, manifest: Mapping[str, Any] | None = None
+) -> None:
+    """Raise ``TableError`` for the first problem of a MatchClaim table."""
+    _first(match_claim_problems(table, manifest))
+
+
+def check_projections(
+    table: pa.Table, manifest: Mapping[str, Any] | None = None
+) -> None:
+    """Raise ``TableError`` for the first problem of a Projections table."""
+    _first(projection_problems(table, manifest))
+
+
+def check_succession(old: pa.Table, new: pa.Table) -> None:
+    """Raise ``TableError`` for the first breach of the succession rule."""
+    _first(succession_problems(old, new))
