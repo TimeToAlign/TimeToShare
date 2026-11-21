@@ -439,13 +439,15 @@ with `groupstamp: true` (default `false`), lies on a timeline that lies in
 a group: the timeline or one of its ancestors is listed in the group's
 `members` (an ancestor of a member lies in no group through it). In the
 frame of each group its timeline lies in, its cross-section line extends
-across the whole frame, from the topmost member to the bottommost, as one
-vertical line at the timestamp's position, which marks the same
-proportion of every member's drawn length. The members' coordinates at
-that line are derived from the group and never stored; the line is drawn
-in the style of the timestamp's own line, without a wedge or labels, has
-no settings of its own, and passes behind the timestamp's name label (the
-drawing specification, section 6.6). Both validators refuse a groupstamp
+across the frame, from the upper border of the topmost member card to the
+lower border of the bottommost, as one vertical line at the timestamp's
+position, which marks the same proportion of every member's drawn length.
+The members' coordinates at that line are derived from the group and
+never stored; the line is drawn in the style of the timestamp's own line,
+without a wedge or labels, has no settings of its own, and leaves out the
+lines on which the timestamp's labels lie; the timestamp's own wedge is
+turned −45° by default, so that the line leaves it aside (the drawing
+specification, sections 2.5 and 6.6). Both validators refuse a groupstamp
 whose timeline lies in no group, and a groupstamp that is also a match
 timestamp. `order` maps the
 ID of a group or of a timeline to the order of what it stacks, top to bottom, and
@@ -514,12 +516,7 @@ one, is what is displayed, and it may repeat. An ID is any non-empty string with
 unique across the whole manifest: the manifest's own, and the IDs of every
 timeline (root or descendant), group, MeasureMap, conversion map at any
 depth of nesting, region, flow-control element, resource, named
-timestamp, named MatchStamp and alignment anchor. Four kinds of ID have
-one shape each, a prefix followed by a positive integer without leading
-zeros: a resource's `resource_N`, a named timestamp's `timestamp_N`, a
-named MatchStamp's `matchstamp_N` and an alignment anchor's `anchor_N`
-(`#resource_1`, `#timestamp_1`, `#matchstamp_1` and `#anchor_1` in a
-file); the schema refuses any other (`schema`). An ID is never parsed
+timestamp, named MatchStamp and alignment anchor. An ID is never parsed
 and never composed with another. A reference is an ID, written in a file
 as an ID is ([Written in a file](#written-in-a-file)): a jump origin's
 `target` names a jump target of the same timeline, a measure view's
@@ -536,9 +533,8 @@ An IRI reference of the statements or their provenance that begins with
 ([Describing a manifest](#describing-a-manifest)).
 
 timetoalign and TimeLineEditor mint a speaking default `{prefix}_{N}` for
-an element created without an ID, such as `clt_1` or `region_1`, `N` the
-smallest positive integer whose ID the manifest does not hold; an ID that
-is given is kept verbatim. An ID that is an
+an element created without an ID, such as `clt_1` or `region_1`, never one
+the manifest holds; an ID that is given is kept verbatim. An ID that is an
 absolute URI identifies its element globally. A manifest published at a
 stable location gives every local ID a global identity too: the
 manifest's URI with the ID as its fragment, `<manifest location>#<id>`,
@@ -748,7 +744,7 @@ resources:
 
 | Key | Required | Holds |
 | --- | --- | --- |
-| `id` | yes | the resource's ID, `resource_N` ([Identity](#identity)) |
+| `id` | yes | the resource's ID ([Identity](#identity)) |
 | `type` | yes | what its rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events it holds |
 | `timelines` | yes | the IDs of the timelines it holds data for, each a timeline of the manifest |
 | `url` | yes | its location, relative to the manifest's own, so that a bare file name lies beside the manifest |
@@ -798,8 +794,8 @@ refused.
 
 The table uses three struct types:
 
-- a **coordinate cell**: `struct<value: double, numerator: int64,
-  denominator: int64, unit: string, number_type: string>` (below);
+- a **coordinate cell**: `struct<numerator: int64, denominator: int64,
+  value: double, unit: string, number_type: string>` (below);
 - an **anchor**: `struct<coordinate_a: coordinate cell, coordinate_b:
   coordinate cell>`, `coordinate_a` on the row's `timeline_a_id` and
   `coordinate_b` on its `timeline_b_id`, so that an anchor names no
@@ -817,21 +813,17 @@ the list gives them, and a field's nullable flag is not read; which
 columns may hold a null is the Null of the tables here, checked row by
 row.
 
-A **coordinate cell** holds the number twice, as a 64-bit float `value`
-and as a pair of 64-bit integers `numerator` and `denominator`, beside
-the `unit` and `number_type` of its timeline's axis. The number type
-selects the side that is the coordinate: the float for `float`, the pair
-for `int` and `fraction`. The other side is a mirror, which no check
-compares with the coordinate and no reader uses. Every cell that is not
-null has all five members, a finite `value`, a `denominator` of at least
-1 (exactly 1 for `int`), a `unit` of the format's units and a
-`number_type` of `int`, `float` and `fraction`, so that exact ratios
-survive Parquet. The mirror of a float is its exact ratio where both
-integers fit 64 bits. A double outside the range of a 64-bit integer, or
-one whose last binary digit lies below 2^-62 (its exact denominator
-exceeding 2^62), has no such pair, and its mirror is then at best an
-approximation: timetoalign writes the nearest ratio over 2^62 for the
-second and refuses to write the first.
+A **coordinate cell** holds its number in three members, filled as its
+`number_type` selects and never mirrored, beside the `unit` and
+`number_type` of its timeline's axis: an `int` is its `numerator` alone,
+a `fraction` its `numerator` and its `denominator`, a `float` its
+`value` alone, and every other member is null. A float is never written
+as a fraction, nor a fraction as a float. Every cell that is not null
+states a `unit` of the format's units and a `number_type` of `int`,
+`float` and `fraction`; its `value` is finite, its integers are 64-bit,
+and a fraction has a `denominator` of at least 1 and lies in lowest
+terms, so that each value has one cell and exact ratios survive
+Parquet.
 
 Every coordinate lies on its timeline's own axis, in that timeline's unit
 and number type: a position given in a unit the timeline converts to is
@@ -859,7 +851,8 @@ gives their codes and messages):
   beliefs](#provenance-and-beliefs)): valid against
   `provenance.schema.json`, without a key the entry or a belief does not
   declare, its dates days of the Gregorian calendar, each actor holding
-  one belief.
+  one belief, actors compared as the IRIs they stand for under the
+  manifest's `@context`.
 
 A NOMATCH or a conceptual MatchClaim has no anchors and is a row like any
 other.
@@ -874,9 +867,9 @@ of several manifests names each row's in its `scope` column, never in a
 string joined to the ID. Whoever writes a table over an existing one keeps the **succession
 rule**: every MatchClaim of the old table, by its scope and its ID, is in
 the new one with the same value in every column of the table's type but
-`provenance`, which alone may differ; coordinates compare by unit, number
-type and exact value, and the further columns of a table are not
-compared. The Python
+`provenance`, which alone may differ; a checked table writes each
+coordinate in one cell, so cells compare as written, and the further
+columns of a table are not compared. The Python
 package checks the rule for an old and a new table,
 `timetoshare.tables.check_succession(old, new)` raising the first breach
 and `succession_problems(old, new)` listing them ([Python](#python)). A reader refuses no table
@@ -893,13 +886,18 @@ of them, the **Projections table**, named by the resource of type
 | --- | --- | --- | --- |
 | `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise. An event's ID is unique on its timeline: a Projection is its timeline and its ID, so two timelines may each hold `projection_1`, and one timeline holds an ID once |
 | `timeline_id` | string | never | the timeline the Projection is an event of, a timeline of the manifest |
-| `start` | coordinate cell | never | its position on that timeline's own axis, in the timeline's unit and number type, a cell as in the MatchClaim table |
-| `duration` | coordinate cell | allowed | its duration on the same axis, never negative; null for an instant |
+| `unit`, `number_type` | string | never | the unit and the number type of its `start` and `duration`, stated once for both: those of the timeline's own axis |
+| `start` | number | never | its position on that timeline's own axis |
+| `duration` | number | allowed | its duration on the same axis, never negative; null for an instant |
 | `projection_of` | `struct<timeline_id: string, event_id: string>` | allowed | the event it stands for, an object and never a joined string: both members given, the timeline another than the Projection's own; null where no such event is known |
 
-As in the MatchClaim table, the columns may stand in any order, further
-columns are kept and never checked, and the coordinates of one timeline
-lie in one unit and one number type, its own where a manifest is given.
+A **number** is `struct<numerator: int64, denominator: int64, value:
+double>`, a coordinate cell without its `unit` and `number_type`: its
+members are filled as the row's `number_type` selects, as a coordinate
+cell's are. As in the MatchClaim table, the columns may stand in any
+order, further columns are kept and never checked, and the rows of one
+timeline lie in one unit and one number type, its own where a manifest
+is given.
 
 A Projection repeats nothing else of its source. One mechanism serves
 every side of a MatchClaim that has no event of its own:
@@ -952,13 +950,32 @@ the filter leaves out gives no anchor. The description specification,
 section 9, states the entry, its reading as RDF and what it tells apart
 among statements.
 
+Both packages hold the four states, in the order `true`, `undecided`,
+`unlikely`, `false`, as `BELIEF_STATES`, and the three kept by default as
+`DEFAULT_BELIEFS`. Python's `check_belief_filter(beliefs)` and npm's
+`checkBeliefFilter(beliefs)` check a filter and return the set of states
+it keeps; both refuse, Python with a `ValueError` and npm with an
+`Error`, alike:
+
+- a single string: `the belief filter takes a collection of states, not
+  the string 'true': write ['true']`;
+- a value that is no collection, a mapping or a plain object included:
+  `the belief filter takes a collection of states, not <value>`;
+- a member that is no state: `'maybe' is no belief state: write 'true',
+  'undecided', 'unlikely' or 'false'`, naming the first such member by
+  code point of its spelling, a string quoted and any other member
+  unquoted (`1 is no belief state: …`).
+
 A table has no base IRI against which a reference could be resolved: the
 IRI references of a row's provenance are read as written. The belief
 filter compares a table's actors with the believer as the IRIs they stand
 for under the manifest's `@context`, as it compares them among
 statements, so that a compact and an absolute IRI of one actor name the
 same actor; an actor that expands to nothing (a compact IRI whose prefix
-the context does not declare) compares as written.
+the context does not declare) compares as written. Where a row holds
+beliefs of the believer under two spellings, which the check refuses only
+under the manifest's context, its state is the most critical of them:
+`false`, then `unlikely`, then `true`.
 
 ### Checking the tables
 
@@ -1012,31 +1029,41 @@ The Projections table:
 | Rule | Code | Column | Message |
 | --- | --- | --- | --- |
 | A column of the type is missing or of another type | `schema_violation` | the column, row `None` | as in the MatchClaim table |
-| `id`, `timeline_id` or `start` is null | `schema_violation` | the column | `'<name>' is null` |
+| `id`, `timeline_id`, `unit`, `number_type` or `start` is null | `schema_violation` | the column | `'<name>' is null` |
 | An ID is empty or holds a control character | `invalid_id` | `id` | as in the MatchClaim table |
 | An ID repeats the ID of an earlier row on its timeline | `duplicate_id` | `id` | `the ID '<id>' is given twice on the timeline '<timeline id>'` |
 | `timeline_id` names no timeline of the manifest | `unknown_timeline` | `timeline_id` | `the manifest has no timeline '<id>'` |
-| `start`, then `duration`, is malformed | `invalid_coordinate` | the cell | a cell's message (below) |
-| `start` or `duration` lies off the timeline's axis | `axis_mismatch` | the cell | an axis message (below) |
+| `unit` is none of the format's units, or `number_type` none of `int`, `float` and `fraction` | `invalid_coordinate` | `unit`, else `number_type` | `'<unit>' is no unit`, `'<number type>' is no number type` |
+| The row's unit and number type are not those of its timeline in the manifest, or of an earlier row on its timeline | `axis_mismatch` | `unit` where the units differ, else `number_type` | an axis message (below) |
+| `start`, then `duration`, is malformed | `invalid_coordinate` | the number | a number's message (below) |
 | A well-formed `duration` is negative | `invalid_duration` | `duration` | `the duration is negative` |
 | A member of `projection_of` is null or empty | `invalid_projection_of` | `projection_of.timeline_id`, `projection_of.event_id` | `the projected event has no timeline_id`, `the projected event has no event_id` |
 | `projection_of` names the Projection's own timeline | `invalid_projection_of` | `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
 | `projection_of` names no timeline of the manifest | `unknown_timeline` | `projection_of.timeline_id` | `the manifest has no timeline '<id>'` |
 
 A cell's message names the first of: an anchor's coordinate that is null
-(`the coordinate is null`); members that are null (`the coordinate has no
-<members>`, those members in the cell's order, separated by `, `); a
+(`the coordinate is null`); a null `unit`, then a null `number_type`
+(`the coordinate has no unit`, `the coordinate has no number_type`); a
 unit that is none of the format's (`'<unit>' is no unit`); a number type
 other than `int`, `float` and `fraction` (`'<number type>' is no number
-type`); a value that is not finite (`the coordinate's value <value> is
-not finite`); a denominator below 1 (`the coordinate's denominator
-<denominator> is below 1`); an `int` cell whose denominator is not 1 (`an
-int coordinate has the denominator <denominator>`). An axis message is
-`a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit>
+type`); then the problem of its number. A number's message calls a
+cell and a Projection's `start` the coordinate and a Projection's
+`duration` the duration, and names the first of: a member its number type
+fills that is null, in the order `numerator`, `denominator`, `value` (`a
+float coordinate has no value`, `a fraction duration has no
+denominator`); a member it leaves null that holds a value (`an int
+coordinate holds its numerator alone, not a denominator`, `a fraction
+coordinate holds its numerator and denominator alone, not a value`); a
+value that is not finite (`the coordinate's value <value> is not
+finite`); a denominator below 1 (`the coordinate's denominator
+<denominator> is below 1`); a fraction not in lowest terms (`the
+coordinate's fraction 2/4 is not in lowest terms: write 1/2`, `the
+duration's fraction 0/4 is not in lowest terms: write 0/1`). An axis
+message is `a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit>
 (<number type>)` against a manifest, and `the timeline '<id>' has
 coordinates in <unit> (<number type>) and in <unit> (<number type>)` at
-the later of two cells of one timeline in a table, the first axis met
-before the second. A cell on a timeline the manifest does not hold is
+the later of two cells, or Projections, of one timeline in a table, the
+first axis met before the second. A cell on a timeline the manifest does not hold is
 not compared.
 
 In a provenance message, `<pointer>` locates the member at fault as a
@@ -1048,7 +1075,9 @@ is no key of a provenance entry`, `… of a belief`); a date that is no
 day of the Gregorian calendar (`'<date>' is no Gregorian calendar date
 written YYYY-MM-DD`); an actor holding a second belief (`'<actor>'
 already holds belief <index> of this entry; an actor holds one belief`,
-the index that of its earlier belief).
+the index that of its earlier belief), actors compared as the IRIs they
+stand for under the manifest's `@context` where a manifest is given, an
+actor that expands to nothing as written.
 
 **Unknown keys.** The `provenance` column holds the members of the entry
 alone, so a row cannot state a key the entry does not declare, and the
@@ -1245,9 +1274,11 @@ objects, each matched as a whole object), `domain`, `modality`, `class`
 `ContinuousPhysicalTimeline` for `seconds`, or a conversion map's type),
 `facet` (the bands drawing that facet), `within` (a timeline and its
 descendants) and `inside` (an element type that holds the element at any
-depth). The property `shadow` colours a card's offset shadow. The group
-fixture `group_styled` frames its group in violet, fills the group's title
-violet, and gives every card in a frame a light violet shadow:
+depth). The property `shadow` colours a card's offset shadow, and
+`rotation` turns a wedge about its tip, in whole degrees from −180 to 180.
+The group fixture `group_styled` frames its group in violet, fills the
+group's title violet, and gives every card in a frame a light violet
+shadow:
 
 ```json
 "graphical": {
@@ -1898,8 +1929,11 @@ else:
   `FORMAT_CONTEXT` and the prefixes the statements use; `same_pair`,
   `expand_iri` and `used_prefixes` serve them (the description
   specification, section 11). `BELIEFS` holds the three words of a
-  belief, `("true", "false", "unlikely")`. They live in
-  `timetoshare.statements`.
+  belief, `("true", "false", "unlikely")`, `BELIEF_STATES` the four states
+  of the belief filter and `DEFAULT_BELIEFS` the three it keeps by
+  default, and `check_belief_filter(beliefs)` checks a filter ([Provenance
+  and beliefs](#provenance-and-beliefs)). They live in
+  `timetoshare.statements`, and the package exports them.
 - `load_catalogue()` returns the shipped catalogue and
   `read_catalogue(document)` reads another; `recognize`, `instantiate`,
   `verb_of` and `rectangles` read an address, a verb, a pair and a
@@ -1955,7 +1989,15 @@ else:
   the two tables as Arrow tables ([Resources and
   tables](#resources-and-tables)). `MATCH_CLAIM_SCHEMA` and
   `PROJECTION_SCHEMA` declare their columns, `SCOPE_FIELD` the MatchClaim
-  table's optional key column `scope`; `match_claim_problems(table,
+  table's optional key column `scope`, `NUMBER_TYPE` a number,
+  `NUMBER_KEYS` its members and `NUMBER_MEMBERS` the members each number
+  type fills; `number_cell(value, number_type)` writes a number's
+  members, raising `ValueError` for a value its number type does not
+  hold (a float where an exact number belongs, a float that is not
+  finite, a Fraction on a `float` axis or an integer no double holds
+  there, a Fraction that is no integer on an `int` axis, an exact number
+  beyond 64-bit integers), and `coordinate_value(cell, number_type=None)`
+  reads its exact value back; `match_claim_problems(table,
   manifest=None)` and `projection_problems(table, manifest=None)` list
   every problem of a table, the table's own first, then row by row, each a
   `TableProblem` (`code`, `row`, `column`, `message`), checked against the
@@ -1968,9 +2010,9 @@ else:
   `believed_rows` derive the unique anchors and the potential MatchStamps
   of a MatchClaim table under the belief filter ([From MatchClaims to
   anchors](#from-matchclaims-to-anchors)), a reference derivation for
-  conformance; each takes a `believer`, the `beliefs` it keeps
-  (`BELIEF_STATES` holds the four states, `DEFAULT_BELIEFS` the three kept
-  by default) and the `context` under which actors expand. `fixture_path(name)` returns a file of the table fixture
+  conformance; each takes a `believer`, the `beliefs` it keeps (by
+  default `DEFAULT_BELIEFS`) and the `context` under which actors
+  expand. `fixture_path(name)` returns a file of the table fixture
   ([Fixtures](#fixtures)).
 - `fixture_paths()` returns the bundled accepted fixtures,
   `rejection_paths()` the bundled rejection cases and `warning_paths()` the
@@ -2062,7 +2104,10 @@ rewrite(text) === text; // true: the text is canonical YAML
   `withContext`, `samePair`, `expandIri` and `usedPrefixes` do what Python's functions of
   `timetoshare.statements` do, with the same messages, their keyword
   arguments in an options object (`withPair(manifest, subject, property,
-  value, { actor, date })`); `BELIEFS` holds the same three words;
+  value, { actor, date })`); `BELIEFS` holds the same three words,
+  `BELIEF_STATES` and `DEFAULT_BELIEFS` the same states, typed
+  `BeliefState`, and `checkBeliefFilter` checks a filter as
+  `check_belief_filter` does;
   `defaultCatalogue()`, `readCatalogue`, `recognize`, `instantiate`,
   `verbOf` and `rectangles` what those of `timetoshare.catalogue` do.
 - `complete(value)` and `minimal(value)` return the complete and the minimal

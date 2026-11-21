@@ -467,7 +467,11 @@ that actor is one of the states it is given. An item has one of four
 **states** for an actor: the actor's belief, `true`, `unlikely` or
 `false`, or `undecided` where the actor holds no belief on it. The filter
 keeps any set of these four states, by default every state but `false`;
-without an actor, nothing is filtered. It selects the
+without an actor, nothing is filtered. Actors compare as the IRIs they
+stand for. Where an item holds beliefs of the actor under two spellings
+of one IRI, which a valid manifest never does and a MatchClaim table
+checked without its manifest may, its state is the most critical of
+them: `false`, then `unlikely`, then `true`. The filter selects the
 candidates an editor offers and the MatchClaims that give anchors (README,
 "From MatchClaims to anchors") alike.
 
