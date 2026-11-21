@@ -237,6 +237,7 @@ describe("the schema document", () => {
       "frame",
       "card",
       "cross_section",
+      "alignment_anchor",
     ]);
     expect(properties("MeasureView").source_unit?.const).toBe("quarters");
     for (const [name, unit] of Object.entries(MEASURE_VIEWS)) {

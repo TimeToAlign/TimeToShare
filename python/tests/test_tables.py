@@ -4,6 +4,7 @@ fixture files (see "The table types" in README.md)."""
 from __future__ import annotations
 
 import copy
+import hashlib
 import importlib.util
 import json
 from collections.abc import Callable
@@ -16,10 +17,16 @@ import pytest
 pa = pytest.importorskip("pyarrow")
 pq = pytest.importorskip("pyarrow.parquet")
 
-from timetoshare import dumps, loads, with_file_ids  # noqa: E402
+from timetoshare import (  # noqa: E402
+    BELIEFS,
+    dumps,
+    loads,
+    provenance_schema_path,
+    with_file_ids,
+)
 from timetoshare.tables import (  # noqa: E402
     BELIEF_KEYS,
-    BELIEFS,
+    BELIEF_TYPE,
     COORDINATE_KEYS,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_SCHEMA,
@@ -27,6 +34,7 @@ from timetoshare.tables import (  # noqa: E402
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
+    PROVENANCE_TYPE,
     TableError,
     check_match_claims,
     check_projections,
@@ -280,10 +288,27 @@ def test_the_provenance_and_belief_keys() -> None:
     )
     assert BELIEF_KEYS == ("actor", "belief", "date", "note")
     assert BELIEFS == ("true", "false", "unlikely")
-    provenance = MATCH_CLAIM_SCHEMA.field("provenance").type
-    assert tuple(field.name for field in provenance) == PROVENANCE_KEYS
-    belief = provenance.field("beliefs").type.value_type
-    assert tuple(field.name for field in belief) == BELIEF_KEYS
+    schema = json.loads(provenance_schema_path().read_text(encoding="utf-8"))
+    assert tuple(schema["properties"]) == PROVENANCE_KEYS
+    assert tuple(schema["$defs"]["Belief"]["properties"]) == BELIEF_KEYS
+    assert schema["$defs"]["Belief"]["properties"]["belief"]["enum"] == list(BELIEFS)
+    assert MATCH_CLAIM_SCHEMA.field("provenance").type == PROVENANCE_TYPE
+    assert [(field.name, str(field.type)) for field in BELIEF_TYPE] == [
+        ("actor", "string"),
+        ("belief", "string"),
+        ("date", "string"),
+        ("note", "string"),
+    ]
+    assert [(field.name, str(field.type)) for field in PROVENANCE_TYPE] == [
+        ("stated_by", "list<item: string>"),
+        ("date", "string"),
+        ("method", "string"),
+        ("service", "string"),
+        ("basis", "list<item: string>"),
+        ("match", "string"),
+        ("note", "string"),
+        ("beliefs", f"list<item: {BELIEF_TYPE}>"),
+    ]
 
 
 @pytest.mark.parametrize(
@@ -416,7 +441,7 @@ CLAIM_CASES = [
     (
         "no_event",
         lambda rows: rows[3].update(event_a_id=None, event_b_id=None),
-        [("claim_timelines", 3, ("event_a_id",))],
+        [("claim_events", 3, ("event_a_id",))],
         "the MatchClaim names no event",
     ),
     (
@@ -495,34 +520,72 @@ def _provenance_case(name: str, path: tuple, value: Any, message: str) -> tuple:
 
 
 PROVENANCE_CASES = [
-    _provenance_case("stated_by_empty", ("stated_by",), [], "'stated_by' is empty"),
+    _provenance_case(
+        "stated_by_empty",
+        ("stated_by",),
+        [],
+        "the provenance #/stated_by: [] should be non-empty",
+    ),
     _provenance_case(
         "basis_twice",
         ("basis",),
         ["https://example.org/a", "https://example.org/a"],
-        "'basis' names one reference twice",
+        "the provenance #/basis: ['https://example.org/a', 'https://example.org/a'] "
+        "has non-unique elements",
     ),
     _provenance_case(
         "date",
         ("date",),
         "20.11.2026",
-        "the date '20.11.2026' is not a date YYYY-MM-DD",
+        "the provenance #/date: '20.11.2026' does not match "
+        "'^[0-9]{4}-[0-9]{2}-[0-9]{2}$'",
     ),
     _provenance_case(
-        "method", ("method",), "by ear", "'by ear' is neither a method word nor an IRI"
+        "date_impossible",
+        ("date",),
+        "2026-02-30",
+        "the provenance #/date: '2026-02-30' is no Gregorian calendar date "
+        "written YYYY-MM-DD",
     ),
-    _provenance_case("match", ("match",), "same", "'same' is no match word"),
     _provenance_case(
-        "belief_word", ("beliefs", 0, "belief"), "maybe", "'maybe' is no belief"
+        "method",
+        ("method",),
+        "by ear",
+        "the provenance #/method: 'by ear' is not one of "
+        "['manual', 'reconciled', 'imported', 'inferred']",
+    ),
+    _provenance_case(
+        "match",
+        ("match",),
+        "same",
+        "the provenance #/match: 'same' is not one of "
+        "['exact', 'close', 'broad', 'narrow', 'related']",
+    ),
+    _provenance_case(
+        "belief_word",
+        ("beliefs", 0, "belief"),
+        "maybe",
+        "the provenance #/beliefs/0/belief: 'maybe' is not one of "
+        "['true', 'false', 'unlikely']",
     ),
     _provenance_case(
         "belief_date",
         ("beliefs", 0, "date"),
         None,
-        f"the belief of '{ACTOR}' has no date",
+        "the provenance #/beliefs/0: 'date' is a required property",
     ),
     _provenance_case(
-        "belief_actor", ("beliefs", 0, "actor"), None, "a belief has no actor"
+        "belief_date_impossible",
+        ("beliefs", 0, "date"),
+        "2026-02-30",
+        "the provenance #/beliefs/0/date: '2026-02-30' is no Gregorian calendar "
+        "date written YYYY-MM-DD",
+    ),
+    _provenance_case(
+        "belief_actor",
+        ("beliefs", 0, "actor"),
+        None,
+        "the provenance #/beliefs/0: 'actor' is a required property",
     ),
     _provenance_case(
         "two_beliefs",
@@ -531,7 +594,8 @@ PROVENANCE_CASES = [
             {"actor": ACTOR, "belief": "true", "date": "2026-11-20", "note": None},
             {"actor": ACTOR, "belief": "false", "date": "2026-11-21", "note": None},
         ],
-        f"'{ACTOR}' holds two beliefs",
+        f"the provenance #/beliefs/1/actor: '{ACTOR}' already holds belief 0 of "
+        "this entry; an actor holds one belief",
     ),
 ]
 
@@ -650,9 +714,32 @@ def test_a_provenance_stated_in_the_file_and_in_a_row() -> None:
         ("[]", "the file's provenance is no object"),
         (
             '{"status": "confirmed"}',
-            "the file's provenance holds the unknown key 'status'",
+            "the file's provenance #: 'status' is no key of a provenance entry",
         ),
-        ('{"match": "same"}', "'same' is no match word"),
+        (
+            '{"beliefs": [{"actor": "https://example.org/a", "belief": "true", '
+            '"date": "2026-11-20", "weight": 1}]}',
+            "the file's provenance #/beliefs/0: 'weight' is no key of a belief",
+        ),
+        (
+            '{"match": "same"}',
+            "the file's provenance #/match: 'same' is not one of "
+            "['exact', 'close', 'broad', 'narrow', 'related']",
+        ),
+        (
+            '{"beliefs": "x"}',
+            "the file's provenance #/beliefs: 'x' is not of type 'array'",
+        ),
+        ('{"date": 5}', "the file's provenance #/date: 5 is not of type 'string'"),
+        (
+            '{"stated_by": 5}',
+            "the file's provenance #/stated_by: 5 is not of type 'array'",
+        ),
+        (
+            '{"date": "2026-02-30"}',
+            "the file's provenance #/date: '2026-02-30' is no Gregorian calendar date "
+            "written YYYY-MM-DD",
+        ),
     ],
 )
 def test_a_malformed_shared_provenance(text: str, message: str) -> None:
@@ -873,9 +960,40 @@ def test_the_fixture_files_are_the_scripts() -> None:
         script.projections_table()
     )
     manifest = fixture_path("manifest.yaml").read_text(encoding="utf-8")
-    assert manifest == dumps(with_file_ids(script.MANIFEST))
+    assert manifest == dumps(script.manifest(directory))
     expected = fixture_path("expected.yaml").read_text(encoding="utf-8")
     assert expected == dumps(script.EXPECTED)
+
+
+def test_the_manifest_names_its_tables_with_their_size_and_digest() -> None:
+    manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
+    claims = pq.read_table(fixture_path("match_claims.parquet")).to_pylist()
+    projections = pq.read_table(fixture_path("projections.parquet")).to_pylist()
+    named = {
+        "match_claims.parquet": {
+            *(row["timeline_a_id"] for row in claims),
+            *(row["timeline_b_id"] for row in claims),
+        },
+        "projections.parquet": {row["timeline_id"] for row in projections},
+    }
+    order = ["clt_1", "clt_2", "dpt_1", "cpt_1"]
+    resources = manifest["resources"]
+    assert [(r["id"], r["type"], r["url"]) for r in resources] == [
+        ("#resource_1", "MatchClaim", "match_claims.parquet"),
+        ("#resource_2", "Projection", "projections.parquet"),
+    ]
+    for resource in resources:
+        data = fixture_path(resource["url"]).read_bytes()
+        assert resource["media_type"] == "application/vnd.apache.parquet"
+        assert resource["size"] == len(data)
+        assert resource["integrity"] == {
+            "algorithm": "SHA-256",
+            "digest": hashlib.sha256(data).hexdigest(),
+        }
+        held = [
+            identifier for identifier in order if identifier in named[resource["url"]]
+        ]
+        assert resource["timelines"] == [f"#{identifier}" for identifier in held]
 
 
 def test_the_fixture_tables_pass_every_check_against_their_manifest() -> None:

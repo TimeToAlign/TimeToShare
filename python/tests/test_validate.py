@@ -38,6 +38,7 @@ REJECTIONS = [
     "band_order_unknown_entry",
     "belief_actor_repeated",
     "belief_date_impossible",
+    "belief_value_boolean",
     "belief_value_unknown",
     "child_end_beyond_parent",
     "child_id_control_character_newline",
@@ -826,7 +827,7 @@ def _defaults_block() -> dict:
 def test_the_defaults_are_a_valid_graphical_object() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["rules"]) == 30
+    assert len(defaults["rules"]) == 31
     validate({**SMALLEST, "graphical": defaults})
 
 

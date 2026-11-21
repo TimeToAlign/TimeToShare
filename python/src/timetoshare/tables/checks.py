@@ -13,16 +13,19 @@ import math
 import re
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
+from functools import cache
 from typing import Any, Literal
 
 import pyarrow as pa
+from jsonschema import Draft202012Validator
 
 from ..ids import with_bare_ids
 from ..manifest import UNIT_NUMBER_TYPES
-from ..statements import MATCHES, METHODS
-from ..validation.diagnostics import number_type_of, timelines_by_id
+from ..statements import calendar_date
+from ..validate import PROVENANCE_DEFINITION, _select, load_schema
+from ..validation.diagnostics import json_pointer, number_type_of, timelines_by_id
 from .columns import (
-    BELIEFS,
+    BELIEF_KEYS,
     COORDINATE_KEYS,
     MATCH_CLAIM_SCHEMA,
     PROJECTION_SCHEMA,
@@ -49,6 +52,7 @@ TableCode = Literal[
     "invalid_id",
     "duplicate_id",
     "invalid_coordinate",
+    "claim_events",
     "claim_timelines",
     "claim_anchors",
     "anchor_timelines",
@@ -85,8 +89,6 @@ class TableError(ValueError):
 
 
 _CONTROL = re.compile("[\u0000-\u001f]")
-_DATE = re.compile("[0-9]{4}-[0-9]{2}-[0-9]{2}")
-_SCHEME = re.compile("[A-Za-z][A-Za-z0-9_+.-]*:.")
 _NUMBER_TYPES = ("int", "float", "fraction")
 _REQUIRED_CLAIM = (
     "timeline_a_id",
@@ -159,59 +161,80 @@ def _coordinate_problem(cell: Mapping[str, Any]) -> str | None:
     return None
 
 
-def _date_problem(value: Any, what: str) -> str | None:
-    if value is not None and _DATE.fullmatch(value) is None:
-        return f"{what} '{value}' is not a date YYYY-MM-DD"
-    return None
+@cache
+def _provenance_validator() -> Draft202012Validator:
+    """The validator of one provenance entry: the provenance schema's root."""
+    definitions = load_schema()["$defs"]
+    return Draft202012Validator(
+        {"$defs": definitions, "$ref": f"#/$defs/{PROVENANCE_DEFINITION}"}
+    )
 
 
-def _iri_list_problem(value: Any, key: str) -> str | None:
-    if value is None:
-        return None
-    if not value:
-        return f"'{key}' is empty"
-    if any(not member for member in value):
-        return f"'{key}' holds an empty reference"
-    if len(set(value)) != len(value):
-        return f"'{key}' names one reference twice"
-    return None
+def _present(cell: Mapping[str, Any]) -> dict[str, Any]:
+    """A row's provenance cell as the entry it holds: a null member is absent."""
+    entry = {key: value for key, value in cell.items() if value is not None}
+    if "beliefs" in entry:
+        entry["beliefs"] = [
+            {key: value for key, value in belief.items() if value is not None}
+            if isinstance(belief, Mapping)
+            else belief
+            for belief in entry["beliefs"]
+        ]
+    return entry
 
 
-def _provenance_problem(entry: Mapping[str, Any]) -> str | None:
-    """Why a provenance entry (every key present) is malformed, or ``None``."""
-    for key in ("stated_by", "basis"):
-        problem = _iri_list_problem(entry[key], key)
-        if problem:
-            return problem
-    problem = _date_problem(entry["date"], "the date")
-    if problem:
-        return problem
-    method = entry["method"]
-    if method is not None and method not in METHODS and not _SCHEME.match(method):
-        return f"'{method}' is neither a method word nor an IRI"
-    if entry["service"] == "":
-        return "'service' is empty"
-    if entry["match"] is not None and entry["match"] not in MATCHES:
-        return f"'{entry['match']}' is no match word"
-    actors: set[str] = set()
-    for belief in entry["beliefs"] or ():
-        if not belief["actor"]:
-            return "a belief has no actor"
-        if belief["belief"] not in BELIEFS:
-            return f"'{belief['belief']}' is no belief"
-        if belief["date"] is None:
-            return f"the belief of '{belief['actor']}' has no date"
-        problem = _date_problem(belief["date"], "the belief's date")
-        if problem:
-            return problem
-        if belief["actor"] in actors:
-            return f"'{belief['actor']}' holds two beliefs"
-        actors.add(belief["actor"])
+def _provenance_problem(entry: Any, what: str) -> str | None:
+    """Why a provenance entry is no entry of the provenance schema, or ``None``.
+
+    The schema first, its problem chosen by the validators' one path rule;
+    then a key the schema does not declare, of the entry or of a belief;
+    then a date that is no day of the Gregorian calendar; then an actor
+    holding a second belief. ``what`` names the entry in the message, and
+    the member at fault follows as a JSON pointer into it.
+    """
+    error = _select(_provenance_validator().iter_errors(entry))
+    if error is not None:
+        return f"{what} {json_pointer(error.absolute_path)}: {error.message}"
+    beliefs = entry.get("beliefs", [])
+    for keys, known, path, kind in (
+        (entry, PROVENANCE_KEYS, (), "a provenance entry"),
+        *(
+            (belief, BELIEF_KEYS, ("beliefs", index), "a belief")
+            for index, belief in enumerate(beliefs)
+        ),
+    ):
+        unknown = sorted(set(keys) - set(known))
+        if unknown:
+            return f"{what} {json_pointer(path)}: '{unknown[0]}' is no key of {kind}"
+    dates = [(("date",), entry["date"])] if "date" in entry else []
+    dates.extend(
+        (("beliefs", index, "date"), belief["date"])
+        for index, belief in enumerate(beliefs)
+    )
+    for path, date in dates:
+        try:
+            calendar_date(date)
+        except ValueError as problem:
+            return f"{what} {json_pointer(path)}: {problem}"
+    held: dict[str, int] = {}
+    for index, belief in enumerate(beliefs):
+        actor = belief["actor"]
+        if actor in held:
+            return (
+                f"{what} {json_pointer(('beliefs', index, 'actor'))}: '{actor}' "
+                f"already holds belief {held[actor]} of this entry; an actor holds "
+                "one belief"
+            )
+        held[actor] = index
     return None
 
 
 def _shared_provenance(table: pa.Table) -> tuple[dict[str, Any] | None, str | None]:
-    """The provenance the file's metadata states for every row, and a problem."""
+    """The provenance the file's metadata states for every row, and a problem.
+
+    The entry is checked as a row's is, and returned with every member,
+    an absent one ``None``, as a row's cell holds it.
+    """
     metadata = table.schema.metadata or {}
     text = metadata.get(PROVENANCE_METADATA_KEY.encode())
     if text is None:
@@ -222,16 +245,15 @@ def _shared_provenance(table: pa.Table) -> tuple[dict[str, Any] | None, str | No
         return None, "the file's provenance is no JSON text"
     if not isinstance(entry, dict):
         return None, "the file's provenance is no object"
-    unknown = sorted(set(entry) - set(PROVENANCE_KEYS))
-    if unknown:
-        return None, f"the file's provenance holds the unknown key '{unknown[0]}'"
-    entry = {key: entry.get(key) for key in PROVENANCE_KEYS}
-    if entry["beliefs"] is not None:
-        entry["beliefs"] = [
-            {"actor": None, "belief": None, "date": None, "note": None, **belief}
-            for belief in entry["beliefs"]
+    problem = _provenance_problem(entry, "the file's provenance")
+    if problem:
+        return None, problem
+    cell = {key: entry.get(key) for key in PROVENANCE_KEYS}
+    if cell["beliefs"] is not None:
+        cell["beliefs"] = [
+            {key: belief.get(key) for key in BELIEF_KEYS} for belief in cell["beliefs"]
         ]
-    return entry, None
+    return cell, None
 
 
 def row_provenance(table: pa.Table) -> list[dict[str, Any] | None]:
@@ -342,7 +364,7 @@ def _claim_problems(
     start, end = row["start_anchor"], row["end_anchor"]
     if event_a is None and event_b is None:
         yield TableProblem(
-            "claim_timelines", index, ("event_a_id",), "the MatchClaim names no event"
+            "claim_events", index, ("event_a_id",), "the MatchClaim names no event"
         )
     elif event_a is None or event_b is None:
         if row["is_synchronous"]:
@@ -461,17 +483,12 @@ def match_claim_problems(
     if problems:
         return problems
     problems.extend(_ids(rows))
-    shared, problem = _shared_provenance(table)
+    shared = PROVENANCE_METADATA_KEY.encode() in (table.schema.metadata or {})
+    _, problem = _shared_provenance(table)
     if problem:
         problems.append(
             TableProblem("invalid_provenance", None, ("provenance",), problem)
         )
-    elif shared is not None:
-        problem = _provenance_problem(shared)
-        if problem:
-            problems.append(
-                TableProblem("invalid_provenance", None, ("provenance",), problem)
-            )
     axes = _Axes(manifest)
     for index, row in enumerate(rows):
         problems.extend(_claim_problems(index, row, axes))
@@ -479,8 +496,8 @@ def match_claim_problems(
         if cell is not None:
             problem = (
                 "the provenance is stated in the file's metadata and in the row"
-                if shared is not None
-                else _provenance_problem(cell)
+                if shared
+                else _provenance_problem(_present(cell), "the provenance")
             )
             if problem:
                 problems.append(

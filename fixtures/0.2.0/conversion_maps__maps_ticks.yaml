@@ -6,8 +6,10 @@
   basis:
     "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
     "@type": "@id"
-  belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue"
-  beliefs: "https://timetoalign.github.io/timetoshare/ns#belief"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
   broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
   children: "@included"
   close: "http://www.w3.org/2004/02/skos/core#closeMatch"
@@ -15,6 +17,7 @@
     "@id": "http://purl.org/dc/terms/date"
     "@type": "http://www.w3.org/2001/XMLSchema#date"
   exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
   groups: "@included"
   id: "@id"
   imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
@@ -46,7 +49,9 @@
     "@type": "@id"
   statements: "@nest"
   timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
   type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
   matchstamps: []
@@ -58,12 +63,14 @@ graphical:
       coordinate: 0
       display: [wedge, coordinate]
       id: "#timestamp_1"
+      matchstamp: false
       name: origin
       timeline: "#maps:ticks"
     -
       coordinate: 960
       display: [wedge, coordinate]
       id: "#timestamp_2"
+      matchstamp: false
       name: length
       timeline: "#maps:ticks"
 groups: []

@@ -312,10 +312,10 @@ def test_a_named_timestamp_completes_its_display() -> None:
     )
     default = ["wedge", "name", "cross_section"]
     assert complete(value)["graphical"]["timestamps"] == [
-        _stamp(1, display=default),
-        _stamp(2, display=default),
-        _stamp(3, display=["wedge", "name"]),
-        _stamp(4, display=[]),
+        _stamp(1, display=default, matchstamp=False),
+        _stamp(2, display=default, matchstamp=False),
+        _stamp(3, display=["wedge", "name"], matchstamp=False),
+        _stamp(4, display=[], matchstamp=False),
     ]
     assert minimal(value)["graphical"]["timestamps"] == [
         _stamp(1),
@@ -516,7 +516,7 @@ def test_a_match_timestamp_and_an_anchor_gain_their_own_defaults() -> None:
         ["name", "cross_section"],
     ]
     assert [stamp.get("matchstamp") for stamp in completed["timestamps"]] == [
-        None,
+        False,
         True,
         True,
     ]
@@ -526,6 +526,11 @@ def test_a_match_timestamp_and_an_anchor_gain_their_own_defaults() -> None:
     assert ["display" in stamp for stamp in stripped["timestamps"]] == [
         False,
         False,
+        True,
+    ]
+    assert [stamp.get("matchstamp") for stamp in stripped["timestamps"]] == [
+        None,
+        True,
         True,
     ]
     held = stripped["matchstamps"][0]["alignment_anchors"]

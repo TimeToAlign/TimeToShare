@@ -49,6 +49,7 @@ const REJECTIONS = [
   "band_order_unknown_entry",
   "belief_actor_repeated",
   "belief_date_impossible",
+  "belief_value_boolean",
   "belief_value_unknown",
   "child_end_beyond_parent",
   "child_id_control_character_newline",
@@ -828,7 +829,7 @@ describe("the graphical object", () => {
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.rules as unknown[]).length).toBe(30);
+    expect((defaults.rules as unknown[]).length).toBe(31);
     validate({ ...SMALLEST, graphical: defaults });
   });
 

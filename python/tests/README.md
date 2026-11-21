@@ -75,10 +75,10 @@ rejection cases that use them (`test_schema.py`):
   `Timestamp`'s `display` are exactly `TIMESTAMP_DISPLAY`, `wedge`, `name`,
   `id`, `coordinate` and `cross_section` in that order, so the canonical
   order the writers apply cannot drift from the words the schema admits.
-  `ElementType` is exactly the sixteen types `block`,
+  `ElementType` is exactly the seventeen types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `flow_marker`, `jump_from`,
-  `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card` and
-  `cross_section`. The four
+  `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
+  `cross_section` and `alignment_anchor`. The four
   measure views fix `source_unit` to `quarters` and `target_unit` to
   `floating_measures` (`FloatingMeasureMap`) or null (the other three).
 - **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
@@ -151,7 +151,7 @@ rejection cases that use them (`test_schema.py`):
   among none of them; `Belief` requires `actor`, `belief` and `date`, and
   its `belief`, the `method` words and `match` are exactly `BELIEFS`,
   `METHODS` and `MATCHES`; `Context`'s consts are
-  exactly `FORMAT_CONTEXT`, its `required` and its term names the 32 terms
+  exactly `FORMAT_CONTEXT`, its `required` and its term names the 35 terms
   in that order. `Iri` accepts `schema:MusicRecording`,
   `http://musicbrainz.org/work/x`, `urn:isbn:0451450523`,
   `mailto:a@example.org` and `wdt:P175`, and refuses `MusicRecording` (no
@@ -521,7 +521,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 168 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 169 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the thirty of the table, so every code is reached by a case both
@@ -777,7 +777,11 @@ named timestamps, in `validation/timestamps.py`. What proves them:
   `matchstamps` default to `[]`; a match timestamp's `display` defaults to
   `["cross_section"]`, an ordinary one's stays `["wedge", "name",
   "cross_section"]`, so `minimal` strips each only against its own
-  default; an anchor's `display` defaults to `["line"]`; the schema states
+  default; `matchstamp` defaults to `false`, so an ordinary timestamp
+  completes to `matchstamp: false` and minimizes without it, while a match
+  timestamp keeps `matchstamp: true` in both forms (every complete fixture
+  with a named timestamp states it); an anchor's `display` defaults to
+  `["line"]`; the schema states
   the match timestamp's default in the `then` arm of `matchstamp: true`
   and requires `name` in the `else` arm (`test_schema.py`).
 - **The rules** (`test_validate.py`). Each rejection case pins its message:
@@ -816,7 +820,7 @@ about the thing it stands for (`statements`) and annotate them
 (`provenance`); `timetoshare.statements` reads and writes them. Two
 documents serve every test (`conftest.py`, the same in the JavaScript
 suite), both in the file form, since the IRIs of statements are the same in
-either form: **M1**, the recording `#rec` (context: the 32 terms and
+either form: **M1**, the recording `#rec` (context: the 35 terms and
 `schema`, `wd`, `wdt`) with the root `#cpt_1` (seconds, length null), its
 region `#region_1` (0.0 to 10.0) and its child `#cpt_2` (5.0 at 0.0),
 stating nothing; and **M2**, the two described timelines `#clt_6` (a score
@@ -829,12 +833,14 @@ MusicBrainz work with its label, `type` `melod:Manifestation` and
 `schema:sameAs`, `wdt:P31` `wd:Q98069877`), its context the terms and the
 nine prefixes it uses. What proves the package (`test_statements.py`):
 
-- **The format's context.** `FORMAT_CONTEXT` holds the 32 terms, no prefix,
+- **The format's context.** `FORMAT_CONTEXT` holds the 35 terms, no prefix,
   and equals the schema's `Context` consts (`test_schema.py`); `NAMESPACE`
   is `https://timetoalign.github.io/timetoshare/ns#`; `beliefs`, `actor`
-  (an `@id`) and `belief` are its `belief`, `actor` and `beliefValue`, and
+  (an `@id`) and `belief` (an `@vocab`) are its `beliefs`, `actor` and
+  `belief`, the words `true`, `false` and `unlikely` its `True`, `False`
+  and `Unlikely`, and
   `status`, `confirmed`, `proposed` and `rejected` are no term; `BELIEFS`
-  is `(True, False, "unlikely")`; `METHODS`
+  is `("true", "false", "unlikely")`, strings; `METHODS`
   and `MATCHES` are the schema's enums in its order; `BLANK` is the class
   the schema's `Iri` refuses.
 - **Expanding an IRI.** Under M2's context `type` is `rdf:type`'s IRI,
@@ -903,14 +909,15 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   editor's `unlikely` with its note). `with_pair(…, {Clair de lune with
   label}, actor=editor, date="2026-11-20")` states the value with its
   label, keeps the candidate's entry and records the editor's belief
-  `True` on that date; no candidate is left. `with_belief` of `TILIE`
-  `False`, then of the editor `False`, leaves the pair stated and replaces
-  the editor's belief in place: `[editor False 2026-11-22, TILIE False
+  `"true"` on that date; no candidate is left. `with_belief` of `TILIE`
+  `"false"`, then of the editor `"false"`, leaves the pair stated and replaces
+  the editor's belief in place: `[editor "false" 2026-11-22, TILIE "false"
   2026-11-21]`; `without_pair` then gives M1 back. A belief in a pair
   never stated creates the entry `{property, value, beliefs}`; `actor`
-  without `date` raises `a belief needs a date`, a belief `1`, `0`,
-  `"likely"` or `None` raises `1 is no belief: write true, false or
-  'unlikely'` (the value spelled as JSON spells it). A property `performer`
+  without `date` raises `a belief needs a date`, a belief `True`, `False`,
+  `1`, `"likely"` or `None` raises `true is no belief: write 'true',
+  'false' or 'unlikely'` (the value spelled as JSON spells it, so the
+  booleans are told from the strings). A property `performer`
   raises `'performer' is no property: write 'type', a compact IRI or an
   absolute IRI`, a date `2026-02-30` the calendar message. A node's own
   pairs are written the same way at its path. Every function is pure: its
@@ -1143,7 +1150,7 @@ each statement fixture and its twin:
    provenance predicates (`rdf:subject`, `rdf:predicate`, `rdf:object`,
    `prov:wasAttributedTo`, `dcterms:date`, `prov:hadPrimarySource`,
    `rdfs:comment` and `NAMESPACE` + `method`, `service`, `match`,
-   `belief`, `actor`, `beliefValue`): no key of the format gives a triple;
+   `beliefs`, `actor`, `belief`): no key of the format gives a triple;
 4. for every candidate (an entry whose pair its subject does not state)
    whose subject has an IRI and
    whose value is a thing or a plain literal, the triple subject, property,
@@ -1627,7 +1634,7 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 30 rules),
+`docs/drawing.md` section 4's defaults block (three styles, 31 rules),
 read from the file, validates as the `graphical` of the smallest file; the
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate; so do the band selectors, `{"element": "band"}`, `{"element":
@@ -1715,9 +1722,15 @@ extraction's are without fontTools. What proves them:
   `coordinate_b`; `projection_of` the struct `timeline_id`, `event_id`. The
   provenance struct holds exactly `PROVENANCE_KEYS`, `stated_by`, `date`,
   `method`, `service`, `basis`, `match`, `note`, `beliefs`, and a belief
-  exactly `actor`, `belief`, `date`, `note`, `belief` one of `BELIEFS`
-  `true`, `false`, `unlikely`. These are pinned as lists, so a column
-  added or dropped fails the test that names it.
+  exactly `BELIEF_KEYS`, `actor`, `belief`, `date`, `note`. Both key sets
+  are read from `schema/0.2.0/provenance.schema.json` (its `properties`
+  and its `Belief`'s), never declared a second time: the test reads the
+  schema file itself and compares, and pins the lists, so a key added to
+  the schema changes the struct and fails the test that names it. Each
+  member's Arrow type follows from the schema: an array is a list (of the
+  belief struct for `beliefs`, of strings otherwise), every other member a
+  string; `belief` is one of `timetoshare.BELIEFS`, the strings `true`,
+  `false`, `unlikely`, the schema's enum.
 - **Each rule refuses its smallest counterexample and nothing else.** A
   valid table of a few rows is built inline; each rule is proved by
   changing one cell (or one column type) and asserting the exact list of
@@ -1732,18 +1745,30 @@ extraction's are without fontTools. What proves them:
   (`invalid_id`); an ID twice (`duplicate_id`, at its second row); a
   coordinate cell with an unknown unit or number type, a null side, a
   denominator below 1, an `int` cell with a denominator other than 1, a
-  non-finite float (`invalid_coordinate`); a row naming no event, both
-  timelines the same (`claim_timelines`); NOMATCH (one event null) that is
+  non-finite float (`invalid_coordinate`); a row naming no event
+  (`claim_events`); both timelines the same (`claim_timelines`); NOMATCH (one event null) that is
   synchronous or has an anchor, a conceptual row (two events, not
   synchronous) with an anchor, a synchronous row without `start_anchor`,
   an `end_anchor` without a start, a `source_coordinate` on a row that is
   not NOMATCH (`claim_anchors`); an anchor whose timelines are not the
   row's, in the row's order (`anchor_timelines`); a certainty outside
-  [0, 1] (`invalid_certainty`); a provenance cell with an empty or repeated
-  `stated_by` or `basis`, a date not `YYYY-MM-DD`, a `method` neither one
-  of `METHODS` nor an IRI, a `match` not one of `MATCHES`, a belief word
-  outside `BELIEFS`, a belief without date or actor, two beliefs of one
-  actor (`invalid_provenance`); provenance stated both in the file's
+  [0, 1] (`invalid_certainty`); a provenance entry, a row's cell (a null
+  member being an absent one) or the file's, that is no entry of the
+  provenance schema, checked by the schema itself and its first problem
+  chosen by the validators' one path rule, its message `<the provenance |
+  the file's provenance> <JSON pointer into the entry>: <the schema's
+  message>`: an empty `stated_by`, a repeated `basis`, a date not written
+  `YYYY-MM-DD`, a `method` neither a word nor an IRI, a `match` word
+  outside the schema's, a belief word outside `BELIEFS`, a belief without
+  date or actor; then a key the schema does not declare (`'status' is no
+  key of a provenance entry`, `'weight' is no key of a belief`); then a
+  date of the entry or of a belief that is no Gregorian calendar day
+  (`2026-02-30`, the manifest's message); then an actor holding two
+  beliefs (`'<actor>' already holds belief 0 of this entry; an actor holds
+  one belief`, the manifest's message) (`invalid_provenance`); the file's
+  provenance that is no JSON text, no object, or whose members have the
+  wrong type (`{"beliefs": "x"}`, `{"date": 5}`, `{"stated_by": 5}`) is
+  reported, never raised; provenance stated both in the file's
   metadata (`timetoshare:provenance`) and in a row (`invalid_provenance`);
   one timeline's cells in two units or number types within a table
   (`axis_mismatch`); a Projection whose `projection_of` lacks a member or
@@ -1766,9 +1791,9 @@ extraction's are without fontTools. What proves them:
 - **The derivation is checked against values written by hand.** The
   fixture's expected file (`expected.yaml`) is written in
   `scripts/emit_tables.py` as literal data, never computed by the
-  derivation; for each of its cases (no actor; an actor's default filter;
-  that actor's believed-true filter; a second actor's believed-true
-  filter) `alignment_anchors` (each anchor with the MatchClaims stating
+  derivation; for each of its cases, a `believer` and a `belief` filter (no
+  believer; an actor's `not_false`, the default; that actor's `true`; a
+  second actor's `true`) `alignment_anchors` (each anchor with the MatchClaims stating
   it) and `potential_matchstamps` equal the expected values exactly, as
   exact fractions. The fixture covers an instant claim, an interval
   claim (two anchors), two MatchClaims stating one anchor in opposite
@@ -1780,9 +1805,19 @@ extraction's are without fontTools. What proves them:
   the believed-true one) and a child timeline whose coordinates never meet
   its parent's. Without an actor the row believed false still gives its
   anchor.
+- **The belief filter takes two words.** `BELIEF_FILTERS` is
+  `("not_false", "true")`; `believed_rows` keeps, per believer and filter,
+  the rows listed in `test_tables_anchors.py`, and a filter `"false"`
+  raises `'false' is no belief filter: write 'not_false' or 'true'`.
 - **The fixture files are the script's.** The two Parquet files read back
-  equal to the tables the script builds, the manifest equal to its
-  manifest, and both tables pass every check against that manifest. Each
+  equal to the tables the script builds, the manifest equal to the
+  script's manifest of the files written, and both tables pass every
+  check against that manifest. The manifest names the two tables in its
+  `resources` (`resource_1`, `MatchClaim`, `match_claims.parquet`;
+  `resource_2`, `Projection`, `projections.parquet`), each with the media
+  type `application/vnd.apache.parquet`, the size of the file in bytes, its
+  SHA-256 digest (both computed by the test from the file) and, in the
+  manifest's order, exactly the timelines its table names. Each
   Projection a MatchClaim names stands on that side's timeline at the
   anchor's coordinate, its duration spanning to the end anchor.
 

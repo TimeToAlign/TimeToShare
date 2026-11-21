@@ -4,15 +4,29 @@
 <http://www.wikidata.org/entity/Q65658996> <http://www.w3.org/2000/01/rdf-schema#label> "HUMBLE." .
 <https://example.org/manifests/djset_segment.yaml#cpt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/AudioObject> .
 <https://example.org/manifests/djset_segment.yaml#cpt_1> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/MusicRecording> .
-<https://example.org/manifests/djset_segment.yaml#cpt_1> <http://www.wikidata.org/prop/direct/P2550> _:c14n0 .
+<https://example.org/manifests/djset_segment.yaml#cpt_1> <http://www.wikidata.org/prop/direct/P2550> _:c14n2 .
 <https://example.org/manifests/djset_segment.yaml#cpt_2> <http://schema.org/isBasedOn> <http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f> .
 <https://example.org/manifests/djset_segment.yaml#cpt_2> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://schema.org/MusicRecording> .
 <https://example.org/manifests/djset_segment.yaml#cpt_2> <http://www.wikidata.org/prop/direct/P144> <http://www.wikidata.org/entity/Q65658996> .
-<https://example.org/manifests/djset_segment.yaml#moriero_halloween_xxl_2025> <http://schema.org/about> _:c14n1 .
-_:c14n0 <http://www.w3.org/2000/01/rdf-schema#label> "Samuel Moriero, Impact Halloween XXL 2025" .
-_:c14n0 <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q2619673> .
-_:c14n1 <http://www.w3.org/2000/01/rdf-schema#label> "Samuel Moriero, Impact Halloween XXL 2025" .
-_:c14n1 <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q2619673> .
+<https://example.org/manifests/djset_segment.yaml#moriero_halloween_xxl_2025> <http://schema.org/about> _:c14n3 .
+_:c14n0 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q65658996> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://www.wikidata.org/prop/direct/P144> .
+_:c14n0 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/djset_segment.yaml#cpt_2> .
+_:c14n0 <http://www.w3.org/2000/01/rdf-schema#comment> "Wikidata: 2017 studio recording, P4404 398bf241…, ISRC USUM71703085" .
+_:c14n0 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
+_:c14n0 <https://timetoalign.github.io/timetoshare/ns#beliefs> _:c14n5 .
+_:c14n0 <https://timetoalign.github.io/timetoshare/ns#match> <http://www.w3.org/2004/02/skos/core#exactMatch> .
+_:c14n0 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
+_:c14n0 <https://timetoalign.github.io/timetoshare/ns#service> <https://www.wikidata.org/w/api.php> .
+_:c14n1 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/sameAs> .
+_:c14n1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/djset_segment.yaml#cpt_2> .
+_:c14n1 <http://www.w3.org/2000/01/rdf-schema#comment> "proposed by title match; the mix plays a remix, a different recording" .
+_:c14n1 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
+_:c14n1 <https://timetoalign.github.io/timetoshare/ns#beliefs> _:c14n8 .
+_:c14n1 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
 _:c14n10 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
 _:c14n10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> "USUM71703085" .
 _:c14n10 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/isrcCode> .
@@ -28,48 +42,34 @@ _:c14n11 <http://www.w3.org/2000/01/rdf-schema#comment> "+ vocabulary: from Wiki
 _:c14n11 <http://www.w3.org/ns/prov#hadPrimarySource> <http://www.wikidata.org/entity/Q65658996> .
 _:c14n11 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
 _:c14n11 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
-_:c14n2 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n2 <https://timetoalign.github.io/timetoshare/ns#actor> <https://example.org/people/editor> .
-_:c14n2 <https://timetoalign.github.io/timetoshare/ns#beliefValue> "false"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-_:c14n3 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q65658996> .
-_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://www.wikidata.org/prop/direct/P144> .
-_:c14n3 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/djset_segment.yaml#cpt_2> .
-_:c14n3 <http://www.w3.org/2000/01/rdf-schema#comment> "Wikidata: 2017 studio recording, P4404 398bf241…, ISRC USUM71703085" .
-_:c14n3 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
-_:c14n3 <https://timetoalign.github.io/timetoshare/ns#belief> _:c14n6 .
-_:c14n3 <https://timetoalign.github.io/timetoshare/ns#match> <http://www.w3.org/2004/02/skos/core#exactMatch> .
-_:c14n3 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
-_:c14n3 <https://timetoalign.github.io/timetoshare/ns#service> <https://www.wikidata.org/w/api.php> .
-_:c14n4 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q130798> .
-_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://www.wikidata.org/prop/direct/P175> .
-_:c14n4 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/djset_segment.yaml#cpt_2> .
-_:c14n4 <http://www.w3.org/ns/prov#hadPrimarySource> <http://www.wikidata.org/entity/Q65658996> .
-_:c14n4 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
-_:c14n4 <https://timetoalign.github.io/timetoshare/ns#belief> _:c14n9 .
-_:c14n4 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Inferred> .
+_:c14n2 <http://www.w3.org/2000/01/rdf-schema#label> "Samuel Moriero, Impact Halloween XXL 2025" .
+_:c14n2 <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q2619673> .
+_:c14n3 <http://www.w3.org/2000/01/rdf-schema#label> "Samuel Moriero, Impact Halloween XXL 2025" .
+_:c14n3 <http://www.wikidata.org/prop/direct/P31> <http://www.wikidata.org/entity/Q2619673> .
+_:c14n4 <http://purl.org/dc/terms/date> "2026-11-19"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n4 <http://www.w3.org/2000/01/rdf-schema#comment> "the remix may credit its remixers alone" .
+_:c14n4 <https://timetoalign.github.io/timetoshare/ns#actor> <https://example.org/people/editor> .
+_:c14n4 <https://timetoalign.github.io/timetoshare/ns#belief> <https://timetoalign.github.io/timetoshare/ns#Unlikely> .
 _:c14n5 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> _:c14n8 .
-_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://id.loc.gov/vocabulary/relators/prf> .
-_:c14n5 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/djset_segment.yaml#cpt_1> .
-_:c14n5 <http://www.w3.org/2000/01/rdf-schema#comment> "no Wikidata item found on 2026-11-18; MusicBrainz not searched" .
-_:c14n5 <http://www.w3.org/ns/prov#hadPrimarySource> <https://example.org/manifests/1001tracklists-1pp3704t_mapping.csv> .
-_:c14n5 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/timetoalign> .
-_:c14n5 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
+_:c14n5 <https://timetoalign.github.io/timetoshare/ns#actor> <https://example.org/people/editor> .
+_:c14n5 <https://timetoalign.github.io/timetoshare/ns#belief> <https://timetoalign.github.io/timetoshare/ns#True> .
 _:c14n6 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n6 <https://timetoalign.github.io/timetoshare/ns#actor> <https://example.org/people/editor> .
-_:c14n6 <https://timetoalign.github.io/timetoshare/ns#beliefValue> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .
-_:c14n7 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f> .
-_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://schema.org/sameAs> .
-_:c14n7 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/djset_segment.yaml#cpt_2> .
-_:c14n7 <http://www.w3.org/2000/01/rdf-schema#comment> "proposed by title match; the mix plays a remix, a different recording" .
-_:c14n7 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/people/editor> .
-_:c14n7 <https://timetoalign.github.io/timetoshare/ns#belief> _:c14n2 .
-_:c14n7 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Reconciled> .
-_:c14n8 <http://www.w3.org/2000/01/rdf-schema#label> "Samuel Moriero" .
-_:c14n9 <http://purl.org/dc/terms/date> "2026-11-19"^^<http://www.w3.org/2001/XMLSchema#date> .
-_:c14n9 <http://www.w3.org/2000/01/rdf-schema#comment> "the remix may credit its remixers alone" .
-_:c14n9 <https://timetoalign.github.io/timetoshare/ns#actor> <https://example.org/people/editor> .
-_:c14n9 <https://timetoalign.github.io/timetoshare/ns#beliefValue> "unlikely" .
+_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> _:c14n7 .
+_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://id.loc.gov/vocabulary/relators/prf> .
+_:c14n6 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/djset_segment.yaml#cpt_1> .
+_:c14n6 <http://www.w3.org/2000/01/rdf-schema#comment> "no Wikidata item found on 2026-11-18; MusicBrainz not searched" .
+_:c14n6 <http://www.w3.org/ns/prov#hadPrimarySource> <https://example.org/manifests/1001tracklists-1pp3704t_mapping.csv> .
+_:c14n6 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/timetoalign> .
+_:c14n6 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Imported> .
+_:c14n7 <http://www.w3.org/2000/01/rdf-schema#label> "Samuel Moriero" .
+_:c14n8 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n8 <https://timetoalign.github.io/timetoshare/ns#actor> <https://example.org/people/editor> .
+_:c14n8 <https://timetoalign.github.io/timetoshare/ns#belief> <https://timetoalign.github.io/timetoshare/ns#False> .
+_:c14n9 <http://purl.org/dc/terms/date> "2026-11-18"^^<http://www.w3.org/2001/XMLSchema#date> .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#object> <http://www.wikidata.org/entity/Q130798> .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate> <http://www.wikidata.org/prop/direct/P175> .
+_:c14n9 <http://www.w3.org/1999/02/22-rdf-syntax-ns#subject> <https://example.org/manifests/djset_segment.yaml#cpt_2> .
+_:c14n9 <http://www.w3.org/ns/prov#hadPrimarySource> <http://www.wikidata.org/entity/Q65658996> .
+_:c14n9 <http://www.w3.org/ns/prov#wasAttributedTo> <https://example.org/agents/tilie> .
+_:c14n9 <https://timetoalign.github.io/timetoshare/ns#beliefs> _:c14n4 .
+_:c14n9 <https://timetoalign.github.io/timetoshare/ns#method> <https://timetoalign.github.io/timetoshare/ns#Inferred> .

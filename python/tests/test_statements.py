@@ -64,15 +64,20 @@ def _described(**members: Any) -> dict:
 
 
 def test_the_format_context_holds_the_terms_and_no_prefix() -> None:
-    assert len(FORMAT_CONTEXT) == 32
+    assert len(FORMAT_CONTEXT) == 35
     assert list(FORMAT_CONTEXT)[:5] == ["@version", "id", "type", "statements", "list"]
     assert NAMESPACE == "https://timetoalign.github.io/timetoshare/ns#"
-    assert FORMAT_CONTEXT["beliefs"] == NAMESPACE + "belief"
+    assert FORMAT_CONTEXT["beliefs"] == NAMESPACE + "beliefs"
     assert FORMAT_CONTEXT["actor"] == {"@id": NAMESPACE + "actor", "@type": "@id"}
-    assert FORMAT_CONTEXT["belief"] == NAMESPACE + "beliefValue"
+    assert FORMAT_CONTEXT["belief"] == {"@id": NAMESPACE + "belief", "@type": "@vocab"}
+    assert [FORMAT_CONTEXT[word] for word in ("true", "false", "unlikely")] == [
+        NAMESPACE + "True",
+        NAMESPACE + "False",
+        NAMESPACE + "Unlikely",
+    ]
     for word in ("status", "confirmed", "proposed", "rejected"):
         assert word not in FORMAT_CONTEXT
-    assert BELIEFS == (True, False, "unlikely")
+    assert BELIEFS == ("true", "false", "unlikely")
     assert METHODS == ("manual", "reconciled", "imported", "inferred")
     assert MATCHES == ("exact", "close", "broad", "narrow", "related")
     assert BLANK.startswith("[\\u0000-\\u0020")
@@ -83,7 +88,8 @@ def test_iris_expand_by_the_context() -> None:
     assert expand_iri(context, "type") == RDF + "type"
     assert expand_iri(context, "label") == "http://www.w3.org/2000/01/rdf-schema#label"
     assert expand_iri(context, "property") == RDF + "predicate"
-    assert expand_iri(context, "beliefs") == NAMESPACE + "belief"
+    assert expand_iri(context, "beliefs") == NAMESPACE + "beliefs"
+    assert expand_iri(context, "belief") == NAMESPACE + "belief"
     assert expand_iri(context, "actor") == NAMESPACE + "actor"
     for keyword in ("statements", "id", "provenance", "timelines", "@version"):
         assert expand_iri(context, keyword) is None, keyword
@@ -152,7 +158,7 @@ def test_the_context_holds_the_terms_and_the_used_prefixes() -> None:
     own = {**described, "@context": {"schema": "https://schema.org/"}}
     context = with_context(own, CATALOGUE_TEST["prefixes"])["@context"]
     assert context["schema"] == "https://schema.org/"
-    assert list(context)[:32] == list(FORMAT_CONTEXT)
+    assert list(context)[:35] == list(FORMAT_CONTEXT)
     assert with_context(m1(), {})["@context"] == FORMAT_CONTEXT
     with pytest.raises(ValueError) as raised:
         with_context(bare, {"wd": "http://www.wikidata.org/entity/"})
@@ -242,7 +248,7 @@ def test_the_entries_and_the_candidates_of_a_subject() -> None:
     assert candidates(value, ROOT) == [entries(value, ROOT)[0]]
     assert candidates(value, ROOT, EDITOR) == [entries(value, ROOT)[0]]
     believed = with_belief(
-        value, ROOT, "wdt:P175", PIRES, actor=EDITOR, belief=False, date="2026-11-19"
+        value, ROOT, "wdt:P175", PIRES, actor=EDITOR, belief="false", date="2026-11-19"
     )
     assert candidates(believed, ROOT) == [entries(believed, ROOT)[0]]
     assert candidates(believed, ROOT, EDITOR) == []
@@ -451,7 +457,7 @@ def test_a_candidate_is_stated_by_a_person_then_believed_false() -> None:
             "date": "2026-11-18",
             "method": "inferred",
             "basis": ["#cpt_2"],
-            "beliefs": [{"actor": EDITOR, "belief": True, "date": "2026-11-20"}],
+            "beliefs": [{"actor": EDITOR, "belief": "true", "date": "2026-11-20"}],
         }
     ]
     assert candidates(stated, ROOT) == []
@@ -470,7 +476,7 @@ def test_a_candidate_is_stated_by_a_person_then_believed_false() -> None:
         "'wdt:P2550' already has this value; a stated pair is no candidate"
     )
     disbelieved = with_belief(
-        stated, ROOT, "wdt:P2550", work, actor=TILIE, belief=False, date="2026-11-21"
+        stated, ROOT, "wdt:P2550", work, actor=TILIE, belief="false", date="2026-11-21"
     )
     changed = with_belief(
         disbelieved,
@@ -478,14 +484,14 @@ def test_a_candidate_is_stated_by_a_person_then_believed_false() -> None:
         "wdt:P2550",
         work,
         actor=EDITOR,
-        belief=False,
+        belief="false",
         date="2026-11-22",
     )
     root = changed["timelines"][0]
     assert root["statements"] == {"wdt:P2550": [labelled]}
     assert root["provenance"][0]["beliefs"] == [
-        {"actor": EDITOR, "belief": False, "date": "2026-11-22"},
-        {"actor": TILIE, "belief": False, "date": "2026-11-21"},
+        {"actor": EDITOR, "belief": "false", "date": "2026-11-22"},
+        {"actor": TILIE, "belief": "false", "date": "2026-11-21"},
     ]
     validate(changed)
     unstated = without_pair(changed, ROOT, "wdt:P2550", work)
@@ -502,17 +508,24 @@ def test_a_belief_in_a_pair_never_stated_creates_its_entry() -> None:
         "type",
         "schema:MusicVideoObject",
         actor=EDITOR,
-        belief=False,
+        belief="false",
         date="2026-11-18",
     )
     assert value["timelines"][0]["regions"][0]["provenance"] == [
         {
             "property": "rdf:type",
             "value": {"id": "schema:MusicVideoObject"},
-            "beliefs": [{"actor": EDITOR, "belief": False, "date": "2026-11-18"}],
+            "beliefs": [{"actor": EDITOR, "belief": "false", "date": "2026-11-18"}],
         }
     ]
-    for belief in (1, 0, "likely", None):
+    spelled = [
+        (True, "true"),
+        (False, "false"),
+        (1, "1"),
+        ("likely", '"likely"'),
+        (None, "null"),
+    ]
+    for belief, written in spelled:
         with pytest.raises(ValueError) as raised:
             with_belief(
                 m1(),
@@ -523,11 +536,8 @@ def test_a_belief_in_a_pair_never_stated_creates_its_entry() -> None:
                 belief=belief,
                 date="2026-11-18",
             )
-        written = (
-            '"likely"' if belief == "likely" else "null" if belief is None else belief
-        )
         assert str(raised.value) == (
-            f"{written} is no belief: write true, false or 'unlikely'"
+            f"{written} is no belief: write 'true', 'false' or 'unlikely'"
         )
 
 
@@ -678,11 +688,11 @@ def test_every_message_of_the_statement_rules() -> None:
             "property": "wdt:P86",
             "value": {"id": "wd:Q255"},
             "beliefs": [
-                {"actor": "wd:Q1", "belief": True, "date": "2026-11-18"},
+                {"actor": "wd:Q1", "belief": "true", "date": "2026-11-18"},
                 {"actor": "#clt_1", "belief": "unlikely", "date": "2026-11-18"},
                 {
                     "actor": "http://www.wikidata.org/entity/Q1",
-                    "belief": False,
+                    "belief": "false",
                     "date": "2026-11-19",
                 },
             ],
@@ -1073,7 +1083,7 @@ def test_references_to_a_dropped_element_are_dropped() -> None:
 
 
 def test_the_actors_of_beliefs_are_renamed_and_dropped() -> None:
-    held = {"belief": True, "date": "2026-11-18"}
+    held = {"belief": "true", "date": "2026-11-18"}
     given = m1()
     given["timelines"][0]["provenance"] = [
         {

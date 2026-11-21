@@ -1,6 +1,5 @@
 cases:
   -
-    actor: null
     alignment_anchors:
       -
         coordinates:
@@ -128,7 +127,8 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_11]
-    only_true: false
+    belief: not_false
+    believer: null
     potential_matchstamps:
       -
         coordinates:
@@ -239,7 +239,6 @@ cases:
             value: 396900
         match_claims: [claim_15]
   -
-    actor: "https://orcid.org/0000-0002-1825-0097"
     alignment_anchors:
       -
         coordinates:
@@ -358,7 +357,8 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_11]
-    only_true: false
+    belief: not_false
+    believer: "https://orcid.org/0000-0002-1825-0097"
     potential_matchstamps:
       -
         coordinates:
@@ -466,7 +466,6 @@ cases:
             value: 441000
         match_claims: [claim_11]
   -
-    actor: "https://orcid.org/0000-0002-1825-0097"
     alignment_anchors:
       -
         coordinates:
@@ -486,7 +485,8 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_11]
-    only_true: true
+    belief: "true"
+    believer: "https://orcid.org/0000-0002-1825-0097"
     potential_matchstamps:
       -
         coordinates:
@@ -507,7 +507,6 @@ cases:
             value: 441000
         match_claims: [claim_11]
   -
-    actor: "https://orcid.org/0000-0001-5109-3700"
     alignment_anchors:
       -
         coordinates:
@@ -518,7 +517,8 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_13]
-    only_true: true
+    belief: "true"
+    believer: "https://orcid.org/0000-0001-5109-3700"
     potential_matchstamps:
       -
         coordinates:

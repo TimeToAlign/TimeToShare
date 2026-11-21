@@ -38,9 +38,9 @@ FORMAT_PREDICATES = {
     NAMESPACE + "method",
     NAMESPACE + "service",
     NAMESPACE + "match",
-    NAMESPACE + "belief",
+    NAMESPACE + "beliefs",
     NAMESPACE + "actor",
-    NAMESPACE + "beliefValue",
+    NAMESPACE + "belief",
 }
 SCHEMES = ("http:", "https:", "urn:", "tag:", "mailto:", "info:")
 UNSTATED = {

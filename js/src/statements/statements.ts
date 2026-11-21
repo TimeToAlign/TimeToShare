@@ -7,8 +7,8 @@
  * and whose values are non-empty lists of values, and `provenance`, a list
  * of entries (the entry of the provenance schema, `provenance.schema.json`),
  * each naming one pair of its element with who stated it, when, how, on what
- * basis, and who believes it (`beliefs`: per actor `true`, `false` or
- * `"unlikely"`). An entry whose pair is stated annotates it; an entry whose
+ * basis, and who believes it (`beliefs`: per actor one of the strings
+ * `"true"`, `"false"` and `"unlikely"`). An entry whose pair is stated annotates it; an entry whose
  * pair is not stated is a candidate, which an actor believing it `false` is
  * not offered again. Nothing derives a truth value from the beliefs. A value
  * node holds its own pairs directly, as property-IRI keys, and its own
@@ -64,13 +64,16 @@ export const FORMAT_CONTEXT = Object.freeze({
   basis: Object.freeze({ "@id": "http://www.w3.org/ns/prov#hadPrimarySource", "@type": "@id" }),
   match: Object.freeze({ "@id": `${NAMESPACE}match`, "@type": "@vocab" }),
   note: "http://www.w3.org/2000/01/rdf-schema#comment",
-  beliefs: `${NAMESPACE}belief`,
+  beliefs: `${NAMESPACE}beliefs`,
   actor: Object.freeze({ "@id": `${NAMESPACE}actor`, "@type": "@id" }),
-  belief: `${NAMESPACE}beliefValue`,
+  belief: Object.freeze({ "@id": `${NAMESPACE}belief`, "@type": "@vocab" }),
   manual: `${NAMESPACE}Manual`,
   reconciled: `${NAMESPACE}Reconciled`,
   imported: `${NAMESPACE}Imported`,
   inferred: `${NAMESPACE}Inferred`,
+  true: `${NAMESPACE}True`,
+  false: `${NAMESPACE}False`,
+  unlikely: `${NAMESPACE}Unlikely`,
   exact: "http://www.w3.org/2004/02/skos/core#exactMatch",
   close: "http://www.w3.org/2004/02/skos/core#closeMatch",
   broad: "http://www.w3.org/2004/02/skos/core#broadMatch",
@@ -78,8 +81,8 @@ export const FORMAT_CONTEXT = Object.freeze({
   related: "http://www.w3.org/2004/02/skos/core#relatedMatch",
 });
 
-/** The beliefs an actor may hold in an item, in the schema's order. */
-export const BELIEFS = [true, false, "unlikely"] as const;
+/** The beliefs an actor may hold in an item, strings in the schema's order. */
+export const BELIEFS = ["true", "false", "unlikely"] as const;
 
 /** The words of a provenance entry's `method`, in the schema's order; any other method is an IRI. */
 export const METHODS = ["manual", "reconciled", "imported", "inferred"] as const;
@@ -846,7 +849,7 @@ export function candidates(manifest: unknown, subject: Subject, actor?: string):
     .filter(
       (entry) =>
         !states(context, owner, node, entryPair(entry)) &&
-        (actor === undefined || !believes(context, entry, actor, false)),
+        (actor === undefined || !believes(context, entry, actor, "false")),
     )
     .map(clone);
 }
@@ -903,7 +906,7 @@ function checkedDate(date: unknown): void {
 
 function checkedBelief(belief: unknown): void {
   if (!(BELIEFS as readonly unknown[]).includes(belief)) {
-    throw new Error(`${spell(belief)} is no belief: write true, false or 'unlikely'`);
+    throw new Error(`${spell(belief)} is no belief: write 'true', 'false' or 'unlikely'`);
   }
 }
 
@@ -1029,7 +1032,7 @@ function stated(owner: JsonObject, node: boolean, property: string, value: unkno
  * the pair's entry, appended where the pair has none: its property
  * `rdf:type` for `type`, its value `{id}` for a node with `id` or a type,
  * else the value. Given `actor`, the person stating the pair, the entry
- * records that actor's belief `true` on `date`, replacing the actor's
+ * records that actor's belief `"true"` on `date`, replacing the actor's
  * earlier belief.
  *
  * @throws {Error} if the property is none, the subject has the pair, a date
@@ -1059,7 +1062,7 @@ export function withPair<T>(
     Object.assign(theEntry(context, owner, pair), clone(given));
   }
   if (actor !== undefined) {
-    believe(context, owner, pair, { actor, belief: true, date: date as string });
+    believe(context, owner, pair, { actor, belief: "true", date: date as string });
   }
   return result;
 }
@@ -1139,12 +1142,12 @@ export function withCandidate<T>(
 
 /**
  * Return the manifest with an actor's belief in a pair of the subject:
- * `true`, `false` or `"unlikely"`. The pair's entry, appended with the pair
+ * one of the strings `"true"`, `"false"` and `"unlikely"` (`BELIEFS`). The pair's entry, appended with the pair
  * alone where it has none, records `{actor, belief, date}` (and `note` where
  * given), replacing in place the actor's earlier belief; actors compare as
  * their IRIs. Whether the pair is stated is left as it is: one actor's
  * belief leaves the statement and every other actor's belief standing. A
- * candidate an actor believes `false` is not offered to that actor again
+ * candidate an actor believes `"false"` is not offered to that actor again
  * (`candidates`).
  *
  * @throws {Error} if the property is none, the belief is none of the three,

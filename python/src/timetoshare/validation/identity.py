@@ -126,8 +126,9 @@ def identity_problems(
     Root by root: duplicates, dangling targets, conversion maps, containment
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
-    manifest ID), group members, graphical orders, named timestamps, named
-    MatchStamps and resources.
+    named MatchStamps' IDs each followed by its alignment anchors' IDs, the
+    resources' IDs, and last the manifest ID); then group members, graphical
+    orders, named timestamps, named MatchStamps and resources.
     """
     roots = _entries(value, "timelines")
     groups = _entries(value, "groups")

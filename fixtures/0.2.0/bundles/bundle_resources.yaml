@@ -6,8 +6,10 @@
   basis:
     "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
     "@type": "@id"
-  belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue"
-  beliefs: "https://timetoalign.github.io/timetoshare/ns#belief"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
   broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
   children: "@included"
   close: "http://www.w3.org/2004/02/skos/core#closeMatch"
@@ -15,6 +17,7 @@
     "@id": "http://purl.org/dc/terms/date"
     "@type": "http://www.w3.org/2001/XMLSchema#date"
   exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
   groups: "@included"
   id: "@id"
   imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
@@ -46,7 +49,9 @@
     "@type": "@id"
   statements: "@nest"
   timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
   type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
   matchstamps: []
@@ -58,46 +63,45 @@ graphical:
       coordinate: [0, 1]
       display: [wedge, coordinate]
       id: "#timestamp_1"
+      matchstamp: false
       name: origin
-      timeline: "#clt_6"
+      timeline: "#score"
     -
-      coordinate: [27, 1]
+      coordinate: [8, 1]
       display: [wedge, coordinate]
       id: "#timestamp_2"
+      matchstamp: false
       name: length
-      timeline: "#clt_6"
+      timeline: "#score"
     -
       coordinate: 0
       display: [wedge, coordinate]
       id: "#timestamp_3"
+      matchstamp: false
       name: origin
-      timeline: "#dpt_1"
+      timeline: "#take_1"
     -
-      coordinate: 1470868
+      coordinate: 352800
       display: [wedge, coordinate]
       id: "#timestamp_4"
+      matchstamp: false
       name: length
-      timeline: "#dpt_1"
+      timeline: "#take_1"
 groups: []
-id: "#layerit_step_1"
 measure_maps: []
 meta:
   generator: "timetoalign 1.2.0 (40161e42)"
-name: "LayerIt, step 1"
+name: Resources
 resources:
   -
     id: "#resource_1"
-    integrity:
-      algorithm: SHA-256
-      digest: "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
     media_type: application/vnd.apache.parquet
-    size: 18432
-    timelines: ["#clt_6", "#dpt_1"]
+    timelines: ["#score", "#take_1"]
     type: MatchClaim
     url: match_claims.parquet
   -
     id: "#resource_2"
-    timelines: ["#dpt_1"]
+    timelines: ["#take_1"]
     type: Projection
     url: projections.parquet
 timelines:
@@ -105,12 +109,12 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#clt_6"
+    id: "#score"
     is_segment_line: false
-    length: [27, 1]
+    length: [8, 1]
     locked: false
     meta: {}
-    name: "Clair de lune, mm. 1–6 (MEI)"
+    name: Score
     number_type: fraction
     regions: []
     unit: quarters
@@ -118,12 +122,12 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#dpt_1"
+    id: "#take_1"
     is_segment_line: false
-    length: 1470868
+    length: 352800
     locked: false
     meta: {}
-    name: ClairDeLune_MariaJoaoPires_untilM6.wav
+    name: "Take 1"
     number_type: int
     regions: []
     unit: samples

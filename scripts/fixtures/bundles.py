@@ -368,31 +368,22 @@ def corpus_tilia_bundle() -> AlignmentBundle:
 def bundle_resources() -> AlignmentBundle:
     """Build a bundle naming its MatchClaim table and its Projections table.
 
-    The bundle ``layerit_step_1`` ("LayerIt, step 1") holds the MEI encoding
-    ``clt_6`` ("Clair de lune, mm. 1–6 (MEI)", 27 quarters) and the audio
-    file ``dpt_1`` ("ClairDeLune_MariaJoaoPires_untilM6.wav", 1470868
-    samples). Its resources, added when the manifest is composed
-    (``RESOURCES``), name the MatchClaim table ``match_claims.parquet``
-    holding data for both timelines, with its media type, size and digest,
-    and the Projections table ``projections.parquet`` holding data for
-    ``dpt_1`` alone, with nothing optional.
+    The bundle "Resources" holds the score ``score`` ("Score", 8 quarters)
+    and the recording ``take_1`` ("Take 1", 352800 samples), ungrouped. Its
+    resources, added when the manifest is composed (``RESOURCES``), name the
+    MatchClaim table ``match_claims.parquet`` holding data for both
+    timelines, with its media type, and the Projections table
+    ``projections.parquet`` holding data for ``take_1`` alone, with nothing
+    optional. Neither file lies beside the fixture, so neither states a
+    size or a digest; the table fixture's manifest states both of its own
+    tables'.
     """
-    bundle = AlignmentBundle(id="layerit_step_1", name="LayerIt, step 1")
+    bundle = AlignmentBundle(name="Resources")
     bundle.add_timeline(
-        parts.named(
-            ContinuousLogicalTimeline,
-            "clt_6",
-            "Clair de lune, mm. 1–6 (MEI)",
-            Fraction(27),
-        )
+        parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
     )
     bundle.add_timeline(
-        parts.named(
-            DiscretePhysicalTimeline,
-            "dpt_1",
-            "ClairDeLune_MariaJoaoPires_untilM6.wav",
-            Fraction(1470868),
-        )
+        parts.named(DiscretePhysicalTimeline, "take_1", "Take 1", Fraction(352800))
     )
     return bundle
 

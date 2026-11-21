@@ -97,20 +97,14 @@ RESOURCES: dict[str, tuple[Mapping[str, Any], ...]] = {
         {
             "id": "resource_1",
             "type": "MatchClaim",
-            "timelines": ["clt_6", "dpt_1"],
+            "timelines": ["score", "take_1"],
             "url": "match_claims.parquet",
             "media_type": "application/vnd.apache.parquet",
-            "size": 18432,
-            "integrity": {
-                "algorithm": "SHA-256",
-                "digest": "9f86d081884c7d659a2feaa0c55ad015"
-                "a3bf4f1b2b0b822cd15d6c15b0f00a08",
-            },
         },
         {
             "id": "resource_2",
             "type": "Projection",
-            "timelines": ["dpt_1"],
+            "timelines": ["take_1"],
             "url": "projections.parquet",
         },
     ),

@@ -9,8 +9,8 @@ module: it imports no rule module and no validator, so the rule modules and
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Mapping
-from typing import Any, Literal, TypeAlias, TypedDict
+from collections.abc import Hashable, Iterable, Iterator, Mapping
+from typing import Any, Literal, TypeAlias, TypedDict, TypeVar
 
 from ..manifest import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
 
@@ -58,6 +58,31 @@ class ManifestWarning(TypedDict):
     code: WarningCode
     path: list[str | int]
     message: str
+
+
+_Member = TypeVar("_Member", bound=Hashable)
+
+
+def connected_sets(pairs: Iterable[tuple[_Member, _Member]]) -> dict[_Member, _Member]:
+    """Map every member of the pairs to the representative of its connected set.
+
+    Two members share a representative exactly when a chain of pairs joins
+    them (union-find with path halving). The MatchStamp rule counts the sets
+    a named MatchStamp's anchors form; the table types group the unique
+    anchors of a MatchClaim table into potential MatchStamps by it.
+    """
+    parent: dict[_Member, _Member] = {}
+
+    def find(member: _Member) -> _Member:
+        parent.setdefault(member, member)
+        while parent[member] != member:
+            parent[member] = parent[parent[member]]
+            member = parent[member]
+        return member
+
+    for left, right in pairs:
+        parent[find(left)] = find(right)
+    return {member: find(member) for member in list(parent)}
 
 
 def json_pointer(path: Iterable[str | int]) -> str:

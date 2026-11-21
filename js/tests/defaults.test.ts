@@ -279,10 +279,10 @@ describe("the complete and the minimal form", () => {
     });
     const display = ["wedge", "name", "cross_section"];
     expect((complete(value).graphical as JsonObject).timestamps).toEqual([
-      stamp(1, { display }),
-      stamp(2, { display }),
-      stamp(3, { display: ["wedge", "name"] }),
-      stamp(4, { display: [] }),
+      stamp(1, { display, matchstamp: false }),
+      stamp(2, { display, matchstamp: false }),
+      stamp(3, { display: ["wedge", "name"], matchstamp: false }),
+      stamp(4, { display: [], matchstamp: false }),
     ]);
     expect((minimal(value).graphical as JsonObject).timestamps).toEqual([
       stamp(1),
@@ -549,13 +549,18 @@ describe("match timestamps and alignment anchors", () => {
       ["cross_section"],
       ["name", "cross_section"],
     ]);
-    expect(stamps.map((stamp) => stamp.matchstamp)).toEqual([undefined, true, true]);
+    expect(stamps.map((stamp) => stamp.matchstamp)).toEqual([false, true, true]);
     const held = (completed.matchstamps as JsonObject[])[0]?.alignment_anchors as JsonObject[];
     expect(held.map((anchor) => anchor.display)).toEqual([["line"], ["line", "name"]]);
     const stripped = minimal(value).graphical as JsonObject;
     expect((stripped.timestamps as JsonObject[]).map((stamp) => "display" in stamp)).toEqual([
       false,
       false,
+      true,
+    ]);
+    expect((stripped.timestamps as JsonObject[]).map((stamp) => stamp.matchstamp)).toEqual([
+      undefined,
+      true,
       true,
     ]);
     const kept = (stripped.matchstamps as JsonObject[])[0]?.alignment_anchors as JsonObject[];

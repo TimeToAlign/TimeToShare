@@ -377,7 +377,7 @@ export type NumberPositive = number | FractionPositive;
  */
 export type FractionPositive = [number, number];
 /**
- * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline; on an ancestor line, a member's start or end), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band, and an ancestor line of a member that is a child timeline (`ancestor`).
+ * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline; on an ancestor line, a member's start or end), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), and an ancestor line of a member that is a child timeline (`ancestor`).
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -398,7 +398,8 @@ export type ElementType =
   | "ancestor"
   | "frame"
   | "card"
-  | "cross_section";
+  | "cross_section"
+  | "alignment_anchor";
 /**
  * One of the five facets every timeline has: its coordinate markers (the wedges of the timeline's named timestamps and their labels; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet.
  *
@@ -789,7 +790,7 @@ export type CompleteTimestamp = {
   coordinate: Lossless<Number>;
   name?: string;
   display: ("wedge" | "name" | "id" | "coordinate" | "cross_section")[];
-  matchstamp?: boolean;
+  matchstamp: boolean;
 };
 /**
  * `MatchStamp` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -900,13 +901,16 @@ export interface Context {
   basis: {"@id": "http://www.w3.org/ns/prov#hadPrimarySource"; "@type": "@id"};
   match: {"@id": "https://timetoalign.github.io/timetoshare/ns#match"; "@type": "@vocab"};
   note: "http://www.w3.org/2000/01/rdf-schema#comment";
-  beliefs: "https://timetoalign.github.io/timetoshare/ns#belief";
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs";
   actor: {"@id": "https://timetoalign.github.io/timetoshare/ns#actor"; "@type": "@id"};
-  belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue";
+  belief: {"@id": "https://timetoalign.github.io/timetoshare/ns#belief"; "@type": "@vocab"};
   manual: "https://timetoalign.github.io/timetoshare/ns#Manual";
   reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled";
   imported: "https://timetoalign.github.io/timetoshare/ns#Imported";
   inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred";
+  true: "https://timetoalign.github.io/timetoshare/ns#True";
+  false: "https://timetoalign.github.io/timetoshare/ns#False";
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely";
   exact: "http://www.w3.org/2004/02/skos/core#exactMatch";
   close: "http://www.w3.org/2004/02/skos/core#closeMatch";
   broad: "http://www.w3.org/2004/02/skos/core#broadMatch";
@@ -931,13 +935,16 @@ export interface Context {
     | {"@id": "http://www.w3.org/ns/prov#hadPrimarySource"; "@type": "@id"}
     | {"@id": "https://timetoalign.github.io/timetoshare/ns#match"; "@type": "@vocab"}
     | "http://www.w3.org/2000/01/rdf-schema#comment"
-    | "https://timetoalign.github.io/timetoshare/ns#belief"
+    | "https://timetoalign.github.io/timetoshare/ns#beliefs"
     | {"@id": "https://timetoalign.github.io/timetoshare/ns#actor"; "@type": "@id"}
-    | "https://timetoalign.github.io/timetoshare/ns#beliefValue"
+    | {"@id": "https://timetoalign.github.io/timetoshare/ns#belief"; "@type": "@vocab"}
     | "https://timetoalign.github.io/timetoshare/ns#Manual"
     | "https://timetoalign.github.io/timetoshare/ns#Reconciled"
     | "https://timetoalign.github.io/timetoshare/ns#Imported"
     | "https://timetoalign.github.io/timetoshare/ns#Inferred"
+    | "https://timetoalign.github.io/timetoshare/ns#True"
+    | "https://timetoalign.github.io/timetoshare/ns#False"
+    | "https://timetoalign.github.io/timetoshare/ns#Unlikely"
     | "http://www.w3.org/2004/02/skos/core#exactMatch"
     | "http://www.w3.org/2004/02/skos/core#closeMatch"
     | "http://www.w3.org/2004/02/skos/core#broadMatch"
@@ -1123,7 +1130,7 @@ export interface ProvenanceRecord {
   beliefs?: [Belief, ...Belief[]];
 }
 /**
- * One actor's belief in an item: `true` (the actor holds it true), `false` (the actor holds it false) or `unlikely`, since `date`.
+ * One actor's belief in an item, since `date`: one of the strings `true` (the actor holds it true), `false` (the actor holds it false) or `unlikely`.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Belief".
@@ -1133,7 +1140,10 @@ export interface Belief {
    * Who holds the belief: a person or an organisation, an IRI or a reference.
    */
   actor: IriReference;
-  belief: true | false | "unlikely";
+  /**
+   * The belief, a string: `true`, `false` or `unlikely`.
+   */
+  belief: "true" | "false" | "unlikely";
   /**
    * When the actor stated the belief.
    */
@@ -1502,7 +1512,7 @@ export interface Timestamp {
    */
   display?: ("wedge" | "name" | "id" | "coordinate" | "cross_section")[];
   /**
-   * Whether the timestamp is a match timestamp, a timestamp of the named MatchStamps. Absent or false, it is an ordinary named timestamp.
+   * Whether the timestamp is a match timestamp, a timestamp of the named MatchStamps; false, the default, makes it an ordinary named timestamp.
    */
   matchstamp?: boolean;
 }

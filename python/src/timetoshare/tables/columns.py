@@ -16,11 +16,10 @@ from typing import Any
 
 import pyarrow as pa
 
-from ..validate import SCHEMA_VERSION, _data_root
+from ..validate import PROVENANCE_DEFINITION, SCHEMA_VERSION, _data_root, load_schema
 
 __all__ = [
     "ANCHOR_TYPE",
-    "BELIEFS",
     "BELIEF_KEYS",
     "BELIEF_TYPE",
     "COORDINATE_KEYS",
@@ -61,43 +60,38 @@ ANCHOR_TYPE = pa.struct(
 )
 """An AlignmentAnchor: one coordinate of each of two timelines."""
 
-BELIEFS = ("true", "false", "unlikely")
-"""The words of a belief."""
+_DEFINITIONS = load_schema()["$defs"]
+_RECORD = _DEFINITIONS[PROVENANCE_DEFINITION]
+_BELIEF_REFERENCE = "#/$defs/Belief"
 
-BELIEF_KEYS = ("actor", "belief", "date", "note")
-"""The members of a belief."""
+BELIEF_KEYS = tuple(_DEFINITIONS["Belief"]["properties"])
+"""The members of a belief: the keys of the provenance schema's ``Belief``."""
 
 BELIEF_TYPE = pa.struct([pa.field(key, pa.string()) for key in BELIEF_KEYS])
+"""A belief, each member a string (``belief`` one of :data:`timetoshare.BELIEFS`)."""
 
-PROVENANCE_KEYS = (
-    "stated_by",
-    "date",
-    "method",
-    "service",
-    "basis",
-    "match",
-    "note",
-    "beliefs",
-)
-"""The members of a row's provenance: how it was made, then who believes it.
+PROVENANCE_KEYS = tuple(_RECORD["properties"])
+"""The members of a row's provenance: the keys of the provenance schema.
 
-These are the keys of the format's provenance entry without ``property`` and
-``value``, which a row needs no more than it needs a subject: the row is
-what the entry is about.
+How it was made, then who believes it, in the schema's order. The
+manifest's entries add ``property`` and ``value``, which a row needs no
+more than it needs a subject: the row is what the entry is about.
 """
 
+
+def _member_type(member: Mapping[str, Any]) -> pa.DataType:
+    """The Arrow type of a provenance member: a list for an array, else a string."""
+    if member.get("type") != "array":
+        return pa.string()
+    if member["items"].get("$ref") == _BELIEF_REFERENCE:
+        return pa.list_(BELIEF_TYPE)
+    return pa.list_(pa.string())
+
+
 PROVENANCE_TYPE = pa.struct(
-    [
-        pa.field("stated_by", pa.list_(pa.string())),
-        pa.field("date", pa.string()),
-        pa.field("method", pa.string()),
-        pa.field("service", pa.string()),
-        pa.field("basis", pa.list_(pa.string())),
-        pa.field("match", pa.string()),
-        pa.field("note", pa.string()),
-        pa.field("beliefs", pa.list_(BELIEF_TYPE)),
-    ]
+    [pa.field(key, _member_type(_RECORD["properties"][key])) for key in PROVENANCE_KEYS]
 )
+"""A row's provenance, the members of :data:`PROVENANCE_KEYS` with their types."""
 
 PROVENANCE_METADATA_KEY = "timetoshare:provenance"
 """The schema-metadata key holding, as JSON, a provenance shared by every row."""

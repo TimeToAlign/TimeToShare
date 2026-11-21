@@ -3,9 +3,10 @@
 The reference derivation of the format: small and exact, for conformance,
 not for speed. It reads a MatchClaim table the checks accept.
 
-- The belief filter selects the rows. Without an actor nothing is filtered;
-  for an actor, every row the actor does not believe ``false`` (the default)
-  or, with ``only_true``, only the rows the actor believes ``true``.
+- The belief filter selects the rows. Without a believer nothing is
+  filtered; for a believer, every row the believer does not believe
+  ``"false"`` (``belief="not_false"``, the default) or only the rows the
+  believer believes ``"true"`` (``belief="true"``).
 - A synchronous MatchClaim gives the anchor of its ``start_anchor`` and, if
   it has one, of its ``end_anchor``; NOMATCH and conceptual MatchClaims give
   none. Two anchors are the same when both coordinates are equal, compared
@@ -18,14 +19,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Any
+from typing import Any, Literal
 
 import pyarrow as pa
 
+from ..validation.diagnostics import connected_sets
 from .checks import row_provenance
 from .columns import coordinate_value
 
 __all__ = [
+    "BELIEF_FILTERS",
     "AlignmentAnchor",
     "PotentialMatchStamp",
     "TimelineCoordinate",
@@ -33,6 +36,12 @@ __all__ = [
     "believed_rows",
     "potential_matchstamps",
 ]
+
+
+BeliefFilter = Literal["not_false", "true"]
+
+BELIEF_FILTERS: tuple[BeliefFilter, ...] = ("not_false", "true")
+"""What a filter asks of its believer: any belief but ``"false"``, or ``"true"``."""
 
 
 @dataclass(frozen=True, order=True)
@@ -65,17 +74,23 @@ class PotentialMatchStamp:
 
 
 def believed_rows(
-    table: pa.Table, actor: str | None = None, *, only_true: bool = False
+    table: pa.Table, believer: str | None = None, belief: BeliefFilter = "not_false"
 ) -> list[int]:
-    """The rows the belief filter keeps, by index."""
+    """The rows the belief filter keeps, by index.
+
+    Raises:
+        ValueError: If ``belief`` is none of :data:`BELIEF_FILTERS`.
+    """
+    if belief not in BELIEF_FILTERS:
+        raise ValueError(f"'{belief}' is no belief filter: write 'not_false' or 'true'")
     provenance = row_provenance(table)
-    if actor is None:
+    if believer is None:
         return list(range(len(provenance)))
     kept = []
     for index, entry in enumerate(provenance):
         beliefs = (entry or {}).get("beliefs") or ()
-        belief = next((b["belief"] for b in beliefs if b["actor"] == actor), None)
-        if (belief == "true") if only_true else (belief != "false"):
+        held = next((b["belief"] for b in beliefs if b["actor"] == believer), None)
+        if (held == "true") if belief == "true" else (held != "false"):
             kept.append(index)
     return kept
 
@@ -91,13 +106,13 @@ def _anchor(cell: dict[str, Any]) -> AlignmentAnchor:
 
 
 def alignment_anchors(
-    table: pa.Table, actor: str | None = None, *, only_true: bool = False
+    table: pa.Table, believer: str | None = None, belief: BeliefFilter = "not_false"
 ) -> dict[AlignmentAnchor, tuple[str, ...]]:
     """The unique anchors of the rows the filter keeps, sorted, each with the
     sorted IDs of the MatchClaims stating it."""
     rows = table.select(["id", "start_anchor", "end_anchor"]).to_pylist()
     stated: dict[AlignmentAnchor, set[str]] = {}
-    for index in believed_rows(table, actor, only_true=only_true):
+    for index in believed_rows(table, believer, belief):
         row = rows[index]
         for key in ("start_anchor", "end_anchor"):
             if row[key] is not None:
@@ -106,35 +121,25 @@ def alignment_anchors(
 
 
 def potential_matchstamps(
-    table: pa.Table, actor: str | None = None, *, only_true: bool = False
+    table: pa.Table, believer: str | None = None, belief: BeliefFilter = "not_false"
 ) -> list[PotentialMatchStamp]:
     """The potential MatchStamps of the rows the filter keeps, sorted by
     their first coordinate."""
-    anchors = alignment_anchors(table, actor, only_true=only_true)
-    parent: dict[TimelineCoordinate, TimelineCoordinate] = {}
-
-    def root(coordinate: TimelineCoordinate) -> TimelineCoordinate:
-        parent.setdefault(coordinate, coordinate)
-        while parent[coordinate] != coordinate:
-            parent[coordinate] = parent[parent[coordinate]]
-            coordinate = parent[coordinate]
-        return coordinate
-
-    for first, second in (anchor.coordinates for anchor in anchors):
-        parent[root(first)] = root(second)
-    sets: dict[TimelineCoordinate, list[AlignmentAnchor]] = {}
+    anchors = alignment_anchors(table, believer, belief)
+    sets = connected_sets(anchor.coordinates for anchor in anchors)
+    members: dict[TimelineCoordinate, list[AlignmentAnchor]] = {}
     for anchor in anchors:
-        sets.setdefault(root(anchor.coordinates[0]), []).append(anchor)
+        members.setdefault(sets[anchor.coordinates[0]], []).append(anchor)
     stamps = [
         PotentialMatchStamp(
             coordinates=tuple(
-                sorted({c for anchor in members for c in anchor.coordinates})
+                sorted({c for anchor in held for c in anchor.coordinates})
             ),
-            alignment_anchors=tuple(members),
+            alignment_anchors=tuple(held),
             match_claims=tuple(
-                sorted({claim for anchor in members for claim in anchors[anchor]})
+                sorted({claim for anchor in held for claim in anchors[anchor]})
             ),
         )
-        for members in sets.values()
+        for held in members.values()
     ]
     return sorted(stamps, key=lambda stamp: stamp.coordinates[0])

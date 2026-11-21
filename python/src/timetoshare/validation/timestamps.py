@@ -15,6 +15,7 @@ from ..serialization import spell
 from .diagnostics import (
     SchemaValidationError,
     _entries,
+    connected_sets,
     matchstamps_of,
     timelines_by_id,
     timestamps_of,
@@ -58,22 +59,6 @@ def timestamp_problems(
                 f"{where} is beyond the length {spell(length)} of its timeline "
                 f"'{identifier}'",
             )
-
-
-def _union_find_parts(pairs: list[tuple[str, str]]) -> int:
-    """The number of connected sets the pairs join their members into."""
-    parent: dict[str, str] = {}
-
-    def find(member: str) -> str:
-        parent.setdefault(member, member)
-        while parent[member] != member:
-            parent[member] = parent[parent[member]]
-            member = parent[member]
-        return member
-
-    for left, right in pairs:
-        parent[find(left)] = find(right)
-    return len({find(member) for member in list(parent)})
 
 
 def matchstamp_problems(
@@ -123,7 +108,7 @@ def matchstamp_problems(
                     f"the timestamps of '{anchor['id']}' both lie on the timeline "
                     f"'{found[0]['timeline']}'",
                 )
-        if _union_find_parts(pairs) > 1:
+        if len(set(connected_sets(pairs).values())) > 1:
             yield SchemaValidationError(
                 "matchstamp",
                 path,
