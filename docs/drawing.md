@@ -1440,7 +1440,9 @@ one below it.
   k + 3 × s)` and `c + w / 2 + (13 × k − 3 × s)` outwards, so that with `r
   = 0` its base, 6 wide and centred on `X`, lies 13 further out than its
   tip. −180 and 180 draw the same wedge. The vertical through `X` meets a
-  wedge turned by at least 13 in either direction at its tip alone. A
+  wedge turned by 13 to 167 in either direction at its tip alone; at 168 and
+  beyond, up to 180, the base's corners lie on either side of `X` and the
+  vertical runs through the wedge's body. A
   wedge takes the room of an unrotated one: its band is as wide and its
   labels lie where they lie whatever its rotation, and what of it lies
   beyond that room takes none.
