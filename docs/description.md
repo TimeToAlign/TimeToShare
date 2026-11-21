@@ -462,9 +462,12 @@ section 11 is recorded with the belief `true`; a loader or a service
 records how the pair was made and holds no belief. A candidate an actor
 believes `false` is not offered to that actor again.
 
-**The belief filter** selects, for one actor, everything the actor does
-not believe `false`, which is the default, or only what the actor
-believes `true`; without an actor, nothing is filtered. It selects the
+**The belief filter** selects, for one actor, the items whose state for
+that actor is one of the states it is given. An item has one of four
+**states** for an actor: the actor's belief, `true`, `unlikely` or
+`false`, or `undecided` where the actor holds no belief on it. The filter
+keeps any set of these four states, by default every state but `false`;
+without an actor, nothing is filtered. It selects the
 candidates an editor offers and the MatchClaims that give anchors (README,
 "From MatchClaims to anchors") alike.
 

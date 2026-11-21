@@ -22,12 +22,12 @@ The directories sort the manifests by content only:
 - under `statements/`, manifests whose elements carry statements and
   provenance ([Statement fixtures](#statement-fixtures)).
 
-Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
-`groups/`, 14 under `bundles/` and 4 under `statements/`, 78 in all, each
-with its minimal twin, so 156 files. Beside them lie the expected RDF of
+Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 13 under
+`groups/`, 15 under `bundles/` and 4 under `statements/`, 81 in all, each
+with its minimal twin, so 162 files. Beside them lie the expected RDF of
 the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
 under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
-172 rejection cases and 16 warning cases.
+176 rejection cases and 16 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -268,6 +268,8 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `group_parent_exact` | as above with the child `whole` (16 quarters at 0); the piece coincides with the member |
 | `group_parents_mixed` | three child members of different parents (an exposition of 32 quarters at 16 in a locked sonata of 48; a take of 25.5 seconds at 30.0 in a session of 90.0 seconds, with a map to samples; a system of 600 pixels at 0 in a page of 1754) and the root `audio` of 1323000 samples, with a map to seconds |
 | `group_grandchild` | a grandchild `theme` (8 quarters at 8 in a movement of 16 quarters at 16 in a score of 64) with a recording of 12.0 seconds |
+| `group_groupstamp` | the group "Performance" of the score `score` ("Score", 8 quarters, with a map to ticks) and the performance `performance` ("Performance", 4.0 seconds, with a map to samples), so that each member has a conversion maps band; the timestamp `timestamp_1` "Bar 2" at quarter 4 of the score is a groupstamp, its line across both cards of the frame |
+| `group_groupstamp_child_member` | the group "Performance" of the score `score` ("Score", 8 quarters), holding the child `second-half` ("Second half", 4 quarters at 4), and the performance `performance` ("Performance", 4.0 seconds), no timeline carrying a map; the timestamp `timestamp_1` "Bar 4" at quarter 2 of the child is a groupstamp, since the child lies in the group through its parent |
 | `bundle_mixed` | the bundle "Mixed" of two groups, a score with its performance and a page with an excerpt (a child of a recording); `annotations` is ungrouped, and the recording, which no group names, contains the member `excerpt` and is drawn only as its ancestor line. The score has a map to ticks, then a tempo map to seconds, and a repeat from 8 back to 0; the performance a map to samples; the page a map to points; the excerpt a map to seconds; the recording a map to seconds, kept in the manifest and not drawn; `annotations` the regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map |
 | `bundle_shared_parent` | the bundle "Sonata" of two groups whose members are two children of one score (an exposition at 0 and a recapitulation at 20, 12 quarters each), each with a take; a page is ungrouped, and the score, which no group names, contains both members and is drawn only as an ancestor line of each. Both children are segment lines: the exposition, with a map to ticks, of the segments "First theme" and "Second theme" of 6 quarters, the second with a tempo map to seconds; the recapitulation, with no map, of the segment lines "First theme" and "Second theme" of 6 quarters, each of the segments "Phrase 1" and "Phrase 2" of 3 quarters, and only its "Second theme" has a map to ticks. The take `take_1` is a segment line, with a map to samples, of "First theme" (14.0 seconds) and "Second theme" (16.0 seconds); the take `take_2` and the page carry no map. The score has a map to ticks, the region "Development" from 12 to 20 and a repeat from 12 back to 0, kept in the manifest and not drawn. A segment's ID begins with its segment line's (`exposition_first`, `recapitulation_second_1`) |
 | `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the flow marker "Fine" at 8 (`fine`) and the jump origin "D.C. al Fine" at 16 back to 0 (`da_capo_al_fine`); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
@@ -276,6 +278,7 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `bundle_resources` | the bundle "Resources" of the score `score` (8 quarters) and the recording `take_1` (352800 samples), ungrouped, with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, and `resource_2`, the Projections table `projections.parquet` holding data for `take_1`, with nothing optional; neither file lies beside the fixture, so neither states a size or a digest (the table fixture's manifest states both of its own tables')
 | `bundle_matchstamps` | the bundle "MatchStamps" of the score `score` ("Score", 8 quarters) and the takes `take_1` ("Take 1", 352800 samples) and `take_2` ("Take 2", 396900 samples), ungrouped; the match timestamp `timestamp_1` at quarter 4 of the score, without a name, shared by two MatchStamps: `matchstamp_1` ("Bar 2, downbeat (take 1)") joins it to sample 88200 of `take_1` by the anchor `anchor_1`, which also draws the name, from the MatchClaims `claim_1` and `claim_2`; `matchstamp_2` ("Bar 2, downbeat (take 2)") to sample 99225 of `take_2` (the match timestamp `timestamp_3`, named "Take 2, bar 2" and drawing its name) by `anchor_2`, from `claim_3` |
 | `bundle_matchstamp_cards` | the bundle "MatchStamp cards" of two groups that share a member, as `bundle_shared_member`: the score `score` ("Score", 8 quarters), holding the child `second-half` ("Second half", 4 quarters at 4), is a member of the group `group_1` ("Performance") beside the performance `performance` (4.0 seconds) and of the group `group_2` ("Page") beside the page `page` (800 pixels); three match timestamps without a name, `timestamp_1` at quarter 4 of the score, `timestamp_2` at second 1.0 of the performance and `timestamp_3` at quarter 2 of the child; `matchstamp_1` ("Bar 2, performed") joins the performance to the score, drawn in two cards, by `anchor_1`, from `claim_1`; `matchstamp_2` ("Second half, bar 1") the score to its child, whose lines lie in one card, by `anchor_2`, from `claim_2`; both anchors draw the name |
+| `bundle_groupstamp_shared_member` | the bundle of `bundle_shared_member` with the timestamp `timestamp_1` "Bar 2" at quarter 4 of the shared member `t`, a groupstamp, its line across the frame of `g1` and that of `g2`; no member has a band |
 | `group_measure_map` | the group "Edition" of a score of 16 quarters and its MIDI rendering of 7680 ticks, both reading one entry of `measure_maps`, four bars of 4/4: the score through its `MeasureRecordMap`, the rendering through a `ChainMap` of the `LinearMap` `ppq` to quarters (480 ticks per quarter) and its `MeasureRecordMap` |
 
 The corpus builders, prefixed `corpus_`, write the groups and bundles that
@@ -289,8 +292,8 @@ groups and bundles and the single-timeline fixtures `styled__score`,
 `unknown_length_child`, `unknown_length_segments`, `child_flow_control`,
 `child_jumps`, `map_row_siblings`, `map_row_subslots` and `map_row_moved`
 so that each case below occurs in one of them at least.
-`group_number_types`, `group_child_member`, the three `group_parent_*` and
-`group_grandchild` hold none of them, and `group_unknown_length` holds only
+`group_number_types`, `group_child_member`, the three `group_parent_*`,
+`group_grandchild` and `group_groupstamp_child_member` hold none of them, and `group_unknown_length` holds only
 a region. The segment lines of the single-timeline fixtures but
 `map_row_subslots` (`segment_line`, `segment_pages`, `segment_pages_locked`,
 `segment_pages_accolades`, `segment_children` and
@@ -394,8 +397,10 @@ outside `fixtures/<version>/` so that no reader of the manifest fixtures
 takes it for one: `manifest.yaml`, the MatchClaim table
 `match_claims.parquet`, the Projections table `projections.parquet` and
 `expected.yaml`, the AlignmentAnchors and potential MatchStamps expected
-of the MatchClaim table under four belief filters (no believer; one
-actor's `not_false` and `true`; a second actor's `true`). The manifest
+of the MatchClaim table under six belief filters, each a believer and the
+states it keeps (no believer; for one actor every state but `false`, the
+default, then `true` alone, `undecided` alone, and `unlikely` with
+`false`; for a second actor `true` alone). The manifest
 holds three roots (`clt_1`, quarters, with the child `clt_2`; `dpt_1`,
 samples; `cpt_1`, seconds) and names both tables in its `resources`, each
 with its media type, its size and its SHA-256 digest. The script
@@ -445,7 +450,7 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 `unknown_length_segments` on every regions band, `{"element": "band",
 "facet": "regions"}` (`unknown_length_segments__regions-shown`), and
 `child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`): 80 drawings in all.
+"flow_control"}` (`child_flow_control__flow-shown`): 83 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
@@ -519,6 +524,7 @@ code with the case's. The cases cover every code:
 | `band_order` | a band order is a permutation of `line` and the five facets | `band_order_unknown_entry`, `band_order_missing_band`, `band_order_old_form` |
 | `timestamp_timeline` | a named timestamp names a timeline of the manifest | `timestamp_timeline_unknown` |
 | `timestamp_coordinate` | a named timestamp's coordinate lies from 0 to its timeline's own length, from 0 on where the length is unknown | `timestamp_coordinate_beyond_length`, `timestamp_coordinate_negative` |
+| `groupstamp` | a groupstamp lies in a group, its timeline or one of its ancestors being a member (an ancestor of a member lies in none through it), and is no match timestamp | `groupstamp_without_group`, `groupstamp_child_without_group`, `groupstamp_member_parent`, `groupstamp_match_timestamp` |
 | `context` | a manifest whose elements carry `statements` or `provenance` holds `@context` | `context_absent_with_statements`, `context_absent_with_provenance` |
 | `reserved_key` | no element key is one JSON-LD would read | `reserved_key_term_on_timeline` (`label`), `reserved_key_iri_on_region`, `reserved_key_statements_on_group`, `reserved_key_prefix_on_manifest`, `reserved_key_context_on_timeline`, `reserved_key_children_on_region` |
 | `iri` | every compact IRI names a declared prefix, and every element with statements has an ID that is an IRI fragment | `iri_prefix_undeclared_key`, `iri_prefix_undeclared_id`, `iri_prefix_undeclared_type`, `provenance_basis_prefix_undeclared`, `subject_id_not_fragment` |
