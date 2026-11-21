@@ -1,5 +1,6 @@
 """The table types: their columns, their checks, the succession rule and the
-fixture files (see "The table types" in README.md)."""
+fixture files (see "The MatchClaim table", "The Projections table" and
+"Checking the tables" in README.md)."""
 
 from __future__ import annotations
 
