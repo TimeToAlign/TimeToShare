@@ -41,20 +41,24 @@ from __future__ import annotations
 import copy
 import datetime
 import re
-from collections.abc import Iterator, Mapping, Sequence
-from typing import Any
+from collections.abc import Collection, Iterator, Mapping, Sequence
+from typing import Any, Literal, cast
 
 from .serialization import spell
 from .validation.diagnostics import _Path, json_pointer
 
 __all__ = [
     "BELIEFS",
+    "BELIEF_STATES",
     "BLANK",
+    "DEFAULT_BELIEFS",
     "FORMAT_CONTEXT",
     "MATCHES",
     "METHODS",
     "NAMESPACE",
+    "BeliefState",
     "candidates",
+    "check_belief_filter",
     "compact_iri",
     "entries",
     "expand_iri",
@@ -127,6 +131,47 @@ prefixes a manifest uses.
 
 BELIEFS = ("true", "false", "unlikely")
 """The beliefs an actor may hold in an item, strings in the schema's order."""
+
+BeliefState = Literal["true", "undecided", "unlikely", "false"]
+"""An item's state for one actor: the actor's belief in it, or ``"undecided"``
+where the actor holds none."""
+
+BELIEF_STATES: tuple[BeliefState, ...] = ("true", "undecided", "unlikely", "false")
+"""The four states of the belief filter, in that order."""
+
+DEFAULT_BELIEFS: tuple[BeliefState, ...] = ("true", "undecided", "unlikely")
+"""The states the belief filter keeps by default: every state but ``"false"``."""
+
+
+def check_belief_filter(beliefs: Collection[str]) -> frozenset[BeliefState]:
+    """Return the states a belief filter keeps, checked.
+
+    Args:
+        beliefs: A collection of :data:`BELIEF_STATES`, in any order; empty
+            keeps none.
+
+    Raises:
+        ValueError: If ``beliefs`` is a single string, or names a word that is
+            none of :data:`BELIEF_STATES` (the first by code point is named;
+            a member that is no string is spelled as :func:`spell` spells it).
+    """
+    if isinstance(beliefs, str):
+        raise ValueError(
+            "the belief filter takes a collection of states, not the string "
+            f"'{beliefs}': write ['{beliefs}']"
+        )
+    states = frozenset(beliefs)
+    unknown = sorted(
+        state if isinstance(state, str) else spell(state)
+        for state in states - set(BELIEF_STATES)
+    )
+    if unknown:
+        raise ValueError(
+            f"'{unknown[0]}' is no belief state: write 'true', 'undecided', "
+            "'unlikely' or 'false'"
+        )
+    return cast(frozenset[BeliefState], states)
+
 
 METHODS = ("manual", "reconciled", "imported", "inferred")
 """The words of a provenance entry's ``method``; any other method is an IRI."""

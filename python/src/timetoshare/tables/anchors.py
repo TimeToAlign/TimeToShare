@@ -5,13 +5,17 @@ not for speed. It reads a MatchClaim table the checks accept.
 
 - The belief filter selects the rows. Without a believer nothing is
   filtered; for a believer, a row is kept when its state for the believer
-  is one of the states ``beliefs`` names: the believer's belief in it
+  is one of the states ``beliefs`` names
+  (:data:`timetoshare.BELIEF_STATES`): the believer's belief in it
   (``"true"``, ``"unlikely"``, ``"false"``), or ``"undecided"`` where the
   believer holds none. The default keeps every state but ``"false"``.
   Actors compare as the IRIs they stand for under a JSON-LD context
   (:func:`timetoshare.expand_iri`), so a compact and an absolute IRI of one
   actor name the same actor; an actor that expands to nothing compares as
-  written.
+  written. Where a row holds beliefs of one believer under two spellings
+  (which the table check refuses only under the manifest's context), its
+  state is the most critical of them: ``"false"``, then ``"unlikely"``, then
+  ``"true"``.
 - A synchronous MatchClaim gives the anchor of its ``start_anchor`` and, if
   it has one, of its ``end_anchor``; NOMATCH and conceptual MatchClaims give
   none. Two anchors are the same when both coordinates are equal, compared
@@ -25,18 +29,16 @@ from __future__ import annotations
 from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 from fractions import Fraction
-from typing import Any, Literal
+from typing import Any
 
 import pyarrow as pa
 
-from ..statements import expand_iri
+from ..statements import DEFAULT_BELIEFS, BeliefState, check_belief_filter, expand_iri
 from ..validation.diagnostics import connected_sets
 from .checks import row_provenance
 from .columns import coordinate_value
 
 __all__ = [
-    "BELIEF_STATES",
-    "DEFAULT_BELIEFS",
     "AlignmentAnchor",
     "PotentialMatchStamp",
     "TimelineCoordinate",
@@ -46,15 +48,9 @@ __all__ = [
 ]
 
 
-BeliefState = Literal["true", "undecided", "unlikely", "false"]
-"""A row's state for one actor: the actor's belief, or ``"undecided"`` where
-the actor holds none."""
-
-BELIEF_STATES: tuple[BeliefState, ...] = ("true", "undecided", "unlikely", "false")
-"""The four states of the belief filter, in that order."""
-
-DEFAULT_BELIEFS: tuple[BeliefState, ...] = ("true", "undecided", "unlikely")
-"""The states the belief filter keeps by default: every state but ``"false"``."""
+_CRITICAL_FIRST: tuple[BeliefState, ...] = ("false", "unlikely", "true")
+"""The beliefs from the most critical: the state of a row whose believer holds
+several under different spellings is the first of them it holds."""
 
 
 @dataclass(frozen=True, order=True)
@@ -86,23 +82,6 @@ class PotentialMatchStamp:
     match_claims: tuple[str, ...]
 
 
-def _states(beliefs: Collection[str]) -> frozenset[str]:
-    """The states a belief filter keeps, checked."""
-    if isinstance(beliefs, str):
-        raise ValueError(
-            "the belief filter takes a collection of states, not the string "
-            f"'{beliefs}': write ['{beliefs}']"
-        )
-    states = frozenset(beliefs)
-    unknown = sorted(str(state) for state in states - set(BELIEF_STATES))
-    if unknown:
-        raise ValueError(
-            f"'{unknown[0]}' is no belief state: write 'true', 'undecided', "
-            "'unlikely' or 'false'"
-        )
-    return states
-
-
 def _actor(actor: str, context: Mapping[str, Any] | None) -> str:
     """The IRI an actor stands for under ``context``, else the actor as written."""
     return expand_iri(context, actor) or actor
@@ -121,7 +100,7 @@ def believed_rows(
         table: A MatchClaim table the checks accept.
         believer: The actor whose beliefs filter, an IRI (compact or
             absolute); ``None`` keeps every row.
-        beliefs: The states kept (:data:`BELIEF_STATES`), a collection;
+        beliefs: The states kept (:data:`timetoshare.BELIEF_STATES`), a collection;
             empty keeps no row for a believer.
         context: The JSON-LD context (the manifest's ``@context``) whose
             prefixes expand compact IRIs, the believer's and the actors'
@@ -129,20 +108,22 @@ def believed_rows(
 
     Raises:
         ValueError: If ``beliefs`` is a single string or names a word that
-            is none of :data:`BELIEF_STATES`.
+            is none of :data:`timetoshare.BELIEF_STATES`
+            (:func:`timetoshare.check_belief_filter`).
     """
-    states = _states(beliefs)
+    states = check_belief_filter(beliefs)
     provenance = row_provenance(table)
     if believer is None:
         return list(range(len(provenance)))
     iri = _actor(believer, context)
     kept = []
     for index, entry in enumerate(provenance):
-        held = (entry or {}).get("beliefs") or ()
-        state = next(
-            (b["belief"] for b in held if _actor(b["actor"], context) == iri),
-            "undecided",
-        )
+        held = {
+            belief["belief"]
+            for belief in (entry or {}).get("beliefs") or ()
+            if _actor(belief["actor"], context) == iri
+        }
+        state = next((word for word in _CRITICAL_FIRST if word in held), "undecided")
         if state in states:
             kept.append(index)
     return kept

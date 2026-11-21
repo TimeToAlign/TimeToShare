@@ -69,7 +69,7 @@ refers to (a measure view through `MeasureView`, whose `allOf` is
 `MapBase`, as in the Python suite), the
 references are `Id`s and `Selector.addresses` holds `Address`es, `Id` and
 `Address` accepting and refusing the Python suite's values; the patterns
-ending in `$` are exactly the Python suite's four, each refusing its value
+ending in `$` are exactly the Python suite's five, each refusing its value
 followed by a newline, and an `Order` refusing a trailing newline too, so
 Ajv and Python's `jsonschema` agree on every trailing newline; no node
 carries `additionalProperties: false` or `unevaluatedProperties`, `Address`
@@ -96,7 +96,7 @@ one, a URN; a bare word, an empty prefix or suffix, a leading digit, white
 space and a trailing newline; a relative reference, never a blank node
 `_:b0` or a keyword `@id`; a prefix name that is no element key and no URI
 scheme; a namespace ending in `/` or `#`; a language tag of subtags up to
-eight characters). The patterns ending in `$` are four. `generated.test.ts`: a fresh generator run exports the committed
+eight characters). The patterns ending in `$` are five. `generated.test.ts`: a fresh generator run exports the committed
 names, which are every definition, the complete form of exactly the
 definitions holding a default, and `LosslessManifest`, and `catalogue.ts`
 exports the catalogue file's value as `catalogue` (equal, as `compactJson`
@@ -168,7 +168,7 @@ reverses `resources`, `matchstamps`, `alignment_anchors` and an anchor's
 the eleven messages of its table and the one list of every problem
 (`validate.test.ts`, "the MatchStamp and resource rules"); the MatchStamps
 alone (`validate.test.ts`, "the MatchStamps alone"): `matchstampProblems`
-gives, for each of the twelve MatchStamp rejection cases, a first problem
+gives, for each of the ten MatchStamp rejection cases, a first problem
 equal in code, path and message to the one `validate` throws, nothing for
 every fixture and every other rejection case, the schema's problem at a
 match timestamp without `timeline`, and nothing for a manifest whose
@@ -189,7 +189,7 @@ fixtures, `groups/group_groupstamp`, `groups/group_groupstamp_child_member`
 
 ## Shared rejection cases
 
-Each of the 176 cases (`validate.test.ts`), found by its name whatever
+Each of the 172 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -263,8 +263,14 @@ optional.
 ## Statements and provenance
 
 `statements.test.ts` asserts the Python README's sections on statements with
-the same documents, values and messages. Its oracles are the two manifests
-of the specification, read from YAML text by `loads` in the file form:
+the same documents, values and messages. The belief filter's states are
+`BELIEF_STATES` (`true`, `undecided`, `unlikely`, `false`) and
+`DEFAULT_BELIEFS` the first three; `checkBeliefFilter` returns the states of
+a collection, in any order, empty included, and refuses a single string and
+a collection naming an unknown word, a member that is no string included,
+with the Python package's four messages, byte for byte. Its oracles are the
+two manifests of the specification, read from YAML text by `loads` in the
+file form:
 
 - **M1**: `@context` the format's terms with `schema`, `wd` and `wdt`; `id`
   `#rec`; one root `#cpt_1` in seconds of unknown length with a region

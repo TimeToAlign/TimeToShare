@@ -20,6 +20,7 @@ pq = pytest.importorskip("pyarrow.parquet")
 
 from timetoshare import (  # noqa: E402
     BELIEFS,
+    FORMAT_CONTEXT,
     dumps,
     loads,
     provenance_schema_path,
@@ -32,6 +33,9 @@ from timetoshare.tables import (  # noqa: E402
     COORDINATE_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_SCHEMA,
+    NUMBER_KEYS,
+    NUMBER_MEMBERS,
+    NUMBER_TYPE,
     PROJECTION_COLUMNS,
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
@@ -45,6 +49,7 @@ from timetoshare.tables import (  # noqa: E402
     coordinate_value,
     fixture_path,
     match_claim_problems,
+    number_cell,
     projection_problems,
     row_provenance,
     succession_problems,
@@ -55,35 +60,43 @@ ACTOR = "https://orcid.org/0000-0002-1825-0097"
 
 
 def q(numerator: int, denominator: int = 1) -> dict[str, Any]:
-    value = Fraction(numerator, denominator)
+    """A fraction coordinate in quarters, written as given."""
     return {
-        "value": float(value),
-        "numerator": value.numerator,
-        "denominator": value.denominator,
+        "numerator": numerator,
+        "denominator": denominator,
+        "value": None,
         "unit": "quarters",
         "number_type": "fraction",
     }
 
 
 def smp(value: int) -> dict[str, Any]:
+    """An int coordinate in samples."""
     return {
-        "value": float(value),
         "numerator": value,
-        "denominator": 1,
+        "denominator": None,
+        "value": None,
         "unit": "samples",
         "number_type": "int",
     }
 
 
 def sec(value: float) -> dict[str, Any]:
-    numerator, denominator = value.as_integer_ratio()
+    """A float coordinate in seconds."""
     return {
+        "numerator": None,
+        "denominator": None,
         "value": value,
-        "numerator": numerator,
-        "denominator": denominator,
         "unit": "seconds",
         "number_type": "float",
     }
+
+
+def number(cell: dict[str, Any] | None) -> dict[str, Any] | None:
+    """A coordinate cell's number: the cell without its unit and number type."""
+    if cell is None:
+        return None
+    return {key: cell[key] for key in ("numerator", "denominator", "value")}
 
 
 def anchor(cell_a: dict, cell_b: dict) -> dict[str, Any]:
@@ -144,11 +157,15 @@ def projection(
     of: tuple[str | None, str | None] | None,
     duration: dict | None = None,
 ) -> dict[str, Any]:
+    """A Projection on ``dpt_1`` from coordinate cells: the row states their
+    unit and number type once."""
     return {
         "id": identifier,
         "timeline_id": "dpt_1",
-        "start": start,
-        "duration": duration,
+        "unit": start["unit"],
+        "number_type": start["number_type"],
+        "start": number(start),
+        "duration": number(duration),
         "projection_of": None
         if of is None
         else {"timeline_id": of[0], "event_id": of[1]},
@@ -231,6 +248,8 @@ def test_the_projection_columns() -> None:
     assert PROJECTION_COLUMNS == (
         "id",
         "timeline_id",
+        "unit",
+        "number_type",
         "start",
         "duration",
         "projection_of",
@@ -239,25 +258,82 @@ def test_the_projection_columns() -> None:
     assert [field.name for field in projection_of] == ["timeline_id", "event_id"]
 
 
-def test_a_coordinate_cell() -> None:
+def test_a_number_and_a_coordinate_cell() -> None:
+    assert NUMBER_KEYS == ("numerator", "denominator", "value")
+    assert dict(NUMBER_MEMBERS) == {
+        "int": ("numerator",),
+        "fraction": ("numerator", "denominator"),
+        "float": ("value",),
+    }
+    assert [(field.name, str(field.type)) for field in NUMBER_TYPE] == [
+        ("numerator", "int64"),
+        ("denominator", "int64"),
+        ("value", "double"),
+    ]
+    assert PROJECTION_SCHEMA.field("start").type == NUMBER_TYPE
+    assert PROJECTION_SCHEMA.field("duration").type == NUMBER_TYPE
+    assert str(PROJECTION_SCHEMA.field("unit").type) == "string"
+    assert str(PROJECTION_SCHEMA.field("number_type").type) == "string"
     assert COORDINATE_KEYS == (
-        "value",
         "numerator",
         "denominator",
+        "value",
         "unit",
         "number_type",
     )
-    cell = PROJECTION_SCHEMA.field("start").type
-    assert [(field.name, str(field.type)) for field in cell] == [
-        ("value", "double"),
+    assert [(field.name, str(field.type)) for field in COORDINATE_TYPE] == [
         ("numerator", "int64"),
         ("denominator", "int64"),
+        ("value", "double"),
         ("unit", "string"),
         ("number_type", "string"),
     ]
     anchor_type = MATCH_CLAIM_SCHEMA.field("start_anchor").type
-    assert [field.type for field in anchor_type] == [cell, cell]
-    assert PROJECTION_SCHEMA.field("duration").type == cell
+    assert [field.type for field in anchor_type] == [COORDINATE_TYPE, COORDINATE_TYPE]
+
+
+@pytest.mark.parametrize(
+    ("value", "number_type", "members"),
+    [
+        (3, "int", (3, None, None)),
+        (Fraction(4, 2), "int", (2, None, None)),
+        (Fraction(3, 6), "fraction", (1, 2, None)),
+        (2, "fraction", (2, 1, None)),
+        (0.25, "float", (None, None, 0.25)),
+        (2, "float", (None, None, 2.0)),
+    ],
+)
+def test_a_number_holds_its_number_types_members_alone(
+    value: Any, number_type: str, members: tuple
+) -> None:
+    cell = number_cell(value, number_type)
+    assert cell == dict(zip(NUMBER_KEYS, members, strict=True))
+    assert type(cell["value"]) is (float if number_type == "float" else type(None))
+    assert coordinate_value(cell, number_type) == Fraction(value)
+
+
+@pytest.mark.parametrize(
+    ("value", "number_type", "message"),
+    [
+        (0.5, "int", "an int number is exact, not 0.5"),
+        (0.5, "fraction", "a fraction number is exact, not 0.5"),
+        (Fraction(1, 2), "int", "an int number is an integer, not Fraction(1, 2)"),
+        (True, "int", "an int number is exact, not True"),
+        (
+            Fraction(1, 2),
+            "float",
+            "a float number is a finite float, not Fraction(1, 2)",
+        ),
+        (float("nan"), "float", "a float number is a finite float, not nan"),
+        (1, "decimal", "'decimal' is no number type"),
+    ],
+)
+def test_a_number_of_another_type_is_refused(
+    value: Any, number_type: str, message: str
+) -> None:
+    with pytest.raises(ValueError) as raised:
+        number_cell(value, number_type)
+    assert str(raised.value) == message
 
 
 def test_the_provenance_and_belief_keys() -> None:
@@ -300,15 +376,16 @@ def test_the_provenance_and_belief_keys() -> None:
     ("cell", "value"),
     [
         (q(15, 2), Fraction(15, 2)),
+        (q(2, 6), Fraction(1, 3)),
         (smp(441000), Fraction(441000)),
         (sec(0.1), Fraction(3602879701896397, 36028797018963968)),
-        ({**q(1, 3), "value": 0.0}, Fraction(1, 3)),
     ],
 )
 def test_a_coordinate_value_is_read_from_its_number_type(
     cell: dict, value: Fraction
 ) -> None:
     assert coordinate_value(cell) == value
+    assert coordinate_value(number(cell), cell["number_type"]) == value
 
 
 # The MatchClaim table
@@ -429,10 +506,22 @@ CLAIM_CASES = [
         "'decimal' is no number type",
     ),
     (
-        "side_missing",
+        "numerator_missing",
         put(1, "end_anchor", "coordinate_a", "numerator", value=None),
         [("invalid_coordinate", 1, ("end_anchor", "coordinate_a"))],
-        "the coordinate has no numerator",
+        "a fraction coordinate has no numerator",
+    ),
+    (
+        "denominator_missing",
+        put(1, "start_anchor", "coordinate_a", "denominator", value=None),
+        [("invalid_coordinate", 1, ("start_anchor", "coordinate_a"))],
+        "a fraction coordinate has no denominator",
+    ),
+    (
+        "value_missing",
+        put(0, "start_anchor", "coordinate_b", value={**sec(0.0), "value": None}),
+        [("invalid_coordinate", 0, ("start_anchor", "coordinate_b"))],
+        "a float coordinate has no value",
     ),
     (
         "denominator_zero",
@@ -442,14 +531,32 @@ CLAIM_CASES = [
     ),
     (
         "int_denominator",
-        put(1, "start_anchor", "coordinate_b", "denominator", value=2),
+        put(1, "start_anchor", "coordinate_b", "denominator", value=1),
         [("invalid_coordinate", 1, ("start_anchor", "coordinate_b"))],
-        "an int coordinate has the denominator 2",
+        "an int coordinate holds its numerator alone, not a denominator",
+    ),
+    (
+        "int_mirror",
+        put(1, "start_anchor", "coordinate_b", "value", value=44100.0),
+        [("invalid_coordinate", 1, ("start_anchor", "coordinate_b"))],
+        "an int coordinate holds its numerator alone, not a value",
+    ),
+    (
+        "fraction_mirror",
+        put(0, "start_anchor", "coordinate_a", "value", value=0.0),
+        [("invalid_coordinate", 0, ("start_anchor", "coordinate_a"))],
+        "a fraction coordinate holds its numerator and denominator alone, not a value",
+    ),
+    (
+        "float_mirror",
+        put(0, "start_anchor", "coordinate_b", value={**sec(0.5), "numerator": 1}),
+        [("invalid_coordinate", 0, ("start_anchor", "coordinate_b"))],
+        "a float coordinate holds its value alone, not a numerator",
     ),
     (
         "not_finite",
-        put(0, "start_anchor", "coordinate_a", "value", value=float("inf")),
-        [("invalid_coordinate", 0, ("start_anchor", "coordinate_a"))],
+        put(0, "start_anchor", "coordinate_b", value=sec(float("inf"))),
+        [("invalid_coordinate", 0, ("start_anchor", "coordinate_b"))],
         "the coordinate's value inf is not finite",
     ),
     (
@@ -634,7 +741,7 @@ def test_seconds_on_a_samples_timeline_are_refused_only_against_the_manifest() -
         changed(
             CLAIMS,
             lambda rows: _every_cell_of(
-                rows, "dpt_1", lambda c: sec(c["value"] / 44100)
+                rows, "dpt_1", lambda c: sec(c["numerator"] / 44100)
             ),
         )
     )
@@ -656,7 +763,12 @@ def test_a_float_on_a_fraction_axis_is_refused_only_against_the_manifest() -> No
         changed(
             CLAIMS,
             lambda rows: _every_cell_of(
-                rows, "clt_1", lambda c: {**c, "number_type": "float"}
+                rows,
+                "clt_1",
+                lambda c: {
+                    **sec(c["numerator"] / c["denominator"]),
+                    "unit": "quarters",
+                },
             ),
         )
     )
@@ -666,6 +778,59 @@ def test_a_float_on_a_fraction_axis_is_refused_only_against_the_manifest() -> No
         ("axis_mismatch", 1, ("start_anchor", "coordinate_a")),
         ("axis_mismatch", 1, ("end_anchor", "coordinate_a")),
     ]
+
+
+COMPACT_ACTOR = "orcid:0000-0002-1825-0097"
+"""``ACTOR`` as a compact IRI under ``CONTEXT_MANIFEST``'s ``@context``."""
+
+CONTEXT_MANIFEST = {
+    **MANIFEST,
+    "@context": {**FORMAT_CONTEXT, "orcid": "https://orcid.org/"},
+}
+"""``MANIFEST`` with a context declaring the prefix ``orcid``."""
+
+TWO_SPELLINGS = [
+    {"actor": COMPACT_ACTOR, "belief": "true", "date": "2026-11-20", "note": None},
+    {"actor": ACTOR, "belief": "false", "date": "2026-11-21", "note": None},
+]
+"""Two beliefs of one actor, written compactly and absolutely."""
+
+
+def test_one_actor_under_two_spellings_is_refused_against_the_manifest() -> None:
+    table = claims_table(
+        changed(CLAIMS, put(0, "provenance", "beliefs", value=TWO_SPELLINGS))
+    )
+    assert match_claim_problems(table) == []
+    assert match_claim_problems(table, MANIFEST) == []
+    assert found(match_claim_problems(table, CONTEXT_MANIFEST)) == [
+        ("invalid_provenance", 0, ("provenance",))
+    ]
+    with pytest.raises(TableError) as error:
+        check_match_claims(table, CONTEXT_MANIFEST)
+    assert str(error.value) == (
+        f"the provenance #/beliefs/1/actor: '{ACTOR}' already holds belief 0 of "
+        "this entry; an actor holds one belief"
+    )
+    rows = changed(CLAIMS, put(0, "provenance", value=None))
+    shared = json.dumps(
+        {
+            "beliefs": [
+                {"actor": b["actor"], "belief": b["belief"], "date": b["date"]}
+                for b in TWO_SPELLINGS
+            ]
+        }
+    )
+    table = claims_table(rows, **{PROVENANCE_METADATA_KEY: shared})
+    assert match_claim_problems(table) == []
+    assert found(match_claim_problems(table, CONTEXT_MANIFEST)) == [
+        ("invalid_provenance", None, ("provenance",))
+    ]
+    with pytest.raises(TableError) as error:
+        check_match_claims(table, CONTEXT_MANIFEST)
+    assert str(error.value) == (
+        f"the file's provenance #/beliefs/1/actor: '{ACTOR}' already holds belief "
+        "0 of this entry; an actor holds one belief"
+    )
 
 
 def test_an_unknown_timeline_is_refused_only_against_the_manifest() -> None:
@@ -869,21 +1034,66 @@ PROJECTION_CASES = [
     ),
     (
         "negative_duration",
-        put(1, "duration", value=smp(-1)),
+        put(1, "duration", value=number(smp(-1))),
         [("invalid_duration", 1, ("duration",))],
         "the duration is negative",
     ),
     (
-        "duration_on_another_axis",
-        put(1, "duration", value=sec(1.0)),
-        [("axis_mismatch", 1, ("duration",))],
+        "unit_null",
+        put(0, "unit", value=None),
+        [("schema_violation", 0, ("unit",))],
+        "'unit' is null",
+    ),
+    (
+        "number_type_null",
+        put(0, "number_type", value=None),
+        [("schema_violation", 0, ("number_type",))],
+        "'number_type' is null",
+    ),
+    (
+        "unit_unknown",
+        put(2, "unit", value="parsecs"),
+        [("invalid_coordinate", 2, ("unit",))],
+        "'parsecs' is no unit",
+    ),
+    (
+        "number_type_unknown",
+        put(2, "number_type", value="decimal"),
+        [("invalid_coordinate", 2, ("number_type",))],
+        "'decimal' is no number type",
+    ),
+    (
+        "start_mirror",
+        put(2, "start", "value", value=132300.0),
+        [("invalid_coordinate", 2, ("start",))],
+        "an int coordinate holds its numerator alone, not a value",
+    ),
+    (
+        "duration_of_another_number_type",
+        put(1, "duration", value=number(sec(1.0))),
+        [("invalid_coordinate", 1, ("duration",))],
+        "an int duration has no numerator",
+    ),
+    (
+        "duration_mirror",
+        put(1, "duration", "denominator", value=1),
+        [("invalid_coordinate", 1, ("duration",))],
+        "an int duration holds its numerator alone, not a denominator",
+    ),
+    (
+        "two_units",
+        lambda rows: rows[2].update(
+            unit="seconds", number_type="float", start=number(sec(3.0))
+        ),
+        [("axis_mismatch", 2, ("unit",))],
         "the timeline 'dpt_1' has coordinates in samples (int) and in seconds (float)",
     ),
     (
-        "start_malformed",
-        put(2, "start", "unit", value="parsecs"),
-        [("invalid_coordinate", 2, ("start",))],
-        "'parsecs' is no unit",
+        "two_number_types",
+        lambda rows: rows[2].update(number_type="fraction", start=number(q(132300))),
+        [("axis_mismatch", 2, ("number_type",))],
+        "the timeline 'dpt_1' has coordinates in samples (int) and in samples "
+        "(fraction)",
     ),
 ]
 
@@ -935,17 +1145,26 @@ def test_one_id_on_two_timelines_is_two_projections() -> None:
 def test_projections_against_the_manifest() -> None:
     rows = changed(PROJECTIONS, put(0, "projection_of", "timeline_id", value="clt_9"))
     for row in rows:
-        row["start"] = sec(row["start"]["value"] / 44100)
-    rows[1]["duration"] = sec(1.0)
+        row.update(
+            unit="seconds",
+            number_type="float",
+            start=number(sec(row["start"]["numerator"] / 44100)),
+        )
+    rows[1]["duration"] = number(sec(1.0))
+    rows[2]["unit"] = "samples"
     table = projections_table(rows)
-    assert found(projection_problems(table)) == []
+    assert found(projection_problems(table)) == [("axis_mismatch", 2, ("unit",))]
     assert found(projection_problems(table, MANIFEST)) == [
-        ("axis_mismatch", 0, ("start",)),
+        ("axis_mismatch", 0, ("unit",)),
         ("unknown_timeline", 0, ("projection_of", "timeline_id")),
-        ("axis_mismatch", 1, ("start",)),
-        ("axis_mismatch", 1, ("duration",)),
-        ("axis_mismatch", 2, ("start",)),
+        ("axis_mismatch", 1, ("unit",)),
+        ("axis_mismatch", 2, ("number_type",)),
     ]
+    with pytest.raises(TableError) as error:
+        check_projections(table, MANIFEST)
+    assert str(error.value) == (
+        "a coordinate in seconds (float) on the timeline 'dpt_1' in samples (int)"
+    )
 
 
 # The succession rule
@@ -970,9 +1189,9 @@ def _with_belief(rows: list[dict]) -> None:
         ),
         _with_belief,
         lambda rows: rows.reverse(),
-        put(0, "start_anchor", "coordinate_a", "value", value=1e-300),
+        put(1, "start_anchor", "coordinate_a", value=q(2, 2)),
     ],
-    ids=["same", "appended", "provenance", "reordered", "mirror"],
+    ids=["same", "appended", "provenance", "reordered", "unreduced"],
 )
 def test_a_successor_keeps_every_claim(change: Callable[[list[dict]], None]) -> None:
     old = claims_table(CLAIMS)
@@ -1143,11 +1362,12 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
             named.add(event)
             standing = projections[event]
             assert standing["timeline_id"] == row[f"timeline_{side}_id"]
-            start = coordinate_value(standing["start"])
+            kind = standing["number_type"]
+            start = coordinate_value(standing["start"], kind)
             assert start == coordinate_value(row["start_anchor"][f"coordinate_{side}"])
             if row["end_anchor"] is None:
                 assert standing["duration"] is None
             else:
                 end = coordinate_value(row["end_anchor"][f"coordinate_{side}"])
-                assert start + coordinate_value(standing["duration"]) == end
+                assert start + coordinate_value(standing["duration"], kind) == end
     assert named == set(projections)

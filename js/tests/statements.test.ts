@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  BELIEF_STATES,
   BELIEFS,
   candidates,
+  checkBeliefFilter,
   compactIri,
   compactJson,
+  DEFAULT_BELIEFS,
   defaultCatalogue,
   dumps,
   entries,
@@ -72,6 +75,31 @@ describe("the constants", () => {
     expect([...BELIEFS]).toEqual(["true", "false", "unlikely"]);
     expect([...METHODS]).toEqual(["manual", "reconciled", "imported", "inferred"]);
     expect([...MATCHES]).toEqual(["exact", "close", "broad", "narrow", "related"]);
+  });
+});
+
+describe("the belief filter", () => {
+  it("takes the four states", () => {
+    expect([...BELIEF_STATES]).toEqual(["true", "undecided", "unlikely", "false"]);
+    expect([...DEFAULT_BELIEFS]).toEqual(["true", "undecided", "unlikely"]);
+    expect([...checkBeliefFilter(["false", "true"])].sort()).toEqual(["false", "true"]);
+    expect(checkBeliefFilter(BELIEF_STATES).size).toBe(4);
+    expect(checkBeliefFilter([]).size).toBe(0);
+  });
+
+  it.each([
+    [
+      "true",
+      "the belief filter takes a collection of states, not the string 'true': write ['true']",
+    ],
+    [
+      ["true", "zzz", "not_false"],
+      "'not_false' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'",
+    ],
+    [[1], "'1' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"],
+    [[true], "'true' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"],
+  ])("refuses %j with Python's message", (beliefs, message) => {
+    expect(() => checkBeliefFilter(beliefs as Iterable<unknown>)).toThrow(new Error(message));
   });
 });
 

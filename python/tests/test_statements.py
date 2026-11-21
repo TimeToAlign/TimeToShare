@@ -10,14 +10,17 @@ import pytest
 
 import timetoshare
 from timetoshare import (
+    BELIEF_STATES,
     BELIEFS,
     BLANK,
+    DEFAULT_BELIEFS,
     FORMAT_CONTEXT,
     MATCHES,
     METHODS,
     NAMESPACE,
     SchemaValidationError,
     candidates,
+    check_belief_filter,
     entries,
     expand_iri,
     fixture_paths,
@@ -81,6 +84,42 @@ def test_the_format_context_holds_the_terms_and_no_prefix() -> None:
     assert METHODS == ("manual", "reconciled", "imported", "inferred")
     assert MATCHES == ("exact", "close", "broad", "narrow", "related")
     assert BLANK.startswith("[\\u0000-\\u0020")
+
+
+BELIEF_FILTER_REFUSALS = [
+    (
+        "true",
+        "the belief filter takes a collection of states, not the string "
+        "'true': write ['true']",
+    ),
+    (
+        ["true", "zzz", "not_false"],
+        "'not_false' is no belief state: write 'true', 'undecided', "
+        "'unlikely' or 'false'",
+    ),
+    ([1], "'1' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"),
+    (
+        [True],
+        "'true' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'",
+    ),
+]
+"""Each refusal of a belief filter and its message, the JavaScript package's
+too (``statements.test.ts``)."""
+
+
+def test_the_belief_filter_takes_the_four_states() -> None:
+    assert BELIEF_STATES == ("true", "undecided", "unlikely", "false")
+    assert DEFAULT_BELIEFS == ("true", "undecided", "unlikely")
+    assert check_belief_filter(["false", "true"]) == frozenset({"true", "false"})
+    assert check_belief_filter(BELIEF_STATES) == frozenset(BELIEF_STATES)
+    assert check_belief_filter(()) == frozenset()
+
+
+@pytest.mark.parametrize(("beliefs", "message"), BELIEF_FILTER_REFUSALS)
+def test_a_belief_filter_of_no_states_is_refused(beliefs: Any, message: str) -> None:
+    with pytest.raises(ValueError) as raised:
+        check_belief_filter(beliefs)
+    assert str(raised.value) == message
 
 
 def test_iris_expand_by_the_context() -> None:

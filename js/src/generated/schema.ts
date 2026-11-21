@@ -211,8 +211,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "pattern": "^#resource_[1-9][0-9]*$",
-          "description": "The resource ID: `resource_` followed by a positive integer without leading zeros, written `#resource_1` and so on."
+          "description": "The resource ID."
         },
         "type": {
           "type": "string",
@@ -333,8 +332,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "pattern": "^#timestamp_[1-9][0-9]*$",
-          "description": "The timestamp ID: `timestamp_` followed by a positive integer without leading zeros, written `#timestamp_1` and so on."
+          "description": "The timestamp ID."
         },
         "timeline": {
           "$ref": "#/$defs/Id",
@@ -419,8 +417,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "pattern": "^#matchstamp_[1-9][0-9]*$",
-          "description": "The MatchStamp ID: `matchstamp_` followed by a positive integer without leading zeros, written `#matchstamp_1` and so on."
+          "description": "The MatchStamp ID."
         },
         "name": {
           "type": "string",
@@ -458,8 +455,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "pattern": "^#anchor_[1-9][0-9]*$",
-          "description": "The anchor ID: `anchor_` followed by a positive integer without leading zeros, written `#anchor_1` and so on."
+          "description": "The anchor ID."
         },
         "timestamps": {
           "type": "array",

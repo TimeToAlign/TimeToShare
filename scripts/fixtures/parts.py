@@ -112,3 +112,15 @@ def holding(parent: Timeline, child: Timeline, offset: Any) -> Timeline:
     """Add ``child`` to ``parent`` at ``offset`` and return the child."""
     parent.add_child(child, offset)
     return child
+
+
+def score_with_second_half() -> Timeline:
+    """Build the score ``score`` ("Score", 8 quarters) holding the child
+    ``second-half`` ("Second half", 4 quarters at 4)."""
+    score = named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
+    holding(
+        score,
+        named(ContinuousLogicalTimeline, "second-half", "Second half", Fraction(4)),
+        Fraction(4),
+    )
+    return score

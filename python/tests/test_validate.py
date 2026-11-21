@@ -30,7 +30,6 @@ REJECTIONS = [
     "address_facet_with_part",
     "address_facet_without_id",
     "alignment_anchor_display_unknown",
-    "alignment_anchor_id_malformed",
     "alignment_anchor_id_repeated",
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
@@ -104,7 +103,6 @@ REJECTIONS = [
     "match_timestamp_coordinate_repeated",
     "match_timestamp_in_no_matchstamp",
     "matchstamp_claims_repeated",
-    "matchstamp_id_malformed",
     "matchstamp_not_connected",
     "measure_map_id_is_timeline_id",
     "measure_map_row_actual_length_negative",
@@ -146,7 +144,6 @@ REJECTIONS = [
     "reserved_key_prefix_on_manifest",
     "reserved_key_statements_on_group",
     "reserved_key_term_on_timeline",
-    "resource_id_malformed",
     "resource_integrity_algorithm_unknown",
     "resource_match_claim_twice",
     "resource_projection_twice",
@@ -195,7 +192,6 @@ REJECTIONS = [
     "timestamp_display_repeated",
     "timestamp_display_unknown",
     "timestamp_id_is_timeline_id",
-    "timestamp_id_malformed",
     "timestamp_timeline_unknown",
     "to_coda_with_repeat_count",
     "type_bare_word",
@@ -925,7 +921,6 @@ def test_the_matchstamp_rules_report_every_problem() -> None:
 
 MATCHSTAMP_CASES = [
     "alignment_anchor_display_unknown",
-    "alignment_anchor_id_malformed",
     "alignment_anchor_id_repeated",
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
@@ -934,7 +929,6 @@ MATCHSTAMP_CASES = [
     "match_timestamp_coordinate_repeated",
     "match_timestamp_in_no_matchstamp",
     "matchstamp_claims_repeated",
-    "matchstamp_id_malformed",
     "matchstamp_not_connected",
 ]
 """The rejection cases whose fault lies in the named MatchStamps."""

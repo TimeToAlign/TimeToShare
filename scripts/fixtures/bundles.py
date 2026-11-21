@@ -298,18 +298,6 @@ def bundle_shared_member() -> AlignmentBundle:
     return bundle
 
 
-def bundle_groupstamp_shared_member() -> AlignmentBundle:
-    """Build the bundle of ``bundle_shared_member`` with a groupstamp on its
-    shared member.
-
-    ``bundle_groupstamp_shared_member`` holds it with the ``graphical`` entry
-    of ``GRAPHICAL``: the timestamp "Bar 2" at quarter 4 of the score ``t``,
-    a groupstamp, whose line extends across the frame of each of the two
-    groups. No member has a band.
-    """
-    return bundle_shared_member()
-
-
 def bundle_free_ids() -> AlignmentBundle:
     """Build a bundle whose ids are free strings, each given and kept as given.
 
@@ -438,14 +426,7 @@ def bundle_matchstamp_cards() -> AlignmentBundle:
     performance to the score, which is drawn in two cards, one joining the
     score to its child, whose lines lie in one card.
     """
-    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
-    parts.holding(
-        score,
-        parts.named(
-            ContinuousLogicalTimeline, "second-half", "Second half", Fraction(4)
-        ),
-        Fraction(4),
-    )
+    score = parts.score_with_second_half()
     performance = parts.named(
         ContinuousPhysicalTimeline, "performance", "Performance", 4.0
     )

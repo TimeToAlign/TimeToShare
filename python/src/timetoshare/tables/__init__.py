@@ -21,8 +21,6 @@ except ImportError as error:  # pragma: no cover - depends on the environment
     ) from error
 
 from .anchors import (
-    BELIEF_STATES,
-    DEFAULT_BELIEFS,
     AlignmentAnchor,
     PotentialMatchStamp,
     TimelineCoordinate,
@@ -50,6 +48,9 @@ from .columns import (
     COORDINATE_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_SCHEMA,
+    NUMBER_KEYS,
+    NUMBER_MEMBERS,
+    NUMBER_TYPE,
     PROJECTION_COLUMNS,
     PROJECTION_OF_TYPE,
     PROJECTION_SCHEMA,
@@ -59,18 +60,20 @@ from .columns import (
     SCOPE_FIELD,
     coordinate_value,
     fixture_path,
+    number_cell,
 )
 
 __all__ = [
     "ANCHOR_TYPE",
     "BELIEF_KEYS",
-    "BELIEF_STATES",
     "BELIEF_TYPE",
     "COORDINATE_KEYS",
     "COORDINATE_TYPE",
-    "DEFAULT_BELIEFS",
     "MATCH_CLAIM_COLUMNS",
     "MATCH_CLAIM_SCHEMA",
+    "NUMBER_KEYS",
+    "NUMBER_MEMBERS",
+    "NUMBER_TYPE",
     "PROJECTION_COLUMNS",
     "PROJECTION_OF_TYPE",
     "PROJECTION_SCHEMA",
@@ -92,6 +95,7 @@ __all__ = [
     "coordinate_value",
     "fixture_path",
     "match_claim_problems",
+    "number_cell",
     "potential_matchstamps",
     "projection_problems",
     "row_provenance",

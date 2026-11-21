@@ -1321,9 +1321,9 @@ export interface MeasureMapRow {
  */
 export interface Resource {
   /**
-   * An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
+   * The resource ID.
    */
-  id: string;
+  id: Id;
   /**
    * What the file's rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events an event table holds.
    */
@@ -1493,9 +1493,9 @@ export interface Declaration {
  */
 export interface Timestamp {
   /**
-   * An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
+   * The timestamp ID.
    */
-  id: string;
+  id: Id;
   /**
    * The ID of the timeline the timestamp lies on: a root or a descendant at any depth, a segment included.
    */
@@ -1529,9 +1529,9 @@ export interface Timestamp {
  */
 export interface MatchStamp {
   /**
-   * An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
+   * The MatchStamp ID.
    */
-  id: string;
+  id: Id;
   /**
    * The MatchStamp's human-readable name, which an anchor whose `display` holds `name` draws at the middle of its line; never empty.
    */
@@ -1555,9 +1555,9 @@ export interface MatchStamp {
  */
 export interface AlignmentAnchor {
   /**
-   * An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
+   * The anchor ID.
    */
-  id: string;
+  id: Id;
   /**
    * The IDs of the anchor's two match timestamps.
    *

@@ -1288,12 +1288,19 @@ def test_named_timestamp_ids_share_the_manifest_scope() -> None:
     )
 
 
+def test_a_named_timestamp_takes_any_id() -> None:
+    document = _stamped(
+        _stamp("timestamp_3kq9x0m2ztb7a", "score", [1, 1]),
+        _stamp("Bar 2", "score", [2, 1]),
+        _stamp("timestamp_01", "verse", [1, 1]),
+    )
+    assert _problems(document) == []
+    validate(document)
+
+
 @pytest.mark.parametrize(
     ("timestamp", "path"),
     [
-        (_stamp("timestamp_0", "score", [1, 1]), ("graphical", "timestamps", 0, "id")),
-        (_stamp("timestamp_01", "score", [1, 1]), ("graphical", "timestamps", 0, "id")),
-        (_stamp("clt_1", "score", [1, 1]), ("graphical", "timestamps", 0, "id")),
         (
             _stamp("timestamp_1", "score", [1, 1], ""),
             ("graphical", "timestamps", 0, "name"),
@@ -1313,9 +1320,6 @@ def test_named_timestamp_ids_share_the_manifest_scope() -> None:
         (_displayed(["name", "name"]), ("graphical", "timestamps", 0, "display")),
     ],
     ids=[
-        "zero",
-        "leading zero",
-        "other prefix",
         "empty name",
         "null name",
         "no coordinate",

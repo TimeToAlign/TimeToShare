@@ -217,7 +217,7 @@ CATALOGUE = (
     _bundle("bundle_matchstamp_cards", bundles.bundle_matchstamp_cards, "score"),
     _bundle(
         "bundle_groupstamp_shared_member",
-        bundles.bundle_groupstamp_shared_member,
+        bundles.bundle_shared_member,
         "t",
     ),
     _described("op106_work", statements.op106_work),
