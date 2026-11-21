@@ -762,7 +762,11 @@ column per property of a MatchClaim:
 | `provenance` | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)) |
 
 and every further property of a MatchClaim, such as `is_synchronous` and
-`certainty`, in a column of its own. A provenance that every row shares
+`certainty`, in a column of its own. A table that mixes the MatchClaims of
+several scopes adds the key column `scope` (a string): null for a
+MatchClaim of the package's own, else the name of the scope the row comes
+from, the ID of the manifest whose MatchClaim it is. A table of the
+package's own MatchClaims alone needs no such column. A provenance that every row shares
 is stated once, as JSON under the key `timetoshare:provenance` of the
 file's schema metadata; the `provenance` of every row is then null, and a
 row stating its own is refused.
@@ -786,12 +790,14 @@ MatchClaim has no anchors and is a row like any other.
 changes. A MatchClaim found wrong is invalidated by a belief `false`
 ([Provenance and beliefs](#provenance-and-beliefs)); a correction is
 another MatchClaim under a new ID. Joining packages keeps every ID in its
-scope, and a table that mixes the rows of several manifests names each
-row's manifest in a column of its own, never in a string joined to the
-ID. Whoever writes a table over an existing one keeps the **succession
-rule**: every ID of the old table is in the new one with the same
-timelines, events and anchors, and only its provenance may differ;
-coordinates compare by unit, number type and exact value. The Python
+scope: a MatchClaim is its scope and its ID, an ID is given once per
+scope, and two scopes may each hold `claim_1`. A table that mixes the rows
+of several manifests names each row's in its `scope` column, never in a
+string joined to the ID. Whoever writes a table over an existing one keeps the **succession
+rule**: every MatchClaim of the old table, by its scope and its ID, is in
+the new one with the same timelines, events and anchors, and only its
+provenance may differ; coordinates compare by unit, number type and exact
+value. The Python
 package checks the rule for an old and a new table,
 `timetoshare.tables.check_succession(old, new)` raising the first breach
 and `succession_problems(old, new)` listing them ([Python](#python)). A reader refuses no table
@@ -806,7 +812,7 @@ of them, the **Projections table**, named by the resource of type
 
 | Column | Holds |
 | --- | --- |
-| `id` | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise |
+| `id` | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise. An event's ID is unique on its timeline: a Projection is its timeline and its ID, so two timelines may each hold `projection_1`, and one timeline holds an ID once |
 | `timeline_id` | the timeline the Projection is an event of |
 | `start`, `duration` | its position on that timeline's own axis, each a coordinate cell as in the MatchClaim table, in the timeline's unit and number type; `duration` is null for an instant and never negative |
 | `projection_of` | `{timeline_id, event_id}` of the event it stands for, an object and never a joined string; null where no such event is known |
@@ -1652,6 +1658,14 @@ else:
   statements alone as a list of `SchemaValidationError`s, empty where they
   are sound, and refuses nothing outside them (the description
   specification, section 12).
+- `matchstamp_problems(value)` returns the problems of a manifest's named
+  MatchStamps and match timestamps alone, as `validate` reports them, as a
+  list of `SchemaValidationError`s: the schema of each match timestamp and
+  of `graphical.matchstamps`, then an ID of a MatchStamp or an alignment
+  anchor the manifest holds twice and the rules of
+  [Named MatchStamps](#named-matchstamps). It reads nothing else of
+  `graphical`, for a library that keeps the styles, the rules and the
+  ordinary timestamps unread.
 - `pairs`, `entries`, `candidates`, `with_pair`, `without_pair`,
   `with_candidate` and `with_belief` read and edit the pairs and
   provenance of a subject, which `subject_path` finds by its ID:
@@ -1721,7 +1735,8 @@ else:
   (`pip install "timetoshare[tables]"`, which installs pyarrow), reads
   the two tables as Arrow tables ([Resources and
   tables](#resources-and-tables)). `MATCH_CLAIM_SCHEMA` and
-  `PROJECTION_SCHEMA` declare their columns; `match_claim_problems(table,
+  `PROJECTION_SCHEMA` declare their columns, `SCOPE_FIELD` the MatchClaim
+  table's optional key column `scope`; `match_claim_problems(table,
   manifest=None)` and `projection_problems(table, manifest=None)` list
   every problem of a table, the table's own first, then row by row, each a
   `TableProblem` (`code`, `row`, `column`, `message`), checked against the

@@ -30,7 +30,16 @@ from .statements import subjects
 from .validation.containment import child_ends as child_ends
 from .validation.diagnostics import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
 from .validation.diagnostics import ManifestWarning as ManifestWarning
-from .validation.diagnostics import SchemaValidationError, _Path, string_id
+from .validation.diagnostics import (
+    SchemaValidationError,
+    _entries,
+    _Path,
+    duplicate_problem,
+    listed_ids,
+    string_id,
+    timestamps_of,
+    tree_ids,
+)
 from .validation.diagnostics import ValidationCode as ValidationCode
 from .validation.diagnostics import WarningCode as WarningCode
 from .validation.diagnostics import json_pointer as json_pointer
@@ -41,6 +50,7 @@ from .validation.representation import (
     representation_problems,
 )
 from .validation.statements import statement_rule_problems, statement_warnings
+from .validation.timestamps import matchstamp_problems as _matchstamp_rule_problems
 
 SCHEMA_VERSION = "0.2.0"
 """The schema version this package reads and writes, the only one it supports."""
@@ -467,6 +477,108 @@ def statement_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     if problems:
         return problems
     return list(statement_rule_problems(bare))
+
+
+@cache
+def _definition_validator(definition: str) -> Any:
+    """The validator of one definition, as the whole walk checks it."""
+    document = _closed_document()
+    return Draft202012Validator(
+        {"$defs": document["$defs"], "$ref": f"#/$defs/{definition}"}
+    )
+
+
+_MATCHSTAMPS: _Path = ("graphical", "matchstamps")
+
+
+def _match_timestamps(value: Mapping[str, Any]) -> Iterator[tuple[_Path, Any]]:
+    """Each match timestamp (``matchstamp: true``) with its path."""
+    for index, timestamp in enumerate(timestamps_of(value)):
+        if isinstance(timestamp, Mapping) and timestamp.get("matchstamp") is True:
+            yield ("graphical", "timestamps", index), timestamp
+
+
+def _matchstamp_id_problems(
+    bare: Mapping[str, Any],
+) -> Iterator[SchemaValidationError]:
+    """The repeated IDs a named MatchStamp or an alignment anchor holds.
+
+    IDs are compared as ``validate`` compares them (each root's tree, an ID
+    repeated within one tree counted once, then the listed elements, then
+    the manifest's ID); a repetition is reported where ``validate`` reports
+    it when the ID at it or its first occurrence belongs to a MatchStamp.
+    """
+
+    def concerned(*paths: _Path) -> bool:
+        return any(path[: len(_MATCHSTAMPS)] == _MATCHSTAMPS for path in paths)
+
+    first: dict[str, _Path] = {}
+    for index, root in enumerate(_entries(bare, "timelines")):
+        seen: dict[str, _Path] = {}
+        for identifier, path in tree_ids(root, ("timelines", index)):
+            seen.setdefault(identifier, path)
+        for identifier, path in seen.items():
+            first.setdefault(identifier, path)
+    for identifier, path in listed_ids(bare):
+        if identifier not in first:
+            first[identifier] = path
+        elif concerned(path, first[identifier]):
+            yield duplicate_problem(identifier, path, first[identifier])
+    manifest_id = string_id(bare)
+    if manifest_id in first and concerned(first[manifest_id]):
+        yield duplicate_problem(manifest_id, ("id",), first[manifest_id], "manifest_id")
+
+
+def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
+    """Return the problems of the named MatchStamps and their match timestamps alone.
+
+    First, each match timestamp (a named timestamp with ``matchstamp:
+    true``) and then ``graphical.matchstamps`` checked as :func:`validate`
+    checks them, each one's first problem at its path: a number that is not
+    finite (``finite_number``), else the schema (``schema``), reported by
+    the one path rule. Where none has a problem, every problem beyond the
+    schema follows, not only the first: an ID of a MatchStamp or an
+    alignment anchor that the manifest holds twice (``duplicate_id``, or
+    ``manifest_id`` where the manifest's ID repeats one), then the rules of
+    the MatchStamps and their match timestamps (``alignment_anchor``,
+    ``matchstamp``, ``match_timestamp``), in :func:`identity_problems`'
+    order.
+
+    Nothing else is refused: an ordinary timestamp, the styles and rules,
+    the timelines and the statements are not read beyond what the
+    MatchStamps name. A library that keeps the rest of ``graphical`` unread
+    checks its MatchStamps with this function. The messages are those of
+    :func:`validate`. ``value`` is in the file form; the rules read its IDs
+    bare, and an ID written without ``#`` is read as it stands.
+    """
+    if not isinstance(value, Mapping):
+        return []
+    graphical = value.get("graphical")
+    flagged = list(_match_timestamps(value))
+    if not flagged and not (
+        isinstance(graphical, Mapping) and "matchstamps" in graphical
+    ):
+        return []
+    problems: list[SchemaValidationError] = []
+    for path, timestamp in flagged:
+        finite = next(finite_number_problems(timestamp, path), None)
+        if finite is not None:
+            problems.append(finite)
+            continue
+        error = _select(_definition_validator("Timestamp").iter_errors(timestamp))
+        if error is not None:
+            at = (*path, *error.absolute_path)
+            problems.append(SchemaValidationError("schema", at, error.message))
+    if isinstance(graphical, Mapping) and "matchstamps" in graphical:
+        validator = _member_validator("Graphical", "matchstamps")
+        error = _select(validator.iter_errors(graphical["matchstamps"]))
+        if error is not None:
+            at = (*_MATCHSTAMPS, *error.absolute_path)
+            problems.append(SchemaValidationError("schema", at, error.message))
+    if problems:
+        return problems
+    bare = leniently_bare_ids(value)
+    return [*_matchstamp_id_problems(bare), *_matchstamp_rule_problems(bare)]
 
 
 def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:

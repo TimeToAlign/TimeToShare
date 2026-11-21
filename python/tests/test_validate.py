@@ -908,3 +908,53 @@ def test_the_matchstamp_rules_report_every_problem() -> None:
         ("match_timestamp", ("graphical", "timestamps", 10)),
         ("match_timestamp", ("graphical", "timestamps", 10)),
     ]
+
+
+MATCHSTAMP_CASES = [
+    "alignment_anchor_id_repeated",
+    "alignment_anchor_one_timeline",
+    "alignment_anchor_timestamp_not_match",
+    "alignment_anchor_timestamp_unknown",
+    "match_timestamp_coordinate_repeated",
+    "match_timestamp_in_no_matchstamp",
+    "matchstamp_claims_repeated",
+    "matchstamp_id_malformed",
+    "matchstamp_not_connected",
+]
+"""The rejection cases whose fault lies in the named MatchStamps."""
+
+
+@pytest.mark.parametrize("name", MATCHSTAMP_CASES)
+def test_the_matchstamps_alone_give_the_first_problem_of_validate(name: str) -> None:
+    case = rejection_case(_rejection(name))
+    with pytest.raises(SchemaValidationError) as raised:
+        timetoshare.validate(case.manifest)
+    first = timetoshare.matchstamp_problems(case.manifest)[0]
+    assert (first.code, first.path, first.message) == (
+        raised.value.code,
+        raised.value.path,
+        raised.value.message,
+    )
+    assert first.path == case.path
+
+
+def test_the_matchstamps_alone_pass_every_other_case() -> None:
+    others = sorted(
+        path.stem
+        for path in rejection_paths()
+        if path.stem not in MATCHSTAMP_CASES
+        and timetoshare.matchstamp_problems(rejection_case(path).manifest)
+    )
+    assert others == []
+    for path in timetoshare.fixture_paths():
+        assert timetoshare.matchstamp_problems(loads(path.read_text("utf-8"))) == []
+
+
+def test_a_malformed_match_timestamp_is_reported_by_the_schema() -> None:
+    value = rejection_case(_rejection("matchstamp_not_connected")).manifest
+    del value["graphical"]["timestamps"][1]["timeline"]
+    found = [
+        (problem.code, problem.path)
+        for problem in timetoshare.matchstamp_problems(value)
+    ]
+    assert found == [("schema", ("graphical", "timestamps", 1))]

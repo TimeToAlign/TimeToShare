@@ -55,6 +55,7 @@ from .columns import (
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
     PROVENANCE_TYPE,
+    SCOPE_FIELD,
     coordinate_value,
     fixture_path,
 )
@@ -74,6 +75,7 @@ __all__ = [
     "PROVENANCE_KEYS",
     "PROVENANCE_METADATA_KEY",
     "PROVENANCE_TYPE",
+    "SCOPE_FIELD",
     "AlignmentAnchor",
     "PotentialMatchStamp",
     "TableCode",
