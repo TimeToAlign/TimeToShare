@@ -1890,9 +1890,7 @@ extraction's are without fontTools. What proves them:
   `denominator`, a float without `value`), with a member its number type
   leaves null (an int with a `denominator` or a `value`, a fraction with a
   `value`, a float with a `numerator`: the mirror a former cell carried is
-  refused), a fraction's denominator below 1, a fraction not in lowest
-  terms (`(2, 2, null)`: `the coordinate's fraction 2/2 is not in lowest
-  terms: write 1/1`; a Projection's `start` and `duration` alike), a
+  refused), a fraction's denominator below 1, a
   non-finite float, a cell without `unit` or `number_type` (`the
   coordinate has no unit`) (`invalid_coordinate`, with the message naming
   the member); a row naming no event
@@ -1932,6 +1930,18 @@ extraction's are without fontTools. What proves them:
   (`axis_mismatch` at `unit`) or two number types (at `number_type`),
   and a `projection_of` column holding a joined string
   (`schema_violation`).
+- **A fraction in any terms is its value.** No check asks a fraction
+  cell for lowest terms: an unreduced fraction is read, and it is the
+  same value as its reduced form wherever cells are compared. The
+  MatchClaim table with `claim_2`'s start anchor written `(2, 2, null)`
+  (the quarter 1) or `(0, 4, null)` has no problem, with and without its
+  manifest, and `coordinate_value` reads the two cells as exactly `1` and
+  `0`; so does the Projections table whose third row, moved to the
+  quarters of `clt_1`, starts at `4/2` (read as `2`) or starts at `7/2`
+  and lasts `2/4` (read as `1/2`). Its anchors are the reduced table's:
+  `alignment_anchors` gives the table with `(2, 2, null)` exactly the
+  anchors and MatchClaim IDs of the table with `(1, 1, null)`. A test
+  that refuses one of these cells, or reads it as another value, fails.
 - **Against a manifest.** Given a manifest (as read from its file), every
   timeline a cell or a row names exists (`unknown_timeline`) and every
   cell, every Projection's row, is in its timeline's own unit and number
@@ -1942,9 +1952,10 @@ extraction's are without fontTools. What proves them:
   table, the table with rows appended and the table with every provenance
   changed (a belief added); it refuses a missing ID (`succession_missing`)
   and a change to any other column, an anchor moved, an event renamed, a
-  timeline swapped (`succession_changed`, naming the column). Both tables
-  are checked ones, which write each value in one cell (a fraction in
-  lowest terms), so cells compare as written; an anchor's coordinates
+  timeline swapped (`succession_changed`, naming the column). A coordinate
+  is compared by unit, number type and exact value, so the quarter 1
+  written as `(1, 1, null)` and as `(2, 2, null)` is the same coordinate
+  and a successor respelling it changes nothing; an anchor's coordinates
   are compared side by side, `coordinate_a` on the row's
   `timeline_a_id`. A MatchClaim is its scope
   and its ID: a table of two scopes holding `claim_1` each is succeeded by

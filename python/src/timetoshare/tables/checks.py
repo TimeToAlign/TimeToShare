@@ -26,6 +26,7 @@ from ..validate import PROVENANCE_DEFINITION, _select, load_schema
 from ..validation.diagnostics import json_pointer, number_type_of, timelines_by_id
 from .columns import (
     BELIEF_KEYS,
+    COORDINATE_KEYS,
     MATCH_CLAIM_SCHEMA,
     NUMBER_KEYS,
     NUMBER_MEMBERS,
@@ -152,8 +153,7 @@ def _number_problem(
 
     A number fills the members of its number type and leaves the others
     null (:data:`~timetoshare.tables.NUMBER_MEMBERS`); a float is finite, a
-    fraction's denominator at least 1 and the fraction in lowest terms, so
-    each value has one cell.
+    fraction's denominator at least 1.
     """
     held = NUMBER_MEMBERS[number_type]
     kind = f"{'an' if number_type == 'int' else 'a'} {number_type} {what}"
@@ -165,16 +165,8 @@ def _number_problem(
             return f"{kind} holds its {' and '.join(held)} alone, not a {key}"
     if number_type == "float" and not math.isfinite(number["value"]):
         return f"the {what}'s value {number['value']} is not finite"
-    if number_type == "fraction":
-        numerator, denominator = number["numerator"], number["denominator"]
-        if denominator < 1:
-            return f"the {what}'s denominator {denominator} is below 1"
-        divisor = math.gcd(numerator, denominator)
-        if divisor != 1:
-            return (
-                f"the {what}'s fraction {numerator}/{denominator} is not in lowest "
-                f"terms: write {numerator // divisor}/{denominator // divisor}"
-            )
+    if number_type == "fraction" and number["denominator"] < 1:
+        return f"the {what}'s denominator {number['denominator']} is below 1"
     return None
 
 
@@ -660,16 +652,27 @@ def _order(problem: TableProblem) -> int:
     return -1 if problem.row is None else problem.row
 
 
+def _comparable(value: Any) -> Any:
+    """A value with every coordinate cell read as (unit, number type, exact value)."""
+    if isinstance(value, dict):
+        if set(value) == set(COORDINATE_KEYS):
+            return (value["unit"], value["number_type"], coordinate_value(value))
+        return {key: _comparable(member) for key, member in value.items()}
+    if isinstance(value, list):
+        return [_comparable(member) for member in value]
+    return value
+
+
 def succession_problems(old: pa.Table, new: pa.Table) -> list[TableProblem]:
     """Every breach of the succession rule by ``new`` written over ``old``.
 
     Both are checked MatchClaim tables. A MatchClaim is its scope and its
     ID (a table without a ``scope`` column holds the package's own alone).
     Every MatchClaim of ``old`` is in ``new``, and its row has the same
-    value in every column but ``provenance``. A checked table writes each
-    coordinate in one cell (a fraction in lowest terms), so cells compare as
-    written. The rows of ``new`` are
-    reported by their index in ``new``.
+    value in every column but ``provenance``; a coordinate is the same when
+    its unit, number type and exact value are, so ``2/4`` and ``1/2`` are
+    one coordinate. The rows of ``new`` are reported by their index in
+    ``new``.
     """
     columns = [name for name in MATCH_CLAIM_SCHEMA.names if name != "provenance"]
     later = {
@@ -689,7 +692,7 @@ def succession_problems(old: pa.Table, new: pa.Table) -> list[TableProblem]:
             continue
         index, successor = found
         for column in columns:
-            if row[column] != successor[column]:
+            if _comparable(row[column]) != _comparable(successor[column]):
                 problems.append(
                     TableProblem(
                         "succession_changed",
