@@ -1,0 +1,23 @@
+code: schema
+manifest:
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#axis"
+      is_segment_line: false
+      length: 8
+      locked: false
+      meta: {}
+      name: null
+      number_type: int
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+path: [timelines, 0, number_type]
+reason: "A continuous unit other than number admits float or fraction; quarters is declared int."

@@ -13,7 +13,7 @@
 import type { NumberType } from "../generated/types.js";
 import { isJsonObject, JsonFloat, type JsonObject } from "../json/value.js";
 import { exactValue, jsonInteger } from "../numbers/exact.js";
-import { UNIT_NUMBER_TYPES } from "../validate/diagnostics.js";
+import { isUnit, UNITS } from "./units.js";
 
 /** A number type, or `null` for an axis whose unit or number type is unknown. */
 type Axis = NumberType | null;
@@ -55,8 +55,8 @@ function onAxis(value: unknown, axis: Axis): unknown {
  */
 function axisOf(timeline: JsonObject): Axis {
   const { unit, number_type: numberType } = timeline;
-  if (typeof unit !== "string" || !Object.hasOwn(UNIT_NUMBER_TYPES, unit)) return null;
-  if (numberType === undefined) return UNIT_NUMBER_TYPES[unit as keyof typeof UNIT_NUMBER_TYPES];
+  if (!isUnit(unit)) return null;
+  if (numberType === undefined) return UNITS[unit].numberType;
   return numberType === "int" || numberType === "float" || numberType === "fraction"
     ? numberType
     : null;

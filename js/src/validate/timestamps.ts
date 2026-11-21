@@ -52,9 +52,8 @@ function groupedTimelines(manifest: JsonObject): Set<string> {
  *
  * A timestamp names a timeline of the manifest, at any depth, and its
  * coordinate lies between 0 and that timeline's length, or at or after 0
- * where the length is not known. A groupstamp (`groupstamp: true`) that is
- * no match timestamp lies in a group (`groupedTimelines`); a match
- * timestamp that is a groupstamp is reported by `matchstampProblems`.
+ * where the length is not known. A groupstamp (`groupstamp: true`), a match
+ * timestamp included, lies in a group (`groupedTimelines`).
  */
 export function* timestampProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const timelines = timelinesById(manifest);
@@ -87,7 +86,7 @@ export function* timestampProblems(manifest: JsonObject): Generator<SchemaValida
         `${where} is beyond the length ${spell(length)} of its timeline '${id}'`,
       );
     }
-    if (timestamp.groupstamp === true && timestamp.matchstamp !== true && !grouped.has(id)) {
+    if (timestamp.groupstamp === true && !grouped.has(id)) {
       yield new SchemaValidationError(
         "groupstamp",
         [...path, "groupstamp"],
@@ -117,8 +116,8 @@ function connectedSets(pairs: readonly (readonly [string, string])[]): number {
  * MatchStamp by MatchStamp, each alignment anchor names two match
  * timestamps of the manifest (`matchstamp: true`) lying on two timelines,
  * and the anchors are one connected set; then, timestamp by timestamp, a
- * match timestamp is no groupstamp (`groupstamp`), shares its coordinate
- * with no earlier match timestamp and some MatchStamp names it. A named timestamp that is no object or holds
+ * match timestamp shares its coordinate with no earlier match timestamp and
+ * some MatchStamp names it. A named timestamp that is no object or holds
  * no string ID is passed over, so the rules read a manifest whose ordinary
  * timestamps no schema has checked.
  */
@@ -176,13 +175,6 @@ export function* matchstampProblems(manifest: JsonObject): Generator<SchemaValid
     if (!isJsonObject(timestamp) || timestamp.matchstamp !== true) continue;
     const path = ["graphical", "timestamps", index];
     const id = text(timestamp, "id");
-    if (timestamp.groupstamp === true) {
-      yield new SchemaValidationError(
-        "groupstamp",
-        [...path, "groupstamp"],
-        `'${id}' is both a match timestamp and a groupstamp`,
-      );
-    }
     const value = exact(timestamp.coordinate);
     const key = JSON.stringify([
       text(timestamp, "timeline"),

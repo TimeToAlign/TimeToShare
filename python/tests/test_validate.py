@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+from fractions import Fraction
 from pathlib import Path
 from typing import Any
 
@@ -34,7 +35,7 @@ REJECTIONS = [
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
     "alignment_anchor_timestamp_unknown",
-    "band_order_missing_band",
+    "band_order_missing_line",
     "band_order_old_form",
     "band_order_unknown_entry",
     "belief_actor_repeated",
@@ -71,7 +72,7 @@ REJECTIONS = [
     "group_order_not_member",
     "group_order_repeated",
     "groupstamp_child_without_group",
-    "groupstamp_match_timestamp",
+    "groupstamp_match_without_group",
     "groupstamp_member_parent",
     "groupstamp_without_group",
     "id_control_character_tab",
@@ -183,6 +184,9 @@ REJECTIONS = [
     "timeline_missing_length",
     "timeline_name_not_string",
     "timeline_number_type_unknown",
+    "timeline_quarters_int",
+    "timeline_seconds_int",
+    "timeline_ticks_float",
     "timeline_unit_unknown",
     "timelines_child_id_duplicate_across_roots",
     "timelines_id_duplicate_across_roots",
@@ -221,15 +225,72 @@ def _accepted(value: dict) -> bool:
 
 @pytest.mark.parametrize("unit", ["css_pixels", "user_units"])
 @pytest.mark.parametrize(
-    ("number_type", "length"), [("float", 600.5), ("fraction", [1201, 2]), ("int", 600)]
+    ("number_type", "length", "accepted"),
+    [("float", 600.5, True), ("fraction", [1201, 2], True), ("int", 600, False)],
 )
 def test_a_vector_graphics_unit_is_read_as_points_is(
-    unit: str, number_type: str, length: Any
+    unit: str, number_type: str, length: Any, accepted: bool
 ) -> None:
     points = manifest(timeline("page", "points", length, number_type=number_type))
     root = manifest(timeline("page", unit, length, number_type=number_type))
-    assert _accepted(points)
-    assert _accepted(root)
+    assert _accepted(points) is accepted
+    assert _accepted(root) is accepted
+
+
+_TWO = {"int": 2, "float": 2.0, "fraction": [2, 1]}
+"""The value 2 as each number type spells it."""
+
+_ZERO = {"int": 0, "float": 0.0, "fraction": [0, 1]}
+"""The value 0 as each number type spells it."""
+
+_ADMITTED = {
+    "number": {"int", "float", "fraction"},
+    **{unit: {"int"} for unit in ("ticks", "samples", "frames", "pixels")},
+}
+"""The number types a unit admits where it admits other than float and fraction."""
+
+
+@pytest.mark.parametrize("number_type", ["int", "float", "fraction"])
+@pytest.mark.parametrize("unit", list(timetoshare.UNITS))
+def test_a_unit_admits_its_number_types(unit: str, number_type: str) -> None:
+    admitted = number_type in _ADMITTED.get(unit, {"float", "fraction"})
+    value = manifest(timeline("axis", unit, _TWO[number_type], number_type=number_type))
+    if admitted:
+        validate(value)
+    else:
+        with pytest.raises(SchemaValidationError) as caught:
+            validate(value)
+        assert (caught.value.code, caught.value.path) == (
+            "schema",
+            ("timelines", 0, "number_type"),
+        )
+
+
+@pytest.mark.parametrize("number_type", ["int", "float", "fraction"])
+@pytest.mark.parametrize("unit", list(timetoshare.UNITS))
+def test_a_child_admits_the_number_types_of_its_unit(
+    unit: str, number_type: str
+) -> None:
+    admitted = number_type in _ADMITTED.get(unit, {"float", "fraction"})
+    default = timetoshare.UNITS[unit].number_type
+    child = timeline("axis", unit, _TWO[number_type], number_type=number_type)
+    value = manifest(
+        timeline(
+            "parent",
+            unit,
+            _TWO[default],
+            children=[{**child, "offset": _ZERO[default]}],
+        )
+    )
+    if admitted:
+        validate(value)
+    else:
+        with pytest.raises(SchemaValidationError) as caught:
+            validate(value)
+        assert (caught.value.code, caught.value.path) == (
+            "schema",
+            ("timelines", 0, "children", 0, "number_type"),
+        )
 
 
 @pytest.mark.parametrize("unit", ["px", "uu"])
@@ -463,6 +524,78 @@ def test_values_in_their_axis_representation_validate(root: dict) -> None:
 def test_the_first_representation_problem_is_raised() -> None:
     root = timeline("score", length=8, regions=[{"id": "r", "start": 0, "end": [1, 1]}])
     assert _problem(manifest(root))[0] == ("timelines", 0, "length")
+
+
+ACCEPTANCES = REPOSITORY_ROOT / "fixtures" / "acceptances" / "0.2.0" / "numbers.yaml"
+
+ACCEPTANCE_ROWS = [
+    ("fraction", "[2, 4]"),
+    ("fraction", "[1, 8.0]"),
+    ("fraction", "[4, 8.0]"),
+    ("fraction", "[-3, 6]"),
+    ("int", "480"),
+    ("int", "480.0"),
+    ("float", "2"),
+    ("float", "0.1"),
+    ("int", "[480, 1]"),
+    ("int", "2.5"),
+    ("fraction", "12"),
+    ("fraction", "12.0"),
+    ("float", "[25, 2]"),
+    ("float", "9007199254740993"),
+]
+"""The number type and the value, as JSON spells it, of every row in order."""
+
+_AXIS_UNITS = {"int": "ticks", "float": "seconds", "fraction": "quarters"}
+"""A unit taking each number type, the axis of the acceptance rows."""
+
+
+def _acceptance_rows() -> list[dict[str, Any]]:
+    return loads(ACCEPTANCES.read_text(encoding="utf-8"))
+
+
+def _exact(value: Any) -> Fraction:
+    """The exact value a bare Number states; a member ``8.0`` is the integer 8."""
+    if isinstance(value, list):
+        return Fraction(int(value[0]), int(value[1]))
+    return Fraction(value)
+
+
+def test_the_acceptance_rows_are_stated() -> None:
+    rows = _acceptance_rows()
+    assert [(row["number_type"], json.dumps(row["value"])) for row in rows] == (
+        ACCEPTANCE_ROWS
+    )
+    assert dumps(rows) == ACCEPTANCES.read_text(encoding="utf-8")
+
+
+@pytest.mark.parametrize("index", range(len(ACCEPTANCE_ROWS)))
+def test_an_acceptance_row_is_read_as_stated(index: int) -> None:
+    row = _acceptance_rows()[index]
+    number_type = row["number_type"]
+    value = manifest(
+        timeline(
+            "axis",
+            _AXIS_UNITS[number_type],
+            None,
+            number_type=number_type,
+            offset=row["value"],
+        )
+    )
+    if "refused" in row:
+        assert sorted(row) == ["number_type", "refused", "value"]
+        with pytest.raises(SchemaValidationError) as caught:
+            validate(value)
+        assert (caught.value.code, caught.value.path) == (
+            row["refused"],
+            ("timelines", 0, "offset"),
+        )
+        return
+    assert sorted(row) == ["number_type", "read", "value"]
+    validate(value)
+    assert _exact(row["value"]) == _exact(row["read"])
+    written = timetoshare.canonical_order(value)["timelines"][0]["offset"]
+    assert dumps(written) == dumps(row["read"])
 
 
 def test_values_are_read_by_their_number_type() -> None:
@@ -854,8 +987,9 @@ MATCHSTAMP_MESSAGES = {
     "alignment_anchor_one_timeline": (
         "the timestamps of 'anchor_2' both lie on the timeline 'score'"
     ),
-    "groupstamp_match_timestamp": (
-        "'timestamp_1' is both a match timestamp and a groupstamp"
+    "groupstamp_match_without_group": (
+        "'timestamp_1' is a groupstamp, but its timeline 'score' is a member of "
+        "no group and lies in none"
     ),
     "match_timestamp_in_no_matchstamp": (
         "the match timestamp 'timestamp_11' belongs to no MatchStamp"
@@ -915,12 +1049,12 @@ def test_the_matchstamp_rules_report_every_problem() -> None:
     ]
     anchors = ("graphical", "matchstamps", 0, "alignment_anchors")
     assert found == [
+        ("groupstamp", ("graphical", "timestamps", 10, "groupstamp")),
         ("alignment_anchor", (*anchors, 0, "timestamps", 0)),
         ("alignment_anchor", (*anchors, 0, "timestamps", 1)),
         ("matchstamp", anchors),
         ("match_timestamp", ("graphical", "timestamps", 1)),
         ("match_timestamp", ("graphical", "timestamps", 4)),
-        ("groupstamp", ("graphical", "timestamps", 10, "groupstamp")),
         ("match_timestamp", ("graphical", "timestamps", 10)),
         ("match_timestamp", ("graphical", "timestamps", 10)),
     ]
@@ -932,7 +1066,6 @@ MATCHSTAMP_CASES = [
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
     "alignment_anchor_timestamp_unknown",
-    "groupstamp_match_timestamp",
     "match_timestamp_coordinate_repeated",
     "match_timestamp_in_no_matchstamp",
     "matchstamp_claims_repeated",

@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Hashable, Iterable, Iterator, Mapping
 from typing import Any, Literal, TypeAlias, TypedDict, TypeVar
 
-from ..manifest import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
+from ..manifest import UNIT_NUMBER_TYPES
 
 _Path = tuple[str | int, ...]
 ValidationCode: TypeAlias = Literal[

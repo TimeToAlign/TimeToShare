@@ -58,10 +58,8 @@ def timestamp_problems(
 
     A timestamp names a timeline of the manifest, at any depth, and its
     coordinate lies between 0 and that timeline's length, or at or after 0
-    where the length is not known. A groupstamp (``groupstamp: true``) that
-    is no match timestamp lies in a group (:func:`_grouped_timelines`); a
-    match timestamp that is a groupstamp is reported by
-    :func:`matchstamp_problems`.
+    where the length is not known. A groupstamp (``groupstamp: true``), a
+    match timestamp included, lies in a group (:func:`_grouped_timelines`).
     """
     timelines = timelines_by_id(manifest)
     grouped = _grouped_timelines(manifest)
@@ -92,11 +90,7 @@ def timestamp_problems(
                 f"{where} is beyond the length {spell(length)} of its timeline "
                 f"'{identifier}'",
             )
-        if (
-            timestamp.get("groupstamp") is True
-            and timestamp.get("matchstamp") is not True
-            and identifier not in grouped
-        ):
+        if timestamp.get("groupstamp") is True and identifier not in grouped:
             yield SchemaValidationError(
                 "groupstamp",
                 (*path, "groupstamp"),
@@ -113,8 +107,8 @@ def matchstamp_problems(
     MatchStamp by MatchStamp, each alignment anchor names two match
     timestamps of the manifest (``matchstamp: true``) lying on two timelines,
     and the anchors are one connected set; then, timestamp by timestamp, a
-    match timestamp is no groupstamp (``groupstamp``), shares its coordinate
-    with no earlier match timestamp and some MatchStamp names it.
+    match timestamp shares its coordinate with no earlier match timestamp and
+    some MatchStamp names it.
     """
     timestamps: dict[str, Mapping[str, Any]] = {}
     for timestamp in timestamps_of(manifest):
@@ -170,12 +164,6 @@ def matchstamp_problems(
             continue
         path = ("graphical", "timestamps", index)
         identifier = timestamp["id"]
-        if timestamp.get("groupstamp") is True:
-            yield SchemaValidationError(
-                "groupstamp",
-                (*path, "groupstamp"),
-                f"'{identifier}' is both a match timestamp and a groupstamp",
-            )
         key = (timestamp["timeline"], _exact(timestamp["coordinate"]))
         if key in first:
             yield SchemaValidationError(

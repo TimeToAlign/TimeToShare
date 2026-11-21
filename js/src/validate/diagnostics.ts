@@ -9,6 +9,7 @@
 
 import type { NumberType, TimeUnit } from "../generated/types.js";
 import { isJsonObject, type JsonObject } from "../json/value.js";
+import { UNITS } from "../manifest/units.js";
 import { compareCodePoints } from "../serialization/text.js";
 
 /** One step of a path into a value: an object key or an array index. */
@@ -240,29 +241,7 @@ export function lengthOf(timeline: JsonObject): unknown {
   return timeline.length ?? null;
 }
 
-/** The default number type of each unit. */
-export const UNIT_NUMBER_TYPES: Readonly<Record<TimeUnit, NumberType>> = {
-  number: "float",
-  floating_measures: "float",
-  whole_notes: "fraction",
-  quarters: "fraction",
-  ticks: "int",
-  milliseconds: "float",
-  seconds: "float",
-  minutes: "float",
-  samples: "int",
-  frames: "int",
-  pixels: "int",
-  meters: "float",
-  centimeters: "float",
-  millimeters: "float",
-  inches: "float",
-  points: "float",
-  css_pixels: "float",
-  user_units: "float",
-};
-
 /** The number type of a timeline's axis: its own, or its unit's default. */
 export function numberTypeOf(timeline: { unit: TimeUnit; number_type?: NumberType }): NumberType {
-  return timeline.number_type ?? UNIT_NUMBER_TYPES[timeline.unit];
+  return timeline.number_type ?? UNITS[timeline.unit].numberType;
 }

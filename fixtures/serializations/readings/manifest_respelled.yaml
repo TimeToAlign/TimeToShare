@@ -24,7 +24,7 @@ timelines:
     unit: samples
     offset: 10.0
     length: 96000.0
-  - id: ticks_as_float
-    unit: ticks
+  - id: quarters_as_float
+    unit: quarters
     number_type: float
     length: 960

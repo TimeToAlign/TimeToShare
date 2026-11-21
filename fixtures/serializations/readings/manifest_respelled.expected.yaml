@@ -15,6 +15,11 @@ timelines:
         start: 2.0
     unit: seconds
   -
+    id: quarters_as_float
+    length: 960.0
+    number_type: float
+    unit: quarters
+  -
     flow_control:
       -
         coordinate: [4, 1]
@@ -29,9 +34,4 @@ timelines:
     length: 96000
     offset: 10
     unit: samples
-  -
-    id: ticks_as_float
-    length: 960.0
-    number_type: float
-    unit: ticks
 timetoshare: "0.2.0"

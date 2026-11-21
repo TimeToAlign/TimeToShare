@@ -47,7 +47,7 @@ const REJECTIONS = [
   "alignment_anchor_one_timeline",
   "alignment_anchor_timestamp_not_match",
   "alignment_anchor_timestamp_unknown",
-  "band_order_missing_band",
+  "band_order_missing_line",
   "band_order_old_form",
   "band_order_unknown_entry",
   "belief_actor_repeated",
@@ -84,7 +84,7 @@ const REJECTIONS = [
   "group_order_not_member",
   "group_order_repeated",
   "groupstamp_child_without_group",
-  "groupstamp_match_timestamp",
+  "groupstamp_match_without_group",
   "groupstamp_member_parent",
   "groupstamp_without_group",
   "id_control_character_tab",
@@ -196,6 +196,9 @@ const REJECTIONS = [
   "timeline_missing_length",
   "timeline_name_not_string",
   "timeline_number_type_unknown",
+  "timeline_quarters_int",
+  "timeline_seconds_int",
+  "timeline_ticks_float",
   "timeline_unit_unknown",
   "timelines_child_id_duplicate_across_roots",
   "timelines_id_duplicate_across_roots",
@@ -248,17 +251,70 @@ describe("the units", () => {
     ["css_pixels", "user_units"].flatMap((unit) =>
       (
         [
-          ["float", 600.5],
-          ["fraction", [1201, 2]],
-          ["int", 600],
+          ["float", 600.5, true],
+          ["fraction", [1201, 2], true],
+          ["int", 600, false],
         ] as const
-      ).map(([numberType, length]) => [unit, numberType, length] as const),
+      ).map(([numberType, length, valid]) => [unit, numberType, length, valid] as const),
     ),
-  )("reads %s with the number type %s as points is read", (unit, numberType, length) => {
+  )("reads %s with the number type %s as points is read", (unit, numberType, length, valid) => {
     const points = manifest([timeline("page", "points", length, { number_type: numberType })]);
     const root = manifest([timeline("page", unit, length, { number_type: numberType })]);
-    expect(accepted(points)).toBe(true);
-    expect(accepted(root)).toBe(true);
+    expect(accepted(points)).toBe(valid);
+    expect(accepted(root)).toBe(valid);
+  });
+
+  /** The value 2 and the value 0 as each number type spells it. */
+  const TWO: Readonly<Record<timetoshare.NumberType, unknown>> = {
+    int: 2,
+    float: new JsonFloat(2),
+    fraction: [2, 1],
+  };
+  const ZERO: Readonly<Record<timetoshare.NumberType, unknown>> = {
+    int: 0,
+    float: new JsonFloat(0),
+    fraction: [0, 1],
+  };
+  /** The number types a unit admits where it admits other than float and fraction. */
+  const ADMITTED: Readonly<Record<string, readonly string[]>> = {
+    number: ["int", "float", "fraction"],
+    ticks: ["int"],
+    samples: ["int"],
+    frames: ["int"],
+    pixels: ["int"],
+  };
+  const cases = Object.keys(timetoshare.UNITS).flatMap((unit) =>
+    (["int", "float", "fraction"] as const).map((numberType) => [unit, numberType] as const),
+  );
+
+  /** The code and path `validate` throws for `value`, or `null` where it is valid. */
+  function refusal(value: unknown): [string, readonly (string | number)[]] | null {
+    try {
+      validate(value);
+    } catch (error) {
+      if (!(error instanceof SchemaValidationError)) throw error;
+      return [error.code, error.path];
+    }
+    return null;
+  }
+
+  it.each(cases)("admits for %s at a root exactly its number types (%s)", (unit, numberType) => {
+    const admitted = (ADMITTED[unit] ?? ["float", "fraction"]).includes(numberType);
+    const value = manifest([timeline("axis", unit, TWO[numberType], { number_type: numberType })]);
+    expect(refusal(value)).toEqual(admitted ? null : ["schema", ["timelines", 0, "number_type"]]);
+  });
+
+  it.each(cases)("admits for %s at a child exactly its number types (%s)", (unit, numberType) => {
+    const admitted = (ADMITTED[unit] ?? ["float", "fraction"]).includes(numberType);
+    const fallback = timetoshare.UNITS[unit as timetoshare.TimeUnit].numberType;
+    const child = {
+      ...timeline("axis", unit, TWO[numberType], { number_type: numberType }),
+      offset: ZERO[fallback],
+    };
+    const value = manifest([timeline("parent", unit, TWO[fallback], { children: [child] })]);
+    expect(refusal(value)).toEqual(
+      admitted ? null : ["schema", ["timelines", 0, "children", 0, "number_type"]],
+    );
   });
 
   it.each(["px", "uu"])("refuses the abbreviation %s as no unit", (unit) => {
@@ -851,12 +907,79 @@ describe("the graphical object", () => {
   });
 });
 
+describe("the acceptance table", () => {
+  const file = resolve(repositoryRoot, "fixtures", "acceptances", "0.2.0", "numbers.yaml");
+  const text = readFileSync(file, "utf8");
+  const rows = loads(text) as JsonObject[];
+  /** The number type and the value, as JSON spells it, of every row in order. */
+  const ROWS = [
+    ["fraction", "[2,4]"],
+    ["fraction", "[1,8.0]"],
+    ["fraction", "[4,8.0]"],
+    ["fraction", "[-3,6]"],
+    ["int", "480"],
+    ["int", "480.0"],
+    ["float", "2"],
+    ["float", "0.1"],
+    ["int", "[480,1]"],
+    ["int", "2.5"],
+    ["fraction", "12"],
+    ["fraction", "12.0"],
+    ["float", "[25,2]"],
+    ["float", "9007199254740993"],
+  ];
+  /** A unit taking each number type, the axis of the rows. */
+  const UNITS: Readonly<Record<string, string>> = {
+    int: "ticks",
+    float: "seconds",
+    fraction: "quarters",
+  };
+
+  it("states its rows", () => {
+    expect(rows.map((row) => [row.number_type, compactJson(row.value)])).toEqual(ROWS);
+    expect(dumps(rows)).toBe(text);
+  });
+
+  it.each(ROWS.map((_, index) => index))("reads row %i as stated", (index) => {
+    const row = rows[index] as JsonObject;
+    const numberType = row.number_type as string;
+    const value = manifest([
+      timeline("axis", UNITS[numberType], null, {
+        number_type: numberType,
+        offset: row.value as Json,
+      }),
+    ]);
+    if ("refused" in row) {
+      expect(Object.keys(row).sort()).toEqual(["number_type", "refused", "value"]);
+      let caught: unknown;
+      try {
+        validate(value);
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught).toBeInstanceOf(SchemaValidationError);
+      const problem = caught as SchemaValidationError;
+      expect([problem.code, problem.path]).toEqual([row.refused, ["timelines", 0, "offset"]]);
+      return;
+    }
+    expect(Object.keys(row).sort()).toEqual(["number_type", "read", "value"]);
+    validate(value);
+    expect(timetoshare.exactValue(row.value)).toEqual(timetoshare.exactValue(row.read));
+    expect(timetoshare.exactValue(row.value)).not.toBeNull();
+    const written = (
+      (timetoshare.canonicalOrder(value) as JsonObject).timelines as JsonObject[]
+    )[0] as JsonObject;
+    expect(dumps(written.offset as Json)).toBe(dumps(row.read as Json));
+  });
+});
+
 describe("the MatchStamp and resource rules", () => {
   const MESSAGES: Readonly<Record<string, string>> = {
     alignment_anchor_timestamp_unknown: "'timestamp_99' names no timestamp of this manifest",
     alignment_anchor_timestamp_not_match: "'timestamp_2' is no match timestamp",
     alignment_anchor_one_timeline: "the timestamps of 'anchor_2' both lie on the timeline 'score'",
-    groupstamp_match_timestamp: "'timestamp_1' is both a match timestamp and a groupstamp",
+    groupstamp_match_without_group:
+      "'timestamp_1' is a groupstamp, but its timeline 'score' is a member of no group and lies in none",
     match_timestamp_in_no_matchstamp: "the match timestamp 'timestamp_11' belongs to no MatchStamp",
     match_timestamp_coordinate_repeated:
       "'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'",
@@ -899,12 +1022,12 @@ describe("the MatchStamp and resource rules", () => {
     expect(
       timetoshare.identityProblems(value).map((problem) => [problem.code, problem.path]),
     ).toEqual([
+      ["groupstamp", ["graphical", "timestamps", 10, "groupstamp"]],
       ["alignment_anchor", [...anchors, 0, "timestamps", 0]],
       ["alignment_anchor", [...anchors, 0, "timestamps", 1]],
       ["matchstamp", anchors],
       ["match_timestamp", ["graphical", "timestamps", 1]],
       ["match_timestamp", ["graphical", "timestamps", 4]],
-      ["groupstamp", ["graphical", "timestamps", 10, "groupstamp"]],
       ["match_timestamp", ["graphical", "timestamps", 10]],
       ["match_timestamp", ["graphical", "timestamps", 10]],
     ]);
@@ -919,7 +1042,6 @@ describe("the MatchStamps alone", () => {
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
     "alignment_anchor_timestamp_unknown",
-    "groupstamp_match_timestamp",
     "match_timestamp_coordinate_repeated",
     "match_timestamp_in_no_matchstamp",
     "matchstamp_claims_repeated",

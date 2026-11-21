@@ -62,8 +62,8 @@ map types, `Selector.class` names the six timeline classes and the ten types,
 each measure view fixes its target unit over
 `MeasureView`, which fixes the source unit; the unit
 table's consts are exactly the keys of
-`UNIT_NUMBER_TYPES` in order, each description naming that unit's default
-number type, as in the Python suite; `Name`, `Meta` and `MapBase` are the
+`UNITS` in order, each description naming that unit's domain, modality
+and default number type, as in the Python suite; `Name`, `Meta` and `MapBase` are the
 shared definitions every `name`, every `meta` and every conversion map
 refers to (a measure view through `MeasureView`, whose `allOf` is
 `MapBase`, as in the Python suite), the
@@ -156,6 +156,19 @@ cases fail. The packages differ only where JavaScript must:
   hold one, so only a number built in code reaches the finite rule; the
   tests build infinity, NaN and negative infinity as Python's do.
 
+**The acceptance table** of the Python README ("Reading by the declared
+number type") is run here row by row on the same file,
+`fixtures/acceptances/0.2.0/numbers.yaml`, read by `loads`
+(`validate.test.ts`, "the acceptance table"): the same fourteen rows
+stated literally, each value the `offset` of the same root; a refused row
+throws `SchemaValidationError` with the code `representation` at
+`["timelines", 0, "offset"]`; an accepted row validates, `exactValue` of
+what it states equals `exactValue` of `read` (both exported from the
+package index, with `jsonInteger`), and `canonicalOrder` writes the offset
+as `read`, compared as `dumps` texts. So `[1, 8.0]` (a `JsonFloat` member)
+is 1/8 and `9007199254740993` (a `bigint`) is refused on a float axis, as
+in Python.
+
 ## MatchStamps and resources
 
 The Python README's section "MatchStamps and resources" is proved here with
@@ -168,9 +181,10 @@ reverses `resources`, `matchstamps`, `alignment_anchors` and an anchor's
 the eleven messages of its table and the one list of every problem
 (`validate.test.ts`, "the MatchStamp and resource rules"); the MatchStamps
 alone (`validate.test.ts`, "the MatchStamps alone"): `matchstampProblems`
-gives, for each of the ten MatchStamp rejection cases, a first problem
+gives, for each of the nine MatchStamp rejection cases, a first problem
 equal in code, path and message to the one `validate` throws, nothing for
-every fixture and every other rejection case, the schema's problem at a
+every fixture (`bundles/bundle_matchstamp_groupstamp` among them) and
+every other rejection case (`groupstamp_match_without_group` among them), the schema's problem at a
 match timestamp without `timeline`, and nothing for a manifest whose
 ordinary timestamps include one that is no object.
 
@@ -180,16 +194,21 @@ The Python README's section "Groupstamps" is proved here with the same
 values: `groupstamp` defaulting to `false` on both kinds of timestamp
 (`defaults.test.ts`, and the `then` arm in `schema.test.ts`); the four
 `groupstamp` cases with their messages (a root in no group, a child whose
-ancestors are in no group, the parent of a member, and a match timestamp,
-the last among the MatchStamp cases of `matchstampProblems`;
-`validate.test.ts`, `identity.test.ts`); and the three groupstamp
-fixtures, `groups/group_groupstamp`, `groups/group_groupstamp_child_member`
-(a member's child, accepted) and `bundles/bundle_groupstamp_shared_member`
-(a member of two groups), each valid in both forms (`fixtures.test.ts`).
+ancestors are in no group, the parent of a member, and a match timestamp
+on a timeline in no group, `groupstamp_match_without_group`, which
+`matchstampProblems` passes over like the other three;
+`validate.test.ts`, `identity.test.ts`); the one list of every problem,
+the groupstamp match timestamp in no group first (`validate.test.ts`);
+and the four groupstamp fixtures, `groups/group_groupstamp`,
+`groups/group_groupstamp_child_member` (a member's child, accepted),
+`bundles/bundle_groupstamp_shared_member` (a member of two groups) and
+`bundles/bundle_matchstamp_groupstamp` (a match timestamp on a member of
+two groups), each valid in both forms (`fixtures.test.ts`), the last with
+no problem from `matchstampProblems` either.
 
 ## Shared rejection cases
 
-Each of the 172 cases (`validate.test.ts`), found by its name whatever
+Each of the 175 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -237,12 +256,22 @@ manifest's keys never appear in the next run's list (`validate.test.ts`).
 ## The units
 
 `validate.test.ts` proves the Python README's section "The units" with
-the same roots: `css_pixels` and `user_units` validate with every number
-type exactly where `points` does, and `px` and `uu` are refused with the
+the same roots: `css_pixels` and `user_units` validate with `float` and
+`fraction` exactly where `points` does, all three refuse `int`, and `px` and `uu` are refused with the
 code `schema` at `["timelines", 0, "unit"]`. `defaults.ts` completes a
-timeline's `number_type` for exactly the keys of `UNIT_NUMBER_TYPES`, its
+timeline's `number_type` for exactly the keys of `UNITS`, its
 one list of units, so the default number type of both new units is
 `float` in `defaults.test.ts` as in the Python suite.
+
+Which number types a unit admits is the Python README's paragraph of that
+name, proved with the same values: `UNITS` (exported from the package
+index) stated literally row by row in `schema.test.ts`, its consts the
+schema's `TimeUnit` in order and the schema's `Timeline` conditional
+matching its admitted number types; the three shared cases
+`timeline_ticks_float`, `timeline_seconds_int` and `timeline_quarters_int`;
+and in `validate.test.ts` every unit with every number type, at a root and
+at a child, valid exactly where the row admits it, else `schema` at the
+`number_type`.
 
 The property bounds of a declaration are the Python README's: a wedge's
 `rotation` of −45, −180 and 180 validates, and so does the integral float
@@ -259,7 +288,7 @@ left out as the defaults `1` and `0` are, and the complete form of what
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (82, one per fixture) completes to the canonical YAML of its
+minimal twin (84, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
@@ -679,7 +708,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (164 files: bundles, groups and statements included), its value and its value
+  minimal twin (168 files: bundles, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and

@@ -18,11 +18,13 @@ from timetoshare import (
     METHODS,
     SCHEMA_VERSION,
     TIMESTAMP_DISPLAY,
+    UNITS,
+    UnitEntry,
     load_schema,
     provenance_schema_path,
     schema_path,
 )
-from timetoshare.validate import UNIT_NUMBER_TYPES, bundle_schemas
+from timetoshare.validate import bundle_schemas
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
@@ -209,11 +211,44 @@ def test_the_ten_map_types() -> None:
         assert defs[name]["properties"]["target_unit"]["const"] == target, name
 
 
+_CONTINUOUS = ("float", "fraction")
+
+UNIT_TABLE = {
+    "number": ("logical", "continuous", "float", ("int", "float", "fraction")),
+    "floating_measures": ("logical", "continuous", "float", _CONTINUOUS),
+    "whole_notes": ("logical", "continuous", "fraction", _CONTINUOUS),
+    "quarters": ("logical", "continuous", "fraction", _CONTINUOUS),
+    "ticks": ("logical", "discrete", "int", ("int",)),
+    "milliseconds": ("physical", "continuous", "float", _CONTINUOUS),
+    "seconds": ("physical", "continuous", "float", _CONTINUOUS),
+    "minutes": ("physical", "continuous", "float", _CONTINUOUS),
+    "samples": ("physical", "discrete", "int", ("int",)),
+    "frames": ("physical", "discrete", "int", ("int",)),
+    "pixels": ("graphical", "discrete", "int", ("int",)),
+    "meters": ("graphical", "continuous", "float", _CONTINUOUS),
+    "centimeters": ("graphical", "continuous", "float", _CONTINUOUS),
+    "millimeters": ("graphical", "continuous", "float", _CONTINUOUS),
+    "inches": ("graphical", "continuous", "float", _CONTINUOUS),
+    "points": ("graphical", "continuous", "float", _CONTINUOUS),
+    "css_pixels": ("graphical", "continuous", "float", _CONTINUOUS),
+    "user_units": ("graphical", "continuous", "float", _CONTINUOUS),
+}
+"""The unit table, row by row: domain, modality, default and admitted number types."""
+
+
+def test_the_unit_table_is_stated() -> None:
+    assert list(UNITS) == list(UNIT_TABLE)
+    assert {unit: tuple(entry) for unit, entry in UNITS.items()} == UNIT_TABLE
+    for entry in UNITS.values():
+        assert isinstance(entry, UnitEntry)
+        assert entry.number_type in entry.number_types
+
+
 def test_the_unit_table_states_the_default_number_types() -> None:
     unit = _defs()["TimeUnit"]
     assert unit["type"] == "string"
     assert "enum" not in unit
-    assert [entry["const"] for entry in unit["oneOf"]] == list(UNIT_NUMBER_TYPES)
+    assert [entry["const"] for entry in unit["oneOf"]] == list(UNITS)
     pattern = re.compile(
         r"^(Logical|Physical|Graphical), (continuous|discrete); "
         r"default number type (int|float|fraction)\.(?: \S.*\.)?$"
@@ -222,7 +257,32 @@ def test_the_unit_table_states_the_default_number_types() -> None:
         assert sorted(entry) == ["const", "description"]
         match = pattern.match(entry["description"])
         assert match is not None, entry["const"]
-        assert match[3] == UNIT_NUMBER_TYPES[entry["const"]], entry["const"]
+        row = UNITS[entry["const"]]
+        assert (match[1].lower(), match[2], match[3]) == (
+            row.domain,
+            row.modality,
+            row.number_type,
+        ), entry["const"]
+
+
+def test_the_timeline_states_which_number_types_a_unit_admits() -> None:
+    timeline = _defs()["Timeline"]
+    discrete = [unit for unit, row in UNITS.items() if row.number_types == ("int",)]
+    every = [unit for unit, row in UNITS.items() if len(row.number_types) == 3]
+    rest = {
+        row.number_types for unit, row in UNITS.items() if unit not in discrete + every
+    }
+    assert timeline["if"] == {
+        "properties": {"unit": {"enum": discrete}},
+        "required": ["unit"],
+    }
+    assert timeline["then"] == {"properties": {"number_type": {"const": "int"}}}
+    assert every == ["number"]
+    assert rest == {("float", "fraction")}
+    assert timeline["else"] == {
+        "if": {"properties": {"unit": {"const": "number"}}, "required": ["unit"]},
+        "else": {"properties": {"number_type": {"enum": ["float", "fraction"]}}},
+    }
 
 
 def test_repeated_shapes_are_shared_definitions() -> None:

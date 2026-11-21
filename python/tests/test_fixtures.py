@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import re
 from collections import Counter
 from importlib import import_module
@@ -16,6 +17,7 @@ from timetoshare import (
     identity_problems,
     loads,
     manifest_warnings,
+    matchstamp_problems,
     minimal,
     rejection_paths,
     serialization_of,
@@ -535,6 +537,47 @@ def test_a_groupstamp_on_a_shared_member_lies_in_both_groups(suffix: str) -> Non
     assert _groupstamps(value) == [
         {"id": "timestamp_1", "timeline": "t", "coordinate": [4, 1], "name": "Bar 2"}
     ]
+    validate(file)
+    assert identity_problems(file) == []
+
+
+@pytest.mark.parametrize("suffix", [".yaml", ".minimal.yaml"])
+def test_a_match_timestamp_on_a_member_of_two_groups_is_a_groupstamp(
+    suffix: str,
+) -> None:
+    file = _load(FIXTURES / "bundles" / f"bundle_matchstamp_groupstamp{suffix}")
+    cards = _load(FIXTURES / "bundles" / f"bundle_matchstamp_cards{suffix}")
+    value = with_bare_ids(file)
+    assert [(group["id"], sorted(group["members"])) for group in value["groups"]] == [
+        ("group_1", ["performance", "score"]),
+        ("group_2", ["page", "score"]),
+    ]
+    stamps = value["graphical"]["timestamps"]
+    (stamp,) = [stamp for stamp in stamps if stamp.get("groupstamp") is True]
+    assert {key: stamp[key] for key in ("id", "timeline", "coordinate")} == {
+        "id": "timestamp_1",
+        "timeline": "score",
+        "coordinate": [4, 1],
+    }
+    assert stamp["matchstamp"] is True
+    expected = copy.deepcopy(cards["graphical"]["timestamps"])
+    for written in expected:
+        if written["id"] == "#timestamp_1":
+            written["groupstamp"] = True
+    assert file["graphical"]["timestamps"] == expected
+    assert file["graphical"]["matchstamps"] == cards["graphical"]["matchstamps"]
+    validate(file)
+    assert identity_problems(file) == []
+    assert matchstamp_problems(file) == []
+
+
+@pytest.mark.parametrize("suffix", [".yaml", ".minimal.yaml"])
+def test_a_band_order_may_list_a_subset_of_the_facets(suffix: str) -> None:
+    file = _load(FIXTURES / f"map_band_order_subset{suffix}")
+    value = with_bare_ids(file)
+    assert value["graphical"]["order"] == {"melody": ["markers", "line"]}
+    assert [root["id"] for root in value["timelines"]] == ["melody"]
+    assert [child["id"] for child in value["timelines"][0]["children"]] == ["phrase"]
     validate(file)
     assert identity_problems(file) == []
 

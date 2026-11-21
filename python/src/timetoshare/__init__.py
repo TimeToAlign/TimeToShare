@@ -37,7 +37,13 @@ from .fixtures import (
 )
 from .font import FONT_FILES, font_metrics, font_paths
 from .ids import FileIdError, from_file_id, to_file_id, with_bare_ids, with_file_ids
-from .manifest import ANCHOR_DISPLAY, TIMESTAMP_DISPLAY, canonical_order
+from .manifest import (
+    ANCHOR_DISPLAY,
+    TIMESTAMP_DISPLAY,
+    UNITS,
+    UnitEntry,
+    canonical_order,
+)
 from .serialization import SERIALIZATIONS, dumps, loads, serialization_of
 from .statements import (
     BELIEF_STATES,
@@ -102,6 +108,7 @@ __all__ = [
     "SCHEMA_VERSION",
     "SERIALIZATIONS",
     "TIMESTAMP_DISPLAY",
+    "UNITS",
     "Catalogue",
     "FileForm",
     "FileIdError",
@@ -111,6 +118,7 @@ __all__ = [
     "Rectangle",
     "RejectionCase",
     "SchemaValidationError",
+    "UnitEntry",
     "UnsupportedVersionError",
     "WarningCode",
     "BeliefState",

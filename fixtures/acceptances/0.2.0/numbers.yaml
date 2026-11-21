@@ -1,0 +1,56 @@
+-
+  number_type: fraction
+  read: [1, 2]
+  value: [2, 4]
+-
+  number_type: fraction
+  read: [1, 8]
+  value: [1, 8.0]
+-
+  number_type: fraction
+  read: [1, 2]
+  value: [4, 8.0]
+-
+  number_type: fraction
+  read: [-1, 2]
+  value: [-3, 6]
+-
+  number_type: int
+  read: 480
+  value: 480
+-
+  number_type: int
+  read: 480
+  value: 480.0
+-
+  number_type: float
+  read: 2.0
+  value: 2
+-
+  number_type: float
+  read: 0.1
+  value: 0.1
+-
+  number_type: int
+  refused: representation
+  value: [480, 1]
+-
+  number_type: int
+  refused: representation
+  value: 2.5
+-
+  number_type: fraction
+  refused: representation
+  value: 12
+-
+  number_type: fraction
+  refused: representation
+  value: 12.0
+-
+  number_type: float
+  refused: representation
+  value: [25, 2]
+-
+  number_type: float
+  refused: representation
+  value: 9007199254740993

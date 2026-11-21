@@ -2,6 +2,11 @@ import { isJsonObject, type JsonObject } from "../json/value.js";
 import { compareCodePoints } from "../serialization/text.js";
 import { entries, type PathSegment, SchemaValidationError } from "./diagnostics.js";
 
+/**
+ * Yield each entry of `order` that `expected` lacks, then each entry of
+ * `required` (all of `expected` where it is absent) that `order` lacks, in the
+ * order of `expected`.
+ */
 function* permutationProblems(
   code: "display_order" | "band_order",
   order: readonly string[],
@@ -9,16 +14,20 @@ function* permutationProblems(
   path: readonly PathSegment[],
   stranger: (entry: string) => string,
   missing: (item: string) => string,
+  required: readonly string[] = expected,
 ): Generator<SchemaValidationError> {
   const wanted = new Set(expected);
   const listed = new Set(order);
+  const needed = new Set(required);
   for (const [index, entry] of order.entries()) {
     if (!wanted.has(entry)) {
       yield new SchemaValidationError(code, [...path, index], stranger(entry));
     }
   }
   for (const item of expected) {
-    if (!listed.has(item)) yield new SchemaValidationError(code, path, missing(item));
+    if (needed.has(item) && !listed.has(item)) {
+      yield new SchemaValidationError(code, path, missing(item));
+    }
   }
 }
 
@@ -48,6 +57,11 @@ const DEFAULT_BAND_ORDER: readonly string[] = [
   "flow_control",
 ];
 
+/**
+ * A band order lists `line` and any of the five facets, each once; a facet it
+ * leaves out takes its place from the order the timeline follows without an
+ * entry.
+ */
 function* bandOrderProblems(
   timeline: string,
   order: readonly string[],
@@ -61,6 +75,7 @@ function* bandOrderProblems(
     path,
     (entry) => `'${entry}' is not 'line' or a facet, in the band order of ${id}`,
     (item) => `'${item}' is missing from the band order of ${id}`,
+    ["line"],
   );
 }
 

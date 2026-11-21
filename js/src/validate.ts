@@ -42,7 +42,6 @@ export {
   type PathSegment,
   SchemaValidationError,
   text,
-  UNIT_NUMBER_TYPES,
   type ValidationCode,
 } from "./validate/diagnostics.js";
 export type { ManifestWarning, WarningCode } from "./validate/statements.js";

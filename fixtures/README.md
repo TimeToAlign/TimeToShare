@@ -22,12 +22,13 @@ The directories sort the manifests by content only:
 - under `statements/`, manifests whose elements carry statements and
   provenance ([Statement fixtures](#statement-fixtures)).
 
-Version 0.2.0 has 50 manifests directly under `fixtures/0.2.0/`, 13 under
-`groups/`, 15 under `bundles/` and 4 under `statements/`, 82 in all, each
-with its minimal twin, so 164 files. Beside them lie the expected RDF of
+Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 13 under
+`groups/`, 16 under `bundles/` and 4 under `statements/`, 84 in all, each
+with its minimal twin, so 168 files. Beside them lie the expected RDF of
 the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
 under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
-172 rejection cases and 16 warning cases.
+175 rejection cases, 16 warning cases and one table of acceptances under
+`fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)).
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -223,13 +224,14 @@ each:
 | `groups/group_unknown_length.yaml` | a group with a member of unknown length |
 | `unknown_length_segments.yaml` | a segment line whose last segment has an unknown length |
 
-Six manifests cover band orders and the bands of children (drawing
+Seven manifests cover band orders and the bands of children (drawing
 specification, section 6.4):
 
 | File | Coverage |
 | --- | --- |
 | `map_child_band_order.yaml` | the timelines of `map`, with a band order for the child `phrase` alone that lays its conversion maps against its line below it |
 | `map_root_band_order.yaml` | the timelines of `map`, with such a band order for the root `melody` and none for `phrase`, which follows the band order of `melody` |
+| `map_band_order_subset.yaml` | the timelines of `map`, with a band order for the root `melody` listing only `markers` above `line`; the facets it leaves out keep their side of the default order, so `melody` draws `children`, `conversion_maps`, `markers`, `line`, `regions`, `flow_control`, and `phrase`, without an entry, follows that completed order |
 | `styled_score_flow_inner.yaml` | `styled__score` with a band order whose flow control band lies nearer the line than its regions band |
 | `joint_rows.yaml` | a root `piece` of 16 quarters whose children `b` and `d` each hold a child holding one more, so that each depth's two lines share a row and their children bands are laid out together, at two depths; `b` carries one map, `d1` and `d11` two each |
 | `child_flow_control.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the flow marker "Fine" at 4 and the jump origin "D.C. al Fine" at 8 back to 0, while the root holds no flow control |
@@ -276,9 +278,10 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the flow marker "Fine" at 8 (`fine`) and the jump origin "D.C. al Fine" at 16 back to 0 (`da_capo_al_fine`); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
 | `bundle_shared_member` | the bundle "Shared" of two groups that share a member: the score `t` ("Score", 8 quarters) is a member of the group `g1` ("Performance") beside the performance `u` (4.0 seconds) and of the group `g2` ("Page") beside the page `v` (800 pixels); no timeline carries a map, a region or flow control |
 | `bundle_free_ids` | the bundle "Free IDs" of the group `group_1` ("Piece") of two roots whose IDs are free strings: the score `https://example.org/piece/score` ("Score", 8 quarters) with the region "Exposition" `https://example.org/piece/score#exposition` from 0 to 4, and the take `perf/take 2` ("Take 2", 4.0 seconds) with the region "Intro" `take 2/intro` from 0.0 to 1.0; one rule selects the take's region by its address `{"id": "#take 2/intro"}` and strokes it teal |
-| `bundle_resources` | the bundle "Resources" of the score `score` (8 quarters) and the recording `take_1` (352800 samples), ungrouped, with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, and `resource_2`, the Projections table `projections.parquet` holding data for `take_1`, with nothing optional; neither file lies beside the fixture, so neither states a size or a digest (the table fixture's manifest states both of its own tables')
+| `bundle_resources` | the bundle "Resources" of the score `score` (8 quarters) and the recording `take_1` (352800 samples), ungrouped, with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, and `resource_2`, the Projections table `projections.parquet` (an experimental type) holding data for `take_1`, with nothing optional; neither file lies beside the fixture, so neither states a size or a digest (the table fixture's manifest states both of its own tables')
 | `bundle_matchstamps` | the bundle "MatchStamps" of the score `score` ("Score", 8 quarters) and the takes `take_1` ("Take 1", 352800 samples) and `take_2` ("Take 2", 396900 samples), ungrouped; the match timestamp `timestamp_1` at quarter 4 of the score, without a name, shared by two MatchStamps: `matchstamp_1` ("Bar 2, downbeat (take 1)") joins it to sample 88200 of `take_1` by the anchor `anchor_1`, which also draws the name, from the MatchClaims `claim_1` and `claim_2`; `matchstamp_2` ("Bar 2, downbeat (take 2)") to sample 99225 of `take_2` (the match timestamp `timestamp_3`, named "Take 2, bar 2" and drawing its name) by `anchor_2`, from `claim_3` |
 | `bundle_matchstamp_cards` | the bundle "MatchStamp cards" of two groups that share a member, as `bundle_shared_member`: the score `score` ("Score", 8 quarters), holding the child `second-half` ("Second half", 4 quarters at 4), is a member of the group `group_1` ("Performance") beside the performance `performance` (4.0 seconds) and of the group `group_2` ("Page") beside the page `page` (800 pixels); three match timestamps without a name, `timestamp_1` at quarter 4 of the score, `timestamp_2` at second 1.0 of the performance and `timestamp_3` at quarter 2 of the child; `matchstamp_1` ("Bar 2, performed") joins the performance to the score, drawn in two cards, by `anchor_1`, from `claim_1`; `matchstamp_2` ("Second half, bar 1") the score to its child, whose lines lie in one card, by `anchor_2`, from `claim_2`; both anchors draw the name |
+| `bundle_matchstamp_groupstamp` | the bundle of `bundle_matchstamp_cards` whose match timestamp `timestamp_1` at quarter 4 of the score, a member of both groups, is a groupstamp, its line across the frame of `group_1` and that of `group_2` |
 | `bundle_groupstamp_shared_member` | the bundle of `bundle_shared_member` with the timestamp `timestamp_1` "Bar 2" at quarter 4 of the shared member `t`, a groupstamp, its line across the frame of `g1` and that of `g2`; no member has a band |
 | `group_measure_map` | the group "Edition" of a score of 16 quarters and its MIDI rendering of 7680 ticks, both reading one entry of `measure_maps`, four bars of 4/4: the score through its `MeasureRecordMap`, the rendering through a `ChainMap` of the `LinearMap` `ppq` to quarters (480 ticks per quarter) and its `MeasureRecordMap` |
 
@@ -524,7 +527,7 @@ code with the case's. The cases cover every code:
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timetoshare` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 86 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (an empty ID, `id_empty`, and IDs holding a control character, a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, 23 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an unknown method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`), and a belief that is none of the strings `true`, `false` and `unlikely`, a word or the JSON boolean `true` (`belief_value_unknown`, `belief_value_boolean`); and 3 cases of MatchStamps and resources: a word of an anchor's `display` other than `line` and `name` (`alignment_anchor_display_unknown`), a MatchClaim ID listed twice (`matchstamp_claims_repeated`) and a digest whose hash function the PREMIS vocabulary does not name (`resource_integrity_algorithm_unknown`) |
+| `schema` | the schema document | 89 cases named after the member they break: units and number types (a number type the unit does not admit: `timeline_ticks_float`, `timeline_seconds_int`, `timeline_quarters_int`), lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (an empty ID, `id_empty`, and IDs holding a control character, a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, 23 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an unknown method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`), and a belief that is none of the strings `true`, `false` and `unlikely`, a word or the JSON boolean `true` (`belief_value_unknown`, `belief_value_boolean`); and 3 cases of MatchStamps and resources: a word of an anchor's `display` other than `line` and `name` (`alignment_anchor_display_unknown`), a MatchClaim ID listed twice (`matchstamp_claims_repeated`) and a digest whose hash function the PREMIS vocabulary does not name (`resource_integrity_algorithm_unknown`) |
 | `representation` | an own-axis value is accepted when its axis's number type reads it exactly, in any terms of a fraction, and is written in the form that number type takes (a bare number on an `int` or a `float` axis, a pair of integers on a `fraction` axis; in the tables the cell members that form fills); another form, or a value the number type cannot hold exactly, is refused; a statement value is never a float | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis`, `statement_value_integral_float` |
 | `duplicate_id` | every ID unique across the manifest, that of a map another map holds of a named timestamp, a MatchStamp, an alignment anchor and a resource included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `region_id_duplicate_across_roots`, `region_id_is_timeline_id`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id`, `alignment_anchor_id_repeated` |
 | `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps`, and a `#` reference of the statements an element of the manifest | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling`, `element_value_dangling` |
@@ -537,10 +540,10 @@ code with the case's. The cases cover every code:
 | `group_member` | a member names a timeline of the manifest, and neither contains nor lies inside another member of its group | `member_dangling`, `members_contain_member`, `members_inside_member` |
 | `order_key` | a key of `graphical.order` names a group or a timeline | `order_unknown_group` |
 | `display_order` | a group's display order is a permutation of its members | `group_order_not_member`, `order_missing_member` |
-| `band_order` | a band order is a permutation of `line` and the five facets | `band_order_unknown_entry`, `band_order_missing_band`, `band_order_old_form` |
+| `band_order` | a band order lists `line` and any of the five facets, each once | `band_order_unknown_entry`, `band_order_missing_line`, `band_order_old_form` |
 | `timestamp_timeline` | a named timestamp names a timeline of the manifest | `timestamp_timeline_unknown` |
 | `timestamp_coordinate` | a named timestamp's coordinate lies from 0 to its timeline's own length, from 0 on where the length is unknown | `timestamp_coordinate_beyond_length`, `timestamp_coordinate_negative` |
-| `groupstamp` | a groupstamp lies in a group, its timeline or one of its ancestors being a member (an ancestor of a member lies in none through it), and is no match timestamp | `groupstamp_without_group`, `groupstamp_child_without_group`, `groupstamp_member_parent`, `groupstamp_match_timestamp` |
+| `groupstamp` | a groupstamp, a match timestamp included, lies in a group, its timeline or one of its ancestors being a member (an ancestor of a member lies in none through it) | `groupstamp_without_group`, `groupstamp_child_without_group`, `groupstamp_member_parent`, `groupstamp_match_without_group` |
 | `context` | a manifest whose elements carry `statements` or `provenance` holds `@context` | `context_absent_with_statements`, `context_absent_with_provenance` |
 | `reserved_key` | no element key is one JSON-LD would read | `reserved_key_term_on_timeline` (`label`), `reserved_key_iri_on_region`, `reserved_key_statements_on_group`, `reserved_key_prefix_on_manifest`, `reserved_key_context_on_timeline`, `reserved_key_children_on_region` |
 | `iri` | every compact IRI names a declared prefix, and every element with statements has an ID that is an IRI fragment | `iri_prefix_undeclared_key`, `iri_prefix_undeclared_id`, `iri_prefix_undeclared_type`, `provenance_basis_prefix_undeclared`, `subject_id_not_fragment` |
@@ -564,6 +567,38 @@ instead. No serialization writes a non-finite number, so the two `finite_number`
 a finite placeholder at their path and name in `non_finite` (`"Infinity"` or
 `"NaN"`) the value a test puts there before validating; Python's
 `timetoshare.fixtures.rejection_case` reads a case with that value in place.
+
+## Acceptance cases
+
+`fixtures/acceptances/<version>/numbers.yaml`, hand-authored in canonical
+YAML, is the one table of how an own-axis value is read: the number type
+fixes the form, the spelling within the form is free. It is a list of rows
+`{number_type, value}`, each with either `read`, the value read written as
+its number type spells it (a Fraction in lowest terms with integer
+members, an int as a JSON integer, a float as a JSON number with a
+fractional part), or `refused: representation`, the code both validators
+report at the value. Every reader of own-axis values runs every row; the
+package tests read the value as the `offset` of a root whose unit takes
+the row's number type (`ticks` for int, `seconds` for float, `quarters`
+for fraction). A Fraction member with a fractional part is the schema's
+refusal (`length_fraction_member_not_integral`), no row here.
+
+| `number_type` | `value` | Read |
+| --- | --- | --- |
+| fraction | `[2, 4]` | `[1, 2]` |
+| fraction | `[1, 8.0]` | `[1, 8]` |
+| fraction | `[4, 8.0]` | `[1, 2]` |
+| fraction | `[-3, 6]` | `[-1, 2]` |
+| int | `480` | `480` |
+| int | `480.0` | `480` |
+| float | `2` | `2.0` |
+| float | `0.1` | `0.1` |
+| int | `[480, 1]` | refused |
+| int | `2.5` | refused |
+| fraction | `12` | refused |
+| fraction | `12.0` | refused |
+| float | `[25, 2]` | refused |
+| float | `9007199254740993` | refused (2^53 + 1 is no float) |
 
 ## Warning cases
 
