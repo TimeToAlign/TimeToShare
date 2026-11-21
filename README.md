@@ -506,7 +506,7 @@ one shape each, a prefix followed by a positive integer without leading
 zeros: a resource's `resource_N`, a named timestamp's `timestamp_N`, a
 named MatchStamp's `matchstamp_N` and an alignment anchor's `anchor_N`
 (`#resource_1`, `#timestamp_1`, `#matchstamp_1` and `#anchor_1` in a
-file); the schema refuses any other. An ID is never parsed
+file); the schema refuses any other (`schema`). An ID is never parsed
 and never composed with another. A reference is an ID, written in a file
 as an ID is ([Written in a file](#written-in-a-file)): a jump origin's
 `target` names a jump target of the same timeline, a measure view's
@@ -1141,7 +1141,8 @@ connected set of timestamps (`matchstamp`); two match timestamps at one
 coordinate of one timeline, and a match timestamp that no MatchStamp
 names (`match_timestamp`); an anchor ID that repeats any ID of the
 manifest (`duplicate_id`, as every ID); and a MatchClaim ID repeated
-within one MatchStamp's `match_claims` (`schema`). The table of
+within one MatchStamp's `match_claims` or an anchor's `display` word
+other than `line` and `name` (`schema`). The table of
 [Identity](#identity) gives each rule's location and message. The drawing specification
 draws a match timestamp's line as every cross-section line and an anchor
 as the shortest line between its two timestamps' lines (sections 6.6 and
@@ -1867,7 +1868,8 @@ else:
   `manifest_id` where the manifest's own ID repeats one) and the rules of
   [Named MatchStamps](#named-matchstamps). It reads nothing else of
   `graphical`, for a library that keeps the styles, the rules and the
-  ordinary timestamps unread.
+  ordinary timestamps unread: a timestamp that is no object or holds no
+  string ID is passed over.
 - `pairs`, `entries`, `candidates`, `with_pair`, `without_pair`,
   `with_candidate` and `with_belief` read and edit the pairs and
   provenance of a subject, which `subject_path` finds by its ID:

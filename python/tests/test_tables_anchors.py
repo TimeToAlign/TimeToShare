@@ -1,6 +1,6 @@
 """The derivation of AlignmentAnchors and potential MatchStamps, checked
-against the fixture's expected values, written by hand (see "The table
-types" in README.md)."""
+against the fixture's expected values, written by hand (see "From
+MatchClaims to anchors" in README.md)."""
 
 from __future__ import annotations
 
