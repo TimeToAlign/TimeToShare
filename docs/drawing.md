@@ -165,10 +165,13 @@ of that number type and at most the timeline's `length` when the length is
 a value, and `name` its name. A **match timestamp**, one with
 `matchstamp: true` (default `false`), may leave out its `name`. A
 **groupstamp**, one with `groupstamp: true` (default `false`), lies on a
-timeline that is a member of a group, and its cross-section line extends
-across every member of each group that has that timeline as a member
-(section 6.6, Cross-section lines); the lines on the other members are
-derived from the group and never stored. A timestamp is never both a
+timeline that **lies in a group**: the timeline or one of its ancestors
+is listed in the group's `members`, so that it is drawn in the group's
+frame, as a member or inside a member's card. An ancestor of a member
+lies in no group through it. The groupstamp's line extends across the
+frame of each group its timeline lies in, over every member drawn there
+(section 6.6, Cross-section lines); the members' coordinates at that line
+are derived from the group and never stored. A timestamp is never both a
 groupstamp and a match timestamp. Their canonical order is by `timeline`,
 compared by Unicode code point, then by `coordinate`, compared by exact
 value, then by `id`, compared by code point.
@@ -231,7 +234,7 @@ of a timeline, which draws nothing of its own:
 | `flow_marker` | a flow marker, a `flow_marker` element of `flow_control`, drawn as a vertical line |
 | `jump_from` | a jump origin, a `jump_from` element of `flow_control`, drawn as an arc with an arrowhead to where it jumps; a jump target, a `jump_to` element, draws nothing of its own |
 | `wedge` | a coordinate marker: of a named timestamp of any timeline (section 2); on an ancestor line, the member's start or end on the ancestor's axis (section 8.3) |
-| `cross_section` | the cross-section line of a named timestamp, a vertical line across its timeline's line, children band and conversion maps band, and for a groupstamp also across those of every other member of its groups (section 6.6) |
+| `cross_section` | the cross-section line of a named timestamp, a vertical line across its timeline's line, children band and conversion maps band, and for a groupstamp also one line across the frame of each group its timeline lies in (section 6.6) |
 | `alignment_anchor` | the line of an alignment anchor of a named MatchStamp, the shortest line between the cross-section lines of its two timestamps (section 8.7) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
 | `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the coordinate of a mark on an ancestor line, or the label of a region, jump origin, flow marker or segment |
@@ -334,7 +337,7 @@ and `X` an element's ID:
 | a conversion map, region or flow-control element with ID `X` of `T` | `{"id": X}` | `T` |
 | the wedge of a named timestamp with ID `X` of `T` | `{"id": X}` | `T` |
 | the labels of that timestamp, all `label` elements: its name, its ID, its coordinate | `{"id": X, "part": ["name"]}`, `{"id": X, "part": ["id"]}`, `{"id": X, "part": ["coordinate"]}` | `T` |
-| the cross-section line of that timestamp, and of a groupstamp each of its lines on the other members of its groups | `{"id": X, "part": ["line"]}` | `T` |
+| the cross-section line of that timestamp, and of a groupstamp each of its lines across a frame | `{"id": X, "part": ["line"]}` | `T` |
 | the line of an alignment anchor with ID `A` | `{"id": A}` | none |
 | the MatchStamp's name at that anchor, a `label` element | `{"id": A, "part": ["name"]}` | none |
 | the name of an element with ID `X` | `{"id": X, "part": ["name"]}` | that element's timeline |
@@ -1451,23 +1454,51 @@ one below it.
   rule, as every other; the alignment anchors that join such lines are
   drawn after every item (section 8.7).
 
-  A **groupstamp** (section 2) on a timeline `T` draws, in the frame of
-  each group that has `T` as a member, a further line in the card of
-  every other member `M` of that group. It draws no further line
-  elsewhere: none beside its own line in `T`'s card, and none where `T`
-  is drawn as a descendant in another member's drawing. Each such line
-  lies at `X`, `x` of the timestamp's position in `T`'s member drawing of
-  that frame. Every member drawing of a frame starts at the same `x0` and is as long
-  (section 8.2), and a group converts its members' positions linearly
-  between their common start and end, so this `X` is also that of the
-  corresponding position of `M`. The line spans `M`'s line, children
-  band and conversion maps band by the rule above with `M` in place of
-  `T`, and is not drawn when neither band of `M` is present. It is a
-  further drawing of the timestamp's cross-section line (section 2.2): it
-  carries the line's address, belongs to `T`, has no settings of its own,
-  and is drawn when that line is displayed in `T`'s card of the frame,
-  with the values cascaded for it there. It has no wedge and no labels.
-  The timestamp's own cross-section line is drawn as every other.
+  A **groupstamp** (section 2) on a timeline `T` draws one further line
+  in the frame of each group `G` that `T` lies in, across the whole frame.
+  Let `M` be the member of `G` that is `T` or has `T` as a descendant. The
+  line lies at `X`, `x` of the timestamp's position in `M`'s member
+  drawing of that frame, where `T`'s line holds the timestamp's own
+  cross-section line by the rule above. Every member drawing of a frame
+  starts at the same `x0` and ends at `x0 + L` (section 8.2), the line of a
+  member of unknown length at its reach (section 3.4, rule 2), so the line
+  marks on every member the same proportion of its drawn length: of its
+  length, or, on a member of unknown length, of its reach. Each member of
+  `G` whose line is drawn in the frame gives its **extent**: the ordinates
+  from `y1` to `y2` that a cross-section line on its line spans by the
+  rule above, or the ordinate of its line when neither of its two bands is
+  present. With `yt` the smallest ordinate of every member's extent and
+  `yb` the largest, the line runs from `(X, yt)` to `(X, yb)`: from the
+  topmost member to the bottommost, across the gaps between their cards
+  and whatever bands, wedges and labels lie between. Where the line
+  holding the timestamp's own cross-section line has a children band or a
+  conversion maps band, the span of that cross-section line, from `y1` to
+  `y2`, is left out, and the line is two lines, from `(X, yt)` to `(X, y1)`
+  and from `(X, y2)` to `(X, yb)`; where it has neither, the line runs
+  through the point on it. A line of no length is not drawn. Its
+  positions are item coordinates of the frame, drawn at the frame's place
+  as every element of the frame is (section 8.6), and the line takes no
+  room and widens nothing.
+
+  The line is a further drawing of the timestamp's cross-section line
+  (section 2.2): it carries the line's address, belongs to `T`, has no
+  settings of its own, and is drawn when the timestamp's `display` lists
+  `cross_section` and that line is displayed in `M`'s card of the frame,
+  in the values cascaded for it there. It has no wedge and no labels, and
+  nothing is drawn in a frame where the line holding the timestamp's own
+  cross-section line is not drawn. The timestamp's wedge, its labels and
+  its own cross-section line are drawn in every card as every named
+  timestamp's are, its name label in `M`'s card on a background.
+
+  In each frame where a groupstamp draws a line, its name label in `M`'s
+  card, when its `display` lists `name`, lies over the line on a
+  **background**: a rectangle filled with the `fill` of that card, not
+  stroked, from `X − w / 2` to `X + w / 2` and from `b − a(s)` to `b +
+  d(s)`, `w` the label's width `w(text, s)` (section 5.1), `s` its font size
+  and `b` its baseline, so that the line passes behind the label's text.
+  The background is part of the label: it carries the label's address and
+  its `opacity`, and takes no room. The timestamp's ID and coordinate
+  labels have none.
 - **Maps.** A closed double line: the outline of the rectangle from `Xs`
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
@@ -1621,6 +1652,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | cross-section line | `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, from `(X, y1)` to `(X, y2)` as section 6.6 states them, `y1` the smaller ordinate |
 | alignment anchor | `<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}">`, from the point on the first timestamp's line to the point on the second's (section 8.7) |
 | name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and flow-marker labels, `middle` for the centred labels |
+| a label's background | `<rect x="{X−w/2}" y="{b−a(s)}" width="{w}" height="{a(s)+d(s)}">` filled and not stroked, just before its label's `<text>` (section 6.6, Cross-section lines) |
 
 The **stroke attributes** are `stroke`, `stroke-width` and, unless it is
 `none`, `stroke-dasharray`. A path carries `fill="none"` and a line no
@@ -1629,7 +1661,7 @@ and a text carry `fill`, and the open arrowhead, the diamond and the map's
 outline, the stroked polygons, also the stroke attributes (the map's dash
 included); a polyline carries `fill="none"` and the stroke attributes; a
 group frame and a card carry `fill` and the stroke attributes, a card's
-shadow `fill` alone. A line's descriptors are, in this order, its `<line>`,
+shadow and a label's background `fill` alone. A line's descriptors are, in this order, its `<line>`,
 its start circle or left chevrons, and its end or right chevrons. Every
 descriptor of an element, a card's shadow included, carries the element's
 `opacity`, written when it is not 1. An
@@ -2002,13 +2034,15 @@ each with its chevrons, just before its root; their marks, from `A1` to
 `Ak`, each ancestor's start mark before its end mark, first among its
 wedges; their names, from `A1` to `Ak`, first among its names; and their
 mark labels, from `A1` to `Ak`, each ancestor's start label before its end
-label, first among its marker labels. A member drawing in a frame ends with
-the lines that the groupstamps of the frame's other members draw on it
-(section 6.6), after its own cross-section lines: member by member in the
-frame's display order, each member's groupstamps in the order its markers
-band places them (section 6.4, Markers). After the last item come the
-alignment anchors and then their labels (section 8.7), so that they lie
-over everything else. A title is a text descriptor of section 7.2, anchored at `start`;
+label, first among its marker labels. The name label of a groupstamp in
+`M`'s card of a frame across which it draws a line (section 6.6) is not
+among that member drawing's marker labels. After the last item come the
+groupstamps' lines, timestamp by timestamp in the order of `timestamps`
+and frame by frame in the order of `groups`, a line above the
+timestamp's own cross-section line before the one below it; then those
+name labels in the same order, each its background before its text; then
+the alignment anchors and then their labels (section 8.7), so that they
+lie over everything else. A title is a text descriptor of section 7.2, anchored at `start`;
 its `content` and `max-width` apply as section 6.6 applies them to a row's
 name.
 

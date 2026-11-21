@@ -435,15 +435,19 @@ its order means nothing and writers write it in the order just given. A
 timestamp draws by default its wedge, its name and its cross-section line,
 a match timestamp its cross-section line alone (the drawing
 specification, sections 2, 6.4 and 6.6). A **groupstamp**, a timestamp
-with `groupstamp: true` (default `false`), lies on a timeline that is a
-member of a group, and its cross-section line extends across every member
-of each group that has that timeline as a member. The lines on the other
-members are derived from the group and never stored: each lies at the
-position that the group's linear conversion gives on its member, is drawn
-in the style of the timestamp's own line, without a wedge or labels, and
-has no settings of its own (the drawing specification, section 6.6).
-Both validators refuse a groupstamp whose timeline is a member of no
-group, and a groupstamp that is also a match timestamp. `order` maps the
+with `groupstamp: true` (default `false`), lies on a timeline that lies in
+a group: the timeline or one of its ancestors is listed in the group's
+`members` (an ancestor of a member lies in no group through it). In the
+frame of each group its timeline lies in, its cross-section line extends
+across the whole frame, from the topmost member to the bottommost, as one
+vertical line at the timestamp's position, which marks the same
+proportion of every member's drawn length. The members' coordinates at
+that line are derived from the group and never stored; the line is drawn
+in the style of the timestamp's own line, without a wedge or labels, has
+no settings of its own, and passes behind the timestamp's name label (the
+drawing specification, section 6.6). Both validators refuse a groupstamp
+whose timeline lies in no group, and a groupstamp that is also a match
+timestamp. `order` maps the
 ID of a group or of a timeline to the order of what it stacks, top to bottom, and
 writers never reorder it:
 
@@ -587,7 +591,7 @@ of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor that a named timestamp lies
 on a timeline of the manifest and within it, nor that a groupstamp lies
-on a member of a group and is no match timestamp, nor that a resource's
+in a group and is no match timestamp, nor that a resource's
 timelines are timelines of the manifest, nor the rules of named
 MatchStamps ([Named MatchStamps](#named-matchstamps)), nor the representation of
 own-axis values, so both validators check them after the schema. Each
@@ -621,7 +625,7 @@ stable code:
 | A facet, or `line`, is missing from its band order | `band_order` | the order | `'<entry>' is missing from the band order of '<id>'` |
 | A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
-| A groupstamp that is no match timestamp lies on a timeline that is a member of no group | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group` |
+| A groupstamp that is no match timestamp lies on a timeline that lies in no group (neither it nor any of its ancestors is a member) | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group and lies in none` |
 | An entry of an alignment anchor's `timestamps` names no named timestamp | `alignment_anchor` | the entry | `'<id>' names no timestamp of this manifest` |
 | An entry of an alignment anchor's `timestamps` names a timestamp that is no match timestamp | `alignment_anchor` | the entry | `'<id>' is no match timestamp` |
 | The two match timestamps of an alignment anchor lie on one timeline | `alignment_anchor` | the anchor's second entry of `timestamps` | `the timestamps of '<anchor id>' both lie on the timeline '<timeline id>'` |
@@ -938,19 +942,23 @@ nothing more: it never removes a stated pair or a MatchClaim, and
 removing a pair is an edit of its own. The entry of a pair adds the pair it is about,
 `property` and `value`; a MatchClaim's entry holds the other keys alone.
 
-**The belief filter** selects, for one actor, everything the actor does
-not believe `false`, which is the default, or only what the actor
-believes `true`; without an actor nothing is filtered. A MatchClaim that
+**The belief filter** selects, for one actor, the items whose state for
+that actor is one of the states it is given. An item has one of four
+**states** for an actor: the actor's belief, `true`, `unlikely` or
+`false`, or `undecided` where the actor holds no belief on it. The filter
+keeps any set of these four states, by default every state but `false`;
+without an actor nothing is filtered. A MatchClaim that
 the filter leaves out gives no anchor. The description specification,
 section 9, states the entry, its reading as RDF and what it tells apart
 among statements.
 
 A table has no base IRI against which a reference could be resolved: the
-IRI references of a row's provenance are read as written, and the belief
-filter compares a table's actors with the believer as strings, where
-among statements it compares expanded IRIs. A table therefore names every
-actor by an absolute IRI, so that the comparison of strings is that of
-IRIs.
+IRI references of a row's provenance are read as written. The belief
+filter compares a table's actors with the believer as the IRIs they stand
+for under the manifest's `@context`, as it compares them among
+statements, so that a compact and an absolute IRI of one actor name the
+same actor; an actor that expands to nothing (a compact IRI whose prefix
+the context does not declare) compares as written.
 
 ### Checking the tables
 
@@ -1960,7 +1968,9 @@ else:
   `believed_rows` derive the unique anchors and the potential MatchStamps
   of a MatchClaim table under the belief filter ([From MatchClaims to
   anchors](#from-matchclaims-to-anchors)), a reference derivation for
-  conformance. `fixture_path(name)` returns a file of the table fixture
+  conformance; each takes a `believer`, the `beliefs` it keeps
+  (`BELIEF_STATES` holds the four states, `DEFAULT_BELIEFS` the three kept
+  by default) and the `context` under which actors expand. `fixture_path(name)` returns a file of the table fixture
   ([Fixtures](#fixtures)).
 - `fixture_paths()` returns the bundled accepted fixtures,
   `rejection_paths()` the bundled rejection cases and `warning_paths()` the
