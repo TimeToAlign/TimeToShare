@@ -499,9 +499,12 @@ one, is what is displayed, and it may repeat. An ID is any non-empty string with
 unique across the whole manifest: the manifest's own, and the IDs of every
 timeline (root or descendant), group, MeasureMap, conversion map at any
 depth of nesting, region, flow-control element, resource, named
-timestamp, named MatchStamp and alignment anchor. A
-named timestamp's ID has one shape, `timestamp_` followed by a
-positive integer without leading zeros. An ID is never parsed
+timestamp, named MatchStamp and alignment anchor. Four kinds of ID have
+one shape each, a prefix followed by a positive integer without leading
+zeros: a resource's `resource_N`, a named timestamp's `timestamp_N`, a
+named MatchStamp's `matchstamp_N` and an alignment anchor's `anchor_N`
+(`#resource_1`, `#timestamp_1`, `#matchstamp_1` and `#anchor_1` in a
+file); the schema refuses any other. An ID is never parsed
 and never composed with another. A reference is an ID, written in a file
 as an ID is ([Written in a file](#written-in-a-file)): a jump origin's
 `target` names a jump target of the same timeline, a measure view's
@@ -594,7 +597,7 @@ stable code:
 | A segment does not start where the one before it ends, or the first at 0 | `segment_line` | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
 | The last segment does not end at the segment line's length, both known | `segment_line` | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
 | An ID of a root's tree repeats an ID of an earlier root's tree | `duplicate_id` | the later occurrence | `'<id>' is not unique in the manifest, first at <pointer>` |
-| A group ID, a MeasureMap ID, a resource's ID, a named timestamp's ID, a named MatchStamp's ID or an alignment anchor's ID repeats an earlier ID of the manifest | `duplicate_id` | that element's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
+| A group ID, a MeasureMap ID, a named timestamp's ID, a named MatchStamp's ID, an alignment anchor's ID or a resource's ID repeats an earlier ID of the manifest | `duplicate_id` | that element's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
 | The manifest's ID repeats another ID of the manifest | `manifest_id` | `id` | `'<id>' is not unique in the manifest, first at <pointer>`, the pointer naming the first occurrence of that ID |
 | A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
@@ -605,6 +608,14 @@ stable code:
 | A facet, or `line`, is missing from its band order | `band_order` | the order | `'<entry>' is missing from the band order of '<id>'` |
 | A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
+| An entry of an alignment anchor's `timestamps` names no named timestamp | `alignment_anchor` | the entry | `'<id>' names no timestamp of this manifest` |
+| An entry of an alignment anchor's `timestamps` names a timestamp that is no match timestamp | `alignment_anchor` | the entry | `'<id>' is no match timestamp` |
+| The two match timestamps of an alignment anchor lie on one timeline | `alignment_anchor` | the anchor's second entry of `timestamps` | `the timestamps of '<anchor id>' both lie on the timeline '<timeline id>'` |
+| The alignment anchors of a named MatchStamp are not one connected set of timestamps | `matchstamp` | its `alignment_anchors` | `the alignment anchors of '<id>' are not one connected set` |
+| A match timestamp lies on the coordinate of an earlier match timestamp of its timeline, compared by exact value | `match_timestamp` | the later timestamp | `'<id>' lies on the coordinate of the match timestamp '<earlier id>'` |
+| No named MatchStamp's anchor names a match timestamp | `match_timestamp` | the timestamp | `the match timestamp '<id>' belongs to no MatchStamp` |
+| An entry of a resource's `timelines` names no timeline of the manifest | `resource_timeline` | the entry | `'<id>' names no timeline of this manifest` |
+| A resource has the type `MatchClaim` or `Projection` of an earlier resource | `resource_type` | the later resource's `type` | `a manifest names at most one resource of the type <type>; '<earlier id>' is one` |
 
 Within one root's tree, IDs are visited in identity order (a timeline,
 then its conversion maps, regions and flow-control elements, then its
@@ -624,14 +635,20 @@ with the next segment's offset and the last one's with the line's length. Across
 order: each root's own problems, roots in array order; then the IDs
 repeated across roots (root by root, each ID of its tree in identity order,
 the IDs of the maps other maps hold last), the group IDs, the MeasureMap
-IDs, the resources' IDs, the named timestamps' IDs, the named
-MatchStamps' IDs, each followed by its anchors' IDs, the manifest's ID; members
+IDs, the named timestamps' IDs, the named MatchStamps' IDs, each followed
+by its anchors' IDs, the resources' IDs, the manifest's ID; members
 (member by member: dangling, nested); the entries of `graphical.order` in
 code-point order of their keys: an order's strangers first, in its order,
 then its missing entries, in the order of the group's `members` or of the
-default band order; then the resources' timelines, resource by resource;
-the named timestamps, in array order; and last the named MatchStamps, in
-array order. The
+default band order; then the named timestamps, in array order; then the
+named MatchStamps in array order, each anchor in turn (its two
+timestamps in order, then whether they lie on one timeline) before
+whether the MatchStamp's anchors connect, followed by the match
+timestamps in array order, for each a coordinate shared with an earlier
+one before belonging to no MatchStamp; and last the resources, in array order, each its
+`timelines` in order before its `type`. A repeated anchor ID is a
+`duplicate_id` wherever the earlier ID stands, and a repeated ID within
+one MatchStamp's `match_claims` is refused by the schema. The
 rules of statements and their provenance follow the identity rules
 (the description specification, section 12). A timestamp's
 coordinate is an own-axis value of its timeline, so its representation is
@@ -670,10 +687,13 @@ embedded by a host schema; within 0.2.x they change only by addition:
 
 `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
 `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
-`MeasureMap`, `MeasureMapRow`, `Resource`, `MatchStamp`,
-`AlignmentAnchor`, `Context`, `Statements` and `StatementValue`.
+`MeasureMap`, `MeasureMapRow`, `Resource`, `Timestamp`, `MatchStamp`,
+`AlignmentAnchor`, `Context`, `Statements`, `StatementValue` and
+`ProvenanceEntry`.
 
-A host refers to the document, or to one definition as
+The provenance document is public as a whole: its root is the one
+provenance entry. A host refers to either document, or to one definition
+of the manifest document as
 `timetoshare.schema.json#/$defs/<Name>`, never through an `$anchor`. It
 embeds either a whole manifest, version marker included, or a bare
 `Timeline`, in which case the host records the TimeToShare version itself.
@@ -708,13 +728,13 @@ resources:
 
 | Key | Required | Holds |
 | --- | --- | --- |
-| `id` | yes | the resource's ID ([Identity](#identity)) |
+| `id` | yes | the resource's ID, `resource_N` ([Identity](#identity)) |
 | `type` | yes | what its rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events it holds |
 | `timelines` | yes | the IDs of the timelines it holds data for, each a timeline of the manifest |
 | `url` | yes | its location, relative to the manifest's own, so that a bare file name lies beside the manifest |
 | `media_type` | no | its media type |
 | `size` | no | its size in bytes |
-| `integrity` | no | the digest of its raw bytes |
+| `integrity` | no | the digest of its raw bytes, `{algorithm, digest}`: `algorithm` the hash function as the PREMIS vocabulary of cryptographic hash functions names it, one of `MD5`, `SHA-1`, `SHA-256`, `SHA-384` and `SHA-512`, and `digest` the digest in lower-case hexadecimal |
 
 At most one resource has the type `MatchClaim`, and at most one the type
 `Projection`. A table of events is named by the same entry, its `type`
@@ -738,12 +758,22 @@ column per property of a MatchClaim:
 | `id` | the MatchClaim's ID, never changed once given (below) |
 | `timeline_a_id`, `timeline_b_id` | the IDs of its two timelines, each a timeline of the manifest |
 | `event_a_id`, `event_b_id` | the IDs of its two events, one on each timeline. A synchronous MatchClaim names an event on each side, a Projection where the timeline holds no event of its own ([The Projections table](#the-projections-table)); null is the NOMATCH sentinel alone, on the side without a counterpart, and is never an event |
-| `start_anchor`, `end_anchor` | the alignment anchors the two events give, of their starts and, for intervals, of their ends: each the coordinate on timeline a and the coordinate on timeline b, coordinates `{unit, number_type, value}` (`$defs/Coordinate`); null where the MatchClaim gives none |
+| `start_anchor`, `end_anchor` | the alignment anchors the two events give, of their starts and, for intervals, of their ends: each `{timeline_a_id, coordinate_a, timeline_b_id, coordinate_b}`, the row's two timelines in the row's order, each with a coordinate cell (below); null where the MatchClaim gives none |
 | `provenance` | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)) |
 
 and every further property of a MatchClaim, such as `is_synchronous` and
-`certainty`, in a column of its own. A value of `provenance` that every
-row shares is stated once, in the file's metadata.
+`certainty`, in a column of its own. A provenance that every row shares
+is stated once, as JSON under the key `timetoshare:provenance` of the
+file's schema metadata; the `provenance` of every row is then null, and a
+row stating its own is refused.
+
+A **coordinate cell** is `{value, numerator, denominator, unit,
+number_type}`: the number twice, as a 64-bit float `value` and as a pair
+of 64-bit integers `numerator` and `denominator` (at least 1), beside the
+`unit` and `number_type` of its timeline's axis. The number type selects
+the side that is the coordinate: the float for `float`, the pair for
+`int` (its denominator 1) and `fraction`. Both sides are present in every
+cell that is not null, so exact ratios survive Parquet.
 
 Every coordinate of an anchor lies on its timeline's own axis, in that
 timeline's unit and number type: a position given in a unit the timeline
@@ -760,8 +790,11 @@ scope, and a table that mixes the rows of several manifests names each
 row's manifest in a column of its own, never in a string joined to the
 ID. Whoever writes a table over an existing one keeps the **succession
 rule**: every ID of the old table is in the new one with the same
-timelines, events and anchors, and only its provenance may differ. The
-Python package checks the rule for two tables. A reader refuses no table
+timelines, events and anchors, and only its provenance may differ;
+coordinates compare by unit, number type and exact value. The Python
+package checks the rule for an old and a new table,
+`timetoshare.tables.check_succession(old, new)` raising the first breach
+and `succession_problems(old, new)` listing them ([Python](#python)). A reader refuses no table
 for its history: it reads the table it is given.
 
 ### The Projections table
@@ -775,7 +808,7 @@ of them, the **Projections table**, named by the resource of type
 | --- | --- |
 | `id` | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise |
 | `timeline_id` | the timeline the Projection is an event of |
-| `start`, `duration` | its position on that timeline's own axis, coordinates as in the anchors; `duration` is null for an instant |
+| `start`, `duration` | its position on that timeline's own axis, each a coordinate cell as in the MatchClaim table, in the timeline's unit and number type; `duration` is null for an instant and never negative |
 | `projection_of` | `{timeline_id, event_id}` of the event it stands for, an object and never a joined string; null where no such event is known |
 
 A Projection repeats nothing else of its source. One mechanism serves
@@ -802,15 +835,21 @@ column. It records two things:
 - **How the item was made**, its paradata: `stated_by`, `date`,
   `method`, `service`, `basis`, `match` and `note`.
 - **Who believes it**: `beliefs`, a list of `{actor, belief, date,
-  note?}`, `belief` one of `true`, `false` and `unlikely`. An actor holds
-  at most one belief per item, a later belief replacing the earlier one,
-  and one actor's belief leaves every other actor's standing.
+  note?}`: `actor` the IRI of the person or organisation holding the
+  belief, `belief` one of the three strings `"true"`, `"false"` and
+  `"unlikely"` (never a JSON boolean, so that the manifest and a table's
+  `provenance` column hold one type), `date` the day it was stated,
+  `YYYY-MM-DD`, and `note` a note in words. An actor holds at most one
+  belief per item, a later belief replacing the earlier one, and one
+  actor's belief leaves every other actor's standing.
 
 Nothing in the format derives a truth value from the beliefs, and nobody
 imposes one: each belief is its actor's. A person who states a pair or a
 MatchClaim through an editor or a package function is recorded with the
 belief `true`; a loader or a service records how the item was made and
-holds no belief. The entry of a pair adds the pair it is about,
+holds no belief. Believing an item `false` records that belief and
+nothing more: it never removes a stated pair or a MatchClaim, and
+removing a pair is an edit of its own. The entry of a pair adds the pair it is about,
 `property` and `value`; a MatchClaim's entry holds the other keys alone.
 
 **The belief filter** selects, for one actor, everything the actor does
@@ -892,10 +931,13 @@ graphical:
 
 Both validators refuse an anchor naming a timestamp that does not exist
 or is no match timestamp, and an anchor naming two timestamps of one
-timeline; a match timestamp that no MatchStamp names; two match
-timestamps at one coordinate of one timeline; a MatchStamp whose anchors
-do not form one connected set of timestamps; and an anchor ID or a
-MatchClaim ID repeated within one MatchStamp. The drawing specification
+timeline (`alignment_anchor`); a MatchStamp whose anchors do not form one
+connected set of timestamps (`matchstamp`); two match timestamps at one
+coordinate of one timeline, and a match timestamp that no MatchStamp
+names (`match_timestamp`); an anchor ID that repeats any ID of the
+manifest (`duplicate_id`, as every ID); and a MatchClaim ID repeated
+within one MatchStamp's `match_claims` (`schema`). The table of
+[Identity](#identity) gives each rule's location and message. The drawing specification
 draws a match timestamp's line as every cross-section line and an anchor
 as the shortest line between its two timestamps' lines (sections 6.6 and
 8.7); its SVG and TikZ writers draw the named MatchStamps as stored, and
@@ -1546,6 +1588,7 @@ text's `FileForm`, and Python's `dumps_file(value, form)` and npm's
 
 ```bash
 pip install timetoshare
+pip install "timetoshare[tables]"  # with the table types, timetoshare.tables
 ```
 
 ```bash
@@ -1609,15 +1652,21 @@ else:
   statements alone as a list of `SchemaValidationError`s, empty where they
   are sound, and refuses nothing outside them (the description
   specification, section 12).
-- `pairs`, `entries`, `with_pair`, `without_pair`, `with_proposal`,
-  `with_confirmation` and `with_rejection` read and edit the pairs and
-  provenance of a subject, which `subject_path` finds by its ID;
+- `pairs`, `entries`, `candidates`, `with_pair`, `without_pair`,
+  `with_candidate` and `with_belief` read and edit the pairs and
+  provenance of a subject, which `subject_path` finds by its ID:
+  `with_pair(…, actor=, date=)` records the person stating a pair with
+  the belief `true`, `with_candidate` adds a candidate, `with_belief`
+  records an actor's belief without changing what is stated, and
+  `candidates(…, actor=)` leaves out what that actor believes `false`;
   `subjects` walks every element that may carry statements with its path
   and kind, the manifest first, then root by root the timeline, its
   regions and its children, depth first; `with_context` writes the manifest's `@context`, the format's terms in
   `FORMAT_CONTEXT` and the prefixes the statements use; `same_pair`,
   `expand_iri` and `used_prefixes` serve them (the description
-  specification, section 11). They live in `timetoshare.statements`.
+  specification, section 11). `BELIEFS` holds the three words of a
+  belief, `("true", "false", "unlikely")`. They live in
+  `timetoshare.statements`.
 - `load_catalogue()` returns the shipped catalogue and
   `read_catalogue(document)` reads another; `recognize`, `instantiate`,
   `verb_of` and `rectangles` read an address, a verb, a pair and a
@@ -1651,7 +1700,8 @@ else:
   canonical order.
 - `TIMESTAMP_DISPLAY` holds the words of a named timestamp's `display`,
   `("wedge", "name", "id", "coordinate", "cross_section")`, in canonical
-  order.
+  order, and `ANCHOR_DISPLAY` those of an alignment anchor's `display`,
+  `("line", "name")`.
 - `identity_problems(value)` returns every violation of the identity rules in
   a schema-valid manifest, in the order described above; `validate` raises
   the first.
@@ -1663,7 +1713,28 @@ else:
 - `complete_styles(graphical)` returns `(completed, missing)` and warns with
   `MissingStyleWarning` when `missing` is non-empty.
 - `SCHEMA_VERSION` is `"0.2.0"`, the one version the package reads.
-- `schema_path()` and `load_schema()` return the schema document.
+- `schema_path()` returns the path of the manifest document and
+  `provenance_schema_path()` that of the provenance document beside it;
+  `load_schema()` returns the manifest document with the provenance
+  document bundled into it, so that every reference is local.
+- `timetoshare.tables`, which needs the extra `tables`
+  (`pip install "timetoshare[tables]"`, which installs pyarrow), reads
+  the two tables as Arrow tables ([Resources and
+  tables](#resources-and-tables)). `MATCH_CLAIM_SCHEMA` and
+  `PROJECTION_SCHEMA` declare their columns; `match_claim_problems(table,
+  manifest=None)` and `projection_problems(table, manifest=None)` list
+  every problem of a table, the table's own first, then row by row, each a
+  `TableProblem` (`code`, `row`, `column`, `message`), checked against the
+  manifest's timelines where one is given, and `check_match_claims` and
+  `check_projections` raise the first as a `TableError`;
+  `check_succession` and `succession_problems` check the succession rule;
+  `row_provenance(table)` gives each row's provenance, its own or the
+  file's. `alignment_anchors`, `potential_matchstamps` and
+  `believed_rows` derive the unique anchors and the potential MatchStamps
+  of a MatchClaim table under the belief filter ([From MatchClaims to
+  anchors](#from-matchclaims-to-anchors)), a reference derivation for
+  conformance. `fixture_path(name)` returns a file of the table fixture
+  ([Fixtures](#fixtures)).
 - `fixture_paths()` returns the bundled accepted fixtures,
   `rejection_paths()` the bundled rejection cases and `warning_paths()` the
   bundled warning cases; they live in the module `timetoshare.fixtures`, and
@@ -1745,10 +1816,12 @@ rewrite(text) === text; // true: the text is canonical YAML
   alone, as Python's `statement_problems` does, with the same codes and
   paths; a `schema` problem carries the TypeScript schema validator's own
   message.
-- `pairs`, `entries`, `withPair`, `withoutPair`, `withProposal`,
-  `withConfirmation`, `withRejection`, `subjectPath`, `subjects`,
+- `pairs`, `entries`, `candidates`, `withPair`, `withoutPair`,
+  `withCandidate`, `withBelief`, `subjectPath`, `subjects`,
   `withContext`, `samePair`, `expandIri` and `usedPrefixes` do what Python's functions of
-  `timetoshare.statements` do, with the same messages;
+  `timetoshare.statements` do, with the same messages, their keyword
+  arguments in an options object (`withPair(manifest, subject, property,
+  value, { actor, date })`); `BELIEFS` holds the same three words;
   `defaultCatalogue()`, `readCatalogue`, `recognize`, `instantiate`,
   `verbOf` and `rectangles` what those of `timetoshare.catalogue` do.
 - `complete(value)` and `minimal(value)` return the complete and the minimal
@@ -1784,8 +1857,9 @@ rewrite(text) === text; // true: the text is canonical YAML
 - `canonicalOrder(value)` returns a deep copy with the manifest's arrays in
   canonical order.
 - `TIMESTAMP_DISPLAY` holds the words of a named timestamp's `display`,
-  `["wedge", "name", "id", "coordinate", "cross_section"]`, in canonical
-  order, as Python's constant does.
+  `["wedge", "name", "id", "coordinate", "cross_section"]`, and
+  `ANCHOR_DISPLAY` those of an alignment anchor's, `["line", "name"]`, in
+  canonical order, as Python's constants do.
 - `identityProblems(value)` returns the same identity problems as Python's
   `identity_problems`.
 - `toFileId(id)`, `fromFileId(value)`, `withFileIds(manifest)` and
@@ -1845,7 +1919,14 @@ only by timetoalign through the catalogue of builders in
 `scripts/fixtures/`, whose CLI is `scripts/emit_fixtures.py`. Do not edit
 them by hand. The statement fixtures under `fixtures/0.2.0/statements/`
 have their expected RDF under `fixtures/rdf/0.2.0/`, canonical N-Quads
-that `scripts/emit_rdf.py` writes. The rejection and warning cases are
+that `scripts/emit_rdf.py` writes. The table fixture lies apart, under
+`fixtures/tables/0.2.0/`: a manifest (`manifest.yaml`), its MatchClaim
+table (`match_claims.parquet`), its Projections table
+(`projections.parquet`) and the alignment anchors and potential
+MatchStamps expected of the MatchClaim table (`expected.yaml`), every
+value written by hand in `scripts/emit_tables.py`, which alone writes
+them; the expected values are literal data, never computed by the
+derivation they test. The rejection and warning cases are
 written in canonical YAML too; a case about JSON text itself would be
 written in JSON, and none is at present.
 
@@ -1929,6 +2010,15 @@ then write the expected RDF of the statement fixtures from `python/`:
 ```bash
 uv run python ../scripts/emit_rdf.py
 ```
+
+and the table fixture, also from `python/`:
+
+```bash
+uv run python ../scripts/emit_tables.py
+```
+
+Each of the three scripts refuses to overwrite the files of a version
+whose `v<version>` tag exists.
 
 From the repository root, check version declarations with:
 
