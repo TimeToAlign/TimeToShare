@@ -555,13 +555,14 @@ def rectangles(
     """Return a subject's pairs gathered into rectangles: one verb about one thing.
 
     Pairs of the same verb read the same way fall into one rectangle when
-    both state ``is_a`` or they name a common thing (transitively): the
-    thing of a node is its ``id`` and the ``id``\\ s under its
-    ``schema:sameAs`` and ``owl:sameAs``, the thing of a ``type`` pair its
-    class. A pair no verb reads is a rectangle of its own. The ``is_a``
-    rectangle comes first, empty where nothing is stated; then the others
-    by their first pair. Pairs keep file order, things first-seen order,
-    and the label is the first label of a node among the pairs.
+    both state ``is_a``, they name a common thing, or both value nodes carry
+    a string ``label`` and the labels are equal (transitively): the thing of
+    a node is its ``id`` and the ``id``\\ s under its ``schema:sameAs`` and
+    ``owl:sameAs``, the thing of a ``type`` pair its class. A pair no verb
+    reads is a rectangle of its own. The ``is_a`` rectangle comes first,
+    empty where nothing is stated; then the others by their first pair.
+    Pairs keep file order, things first-seen order, and the label is the
+    first label of a node among the pairs.
 
     Raises:
         ValueError: If the path addresses no element and no value node.
@@ -569,6 +570,12 @@ def rectangles(
     stated = pairs(manifest, subject)
     reading = _Reading(catalogue, _context(manifest))
     things = [reading.things(property, value) for property, value in stated]
+    labels = [
+        value["label"]
+        if _is_node(value) and isinstance(value.get("label"), str)
+        else None
+        for _, value in stated
+    ]
     groups: list[tuple[tuple[str, bool] | None, list[int]]] = []
     for index, (property, value) in enumerate(stated):
         key = reading.verb_of(property, value)
@@ -583,6 +590,10 @@ def rectangles(
                     thing in things[member]
                     for member in members
                     for thing in things[index]
+                )
+                or (
+                    labels[index] is not None
+                    and any(labels[member] == labels[index] for member in members)
                 )
             )
         ]
