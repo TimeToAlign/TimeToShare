@@ -21,7 +21,10 @@ serializations: canonical YAML, which every reader reads and every writer
 writes, and two optional JSON forms, pretty JSON and RFC 8785 JSON. Both
 packages write each serialization to the same bytes and read each without
 losing what it holds; the JSON Schema validates the value a
-text holds, whatever its serialization. It also specifies how a manifest
+text holds, whatever its serialization. It defines the tables a manifest
+names beside it, the MatchClaim table and the Projections table, which
+the Python package checks, and how MatchClaims give alignment anchors and
+MatchStamps. It also specifies how a manifest
 is drawn and how its elements are described by property–value statements
 in published vocabularies, which make a manifest a YAML-LD document, with
 a catalogue of identifier systems, verbs and types that guides their
@@ -75,10 +78,11 @@ groups beside ungrouped timelines. The smallest manifest is
 | `meta` | no | an object of anything an application wants to record |
 | `groups` | no | timeline groups whose members name timelines of the manifest |
 | `measure_maps` | no | the MeasureMaps the conversion maps read, each with an ID; they belong to no timeline |
+| `resources` | no | the files beside the manifest that hold data for its timelines, such as the MatchClaim table ([Resources](#resources)) |
 | `@context` | no | the inline JSON-LD context: the format's terms and the prefixes the statements use; required where any element carries `statements` or `provenance`, and warned of where absent (`context_absent`) ([Describing a manifest](#describing-a-manifest)) |
 | `statements` | no | property–value pairs about the manifest as a whole, among them the work it is about under `schema:about` ([Describing a manifest](#describing-a-manifest)) |
-| `provenance` | no | the annotations of those pairs, and the pairs proposed or rejected, which are never stated |
-| `graphical` | no | the styling of the manifest's drawing, its groups' display orders and its timelines' band orders |
+| `provenance` | no | the annotations of those pairs, how each was made and who believes it, and candidate pairs, which are never stated ([Provenance and beliefs](#provenance-and-beliefs)) |
+| `graphical` | no | the styling of the manifest's drawing, its groups' display orders, its timelines' band orders, its named timestamps and its named MatchStamps |
 | `$schema` | no | a string naming the schema, for editors; never read |
 
 A single timeline is a bundle of one root, and a group is a bundle of one
@@ -99,8 +103,10 @@ Events refer to a manifest rather than the other way round: an event's
 coordinates name the ID of the timeline they lie on. A manifest can
 therefore be published once at a stable location, and any number of event
 collections, in any serialization format or database, can point to its
-timelines from wherever they live. This version of the format holds no
-events itself.
+timelines from wherever they live. A manifest holds no event and names
+no event's ID; it names the tables of its package that hold events and
+MatchClaims for its timelines, in `resources` ([Resources and
+tables](#resources-and-tables)).
 
 ### The timeline
 
@@ -331,15 +337,17 @@ written `1`, `1.0` or `[1, 1]` equals its default 1 and is omitted alike;
 arrays and objects are equal when their items and members are. Before a
 value is compared with its default, in either form, the manifest's
 own-axis values are respelled as their number type selects ([Values on a
-timeline's own axis](#values-on-a-timelines-own-axis)) and each named
-timestamp's `display` is put in canonical order, so a `display` written
+timeline's own axis](#values-on-a-timelines-own-axis)) and the `display`
+of each named timestamp and of each alignment anchor is put in canonical
+order, so a timestamp's `display` written
 `[name, wedge, cross_section]` equals its default and is omitted. Either form reads to
 the same objects, and each writes back to itself. `length` is required in
 both forms.
 
 | Object | Key: default |
 | --- | --- |
-| manifest | `id`: absent (without a `name` too, an anonymous bundle); `name`: `null`; `meta`: `{}`; `groups`, `measure_maps`: `[]`; `graphical`: absent |
+| manifest | `id`: absent (without a `name` too, an anonymous bundle); `name`: `null`; `meta`: `{}`; `groups`, `measure_maps`, `resources`: `[]`; `graphical`: absent |
+| resource | `media_type`, `size`, `integrity`: absent |
 | timeline | `name`: `null`; `number_type`: the unit's default (the unit table of [The timeline](#the-timeline)); `offset`: absent on a root, required on a child; `locked`: `false`; `is_segment_line`: `false`; `meta`: `{}`; `children`, `conversion_maps`, `regions`, `flow_control`: `[]` |
 | region | `name`: `null`; `meta`: `{}` |
 | flow-control element (`flow_control_element`) | `name`, `label`: `null`; `meta`: `{}` |
@@ -349,8 +357,9 @@ both forms.
 | a `TableMap` besides (`table_map`) | `kind`: `"linear"`; `extrapolate`: `"none"` |
 | MeasureMap (`measure_map`) | `name`: `null`; `meta`: `{}` |
 | group | `name`: `null`; `meta`: `{}` |
-| graphical | `styles`: `{}`; `rules`: `[]`; `order`: `{}`; `timestamps`: `[]` |
-| named timestamp (`timestamp`) | `display`: `["wedge", "name", "cross_section"]` |
+| graphical | `styles`: `{}`; `rules`: `[]`; `order`: `{}`; `timestamps`, `matchstamps`: `[]` |
+| named timestamp (`timestamp`) | `matchstamp`: `false`; `display`: `["wedge", "name", "cross_section"]`, on a match timestamp `["cross_section"]` |
+| alignment anchor (`alignment_anchor`) | `display`: `["line"]` |
 
 `@context`, `statements` and `provenance` have no default: neither form
 adds or drops them, and both write them as given. A row marked "besides"
@@ -400,17 +409,21 @@ roots that no group names, and that contain no member, are ungrouped. A
 manifest holding a group always holds its members' roots, so a member that
 is a child keeps its parent.
 
-`graphical` is `{styles?, rules?, order?, timestamps?}`, at the
-manifest's top level only, never on a timeline: a timeline holds time, and
-what is graphical lies in this object. `styles` and `rules` style the
-drawing ([Drawing a manifest](#drawing-a-manifest)). `timestamps` lists the
-**named timestamps**, each `{id, timeline, coordinate, name, display?}`: a
+`graphical` is `{styles?, rules?, order?, timestamps?, matchstamps?}`, at
+the manifest's top level only, never on a timeline: a timeline holds time,
+and what is graphical lies in this object. `styles` and `rules` style the
+drawing ([Drawing a manifest](#drawing-a-manifest)); `matchstamps` lists
+the named MatchStamps ([Named MatchStamps](#named-matchstamps)).
+`timestamps` lists the **named timestamps**, each `{id, timeline,
+coordinate, name, display?, matchstamp?}`: a
 position `coordinate` on the own axis of the timeline `timeline`, a root or
 a descendant at any depth, a segment included, written as that timeline's
 number type selects and respelled by writers as every own-axis value is
 ([Values on a timeline's own axis](#values-on-a-timelines-own-axis)),
 from its zero to its `length` (only from its zero when the length is
-`null`), and named `name`, a non-empty string. A timestamp whose
+`null`), and named `name`, a non-empty string, which only a match
+timestamp, one with `matchstamp: true`, may leave out ([Named
+MatchStamps](#named-matchstamps)). A timestamp whose
 `timeline` names no timeline of the manifest, or more than one (their IDs
 repeating), has its coordinate written as given. Only that coordinate is
 stored, never a map's value at it. `display` lists what the timestamp
@@ -419,8 +432,9 @@ and `coordinate` (its labels, stacked beyond the wedge in this order: its
 name, its ID, its coordinate with its unit) and `cross_section` (a vertical
 line across its timeline's line, children band and conversion maps band);
 its order means nothing and writers write it in the order just given. A
-timestamp draws by default its wedge, its name and its cross-section line
-(the drawing specification, sections 2, 6.4 and 6.6). `order` maps the ID of a group
+timestamp draws by default its wedge, its name and its cross-section line,
+a match timestamp its cross-section line alone (the drawing
+specification, sections 2, 6.4 and 6.6). `order` maps the ID of a group
 or of a timeline to the order of what it stacks, top to bottom, and
 writers never reorder it:
 
@@ -446,7 +460,10 @@ draws the coordinate markers of `score`, the wedges and labels of its named
 timestamps, against its line above it, its children beyond them, and its
 conversion maps against its line below it;
 its descendants follow it, so their conversion maps lie below their lines
-too. A manifest carries no MatchClaims.
+too. A manifest holds no MatchClaim: MatchClaims lie in the MatchClaim
+table beside it ([The MatchClaim table](#the-matchclaim-table)), and
+`graphical` holds only the MatchStamps someone named from them, so that
+the manifest draws without the table.
 
 ### Unknown keys
 
@@ -474,13 +491,15 @@ host's own validator is unaffected.
 ### Identity
 
 Every timeline, group, MeasureMap, conversion map, region,
-flow-control element and named timestamp carries an `id`, which
-identifies it, and so may the manifest. A `name`, where an element has
+flow-control element, resource, named timestamp, named MatchStamp and
+alignment anchor carries an `id`, which identifies it, and so may the
+manifest. A `name`, where an element has
 one, is what is displayed, and it may repeat. An ID is any non-empty string without control characters
 (U+0000 to U+001F): `/`, spaces, colons and URIs are allowed. Every ID is
 unique across the whole manifest: the manifest's own, and the IDs of every
 timeline (root or descendant), group, MeasureMap, conversion map at any
-depth of nesting, region, flow-control element and named timestamp. A
+depth of nesting, region, flow-control element, resource, named
+timestamp, named MatchStamp and alignment anchor. A
 named timestamp's ID has one shape, `timestamp_` followed by a
 positive integer without leading zeros. An ID is never parsed
 and never composed with another. A reference is an ID, written in a file
@@ -488,7 +507,11 @@ as an ID is ([Written in a file](#written-in-a-file)): a jump origin's
 `target` names a jump target of the same timeline, a measure view's
 `measure_map` an entry of `measure_maps`, a group's `members` name
 timelines of the manifest, a key of `graphical.order` a group or a
-timeline, and a named timestamp's `timeline` a timeline of the manifest.
+timeline, a named timestamp's `timeline` a timeline of the manifest, a
+resource's `timelines` timelines of the manifest, and an alignment
+anchor's `timestamps` named timestamps. A MatchStamp's `match_claims`
+are no references: they name rows of the MatchClaim table, whose IDs are
+not the manifest's ([Named MatchStamps](#named-matchstamps)).
 An IRI reference of the statements or their provenance that begins with
 `#`, such as the `id` of a value, names an element of any kind
 ([Describing a manifest](#describing-a-manifest)).
@@ -509,11 +532,15 @@ followed by the ID: `"id": "#clt_1"`, `"members": ["#clt_1", "#clt_2"]`.
 Exactly one leading `#` is stripped to get the ID, so `##x` is the ID `#x`.
 The `#` stands on the manifest's own `id` and on the IDs of timelines at any
 depth, groups, MeasureMaps, conversion maps (nested ones included), regions,
-flow-control elements and named timestamps (`#timestamp_1`); and on the
+flow-control elements, resources, named timestamps (`#timestamp_1`),
+named MatchStamps and alignment anchors; and on the
 references: a group's `members`, the keys of `graphical.order` and the
-member IDs of a group's entry, a named timestamp's `timeline`, an address's
+member IDs of a group's entry, a named timestamp's `timeline`, a
+resource's `timelines`, an alignment anchor's `timestamps`, an address's
 `id`, a selector's `within`, a flow-control element's `target` and a
-measure view's `measure_map`. Inside `statements` and `provenance` a value
+measure view's `measure_map`. The IDs of MatchClaims in a MatchStamp's
+`match_claims` are written bare (`claim_27`), as their table holds them.
+Inside `statements` and `provenance` a value
 naming an element, `{"id": "#cpt_1"}`, is an IRI reference, written and
 held alike, which no reader or writer rewrites. The reason is the
 reading of a manifest as YAML-LD or JSON-LD, which takes `#clt_1` as a
@@ -544,7 +571,9 @@ holder's, nor that a map's arrays agree, nor that a member names a timeline
 of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor that a named timestamp lies
-on a timeline of the manifest and within it, nor the representation of
+on a timeline of the manifest and within it, nor that a resource's
+timelines are timelines of the manifest, nor the rules of named
+MatchStamps ([Named MatchStamps](#named-matchstamps)), nor the representation of
 own-axis values, so both validators check them after the schema. Each
 finding is one problem, located by a path into the manifest and named by a
 stable code:
@@ -565,7 +594,7 @@ stable code:
 | A segment does not start where the one before it ends, or the first at 0 | `segment_line` | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
 | The last segment does not end at the segment line's length, both known | `segment_line` | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
 | An ID of a root's tree repeats an ID of an earlier root's tree | `duplicate_id` | the later occurrence | `'<id>' is not unique in the manifest, first at <pointer>` |
-| A group ID, a MeasureMap ID or a named timestamp's ID repeats an earlier ID of the manifest | `duplicate_id` | the group's, the MeasureMap's or the timestamp's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
+| A group ID, a MeasureMap ID, a resource's ID, a named timestamp's ID, a named MatchStamp's ID or an alignment anchor's ID repeats an earlier ID of the manifest | `duplicate_id` | that element's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
 | The manifest's ID repeats another ID of the manifest | `manifest_id` | `id` | `'<id>' is not unique in the manifest, first at <pointer>`, the pointer naming the first occurrence of that ID |
 | A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
@@ -595,11 +624,14 @@ with the next segment's offset and the last one's with the line's length. Across
 order: each root's own problems, roots in array order; then the IDs
 repeated across roots (root by root, each ID of its tree in identity order,
 the IDs of the maps other maps hold last), the group IDs, the MeasureMap
-IDs, the named timestamps' IDs, the manifest's ID; members
+IDs, the resources' IDs, the named timestamps' IDs, the named
+MatchStamps' IDs, each followed by its anchors' IDs, the manifest's ID; members
 (member by member: dangling, nested); the entries of `graphical.order` in
 code-point order of their keys: an order's strangers first, in its order,
 then its missing entries, in the order of the group's `members` or of the
-default band order; and last the named timestamps, in array order. The
+default band order; then the resources' timelines, resource by resource;
+the named timestamps, in array order; and last the named MatchStamps, in
+array order. The
 rules of statements and their provenance follow the identity rules
 (the description specification, section 12). A timestamp's
 coordinate is an own-axis value of its timeline, so its representation is
@@ -618,22 +650,28 @@ refused by the schema.
 
 ### The schema document
 
-Version 0.2.0 is one document, `schema/0.2.0/timetoshare.schema.json`,
-with the identifier
+Version 0.2.0 is one manifest document,
+`schema/0.2.0/timetoshare.schema.json`, with the identifier
 `https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json`,
-so the document lies below `schema/` at the path of its identifier. Every
-released version's document is served at its identifier and, by this
+so the document lies below `schema/` at the path of its identifier, and
+beside it the provenance document `schema/0.2.0/provenance.schema.json`,
+which defines the one provenance entry that the manifest's statements and
+the MatchClaim table's rows share ([Provenance and
+beliefs](#provenance-and-beliefs)); the manifest document refers to it
+for every `provenance` entry. Every
+released version's documents are served at their identifiers and, by this
 repository's own GitHub Pages site, at
 `https://timetoalign.github.io/TimeToShare/0.2.0/timetoshare.schema.json`
-(its version in place of `0.2.0`); the release workflow publishes both. Its
-root is
+(its version in place of `0.2.0`, its file name in place of
+`timetoshare.schema.json`); the release workflow publishes both. The
+manifest document's root is
 `{"$ref": "#/$defs/Manifest"}`. These definitions are public and may be
 embedded by a host schema; within 0.2.x they change only by addition:
 
 `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
 `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
-`MeasureMap`, `MeasureMapRow`, `Context`, `Statements`, `StatementValue`
-and `ProvenanceEntry`.
+`MeasureMap`, `MeasureMapRow`, `Resource`, `MatchStamp`,
+`AlignmentAnchor`, `Context`, `Statements` and `StatementValue`.
 
 A host refers to the document, or to one definition as
 `timetoshare.schema.json#/$defs/<Name>`, never through an `$anchor`. It
@@ -643,7 +681,225 @@ embeds either a whole manifest, version marker included, or a bare
 The schema is the source of truth for timetoalign and TimeLineEditor.
 timetoalign's hand-written serialization is tested for schema conformance and
 fixture round trips. TypeScript types are generated in this repository from
-the one document.
+the two documents.
+
+## Resources and tables
+
+A manifest holds the structure of its timelines; what lies on them, their
+events and the MatchClaims that relate them, lies in tables beside it,
+which the manifest names. A manifest and the files it names make a
+**package**. The manifest draws and validates without them.
+
+### Resources
+
+```yaml
+resources:
+  - id: "#resource_1"
+    type: MatchClaim
+    timelines: ["#clt_6", "#dpt_1"]
+    url: match_claims.parquet
+  - id: "#resource_2"
+    type: Projection
+    timelines: ["#dpt_1"]
+    url: projections.parquet
+```
+
+`resources` lists the files the manifest names, each one descriptor:
+
+| Key | Required | Holds |
+| --- | --- | --- |
+| `id` | yes | the resource's ID ([Identity](#identity)) |
+| `type` | yes | what its rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events it holds |
+| `timelines` | yes | the IDs of the timelines it holds data for, each a timeline of the manifest |
+| `url` | yes | its location, relative to the manifest's own, so that a bare file name lies beside the manifest |
+| `media_type` | no | its media type |
+| `size` | no | its size in bytes |
+| `integrity` | no | the digest of its raw bytes |
+
+At most one resource has the type `MatchClaim`, and at most one the type
+`Projection`. A table of events is named by the same entry, its `type`
+the type of its events; the Projections table is the one such table this
+version defines. Parquet is the form in which packages read and write
+these tables.
+
+### The MatchClaim table
+
+A **MatchClaim** connects two events of two timelines: a synchronous
+MatchClaim states that they happen at the same time, a conceptual one
+relates them without stating a time, and a NOMATCH states that an event
+has no counterpart on the other timeline. MatchClaims are data, not
+structure, and a manifest holds none. They live in one table per package,
+the **MatchClaim table**, named by the resource of type `MatchClaim`, and
+it is the one place they live. It holds one row per MatchClaim and one
+column per property of a MatchClaim:
+
+| Column | Holds |
+| --- | --- |
+| `id` | the MatchClaim's ID, never changed once given (below) |
+| `timeline_a_id`, `timeline_b_id` | the IDs of its two timelines, each a timeline of the manifest |
+| `event_a_id`, `event_b_id` | the IDs of its two events, one on each timeline. A synchronous MatchClaim names an event on each side, a Projection where the timeline holds no event of its own ([The Projections table](#the-projections-table)); null is the NOMATCH sentinel alone, on the side without a counterpart, and is never an event |
+| `start_anchor`, `end_anchor` | the alignment anchors the two events give, of their starts and, for intervals, of their ends: each the coordinate on timeline a and the coordinate on timeline b, coordinates `{unit, number_type, value}` (`$defs/Coordinate`); null where the MatchClaim gives none |
+| `provenance` | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)) |
+
+and every further property of a MatchClaim, such as `is_synchronous` and
+`certainty`, in a column of its own. A value of `provenance` that every
+row shares is stated once, in the file's metadata.
+
+Every coordinate of an anchor lies on its timeline's own axis, in that
+timeline's unit and number type: a position given in a unit the timeline
+converts to is converted when its event is added, never kept in the other
+unit. A cell in any other unit or number type is refused, so that one
+position never appears as two coordinates. A NOMATCH or a conceptual
+MatchClaim has no anchors and is a row like any other.
+
+**IDs and succession.** A MatchClaim is never deleted, and its ID never
+changes. A MatchClaim found wrong is invalidated by a belief `false`
+([Provenance and beliefs](#provenance-and-beliefs)); a correction is
+another MatchClaim under a new ID. Joining packages keeps every ID in its
+scope, and a table that mixes the rows of several manifests names each
+row's manifest in a column of its own, never in a string joined to the
+ID. Whoever writes a table over an existing one keeps the **succession
+rule**: every ID of the old table is in the new one with the same
+timelines, events and anchors, and only its provenance may differ. The
+Python package checks the rule for two tables. A reader refuses no table
+for its history: it reads the table it is given.
+
+### The Projections table
+
+A **Projection** is an event that stands on a timeline for an event not
+held there. It is an event type of its own, and a package holds one table
+of them, the **Projections table**, named by the resource of type
+`Projection`:
+
+| Column | Holds |
+| --- | --- |
+| `id` | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise |
+| `timeline_id` | the timeline the Projection is an event of |
+| `start`, `duration` | its position on that timeline's own axis, coordinates as in the anchors; `duration` is null for an instant |
+| `projection_of` | `{timeline_id, event_id}` of the event it stands for, an object and never a joined string; null where no such event is known |
+
+A Projection repeats nothing else of its source. One mechanism serves
+every side of a MatchClaim that has no event of its own:
+
+- **The other side has an event.** The Projection names it in
+  `projection_of`: score notes aligned to a recording whose alignment
+  gives onsets only are projected onto the recording's axis as instants.
+- **Both sides are stated as coordinates**, as a beat grid or the spine
+  of IEEE 1599 states them: a Projection on each side, `projection_of`
+  null. The source states positions, and nothing beyond them is invented.
+- **The source names an event the package does not hold**, such as a
+  note a performance inserts: a Projection under the source's ID,
+  `projection_of` null. In a NOMATCH the other side stays the sentinel,
+  which is never an event.
+
+### Provenance and beliefs
+
+One provenance entry, defined by `provenance.schema.json`, annotates both
+a pair of the statements ([Describing a
+manifest](#describing-a-manifest)) and a MatchClaim, in its `provenance`
+column. It records two things:
+
+- **How the item was made**, its paradata: `stated_by`, `date`,
+  `method`, `service`, `basis`, `match` and `note`.
+- **Who believes it**: `beliefs`, a list of `{actor, belief, date,
+  note?}`, `belief` one of `true`, `false` and `unlikely`. An actor holds
+  at most one belief per item, a later belief replacing the earlier one,
+  and one actor's belief leaves every other actor's standing.
+
+Nothing in the format derives a truth value from the beliefs, and nobody
+imposes one: each belief is its actor's. A person who states a pair or a
+MatchClaim through an editor or a package function is recorded with the
+belief `true`; a loader or a service records how the item was made and
+holds no belief. The entry of a pair adds the pair it is about,
+`property` and `value`; a MatchClaim's entry holds the other keys alone.
+
+**The belief filter** selects, for one actor, everything the actor does
+not believe `false`, which is the default, or only what the actor
+believes `true`; without an actor nothing is filtered. A MatchClaim that
+the filter leaves out gives no anchor. The description specification,
+section 9, states the entry, its reading as RDF and what it tells apart
+among statements.
+
+## MatchStamps
+
+### From MatchClaims to anchors
+
+An **alignment anchor** is a pair of coordinates of two timelines, each
+on its timeline's own axis.
+
+- A synchronous MatchClaim gives the anchor of its `start_anchor` and, if
+  it has one, of its `end_anchor`. A MatchClaim with both is an **interval
+  claim**, and its two anchors bound a **matched span** on each timeline.
+  A NOMATCH or a conceptual MatchClaim gives none, and so does one the
+  belief filter leaves out.
+- Two anchors are the same when both their coordinates are equal,
+  compared by exact value on the two timelines' axes; the **unique
+  anchors** are the anchors without repeats.
+- A **potential MatchStamp** is one connected set of coordinates under the
+  unique anchors: the coordinates that a chain of anchors joins, with the
+  MatchClaims behind them. It holds only what MatchClaims state, never a
+  position that a group, a parent or an interpolation would add, and it is
+  derived from the current table, never stored.
+
+For example, a recording aligned to a score by 58 note onsets, each
+projected onto the recording's samples as an instant, gives 58
+MatchClaims and 58 Projections; the notes of a chord share their onset, so
+the MatchClaims give 31 unique anchors, which join 62 coordinates into 31
+potential MatchStamps of two coordinates each.
+
+### Named MatchStamps
+
+A MatchStamp someone names is stored in the manifest's `graphical`
+object, so that it draws without the table:
+
+```yaml
+graphical:
+  timestamps:
+    - id: "#timestamp_3"
+      timeline: "#clt_6"
+      coordinate: [27, 2]
+      matchstamp: true
+    - id: "#timestamp_4"
+      timeline: "#dpt_1"
+      coordinate: 850176
+      matchstamp: true
+  matchstamps:
+    - id: "#matchstamp_1"
+      name: "Bar 4, downbeat"
+      alignment_anchors:
+        - id: "#anchor_1"
+          timestamps: ["#timestamp_3", "#timestamp_4"]
+          display: [line, name]
+      match_claims: [claim_27, claim_28]
+```
+
+- **Match timestamp**: a named timestamp with `matchstamp: true`, at most
+  one per coordinate and shared by every MatchStamp touching it. Its
+  `name` is optional, its `display` defaults to `["cross_section"]`, and
+  every word of an ordinary timestamp's `display` works on it.
+- **Named MatchStamp**: `{id, name, alignment_anchors, match_claims}`.
+  Each alignment anchor has an ID, names its two match timestamps in
+  `timestamps`, and carries `display`, distinct words from `line` and
+  `name`, by default `["line"]`: `line` draws the anchor's line, `name`
+  the MatchStamp's name at the line's middle. An editor naming a
+  MatchStamp turns `name` on for the middle anchor in screen order. The
+  timestamps of a MatchStamp are those its anchors name.
+- `match_claims` records the IDs of the MatchClaims behind the MatchStamp
+  when it was named or last updated. The manifest is valid whatever the
+  table says: comparing a named MatchStamp with the current table is an
+  editor's work. A MatchStamp, unlike a MatchClaim, may be changed and
+  removed.
+
+Both validators refuse an anchor naming a timestamp that does not exist
+or is no match timestamp, and an anchor naming two timestamps of one
+timeline; a match timestamp that no MatchStamp names; two match
+timestamps at one coordinate of one timeline; a MatchStamp whose anchors
+do not form one connected set of timestamps; and an anchor ID or a
+MatchClaim ID repeated within one MatchStamp. The drawing specification
+draws a match timestamp's line as every cross-section line and an anchor
+as the shortest line between its two timestamps' lines (sections 6.6 and
+8.7); its SVG and TikZ writers draw the named MatchStamps as stored, and
+never the potential MatchStamps an editor shows from the table.
 
 ## Describing a manifest
 
@@ -659,9 +915,9 @@ elements state all this in `statements`, property–value pairs
 whose properties and things are IRIs of published vocabularies (Wikidata,
 schema.org as MusicBrainz writes it, the GND ontology, LRMoo and MeLODy,
 the MARC relators and others), with a list `provenance` beside them recording who
-stated a pair, when, how and on what basis, and whether it is
-`confirmed`, `proposed` or `rejected`; a proposed or rejected pair is
-never stated. The inline `@context` makes the manifest a YAML-LD document
+stated a pair, when, how and on what basis, and who believes it
+([Provenance and beliefs](#provenance-and-beliefs)); a candidate, a pair
+held in `provenance` alone, is never stated. The inline `@context` makes the manifest a YAML-LD document
 that any JSON-LD 1.1 processor reads as RDF without fetching anything.
 
 The **catalogue**, `catalogue/catalogue.yaml`, lists identifier systems
@@ -717,8 +973,10 @@ but the one a card holds), and the content `timeline`, `child`,
 `region`, `flow_marker` (a flow marker), `jump_from` (a jump origin, drawn
 as an arc to its target or to the start; a jump target draws nothing),
 `wedge` (a coordinate marker), `cross_section` (a named timestamp's
-cross-section line), `name` and `label` (every other text, a named
-timestamp's name among them). Besides `element`, a selector may name `addresses` (address
+cross-section line), `alignment_anchor` (the line of an alignment anchor
+of a named MatchStamp, drawn last, across the cards between its two
+timestamps), `name` and `label` (every other text, a named
+timestamp's name and a MatchStamp's name among them). Besides `element`, a selector may name `addresses` (address
 objects, each matched as a whole object), `domain`, `modality`, `class`
 (the class a timeline's unit decides, such as
 `ContinuousPhysicalTimeline` for `seconds`, or a conversion map's type),
@@ -780,10 +1038,14 @@ order keys cannot express are put in this order:
 - `conversion_maps` by ID;
 - `regions` by start, then end, then ID;
 - `flow_control` by coordinate, then ID;
+- `resources` by ID;
 - `graphical.timestamps` by `timeline` (code point), then coordinate,
   then ID, and every timestamp's `display` in the order `wedge`, `name`,
   `id`, `coordinate`, `cross_section`, followed by any other strings by
-  code point and then by any other values in their given order.
+  code point and then by any other values in their given order;
+- `graphical.matchstamps` by ID, every MatchStamp's `alignment_anchors`
+  by ID, and every anchor's `display` in the order `line`, `name`,
+  followed by other values as a timestamp's are.
 
 Coordinates compare by exact numeric value, never by spelling. Strings
 compare by Unicode code point. IDs are unique across a valid manifest, so

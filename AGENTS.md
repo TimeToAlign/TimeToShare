@@ -4,16 +4,19 @@ These rules apply to every contributor, human or automated.
 
 ## Repository layout
 
-- `schema/`: the JSON Schema of the current version, one document
+- `schema/`: the JSON Schema of the current version, the document
   `<version>/timetoshare.schema.json` describing the one manifest shape
   `{timetoshare, timelines, id?, name?, meta?, groups?, measure_maps?,
-  "@context"?, statements?, provenance?, graphical?}`; it is the format
+  resources?, "@context"?, statements?, provenance?, graphical?}`, and
+  beside it `<version>/provenance.schema.json`, the provenance entry that
+  statements and the MatchClaim table share; they are the format
   contract and source of truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
   the block of frames, cards and bands (the boxes) that draws every
   manifest, and SVG and TikZ writers; and `description.md`, the
   specification of statements (the subject, pairs and their values, the
-  inline JSON-LD context, provenance, the catalogue and validation). Both
+  inline JSON-LD context, provenance and beliefs, the catalogue and
+  validation). Both
   are part of the contract, and both packages ship them.
 - `catalogue/`: `catalogue.yaml`, the catalogue of identifier systems,
   verbs and types that guides the writing of statements, and
