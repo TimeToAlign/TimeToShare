@@ -190,6 +190,11 @@ CATALOGUE = (
     _group("group_unknown_length", groups.group_unknown_length),
     _group("group_measure_map", groups.group_measure_map),
     _group("group_groupstamp", groups.group_groupstamp, "group_1"),
+    _group(
+        "group_groupstamp_child_member",
+        groups.group_groupstamp_child_member,
+        "group_1",
+    ),
     _bundle("bundle_mixed", bundles.bundle_mixed),
     _bundle("bundle_shared_parent", bundles.bundle_shared_parent),
     _bundle("bundle_ungrouped", bundles.bundle_ungrouped),
@@ -210,6 +215,11 @@ CATALOGUE = (
     _bundle("bundle_resources", bundles.bundle_resources),
     _bundle("bundle_matchstamps", bundles.bundle_matchstamps, "score"),
     _bundle("bundle_matchstamp_cards", bundles.bundle_matchstamp_cards, "score"),
+    _bundle(
+        "bundle_groupstamp_shared_member",
+        bundles.bundle_groupstamp_shared_member,
+        "t",
+    ),
     _described("op106_work", statements.op106_work),
     _described("layerit_recording", statements.layerit_recording),
     _described("djset_segment", statements.djset_segment),

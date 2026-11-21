@@ -298,6 +298,18 @@ def bundle_shared_member() -> AlignmentBundle:
     return bundle
 
 
+def bundle_groupstamp_shared_member() -> AlignmentBundle:
+    """Build the bundle of ``bundle_shared_member`` with a groupstamp on its
+    shared member.
+
+    ``bundle_groupstamp_shared_member`` holds it with the ``graphical`` entry
+    of ``GRAPHICAL``: the timestamp "Bar 2" at quarter 4 of the score ``t``,
+    a groupstamp, whose line extends across the frame of each of the two
+    groups. No member has a band.
+    """
+    return bundle_shared_member()
+
+
 def bundle_free_ids() -> AlignmentBundle:
     """Build a bundle whose ids are free strings, each given and kept as given.
 

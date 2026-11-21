@@ -22,16 +22,13 @@ import {
 } from "./diagnostics.js";
 
 /**
- * Yield timestamps off the manifest's timelines, outside their extent or groupless.
- *
- * A timestamp names a timeline of the manifest, at any depth, and its
- * coordinate lies between 0 and that timeline's length, or at or after 0
- * where the length is not known. A groupstamp (`groupstamp: true`) that is
- * no match timestamp lies on a timeline that is a member of a group; a
- * match timestamp that is a groupstamp is reported by `matchstampProblems`.
+ * The IDs of the timelines lying in a group, at any depth: a timeline lies
+ * in a group when it or one of its ancestors is listed in the group's
+ * `members`, since a member's descendants are drawn inside the member's
+ * card in the group's frame. An ancestor of a member lies in no group
+ * through it.
  */
-export function* timestampProblems(manifest: JsonObject): Generator<SchemaValidationError> {
-  const timelines = timelinesById(manifest);
+function groupedTimelines(manifest: JsonObject): Set<string> {
   const members = new Set(
     entries(manifest, "groups").flatMap((group) =>
       Array.isArray(group.members)
@@ -39,6 +36,29 @@ export function* timestampProblems(manifest: JsonObject): Generator<SchemaValida
         : [],
     ),
   );
+  const grouped = new Set<string>();
+  const visit = (timeline: JsonObject, inside: boolean): void => {
+    const id = text(timeline, "id");
+    const within = inside || members.has(id);
+    if (within) grouped.add(id);
+    for (const child of entries(timeline, "children")) visit(child, within);
+  };
+  for (const root of entries(manifest, "timelines")) visit(root, false);
+  return grouped;
+}
+
+/**
+ * Yield timestamps off the manifest's timelines, outside their extent or groupless.
+ *
+ * A timestamp names a timeline of the manifest, at any depth, and its
+ * coordinate lies between 0 and that timeline's length, or at or after 0
+ * where the length is not known. A groupstamp (`groupstamp: true`) that is
+ * no match timestamp lies in a group (`groupedTimelines`); a match
+ * timestamp that is a groupstamp is reported by `matchstampProblems`.
+ */
+export function* timestampProblems(manifest: JsonObject): Generator<SchemaValidationError> {
+  const timelines = timelinesById(manifest);
+  const grouped = groupedTimelines(manifest);
   for (const [index, timestamp] of timestampsOf(manifest).entries()) {
     const path = ["graphical", "timestamps", index];
     const id = text(timestamp, "timeline");
@@ -67,11 +87,11 @@ export function* timestampProblems(manifest: JsonObject): Generator<SchemaValida
         `${where} is beyond the length ${spell(length)} of its timeline '${id}'`,
       );
     }
-    if (timestamp.groupstamp === true && timestamp.matchstamp !== true && !members.has(id)) {
+    if (timestamp.groupstamp === true && timestamp.matchstamp !== true && !grouped.has(id)) {
       yield new SchemaValidationError(
         "groupstamp",
         [...path, "groupstamp"],
-        `'${text(timestamp, "id")}' is a groupstamp, but its timeline '${id}' is a member of no group`,
+        `'${text(timestamp, "id")}' is a groupstamp, but its timeline '${id}' is a member of no group and lies in none`,
       );
     }
   }

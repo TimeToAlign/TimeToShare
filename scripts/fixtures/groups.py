@@ -240,13 +240,40 @@ def group_measure_map() -> TimelineGroup:
 def group_groupstamp() -> TimelineGroup:
     """Build a group whose score carries a groupstamp.
 
-    The group "Performance" lists the score ``score`` ("Score", 8 quarters)
-    and the performance ``performance`` ("Performance", 4.0 seconds).
-    ``group_groupstamp`` holds it with the ``graphical`` entry of
+    The group "Performance" lists the score ``score`` ("Score", 8 quarters,
+    with a map to ticks) and the performance ``performance`` ("Performance",
+    4.0 seconds, with a map to samples), so each member has a conversion
+    maps band. ``group_groupstamp`` holds it with the ``graphical`` entry of
     ``GRAPHICAL``: the timestamp "Bar 2" at quarter 4 of the score, a
     groupstamp, whose line extends across both members.
     """
     score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
+    performance = parts.named(
+        ContinuousPhysicalTimeline, "performance", "Performance", 4.0
+    )
+    parts.with_maps(score, parts.ticks())
+    parts.with_maps(performance, parts.to_samples())
+    return TimelineGroup(name="Performance", timelines=[score, performance])
+
+
+def group_groupstamp_child_member() -> TimelineGroup:
+    """Build a group whose member's child carries a groupstamp.
+
+    The group "Performance" lists the score ``score`` ("Score", 8 quarters),
+    which holds the child ``second-half`` ("Second half", 4 quarters at 4),
+    and the performance ``performance`` ("Performance", 4.0 seconds).
+    ``group_groupstamp_child_member`` holds it with the ``graphical`` entry
+    of ``GRAPHICAL``: the timestamp "Bar 4" at quarter 2 of the child, a
+    groupstamp, since the child lies in the group through its parent.
+    """
+    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
+    parts.holding(
+        score,
+        parts.named(
+            ContinuousLogicalTimeline, "second-half", "Second half", Fraction(4)
+        ),
+        Fraction(4),
+    )
     performance = parts.named(
         ContinuousPhysicalTimeline, "performance", "Performance", 4.0
     )

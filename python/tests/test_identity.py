@@ -808,7 +808,17 @@ def test_a_child_without_a_double_sum_ends_at_the_exact_sum() -> None:
         (
             "groupstamp_without_group",
             "'timestamp_1' is a groupstamp, but its timeline 'clt_1' is a member of "
-            "no group",
+            "no group and lies in none",
+        ),
+        (
+            "groupstamp_child_without_group",
+            "'timestamp_3' is a groupstamp, but its timeline 'clt_2' is a member of "
+            "no group and lies in none",
+        ),
+        (
+            "groupstamp_member_parent",
+            "'timestamp_5' is a groupstamp, but its timeline 'piece' is a member of "
+            "no group and lies in none",
         ),
     ],
 )

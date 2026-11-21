@@ -24,6 +24,33 @@ from .diagnostics import (
 )
 
 
+def _grouped_timelines(manifest: Mapping[str, Any]) -> set[str]:
+    """Return the IDs of the timelines lying in a group, at any depth.
+
+    A timeline lies in a group when it or one of its ancestors is listed in
+    the group's ``members``: a member's descendants are drawn inside the
+    member's card in the group's frame. An ancestor of a member lies in no
+    group through it.
+    """
+    members = {
+        member
+        for group in _entries(manifest, "groups")
+        for member in group.get("members", [])
+    }
+    grouped: set[str] = set()
+
+    def visit(timeline: Mapping[str, Any], inside: bool) -> None:
+        inside = inside or timeline["id"] in members
+        if inside:
+            grouped.add(timeline["id"])
+        for child in _entries(timeline, "children"):
+            visit(child, inside)
+
+    for root in _entries(manifest, "timelines"):
+        visit(root, False)
+    return grouped
+
+
 def timestamp_problems(
     manifest: Mapping[str, Any],
 ) -> Iterator[SchemaValidationError]:
@@ -32,16 +59,12 @@ def timestamp_problems(
     A timestamp names a timeline of the manifest, at any depth, and its
     coordinate lies between 0 and that timeline's length, or at or after 0
     where the length is not known. A groupstamp (``groupstamp: true``) that
-    is no match timestamp lies on a timeline that is a member of a group;
-    a match timestamp that is a groupstamp is reported by
+    is no match timestamp lies in a group (:func:`_grouped_timelines`); a
+    match timestamp that is a groupstamp is reported by
     :func:`matchstamp_problems`.
     """
     timelines = timelines_by_id(manifest)
-    members = {
-        member
-        for group in _entries(manifest, "groups")
-        for member in group.get("members", [])
-    }
+    grouped = _grouped_timelines(manifest)
     for index, timestamp in enumerate(timestamps_of(manifest)):
         path = ("graphical", "timestamps", index)
         identifier = timestamp["timeline"]
@@ -72,13 +95,13 @@ def timestamp_problems(
         if (
             timestamp.get("groupstamp") is True
             and timestamp.get("matchstamp") is not True
-            and identifier not in members
+            and identifier not in grouped
         ):
             yield SchemaValidationError(
                 "groupstamp",
                 (*path, "groupstamp"),
                 f"'{timestamp['id']}' is a groupstamp, but its timeline "
-                f"'{identifier}' is a member of no group",
+                f"'{identifier}' is a member of no group and lies in none",
             )
 
 

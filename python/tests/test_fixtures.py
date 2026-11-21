@@ -480,6 +480,61 @@ def test_a_groupstamp_passes_through_the_emitter(
         for number, mark in enumerate(marks, start=2)
     ]
     assert value["graphical"]["timestamps"] == [*marks[:3], groupstamp, marks[3]]
+    assert {
+        timeline["id"]: [
+            (entry["source_unit"], entry["target_unit"])
+            for entry in timeline["conversion_maps"]
+        ]
+        for timeline in value["timelines"]
+    } == {"performance": [("seconds", "samples")], "score": [("quarters", "ticks")]}
+    validate(file)
+    assert identity_problems(file) == []
+
+
+def _groupstamps(value: dict[str, Any]) -> list[dict[str, Any]]:
+    """The groupstamps of a manifest with bare IDs, by their stated members."""
+    return [
+        {key: stamp[key] for key in ("id", "timeline", "coordinate", "name")}
+        for stamp in value["graphical"]["timestamps"]
+        if stamp.get("groupstamp") is True
+    ]
+
+
+@pytest.mark.parametrize("suffix", [".yaml", ".minimal.yaml"])
+def test_a_groupstamp_on_a_member_s_child_lies_in_the_group(suffix: str) -> None:
+    file = _load(FIXTURES / "groups" / f"group_groupstamp_child_member{suffix}")
+    value = with_bare_ids(file)
+    assert [(group["id"], sorted(group["members"])) for group in value["groups"]] == [
+        ("group_1", ["performance", "score"])
+    ]
+    children = {
+        timeline["id"]: [child["id"] for child in timeline.get("children", [])]
+        for timeline in value["timelines"]
+    }
+    assert children == {"performance": [], "score": ["second-half"]}
+    assert _groupstamps(value) == [
+        {
+            "id": "timestamp_1",
+            "timeline": "second-half",
+            "coordinate": [2, 1],
+            "name": "Bar 4",
+        }
+    ]
+    validate(file)
+    assert identity_problems(file) == []
+
+
+@pytest.mark.parametrize("suffix", [".yaml", ".minimal.yaml"])
+def test_a_groupstamp_on_a_shared_member_lies_in_both_groups(suffix: str) -> None:
+    file = _load(FIXTURES / "bundles" / f"bundle_groupstamp_shared_member{suffix}")
+    value = with_bare_ids(file)
+    assert [(group["id"], sorted(group["members"])) for group in value["groups"]] == [
+        ("g1", ["t", "u"]),
+        ("g2", ["t", "v"]),
+    ]
+    assert _groupstamps(value) == [
+        {"id": "timestamp_1", "timeline": "t", "coordinate": [4, 1], "name": "Bar 2"}
+    ]
     validate(file)
     assert identity_problems(file) == []
 
