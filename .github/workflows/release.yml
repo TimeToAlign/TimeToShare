@@ -169,8 +169,8 @@ jobs:
     permissions:
       contents: read
     steps:
-      # The default branch holds the assembling script; the documents are read from the
-      # release tag.
+      # The default branch (on a manual run, the branch chosen in the dispatch form)
+      # holds the assembling script; the documents are read from the release tag.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
@@ -186,22 +186,22 @@ jobs:
           repository: TimeToAlign/timetoalign.github.io
           ssh-key: ${{ secrets.ORG_SITE_DEPLOY_KEY }}
           path: site
-      # Adds the released documents (every file of schema/<version>/ and the
-      # catalogue's schema) to the organisation site's default branch, and commits
+      # Adds the released documents (every file of the tag's schema/<version>/ and
+      # the catalogue's schema, under that schema version, which the script alone
+      # reads from the tag) to the organisation site's default branch, and commits
       # nothing when the site already holds them, so a re-run is harmless.
       - name: Add the released documents to the organisation site
         env:
           TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
         run: |
-          version=${TAG#v}
           python3 timetoshare/scripts/check_published.py --ref "$TAG" --out site/timetoshare
           cd site
-          git add "timetoshare/$version"
+          git add timetoshare
           if git diff --cached --quiet; then
-            echo "The organisation site already serves the $version documents."
+            echo "The organisation site already serves the documents of $TAG."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "add the TimeToShare $version documents"
+          git commit -m "add the TimeToShare documents of $TAG"
           git push origin HEAD

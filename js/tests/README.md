@@ -267,7 +267,10 @@ Which number types a unit admits is the Python README's paragraph of that
 name, proved with the same values: `UNITS` (exported from the package
 index) stated literally row by row in `schema.test.ts`, its consts the
 schema's `TimeUnit` in order and the schema's `Timeline` conditional
-matching its admitted number types; the three shared cases
+matching its admitted number types, the `Coordinate` conditional equal to
+it, and the same seven single coordinates checked against `Coordinate`
+alone, refused at the same paths by the same keywords (Ajv's report of the
+`if` that chose the branch set aside); the three shared cases
 `timeline_ticks_float`, `timeline_seconds_int` and `timeline_quarters_int`;
 and in `validate.test.ts` every unit with every number type, at a root and
 at a child, valid exactly where the row admits it, else `schema` at the
@@ -784,7 +787,10 @@ back as the same integer.
 input; every distinct style name a rule names but `styles` lacks is
 added as an empty declaration, `missing` lists them in code-point order (`ﬀ` before
 `😀`), and with missing names it calls `console.warn` exactly once with the
-text of Python's `MissingStyleWarning`, with none never.
+text of Python's `MissingStyleWarning`, with none never. The copy keeps
+every number as `loads` read it: a style's `stroke-width: 2.0` stays a
+`JsonFloat` of value 2, `missing` is `["b"]`, the completed manifest
+validates and `dumps` writes `stroke-width: 2.0`.
 
 ## The fonts
 
@@ -812,7 +818,9 @@ the same table:
 ## Packaging
 
 After `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists
-`docs/drawing.md`, `schema/0.2.0/timetoshare.schema.json`,
+`docs/drawing.md`, exactly the three schema documents
+`schema/0.2.0/provenance.schema.json`, `schema/0.2.0/tables.json` and
+`schema/0.2.0/timetoshare.schema.json`,
 `catalogue/catalogue.yaml` and `catalogue/catalogue.schema.json` (and
 `package.json` exports `./catalogue/*`),
 `LICENSE` and

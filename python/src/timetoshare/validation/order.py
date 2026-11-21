@@ -17,7 +17,7 @@ _DEFAULT_BAND_ORDER = (
 )
 
 
-def _permutation_problems(
+def _listing_problems(
     code: ValidationCode,
     owner: str,
     order: list[str],
@@ -69,7 +69,7 @@ def order_problems(
         path = ("graphical", "order", key)
         if key in first_group:
             group = groups[first_group[key]]
-            yield from _permutation_problems(
+            yield from _listing_problems(
                 "display_order",
                 key,
                 orders[key],
@@ -81,7 +81,7 @@ def order_problems(
                 ),
             )
         elif key in timelines:
-            yield from _permutation_problems(
+            yield from _listing_problems(
                 "band_order",
                 key,
                 orders[key],

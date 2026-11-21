@@ -608,13 +608,7 @@ def rectangles(
     for key, members in sorted(groups, key=lambda group: min(group[1])):
         chosen = sorted(members)
         label = next(
-            (
-                stated[number][1]["label"]
-                for number in chosen
-                if _is_node(stated[number][1])
-                and isinstance(stated[number][1].get("label"), str)
-            ),
-            None,
+            (labels[number] for number in chosen if labels[number] is not None), None
         )
         found.append(
             Rectangle(

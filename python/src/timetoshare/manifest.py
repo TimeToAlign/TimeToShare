@@ -45,7 +45,6 @@ __all__ = [
     "ANCHOR_DISPLAY",
     "TIMESTAMP_DISPLAY",
     "UNITS",
-    "UNIT_NUMBER_TYPES",
     "UnitEntry",
     "canonical_order",
 ]
@@ -94,11 +93,6 @@ UNITS: Mapping[str, UnitEntry] = MappingProxyType(
 modality, default number type and admitted number types. A discrete unit
 admits ``int`` only, a continuous unit ``float`` or ``fraction``, and
 ``number`` all three."""
-
-UNIT_NUMBER_TYPES: Mapping[str, str] = MappingProxyType(
-    {unit: entry.number_type for unit, entry in UNITS.items()}
-)
-"""The default number type of each unit, read from :data:`UNITS`."""
 
 _NUMBER_TYPES = ("int", "float", "fraction")
 
@@ -258,10 +252,10 @@ def _axis_type(timeline: Mapping[str, Any]) -> str | None:
     (``null`` included); a missing ``number_type`` is the unit's default.
     """
     unit = timeline.get("unit")
-    if not isinstance(unit, str) or unit not in UNIT_NUMBER_TYPES:
+    if not isinstance(unit, str) or unit not in UNITS:
         return None
     if "number_type" not in timeline:
-        return UNIT_NUMBER_TYPES[unit]
+        return UNITS[unit].number_type
     number_type = timeline["number_type"]
     return number_type if number_type in _NUMBER_TYPES else None
 

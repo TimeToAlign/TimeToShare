@@ -128,6 +128,7 @@ def test_one_document_with_one_root() -> None:
     assert sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir()) == ["0.2.0"]
     assert sorted(p.name for p in (REPOSITORY_ROOT / "schema" / "0.2.0").iterdir()) == [
         "provenance.schema.json",
+        "tables.json",
         "timetoshare.schema.json",
     ]
     assert schema["$id"] == (
@@ -283,6 +284,50 @@ def test_the_timeline_states_which_number_types_a_unit_admits() -> None:
         "if": {"properties": {"unit": {"const": "number"}}, "required": ["unit"]},
         "else": {"properties": {"number_type": {"enum": ["float", "fraction"]}}},
     }
+    coordinate = _defs()["Coordinate"]
+    for key in ("if", "then", "else"):
+        assert coordinate[key] == timeline[key]
+
+
+@pytest.mark.parametrize(
+    ("coordinate", "keyword"),
+    [
+        (
+            {"unit": "ticks", "number_type": "float", "value": 1.5},
+            ["then", "properties", "number_type", "const"],
+        ),
+        (
+            {"unit": "seconds", "number_type": "int", "value": 10},
+            ["else", "else", "properties", "number_type", "enum"],
+        ),
+        (
+            {"unit": "quarters", "number_type": "int", "value": 8},
+            ["else", "else", "properties", "number_type", "enum"],
+        ),
+        ({"unit": "ticks", "number_type": "int", "value": 480}, None),
+        ({"unit": "seconds", "number_type": "float", "value": 1.5}, None),
+        ({"unit": "quarters", "number_type": "fraction", "value": [1, 2]}, None),
+        ({"unit": "number", "number_type": "int", "value": 2}, None),
+    ],
+    ids=[
+        "ticks_float",
+        "seconds_int",
+        "quarters_int",
+        "ticks_int",
+        "seconds_float",
+        "quarters_fraction",
+        "number_int",
+    ],
+)
+def test_a_coordinate_admits_the_number_types_of_its_unit(
+    coordinate: dict[str, Any], keyword: list[str] | None
+) -> None:
+    validator = Draft202012Validator({"$ref": "#/$defs/Coordinate", "$defs": _defs()})
+    errors = [
+        (list(error.absolute_path), list(error.absolute_schema_path))
+        for error in validator.iter_errors(coordinate)
+    ]
+    assert errors == ([] if keyword is None else [(["number_type"], keyword)])
 
 
 def test_repeated_shapes_are_shared_definitions() -> None:

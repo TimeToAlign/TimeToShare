@@ -32,11 +32,13 @@ from timetoshare.tables import (  # noqa: E402
     COORDINATE_KEYS,
     COORDINATE_TYPE,
     MATCH_CLAIM_COLUMNS,
+    MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
     NUMBER_KEYS,
     NUMBER_MEMBERS,
     NUMBER_TYPE,
     PROJECTION_COLUMNS,
+    PROJECTION_REQUIRED,
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
@@ -44,6 +46,7 @@ from timetoshare.tables import (  # noqa: E402
     TABLES_DOCUMENT,
     AlignmentAnchor,
     TableError,
+    TableProblem,
     TimelineCoordinate,
     alignment_anchors,
     check_match_claims,
@@ -400,6 +403,26 @@ def test_the_column_types_are_published_as_data() -> None:
         "MatchClaim": ["timeline_a_id", "timeline_b_id", "is_synchronous", "id"],
         "Projection": ["id", "timeline_id", "unit", "number_type", "start"],
     }
+    assert MATCH_CLAIM_REQUIRED == (
+        "timeline_a_id",
+        "timeline_b_id",
+        "is_synchronous",
+        "id",
+    )
+    assert PROJECTION_REQUIRED == ("id", "timeline_id", "unit", "number_type", "start")
+    named = {
+        *(member["type"] for t in types.values() for member in t.get("struct", ())),
+        *(column["type"] for table in tables.values() for column in table["columns"]),
+    }
+    assert sorted(named - set(types)) == ["bool", "float64", "int64", "string"]
+    assert [
+        pa.type_for_alias(name) for name in ("string", "bool", "int64", "float64")
+    ] == [
+        pa.string(),
+        pa.bool_(),
+        pa.int64(),
+        pa.float64(),
+    ]
 
 
 def test_a_number_and_a_coordinate_cell() -> None:
@@ -665,6 +688,18 @@ CLAIM_CASES = [
         put(0, "start_anchor", "coordinate_b", "number_type", value="decimal"),
         [("invalid_coordinate", 0, ("start_anchor", "coordinate_b"))],
         "'decimal' is no number type",
+    ),
+    (
+        "discrete_unit_float",
+        put(0, "start_anchor", "coordinate_b", value={**sec(0.0), "unit": "samples"}),
+        [("invalid_coordinate", 0, ("start_anchor", "coordinate_b"))],
+        "'samples' admits no number type 'float'",
+    ),
+    (
+        "continuous_unit_int",
+        put(1, "end_anchor", "coordinate_a", value={**smp(2), "unit": "quarters"}),
+        [("invalid_coordinate", 1, ("end_anchor", "coordinate_a"))],
+        "'quarters' admits no number type 'int'",
     ),
     (
         "numerator_missing",
@@ -1041,6 +1076,43 @@ def test_one_actor_under_two_spellings_is_refused_against_the_manifest() -> None
     )
 
 
+def test_a_number_type_the_unit_does_not_admit_needs_no_manifest() -> None:
+    claims = claims_table(
+        changed(
+            CLAIMS,
+            put(
+                0, "start_anchor", "coordinate_b", value={**sec(0.0), "unit": "samples"}
+            ),
+        )
+    )
+    expected = [
+        TableProblem(
+            "invalid_coordinate",
+            0,
+            ("start_anchor", "coordinate_b"),
+            "'samples' admits no number type 'float'",
+        )
+    ]
+    assert match_claim_problems(claims) == expected
+    assert match_claim_problems(claims, MANIFEST) == expected
+    projections = projections_table(
+        changed(
+            PROJECTIONS,
+            lambda rows: rows[0].update(number_type="float", start=number(sec(0.0))),
+        )
+    )
+    expected = [
+        TableProblem(
+            "invalid_coordinate",
+            0,
+            ("number_type",),
+            "'samples' admits no number type 'float'",
+        )
+    ]
+    assert projection_problems(projections) == expected
+    assert projection_problems(projections, MANIFEST) == expected
+
+
 def test_an_unknown_timeline_is_refused_only_against_the_manifest() -> None:
     table = claims_table(changed(CLAIMS, put(3, "timeline_b_id", value="dpt_9")))
     assert match_claim_problems(table) == []
@@ -1226,6 +1298,12 @@ PROJECTION_CASES = [
         "'decimal' is no number type",
     ),
     (
+        "number_type_not_admitted",
+        put(2, "number_type", value="fraction"),
+        [("invalid_coordinate", 2, ("number_type",))],
+        "'samples' admits no number type 'fraction'",
+    ),
+    (
         "start_mirror",
         put(2, "start", "value", value=132300.0),
         [("invalid_coordinate", 2, ("start",))],
@@ -1253,9 +1331,18 @@ PROJECTION_CASES = [
     ),
     (
         "two_number_types",
-        lambda rows: rows[2].update(number_type="fraction", start=number(q(132300))),
+        lambda rows: [
+            rows[0].update(unit="seconds", number_type="float", start=number(sec(0.0))),
+            rows[1].update(
+                unit="seconds",
+                number_type="float",
+                start=number(sec(1.0)),
+                duration=number(sec(1.0)),
+            ),
+            rows[2].update(unit="seconds", number_type="fraction", start=number(q(3))),
+        ],
         [("axis_mismatch", 2, ("number_type",))],
-        "the timeline 'dpt_1' has coordinates in samples (int) and in samples "
+        "the timeline 'dpt_1' has coordinates in seconds (float) and in seconds "
         "(fraction)",
     ),
 ]
@@ -1353,12 +1440,14 @@ def test_projections_against_the_manifest() -> None:
     rows[1]["duration"] = number(sec(1.0))
     rows[2]["unit"] = "samples"
     table = projections_table(rows)
-    assert found(projection_problems(table)) == [("axis_mismatch", 2, ("unit",))]
+    assert found(projection_problems(table)) == [
+        ("invalid_coordinate", 2, ("number_type",))
+    ]
     assert found(projection_problems(table, MANIFEST)) == [
         ("axis_mismatch", 0, ("unit",)),
         ("unknown_timeline", 0, ("projection_of", "timeline_id")),
         ("axis_mismatch", 1, ("unit",)),
-        ("axis_mismatch", 2, ("number_type",)),
+        ("invalid_coordinate", 2, ("number_type",)),
     ]
     with pytest.raises(TableError) as error:
         check_projections(table, MANIFEST)

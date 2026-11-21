@@ -16,7 +16,7 @@ DOCUMENTS = {
         f"schema/0.2.0/{name}": (
             REPOSITORY_ROOT / "schema" / "0.2.0" / name
         ).read_bytes()
-        for name in ("tables.json", "timetoshare.schema.json")
+        for name in ("provenance.schema.json", "tables.json", "timetoshare.schema.json")
     },
     **{
         f"catalogue/{name}": (REPOSITORY_ROOT / "catalogue" / name).read_bytes()

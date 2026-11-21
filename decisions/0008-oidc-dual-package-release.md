@@ -39,28 +39,36 @@ tag publishes that release again and skips every file a registry already
 holds, so a release whose publishing failed part-way is completed without a
 new version.
 
-Every released schema is served at two addresses. Its `$id` is lowercase,
-`https://timetoalign.github.io/timetoshare/<version>/timetoshare.schema.json`,
+A version publishes every file of `schema/<version>/` (the manifest schema,
+the provenance schema and the column types of the tables, `tables.json`)
+and the catalogue's schema `catalogue/catalogue.schema.json`, and every
+released document is served at two addresses. Its `$id` is lowercase,
+`https://timetoalign.github.io/timetoshare/<version>/<document>`,
 a path of the organisation site, which the repository
 `TimeToAlign/timetoalign.github.io` publishes. The repository
 `TimeToAlign/TimeToShare` publishes its own Pages site under
 `https://timetoalign.github.io/TimeToShare/`, and a Pages path is
 case-sensitive: `/TimeToShare/` and `/timetoshare/` are different addresses,
 and a project site is served only under its repository's name as spelled.
-So two jobs follow the publishing:
+Both sites are assembled by one standard-library script,
+`scripts/check_published.py`, which reads a tag's documents and refuses a
+tag whose documents lack an `$id`, name another address than their own, or
+refer to a document or a member not served; continuous integration runs it
+over the working tree and over every release tag, as the release does. So
+two jobs follow the publishing:
 
 - The pages job deploys the repository's Pages site holding
-  `<version>/timetoshare.schema.json` for every released tag, assembled from
-  the tags themselves, so every released schema stays served at
-  `https://timetoalign.github.io/TimeToShare/<version>/timetoshare.schema.json`.
+  `<version>/<document>` for every document of every released tag,
+  assembled from the tags themselves, so every released document stays
+  served at `https://timetoalign.github.io/TimeToShare/<version>/<document>`.
   It uses GitHub's own actions `actions/configure-pages@v6`,
   `actions/upload-pages-artifact@v5` and `actions/deploy-pages@v5`, and no
   other dependency. Primary source:
   https://docs.github.com/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages.
-- The org-site job copies the released schema from the release tag to
-  `timetoshare/<version>/timetoshare.schema.json` in the organisation site's
-  repository and pushes it to that repository's default branch as
-  `github-actions[bot]`, committing only when the file changed, so the
+- The org-site job writes the released documents, assembled from the
+  release tag, to `timetoshare/<version>/` in the organisation site's
+  repository and pushes them to that repository's default branch as
+  `github-actions[bot]`, committing only when a file changed, so every
   `$id` resolves. It authenticates with a deploy key, the secret
   `ORG_SITE_DEPLOY_KEY`, which may write to that one repository only, and
   uses `actions/checkout@v7` and git alone. Primary source:
@@ -75,7 +83,7 @@ release cadence keeps versions aligned; exiting to separate tags costs
 process and version checks. Writing OIDC exchange logic ourselves would add
 security-sensitive maintenance. Each deployment replaces the whole site, so
 the repository's site depends on the release tags alone, never on a stored
-copy. The organisation site keeps every schema it was given, one commit per
+copy. The organisation site keeps every document it was given, one commit per
 release, and depends on the deploy key; without the key the `$id` of a new
 release stays unresolved while the repository's site serves it. A registry
 CDN or a raw repository URL would not resolve the `$id` the document names,

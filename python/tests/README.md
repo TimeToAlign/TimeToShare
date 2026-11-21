@@ -243,8 +243,8 @@ code `schema` at `["timelines", 0, "unit"]`, as the shared case
 read as the discrete `pixels`.
 
 **Which number types a unit admits.** `UNITS` (exported as
-`timetoshare.UNITS`, the one table of the package; `UNIT_NUMBER_TYPES` is
-read from it) gives every unit its domain, modality, default number type
+`timetoshare.UNITS`, the one table of the package, which every module
+reading a unit's default number type reads) gives every unit its domain, modality, default number type
 and admitted number types: `ticks`, `samples`, `frames` and `pixels` admit
 `("int",)`, `number` admits `("int", "float", "fraction")`, every other
 unit `("float", "fraction")`. `test_schema.py` states the table literally,
@@ -261,6 +261,19 @@ unit's row admits that number type and is otherwise refused at its
 `number_type`, and the same for a child of such a root (refused at
 `["timelines", 0, "children", 0, "number_type"]`). A unit's default
 number type is always one it admits, and `number` with `int` validates.
+The schema's `Coordinate`, the self-describing `{unit, number_type,
+value}` a host exchanges outside a manifest, carries the same rule:
+`test_schema.py` requires its `if`, `then` and `else` to equal the
+`Timeline`'s, and checks single coordinates against the definition alone.
+`{unit: ticks, number_type: float, value: 1.5}` is refused at
+`number_type` by the keyword `then/properties/number_type/const`;
+`{unit: seconds, number_type: int, value: 10}` and `{unit: quarters,
+number_type: int, value: 8}` at `number_type` by
+`else/else/properties/number_type/enum`; each is the one error found, and
+`{ticks, int, 480}`, `{seconds, float, 1.5}`, `{quarters, fraction, [1,
+2]}` and `{number, int, 2}` validate. The JavaScript suite checks the
+same coordinates with Ajv and finds the same paths and keywords; the
+message of a `schema` problem is each validator's own.
 
 ## Reading by the declared number type
 
@@ -1935,8 +1948,10 @@ extraction's are without fontTools. What proves them:
   `number`, `coordinate`, `anchor` and `projection_of` as Arrow structs of
   named members and `provenance` as the struct read from the provenance
   schema it names; its `tables` give each table a `status` and its
-  `columns` in order, each a `name`, a `type` (an Arrow type name or a type
-  of `types`) and whether it is `nullable`. The test reads the file and
+  `columns` in order, each a `name`, a `type` (one of the four type names
+  `string`, `bool`, `int64` and `float64`, Arrow's utf8, bool, int64 and
+  double, or a type of `types`) and whether it is `nullable`. The test
+  reads the file and
   pins it: its `$id` is
   `https://timetoalign.github.io/timetoshare/0.2.0/tables.json`, its
   sections are exactly `types` and `tables`, the MatchClaim table is
@@ -1951,7 +1966,12 @@ extraction's are without fontTools. What proves them:
   field is nullable, so a writer need declare nothing, and the columns the
   file marks `nullable: false` are exactly those a null is refused in
   (`timeline_a_id`, `timeline_b_id`, `is_synchronous`, `id`; `id`,
-  `timeline_id`, `unit`, `number_type`, `start`), each proved below. A
+  `timeline_id`, `unit`, `number_type`, `start`), each proved below, and
+  `MATCH_CLAIM_REQUIRED` and `PROJECTION_REQUIRED` are these tuples. Every
+  column and member type is one of the four names or a name of `types`,
+  and the four are `pa.string()`, `pa.bool_()`, `pa.int64()` and
+  `pa.float64()`, so a reader in another language needs no list beyond
+  the description's. A
   column added to the file, a type changed or a status changed fails the
   test that names it.
 - **A number holds its number type's members alone.** `NUMBER_MEMBERS`
@@ -1990,7 +2010,9 @@ extraction's are without fontTools. What proves them:
   column is one of the undeclared columns, kept and never checked: one of
   integers is no problem, and one of strings giving a repeated `claim_1`
   two values leaves it given twice; a
-  coordinate cell with an unknown unit or number type, without a member
+  coordinate cell with an unknown unit or number type, or with a number
+  type its unit does not admit by `UNITS` (`'samples' admits no number
+  type 'float'`, `'quarters' admits no number type 'int'`), without a member
   its number type fills (an int without `numerator`, a fraction without
   `denominator`, a float without `value`), with a member its number type
   leaves null (an int with a `denominator` or a `value`, a fraction with a
@@ -2028,11 +2050,14 @@ extraction's are without fontTools. What proves them:
   (`axis_mismatch`); a Projection whose `projection_of` lacks a member or
   names its own timeline (`invalid_projection_of`), whose row's `unit` or
   `number_type` is null (`schema_violation`) or unknown
-  (`invalid_coordinate` at that column), whose `start` or `duration`
+  (`invalid_coordinate` at that column), whose row's number type its unit
+  does not admit (`'samples' admits no number type 'fraction'`,
+  `invalid_coordinate` at `number_type`), whose `start` or `duration`
   breaks the number rule of the row's number type (`invalid_coordinate`
   at that column), whose `duration` is negative (`invalid_duration`), two
   Projections of one timeline whose rows state two units
-  (`axis_mismatch` at `unit`) or two number types (at `number_type`),
+  (`axis_mismatch` at `unit`) or two number types its unit admits
+  (seconds as float and as fraction, at `number_type`),
   and a `projection_of` column holding a joined string
   (`schema_violation`).
 - **A fraction in any terms is its value.** No check asks a fraction
@@ -2052,7 +2077,12 @@ extraction's are without fontTools. What proves them:
   cell, every Projection's row, is in its timeline's own unit and number
   type (`axis_mismatch`): seconds on a samples timeline and a float on a
   fraction axis are refused, the same cells and rows without a manifest
-  are not.
+  are not. A number type the unit does not admit is no question of the
+  manifest: a MatchClaim's `samples` cell as `float` and a Projection's
+  `samples` row as `float` are refused as `invalid_coordinate`, at the
+  cell and at `number_type`, with the same message with and without the
+  manifest, and never also reported as `axis_mismatch`. A test where the
+  manifest is needed to refuse such a pair fails.
 - **The succession rule.** `check_succession(old, new)` accepts the same
   table, the table with rows appended and the table with every provenance
   changed (a belief added); it refuses a missing ID (`succession_missing`)
@@ -2150,12 +2180,48 @@ Values whose integer length is `9007199254740993` (2^53 + 1) or
 `9223372036854775807` (2^63 - 1) on a ticks axis validate and serialize back
 to the same integer.
 
+## The publication check
+
+`scripts/check_published.py` assembles what a release serves under
+`https://timetoalign.github.io/timetoshare/<version>/` and refuses a tree
+whose addresses do not hold; both release jobs build their sites with it,
+so a check that cannot fail would let a release publish documents whose
+`$id` or `$ref` lead nowhere. `test_published.py` loads the script by its
+path and proves both directions with `problems()`:
+
+- The repository's tree is sound: `published()` holds exactly
+  `0.2.0/catalogue.schema.json`, `0.2.0/provenance.schema.json`,
+  `0.2.0/tables.json` and `0.2.0/timetoshare.schema.json`, each byte for
+  byte its file, and `problems(published())` is `[]`; a small hand-written
+  tree (a document whose `$ref` names a member of another, a
+  `tables.json` naming a schema served beside it) is sound as well.
+- Each broken tree gives exactly its message, one per rule, each made
+  from the sound small tree by one change: a `$ref` to a document not
+  served (`0.2.0/a.json: c.json names a document not published`), an
+  `$id` that is not the document's address (`0.2.0/a.json: its $id
+  https://timetoalign.github.io/timetoshare/0.1.0/a.json is not its
+  address https://timetoalign.github.io/timetoshare/0.2.0/a.json`,
+  followed by `0.2.0/a.json: b.json#/$defs/Kept names a document not
+  published`, since a reference is resolved against the `$id` the
+  document claims, under which `b.json` is not served), a
+  document without `$id` (`0.2.0/a.json: no $id`), a pointer naming no
+  member (`0.2.0/a.json: b.json#/$defs/Missing names no member`) and a
+  type of `tables.json` naming a schema not served
+  (`0.2.0/tables.json: b.json names a document not published`).
+- The real tree without `0.2.0/provenance.schema.json` gives the two
+  messages of the two documents that refer to it, `tables.json` first.
+
+A test that finds no problem in one of the broken trees fails, so the
+check cannot become a check that passes everything.
+
 ## Packaging
 
 The test builds the sdist and the wheel with `uv build` twice (the wheel
 from the checkout, and from the sdist as the release does) and requires
 `timetoshare/docs/drawing.md`,
 `timetoshare/schema/0.2.0/timetoshare.schema.json`,
+`timetoshare/schema/0.2.0/provenance.schema.json`,
+`timetoshare/schema/0.2.0/tables.json`,
 `timetoshare/catalogue/catalogue.yaml`,
 `timetoshare/catalogue/catalogue.schema.json` and the five files of
 `fonts/` in the wheel, the same under `src/timetoshare/` in the sdist, each

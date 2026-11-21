@@ -9,7 +9,7 @@ its sites with this script, so the tree checked here is the tree served.
 
 The check fails when
 
-* a document's ``$id`` is not the address it is served at,
+* a document has no ``$id``, or one that is not the address it is served at,
 * a ``$ref`` (or a type of ``tables.json`` naming its ``schema``) points to a
   document the tree does not hold, or its fragment to no member of it.
 
@@ -130,7 +130,9 @@ def problems(files: dict[str, bytes]) -> list[str]:
     for path, document in sorted(documents.items()):
         address = SITE + path
         identifier = document.get("$id")
-        if identifier is not None and identifier != address:
+        if identifier is None:
+            found.append(f"{path}: no $id")
+        elif identifier != address:
             found.append(f"{path}: its $id {identifier} is not its address {address}")
         base = identifier or address
         for reference in sorted(set(_references(document, Path(path).name))):
