@@ -2,7 +2,7 @@ code: band_order
 manifest:
   graphical:
     order:
-      "#score": [children, conversion_maps, line, regions, flow_control]
+      "#score": [children, conversion_maps, markers, regions, flow_control]
     rules: []
     styles: {}
     timestamps: []
@@ -26,4 +26,4 @@ manifest:
       unit: quarters
   timetoshare: "0.2.0"
 path: [graphical, order, score]
-reason: "A band order is a permutation of line and the timeline's five facets; markers is missing."
+reason: "A band order lists line and any of the timeline's five facets; line is missing."

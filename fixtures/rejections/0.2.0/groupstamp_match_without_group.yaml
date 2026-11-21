@@ -62,69 +62,28 @@ manifest:
           -
             display: [line, name]
             id: "#anchor_1"
-            timestamps: ["#timestamp_2", "#timestamp_1"]
+            timestamps: ["#timestamp_1", "#timestamp_2"]
         id: "#matchstamp_1"
-        match_claims: [claim_1]
-        name: "Bar 2, performed"
+        match_claims: [claim_1, claim_2]
+        name: "Bar 2, downbeat (take 1)"
       -
         alignment_anchors:
           -
-            display: [line, name]
+            display: [line]
             id: "#anchor_2"
             timestamps: ["#timestamp_1", "#timestamp_3"]
         id: "#matchstamp_2"
-        match_claims: [claim_2]
-        name: "Second half, bar 1"
-    order:
-      "#group_1": ["#score", "#performance"]
-      "#group_2": ["#score", "#page"]
+        match_claims: [claim_3]
+        name: "Bar 2, downbeat (take 2)"
+    order: {}
     rules: []
     styles: {}
     timestamps:
       -
-        coordinate: 0
-        display: [wedge, coordinate]
-        groupstamp: false
-        id: "#timestamp_4"
-        matchstamp: false
-        name: origin
-        timeline: "#page"
-      -
-        coordinate: 800
-        display: [wedge, coordinate]
-        groupstamp: false
-        id: "#timestamp_5"
-        matchstamp: false
-        name: length
-        timeline: "#page"
-      -
-        coordinate: 0.0
-        display: [wedge, coordinate]
-        groupstamp: false
-        id: "#timestamp_6"
-        matchstamp: false
-        name: origin
-        timeline: "#performance"
-      -
-        coordinate: 1.0
-        display: [cross_section]
-        groupstamp: false
-        id: "#timestamp_2"
-        matchstamp: true
-        timeline: "#performance"
-      -
-        coordinate: 4.0
-        display: [wedge, coordinate]
-        groupstamp: false
-        id: "#timestamp_7"
-        matchstamp: false
-        name: length
-        timeline: "#performance"
-      -
         coordinate: [0, 1]
         display: [wedge, coordinate]
         groupstamp: false
-        id: "#timestamp_8"
+        id: "#timestamp_4"
         matchstamp: false
         name: origin
         timeline: "#score"
@@ -139,76 +98,66 @@ manifest:
         coordinate: [8, 1]
         display: [wedge, coordinate]
         groupstamp: false
-        id: "#timestamp_9"
+        id: "#timestamp_5"
         matchstamp: false
         name: length
         timeline: "#score"
       -
-        coordinate: [2, 1]
+        coordinate: 0
+        display: [wedge, coordinate]
+        groupstamp: false
+        id: "#timestamp_6"
+        matchstamp: false
+        name: origin
+        timeline: "#take_1"
+      -
+        coordinate: 88200
         display: [cross_section]
+        groupstamp: false
+        id: "#timestamp_2"
+        matchstamp: true
+        timeline: "#take_1"
+      -
+        coordinate: 352800
+        display: [wedge, coordinate]
+        groupstamp: false
+        id: "#timestamp_7"
+        matchstamp: false
+        name: length
+        timeline: "#take_1"
+      -
+        coordinate: 0
+        display: [wedge, coordinate]
+        groupstamp: false
+        id: "#timestamp_8"
+        matchstamp: false
+        name: origin
+        timeline: "#take_2"
+      -
+        coordinate: 99225
+        display: [name, cross_section]
         groupstamp: false
         id: "#timestamp_3"
         matchstamp: true
-        timeline: "#second-half"
-  groups:
-    -
-      id: "#group_1"
-      members: ["#performance", "#score"]
-      meta: {}
-      name: Performance
-    -
-      id: "#group_2"
-      members: ["#page", "#score"]
-      meta: {}
-      name: Page
+        name: "Take 2, bar 2"
+        timeline: "#take_2"
+      -
+        coordinate: 396900
+        display: [wedge, coordinate]
+        groupstamp: false
+        id: "#timestamp_9"
+        matchstamp: false
+        name: length
+        timeline: "#take_2"
+  groups: []
   measure_maps: []
   meta:
     generator: "timetoalign 1.2.0 (40161e42)"
-  name: "MatchStamp cards"
+  name: MatchStamps
   resources: []
   timelines:
     -
       children: []
-      conversion_maps: []
-      flow_control: []
-      id: "#page"
-      is_segment_line: false
-      length: 800
-      locked: false
-      meta: {}
-      name: Page
-      number_type: int
-      regions: []
-      unit: pixels
-    -
-      children: []
-      conversion_maps: []
-      flow_control: []
-      id: "#performance"
-      is_segment_line: false
-      length: 4.0
-      locked: false
-      meta: {}
-      name: Performance
-      number_type: float
-      regions: []
-      unit: seconds
-    -
-      children:
-        -
-          children: []
-          conversion_maps: []
-          flow_control: []
-          id: "#second-half"
-          is_segment_line: false
-          length: [4, 1]
-          locked: true
-          meta: {}
-          name: "Second half"
-          number_type: fraction
-          offset: [4, 1]
-          regions: []
-          unit: quarters
       conversion_maps: []
       flow_control: []
       id: "#score"
@@ -220,6 +169,32 @@ manifest:
       number_type: fraction
       regions: []
       unit: quarters
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#take_1"
+      is_segment_line: false
+      length: 352800
+      locked: false
+      meta: {}
+      name: "Take 1"
+      number_type: int
+      regions: []
+      unit: samples
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#take_2"
+      is_segment_line: false
+      length: 396900
+      locked: false
+      meta: {}
+      name: "Take 2"
+      number_type: int
+      regions: []
+      unit: samples
   timetoshare: "0.2.0"
-path: [graphical, timestamps, 6, groupstamp]
-reason: "A match timestamp is never a groupstamp; timestamp_1 is both, though its timeline score is a member of two groups."
+path: [graphical, timestamps, 1, groupstamp]
+reason: "A match timestamp may be a groupstamp only on a timeline lying in a group; score lies in none."

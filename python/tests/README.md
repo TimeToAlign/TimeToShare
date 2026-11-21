@@ -83,12 +83,19 @@ rejection cases that use them (`test_schema.py`):
   `floating_measures` (`FloatingMeasureMap`) or null (the other three).
 - **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
   `{const, description}` per unit and no `enum`. The consts, in order, are
-  exactly the keys of `UNIT_NUMBER_TYPES`, and each description begins
-  `<Domain>, <modality>; default number type <t>.` with `t` that unit's
-  value in the table, so the default number types the validators read
-  cannot drift from the ones the schema states; a unit whose name does not
-  say what it measures (`css_pixels`, `user_units`) adds one sentence
-  after it.
+  exactly the keys of `UNITS`, and each description begins
+  `<Domain>, <modality>; default number type <t>.` with the domain, the
+  modality and the default number type of that unit's row of `UNITS`, so
+  the table the packages read cannot drift from the one the schema states;
+  a unit whose name does not say what it measures (`css_pixels`,
+  `user_units`) adds one sentence after it. `Timeline` states which number
+  types a unit admits as one conditional: the units whose `number_types` in
+  `UNITS` are `["int"]` are exactly the `enum` of its `if`, whose `then`
+  sets `number_type` to the `const` `int`; its `else` exempts the one unit
+  admitting all three (`number`, the `const` of the inner `if`) and gives
+  every other unit the `enum` `["float", "fraction"]`, which is exactly
+  the `number_types` of each of them. So third-party validators reading the
+  schema alone refuse what the packages refuse.
 - **Shared definitions.** A shape that repeats is defined once: `Name`
   (string or null, default null) and `Meta` (a free object, default `{}`)
   are referred to by every `name` of the manifest, a timeline, a group, a
@@ -228,11 +235,32 @@ The two vector-graphics units, `css_pixels` (the CSS pixel) and
 the table is read like its neighbours (`test_validate.py`): a root of
 each, with the length `600.5` and `number_type` `float`, `[1201, 2]` and
 `fraction`, or `600` and `int`, validates exactly where the same root in
-`points`, the other continuous graphical unit, validates (all three).
+`points`, the other continuous graphical unit, validates (the first two;
+`int` is refused for all three, a continuous unit admitting no `int`).
 Neither has an abbreviation: a root in `px` or in `uu` is refused with the
 code `schema` at `["timelines", 0, "unit"]`, as the shared case
 `timeline_unit_unknown` refuses `beats`, so a short spelling can never be
 read as the discrete `pixels`.
+
+**Which number types a unit admits.** `UNITS` (exported as
+`timetoshare.UNITS`, the one table of the package; `UNIT_NUMBER_TYPES` is
+read from it) gives every unit its domain, modality, default number type
+and admitted number types: `ticks`, `samples`, `frames` and `pixels` admit
+`("int",)`, `number` admits `("int", "float", "fraction")`, every other
+unit `("float", "fraction")`. `test_schema.py` states the table literally,
+row by row, and the JavaScript suite states the same rows. A
+`number_type` the unit does not admit is a `schema` problem at the
+timeline's `number_type`, at any depth. What proves it: the shared cases
+`timeline_ticks_float` (ticks declared `float`, length `480.0`),
+`timeline_seconds_int` (seconds declared `int`, length `10`) and
+`timeline_quarters_int` (quarters declared `int`, length `8`), each refused
+at `["timelines", 0, "number_type"]`; and inline (`test_validate.py`), for
+every unit and every number type, a root whose `length` is the number
+type's spelling of 2 (`2`, `2.0`, `[2, 1]`) validates exactly where the
+unit's row admits that number type and is otherwise refused at its
+`number_type`, and the same for a child of such a root (refused at
+`["timelines", 0, "children", 0, "number_type"]`). A unit's default
+number type is always one it admits, and `number` with `int` validates.
 
 ## Reading by the declared number type
 
@@ -262,6 +290,28 @@ at the length), a non-integral Fraction member (`length_fraction_member_not_inte
 (`length_fraction_on_int_axis`) or on a float axis
 (`child_offset_fraction_on_float_axis`), and a bare number on a fraction
 axis (`length_int_on_fraction_axis`, `region_start_float_on_fraction_axis`).
+
+**One acceptance table: the number type fixes the form, the spelling within
+the form is free.** `fixtures/acceptances/0.2.0/numbers.yaml` holds the
+rows every reader of an own-axis value runs, each `{number_type, value}`
+with either `read`, the value read written as its number type spells it
+(the canonical spelling), or `refused: representation`. The rows, in
+order: fraction `[2, 4]` → `[1, 2]`, `[1, 8.0]` → `[1, 8]`, `[4, 8.0]` →
+`[1, 2]`, `[-3, 6]` → `[-1, 2]`; int `480` → `480`, `480.0` → `480`;
+float `2` → `2.0`, `0.1` → `0.1`; refused: int `[480, 1]` and `2.5`,
+fraction `12` and `12.0`, float `[25, 2]` and `9007199254740993`. A
+Fraction member with a fractional part stays the `schema` refusal of
+`length_fraction_member_not_integral` and is no row. What proves it
+(`test_validate.py`): the rows are stated literally (number type and
+value), so a row cannot disappear unnoticed; each row's value is the
+`offset` of one root (`ticks` for int, `seconds` for float, `quarters` for
+fraction, the unit's own number type declared, `length` null), an
+own-axis value that may be negative; a refused row raises
+`SchemaValidationError` with the code `representation` at
+`["timelines", 0, "offset"]`; an accepted row validates, the exact value
+of what it states equals the exact value of `read`, and `canonical_order`
+writes the offset as `read` (compared as `dumps` texts, so `2.0` is told
+from `2`).
 
 **Readers coerce, writers respell own-axis values.** `complete` (so
 `minimal` too) and `canonical_order` (so `dumps` too) respell every own-axis
@@ -469,7 +519,7 @@ violation's is the same text in both packages.
 | `group_member` | a member names a timeline and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `member 'b' lies inside member 'a' of the same group` |
 | `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
 | `display_order` | a group's order permutes its members | the entry, then the order | `'x' is not a member of group 'g'`, `member 'b' of group 'g' is missing` |
-| `band_order` | a timeline's order permutes `line` and the five facets | the entry, then the order | `'annotations' is not 'line' or a facet, in the band order of 'score'`, `'flow_control' is missing from the band order of 'score'` |
+| `band_order` | a timeline's order lists `line` and any of the five facets | the entry, then the order | `'annotations' is not 'line' or a facet, in the band order of 'score'`, `'line' is missing from the band order of 'score'` |
 | `timestamp_timeline` | a named timestamp's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
 | `timestamp_coordinate` | its `coordinate` lies from 0 to its timeline's length, from 0 on where the length is null | its `coordinate` | `coordinate [9, 1] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'`, `coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'` |
 | `context` | a manifest whose manifest, timeline or region carries `statements` or `provenance` holds `@context` | the first such key in subject order, `provenance` before `statements` | `statements and provenance need the manifest's @context` |
@@ -484,8 +534,7 @@ violation's is the same text in both packages.
 
 The keys of `graphical.order` are read in code-point order, each order's
 strangers before its missing entries, missing members in the order of
-`members`, missing bands in the default band order (`children`,
-`conversion_maps`, `line`, `markers`, `regions`, `flow_control`).
+`members`; a band order may leave out any facet, but not `line`.
 A key naming a group and a timeline never reaches `validate` (the duplicate
 ID comes first); `identity_problems` reads it as the group's. The named
 timestamps are read after the orders, in array order. The coordinate of a
@@ -523,7 +572,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 172 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 175 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the thirty of the table, so every code is reached by a case both
@@ -540,7 +589,7 @@ disappear unnoticed. Twenty-two cases pin their message too (`test_identity.py`
 and `test_statements.py`):
 `child_unit_differs`, `child_offset_beyond_parent`, `child_end_beyond_parent`,
 `region_id_duplicate_across_roots`, `band_order_unknown_entry`,
-`band_order_missing_band`, `band_order_old_form`, `order_unknown_group`,
+`band_order_missing_line`, `band_order_old_form`, `order_unknown_group`,
 `timestamp_timeline_unknown`, `timestamp_coordinate_beyond_length`,
 `timestamp_coordinate_negative`, `timestamp_id_is_timeline_id`,
 `context_absent_with_statements`, `reserved_key_term_on_timeline`,
@@ -730,10 +779,14 @@ documents that bound each rule from the other side:
   member listed twice in one group (`a`, `a`) is the schema's rule, not an
   identity rule: `validate` refuses it at `members` (the shared case
   `group_members_repeated`). A band order passes at a root and at a descendant (for the child `b` the reverse
-  of the default); each stranger (`annotations`, `region`, `score`,
-  `score/regions_1`, `Regions`) is one problem at its entry, a missing facet
-  one at the order, an empty order its six missing entries in the default
-  band order. An order keyed by a region's ID is one `order_key`.
+  of the default), and so does a subset holding `line`: `["markers",
+  "line"]`, `["line", "flow_control"]`, `["line"]`, `["regions",
+  "line"]` and the README's example without `flow_control`, each beside
+  the child `b` stating `["line", "children"]`; each stranger (`annotations`, `region`, `score`,
+  `score/regions_1`, `Regions`) is one problem at its entry, a missing
+  `line` one at the order (`["markers", "regions"]`, and the empty order,
+  `'line' is missing from the band order of 'score'`), and a missing facet
+  none. An order keyed by a region's ID is one `order_key`.
 - **Named timestamps.** Timestamps on a root, on a child and on a segment,
   at 0 and at the length, and at any coordinate from 0 on a timeline of
   unknown length pass, as do a timestamp on the second of two roots and two
@@ -804,7 +857,7 @@ named timestamps, in `validation/timestamps.py`. What proves them:
 | `alignment_anchor` | `alignment_anchor_timestamp_unknown` | `'timestamp_99' names no timestamp of this manifest` |
 | `alignment_anchor` | `alignment_anchor_timestamp_not_match` | `'timestamp_2' is no match timestamp` |
 | `alignment_anchor` | `alignment_anchor_one_timeline` | `the timestamps of 'anchor_2' both lie on the timeline 'score'` |
-| `groupstamp` | `groupstamp_match_timestamp` | `'timestamp_1' is both a match timestamp and a groupstamp` |
+| `groupstamp` | `groupstamp_match_without_group` | `'timestamp_1' is a groupstamp, but its timeline 'score' is a member of no group and lies in none` |
 | `match_timestamp` | `match_timestamp_in_no_matchstamp` | `the match timestamp 'timestamp_11' belongs to no MatchStamp` |
 | `match_timestamp` | `match_timestamp_coordinate_repeated` | `'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'` |
 | `matchstamp` | `matchstamp_not_connected` | `the alignment anchors of 'matchstamp_1' are not one connected set` |
@@ -813,27 +866,28 @@ named timestamps, in `validation/timestamps.py`. What proves them:
 | `resource_type` | `resource_match_claim_twice` | `a manifest names at most one resource of the type MatchClaim; 'resource_1' is one` |
 | `resource_type` | `resource_projection_twice` | `a manifest names at most one resource of the type Projection; 'resource_2' is one` |
 
-  `identity_problems` lists every problem in order: per MatchStamp its
+  `identity_problems` lists every problem in order: a match timestamp is a
+  named timestamp first, so a groupstamp lying in no group is reported with
+  the named timestamps, before the MatchStamps; then per MatchStamp its
   anchors (each timestamp, then the pair), then whether they connect; then
-  each match timestamp, a groupstamp before a shared coordinate before an
-  unnamed one. One
-  manifest proves it: `matchstamp_not_connected` with its first anchor
-  naming two ordinary timestamps and a groupstamp match timestamp added at
-  the coordinate of `timestamp_11` gives exactly two `alignment_anchor`
+  each match timestamp, a shared coordinate before an unnamed one. One
+  manifest proves it: `matchstamp_not_connected` (a bundle without groups)
+  with its first anchor naming two ordinary timestamps and a groupstamp
+  match timestamp added at the coordinate of `timestamp_11` gives exactly
+  `groupstamp` at timestamp 10's `groupstamp`, two `alignment_anchor`
   problems, one `matchstamp`, `match_timestamp` at timestamps 1 and 4,
-  then `groupstamp` at timestamp 10's `groupstamp` and `match_timestamp`
-  at timestamps 10 and 10.
+  then `match_timestamp` at timestamps 10 and 10.
 - **The MatchStamps alone** (`test_validate.py`). `matchstamp_problems`,
   for a reader that keeps the rest of `graphical` unread, returns for each
-  of the ten MatchStamp rejection cases a first problem equal, code, path
+  of the nine MatchStamp rejection cases a first problem equal, code, path
   and message, to the one `validate` raises: the schema of
   `graphical.matchstamps` (`alignment_anchor_display_unknown`,
   `matchstamp_claims_repeated`), an ID of a MatchStamp or an anchor
-  repeated (`alignment_anchor_id_repeated`), then the rules, the match
-  timestamp marked a groupstamp (`groupstamp_match_timestamp`) among them. It returns
-  nothing for every fixture and for every other rejection case, the
-  named-timestamp, groupstamp-without-group and style cases among them, whose faults lie outside
-  the MatchStamps; a match timestamp breaking the timestamp schema (no
+  repeated (`alignment_anchor_id_repeated`), then the rules. It returns
+  nothing for every fixture (`bundles/bundle_matchstamp_groupstamp`
+  among them) and for every other rejection case, the named-timestamp,
+  groupstamp-without-group (`groupstamp_match_without_group` among them)
+  and style cases among them, whose faults lie outside the MatchStamps; a match timestamp breaking the timestamp schema (no
   `timeline`) is reported by the schema at that timestamp, never raised
   as a `KeyError`. A number that is not finite is reported as `validate`
   reports it, code, path and message: an infinite coordinate of a match
@@ -879,15 +933,17 @@ never stored, so nothing beyond the flag is checked. What proves it:
   parent of a member (`groupstamp_member_parent`: the fixture
   `groups/group_child_member.yaml`, whose member `second-half` is a child
   of `piece`, with a groupstamp `timestamp_5` added on `piece`). A fourth
-  case, `groupstamp_match_timestamp` (the fixture
-  `bundles/bundle_matchstamp_cards.yaml`, whose `score` is a member of two
-  groups, with its match timestamp `timestamp_1` made a groupstamp), gives
-  `'timestamp_1' is both a match timestamp and a groupstamp` and nothing
-  else, so the membership check passes over a match timestamp. The
-  membership cases are a rule of the named timestamps, reported after the
-  timeline and coordinate of the same timestamp; the match-timestamp case
-  a rule of the match timestamps, so `matchstamp_problems` reports it as
-  `validate` does and returns nothing for the others.
+  case, `groupstamp_match_without_group` (the fixture
+  `bundles/bundle_matchstamps.yaml`, a bundle without groups, with its
+  match timestamp `timestamp_1` on `score` made a groupstamp), gives the
+  same message for `timestamp_1` and `score` at
+  `["graphical", "timestamps", 1, "groupstamp"]`, so a match timestamp
+  meets the membership rule as any named timestamp does; and a match
+  timestamp that is a groupstamp on a member is accepted
+  (`bundles/bundle_matchstamp_groupstamp`, below). The membership cases
+  are a rule of the named timestamps, reported after the timeline and
+  coordinate of the same timestamp, so `matchstamp_problems` returns
+  nothing for any of them.
 - **The fixtures** (`test_fixtures.py`). `groups/group_groupstamp.yaml`
   and its twin hold the group `group_1` ("Performance") of `score` (with
   a map to ticks) and `performance` (with a map to samples), so both
@@ -902,8 +958,15 @@ never stored, so nothing beyond the flag is checked. What proves it:
   which is listed in no group's `members`.
   `bundles/bundle_groupstamp_shared_member.yaml` holds the bundle of
   `bundle_shared_member` (`t` a member of `g1` and of `g2`, no band) with
-  the groupstamp `timestamp_1` ("Bar 2", `[4, 1]`) on `t`. Every one of
-  them and its twin passes `validate` and `identity_problems`.
+  the groupstamp `timestamp_1` ("Bar 2", `[4, 1]`) on `t`.
+  `bundles/bundle_matchstamp_groupstamp.yaml` is
+  `bundles/bundle_matchstamp_cards.yaml` (`score` a member of two groups)
+  with its match timestamp `timestamp_1` (`[4, 1]` on `score`) a
+  groupstamp: in the fixture it states `groupstamp: true` and
+  `matchstamp: true`, in the twin both, every other timestamp neither
+  `groupstamp` nor, unless a match timestamp, `matchstamp`. Every one of
+  them and its twin passes `validate` and `identity_problems`, and
+  `matchstamp_problems` finds nothing in either form.
 
 ## Statements
 
@@ -1684,7 +1747,7 @@ written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 164 files (`test_files.py`); the four statement
+`groups` and `statements`, 168 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -1746,6 +1809,11 @@ cannot prove that the emitter produces them:
   member `performance` of unknown length has `origin` `0.0` alone,
   `timestamp_1`, before `score`'s `[0, 1]` and `[12, 1]`, `timestamp_2`
   and `timestamp_3`). No corpus fixture carries a named timestamp.
+- **A band order of a subset.** `map_band_order_subset.yaml` and its
+  twin hold the timelines of `map` (the root `melody` holding `phrase`)
+  with the one band order `{"melody": ["markers", "line"]}`, and pass
+  `validate` and `identity_problems`, so the emitter carries a band order
+  that leaves facets out.
 - **Flow-control IDs by type.** Across the complete fixtures, every
   flow-control element whose ID has the generated form `<prefix>_<N>`
   carries its own `type` as the prefix: exactly `flow_marker_1` (three

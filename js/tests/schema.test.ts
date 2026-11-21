@@ -6,9 +6,10 @@ import { bundleSchemas } from "../scripts/generate.js";
 import { DEFAULTS } from "../src/defaults.js";
 import { schema } from "../src/generated/schema.js";
 import { TIMESTAMP_DISPLAY } from "../src/manifest/order.js";
+import { UNITS } from "../src/manifest/units.js";
 import { loads } from "../src/serialization/read.js";
 import { BELIEFS, BLANK, FORMAT_CONTEXT, MATCHES, METHODS } from "../src/statements/statements.js";
-import { SCHEMA_VERSION, UNIT_NUMBER_TYPES } from "../src/validate.js";
+import { SCHEMA_VERSION } from "../src/validate.js";
 import { loadSchemaFile, repositoryRoot } from "./fixtures.js";
 
 type Node = Record<string, unknown>;
@@ -242,19 +243,79 @@ describe("the schema document", () => {
     }
   });
 
-  it("states the default number type of every unit in the unit table", () => {
+  it("holds the unit table, row by row", () => {
+    const continuous = ["float", "fraction"];
+    expect(
+      Object.entries(UNITS).map(([unit, row]) => [
+        unit,
+        row.domain,
+        row.modality,
+        row.numberType,
+        row.numberTypes,
+      ]),
+    ).toEqual([
+      ["number", "logical", "continuous", "float", ["int", "float", "fraction"]],
+      ["floating_measures", "logical", "continuous", "float", continuous],
+      ["whole_notes", "logical", "continuous", "fraction", continuous],
+      ["quarters", "logical", "continuous", "fraction", continuous],
+      ["ticks", "logical", "discrete", "int", ["int"]],
+      ["milliseconds", "physical", "continuous", "float", continuous],
+      ["seconds", "physical", "continuous", "float", continuous],
+      ["minutes", "physical", "continuous", "float", continuous],
+      ["samples", "physical", "discrete", "int", ["int"]],
+      ["frames", "physical", "discrete", "int", ["int"]],
+      ["pixels", "graphical", "discrete", "int", ["int"]],
+      ["meters", "graphical", "continuous", "float", continuous],
+      ["centimeters", "graphical", "continuous", "float", continuous],
+      ["millimeters", "graphical", "continuous", "float", continuous],
+      ["inches", "graphical", "continuous", "float", continuous],
+      ["points", "graphical", "continuous", "float", continuous],
+      ["css_pixels", "graphical", "continuous", "float", continuous],
+      ["user_units", "graphical", "continuous", "float", continuous],
+    ]);
+  });
+
+  it("states the domain, modality and default number type of every unit in the unit table", () => {
     const unit = defs.TimeUnit as Node;
     expect(unit.type).toBe("string");
     expect(unit.enum).toBeUndefined();
     const entries = unit.oneOf as Node[];
-    expect(entries.map((entry) => entry.const)).toEqual(Object.keys(UNIT_NUMBER_TYPES));
+    expect(entries.map((entry) => entry.const)).toEqual(Object.keys(UNITS));
     const pattern =
       /^(Logical|Physical|Graphical), (continuous|discrete); default number type (int|float|fraction)\.(?: \S.*\.)?$/;
     for (const entry of entries) {
       expect(Object.keys(entry).sort()).toEqual(["const", "description"]);
       const match = pattern.exec(entry.description as string);
-      expect(match?.[3]).toBe(UNIT_NUMBER_TYPES[entry.const as keyof typeof UNIT_NUMBER_TYPES]);
+      const row = UNITS[entry.const as keyof typeof UNITS];
+      expect([match?.[1]?.toLowerCase(), match?.[2], match?.[3]]).toEqual([
+        row.domain,
+        row.modality,
+        row.numberType,
+      ]);
     }
+  });
+
+  it("states in the timeline which number types a unit admits", () => {
+    const timeline = defs.Timeline as Node;
+    const rows = Object.entries(UNITS);
+    const discrete = rows.filter(([, row]) => row.numberTypes.join() === "int").map(([u]) => u);
+    expect(timeline.if).toEqual({ properties: { unit: { enum: discrete } }, required: ["unit"] });
+    expect(timeline.then).toEqual({ properties: { number_type: { const: "int" } } });
+    expect(rows.filter(([, row]) => row.numberTypes.length === 3).map(([u]) => u)).toEqual([
+      "number",
+    ]);
+    expect(
+      new Set(
+        rows
+          .filter(([, row]) => row.numberTypes.length === 2)
+          .map(([, row]) => row.numberTypes.join()),
+      ),
+    ).toEqual(new Set(["float,fraction"]));
+    expect(rows.every(([, row]) => [1, 2, 3].includes(row.numberTypes.length))).toBe(true);
+    expect(timeline.else).toEqual({
+      if: { properties: { unit: { const: "number" } }, required: ["unit"] },
+      else: { properties: { number_type: { enum: ["float", "fraction"] } } },
+    });
   });
 
   it("defines a repeated shape once", () => {

@@ -24,10 +24,15 @@ def _permutation_problems(
     expected: Sequence[str],
     path: _Path,
     messages: tuple[str, str],
+    required: Collection[str] | None = None,
 ) -> Iterator[SchemaValidationError]:
+    """Yield each entry of ``order`` that ``expected`` lacks, then each entry
+    of ``required`` (all of ``expected`` where it is ``None``) that ``order``
+    lacks, in the order of ``expected``."""
     stranger, missing = messages
     allowed = set(expected)
     listed = set(order)
+    needed = allowed if required is None else set(required)
     for index, entry in enumerate(order):
         if entry not in allowed:
             yield SchemaValidationError(
@@ -36,7 +41,7 @@ def _permutation_problems(
                 stranger.format(entry=f"'{entry}'", owner=f"'{owner}'"),
             )
     for entry in expected:
-        if entry not in listed:
+        if entry in needed and entry not in listed:
             yield SchemaValidationError(
                 code,
                 path,
@@ -50,6 +55,10 @@ def order_problems(
     first_group: Mapping[str, int],
 ) -> Iterator[SchemaValidationError]:
     """Yield unknown order keys and invalid display and band orders.
+
+    A display order is a permutation of its group's members. A band order
+    lists ``line`` and any of the five facets, each once; a facet it leaves
+    out takes its place from the order the timeline follows without an entry.
 
     ``timelines`` holds every timeline ID and ``first_group`` the index of the
     first group of each group ID, as the identity rules collected them.
@@ -82,6 +91,7 @@ def order_problems(
                     "{entry} is not 'line' or a facet, in the band order of {owner}",
                     "{entry} is missing from the band order of {owner}",
                 ),
+                ("line",),
             )
         else:
             yield SchemaValidationError(

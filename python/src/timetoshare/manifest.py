@@ -38,36 +38,67 @@ import math
 from collections import Counter
 from collections.abc import Callable, Mapping
 from fractions import Fraction
-from typing import Any
+from types import MappingProxyType
+from typing import Any, NamedTuple
 
 __all__ = [
     "ANCHOR_DISPLAY",
     "TIMESTAMP_DISPLAY",
+    "UNITS",
     "UNIT_NUMBER_TYPES",
+    "UnitEntry",
     "canonical_order",
 ]
 
-UNIT_NUMBER_TYPES = {
-    "number": "float",
-    "floating_measures": "float",
-    "whole_notes": "fraction",
-    "quarters": "fraction",
-    "ticks": "int",
-    "milliseconds": "float",
-    "seconds": "float",
-    "minutes": "float",
-    "samples": "int",
-    "frames": "int",
-    "pixels": "int",
-    "meters": "float",
-    "centimeters": "float",
-    "millimeters": "float",
-    "inches": "float",
-    "points": "float",
-    "css_pixels": "float",
-    "user_units": "float",
-}
-"""The default number type of each unit."""
+
+class UnitEntry(NamedTuple):
+    """One row of the unit table: a unit's domain, modality and number types.
+
+    ``number_type`` is the default number type of an axis declaring none, and
+    ``number_types`` the number types the unit admits, in the order ``int``,
+    ``float``, ``fraction``.
+    """
+
+    domain: str
+    modality: str
+    number_type: str
+    number_types: tuple[str, ...]
+
+
+_DISCRETE = ("int",)
+_CONTINUOUS = ("float", "fraction")
+
+UNITS: Mapping[str, UnitEntry] = MappingProxyType(
+    {
+        "number": UnitEntry("logical", "continuous", "float", ("int", *_CONTINUOUS)),
+        "floating_measures": UnitEntry("logical", "continuous", "float", _CONTINUOUS),
+        "whole_notes": UnitEntry("logical", "continuous", "fraction", _CONTINUOUS),
+        "quarters": UnitEntry("logical", "continuous", "fraction", _CONTINUOUS),
+        "ticks": UnitEntry("logical", "discrete", "int", _DISCRETE),
+        "milliseconds": UnitEntry("physical", "continuous", "float", _CONTINUOUS),
+        "seconds": UnitEntry("physical", "continuous", "float", _CONTINUOUS),
+        "minutes": UnitEntry("physical", "continuous", "float", _CONTINUOUS),
+        "samples": UnitEntry("physical", "discrete", "int", _DISCRETE),
+        "frames": UnitEntry("physical", "discrete", "int", _DISCRETE),
+        "pixels": UnitEntry("graphical", "discrete", "int", _DISCRETE),
+        "meters": UnitEntry("graphical", "continuous", "float", _CONTINUOUS),
+        "centimeters": UnitEntry("graphical", "continuous", "float", _CONTINUOUS),
+        "millimeters": UnitEntry("graphical", "continuous", "float", _CONTINUOUS),
+        "inches": UnitEntry("graphical", "continuous", "float", _CONTINUOUS),
+        "points": UnitEntry("graphical", "continuous", "float", _CONTINUOUS),
+        "css_pixels": UnitEntry("graphical", "continuous", "float", _CONTINUOUS),
+        "user_units": UnitEntry("graphical", "continuous", "float", _CONTINUOUS),
+    }
+)
+"""The unit table, in the schema's order of ``TimeUnit``: every unit's domain,
+modality, default number type and admitted number types. A discrete unit
+admits ``int`` only, a continuous unit ``float`` or ``fraction``, and
+``number`` all three."""
+
+UNIT_NUMBER_TYPES: Mapping[str, str] = MappingProxyType(
+    {unit: entry.number_type for unit, entry in UNITS.items()}
+)
+"""The default number type of each unit, read from :data:`UNITS`."""
 
 _NUMBER_TYPES = ("int", "float", "fraction")
 

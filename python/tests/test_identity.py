@@ -777,8 +777,8 @@ def test_a_child_without_a_double_sum_ends_at_the_exact_sum() -> None:
             "'annotations' is not 'line' or a facet, in the band order of 'score'",
         ),
         (
-            "band_order_missing_band",
-            "'markers' is missing from the band order of 'score'",
+            "band_order_missing_line",
+            "'line' is missing from the band order of 'score'",
         ),
         (
             "band_order_old_form",
@@ -1128,18 +1128,28 @@ def test_a_band_order_entry_that_is_no_facet(stranger: str) -> None:
     )
 
 
-def test_a_band_order_missing_a_facet() -> None:
-    assert _only(_band_orders(score=SCORE_BANDS[:-1])) == (
+@pytest.mark.parametrize(
+    "order",
+    [
+        ["markers", "line"],
+        ["line", "flow_control"],
+        ["line"],
+        ["regions", "line"],
+        SCORE_BANDS[:-1],
+    ],
+)
+def test_a_band_order_may_leave_out_facets(order: list[str]) -> None:
+    value = _band_orders(score=order, b=["line", "children"])
+    assert _problems(value) == []
+    validate(value)
+
+
+@pytest.mark.parametrize("order", [["markers", "regions"], []])
+def test_a_band_order_missing_its_line(order: list[str]) -> None:
+    assert _only(_band_orders(score=order)) == (
         ("graphical", "order", "score"),
-        "'flow_control' is missing from the band order of 'score'",
+        "'line' is missing from the band order of 'score'",
     )
-    assert _problems(_band_orders(score=[])) == [
-        (
-            ("graphical", "order", "score"),
-            f"'{entry}' is missing from the band order of 'score'",
-        )
-        for entry in DEFAULT_BANDS
-    ]
 
 
 def test_an_order_keyed_by_a_region() -> None:
@@ -1420,11 +1430,11 @@ def test_every_step_in_order() -> None:
                 "zz": [],
                 "kid": [
                     "regions_2",
-                    "line",
                     "children",
                     "conversion_maps",
                     "markers",
                     "regions",
+                    "flow_control",
                 ],
                 "g2": ["stranger"],
             },
@@ -1492,7 +1502,7 @@ def test_every_step_in_order() -> None:
         ),
         (
             ("graphical", "order", "kid"),
-            "'flow_control' is missing from the band order of 'kid'",
+            "'line' is missing from the band order of 'kid'",
         ),
         (
             ("graphical", "order", "zz"),

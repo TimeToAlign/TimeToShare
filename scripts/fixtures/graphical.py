@@ -104,6 +104,63 @@ def _rotated(number: int, timeline: str, quarter: int, rotation: int) -> dict[st
     }
 
 
+def _matchstamp_cards(*, groupstamp: bool) -> dict[str, Any]:
+    """Return the named MatchStamps of ``bundle_matchstamp_cards``, whose match
+    timestamp ``timestamp_1`` on ``score`` is a groupstamp where ``groupstamp``
+    is true."""
+    first: dict[str, Any] = {
+        "id": "timestamp_1",
+        "timeline": "score",
+        "coordinate": [4, 1],
+        "matchstamp": True,
+    }
+    if groupstamp:
+        first["groupstamp"] = True
+    return {
+        "timestamps": [
+            first,
+            {
+                "id": "timestamp_2",
+                "timeline": "performance",
+                "coordinate": 1.0,
+                "matchstamp": True,
+            },
+            {
+                "id": "timestamp_3",
+                "timeline": "second-half",
+                "coordinate": [2, 1],
+                "matchstamp": True,
+            },
+        ],
+        "matchstamps": [
+            {
+                "id": "matchstamp_1",
+                "name": "Bar 2, performed",
+                "alignment_anchors": [
+                    {
+                        "id": "anchor_1",
+                        "timestamps": ["timestamp_2", "timestamp_1"],
+                        "display": ["line", "name"],
+                    },
+                ],
+                "match_claims": ["claim_1"],
+            },
+            {
+                "id": "matchstamp_2",
+                "name": "Second half, bar 1",
+                "alignment_anchors": [
+                    {
+                        "id": "anchor_2",
+                        "timestamps": ["timestamp_1", "timestamp_3"],
+                        "display": ["line", "name"],
+                    },
+                ],
+                "match_claims": ["claim_2"],
+            },
+        ],
+    }
+
+
 GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     "styled": {
         "score": {
@@ -371,56 +428,9 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             },
         },
     },
-    "bundle_matchstamp_cards": {
-        "score": {
-            "timestamps": [
-                {
-                    "id": "timestamp_1",
-                    "timeline": "score",
-                    "coordinate": [4, 1],
-                    "matchstamp": True,
-                },
-                {
-                    "id": "timestamp_2",
-                    "timeline": "performance",
-                    "coordinate": 1.0,
-                    "matchstamp": True,
-                },
-                {
-                    "id": "timestamp_3",
-                    "timeline": "second-half",
-                    "coordinate": [2, 1],
-                    "matchstamp": True,
-                },
-            ],
-            "matchstamps": [
-                {
-                    "id": "matchstamp_1",
-                    "name": "Bar 2, performed",
-                    "alignment_anchors": [
-                        {
-                            "id": "anchor_1",
-                            "timestamps": ["timestamp_2", "timestamp_1"],
-                            "display": ["line", "name"],
-                        },
-                    ],
-                    "match_claims": ["claim_1"],
-                },
-                {
-                    "id": "matchstamp_2",
-                    "name": "Second half, bar 1",
-                    "alignment_anchors": [
-                        {
-                            "id": "anchor_2",
-                            "timestamps": ["timestamp_1", "timestamp_3"],
-                            "display": ["line", "name"],
-                        },
-                    ],
-                    "match_claims": ["claim_2"],
-                },
-            ],
-        },
-    },
+    "bundle_matchstamp_cards": {"score": _matchstamp_cards(groupstamp=False)},
+    "bundle_matchstamp_groupstamp": {"score": _matchstamp_cards(groupstamp=True)},
+    "map_band_order_subset": {"melody": {"order": {"melody": ["markers", "line"]}}},
 }
 
 """The ``graphical`` object of each manifest the script styles or gives band
@@ -436,7 +446,7 @@ orders of its own groups. A rule selects elements by their address
 objects: an element by its own id (``{"id": "intro"}``), a part of it by its
 id and the part words (``{"id": "intro", "part": ["label"]}``), and a
 band by its timeline's id and its facet (``{"id": "score", "facet":
-"regions"}``). A band order lists ``line`` and the five facets.
+"regions"}``). A band order lists ``line`` and any of the five facets.
 
 ``group_styled`` gives every frame the named style ``frame-highlight`` (a
 violet stroke), fills the group's title, ``{"id": "group_1", "part":
@@ -450,7 +460,9 @@ at quarter 2 of ``second-half``, the child of the member ``score``, a
 groupstamp: the child lies in ``group_1`` through its parent.
 ``bundle_groupstamp_shared_member`` names the timestamp "Bar 2" at quarter
 4 of ``t``, a member of ``g1`` and of ``g2``, a groupstamp, so its line
-extends across both frames.
+extends across both frames. ``bundle_matchstamp_groupstamp`` makes the
+match timestamp ``timestamp_1`` of ``bundle_matchstamp_cards``, at quarter 4
+of ``score``, a member of ``group_1`` and of ``group_2``, a groupstamp.
 
 ``timestamp_wedge_rotation`` turns the wedges of named timestamps, each
 named after its rotation. On the root ``melody`` they lie at quarters 2,
@@ -510,7 +522,11 @@ it below it, its markers below them and its children above it. The first
 gives it to the child ``phrase`` alone, so that the map of ``phrase`` lies
 below its line and that of ``melody`` above; the second to the root
 ``melody`` and none to ``phrase``, which follows the order of ``melody``, so
-that the maps of both lie below their lines.
+that the maps of both lie below their lines. ``map_band_order_subset``
+gives ``melody`` the band order ``markers``, ``line`` alone: the facets it
+leaves out keep their side of the default order, so ``melody`` draws
+``children``, ``conversion_maps``, ``markers``, ``line``, ``regions``,
+``flow_control``, and ``phrase`` follows that completed order.
 """
 
 
@@ -612,6 +628,11 @@ def map_child_band_order() -> Timeline:
 
 def map_root_band_order() -> Timeline:
     """Build ``map`` with a band order on the root ``melody`` alone."""
+    return map_timeline()
+
+
+def map_band_order_subset() -> Timeline:
+    """Build ``map`` with a band order of ``markers`` and ``line`` on ``melody``."""
     return map_timeline()
 
 

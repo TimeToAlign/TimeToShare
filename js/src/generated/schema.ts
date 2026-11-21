@@ -97,7 +97,7 @@ export const schema = {
         },
         "number_type": {
           "$ref": "#/$defs/NumberType",
-          "description": "The number type of every coordinate on the timeline's axis. Absent means the unit's default number type, which the unit table (`TimeUnit`) states for every unit."
+          "description": "The number type of every coordinate on the timeline's axis. Absent means the unit's default number type, which the unit table (`TimeUnit`) states for every unit. A discrete unit admits int only, a continuous unit float or fraction, and `number` any of the three."
         },
         "length": {
           "description": "The end of the timeline on its own axis, or null when the length is not known.",
@@ -175,7 +175,51 @@ export const schema = {
         "id",
         "unit",
         "length"
-      ]
+      ],
+      "if": {
+        "properties": {
+          "unit": {
+            "enum": [
+              "ticks",
+              "samples",
+              "frames",
+              "pixels"
+            ]
+          }
+        },
+        "required": [
+          "unit"
+        ]
+      },
+      "then": {
+        "properties": {
+          "number_type": {
+            "const": "int"
+          }
+        }
+      },
+      "else": {
+        "if": {
+          "properties": {
+            "unit": {
+              "const": "number"
+            }
+          },
+          "required": [
+            "unit"
+          ]
+        },
+        "else": {
+          "properties": {
+            "number_type": {
+              "enum": [
+                "float",
+                "fraction"
+              ]
+            }
+          }
+        }
+      }
     },
     "Group": {
       "type": "object",
@@ -216,7 +260,7 @@ export const schema = {
         "type": {
           "type": "string",
           "minLength": 1,
-          "description": "What the file's rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events an event table holds."
+          "description": "What the file's rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events an event table holds. The Projections table and the event types are experimental: they may change in any version."
         },
         "timelines": {
           "type": "array",
@@ -299,7 +343,7 @@ export const schema = {
         },
         "order": {
           "type": "object",
-          "description": "The order of what a group or a timeline stacks, top to bottom, keyed by a group's ID (the display order of its members) or by a timeline's ID, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, and a root without one the default band order of the drawing specification.",
+          "description": "The order of what a group or a timeline stacks, top to bottom, keyed by a group's ID (the display order of its members) or by a timeline's ID, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, and a root without one the default band order of the drawing specification. A band order may list a subset of the facets (`Order`).",
           "propertyNames": {
             "$ref": "#/$defs/Id"
           },
@@ -328,7 +372,7 @@ export const schema = {
     },
     "Timestamp": {
       "type": "object",
-      "description": "A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `[\"cross_section\"]`. Five parts of it may be drawn, as `display` selects: a wedge `{\"id\": id}`, three labels stacked outward from the wedge (its name `{\"id\": id, \"part\": [\"name\"]}`, its ID `{\"id\": id, \"part\": [\"id\"]}` and its coordinate `{\"id\": id, \"part\": [\"coordinate\"]}`) and a cross-section line `{\"id\": id, \"part\": [\"line\"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, that it lies within the timeline, that a groupstamp lies in a group and is no match timestamp, and the rules of match timestamps are checked after the schema.",
+      "description": "A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `[\"cross_section\"]`. Five parts of it may be drawn, as `display` selects: a wedge `{\"id\": id}`, three labels stacked outward from the wedge (its name `{\"id\": id, \"part\": [\"name\"]}`, its ID `{\"id\": id, \"part\": [\"id\"]}` and its coordinate `{\"id\": id, \"part\": [\"coordinate\"]}`) and a cross-section line `{\"id\": id, \"part\": [\"line\"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, that it lies within the timeline, that a groupstamp lies in a group, and the rules of match timestamps are checked after the schema.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -374,7 +418,7 @@ export const schema = {
         },
         "groupstamp": {
           "type": "boolean",
-          "description": "Whether the timestamp is a groupstamp: its timeline lies in a group (it or one of its ancestors is a member of the group), and its line extends across the frame of each group it lies in, over every member drawn there. The members' coordinates are derived from the group and never stored. A groupstamp is never a match timestamp. False, the default, draws the line on the timestamp's own timeline alone.",
+          "description": "Whether the timestamp is a groupstamp: its timeline lies in a group (it or one of its ancestors is a member of the group), and its line extends across the frame of each group it lies in, over every member drawn there. The members' coordinates are derived from the group and never stored. False, the default, draws the line on the timestamp's own timeline alone.",
           "default": false
         }
       },
@@ -596,7 +640,7 @@ export const schema = {
     },
     "Fraction": {
       "type": "array",
-      "description": "Rational number encoded as a numerator and a strictly positive denominator, each an integer. The declared number type decides how a value is read, never its spelling: a member written with a zero fractional part, as in [1, 8.0], is read as the integer it equals. Writers spell every member as a JSON integer.",
+      "description": "Rational number encoded as a numerator and a strictly positive denominator, each an integer. The declared number type decides how a value is read, never its spelling: a member written with a zero fractional part, as in [1, 8.0], is read as the integer it equals, and a Fraction in any terms is read as its value, [2, 4] as 1/2. Any terms are read within the form its number type takes: only an axis of number type fraction takes a Fraction. Writers spell every member as a JSON integer.",
       "minItems": 2,
       "maxItems": 2,
       "prefixItems": [
@@ -614,7 +658,7 @@ export const schema = {
     },
     "TimeUnit": {
       "type": "string",
-      "description": "The unit of a timeline axis. Each unit belongs to one domain (logical: musical time; physical: real time; graphical: space) and one modality (continuous or discrete), and states the default number type of an axis that declares none. The domain and modality decide the timeline class: `seconds`, physical and continuous, makes a ContinuousPhysicalTimeline.",
+      "description": "The unit of a timeline axis. Each unit belongs to one domain (logical: musical time; physical: real time; graphical: space) and one modality (continuous or discrete), and states the default number type of an axis that declares none. A discrete unit admits the number type int only, a continuous unit float or fraction, and `number` any of the three. The domain and modality decide the timeline class: `seconds`, physical and continuous, makes a ContinuousPhysicalTimeline.",
       "oneOf": [
         {
           "const": "number",
@@ -1188,7 +1232,7 @@ export const schema = {
     },
     "Order": {
       "type": "array",
-      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs (each written as every ID is, `#` followed by the ID), or a timeline's band order, a permutation of `line` (the timeline's own line) and its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band.",
+      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs (each written as every ID is, `#` followed by the ID), or a timeline's band order, `line` (the timeline's own line) and any of its five facets `markers`, `conversion_maps`, `children`, `regions` and `flow_control`, each drawn as a band. A band order lists `line`; a facet it leaves out keeps the side of `line` it has in the order the timeline follows without an entry (its parent's, for a root the default band order) and lies on that side beyond the listed facets, in that order's sequence.",
       "items": {
         "type": "string",
         "minLength": 1,

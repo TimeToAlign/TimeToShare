@@ -79,6 +79,8 @@ export {
   type Lossless,
 } from "./json/value.js";
 export { ANCHOR_DISPLAY, canonicalOrder, TIMESTAMP_DISPLAY } from "./manifest/order.js";
+export { UNITS, type UnitEntry } from "./manifest/units.js";
+export { exactValue, jsonInteger, type Rational } from "./numbers/exact.js";
 export { JsonSyntaxError, YamlSyntaxError } from "./serialization/errors.js";
 export { parseJson } from "./serialization/json.js";
 export { loads, serializationOf } from "./serialization/read.js";

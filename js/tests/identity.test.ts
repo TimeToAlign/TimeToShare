@@ -768,17 +768,26 @@ describe("identity", () => {
     },
   );
 
-  it("checks band orders", () => {
-    expect(only(banded({ score: SCORE_BANDS.slice(0, -1) }))).toEqual([
+  it.each([
+    [["markers", "line"]],
+    [["line", "flow_control"]],
+    [["line"]],
+    [["regions", "line"]],
+    [SCORE_BANDS.slice(0, -1)],
+  ])("accepts the band order %j, which leaves facets out", (order) => {
+    const value = banded({ score: order, take: ["line", "children"] });
+    expect(problems(value)).toEqual([]);
+    validate(value);
+  });
+
+  it.each([[["markers", "regions"]], [[]]])("refuses the band order %j without line", (order) => {
+    expect(only(banded({ score: order }))).toEqual([
       ["graphical", "order", "score"],
-      "'flow_control' is missing from the band order of 'score'",
+      "'line' is missing from the band order of 'score'",
     ]);
-    expect(problems(banded({ score: [] }))).toEqual(
-      DEFAULT_BANDS.map((entry) => [
-        ["graphical", "order", "score"],
-        `'${entry}' is missing from the band order of 'score'`,
-      ]),
-    );
+  });
+
+  it("checks band orders", () => {
     expect(only(banded({ intro: DEFAULT_BANDS }))).toEqual([
       ["graphical", "order", "intro"],
       "'intro' names no group or timeline of this manifest",
@@ -1022,7 +1031,7 @@ describe("identity", () => {
       "region_id_duplicate_across_roots",
       "'region_1' is not unique in the manifest, first at #/timelines/0/regions/0/id",
     ],
-    ["band_order_missing_band", "'markers' is missing from the band order of 'score'"],
+    ["band_order_missing_line", "'line' is missing from the band order of 'score'"],
     [
       "band_order_unknown_entry",
       "'annotations' is not 'line' or a facet, in the band order of 'score'",
@@ -1304,7 +1313,7 @@ describe("identity", () => {
       graphical: {
         order: {
           zz: [],
-          kid: ["regions_2", "line", "children", "conversion_maps", "markers", "regions"],
+          kid: ["regions_2", "children", "conversion_maps", "markers", "regions", "flow_control"],
           g2: ["stranger"],
         },
         timestamps: [
@@ -1361,7 +1370,7 @@ describe("identity", () => {
         ["graphical", "order", "kid", 0],
         "'regions_2' is not 'line' or a facet, in the band order of 'kid'",
       ],
-      [["graphical", "order", "kid"], "'flow_control' is missing from the band order of 'kid'"],
+      [["graphical", "order", "kid"], "'line' is missing from the band order of 'kid'"],
       [["graphical", "order", "zz"], "'zz' names no group or timeline of this manifest"],
       [["graphical", "timestamps", 0, "timeline"], "'nowhere' names no timeline of this manifest"],
       [

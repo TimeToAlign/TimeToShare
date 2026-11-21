@@ -10,22 +10,17 @@
  * through untouched.
  */
 
-import type {
-  CompleteManifest,
-  LosslessManifest,
-  NumberType,
-  TimeUnit,
-} from "./generated/types.js";
+import type { CompleteManifest, LosslessManifest, NumberType } from "./generated/types.js";
 import { clone, isJsonObject, JsonFloat, type JsonObject } from "./json/value.js";
 import { orderDisplays } from "./manifest/order.js";
 import { respell } from "./manifest/spelling.js";
+import { isUnit, UNITS } from "./manifest/units.js";
 import { exactValue, sameRational } from "./numbers/exact.js";
-import { numberTypeOf, UNIT_NUMBER_TYPES } from "./validate/diagnostics.js";
 
 /**
  * The default of every key that has one, by the kind of object holding it.
  * A timeline's `number_type` defaults to its unit's default number type,
- * which `numberTypeOf` gives. Every conversion map has the keys of
+ * which the unit table `UNITS` states. Every conversion map has the keys of
  * `conversion_map`; a `LinearMap` adds those of `linear_map` and a `TableMap`
  * those of `table_map`. Every flow-control element has the keys of
  * `flow_control_element`, and one whose manifestation is `repeat_end` adds
@@ -124,9 +119,7 @@ function visitManifest(manifest: unknown, pass: Pass): void {
 
 /** The default number type of a timeline, or `undefined` where its unit is none. */
 function defaultNumberType(timeline: JsonObject): NumberType | undefined {
-  return typeof timeline.unit === "string" && Object.hasOwn(UNIT_NUMBER_TYPES, timeline.unit)
-    ? numberTypeOf({ unit: timeline.unit as TimeUnit })
-    : undefined;
+  return isUnit(timeline.unit) ? UNITS[timeline.unit].numberType : undefined;
 }
 
 const completeOne: Pass = (owner, kind) => {

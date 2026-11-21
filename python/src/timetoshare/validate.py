@@ -28,7 +28,6 @@ from .ids import FileIdError, leniently_bare_ids, with_bare_ids
 from .serialization import spell
 from .statements import subjects
 from .validation.containment import child_ends as child_ends
-from .validation.diagnostics import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
 from .validation.diagnostics import ManifestWarning as ManifestWarning
 from .validation.diagnostics import (
     SchemaValidationError,
