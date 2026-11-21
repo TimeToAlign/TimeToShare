@@ -22,9 +22,9 @@ The directories sort the manifests by content only:
 - under `statements/`, manifests whose elements carry statements and
   provenance ([Statement fixtures](#statement-fixtures)).
 
-Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 13 under
-`groups/`, 15 under `bundles/` and 4 under `statements/`, 81 in all, each
-with its minimal twin, so 162 files. Beside them lie the expected RDF of
+Version 0.2.0 has 50 manifests directly under `fixtures/0.2.0/`, 13 under
+`groups/`, 15 under `bundles/` and 4 under `statements/`, 82 in all, each
+with its minimal twin, so 164 files. Beside them lie the expected RDF of
 the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
 under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
 176 rejection cases and 16 warning cases.
@@ -173,6 +173,7 @@ The structural fixtures add focused examples:
 | `segment_pages_accolades.yaml` | an unlocked segment line of four pages, each a segment line of four accolades of 400, 450, 452 and 452 pixels |
 | `segment_children.yaml` | an unlocked root of 32 quarters whose three children are segment lines, two of them overlapping |
 | `timestamps.yaml` | named timestamps: a root `clt_1` of 8 quarters with the child `clt_2` (4 at 2), the timestamps `Downbeat` at 3/2 and `Climax` at 6 on the root and `Entry` at 1 on the child; `Downbeat` draws the default `display` (wedge, name, cross-section line), `Climax` `["wedge", "name"]`, and `Entry` all five, its name, ID and coordinate stacked |
+| `timestamp_wedge_rotation.yaml` | turned wedges: a root `melody` ("Melody", 16 quarters) with the child `phrase` ("Phrase", 12 at 1), whose band order lays its markers band against its line above it; each named timestamp is named after its wedge's `rotation`. On the root, at quarters 2, 4, 6, 8, 10 and 12, rules naming each wedge's address turn it -135, -45, 0, 45, 135 and 180 (0 written); on the child, at its quarters 2 and 6, addressed rules turn the wedges -45 and 45, mirrored above the line, and at its quarter 10 only the rule `{"element": "wedge", "within": "phrase"}`, which the addressed rules outrank, turns it 90; the root's `origin` and `length` keep the unturned wedge |
 
 The corpus fixtures exercise public timetoalign loaders; the synthetic
 fixtures are emitted first:
@@ -450,13 +451,13 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 `unknown_length_segments` on every regions band, `{"element": "band",
 "facet": "regions"}` (`unknown_length_segments__regions-shown`), and
 `child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`): 83 drawings in all.
+"flow_control"}` (`child_flow_control__flow-shown`): 84 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
 carrying the same address in both. No variant sets a band order: band orders are the manifests' own,
 in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
-`map_child_band_order`, `map_root_band_order`). Each directory holds:
+`map_child_band_order`, `map_root_band_order`, `timestamp_wedge_rotation`). Each directory holds:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
   the two fonts, written with `dumps` in pretty JSON:

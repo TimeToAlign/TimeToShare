@@ -13,7 +13,7 @@
 <polygon data-id="second-half" points="497.7915,47.8047 502.2915,44.2047 506.7915,47.8047 502.2915,51.4047" fill="none" stroke="#00CC00" stroke-width="1.5"/>
 <polygon data-id="timestamp_4" points="102.2915,83.2812 99.2915,96.2812 105.2915,96.2812" fill="#000000"/>
 <polygon data-id="timestamp_5" points="502.2915,83.2812 499.2915,96.2812 505.2915,96.2812" fill="#000000"/>
-<polygon data-id="timestamp_1" points="402.2915,49.3047 399.2915,62.3047 405.2915,62.3047" fill="#000000"/>
+<polygon data-id="timestamp_1" points="402.2915,49.3047 390.9779,56.3757 395.2205,60.6183" fill="#000000"/>
 <text data-id="second-half" data-part="name" x="24" y="51.6128" text-anchor="start" font-size="11" fill="#000000">Second half</text>
 <text data-id="score" data-part="name" x="24" y="85.5894" text-anchor="start" font-size="11" fill="#000000">Score</text>
 <text data-id="timestamp_4" data-part="coordinate" x="102.2915" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>

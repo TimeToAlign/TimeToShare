@@ -730,6 +730,9 @@ describe("the graphical object", () => {
     { "max-width": "none", content: "Score" },
     { "stroke-dasharray": "none" },
     { "stroke-dasharray": "4 2.5" },
+    { rotation: -45 },
+    { rotation: 180 },
+    { rotation: -180 },
   ])("accepts %o", (declaration) => {
     validate(styled(declaration));
   });
@@ -743,6 +746,9 @@ describe("the graphical object", () => {
     [{ "max-width": 0 }, "max-width"],
     [{ content: 5 }, "content"],
     [{ "stroke-dasharray": "4,2" }, "stroke-dasharray"],
+    [{ rotation: 181 }, "rotation"],
+    [{ rotation: -180.5 }, "rotation"],
+    [{ rotation: "45" }, "rotation"],
   ])("refuses %o at the property", (declaration, member) => {
     expect(problem(styled(declaration))[0]).toEqual(["graphical", "rules", 0, "set", member]);
   });
