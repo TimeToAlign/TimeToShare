@@ -156,14 +156,20 @@ display order of the group's members (section 8.1) and a timeline's ID to
 the timeline's band order (section 6.4).
 
 `timestamps` is a list of **named timestamps** (default `[]`), each an
-object `{id, timeline, coordinate, name, display?, matchstamp?}` naming one position of
+object `{id, timeline, coordinate, name, display?, matchstamp?, groupstamp?}` naming one position of
 one timeline: `id` is its ID (README, "Identity"), `timeline` the ID of a
 timeline of the manifest at any depth, a segment included, `coordinate` the
 position on that timeline's own axis, a number as the timeline's number
 type selects (README, "Values on a timeline's own axis"), at least the zero
 of that number type and at most the timeline's `length` when the length is
 a value, and `name` its name. A **match timestamp**, one with
-`matchstamp: true` (default `false`), may leave out its `name`. Their canonical order is by `timeline`,
+`matchstamp: true` (default `false`), may leave out its `name`. A
+**groupstamp**, one with `groupstamp: true` (default `false`), lies on a
+timeline that is a member of a group, and its cross-section line extends
+across every member of each group that has that timeline as a member
+(section 6.6, Cross-section lines); the lines on the other members are
+derived from the group and never stored. A timestamp is never both a
+groupstamp and a match timestamp. Their canonical order is by `timeline`,
 compared by Unicode code point, then by `coordinate`, compared by exact
 value, then by `id`, compared by code point.
 
@@ -225,7 +231,7 @@ of a timeline, which draws nothing of its own:
 | `flow_marker` | a flow marker, a `flow_marker` element of `flow_control`, drawn as a vertical line |
 | `jump_from` | a jump origin, a `jump_from` element of `flow_control`, drawn as an arc with an arrowhead to where it jumps; a jump target, a `jump_to` element, draws nothing of its own |
 | `wedge` | a coordinate marker: of a named timestamp of any timeline (section 2); on an ancestor line, the member's start or end on the ancestor's axis (section 8.3) |
-| `cross_section` | the cross-section line of a named timestamp, a vertical line across its timeline's line, children band and conversion maps band (section 6.6) |
+| `cross_section` | the cross-section line of a named timestamp, a vertical line across its timeline's line, children band and conversion maps band, and for a groupstamp also across those of every other member of its groups (section 6.6) |
 | `alignment_anchor` | the line of an alignment anchor of a named MatchStamp, the shortest line between the cross-section lines of its two timestamps (section 8.7) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
 | `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the coordinate of a mark on an ancestor line, or the label of a region, jump origin, flow marker or segment |
@@ -328,7 +334,7 @@ and `X` an element's ID:
 | a conversion map, region or flow-control element with ID `X` of `T` | `{"id": X}` | `T` |
 | the wedge of a named timestamp with ID `X` of `T` | `{"id": X}` | `T` |
 | the labels of that timestamp, all `label` elements: its name, its ID, its coordinate | `{"id": X, "part": ["name"]}`, `{"id": X, "part": ["id"]}`, `{"id": X, "part": ["coordinate"]}` | `T` |
-| the cross-section line of that timestamp | `{"id": X, "part": ["line"]}` | `T` |
+| the cross-section line of that timestamp, and of a groupstamp each of its lines on the other members of its groups | `{"id": X, "part": ["line"]}` | `T` |
 | the line of an alignment anchor with ID `A` | `{"id": A}` | none |
 | the MatchStamp's name at that anchor, a `label` element | `{"id": A, "part": ["name"]}` | none |
 | the name of an element with ID `X` | `{"id": X, "part": ["name"]}` | that element's timeline |
@@ -1444,6 +1450,24 @@ one below it.
   band or row. A match timestamp's cross-section line is drawn by this
   rule, as every other; the alignment anchors that join such lines are
   drawn after every item (section 8.7).
+
+  A **groupstamp** (section 2) on a timeline `T` draws, in the frame of
+  each group that has `T` as a member, a further line in the card of
+  every other member `M` of that group. It draws no further line
+  elsewhere: none beside its own line in `T`'s card, and none where `T`
+  is drawn as a descendant in another member's drawing. Each such line
+  lies at `X`, `x` of the timestamp's position in `T`'s member drawing of
+  that frame. Every member drawing of a frame starts at the same `x0` and is as long
+  (section 8.2), and a group converts its members' positions linearly
+  between their common start and end, so this `X` is also that of the
+  corresponding position of `M`. The line spans `M`'s line, children
+  band and conversion maps band by the rule above with `M` in place of
+  `T`, and is not drawn when neither band of `M` is present. It is a
+  further drawing of the timestamp's cross-section line (section 2.2): it
+  carries the line's address, belongs to `T`, has no settings of its own,
+  and is drawn when that line is displayed in `T`'s card of the frame,
+  with the values cascaded for it there. It has no wedge and no labels.
+  The timestamp's own cross-section line is drawn as every other.
 - **Maps.** A closed double line: the outline of the rectangle from `Xs`
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
@@ -1978,7 +2002,11 @@ each with its chevrons, just before its root; their marks, from `A1` to
 `Ak`, each ancestor's start mark before its end mark, first among its
 wedges; their names, from `A1` to `Ak`, first among its names; and their
 mark labels, from `A1` to `Ak`, each ancestor's start label before its end
-label, first among its marker labels. After the last item come the
+label, first among its marker labels. A member drawing in a frame ends with
+the lines that the groupstamps of the frame's other members draw on it
+(section 6.6), after its own cross-section lines: member by member in the
+frame's display order, each member's groupstamps in the order its markers
+band places them (section 6.4, Markers). After the last item come the
 alignment anchors and then their labels (section 8.7), so that they lie
 over everything else. A title is a text descriptor of section 7.2, anchored at `start`;
 its `content` and `max-width` apply as section 6.6 applies them to a row's

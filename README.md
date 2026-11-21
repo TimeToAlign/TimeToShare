@@ -358,7 +358,7 @@ both forms.
 | MeasureMap (`measure_map`) | `name`: `null`; `meta`: `{}` |
 | group | `name`: `null`; `meta`: `{}` |
 | graphical | `styles`: `{}`; `rules`: `[]`; `order`: `{}`; `timestamps`, `matchstamps`: `[]` |
-| named timestamp (`timestamp`) | `matchstamp`: `false`; `display`: `["wedge", "name", "cross_section"]`, on a match timestamp `["cross_section"]` |
+| named timestamp (`timestamp`) | `matchstamp`, `groupstamp`: `false`; `display`: `["wedge", "name", "cross_section"]`, on a match timestamp `["cross_section"]` |
 | alignment anchor (`alignment_anchor`) | `display`: `["line"]` |
 
 `@context`, `statements` and `provenance` have no default: neither form
@@ -415,7 +415,7 @@ and what is graphical lies in this object. `styles` and `rules` style the
 drawing ([Drawing a manifest](#drawing-a-manifest)); `matchstamps` lists
 the named MatchStamps ([Named MatchStamps](#named-matchstamps)).
 `timestamps` lists the **named timestamps**, each `{id, timeline,
-coordinate, name, display?, matchstamp?}`: a
+coordinate, name, display?, matchstamp?, groupstamp?}`: a
 position `coordinate` on the own axis of the timeline `timeline`, a root or
 a descendant at any depth, a segment included, written as that timeline's
 number type selects and respelled by writers as every own-axis value is
@@ -434,8 +434,17 @@ line across its timeline's line, children band and conversion maps band);
 its order means nothing and writers write it in the order just given. A
 timestamp draws by default its wedge, its name and its cross-section line,
 a match timestamp its cross-section line alone (the drawing
-specification, sections 2, 6.4 and 6.6). `order` maps the ID of a group
-or of a timeline to the order of what it stacks, top to bottom, and
+specification, sections 2, 6.4 and 6.6). A **groupstamp**, a timestamp
+with `groupstamp: true` (default `false`), lies on a timeline that is a
+member of a group, and its cross-section line extends across every member
+of each group that has that timeline as a member. The lines on the other
+members are derived from the group and never stored: each lies at the
+position that the group's linear conversion gives on its member, is drawn
+in the style of the timestamp's own line, without a wedge or labels, and
+has no settings of its own (the drawing specification, section 6.6).
+Both validators refuse a groupstamp whose timeline is a member of no
+group, and a groupstamp that is also a match timestamp. `order` maps the
+ID of a group or of a timeline to the order of what it stacks, top to bottom, and
 writers never reorder it:
 
 - a group's ID to the **display order** of its members, a permutation of
@@ -577,7 +586,8 @@ holder's, nor that a map's arrays agree, nor that a member names a timeline
 of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor that a named timestamp lies
-on a timeline of the manifest and within it, nor that a resource's
+on a timeline of the manifest and within it, nor that a groupstamp lies
+on a member of a group and is no match timestamp, nor that a resource's
 timelines are timelines of the manifest, nor the rules of named
 MatchStamps ([Named MatchStamps](#named-matchstamps)), nor the representation of
 own-axis values, so both validators check them after the schema. Each
@@ -611,10 +621,12 @@ stable code:
 | A facet, or `line`, is missing from its band order | `band_order` | the order | `'<entry>' is missing from the band order of '<id>'` |
 | A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
+| A groupstamp that is no match timestamp lies on a timeline that is a member of no group | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group` |
 | An entry of an alignment anchor's `timestamps` names no named timestamp | `alignment_anchor` | the entry | `'<id>' names no timestamp of this manifest` |
 | An entry of an alignment anchor's `timestamps` names a timestamp that is no match timestamp | `alignment_anchor` | the entry | `'<id>' is no match timestamp` |
 | The two match timestamps of an alignment anchor lie on one timeline | `alignment_anchor` | the anchor's second entry of `timestamps` | `the timestamps of '<anchor id>' both lie on the timeline '<timeline id>'` |
 | The alignment anchors of a named MatchStamp are not one connected set of timestamps | `matchstamp` | its `alignment_anchors` | `the alignment anchors of '<id>' are not one connected set` |
+| A match timestamp is a groupstamp | `groupstamp` | its `groupstamp` | `'<id>' is both a match timestamp and a groupstamp` |
 | A match timestamp lies on the coordinate of an earlier match timestamp of its timeline, compared by exact value | `match_timestamp` | the later timestamp | `'<id>' lies on the coordinate of the match timestamp '<earlier id>'` |
 | No named MatchStamp's anchor names a match timestamp | `match_timestamp` | the timestamp | `the match timestamp '<id>' belongs to no MatchStamp` |
 | An entry of a resource's `timelines` names no timeline of the manifest | `resource_timeline` | the entry | `'<id>' names no timeline of this manifest` |
@@ -643,12 +655,13 @@ by its anchors' IDs, the resources' IDs, the manifest's ID; members
 (member by member: dangling, nested); the entries of `graphical.order` in
 code-point order of their keys: an order's strangers first, in its order,
 then its missing entries, in the order of the group's `members` or of the
-default band order; then the named timestamps, in array order; then the
+default band order; then the named timestamps, in array order, each its
+timeline, its coordinate, then whether it may be a groupstamp; then the
 named MatchStamps in array order, each anchor in turn (its two
 timestamps in order, then whether they lie on one timeline) before
 whether the MatchStamp's anchors connect, followed by the match
-timestamps in array order, for each a coordinate shared with an earlier
-one before belonging to no MatchStamp; and last the resources, in array order, each its
+timestamps in array order, for each whether it is a groupstamp, then a
+coordinate shared with an earlier one, then belonging to no MatchStamp; and last the resources, in array order, each its
 `timelines` in order before its `type`. A repeated anchor ID is a
 `duplicate_id` wherever the earlier ID stands, and a repeated ID within
 one MatchStamp's `match_claims` is refused by the schema. The
@@ -761,16 +774,12 @@ column whose Null is "never" holds a value in every row:
 | --- | --- | --- | --- |
 | `timeline_a_id`, `timeline_b_id` | string | never | the IDs of its two timelines, two different timelines, each a timeline of the manifest |
 | `start_anchor`, `end_anchor` | anchor | allowed | the alignment anchors the two events give, of their starts and, for intervals, of their ends; null where the MatchClaim gives none |
-| `is_synchronous` | bool | never | `true` for a synchronous MatchClaim, `false` for a conceptual one and a NOMATCH |
-| `is_explicit` | bool | never | `true` for a MatchClaim stated directly, `false` for one inferred from other MatchClaims |
+| `is_synchronous` | bool | never | `true` for a synchronous MatchClaim; `false` for a conceptual one, which states no temporal equivalence, and for a NOMATCH |
 | `provenance` | provenance | allowed | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)); null where the row states none |
 | `certainty` | float64 | allowed | how certain the MatchClaim is, from 0 to 1, both included; null where none is stated |
-| `source_claim_id` | string | allowed | for an inferred MatchClaim, the ID of the MatchClaim it was inferred from |
 | `event_a_id`, `event_b_id` | string | allowed | the IDs of its two events, one on each timeline. A synchronous or a conceptual MatchClaim names an event on each side, a Projection where the timeline holds no event of its own ([The Projections table](#the-projections-table)); null is the NOMATCH sentinel alone, on the side without a counterpart, and is never an event |
 | `event_a_name`, `event_b_name` | string | allowed | the name of each event, where it is known |
-| `source_coordinate` | coordinate cell | allowed | for a NOMATCH, the position of its one event on the axis of that event's timeline; null on every other row |
 | `id` | string | never | the MatchClaim's ID, never changed once given (below) |
-| `id_minted` | bool | never | `true` where the ID was minted (`claim_N`), `false` where its source gave it |
 
 The columns may stand in any order, and a table may hold further
 columns, which are kept and never checked. A table that mixes the
@@ -783,13 +792,14 @@ under the key `timetoshare:provenance` of the file's schema metadata; the
 `provenance` of every row is then null, and a row stating its own is
 refused.
 
-Three columns hold structs:
+The table uses three struct types:
 
 - a **coordinate cell**: `struct<value: double, numerator: int64,
   denominator: int64, unit: string, number_type: string>` (below);
-- an **anchor**: `struct<timeline_a_id: string, coordinate_a: coordinate
-  cell, timeline_b_id: string, coordinate_b: coordinate cell>`, the row's
-  two timelines in the row's order;
+- an **anchor**: `struct<coordinate_a: coordinate cell, coordinate_b:
+  coordinate cell>`, `coordinate_a` on the row's `timeline_a_id` and
+  `coordinate_b` on its `timeline_b_id`, so that an anchor names no
+  timeline of its own;
 - a **provenance**: the members of the provenance entry in the order of
   `provenance.schema.json`, `stated_by` (list of string), `date`,
   `method`, `service` (strings), `basis` (list of string), `match`,
@@ -832,13 +842,11 @@ gives their codes and messages):
 
 - Its two timelines differ, and it names at least one event.
 - A row with one event is a NOMATCH, which is not synchronous and has no
-  anchors; only a NOMATCH has a `source_coordinate`, on the timeline of
-  its event.
+  anchors.
 - A synchronous row with an event on each side has a `start_anchor`; a
   conceptual row, not synchronous with an event on each side, has no
   anchors. An `end_anchor` comes only with a `start_anchor`.
-- An anchor joins the row's two timelines in the row's order, and both
-  its coordinates are cells, never null.
+- Both coordinates of an anchor are cells, never null.
 - A stated `certainty` lies in [0, 1].
 - The ID, a `scope` and an event ID are non-empty strings without control
   characters (U+0000 to U+001F), as every ID of the format
@@ -971,7 +979,7 @@ The MatchClaim table:
 | Rule | Code | Column | Message |
 | --- | --- | --- | --- |
 | A column of the type is missing, or it or `scope` is of another type | `schema_violation` | the column, row `None` | `the table has no column '<name>'`, `the column '<name>' is <type>, not <type>` |
-| `timeline_a_id`, `timeline_b_id`, `is_synchronous`, `is_explicit`, `id` or `id_minted` is null | `schema_violation` | the column | `'<name>' is null` |
+| `timeline_a_id`, `timeline_b_id`, `is_synchronous` or `id` is null | `schema_violation` | the column | `'<name>' is null` |
 | A `scope` is empty or holds a control character | `invalid_id` | `scope` | `the scope is empty`, `the scope '<scope>' holds a control character` |
 | An ID is empty or holds a control character | `invalid_id` | `id` | `the ID is empty`, `the ID '<id>' holds a control character` |
 | An ID repeats the ID of an earlier row of its scope | `duplicate_id` | `id` | `the ID '<id>' is given twice`, followed by ` in the scope '<scope>'` for a scope that is not null |
@@ -985,9 +993,7 @@ The MatchClaim table:
 | A synchronous row with an event on each side has no start anchor | `claim_anchors` | `start_anchor` | `a synchronous MatchClaim has a start anchor` |
 | A conceptual row has an anchor | `claim_anchors` | `start_anchor`, else `end_anchor` | `a conceptual MatchClaim has no anchors` |
 | An end anchor has no start anchor | `claim_anchors` | `end_anchor` | `an end anchor needs a start anchor` |
-| A row other than a NOMATCH has a source coordinate | `claim_anchors` | `source_coordinate` | `only a NOMATCH MatchClaim has a source coordinate` |
-| An anchor joins other timelines than the row, or in the other order; its coordinates are then not checked | `anchor_timelines` | `start_anchor`, `end_anchor` | `the anchor joins '<id>' and '<id>', the MatchClaim '<id>' and '<id>'` |
-| A coordinate of an anchor, the start anchor's before the end anchor's, `coordinate_a` before `coordinate_b`, then a NOMATCH's source coordinate, is null or malformed | `invalid_coordinate` | the cell, such as `start_anchor.coordinate_b` | a cell's message (below) |
+| A coordinate of an anchor (the start anchor's before the end anchor's, `coordinate_a` before `coordinate_b`) is null or malformed | `invalid_coordinate` | the cell, such as `start_anchor.coordinate_b` | a cell's message (below) |
 | Such a coordinate lies off its timeline's axis | `axis_mismatch` | the cell | an axis message (below) |
 | `certainty` lies outside [0, 1] | `invalid_certainty` | `certainty` | `the certainty <value> lies outside [0, 1]` |
 | A row states a provenance where the file states one | `invalid_provenance` | `provenance` | `the provenance is stated in the file's metadata and in the row` |
@@ -1139,7 +1145,8 @@ or is no match timestamp, and an anchor naming two timestamps of one
 timeline (`alignment_anchor`); a MatchStamp whose anchors do not form one
 connected set of timestamps (`matchstamp`); two match timestamps at one
 coordinate of one timeline, and a match timestamp that no MatchStamp
-names (`match_timestamp`); an anchor ID that repeats any ID of the
+names (`match_timestamp`); a match timestamp that is a groupstamp
+(`groupstamp`); an anchor ID that repeats any ID of the
 manifest (`duplicate_id`, as every ID); and a MatchClaim ID repeated
 within one MatchStamp's `match_claims` or an anchor's `display` word
 other than `line` and `name` (`schema`). The table of
