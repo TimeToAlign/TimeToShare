@@ -775,7 +775,9 @@ blank node`), for a manifest that states pairs or provenance without an
 `manifestWarnings(value)` validate a manifest and return them as
 `{code, path, message}` entries, sorted by path and then by code. An
 unknown key inside a provenance entry is reported as an unknown key
-(README, "Unknown keys"); `@context`, a container and its values are
+(README, "Unknown keys"), while the MatchClaim table, whose `provenance`
+column holds the entry's members alone, refuses one (README, "Checking
+the tables"); `@context`, a container and its values are
 closed, and a key they do not declare is refused.
 
 **The statements alone.** Python's `statement_problems(value)` and npm's
