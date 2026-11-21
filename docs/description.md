@@ -9,17 +9,20 @@ inline JSON-LD context. It covers the two planes of a manifest (section
 the things a manifest holds (section 3), pairs and their values (section
 4), "is a" (section 5), vocabularies and patterns (section 6), values that
 name elements (section 7), YAML-LD and the inline context (section 8),
-provenance and statuses (section 9), the catalogue of identifier systems,
+provenance and beliefs (section 9), the catalogue of identifier systems,
 verbs and types (section 10), the package functions that edit statements
 (section 11) and validation (section 12). Section 13 lists the statement
 fixtures.
 
-The definitions `Context`, `Statements`, `StatementValue` and
-`ProvenanceEntry` of the schema document, with the definitions they use
+The definitions `Context`, `Statements` and `StatementValue` of the
+manifest's schema document and the provenance entry of its provenance
+document, `provenance.schema.json`, with the definitions they use
 (`PrefixName`, `PrefixIri`, `Iri`, `IriReference`, `LanguageTag`, `Types`,
 `Values`, `SingleValue`, `OrderedValues`, `ValueObject`, `ValueNode`,
-`Provenance` and `EntryValue`), state the format normatively; the first
-four are public (README, "The schema document"). Terms in `code` are JSON
+`Provenance`, `EntryValue` and the belief), state the format normatively;
+the first three are public (README, "The schema document"). The same
+provenance entry annotates the rows of the MatchClaim table (README,
+"Provenance and beliefs"); this specification states it for statements. Terms in `code` are JSON
 members. Statements hold no events, and neither the drawing
 (`docs/drawing.md`) nor any rule of the temporal structure reads them.
 
@@ -120,8 +123,8 @@ song CNW 133, the bundle is about the catalogue's work, which is realised
 in one expression. The print and the autograph are manifestations, each a
 timeline; the print embodies the expression, a value node. The one copy
 of the autograph, held by the Royal Danish Library under the shelfmark
-CNS 342e, is proposed as its exemplar on the autograph's timeline, the
-library's siglum awaiting reconciliation (abridged):
+CNS 342e, is a candidate for its exemplar on the autograph's timeline,
+the library's siglum awaiting reconciliation (abridged):
 
 ```yaml
 id: "#cnw0133"
@@ -152,7 +155,6 @@ timelines:
     provenance:
       -
         property: "lrmoo:R7i_is_exemplified_by"
-        status: proposed
         value:
           "bf:heldBy":
             -
@@ -166,7 +168,7 @@ timelines:
 ```
 
 Read as linked data, the excerpt types no element of the manifest as a
-work or an expression, and the proposed exemplar is reified only
+work or an expression, and the candidate exemplar is reified only
 (section 9):
 
 ```turtle
@@ -361,7 +363,7 @@ so the manifest is self-contained and a processor reads it without
 fetching anything. Writers write the prefixes used and no others, taking
 their namespaces from the manifest's own context first and from the
 catalogue otherwise (Python's `with_context`, npm's `withContext`,
-section 11); every generated fixture of 0.2.0 holds a context, the 33
+section 11); every generated fixture of 0.2.0 holds a context, the 35
 terms alone where it states nothing.
 
 A **prefix** is a name beginning with a letter, followed by letters,
@@ -374,7 +376,7 @@ IRI whose prefix the context does not declare is refused (section 12); an
 absolute IRI is always valid, and an IRI of the schemes `info`, `mailto`,
 `tag` and `urn` is read as written.
 
-The format's 33 terms:
+The format's 35 terms:
 
 | Term | Maps to | Role |
 | --- | --- | --- |
@@ -389,9 +391,9 @@ The format's 33 terms:
 | `stated_by`, `basis` | `prov:wasAttributedTo`, `prov:hadPrimarySource` | IRIs |
 | `date` | `dcterms:date`, an `xsd:date` | |
 | `note` | `rdfs:comment` | |
-| `method`, `service`, `match`, `status` | the format's namespace, `https://timetoalign.github.io/timetoshare/ns#` | |
+| `method`, `service`, `match`, `beliefs`, `actor`, `belief` | the format's namespace, `https://timetoalign.github.io/timetoshare/ns#` | `actor` an IRI |
 | `manual`, `reconciled`, `imported`, `inferred` | `Manual`, `Reconciled`, `Imported`, `Inferred` in that namespace | the words of `method` |
-| `confirmed`, `proposed`, `rejected` | `Confirmed`, `Proposed`, `Rejected` in that namespace | the words of `status` |
+| `true`, `false`, `unlikely` | `True`, `False`, `Unlikely` in that namespace | the words of `belief` |
 | `exact`, `close`, `broad`, `narrow`, `related` | `skos:exactMatch`, `skos:closeMatch`, `skos:broadMatch`, `skos:narrowMatch`, `skos:relatedMatch` | the words of `match` |
 
 The context writes each term with its full IRI, so the format itself
@@ -406,20 +408,20 @@ excepted; a key holding a colon; a term the element does not use, such as
 context. A timeline's displayed `name` is therefore no `rdfs:label` of
 its subject, and a statement `rdfs:label` states one where wanted.
 
-## 9. Provenance and statuses
+## 9. Provenance and beliefs
 
-A pair may be annotated with who stated it, when, how, on what basis, and
-whether it holds. The annotations of an element's pairs are the entries
-of its `provenance`, a non-empty list beside its `statements`; the pairs
-of a value node are annotated in that node's own `provenance`. A pair
-without an entry is stated by the manifest's publisher. Each entry names
-its pair again, by its property and its value:
+A pair may be annotated with how it was made, its paradata (who stated
+it, when, how and on what basis), and with who believes it. The
+annotations of an element's pairs are the entries of its `provenance`, a
+non-empty list beside its `statements`; the pairs of a value node are
+annotated in that node's own `provenance`. A pair without an entry is
+stated by the manifest's publisher. Each entry names its pair again, by
+its property and its value:
 
 | Key | Required | Holds |
 | --- | --- | --- |
 | `property` | yes | the pair's property, a compact or absolute IRI; the pair `type` X is written `rdf:type` |
 | `value` | yes | the pair's value: a literal, a value object, a thing by its `id` alone, or a node without `id`, compared as a whole |
-| `status` | yes | `confirmed`, `proposed` or `rejected` |
 | `stated_by` | no | the agents who stated it, IRIs or references |
 | `date` | no | the day it was stated, `YYYY-MM-DD` |
 | `method` | no | `manual`, `reconciled` (looked up in a service and matched), `imported` (taken over from a source document) or `inferred` (derived by a tool), or the IRI of another method |
@@ -427,16 +429,39 @@ its pair again, by its property and its value:
 | `basis` | no | the sources it rests on: IRIs, or references resolved against the manifest's address, such as `#clt_6` or a file beside the manifest |
 | `match` | no | how closely the value matches what was looked up: `exact`, `close`, `broad`, `narrow` or `related` |
 | `note` | no | a note in words |
+| `beliefs` | no | who believes the pair, a non-empty list of beliefs (below) |
 
-**Statuses.** A `confirmed` entry annotates a pair the subject states. A
-`proposed` entry holds a candidate awaiting a decision, such as a name
-imported without an identifier or a value a lookup suggested; a
-`rejected` entry records a candidate examined and refused, so that no
-tool proposes it again. A proposed or rejected pair is never stated: it
-exists only as its entry, and no processor reading the manifest asserts
-it. Confirming a proposal states its pair and turns its entry
-`confirmed`; rejecting a stated pair removes the pair and keeps the
-entry as `rejected`. A subject has at most one entry per pair.
+The same entry, without `property` and `value`, annotates a MatchClaim in
+the `provenance` column of the MatchClaim table (README, "Provenance and
+beliefs"); `provenance.schema.json` defines it once for both.
+
+**Stated pairs and candidates.** A pair listed in `statements` is stated
+by the manifest, and its entry, where it has one, annotates it. An entry
+whose pair is not listed holds a **candidate**: a name imported without
+an identifier, a value a lookup suggested, a pair taken back. A candidate
+is never stated: it exists only as its entry, and no processor reading
+the manifest asserts it. Stating a candidate lists its pair, and its entry
+then annotates the stated pair. A subject has at most one entry per pair.
+
+**Beliefs.** A belief is `{actor, belief, date, note?}`: `actor` the
+agent who holds it, an IRI or a reference as in `stated_by`; `belief` one
+of the words `true`, `false` and `unlikely`, strings like the words of
+`method`; `date` the day it was stated, `YYYY-MM-DD`; and `note` a note in
+words. An actor holds at most one belief per entry: a later belief of the
+same actor replaces the earlier one, and one actor's belief leaves every
+other actor's standing. A belief is its actor's alone. Nothing in the
+format derives a truth value from the beliefs, and nobody imposes one: a
+belief changes neither whether a pair is stated nor any other actor's
+belief. A person who states a pair through an editor or the functions of
+section 11 is recorded with the belief `true`; a loader or a service
+records how the pair was made and holds no belief. A candidate an actor
+believes `false` is not offered to that actor again.
+
+**The belief filter** selects, for one actor, everything the actor does
+not believe `false`, which is the default, or only what the actor
+believes `true`; without an actor, nothing is filtered. It selects the
+candidates an editor offers and the MatchClaims that give anchors (README,
+"From MatchClaims to anchors") alike.
 
 **Which pair an entry names.** An entry and a pair are the same pair when
 their properties are equal after expansion (`type` equals `rdf:type`) and
@@ -451,9 +476,11 @@ Relative references compare as written. Python's `same_pair` and npm's
 **Reading.** Each entry reads as RDF's reification of its pair, a node
 with `rdf:subject`, `rdf:predicate` and `rdf:object`, the form RDF 1.2
 turns into an annotation of a triple; JSON-LD 1.1 cannot produce a triple
-and its annotation from one object. In `layerit_recording` the performer
-of the video was reconciled in Wikidata, and the audio file is proposed
-as derived from the video, the value an element:
+and its annotation from one object. Each belief reads as a node of its
+own under `tts:beliefs`. In `layerit_recording` the performer of the
+video was reconciled in Wikidata by an editor, who believes it, and the
+audio file is a candidate for being derived from the video, the value an
+element:
 
 ```yaml
 timelines:
@@ -461,13 +488,17 @@ timelines:
     id: "#cpt_1"
     provenance:
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: "true"
+            date: "2026-11-18"
         date: "2026-11-18"
         method: reconciled
         note: "Portuguese pianist; the video's title names her"
         property: "wdt:P175"
         service: "https://www.wikidata.org/w/api.php"
         stated_by: ["https://example.org/people/editor"]
-        status: confirmed
         value:
           id: "wd:Q235650"
     statements:
@@ -484,7 +515,6 @@ timelines:
         note: "assumed ripped from the video's sound and cut"
         property: "dcterms:source"
         stated_by: ["https://example.org/people/editor"]
-        status: proposed
         value:
           id: "#cpt_1"
     statements:
@@ -502,20 +532,24 @@ wd:Q235650 rdfs:label "Maria João Pires" .
     prov:wasAttributedTo <https://example.org/people/editor> ;
     tts:method tts:Reconciled ;
     tts:service <https://www.wikidata.org/w/api.php> ;
-    tts:status tts:Confirmed .
+    tts:beliefs [
+        tts:actor <https://example.org/people/editor> ;
+        tts:belief tts:True ;
+        dcterms:date "2026-11-18"^^xsd:date
+    ] .
 
 [] rdf:subject :dpt_1 ; rdf:predicate dcterms:source ; rdf:object :cpt_1 ;
     dcterms:date "2026-11-18"^^xsd:date ;
     rdfs:comment "assumed ripped from the video's sound and cut" ;
     prov:wasAttributedTo <https://example.org/people/editor> ;
-    tts:method tts:Inferred ;
-    tts:status tts:Proposed .
+    tts:method tts:Inferred .
 ```
 
 with `tts:` standing for the format's namespace. The triple `:dpt_1
-dcterms:source :cpt_1` is absent: the proposal is reified and never
+dcterms:source :cpt_1` is absent: the candidate is reified and never
 asserted. In `djset_segment`, the segment's `sameAs` to the original
-MusicBrainz recording is likewise rejected and nowhere asserted, and the
+MusicBrainz recording is likewise a candidate, which an actor believes
+`false`, and nowhere asserted, and the
 ISRC of the recording the segment is based on is annotated on the node
 that states it, its reified statement having that thing, `wd:Q65658996`,
 as its subject. A node value without `id` in an entry, such as a name not
@@ -637,24 +671,24 @@ manifest, `#cpt_1` in the file form, and `None` names the bundle.
 
 | Python | Does |
 | --- | --- |
-| `pairs(manifest, subject)`, `entries(manifest, subject, status=None)` | the subject's pairs, keys in code-point order and values in list order, and its provenance entries |
-| `with_pair(manifest, subject, property, value, provenance=None)` | states a pair, and with `provenance` a `confirmed` entry of it; a proposal or rejection of the pair is removed |
-| `without_pair(manifest, subject, property, value)` | removes a pair and its `confirmed` entry; an emptied list, container or `provenance` is removed |
-| `with_proposal(manifest, subject, property, value, stated_by=, date=, method=, …)` | adds a `proposed` entry and leaves the statements as they are |
-| `with_confirmation(manifest, subject, property, value, stated_by=, date=)` | states the pair of a proposal or rejection and turns its entry `confirmed` |
-| `with_rejection(manifest, subject, property, value, stated_by=, date=, note=None)` | removes a stated pair and keeps or adds its entry as `rejected` |
+| `pairs(manifest, subject)`, `entries(manifest, subject)` | the subject's pairs, keys in code-point order and values in list order, and its provenance entries |
+| `with_pair(manifest, subject, property, value, provenance=None)` | states a pair, and with `provenance` its entry, which replaces the entry of a candidate of the pair |
+| `without_pair(manifest, subject, property, value)` | removes a pair and its entry; an emptied list, container or `provenance` is removed |
+| `with_proposal(manifest, subject, property, value, stated_by=, date=, method=, …)` | adds the entry of a candidate and leaves the statements as they are |
+| `with_confirmation(manifest, subject, property, value, actor=, date=)` | states the pair of a candidate and records the actor's belief `true` in its entry |
+| `with_rejection(manifest, subject, property, value, actor=, date=, note=None)` | records the actor's belief `false` in the pair's entry, adding the entry where there is none, and removes the pair where it is stated, so that it is a candidate |
 | `same_pair(context, a, b)` | the comparison of section 9 |
 | `expand_iri(context, text)`, `used_prefixes(manifest)` | an IRI expanded through a context, and the prefixes a manifest's statements use |
 | `with_context(manifest, prefixes)` | the manifest with its `@context`: the format's terms and the prefixes used, each namespace from its own context first, else from `prefixes` |
 
 A function refuses a pair already stated (`'<property>' already has this
 value`), the removal of a pair not stated (`'<property>' does not have
-this value`), a proposal of a stated pair, a confirmation without a
-proposal or rejection, a property that is neither `type` nor an IRI, a
+this value`), a candidate of a stated pair, a confirmation of a pair
+that is no candidate, a property that is neither `type` nor an IRI, a
 path that addresses nothing and a date the calendar lacks, raising
 `ValueError` in Python and `Error` in npm with the same message.
-`FORMAT_CONTEXT` holds the 33 terms, `NAMESPACE` the format's namespace,
-and `STATUSES`, `METHODS` and `MATCHES` the words of the three keys.
+`FORMAT_CONTEXT` holds the 35 terms, `NAMESPACE` the format's namespace,
+and `BELIEFS`, `METHODS` and `MATCHES` the words of the three keys.
 
 ## 12. Validation
 
@@ -663,7 +697,7 @@ schema, the representation of own-axis values and the identity rules
 (README, "Identity"), and last the **statement rules**. The schema refuses,
 with the code `schema`:
 
-- a context that lacks one of the 33 terms or alters one, a prefix whose
+- a context that lacks one of the 35 terms or alters one, a prefix whose
   name is an element key or a URI scheme the format reads, and a
   namespace that does not end in `/` or `#`;
 - a container that is empty, a key that is neither `type` nor a compact or
@@ -672,9 +706,10 @@ with the code `schema`:
   fractional part;
 - a value object with both `@language` and `@type`, or with neither; an
   empty node; a node whose `id` is a blank-node label (`_:b0`);
-- an empty `provenance`, an entry without `property`, `value` or
-  `status`, a status, method or match outside its words, a `property`
-  that is no IRI, and a date not written `YYYY-MM-DD`.
+- an empty `provenance`, an entry without `property` or `value`, an
+  empty `beliefs`, a belief without `actor`, `belief` or `date`, a
+  belief, method or match outside its words, a `property` that is no IRI,
+  and a date not written `YYYY-MM-DD`.
 
 The statement rules run after every other rule and report their first
 problem, in this order: the context rule over every subject; the
@@ -684,8 +719,8 @@ subject in subject order, the manifest first, then root by root the
 timeline, its regions in array order and its children, depth first. For
 each subject they read its ID, its container's keys in code-point order
 with their values, a value node where it stands, then its provenance
-entries, each entry's keys in code-point order, and last each entry
-against the pairs.
+entries, each entry's keys in code-point order and its beliefs in list
+order, and last each entry against the earlier ones.
 
 | Rule | Code | Location | Message |
 | --- | --- | --- | --- |
@@ -697,9 +732,8 @@ against the pairs.
 | A node naming an element holds another key | `element_value` | the node | `'<id>' names an element; a value naming an element holds its id alone` |
 | A statement value is an integral float, such as `1.0` | `representation` | the value | `a statement value is an integer or a string, never a float: <value>` |
 | An entry's `date` names no day of the Gregorian calendar | `calendar_date` | the `date` | `'<date>' is no Gregorian calendar date written YYYY-MM-DD` |
-| A `confirmed` entry matches no pair of its subject | `provenance_match` | the entry | `no pair of this subject matches the entry; an entry that matches none is proposed or rejected` |
-| A `proposed` or `rejected` entry matches a stated pair | `provenance_match` | the entry | `the pair is stated; a <status> pair is never stated` |
 | An entry names the pair of an earlier entry of its subject | `provenance_duplicate` | the entry | `the entry repeats the pair of entry <index>` |
+| A belief names the actor of an earlier belief of its entry | `provenance_duplicate` | the belief | `the belief repeats the actor of belief <index>` |
 
 An IRI fragment is a string of the characters `A`–`Z`, `a`–`z`, `0`–`9`,
 `-._~!$&'()*+,;=:@/?`, code points from U+0080 on (white space excluded)
@@ -748,8 +782,8 @@ statements and provenance are attached from
 | Fixture | Holds |
 | --- | --- |
 | `op106_work` | a bundle about Beethoven's Piano Sonata No. 29, Op. 106, whose five roots side by side are manifestations: the first edition and an encoding of each movement, each naming its work; under `schema:about`, the sonata with its identity in Wikidata, the GND, VIAF and MusicBrainz, the composer, the opus number, the IMSLP page name, and the parts MusicBrainz lists with their positions; the manifest's own prefix `mbw` |
-| `layerit_recording` | a bundle about Debussy's "Clair de lune": an MEI encoding of its opening, a video of a performance by Maria João Pires and an audio file cut from it, each a manifestation; "is a" in three vocabularies, the encoding's work in two, the performer in two, a rejected GND candidate, provenance on a value node, and a proposal whose value is an element |
-| `djset_segment` | a bundle about a DJ set: the set's recording, naming the set by "recording of", and one segment of it, based on a recording stated in Wikidata and MusicBrainz with its ISRC; a performer known only by name, proposed, and a rejected identity |
+| `layerit_recording` | a bundle about Debussy's "Clair de lune": an MEI encoding of its opening, a video of a performance by Maria João Pires and an audio file cut from it, each a manifestation; "is a" in three vocabularies, the encoding's work in two, the performer in two, a GND candidate believed `false`, provenance on a value node, and a candidate whose value is an element |
+| `djset_segment` | a bundle about a DJ set: the set's recording, naming the set by "recording of", and one segment of it, based on a recording stated in Wikidata and MusicBrainz with its ISRC; a performer known only by name, a candidate, and an identity believed `false` |
 | `nielsen_record` | the catalogue record of Carl Nielsen's song CNW 133 taken over from its MEI header: the work under `schema:about` with titles in two languages, catalogue numbers and the date; the print and the autograph as manifestation timelines, the print embodying the expression, a value node with the medium of performance; every pair imported with its provenance, and names awaiting reconciliation |
 
 `fixtures/rdf/0.2.0/<name>.nq` holds the expected reading of each, the

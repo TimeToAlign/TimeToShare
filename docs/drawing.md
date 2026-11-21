@@ -30,7 +30,8 @@ containers are the **boxes** of a drawing.
   key the manifest leaves out taking its default (README, "Defaults"), and
   in canonical order (README, "Canonical order"), whatever form and order it
   was written in. Its `graphical` object holds the manifest's own style
-  rules and its `order` (section 2).
+  rules and its `order` (section 2). The drawing reads the manifest
+  alone, never a table that its `resources` name.
 - `placement`: chosen by whoever places the drawing, such as an editor's
   canvas or a script:
   - `length`, the **graphical length** `L` of every item of the block
@@ -149,19 +150,20 @@ The object is optional; an absent `graphical` draws with the other layers alone.
 each a selector (`select`, section 2.3) and either a declaration or the name
 of a style in the same layer's `styles` (`set`). The order of the
 rules matters, so writers never reorder them. Every layer of section 1
-has this shape. The manifest's own `graphical` also holds `order` and
-`timestamps`, which no other layer holds. `order` maps a group's ID to the
+has this shape. The manifest's own `graphical` also holds `order`,
+`timestamps` and `matchstamps`, which no other layer holds. `order` maps a group's ID to the
 display order of the group's members (section 8.1) and a timeline's ID to
 the timeline's band order (section 6.4).
 
 `timestamps` is a list of **named timestamps** (default `[]`), each an
-object `{id, timeline, coordinate, name, display?}` naming one position of
+object `{id, timeline, coordinate, name, display?, matchstamp?}` naming one position of
 one timeline: `id` is its ID (README, "Identity"), `timeline` the ID of a
 timeline of the manifest at any depth, a segment included, `coordinate` the
 position on that timeline's own axis, a number as the timeline's number
 type selects (README, "Values on a timeline's own axis"), at least the zero
 of that number type and at most the timeline's `length` when the length is
-a value, and `name` its name. Their canonical order is by `timeline`,
+a value, and `name` its name. A **match timestamp**, one with
+`matchstamp: true` (default `false`), may leave out its `name`. Their canonical order is by `timeline`,
 compared by Unicode code point, then by `coordinate`, compared by exact
 value, then by `id`, compared by code point.
 
@@ -173,11 +175,30 @@ timeline's unit (section 5.2); and `cross_section`, its **cross-section
 line**, across its timeline's line, children band and conversion maps band
 (section 6.6). `display` is an array of distinct words from these five,
 listing what the timestamp draws; when it is absent the timestamp draws
-`["wedge", "name", "cross_section"]`, and an empty array draws nothing.
+`["wedge", "name", "cross_section"]`, a match timestamp
+`["cross_section"]`, and an empty array draws nothing. A timestamp
+without a `name` draws no name label.
 Its order means nothing: writers write it in the canonical order `wedge`,
 `name`, `id`, `coordinate`, `cross_section`. An element whose word
 `display` does not list is not displayed, whatever the cascade sets
 (section 2.4).
+
+`matchstamps` is a list of **named MatchStamps** (default `[]`), each an
+object `{id, name, alignment_anchors, match_claims}` (README, "Named
+MatchStamps"). Each **alignment anchor** of `alignment_anchors` is an
+object `{id, timestamps, display?}`: `timestamps` names two match
+timestamps, and `display` lists what the anchor draws, distinct words
+from `line`, its `alignment_anchor` element, and `name`, the MatchStamp's
+name as a label at the middle of that line (section 8.7); when it is
+absent the anchor draws `["line"]`. Writers write it in the canonical
+order `line`, `name`. `match_claims` is never drawn. A match timestamp's
+cross-section line is an ordinary cross-section line (section 6.6).
+
+The drawing draws the named MatchStamps as the manifest stores them, and
+the SVG and TikZ writers write them so. What an editor derives from a
+MatchClaim table, such as the potential MatchStamps it shows in grey or
+the anchors of a named MatchStamp that the current table no longer gives,
+which it marks in red, is the editor's own and never part of a drawing.
 
 A reader that meets rules naming styles its `styles` does not hold
 issues one warning naming every missing style, and adds each to `styles` as
@@ -205,8 +226,9 @@ of a timeline, which draws nothing of its own:
 | `jump_from` | a jump origin, a `jump_from` element of `flow_control`, drawn as an arc with an arrowhead to where it jumps; a jump target, a `jump_to` element, draws nothing of its own |
 | `wedge` | a coordinate marker: of a named timestamp of any timeline (section 2); on an ancestor line, the member's start or end on the ancestor's axis (section 8.3) |
 | `cross_section` | the cross-section line of a named timestamp, a vertical line across its timeline's line, children band and conversion maps band (section 6.6) |
+| `alignment_anchor` | the line of an alignment anchor of a named MatchStamp, the shortest line between the cross-section lines of its two timestamps (section 8.7) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
-| `label` | any other text: the name, ID or coordinate of a named timestamp, the coordinate of a mark on an ancestor line, or the label of a region, jump origin, flow marker or segment |
+| `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the coordinate of a mark on an ancestor line, or the label of a region, jump origin, flow marker or segment |
 
 A drawing has two kinds of marker, and they are never confused. A
 **coordinate marker** marks a position of a timeline: it is a wedge, and
@@ -220,8 +242,9 @@ the markers band never holds one. A cross-section line is neither: it
 belongs to its named timestamp's timeline and is held by that timeline's
 line, never by its markers band nor by the timestamp's wedge.
 
-An element **belongs** to a timeline (section 2.2); the `block`, a `frame`
-and the titles of a group or of the manifest belong to none, and have no
+An element **belongs** to a timeline (section 2.2); the `block`, a `frame`,
+the titles of a group or of the manifest, and an `alignment_anchor`, which
+joins two timelines, with its label belong to none, and have no
 domain, modality or class. A card belongs to the timeline it holds, and so
 has its domain, modality and class. A band belongs to its timeline but has
 no domain and no modality, so no selector naming them matches it, and what
@@ -272,7 +295,8 @@ does, whose content is drawn at its segment line's line (section 6.4), and
 has no element type, so `inside` never names it; one that is a segment
 line is drawn as a `child` (section 6.1).
 Section 8 states the top of the tree: the block, frames, cards and
-ancestor lines.
+ancestor lines; the block also holds every `alignment_anchor`, and an
+`alignment_anchor` holds its label.
 
 ### 2.2 Addresses
 
@@ -305,6 +329,8 @@ and `X` an element's ID:
 | the wedge of a named timestamp with ID `X` of `T` | `{"id": X}` | `T` |
 | the labels of that timestamp, all `label` elements: its name, its ID, its coordinate | `{"id": X, "part": ["name"]}`, `{"id": X, "part": ["id"]}`, `{"id": X, "part": ["coordinate"]}` | `T` |
 | the cross-section line of that timestamp | `{"id": X, "part": ["line"]}` | `T` |
+| the line of an alignment anchor with ID `A` | `{"id": A}` | none |
+| the MatchStamp's name at that anchor, a `label` element | `{"id": A, "part": ["name"]}` | none |
 | the name of an element with ID `X` | `{"id": X, "part": ["name"]}` | that element's timeline |
 | the label of an element with ID `X` | `{"id": X, "part": ["label"]}` | that element's timeline |
 | every card of a timeline with ID `T`: an ungrouped root's, or one in the frame of each group that has `T` as a member | `{"id": T, "part": ["card"]}` | `T` |
@@ -400,8 +426,9 @@ A rule may set any property on any element; an element ignores the
 properties its type does not read. `display: none` is the filter: an element
 that is not displayed is not drawn and takes no room. An element is
 **displayed** when its `display` is `inline`, no rule of this list hides
-it, and, for an element of a named timestamp, the timestamp's own
-`display` lists its word (section 2). The two are independent filters,
+it, and, for an element of a named timestamp or of an alignment anchor,
+the timestamp's or the anchor's own `display` lists its word (section
+2). The two are independent filters,
 both of which an element of a named timestamp must pass: its `display`
 array chooses what the timestamp draws at all, and the cascade's `display`
 property may still hide any one element of it, its wedge, any of its
@@ -443,7 +470,10 @@ ancestor lines, which are not part of its timeline's drawing; a named
 timestamp's wedge, each of its labels and its cross-section line are
 displayed or hidden each on its own, so hiding a timeline's markers band
 hides its timestamps' wedges and labels and keeps their cross-section
-lines; and no band
+lines; an alignment anchor's line and its label are displayed or hidden
+each on its own too, whatever the cross-section lines it joins show,
+though a timeline line that is not drawn gives an anchor no end there
+(section 8.7); and no band
 takes its `display` from another: hiding the band `{"id": "score",
 "facet": "regions"}` hides the regions of `score` alone, and the regions of a child of `score` are drawn,
 at the child's own line, only when the child's own regions band is
@@ -638,6 +668,7 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"element": "flow_marker"}, "set": {"stroke": "#FF0000", "stroke-width": 1.5, "stroke-dasharray": "2 2"}},
     {"select": {"element": "boundary"}, "set": {"stroke": "#000000", "stroke-width": 1, "stroke-dasharray": "none"}},
     {"select": {"element": "cross_section"}, "set": {"stroke": "#1BA1E2", "stroke-width": 1, "stroke-dasharray": "3 3"}},
+    {"select": {"element": "alignment_anchor"}, "set": {"stroke": "#1BA1E2", "stroke-width": 1, "stroke-dasharray": "3 3"}},
     {"select": {"element": "ancestor"}, "set": {"stroke-width": 3, "opacity": 0.35}},
     {"select": {"element": "ancestor", "modality": "continuous"}, "set": {"stroke-dasharray": "none"}},
     {"select": {"element": "ancestor", "modality": "discrete"}, "set": {"stroke-dasharray": "3 3"}},
@@ -662,7 +693,8 @@ cut (section 6.6). Segment
 boundaries are thin black rules; a named timestamp's cross-section line is
 thin, dashed and light blue, a blue distinct from the physical domain's
 (its rule names `element`, which outranks the domain rules, so a
-cross-section line of a physical timeline keeps it, section 2.5); an
+cross-section line of a physical timeline keeps it, section 2.5), and an
+alignment anchor's line is drawn alike; an
 ancestor line is its timeline's line,
 faded, with faded marks and labels, and its name small and grey; a group's
 frame is white with a light grey outline; a card is white with a grey
@@ -1409,7 +1441,9 @@ one below it.
   another member's drawing, or both, draws its cross-section line in each,
   by this rule in that card. A cross-section line is drawn over everything
   else of its member drawing (section 7.2), takes no room, and widens no
-  band or row.
+  band or row. A match timestamp's cross-section line is drawn by this
+  rule, as every other; the alignment anchors that join such lines are
+  drawn after every item (section 8.7).
 - **Maps.** A closed double line: the outline of the rectangle from `Xs`
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
@@ -1561,6 +1595,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | flow marker | `<line x1="{x}" y1="{yf}" x2="{x}" y2="{y2}">` (section 6.4) |
 | boundary | `<line x1="{X}" y1="{y−k}" x2="{X}" y2="{y+k}">` (section 6.6) |
 | cross-section line | `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, from `(X, y1)` to `(X, y2)` as section 6.6 states them, `y1` the smaller ordinate |
+| alignment anchor | `<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}">`, from the point on the first timestamp's line to the point on the second's (section 8.7) |
 | name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and flow-marker labels, `middle` for the centred labels |
 
 The **stroke attributes** are `stroke`, `stroke-width` and, unless it is
@@ -1943,7 +1978,9 @@ each with its chevrons, just before its root; their marks, from `A1` to
 `Ak`, each ancestor's start mark before its end mark, first among its
 wedges; their names, from `A1` to `Ak`, first among its names; and their
 mark labels, from `A1` to `Ak`, each ancestor's start label before its end
-label, first among its marker labels. A title is a text descriptor of section 7.2, anchored at `start`;
+label, first among its marker labels. After the last item come the
+alignment anchors and then their labels (section 8.7), so that they lie
+over everything else. A title is a text descriptor of section 7.2, anchored at `start`;
 its `content` and `max-width` apply as section 6.6 applies them to a row's
 name.
 
@@ -2042,3 +2079,52 @@ their frame, in the group's display order (section 8.1), and only that order
 changes; their cards may only request a size, a spacing and a margin. The bands of every timeline likewise lie outwards from its own line
 in its band order (section 6.4).
 
+### 8.7 Alignment anchors
+
+Every alignment anchor of a named MatchStamp (section 2) is placed
+between the cross-section lines of its two timestamps, in the block's
+coordinates, after every item is drawn at its place (section 8.6) with
+`Ox` and `Oy` added (section 8.4). A timestamp has one **cross-section
+segment** in every member drawing that draws its timeline's line, or for
+a segment without a line its segment line's line: the vertical segment
+from `(X, y1)` to `(X, y2)` of section 6.6 as drawn in the block, or the
+point `(X, y)` on that line when neither of its two bands is present. A
+segment counts whether or not its cross-section line is displayed. An
+anchor one of whose timestamps has no cross-section segment draws
+nothing.
+
+Between a segment `A` from `(Xa, a1)` to `(Xa, a2)` and a segment `B` from
+`(Xb, b1)` to `(Xb, b2)`, `a1 ≤ a2` and `b1 ≤ b2`, the line is the
+shortest one, with `lo = max(a1, b1)` and `hi = min(a2, b2)`:
+
+- when `lo ≤ hi`, the two overlap vertically, as on cards side by side,
+  and the line is horizontal at their middle `ym = (lo + hi) / 2`, from
+  `(Xa, ym)` to `(Xb, ym)`;
+- when `a2 < b1`, `A` lies above `B`, and the line runs from `(Xa, a2)`
+  to `(Xb, b1)`;
+- otherwise from `(Xa, a1)` to `(Xb, b2)`.
+
+`A` is a segment of the first timestamp of the anchor's `timestamps` and
+`B` of the second. When a timestamp has several segments, its timeline
+being drawn in several cards, the line is the shortest over every pair of
+one segment of each: the one whose `dx × dx + dy × dy` is smallest, `dx`
+and `dy` the differences of its end points' coordinates, in binary64; of
+equal ones, the first in the descriptor order of the first timestamp's
+segments, then of the second's (section 8.5). A line of no length is not
+drawn. The line is straight, crosses whatever cards lie between its ends,
+takes no room and widens nothing.
+
+The `alignment_anchor` element, with the address `{"id": A}` of its
+anchor's ID `A`, is the `<line>` of section 7.2 from the first point to
+the second. When its anchor's `display` lists `name`, the MatchStamp's
+`name` is drawn as a `label` element with the address `{"id": A, "part":
+["name"]}`, centred on the line's midpoint `(xm, ym)`, `xm = (x1 + x2) /
+2` and `ym = (y1 + y2) / 2` in binary64, with its baseline at `ym + (a(s)
+− d(s)) / 2`, `s` its font size, vertically centred as a row's name is
+(section 6.6); it is placed so whether or not the line is displayed or
+has a length, and it takes no room either.
+
+The lines are written after the last item's descriptors, MatchStamp by
+MatchStamp in the order of `matchstamps` and each MatchStamp's anchors in
+the order of its `alignment_anchors`, and then their labels in the same
+order (section 8.5).
