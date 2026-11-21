@@ -172,13 +172,25 @@ MATCH_CLAIM_COLUMNS = tuple(MATCH_CLAIM_SCHEMA.names)
 PROJECTION_COLUMNS = tuple(PROJECTION_SCHEMA.names)
 
 
+_INT64 = (-(2**63), 2**63 - 1)
+
+
+def _double(value: int) -> bool:
+    """Whether a double holds the integer ``value`` exactly."""
+    try:
+        return float(value) == value
+    except OverflowError:
+        return False
+
+
 def number_cell(value: int | Fraction | float, number_type: str) -> dict[str, Any]:
     """The members of a number of the number type ``number_type``.
 
     An ``int`` takes an integer (or a Fraction whose denominator is 1), a
     ``fraction`` an integer or a Fraction, written in lowest terms, a
-    ``float`` a finite float or an integer; a float is never written as a
-    Fraction, nor a Fraction as a float.
+    ``float`` a finite float or an integer a double holds exactly; a float
+    is never written as a Fraction, nor a Fraction as a float, and an exact
+    number's members are 64-bit integers.
 
     Raises:
         ValueError: If ``number_type`` is no number type or ``value`` is no
@@ -190,16 +202,24 @@ def number_cell(value: int | Fraction | float, number_type: str) -> dict[str, An
     if number_type == "float":
         if isinstance(value, float) and math.isfinite(value):
             return {"numerator": None, "denominator": None, "value": value}
-        if isinstance(value, int) and not isinstance(value, bool):
+        if isinstance(value, int) and not isinstance(value, bool) and _double(value):
             return {"numerator": None, "denominator": None, "value": float(value)}
         raise ValueError(f"a float number is a finite float, not {value!r}")
+    article = "an" if number_type == "int" else "a"
     if not exact:
-        article = "an" if number_type == "int" else "a"
         raise ValueError(f"{article} {number_type} number is exact, not {value!r}")
     fraction = Fraction(value)
+    if number_type == "int" and fraction.denominator != 1:
+        raise ValueError(f"an int number is an integer, not {value!r}")
+    if (
+        not _INT64[0] <= fraction.numerator <= _INT64[1]
+        or fraction.denominator > _INT64[1]
+    ):
+        raise ValueError(
+            f"{article} {number_type} number is written in 64-bit integers, "
+            f"not {value!r}"
+        )
     if number_type == "int":
-        if fraction.denominator != 1:
-            raise ValueError(f"an int number is an integer, not {value!r}")
         return {"numerator": fraction.numerator, "denominator": None, "value": None}
     return {
         "numerator": fraction.numerator,

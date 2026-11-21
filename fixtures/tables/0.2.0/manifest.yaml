@@ -69,10 +69,10 @@ resources:
     id: "#resource_2"
     integrity:
       algorithm: SHA-256
-      digest: "36eb9db2f5e7bea3edd976a7c271512a35ae18fa5a72c879cb4b0b6d918dbcc6"
+      digest: "9d296ee0eb643f1bf10090c147b212671bb45898270a80ec346a3a4f9cf48ff3"
     media_type: application/vnd.apache.parquet
-    size: 3717
-    timelines: ["#dpt_1", "#cpt_1"]
+    size: 4115
+    timelines: ["#clt_2", "#dpt_1", "#cpt_1"]
     type: Projection
     url: projections.parquet
 timelines:

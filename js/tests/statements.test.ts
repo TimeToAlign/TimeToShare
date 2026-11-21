@@ -96,10 +96,23 @@ describe("the belief filter", () => {
       ["true", "zzz", "not_false"],
       "'not_false' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'",
     ],
-    [[1], "'1' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"],
-    [[true], "'true' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"],
+    [[1], "1 is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"],
+    [[true], "true is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"],
+    [null, "the belief filter takes a collection of states, not null"],
+    [{ true: 1 }, 'the belief filter takes a collection of states, not {"true":1}'],
+    [[["true"]], `["true"] is no belief state: write 'true', 'undecided', 'unlikely' or 'false'`],
+    [
+      ["true", {}, "zzz"],
+      "'zzz' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'",
+    ],
   ])("refuses %j with Python's message", (beliefs, message) => {
-    expect(() => checkBeliefFilter(beliefs as Iterable<unknown>)).toThrow(new Error(message));
+    expect(() => checkBeliefFilter(beliefs)).toThrow(new Error(message));
+  });
+
+  it("refuses undefined, which Python has not", () => {
+    expect(() => checkBeliefFilter(undefined)).toThrow(
+      new Error("the belief filter takes a collection of states, not undefined"),
+    );
   });
 });
 

@@ -41,7 +41,7 @@ from __future__ import annotations
 import copy
 import datetime
 import re
-from collections.abc import Collection, Iterator, Mapping, Sequence
+from collections.abc import Iterable, Iterator, Mapping, Sequence
 from typing import Any, Literal, cast
 
 from .serialization import spell
@@ -143,7 +143,7 @@ DEFAULT_BELIEFS: tuple[BeliefState, ...] = ("true", "undecided", "unlikely")
 """The states the belief filter keeps by default: every state but ``"false"``."""
 
 
-def check_belief_filter(beliefs: Collection[str]) -> frozenset[BeliefState]:
+def check_belief_filter(beliefs: object) -> frozenset[BeliefState]:
     """Return the states a belief filter keeps, checked.
 
     Args:
@@ -151,26 +151,35 @@ def check_belief_filter(beliefs: Collection[str]) -> frozenset[BeliefState]:
             keeps none.
 
     Raises:
-        ValueError: If ``beliefs`` is a single string, or names a word that is
-            none of :data:`BELIEF_STATES` (the first by code point is named;
-            a member that is no string is spelled as :func:`spell` spells it).
+        ValueError: If ``beliefs`` is a single string or no collection (a
+            mapping included), or names a word that is none of
+            :data:`BELIEF_STATES`. The first unknown member by code point of
+            its spelling is named: a string quoted, any other member spelled
+            as :func:`spell` spells it, without quotes.
     """
     if isinstance(beliefs, str):
         raise ValueError(
             "the belief filter takes a collection of states, not the string "
             f"'{beliefs}': write ['{beliefs}']"
         )
-    states = frozenset(beliefs)
+    if not isinstance(beliefs, Iterable) or isinstance(beliefs, Mapping):
+        raise ValueError(
+            f"the belief filter takes a collection of states, not {spell(beliefs)}"
+        )
+    members = list(beliefs)
     unknown = sorted(
-        state if isinstance(state, str) else spell(state)
-        for state in states - set(BELIEF_STATES)
+        {
+            f"'{member}'" if isinstance(member, str) else spell(member)
+            for member in members
+            if not (isinstance(member, str) and member in BELIEF_STATES)
+        }
     )
     if unknown:
         raise ValueError(
-            f"'{unknown[0]}' is no belief state: write 'true', 'undecided', "
+            f"{unknown[0]} is no belief state: write 'true', 'undecided', "
             "'unlikely' or 'false'"
         )
-    return cast(frozenset[BeliefState], states)
+    return cast(frozenset[BeliefState], frozenset(members))
 
 
 METHODS = ("manual", "reconciled", "imported", "inferred")

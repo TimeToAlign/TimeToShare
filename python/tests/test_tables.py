@@ -325,6 +325,23 @@ def test_a_number_holds_its_number_types_members_alone(
             "a float number is a finite float, not Fraction(1, 2)",
         ),
         (float("nan"), "float", "a float number is a finite float, not nan"),
+        (
+            2**53 + 1,
+            "float",
+            "a float number is a finite float, not 9007199254740993",
+        ),
+        (2**1024, "float", f"a float number is a finite float, not {2**1024}"),
+        (
+            2**70,
+            "int",
+            "an int number is written in 64-bit integers, not 1180591620717411303424",
+        ),
+        (
+            Fraction(1, 2**64),
+            "fraction",
+            "a fraction number is written in 64-bit integers, "
+            "not Fraction(1, 18446744073709551616)",
+        ),
         (1, "decimal", "'decimal' is no number type"),
     ],
 )
@@ -528,6 +545,30 @@ CLAIM_CASES = [
         put(1, "start_anchor", "coordinate_a", "denominator", value=0),
         [("invalid_coordinate", 1, ("start_anchor", "coordinate_a"))],
         "the coordinate's denominator 0 is below 1",
+    ),
+    (
+        "unreduced",
+        put(1, "start_anchor", "coordinate_a", value=q(2, 2)),
+        [("invalid_coordinate", 1, ("start_anchor", "coordinate_a"))],
+        "the coordinate's fraction 2/2 is not in lowest terms: write 1/1",
+    ),
+    (
+        "unreduced_zero",
+        put(1, "start_anchor", "coordinate_a", value=q(0, 4)),
+        [("invalid_coordinate", 1, ("start_anchor", "coordinate_a"))],
+        "the coordinate's fraction 0/4 is not in lowest terms: write 0/1",
+    ),
+    (
+        "cell_unit_null",
+        put(0, "start_anchor", "coordinate_a", "unit", value=None),
+        [("invalid_coordinate", 0, ("start_anchor", "coordinate_a"))],
+        "the coordinate has no unit",
+    ),
+    (
+        "cell_number_type_null",
+        put(0, "start_anchor", "coordinate_b", "number_type", value=None),
+        [("invalid_coordinate", 0, ("start_anchor", "coordinate_b"))],
+        "the coordinate has no number_type",
     ),
     (
         "int_denominator",
@@ -1081,6 +1122,29 @@ PROJECTION_CASES = [
         "an int duration holds its numerator alone, not a denominator",
     ),
     (
+        "start_unreduced",
+        lambda rows: rows[2].update(
+            timeline_id="clt_1",
+            unit="quarters",
+            number_type="fraction",
+            start=number(q(4, 2)),
+        ),
+        [("invalid_coordinate", 2, ("start",))],
+        "the coordinate's fraction 4/2 is not in lowest terms: write 2/1",
+    ),
+    (
+        "duration_unreduced",
+        lambda rows: rows[2].update(
+            timeline_id="clt_1",
+            unit="quarters",
+            number_type="fraction",
+            start=number(q(7, 2)),
+            duration=number(q(2, 4)),
+        ),
+        [("invalid_coordinate", 2, ("duration",))],
+        "the duration's fraction 2/4 is not in lowest terms: write 1/2",
+    ),
+    (
         "two_units",
         lambda rows: rows[2].update(
             unit="seconds", number_type="float", start=number(sec(3.0))
@@ -1189,9 +1253,8 @@ def _with_belief(rows: list[dict]) -> None:
         ),
         _with_belief,
         lambda rows: rows.reverse(),
-        put(1, "start_anchor", "coordinate_a", value=q(2, 2)),
     ],
-    ids=["same", "appended", "provenance", "reordered", "unreduced"],
+    ids=["same", "appended", "provenance", "reordered"],
 )
 def test_a_successor_keeps_every_claim(change: Callable[[list[dict]], None]) -> None:
     old = claims_table(CLAIMS)
@@ -1342,7 +1405,7 @@ def test_the_fixture_tables_pass_every_check_against_their_manifest() -> None:
     claims = pq.read_table(fixture_path("match_claims.parquet"))
     projections = pq.read_table(fixture_path("projections.parquet"))
     assert claims.num_rows == 15
-    assert projections.num_rows == 9
+    assert projections.num_rows == 11
     assert match_claim_problems(claims, manifest) == []
     assert projection_problems(projections, manifest) == []
 
@@ -1370,4 +1433,4 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
             else:
                 end = coordinate_value(row["end_anchor"][f"coordinate_{side}"])
                 assert start + coordinate_value(standing["duration"], kind) == end
-    assert named == set(projections)
+    assert set(projections) - named == {"projection_10", "projection_11"}

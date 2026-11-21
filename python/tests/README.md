@@ -744,6 +744,13 @@ documents that bound each rule from the other side:
   float axis is compared exactly (`60.5` beyond `60.0`), as is a fraction
   (`[17, 2]` beyond `[8, 1]`, `[16, 2]` not). A timestamp's ID is any
   ID: `timestamp_3kq9x0m2ztb7a`, `Bar 2` and `timestamp_01` are accepted.
+  So is the ID of a resource, a MatchStamp and an alignment anchor: the
+  MatchStamp fixture with its MatchStamps renamed `matchstamp_3kq9x0m2ztb7a`
+  and `Take 2, downbeat`, its anchors `anchor_00000000000zz` and `Bar 2`,
+  a match timestamp `score at bar 2`, and two resources `MatchClaims of
+  both takes` and `resource_0a1b2c3d4e5f6`, has no identity problem, no
+  MatchStamp problem (`matchstamp_problems`) and passes `validate`, so a
+  pattern or another restriction put back on any of these IDs fails.
   The schema refuses an empty `name`, a `name` null and a timestamp
   without `coordinate`, each at that member (the
   missing member at the timestamp). `display` passes as `[]`, as `["id"]`,
@@ -928,14 +935,21 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   is `("true", "false", "unlikely")`, strings; `BELIEF_STATES`, the states
   of the belief filter, is `("true", "undecided", "unlikely", "false")` and
   `DEFAULT_BELIEFS` its first three; `check_belief_filter` returns the
-  states of a collection, in any order, empty included, and refuses a
-  single string (`the belief filter takes a collection of states, not the
-  string 'true': write ['true']`) and an unknown word, naming the first by
-  code point (`'not_false' is no belief state: write 'true', 'undecided',
-  'unlikely' or 'false'` for `["true", "zzz", "not_false"]`), a member
-  that is no string spelled as messages spell values (`'1'` for `1`,
-  `'true'` for the boolean); the JavaScript package's `checkBeliefFilter`
-  gives the same messages for the same inputs; `METHODS`
+  states of a collection, in any order, empty included, and refuses with
+  a `ValueError`, never another exception, a single string (`the belief
+  filter takes a collection of states, not the string 'true': write
+  ['true']`), a value that is no collection (`the belief filter takes a
+  collection of states, not null` for `None`, `not {"true":1}` for a
+  mapping) and an unknown word, naming the first by code point of its
+  spelling (`'not_false' is no belief state: write 'true', 'undecided',
+  'unlikely' or 'false'` for `["true", "zzz", "not_false"]`); a string
+  member is quoted, a member that is no string is spelled as messages
+  spell values and not quoted, so the boolean reads `true is no belief
+  state: …` and never as the word it is not, `1` as `1 is no belief
+  state: …`, and an unhashable member such as `["true"]` as `["true"] is
+  no belief state: …`; the JavaScript package's `checkBeliefFilter` gives
+  the same messages for the same inputs (its `null` and `undefined` too);
+  `METHODS`
   and `MATCHES` are the schema's enums in its order; `BLANK` is the class
   the schema's `Iri` refuses.
 - **Expanding an IRI.** Under M2's context `type` is `rdf:type`'s IRI,
@@ -1842,7 +1856,11 @@ extraction's are without fontTools. What proves them:
   axis as `(null, null, 0.25)` and `(null, null, 2.0)`, and refuses a
   float on an int or fraction axis, a Fraction on a float axis, a
   non-integral Fraction or the boolean `true` on an int axis, a non-finite
-  float and an unknown number type, each with its exact message.
+  float, an integer no double holds exactly on a float axis (2^53 + 1,
+  which a conversion would round, and 2^1024, beyond the doubles), an
+  exact number whose members leave the 64-bit integers (2^70 on an int
+  axis, 1/2^64 on a fraction axis) and an unknown number type, each with
+  its exact message and always as a `ValueError`.
   `coordinate_value` reads each pattern back to the exact value (`3`,
   `1/2`, `1/4`, a float as its exact binary value), from the cell's own
   `number_type` or from the one given for a Projection's number, and
@@ -1872,8 +1890,12 @@ extraction's are without fontTools. What proves them:
   `denominator`, a float without `value`), with a member its number type
   leaves null (an int with a `denominator` or a `value`, a fraction with a
   `value`, a float with a `numerator`: the mirror a former cell carried is
-  refused), a fraction's denominator below 1, a non-finite float
-  (`invalid_coordinate`, with the message naming the member); a row naming no event
+  refused), a fraction's denominator below 1, a fraction not in lowest
+  terms (`(2, 2, null)`: `the coordinate's fraction 2/2 is not in lowest
+  terms: write 1/1`; a Projection's `start` and `duration` alike), a
+  non-finite float, a cell without `unit` or `number_type` (`the
+  coordinate has no unit`) (`invalid_coordinate`, with the message naming
+  the member); a row naming no event
   (`claim_events`); both timelines the same (`claim_timelines`); NOMATCH (one event null) that is
   synchronous or has an anchor, a conceptual row (two events, not
   synchronous) with an anchor, a synchronous row without `start_anchor`,
@@ -1920,10 +1942,9 @@ extraction's are without fontTools. What proves them:
   table, the table with rows appended and the table with every provenance
   changed (a belief added); it refuses a missing ID (`succession_missing`)
   and a change to any other column, an anchor moved, an event renamed, a
-  timeline swapped (`succession_changed`, naming the column). A coordinate
-  is compared by unit, number type and exact value, so the quarter 1
-  written as `(1, 1, null)` and as `(2, 2, null)` is the same coordinate;
-  an anchor's coordinates
+  timeline swapped (`succession_changed`, naming the column). Both tables
+  are checked ones, which write each value in one cell (a fraction in
+  lowest terms), so cells compare as written; an anchor's coordinates
   are compared side by side, `coordinate_a` on the row's
   `timeline_a_id`. A MatchClaim is its scope
   and its ID: a table of two scopes holding `claim_1` each is succeeded by
@@ -1956,7 +1977,12 @@ extraction's are without fontTools. What proves them:
   true, a row believed `unlikely` (kept by the default filter, dropped by
   the believed-true one, kept again by the unlikely-and-false one, which
   splits the chain it closes) and a child timeline whose coordinates never
-  meet its parent's. Without an actor the row believed false still gives
+  meet its parent's. Its Projections table holds each number type of the
+  cell form: int instants and an int interval on the samples timeline, a
+  float instant and a float interval on the seconds timeline, and a
+  fraction interval (start 7/2, duration 1/2) on the child timeline in
+  quarters, so every reader of the shared tables meets a fraction and a
+  float duration. Without an actor the row believed false still gives
   its anchor.
 - **The belief filter takes the four states.** The states and the check of
   a filter are the package's (`timetoshare.BELIEF_STATES`,
@@ -1996,7 +2022,9 @@ extraction's are without fontTools. What proves them:
   SHA-256 digest (both computed by the test from the file) and, in the
   manifest's order, exactly the timelines its table names. Each
   Projection a MatchClaim names stands on that side's timeline at the
-  anchor's coordinate, its duration spanning to the end anchor.
+  anchor's coordinate, its duration spanning to the end anchor; the
+  fixture's eleven Projections are all named but the last two, the
+  fraction interval and the float interval.
 
 ## Integer boundaries
 

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import * as timetoshare from "../src/index.js";
-import { isJsonObject, JsonFloat, SchemaValidationError } from "../src/index.js";
-import type { JsonObject } from "../src/json/value.js";
+import { isJsonObject, JsonFloat, loads, SchemaValidationError } from "../src/index.js";
+import { type JsonObject, plain } from "../src/json/value.js";
 import { exact } from "../src/numbers/exact.js";
 import {
   bundle,
+  fixtureText,
   group,
   identityProblems,
   manifest,
@@ -1120,6 +1121,43 @@ describe("identity", () => {
     ]);
     expect(problems(value)).toEqual([]);
     validate(value);
+  });
+
+  it("accepts any ID for a resource, a MatchStamp and an alignment anchor", () => {
+    const free = new Map([
+      ["#matchstamp_1", "#matchstamp_3kq9x0m2ztb7a"],
+      ["#matchstamp_2", "#Take 2, downbeat"],
+      ["#anchor_1", "#anchor_00000000000zz"],
+      ["#anchor_2", "#Bar 2"],
+      ["#timestamp_1", "#score at bar 2"],
+    ]);
+    const renamed = (item: unknown): unknown => {
+      if (Array.isArray(item)) return item.map(renamed);
+      if (isJsonObject(item)) {
+        return Object.fromEntries(
+          Object.entries(item).map(([key, member]) => [key, renamed(member)]),
+        );
+      }
+      return typeof item === "string" ? (free.get(item) ?? item) : item;
+    };
+    const value = renamed(plain(loads(fixtureText("bundles/bundle_matchstamps")))) as JsonObject;
+    value.resources = [
+      {
+        id: "#MatchClaims of both takes",
+        type: "MatchClaim",
+        timelines: ["#score", "#take_1", "#take_2"],
+        url: "match_claims.parquet",
+      },
+      {
+        id: "#resource_0a1b2c3d4e5f6",
+        type: "Projection",
+        timelines: ["#take_2"],
+        url: "projections.parquet",
+      },
+    ];
+    expect(timetoshare.identityProblems(value)).toEqual([]);
+    expect(timetoshare.matchstampProblems(value)).toEqual([]);
+    timetoshare.validate(value);
   });
 
   it("holds a named timestamp to name a timeline", () => {

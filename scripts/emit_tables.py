@@ -30,6 +30,11 @@ quarter lasts one second, 44100 samples) and one child of the first:
   is believed unlikely, ``claim_1`` and ``claim_11`` true.
 - ``claim_15``: a child timeline, whose coordinates never meet its parent's.
 
+The Projections table holds a Projection of each number type: ints on the
+samples timeline (instants and one interval), a float instant and a float
+interval on the seconds timeline, and a fraction interval on the child,
+the Projection of an audio onset; the last two name no MatchClaim.
+
 A number is written by its number type alone (``numerator`` for an int,
 ``numerator`` and ``denominator`` for a fraction, ``value`` for a float), the
 other members null; a Projection's row states the unit and the number type
@@ -103,7 +108,7 @@ RESOURCES: list[dict[str, Any]] = [
     {
         "id": "resource_2",
         "type": "Projection",
-        "timelines": ["dpt_1", "cpt_1"],
+        "timelines": ["clt_2", "dpt_1", "cpt_1"],
         "url": "projections.parquet",
         "media_type": PARQUET,
     },
@@ -380,6 +385,8 @@ PROJECTIONS: list[dict[str, Any]] = [
     _projection(7, "cpt_1", seconds(10.0), None),
     _projection(8, "dpt_1", samples(441000), ("clt_1", "note_11")),
     _projection(9, "dpt_1", samples(396900), ("clt_2", "note_13")),
+    _projection(10, "clt_2", quarters(7, 2), ("dpt_1", "onset_1"), quarters(1, 2)),
+    _projection(11, "cpt_1", seconds(12.5), ("clt_1", "note_16"), seconds(0.75)),
 ]
 """The Projections table, row by row."""
 

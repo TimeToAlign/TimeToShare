@@ -97,10 +97,21 @@ BELIEF_FILTER_REFUSALS = [
         "'not_false' is no belief state: write 'true', 'undecided', "
         "'unlikely' or 'false'",
     ),
-    ([1], "'1' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"),
+    ([1], "1 is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"),
     (
         [True],
-        "'true' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'",
+        "true is no belief state: write 'true', 'undecided', 'unlikely' or 'false'",
+    ),
+    (None, "the belief filter takes a collection of states, not null"),
+    ({"true": 1}, 'the belief filter takes a collection of states, not {"true":1}'),
+    (
+        [["true"]],
+        '["true"] is no belief state: write '
+        "'true', 'undecided', 'unlikely' or 'false'",
+    ),
+    (
+        ["true", {}, "zzz"],
+        "'zzz' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'",
     ),
 ]
 """Each refusal of a belief filter and its message, the JavaScript package's

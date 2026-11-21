@@ -266,9 +266,11 @@ optional.
 the same documents, values and messages. The belief filter's states are
 `BELIEF_STATES` (`true`, `undecided`, `unlikely`, `false`) and
 `DEFAULT_BELIEFS` the first three; `checkBeliefFilter` returns the states of
-a collection, in any order, empty included, and refuses a single string and
-a collection naming an unknown word, a member that is no string included,
-with the Python package's four messages, byte for byte. Its oracles are the
+a collection, in any order, empty included, and refuses a single string, a
+value that is no iterable collection (`null`, `undefined`, a plain object)
+and a collection naming an unknown word, a member that is no string
+included, with the Python package's messages, byte for byte (a member that
+is no string spelled unquoted: `true is no belief state: …`). Its oracles are the
 two manifests of the specification, read from YAML text by `loads` in the
 file form:
 
