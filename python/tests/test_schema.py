@@ -205,6 +205,7 @@ def test_the_ten_map_types() -> None:
         "card",
         "cross_section",
         "alignment_anchor",
+        "ancestor_card",
     ]
     assert defs["MeasureView"]["properties"]["source_unit"]["const"] == "quarters"
     for name, target in MEASURE_VIEWS.items():

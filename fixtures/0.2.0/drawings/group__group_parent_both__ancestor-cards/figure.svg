@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="919.3354" height="222.1367" viewBox="0 0 919.3354 222.1367" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="887.3354" height="190.1367" rx="10" fill="#F3F4F6"/>
+<rect data-id="piece" data-part="card" x="10" y="20.8047" width="869.3354" height="63.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="piece" data-part="card" x="8" y="18.8047" width="869.3354" height="63.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="piece" x1="60.3354" y1="67.7812" x2="860.3354" y2="67.7812" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="piece" cx="60.3354" cy="67.7812" r="3" fill="#00CC00"/>
+<polygon data-id="piece" points="869.3354,67.7812 860.3354,63.2812 860.3354,72.2812" fill="#00CC00"/>
+<line data-id="middle" x1="260.3354" y1="33.8047" x2="655.8354" y2="33.8047" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="middle" cx="260.3354" cy="33.8047" r="3" fill="#00CC00"/>
+<polygon data-id="middle" points="655.8354,33.8047 660.3354,30.2047 664.8354,33.8047 660.3354,37.4047" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_1" points="260.3354,35.3047 257.3354,48.3047 263.3354,48.3047" fill="#000000"/>
+<polygon data-id="timestamp_2" points="660.3354,35.3047 657.3354,48.3047 663.3354,48.3047" fill="#000000"/>
+<text data-id="middle" data-part="name" x="16" y="37.6128" text-anchor="start" font-size="11" fill="#000000">Middle</text>
+<text data-id="piece" data-part="name" x="16" y="71.5894" text-anchor="start" font-size="11" fill="#000000">Piece</text>
+<text data-id="timestamp_1" data-part="coordinate" x="260.3354" y="58.6587" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="660.3354" y="58.6587" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+<rect data-id="group_1" x="156.6318" y="8" width="543.7036" height="174.1367" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-id="group_1" data-part="name" x="164.6318" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Middle</text>
+<rect data-id="middle" data-part="card" x="166.6318" y="34.8047" width="527.7036" height="83.9531" rx="5" fill="#B8BEC8"/>
+<rect data-id="middle" data-part="card" x="164.6318" y="32.8047" width="527.7036" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="piece" x1="248.3354" y1="67.7812" x2="672.3354" y2="67.7812" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-id="piece" points="245.3354,63.2812 240.8354,67.7812 245.3354,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="piece" points="240.8354,63.2812 236.3354,67.7812 240.8354,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="piece" points="675.3354,63.2812 679.8354,67.7812 675.3354,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="piece" points="679.8354,63.2812 684.3354,67.7812 679.8354,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="middle" x1="260.3354" y1="81.7812" x2="655.8354" y2="81.7812" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="middle" cx="260.3354" cy="81.7812" r="3" fill="#00CC00"/>
+<polygon data-id="middle" points="655.8354,81.7812 660.3354,78.1813 664.8354,81.7812 660.3354,85.3812" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="middle" data-part="start" points="260.3354,66.2812 257.3354,53.2812 263.3354,53.2812" fill="#000000" opacity="0.35"/>
+<polygon data-id="middle" data-part="end" points="660.3354,66.2812 657.3354,53.2812 663.3354,53.2812" fill="#000000" opacity="0.35"/>
+<polygon data-id="timestamp_1" points="260.3354,83.2812 257.3354,96.2812 263.3354,96.2812" fill="#000000"/>
+<polygon data-id="timestamp_2" points="660.3354,83.2812 657.3354,96.2812 663.3354,96.2812" fill="#000000"/>
+<text data-id="piece" data-part="name" x="172.6318" y="70.897" text-anchor="start" font-size="9" fill="#6B7280">Piece</text>
+<text data-id="middle" data-part="name" x="172.6318" y="85.5894" text-anchor="start" font-size="11" fill="#000000">Middle</text>
+<text data-id="middle" data-part="start label" x="260.3354" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">4 ♩</text>
+<text data-id="middle" data-part="end label" x="660.3354" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">12 ♩</text>
+<text data-id="timestamp_1" data-part="coordinate" x="260.3354" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="660.3354" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+<rect data-id="recording" data-part="card" x="166.6318" y="126.7578" width="527.7036" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="recording" data-part="card" x="164.6318" y="124.7578" width="527.7036" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="recording" x1="260.3354" y1="139.1602" x2="660.3354" y2="139.1602" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="recording" cx="260.3354" cy="139.1602" r="3" fill="#0050EF"/>
+<polygon data-id="recording" points="669.3354,139.1602 660.3354,134.6602 660.3354,143.6602" fill="#0050EF"/>
+<polygon data-id="timestamp_3" points="260.3354,140.6602 257.3354,153.6602 263.3354,153.6602" fill="#000000"/>
+<polygon data-id="timestamp_4" points="660.3354,140.6602 657.3354,153.6602 663.3354,153.6602" fill="#000000"/>
+<text data-id="recording" data-part="name" x="172.6318" y="142.9683" text-anchor="start" font-size="11" fill="#000000">Recording</text>
+<text data-id="timestamp_3" data-part="coordinate" x="260.3354" y="164.0142" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_4" data-part="coordinate" x="660.3354" y="164.0142" text-anchor="middle" font-size="9" fill="#000000">10″</text>
+</g>
+</svg>
