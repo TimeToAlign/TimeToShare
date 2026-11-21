@@ -1626,6 +1626,98 @@ one table. What proves the table:
   font altered by one byte, naming the file and both digests; access works
   from any working directory.
 
+## The table types
+
+`timetoshare.tables` (the extra `tables`, pyarrow) holds the two table
+types a package keeps beside its manifest: the MatchClaim table
+(`match_claims.parquet`) and the Projections table (`projections.parquet`).
+The tests (`test_tables.py`, `test_tables_anchors.py`) need pyarrow, a
+development dependency; without it they are skipped, as the font
+extraction's are without fontTools. What proves them:
+
+- **The columns are the declared ones.** `MATCH_CLAIM_COLUMNS` names, in
+  this order, `timeline_a_id`, `timeline_b_id`, `start_anchor`,
+  `end_anchor`, `is_synchronous`, `is_explicit`, `provenance`,
+  `certainty`, `source_claim_id`, `event_a_id`, `event_a_name`,
+  `event_b_id`, `event_b_name`, `source_coordinate`, `id`, `id_minted`;
+  `PROJECTION_COLUMNS` `id`, `timeline_id`, `start`, `duration`,
+  `projection_of`. A coordinate cell is the struct `value` (float64),
+  `numerator`, `denominator` (int64), `unit`, `number_type` (strings); an
+  anchor the struct `timeline_a_id`, `coordinate_a`, `timeline_b_id`,
+  `coordinate_b`; `projection_of` the struct `timeline_id`, `event_id`. The
+  provenance struct holds exactly `PROVENANCE_KEYS`, `stated_by`, `date`,
+  `method`, `service`, `basis`, `match`, `note`, `beliefs`, and a belief
+  exactly `actor`, `belief`, `date`, `note`, `belief` one of `BELIEFS`
+  `true`, `false`, `unlikely`. These are pinned as lists, so a column
+  added or dropped fails the test that names it.
+- **Each rule refuses its smallest counterexample and nothing else.** A
+  valid table of a few rows is built inline; each rule is proved by
+  changing one cell (or one column type) and asserting the exact list of
+  problems `(code, row, column)` and the message of the first, which
+  `check_match_claims`, `check_projections` and `check_succession` raise
+  as `TableError`. The valid table itself yields no problem, with and
+  without its manifest. The rules: a missing column or a column of
+  another type (`schema_violation`; a Parquet round trip, which renames
+  list items, changes nothing; a column the type does not declare is
+  kept, as an unknown key is); a null in `id`, a timeline or a flag
+  (`schema_violation`); an empty ID or one with a control character
+  (`invalid_id`); an ID twice (`duplicate_id`, at its second row); a
+  coordinate cell with an unknown unit or number type, a null side, a
+  denominator below 1, an `int` cell with a denominator other than 1, a
+  non-finite float (`invalid_coordinate`); a row naming no event, both
+  timelines the same (`claim_timelines`); NOMATCH (one event null) that is
+  synchronous or has an anchor, a conceptual row (two events, not
+  synchronous) with an anchor, a synchronous row without `start_anchor`,
+  an `end_anchor` without a start, a `source_coordinate` on a row that is
+  not NOMATCH (`claim_anchors`); an anchor whose timelines are not the
+  row's, in the row's order (`anchor_timelines`); a certainty outside
+  [0, 1] (`invalid_certainty`); a provenance cell with an empty or repeated
+  `stated_by` or `basis`, a date not `YYYY-MM-DD`, a `method` neither one
+  of `METHODS` nor an IRI, a `match` not one of `MATCHES`, a belief word
+  outside `BELIEFS`, a belief without date or actor, two beliefs of one
+  actor (`invalid_provenance`); provenance stated both in the file's
+  metadata (`timetoshare:provenance`) and in a row (`invalid_provenance`);
+  one timeline's cells in two units or number types within a table
+  (`axis_mismatch`); a Projection whose `projection_of` lacks a member or
+  names its own timeline (`invalid_projection_of`), whose `duration` is
+  negative or not on its start's axis (`invalid_duration`, `axis_mismatch`),
+  and a `projection_of` column holding a joined string
+  (`schema_violation`).
+- **Against a manifest.** Given a manifest (as read from its file), every
+  timeline a cell or a row names exists (`unknown_timeline`) and every
+  cell is in its timeline's own unit and number type (`axis_mismatch`):
+  seconds on a samples timeline and a float on a fraction axis are
+  refused, the same cells without a manifest are not.
+- **The succession rule.** `check_succession(old, new)` accepts the same
+  table, the table with rows appended and the table with every provenance
+  changed (a belief added); it refuses a missing ID (`succession_missing`)
+  and a change to any other column, an anchor moved, an event renamed, a
+  timeline swapped (`succession_changed`, naming the column). A coordinate
+  is compared by unit, number type and exact value, so a cell whose float
+  mirror alone differs is the same coordinate.
+- **The derivation is checked against values written by hand.** The
+  fixture's expected file (`expected.yaml`) is written in
+  `scripts/emit_tables.py` as literal data, never computed by the
+  derivation; for each of its cases (no actor; an actor's default filter;
+  that actor's believed-true filter; a second actor's believed-true
+  filter) `alignment_anchors` (each anchor with the MatchClaims stating
+  it) and `potential_matchstamps` equal the expected values exactly, as
+  exact fractions. The fixture covers an instant claim, an interval
+  claim (two anchors), two MatchClaims stating one anchor in opposite
+  orientations, a chain over three timelines, one coordinate in two
+  anchors, an interval claim with an anchor inside its span, a Projection
+  of an event, two Projections without a source joined by one claim, a
+  NOMATCH row, a conceptual row, a row one actor believes false and another
+  true, a row believed `unlikely` (kept by the default filter, dropped by
+  the believed-true one) and a child timeline whose coordinates never meet
+  its parent's. Without an actor the row believed false still gives its
+  anchor.
+- **The fixture files are the script's.** The two Parquet files read back
+  equal to the tables the script builds, the manifest equal to its
+  manifest, and both tables pass every check against that manifest. Each
+  Projection a MatchClaim names stands on that side's timeline at the
+  anchor's coordinate, its duration spanning to the end anchor.
+
 ## Integer boundaries
 
 Values whose integer length is `9007199254740993` (2^53 + 1) or
