@@ -807,6 +807,18 @@ named timestamps, in `validation/timestamps.py`. What proves them:
   coordinate of `timestamp_11` gives exactly two `alignment_anchor`
   problems, one `matchstamp`, and `match_timestamp` at timestamps 1, 4, 10
   and 10.
+- **The MatchStamps alone** (`test_validate.py`). `matchstamp_problems`,
+  for a reader that keeps the rest of `graphical` unread, returns for each
+  of the nine MatchStamp rejection cases a first problem equal, code, path
+  and message, to the one `validate` raises: the schema of
+  `graphical.matchstamps` (`matchstamp_id_malformed`,
+  `matchstamp_claims_repeated`), an ID of a MatchStamp or an anchor
+  repeated (`alignment_anchor_id_repeated`), then the rules. It returns
+  nothing for every fixture and for every other rejection case, the
+  named-timestamp and style cases among them, whose faults lie outside
+  the MatchStamps; a match timestamp breaking the timestamp schema (no
+  `timeline`) is reported by the schema at that timestamp, never raised
+  as a `KeyError`.
 - **The bundle** (`test_schema.py`). `provenance.schema.json` lies beside
   the manifest schema with its own `$id`, defines `Belief` and
   `CalendarDate` and refers to the manifest schema's `Iri` and

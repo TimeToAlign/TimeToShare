@@ -17,6 +17,7 @@ from .diagnostics import (
     _entries,
     connected_sets,
     matchstamps_of,
+    string_id,
     timelines_by_id,
     timestamps_of,
 )
@@ -74,7 +75,9 @@ def matchstamp_problems(
     """
     timestamps: dict[str, Mapping[str, Any]] = {}
     for timestamp in timestamps_of(manifest):
-        timestamps.setdefault(timestamp["id"], timestamp)
+        identifier = string_id(timestamp)
+        if identifier is not None:
+            timestamps.setdefault(identifier, timestamp)
     named: set[str] = set()
     for index, matchstamp in enumerate(matchstamps_of(manifest)):
         path = ("graphical", "matchstamps", index, "alignment_anchors")
@@ -117,7 +120,10 @@ def matchstamp_problems(
             )
     first: dict[tuple[str, Any], str] = {}
     for index, timestamp in enumerate(timestamps_of(manifest)):
-        if timestamp.get("matchstamp") is not True:
+        if (
+            not isinstance(timestamp, Mapping)
+            or timestamp.get("matchstamp") is not True
+        ):
             continue
         path = ("graphical", "timestamps", index)
         identifier = timestamp["id"]

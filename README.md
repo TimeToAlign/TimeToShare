@@ -1658,6 +1658,14 @@ else:
   statements alone as a list of `SchemaValidationError`s, empty where they
   are sound, and refuses nothing outside them (the description
   specification, section 12).
+- `matchstamp_problems(value)` returns the problems of a manifest's named
+  MatchStamps and match timestamps alone, as `validate` reports them, as a
+  list of `SchemaValidationError`s: the schema of each match timestamp and
+  of `graphical.matchstamps`, then an ID of a MatchStamp or an alignment
+  anchor the manifest holds twice and the rules of
+  [Named MatchStamps](#named-matchstamps). It reads nothing else of
+  `graphical`, for a library that keeps the styles, the rules and the
+  ordinary timestamps unread.
 - `pairs`, `entries`, `candidates`, `with_pair`, `without_pair`,
   `with_candidate` and `with_belief` read and edit the pairs and
   provenance of a subject, which `subject_path` finds by its ID:
