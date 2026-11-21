@@ -1,0 +1,255 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+graphical:
+  matchstamps: []
+  order:
+    "#phrase": [children, markers, line, conversion_maps, regions, flow_control]
+  rules:
+    -
+      select:
+        element: wedge
+        within: "#phrase"
+      set:
+        rotation: 90
+    -
+      select:
+        addresses:
+          -
+            id: "#timestamp_1"
+        element: wedge
+      set:
+        rotation: -135
+    -
+      select:
+        addresses:
+          -
+            id: "#timestamp_2"
+        element: wedge
+      set:
+        rotation: -45
+    -
+      select:
+        addresses:
+          -
+            id: "#timestamp_3"
+        element: wedge
+      set:
+        rotation: 0
+    -
+      select:
+        addresses:
+          -
+            id: "#timestamp_4"
+        element: wedge
+      set:
+        rotation: 45
+    -
+      select:
+        addresses:
+          -
+            id: "#timestamp_5"
+        element: wedge
+      set:
+        rotation: 135
+    -
+      select:
+        addresses:
+          -
+            id: "#timestamp_6"
+        element: wedge
+      set:
+        rotation: 180
+    -
+      select:
+        addresses:
+          -
+            id: "#timestamp_7"
+        element: wedge
+      set:
+        rotation: -45
+    -
+      select:
+        addresses:
+          -
+            id: "#timestamp_8"
+        element: wedge
+      set:
+        rotation: 45
+  styles: {}
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_10"
+      matchstamp: false
+      name: origin
+      timeline: "#melody"
+    -
+      coordinate: [2, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_1"
+      matchstamp: false
+      name: "-135°"
+      timeline: "#melody"
+    -
+      coordinate: [4, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_2"
+      matchstamp: false
+      name: "-45°"
+      timeline: "#melody"
+    -
+      coordinate: [6, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_3"
+      matchstamp: false
+      name: "0°"
+      timeline: "#melody"
+    -
+      coordinate: [8, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_4"
+      matchstamp: false
+      name: "45°"
+      timeline: "#melody"
+    -
+      coordinate: [10, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_5"
+      matchstamp: false
+      name: "135°"
+      timeline: "#melody"
+    -
+      coordinate: [12, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_6"
+      matchstamp: false
+      name: "180°"
+      timeline: "#melody"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_11"
+      matchstamp: false
+      name: length
+      timeline: "#melody"
+    -
+      coordinate: [2, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_7"
+      matchstamp: false
+      name: "-45°"
+      timeline: "#phrase"
+    -
+      coordinate: [6, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_8"
+      matchstamp: false
+      name: "45°"
+      timeline: "#phrase"
+    -
+      coordinate: [10, 1]
+      display: [wedge, name, cross_section]
+      groupstamp: false
+      id: "#timestamp_9"
+      matchstamp: false
+      name: "90°"
+      timeline: "#phrase"
+groups: []
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (40161e42)"
+name: null
+resources: []
+timelines:
+  -
+    children:
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: "#phrase"
+        is_segment_line: false
+        length: [12, 1]
+        locked: true
+        meta: {}
+        name: Phrase
+        number_type: fraction
+        offset: [1, 1]
+        regions: []
+        unit: quarters
+    conversion_maps: []
+    flow_control: []
+    id: "#melody"
+    is_segment_line: false
+    length: [16, 1]
+    locked: false
+    meta: {}
+    name: Melody
+    number_type: fraction
+    regions: []
+    unit: quarters
+timetoshare: "0.2.0"

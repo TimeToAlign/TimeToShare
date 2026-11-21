@@ -1671,7 +1671,7 @@ written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 162 files (`test_files.py`); the four statement
+`groups` and `statements`, 164 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -1761,9 +1761,12 @@ validates. The schema shapes each entry of an order as an ID: the empty
 string is refused at the entry, and a repeated entry (`line`, `markers`,
 `line`) at the order, before any identity rule is read; property
 bounds accept `stroke-width` and `rx` 0, `opacity` 0 and 1, positive
-`font-size` and `max-width`, both forms of `stroke-dasharray`, and reject a
-negative width and radius, opacity outside [0, 1], zero font size and maximum
-width, non-text content and malformed dash text at the property path. A
+`font-size` and `max-width`, both forms of `stroke-dasharray`, and a wedge's
+`rotation` at −45 and at both ends, −180 and 180, and reject a negative
+width and radius, opacity outside [0, 1], zero font size and maximum width,
+non-text content, malformed dash text, a `rotation` one degree beyond the
+range (181), a fractional one (−180.5) and one written as text (`"45"`) at
+the property path. A
 timeline name holding control characters validates.
 
 ## Completing missing styles

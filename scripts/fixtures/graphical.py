@@ -4,10 +4,12 @@ builders for the band-order fixtures."""
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
+from fractions import Fraction
 from typing import Any
 
-from timetoalign import Timeline
+from timetoalign import ContinuousLogicalTimeline, Timeline
 
+from . import parts
 from .timelines import map_timeline, styled_score_timeline, timestamps_timeline
 
 _GREY = {"stroke": "#404040", "fill": "#404040"}
@@ -89,6 +91,18 @@ _STYLED_SCORE: dict[str, Any] = {
         {"select": {"element": "name", "within": "b"}, "set": {"fill": "#0369A1"}},
     ],
 }
+
+
+def _rotated(number: int, timeline: str, quarter: int, rotation: int) -> dict[str, Any]:
+    """Return the named timestamp ``timestamp_<number>`` at ``quarter`` of
+    ``timeline``, named after the rotation its wedge is given."""
+    return {
+        "id": f"timestamp_{number}",
+        "timeline": timeline,
+        "coordinate": [quarter, 1],
+        "name": f"{rotation}°",
+    }
+
 
 GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     "styled": {
@@ -297,11 +311,64 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
                     "id": "matchstamp_2",
                     "name": "Bar 2, downbeat (take 2)",
                     "alignment_anchors": [
-                        {"id": "anchor_2", "timestamps": ["timestamp_1", "timestamp_3"]},
+                        {
+                            "id": "anchor_2",
+                            "timestamps": ["timestamp_1", "timestamp_3"],
+                        },
                     ],
                     "match_claims": ["claim_3"],
                 },
             ],
+        },
+    },
+    "timestamp_wedge_rotation": {
+        "melody": {
+            "timestamps": [
+                _rotated(1, "melody", 2, -135),
+                _rotated(2, "melody", 4, -45),
+                _rotated(3, "melody", 6, 0),
+                _rotated(4, "melody", 8, 45),
+                _rotated(5, "melody", 10, 135),
+                _rotated(6, "melody", 12, 180),
+                _rotated(7, "phrase", 2, -45),
+                _rotated(8, "phrase", 6, 45),
+                _rotated(9, "phrase", 10, 90),
+            ],
+            "rules": [
+                {
+                    "select": {"element": "wedge", "within": "phrase"},
+                    "set": {"rotation": 90},
+                },
+                *(
+                    {
+                        "select": {
+                            "element": "wedge",
+                            "addresses": [{"id": f"timestamp_{number}"}],
+                        },
+                        "set": {"rotation": rotation},
+                    }
+                    for number, rotation in (
+                        (1, -135),
+                        (2, -45),
+                        (3, 0),
+                        (4, 45),
+                        (5, 135),
+                        (6, 180),
+                        (7, -45),
+                        (8, 45),
+                    )
+                ),
+            ],
+            "order": {
+                "phrase": [
+                    "children",
+                    "markers",
+                    "line",
+                    "conversion_maps",
+                    "regions",
+                    "flow_control",
+                ]
+            },
         },
     },
     "bundle_matchstamp_cards": {
@@ -384,6 +451,19 @@ groupstamp: the child lies in ``group_1`` through its parent.
 ``bundle_groupstamp_shared_member`` names the timestamp "Bar 2" at quarter
 4 of ``t``, a member of ``g1`` and of ``g2``, a groupstamp, so its line
 extends across both frames.
+
+``timestamp_wedge_rotation`` turns the wedges of named timestamps, each
+named after its rotation. On the root ``melody`` they lie at quarters 2,
+4, 6, 8, 10 and 12, turned -135, -45, 0, 45, 135 and 180 by a rule naming
+the wedge's address; 0 is written, the others are the stops of a slider
+between -180 and 180 (-180 draws the wedge 180 draws). On the child
+``phrase``, whose band order lays its markers band against its line above
+it, the wedges at its quarters 2 and 6 are turned -45 and 45 by addressed
+rules, so they mirror those below the root's line; the wedge at its
+quarter 10 is reached only by the rule ``{"element": "wedge", "within":
+"phrase"}``, which turns every wedge of ``phrase`` 90 and is outranked by
+the addressed rules. The root's ``origin`` and ``length`` keep the
+unturned wedge.
 
 ``bundle_free_ids`` strokes the region ``take 2/intro``, selected by its
 address ``{"id": "take 2/intro"}``, teal.
@@ -545,6 +625,23 @@ def timestamps() -> Timeline:
     cross-section line.
     """
     return timestamps_timeline()
+
+
+def timestamp_wedge_rotation() -> Timeline:
+    """Build the timelines of the turned wedges.
+
+    The root ``melody`` ("Melody", 16 quarters) holds the child ``phrase``
+    ("Phrase", 12 quarters) at 1, so no timestamp of the child lies at a
+    quarter of the root that holds one; the named timestamps lie on both
+    (``GRAPHICAL["timestamp_wedge_rotation"]``).
+    """
+    melody = parts.named(ContinuousLogicalTimeline, "melody", "Melody", Fraction(16))
+    parts.holding(
+        melody,
+        parts.named(ContinuousLogicalTimeline, "phrase", "Phrase", Fraction(12)),
+        Fraction(1),
+    )
+    return melody
 
 
 def styled_score_flow_inner() -> Timeline:

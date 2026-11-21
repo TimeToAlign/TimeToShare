@@ -1464,7 +1464,7 @@ export interface Address {
   part?: [Part, ...Part[]];
 }
 /**
- * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width and shadow are TimeToShare's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.
+ * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation and shadow are TimeToShare's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Declaration".
@@ -1483,6 +1483,10 @@ export interface Declaration {
   display?: "inline" | "none";
   content?: string;
   "max-width"?: number | "none";
+  /**
+   * Degrees a wedge is turned about its tip; negative to the left. TimeToShare's own: SVG's rotate turns about another point and does not mirror.
+   */
+  rotation?: number;
   shadow?: Paint;
 }
 /**

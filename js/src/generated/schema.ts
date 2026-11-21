@@ -1324,7 +1324,7 @@ export const schema = {
     },
     "Declaration": {
       "type": "object",
-      "description": "Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width and shadow are TimeToShare's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.",
+      "description": "Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation and shadow are TimeToShare's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.",
       "properties": {
         "stroke": {
           "$ref": "#/$defs/Paint"
@@ -1377,6 +1377,12 @@ export const schema = {
               "const": "none"
             }
           ]
+        },
+        "rotation": {
+          "type": "integer",
+          "minimum": -180,
+          "maximum": 180,
+          "description": "Degrees a wedge is turned about its tip; negative to the left. TimeToShare's own: SVG's rotate turns about another point and does not mirror."
         },
         "shadow": {
           "$ref": "#/$defs/Paint"
