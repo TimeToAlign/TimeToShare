@@ -1323,7 +1323,7 @@
     },
     "Declaration": {
       "type": "object",
-      "description": "Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation and shadow are TimeToShare's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.",
+      "description": "Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation and shadow are TimeToShare's own. An element reads only the properties its type reads; the others are ignored.",
       "properties": {
         "stroke": {
           "$ref": "#/$defs/Paint"
