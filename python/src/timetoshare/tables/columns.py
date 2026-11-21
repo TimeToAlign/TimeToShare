@@ -41,11 +41,13 @@ __all__ = [
     "COORDINATE_KEYS",
     "COORDINATE_TYPE",
     "MATCH_CLAIM_COLUMNS",
+    "MATCH_CLAIM_REQUIRED",
     "MATCH_CLAIM_SCHEMA",
     "NUMBER_KEYS",
     "NUMBER_MEMBERS",
     "NUMBER_TYPE",
     "PROJECTION_COLUMNS",
+    "PROJECTION_REQUIRED",
     "PROJECTION_OF_TYPE",
     "PROJECTION_SCHEMA",
     "PROVENANCE_KEYS",
@@ -117,7 +119,8 @@ def _provenance_type() -> pa.DataType:
 
 def _arrow_type(name: str) -> pa.DataType:
     """The Arrow type a column or a struct member names: a type of the
-    file's ``types``, else an Arrow type name."""
+    file's ``types``, else one of the type names ``string``, ``bool``,
+    ``int64`` and ``float64``."""
     declared = _TABLES["types"].get(name)
     if declared is None:
         return pa.type_for_alias(name)
@@ -200,6 +203,12 @@ PROJECTION_SCHEMA = _table_schema("Projection")
 
 MATCH_CLAIM_COLUMNS = tuple(MATCH_CLAIM_SCHEMA.names)
 PROJECTION_COLUMNS = tuple(PROJECTION_SCHEMA.names)
+
+MATCH_CLAIM_REQUIRED = _required("MatchClaim")
+"""The columns of the MatchClaim table that hold no null, in its order."""
+
+PROJECTION_REQUIRED = _required("Projection")
+"""The columns of the Projections table that hold no null, in its order."""
 
 
 _INT64 = (-(2**63), 2**63 - 1)

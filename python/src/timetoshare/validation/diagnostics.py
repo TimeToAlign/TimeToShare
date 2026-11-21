@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Hashable, Iterable, Iterator, Mapping
 from typing import Any, Literal, TypeAlias, TypedDict, TypeVar
 
-from ..manifest import UNIT_NUMBER_TYPES
+from ..manifest import UNITS
 
 _Path = tuple[str | int, ...]
 ValidationCode: TypeAlias = Literal[
@@ -255,4 +255,4 @@ def matchstamps_of(manifest: Any) -> list[Any]:
 
 def number_type_of(timeline: Mapping[str, Any]) -> str:
     """Return the number type of a timeline's axis: its own, or its unit's default."""
-    return timeline.get("number_type") or UNIT_NUMBER_TYPES[timeline["unit"]]
+    return timeline.get("number_type") or UNITS[timeline["unit"]].number_type

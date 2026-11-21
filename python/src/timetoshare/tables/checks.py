@@ -20,20 +20,21 @@ import pyarrow as pa
 from jsonschema import Draft202012Validator
 
 from ..ids import with_bare_ids
-from ..manifest import UNIT_NUMBER_TYPES
+from ..manifest import UNITS
 from ..statements import calendar_date, expand_iri
 from ..validate import PROVENANCE_DEFINITION, _select, load_schema
 from ..validation.diagnostics import json_pointer, number_type_of, timelines_by_id
 from .columns import (
     BELIEF_KEYS,
     COORDINATE_KEYS,
+    MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
     NUMBER_KEYS,
     NUMBER_MEMBERS,
+    PROJECTION_REQUIRED,
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
-    _required,
     coordinate_value,
 )
 
@@ -91,8 +92,6 @@ class TableError(ValueError):
 
 
 _CONTROL = re.compile("[\u0000-\u001f]")
-_REQUIRED_CLAIM = _required("MatchClaim")
-_REQUIRED_PROJECTION = _required("Projection")
 
 
 def _shape(data_type: pa.DataType) -> Any:
@@ -138,11 +137,16 @@ def _id_problem(value: Any, what: str) -> str | None:
 
 
 def _axis_problem(unit: str, number_type: str) -> str | None:
-    """Why a unit and a number type, both stated, are no axis, or ``None``."""
-    if unit not in UNIT_NUMBER_TYPES:
+    """Why a unit and a number type, both stated, are no axis, or ``None``.
+
+    The unit is one of :data:`~timetoshare.UNITS`, the number type one of the
+    three, and one the unit admits."""
+    if unit not in UNITS:
         return f"'{unit}' is no unit"
     if number_type not in NUMBER_MEMBERS:
         return f"'{number_type}' is no number type"
+    if number_type not in UNITS[unit].number_types:
+        return f"'{unit}' admits no number type '{number_type}'"
     return None
 
 
@@ -501,7 +505,7 @@ def match_claim_problems(
     if problems:
         return problems
     rows = _claim_rows(table)
-    problems = [*_nulls(rows, _REQUIRED_CLAIM)]
+    problems = [*_nulls(rows, MATCH_CLAIM_REQUIRED)]
     if problems:
         return problems
     problems.extend(_ids(rows))
@@ -541,7 +545,7 @@ def projection_problems(
     if problems:
         return problems
     rows = table.select(list(PROJECTION_SCHEMA.names)).to_pylist()
-    problems = [*_nulls(rows, _REQUIRED_PROJECTION)]
+    problems = [*_nulls(rows, PROJECTION_REQUIRED)]
     if problems:
         return problems
     problems.extend(_ids(rows))
@@ -592,7 +596,7 @@ def _projection_numbers(
     unit, number_type = row["unit"], row["number_type"]
     problem = _axis_problem(unit, number_type)
     if problem:
-        column = "unit" if unit not in UNIT_NUMBER_TYPES else "number_type"
+        column = "unit" if unit not in UNITS else "number_type"
         yield TableProblem("invalid_coordinate", index, (column,), problem)
         return
     expected = axes.expected(row["timeline_id"])

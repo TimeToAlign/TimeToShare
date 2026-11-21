@@ -316,6 +316,30 @@ describe("the schema document", () => {
       if: { properties: { unit: { const: "number" } }, required: ["unit"] },
       else: { properties: { number_type: { enum: ["float", "fraction"] } } },
     });
+    const coordinate = defs.Coordinate as Node;
+    for (const key of ["if", "then", "else"]) expect(coordinate[key]).toEqual(timeline[key]);
+  });
+
+  const THEN = "#/then/properties/number_type/const";
+  const ELSE = "#/else/else/properties/number_type/enum";
+  it.each([
+    ["ticks_float", { unit: "ticks", number_type: "float", value: 1.5 }, THEN],
+    ["seconds_int", { unit: "seconds", number_type: "int", value: 10 }, ELSE],
+    ["quarters_int", { unit: "quarters", number_type: "int", value: 8 }, ELSE],
+    ["ticks_int", { unit: "ticks", number_type: "int", value: 480 }, null],
+    ["seconds_float", { unit: "seconds", number_type: "float", value: 1.5 }, null],
+    ["quarters_fraction", { unit: "quarters", number_type: "fraction", value: [1, 2] }, null],
+    ["number_int", { unit: "number", number_type: "int", value: 2 }, null],
+  ])("admits in a coordinate the number types of its unit (%s)", (_, coordinate, keyword) => {
+    const check = new Ajv2020({ strict: false, allErrors: true }).compile({
+      $ref: "#/$defs/Coordinate",
+      $defs: defs,
+    });
+    check(coordinate);
+    const errors = (check.errors ?? [])
+      .filter((error) => error.keyword !== "if")
+      .map((error) => [error.instancePath, error.schemaPath]);
+    expect(errors).toEqual(keyword === null ? [] : [["/number_type", keyword]]);
   });
 
   it("defines a repeated shape once", () => {

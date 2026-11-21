@@ -587,6 +587,50 @@
         "number_type",
         "value"
       ],
+      "if": {
+        "properties": {
+          "unit": {
+            "enum": [
+              "ticks",
+              "samples",
+              "frames",
+              "pixels"
+            ]
+          }
+        },
+        "required": [
+          "unit"
+        ]
+      },
+      "then": {
+        "properties": {
+          "number_type": {
+            "const": "int"
+          }
+        }
+      },
+      "else": {
+        "if": {
+          "properties": {
+            "unit": {
+              "const": "number"
+            }
+          },
+          "required": [
+            "unit"
+          ]
+        },
+        "else": {
+          "properties": {
+            "number_type": {
+              "enum": [
+                "float",
+                "fraction"
+              ]
+            }
+          }
+        }
+      },
       "oneOf": [
         {
           "description": "An integer coordinate.",

@@ -10,7 +10,7 @@ from typing import Any
 from timetoalign import ContinuousLogicalTimeline, Timeline
 
 from . import parts
-from .timelines import map_timeline, styled_score_timeline, timestamps_timeline
+from .timelines import styled_score_timeline, timestamps_timeline
 
 _GREY = {"stroke": "#404040", "fill": "#404040"}
 
@@ -619,21 +619,6 @@ def origin_and_length(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
             }
         )
     return timestamps
-
-
-def map_child_band_order() -> Timeline:
-    """Build ``map`` with a band order on the child ``phrase`` alone."""
-    return map_timeline()
-
-
-def map_root_band_order() -> Timeline:
-    """Build ``map`` with a band order on the root ``melody`` alone."""
-    return map_timeline()
-
-
-def map_band_order_subset() -> Timeline:
-    """Build ``map`` with a band order of ``markers`` and ``line`` on ``melody``."""
-    return map_timeline()
 
 
 def timestamps() -> Timeline:

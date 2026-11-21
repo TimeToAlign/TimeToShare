@@ -7,7 +7,7 @@ import { entries, type PathSegment, SchemaValidationError } from "./diagnostics.
  * `required` (all of `expected` where it is absent) that `order` lacks, in the
  * order of `expected`.
  */
-function* permutationProblems(
+function* listingProblems(
   code: "display_order" | "band_order",
   order: readonly string[],
   expected: readonly string[],
@@ -37,7 +37,7 @@ function* displayOrderProblems(
   path: readonly PathSegment[],
 ): Generator<SchemaValidationError> {
   const id = `'${group.id}'`;
-  yield* permutationProblems(
+  yield* listingProblems(
     "display_order",
     order,
     group.members as string[],
@@ -68,7 +68,7 @@ function* bandOrderProblems(
   path: readonly PathSegment[],
 ): Generator<SchemaValidationError> {
   const id = `'${timeline}'`;
-  yield* permutationProblems(
+  yield* listingProblems(
     "band_order",
     order,
     DEFAULT_BAND_ORDER,

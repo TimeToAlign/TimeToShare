@@ -17,7 +17,7 @@ from collections.abc import Callable
 from fractions import Fraction
 from typing import Any
 
-from .manifest import UNIT_NUMBER_TYPES, _order_displays, _respell, fraction_pair
+from .manifest import UNITS, _order_displays, _respell, fraction_pair
 
 __all__ = ["DEFAULTS", "complete", "minimal"]
 
@@ -153,7 +153,8 @@ def _visit_manifest(manifest: Any, apply: _Pass) -> None:
 
 def _default_number_type(timeline: dict[str, Any]) -> str | None:
     unit = timeline.get("unit")
-    return UNIT_NUMBER_TYPES.get(unit) if isinstance(unit, str) else None
+    entry = UNITS.get(unit) if isinstance(unit, str) else None
+    return entry.number_type if entry else None
 
 
 def _complete_one(owner: dict[str, Any], kind: str) -> None:

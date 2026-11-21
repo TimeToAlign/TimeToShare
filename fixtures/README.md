@@ -441,8 +441,9 @@ current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
-ones (`corpus_*`) and the statement fixtures at the default placement, and
-eighteen variants. The
+ones (`corpus_*`), the statement fixtures, `map_band_order_subset` and
+`bundles/bundle_matchstamp_groupstamp`, whose drawings are not emitted, at
+the default placement, and eighteen variants. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,

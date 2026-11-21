@@ -632,9 +632,9 @@ export function verbOf(
  * where they state the same verb the same way and are both "is a", share a
  * thing, or carry equal string `label`s on both value nodes (transitively); a
  * pair no verb reads stands alone. The "is a" rectangle comes first, empty
- * where nothing is stated; then the others in the order of their first pair. A rectangle's pairs keep file order, its
- * things first-seen order, its label is the first node label among its
- * pairs.
+ * where nothing is stated; then the others in the order of their first pair.
+ * A rectangle's pairs keep file order, its things first-seen order, its label
+ * is the first node label among its pairs.
  *
  * @throws {Error} if the path addresses no element and no value node.
  */
