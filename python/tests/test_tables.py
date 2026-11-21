@@ -41,7 +41,7 @@ from timetoshare.tables import (  # noqa: E402
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
     PROVENANCE_TYPE,
-    SCOPE_FIELD,
+    TABLES_DOCUMENT,
     AlignmentAnchor,
     TableError,
     TimelineCoordinate,
@@ -56,6 +56,7 @@ from timetoshare.tables import (  # noqa: E402
     projection_problems,
     row_provenance,
     succession_problems,
+    tables_path,
 )
 
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "emit_tables.py"
@@ -259,6 +260,146 @@ def test_the_projection_columns() -> None:
     )
     projection_of = PROJECTION_SCHEMA.field("projection_of").type
     assert [field.name for field in projection_of] == ["timeline_id", "event_id"]
+
+
+_NUMBER = pa.struct(
+    [("numerator", pa.int64()), ("denominator", pa.int64()), ("value", pa.float64())]
+)
+_COORDINATE = pa.struct([*_NUMBER, ("unit", pa.string()), ("number_type", pa.string())])
+_ANCHOR = pa.struct([("coordinate_a", _COORDINATE), ("coordinate_b", _COORDINATE)])
+_BELIEF = pa.struct([(key, pa.string()) for key in ("actor", "belief", "date", "note")])
+_PROVENANCE = pa.struct(
+    [
+        ("stated_by", pa.list_(pa.string())),
+        ("date", pa.string()),
+        ("method", pa.string()),
+        ("service", pa.string()),
+        ("basis", pa.list_(pa.string())),
+        ("match", pa.string()),
+        ("note", pa.string()),
+        ("beliefs", pa.list_(_BELIEF)),
+    ]
+)
+
+
+def test_the_match_claim_schema_field_by_field() -> None:
+    assert [
+        (field.name, field.type, field.nullable) for field in MATCH_CLAIM_SCHEMA
+    ] == [
+        ("timeline_a_id", pa.string(), True),
+        ("timeline_b_id", pa.string(), True),
+        ("start_anchor", _ANCHOR, True),
+        ("end_anchor", _ANCHOR, True),
+        ("is_synchronous", pa.bool_(), True),
+        ("provenance", _PROVENANCE, True),
+        ("certainty", pa.float64(), True),
+        ("event_a_id", pa.string(), True),
+        ("event_a_name", pa.string(), True),
+        ("event_b_id", pa.string(), True),
+        ("event_b_name", pa.string(), True),
+        ("id", pa.string(), True),
+    ]
+
+
+def test_the_projection_schema_field_by_field() -> None:
+    assert [
+        (field.name, field.type, field.nullable) for field in PROJECTION_SCHEMA
+    ] == [
+        ("id", pa.string(), True),
+        ("timeline_id", pa.string(), True),
+        ("unit", pa.string(), True),
+        ("number_type", pa.string(), True),
+        ("start", _NUMBER, True),
+        ("duration", _NUMBER, True),
+        (
+            "projection_of",
+            pa.struct([("timeline_id", pa.string()), ("event_id", pa.string())]),
+            True,
+        ),
+    ]
+
+
+def test_the_column_types_are_published_as_data() -> None:
+    assert tables_path() == SCRIPT.parents[1] / "schema" / "0.2.0" / TABLES_DOCUMENT
+    assert TABLES_DOCUMENT == "tables.json"
+    document = json.loads(tables_path().read_text(encoding="utf-8"))
+    assert (
+        document["$id"] == "https://timetoalign.github.io/timetoshare/0.2.0/tables.json"
+    )
+    assert sorted(document) == ["$id", "description", "tables", "types"]
+    types = document["types"]
+    assert sorted(types) == [
+        "anchor",
+        "coordinate",
+        "number",
+        "projection_of",
+        "provenance",
+    ]
+    members = {
+        name: [(member["name"], member["type"]) for member in declared["struct"]]
+        for name, declared in types.items()
+        if "struct" in declared
+    }
+    assert members["number"] == [
+        ("numerator", "int64"),
+        ("denominator", "int64"),
+        ("value", "float64"),
+    ]
+    assert members["coordinate"] == [
+        *members["number"],
+        ("unit", "string"),
+        ("number_type", "string"),
+    ]
+    assert members["anchor"] == [
+        ("coordinate_a", "coordinate"),
+        ("coordinate_b", "coordinate"),
+    ]
+    assert members["projection_of"] == [
+        ("timeline_id", "string"),
+        ("event_id", "string"),
+    ]
+    assert types["provenance"]["schema"] == "provenance.schema.json"
+    assert (tables_path().parent / "provenance.schema.json").is_file()
+    tables = document["tables"]
+    assert {name: table["status"] for name, table in tables.items()} == {
+        "MatchClaim": "stable",
+        "Projection": "experimental",
+    }
+    columns = {
+        name: [(column["name"], column["type"]) for column in table["columns"]]
+        for name, table in tables.items()
+    }
+    assert columns["MatchClaim"] == [
+        ("timeline_a_id", "string"),
+        ("timeline_b_id", "string"),
+        ("start_anchor", "anchor"),
+        ("end_anchor", "anchor"),
+        ("is_synchronous", "bool"),
+        ("provenance", "provenance"),
+        ("certainty", "float64"),
+        ("event_a_id", "string"),
+        ("event_a_name", "string"),
+        ("event_b_id", "string"),
+        ("event_b_name", "string"),
+        ("id", "string"),
+    ]
+    assert columns["Projection"] == [
+        ("id", "string"),
+        ("timeline_id", "string"),
+        ("unit", "string"),
+        ("number_type", "string"),
+        ("start", "number"),
+        ("duration", "number"),
+        ("projection_of", "projection_of"),
+    ]
+    required = {
+        name: [column["name"] for column in table["columns"] if not column["nullable"]]
+        for name, table in tables.items()
+    }
+    assert required == {
+        "MatchClaim": ["timeline_a_id", "timeline_b_id", "is_synchronous", "id"],
+        "Projection": ["id", "timeline_id", "unit", "number_type", "start"],
+    }
 
 
 def test_a_number_and_a_coordinate_cell() -> None:
@@ -984,84 +1125,39 @@ def test_a_malformed_shared_provenance(text: str, message: str) -> None:
     assert str(error.value) == message
 
 
-# The scope column
+# Further columns
 
 
-def scoped(rows: list[dict], scopes: list[str | None]) -> Any:
-    """A MatchClaim table with the key column ``scope``."""
-    return claims_table(rows).append_column(SCOPE_FIELD, pa.array(scopes, pa.string()))
+def with_scope(rows: list[dict], values: list[Any], data_type: Any = None) -> Any:
+    """A MatchClaim table with a further column ``scope``, which the type
+    does not declare."""
+    return claims_table(rows).append_column("scope", pa.array(values, data_type))
 
 
-SCOPES = [None, None, "take_2", "take_2"]
-"""The package's own claim_1 and claim_2, then claim_3 and claim_4 of take_2."""
+def test_an_id_twice_is_a_duplicate() -> None:
+    table = claims_table(changed(CLAIMS, put(1, "id", value="claim_1")))
+    assert found(match_claim_problems(table)) == [("duplicate_id", 1, ("id",))]
+    with pytest.raises(TableError) as error:
+        check_match_claims(table)
+    assert str(error.value) == "the ID 'claim_1' is given twice"
 
 
-def test_the_scope_column() -> None:
-    assert (SCOPE_FIELD.name, str(SCOPE_FIELD.type)) == ("scope", "string")
-    assert "scope" not in MATCH_CLAIM_COLUMNS
-
-
-def test_one_id_in_two_scopes_is_two_claims() -> None:
-    rows = changed(CLAIMS, put(2, "id", value="claim_1"))
-    rows = changed(rows, put(3, "id", value="claim_2"))
-    table = scoped(rows, SCOPES)
+def test_a_scope_column_is_kept_and_never_checked() -> None:
+    table = with_scope(CLAIMS, [0, 0, 1, 1])
     assert match_claim_problems(table) == []
     assert match_claim_problems(table, MANIFEST) == []
-    check_match_claims(table, MANIFEST)
-    named = scoped(rows, ["take_1", "take_1", "take_2", "take_2"])
-    assert match_claim_problems(named, MANIFEST) == []
+    assert table.column_names[-1] == "scope"
 
 
-@pytest.mark.parametrize(
-    ("change", "expected", "message"),
-    [
-        (
-            put(3, "id", value="claim_3"),
-            [("duplicate_id", 3, ("id",))],
-            "the ID 'claim_3' is given twice in the scope 'take_2'",
-        ),
-        (
-            put(1, "id", value="claim_1"),
-            [("duplicate_id", 1, ("id",))],
-            "the ID 'claim_1' is given twice",
-        ),
-    ],
-    ids=["named", "own"],
-)
-def test_an_id_twice_in_one_scope(
-    change: Callable[[list[dict]], None], expected: list[tuple], message: str
-) -> None:
-    table = scoped(changed(CLAIMS, change), SCOPES)
-    assert found(match_claim_problems(table)) == expected
-    with pytest.raises(TableError) as error:
-        check_match_claims(table)
-    assert str(error.value) == message
-
-
-@pytest.mark.parametrize(
-    ("scope", "message"),
-    [
-        ("", "the scope is empty"),
-        ("take\x02", "the scope 'take\\x02' holds a control character"),
-    ],
-    ids=["empty", "control"],
-)
-def test_a_malformed_scope(scope: str, message: str) -> None:
-    table = scoped(CLAIMS, [None, None, scope, None])
-    assert found(match_claim_problems(table)) == [("invalid_id", 2, ("scope",))]
-    with pytest.raises(TableError) as error:
-        check_match_claims(table)
-    assert str(error.value) == message
-
-
-def test_a_scope_column_of_another_type() -> None:
-    table = claims_table(CLAIMS).append_column("scope", pa.array([0, 0, 1, 1]))
-    assert found(match_claim_problems(table)) == [
-        ("schema_violation", None, ("scope",))
+def test_a_scope_column_never_tells_one_id_apart() -> None:
+    rows = changed(CLAIMS, put(2, "id", value="claim_1"))
+    table = with_scope(rows, [None, None, "take_2", "take_2"], pa.string())
+    assert found(match_claim_problems(table, MANIFEST)) == [
+        ("duplicate_id", 2, ("id",))
     ]
     with pytest.raises(TableError) as error:
-        check_match_claims(table)
-    assert str(error.value) == "the column 'scope' is int64, not string"
+        check_match_claims(table, MANIFEST)
+    assert str(error.value) == "the ID 'claim_1' is given twice"
 
 
 # The Projections table
@@ -1085,7 +1181,7 @@ PROJECTION_CASES = [
         "id_twice",
         put(2, "id", value="projection_1"),
         [("duplicate_id", 2, ("id",))],
-        "the ID 'projection_1' is given twice on the timeline 'dpt_1'",
+        "the ID 'projection_1' is given twice",
     ),
     (
         "source_without_event",
@@ -1230,7 +1326,7 @@ def test_a_joined_string_is_no_projected_event() -> None:
     )
 
 
-def test_one_id_on_two_timelines_is_two_projections() -> None:
+def test_one_id_on_two_timelines_is_a_duplicate() -> None:
     rows = [
         *PROJECTIONS,
         {
@@ -1239,8 +1335,11 @@ def test_one_id_on_two_timelines_is_two_projections() -> None:
         },
     ]
     table = projections_table(rows)
-    assert projection_problems(table) == []
-    assert projection_problems(table, MANIFEST) == []
+    assert found(projection_problems(table)) == [("duplicate_id", 3, ("id",))]
+    assert found(projection_problems(table, MANIFEST)) == [("duplicate_id", 3, ("id",))]
+    with pytest.raises(TableError) as error:
+        check_projections(table, MANIFEST)
+    assert str(error.value) == "the ID 'projection_1' is given twice"
 
 
 def test_projections_against_the_manifest() -> None:
@@ -1346,34 +1445,12 @@ def test_a_changed_claim_breaks_the_succession(
     assert str(error.value) == message
 
 
-def _two_scopes() -> list[dict]:
-    """claim_1 to claim_4, then claim_1 again, of the scope take_2."""
-    return [*CLAIMS, claim("claim_1", "note_5", "projection_4", (q(4), smp(176400)))]
-
-
-TWO_SCOPES = [None, None, None, None, "take_2"]
-
-
-def test_a_successor_keeps_every_claim_of_every_scope() -> None:
-    old = scoped(_two_scopes(), TWO_SCOPES)
-    assert succession_problems(old, old) == []
-    reordered = scoped(_two_scopes()[::-1], TWO_SCOPES[::-1])
-    assert succession_problems(old, reordered) == []
-    check_succession(old, reordered)
-    assert succession_problems(claims_table(CLAIMS), scoped(CLAIMS, [None] * 4)) == []
-
-
-def test_a_claim_moved_to_another_scope_is_missing() -> None:
-    old = scoped(_two_scopes(), TWO_SCOPES)
-    new = scoped(_two_scopes(), [*TWO_SCOPES[:4], "take_3"])
-    assert found(succession_problems(old, new)) == [
-        ("succession_missing", None, ("id",))
-    ]
-    with pytest.raises(TableError) as error:
-        check_succession(old, new)
-    assert (
-        str(error.value) == "the MatchClaim 'claim_1' of the scope 'take_2' is missing"
-    )
+def test_a_further_column_takes_no_part_in_the_succession() -> None:
+    old = with_scope(CLAIMS, [None, None, "take_2", "take_2"], pa.string())
+    assert succession_problems(claims_table(CLAIMS), old) == []
+    new = with_scope(CLAIMS, ["take_3"] * 4, pa.string())
+    assert succession_problems(old, new) == []
+    check_succession(old, new)
 
 
 # The fixture

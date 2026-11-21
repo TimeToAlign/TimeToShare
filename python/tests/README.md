@@ -1830,9 +1830,7 @@ extraction's are without fontTools. What proves them:
   `end_anchor`, `is_synchronous`, `provenance`, `certainty`,
   `event_a_id`, `event_a_name`, `event_b_id`, `event_b_name`, `id`;
   `PROJECTION_COLUMNS` `id`, `timeline_id`, `unit`, `number_type`,
-  `start`, `duration`, `projection_of`. `SCOPE_FIELD` is the optional key
-  column `scope` (strings), declared outside `MATCH_CLAIM_COLUMNS` since a
-  table of one scope has none. A number is the struct `numerator`,
+  `start`, `duration`, `projection_of`. A number is the struct `numerator`,
   `denominator` (int64), `value` (float64), the type of a Projection's
   `start` and `duration`; a coordinate cell is a number followed by `unit`
   and `number_type` (strings); an anchor the struct `coordinate_a`,
@@ -1851,6 +1849,30 @@ extraction's are without fontTools. What proves them:
   belief struct for `beliefs`, of strings otherwise), every other member a
   string; `belief` is one of `timetoshare.BELIEFS`, the strings `true`,
   `false`, `unlikely`, the schema's enum.
+- **The column types are published as data.** `schema/0.2.0/tables.json`
+  (`tables_path()`) is the one source of both schemas: its `types` declare
+  `number`, `coordinate`, `anchor` and `projection_of` as Arrow structs of
+  named members and `provenance` as the struct read from the provenance
+  schema it names; its `tables` give each table a `status` and its
+  `columns` in order, each a `name`, a `type` (an Arrow type name or a type
+  of `types`) and whether it is `nullable`. The test reads the file and
+  pins it: its `$id` is
+  `https://timetoalign.github.io/timetoshare/0.2.0/tables.json`, its
+  sections are exactly `types` and `tables`, the MatchClaim table is
+  `stable` and the Projections table `experimental`, the `coordinate`'s
+  members are the `number`'s followed by `unit` and `number_type`, and
+  `provenance` names `provenance.schema.json`, a file beside it.
+  `MATCH_CLAIM_SCHEMA` equals, field by field, a literal list of its
+  twelve columns with their Arrow types written out in the test
+  (`timeline_a_id` string, …, the anchors the struct of two coordinate
+  structs, `provenance` the struct of the eight members, `certainty`
+  double, …, `id` string), and `PROJECTION_SCHEMA` its seven; every Arrow
+  field is nullable, so a writer need declare nothing, and the columns the
+  file marks `nullable: false` are exactly those a null is refused in
+  (`timeline_a_id`, `timeline_b_id`, `is_synchronous`, `id`; `id`,
+  `timeline_id`, `unit`, `number_type`, `start`), each proved below. A
+  column added to the file, a type changed or a status changed fails the
+  test that names it.
 - **A number holds its number type's members alone.** `NUMBER_MEMBERS`
   gives an `int` the `numerator`, a `fraction` the `numerator` and the
   `denominator`, a `float` the `value`; every other member is null, so no
@@ -1880,15 +1902,13 @@ extraction's are without fontTools. What proves them:
   list items, changes nothing; a column the type does not declare is
   kept, as an unknown key is); a null in `id`, a timeline or
   `is_synchronous` (`schema_violation`); an empty ID or one with a control character
-  (`invalid_id`); an ID twice in one scope of a MatchClaim table, or twice
-  on one timeline of a Projections table (`duplicate_id`, at its second
-  row, the message naming the scope or the timeline: `the ID 'claim_1' is
-  given twice in the scope 'take_2'`, `the ID 'projection_1' is given
-  twice on the timeline 'dpt_1'`); the same ID in two scopes (the
-  package's own, null, and a named one, or two named ones) or on two
-  timelines is no problem; a `scope` column of another type than string
-  (`schema_violation`); an empty scope or one with a control character
-  (`invalid_id` at `scope`); a
+  (`invalid_id`); an ID twice in a table (`duplicate_id`, at its second
+  row: `the ID 'claim_1' is given twice`, `the ID 'projection_1' is given
+  twice`), a Projection's ID as much on two timelines as on one, since a
+  Projection's ID is unique in the package as every event's; a `scope`
+  column is one of the undeclared columns, kept and never checked: one of
+  integers is no problem, and one of strings giving a repeated `claim_1`
+  two values leaves it given twice; a
   coordinate cell with an unknown unit or number type, without a member
   its number type fills (an int without `numerator`, a fraction without
   `denominator`, a float without `value`), with a member its number type
@@ -1961,13 +1981,9 @@ extraction's are without fontTools. What proves them:
   written as `(1, 1, null)` and as `(2, 2, null)` is the same coordinate
   and a successor respelling it changes nothing; an anchor's coordinates
   are compared side by side, `coordinate_a` on the row's
-  `timeline_a_id`. A MatchClaim is its scope
-  and its ID: a table of two scopes holding `claim_1` each is succeeded by
-  itself and by its rows reordered; one whose `claim_1` of the scope
-  `take_2` is moved to the scope `take_3` misses it
-  (`succession_missing`, `the MatchClaim 'claim_1' of the scope 'take_2'
-  is missing`), and a table of one scope compares as a table whose `scope`
-  is null throughout.
+  `timeline_a_id`. A MatchClaim is its ID
+  alone: a column the type does not declare takes no part, so a successor
+  adding a `scope` column, or changing its values, breaks nothing.
 - **The derivation is checked against values written by hand.** The
   fixture's expected file (`expected.yaml`) is written in
   `scripts/emit_tables.py` as literal data, never computed by the
