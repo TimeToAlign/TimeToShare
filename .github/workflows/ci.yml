@@ -56,6 +56,8 @@ jobs:
       - uses: actions/checkout@v7
       - name: Version declarations agree
         run: python3 scripts/check_versions.py
+      - name: Every published $id and $ref resolves
+        run: python3 scripts/check_published.py
       - uses: astral-sh/setup-uv@v10.2.0
         with:
           python-version: "3.12"

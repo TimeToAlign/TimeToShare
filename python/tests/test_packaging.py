@@ -12,9 +12,12 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SPECIFICATION = (REPOSITORY_ROOT / "docs" / "drawing.md").read_bytes()
 LICENCE = (REPOSITORY_ROOT / "LICENSE").read_bytes()
 DOCUMENTS = {
-    "schema/0.2.0/timetoshare.schema.json": (
-        REPOSITORY_ROOT / "schema" / "0.2.0" / "timetoshare.schema.json"
-    ).read_bytes(),
+    **{
+        f"schema/0.2.0/{name}": (
+            REPOSITORY_ROOT / "schema" / "0.2.0" / name
+        ).read_bytes()
+        for name in ("tables.json", "timetoshare.schema.json")
+    },
     **{
         f"catalogue/{name}": (REPOSITORY_ROOT / "catalogue" / name).read_bytes()
         for name in ("catalogue.yaml", "catalogue.schema.json")
