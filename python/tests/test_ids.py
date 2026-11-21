@@ -66,7 +66,6 @@ def every_position() -> dict:
                             {
                                 "property": "dcterms:source",
                                 "value": {"id": "#verse"},
-                                "status": "confirmed",
                                 "basis": ["#intro", "other.yaml#score"],
                             }
                         ],
@@ -429,3 +428,49 @@ def test_any_character_after_the_hash_writes_an_id() -> None:
         ],
     }
     timetoshare.validate(value)
+
+
+def test_matchstamps_and_resources_hold_ids_but_claims_do_not() -> None:
+    graphical = {
+        "timestamps": [
+            {"id": "#ts_a", "timeline": "#score", "coordinate": 0, "matchstamp": True},
+        ],
+        "matchstamps": [
+            {
+                "id": "#matchstamp_1",
+                "name": "M",
+                "alignment_anchors": [
+                    {"id": "#anchor_1", "timestamps": ["#ts_a", "#ts_b"]},
+                ],
+                "match_claims": ["claim_1", "#claim_2"],
+            }
+        ],
+    }
+    resources = [
+        {
+            "id": "#resource_1",
+            "type": "MatchClaim",
+            "timelines": ["#score", "#perf"],
+            "url": "#fragment.parquet",
+        }
+    ]
+    value = {"timetoshare": "0.2.0", "timelines": [], "graphical": graphical}
+    value["resources"] = resources
+    bare = with_bare_ids(value)
+    assert bare["graphical"]["matchstamps"] == [
+        {
+            "id": "matchstamp_1",
+            "name": "M",
+            "alignment_anchors": [{"id": "anchor_1", "timestamps": ["ts_a", "ts_b"]}],
+            "match_claims": ["claim_1", "#claim_2"],
+        }
+    ]
+    assert bare["resources"] == [
+        {
+            "id": "resource_1",
+            "type": "MatchClaim",
+            "timelines": ["score", "perf"],
+            "url": "#fragment.parquet",
+        }
+    ]
+    assert with_file_ids(bare) == value

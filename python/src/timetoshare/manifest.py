@@ -8,10 +8,14 @@ order (the README's "Canonical order"):
 * in every timeline, ``children`` by offset, then ID; ``conversion_maps`` by
   ID; ``regions`` by start, then end, then ID; ``flow_control`` by
   coordinate, then ID;
+* ``resources`` by ID;
 * ``graphical.timestamps`` by timeline, then coordinate, then ID, and every
   timestamp's ``display`` in the order of :data:`TIMESTAMP_DISPLAY`, other
   strings after them by code point and other values last in their given
-  order.
+  order;
+* ``graphical.matchstamps`` by ID, the ``alignment_anchors`` of each by ID,
+  and every anchor's ``display`` in the order of :data:`ANCHOR_DISPLAY`, as
+  a timestamp's.
 
 Coordinates compare by their exact numeric value, never by their spelling;
 strings compare by Unicode code point; entries that tie keep their given
@@ -36,7 +40,12 @@ from collections.abc import Callable, Mapping
 from fractions import Fraction
 from typing import Any
 
-__all__ = ["TIMESTAMP_DISPLAY", "UNIT_NUMBER_TYPES", "canonical_order"]
+__all__ = [
+    "ANCHOR_DISPLAY",
+    "TIMESTAMP_DISPLAY",
+    "UNIT_NUMBER_TYPES",
+    "canonical_order",
+]
 
 UNIT_NUMBER_TYPES = {
     "number": "float",
@@ -64,6 +73,9 @@ _NUMBER_TYPES = ("int", "float", "fraction")
 
 TIMESTAMP_DISPLAY = ("wedge", "name", "id", "coordinate", "cross_section")
 """The words of a named timestamp's ``display``, in canonical order."""
+
+ANCHOR_DISPLAY = ("line", "name")
+"""The words of an alignment anchor's ``display``, in canonical order."""
 
 
 def _integral(value: Any) -> int | None:
@@ -107,25 +119,36 @@ def _exact(value: Any) -> Fraction:
     return Fraction(value)
 
 
-def _display_key(word: Any) -> tuple[int, int, str]:
-    """Order the words of ``display``: the known ones canonically, then others.
+def _display_key(words: tuple[str, ...]) -> Callable[[Any], tuple[int, int, str]]:
+    """Order the words of a ``display``: the known ``words`` canonically, then others.
 
     A string the schema does not know follows them by code point, and any
     other value follows last in its given order, so ordering never fails.
     """
-    if isinstance(word, str) and word in TIMESTAMP_DISPLAY:
-        return (0, TIMESTAMP_DISPLAY.index(word), "")
-    if isinstance(word, str):
-        return (1, 0, word)
-    return (2, 0, "")
+
+    def key(word: Any) -> tuple[int, int, str]:
+        if isinstance(word, str) and word in words:
+            return (0, words.index(word), "")
+        if isinstance(word, str):
+            return (1, 0, word)
+        return (2, 0, "")
+
+    return key
+
+
+def _order_display(owner: dict[str, Any], words: tuple[str, ...]) -> None:
+    display = owner.get("display")
+    if isinstance(display, list):
+        owner["display"] = sorted(display, key=_display_key(words))
 
 
 def _order_displays(manifest: Any) -> None:
-    """Put the ``display`` of every named timestamp in canonical order, in place."""
+    """Put every timestamp's and alignment anchor's ``display`` in canonical order."""
     for timestamp in _dicts(_timestamps(manifest)):
-        display = timestamp.get("display")
-        if isinstance(display, list):
-            timestamp["display"] = sorted(display, key=_display_key)
+        _order_display(timestamp, TIMESTAMP_DISPLAY)
+    for matchstamp in _dicts(_matchstamps(manifest)):
+        for anchor in _dicts(matchstamp.get("alignment_anchors")):
+            _order_display(anchor, ANCHOR_DISPLAY)
 
 
 def _sorted(entries: list[Any], key: Callable[[Any], Any], where: str) -> list[Any]:
@@ -271,6 +294,11 @@ def _timestamps(manifest: Any) -> Any:
     return graphical.get("timestamps") if isinstance(graphical, dict) else None
 
 
+def _matchstamps(manifest: Any) -> Any:
+    graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
+    return graphical.get("matchstamps") if isinstance(graphical, dict) else None
+
+
 def _respell(manifest: Any) -> None:
     """Respell every own-axis value of a manifest as its number type selects, in place.
 
@@ -336,5 +364,15 @@ def canonical_order(value: Any) -> Any:
             ),
             "timestamps",
         )
+    if isinstance(result.get("resources"), list):
+        result["resources"] = _sorted(result["resources"], _by_id, "resources")
+    matchstamps = _matchstamps(result)
+    if isinstance(matchstamps, list):
+        for matchstamp in _dicts(matchstamps):
+            if isinstance(matchstamp.get("alignment_anchors"), list):
+                matchstamp["alignment_anchors"] = _sorted(
+                    matchstamp["alignment_anchors"], _by_id, "alignment_anchors"
+                )
+        result["graphical"]["matchstamps"] = _sorted(matchstamps, _by_id, "matchstamps")
     _order_displays(result)
     return result

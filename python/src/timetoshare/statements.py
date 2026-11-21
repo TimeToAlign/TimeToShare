@@ -10,11 +10,14 @@ where it has one, ``type``, a ``label`` kept as a cache, its own pairs as
 property-IRI keys and its own ``provenance``) or ``{"list": [...]}`` for
 values in order. A string is never read as an IRI: a thing is ``{"id": ...}``.
 
-Beside the container, ``provenance`` annotates pairs: each entry repeats a
-pair's ``property`` and ``value`` and says who stated it (``stated_by``),
-when (``date``), how (``method``, ``service``, ``basis``, ``match``), with a
-``note``, and its ``status``. A ``confirmed`` entry matches a stated pair; a
-``proposed`` or ``rejected`` one matches none, and its pair is never stated.
+Beside the container, ``provenance`` holds an entry per pair (the entry of
+the provenance schema, ``provenance.schema.json``): it repeats a pair's
+``property`` and ``value`` and says who stated it (``stated_by``), when
+(``date``), how (``method``, ``service``, ``basis``, ``match``), with a
+``note``, and who believes it (``beliefs``: per actor ``true``, ``false`` or
+``"unlikely"``). An entry whose pair is stated annotates it; an entry whose
+pair is not stated is a candidate, which an actor believing it ``false`` is
+not offered again. Nothing derives a truth value from the beliefs.
 The manifest's inline JSON-LD context ``@context`` holds the format's terms
 (``FORMAT_CONTEXT``) and the prefixes the statements use, which makes the
 manifest a YAML-LD document whose statements read as plain triples and whose
@@ -40,15 +43,17 @@ import re
 from collections.abc import Iterator, Mapping, Sequence
 from typing import Any
 
+from .serialization import spell
 from .validation.diagnostics import _Path, json_pointer
 
 __all__ = [
+    "BELIEFS",
     "BLANK",
     "FORMAT_CONTEXT",
     "MATCHES",
     "METHODS",
     "NAMESPACE",
-    "STATUSES",
+    "candidates",
     "compact_iri",
     "entries",
     "expand_iri",
@@ -57,12 +62,11 @@ __all__ = [
     "subject_path",
     "subjects",
     "used_prefixes",
-    "with_confirmation",
+    "with_belief",
+    "with_candidate",
     "with_context",
     "with_pair",
-    "with_proposal",
     "with_references_renamed",
-    "with_rejection",
     "without_pair",
 ]
 
@@ -98,14 +102,13 @@ FORMAT_CONTEXT: dict[str, Any] = {
     "basis": {"@id": _PROV + "hadPrimarySource", "@type": "@id"},
     "match": {"@id": NAMESPACE + "match", "@type": "@vocab"},
     "note": _RDFS + "comment",
-    "status": {"@id": NAMESPACE + "status", "@type": "@vocab"},
+    "beliefs": NAMESPACE + "belief",
+    "actor": {"@id": NAMESPACE + "actor", "@type": "@id"},
+    "belief": NAMESPACE + "beliefValue",
     "manual": NAMESPACE + "Manual",
     "reconciled": NAMESPACE + "Reconciled",
     "imported": NAMESPACE + "Imported",
     "inferred": NAMESPACE + "Inferred",
-    "confirmed": NAMESPACE + "Confirmed",
-    "proposed": NAMESPACE + "Proposed",
-    "rejected": NAMESPACE + "Rejected",
     "exact": _SKOS + "exactMatch",
     "close": _SKOS + "closeMatch",
     "broad": _SKOS + "broadMatch",
@@ -114,12 +117,12 @@ FORMAT_CONTEXT: dict[str, Any] = {
 }
 """The format's terms of ``@context``, each exactly as the schema fixes it.
 
-The 33 terms and no prefix; treat it as read-only. ``with_context`` adds the
+The 32 terms and no prefix; treat it as read-only. ``with_context`` adds the
 prefixes a manifest uses.
 """
 
-STATUSES = ("confirmed", "proposed", "rejected")
-"""The statuses of a provenance entry, in the schema's order."""
+BELIEFS = (True, False, "unlikely")
+"""The beliefs an actor may hold in an item, in the schema's order."""
 
 METHODS = ("manual", "reconciled", "imported", "inferred")
 """The words of a provenance entry's ``method``; any other method is an IRI."""
@@ -333,6 +336,16 @@ def _visit_entry(entry: Mapping[str, Any], path: _Path) -> Iterator[Position]:
             for index, item in enumerate(_entries_of(member)):
                 if isinstance(item, str):
                     yield "ref", (*at, index), item
+        elif key == "beliefs":
+            for index, belief in enumerate(_entries_of(member)):
+                if not isinstance(belief, Mapping):
+                    continue
+                for name in sorted(belief):
+                    item = belief[name]
+                    if name == "actor" and isinstance(item, str):
+                        yield "ref", (*at, index, name), item
+                    elif name == "date" and isinstance(item, str):
+                        yield "date", (*at, index, name), item
         elif key == "date" and isinstance(member, str):
             yield "date", at, member
         elif key == "method" and isinstance(member, str) and member not in METHODS:
@@ -561,6 +574,17 @@ class _References:
             del entry["service"]
         elif "service" in entry:
             entry["service"] = self.text(entry["service"])
+        if isinstance(entry.get("beliefs"), list):
+            entry["beliefs"] = [
+                belief
+                for belief in entry["beliefs"]
+                if not isinstance(belief, dict) or not self.dropped(belief.get("actor"))
+            ]
+            for belief in entry["beliefs"]:
+                if isinstance(belief, dict) and "actor" in belief:
+                    belief["actor"] = self.text(belief["actor"])
+            if not entry["beliefs"]:
+                del entry["beliefs"]
         return True
 
 
@@ -573,19 +597,20 @@ def with_references_renamed(
     ``"#" + old`` exactly (``other.yaml#old`` names an element of another
     manifest and is none) where statements name things: a node's ``id``, a
     provenance entry's ``basis`` and ``stated_by`` items and its ``service``,
-    in the statements and provenance of the manifest, of every timeline at
-    any depth and of every region, and of every node within them, a node in
-    an entry's ``value`` included. Where ``renamed[old]`` is an ID, each
-    reference becomes ``"#" + renamed[old]``. Where it is ``None``, a value
-    that is a node naming the element leaves its list, an entry whose
-    ``value`` names it leaves ``provenance``, a ``basis`` or ``stated_by``
-    item naming it leaves its list and a ``service`` naming it is deleted;
-    then every list of values, container, ``basis``, ``stated_by`` and
-    ``provenance`` left empty is deleted, as are a node without ``id`` and
-    ordered values left without anything. Each reference is renamed once:
-    with ``{"a": "b", "b": "c"}``, ``#a`` becomes ``#b`` and ``#b`` becomes
-    ``#c``. The elements' own IDs are never read, so either ID form is
-    taken. The JavaScript package's ``withReferencesRenamed`` gives the same
+    and a belief's ``actor``, in the statements and provenance of the
+    manifest, of every timeline at any depth and of every region, and of
+    every node within them, a node in an entry's ``value`` included. Where
+    ``renamed[old]`` is an ID, each reference becomes ``"#" + renamed[old]``.
+    Where it is ``None``, a value that is a node naming the element leaves
+    its list, an entry whose ``value`` names it leaves ``provenance``, a
+    ``basis`` or ``stated_by`` item naming it leaves its list, a belief whose
+    ``actor`` it is leaves ``beliefs`` and a ``service`` naming it is
+    deleted; then every list of values, container, ``basis``, ``stated_by``,
+    ``beliefs`` and ``provenance`` left empty is deleted, as are a node
+    without ``id`` and ordered values left without anything. Each reference
+    is renamed once: with ``{"a": "b", "b": "c"}``, ``#a`` becomes ``#b`` and
+    ``#b`` becomes ``#c``. The elements' own IDs are never read, so either ID
+    form is taken. The JavaScript package's ``withReferencesRenamed`` gives the same
     values.
     """
     references = _References(renamed)
@@ -795,20 +820,55 @@ def pairs(manifest: Mapping[str, Any], subject: Sequence[str | int]) -> list:
 
 
 def entries(
-    manifest: Mapping[str, Any],
-    subject: Sequence[str | int],
-    status: str | None = None,
+    manifest: Mapping[str, Any], subject: Sequence[str | int]
 ) -> list[dict[str, Any]]:
-    """Return a subject's provenance entries, or those of one ``status``.
+    """Return a subject's provenance entries, in their order.
 
     Raises:
         ValueError: If the path addresses no element and no value node.
     """
     holder, _ = _holder(manifest, subject)
+    return [copy.deepcopy(entry) for entry in _entries_of(holder.get("provenance"))]
+
+
+def _believes(
+    context: Mapping[str, Any] | None, entry: Mapping[str, Any], actor: str, belief: Any
+) -> bool:
+    """Whether ``actor`` holds ``belief`` in an entry's pair, compared as IRIs."""
+    wanted = _reference_iri(context, actor)
+    return any(
+        isinstance(held, Mapping)
+        and _reference_iri(context, held.get("actor")) == wanted
+        and _strictly_equal(held.get("belief"), belief)
+        for held in _entries_of(entry.get("beliefs"))
+    )
+
+
+def candidates(
+    manifest: Mapping[str, Any],
+    subject: Sequence[str | int],
+    actor: str | None = None,
+) -> list[dict[str, Any]]:
+    """Return a subject's candidates: the entries of pairs the subject does not state.
+
+    With ``actor``, a candidate the actor believes ``false`` is left out:
+    it is not offered to that actor again. Actors compare as their IRIs.
+
+    Raises:
+        ValueError: If the path addresses no element and no value node.
+    """
+    holder, element = _holder(manifest, subject)
+    context = _context(manifest)
+    stated = container_pairs(_container(holder, element))
     return [
         copy.deepcopy(entry)
         for entry in _entries_of(holder.get("provenance"))
-        if status is None or entry.get("status") == status
+        if isinstance(entry, Mapping)
+        and not any(
+            same_pair(context, pair, (entry.get("property"), entry.get("value")))
+            for pair in stated
+        )
+        and (actor is None or not _believes(context, entry, actor, False))
     ]
 
 
@@ -827,6 +887,12 @@ def _checked_property(property: Any) -> str:
     )
 
 
+def _checked_belief(belief: Any) -> Any:
+    if belief is True or belief is False or belief == "unlikely":
+        return belief
+    raise ValueError(f"{spell(belief)} is no belief: write true, false or 'unlikely'")
+
+
 class _Edit:
     """One edit of a subject's pairs and entries, on a copy of the manifest."""
 
@@ -836,13 +902,14 @@ class _Edit:
         subject: Sequence[str | int],
         property: str,
         value: Any,
-        date: str | None = None,
+        *dates: str | None,
     ) -> None:
         self.property = _checked_property(property)
         self.result = copy.deepcopy(dict(manifest))
         self.holder, self.element = _holder(self.result, subject)
-        if date is not None:
-            calendar_date(date)
+        for date in dates:
+            if date is not None:
+                calendar_date(date)
         self.context = _context(self.result)
         self.pair = (property, copy.deepcopy(value))
 
@@ -860,16 +927,15 @@ class _Edit:
                     return key, index
         return None
 
-    def entry(self, statuses: Sequence[str] = STATUSES) -> int | None:
-        """The index of the pair's first provenance entry of one of ``statuses``."""
-        for index, entry in enumerate(_entries_of(self.holder.get("provenance"))):
-            if entry.get("status") in statuses and self.matches(
-                (entry["property"], entry["value"])
-            ):
-                return index
+    def entry(self) -> dict[str, Any] | None:
+        """The pair's provenance entry, or ``None``."""
+        for entry in _entries_of(self.holder.get("provenance")):
+            if self.matches((entry["property"], entry["value"])):
+                return entry
         return None
 
-    def new_entry(self, status: str, **members: Any) -> dict[str, Any]:
+    def new_entry(self, **members: Any) -> dict[str, Any]:
+        """A new entry of the pair holding ``members``, ``beliefs`` among them."""
         property, value = self.pair
         if property == "type":
             written: Any = {"id": value}
@@ -877,17 +943,38 @@ class _Edit:
             written = {"id": value["id"]}
         else:
             written = copy.deepcopy(value)
-        entry = {
-            "property": "rdf:type" if property == "type" else property,
-            "value": written,
-            "status": status,
-        }
+        entry = {"property": "rdf:type" if property == "type" else property}
+        entry["value"] = written
         entry.update(
             (key, copy.deepcopy(member))
             for key, member in members.items()
-            if key not in ("property", "value", "status")
+            if key not in ("property", "value")
         )
         return entry
+
+    def the_entry(self) -> dict[str, Any]:
+        """The pair's entry, appended with the pair alone where it has none."""
+        entry = self.entry()
+        if entry is None:
+            entry = self.new_entry()
+            self.holder.setdefault("provenance", []).append(entry)
+        return entry
+
+    def believe(self, actor: str, belief: Any, date: str, note: str | None) -> None:
+        """Record ``actor``'s belief in the pair's entry, replacing an earlier one."""
+        held: dict[str, Any] = {"actor": actor, "belief": belief, "date": date}
+        if note is not None:
+            held["note"] = note
+        beliefs = self.the_entry().setdefault("beliefs", [])
+        wanted = _reference_iri(self.context, actor)
+        for index, earlier in enumerate(beliefs):
+            if (
+                isinstance(earlier, Mapping)
+                and _reference_iri(self.context, earlier.get("actor")) == wanted
+            ):
+                beliefs[index] = held
+                return
+        beliefs.append(held)
 
     def state(self) -> None:
         if self.element:
@@ -905,11 +992,10 @@ class _Edit:
         if self.element and not container:
             del self.holder["statements"]
 
-    def provenance(self) -> list[dict[str, Any]]:
-        return self.holder.setdefault("provenance", [])
-
-    def drop_entry(self, index: int) -> None:
-        del self.holder["provenance"][index]
+    def drop_entry(self) -> None:
+        entry = self.entry()
+        if entry is not None:
+            self.holder["provenance"].remove(entry)
 
     def done(self) -> dict[str, Any]:
         if self.holder.get("provenance") == []:
@@ -924,32 +1010,42 @@ def with_pair(
     value: Any,
     *,
     provenance: Mapping[str, Any] | None = None,
+    actor: str | None = None,
+    date: str | None = None,
 ) -> dict[str, Any]:
     """Return the manifest with the pair ``(property, value)`` stated of a subject.
 
     The value is appended to the property's list (``type`` takes a class IRI
-    string). A ``proposed`` or ``rejected`` entry of the pair is removed.
-    With ``provenance`` (the members of an entry but ``property``, ``value``
-    and ``status``), a ``confirmed`` entry is appended: its ``value`` is
+    string). An entry of the pair, a candidate until now, stays as the
+    stated pair's entry. With ``provenance`` (the members of an entry but
+    ``property``, ``value`` and ``beliefs``), they are set on the pair's
+    entry, which is appended where the pair has none: its ``value`` is
     ``{"id": ...}`` for a node with an ``id`` and for a ``type`` pair, else
-    the value itself, and a ``type`` pair's property is written ``rdf:type``.
+    the value itself, and a ``type`` pair's property is written
+    ``rdf:type``. With ``actor``, the person stating the pair, the entry
+    records that actor's belief ``true`` on ``date``, replacing the actor's
+    earlier belief.
 
     Raises:
         ValueError: If ``property`` is no property, the path addresses no
-            element and no value node, the entry's ``date`` is no calendar
-            date, or the subject already has the pair.
+            element and no value node, a date is no calendar date, ``actor``
+            is given without ``date``, or the subject already has the pair.
     """
-    date = None if provenance is None else provenance.get("date")
-    edit = _Edit(manifest, subject, property, value, date)
+    if actor is not None and date is None:
+        raise ValueError("a belief needs a date")
+    stated_on = None if provenance is None else provenance.get("date")
+    edit = _Edit(manifest, subject, property, value, stated_on, date)
     if edit.stated() is not None:
         raise ValueError(f"'{property}' already has this value")
     edit.state()
-    index = edit.entry(("proposed", "rejected"))
-    while index is not None:
-        edit.drop_entry(index)
-        index = edit.entry(("proposed", "rejected"))
     if provenance is not None:
-        edit.provenance().append(edit.new_entry("confirmed", **provenance))
+        edit.the_entry().update(
+            (key, copy.deepcopy(member))
+            for key, member in provenance.items()
+            if key not in ("property", "value", "beliefs")
+        )
+    if actor is not None:
+        edit.believe(actor, True, date, None)
     return edit.done()
 
 
@@ -961,7 +1057,7 @@ def without_pair(
 ) -> dict[str, Any]:
     """Return the manifest without the pair ``(property, value)`` of a subject.
 
-    Its ``confirmed`` entry goes with it; an emptied list, container or
+    The pair's entry goes with it; an emptied list, container or
     ``provenance`` is removed.
 
     Raises:
@@ -973,13 +1069,11 @@ def without_pair(
     if at is None:
         raise ValueError(f"'{property}' does not have this value")
     edit.unstate(at)
-    index = edit.entry(("confirmed",))
-    if index is not None:
-        edit.drop_entry(index)
+    edit.drop_entry()
     return edit.done()
 
 
-def with_proposal(
+def with_candidate(
     manifest: Mapping[str, Any],
     subject: Sequence[str | int],
     property: str,
@@ -993,11 +1087,12 @@ def with_proposal(
     match: str | None = None,
     note: str | None = None,
 ) -> dict[str, Any]:
-    """Return the manifest with a ``proposed`` entry of a pair not stated.
+    """Return the manifest with a candidate: an entry of a pair it does not state.
 
-    The entry replaces, in place, another entry of the pair; the statements
-    are left as they are. ``basis`` is written only when it is not empty,
-    ``service``, ``match`` and ``note`` only when given.
+    The entry replaces, in place, another entry of the pair, whose
+    ``beliefs`` it keeps; the statements are left as they are. ``basis`` is
+    written only when it is not empty, ``service``, ``match`` and ``note``
+    only when given. A service or a loader proposing a pair holds no belief.
 
     Raises:
         ValueError: If ``property`` is no property, the path addresses no
@@ -1007,7 +1102,7 @@ def with_proposal(
     edit = _Edit(manifest, subject, property, value, date)
     if edit.stated() is not None:
         raise ValueError(
-            f"'{property}' already has this value; a stated pair is not proposed"
+            f"'{property}' already has this value; a stated pair is no candidate"
         )
     members: dict[str, Any] = {
         "stated_by": list(stated_by),
@@ -1020,78 +1115,45 @@ def with_proposal(
     )
     if basis:
         members["basis"] = list(basis)
-    entry = edit.new_entry("proposed", **members)
-    index = edit.entry()
-    if index is None:
-        edit.provenance().append(entry)
+    earlier = edit.entry()
+    if earlier is None:
+        edit.holder.setdefault("provenance", []).append(edit.new_entry(**members))
     else:
-        edit.provenance()[index] = entry
+        if "beliefs" in earlier:
+            members["beliefs"] = earlier["beliefs"]
+        replacement = edit.new_entry(**members)
+        earlier.clear()
+        earlier.update(replacement)
     return edit.done()
 
 
-def with_confirmation(
+def with_belief(
     manifest: Mapping[str, Any],
     subject: Sequence[str | int],
     property: str,
     value: Any,
     *,
-    stated_by: Sequence[str],
-    date: str,
-) -> dict[str, Any]:
-    """Return the manifest with a proposed or rejected pair confirmed and stated.
-
-    ``value`` is stated as given, its label included; the pair's entry
-    becomes ``confirmed`` with ``stated_by`` and ``date`` replaced and its
-    other members kept.
-
-    Raises:
-        ValueError: If ``property`` is no property, the path addresses no
-            element and no value node, ``date`` is no calendar date, the
-            subject has no proposed or rejected entry of the pair, or it
-            already states the pair.
-    """
-    edit = _Edit(manifest, subject, property, value, date)
-    index = edit.entry(("proposed", "rejected"))
-    if index is None:
-        raise ValueError(f"no proposal or rejection of this value of '{property}'")
-    if edit.stated() is not None:
-        raise ValueError(f"'{property}' already has this value")
-    edit.state()
-    entry = edit.provenance()[index]
-    entry.update(status="confirmed", stated_by=list(stated_by), date=date)
-    return edit.done()
-
-
-def with_rejection(
-    manifest: Mapping[str, Any],
-    subject: Sequence[str | int],
-    property: str,
-    value: Any,
-    *,
-    stated_by: Sequence[str],
+    actor: str,
+    belief: bool | str,
     date: str,
     note: str | None = None,
 ) -> dict[str, Any]:
-    """Return the manifest with the pair rejected: no longer stated, kept as an entry.
+    """Return the manifest with an actor's belief in a pair of a subject.
 
-    A stated pair is removed. The pair's entry, created where it has none,
-    becomes ``rejected`` with ``stated_by``, ``date`` and, where given,
-    ``note`` replaced; its other members, ``method`` among them, are kept.
+    ``belief`` is ``True``, ``False`` or ``"unlikely"``. The pair's entry,
+    appended with the pair alone where it has none, records ``{"actor",
+    "belief", "date"}`` (and ``note`` where given), replacing in place the
+    actor's earlier belief; actors compare as their IRIs. Whether the pair
+    is stated is left as it is: one actor's belief leaves the statement and
+    every other actor's belief standing. A candidate an actor believes
+    ``False`` is not offered to that actor again (:func:`candidates`).
 
     Raises:
         ValueError: If ``property`` is no property, the path addresses no
-            element and no value node, or ``date`` is no calendar date.
+            element and no value node, ``belief`` is none of the three, or
+            ``date`` is no calendar date.
     """
+    _checked_belief(belief)
     edit = _Edit(manifest, subject, property, value, date)
-    at = edit.stated()
-    if at is not None:
-        edit.unstate(at)
-    members: dict[str, Any] = {"stated_by": list(stated_by), "date": date}
-    if note is not None:
-        members["note"] = note
-    index = edit.entry()
-    if index is None:
-        edit.provenance().append(edit.new_entry("rejected", **members))
-    else:
-        edit.provenance()[index].update(status="rejected", **members)
+    edit.believe(actor, belief, date, note)
     return edit.done()

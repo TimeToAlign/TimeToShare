@@ -2,7 +2,14 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import jsonld from "jsonld";
 import { describe, expect, it } from "vitest";
-import { expandIri, isJsonObject, loads, NAMESPACE, SCHEMA_VERSION } from "../src/index.js";
+import {
+  expandIri,
+  isJsonObject,
+  loads,
+  NAMESPACE,
+  SCHEMA_VERSION,
+  samePair,
+} from "../src/index.js";
 import { type JsonObject, plain } from "../src/json/value.js";
 import { fixtureFiles, fixtureText, repositoryRoot } from "./fixtures.js";
 
@@ -27,7 +34,9 @@ const ANNOTATION_PREDICATES = [
   `${NAMESPACE}method`,
   `${NAMESPACE}service`,
   `${NAMESPACE}match`,
-  `${NAMESPACE}status`,
+  `${NAMESPACE}belief`,
+  `${NAMESPACE}actor`,
+  `${NAMESPACE}beliefValue`,
 ];
 
 const SCHEMES = ["http:", "https:", "urn:", "tag:", "mailto:", "info:"];
@@ -187,12 +196,18 @@ describe("the statement fixtures", () => {
 
       const triples = new Set(quads.map((quad) => quad.slice(0, 3).join(" ")));
       let annotations = 0;
-      for (const [subject] of subjects) {
+      for (const [subject, container] of subjects) {
         const entries = (subject.provenance ?? []) as JsonObject[];
         annotations += entries.length;
         const iri = iriOf(context, subject, base);
+        const stated = Object.entries(container)
+          .filter(([key]) => key === "type" || !OWN_KEYS.has(key))
+          .flatMap(([key, values]) =>
+            Array.isArray(values) ? values.map((item) => [key, item] as const) : [],
+          );
         for (const entry of entries) {
-          if (iri === null || entry.status === "confirmed") continue;
+          const pair = [String(entry.property), entry.value] as const;
+          if (iri === null || stated.some((held) => samePair(context, held, pair))) continue;
           const property = expandIri(context, String(entry.property));
           const value = entry.value;
           const object =

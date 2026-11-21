@@ -1,12 +1,16 @@
 "@context":
   "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
   basis:
     "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
     "@type": "@id"
+  belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#belief"
   broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
   children: "@included"
   close: "http://www.w3.org/2004/02/skos/core#closeMatch"
-  confirmed: "https://timetoalign.github.io/timetoshare/ns#Confirmed"
   date:
     "@id": "http://purl.org/dc/terms/date"
     "@type": "http://www.w3.org/2001/XMLSchema#date"
@@ -29,12 +33,10 @@
   property:
     "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
     "@type": "@vocab"
-  proposed: "https://timetoalign.github.io/timetoshare/ns#Proposed"
   provenance:
     "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
   reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
   regions: "@included"
-  rejected: "https://timetoalign.github.io/timetoshare/ns#Rejected"
   rel: "http://id.loc.gov/vocabulary/relators/"
   related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
   schema: "http://schema.org/"
@@ -45,9 +47,6 @@
     "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
     "@type": "@id"
   statements: "@nest"
-  status:
-    "@id": "https://timetoalign.github.io/timetoshare/ns#status"
-    "@type": "@vocab"
   timelines: "@included"
   type: "@type"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
@@ -75,6 +74,11 @@ timelines:
         offset: 437.0
         provenance:
           -
+            beliefs:
+              -
+                actor: "https://example.org/people/editor"
+                belief: true
+                date: "2026-11-18"
             date: "2026-11-18"
             match: exact
             method: reconciled
@@ -82,7 +86,6 @@ timelines:
             property: "wdt:P144"
             service: "https://www.wikidata.org/w/api.php"
             stated_by: ["https://example.org/people/editor"]
-            status: confirmed
             value:
               id: "wd:Q65658996"
           -
@@ -92,25 +95,33 @@ timelines:
             note: "+ vocabulary: from Wikidata's P4404"
             property: "schema:isBasedOn"
             stated_by: ["https://example.org/agents/tilie"]
-            status: confirmed
             value:
               id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
           -
+            beliefs:
+              -
+                actor: "https://example.org/people/editor"
+                belief: false
+                date: "2026-11-18"
             date: "2026-11-18"
             method: reconciled
             note: "proposed by title match; the mix plays a remix, a different recording"
             property: "schema:sameAs"
             stated_by: ["https://example.org/people/editor"]
-            status: rejected
             value:
               id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
           -
             basis: ["http://www.wikidata.org/entity/Q65658996"]
+            beliefs:
+              -
+                actor: "https://example.org/people/editor"
+                belief: unlikely
+                date: "2026-11-19"
+                note: "the remix may credit its remixers alone"
             date: "2026-11-18"
             method: inferred
             property: "wdt:P175"
             stated_by: ["https://example.org/agents/tilie"]
-            status: proposed
             value:
               id: "wd:Q130798"
         statements:
@@ -130,7 +141,6 @@ timelines:
                   method: imported
                   property: "schema:isrcCode"
                   stated_by: ["https://example.org/agents/tilie"]
-                  status: confirmed
                   value: USUM71703085
               "schema:isrcCode": [USUM71703085]
               "schema:sameAs":
@@ -148,7 +158,6 @@ timelines:
         note: "no Wikidata item found on 2026-11-18; MusicBrainz not searched"
         property: "rel:prf"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: proposed
         value:
           label: "Samuel Moriero"
     statements:

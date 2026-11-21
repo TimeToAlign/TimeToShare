@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  BELIEFS,
+  candidates,
   compactIri,
   compactJson,
   defaultCatalogue,
@@ -14,20 +16,18 @@ import {
   NAMESPACE,
   pairs,
   SchemaValidationError,
-  STATUSES,
   samePair,
   statementProblems,
   subjectPath,
   subjects,
   usedPrefixes,
   validate,
-  withConfirmation,
+  withBelief,
+  withCandidate,
   withContext,
   withoutPair,
   withPair,
-  withProposal,
   withReferencesRenamed,
-  withRejection,
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
 import { CATALOGUE_TEST } from "./catalogue.js";
@@ -56,10 +56,15 @@ const root = (value: JsonObject): JsonObject => (value.timelines as JsonObject[]
 describe("the constants", () => {
   it("name the format's namespace, terms and words", () => {
     expect(NAMESPACE).toBe("https://timetoalign.github.io/timetoshare/ns#");
-    expect(Object.keys(FORMAT_CONTEXT)).toHaveLength(33);
+    expect(Object.keys(FORMAT_CONTEXT)).toHaveLength(32);
     expect(FORMAT_CONTEXT.statements).toBe("@nest");
-    expect(FORMAT_CONTEXT.status).toEqual({ "@id": `${NAMESPACE}status`, "@type": "@vocab" });
-    expect([...STATUSES]).toEqual(["confirmed", "proposed", "rejected"]);
+    expect(FORMAT_CONTEXT.beliefs).toBe(`${NAMESPACE}belief`);
+    expect(FORMAT_CONTEXT.actor).toEqual({ "@id": `${NAMESPACE}actor`, "@type": "@id" });
+    expect(FORMAT_CONTEXT.belief).toBe(`${NAMESPACE}beliefValue`);
+    for (const word of ["status", "confirmed", "proposed", "rejected"]) {
+      expect(Object.hasOwn(FORMAT_CONTEXT, word)).toBe(false);
+    }
+    expect([...BELIEFS]).toEqual([true, false, "unlikely"]);
     expect([...METHODS]).toEqual(["manual", "reconciled", "imported", "inferred"]);
     expect([...MATCHES]).toEqual(["exact", "close", "broad", "narrow", "related"]);
   });
@@ -71,7 +76,8 @@ describe("expandIri", () => {
     ["type", "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"],
     ["label", "http://www.w3.org/2000/01/rdf-schema#label"],
     ["stated_by", "http://www.w3.org/ns/prov#wasAttributedTo"],
-    ["confirmed", `${NAMESPACE}Confirmed`],
+    ["beliefs", `${NAMESPACE}belief`],
+    ["actor", `${NAMESPACE}actor`],
     ["wdt:P175", "http://www.wikidata.org/prop/direct/P175"],
     ["http://schema.org/name", "http://schema.org/name"],
     ["urn:isbn:0451450523", "urn:isbn:0451450523"],
@@ -134,7 +140,7 @@ describe("subjects", () => {
 });
 
 describe("stating and removing pairs", () => {
-  it("states a pair with its confirmed entry", () => {
+  it("states a pair with its entry", () => {
     const value = withPair(m1(), ROOT, "wdt:P175", PIRES, { provenance: STATED });
     expect(root(value).statements).toEqual({ "wdt:P175": [PIRES] });
     expect(root(value).provenance).toEqual([
@@ -143,13 +149,12 @@ describe("stating and removing pairs", () => {
         method: "manual",
         property: "wdt:P175",
         stated_by: [EDITOR],
-        status: "confirmed",
         value: { id: "wd:Q235650" },
       },
     ]);
     expect(pairs(value, ROOT)).toEqual([["wdt:P175", PIRES]]);
-    expect(entries(value, ROOT, "confirmed")).toHaveLength(1);
-    expect(entries(value, ROOT, "proposed")).toEqual([]);
+    expect(entries(value, ROOT)).toHaveLength(1);
+    expect(candidates(value, ROOT)).toEqual([]);
     validate(value);
   });
 
@@ -168,7 +173,7 @@ describe("stating and removing pairs", () => {
     const value = withPair(m1(), ROOT, "type", "schema:VideoObject", { provenance: STATED });
     expect(root(value).statements).toEqual({ type: ["schema:VideoObject"] });
     expect(root(value).provenance).toEqual([
-      { ...STATED, property: "rdf:type", value: { id: "schema:VideoObject" }, status: "confirmed" },
+      { ...STATED, property: "rdf:type", value: { id: "schema:VideoObject" } },
     ]);
   });
 
@@ -207,135 +212,129 @@ describe("stating and removing pairs", () => {
   });
 });
 
-describe("proposals, confirmations and rejections", () => {
+describe("candidates and beliefs", () => {
   const WORK = { id: "wd:Q29117946" };
-  const proposed = () =>
-    withProposal(m1(), ROOT, "wdt:P2550", WORK, {
+  const candidate = () =>
+    withCandidate(m1(), ROOT, "wdt:P2550", WORK, {
       stated_by: [TILIE],
       date: "2026-11-18",
       method: "inferred",
       basis: ["#cpt_2"],
     });
+  const PROPOSED = {
+    property: "wdt:P2550",
+    value: WORK,
+    stated_by: [TILIE],
+    date: "2026-11-18",
+    method: "inferred",
+    basis: ["#cpt_2"],
+  };
 
-  it("propose a pair without stating it", () => {
-    const value = proposed();
+  it("hold a candidate without stating it", () => {
+    const value = candidate();
     expect(Object.hasOwn(root(value), "statements")).toBe(false);
-    expect(root(value).provenance).toEqual([
-      {
-        property: "wdt:P2550",
-        value: WORK,
-        status: "proposed",
-        stated_by: [TILIE],
-        date: "2026-11-18",
-        method: "inferred",
-        basis: ["#cpt_2"],
-      },
-    ]);
+    expect(root(value).provenance).toEqual([PROPOSED]);
+    expect(candidates(value, ROOT)).toEqual([PROPOSED]);
     validate(value);
   });
 
-  it("confirm a proposal, stating the value with its label", () => {
-    const value = withConfirmation(
-      proposed(),
-      ROOT,
-      "wdt:P2550",
-      { ...WORK, label: "Clair de lune" },
-      { stated_by: [EDITOR], date: "2026-11-19" },
-    );
-    expect(root(value).statements).toEqual({
-      "wdt:P2550": [{ ...WORK, label: "Clair de lune" }],
+  it("replace a candidate in place, keeping its beliefs", () => {
+    const doubted = withBelief(candidate(), ROOT, "wdt:P2550", WORK, {
+      actor: EDITOR,
+      belief: "unlikely",
+      date: "2026-11-19",
+      note: "n",
     });
-    expect(root(value).provenance).toEqual([
-      {
-        property: "wdt:P2550",
-        value: WORK,
-        status: "confirmed",
-        stated_by: [EDITOR],
-        date: "2026-11-19",
-        method: "inferred",
-        basis: ["#cpt_2"],
-      },
-    ]);
-    validate(value);
-  });
-
-  it("reject a confirmed pair, keeping the entry with its note", () => {
-    const confirmed = withConfirmation(proposed(), ROOT, "wdt:P2550", WORK, {
+    const again = withCandidate(doubted, ROOT, "wdt:P2550", WORK, {
       stated_by: [EDITOR],
       date: "2026-11-19",
-    });
-    const value = withRejection(confirmed, ROOT, "wdt:P2550", WORK, {
-      stated_by: [EDITOR],
-      date: "2026-11-20",
-      note: "the video holds an excerpt",
-    });
-    expect(Object.hasOwn(root(value), "statements")).toBe(false);
-    expect(root(value).provenance).toEqual([
-      {
-        property: "wdt:P2550",
-        value: WORK,
-        status: "rejected",
-        stated_by: [EDITOR],
-        date: "2026-11-20",
-        method: "inferred",
-        basis: ["#cpt_2"],
-        note: "the video holds an excerpt",
-      },
-    ]);
-    validate(value);
-  });
-
-  it("reject a pair never proposed with an entry of its own", () => {
-    const value = withRejection(m1(), ROOT, "wdt:P2550", WORK, {
-      stated_by: [EDITOR],
-      date: "2026-11-20",
-    });
-    expect(root(value).provenance).toEqual([
-      {
-        property: "wdt:P2550",
-        value: WORK,
-        status: "rejected",
-        stated_by: [EDITOR],
-        date: "2026-11-20",
-      },
-    ]);
-  });
-
-  it("replace a proposal in place, and drop it when the pair is stated", () => {
-    const again = withProposal(proposed(), ROOT, "wdt:P2550", WORK, {
-      stated_by: [EDITOR],
-      date: "2026-11-21",
-      method: "reconciled",
-      match: "exact",
-      note: "checked",
-      service: "https://example.org/reconcile",
+      method: "manual",
     });
     expect(root(again).provenance).toEqual([
       {
         property: "wdt:P2550",
         value: WORK,
-        status: "proposed",
         stated_by: [EDITOR],
-        date: "2026-11-21",
-        method: "reconciled",
-        service: "https://example.org/reconcile",
-        match: "exact",
-        note: "checked",
+        date: "2026-11-19",
+        method: "manual",
+        beliefs: [{ actor: EDITOR, belief: "unlikely", date: "2026-11-19", note: "n" }],
       },
     ]);
-    const stated = withPair(proposed(), ROOT, "wdt:P2550", WORK);
-    expect(Object.hasOwn(root(stated), "provenance")).toBe(false);
+  });
+
+  it("state a candidate by a person, who believes it true, and keep it against a false belief", () => {
+    const labelled = { ...WORK, label: "Clair de lune" };
+    const stated = withPair(candidate(), ROOT, "wdt:P2550", labelled, {
+      actor: EDITOR,
+      date: "2026-11-20",
+    });
+    expect(root(stated).statements).toEqual({ "wdt:P2550": [labelled] });
+    expect(root(stated).provenance).toEqual([
+      { ...PROPOSED, beliefs: [{ actor: EDITOR, belief: true, date: "2026-11-20" }] },
+    ]);
+    expect(candidates(stated, ROOT)).toEqual([]);
+    validate(stated);
+    const disbelieved = withBelief(stated, ROOT, "wdt:P2550", WORK, {
+      actor: TILIE,
+      belief: false,
+      date: "2026-11-21",
+    });
+    const changed = withBelief(disbelieved, ROOT, "wdt:P2550", WORK, {
+      actor: EDITOR,
+      belief: false,
+      date: "2026-11-22",
+    });
+    expect(root(changed).statements).toEqual({ "wdt:P2550": [labelled] });
+    expect((root(changed).provenance as JsonObject[])[0]?.beliefs).toEqual([
+      { actor: EDITOR, belief: false, date: "2026-11-22" },
+      { actor: TILIE, belief: false, date: "2026-11-21" },
+    ]);
+    validate(changed);
+    expect(withoutPair(changed, ROOT, "wdt:P2550", WORK)).toEqual(m1());
+  });
+
+  it("offer a candidate to every actor but one who believes it false", () => {
+    const believed = withBelief(candidate(), ROOT, "wdt:P2550", WORK, {
+      actor: EDITOR,
+      belief: false,
+      date: "2026-11-19",
+    });
+    const [held] = entries(believed, ROOT);
+    expect(candidates(believed, ROOT)).toEqual([held]);
+    expect(candidates(believed, ROOT, EDITOR)).toEqual([]);
+    expect(candidates(believed, ROOT, TILIE)).toEqual([held]);
+  });
+
+  it("record a belief in a pair never stated with an entry of its own", () => {
+    const value = withBelief(m1(), [...ROOT, "regions", 0], "type", "schema:MusicVideoObject", {
+      actor: EDITOR,
+      belief: false,
+      date: "2026-11-18",
+    });
+    expect((root(value).regions as JsonObject[])[0]?.provenance).toEqual([
+      {
+        property: "rdf:type",
+        value: { id: "schema:MusicVideoObject" },
+        beliefs: [{ actor: EDITOR, belief: false, date: "2026-11-18" }],
+      },
+    ]);
   });
 
   it("refuse what does not hold", () => {
     const stated = withPair(m1(), ROOT, "wdt:P2550", WORK);
     const options = { stated_by: [EDITOR], date: "2026-11-18", method: "manual" };
-    expect(thrown(() => withProposal(stated, ROOT, "wdt:P2550", WORK, options))).toBe(
-      "'wdt:P2550' already has this value; a stated pair is not proposed",
+    expect(thrown(() => withCandidate(stated, ROOT, "wdt:P2550", WORK, options))).toBe(
+      "'wdt:P2550' already has this value; a stated pair is no candidate",
     );
-    expect(thrown(() => withConfirmation(m1(), ROOT, "wdt:P2550", WORK, options))).toBe(
-      "no proposal or rejection of this value of 'wdt:P2550'",
+    expect(thrown(() => withPair(m1(), ROOT, "wdt:P2550", WORK, { actor: EDITOR }))).toBe(
+      "a belief needs a date",
     );
+    for (const belief of [1, 0, "likely", null]) {
+      const given = { actor: EDITOR, belief: belief as never, date: "2026-11-18" };
+      expect(thrown(() => withBelief(m1(), ROOT, "type", "schema:Thing", given))).toBe(
+        `${belief === "likely" ? '"likely"' : String(belief)} is no belief: write true, false or 'unlikely'`,
+      );
+    }
     expect(thrown(() => withPair(m1(), ROOT, "performer", "x"))).toBe(
       "'performer' is no property: write 'type', a compact IRI or an absolute IRI",
     );
@@ -358,7 +357,7 @@ describe("proposals, confirmations and rejections", () => {
         {
           id: "wd:Q1",
           "schema:sameAs": [{ id: "wd:Q2" }],
-          provenance: [{ property: "schema:sameAs", value: { id: "wd:Q2" }, status: "confirmed" }],
+          provenance: [{ property: "schema:sameAs", value: { id: "wd:Q2" } }],
         },
       ],
     };
@@ -370,7 +369,9 @@ describe("proposals, confirmations and rejections", () => {
       ["schema:sameAs", { id: "wd:Q2" }],
     ]);
     expect(
-      thrown(() => withProposal(m1(), ROOT, "wdt:P2550", WORK, { ...options, date: "2026-02-30" })),
+      thrown(() =>
+        withCandidate(m1(), ROOT, "wdt:P2550", WORK, { ...options, date: "2026-02-30" }),
+      ),
     ).toBe("'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD");
   });
 });
@@ -521,10 +522,9 @@ function refusal(value: unknown): [string, readonly (string | number)[], string]
 }
 
 const COMPOSITION = { type: ["schema:MusicComposition"] };
-const entry = (property: string, value: unknown, status: string, rest: JsonObject = {}) => ({
+const entry = (property: string, value: unknown, rest: JsonObject = {}) => ({
   property,
   value,
-  status,
   ...rest,
 });
 
@@ -617,9 +617,13 @@ describe("the statement rules", () => {
         {
           statements: COMPOSITION,
           provenance: [
-            entry("rdf:type", { id: "schema:MusicComposition" }, "confirmed", {
-              date: "2026-02-30",
-            }),
+            entry(
+              "rdf:type",
+              { id: "schema:MusicComposition" },
+              {
+                date: "2026-02-30",
+              },
+            ),
           ],
         },
         {},
@@ -630,96 +634,53 @@ describe("the statement rules", () => {
       "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD",
     ],
     [
-      "a confirmed entry matching no pair",
-      based({
-        statements: COMPOSITION,
-        provenance: [entry("wdt:P86", { id: "wd:Q255" }, "confirmed")],
-      }),
-      "provenance_match",
-      ["timelines", 0, "provenance", 0],
-      "no pair of this subject matches the entry; an entry that matches none is proposed or rejected",
-    ],
-    [
-      "a proposed pair stated",
-      based({
-        statements: { "wdt:P86": [{ id: "wd:Q255" }] },
-        provenance: [entry("wdt:P86", { id: "wd:Q255" }, "proposed")],
-      }),
-      "provenance_match",
-      ["timelines", 0, "provenance", 0],
-      "the pair is stated; a proposed pair is never stated",
-    ],
-    [
-      "a rejected pair stated",
-      based({
-        statements: { "wdt:P86": [{ id: "wd:Q255" }] },
-        provenance: [entry("wdt:P86", { id: "wd:Q255" }, "rejected")],
-      }),
-      "provenance_match",
-      ["timelines", 0, "provenance", 0],
-      "the pair is stated; a rejected pair is never stated",
-    ],
-    [
       "a pair annotated twice",
       based({
         statements: { "wdt:P86": [{ id: "wd:Q255" }] },
-        provenance: [
-          entry("wdt:P86", { id: "wd:Q255" }, "confirmed"),
-          entry("wdt:P86", { id: "wd:Q255" }, "confirmed"),
-        ],
+        provenance: [entry("wdt:P86", { id: "wd:Q255" }), entry("wdt:P86", { id: "wd:Q255" })],
       }),
       "provenance_duplicate",
       ["timelines", 0, "provenance", 1],
       "the entry repeats the pair of entry 0",
     ],
     [
-      "a type pair unmatched",
-      based(
-        {
-          statements: COMPOSITION,
-          provenance: [entry("rdf:type", { id: "schema:MusicRecording" }, "confirmed")],
-        },
-        {},
-        RDF,
-      ),
-      "provenance_match",
-      ["timelines", 0, "provenance", 0],
-      "no pair of this subject matches the entry; an entry that matches none is proposed or rejected",
+      "an actor holding two beliefs in one entry",
+      based({
+        statements: { "wdt:P86": [{ id: "wd:Q255" }] },
+        provenance: [
+          entry(
+            "wdt:P86",
+            { id: "wd:Q255" },
+            {
+              beliefs: [
+                { actor: "wd:Q1", belief: true, date: "2026-11-18" },
+                { actor: "#clt_1", belief: "unlikely", date: "2026-11-18" },
+                { actor: "http://www.wikidata.org/entity/Q1", belief: false, date: "2026-11-19" },
+              ],
+            },
+          ),
+        ],
+      }),
+      "belief_actor",
+      ["timelines", 0, "provenance", 0, "beliefs", 2, "actor"],
+      "'http://www.wikidata.org/entity/Q1' already holds belief 0 of this entry; an actor holds one belief",
     ],
     [
-      "a type pair whose entry gives the class as a literal",
-      based(
-        {
-          statements: { type: ["schema:X"] },
-          provenance: [entry("rdf:type", "schema:X", "confirmed")],
-        },
-        {},
-        RDF,
-      ),
-      "provenance_match",
-      ["timelines", 0, "provenance", 0],
-      "no pair of this subject matches the entry; an entry that matches none is proposed or rejected",
-    ],
-    [
-      "an entry of a value node unmatched",
-      based(
-        {
-          statements: {
-            "wdt:P629": [
-              {
-                id: "wd:Q29117946",
-                "schema:sameAs": [{ id: "gnd:300042558" }],
-                provenance: [entry("schema:sameAs", { id: "gnd:1156628156" }, "confirmed")],
-              },
-            ],
-          },
-        },
-        {},
-        { gnd: "https://d-nb.info/gnd/" },
-      ),
-      "provenance_match",
-      ["timelines", 0, "statements", "wdt:P629", 0, "provenance", 0],
-      "no pair of this subject matches the entry; an entry that matches none is proposed or rejected",
+      "a belief of an element that is not there",
+      based({
+        provenance: [
+          entry(
+            "wdt:P86",
+            { id: "wd:Q255" },
+            {
+              beliefs: [{ actor: "#cpt_9", belief: false, date: "2026-11-18" }],
+            },
+          ),
+        ],
+      }),
+      "dangling_target",
+      ["timelines", 0, "provenance", 0, "beliefs", 0, "actor"],
+      "'#cpt_9' names no element of this manifest",
     ],
     [
       "an element that is not there",
@@ -834,9 +795,18 @@ describe("the statement rules", () => {
           "wdtt:P1": ["x"],
         },
         provenance: [
-          entry("rdf:type", { id: "schema:MusicComposition" }, "confirmed", { date: "2026-02-30" }),
-          entry("rdf:type", { id: "schema:MusicComposition" }, "confirmed"),
-          entry("wdt:P86", { id: "wd:Q255" }, "confirmed"),
+          entry("rdf:type", { id: "schema:MusicComposition" }, { date: "2026-02-30" }),
+          entry("rdf:type", { id: "schema:MusicComposition" }),
+          entry(
+            "wdt:P86",
+            { id: "wd:Q255" },
+            {
+              beliefs: [
+                { actor: "#clt_2", belief: true, date: "2026-11-18" },
+                { actor: "#clt_2", belief: false, date: "2026-11-19" },
+              ],
+            },
+          ),
         ],
       },
       {},
@@ -875,9 +845,9 @@ describe("the statement rules", () => {
       ],
       ["provenance_duplicate", [...at, "provenance", 1], "the entry repeats the pair of entry 0"],
       [
-        "provenance_match",
-        [...at, "provenance", 2],
-        "no pair of this subject matches the entry; an entry that matches none is proposed or rejected",
+        "belief_actor",
+        [...at, "provenance", 2, "beliefs", 1, "actor"],
+        "'#clt_2' already holds belief 0 of this entry; an actor holds one belief",
       ],
     ]);
     expect(refusal(value)).toEqual([
@@ -903,7 +873,7 @@ describe("the statement rules", () => {
   it("list a context problem for every key that needs one", () => {
     const { "@context": _, ...value } = based(
       { statements: COMPOSITION },
-      { provenance: [entry("wdt:P86", { id: "wd:Q255" }, "proposed")] },
+      { provenance: [entry("wdt:P86", { id: "wd:Q255" })] },
     );
     const problems = statementProblems(value).filter((problem) => problem.code === "context");
     expect(problems.map((problem) => problem.path)).toEqual([
@@ -929,7 +899,7 @@ describe("the warnings", () => {
         message: "the manifest has statements but no ID; its subject is a blank node",
       },
     ]);
-    const proposal = { provenance: [entry("wdt:P86", { id: "wd:Q255" }, "proposed")] };
+    const proposal = { provenance: [entry("wdt:P86", { id: "wd:Q255" })] };
     expect(manifestWarnings(based({}, proposal)).map((warning) => warning.path)).toEqual([
       ["provenance"],
     ]);
@@ -953,17 +923,15 @@ describe("references to elements", () => {
       {
         property: "dcterms:source",
         value: { id: reference },
-        status: "confirmed",
         basis: [reference, RECORD],
       },
       {
         property: "rdf:type",
         value: { id: "schema:VideoObject" },
-        status: "confirmed",
         basis: [reference],
         service: reference,
       },
-      { property: "dcterms:isPartOf", value: { id: reference }, status: "proposed" },
+      { property: "dcterms:isPartOf", value: { id: reference } },
     ];
     return value;
   }
@@ -986,13 +954,11 @@ describe("references to elements", () => {
       {
         property: "schema:about",
         value: { id: "wd:Q2" },
-        status: "proposed",
         stated_by: [reference, EDITOR],
       },
       {
         property: "schema:about",
         value: { id: "wd:Q3" },
-        status: "proposed",
         stated_by: [reference],
       },
     ];
@@ -1015,12 +981,36 @@ describe("references to elements", () => {
     const expected = referring("#cpt_2");
     expected.statements = { "rdfs:seeAlso": [{ id: "other.yaml#cpt_2" }] };
     root(expected).statements = { type: ["schema:VideoObject"] };
-    root(expected).provenance = [
-      { property: "rdf:type", value: { id: "schema:VideoObject" }, status: "confirmed" },
-    ];
+    root(expected).provenance = [{ property: "rdf:type", value: { id: "schema:VideoObject" } }];
     expect(result).toEqual(expected);
     expect(Object.hasOwn(result, "provenance")).toBe(false);
     expect(given).toEqual(kept);
+  });
+
+  it("renames and drops the actors of beliefs", () => {
+    const held = { belief: true, date: "2026-11-18" };
+    const given = m1();
+    root(given).provenance = [
+      {
+        property: "wdt:P86",
+        value: { id: "wd:Q255" },
+        beliefs: [
+          { actor: "#cpt_2", ...held },
+          { actor: EDITOR, ...held },
+        ],
+      },
+      { property: "wdt:P175", value: { id: "wd:Q1" }, beliefs: [{ actor: "#cpt_2", ...held }] },
+    ];
+    const renamed = root(withReferencesRenamed(given, { cpt_2: "cpt_3" }))
+      .provenance as JsonObject[];
+    expect(
+      ((renamed[0] as JsonObject).beliefs as JsonObject[]).map((belief) => belief.actor),
+    ).toEqual(["#cpt_3", EDITOR]);
+    expect(renamed[1]?.beliefs).toEqual([{ actor: "#cpt_3", ...held }]);
+    expect(root(withReferencesRenamed(given, { cpt_2: null })).provenance).toEqual([
+      { property: "wdt:P86", value: { id: "wd:Q255" }, beliefs: [{ actor: EDITOR, ...held }] },
+      { property: "wdt:P175", value: { id: "wd:Q1" } },
+    ]);
   });
 
   it("drops nodes and ordered values left empty", () => {
@@ -1031,8 +1021,8 @@ describe("references to elements", () => {
       "schema:hasPart": [{ list: [{ id: "wd:Q1" }] }],
     });
     expect(region.provenance).toEqual([
-      { property: "schema:about", value: { id: "wd:Q2" }, status: "proposed", stated_by: [EDITOR] },
-      { property: "schema:about", value: { id: "wd:Q3" }, status: "proposed" },
+      { property: "schema:about", value: { id: "wd:Q2" }, stated_by: [EDITOR] },
+      { property: "schema:about", value: { id: "wd:Q3" } },
     ]);
   });
 

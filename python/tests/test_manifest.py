@@ -7,6 +7,7 @@ from typing import Any
 import pytest
 
 from timetoshare import (
+    ANCHOR_DISPLAY,
     canonical_order,
     complete,
     dumps,
@@ -364,3 +365,38 @@ def test_an_unorderable_collection_is_refused() -> None:
     value = {"timelines": [{"id": "t", "regions": [{"id": "r"}] * 2}]}
     with pytest.raises(ValueError, match="cannot put regions in canonical order"):
         dumps(value)
+
+
+def test_resources_and_matchstamps_are_ordered_by_id() -> None:
+    anchors = [
+        {"id": "anchor_2", "timestamps": ["b", "a"], "display": ["name", "line", "x"]},
+        {"id": "anchor_1", "timestamps": ["c", "a"]},
+    ]
+    value = {
+        "timetoshare": "0.2.0",
+        "timelines": [],
+        "resources": [
+            {"id": "resource_2"},
+            {"id": "resource_10"},
+            {"id": "resource_1"},
+        ],
+        "graphical": {
+            "matchstamps": [
+                {"id": "matchstamp_2", "alignment_anchors": anchors},
+                {"id": "matchstamp_1", "alignment_anchors": []},
+            ]
+        },
+    }
+    ordered = canonical_order(value)
+    assert [entry["id"] for entry in ordered["resources"]] == [
+        "resource_1",
+        "resource_10",
+        "resource_2",
+    ]
+    matchstamps = ordered["graphical"]["matchstamps"]
+    assert [entry["id"] for entry in matchstamps] == ["matchstamp_1", "matchstamp_2"]
+    assert matchstamps[1]["alignment_anchors"] == [
+        {"id": "anchor_1", "timestamps": ["c", "a"]},
+        {"id": "anchor_2", "timestamps": ["b", "a"], "display": ["line", "name", "x"]},
+    ]
+    assert ANCHOR_DISPLAY == ("line", "name")

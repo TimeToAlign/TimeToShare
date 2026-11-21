@@ -17,7 +17,9 @@ from timetoshare import (
     fixture_paths,
     loads,
     rdf_expectation,
+    same_pair,
 )
+from timetoshare.statements import NODE_MEMBERS, container_pairs
 
 RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 RDFS = "http://www.w3.org/2000/01/rdf-schema#"
@@ -36,7 +38,9 @@ FORMAT_PREDICATES = {
     NAMESPACE + "method",
     NAMESPACE + "service",
     NAMESPACE + "match",
-    NAMESPACE + "status",
+    NAMESPACE + "belief",
+    NAMESPACE + "actor",
+    NAMESPACE + "beliefValue",
 }
 SCHEMES = ("http:", "https:", "urn:", "tag:", "mailto:", "info:")
 UNSTATED = {
@@ -45,7 +49,7 @@ UNSTATED = {
     "nielsen_record": (2, 3),
     "op106_work": (0, 0),
 }
-"""Per statement fixture, its ``proposed`` and ``rejected`` entries whose
+"""Per statement fixture, its candidates (entries of pairs not stated) whose
 subject has an IRI: those whose value is a thing or a plain literal, which
 the triple check reads, and those it passes over."""
 STATEMENTS = [path for path in fixture_paths() if path.parent.name == "statements"]
@@ -172,15 +176,25 @@ def _literal(value: Any) -> tuple[str, str] | None:
     return None
 
 
-def _entries(path: Path) -> Iterator[tuple[str, dict[str, Any]]]:
-    """Every provenance entry whose subject has an IRI, with that IRI."""
+def _entries(path: Path) -> Iterator[tuple[str, dict[str, Any], bool]]:
+    """Every provenance entry whose subject has an IRI, with that IRI and
+    whether its pair is stated."""
     document = _document(path)
+    context = document["@context"]
     for holder in _subjects(document):
         identifier = holder.get("id")
         if not isinstance(identifier, str):
             continue
+        container = holder.get("statements") or {
+            key: value
+            for key, value in holder.items()
+            if key not in NODE_MEMBERS and (key == "type" or ":" in key)
+        }
+        stated = container_pairs(container)
         for entry in holder.get("provenance", []):
-            yield _iri(path, document["@context"], identifier), entry
+            pair = (entry["property"], entry["value"])
+            held = any(same_pair(context, other, pair) for other in stated)
+            yield _iri(path, context, identifier), entry, held
 
 
 @pytest.mark.parametrize("path", STATEMENTS, ids=lambda path: path.name)
@@ -196,8 +210,8 @@ def test_a_pair_that_is_not_stated_is_asserted_nowhere(path: Path) -> None:
         for quad in _quads(path)
     }
     checked = passed_over = 0
-    for subject, entry in _entries(path):
-        if entry["status"] == "confirmed":
+    for subject, entry, stated in _entries(path):
+        if stated:
             continue
         predicate = expand_iri(context, entry["property"])
         value = entry["value"]

@@ -363,3 +363,57 @@ def corpus_tilia_bundle() -> AlignmentBundle:
     """Load the TiLiA alignment bundle from its corpus specimen."""
     tilia = ensure_data("score") / parts.TILIA
     return TiliaJsonLoader.from_file(tilia).create_bundle()
+
+
+def bundle_resources() -> AlignmentBundle:
+    """Build a bundle naming its MatchClaim table and its Projections table.
+
+    The bundle ``layerit_step_1`` ("LayerIt, step 1") holds the MEI encoding
+    ``clt_6`` ("Clair de lune, mm. 1–6 (MEI)", 27 quarters) and the audio
+    file ``dpt_1`` ("ClairDeLune_MariaJoaoPires_untilM6.wav", 1470868
+    samples). Its resources, added when the manifest is composed
+    (``RESOURCES``), name the MatchClaim table ``match_claims.parquet``
+    holding data for both timelines, with its media type, size and digest,
+    and the Projections table ``projections.parquet`` holding data for
+    ``dpt_1`` alone, with nothing optional.
+    """
+    bundle = AlignmentBundle(id="layerit_step_1", name="LayerIt, step 1")
+    bundle.add_timeline(
+        parts.named(
+            ContinuousLogicalTimeline,
+            "clt_6",
+            "Clair de lune, mm. 1–6 (MEI)",
+            Fraction(27),
+        )
+    )
+    bundle.add_timeline(
+        parts.named(
+            DiscretePhysicalTimeline,
+            "dpt_1",
+            "ClairDeLune_MariaJoaoPires_untilM6.wav",
+            Fraction(1470868),
+        )
+    )
+    return bundle
+
+
+def bundle_matchstamps() -> AlignmentBundle:
+    """Build a bundle of three timelines with two named MatchStamps.
+
+    The bundle "MatchStamps" holds the score ``score`` ("Score", 8
+    quarters) and the recordings ``take_1`` ("Take 1", 352800 samples) and
+    ``take_2`` ("Take 2", 396900 samples), ungrouped. Its ``graphical``
+    entry (``GRAPHICAL``) names the downbeat of bar 2, quarter 4, as one
+    match timestamp shared by two MatchStamps: one joining it to sample
+    88200 of ``take_1``, one to sample 99225 of ``take_2``.
+    """
+    bundle = AlignmentBundle(name="MatchStamps")
+    bundle.add_timeline(
+        parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
+    )
+    for uid, name, length in (
+        ("take_1", "Take 1", Fraction(352800)),
+        ("take_2", "Take 2", Fraction(396900)),
+    ):
+        bundle.add_timeline(parts.named(DiscretePhysicalTimeline, uid, name, length))
+    return bundle

@@ -13,9 +13,10 @@
  *    IRI fragment (`iri`); every IRI's prefix declared (`iri`); every `#`
  *    reference naming an element (`dangling_target`); every date a calendar
  *    date (`calendar_date`); no float (`representation`); a node naming an
- *    element holding its `id` alone (`element_value`); every `confirmed`
- *    entry matching a pair and no `proposed` or `rejected` one
- *    (`provenance_match`); one entry per pair (`provenance_duplicate`).
+ *    element holding its `id` alone (`element_value`); one entry per pair
+ *    (`provenance_duplicate`); one belief per actor in an entry
+ *    (`belief_actor`). An entry may match a stated pair or none: an entry of
+ *    a pair not stated is a candidate.
  *
  * The rules read the manifest with bare IDs; the IRIs of statements and
  * provenance are the same in both forms. The validators never consult the
@@ -32,7 +33,7 @@ import {
   FORMAT_CONTEXT,
   isAbsoluteReference,
   type Pair,
-  pairsOf,
+  referenceIri,
   samePair,
   subjects,
   URI_SCHEMES,
@@ -187,32 +188,38 @@ function referenceProblem(
   return null;
 }
 
-/** The match and repeat problems of a subject's provenance entries, entry by entry. */
+/** The belief problems of one entry: an actor holding a second belief. */
+function* beliefProblems(
+  context: unknown,
+  entry: JsonObject,
+  path: readonly PathSegment[],
+): Generator<SchemaValidationError> {
+  const actors = new Map<string, number>();
+  for (const [index, belief] of entries(entry, "beliefs").entries()) {
+    const actor = belief.actor as string;
+    const key = referenceIri(context, actor);
+    const earlier = actors.get(key);
+    if (earlier !== undefined) {
+      yield new SchemaValidationError(
+        "belief_actor",
+        [...path, "beliefs", index, "actor"],
+        `'${actor}' already holds belief ${earlier} of this entry; an actor holds one belief`,
+      );
+    } else actors.set(key, index);
+  }
+}
+
+/** The repeat and belief problems of a subject's provenance entries, entry by entry. */
 function* entryProblems(
   context: unknown,
   owner: JsonObject,
-  node: boolean,
   path: readonly PathSegment[],
 ): Generator<SchemaValidationError> {
-  const stated = pairsOf(owner, node);
   const seen: Pair[] = [];
   for (const [index, entry] of entries(owner, "provenance").entries()) {
     const at = [...path, "provenance", index];
     const pair: Pair = [String(entry.property), entry.value];
-    const matched = stated.some((candidate) => samePair(context, candidate, pair));
-    if (entry.status === "confirmed" && !matched) {
-      yield new SchemaValidationError(
-        "provenance_match",
-        at,
-        "no pair of this subject matches the entry; an entry that matches none is proposed or rejected",
-      );
-    } else if ((entry.status === "proposed" || entry.status === "rejected") && matched) {
-      yield new SchemaValidationError(
-        "provenance_match",
-        at,
-        `the pair is stated; a ${entry.status} pair is never stated`,
-      );
-    }
+    yield* beliefProblems(context, entry, at);
     const earlier = seen.findIndex((candidate) => samePair(context, candidate, pair));
     if (earlier >= 0) {
       yield new SchemaValidationError(
@@ -274,7 +281,7 @@ export function* subjectProblems(manifest: JsonObject): Generator<SchemaValidati
           );
           break;
         case "subject":
-          yield* entryProblems(context, visit.owner, visit.node, visit.path);
+          yield* entryProblems(context, visit.owner, visit.path);
           break;
       }
       if (problem !== null) yield problem;

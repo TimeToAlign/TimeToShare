@@ -447,3 +447,49 @@ describe("the validators", () => {
     validate(value);
   });
 });
+
+describe("MatchStamps and resources", () => {
+  it("hold IDs, while the MatchClaims a MatchStamp lists do not", () => {
+    const value = {
+      timetoshare: "0.2.0",
+      timelines: [],
+      graphical: {
+        timestamps: [{ id: "#ts_a", timeline: "#score", coordinate: 0, matchstamp: true }],
+        matchstamps: [
+          {
+            id: "#matchstamp_1",
+            name: "M",
+            alignment_anchors: [{ id: "#anchor_1", timestamps: ["#ts_a", "#ts_b"] }],
+            match_claims: ["claim_1", "#claim_2"],
+          },
+        ],
+      },
+      resources: [
+        {
+          id: "#resource_1",
+          type: "MatchClaim",
+          timelines: ["#score", "#perf"],
+          url: "#fragment.parquet",
+        },
+      ],
+    };
+    const bare = withBareIds(value) as typeof value;
+    expect(bare.graphical.matchstamps).toEqual([
+      {
+        id: "matchstamp_1",
+        name: "M",
+        alignment_anchors: [{ id: "anchor_1", timestamps: ["ts_a", "ts_b"] }],
+        match_claims: ["claim_1", "#claim_2"],
+      },
+    ]);
+    expect(bare.resources).toEqual([
+      {
+        id: "resource_1",
+        type: "MatchClaim",
+        timelines: ["score", "perf"],
+        url: "#fragment.parquet",
+      },
+    ]);
+    expect(withFileIds(bare)).toEqual(value);
+  });
+});

@@ -2,12 +2,16 @@ subjects:
   "#clt_6":
     provenance:
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: true
+            date: "2026-11-18"
         date: "2026-11-18"
         match: broad
         method: manual
         property: "schema:exampleOfWork"
         stated_by: ["https://example.org/people/editor"]
-        status: confirmed
         value:
           id: "http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96"
       -
@@ -19,17 +23,20 @@ subjects:
         property: "wdt:P629"
         service: "https://www.wikidata.org/w/api.php"
         stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
         value:
           id: "wd:Q29117946"
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: false
+            date: "2026-11-18"
         date: "2026-11-18"
         method: reconciled
         note: "GND 'Clair de lune' is Debussy's song L 32 on Verlaine (voice and piano, 1882), not the piano piece"
         property: "schema:exampleOfWork"
         service: "https://lobid.org/gnd/search"
         stated_by: ["https://example.org/people/editor"]
-        status: rejected
         value:
           id: "gnd:1156628156"
       -
@@ -39,7 +46,6 @@ subjects:
         note: "meiHead/fileDesc/pubStmt/date[@type='encoding-date'], which has no xml:id"
         property: "dcterms:created"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: confirmed
         value:
           "@type": "xsd:date"
           "@value": "2025-12-05"
@@ -66,7 +72,6 @@ subjects:
               property: "schema:sameAs"
               service: "https://lobid.org/gnd/search"
               stated_by: ["https://example.org/agents/tilie"]
-              status: confirmed
               value:
                 id: "gnd:300042558"
           "schema:sameAs":
@@ -77,22 +82,30 @@ subjects:
   "#cpt_1":
     provenance:
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: true
+            date: "2026-11-18"
         date: "2026-11-18"
         method: manual
         note: "pasted URL; label and thumbnail from YouTube's oEmbed"
         property: "schema:sameAs"
         stated_by: ["https://example.org/people/editor"]
-        status: confirmed
         value:
           id: "https://www.youtube.com/watch?v=Ch2mrPm1JnM"
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: true
+            date: "2026-11-18"
         date: "2026-11-18"
         method: reconciled
         note: "Portuguese pianist; the video's title names her"
         property: "wdt:P175"
         service: "https://www.wikidata.org/w/api.php"
         stated_by: ["https://example.org/people/editor"]
-        status: confirmed
         value:
           id: "wd:Q235650"
       -
@@ -102,7 +115,6 @@ subjects:
         note: "+ vocabulary: Wikidata P214 and lobid's sameAs agree"
         property: "rel:prf"
         stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
         value:
           id: "viaf:113931950"
       -
@@ -112,7 +124,6 @@ subjects:
         note: "from the encoding's work and the WAV's source; whether the video holds the whole movement is unchecked"
         property: "wdt:P2550"
         stated_by: ["https://example.org/agents/tilie"]
-        status: proposed
         value:
           id: "wd:Q29117946"
     statements:
@@ -143,7 +154,6 @@ subjects:
         note: "assumed ripped from the video's sound and cut"
         property: "dcterms:source"
         stated_by: ["https://example.org/people/editor"]
-        status: proposed
         value:
           id: "#cpt_1"
     statements:

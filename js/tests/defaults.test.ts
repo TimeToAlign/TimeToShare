@@ -61,6 +61,7 @@ describe("the complete and the minimal form", () => {
       meta: {},
       groups: [],
       measure_maps: [],
+      resources: [],
       timelines: [
         {
           id: "piece",
@@ -193,7 +194,13 @@ describe("the complete and the minimal form", () => {
     expect(pieces.maps).toEqual([{ ...table, name: null, kind: "linear", extrapolate: "none" }]);
     expect(value.groups).toEqual([{ id: "g", members: ["score"], name: null, meta: {} }]);
     expect(value.measure_maps).toEqual([{ id: "bars", rows, name: null, meta: {} }]);
-    expect(value.graphical).toEqual({ styles: {}, rules: [], order: {}, timestamps: [] });
+    expect(value.graphical).toEqual({
+      styles: {},
+      rules: [],
+      order: {},
+      timestamps: [],
+      matchstamps: [],
+    });
     validate(value);
   });
 
@@ -242,6 +249,7 @@ describe("the complete and the minimal form", () => {
       rules: [],
       order: {},
       timestamps: [],
+      matchstamps: [],
     });
     const child = manifest([
       timeline("score", "quarters", [8, 1], {
@@ -421,6 +429,7 @@ describe("the typed forms", () => {
     meta: {},
     groups: [],
     measure_maps: [],
+    resources: [],
     timelines: [COMPLETE_ROOT],
   };
 
@@ -460,7 +469,7 @@ describe("the typed forms", () => {
     const named: CompleteManifest = {
       ...COMPLETE,
       id: "op35",
-      graphical: { styles: {}, rules: [], order: {}, timestamps: [] },
+      graphical: { styles: {}, rules: [], order: {}, timestamps: [], matchstamps: [] },
     };
     const placed: CompleteTimeline = { ...COMPLETE_ROOT, offset: [-1, 2] };
     // Numbers are lossless and a Fraction stays a pair.
@@ -501,7 +510,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(75);
+    expect(twins.length).toBe(77);
     expect(twins.map((twin) => twin.replace(/\.minimal$/, ""))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal")),
     );
@@ -513,5 +522,49 @@ describe("the typed forms", () => {
     expect(dumps(completed)).toBe(fixture);
     expect(dumps(canonicalManifest(completed))).toBe(fixture);
     expect(dumps(minimalManifest(completed))).toBe(dumps(loads(fixtureText(twin))));
+  });
+});
+
+describe("match timestamps and alignment anchors", () => {
+  it("gain their own defaults", () => {
+    const ordinary = { id: "timestamp_1", timeline: "score", coordinate: [1, 1], name: "Entry" };
+    const matched = { id: "timestamp_2", timeline: "score", coordinate: [2, 1], matchstamp: true };
+    const shown = { ...matched, id: "timestamp_3", display: ["cross_section", "name"] };
+    const anchors = [
+      { id: "anchor_1", timestamps: ["timestamp_2", "timestamp_3"] },
+      { id: "anchor_2", timestamps: ["timestamp_2", "timestamp_3"], display: ["name", "line"] },
+    ];
+    const matchstamp = {
+      id: "matchstamp_1",
+      name: "M",
+      alignment_anchors: anchors,
+      match_claims: [],
+    };
+    const graphical = { timestamps: [ordinary, matched, shown], matchstamps: [matchstamp] };
+    const value = manifest([timeline("score")], { graphical });
+    const completed = complete(value).graphical as JsonObject;
+    const stamps = completed.timestamps as JsonObject[];
+    expect(stamps.map((stamp) => stamp.display)).toEqual([
+      ["wedge", "name", "cross_section"],
+      ["cross_section"],
+      ["name", "cross_section"],
+    ]);
+    expect(stamps.map((stamp) => stamp.matchstamp)).toEqual([undefined, true, true]);
+    const held = (completed.matchstamps as JsonObject[])[0]?.alignment_anchors as JsonObject[];
+    expect(held.map((anchor) => anchor.display)).toEqual([["line"], ["line", "name"]]);
+    const stripped = minimal(value).graphical as JsonObject;
+    expect((stripped.timestamps as JsonObject[]).map((stamp) => "display" in stamp)).toEqual([
+      false,
+      false,
+      true,
+    ]);
+    const kept = (stripped.matchstamps as JsonObject[])[0]?.alignment_anchors as JsonObject[];
+    expect(kept.map((anchor) => "display" in anchor)).toEqual([false, true]);
+    expect(minimal(complete(value))).toEqual(minimal(value));
+    const other = { ...ordinary, display: ["cross_section"] };
+    const plain = minimal(manifest([timeline("score")], { graphical: { timestamps: [other] } }));
+    expect(((plain.graphical as JsonObject).timestamps as JsonObject[])[0]?.display).toEqual([
+      "cross_section",
+    ]);
   });
 });

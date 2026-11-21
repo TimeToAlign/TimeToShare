@@ -1,0 +1,190 @@
+code: alignment_anchor
+manifest:
+  "@context":
+    "@version": 1.1
+    actor:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+      "@type": "@id"
+    basis:
+      "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+      "@type": "@id"
+    belief: "https://timetoalign.github.io/timetoshare/ns#beliefValue"
+    beliefs: "https://timetoalign.github.io/timetoshare/ns#belief"
+    broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+    children: "@included"
+    close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+    date:
+      "@id": "http://purl.org/dc/terms/date"
+      "@type": "http://www.w3.org/2001/XMLSchema#date"
+    exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+    groups: "@included"
+    id: "@id"
+    imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+    inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+    label: "http://www.w3.org/2000/01/rdf-schema#label"
+    list: "@list"
+    manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+    match:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+      "@type": "@vocab"
+    method:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+      "@type": "@vocab"
+    narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+    note: "http://www.w3.org/2000/01/rdf-schema#comment"
+    property:
+      "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+      "@type": "@vocab"
+    provenance:
+      "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+    reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+    regions: "@included"
+    related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+    service:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+      "@type": "@id"
+    stated_by:
+      "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+      "@type": "@id"
+    statements: "@nest"
+    timelines: "@included"
+    type: "@type"
+    value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+  graphical:
+    matchstamps:
+      -
+        alignment_anchors:
+          -
+            display: [line, name]
+            id: "#anchor_1"
+            timestamps: ["#timestamp_1", "#timestamp_2"]
+        id: "#matchstamp_1"
+        match_claims: [claim_1, claim_2]
+        name: "Bar 2, downbeat (take 1)"
+      -
+        alignment_anchors:
+          -
+            display: [line]
+            id: "#anchor_2"
+            timestamps: ["#timestamp_1", "#timestamp_11"]
+          -
+            display: [line]
+            id: "#anchor_3"
+            timestamps: ["#timestamp_3", "#timestamp_11"]
+        id: "#matchstamp_2"
+        match_claims: [claim_3]
+        name: "Bar 2, downbeat (take 2)"
+    order: {}
+    rules: []
+    styles: {}
+    timestamps:
+      -
+        coordinate: [0, 1]
+        display: [wedge, coordinate]
+        id: "#timestamp_4"
+        name: origin
+        timeline: "#score"
+      -
+        coordinate: [4, 1]
+        display: [cross_section]
+        id: "#timestamp_1"
+        matchstamp: true
+        timeline: "#score"
+      -
+        coordinate: [8, 1]
+        display: [wedge, coordinate]
+        id: "#timestamp_5"
+        name: length
+        timeline: "#score"
+      -
+        coordinate: 0
+        display: [wedge, coordinate]
+        id: "#timestamp_6"
+        name: origin
+        timeline: "#take_1"
+      -
+        coordinate: 88200
+        display: [cross_section]
+        id: "#timestamp_2"
+        matchstamp: true
+        timeline: "#take_1"
+      -
+        coordinate: 352800
+        display: [wedge, coordinate]
+        id: "#timestamp_7"
+        name: length
+        timeline: "#take_1"
+      -
+        coordinate: 0
+        display: [wedge, coordinate]
+        id: "#timestamp_8"
+        name: origin
+        timeline: "#take_2"
+      -
+        coordinate: 99225
+        display: [name, cross_section]
+        id: "#timestamp_3"
+        matchstamp: true
+        name: "Take 2, bar 2"
+        timeline: "#take_2"
+      -
+        coordinate: 396900
+        display: [wedge, coordinate]
+        id: "#timestamp_9"
+        name: length
+        timeline: "#take_2"
+      -
+        coordinate: [6, 1]
+        display: [cross_section]
+        id: "#timestamp_11"
+        matchstamp: true
+        timeline: "#score"
+  groups: []
+  measure_maps: []
+  meta:
+    generator: "timetoalign 1.2.0 (40161e42)"
+  name: MatchStamps
+  resources: []
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#score"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: Score
+      number_type: fraction
+      regions: []
+      unit: quarters
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#take_1"
+      is_segment_line: false
+      length: 352800
+      locked: false
+      meta: {}
+      name: "Take 1"
+      number_type: int
+      regions: []
+      unit: samples
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#take_2"
+      is_segment_line: false
+      length: 396900
+      locked: false
+      meta: {}
+      name: "Take 2"
+      number_type: int
+      regions: []
+      unit: samples
+  timetoshare: "0.2.0"
+path: [graphical, matchstamps, 1, alignment_anchors, 0, timestamps, 1]
+reason: "The two timestamps of an alignment anchor lie on two timelines; timestamp_1 and timestamp_11 both lie on score."

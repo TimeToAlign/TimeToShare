@@ -10,13 +10,14 @@ import pytest
 
 import timetoshare
 from timetoshare import (
+    BELIEFS,
     BLANK,
     FORMAT_CONTEXT,
     MATCHES,
     METHODS,
     NAMESPACE,
-    STATUSES,
     SchemaValidationError,
+    candidates,
     entries,
     expand_iri,
     fixture_paths,
@@ -30,11 +31,10 @@ from timetoshare import (
     subject_path,
     used_prefixes,
     validate,
-    with_confirmation,
+    with_belief,
+    with_candidate,
     with_context,
     with_pair,
-    with_proposal,
-    with_rejection,
     without_pair,
 )
 
@@ -64,12 +64,15 @@ def _described(**members: Any) -> dict:
 
 
 def test_the_format_context_holds_the_terms_and_no_prefix() -> None:
-    assert len(FORMAT_CONTEXT) == 33
+    assert len(FORMAT_CONTEXT) == 32
     assert list(FORMAT_CONTEXT)[:5] == ["@version", "id", "type", "statements", "list"]
     assert NAMESPACE == "https://timetoalign.github.io/timetoshare/ns#"
-    assert FORMAT_CONTEXT["status"] == {"@id": NAMESPACE + "status", "@type": "@vocab"}
-    assert FORMAT_CONTEXT["confirmed"] == NAMESPACE + "Confirmed"
-    assert STATUSES == ("confirmed", "proposed", "rejected")
+    assert FORMAT_CONTEXT["beliefs"] == NAMESPACE + "belief"
+    assert FORMAT_CONTEXT["actor"] == {"@id": NAMESPACE + "actor", "@type": "@id"}
+    assert FORMAT_CONTEXT["belief"] == NAMESPACE + "beliefValue"
+    for word in ("status", "confirmed", "proposed", "rejected"):
+        assert word not in FORMAT_CONTEXT
+    assert BELIEFS == (True, False, "unlikely")
     assert METHODS == ("manual", "reconciled", "imported", "inferred")
     assert MATCHES == ("exact", "close", "broad", "narrow", "related")
     assert BLANK.startswith("[\\u0000-\\u0020")
@@ -80,7 +83,8 @@ def test_iris_expand_by_the_context() -> None:
     assert expand_iri(context, "type") == RDF + "type"
     assert expand_iri(context, "label") == "http://www.w3.org/2000/01/rdf-schema#label"
     assert expand_iri(context, "property") == RDF + "predicate"
-    assert expand_iri(context, "confirmed") == NAMESPACE + "Confirmed"
+    assert expand_iri(context, "beliefs") == NAMESPACE + "belief"
+    assert expand_iri(context, "actor") == NAMESPACE + "actor"
     for keyword in ("statements", "id", "provenance", "timelines", "@version"):
         assert expand_iri(context, keyword) is None, keyword
     assert expand_iri(context, "wdt:P175") == "http://www.wikidata.org/prop/direct/P175"
@@ -112,7 +116,6 @@ def test_the_used_prefixes_are_found_at_every_iri_position() -> None:
         {
             "property": "a:p",
             "value": {"id": "b:v", "c:k": [{"id": "d:w"}]},
-            "status": "proposed",
             "method": "e:how",
             "basis": ["f:x", "#cpt_2", "other.yaml#x"],
             "stated_by": ["g:who"],
@@ -125,7 +128,7 @@ def test_the_used_prefixes_are_found_at_every_iri_position() -> None:
             {
                 "id": "urn:x:1",
                 "type": ["j:T"],
-                "provenance": [{"property": "k:p", "value": "v", "status": "rejected"}],
+                "provenance": [{"property": "k:p", "value": "v"}],
             },
             {"@value": "1", "@type": "l:t"},
             {"list": [{"id": "m:x"}, {"id": "tag:a"}]},
@@ -149,7 +152,7 @@ def test_the_context_holds_the_terms_and_the_used_prefixes() -> None:
     own = {**described, "@context": {"schema": "https://schema.org/"}}
     context = with_context(own, CATALOGUE_TEST["prefixes"])["@context"]
     assert context["schema"] == "https://schema.org/"
-    assert list(context)[:33] == list(FORMAT_CONTEXT)
+    assert list(context)[:32] == list(FORMAT_CONTEXT)
     assert with_context(m1(), {})["@context"] == FORMAT_CONTEXT
     with pytest.raises(ValueError) as raised:
         with_context(bare, {"wd": "http://www.wikidata.org/entity/"})
@@ -192,7 +195,7 @@ def test_a_subject_is_addressed_by_its_path() -> None:
 def test_a_path_that_reaches_no_subject_is_refused(path: tuple) -> None:
     value = m2()
     value["timelines"][1]["provenance"] = [
-        {"property": "rel:prf", "value": {"id": "viaf:1"}, "status": "rejected"}
+        {"property": "rel:prf", "value": {"id": "viaf:1"}}
     ]
     value["timelines"][1]["statements"]["dcterms:created"] = [
         {"@value": "2025", "@language": "en"}
@@ -221,8 +224,8 @@ def test_the_pairs_of_an_element_and_of_a_node() -> None:
     assert pairs(value, ()) == []
 
 
-def test_the_entries_of_a_subject_by_status() -> None:
-    value = with_proposal(
+def test_the_entries_and_the_candidates_of_a_subject() -> None:
+    value = with_candidate(
         m1(),
         ROOT,
         "wdt:P175",
@@ -232,12 +235,18 @@ def test_the_entries_of_a_subject_by_status() -> None:
         method="inferred",
     )
     value = with_pair(value, ROOT, "type", "schema:VideoObject", provenance={})
-    assert [entry["status"] for entry in entries(value, ROOT)] == [
-        "proposed",
-        "confirmed",
+    assert [entry["property"] for entry in entries(value, ROOT)] == [
+        "wdt:P175",
+        "rdf:type",
     ]
-    assert entries(value, ROOT, "proposed") == [entries(value, ROOT)[0]]
-    assert entries(value, ROOT, "rejected") == []
+    assert candidates(value, ROOT) == [entries(value, ROOT)[0]]
+    assert candidates(value, ROOT, EDITOR) == [entries(value, ROOT)[0]]
+    believed = with_belief(
+        value, ROOT, "wdt:P175", PIRES, actor=EDITOR, belief=False, date="2026-11-19"
+    )
+    assert candidates(believed, ROOT) == [entries(believed, ROOT)[0]]
+    assert candidates(believed, ROOT, EDITOR) == []
+    assert candidates(believed, ROOT, TILIE) == [entries(believed, ROOT)[0]]
 
 
 # -- the same pair ----------------------------------------------------------------
@@ -329,7 +338,6 @@ def test_a_pair_is_stated_with_its_confirmed_entry() -> None:
             "method": "manual",
             "property": "wdt:P175",
             "stated_by": [EDITOR],
-            "status": "confirmed",
             "value": {"id": "wd:Q235650"},
         }
     ]
@@ -364,14 +372,13 @@ def test_a_pair_without_provenance_has_no_entry() -> None:
         {
             "property": "schema:position",
             "value": {"@value": "1", "@language": "en"},
-            "status": "confirmed",
         }
     ]
 
 
-def test_a_proposal_is_confirmed_then_rejected() -> None:
+def test_a_candidate_is_stated_by_a_person_then_believed_false() -> None:
     work = {"id": "wd:Q29117946"}
-    proposed = with_proposal(
+    candidate = with_candidate(
         m1(),
         ROOT,
         "wdt:P2550",
@@ -381,62 +388,77 @@ def test_a_proposal_is_confirmed_then_rejected() -> None:
         method="inferred",
         basis=["#cpt_2"],
     )
-    root = proposed["timelines"][0]
+    root = candidate["timelines"][0]
     assert "statements" not in root
     assert root["provenance"] == [
         {
             "property": "wdt:P2550",
             "value": work,
-            "status": "proposed",
             "stated_by": [TILIE],
             "date": "2026-11-18",
             "method": "inferred",
             "basis": ["#cpt_2"],
         }
     ]
-    validate(proposed)
-    again = with_proposal(
-        proposed,
+    validate(candidate)
+    doubted = with_belief(
+        candidate,
+        ROOT,
+        "wdt:P2550",
+        work,
+        actor=EDITOR,
+        belief="unlikely",
+        date="2026-11-19",
+        note="n",
+    )
+    again = with_candidate(
+        doubted,
         ROOT,
         "wdt:P2550",
         work,
         stated_by=[EDITOR],
         date="2026-11-19",
         method="manual",
-        note="n",
     )
     assert again["timelines"][0]["provenance"] == [
         {
             "property": "wdt:P2550",
             "value": work,
-            "status": "proposed",
             "stated_by": [EDITOR],
             "date": "2026-11-19",
             "method": "manual",
-            "note": "n",
+            "beliefs": [
+                {
+                    "actor": EDITOR,
+                    "belief": "unlikely",
+                    "date": "2026-11-19",
+                    "note": "n",
+                }
+            ],
         }
     ]
     labelled = {**work, "label": "Clair de lune"}
-    confirmed = with_confirmation(
-        proposed, ROOT, "wdt:P2550", labelled, stated_by=[EDITOR], date="2026-11-19"
+    stated = with_pair(
+        candidate, ROOT, "wdt:P2550", labelled, actor=EDITOR, date="2026-11-20"
     )
-    root = confirmed["timelines"][0]
+    root = stated["timelines"][0]
     assert root["statements"] == {"wdt:P2550": [labelled]}
     assert root["provenance"] == [
         {
             "property": "wdt:P2550",
             "value": work,
-            "status": "confirmed",
-            "stated_by": [EDITOR],
-            "date": "2026-11-19",
+            "stated_by": [TILIE],
+            "date": "2026-11-18",
             "method": "inferred",
             "basis": ["#cpt_2"],
+            "beliefs": [{"actor": EDITOR, "belief": True, "date": "2026-11-20"}],
         }
     ]
-    validate(confirmed)
+    assert candidates(stated, ROOT) == []
+    validate(stated)
     with pytest.raises(ValueError) as raised:
-        with_proposal(
-            confirmed,
+        with_candidate(
+            stated,
             ROOT,
             "wdt:P2550",
             work,
@@ -445,63 +467,68 @@ def test_a_proposal_is_confirmed_then_rejected() -> None:
             method="inferred",
         )
     assert str(raised.value) == (
-        "'wdt:P2550' already has this value; a stated pair is not proposed"
+        "'wdt:P2550' already has this value; a stated pair is no candidate"
     )
-    rejected = with_rejection(
-        confirmed,
+    disbelieved = with_belief(
+        stated, ROOT, "wdt:P2550", work, actor=TILIE, belief=False, date="2026-11-21"
+    )
+    changed = with_belief(
+        disbelieved,
         ROOT,
         "wdt:P2550",
         work,
-        stated_by=[EDITOR],
-        date="2026-11-20",
-        note="the video holds an excerpt",
+        actor=EDITOR,
+        belief=False,
+        date="2026-11-22",
     )
-    root = rejected["timelines"][0]
-    assert "statements" not in root
-    assert root["provenance"] == [
-        {
-            "property": "wdt:P2550",
-            "value": work,
-            "status": "rejected",
-            "stated_by": [EDITOR],
-            "date": "2026-11-20",
-            "method": "inferred",
-            "basis": ["#cpt_2"],
-            "note": "the video holds an excerpt",
-        }
+    root = changed["timelines"][0]
+    assert root["statements"] == {"wdt:P2550": [labelled]}
+    assert root["provenance"][0]["beliefs"] == [
+        {"actor": EDITOR, "belief": False, "date": "2026-11-22"},
+        {"actor": TILIE, "belief": False, "date": "2026-11-21"},
     ]
-    validate(rejected)
-    restated = with_pair(rejected, ROOT, "wdt:P2550", work)
-    assert "provenance" not in restated["timelines"][0]
-    reconfirmed = with_confirmation(
-        rejected, ROOT, "wdt:P2550", work, stated_by=[EDITOR], date="2026-11-21"
-    )
-    assert reconfirmed["timelines"][0]["provenance"][0]["status"] == "confirmed"
+    validate(changed)
+    unstated = without_pair(changed, ROOT, "wdt:P2550", work)
+    assert unstated == m1()
     with pytest.raises(ValueError) as raised:
-        with_confirmation(
-            m1(), ROOT, "wdt:P2550", work, stated_by=[EDITOR], date="2026-11-19"
-        )
-    assert str(raised.value) == "no proposal or rejection of this value of 'wdt:P2550'"
+        with_pair(m1(), ROOT, "wdt:P2550", work, actor=EDITOR)
+    assert str(raised.value) == "a belief needs a date"
 
 
-def test_a_rejection_of_a_pair_never_stated_creates_its_entry() -> None:
-    value = with_rejection(
+def test_a_belief_in_a_pair_never_stated_creates_its_entry() -> None:
+    value = with_belief(
         m1(),
         ("timelines", 0, "regions", 0),
         "type",
         "schema:MusicVideoObject",
-        stated_by=[EDITOR],
+        actor=EDITOR,
+        belief=False,
         date="2026-11-18",
     )
     assert value["timelines"][0]["regions"][0]["provenance"] == [
         {
             "property": "rdf:type",
             "value": {"id": "schema:MusicVideoObject"},
-            "status": "rejected",
-            "stated_by": [EDITOR],
-            "date": "2026-11-18",
+            "beliefs": [{"actor": EDITOR, "belief": False, "date": "2026-11-18"}],
         }
     ]
+    for belief in (1, 0, "likely", None):
+        with pytest.raises(ValueError) as raised:
+            with_belief(
+                m1(),
+                ROOT,
+                "type",
+                "schema:Thing",
+                actor=EDITOR,
+                belief=belief,
+                date="2026-11-18",
+            )
+        written = (
+            '"likely"' if belief == "likely" else "null" if belief is None else belief
+        )
+        assert str(raised.value) == (
+            f"{written} is no belief: write true, false or 'unlikely'"
+        )
 
 
 def test_a_node_states_its_own_pairs() -> None:
@@ -516,7 +543,6 @@ def test_a_node_states_its_own_pairs() -> None:
         {
             "property": "schema:sameAs",
             "value": {"id": "wd:Q1"},
-            "status": "confirmed",
             "date": "2026-11-18",
         }
     ]
@@ -545,7 +571,7 @@ def test_a_node_states_its_own_pairs() -> None:
             "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD",
         ),
         (
-            lambda: with_proposal(
+            lambda: with_candidate(
                 m1(),
                 ROOT,
                 "wdt:P1",
@@ -589,9 +615,12 @@ PINNED = {
         "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD"
     ),
     "provenance_repeated": "the entry repeats the pair of entry 0",
-    "provenance_type_value_literal": (
-        "no pair of this subject matches the entry; an entry that matches none is "
-        "proposed or rejected"
+    "belief_actor_repeated": (
+        "'https://example.org/people/editor' already holds belief 0 of this entry; "
+        "an actor holds one belief"
+    ),
+    "belief_date_impossible": (
+        "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD"
     ),
 }
 
@@ -644,24 +673,34 @@ def test_every_message_of_the_statement_rules() -> None:
         ("timelines", 0, "statements", "schema:position", 0),
         "a statement value is an integer or a string, never a float: 1.0",
     )
-    proposed = [
-        {"property": "wdt:P86", "value": {"id": "wd:Q255"}, "status": "rejected"}
+    believed = [
+        {
+            "property": "wdt:P86",
+            "value": {"id": "wd:Q255"},
+            "beliefs": [
+                {"actor": "wd:Q1", "belief": True, "date": "2026-11-18"},
+                {"actor": "#clt_1", "belief": "unlikely", "date": "2026-11-18"},
+                {
+                    "actor": "http://www.wikidata.org/entity/Q1",
+                    "belief": False,
+                    "date": "2026-11-19",
+                },
+            ],
+        }
     ]
     assert _problem(
-        _with_statements({"wdt:P86": [{"id": "wd:Q255"}]}, provenance=proposed)
+        _with_statements({"wdt:P86": [{"id": "wd:Q255"}]}, provenance=believed)
     ) == (
-        "provenance_match",
-        ("timelines", 0, "provenance", 0),
-        "the pair is stated; a rejected pair is never stated",
+        "belief_actor",
+        ("timelines", 0, "provenance", 0, "beliefs", 2, "actor"),
+        "'http://www.wikidata.org/entity/Q1' already holds belief 0 of this entry; "
+        "an actor holds one belief",
     )
-    confirmed = [{**proposed[0], "status": "confirmed"}]
-    assert _problem(
-        _with_statements({"wdt:P31": [{"id": "wd:Q1"}]}, provenance=confirmed)
-    ) == (
-        "provenance_match",
-        ("timelines", 0, "provenance", 0),
-        "no pair of this subject matches the entry; an entry that matches none is "
-        "proposed or rejected",
+    believed[0]["beliefs"][1]["actor"] = "#cpt_9"
+    assert _problem(_with_statements(None, provenance=believed)) == (
+        "dangling_target",
+        ("timelines", 0, "provenance", 0, "beliefs", 1, "actor"),
+        "'#cpt_9' names no element of this manifest",
     )
 
 
@@ -701,7 +740,6 @@ def test_a_calendar_date_validates(date: str) -> None:
     entry = {
         "property": "wdt:P31",
         "value": {"id": "wd:Q1"},
-        "status": "confirmed",
         "date": date,
     }
     validate(_with_statements({"wdt:P31": [{"id": "wd:Q1"}]}, provenance=[entry]))
@@ -724,7 +762,6 @@ def test_an_impossible_date_is_refused(date: str) -> None:
     entry = {
         "property": "wdt:P31",
         "value": {"id": "wd:Q1"},
-        "status": "confirmed",
         "date": date,
     }
     assert _problem(
@@ -793,7 +830,6 @@ def test_a_reference_names_an_id_of_any_kind() -> None:
         {
             "property": "dcterms:source",
             "value": {"id": "#g"},
-            "status": "confirmed",
             "basis": ["#mm", "other.yaml#nothing", "urn:x:1"],
             "stated_by": ["#bundle", "tag:example.org,2026:x"],
             "service": "#segno",
@@ -820,9 +856,7 @@ def test_allowed_keys_and_a_manifest_without_statements_pass() -> None:
         ]
     )
     value["groups"] = [{"id": "#g", "members": ["#clt_1"]}]
-    value["provenance"] = [
-        {"property": "wdt:P86", "value": {"id": "wd:Q255"}, "status": "proposed"}
-    ]
+    value["provenance"] = [{"property": "wdt:P86", "value": {"id": "wd:Q255"}}]
     value["id"] = "#bundle"
     validate(value)
     plain = {
@@ -861,6 +895,7 @@ def _is_statement_case(name: str) -> bool:
         "element",
         "subject",
         "reserved",
+        "belief",
     )
 
 
@@ -897,7 +932,7 @@ def test_the_statement_check_reports_each_broken_member() -> None:
     del value["@context"]["provenance"]
     value["timelines"][0]["statements"] = {}
     value["timelines"][0]["regions"][0]["provenance"] = [
-        {"property": "wdt:P86", "value": "x", "status": "proposed", "date": math.inf}
+        {"property": "wdt:P86", "value": "x", "date": math.inf}
     ]
     assert [
         (problem.code, problem.path, problem.message)
@@ -930,9 +965,7 @@ def test_the_warnings_of_a_valid_manifest() -> None:
     assert manifest_warnings(value) == [
         {"code": "bundle_blank", "path": ["statements"], "message": blank}
     ]
-    value["provenance"] = [
-        {"property": "wdt:P86", "value": {"id": "wd:Q255"}, "status": "proposed"}
-    ]
+    value["provenance"] = [{"property": "wdt:P86", "value": {"id": "wd:Q255"}}]
     assert manifest_warnings(value) == [
         {"code": "bundle_blank", "path": ["statements"], "message": blank}
     ]
@@ -967,20 +1000,17 @@ def _referring(reference: str) -> dict:
         {
             "property": "dcterms:source",
             "value": {"id": reference},
-            "status": "confirmed",
             "basis": [reference, RECORD],
         },
         {
             "property": "rdf:type",
             "value": {"id": "schema:VideoObject"},
-            "status": "confirmed",
             "basis": [reference],
             "service": reference,
         },
         {
             "property": "dcterms:isPartOf",
             "value": {"id": reference},
-            "status": "proposed",
         },
     ]
     return value
@@ -1003,13 +1033,11 @@ def _nesting(reference: str) -> dict:
         {
             "property": "schema:about",
             "value": {"id": "wd:Q2"},
-            "status": "proposed",
             "stated_by": [reference, EDITOR],
         },
         {
             "property": "schema:about",
             "value": {"id": "wd:Q3"},
-            "status": "proposed",
             "stated_by": [reference],
         },
     ]
@@ -1037,12 +1065,41 @@ def test_references_to_a_dropped_element_are_dropped() -> None:
         {
             "property": "rdf:type",
             "value": {"id": "schema:VideoObject"},
-            "status": "confirmed",
         }
     ]
     assert result == expected
     assert "provenance" not in result
     assert given == kept
+
+
+def test_the_actors_of_beliefs_are_renamed_and_dropped() -> None:
+    held = {"belief": True, "date": "2026-11-18"}
+    given = m1()
+    given["timelines"][0]["provenance"] = [
+        {
+            "property": "wdt:P86",
+            "value": {"id": "wd:Q255"},
+            "beliefs": [{"actor": "#cpt_2", **held}, {"actor": EDITOR, **held}],
+        },
+        {
+            "property": "wdt:P175",
+            "value": {"id": "wd:Q1"},
+            "beliefs": [{"actor": "#cpt_2", **held}],
+        },
+    ]
+    renamed = timetoshare.with_references_renamed(given, {"cpt_2": "cpt_3"})
+    entries = renamed["timelines"][0]["provenance"]
+    assert [belief["actor"] for belief in entries[0]["beliefs"]] == ["#cpt_3", EDITOR]
+    assert entries[1]["beliefs"] == [{"actor": "#cpt_3", **held}]
+    dropped = timetoshare.with_references_renamed(given, {"cpt_2": None})
+    assert dropped["timelines"][0]["provenance"] == [
+        {
+            "property": "wdt:P86",
+            "value": {"id": "wd:Q255"},
+            "beliefs": [{"actor": EDITOR, **held}],
+        },
+        {"property": "wdt:P175", "value": {"id": "wd:Q1"}},
+    ]
 
 
 def test_nodes_and_ordered_values_left_empty_are_dropped() -> None:
@@ -1056,10 +1113,9 @@ def test_nodes_and_ordered_values_left_empty_are_dropped() -> None:
         {
             "property": "schema:about",
             "value": {"id": "wd:Q2"},
-            "status": "proposed",
             "stated_by": [EDITOR],
         },
-        {"property": "schema:about", "value": {"id": "wd:Q3"}, "status": "proposed"},
+        {"property": "schema:about", "value": {"id": "wd:Q3"}},
     ]
 
 

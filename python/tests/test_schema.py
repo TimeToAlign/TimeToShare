@@ -1,25 +1,28 @@
 from __future__ import annotations
 
+import json
 import re
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
+import pytest
 from jsonschema import Draft202012Validator
 
 from timetoshare import (
+    BELIEFS,
     BLANK,
     DEFAULTS,
     FORMAT_CONTEXT,
     MATCHES,
     METHODS,
     SCHEMA_VERSION,
-    STATUSES,
     TIMESTAMP_DISPLAY,
     load_schema,
+    provenance_schema_path,
     schema_path,
 )
-from timetoshare.validate import UNIT_NUMBER_TYPES
+from timetoshare.validate import UNIT_NUMBER_TYPES, bundle_schemas
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 
@@ -37,6 +40,10 @@ PUBLIC = [
     "Id",
     "MeasureMap",
     "MeasureMapRow",
+    "Resource",
+    "Timestamp",
+    "MatchStamp",
+    "AlignmentAnchor",
     "Context",
     "Statements",
     "StatementValue",
@@ -118,7 +125,8 @@ def test_one_document_with_one_root() -> None:
     )
     assert sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir()) == ["0.2.0"]
     assert sorted(p.name for p in (REPOSITORY_ROOT / "schema" / "0.2.0").iterdir()) == [
-        "timetoshare.schema.json"
+        "provenance.schema.json",
+        "timetoshare.schema.json",
     ]
     assert schema["$id"] == (
         "https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json"
@@ -349,7 +357,12 @@ ANCHORED = {
     ("Timestamp", "properties", "id"): "#timestamp_1",
     ("Paint",): "none",
     ("Declaration", "properties", "stroke-dasharray"): "4 2",
-    ("ProvenanceEntry", "properties", "date"): "2026-11-17",
+    ("CalendarDate",): "2026-11-17",
+    ("Resource", "properties", "id"): "#resource_1",
+    ("Resource", "properties", "media_type"): "application/vnd.apache.parquet",
+    ("Resource", "properties", "integrity", "properties", "digest"): "00ff",
+    ("MatchStamp", "properties", "id"): "#matchstamp_1",
+    ("AlignmentAnchor", "properties", "id"): "#anchor_1",
 }
 """Every node whose pattern ends in ``$``, with a value its pattern accepts."""
 
@@ -458,12 +471,20 @@ def test_the_defaults_are_the_table() -> None:
         "group": ["Group"],
         "graphical": ["Graphical"],
         "timestamp": ["Timestamp"],
+        "alignment_anchor": ["AlignmentAnchor"],
     }
     own = {"LinearMap": "linear_map", "TableMap": "table_map"}
     element = ["flow_control_element", "repeat_end"]
-    assert sorted([*kinds, "conversion_map", *own.values(), *element]) == sorted(
-        DEFAULTS
-    )
+    assert sorted(
+        [*kinds, "conversion_map", "match_timestamp", *own.values(), *element]
+    ) == sorted(DEFAULTS)
+    matched = defs["Timestamp"]
+    assert matched["if"] == {
+        "properties": {"matchstamp": {"const": True}},
+        "required": ["matchstamp"],
+    }
+    assert _defaults(matched["then"]) == DEFAULTS["match_timestamp"]
+    assert matched["else"] == {"required": ["name"]}
     covered = {"MapBase", "MeasureView", "FlowControlElement"}
     element_defs = defs["FlowControlElement"]
     assert _defaults(element_defs) == DEFAULTS["flow_control_element"]
@@ -506,8 +527,22 @@ def test_statements_provenance_and_the_context() -> None:
     removed = ("Link", "PartSlot", "PartOf", "Assertion", "Descriptor", "Identifier")
     for name in (*removed, "Scheme", "Level", "Term", "Uri", "UriReference"):
         assert name not in defs, name
-    entry = defs["ProvenanceEntry"]["properties"]
-    assert entry["status"]["enum"] == list(STATUSES)
+    assert defs["ProvenanceEntry"]["allOf"] == [{"$ref": "#/$defs/ProvenanceRecord"}]
+    assert defs["ProvenanceEntry"]["required"] == ["property", "value"]
+    entry = defs["ProvenanceRecord"]["properties"]
+    assert sorted(entry) == [
+        "basis",
+        "beliefs",
+        "date",
+        "match",
+        "method",
+        "note",
+        "service",
+        "stated_by",
+    ]
+    assert "required" not in defs["ProvenanceRecord"]
+    assert defs["Belief"]["properties"]["belief"]["enum"] == list(BELIEFS)
+    assert defs["Belief"]["required"] == ["actor", "belief", "date"]
     assert entry["method"]["anyOf"][0]["enum"] == list(METHODS)
     assert entry["match"]["enum"] == list(MATCHES)
     context = defs["Context"]
@@ -561,3 +596,36 @@ def test_iris_prefixes_and_language_tags() -> None:
         assert _accepts("LanguageTag", value), value
     for value in ("", "en_GB", "en\n", "toolongtag"):
         assert not _accepts("LanguageTag", value), value
+
+
+def test_the_provenance_schema_is_bundled() -> None:
+    directory = REPOSITORY_ROOT / "schema" / "0.2.0"
+    provenance = json.loads((directory / "provenance.schema.json").read_text("utf-8"))
+    manifest = json.loads((directory / "timetoshare.schema.json").read_text("utf-8"))
+    assert provenance_schema_path() == directory / "provenance.schema.json"
+    assert provenance["$id"] == (
+        "https://timetoalign.github.io/timetoshare/0.2.0/provenance.schema.json"
+    )
+    assert manifest["$defs"]["ProvenanceEntry"]["allOf"] == [
+        {"$ref": "provenance.schema.json"}
+    ]
+    assert sorted(provenance["$defs"]) == ["Belief", "CalendarDate"]
+    references = sorted(
+        {node["$ref"] for node, _ in _nodes(provenance) if "$ref" in node}
+    )
+    assert references == [
+        "#/$defs/Belief",
+        "#/$defs/CalendarDate",
+        "timetoshare.schema.json#/$defs/Iri",
+        "timetoshare.schema.json#/$defs/IriReference",
+    ]
+    bundled = load_schema()
+    assert bundled == bundle_schemas(manifest, provenance)
+    record = bundled["$defs"]["ProvenanceRecord"]
+    assert record["properties"]["stated_by"]["items"] == {
+        "$ref": "#/$defs/IriReference"
+    }
+    assert set(record) == set(provenance) - {"$schema", "$id", "$defs", "title"}
+    with pytest.raises(ValueError) as raised:
+        bundle_schemas(manifest, {**provenance, "$defs": {"Timeline": {}}})
+    assert str(raised.value) == "both schemas define 'Timeline'"

@@ -12,7 +12,7 @@ import {
 import { MEASURE_VIEWS, timelineMapProblems, timelineMaps } from "./maps.js";
 import { orderProblems } from "./order.js";
 import { timelineSegmentProblems } from "./segments.js";
-import { timestampProblems } from "./timestamps.js";
+import { matchstampProblems, resourceProblems, timestampProblems } from "./timestamps.js";
 
 function* danglingTargets(
   timeline: JsonObject,
@@ -138,7 +138,8 @@ function* memberProblems(
  * Root by root: duplicates, dangling targets, conversion maps, containment
  * and segment lines; then the IDs unique across the manifest (the roots'
  * trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
- * manifest ID), group members, graphical orders and named timestamps.
+ * manifest ID), group members, graphical orders, named timestamps, named
+ * MatchStamps and resources.
  */
 export function* identityProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const roots = entries(manifest, "timelines");
@@ -182,4 +183,6 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
   }
   yield* orderProblems(manifest, parents, firstGroup);
   yield* timestampProblems(manifest);
+  yield* matchstampProblems(manifest);
+  yield* resourceProblems(manifest);
 }

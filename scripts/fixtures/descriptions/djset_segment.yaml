@@ -8,7 +8,6 @@ subjects:
         note: "no Wikidata item found on 2026-11-18; MusicBrainz not searched"
         property: "rel:prf"
         stated_by: ["https://example.org/agents/timetoalign"]
-        status: proposed
         value:
           label: "Samuel Moriero"
     statements:
@@ -22,6 +21,11 @@ subjects:
   "#cpt_2":
     provenance:
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: true
+            date: "2026-11-18"
         date: "2026-11-18"
         match: exact
         method: reconciled
@@ -29,7 +33,6 @@ subjects:
         property: "wdt:P144"
         service: "https://www.wikidata.org/w/api.php"
         stated_by: ["https://example.org/people/editor"]
-        status: confirmed
         value:
           id: "wd:Q65658996"
       -
@@ -39,25 +42,33 @@ subjects:
         note: "+ vocabulary: from Wikidata's P4404"
         property: "schema:isBasedOn"
         stated_by: ["https://example.org/agents/tilie"]
-        status: confirmed
         value:
           id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
       -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: false
+            date: "2026-11-18"
         date: "2026-11-18"
         method: reconciled
         note: "proposed by title match; the mix plays a remix, a different recording"
         property: "schema:sameAs"
         stated_by: ["https://example.org/people/editor"]
-        status: rejected
         value:
           id: "http://musicbrainz.org/recording/398bf241-7d57-4993-860b-1f9ef496c97f"
       -
         basis: ["http://www.wikidata.org/entity/Q65658996"]
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: unlikely
+            date: "2026-11-19"
+            note: "the remix may credit its remixers alone"
         date: "2026-11-18"
         method: inferred
         property: "wdt:P175"
         stated_by: ["https://example.org/agents/tilie"]
-        status: proposed
         value:
           id: "wd:Q130798"
     statements:
@@ -77,7 +88,6 @@ subjects:
               method: imported
               property: "schema:isrcCode"
               stated_by: ["https://example.org/agents/tilie"]
-              status: confirmed
               value: USUM71703085
           "schema:isrcCode": [USUM71703085]
           "schema:sameAs":

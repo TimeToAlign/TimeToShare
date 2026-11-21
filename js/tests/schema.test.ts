@@ -1,11 +1,15 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
+import { bundleSchemas } from "../scripts/generate.js";
 import { DEFAULTS } from "../src/defaults.js";
 import { schema } from "../src/generated/schema.js";
 import { TIMESTAMP_DISPLAY } from "../src/manifest/order.js";
-import { BLANK, FORMAT_CONTEXT, MATCHES, METHODS, STATUSES } from "../src/statements/statements.js";
-import { UNIT_NUMBER_TYPES } from "../src/validate.js";
-import { loadSchemaFile } from "./fixtures.js";
+import { loads } from "../src/serialization/read.js";
+import { BELIEFS, BLANK, FORMAT_CONTEXT, MATCHES, METHODS } from "../src/statements/statements.js";
+import { SCHEMA_VERSION, UNIT_NUMBER_TYPES } from "../src/validate.js";
+import { loadSchemaFile, repositoryRoot } from "./fixtures.js";
 
 type Node = Record<string, unknown>;
 
@@ -23,6 +27,10 @@ const PUBLIC = [
   "Id",
   "MeasureMap",
   "MeasureMapRow",
+  "Resource",
+  "Timestamp",
+  "MatchStamp",
+  "AlignmentAnchor",
   "Context",
   "Statements",
   "StatementValue",
@@ -34,7 +42,12 @@ const ANCHORED: [string[], string][] = [
   [["Timestamp", "properties", "id"], "#timestamp_1"],
   [["Paint"], "none"],
   [["Declaration", "properties", "stroke-dasharray"], "4 2"],
-  [["ProvenanceEntry", "properties", "date"], "2026-11-17"],
+  [["CalendarDate"], "2026-11-17"],
+  [["Resource", "properties", "id"], "#resource_1"],
+  [["Resource", "properties", "media_type"], "application/vnd.apache.parquet"],
+  [["Resource", "properties", "integrity", "properties", "digest"], "00ff"],
+  [["MatchStamp", "properties", "id"], "#matchstamp_1"],
+  [["AlignmentAnchor", "properties", "id"], "#anchor_1"],
 ];
 
 const MAP_TYPES = [
@@ -125,6 +138,34 @@ describe("the schema document", () => {
     );
     expect(document.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(document.$ref).toBe("#/$defs/Manifest");
+  });
+
+  it("bundles the provenance schema, which refers to the manifest schema", () => {
+    const directory = resolve(repositoryRoot, "schema", SCHEMA_VERSION);
+    const read = (name: string) =>
+      loads(readFileSync(resolve(directory, name), "utf8")) as Record<string, unknown>;
+    const provenance = read("provenance.schema.json");
+    const manifest = read("timetoshare.schema.json");
+    expect(provenance.$id).toBe(
+      "https://timetoalign.github.io/timetoshare/0.2.0/provenance.schema.json",
+    );
+    expect(((manifest.$defs as Node).ProvenanceEntry as Node).allOf).toEqual([
+      { $ref: "provenance.schema.json" },
+    ]);
+    expect(Object.keys(provenance.$defs as Node).sort()).toEqual(["Belief", "CalendarDate"]);
+    const references = [...nodes(provenance)]
+      .map(([node]) => node.$ref)
+      .filter((reference) => typeof reference === "string");
+    expect([...new Set(references)].sort()).toEqual([
+      "#/$defs/Belief",
+      "#/$defs/CalendarDate",
+      "timetoshare.schema.json#/$defs/Iri",
+      "timetoshare.schema.json#/$defs/IriReference",
+    ]);
+    expect(JSON.parse(JSON.stringify(bundleSchemas(manifest, provenance)))).toEqual(document);
+    expect(() => bundleSchemas(manifest, { ...provenance, $defs: { Timeline: {} } })).toThrow(
+      "both schemas define 'Timeline'",
+    );
   });
 
   it("refers locally, without anchors", () => {
@@ -413,12 +454,26 @@ describe("the schema document", () => {
       group: ["Group"],
       graphical: ["Graphical"],
       timestamp: ["Timestamp"],
+      alignment_anchor: ["AlignmentAnchor"],
     };
     const own: Readonly<Record<string, Kind>> = { LinearMap: "linear_map", TableMap: "table_map" };
     const element = ["flow_control_element", "repeat_end"];
     expect(
-      [...Object.keys(kinds), "conversion_map", ...Object.values(own), ...element].sort(),
+      [
+        ...Object.keys(kinds),
+        "conversion_map",
+        "match_timestamp",
+        ...Object.values(own),
+        ...element,
+      ].sort(),
     ).toEqual(Object.keys(DEFAULTS).sort());
+    const matched = defs.Timestamp as Node;
+    expect(matched.if).toEqual({
+      properties: { matchstamp: { const: true } },
+      required: ["matchstamp"],
+    });
+    expect(defaultsOf(matched.then as Node)).toEqual(DEFAULTS.match_timestamp);
+    expect(matched.else).toEqual({ required: ["name"] });
     const covered = new Set<string>(["MapBase", "MeasureView", "FlowControlElement"]);
     const flowControl = defs.FlowControlElement as Node;
     expect(defaultsOf(flowControl)).toEqual(DEFAULTS.flow_control_element);
@@ -465,9 +520,22 @@ describe("the schema document", () => {
       expect("default" in (properties(name).statements as Node)).toBe(false);
       expect("default" in (properties(name).provenance as Node)).toBe(false);
     }
-    expect(properties("ProvenanceEntry").status?.enum).toEqual([...STATUSES]);
-    expect(properties("ProvenanceEntry").match?.enum).toEqual([...MATCHES]);
-    const method = properties("ProvenanceEntry").method?.anyOf as Node[];
+    expect((defs.ProvenanceEntry as Node).allOf).toEqual([{ $ref: "#/$defs/ProvenanceRecord" }]);
+    expect((defs.ProvenanceEntry as Node).required).toEqual(["property", "value"]);
+    expect(Object.keys(properties("ProvenanceRecord")).sort()).toEqual([
+      "basis",
+      "beliefs",
+      "date",
+      "match",
+      "method",
+      "note",
+      "service",
+      "stated_by",
+    ]);
+    expect(properties("Belief").belief?.enum).toEqual([...BELIEFS]);
+    expect((defs.Belief as Node).required).toEqual(["actor", "belief", "date"]);
+    expect(properties("ProvenanceRecord").match?.enum).toEqual([...MATCHES]);
+    const method = properties("ProvenanceRecord").method?.anyOf as Node[];
     expect(method[0]?.enum).toEqual([...METHODS]);
     expect(defs.Iri?.not).toEqual({ pattern: BLANK });
     expect(defs.PrefixIri?.not).toEqual({ pattern: BLANK });

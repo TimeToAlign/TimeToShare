@@ -46,6 +46,7 @@ class FixtureCase:
     graphical: Mapping[str, Any] | None = None
     origin_and_length: bool = True
     described: bool = False
+    resources: tuple[Mapping[str, Any], ...] = ()
 
 
 def _case(directory: str, reader: type[Any]) -> Callable[..., FixtureCase]:
@@ -55,6 +56,7 @@ def _case(directory: str, reader: type[Any]) -> Callable[..., FixtureCase]:
     of the root or group whose ``graphical`` entry ``GRAPHICAL`` holds under
     that name; a name or id it does not hold fails when the catalogue is read.
     ``origin_and_length=False`` leaves out the origin and length timestamps.
+    A fixture that ``RESOURCES`` names takes its resources from there.
     """
 
     def case(
@@ -65,7 +67,15 @@ def _case(directory: str, reader: type[Any]) -> Callable[..., FixtureCase]:
         origin_and_length: bool = True,
     ) -> FixtureCase:
         graphical = None if styled is None else GRAPHICAL[name][styled]
-        return FixtureCase(name, directory, reader, build, graphical, origin_and_length)
+        return FixtureCase(
+            name,
+            directory,
+            reader,
+            build,
+            graphical,
+            origin_and_length,
+            resources=RESOURCES.get(name, ()),
+        )
 
     return case
 
@@ -80,6 +90,32 @@ def _described(name: str, build: Callable[[], Any]) -> FixtureCase:
     return FixtureCase(
         name, "statements", AlignmentBundle, build, None, False, described=True
     )
+
+
+RESOURCES: dict[str, tuple[Mapping[str, Any], ...]] = {
+    "bundle_resources": (
+        {
+            "id": "resource_1",
+            "type": "MatchClaim",
+            "timelines": ["clt_6", "dpt_1"],
+            "url": "match_claims.parquet",
+            "media_type": "application/vnd.apache.parquet",
+            "size": 18432,
+            "integrity": {
+                "algorithm": "SHA-256",
+                "digest": "9f86d081884c7d659a2feaa0c55ad015"
+                "a3bf4f1b2b0b822cd15d6c15b0f00a08",
+            },
+        },
+        {
+            "id": "resource_2",
+            "type": "Projection",
+            "timelines": ["dpt_1"],
+            "url": "projections.parquet",
+        },
+    ),
+}
+"""The resources of the fixtures that name files, by fixture name, with bare IDs."""
 
 
 CATALOGUE = (
@@ -176,6 +212,8 @@ CATALOGUE = (
     _bundle("corpus_tilia", bundles.corpus_tilia_bundle, origin_and_length=False),
     _bundle("bundle_shared_member", bundles.bundle_shared_member),
     _bundle("bundle_free_ids", bundles.bundle_free_ids, "group_1"),
+    _bundle("bundle_resources", bundles.bundle_resources),
+    _bundle("bundle_matchstamps", bundles.bundle_matchstamps, "score"),
     _described("op106_work", statements.op106_work),
     _described("layerit_recording", statements.layerit_recording),
     _described("djset_segment", statements.djset_segment),
@@ -229,9 +267,9 @@ def _describe(manifest: dict[str, Any], name: str) -> dict[str, str]:
 
 
 def _compose(data: dict[str, Any], generator: str, case: FixtureCase) -> dict[str, Any]:
-    """Add the provenance, any ``graphical`` entry, the origin and length
-    timestamps, any statements and the inline context to a manifest the
-    library wrote.
+    """Add the provenance, any ``graphical`` entry, any resources, the origin
+    and length timestamps, any statements and the inline context to a
+    manifest the library wrote.
 
     The library writes a manifest in the file form, every ID written ``#`` +
     the ID; the entries are written with bare IDs, so the manifest is composed
@@ -244,6 +282,8 @@ def _compose(data: dict[str, Any], generator: str, case: FixtureCase) -> dict[st
     result["meta"]["generator"] = generator
     if case.graphical is not None:
         result.setdefault("graphical", {}).update(copy.deepcopy(case.graphical))
+    if case.resources:
+        result["resources"] = copy.deepcopy(list(case.resources))
     if case.origin_and_length:
         drawn = graphical.origin_and_length(result)
         written = result.setdefault("graphical", {})

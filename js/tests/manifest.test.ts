@@ -8,7 +8,7 @@ import {
   JsonFloat,
   type Lossless,
 } from "../src/json/value.js";
-import { canonicalOrder } from "../src/manifest/order.js";
+import { ANCHOR_DISPLAY, canonicalOrder } from "../src/manifest/order.js";
 import { JsonSyntaxError } from "../src/serialization/errors.js";
 import { parseJson } from "../src/serialization/json.js";
 import { loads } from "../src/serialization/read.js";
@@ -496,17 +496,19 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
   if (isJsonObject(value)) {
     const members = !arrays
       ? []
-      : "timelines" in value
-        ? ["timelines", "groups", "measure_maps"]
+      : "timetoshare" in value
+        ? ["timelines", "groups", "measure_maps", "resources"]
         : "timestamps" in value && "rules" in value
-          ? ["timestamps"]
-          : "timeline" in value && "display" in value
-            ? ["display"]
-            : "unit" in value && "length" in value
-              ? ["children", "conversion_maps", "regions", "flow_control"]
-              : "members" in value && "id" in value
-                ? ["members"]
-                : [];
+          ? ["timestamps", "matchstamps"]
+          : "alignment_anchors" in value
+            ? ["alignment_anchors"]
+            : "display" in value && ("timeline" in value || "timestamps" in value)
+              ? ["display"]
+              : "unit" in value && "length" in value
+                ? ["children", "conversion_maps", "regions", "flow_control"]
+                : "members" in value && "id" in value
+                  ? ["members"]
+                  : [];
     return Object.fromEntries(
       Object.keys(value)
         .reverse()
@@ -772,5 +774,38 @@ describe("compactJson", () => {
     expect(compactJson(parseJson('{"b": 1, "10": 2.0, "2": [1e-07, 1e16, -0.0, -0]}'))).toBe(
       '{"b":1,"10":2.0,"2":[1.0e-07,1.0e+16,-0.0,0]}',
     );
+  });
+});
+
+describe("resources and MatchStamps", () => {
+  it("are ordered by ID, each MatchStamp's anchors too", () => {
+    const anchors = [
+      { id: "anchor_2", timestamps: ["b", "a"], display: ["name", "line", "x"] },
+      { id: "anchor_1", timestamps: ["c", "a"] },
+    ];
+    const value = {
+      timetoshare: "0.2.0",
+      timelines: [],
+      resources: [{ id: "resource_2" }, { id: "resource_10" }, { id: "resource_1" }],
+      graphical: {
+        matchstamps: [
+          { id: "matchstamp_2", alignment_anchors: anchors },
+          { id: "matchstamp_1", alignment_anchors: [] },
+        ],
+      },
+    };
+    const ordered = canonicalOrder(value);
+    expect(ordered.resources.map((entry) => entry.id)).toEqual([
+      "resource_1",
+      "resource_10",
+      "resource_2",
+    ]);
+    const matchstamps = ordered.graphical.matchstamps;
+    expect(matchstamps.map((entry) => entry.id)).toEqual(["matchstamp_1", "matchstamp_2"]);
+    expect(matchstamps[1]?.alignment_anchors).toEqual([
+      { id: "anchor_1", timestamps: ["c", "a"] },
+      { id: "anchor_2", timestamps: ["b", "a"], display: ["line", "name", "x"] },
+    ]);
+    expect([...ANCHOR_DISPLAY]).toEqual(["line", "name"]);
   });
 });

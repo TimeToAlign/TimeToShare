@@ -37,15 +37,16 @@ from .fixtures import (
 )
 from .font import FONT_FILES, font_metrics, font_paths
 from .ids import FileIdError, from_file_id, to_file_id, with_bare_ids, with_file_ids
-from .manifest import TIMESTAMP_DISPLAY, canonical_order
+from .manifest import ANCHOR_DISPLAY, TIMESTAMP_DISPLAY, canonical_order
 from .serialization import SERIALIZATIONS, dumps, loads, serialization_of
 from .statements import (
+    BELIEFS,
     BLANK,
     FORMAT_CONTEXT,
     MATCHES,
     METHODS,
     NAMESPACE,
-    STATUSES,
+    candidates,
     compact_iri,
     entries,
     expand_iri,
@@ -54,12 +55,11 @@ from .statements import (
     subject_path,
     subjects,
     used_prefixes,
-    with_confirmation,
+    with_belief,
+    with_candidate,
     with_context,
     with_pair,
-    with_proposal,
     with_references_renamed,
-    with_rejection,
     without_pair,
 )
 from .styles import MissingStyleWarning, complete_styles
@@ -75,6 +75,7 @@ from .validate import (
     load_schema,
     manifest_warnings,
     number_type_of,
+    provenance_schema_path,
     schema_path,
     statement_problems,
     unknown_keys,
@@ -82,6 +83,8 @@ from .validate import (
 )
 
 __all__ = [
+    "ANCHOR_DISPLAY",
+    "BELIEFS",
     "BLANK",
     "DEFAULTS",
     "FONT_FILES",
@@ -91,7 +94,6 @@ __all__ = [
     "NAMESPACE",
     "SCHEMA_VERSION",
     "SERIALIZATIONS",
-    "STATUSES",
     "TIMESTAMP_DISPLAY",
     "Catalogue",
     "FileForm",
@@ -104,6 +106,7 @@ __all__ = [
     "SchemaValidationError",
     "UnsupportedVersionError",
     "WarningCode",
+    "candidates",
     "canonical_order",
     "child_ends",
     "compact_iri",
@@ -128,6 +131,7 @@ __all__ = [
     "minimal",
     "number_type_of",
     "pairs",
+    "provenance_schema_path",
     "rdf_expectation",
     "read_catalogue",
     "recognize",
@@ -147,12 +151,11 @@ __all__ = [
     "verb_of",
     "warning_paths",
     "with_bare_ids",
-    "with_confirmation",
+    "with_belief",
+    "with_candidate",
     "with_context",
     "with_file_ids",
     "with_pair",
-    "with_proposal",
     "with_references_renamed",
-    "with_rejection",
     "without_pair",
 ]

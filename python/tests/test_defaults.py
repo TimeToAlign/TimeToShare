@@ -23,6 +23,7 @@ def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
         "meta": {},
         "groups": [],
         "measure_maps": [],
+        "resources": [],
         "timelines": [
             {
                 "id": "piece",
@@ -200,6 +201,7 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         "rules": [],
         "order": {},
         "timestamps": [],
+        "matchstamps": [],
     }
     validate(value)
 
@@ -232,6 +234,7 @@ def test_absent_defaults_are_never_added_or_removed() -> None:
         "rules": [],
         "order": {},
         "timestamps": [],
+        "matchstamps": [],
     }
     child = manifest(timeline("score", children=[timeline("c", offset=(0, 1))]))
     assert minimal(child)["timelines"][0]["children"][0]["offset"] == [0, 1]
@@ -247,7 +250,6 @@ def _described() -> dict[str, Any]:
         {
             "property": "wdt:P86",
             "value": {"id": "wd:Q255"},
-            "status": "confirmed",
             "date": "2026-11-18",
         }
     ]
@@ -490,3 +492,45 @@ def test_the_round_trips(value: dict) -> None:
     assert json.dumps(value) == given
     validate(complete(value))
     validate(minimal(value))
+
+
+def test_a_match_timestamp_and_an_anchor_gain_their_own_defaults() -> None:
+    ordinary = {"id": "timestamp_1", "timeline": "score", "coordinate": [1, 1]}
+    ordinary["name"] = "Entry"
+    matched = {"id": "timestamp_2", "timeline": "score", "coordinate": [2, 1]}
+    matched["matchstamp"] = True
+    shown = {**matched, "id": "timestamp_3", "display": ["cross_section", "name"]}
+    anchors = [
+        {"id": "anchor_1", "timestamps": ["timestamp_2", "timestamp_3"]},
+        {"id": "anchor_2", "timestamps": ["timestamp_2", "timestamp_3"]},
+    ]
+    anchors[1]["display"] = ["name", "line"]
+    matchstamp = {"id": "matchstamp_1", "name": "M", "alignment_anchors": anchors}
+    matchstamp["match_claims"] = []
+    graphical = {"timestamps": [ordinary, matched, shown], "matchstamps": [matchstamp]}
+    value = manifest(timeline("score"), graphical=graphical)
+    completed = complete(value)["graphical"]
+    assert [stamp.get("display") for stamp in completed["timestamps"]] == [
+        ["wedge", "name", "cross_section"],
+        ["cross_section"],
+        ["name", "cross_section"],
+    ]
+    assert [stamp.get("matchstamp") for stamp in completed["timestamps"]] == [
+        None,
+        True,
+        True,
+    ]
+    held = completed["matchstamps"][0]["alignment_anchors"]
+    assert [anchor["display"] for anchor in held] == [["line"], ["line", "name"]]
+    stripped = minimal(value)["graphical"]
+    assert ["display" in stamp for stamp in stripped["timestamps"]] == [
+        False,
+        False,
+        True,
+    ]
+    held = stripped["matchstamps"][0]["alignment_anchors"]
+    assert ["display" in anchor for anchor in held] == [False, True]
+    assert minimal(complete(value)) == minimal(value)
+    other = {**ordinary, "display": ["cross_section"]}
+    kept = minimal(manifest(timeline("score"), graphical={"timestamps": [other]}))
+    assert kept["graphical"]["timestamps"][0]["display"] == ["cross_section"]

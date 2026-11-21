@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from collections.abc import Iterable, Iterator, Mapping
+from collections.abc import Callable, Iterable, Iterator, Mapping
 from functools import cache
 from importlib.resources import files
 from pathlib import Path
@@ -69,11 +69,91 @@ def schema_path() -> Path:
     return _data_root() / "schema" / SCHEMA_VERSION / "timetoshare.schema.json"
 
 
+def provenance_schema_path() -> Path:
+    """Return the path of the provenance schema, the one provenance entry."""
+    return _data_root() / "schema" / SCHEMA_VERSION / PROVENANCE_DOCUMENT
+
+
+PROVENANCE_DOCUMENT = "provenance.schema.json"
+"""The file name of the provenance schema beside the manifest schema."""
+
+PROVENANCE_DEFINITION = "ProvenanceRecord"
+"""The name of the provenance schema's root among the bundled definitions."""
+
+
+def _read(path: Path) -> dict[str, Any]:
+    with path.open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _with_references(node: Any, rename: Callable[[str], str]) -> Any:
+    """Copy ``node`` with every ``$ref`` renamed."""
+    if isinstance(node, list):
+        return [_with_references(item, rename) for item in node]
+    if not isinstance(node, Mapping):
+        return node
+    return {
+        key: rename(value)
+        if key == "$ref" and isinstance(value, str)
+        else _with_references(value, rename)
+        for key, value in node.items()
+    }
+
+
+def bundle_schemas(
+    manifest: Mapping[str, Any], provenance: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Return the manifest schema with the provenance schema bundled into it.
+
+    The provenance schema's root joins ``$defs`` as ``ProvenanceRecord`` and
+    its own definitions join under their names; every reference between
+    the two documents becomes a local ``#/$defs/...`` reference, so the
+    bundle is one document whose references are all local. The JavaScript
+    package's generated ``schema`` is the same bundle.
+
+    Raises:
+        ValueError: If a definition of the provenance schema has the name of
+            one of the manifest schema.
+    """
+    definitions = "#/$defs/"
+
+    def from_manifest(reference: str) -> str:
+        document, _, pointer = reference.partition("#")
+        if document != PROVENANCE_DOCUMENT:
+            return reference
+        return pointer and "#" + pointer or definitions + PROVENANCE_DEFINITION
+
+    def from_provenance(reference: str) -> str:
+        document, _, pointer = reference.partition("#")
+        if document in ("", "timetoshare.schema.json") and pointer:
+            return "#" + pointer
+        return definitions + PROVENANCE_DEFINITION
+
+    bundled = _with_references(manifest, from_manifest)
+    root = _with_references(provenance, from_provenance)
+    added = {
+        PROVENANCE_DEFINITION: {
+            key: value
+            for key, value in root.items()
+            if key not in ("$schema", "$id", "$defs", "title")
+        },
+        **root.get("$defs", {}),
+    }
+    for name, definition in added.items():
+        if name in bundled["$defs"]:
+            raise ValueError(f"both schemas define '{name}'")
+        bundled["$defs"][name] = definition
+    return bundled
+
+
 @cache
 def load_schema() -> dict[str, Any]:
-    """Return the cached parsed schema document; treat it as read-only."""
-    with schema_path().open(encoding="utf-8") as handle:
-        return json.load(handle)
+    """Return the cached schema, the provenance schema bundled into it.
+
+    The manifest schema with the provenance schema bundled
+    (:func:`bundle_schemas`); treat it as read-only.
+    """
+    return bundle_schemas(_read(schema_path()), _read(provenance_schema_path()))
 
 
 _BRANCHES = ("oneOf", "anyOf", "if", "then", "else")
@@ -362,7 +442,7 @@ def statement_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     problem, every problem of the statement rules follows, not only the
     first: ``context``, ``reserved_key``, then subject by subject ``iri``,
     ``dangling_target``, ``element_value``, ``representation``,
-    ``calendar_date``, ``provenance_match`` and ``provenance_duplicate``.
+    ``calendar_date``, ``provenance_duplicate`` and ``belief_actor``.
 
     Nothing outside the statements is refused, and the version marker is not
     read: a manifest whose timelines break other rules but whose statements
@@ -395,8 +475,10 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     Root by root: duplicates, dangling targets, conversion maps, containment
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
-    manifest ID), group members, graphical orders and named timestamps.
-    ``value`` is in the file form; the rules read its IDs bare.
+    manifest ID, the named MatchStamps' and alignment anchors' IDs, the
+    resources' IDs), group members, graphical orders, named timestamps, named
+    MatchStamps and resources. ``value`` is in the file form; the rules read its
+    IDs bare.
 
     Raises:
         SchemaValidationError: If an ID is not written in the file form.
