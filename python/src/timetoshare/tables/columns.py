@@ -8,10 +8,15 @@ the ``unit`` and the ``number_type`` of its coordinate; a row of the
 Projections table states them once, in its own ``unit`` and ``number_type``
 columns, for its ``start`` and its ``duration``. :func:`number_cell` writes
 a number's members and :func:`coordinate_value` reads them back.
+
+Both tables' columns and the structs of their cells are read from one file,
+``tables.json`` beside the manifest schema (:func:`tables_path`), never
+declared a second time here.
 """
 
 from __future__ import annotations
 
+import json
 import math
 from collections.abc import Mapping
 from fractions import Fraction
@@ -21,7 +26,13 @@ from typing import Any
 
 import pyarrow as pa
 
-from ..validate import PROVENANCE_DEFINITION, SCHEMA_VERSION, _data_root, load_schema
+from ..validate import (
+    PROVENANCE_DEFINITION,
+    PROVENANCE_DOCUMENT,
+    SCHEMA_VERSION,
+    _data_root,
+    load_schema,
+)
 
 __all__ = [
     "ANCHOR_TYPE",
@@ -40,52 +51,33 @@ __all__ = [
     "PROVENANCE_KEYS",
     "PROVENANCE_METADATA_KEY",
     "PROVENANCE_TYPE",
-    "SCOPE_FIELD",
+    "TABLES_DOCUMENT",
     "coordinate_value",
     "fixture_path",
     "number_cell",
+    "tables_path",
 ]
 
-NUMBER_KEYS = ("numerator", "denominator", "value")
-"""The members of a number."""
+TABLES_DOCUMENT = "tables.json"
+"""The file name of the column types beside the manifest schema."""
 
-NUMBER_MEMBERS: Mapping[str, tuple[str, ...]] = MappingProxyType(
-    {
-        "int": ("numerator",),
-        "fraction": ("numerator", "denominator"),
-        "float": ("value",),
-    }
-)
-"""The members a number of each number type fills; the others are null."""
 
-NUMBER_TYPE = pa.struct(
-    [
-        pa.field("numerator", pa.int64()),
-        pa.field("denominator", pa.int64()),
-        pa.field("value", pa.float64()),
-    ]
-)
-"""A number: a Projection's ``start`` or ``duration``, whose row states the unit
-and the number type."""
+def tables_path() -> Path:
+    """Return the path of the column types of the two tables, ``tables.json``.
 
-COORDINATE_KEYS = (*NUMBER_KEYS, "unit", "number_type")
-"""The members of a coordinate cell."""
+    The one source of :data:`MATCH_CLAIM_SCHEMA` and
+    :data:`PROJECTION_SCHEMA`: its ``types`` declare the structs a cell
+    holds, its ``tables`` each table's status and its columns, in order.
+    """
+    return _data_root() / "schema" / SCHEMA_VERSION / TABLES_DOCUMENT
 
-COORDINATE_TYPE = pa.struct(
-    [*NUMBER_TYPE, pa.field("unit", pa.string()), pa.field("number_type", pa.string())]
-)
-"""A coordinate on one timeline's axis: a number with its unit and number type."""
 
-ANCHOR_TYPE = pa.struct(
-    [
-        pa.field("coordinate_a", COORDINATE_TYPE),
-        pa.field("coordinate_b", COORDINATE_TYPE),
-    ]
-)
-"""An AlignmentAnchor: one coordinate of each of the row's two timelines,
-``coordinate_a`` on its ``timeline_a_id``, ``coordinate_b`` on its
-``timeline_b_id``."""
+def _read_tables() -> dict[str, Any]:
+    with tables_path().open(encoding="utf-8") as handle:
+        return json.load(handle)
 
+
+_TABLES = _read_tables()
 _DEFINITIONS = load_schema()["$defs"]
 _RECORD = _DEFINITIONS[PROVENANCE_DEFINITION]
 _BELIEF_REFERENCE = "#/$defs/Belief"
@@ -114,56 +106,94 @@ def _member_type(member: Mapping[str, Any]) -> pa.DataType:
     return pa.list_(pa.string())
 
 
-PROVENANCE_TYPE = pa.struct(
-    [pa.field(key, _member_type(_RECORD["properties"][key])) for key in PROVENANCE_KEYS]
+def _provenance_type() -> pa.DataType:
+    return pa.struct(
+        [
+            pa.field(key, _member_type(_RECORD["properties"][key]))
+            for key in PROVENANCE_KEYS
+        ]
+    )
+
+
+def _arrow_type(name: str) -> pa.DataType:
+    """The Arrow type a column or a struct member names: a type of the
+    file's ``types``, else an Arrow type name."""
+    declared = _TABLES["types"].get(name)
+    if declared is None:
+        return pa.type_for_alias(name)
+    if "schema" in declared:
+        if declared["schema"] != PROVENANCE_DOCUMENT:
+            raise ValueError(f"the type '{name}' names an unknown schema")
+        return _provenance_type()
+    return pa.struct(
+        [
+            pa.field(member["name"], _arrow_type(member["type"]))
+            for member in declared["struct"]
+        ]
+    )
+
+
+def _table_schema(table: str) -> pa.Schema:
+    return pa.schema(
+        [
+            pa.field(column["name"], _arrow_type(column["type"]))
+            for column in _TABLES["tables"][table]["columns"]
+        ]
+    )
+
+
+def _required(table: str) -> tuple[str, ...]:
+    """The columns of ``table`` that hold no null, in the table's order."""
+    return tuple(
+        column["name"]
+        for column in _TABLES["tables"][table]["columns"]
+        if not column["nullable"]
+    )
+
+
+NUMBER_KEYS = tuple(member["name"] for member in _TABLES["types"]["number"]["struct"])
+"""The members of a number."""
+
+NUMBER_MEMBERS: Mapping[str, tuple[str, ...]] = MappingProxyType(
+    {
+        "int": ("numerator",),
+        "fraction": ("numerator", "denominator"),
+        "float": ("value",),
+    }
 )
+"""The members a number of each number type fills; the others are null."""
+
+NUMBER_TYPE = _arrow_type("number")
+"""A number: a Projection's ``start`` or ``duration``, whose row states the unit
+and the number type."""
+
+COORDINATE_KEYS = tuple(
+    member["name"] for member in _TABLES["types"]["coordinate"]["struct"]
+)
+"""The members of a coordinate cell."""
+
+COORDINATE_TYPE = _arrow_type("coordinate")
+"""A coordinate on one timeline's axis: a number with its unit and number type."""
+
+ANCHOR_TYPE = _arrow_type("anchor")
+"""An AlignmentAnchor: one coordinate of each of the row's two timelines,
+``coordinate_a`` on its ``timeline_a_id``, ``coordinate_b`` on its
+``timeline_b_id``."""
+
+PROVENANCE_TYPE = _arrow_type("provenance")
 """A row's provenance, the members of :data:`PROVENANCE_KEYS` with their types."""
 
 PROVENANCE_METADATA_KEY = "timetoshare:provenance"
 """The schema-metadata key holding, as JSON, a provenance shared by every row."""
 
-PROJECTION_OF_TYPE = pa.struct(
-    [pa.field("timeline_id", pa.string()), pa.field("event_id", pa.string())]
-)
+PROJECTION_OF_TYPE = _arrow_type("projection_of")
 """The event a Projection stands for, by its timeline and its ID."""
 
-MATCH_CLAIM_SCHEMA = pa.schema(
-    [
-        pa.field("timeline_a_id", pa.string()),
-        pa.field("timeline_b_id", pa.string()),
-        pa.field("start_anchor", ANCHOR_TYPE),
-        pa.field("end_anchor", ANCHOR_TYPE),
-        pa.field("is_synchronous", pa.bool_()),
-        pa.field("provenance", PROVENANCE_TYPE),
-        pa.field("certainty", pa.float64()),
-        pa.field("event_a_id", pa.string()),
-        pa.field("event_a_name", pa.string()),
-        pa.field("event_b_id", pa.string()),
-        pa.field("event_b_name", pa.string()),
-        pa.field("id", pa.string()),
-    ]
-)
-"""The MatchClaim table: one row per MatchClaim, one column per property."""
+MATCH_CLAIM_SCHEMA = _table_schema("MatchClaim")
+"""The MatchClaim table: one row per MatchClaim, one column per property,
+each MatchClaim addressed by its ID alone."""
 
-SCOPE_FIELD = pa.field("scope", pa.string())
-"""The MatchClaim table's optional key column: the scope of each row's ID.
-
-Null for the package's own MatchClaims, else the name of the scope the row
-comes from; a table of the package's own MatchClaims alone has no such
-column. A MatchClaim is its scope and its ID, never a string joining them.
-"""
-
-PROJECTION_SCHEMA = pa.schema(
-    [
-        pa.field("id", pa.string()),
-        pa.field("timeline_id", pa.string()),
-        pa.field("unit", pa.string()),
-        pa.field("number_type", pa.string()),
-        pa.field("start", NUMBER_TYPE),
-        pa.field("duration", NUMBER_TYPE),
-        pa.field("projection_of", PROJECTION_OF_TYPE),
-    ]
-)
+PROJECTION_SCHEMA = _table_schema("Projection")
 """The Projections table: one row per Projection, its ``unit`` and
 ``number_type`` stated once for its ``start`` and its ``duration``;
 ``duration`` null for an instant."""

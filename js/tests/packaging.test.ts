@@ -43,7 +43,11 @@ describe("the npm package", () => {
   });
 
   it("ships the schema documents", () => {
-    const paths = ["schema/0.2.0/provenance.schema.json", "schema/0.2.0/timetoshare.schema.json"];
+    const paths = [
+      "schema/0.2.0/provenance.schema.json",
+      "schema/0.2.0/tables.json",
+      "schema/0.2.0/timetoshare.schema.json",
+    ];
     expect(shipped.filter((file) => file.startsWith("schema/")).sort()).toEqual(paths);
     for (const path of paths) expect(copied(path), path).toBe(true);
   });

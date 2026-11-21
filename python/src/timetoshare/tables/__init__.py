@@ -3,10 +3,11 @@
 A package keeps its MatchClaims beside the manifest in one MatchClaim table
 (``match_claims.parquet``) and the events standing on a timeline for events
 held elsewhere in one Projections table (``projections.parquet``). This
-module declares their columns, checks a table (alone, or against the
-manifest's timelines), checks the succession rule between a table and the
-one written over it, and derives the AlignmentAnchors and potential
-MatchStamps of a MatchClaim table under the belief filter.
+module declares their columns, read from the schema's ``tables.json``,
+checks a table (alone, or against the manifest's timelines), checks the
+succession rule between a table and the one written over it, and derives the
+AlignmentAnchors and potential MatchStamps of a MatchClaim table under the
+belief filter.
 
 It needs pyarrow: install the extra, ``pip install "timetoshare[tables]"``.
 """
@@ -57,10 +58,11 @@ from .columns import (
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
     PROVENANCE_TYPE,
-    SCOPE_FIELD,
+    TABLES_DOCUMENT,
     coordinate_value,
     fixture_path,
     number_cell,
+    tables_path,
 )
 
 __all__ = [
@@ -80,7 +82,7 @@ __all__ = [
     "PROVENANCE_KEYS",
     "PROVENANCE_METADATA_KEY",
     "PROVENANCE_TYPE",
-    "SCOPE_FIELD",
+    "TABLES_DOCUMENT",
     "AlignmentAnchor",
     "PotentialMatchStamp",
     "TableCode",
@@ -100,4 +102,5 @@ __all__ = [
     "projection_problems",
     "row_provenance",
     "succession_problems",
+    "tables_path",
 ]

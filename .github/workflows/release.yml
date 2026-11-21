@@ -1,15 +1,16 @@
-# release-please keeps one release pull request open, carrying the next version and
-# its changelog entry. Merging it tags vX.Y.Z and creates the GitHub release; the
-# publish job then checks that every version declaration carries X.Y.Z, tests and
-# builds the Python and the npm package and publishes both. The pages job serves the
-# schema of every released version on this repository's Pages site, and the org-site
-# job adds the released schema to the organisation site, at the address its `$id`
-# names (see decisions/0008-oidc-dual-package-release.md). PyPI is published through
-# trusted publishing (OIDC), and so is npm; no registry token is stored. A manual run
-# naming a release tag publishes that release again, skipping every file a registry
-# already holds, and serves its schema again. A TimeToShare version is a schema version,
-# so it is never computed from the commits: the commit that adds a schema version
-# carries a `Release-As: X.Y.Z` footer (see CONTRIBUTING.md).
+# release-please keeps one release pull request open, carrying the next version and its
+# changelog entry. Merging it tags vX.Y.Z and creates the GitHub release; the publish
+# job then checks that every version declaration carries X.Y.Z, tests and builds the
+# Python and the npm package and publishes both. The pages job serves the documents of
+# every released version (every file of schema/<version>/ and the catalogue's schema,
+# assembled by scripts/check_published.py) on this repository's Pages site, and the
+# org-site job adds the released documents to the organisation site, at the address each
+# `$id` names (see decisions/0008-oidc-dual-package-release.md). PyPI is published
+# through trusted publishing (OIDC), and so is npm; no registry token is stored. A
+# manual run naming a release tag publishes that release again, skipping every file a
+# registry already holds, and serves its documents again. A TimeToShare version is a
+# schema version, so it is never computed from the commits: the commit that adds a
+# schema version carries a `Release-As: X.Y.Z` footer (see CONTRIBUTING.md).
 name: Release
 
 on:
@@ -145,15 +146,13 @@ jobs:
           fetch-tags: true
       # The tree holds only the current schema version, and a deployment replaces the
       # whole site, so the site is assembled from every release tag: each released
-      # schema stays served at
-      # https://timetoalign.github.io/TimeToShare/<version>/timetoshare.schema.json.
-      - name: Assemble the schema of every released version
+      # version's documents (every file of schema/<version>/ and the catalogue's
+      # schema) stay served at https://timetoalign.github.io/TimeToShare/<version>/.
+      # The script refuses a tag whose $id or $ref names a document not served.
+      - name: Assemble the documents of every released version
         run: |
           for tag in $(git tag --list 'v[0-9]*.[0-9]*.[0-9]*'); do
-            version=${tag#v}
-            mkdir -p "site/$version"
-            git show "$tag:schema/$version/timetoshare.schema.json" \
-              > "site/$version/timetoshare.schema.json"
+            python3 scripts/check_published.py --ref "$tag" --out site
           done
       - uses: actions/configure-pages@v6
       - uses: actions/upload-pages-artifact@v5
@@ -163,20 +162,23 @@ jobs:
         uses: actions/deploy-pages@v5
 
   org-site:
-    name: Serve the released schema at its $id on the organisation site
+    name: Serve the released documents at their $id on the organisation site
     needs: [release-please, publish]
     if: needs.release-please.outputs.release_created == 'true' || inputs.tag != ''
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
+      # The default branch holds the assembling script; the documents are read from the
+      # release tag.
       - uses: actions/checkout@v7
         with:
-          ref: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
+          fetch-depth: 0
+          fetch-tags: true
           path: timetoshare
       # The organisation site TimeToAlign/timetoalign.github.io serves
-      # https://timetoalign.github.io/timetoshare/<version>/timetoshare.schema.json,
-      # the lowercase address every schema names as its `$id`. A Pages path is
+      # https://timetoalign.github.io/timetoshare/<version>/<document>, the lowercase
+      # address every published document names as its `$id`. A Pages path is
       # case-sensitive, so the repository's own site at /TimeToShare/ cannot serve it.
       # The deploy key ORG_SITE_DEPLOY_KEY may push to that repository alone.
       - uses: actions/checkout@v7
@@ -184,23 +186,22 @@ jobs:
           repository: TimeToAlign/timetoalign.github.io
           ssh-key: ${{ secrets.ORG_SITE_DEPLOY_KEY }}
           path: site
-      # Adds the released schema to the organisation site's default branch, and
-      # commits nothing when the site already holds that file, so a re-run is harmless.
-      - name: Add the released schema to the organisation site
+      # Adds the released documents (every file of schema/<version>/ and the
+      # catalogue's schema) to the organisation site's default branch, and commits
+      # nothing when the site already holds them, so a re-run is harmless.
+      - name: Add the released documents to the organisation site
         env:
           TAG: ${{ needs.release-please.outputs.tag_name || inputs.tag }}
         run: |
           version=${TAG#v}
-          mkdir -p "site/timetoshare/$version"
-          cp "timetoshare/schema/$version/timetoshare.schema.json" \
-            "site/timetoshare/$version/timetoshare.schema.json"
+          python3 timetoshare/scripts/check_published.py --ref "$TAG" --out site/timetoshare
           cd site
-          git add "timetoshare/$version/timetoshare.schema.json"
+          git add "timetoshare/$version"
           if git diff --cached --quiet; then
-            echo "The organisation site already serves the $version schema."
+            echo "The organisation site already serves the $version documents."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "add the TimeToShare $version schema"
+          git commit -m "add the TimeToShare $version documents"
           git push origin HEAD
