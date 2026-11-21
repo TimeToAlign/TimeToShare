@@ -19,8 +19,10 @@ manifest's schema document and the provenance entry of its provenance
 document, `provenance.schema.json`, with the definitions they use
 (`PrefixName`, `PrefixIri`, `Iri`, `IriReference`, `LanguageTag`, `Types`,
 `Values`, `SingleValue`, `OrderedValues`, `ValueObject`, `ValueNode`,
-`Provenance`, `EntryValue` and the belief), state the format normatively;
-the first three are public (README, "The schema document"). The same
+`Provenance`, `ProvenanceEntry`, `EntryValue` and the belief), state the
+format normatively; `Context`, `Statements`, `StatementValue` and
+`ProvenanceEntry` are public, and so is the provenance document as a whole
+(README, "The schema document"). The same
 provenance entry annotates the rows of the MatchClaim table (README,
 "Provenance and beliefs"); this specification states it for statements. Terms in `code` are JSON
 members. Statements hold no events, and neither the drawing
@@ -438,21 +440,24 @@ beliefs"); `provenance.schema.json` defines it once for both.
 **Stated pairs and candidates.** A pair listed in `statements` is stated
 by the manifest, and its entry, where it has one, annotates it. An entry
 whose pair is not listed holds a **candidate**: a name imported without
-an identifier, a value a lookup suggested, a pair taken back. A candidate
+an identifier, a value a lookup suggested. A candidate
 is never stated: it exists only as its entry, and no processor reading
 the manifest asserts it. Stating a candidate lists its pair, and its entry
 then annotates the stated pair. A subject has at most one entry per pair.
 
 **Beliefs.** A belief is `{actor, belief, date, note?}`: `actor` the
-agent who holds it, an IRI or a reference as in `stated_by`; `belief` one
-of the words `true`, `false` and `unlikely`, strings like the words of
-`method`; `date` the day it was stated, `YYYY-MM-DD`; and `note` a note in
-words. An actor holds at most one belief per entry: a later belief of the
-same actor replaces the earlier one, and one actor's belief leaves every
-other actor's standing. A belief is its actor's alone. Nothing in the
-format derives a truth value from the beliefs, and nobody imposes one: a
-belief changes neither whether a pair is stated nor any other actor's
-belief. A person who states a pair through an editor or the functions of
+person or organisation who holds it, an IRI, written absolute or as a
+reference resolved against the manifest's address as in `stated_by`;
+`belief` one of the three strings `"true"`, `"false"` and `"unlikely"`,
+words like those of `method` and never JSON booleans; `date` the day it
+was stated, `YYYY-MM-DD`; and `note` a note in words. An actor holds at
+most one belief per entry: a later belief of the same actor replaces the
+earlier one, and one actor's belief leaves every other actor's standing.
+A belief is its actor's alone. Nothing in the format derives a truth
+value from the beliefs, and nobody imposes one: a belief changes neither
+whether a pair is stated nor any other actor's belief, so believing a
+stated pair `false` records the belief and leaves the pair stated;
+removing it is an edit of its own. A person who states a pair through an editor or the functions of
 section 11 is recorded with the belief `true`; a loader or a service
 records how the pair was made and holds no belief. A candidate an actor
 believes `false` is not offered to that actor again.
@@ -672,23 +677,35 @@ manifest, `#cpt_1` in the file form, and `None` names the bundle.
 | Python | Does |
 | --- | --- |
 | `pairs(manifest, subject)`, `entries(manifest, subject)` | the subject's pairs, keys in code-point order and values in list order, and its provenance entries |
-| `with_pair(manifest, subject, property, value, provenance=None)` | states a pair, and with `provenance` its entry, which replaces the entry of a candidate of the pair |
+| `candidates(manifest, subject, actor=None)` | the subject's candidates, the entries of pairs it does not state; with `actor`, those the actor believes `false` left out, so that a candidate is not offered to that actor again |
+| `with_pair(manifest, subject, property, value, *, provenance=None, actor=None, date=None)` | states a pair; an entry the pair already has, a candidate's until now, stays as the stated pair's entry. With `provenance` (the keys of an entry but `property`, `value` and `beliefs`) they are set on the pair's entry, added where there is none; with `actor`, the person stating the pair, the entry records that actor's belief `true` on `date`, replacing the actor's earlier belief |
 | `without_pair(manifest, subject, property, value)` | removes a pair and its entry; an emptied list, container or `provenance` is removed |
-| `with_proposal(manifest, subject, property, value, stated_by=, date=, method=, …)` | adds the entry of a candidate and leaves the statements as they are |
-| `with_confirmation(manifest, subject, property, value, actor=, date=)` | states the pair of a candidate and records the actor's belief `true` in its entry |
-| `with_rejection(manifest, subject, property, value, actor=, date=, note=None)` | records the actor's belief `false` in the pair's entry, adding the entry where there is none, and removes the pair where it is stated, so that it is a candidate |
+| `with_candidate(manifest, subject, property, value, *, stated_by, date, method, service=None, basis=(), match=None, note=None)` | adds the entry of a candidate, replacing in place an earlier entry of the pair and keeping its `beliefs`, and leaves the statements as they are; a loader or a service proposing a pair holds no belief |
+| `with_belief(manifest, subject, property, value, *, actor, belief, date, note=None)` | records the actor's belief, `"true"`, `"false"` or `"unlikely"`, in the pair's entry, adding the entry where there is none and replacing in place the actor's earlier belief; whether the pair is stated is left as it is |
 | `same_pair(context, a, b)` | the comparison of section 9 |
 | `expand_iri(context, text)`, `used_prefixes(manifest)` | an IRI expanded through a context, and the prefixes a manifest's statements use |
 | `with_context(manifest, prefixes)` | the manifest with its `@context`: the format's terms and the prefixes used, each namespace from its own context first, else from `prefixes` |
 
+npm's `withPair`, `withCandidate` and `withBelief` take the keyword
+arguments in an options object, `withPair(manifest, subject, property,
+value, { provenance, actor, date })`, and `candidates(manifest, subject,
+actor?)` the actor last. Actors compare as their IRIs. Believing a pair
+`false` never removes it: the belief is recorded and the statement stays;
+`without_pair` removes a pair.
+
 A function refuses a pair already stated (`'<property>' already has this
 value`), the removal of a pair not stated (`'<property>' does not have
-this value`), a candidate of a stated pair, a confirmation of a pair
-that is no candidate, a property that is neither `type` nor an IRI, a
-path that addresses nothing and a date the calendar lacks, raising
-`ValueError` in Python and `Error` in npm with the same message.
-`FORMAT_CONTEXT` holds the 35 terms, `NAMESPACE` the format's namespace,
-and `BELIEFS`, `METHODS` and `MATCHES` the words of the three keys.
+this value`), a candidate of a stated pair (`'<property>' already has
+this value; a stated pair is no candidate`), an actor given without a
+date (`a belief needs a date`), a belief none of the three words, a
+property that is neither `type` nor an IRI (`'<property>' is no property:
+write 'type', a compact IRI or an absolute IRI`), a path that addresses
+nothing (`<pointer> addresses no element and no value node`) and a date
+the calendar lacks (`'<date>' is no Gregorian calendar date written
+YYYY-MM-DD`), raising `ValueError` in Python and `Error` in npm with the
+same message. `FORMAT_CONTEXT` holds the 35 terms, `NAMESPACE` the
+format's namespace, and `BELIEFS`, `METHODS` and `MATCHES` the words of
+the three keys.
 
 ## 12. Validation
 
@@ -720,7 +737,8 @@ timeline, its regions in array order and its children, depth first. For
 each subject they read its ID, its container's keys in code-point order
 with their values, a value node where it stands, then its provenance
 entries, each entry's keys in code-point order and its beliefs in list
-order, and last each entry against the earlier ones.
+order, and last, entry by entry, the actors of its beliefs against each
+other and the entry against the earlier ones.
 
 | Rule | Code | Location | Message |
 | --- | --- | --- | --- |
@@ -732,8 +750,8 @@ order, and last each entry against the earlier ones.
 | A node naming an element holds another key | `element_value` | the node | `'<id>' names an element; a value naming an element holds its id alone` |
 | A statement value is an integral float, such as `1.0` | `representation` | the value | `a statement value is an integer or a string, never a float: <value>` |
 | An entry's `date` names no day of the Gregorian calendar | `calendar_date` | the `date` | `'<date>' is no Gregorian calendar date written YYYY-MM-DD` |
+| A belief names the actor of an earlier belief of its entry, actors compared as their IRIs | `belief_actor` | the later belief's `actor` | `'<actor>' already holds belief <index> of this entry; an actor holds one belief` |
 | An entry names the pair of an earlier entry of its subject | `provenance_duplicate` | the entry | `the entry repeats the pair of entry <index>` |
-| A belief names the actor of an earlier belief of its entry | `provenance_duplicate` | the belief | `the belief repeats the actor of belief <index>` |
 
 An IRI fragment is a string of the characters `A`–`Z`, `a`–`z`, `0`–`9`,
 `-._~!$&'()*+,;=:@/?`, code points from U+0080 on (white space excluded)
@@ -742,7 +760,8 @@ begin with a scheme and a colon and does not begin with `#` is a relative
 reference to another document and is not resolved. The `#` references of
 statements and provenance name any ID of the manifest: the manifest's
 own, a timeline's, a group's, a MeasureMap's, a conversion map's at any
-depth, a region's, a flow-control element's or a named timestamp's. The
+depth, a region's, a flow-control element's, a named timestamp's, a named
+MatchStamp's, an alignment anchor's or a resource's. The
 Gregorian calendar's years run from 1 to 9999, so `2026-02-30` is refused.
 The messages are the same in both packages, but for a `schema` problem,
 whose message is the package's own schema validator's.
