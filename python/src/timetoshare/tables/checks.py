@@ -21,13 +21,15 @@ from jsonschema import Draft202012Validator
 
 from ..ids import with_bare_ids
 from ..manifest import UNIT_NUMBER_TYPES
-from ..statements import calendar_date
+from ..statements import calendar_date, expand_iri
 from ..validate import PROVENANCE_DEFINITION, _select, load_schema
 from ..validation.diagnostics import json_pointer, number_type_of, timelines_by_id
 from .columns import (
     BELIEF_KEYS,
     COORDINATE_KEYS,
     MATCH_CLAIM_SCHEMA,
+    NUMBER_KEYS,
+    NUMBER_MEMBERS,
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
@@ -89,9 +91,8 @@ class TableError(ValueError):
 
 
 _CONTROL = re.compile("[\u0000-\u001f]")
-_NUMBER_TYPES = ("int", "float", "fraction")
 _REQUIRED_CLAIM = ("timeline_a_id", "timeline_b_id", "is_synchronous", "id")
-_REQUIRED_PROJECTION = ("id", "timeline_id", "start")
+_REQUIRED_PROJECTION = ("id", "timeline_id", "unit", "number_type", "start")
 
 
 def _shape(data_type: pa.DataType) -> Any:
@@ -136,21 +137,40 @@ def _id_problem(value: Any, what: str) -> str | None:
     return None
 
 
-def _coordinate_problem(cell: Mapping[str, Any]) -> str | None:
-    """Why a non-null coordinate cell is malformed, or ``None``."""
-    missing = [key for key in COORDINATE_KEYS if cell[key] is None]
-    if missing:
-        return f"the coordinate has no {', '.join(missing)}"
-    if cell["unit"] not in UNIT_NUMBER_TYPES:
-        return f"'{cell['unit']}' is no unit"
-    if cell["number_type"] not in _NUMBER_TYPES:
-        return f"'{cell['number_type']}' is no number type"
-    if not math.isfinite(cell["value"]):
-        return f"the coordinate's value {cell['value']} is not finite"
-    if cell["denominator"] < 1:
-        return f"the coordinate's denominator {cell['denominator']} is below 1"
-    if cell["number_type"] == "int" and cell["denominator"] != 1:
-        return f"an int coordinate has the denominator {cell['denominator']}"
+def _axis_problem(unit: Any, number_type: Any, what: str) -> str | None:
+    """Why a unit and a number type are no axis, or ``None``."""
+    if unit is None:
+        return f"the {what} has no unit"
+    if number_type is None:
+        return f"the {what} has no number_type"
+    if unit not in UNIT_NUMBER_TYPES:
+        return f"'{unit}' is no unit"
+    if number_type not in NUMBER_MEMBERS:
+        return f"'{number_type}' is no number type"
+    return None
+
+
+def _number_problem(
+    number: Mapping[str, Any], number_type: str, what: str
+) -> str | None:
+    """Why a non-null number is no number of ``number_type``, or ``None``.
+
+    A number fills the members of its number type and leaves the others
+    null (:data:`~timetoshare.tables.NUMBER_MEMBERS`); a float is finite, a
+    fraction's denominator at least 1.
+    """
+    held = NUMBER_MEMBERS[number_type]
+    kind = f"{'an' if number_type == 'int' else 'a'} {number_type} {what}"
+    for key in held:
+        if number[key] is None:
+            return f"{kind} has no {key}"
+    for key in NUMBER_KEYS:
+        if key not in held and number[key] is not None:
+            return f"{kind} holds its {' and '.join(held)} alone, not a {key}"
+    if number_type == "float" and not math.isfinite(number["value"]):
+        return f"the {what}'s value {number['value']} is not finite"
+    if number_type == "fraction" and number["denominator"] < 1:
+        return f"the {what}'s denominator {number['denominator']} is below 1"
     return None
 
 
@@ -176,14 +196,18 @@ def _present(cell: Mapping[str, Any]) -> dict[str, Any]:
     return entry
 
 
-def _provenance_problem(entry: Any, what: str) -> str | None:
+def _provenance_problem(
+    entry: Any, what: str, context: Mapping[str, Any] | None
+) -> str | None:
     """Why a provenance entry is no entry of the provenance schema, or ``None``.
 
     The schema first, its problem chosen by the validators' one path rule;
     then a key the schema does not declare, of the entry or of a belief;
     then a date that is no day of the Gregorian calendar; then an actor
-    holding a second belief. ``what`` names the entry in the message, and
-    the member at fault follows as a JSON pointer into it.
+    holding a second belief, actors compared as the IRIs they stand for
+    under ``context`` (the manifest's ``@context``), else as written.
+    ``what`` names the entry in the message, and the member at fault follows
+    as a JSON pointer into it.
     """
     error = _select(_provenance_validator().iter_errors(entry))
     if error is not None:
@@ -211,18 +235,20 @@ def _provenance_problem(entry: Any, what: str) -> str | None:
             return f"{what} {json_pointer(path)}: {problem}"
     held: dict[str, int] = {}
     for index, belief in enumerate(beliefs):
-        actor = belief["actor"]
+        actor = expand_iri(context, belief["actor"]) or belief["actor"]
         if actor in held:
             return (
-                f"{what} {json_pointer(('beliefs', index, 'actor'))}: '{actor}' "
-                f"already holds belief {held[actor]} of this entry; an actor holds "
-                "one belief"
+                f"{what} {json_pointer(('beliefs', index, 'actor'))}: "
+                f"'{belief['actor']}' already holds belief {held[actor]} of this "
+                "entry; an actor holds one belief"
             )
         held[actor] = index
     return None
 
 
-def _shared_provenance(table: pa.Table) -> tuple[dict[str, Any] | None, str | None]:
+def _shared_provenance(
+    table: pa.Table, context: Mapping[str, Any] | None = None
+) -> tuple[dict[str, Any] | None, str | None]:
     """The provenance the file's metadata states for every row, and a problem.
 
     The entry is checked as a row's is, and returned with every member,
@@ -238,7 +264,7 @@ def _shared_provenance(table: pa.Table) -> tuple[dict[str, Any] | None, str | No
         return None, "the file's provenance is no JSON text"
     if not isinstance(entry, dict):
         return None, "the file's provenance is no object"
-    problem = _provenance_problem(entry, "the file's provenance")
+    problem = _provenance_problem(entry, "the file's provenance", context)
     if problem:
         return None, problem
     cell = {key: entry.get(key) for key in PROVENANCE_KEYS}
@@ -280,10 +306,18 @@ class _Axes:
             )
         return None
 
-    def cell(
-        self, row: int, column: Column, timeline_id: str, cell: Mapping[str, Any]
+    def expected(self, timeline_id: str) -> tuple[str, str] | None:
+        """The axis a timeline's cells must have: the manifest's timeline's,
+        else that of the first cell seen on it, else ``None``."""
+        timeline = (self.timelines or {}).get(timeline_id)
+        if timeline is not None:
+            return (timeline["unit"], number_type_of(timeline))
+        return self.seen.get(timeline_id)
+
+    def axis(
+        self, row: int, column: Column, timeline_id: str, axis: tuple[str, str]
     ) -> TableProblem | None:
-        axis = (cell["unit"], cell["number_type"])
+        """The problem of a unit and a number type on the timeline, or ``None``."""
         if self.timelines is not None:
             timeline = self.timelines.get(timeline_id)
             if timeline is None:
@@ -459,16 +493,19 @@ def _cell_problems(
     cell: Mapping[str, Any] | None,
     axes: _Axes,
 ) -> Iterator[TableProblem]:
+    """The problems of an anchor's coordinate cell, which states its own axis."""
     if cell is None:
         yield TableProblem(
             "invalid_coordinate", index, column, "the coordinate is null"
         )
         return
-    problem = _coordinate_problem(cell)
+    problem = _axis_problem(
+        cell["unit"], cell["number_type"], "coordinate"
+    ) or _number_problem(cell, cell["number_type"], "coordinate")
     if problem:
         yield TableProblem("invalid_coordinate", index, column, problem)
         return
-    axis = axes.cell(index, column, timeline_id, cell)
+    axis = axes.axis(index, column, timeline_id, (cell["unit"], cell["number_type"]))
     if axis:
         yield axis
 
@@ -481,7 +518,10 @@ def match_claim_problems(
 
     A MatchClaim's ID is unique in its scope: the package's own, where the
     table has no ``scope`` column or the row's is null, else the scope it
-    names (:data:`~timetoshare.tables.SCOPE_FIELD`)."""
+    names (:data:`~timetoshare.tables.SCOPE_FIELD`). An actor holds one
+    belief in a row; against a manifest, actors are compared as the IRIs
+    they stand for under its ``@context``, so a compact and an absolute IRI
+    of one actor are one actor, else as written."""
     problems = [
         *_schema_problems(table, MATCH_CLAIM_SCHEMA),
         *_scope_problems(table),
@@ -499,7 +539,8 @@ def match_claim_problems(
                 problems.append(TableProblem("invalid_id", index, ("scope",), problem))
     problems.extend(_ids(rows, "scope"))
     shared = PROVENANCE_METADATA_KEY.encode() in (table.schema.metadata or {})
-    _, problem = _shared_provenance(table)
+    context = None if manifest is None else manifest.get("@context")
+    _, problem = _shared_provenance(table, context)
     if problem:
         problems.append(
             TableProblem("invalid_provenance", None, ("provenance",), problem)
@@ -512,7 +553,7 @@ def match_claim_problems(
             problem = (
                 "the provenance is stated in the file's metadata and in the row"
                 if shared
-                else _provenance_problem(_present(cell), "the provenance")
+                else _provenance_problem(_present(cell), "the provenance", context)
             )
             if problem:
                 problems.append(
@@ -543,24 +584,7 @@ def projection_problems(
         problem = axes.timeline(index, ("timeline_id",), timeline_id)
         if problem:
             problems.append(problem)
-        problems.extend(
-            _cell_problems(index, ("start",), timeline_id, row["start"], axes)
-        )
-        duration = row["duration"]
-        if duration is not None:
-            found = list(
-                _cell_problems(index, ("duration",), timeline_id, duration, axes)
-            )
-            problems.extend(found)
-            if not found and coordinate_value(duration) < 0:
-                problems.append(
-                    TableProblem(
-                        "invalid_duration",
-                        index,
-                        ("duration",),
-                        "the duration is negative",
-                    )
-                )
+        problems.extend(_projection_numbers(index, row, axes))
         source = row["projection_of"]
         if source is None:
             continue
@@ -591,6 +615,35 @@ def projection_problems(
             if problem:
                 problems.append(problem)
     return sorted(problems, key=_order)
+
+
+def _projection_numbers(
+    index: int, row: Mapping[str, Any], axes: _Axes
+) -> Iterator[TableProblem]:
+    """The problems of a Projection's axis, ``start`` and ``duration``: its
+    row states the unit and the number type of both."""
+    unit, number_type = row["unit"], row["number_type"]
+    problem = _axis_problem(unit, number_type, "Projection")
+    if problem:
+        column = "unit" if unit not in UNIT_NUMBER_TYPES else "number_type"
+        yield TableProblem("invalid_coordinate", index, (column,), problem)
+        return
+    expected = axes.expected(row["timeline_id"])
+    column = ("unit",) if expected and expected[0] != unit else ("number_type",)
+    axis = axes.axis(index, column, row["timeline_id"], (unit, number_type))
+    if axis:
+        yield axis
+    for key, what in (("start", "coordinate"), ("duration", "duration")):
+        number = row[key]
+        if number is None:
+            continue
+        problem = _number_problem(number, number_type, what)
+        if problem:
+            yield TableProblem("invalid_coordinate", index, (key,), problem)
+        elif key == "duration" and coordinate_value(number, number_type) < 0:
+            yield TableProblem(
+                "invalid_duration", index, (key,), "the duration is negative"
+            )
 
 
 def _order(problem: TableProblem) -> int:

@@ -110,13 +110,17 @@ export {
   verbOf,
 } from "./statements/catalogue.js";
 export {
+  BELIEF_STATES,
   BELIEFS,
   type Belief,
   type BeliefOptions,
+  type BeliefState,
   BLANK,
   type CandidateOptions,
   candidates,
+  checkBeliefFilter,
   compactIri,
+  DEFAULT_BELIEFS,
   entries,
   expandIri,
   FORMAT_CONTEXT,

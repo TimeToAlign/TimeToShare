@@ -13,10 +13,8 @@ import pytest
 pa = pytest.importorskip("pyarrow")
 pq = pytest.importorskip("pyarrow.parquet")
 
-from timetoshare import loads  # noqa: E402
+from timetoshare import BELIEF_STATES, DEFAULT_BELIEFS, loads  # noqa: E402
 from timetoshare.tables import (  # noqa: E402
-    BELIEF_STATES,
-    DEFAULT_BELIEFS,
     MATCH_CLAIM_SCHEMA,
     PROVENANCE_METADATA_KEY,
     AlignmentAnchor,
@@ -28,6 +26,7 @@ from timetoshare.tables import (  # noqa: E402
 )
 
 ACTOR = "https://orcid.org/0000-0002-1825-0097"
+COMPACT_ACTOR = "orcid:0000-0002-1825-0097"
 OTHER_ACTOR = "https://orcid.org/0000-0001-5109-3700"
 
 
@@ -39,34 +38,49 @@ def _cases() -> list[dict[str, Any]]:
     return loads(fixture_path("expected.yaml").read_text(encoding="utf-8"))["cases"]
 
 
+def _context() -> dict[str, Any]:
+    """The fixture manifest's ``@context``, under which every case reads actors."""
+    manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
+    return manifest["@context"]
+
+
 def _coordinate(entry: dict[str, Any]) -> TimelineCoordinate:
     value = entry["value"]
     exact = Fraction(*value) if isinstance(value, list) else Fraction(value)
     return TimelineCoordinate(entry["timeline_id"], exact)
 
 
-NOT_FALSE = ["true", "undecided", "unlikely"]
+EVERY_STATE_BUT_FALSE = ["true", "undecided", "unlikely"]
 
 
 def _case_id(case: dict[str, Any]) -> str:
-    believer = {None: "nobody", ACTOR: "actor", OTHER_ACTOR: "other"}[case["believer"]]
+    believer = {
+        None: "nobody",
+        ACTOR: "actor",
+        COMPACT_ACTOR: "actor-compact",
+        OTHER_ACTOR: "other",
+    }[case["believer"]]
     return f"{believer}-{'+'.join(case['beliefs'])}"
 
 
-def test_the_expected_file_has_the_six_filter_cases() -> None:
+def test_the_expected_file_has_the_seven_filter_cases() -> None:
+    assert _context()["orcid"] == "https://orcid.org/"
     assert [(case["believer"], case["beliefs"]) for case in _cases()] == [
-        (None, NOT_FALSE),
-        (ACTOR, NOT_FALSE),
+        (None, EVERY_STATE_BUT_FALSE),
+        (ACTOR, EVERY_STATE_BUT_FALSE),
         (ACTOR, ["true"]),
         (OTHER_ACTOR, ["true"]),
         (ACTOR, ["undecided"]),
         (ACTOR, ["unlikely", "false"]),
+        (COMPACT_ACTOR, ["true"]),
     ]
 
 
 @pytest.mark.parametrize("case", _cases(), ids=_case_id)
 def test_the_unique_anchors(case: dict[str, Any]) -> None:
-    derived = alignment_anchors(_table(), case["believer"], case["beliefs"])
+    derived = alignment_anchors(
+        _table(), case["believer"], case["beliefs"], context=_context()
+    )
     expected = [
         (
             AlignmentAnchor(
@@ -82,7 +96,9 @@ def test_the_unique_anchors(case: dict[str, Any]) -> None:
 @pytest.mark.parametrize("case", _cases(), ids=_case_id)
 def test_the_potential_matchstamps(case: dict[str, Any]) -> None:
     table = _table()
-    derived = potential_matchstamps(table, case["believer"], case["beliefs"])
+    derived = potential_matchstamps(
+        table, case["believer"], case["beliefs"], context=_context()
+    )
     expected = [
         (
             tuple(_coordinate(entry) for entry in stamp["coordinates"]),
@@ -91,7 +107,9 @@ def test_the_potential_matchstamps(case: dict[str, Any]) -> None:
         for stamp in case["potential_matchstamps"]
     ]
     assert [(stamp.coordinates, stamp.match_claims) for stamp in derived] == expected
-    anchors = alignment_anchors(table, case["believer"], case["beliefs"])
+    anchors = alignment_anchors(
+        table, case["believer"], case["beliefs"], context=_context()
+    )
     for stamp in derived:
         assert stamp.alignment_anchors == tuple(
             anchor for anchor in anchors if anchor.coordinates[0] in stamp.coordinates
@@ -117,10 +135,10 @@ UNDECIDED_FOR_ACTOR = [1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14]
 @pytest.mark.parametrize(
     ("believer", "beliefs", "rows"),
     [
-        (None, NOT_FALSE, list(range(15))),
+        (None, EVERY_STATE_BUT_FALSE, list(range(15))),
         (None, ["true"], list(range(15))),
         (None, [], list(range(15))),
-        (ACTOR, NOT_FALSE, [index for index in range(15) if index != 12]),
+        (ACTOR, EVERY_STATE_BUT_FALSE, [index for index in range(15) if index != 12]),
         (ACTOR, ["true"], [0, 10]),
         (ACTOR, ["undecided"], UNDECIDED_FOR_ACTOR),
         (ACTOR, ["unlikely"], [5]),
@@ -128,10 +146,10 @@ UNDECIDED_FOR_ACTOR = [1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14]
         (ACTOR, ["unlikely", "false"], [5, 12]),
         (ACTOR, [], []),
         (ACTOR, list(BELIEF_STATES), list(range(15))),
-        (OTHER_ACTOR, NOT_FALSE, list(range(15))),
+        (OTHER_ACTOR, EVERY_STATE_BUT_FALSE, list(range(15))),
         (OTHER_ACTOR, ["true"], [12, 13]),
         (OTHER_ACTOR, ["false"], []),
-        (NOBODY, NOT_FALSE, list(range(15))),
+        (NOBODY, EVERY_STATE_BUT_FALSE, list(range(15))),
         (NOBODY, ["true"], []),
         (NOBODY, ["undecided"], list(range(15))),
     ],
@@ -146,7 +164,9 @@ def test_the_belief_filter_keeps_every_state_but_false_by_default() -> None:
     assert BELIEF_STATES == ("true", "undecided", "unlikely", "false")
     assert DEFAULT_BELIEFS == ("true", "undecided", "unlikely")
     table = _table()
-    assert believed_rows(table, ACTOR) == believed_rows(table, ACTOR, NOT_FALSE)
+    assert believed_rows(table, ACTOR) == believed_rows(
+        table, ACTOR, EVERY_STATE_BUT_FALSE
+    )
     assert believed_rows(table, ACTOR, {"undecided", "true", "unlikely"}) == [
         index for index in range(15) if index != 12
     ]
@@ -204,3 +224,36 @@ def test_the_belief_filter_reads_a_provenance_shared_by_every_row() -> None:
     assert believed_rows(table, ACTOR) == []
     assert believed_rows(table) == [0, 1]
     assert alignment_anchors(table, ACTOR) == {}
+
+
+ORCID = {"orcid": "https://orcid.org/"}
+
+
+@pytest.mark.parametrize(
+    ("beliefs", "state"),
+    [
+        ([(COMPACT_ACTOR, "true"), (ACTOR, "false")], "false"),
+        ([(ACTOR, "false"), (COMPACT_ACTOR, "true")], "false"),
+        ([(COMPACT_ACTOR, "true"), (ACTOR, "unlikely")], "unlikely"),
+        ([(ACTOR, "unlikely"), (COMPACT_ACTOR, "false")], "false"),
+        ([(COMPACT_ACTOR, "true"), (ACTOR, "true")], "true"),
+    ],
+)
+def test_a_believer_under_two_spellings_takes_the_most_critical_belief(
+    beliefs: list[tuple[str, str]], state: str
+) -> None:
+    row = _table().to_pylist()[1]
+    row["provenance"]["beliefs"] = [
+        {"actor": actor, "belief": word, "date": "2026-11-21", "note": None}
+        for actor, word in beliefs
+    ]
+    table = pa.Table.from_pylist([row], schema=MATCH_CLAIM_SCHEMA)
+    for believer in (ACTOR, COMPACT_ACTOR):
+        for kept in BELIEF_STATES:
+            rows = believed_rows(table, believer, [kept], context=ORCID)
+            assert rows == ([0] if kept == state else [])
+    absolute = dict(beliefs)[ACTOR]
+    assert believed_rows(table, ACTOR, [absolute]) == [0]
+    assert [kept for kept in BELIEF_STATES if believed_rows(table, ACTOR, [kept])] == [
+        absolute
+    ]

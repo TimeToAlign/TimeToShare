@@ -84,6 +84,54 @@ export const FORMAT_CONTEXT = Object.freeze({
 /** The beliefs an actor may hold in an item, strings in the schema's order. */
 export const BELIEFS = ["true", "false", "unlikely"] as const;
 
+/**
+ * An item's state for one actor: the actor's belief in it, or `"undecided"`
+ * where the actor holds none.
+ */
+export type BeliefState = "true" | "undecided" | "unlikely" | "false";
+
+/** The four states of the belief filter, in that order. */
+export const BELIEF_STATES: readonly BeliefState[] = Object.freeze([
+  "true",
+  "undecided",
+  "unlikely",
+  "false",
+]);
+
+/** The states the belief filter keeps by default: every state but `"false"`. */
+export const DEFAULT_BELIEFS: readonly BeliefState[] = Object.freeze([
+  "true",
+  "undecided",
+  "unlikely",
+]);
+
+/**
+ * The states a belief filter keeps, checked: a collection of `BELIEF_STATES`
+ * in any order; empty keeps none.
+ *
+ * @throws Error when `beliefs` is a single string, or names a word that is
+ * none of `BELIEF_STATES` (the first by code point is named; a member that is
+ * no string is spelled as messages spell values). The messages are Python's.
+ */
+export function checkBeliefFilter(beliefs: Iterable<unknown>): ReadonlySet<BeliefState> {
+  if (typeof beliefs === "string") {
+    throw new Error(
+      `the belief filter takes a collection of states, not the string '${beliefs}': write ['${beliefs}']`,
+    );
+  }
+  const states = new Set(beliefs);
+  const unknown = [...states]
+    .filter((state) => !(BELIEF_STATES as readonly unknown[]).includes(state))
+    .map((state) => (typeof state === "string" ? state : spell(state)))
+    .sort(compareCodePoints);
+  if (unknown.length > 0) {
+    throw new Error(
+      `'${unknown[0]}' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'`,
+    );
+  }
+  return states as ReadonlySet<BeliefState>;
+}
+
 /** The words of a provenance entry's `method`, in the schema's order; any other method is an IRI. */
 export const METHODS = ["manual", "reconciled", "imported", "inferred"] as const;
 

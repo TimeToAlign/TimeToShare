@@ -266,14 +266,7 @@ def group_groupstamp_child_member() -> TimelineGroup:
     of ``GRAPHICAL``: the timestamp "Bar 4" at quarter 2 of the child, a
     groupstamp, since the child lies in the group through its parent.
     """
-    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
-    parts.holding(
-        score,
-        parts.named(
-            ContinuousLogicalTimeline, "second-half", "Second half", Fraction(4)
-        ),
-        Fraction(4),
-    )
+    score = parts.score_with_second_half()
     performance = parts.named(
         ContinuousPhysicalTimeline, "performance", "Performance", 4.0
     )

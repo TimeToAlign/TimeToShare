@@ -1,17 +1,22 @@
 """The columns of the two table types and the cells they hold.
 
-A coordinate cell stores its number twice, as a float64 ``value`` and as an
-integer ``numerator``/``denominator`` pair, beside the ``unit`` and the
-``number_type`` of the coordinate; the number type says which side is
-authoritative: ``float`` the double, ``int`` and ``fraction`` the pair. Both
-sides are present on every non-null cell.
+A number is three members, filled by its number type and never mirrored:
+an ``int`` is its ``numerator`` alone, a ``fraction`` its ``numerator`` and
+its ``denominator`` (at least 1), a ``float`` its finite ``value`` alone;
+every other member is null. A coordinate cell of the MatchClaim table adds
+the ``unit`` and the ``number_type`` of its coordinate; a row of the
+Projections table states them once, in its own ``unit`` and ``number_type``
+columns, for its ``start`` and its ``duration``. :func:`number_cell` writes
+a number's members and :func:`coordinate_value` reads them back.
 """
 
 from __future__ import annotations
 
+import math
 from collections.abc import Mapping
 from fractions import Fraction
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 import pyarrow as pa
@@ -26,6 +31,9 @@ __all__ = [
     "COORDINATE_TYPE",
     "MATCH_CLAIM_COLUMNS",
     "MATCH_CLAIM_SCHEMA",
+    "NUMBER_KEYS",
+    "NUMBER_MEMBERS",
+    "NUMBER_TYPE",
     "PROJECTION_COLUMNS",
     "PROJECTION_OF_TYPE",
     "PROJECTION_SCHEMA",
@@ -35,21 +43,38 @@ __all__ = [
     "SCOPE_FIELD",
     "coordinate_value",
     "fixture_path",
+    "number_cell",
 ]
 
-COORDINATE_KEYS = ("value", "numerator", "denominator", "unit", "number_type")
+NUMBER_KEYS = ("numerator", "denominator", "value")
+"""The members of a number."""
+
+NUMBER_MEMBERS: Mapping[str, tuple[str, ...]] = MappingProxyType(
+    {
+        "int": ("numerator",),
+        "fraction": ("numerator", "denominator"),
+        "float": ("value",),
+    }
+)
+"""The members a number of each number type fills; the others are null."""
+
+NUMBER_TYPE = pa.struct(
+    [
+        pa.field("numerator", pa.int64()),
+        pa.field("denominator", pa.int64()),
+        pa.field("value", pa.float64()),
+    ]
+)
+"""A number: a Projection's ``start`` or ``duration``, whose row states the unit
+and the number type."""
+
+COORDINATE_KEYS = (*NUMBER_KEYS, "unit", "number_type")
 """The members of a coordinate cell."""
 
 COORDINATE_TYPE = pa.struct(
-    [
-        pa.field("value", pa.float64()),
-        pa.field("numerator", pa.int64()),
-        pa.field("denominator", pa.int64()),
-        pa.field("unit", pa.string()),
-        pa.field("number_type", pa.string()),
-    ]
+    [*NUMBER_TYPE, pa.field("unit", pa.string()), pa.field("number_type", pa.string())]
 )
-"""A coordinate (or a duration) on one timeline's axis."""
+"""A coordinate on one timeline's axis: a number with its unit and number type."""
 
 ANCHOR_TYPE = pa.struct(
     [
@@ -132,21 +157,72 @@ PROJECTION_SCHEMA = pa.schema(
     [
         pa.field("id", pa.string()),
         pa.field("timeline_id", pa.string()),
-        pa.field("start", COORDINATE_TYPE),
-        pa.field("duration", COORDINATE_TYPE),
+        pa.field("unit", pa.string()),
+        pa.field("number_type", pa.string()),
+        pa.field("start", NUMBER_TYPE),
+        pa.field("duration", NUMBER_TYPE),
         pa.field("projection_of", PROJECTION_OF_TYPE),
     ]
 )
-"""The Projections table: one row per Projection; ``duration`` null for an instant."""
+"""The Projections table: one row per Projection, its ``unit`` and
+``number_type`` stated once for its ``start`` and its ``duration``;
+``duration`` null for an instant."""
 
 MATCH_CLAIM_COLUMNS = tuple(MATCH_CLAIM_SCHEMA.names)
 PROJECTION_COLUMNS = tuple(PROJECTION_SCHEMA.names)
 
 
-def coordinate_value(cell: Mapping[str, Any]) -> Fraction:
-    """The exact value of a well-formed coordinate cell, read from its number type."""
-    if cell["number_type"] == "float":
+def number_cell(value: int | Fraction | float, number_type: str) -> dict[str, Any]:
+    """The members of a number of the number type ``number_type``.
+
+    An ``int`` takes an integer (or a Fraction whose denominator is 1), a
+    ``fraction`` an integer or a Fraction, written in lowest terms, a
+    ``float`` a finite float or an integer; a float is never written as a
+    Fraction, nor a Fraction as a float.
+
+    Raises:
+        ValueError: If ``number_type`` is no number type or ``value`` is no
+            number of it.
+    """
+    if number_type not in NUMBER_MEMBERS:
+        raise ValueError(f"'{number_type}' is no number type")
+    exact = isinstance(value, (int, Fraction)) and not isinstance(value, bool)
+    if number_type == "float":
+        if isinstance(value, float) and math.isfinite(value):
+            return {"numerator": None, "denominator": None, "value": value}
+        if isinstance(value, int) and not isinstance(value, bool):
+            return {"numerator": None, "denominator": None, "value": float(value)}
+        raise ValueError(f"a float number is a finite float, not {value!r}")
+    if not exact:
+        article = "an" if number_type == "int" else "a"
+        raise ValueError(f"{article} {number_type} number is exact, not {value!r}")
+    fraction = Fraction(value)
+    if number_type == "int":
+        if fraction.denominator != 1:
+            raise ValueError(f"an int number is an integer, not {value!r}")
+        return {"numerator": fraction.numerator, "denominator": None, "value": None}
+    return {
+        "numerator": fraction.numerator,
+        "denominator": fraction.denominator,
+        "value": None,
+    }
+
+
+def coordinate_value(
+    cell: Mapping[str, Any], number_type: str | None = None
+) -> Fraction:
+    """The exact value of a well-formed number, read from its number type.
+
+    Args:
+        cell: A coordinate cell, or a Projection's ``start`` or ``duration``.
+        number_type: The number type the row states, for a Projection's
+            number; ``None`` reads the cell's own ``number_type``.
+    """
+    kind = cell["number_type"] if number_type is None else number_type
+    if kind == "float":
         return Fraction(cell["value"])
+    if kind == "int":
+        return Fraction(cell["numerator"])
     return Fraction(cell["numerator"], cell["denominator"])
 
 

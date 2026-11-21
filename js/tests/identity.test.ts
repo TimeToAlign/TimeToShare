@@ -1112,6 +1112,16 @@ describe("identity", () => {
     }
   });
 
+  it("accepts any ID for a named timestamp", () => {
+    const value = stamped([
+      stamp("timestamp_3kq9x0m2ztb7a", "score", [1, 1]),
+      stamp("Bar 2", "score", [2, 1]),
+      stamp("timestamp_01", "verse", [1, 1]),
+    ]);
+    expect(problems(value)).toEqual([]);
+    validate(value);
+  });
+
   it("holds a named timestamp to name a timeline", () => {
     expect(only(stamped([stamp("timestamp_1", "ghost", [1, 1])]))).toEqual([
       ["graphical", "timestamps", 0, "timeline"],
@@ -1187,9 +1197,6 @@ describe("identity", () => {
   });
 
   it.each([
-    ["zero", stamp("timestamp_0", "score", [1, 1]), ["graphical", "timestamps", 0, "id"]],
-    ["leading zero", stamp("timestamp_01", "score", [1, 1]), ["graphical", "timestamps", 0, "id"]],
-    ["other prefix", stamp("clt_1", "score", [1, 1]), ["graphical", "timestamps", 0, "id"]],
     [
       "empty name",
       stamp("timestamp_1", "score", [1, 1], ""),

@@ -29,10 +29,16 @@ quarter lasts one second, 44100 samples) and one child of the first:
 - ``claim_13``: a row one actor believes false and another true; ``claim_6``
   is believed unlikely, ``claim_1`` and ``claim_11`` true.
 - ``claim_15``: a child timeline, whose coordinates never meet its parent's.
+
+A number is written by its number type alone (``numerator`` for an int,
+``numerator`` and ``denominator`` for a fraction, ``value`` for a float), the
+other members null; a Projection's row states the unit and the number type
+of its ``start`` and ``duration`` once.
 """
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import subprocess
 import sys
@@ -43,7 +49,7 @@ from typing import Any
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from timetoshare import SCHEMA_VERSION, dumps, validate, with_file_ids
+from timetoshare import FORMAT_CONTEXT, SCHEMA_VERSION, dumps, validate, with_file_ids
 from timetoshare.tables import (
     MATCH_CLAIM_SCHEMA,
     PROJECTION_SCHEMA,
@@ -57,6 +63,9 @@ TABLE_DIR = REPOSITORY_ROOT / "fixtures" / "tables" / SCHEMA_VERSION
 ACTOR = "https://orcid.org/0000-0002-1825-0097"
 """The actor whose beliefs the filter cases read."""
 
+ACTOR_COMPACT = "orcid:0000-0002-1825-0097"
+"""``ACTOR`` as a compact IRI under the manifest's ``@context``."""
+
 OTHER_ACTOR = "https://orcid.org/0000-0001-5109-3700"
 SERVICE = "https://example.org/aligner"
 DATE = "2026-11-20"
@@ -64,6 +73,7 @@ LATER = "2026-11-21"
 
 MANIFEST: dict[str, Any] = {
     "timetoshare": SCHEMA_VERSION,
+    "@context": {**copy.deepcopy(FORMAT_CONTEXT), "orcid": "https://orcid.org/"},
     "timelines": [
         {
             "id": "clt_1",
@@ -77,7 +87,8 @@ MANIFEST: dict[str, Any] = {
         {"id": "cpt_1", "unit": "seconds", "length": 16.0},
     ],
 }
-"""The manifest without its resources, IDs bare as in memory."""
+"""The manifest without its resources, IDs bare as in memory; its ``@context``
+declares the prefix ``orcid``, under which the filter cases read actors."""
 
 PARQUET = "application/vnd.apache.parquet"
 
@@ -115,9 +126,9 @@ def manifest(directory: Path = TABLE_DIR) -> dict[str, Any]:
 def quarters(numerator: int, denominator: int = 1) -> dict[str, Any]:
     value = Fraction(numerator, denominator)
     return {
-        "value": float(value),
         "numerator": value.numerator,
         "denominator": value.denominator,
+        "value": None,
         "unit": "quarters",
         "number_type": "fraction",
     }
@@ -125,20 +136,19 @@ def quarters(numerator: int, denominator: int = 1) -> dict[str, Any]:
 
 def samples(value: int) -> dict[str, Any]:
     return {
-        "value": float(value),
         "numerator": value,
-        "denominator": 1,
+        "denominator": None,
+        "value": None,
         "unit": "samples",
         "number_type": "int",
     }
 
 
 def seconds(value: float) -> dict[str, Any]:
-    numerator, denominator = value.as_integer_ratio()
     return {
+        "numerator": None,
+        "denominator": None,
         "value": value,
-        "numerator": numerator,
-        "denominator": denominator,
         "unit": "seconds",
         "number_type": "float",
     }
@@ -339,11 +349,21 @@ def _projection(
     of: tuple[str, str] | None,
     duration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """A Projection row from coordinate cells: the row states their unit and
+    number type once, and ``start`` and ``duration`` hold the numbers."""
+
+    def members(cell: dict[str, Any] | None) -> dict[str, Any] | None:
+        if cell is None:
+            return None
+        return {key: cell[key] for key in ("numerator", "denominator", "value")}
+
     return {
         "id": f"projection_{number}",
         "timeline_id": timeline,
-        "start": start,
-        "duration": duration,
+        "unit": start["unit"],
+        "number_type": start["number_type"],
+        "start": members(start),
+        "duration": members(duration),
         "projection_of": None
         if of is None
         else {"timeline_id": of[0], "event_id": of[1]},
@@ -416,7 +436,7 @@ S_13_ALONE = s([c("clt_1", [10, 1]), c("dpt_1", 441000)], "claim_13")
 S_5_WITHOUT_6 = s([c("clt_1", [4, 1]), c("dpt_1", 176400)], "claim_5")
 S_6_ALONE = s([c("cpt_1", 4.0), c("dpt_1", 176400)], "claim_6")
 
-NOT_FALSE = ["true", "undecided", "unlikely"]
+EVERY_STATE_BUT_FALSE = ["true", "undecided", "unlikely"]
 """The default belief filter: every state but ``"false"``."""
 
 EVERY_ANCHOR = [
@@ -440,7 +460,7 @@ EXPECTED: dict[str, Any] = {
     "cases": [
         {
             "believer": None,
-            "beliefs": NOT_FALSE,
+            "beliefs": EVERY_STATE_BUT_FALSE,
             "alignment_anchors": EVERY_ANCHOR,
             "potential_matchstamps": [
                 S_1,
@@ -458,7 +478,7 @@ EXPECTED: dict[str, Any] = {
         },
         {
             "believer": ACTOR,
-            "beliefs": NOT_FALSE,
+            "beliefs": EVERY_STATE_BUT_FALSE,
             "alignment_anchors": [
                 anchor for anchor in EVERY_ANCHOR if anchor is not A_11
             ],
@@ -510,10 +530,18 @@ EXPECTED: dict[str, Any] = {
             "alignment_anchors": [A_11, A_13],
             "potential_matchstamps": [S_13_ALONE, S_6_ALONE],
         },
+        {
+            "believer": ACTOR_COMPACT,
+            "beliefs": ["true"],
+            "alignment_anchors": [A_1, A_14],
+            "potential_matchstamps": [S_1, S_10_WITHOUT_13],
+        },
     ]
 }
 """Per filter case, the unique anchors (each with the MatchClaims stating it)
-and the potential MatchStamps, in the derivation's sorted order."""
+and the potential MatchStamps, in the derivation's sorted order. Every case
+reads actors under the manifest's ``@context``: the last names ``ACTOR``
+compactly, the rows absolutely, and keeps what the third keeps."""
 
 
 def match_claims_table() -> pa.Table:

@@ -172,13 +172,15 @@ rejection cases that use them (`test_schema.py`):
   JavaScript's `RegExp`, so a definition that needs to refuse control
   characters says so with an unanchored `not`, never with an anchored
   class: `Id` is a string of `minLength` 1 whose `not` refuses U+0000 to
-  U+001F, and an entry of an `Order` has the same two keywords. The four
-  patterns that still end in `$`, a named timestamp's `id`, `Paint`,
-  `stroke-dasharray` and a provenance entry's `date`, are exactly those
-  the document holds, and each refuses a value it accepts (`timestamp_1`,
-  `none`, `4 2`, `2026-11-17`) once a
-  newline follows it, through `Id`'s `not`, a `not` of its own or its
-  `maxLength`; an `Order` refuses `["line\n"]`. The JavaScript suite
+  U+001F, and an entry of an `Order` has the same two keywords. The five
+  patterns that still end in `$`, `Paint`, `stroke-dasharray`, a
+  provenance entry's `date`, a resource's `media_type` and its
+  integrity's `digest`, are exactly those the document holds, and each
+  refuses a value it accepts (`none`, `4 2`, `2026-11-17`,
+  `application/vnd.apache.parquet`, `00ff`) once a newline follows it; no
+  ID has a pattern of its own (a named timestamp's, a resource's, a
+  MatchStamp's and an anchor's are any `Id`); an `Order` refuses
+  `["line\n"]`. The JavaScript suite
   asserts the same values, so the two validators cannot part on a
   trailing newline.
 - **Defaults agree with the table.** For every kind of `DEFAULTS` the
@@ -521,7 +523,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 176 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 172 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the thirty of the table, so every code is reached by a case both
@@ -573,14 +575,14 @@ group, a prefix on the manifest, `@context` on a timeline, `children` on a
 region (`reserved_key`).
 `id_control_character_trailing_newline` names its one root `score`
 followed by a newline and is refused at that `id` (`schema`), the case on
-which an anchored pattern would part the two validators. The five
+which an anchored pattern would part the two validators. The four
 cases of named timestamps break one rule each of the manifest `score` (8
 quarters) with the child `verse` (4 at 2): a timestamp on `ghost`
 (`timestamp_timeline` at its `timeline`), at `[5, 1]` on `verse`
 (`timestamp_coordinate`, beyond the child's own length 4, though within
 its parent), at `[-1, 1]` on `score` (`timestamp_coordinate`), with the ID
 `timestamp_1` of a timeline (`duplicate_id` at the timestamp's `id`, first
-at the timeline's), and with the ID `timestamp_01` (`schema` at its `id`).
+at the timeline's).
 Two more break the schema's `display` of a timestamp on `score`:
 `timestamp_display_unknown` states `["wedge", "flag"]` (`schema` at
 `display/1`, the word outside the enum) and `timestamp_display_repeated`
@@ -740,9 +742,10 @@ documents that bound each rule from the other side:
   timestamp's is one `duplicate_id` at the timestamp's `id`, and the
   manifest ID equal to a timestamp's one `manifest_id`. A coordinate on a
   float axis is compared exactly (`60.5` beyond `60.0`), as is a fraction
-  (`[17, 2]` beyond `[8, 1]`, `[16, 2]` not). The schema refuses an ID
-  `timestamp_0`, `timestamp_01` or `clt_1`, an empty `name`, a `name`
-  null and a timestamp without `coordinate`, each at that member (the
+  (`[17, 2]` beyond `[8, 1]`, `[16, 2]` not). A timestamp's ID is any
+  ID: `timestamp_3kq9x0m2ztb7a`, `Bar 2` and `timestamp_01` are accepted.
+  The schema refuses an empty `name`, a `name` null and a timestamp
+  without `coordinate`, each at that member (the
   missing member at the timestamp). `display` passes as `[]`, as `["id"]`,
   as all five in canonical order and as all five reversed (the order
   carries no meaning); the schema refuses `"wedge"` (not an array) at
@@ -815,10 +818,9 @@ named timestamps, in `validation/timestamps.py`. What proves them:
   at timestamps 10 and 10.
 - **The MatchStamps alone** (`test_validate.py`). `matchstamp_problems`,
   for a reader that keeps the rest of `graphical` unread, returns for each
-  of the twelve MatchStamp rejection cases a first problem equal, code, path
+  of the ten MatchStamp rejection cases a first problem equal, code, path
   and message, to the one `validate` raises: the schema of
-  `graphical.matchstamps` (`matchstamp_id_malformed`,
-  `alignment_anchor_id_malformed`, `alignment_anchor_display_unknown`,
+  `graphical.matchstamps` (`alignment_anchor_display_unknown`,
   `matchstamp_claims_repeated`), an ID of a MatchStamp or an anchor
   repeated (`alignment_anchor_id_repeated`), then the rules, the match
   timestamp marked a groupstamp (`groupstamp_match_timestamp`) among them. It returns
@@ -923,7 +925,17 @@ nine prefixes it uses. What proves the package (`test_statements.py`):
   `belief`, the words `true`, `false` and `unlikely` its `True`, `False`
   and `Unlikely`, and
   `status`, `confirmed`, `proposed` and `rejected` are no term; `BELIEFS`
-  is `("true", "false", "unlikely")`, strings; `METHODS`
+  is `("true", "false", "unlikely")`, strings; `BELIEF_STATES`, the states
+  of the belief filter, is `("true", "undecided", "unlikely", "false")` and
+  `DEFAULT_BELIEFS` its first three; `check_belief_filter` returns the
+  states of a collection, in any order, empty included, and refuses a
+  single string (`the belief filter takes a collection of states, not the
+  string 'true': write ['true']`) and an unknown word, naming the first by
+  code point (`'not_false' is no belief state: write 'true', 'undecided',
+  'unlikely' or 'false'` for `["true", "zzz", "not_false"]`), a member
+  that is no string spelled as messages spell values (`'1'` for `1`,
+  `'true'` for the boolean); the JavaScript package's `checkBeliefFilter`
+  gives the same messages for the same inputs; `METHODS`
   and `MATCHES` are the schema's enums in its order; `BLANK` is the class
   the schema's `Iri` refuses.
 - **Expanding an IRI.** Under M2's context `type` is `rdf:type`'s IRI,
@@ -1241,9 +1253,9 @@ each statement fixture and its twin:
    the check cannot pass on nothing, the number of entries it checks is
    exact, in both forms: 2 of the DJ set's segment, 3 of the LayerIt
    recording, 2 of the Nielsen record, none of the Op. 106 work (which
-   holds no such entry); the `proposed` and `rejected` entries it passes
-   over, their value a node with more than an `id`, a value object or an
-   ordered value, are 1, 0, 3 and 0;
+   holds no such entry); the candidates it passes over, their value a node
+   with more than an `id`, a value object or an ordered value, are 1, 0, 3
+   and 0;
 5. the number of distinct subjects of `rdf:subject` equals the number of
    provenance entries in the fixture: each entry is one reified statement.
 
@@ -1799,12 +1811,14 @@ extraction's are without fontTools. What proves them:
   this order, `timeline_a_id`, `timeline_b_id`, `start_anchor`,
   `end_anchor`, `is_synchronous`, `provenance`, `certainty`,
   `event_a_id`, `event_a_name`, `event_b_id`, `event_b_name`, `id`;
-  `PROJECTION_COLUMNS` `id`, `timeline_id`, `start`, `duration`,
-  `projection_of`. `SCOPE_FIELD` is the optional key column `scope`
-  (strings), declared outside `MATCH_CLAIM_COLUMNS` since a table of one
-  scope has none. A coordinate cell is the struct `value` (float64),
-  `numerator`, `denominator` (int64), `unit`, `number_type` (strings); an
-  anchor the struct `coordinate_a`, `coordinate_b`, its timelines the
+  `PROJECTION_COLUMNS` `id`, `timeline_id`, `unit`, `number_type`,
+  `start`, `duration`, `projection_of`. `SCOPE_FIELD` is the optional key
+  column `scope` (strings), declared outside `MATCH_CLAIM_COLUMNS` since a
+  table of one scope has none. A number is the struct `numerator`,
+  `denominator` (int64), `value` (float64), the type of a Projection's
+  `start` and `duration`; a coordinate cell is a number followed by `unit`
+  and `number_type` (strings); an anchor the struct `coordinate_a`,
+  `coordinate_b`, its timelines the
   row's `timeline_a_id` and `timeline_b_id` (an anchor cell holding the
   timeline IDs as well is another type, `schema_violation`);
   `projection_of` the struct `timeline_id`, `event_id`. The
@@ -1819,6 +1833,20 @@ extraction's are without fontTools. What proves them:
   belief struct for `beliefs`, of strings otherwise), every other member a
   string; `belief` is one of `timetoshare.BELIEFS`, the strings `true`,
   `false`, `unlikely`, the schema's enum.
+- **A number holds its number type's members alone.** `NUMBER_MEMBERS`
+  gives an `int` the `numerator`, a `fraction` the `numerator` and the
+  `denominator`, a `float` the `value`; every other member is null, so no
+  value is stated twice. `number_cell` writes 3 on an int axis as
+  `(3, null, null)`, `Fraction(3, 6)` and the integer 2 on a fraction axis
+  as `(1, 2, null)` and `(2, 1, null)`, 0.25 and the integer 2 on a float
+  axis as `(null, null, 0.25)` and `(null, null, 2.0)`, and refuses a
+  float on an int or fraction axis, a Fraction on a float axis, a
+  non-integral Fraction or the boolean `true` on an int axis, a non-finite
+  float and an unknown number type, each with its exact message.
+  `coordinate_value` reads each pattern back to the exact value (`3`,
+  `1/2`, `1/4`, a float as its exact binary value), from the cell's own
+  `number_type` or from the one given for a Projection's number, and
+  reads nothing from a member its number type leaves null.
 - **Each rule refuses its smallest counterexample and nothing else.** A
   valid table of a few rows is built inline; each rule is proved by
   changing one cell (or one column type) and asserting the exact list of
@@ -1839,9 +1867,13 @@ extraction's are without fontTools. What proves them:
   timelines is no problem; a `scope` column of another type than string
   (`schema_violation`); an empty scope or one with a control character
   (`invalid_id` at `scope`); a
-  coordinate cell with an unknown unit or number type, a null side, a
-  denominator below 1, an `int` cell with a denominator other than 1, a
-  non-finite float (`invalid_coordinate`); a row naming no event
+  coordinate cell with an unknown unit or number type, without a member
+  its number type fills (an int without `numerator`, a fraction without
+  `denominator`, a float without `value`), with a member its number type
+  leaves null (an int with a `denominator` or a `value`, a fraction with a
+  `value`, a float with a `numerator`: the mirror a former cell carried is
+  refused), a fraction's denominator below 1, a non-finite float
+  (`invalid_coordinate`, with the message naming the member); a row naming no event
   (`claim_events`); both timelines the same (`claim_timelines`); NOMATCH (one event null) that is
   synchronous or has an anchor, a conceptual row (two events, not
   synchronous) with an anchor, a synchronous row without `start_anchor`,
@@ -1859,29 +1891,39 @@ extraction's are without fontTools. What proves them:
   date of the entry or of a belief that is no Gregorian calendar day
   (`2026-02-30`, the manifest's message); then an actor holding two
   beliefs (`'<actor>' already holds belief 0 of this entry; an actor holds
-  one belief`, the manifest's message) (`invalid_provenance`); the file's
+  one belief`, the manifest's message), against a manifest also the actor
+  written once compactly (`orcid:…`, under a `@context` declaring
+  `orcid`) and once absolutely, which without the manifest, its context
+  unknown, is no problem (`invalid_provenance`); the file's
   provenance that is no JSON text, no object, or whose members have the
   wrong type (`{"beliefs": "x"}`, `{"date": 5}`, `{"stated_by": 5}`) is
   reported, never raised; provenance stated both in the file's
   metadata (`timetoshare:provenance`) and in a row (`invalid_provenance`);
   one timeline's cells in two units or number types within a table
   (`axis_mismatch`); a Projection whose `projection_of` lacks a member or
-  names its own timeline (`invalid_projection_of`), whose `duration` is
-  negative or not on its start's axis (`invalid_duration`, `axis_mismatch`),
+  names its own timeline (`invalid_projection_of`), whose row's `unit` or
+  `number_type` is null (`schema_violation`) or unknown
+  (`invalid_coordinate` at that column), whose `start` or `duration`
+  breaks the number rule of the row's number type (`invalid_coordinate`
+  at that column), whose `duration` is negative (`invalid_duration`), two
+  Projections of one timeline whose rows state two units
+  (`axis_mismatch` at `unit`) or two number types (at `number_type`),
   and a `projection_of` column holding a joined string
   (`schema_violation`).
 - **Against a manifest.** Given a manifest (as read from its file), every
   timeline a cell or a row names exists (`unknown_timeline`) and every
-  cell is in its timeline's own unit and number type (`axis_mismatch`):
-  seconds on a samples timeline and a float on a fraction axis are
-  refused, the same cells without a manifest are not.
+  cell, every Projection's row, is in its timeline's own unit and number
+  type (`axis_mismatch`): seconds on a samples timeline and a float on a
+  fraction axis are refused, the same cells and rows without a manifest
+  are not.
 - **The succession rule.** `check_succession(old, new)` accepts the same
   table, the table with rows appended and the table with every provenance
   changed (a belief added); it refuses a missing ID (`succession_missing`)
   and a change to any other column, an anchor moved, an event renamed, a
   timeline swapped (`succession_changed`, naming the column). A coordinate
-  is compared by unit, number type and exact value, so a cell whose float
-  mirror alone differs is the same coordinate; an anchor's coordinates
+  is compared by unit, number type and exact value, so the quarter 1
+  written as `(1, 1, null)` and as `(2, 2, null)` is the same coordinate;
+  an anchor's coordinates
   are compared side by side, `coordinate_a` on the row's
   `timeline_a_id`. A MatchClaim is its scope
   and its ID: a table of two scopes holding `claim_1` each is succeeded by
@@ -1897,9 +1939,15 @@ extraction's are without fontTools. What proves them:
   filter keeps (no believer, every state but `false`, the default; an
   actor's default; that actor's `true`; a second actor's `true`; the
   first actor's `undecided`, the rows the actor holds no belief in; the
-  first actor's `unlikely` and `false` together) `alignment_anchors` (each
+  first actor's `unlikely` and `false` together; the first actor's `true`
+  again, the believer written compactly as `orcid:0000-0002-1825-0097`
+  while every row writes the actor absolutely) `alignment_anchors` (each
   anchor with the MatchClaims stating it) and `potential_matchstamps`
-  equal the expected values exactly, as exact fractions. The fixture covers an instant claim, an interval
+  equal the expected values exactly, as exact fractions, every case read
+  under the fixture manifest's `@context`, which declares `orcid` as
+  `https://orcid.org/`; the compact case keeps exactly what the absolute
+  one does, and without that context it would keep nothing, so the
+  shared file pins the comparison of actors as IRIs for every reader. The fixture covers an instant claim, an interval
   claim (two anchors), two MatchClaims stating one anchor in opposite
   orientations, a chain over three timelines, one coordinate in two
   anchors, an interval claim with an anchor inside its span, a Projection
@@ -1910,10 +1958,11 @@ extraction's are without fontTools. What proves them:
   splits the chain it closes) and a child timeline whose coordinates never
   meet its parent's. Without an actor the row believed false still gives
   its anchor.
-- **The belief filter takes the four states.** `BELIEF_STATES` is
-  `("true", "undecided", "unlikely", "false")` and `DEFAULT_BELIEFS` the
-  first three, the default of `believed_rows`, `alignment_anchors` and
-  `potential_matchstamps`. A row's state for a believer is the believer's
+- **The belief filter takes the four states.** The states and the check of
+  a filter are the package's (`timetoshare.BELIEF_STATES`,
+  `DEFAULT_BELIEFS`, `check_belief_filter`, proved under Statements);
+  `DEFAULT_BELIEFS` is the default of `believed_rows`, `alignment_anchors`
+  and `potential_matchstamps`, which raise its messages. A row's state for a believer is the believer's
   belief in it, or `undecided` where the believer holds none (a row
   without provenance included); the row is kept when that state is one
   the filter names. `believed_rows` keeps, per believer and collection of
@@ -1928,7 +1977,15 @@ extraction's are without fontTools. What proves them:
   `orcid:0000-0002-1825-0097` under a context declaring `orcid` as
   `https://orcid.org/` keeps the rows of the absolute actor, and keeps
   none of its `true` rows without that context (it then compares as
-  written).
+  written). A row holding beliefs of one believer under two spellings,
+  which only a check without the manifest lets pass, takes the most
+  critical of them, `false` before `unlikely` before `true`: a row
+  believed `true` by `orcid:0000-0002-1825-0097` and `false` by
+  `https://orcid.org/0000-0002-1825-0097` is `false` for that believer
+  under the context, whichever is written first, and kept by `["false"]`
+  alone; `unlikely` beside `true` is `unlikely`; without the context the
+  two spellings are two actors and the absolute believer reads its own
+  belief alone.
 - **The fixture files are the script's.** The two Parquet files read back
   equal to the tables the script builds, the manifest equal to the
   script's manifest of the files written, and both tables pass every

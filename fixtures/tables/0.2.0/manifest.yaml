@@ -1,11 +1,67 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  orcid: "https://orcid.org/"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 resources:
   -
     id: "#resource_1"
     integrity:
       algorithm: SHA-256
-      digest: "66f4fd399c5a8317c3c81f463c487cc826c5b828e2794100527a0f1440eefbcc"
+      digest: "78d8f047fe55658b6d8aac85563dafc4e6ebf45e3e7526f4572d6f7acecce154"
     media_type: application/vnd.apache.parquet
-    size: 14087
+    size: 13619
     timelines: ["#clt_1", "#clt_2", "#dpt_1", "#cpt_1"]
     type: MatchClaim
     url: match_claims.parquet
@@ -13,9 +69,9 @@ resources:
     id: "#resource_2"
     integrity:
       algorithm: SHA-256
-      digest: "690812c7412189c51e69053dbe37799eb324a526fed8a4ed26b139777b5461c3"
+      digest: "36eb9db2f5e7bea3edd976a7c271512a35ae18fa5a72c879cb4b0b6d918dbcc6"
     media_type: application/vnd.apache.parquet
-    size: 4570
+    size: 3717
     timelines: ["#dpt_1", "#cpt_1"]
     type: Projection
     url: projections.parquet

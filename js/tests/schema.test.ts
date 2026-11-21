@@ -39,15 +39,11 @@ const PUBLIC = [
 
 /** Every node whose pattern ends in `$`, by its path below `$defs`, with a value its pattern accepts. */
 const ANCHORED: [string[], string][] = [
-  [["Timestamp", "properties", "id"], "#timestamp_1"],
   [["Paint"], "none"],
   [["Declaration", "properties", "stroke-dasharray"], "4 2"],
   [["CalendarDate"], "2026-11-17"],
-  [["Resource", "properties", "id"], "#resource_1"],
   [["Resource", "properties", "media_type"], "application/vnd.apache.parquet"],
   [["Resource", "properties", "integrity", "properties", "digest"], "00ff"],
-  [["MatchStamp", "properties", "id"], "#matchstamp_1"],
-  [["AlignmentAnchor", "properties", "id"], "#anchor_1"],
 ];
 
 const MAP_TYPES = [

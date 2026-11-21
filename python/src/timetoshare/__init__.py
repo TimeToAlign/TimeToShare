@@ -40,13 +40,17 @@ from .ids import FileIdError, from_file_id, to_file_id, with_bare_ids, with_file
 from .manifest import ANCHOR_DISPLAY, TIMESTAMP_DISPLAY, canonical_order
 from .serialization import SERIALIZATIONS, dumps, loads, serialization_of
 from .statements import (
+    BELIEF_STATES,
     BELIEFS,
     BLANK,
+    DEFAULT_BELIEFS,
     FORMAT_CONTEXT,
     MATCHES,
     METHODS,
     NAMESPACE,
+    BeliefState,
     candidates,
+    check_belief_filter,
     compact_iri,
     entries,
     expand_iri,
@@ -85,9 +89,11 @@ from .validate import (
 
 __all__ = [
     "ANCHOR_DISPLAY",
+    "BELIEF_STATES",
     "BELIEFS",
     "BLANK",
     "DEFAULTS",
+    "DEFAULT_BELIEFS",
     "FONT_FILES",
     "FORMAT_CONTEXT",
     "MATCHES",
@@ -107,8 +113,10 @@ __all__ = [
     "SchemaValidationError",
     "UnsupportedVersionError",
     "WarningCode",
+    "BeliefState",
     "candidates",
     "canonical_order",
+    "check_belief_filter",
     "child_ends",
     "compact_iri",
     "complete",
