@@ -201,6 +201,7 @@ CATALOGUE = (
         groups.group_groupstamp_child_member,
         "group_1",
     ),
+    _group("group_child_member_stamps", groups.group_parent_both, "group_1"),
     _bundle("bundle_mixed", bundles.bundle_mixed),
     _bundle("bundle_shared_parent", bundles.bundle_shared_parent),
     _bundle("bundle_ungrouped", bundles.bundle_ungrouped),

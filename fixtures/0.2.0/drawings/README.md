@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Thirty-four of the 84 drawings in this directory are derived by hand from
+Thirty-six of the 90 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the metrics table
 of its two fonts alone. Their `figure.svg` files are never regenerated:
 the emitting script compares each with its writer's output instead. Every
@@ -58,11 +58,13 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `label_float_rounding` | `label_float_rounding.yaml` | none |
 | `timestamps` | `timestamps.yaml` | none (each named timestamp's own `display` chooses what it draws) |
 | `bundle__bundle_matchstamp_cards` | `bundles/bundle_matchstamp_cards.yaml` | none (the manifest's own `graphical` object names its MatchStamps) |
+| `map_band_order_subset` | `map_band_order_subset.yaml` | none (the manifest's own `graphical` object orders the bands of `melody`) |
+| `group__group_child_member_stamps` | `groups/group_child_member_stamps.yaml` | none (the manifest's own `graphical` object names its timestamps and its MatchStamp) |
 
 ## Shared quantities
 
-Every manifest is drawn as one block (§8). Twenty-six of these drawings show
-one ungrouped root, drawn in its card, four one group, drawn as a frame,
+Every manifest is drawn as one block (§8). Twenty-seven of these drawings show
+one ungrouped root, drawn in its card, five one group, drawn as a frame,
 `bundle_ungrouped__places`, `bundle_ungrouped__scale` and
 `bundle_ungrouped__spacing` three ungrouped roots, each in its own card,
 and `bundle__bundle_matchstamp_cards` two groups sharing a member, each
@@ -1625,3 +1627,130 @@ two equally short lines.
   edge beyond the cards' shadows at 527.83056640625; `H` = 190.96484375 +
   154.16015625 + 8 = 353.125.
 - Page 573.83056640625 × 385.125 → **573.8306 × 385.125**.
+
+## `map_band_order_subset`
+
+The manifest of `map` with the band order `["markers", "line"]` for the
+root `melody` in its `graphical.order`, which lists two of the six
+entries. Completed against the default order (§6.4, The band order), the
+facets it leaves out keep their side and lie beyond the listed ones:
+`children`, `conversion_maps`, `markers`, `line`, `regions`,
+`flow_control`. `phrase` has no entry, so it follows that completed order.
+The markers band of `melody` so lies against its line above it, the map
+`tempo` beyond it, and the children band beyond both.
+
+- As in `map`: `N` = 39.53662109375, `x0` = 16 + 39.53662109375 + 8 =
+  63.53662109375 → 63.5366, `R` = the arrowhead tip 472.53662109375, beyond
+  the end of `length`'s label `8 ♩` at 463.53662109375 + 6.416015625 =
+  469.95263671875.
+- Above `melody`'s line, outwards (§6.4, Levels): the markers band at level
+  1 from `c` = 0, 26.9765625 wide (Shared quantities), so its wedges' tips
+  lie 1.5 above the line and their bases 14.5 above it; the conversion maps
+  band at level 2 from `c0` = 26.9765625 + 4 = 30.9765625, `tempo` in slot 1
+  centred `c0 + w / 2 + (g + d) − d / 2` = 30.9765625 + 1.5 + 5 − 1 =
+  36.4765625 above the line, its outline from 35.4765625 to 37.4765625,
+  the band `e` = 6.5 wide and so ending at 37.4765625; the children band at
+  level 3 from max(37.4765625 + 4, `p0 / 2` = 7) = 41.4765625.
+- `phrase` lies in that band's row 1. Its own order puts its conversion
+  maps band above its line; its markers band, holding no named timestamp,
+  is absent, so the map band lies at level 1 from `c` = 0, `ticks`
+  centred 5.5 above its line and reaching 6.5. Below its line nothing is
+  present. The row's inner half, towards `melody`'s line, is max(7, 0) = 7
+  and its outer half max(7, 6.5) = 7, so `phrase`'s line lies 41.4765625 +
+  7 = 48.4765625 above `melody`'s, and `Ea` = 41.4765625 + 14 =
+  55.4765625.
+- Below `melody`'s line nothing is present: its map stack lies above, so
+  `Eb` = 0 and the name's half slot `h(11) / 2` = 6.40234375 sets the
+  content below the line (§6.5).
+- `y_root` = max(8 + 55.4765625, 8 + 6.40234375) = 63.4765625 and `Hm` =
+  63.4765625 + max(0, 6.40234375) + 8 = 77.87890625 → 77.8789.
+- Drawn, from the card's top at 8:
+  - `melody`'s line at 71.4765625 → 71.4766, its arrowhead from 66.9765625
+    to 75.9765625;
+  - the wedges of `origin` and `length` from their tips at 69.9765625 →
+    69.9766 to their bases at 56.9765625 → 56.9766;
+  - their labels' line starts 1.5 + 13 + 2 = 16.5 above the line, and the
+    baseline lies `d(9)` beyond that start: at 71.4765625 − 16.5 −
+    2.12255859375 = 52.85400390625 → 52.854;
+  - `tempo`'s outline from 34 to 36;
+  - `phrase`'s line at 23, the outline of `ticks` from 16.5 to 18.5, as in
+    `map`;
+  - the names' baselines, centred on their lines with `(a(11) − d(11)) /
+    2` = 3.80810546875: `Melody` at 75.28466796875 → 75.2847, `Phrase` at
+    26.80810546875 → 26.8081.
+- `W` = 8 + 482.53662109375 = 490.53662109375; `H` = 8 + (8 + 77.87890625
+  + 2) = 95.87890625, the card's shadow included.
+- Page 522.53662109375 × 127.87890625 → **522.5366 × 127.8789**.
+
+## `group__group_child_member_stamps`
+
+The group "Middle" of `group_parent_both` in the display order `middle`,
+`recording`: the child `middle` (8 quarters at 4) of the piece `piece` (16
+quarters), and the root `recording` (10.0 seconds). The member `middle`
+carries the ancestor line of `piece`, which runs on to both sides. Three
+timestamps on the members draw their cross-section lines alone: `timestamp_1`
+"Bar 2" at 2 on `middle`, and the match timestamps `timestamp_2` at 4 on
+`middle` and `timestamp_3` at 5.0 on `recording`, which the anchor
+`anchor_1` of the MatchStamp "Middle, bar 3" joins, its name drawn. The
+drawing proves that a child member's cross-section lines reach up to its
+outermost displayed ancestor line (§6.6, Cross-section lines) and that an
+anchor attaches to such a line's segment (§8.7).
+
+- `xn` = 24 (a frame). `N` = w(`Recording`, 11) = 55.70361328125 (10371
+  advances), of `Middle` (36.33544921875), `Recording` and `Piece` (at
+  size 9, 23.9501953125).
+- `x0` = the chevron term `xn + N + G' + 8 × wa` = 24 + 55.70361328125 + 8
+  + 24 = 111.70361328125 → 111.7036, `piece` starting at −4 on `middle`'s
+  axis (§8.3); the centred labels give less. `L` = 400 over each member's
+  length, so a quarter `q` of `middle` lies at `x0 + 50q` and a second `t`
+  of `recording` at `x0 + 40t`.
+- `R` = the tip of the outer right chevron of `piece`, `x0 + L + 8w` =
+  535.70361328125, since `piece` ends at 12 on `middle`'s axis, beyond its
+  length 8; the end label `12 ♩` (4223 advances, 18.55810546875 wide) ends
+  at 511.70361328125 + 9.279052734375 = 520.982666015625, and the
+  arrowhead tip of `recording` at 520.70361328125. Each card is
+  535.70361328125 − 8 = 527.70361328125 → 527.7036 wide and the frame
+  535.70361328125 + 8 = 543.70361328125 → 543.7036.
+- The member drawing of `middle`: no band above its line, so its ancestor
+  band starts at max(`p0 / 2` = 7, max(0, 1.5) + 4) = 7 (§8.3); its one
+  row, `piece`, has the inner half 7, so `piece`'s ancestor line lies 7 +
+  7 = 14 above `middle`'s, and the outer half 1.5 + 13 + 2 + 10.4765625 =
+  26.9765625 (the marks and their labels' one tier), so `Ea` = 7 + 7 +
+  26.9765625 = 40.9765625. `y_root` = 8 + 40.9765625 = 48.9765625 and `Hm`
+  = 48.9765625 + 26.9765625 + 8 = 83.953125, as in
+  `group__group_child_member`. `recording`: `y_root` = 8 + 6.40234375 =
+  14.40234375 and `Hm` = 49.37890625.
+- The frame (§8.4) starts at 8 and is 8 + 12.8046875 + 4 + 83.953125 + 8
+  + 49.37890625 + 8 = 174.13671875 high; `middle`'s card starts at 8 + 8
+  + 12.8046875 + 4 = 32.8046875 → 32.8047, `recording`'s at 32.8046875 +
+  83.953125 + 8 = 124.7578125 → 124.7578.
+- Drawn: `middle`'s line at 32.8046875 + 48.9765625 = 81.78125 → 81.7812,
+  `piece`'s ancestor line at 67.78125 → 67.7812, `recording`'s line at
+  124.7578125 + 14.40234375 = 139.16015625 → 139.1602.
+- The cross-section lines (§6.6): `middle` is the root of a member drawing
+  with an ancestor band and has neither a children band nor a conversion
+  maps band, so each line on it runs from the ordinate of its outermost
+  displayed ancestor line, `piece`'s at 67.78125, to its own line at
+  81.78125, crossing the ancestor line and not reaching its marks:
+  `timestamp_1` at `x0 + 100` = 211.70361328125 → 211.7036 and
+  `timestamp_2` at `x0 + 200` = 311.70361328125 → 311.7036, each written
+  `y1="67.7812" y2="81.7812"` (`data-part="line"`), after the member
+  drawing's labels. `recording` has no band its line could cross, so
+  `timestamp_3`, at `x0 + 200` = 311.70361328125, has the point
+  (311.70361328125, 139.16015625) and draws no line.
+- `anchor_1` (§8.7), `A` the segment of `timestamp_2` from `a1` =
+  67.78125 to `a2` = 81.78125, `B` the point of `timestamp_3` (`b1` = `b2`
+  = 139.16015625): `a2 < b1`, so `A` lies above `B` and the line runs
+  from (`Xa`, `a2`) to (`Xb`, `b1`), from (311.7036, 81.7812) to
+  (311.7036, 139.1602), vertical, the two coordinates lying at one
+  proportion of the frame's length (4 of 8 quarters, 5.0 of 10.0 seconds).
+- Its name `Middle, bar 3` (13418 advances at size 9, 58.9658203125 wide)
+  is centred on the line's midpoint, (311.70361328125, 110.470703125),
+  with its baseline `(a(9) − d(9)) / 2` = 3.11572265625 below it, at
+  113.58642578125 → 113.5864. Neither line nor name takes room.
+- The descriptors (§8.5): the line and then the name of `anchor_1` are the
+  last two, after `recording`'s card and member drawing.
+- `W` = 8 + 543.70361328125 + 8 = 559.70361328125, the frame's right edge
+  beyond the cards' shadows at 545.70361328125; `H` = 8 + (8 +
+  174.13671875) = 190.13671875.
+- Page 591.70361328125 × 222.13671875 → **591.7036 × 222.1367**.
