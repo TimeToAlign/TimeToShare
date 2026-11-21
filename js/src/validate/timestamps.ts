@@ -6,7 +6,7 @@
  * the same messages.
  */
 
-import type { JsonObject } from "../json/value.js";
+import { isJsonObject, type JsonObject } from "../json/value.js";
 import { compareExact, exact } from "../numbers/exact.js";
 import { spell } from "../serialization/text.js";
 import {
@@ -15,6 +15,7 @@ import {
   matchstampsOf,
   type PathSegment,
   SchemaValidationError,
+  stringId,
   text,
   timelinesById,
   timestampsOf,
@@ -81,13 +82,15 @@ function connectedSets(pairs: readonly (readonly [string, string])[]): number {
  * timestamps of the manifest (`matchstamp: true`) lying on two timelines,
  * and the anchors are one connected set; then, timestamp by timestamp, a
  * match timestamp shares its coordinate with no earlier match timestamp and
- * some MatchStamp names it.
+ * some MatchStamp names it. A named timestamp that is no object or holds
+ * no string ID is passed over, so the rules read a manifest whose ordinary
+ * timestamps no schema has checked.
  */
 export function* matchstampProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const timestamps = new Map<string, JsonObject>();
   for (const timestamp of timestampsOf(manifest)) {
-    const id = text(timestamp, "id");
-    if (!timestamps.has(id)) timestamps.set(id, timestamp);
+    const id = stringId(timestamp);
+    if (id !== null && !timestamps.has(id)) timestamps.set(id, timestamp);
   }
   const named = new Set<string>();
   for (const [index, matchstamp] of matchstampsOf(manifest).entries()) {
@@ -134,7 +137,7 @@ export function* matchstampProblems(manifest: JsonObject): Generator<SchemaValid
   }
   const first = new Map<string, string>();
   for (const [index, timestamp] of timestampsOf(manifest).entries()) {
-    if (timestamp.matchstamp !== true) continue;
+    if (!isJsonObject(timestamp) || timestamp.matchstamp !== true) continue;
     const path = ["graphical", "timestamps", index];
     const id = text(timestamp, "id");
     const value = exact(timestamp.coordinate);

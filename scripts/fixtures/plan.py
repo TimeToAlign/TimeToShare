@@ -208,6 +208,7 @@ CATALOGUE = (
     _bundle("bundle_free_ids", bundles.bundle_free_ids, "group_1"),
     _bundle("bundle_resources", bundles.bundle_resources),
     _bundle("bundle_matchstamps", bundles.bundle_matchstamps, "score"),
+    _bundle("bundle_matchstamp_cards", bundles.bundle_matchstamp_cards, "score"),
     _described("op106_work", statements.op106_work),
     _described("layerit_recording", statements.layerit_recording),
     _described("djset_segment", statements.djset_segment),

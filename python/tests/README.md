@@ -521,7 +521,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 169 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 172 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the thirty of the table, so every code is reached by a case both
@@ -809,16 +809,25 @@ named timestamps, in `validation/timestamps.py`. What proves them:
   and 10.
 - **The MatchStamps alone** (`test_validate.py`). `matchstamp_problems`,
   for a reader that keeps the rest of `graphical` unread, returns for each
-  of the nine MatchStamp rejection cases a first problem equal, code, path
+  of the eleven MatchStamp rejection cases a first problem equal, code, path
   and message, to the one `validate` raises: the schema of
   `graphical.matchstamps` (`matchstamp_id_malformed`,
+  `alignment_anchor_id_malformed`, `alignment_anchor_display_unknown`,
   `matchstamp_claims_repeated`), an ID of a MatchStamp or an anchor
   repeated (`alignment_anchor_id_repeated`), then the rules. It returns
   nothing for every fixture and for every other rejection case, the
   named-timestamp and style cases among them, whose faults lie outside
   the MatchStamps; a match timestamp breaking the timestamp schema (no
   `timeline`) is reported by the schema at that timestamp, never raised
-  as a `KeyError`.
+  as a `KeyError`. A number that is not finite is reported as `validate`
+  reports it, code, path and message: an infinite coordinate of a match
+  timestamp is "coordinate of 'timestamp_1' is not a finite number" (the
+  ID bare, as the finite rule reads the manifest), an infinite entry
+  appended to `match_claims` "match_claims of 'matchstamp_1' is not a
+  finite number" at that entry, never the schema's message. A named
+  timestamp that is no object is passed over (the rules read a manifest
+  whose ordinary timestamps no schema checked). The TypeScript suite
+  proves the same of `matchstampProblems` with the same values.
 - **The bundle** (`test_schema.py`). `provenance.schema.json` lies beside
   the manifest schema with its own `$id`, defines `Belief` and
   `CalendarDate` and refers to the manifest schema's `Iri` and

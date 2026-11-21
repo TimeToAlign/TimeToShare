@@ -408,3 +408,39 @@ def bundle_matchstamps() -> AlignmentBundle:
     ):
         bundle.add_timeline(parts.named(DiscretePhysicalTimeline, uid, name, length))
     return bundle
+
+
+def bundle_matchstamp_cards() -> AlignmentBundle:
+    """Build a bundle whose named MatchStamps join timelines drawn in two cards.
+
+    The score ``score`` ("Score", 8 quarters) holds the child
+    ``second-half`` ("Second half", 4 quarters at 4), so its member drawings
+    have a children band. It is a member of the group ``group_1``
+    ("Performance") beside the performance ``performance`` ("Performance",
+    4.0 seconds) and of the group ``group_2`` ("Page") beside the page
+    ``page`` ("Page", 800 pixels), so the score and its child are drawn in a
+    card in each frame. The bundle "MatchStamp cards" holds the three roots
+    and the two groups. Its ``graphical`` entry (``GRAPHICAL``) names three
+    match timestamps, quarter 4 of the score, second 1.0 of the performance
+    and quarter 2 of the child, and two MatchStamps: one joining the
+    performance to the score, which is drawn in two cards, one joining the
+    score to its child, whose lines lie in one card.
+    """
+    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
+    parts.holding(
+        score,
+        parts.named(
+            ContinuousLogicalTimeline, "second-half", "Second half", Fraction(4)
+        ),
+        Fraction(4),
+    )
+    performance = parts.named(
+        ContinuousPhysicalTimeline, "performance", "Performance", 4.0
+    )
+    page = parts.named(DiscreteGraphicalTimeline, "page", "Page", Fraction(800))
+    bundle = AlignmentBundle(name="MatchStamp cards")
+    bundle.add_group(
+        TimelineGroup(id="group_1", name="Performance", timelines=[score, performance])
+    )
+    bundle.add_group(TimelineGroup(id="group_2", name="Page", timelines=[score, page]))
+    return bundle

@@ -27,7 +27,7 @@ const REPEAT = { id: "b", type: "jump_from", manifestation: "repeat_end" };
 const root = (value: unknown) => ((value as JsonObject).timelines as JsonObject[])[0] as JsonObject;
 const STATEMENTS = { type: ["schema:MusicRecording"], "schema:position": [1] };
 const PROVENANCE = [
-  { property: "rdf:type", value: { id: "schema:MusicRecording" }, status: "confirmed" },
+  { property: "rdf:type", value: { id: "schema:MusicRecording" }, date: "2026-11-18" },
 ];
 
 /** A manifest with statements and provenance on itself, its root and a region. */
@@ -510,7 +510,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(77);
+    expect(twins.length).toBe(78);
     expect(twins.map((twin) => twin.replace(/\.minimal$/, ""))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal")),
     );

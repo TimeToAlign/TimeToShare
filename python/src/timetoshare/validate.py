@@ -559,9 +559,12 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
         isinstance(graphical, Mapping) and "matchstamps" in graphical
     ):
         return []
+    bare = leniently_bare_ids(value)
+    owner = string_id(bare)
     problems: list[SchemaValidationError] = []
-    for path, timestamp in flagged:
-        finite = next(finite_number_problems(timestamp, path), None)
+    read = [timestamp for _, timestamp in _match_timestamps(bare)]
+    for (path, timestamp), bare_timestamp in zip(flagged, read, strict=True):
+        finite = next(finite_number_problems(bare_timestamp, path, owner), None)
         if finite is not None:
             problems.append(finite)
             continue
@@ -570,14 +573,20 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, error.message))
     if isinstance(graphical, Mapping) and "matchstamps" in graphical:
-        validator = _member_validator("Graphical", "matchstamps")
-        error = _select(validator.iter_errors(graphical["matchstamps"]))
-        if error is not None:
-            at = (*_MATCHSTAMPS, *error.absolute_path)
-            problems.append(SchemaValidationError("schema", at, error.message))
+        content = bare["graphical"]["matchstamps"]
+        finite = next(
+            finite_number_problems(content, _MATCHSTAMPS, owner, "matchstamps"), None
+        )
+        if finite is not None:
+            problems.append(finite)
+        else:
+            validator = _member_validator("Graphical", "matchstamps")
+            error = _select(validator.iter_errors(graphical["matchstamps"]))
+            if error is not None:
+                at = (*_MATCHSTAMPS, *error.absolute_path)
+                problems.append(SchemaValidationError("schema", at, error.message))
     if problems:
         return problems
-    bare = leniently_bare_ids(value)
     return [*_matchstamp_id_problems(bare), *_matchstamp_rule_problems(bare)]
 
 

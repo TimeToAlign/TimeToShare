@@ -2,6 +2,10 @@
 
 Date: 2026-11-19
 
+Amended 2026-11-21: the format no longer marks pairs proposed or rejected;
+what this record calls one is now a candidate, a pair held in `provenance`
+alone and never stated (README, "Provenance and beliefs").
+
 ## Context
 
 A manifest carrying `statements` and `provenance` is a YAML-LD document:

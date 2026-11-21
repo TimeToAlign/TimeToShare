@@ -265,6 +265,56 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             ],
         },
     },
+    "bundle_matchstamp_cards": {
+        "score": {
+            "timestamps": [
+                {
+                    "id": "timestamp_1",
+                    "timeline": "score",
+                    "coordinate": [4, 1],
+                    "matchstamp": True,
+                },
+                {
+                    "id": "timestamp_2",
+                    "timeline": "performance",
+                    "coordinate": 1.0,
+                    "matchstamp": True,
+                },
+                {
+                    "id": "timestamp_3",
+                    "timeline": "second-half",
+                    "coordinate": [2, 1],
+                    "matchstamp": True,
+                },
+            ],
+            "matchstamps": [
+                {
+                    "id": "matchstamp_1",
+                    "name": "Bar 2, performed",
+                    "alignment_anchors": [
+                        {
+                            "id": "anchor_1",
+                            "timestamps": ["timestamp_2", "timestamp_1"],
+                            "display": ["line", "name"],
+                        },
+                    ],
+                    "match_claims": ["claim_1"],
+                },
+                {
+                    "id": "matchstamp_2",
+                    "name": "Second half, bar 1",
+                    "alignment_anchors": [
+                        {
+                            "id": "anchor_2",
+                            "timestamps": ["timestamp_1", "timestamp_3"],
+                            "display": ["line", "name"],
+                        },
+                    ],
+                    "match_claims": ["claim_2"],
+                },
+            ],
+        },
+    },
 }
 
 """The ``graphical`` object of each manifest the script styles or gives band
