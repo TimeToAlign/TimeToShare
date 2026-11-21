@@ -16,7 +16,7 @@ import {
 import { type JsonObject, plain } from "../src/json/value.js";
 import { CATALOGUE_TEST } from "./catalogue.js";
 import { expectWrittenAsStored, repositoryRoot } from "./fixtures.js";
-import { m2 } from "./statement-manifests.js";
+import { m1, m2 } from "./statement-manifests.js";
 
 /** The error a call throws, as its message. */
 function thrown(call: () => unknown): string {
@@ -454,6 +454,76 @@ describe("rectangles", () => {
         ],
         things: ["http://viaf.org/viaf/113931950"],
         label: null,
+      },
+    ]);
+  });
+
+  const work = "http://musicbrainz.org/work/8d331505-4d88-39ae-81c7-bec5da77af96";
+  /** M1 whose root names one work twice, by MusicBrainz and by Wikidata, no sameAs. */
+  const clairDeLune = (secondLabel: string): JsonObject => {
+    const value = m1();
+    ((value.timelines as JsonObject[])[0] as JsonObject).statements = {
+      "schema:exampleOfWork": [{ id: work, label: "Clair de Lune" }],
+      "wdt:P629": [{ id: "wd:Q29117946", label: secondLabel }],
+    };
+    return value;
+  };
+
+  it("join values of one verb whose labels are equal", () => {
+    expect(rectangles(CATALOGUE_TEST, clairDeLune("Clair de Lune"), ["timelines", 0])).toEqual([
+      { verb: "is_a", inverse: false, pairs: [], things: [], label: null },
+      {
+        verb: "version_or_edition_of",
+        inverse: false,
+        pairs: [
+          ["schema:exampleOfWork", { id: work, label: "Clair de Lune" }],
+          ["wdt:P629", { id: "wd:Q29117946", label: "Clair de Lune" }],
+        ],
+        things: [work, "http://www.wikidata.org/entity/Q29117946"],
+        label: "Clair de Lune",
+      },
+    ]);
+  });
+
+  it("join by label only where the labels are equal and the verb is one", () => {
+    expect(rectangles(CATALOGUE_TEST, clairDeLune("Clair de lune"), ["timelines", 0])).toEqual([
+      { verb: "is_a", inverse: false, pairs: [], things: [], label: null },
+      {
+        verb: "version_or_edition_of",
+        inverse: false,
+        pairs: [["schema:exampleOfWork", { id: work, label: "Clair de Lune" }]],
+        things: [work],
+        label: "Clair de Lune",
+      },
+      {
+        verb: "version_or_edition_of",
+        inverse: false,
+        pairs: [["wdt:P629", { id: "wd:Q29117946", label: "Clair de lune" }]],
+        things: ["http://www.wikidata.org/entity/Q29117946"],
+        label: "Clair de lune",
+      },
+    ]);
+    const value = m1();
+    value["@context"] = { ...(value["@context"] as JsonObject), rel: CATALOGUE_TEST.prefixes.rel };
+    ((value.timelines as JsonObject[])[0] as JsonObject).statements = {
+      "rel:prf": [{ id: "wd:Q1", label: "X" }],
+      "wdt:P629": [{ id: "wd:Q2", label: "X" }],
+    };
+    expect(rectangles(CATALOGUE_TEST, value, ["timelines", 0])).toEqual([
+      { verb: "is_a", inverse: false, pairs: [], things: [], label: null },
+      {
+        verb: "performed_by",
+        inverse: false,
+        pairs: [["rel:prf", { id: "wd:Q1", label: "X" }]],
+        things: ["http://www.wikidata.org/entity/Q1"],
+        label: "X",
+      },
+      {
+        verb: "version_or_edition_of",
+        inverse: false,
+        pairs: [["wdt:P629", { id: "wd:Q2", label: "X" }]],
+        things: ["http://www.wikidata.org/entity/Q2"],
+        label: "X",
       },
     ]);
   });

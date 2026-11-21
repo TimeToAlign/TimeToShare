@@ -378,7 +378,7 @@ reading), of `dcterms:created` (none), of a type and of a full
 role slot, without it (refused) and of a type; `rectangles` of both
 timelines of M2, with their verbs, pairs, things and labels.
 
-Four readings are pinned beside them, each with a value that the other
+Five readings are pinned beside them, each with a value that the other
 reading would answer differently:
 
 - `verbOf` of `rdf:type` with `schema:X`, under M2's context with `rdf`
@@ -394,6 +394,17 @@ reading would answer differently:
   `conductor` and `accompanist` ties `conducted_by` at two constants and
   the earlier verb wins, `conducted_by`; with the role `accompanist` alone
   it is `accompanied_by`, whose two items need not both be present.
+- Two pairs of one verb read the same way join where both value nodes
+  carry a string `label` and the labels are equal, though they name no
+  common thing: on M1's root, `schema:exampleOfWork` `{id: <the
+  MusicBrainz work>, label: Clair de Lune}` and `wdt:P629` `{id:
+  wd:Q29117946, label: Clair de Lune}` are exactly the empty `is_a` and one
+  `version_or_edition_of` with both pairs in that order, its things the
+  MusicBrainz and the Wikidata IRI, label `Clair de Lune`. Labels compare
+  as strings, exactly (`Clair de lune` on the second gives two
+  `version_or_edition_of` rectangles), and only within one verb (`rel:prf`
+  `{id: wd:Q1, label: X}` and `wdt:P629` `{id: wd:Q2, label: X}` stay
+  `performed_by` and `version_or_edition_of`).
 - The things of a node without `id` are the `id`s under its `schema:sameAs`
   (and `owl:sameAs`): on a subject stating `rel:prf` `{id: viaf:113931950}`
   and a MusicBrainz contributor node without `id` whose `schema:sameAs` is

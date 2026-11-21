@@ -497,3 +497,76 @@ def test_a_node_without_id_names_the_things_it_is_the_same_as() -> None:
             None,
         ),
     ]
+
+
+def _clair_de_lune(second_label: str) -> dict:
+    """M1 whose root names one work twice, by MusicBrainz and by Wikidata, no sameAs."""
+    value = m1()
+    value["timelines"][0]["statements"] = {
+        "schema:exampleOfWork": [{"id": MUSICBRAINZ_WORK, "label": "Clair de Lune"}],
+        "wdt:P629": [{"id": "wd:Q29117946", "label": second_label}],
+    }
+    return value
+
+
+def test_values_of_one_verb_with_equal_labels_join() -> None:
+    value = _clair_de_lune("Clair de Lune")
+    held = value["timelines"][0]["statements"]
+    assert rectangles(_test(), value, ("timelines", 0)) == [
+        Rectangle("is_a", False, (), (), None),
+        Rectangle(
+            "version_or_edition_of",
+            False,
+            (
+                ("schema:exampleOfWork", held["schema:exampleOfWork"][0]),
+                ("wdt:P629", held["wdt:P629"][0]),
+            ),
+            (MUSICBRAINZ_WORK, "http://www.wikidata.org/entity/Q29117946"),
+            "Clair de Lune",
+        ),
+    ]
+
+
+def test_labels_join_only_when_equal_and_within_one_verb() -> None:
+    value = _clair_de_lune("Clair de lune")
+    held = value["timelines"][0]["statements"]
+    assert rectangles(_test(), value, ("timelines", 0)) == [
+        Rectangle("is_a", False, (), (), None),
+        Rectangle(
+            "version_or_edition_of",
+            False,
+            (("schema:exampleOfWork", held["schema:exampleOfWork"][0]),),
+            (MUSICBRAINZ_WORK,),
+            "Clair de Lune",
+        ),
+        Rectangle(
+            "version_or_edition_of",
+            False,
+            (("wdt:P629", held["wdt:P629"][0]),),
+            ("http://www.wikidata.org/entity/Q29117946",),
+            "Clair de lune",
+        ),
+    ]
+    value = m1()
+    value["@context"]["rel"] = CATALOGUE_TEST["prefixes"]["rel"]
+    value["timelines"][0]["statements"] = {
+        "rel:prf": [{"id": "wd:Q1", "label": "X"}],
+        "wdt:P629": [{"id": "wd:Q2", "label": "X"}],
+    }
+    assert rectangles(_test(), value, ("timelines", 0)) == [
+        Rectangle("is_a", False, (), (), None),
+        Rectangle(
+            "performed_by",
+            False,
+            (("rel:prf", {"id": "wd:Q1", "label": "X"}),),
+            ("http://www.wikidata.org/entity/Q1",),
+            "X",
+        ),
+        Rectangle(
+            "version_or_edition_of",
+            False,
+            (("wdt:P629", {"id": "wd:Q2", "label": "X"}),),
+            ("http://www.wikidata.org/entity/Q2",),
+            "X",
+        ),
+    ]

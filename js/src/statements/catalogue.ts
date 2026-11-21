@@ -629,10 +629,10 @@ export function verbOf(
 
 /**
  * The rectangles of a subject: its pairs, each read by `verbOf`, joined
- * where they state the same verb the same way and are both "is a" or share a
- * thing (transitively); a pair no verb reads stands alone. The "is a"
- * rectangle comes first, empty where nothing is stated; then the others in
- * the order of their first pair. A rectangle's pairs keep file order, its
+ * where they state the same verb the same way and are both "is a", share a
+ * thing, or carry equal string `label`s on both value nodes (transitively); a
+ * pair no verb reads stands alone. The "is a" rectangle comes first, empty
+ * where nothing is stated; then the others in the order of their first pair. A rectangle's pairs keep file order, its
  * things first-seen order, its label is the first node label among its
  * pairs.
  *
@@ -648,6 +648,7 @@ export function rectangles(
     pair,
     verb: reading.verbOf(pair[0], pair[1]),
     things: reading.things(pair),
+    label: isNode(pair[1]) && typeof pair[1].label === "string" ? pair[1].label : null,
   }));
   const parent = read.map((_, index) => index);
   const root = (index: number): number => {
@@ -659,7 +660,11 @@ export function rectangles(
     for (const [j, right] of read.entries()) {
       if (j <= i || left.verb === null || right.verb === null) continue;
       if (left.verb[0] !== right.verb[0] || left.verb[1] !== right.verb[1]) continue;
-      if (left.verb[0] === "is_a" || left.things.some((thing) => right.things.includes(thing))) {
+      if (
+        left.verb[0] === "is_a" ||
+        left.things.some((thing) => right.things.includes(thing)) ||
+        (left.label !== null && left.label === right.label)
+      ) {
         parent[root(j)] = root(i);
       }
     }

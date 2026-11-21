@@ -1239,6 +1239,19 @@ inverse alternative) and the type `video`. What proves it
   no verb reads, since every pattern of `rel:prf` wants an `id`) is one
   rectangle of verb `None` whose things are
   `http://viaf.org/viaf/1` and `http://www.wikidata.org/entity/Q1`.
+  Two pairs of one verb read the same way also join where both value
+  nodes carry a string `label` and the labels are equal: on M1's root,
+  `schema:exampleOfWork` `{id: <the MusicBrainz work>, label: Clair de
+  Lune}` and `wdt:P629` `{id: wd:Q29117946, label: Clair de Lune}`, neither
+  stating a `sameAs`, are exactly the empty `is_a` and one
+  `version_or_edition_of` with both pairs in that order, its things the
+  MusicBrainz and the Wikidata IRI, label `Clair de Lune`. Labels compare
+  as strings, exactly: with `Clair de lune` on the second the two are two
+  `version_or_edition_of` rectangles. An equal label under different verbs
+  joins nothing: `rel:prf` `{id: wd:Q1, label: X}` and `wdt:P629` `{id:
+  wd:Q2, label: X}` stay `performed_by` and `version_or_edition_of`, apart.
+  Two nodes without a label join by no label (the two `rel:prf` values
+  above).
 
 ## The RDF of the statements
 
