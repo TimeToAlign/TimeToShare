@@ -486,7 +486,9 @@ sorted by path and then by key; `validate` raises only on errors. timetoalign
 and TimeLineEditor keep the unknown keys of a manifest they read and write
 them back. A key that a host schema declares beside its `$ref` to a
 TimeToShare definition is reported as unknown by these validators; the
-host's own validator is unaffected.
+host's own validator is unaffected. A table is closed where a manifest is
+open: the MatchClaim table refuses a key its provenance does not declare
+([Checking the tables](#checking-the-tables)).
 
 ### Identity
 
@@ -513,8 +515,9 @@ timelines of the manifest, a key of `graphical.order` a group or a
 timeline, a named timestamp's `timeline` a timeline of the manifest, a
 resource's `timelines` timelines of the manifest, and an alignment
 anchor's `timestamps` named timestamps. A MatchStamp's `match_claims`
-are no references: they name rows of the MatchClaim table, whose IDs are
-not the manifest's ([Named MatchStamps](#named-matchstamps)).
+are no references: they name the package's own MatchClaims in the
+MatchClaim table, whose IDs are not the manifest's ([Named
+MatchStamps](#named-matchstamps)).
 An IRI reference of the statements or their provenance that begins with
 `#`, such as the `id` of a value, names an element of any kind
 ([Describing a manifest](#describing-a-manifest)).
@@ -751,40 +754,103 @@ has no counterpart on the other timeline. MatchClaims are data, not
 structure, and a manifest holds none. They live in one table per package,
 the **MatchClaim table**, named by the resource of type `MatchClaim`, and
 it is the one place they live. It holds one row per MatchClaim and one
-column per property of a MatchClaim:
+column per property of a MatchClaim, each of the Arrow type given; a
+column whose Null is "never" holds a value in every row:
 
-| Column | Holds |
-| --- | --- |
-| `id` | the MatchClaim's ID, never changed once given (below) |
-| `timeline_a_id`, `timeline_b_id` | the IDs of its two timelines, each a timeline of the manifest |
-| `event_a_id`, `event_b_id` | the IDs of its two events, one on each timeline. A synchronous MatchClaim names an event on each side, a Projection where the timeline holds no event of its own ([The Projections table](#the-projections-table)); null is the NOMATCH sentinel alone, on the side without a counterpart, and is never an event |
-| `start_anchor`, `end_anchor` | the alignment anchors the two events give, of their starts and, for intervals, of their ends: each `{timeline_a_id, coordinate_a, timeline_b_id, coordinate_b}`, the row's two timelines in the row's order, each with a coordinate cell (below); null where the MatchClaim gives none |
-| `provenance` | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)) |
+| Column | Arrow type | Null | Holds |
+| --- | --- | --- | --- |
+| `timeline_a_id`, `timeline_b_id` | string | never | the IDs of its two timelines, two different timelines, each a timeline of the manifest |
+| `start_anchor`, `end_anchor` | anchor | allowed | the alignment anchors the two events give, of their starts and, for intervals, of their ends; null where the MatchClaim gives none |
+| `is_synchronous` | bool | never | `true` for a synchronous MatchClaim, `false` for a conceptual one and a NOMATCH |
+| `is_explicit` | bool | never | `true` for a MatchClaim stated directly, `false` for one inferred from other MatchClaims |
+| `provenance` | provenance | allowed | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)); null where the row states none |
+| `certainty` | float64 | allowed | how certain the MatchClaim is, from 0 to 1, both included; null where none is stated |
+| `source_claim_id` | string | allowed | for an inferred MatchClaim, the ID of the MatchClaim it was inferred from |
+| `event_a_id`, `event_b_id` | string | allowed | the IDs of its two events, one on each timeline. A synchronous or a conceptual MatchClaim names an event on each side, a Projection where the timeline holds no event of its own ([The Projections table](#the-projections-table)); null is the NOMATCH sentinel alone, on the side without a counterpart, and is never an event |
+| `event_a_name`, `event_b_name` | string | allowed | the name of each event, where it is known |
+| `source_coordinate` | coordinate cell | allowed | for a NOMATCH, the position of its one event on the axis of that event's timeline; null on every other row |
+| `id` | string | never | the MatchClaim's ID, never changed once given (below) |
+| `id_minted` | bool | never | `true` where the ID was minted (`claim_N`), `false` where its source gave it |
 
-and every further property of a MatchClaim, such as `is_synchronous` and
-`certainty`, in a column of its own. A table that mixes the MatchClaims of
-several scopes adds the key column `scope` (a string): null for a
-MatchClaim of the package's own, else the name of the scope the row comes
-from, the ID of the manifest whose MatchClaim it is. A table of the
-package's own MatchClaims alone needs no such column. A provenance that every row shares
-is stated once, as JSON under the key `timetoshare:provenance` of the
-file's schema metadata; the `provenance` of every row is then null, and a
-row stating its own is refused.
+The columns may stand in any order, and a table may hold further
+columns, which are kept and never checked. A table that mixes the
+MatchClaims of several scopes adds the optional key column `scope`
+(string, null allowed): null for a MatchClaim of the package's own, else
+the name of the scope the row comes from, the ID of the manifest whose
+MatchClaim it is. A table of the package's own MatchClaims alone needs no
+such column. A provenance that every row shares is stated once, as JSON
+under the key `timetoshare:provenance` of the file's schema metadata; the
+`provenance` of every row is then null, and a row stating its own is
+refused.
 
-A **coordinate cell** is `{value, numerator, denominator, unit,
-number_type}`: the number twice, as a 64-bit float `value` and as a pair
-of 64-bit integers `numerator` and `denominator` (at least 1), beside the
-`unit` and `number_type` of its timeline's axis. The number type selects
-the side that is the coordinate: the float for `float`, the pair for
-`int` (its denominator 1) and `fraction`. Both sides are present in every
-cell that is not null, so exact ratios survive Parquet.
+Three columns hold structs:
 
-Every coordinate of an anchor lies on its timeline's own axis, in that
-timeline's unit and number type: a position given in a unit the timeline
-converts to is converted when its event is added, never kept in the other
-unit. A cell in any other unit or number type is refused, so that one
-position never appears as two coordinates. A NOMATCH or a conceptual
-MatchClaim has no anchors and is a row like any other.
+- a **coordinate cell**: `struct<value: double, numerator: int64,
+  denominator: int64, unit: string, number_type: string>` (below);
+- an **anchor**: `struct<timeline_a_id: string, coordinate_a: coordinate
+  cell, timeline_b_id: string, coordinate_b: coordinate cell>`, the row's
+  two timelines in the row's order;
+- a **provenance**: the members of the provenance entry in the order of
+  `provenance.schema.json`, `stated_by` (list of string), `date`,
+  `method`, `service` (strings), `basis` (list of string), `match`,
+  `note` (strings) and `beliefs` (list of `struct<actor: string, belief:
+  string, date: string, note: string>`). A null member is a key the entry
+  leaves out, and the struct holds no other member.
+
+A column's type is compared by its shape: the members of a struct by name
+and in the order given, the items of a list by their type whatever name
+the list gives them, and a field's nullable flag is not read; which
+columns may hold a null is the Null of the tables here, checked row by
+row.
+
+A **coordinate cell** holds the number twice, as a 64-bit float `value`
+and as a pair of 64-bit integers `numerator` and `denominator`, beside
+the `unit` and `number_type` of its timeline's axis. The number type
+selects the side that is the coordinate: the float for `float`, the pair
+for `int` and `fraction`. The other side is a mirror, which no check
+compares with the coordinate and no reader uses. Every cell that is not
+null has all five members, a finite `value`, a `denominator` of at least
+1 (exactly 1 for `int`), a `unit` of the format's units and a
+`number_type` of `int`, `float` and `fraction`, so that exact ratios
+survive Parquet. The mirror of a float is its exact ratio where both
+integers fit 64 bits. A double outside the range of a 64-bit integer, or
+one whose last binary digit lies below 2^-62 (its exact denominator
+exceeding 2^62), has no such pair, and its mirror is then at best an
+approximation: timetoalign writes the nearest ratio over 2^62 for the
+second and refuses to write the first.
+
+Every coordinate lies on its timeline's own axis, in that timeline's unit
+and number type: a position given in a unit the timeline converts to is
+converted when its event is added, never kept in the other unit, so that
+one position never appears as two coordinates. Checked against a
+manifest, a cell in another unit or number type than its timeline's is
+refused. A table checked alone knows no timeline's axis and refuses only
+the coordinates of one timeline in two units or number types.
+
+Each row obeys these rules ([Checking the tables](#checking-the-tables)
+gives their codes and messages):
+
+- Its two timelines differ, and it names at least one event.
+- A row with one event is a NOMATCH, which is not synchronous and has no
+  anchors; only a NOMATCH has a `source_coordinate`, on the timeline of
+  its event.
+- A synchronous row with an event on each side has a `start_anchor`; a
+  conceptual row, not synchronous with an event on each side, has no
+  anchors. An `end_anchor` comes only with a `start_anchor`.
+- An anchor joins the row's two timelines in the row's order, and both
+  its coordinates are cells, never null.
+- A stated `certainty` lies in [0, 1].
+- The ID, a `scope` and an event ID are non-empty strings without control
+  characters (U+0000 to U+001F), as every ID of the format
+  ([Identity](#identity)); an ID is given once in its scope.
+- The provenance is a provenance entry ([Provenance and
+  beliefs](#provenance-and-beliefs)): valid against
+  `provenance.schema.json`, without a key the entry or a belief does not
+  declare, its dates days of the Gregorian calendar, each actor holding
+  one belief.
+
+A NOMATCH or a conceptual MatchClaim has no anchors and is a row like any
+other.
 
 **IDs and succession.** A MatchClaim is never deleted, and its ID never
 changes. A MatchClaim found wrong is invalidated by a belief `false`
@@ -795,9 +861,10 @@ scope, and two scopes may each hold `claim_1`. A table that mixes the rows
 of several manifests names each row's in its `scope` column, never in a
 string joined to the ID. Whoever writes a table over an existing one keeps the **succession
 rule**: every MatchClaim of the old table, by its scope and its ID, is in
-the new one with the same timelines, events and anchors, and only its
-provenance may differ; coordinates compare by unit, number type and exact
-value. The Python
+the new one with the same value in every column of the table's type but
+`provenance`, which alone may differ; coordinates compare by unit, number
+type and exact value, and the further columns of a table are not
+compared. The Python
 package checks the rule for an old and a new table,
 `timetoshare.tables.check_succession(old, new)` raising the first breach
 and `succession_problems(old, new)` listing them ([Python](#python)). A reader refuses no table
@@ -810,12 +877,17 @@ held there. It is an event type of its own, and a package holds one table
 of them, the **Projections table**, named by the resource of type
 `Projection`:
 
-| Column | Holds |
-| --- | --- |
-| `id` | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise. An event's ID is unique on its timeline: a Projection is its timeline and its ID, so two timelines may each hold `projection_1`, and one timeline holds an ID once |
-| `timeline_id` | the timeline the Projection is an event of |
-| `start`, `duration` | its position on that timeline's own axis, each a coordinate cell as in the MatchClaim table, in the timeline's unit and number type; `duration` is null for an instant and never negative |
-| `projection_of` | `{timeline_id, event_id}` of the event it stands for, an object and never a joined string; null where no such event is known |
+| Column | Arrow type | Null | Holds |
+| --- | --- | --- | --- |
+| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise. An event's ID is unique on its timeline: a Projection is its timeline and its ID, so two timelines may each hold `projection_1`, and one timeline holds an ID once |
+| `timeline_id` | string | never | the timeline the Projection is an event of, a timeline of the manifest |
+| `start` | coordinate cell | never | its position on that timeline's own axis, in the timeline's unit and number type, a cell as in the MatchClaim table |
+| `duration` | coordinate cell | allowed | its duration on the same axis, never negative; null for an instant |
+| `projection_of` | `struct<timeline_id: string, event_id: string>` | allowed | the event it stands for, an object and never a joined string: both members given, the timeline another than the Projection's own; null where no such event is known |
+
+As in the MatchClaim table, the columns may stand in any order, further
+columns are kept and never checked, and the coordinates of one timeline
+lie in one unit and one number type, its own where a manifest is given.
 
 A Projection repeats nothing else of its source. One mechanism serves
 every side of a MatchClaim that has no event of its own:
@@ -865,6 +937,123 @@ the filter leaves out gives no anchor. The description specification,
 section 9, states the entry, its reading as RDF and what it tells apart
 among statements.
 
+A table has no base IRI against which a reference could be resolved: the
+IRI references of a row's provenance are read as written, and the belief
+filter compares a table's actors with the believer as strings, where
+among statements it compares expanded IRIs. A table therefore names every
+actor by an absolute IRI, so that the comparison of strings is that of
+IRIs.
+
+### Checking the tables
+
+The Python package checks both tables in `timetoshare.tables`
+([Python](#python)); the npm package reads no tables.
+`match_claim_problems(table, manifest=None)` and
+`projection_problems(table, manifest=None)` list every problem of a table;
+given a manifest (as read from its file, IDs written `#`), they also
+refuse a timeline the manifest does not hold and a cell off its
+timeline's axis. Each problem is a `TableProblem` of a `code`, a `row`
+(its index from 0, or `None` for the whole table), a `column` (a tuple
+path such as `("start_anchor", "coordinate_a")`, written
+`start_anchor.coordinate_a` below) and a `message`. A table missing a
+column of its type, or holding one of another type (`scope` included), is
+reported for those alone, column by column in the type's order; next, a
+table holding a null where its type allows none is reported for those
+alone, row by row. Otherwise the table's own problems come first, then
+row by row, each row's `scope` and ID before the rules below in their
+order, its provenance last. Every check reports a cell's first problem
+only. `check_match_claims(table, manifest=None)` and
+`check_projections(table, manifest=None)` raise the first problem as a
+`TableError`, a `ValueError` whose `problem` is that `TableProblem`.
+
+The MatchClaim table:
+
+| Rule | Code | Column | Message |
+| --- | --- | --- | --- |
+| A column of the type is missing, or it or `scope` is of another type | `schema_violation` | the column, row `None` | `the table has no column '<name>'`, `the column '<name>' is <type>, not <type>` |
+| `timeline_a_id`, `timeline_b_id`, `is_synchronous`, `is_explicit`, `id` or `id_minted` is null | `schema_violation` | the column | `'<name>' is null` |
+| A `scope` is empty or holds a control character | `invalid_id` | `scope` | `the scope is empty`, `the scope '<scope>' holds a control character` |
+| An ID is empty or holds a control character | `invalid_id` | `id` | `the ID is empty`, `the ID '<id>' holds a control character` |
+| An ID repeats the ID of an earlier row of its scope | `duplicate_id` | `id` | `the ID '<id>' is given twice`, followed by ` in the scope '<scope>'` for a scope that is not null |
+| The file's provenance is no JSON text, no object or no provenance entry | `invalid_provenance` | `provenance`, row `None` | `the file's provenance is no JSON text`, `the file's provenance is no object`, `the file's provenance <pointer>: <problem>` |
+| A timeline names no timeline of the manifest | `unknown_timeline` | `timeline_a_id`, `timeline_b_id` | `the manifest has no timeline '<id>'` |
+| Both timelines are one | `claim_timelines` | `timeline_b_id` | `both sides are '<id>'` |
+| An event ID is empty or holds a control character | `invalid_id` | `event_a_id`, `event_b_id` | `the event ID is empty`, `the event ID '<id>' holds a control character` |
+| The row names no event | `claim_events` | `event_a_id` | `the MatchClaim names no event` |
+| A NOMATCH is synchronous | `claim_anchors` | `is_synchronous` | `a NOMATCH MatchClaim is not synchronous` |
+| A NOMATCH that is not synchronous has an anchor | `claim_anchors` | `start_anchor`, else `end_anchor` | `a NOMATCH MatchClaim has no anchors` |
+| A synchronous row with an event on each side has no start anchor | `claim_anchors` | `start_anchor` | `a synchronous MatchClaim has a start anchor` |
+| A conceptual row has an anchor | `claim_anchors` | `start_anchor`, else `end_anchor` | `a conceptual MatchClaim has no anchors` |
+| An end anchor has no start anchor | `claim_anchors` | `end_anchor` | `an end anchor needs a start anchor` |
+| A row other than a NOMATCH has a source coordinate | `claim_anchors` | `source_coordinate` | `only a NOMATCH MatchClaim has a source coordinate` |
+| An anchor joins other timelines than the row, or in the other order; its coordinates are then not checked | `anchor_timelines` | `start_anchor`, `end_anchor` | `the anchor joins '<id>' and '<id>', the MatchClaim '<id>' and '<id>'` |
+| A coordinate of an anchor, the start anchor's before the end anchor's, `coordinate_a` before `coordinate_b`, then a NOMATCH's source coordinate, is null or malformed | `invalid_coordinate` | the cell, such as `start_anchor.coordinate_b` | a cell's message (below) |
+| Such a coordinate lies off its timeline's axis | `axis_mismatch` | the cell | an axis message (below) |
+| `certainty` lies outside [0, 1] | `invalid_certainty` | `certainty` | `the certainty <value> lies outside [0, 1]` |
+| A row states a provenance where the file states one | `invalid_provenance` | `provenance` | `the provenance is stated in the file's metadata and in the row` |
+| A row's provenance is no provenance entry | `invalid_provenance` | `provenance` | `the provenance <pointer>: <problem>` |
+
+The Projections table:
+
+| Rule | Code | Column | Message |
+| --- | --- | --- | --- |
+| A column of the type is missing or of another type | `schema_violation` | the column, row `None` | as in the MatchClaim table |
+| `id`, `timeline_id` or `start` is null | `schema_violation` | the column | `'<name>' is null` |
+| An ID is empty or holds a control character | `invalid_id` | `id` | as in the MatchClaim table |
+| An ID repeats the ID of an earlier row on its timeline | `duplicate_id` | `id` | `the ID '<id>' is given twice on the timeline '<timeline id>'` |
+| `timeline_id` names no timeline of the manifest | `unknown_timeline` | `timeline_id` | `the manifest has no timeline '<id>'` |
+| `start`, then `duration`, is malformed | `invalid_coordinate` | the cell | a cell's message (below) |
+| `start` or `duration` lies off the timeline's axis | `axis_mismatch` | the cell | an axis message (below) |
+| A well-formed `duration` is negative | `invalid_duration` | `duration` | `the duration is negative` |
+| A member of `projection_of` is null or empty | `invalid_projection_of` | `projection_of.timeline_id`, `projection_of.event_id` | `the projected event has no timeline_id`, `the projected event has no event_id` |
+| `projection_of` names the Projection's own timeline | `invalid_projection_of` | `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
+| `projection_of` names no timeline of the manifest | `unknown_timeline` | `projection_of.timeline_id` | `the manifest has no timeline '<id>'` |
+
+A cell's message names the first of: an anchor's coordinate that is null
+(`the coordinate is null`); members that are null (`the coordinate has no
+<members>`, those members in the cell's order, separated by `, `); a
+unit that is none of the format's (`'<unit>' is no unit`); a number type
+other than `int`, `float` and `fraction` (`'<number type>' is no number
+type`); a value that is not finite (`the coordinate's value <value> is
+not finite`); a denominator below 1 (`the coordinate's denominator
+<denominator> is below 1`); an `int` cell whose denominator is not 1 (`an
+int coordinate has the denominator <denominator>`). An axis message is
+`a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit>
+(<number type>)` against a manifest, and `the timeline '<id>' has
+coordinates in <unit> (<number type>) and in <unit> (<number type>)` at
+the later of two cells of one timeline in a table, the first axis met
+before the second. A cell on a timeline the manifest does not hold is
+not compared.
+
+In a provenance message, `<pointer>` locates the member at fault as a
+JSON pointer into the entry in URI fragment form (`#` for the entry,
+`#/beliefs/1/actor`), and `<problem>` names the first of: the entry's
+first problem against `provenance.schema.json`, with the Python schema
+validator's message; a key the entry or a belief does not declare (`'<key>'
+is no key of a provenance entry`, `… of a belief`); a date that is no
+day of the Gregorian calendar (`'<date>' is no Gregorian calendar date
+written YYYY-MM-DD`); an actor holding a second belief (`'<actor>'
+already holds belief <index> of this entry; an actor holds one belief`,
+the index that of its earlier belief).
+
+**Unknown keys.** The `provenance` column holds the members of the entry
+alone, so a row cannot state a key the entry does not declare, and the
+file's provenance stating one is refused (`invalid_provenance`). In a
+manifest, the same key in a `provenance` entry is an unknown key,
+reported as a warning that refuses nothing ([Unknown
+keys](#unknown-keys)): the one provenance entry is open in a manifest
+and closed in a table.
+
+`succession_problems(old, new)` lists every breach of the succession rule
+([The MatchClaim table](#the-matchclaim-table)), both tables checked
+before, the old table's MatchClaims in its row order, for each its
+columns in the type's order; `check_succession` raises the first.
+
+| Rule | Code | Column | Message |
+| --- | --- | --- | --- |
+| A MatchClaim of the old table is missing from the new one | `succession_missing` | `id`, row `None` | `the MatchClaim '<id>' is missing`, `the MatchClaim '<id>' of the scope '<scope>' is missing` |
+| A MatchClaim of the old table has another value in a column but `provenance` | `succession_changed` | that column, the row in the new table | `the MatchClaim '<id>' changed its '<column>'`, the scope named as above |
+
 ## MatchStamps
 
 ### From MatchClaims to anchors
@@ -874,7 +1063,7 @@ on its timeline's own axis.
 
 - A synchronous MatchClaim gives the anchor of its `start_anchor` and, if
   it has one, of its `end_anchor`. A MatchClaim with both is an **interval
-  claim**, and its two anchors bound a **matched span** on each timeline.
+  MatchClaim**, and its two anchors bound a **matched span** on each timeline.
   A NOMATCH or a conceptual MatchClaim gives none, and so does one the
   belief filter leaves out.
 - Two anchors are the same when both their coordinates are equal,
@@ -891,6 +1080,14 @@ projected onto the recording's samples as an instant, gives 58
 MatchClaims and 58 Projections; the notes of a chord share their onset, so
 the MatchClaims give 31 unique anchors, which join 62 coordinates into 31
 potential MatchStamps of two coordinates each.
+
+In this version the derivation covers the package's own MatchClaims,
+whose `scope` is null. It takes its anchors from every row the belief
+filter keeps, whatever the row's scope, but names the MatchClaims behind
+an anchor or a potential MatchStamp by their IDs alone, so that in a table
+mixing scopes, `claim_1` of two scopes counts as one MatchClaim. Python's
+reference derivation, `alignment_anchors` and `potential_matchstamps`,
+does the same.
 
 ### Named MatchStamps
 
@@ -930,7 +1127,9 @@ graphical:
   MatchStamp turns `name` on for the middle anchor in screen order. The
   timestamps of a MatchStamp are those its anchors name.
 - `match_claims` records the IDs of the MatchClaims behind the MatchStamp
-  when it was named or last updated. The manifest is valid whatever the
+  when it was named or last updated. In this version they are MatchClaims
+  of the package's own (`scope` null): a MatchStamp names no MatchClaim of
+  another scope. The manifest is valid whatever the
   table says: comparing a named MatchStamp with the current table is an
   editor's work. A MatchStamp, unlike a MatchClaim, may be changed and
   removed.
@@ -1660,9 +1859,12 @@ else:
   specification, section 12).
 - `matchstamp_problems(value)` returns the problems of a manifest's named
   MatchStamps and match timestamps alone, as `validate` reports them, as a
-  list of `SchemaValidationError`s: the schema of each match timestamp and
-  of `graphical.matchstamps`, then an ID of a MatchStamp or an alignment
-  anchor the manifest holds twice and the rules of
+  list of `SchemaValidationError`s: each match timestamp and then
+  `graphical.matchstamps`, each one's first problem at its path, a number
+  that is not finite (`finite_number`), else the schema (`schema`); where
+  none has one, every further problem, an ID of a MatchStamp or an
+  alignment anchor the manifest holds twice (`duplicate_id`, or
+  `manifest_id` where the manifest's own ID repeats one) and the rules of
   [Named MatchStamps](#named-matchstamps). It reads nothing else of
   `graphical`, for a library that keeps the styles, the rules and the
   ordinary timestamps unread.
@@ -1741,7 +1943,8 @@ else:
   every problem of a table, the table's own first, then row by row, each a
   `TableProblem` (`code`, `row`, `column`, `message`), checked against the
   manifest's timelines where one is given, and `check_match_claims` and
-  `check_projections` raise the first as a `TableError`;
+  `check_projections` raise the first as a `TableError` ([Checking the
+  tables](#checking-the-tables) gives every rule);
   `check_succession` and `succession_problems` check the succession rule;
   `row_provenance(table)` gives each row's provenance, its own or the
   file's. `alignment_anchors`, `potential_matchstamps` and
@@ -1831,6 +2034,10 @@ rewrite(text) === text; // true: the text is canonical YAML
   alone, as Python's `statement_problems` does, with the same codes and
   paths; a `schema` problem carries the TypeScript schema validator's own
   message.
+- `matchstampProblems(value)` returns the problems of the named
+  MatchStamps and match timestamps alone, as Python's
+  `matchstamp_problems` does, with the same codes and paths; a `schema`
+  problem carries the TypeScript schema validator's own message.
 - `pairs`, `entries`, `candidates`, `withPair`, `withoutPair`,
   `withCandidate`, `withBelief`, `subjectPath`, `subjects`,
   `withContext`, `samePair`, `expandIri` and `usedPrefixes` do what Python's functions of
