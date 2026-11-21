@@ -109,27 +109,38 @@ export const DEFAULT_BELIEFS: readonly BeliefState[] = Object.freeze([
  * The states a belief filter keeps, checked: a collection of `BELIEF_STATES`
  * in any order; empty keeps none.
  *
- * @throws Error when `beliefs` is a single string, or names a word that is
- * none of `BELIEF_STATES` (the first by code point is named; a member that is
- * no string is spelled as messages spell values). The messages are Python's.
+ * @throws Error when `beliefs` is a single string or no iterable collection
+ * (`null`, `undefined`, a plain object), or names a word that is none of
+ * `BELIEF_STATES`. The first unknown member by code point of its spelling is
+ * named: a string quoted, any other member spelled as messages spell values,
+ * without quotes. The messages are Python's.
  */
-export function checkBeliefFilter(beliefs: Iterable<unknown>): ReadonlySet<BeliefState> {
+export function checkBeliefFilter(beliefs: unknown): ReadonlySet<BeliefState> {
   if (typeof beliefs === "string") {
     throw new Error(
       `the belief filter takes a collection of states, not the string '${beliefs}': write ['${beliefs}']`,
     );
   }
-  const states = new Set(beliefs);
-  const unknown = [...states]
-    .filter((state) => !(BELIEF_STATES as readonly unknown[]).includes(state))
-    .map((state) => (typeof state === "string" ? state : spell(state)))
-    .sort(compareCodePoints);
+  if (beliefs === null || typeof beliefs !== "object" || !(Symbol.iterator in beliefs)) {
+    throw new Error(`the belief filter takes a collection of states, not ${spell(beliefs)}`);
+  }
+  const members = [...(beliefs as Iterable<unknown>)];
+  const unknown = [
+    ...new Set(
+      members
+        .filter(
+          (member) =>
+            !(typeof member === "string" && (BELIEF_STATES as readonly string[]).includes(member)),
+        )
+        .map((member) => (typeof member === "string" ? `'${member}'` : spell(member))),
+    ),
+  ].sort(compareCodePoints);
   if (unknown.length > 0) {
     throw new Error(
-      `'${unknown[0]}' is no belief state: write 'true', 'undecided', 'unlikely' or 'false'`,
+      `${unknown[0]} is no belief state: write 'true', 'undecided', 'unlikely' or 'false'`,
     );
   }
-  return states as ReadonlySet<BeliefState>;
+  return new Set(members as BeliefState[]);
 }
 
 /** The words of a provenance entry's `method`, in the schema's order; any other method is an IRI. */
