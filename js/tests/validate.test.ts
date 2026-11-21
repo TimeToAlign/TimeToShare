@@ -733,6 +733,7 @@ describe("the graphical object", () => {
     { rotation: -45 },
     { rotation: 180 },
     { rotation: -180 },
+    { rotation: new JsonFloat(45) },
   ])("accepts %o", (declaration) => {
     validate(styled(declaration));
   });
