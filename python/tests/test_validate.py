@@ -703,6 +703,7 @@ def _styled(declaration: dict) -> dict:
         {"rotation": -45},
         {"rotation": 180},
         {"rotation": -180},
+        {"rotation": 45.0},
     ],
 )
 def test_graphical_property_bounds_accept_exact_valid_values(declaration: dict) -> None:

@@ -110,7 +110,7 @@ export const DEFAULT_BELIEFS: readonly BeliefState[] = Object.freeze([
  * in any order; empty keeps none.
  *
  * @throws Error when `beliefs` is a single string or no iterable collection
- * (`null`, `undefined`, a plain object), or names a word that is none of
+ * (`null`, `undefined`, a plain object, a `Map`), or names a word that is none of
  * `BELIEF_STATES`. The first unknown member by code point of its spelling is
  * named: a string quoted, any other member spelled as messages spell values,
  * without quotes. The messages are Python's.
@@ -119,6 +119,11 @@ export function checkBeliefFilter(beliefs: unknown): ReadonlySet<BeliefState> {
   if (typeof beliefs === "string") {
     throw new Error(
       `the belief filter takes a collection of states, not the string '${beliefs}': write ['${beliefs}']`,
+    );
+  }
+  if (beliefs instanceof Map) {
+    throw new Error(
+      `the belief filter takes a collection of states, not ${spell(Object.fromEntries(beliefs))}`,
     );
   }
   if (beliefs === null || typeof beliefs !== "object" || !(Symbol.iterator in beliefs)) {

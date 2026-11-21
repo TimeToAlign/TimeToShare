@@ -1464,7 +1464,7 @@ export interface Address {
   part?: [Part, ...Part[]];
 }
 /**
- * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation and shadow are TimeToShare's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.
+ * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation and shadow are TimeToShare's own. An element reads only the properties its type reads; the others are ignored.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Declaration".

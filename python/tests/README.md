@@ -1762,7 +1762,8 @@ string is refused at the entry, and a repeated entry (`line`, `markers`,
 `line`) at the order, before any identity rule is read; property
 bounds accept `stroke-width` and `rx` 0, `opacity` 0 and 1, positive
 `font-size` and `max-width`, both forms of `stroke-dasharray`, and a wedge's
-`rotation` at −45 and at both ends, −180 and 180, and reject a negative
+`rotation` at −45, at both ends, −180 and 180, and written as an integral
+float (`45.0`, the integer 45 however it is spelled), and reject a negative
 width and radius, opacity outside [0, 1], zero font size and maximum width,
 non-text content, malformed dash text, a `rotation` one degree beyond the
 range (181), a fractional one (−180.5) and one written as text (`"45"`) at

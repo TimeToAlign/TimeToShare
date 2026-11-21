@@ -100,6 +100,7 @@ describe("the belief filter", () => {
     [[true], "true is no belief state: write 'true', 'undecided', 'unlikely' or 'false'"],
     [null, "the belief filter takes a collection of states, not null"],
     [{ true: 1 }, 'the belief filter takes a collection of states, not {"true":1}'],
+    [new Map([["true", 1]]), 'the belief filter takes a collection of states, not {"true":1}'],
     [[["true"]], `["true"] is no belief state: write 'true', 'undecided', 'unlikely' or 'false'`],
     [
       ["true", {}, "zzz"],

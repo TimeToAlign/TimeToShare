@@ -244,6 +244,11 @@ timeline's `number_type` for exactly the keys of `UNIT_NUMBER_TYPES`, its
 one list of units, so the default number type of both new units is
 `float` in `defaults.test.ts` as in the Python suite.
 
+The property bounds of a declaration are the Python README's: a wedge's
+`rotation` of −45, −180 and 180 validates, and so does the integral float
+`45.0` (`new JsonFloat(45)`), which is the integer 45 however it is spelled;
+181, −180.5 and `"45"` are refused at the property.
+
 ## Defaults
 
 `defaults.test.ts` asserts the Python README's section "Defaults: the
@@ -267,7 +272,8 @@ the same documents, values and messages. The belief filter's states are
 `BELIEF_STATES` (`true`, `undecided`, `unlikely`, `false`) and
 `DEFAULT_BELIEFS` the first three; `checkBeliefFilter` returns the states of
 a collection, in any order, empty included, and refuses a single string, a
-value that is no iterable collection (`null`, `undefined`, a plain object)
+value that is no iterable collection (`null`, `undefined`, a plain object
+and a `Map`, which stands for Python's mapping and is spelled as the object of its entries)
 and a collection naming an unknown word, a member that is no string
 included, with the Python package's messages, byte for byte (a member that
 is no string spelled unquoted: `true is no belief state: …`). Its oracles are the
