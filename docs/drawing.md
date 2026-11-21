@@ -169,7 +169,8 @@ timeline that **lies in a group**: the timeline or one of its ancestors
 is listed in the group's `members`, so that it is drawn in the group's
 frame, as a member or inside a member's card. An ancestor of a member
 lies in no group through it. The groupstamp's line extends across the
-frame of each group its timeline lies in, over every member drawn there
+frame of each group its timeline lies in, from the upper border of the
+topmost member card drawn there to the lower border of the bottommost
 (section 6.6, Cross-section lines); the members' coordinates at that line
 are derived from the group and never stored. A timestamp is never both a
 groupstamp and a match timestamp. Their canonical order is by `timeline`,
@@ -414,8 +415,10 @@ since a child is held by its parent's children band.
 
 ### 2.4 Properties
 
-Presentation properties carry SVG's names and values; the writers map them
-to TikZ (section 7.4).
+Presentation properties carry SVG's names and values where SVG has the
+property; the writers map them to TikZ (section 7.4). `content`,
+`max-width`, `shadow` and `rotation` are the format's own; a turned
+wedge is written by its points, never with a `transform` (section 7.2).
 
 | Property | Values | Inherited | Read by |
 |---|---|---|---|
@@ -430,6 +433,7 @@ to TikZ (section 7.4).
 | `display` | `inline` or `none` | no | every type but `block` |
 | `content` | a text, or `none` | no | `name` (a row's own name, section 6.6) |
 | `max-width` | a number > 0, or `none` | no | `name` (section 6.6) |
+| `rotation` | an integer from −180 to 180 | no | `wedge` (section 6.6) |
 
 A rule may set any property on any element; an element ignores the
 properties its type does not read. `display: none` is the filter: an element
@@ -499,7 +503,8 @@ The value of a property on an element is found per property:
 3. Otherwise the property's initial value applies: `stroke` `none`,
    `stroke-width` 1, `stroke-dasharray` `none`, `fill` `none`, `opacity` 1,
    `font-size` 9, `rx` 0, `shadow` `none`, `display` `inline`, `content`
-   `none`, `max-width` `none`.
+   `none`, `max-width` `none`, `rotation` 0, but −45 on the wedge of a
+   groupstamp.
 
 The rank of a rule is, from the most to the least significant:
 
@@ -731,7 +736,9 @@ its flow control; its descendants follow it, so every child's maps lie
 against the child's line above it and its own children beyond them, and
 its named timestamps' wedges against its line below it. A cross-section
 line spans its timeline's line, children band and conversion maps band
-(section 6.6), and so never reaches the wedges in this order.
+(section 6.6), and so never reaches the wedges in this order; in an order
+that puts the markers band between them, it crosses the wedges unless
+their `rotation` turns them aside (section 6.6).
 
 ## 5. Text
 
@@ -1160,22 +1167,24 @@ segment's in canonical order (Segments without a line): of each timestamp
 its wedge and its labels (section 5.3), those that are displayed (section
 2.4), at `X`, `x` of its position (section 3.1). A timestamp's displayed
 labels form its **stack**, one label per line in the order name, ID,
-coordinate, the first nearest the wedge's base; a timestamp without a
+coordinate, the first nearest the wedges; a timestamp without a
 displayed label has no stack. The stacks are placed by one first fit
 (section 6.3), in the order of their timestamps, into **tiers**: each stack
 is one item, as many lines high as it has labels, whose extent is that of
 one label as wide as its widest label, centred on `X`. A tier is as many
 lines high as its highest stack, and each of its stacks starts on its first
-line. Counting lines outwards from the wedges' base, from 1, the label `j`
-of a stack in tier `k` lies on line `n = m1 + … + m(k−1) + j`, `mi` the
+line. Counting lines outwards from the wedges' room (section 6.6), from
+1, the label `j` of a stack in tier `k` lies on line `n = m1 + … +
+m(k−1) + j`, `mi` the
 height of tier `i` in lines. The band is `w / 2 + 13` wide when it draws
 no label, or `w / 2 + 13 + 2 + T × h(9)` (left to right) when its tiers
 hold `T ≥ 1` lines together, `w` the stroke width of its timeline's line,
 `T` the line count here; section 6.6 places
 the wedges and the labels from the band's start. The room of the wedges
-lies between the line and the labels whether or not a wedge is displayed,
-so that showing or hiding a wedge moves no label; a band whose timestamps
-draw labels and no wedge is as wide as with them. A child's present markers
+lies between the line and the labels whether or not a wedge is displayed
+and whatever its `rotation`, so that showing, hiding or turning a wedge
+moves no label; a band whose timestamps draw labels and no wedge is as
+wide as with them. A child's present markers
 band is one of its bands like any other: it takes a level, widens its side
 and so its edge, and its row takes that room (Children). The band never
 holds a cross-section line: a named timestamp's cross-section line is held
@@ -1192,9 +1201,12 @@ own bands draw, at any depth, laid out from its line by this section. The
 line, the extent of every item that a first fit of its own drawing places
 at any depth (its segment labels, the stacks of named timestamps' labels,
 regions, jump origins and flow-marker labels of its bands, and its own
-children, each with its extent by this rule), the extent `[L × u − 3, L ×
-u + 3]` of every wedge it draws, `u` the proportion of the position it
-marks, and the position `L × u` of every flow marker it draws. The
+children, each with its extent by this rule), the extent `[L × u + a, L ×
+u + b]` of every wedge it draws, `u` the proportion of the position it
+marks and `a` and `b` the smallest and the largest of 0, `13 × s − 3 × k`
+and `13 × s + 3 × k`, the offsets of its points from `X` (section 6.6,
+Wedges), so `[L × u − 3, L × u + 3]` for a wedge not rotated, and the
+position `L × u` of every flow marker it draws. The
 cross-section lines it draws add nothing: each lies at a position of its
 timeline, within that timeline's own drawing (section 6.6).
 The maps it draws, at any depth, add nothing: each spans a timeline that
@@ -1412,18 +1424,34 @@ one below it.
   over the line.
 - **Segment labels.** Centred on `x` of the midpoint of the segment's start and end,
   in its tier (section 6.4).
-- **Wedges.** A filled triangle, not stroked, 6 wide, at `X`, with its tip
-  at the distance `c + w / 2` outwards from the line of its band's
-  timeline and its base 13 further out, at `c + w / 2 + 13`, `c` the start
-  of the markers band (section 6.4) and `w` the stroke width of that line,
-  so that with `c = 0` the tip lies on the line's edge. The wedges of a
-  markers band are its named timestamps' (section 6.4, Markers).
+- **Wedges.** A filled triangle, not stroked, its tip at `X`, at the
+  distance `c + w / 2` outwards from the line of its band's timeline, `c`
+  the start of the markers band (section 6.4) and `w` the stroke width of
+  that line, so that with `c = 0` the tip lies on the line's edge. Its
+  `rotation` `r` turns it about its tip: `r` is the angle in degrees from
+  the outward direction to the direction from the tip to the middle of its
+  base, the base lying to the left of `X` when `r < 0` and to the right
+  when `r > 0`, on either side of the line, so that a wedge turned −45
+  points at its coordinate from the lower left below the line and from the
+  upper left above it. With `s` and `k` the sine and the cosine of `r`
+  degrees, each rounded to four decimal places, ties to even, and read as
+  the double nearest that decimal, its base's corners lie at `X + (13 × s −
+  3 × k)` and `X + (13 × s + 3 × k)`, at the distances `c + w / 2 + (13 ×
+  k + 3 × s)` and `c + w / 2 + (13 × k − 3 × s)` outwards, so that with `r
+  = 0` its base, 6 wide and centred on `X`, lies 13 further out than its
+  tip. −180 and 180 draw the same wedge. The vertical through `X` meets a
+  wedge turned by at least 13 in either direction at its tip alone. A
+  wedge takes the room of an unrotated one: its band is as wide and its
+  labels lie where they lie whatever its rotation, and what of it lies
+  beyond that room takes none.
+  The wedges of a markers band are its named timestamps' (section 6.4,
+  Markers).
 - **Labels of named timestamps.** Each centred on `X`, `x` of its
   timestamp's position, on its line of the band's tiers (section 6.4,
   Markers): line `n` starts `c + w / 2 + 13 + 2 + (n − 1) × h(9)` out,
   `c` and `w` as for the wedges, the label gap included, and the label's
   baseline lies beyond that start. These distances are the same whether or
-  not the timestamp's wedge is displayed.
+  not the timestamp's wedge is displayed, and whatever its `rotation`.
 - **Cross-section lines.** A vertical line at `X`, `x` of its named
   timestamp's position (section 3.1), the ordinates being of the member
   drawing counted from its top (section 8.4). Let `T` be the timestamp's
@@ -1443,7 +1471,8 @@ one below it.
   no row beyond these two bands. In the default band order (section 4)
   both bands lie above `T`'s line and its markers band below, so the line
   never meets a wedge; a band order that puts the markers band between the
-  line and either of the two bands makes it cross the wedges.
+  line and either of the two bands makes it cross the wedges, unless their
+  `rotation` turns them aside (Wedges).
 
   A named timestamp whose timeline is drawn in several cards, as a member
   in the frame of each group that has it as a member, as a descendant in
@@ -1455,30 +1484,44 @@ one below it.
   drawn after every item (section 8.7).
 
   A **groupstamp** (section 2) on a timeline `T` draws one further line
-  in the frame of each group `G` that `T` lies in, across the whole frame.
-  Let `M` be the member of `G` that is `T` or has `T` as a descendant. The
-  line lies at `X`, `x` of the timestamp's position in `M`'s member
-  drawing of that frame, where `T`'s line holds the timestamp's own
-  cross-section line by the rule above. Every member drawing of a frame
-  starts at the same `x0` and ends at `x0 + L` (section 8.2), the line of a
-  member of unknown length at its reach (section 3.4, rule 2), so the line
-  marks on every member the same proportion of its drawn length: of its
-  length, or, on a member of unknown length, of its reach. Each member of
-  `G` whose line is drawn in the frame gives its **extent**: the ordinates
-  from `y1` to `y2` that a cross-section line on its line spans by the
-  rule above, or the ordinate of its line when neither of its two bands is
-  present. With `yt` the smallest ordinate of every member's extent and
-  `yb` the largest, the line runs from `(X, yt)` to `(X, yb)`: from the
-  topmost member to the bottommost, across the gaps between their cards
-  and whatever bands, wedges and labels lie between. Where the line
-  holding the timestamp's own cross-section line has a children band or a
-  conversion maps band, the span of that cross-section line, from `y1` to
-  `y2`, is left out, and the line is two lines, from `(X, yt)` to `(X, y1)`
-  and from `(X, y2)` to `(X, yb)`; where it has neither, the line runs
-  through the point on it. A line of no length is not drawn. Its
-  positions are item coordinates of the frame, drawn at the frame's place
-  as every element of the frame is (section 8.6), and the line takes no
-  room and widens nothing.
+  in the frame of each group `G` that `T` lies in, across the frame's
+  member cards. Let `M` be the member of `G` that is `T` or has `T` as a
+  descendant. The line lies at `X`, `x` of the timestamp's position in
+  `M`'s member drawing of that frame, where `T`'s line holds the
+  timestamp's own cross-section line by the rule above. Every member
+  drawing of a frame starts at the same `x0` and ends at `x0 + L` (section
+  8.2), the line of a member of unknown length at its reach (section 3.4,
+  rule 2), so the line marks on every member the same proportion of its
+  drawn length: of its length, or, on a member of unknown length, of its
+  reach. With `yt` the top of the topmost card of the members of `G` whose
+  lines are drawn in the frame and `yb` the bottom of the bottommost, each
+  card's rectangle as sections 8.4 and 8.6 write it, its shadow not
+  counted, whether or not the card is displayed, the line runs from `(X,
+  yt)` to `(X, yb)`: from the upper border of the topmost member card to
+  the lower border of the bottommost, across the gaps between the cards
+  and whatever lies between, less two spans in `M`'s card:
+
+  - where the line holding the timestamp's own cross-section line has a
+    children band or a conversion maps band, the span of that
+    cross-section line, from `y1` to `y2`; where it has neither, the line
+    runs through the point on it;
+  - where the timestamp draws a label there, the lines its stack lies on
+    (section 6.4, Markers): with its stack in tier `k`, `j` the number of
+    its labels and `n1 = m1 + … + m(k−1) + 1` its first line, from the
+    distance `c + w / 2 + 13 + 2 + (n1 − 1) × h(9)` outwards to that
+    distance plus `j × h(9)`, `c` and `w` as for the wedges, each distance
+    summed whole before it becomes an ordinate (section 3.3).
+
+  What remains is drawn as up to three lines, from the top down, and a
+  line of no length is not drawn. The line is cut nowhere else: it crosses
+  the wedges and labels of other timestamps where it meets them. Its own
+  wedge is turned −45 unless a rule sets its `rotation` (section 2.5), so
+  that the line, which passes through its tip, leaves its body aside;
+  another timestamp's wedge that the line crosses keeps its own
+  `rotation`, which may turn it aside too. Its positions are item
+  coordinates of the frame, drawn at the frame's place as every element of
+  the frame is (section 8.6), and the line takes no room and widens
+  nothing.
 
   The line is a further drawing of the timestamp's cross-section line
   (section 2.2): it carries the line's address, belongs to `T`, has no
@@ -1488,17 +1531,7 @@ one below it.
   nothing is drawn in a frame where the line holding the timestamp's own
   cross-section line is not drawn. The timestamp's wedge, its labels and
   its own cross-section line are drawn in every card as every named
-  timestamp's are, its name label in `M`'s card on a background.
-
-  In each frame where a groupstamp draws a line, its name label in `M`'s
-  card, when its `display` lists `name`, lies over the line on a
-  **background**: a rectangle filled with the `fill` of that card, not
-  stroked, from `X − w / 2` to `X + w / 2` and from `b − a(s)` to `b +
-  d(s)`, `w` the label's width `w(text, s)` (section 5.1), `s` its font size
-  and `b` its baseline, so that the line passes behind the label's text.
-  The background is part of the label: it carries the label's address and
-  its `opacity`, and takes no room. The timestamp's ID and coordinate
-  labels have none.
+  timestamp's are.
 - **Maps.** A closed double line: the outline of the rectangle from `Xs`
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
@@ -1569,7 +1602,8 @@ three chevrons `Xr + 5.5w`, with `Xr = Xe + 4w` computed first (section
 the outer chevron's tip of the two chevrons of an ancestor line that runs
 on to the right `Xr + 4w`, with `Xr = x0 + L + 4w` computed first (section
 8.3; `8w` past `x0 + L` only as a distance), a map's `Xe`, a boundary's
-or a cross-section line's `X`, a wedge's `X + 3`, the largest x of
+or a cross-section line's `X`, the largest x of a wedge's three points
+(section 6.6), `X + 3` for a wedge not rotated, the largest x of
 the points written in a brace's or a jump origin's descriptors (control
 points and a jump origin's arrowhead corners included), and a text's end from its advance
 widths.
@@ -1643,7 +1677,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | diamond | the line stops at `Xe − 1.5w`; `<polygon points="{Xe−1.5w},{y} {Xe},{y−1.2w} {Xe+1.5w},{y} {Xe},{y+1.2w}" fill="none">` stroked in the line's `stroke` with width `w/2` and no dash |
 | three chevrons | an open end (section 6.6): the line stops at `Xr`; three `<polyline points="{p1} {p2} {p3}" fill="none">`, the inner one, the middle one, then the outer one, each through its three points in the order section 6.6 lists them, stroked in the line's `stroke` with width `w/2` and no dash |
 | two chevrons | an ancestor line running on (section 8.3): the line stops at `Xr` (to the right) or starts at `Xa` (to the left); two `<polyline points="{p1} {p2} {p3}" fill="none">`, inner one first, each through its three points in the order section 8.3 lists them, stroked as three chevrons are |
-| wedge | `<polygon points="{X},{yt} {X−3},{yb} {X+3},{yb}">`, `yt` its tip and `yb` its base (section 6.6) |
+| wedge | `<polygon points="{X},{yt} {x1},{y1} {x2},{y2}">`, `(X, yt)` its tip and `(x1, y1)`, `(x2, y2)` the corners of its base in the order section 6.6 gives them |
 | map | `<polygon points="{Xs},{yc−d/2} {Xe},{yc−d/2} {Xe},{yc+d/2} {Xs},{yc+d/2}" fill="none">` stroked |
 | region | `<path d="{brace}">` |
 | jump origin | `<path d="M{P0}C{C1} {C2} {Bh}">`, the shaft; `<polygon>` arrowhead `{P3} {Bh − 2w × n} {Bh + 2w × n}`, `n = (−uy, ux)` (section 6.6) |
@@ -1652,7 +1686,6 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | cross-section line | `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, from `(X, y1)` to `(X, y2)` as section 6.6 states them, `y1` the smaller ordinate |
 | alignment anchor | `<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}">`, from the point on the first timestamp's line to the point on the second's (section 8.7) |
 | name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and flow-marker labels, `middle` for the centred labels |
-| a label's background | `<rect x="{X−w/2}" y="{b−a(s)}" width="{w}" height="{a(s)+d(s)}">` filled and not stroked, just before its label's `<text>` (section 6.6, Cross-section lines) |
 
 The **stroke attributes** are `stroke`, `stroke-width` and, unless it is
 `none`, `stroke-dasharray`. A path carries `fill="none"` and a line no
@@ -1661,7 +1694,7 @@ and a text carry `fill`, and the open arrowhead, the diamond and the map's
 outline, the stroked polygons, also the stroke attributes (the map's dash
 included); a polyline carries `fill="none"` and the stroke attributes; a
 group frame and a card carry `fill` and the stroke attributes, a card's
-shadow and a label's background `fill` alone. A line's descriptors are, in this order, its `<line>`,
+shadow `fill` alone. A line's descriptors are, in this order, its `<line>`,
 its start circle or left chevrons, and its end or right chevrons. Every
 descriptor of an element, a card's shadow included, carries the element's
 `opacity`, written when it is not 1. An
@@ -1917,13 +1950,15 @@ the line's stroke width and `y` its ordinate:
   elements with the addresses `{"id": M, "part": ["start"]}` and `{"id":
   M, "part": ["end"]}` (section 2.2); when `M`'s length is `null`, its end
   is not known and only the start mark and its label are drawn.
-  The marks lie always above the line, outside every band, each with its
-  tip on the line's edge (`y − w / 2`) and its base 13 further up, at `x0`
-  and `x0 + L`. Each is labelled with the coordinate it
-  marks in `Aj`'s unit: `−ts` and `−ts + λ`, combined as section 3.1
-  combines values. The labels are placed by first fit, start before
-  end, into tiers above the base, as the markers band places its stacks
-  (section 6.4, Markers), each label a stack of one line.
+  The marks lie always above the line, outside every band, at `x0` and
+  `x0 + L`, each a wedge of section 6.6 above the line with its tip on the
+  line's edge (`y − w / 2`), turned by its `rotation` (section 6.6), so
+  that, not rotated, its base lies 13 further up. Each is labelled with
+  the coordinate it marks in `Aj`'s unit: `−ts` and `−ts + λ`, combined as
+  section 3.1 combines values. The labels are placed by first fit, start
+  before end, into tiers beyond the room of the marks, as the markers
+  band places its stacks (section 6.4, Markers), each label a stack of one
+  line.
 - **Nothing else** of `Aj` is drawn: no maps, regions, flow control,
   named timestamps, boundaries or other descendants. Its name is drawn in the name column on its row
   (section 6.6, names).
@@ -2034,14 +2069,10 @@ each with its chevrons, just before its root; their marks, from `A1` to
 `Ak`, each ancestor's start mark before its end mark, first among its
 wedges; their names, from `A1` to `Ak`, first among its names; and their
 mark labels, from `A1` to `Ak`, each ancestor's start label before its end
-label, first among its marker labels. The name label of a groupstamp in
-`M`'s card of a frame across which it draws a line (section 6.6) is not
-among that member drawing's marker labels. After the last item come the
+label, first among its marker labels. After the last item come the
 groupstamps' lines, timestamp by timestamp in the order of `timestamps`
-and frame by frame in the order of `groups`, a line above the
-timestamp's own cross-section line before the one below it; then those
-name labels in the same order, each its background before its text; then
-the alignment anchors and then their labels (section 8.7), so that they
+and frame by frame in the order of `groups`, each frame's lines from the
+top down (section 6.6); then the alignment anchors and then their labels (section 8.7), so that they
 lie over everything else. A title is a text descriptor of section 7.2, anchored at `start`;
 its `content` and `max-width` apply as section 6.6 applies them to a row's
 name.
