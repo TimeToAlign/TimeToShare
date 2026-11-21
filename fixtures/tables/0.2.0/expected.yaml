@@ -127,7 +127,7 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_11]
-    belief: not_false
+    beliefs: ["true", undecided, unlikely]
     believer: null
     potential_matchstamps:
       -
@@ -357,7 +357,7 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_11]
-    belief: not_false
+    beliefs: ["true", undecided, unlikely]
     believer: "https://orcid.org/0000-0002-1825-0097"
     potential_matchstamps:
       -
@@ -485,7 +485,7 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_11]
-    belief: "true"
+    beliefs: ["true"]
     believer: "https://orcid.org/0000-0002-1825-0097"
     potential_matchstamps:
       -
@@ -517,7 +517,7 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_13]
-    belief: "true"
+    beliefs: ["true"]
     believer: "https://orcid.org/0000-0001-5109-3700"
     potential_matchstamps:
       -
@@ -529,3 +529,223 @@ cases:
             timeline_id: dpt_1
             value: 441000
         match_claims: [claim_13]
+  -
+    alignment_anchors:
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [1, 1]
+          -
+            timeline_id: dpt_1
+            value: 44100
+        match_claims: [claim_2]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [2, 1]
+          -
+            timeline_id: dpt_1
+            value: 88200
+        match_claims: [claim_2]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [3, 1]
+          -
+            timeline_id: dpt_1
+            value: 132300
+        match_claims: [claim_3, claim_4]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [4, 1]
+          -
+            timeline_id: dpt_1
+            value: 176400
+        match_claims: [claim_5]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [5, 1]
+          -
+            timeline_id: cpt_1
+            value: 5.0
+        match_claims: [claim_7]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [5, 1]
+          -
+            timeline_id: cpt_1
+            value: 5.25
+        match_claims: [claim_8]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [6, 1]
+          -
+            timeline_id: cpt_1
+            value: 6.0
+        match_claims: [claim_9]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [15, 2]
+          -
+            timeline_id: cpt_1
+            value: 7.5
+        match_claims: [claim_10]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [8, 1]
+          -
+            timeline_id: cpt_1
+            value: 8.0
+        match_claims: [claim_9]
+      -
+        coordinates:
+          -
+            timeline_id: clt_2
+            value: [1, 1]
+          -
+            timeline_id: dpt_1
+            value: 396900
+        match_claims: [claim_15]
+    beliefs: [undecided]
+    believer: "https://orcid.org/0000-0002-1825-0097"
+    potential_matchstamps:
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [1, 1]
+          -
+            timeline_id: dpt_1
+            value: 44100
+        match_claims: [claim_2]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [2, 1]
+          -
+            timeline_id: dpt_1
+            value: 88200
+        match_claims: [claim_2]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [3, 1]
+          -
+            timeline_id: dpt_1
+            value: 132300
+        match_claims: [claim_3, claim_4]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [4, 1]
+          -
+            timeline_id: dpt_1
+            value: 176400
+        match_claims: [claim_5]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [5, 1]
+          -
+            timeline_id: cpt_1
+            value: 5.0
+          -
+            timeline_id: cpt_1
+            value: 5.25
+        match_claims: [claim_7, claim_8]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [6, 1]
+          -
+            timeline_id: cpt_1
+            value: 6.0
+        match_claims: [claim_9]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [15, 2]
+          -
+            timeline_id: cpt_1
+            value: 7.5
+        match_claims: [claim_10]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [8, 1]
+          -
+            timeline_id: cpt_1
+            value: 8.0
+        match_claims: [claim_9]
+      -
+        coordinates:
+          -
+            timeline_id: clt_2
+            value: [1, 1]
+          -
+            timeline_id: dpt_1
+            value: 396900
+        match_claims: [claim_15]
+  -
+    alignment_anchors:
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [10, 1]
+          -
+            timeline_id: dpt_1
+            value: 441000
+        match_claims: [claim_13]
+      -
+        coordinates:
+          -
+            timeline_id: cpt_1
+            value: 4.0
+          -
+            timeline_id: dpt_1
+            value: 176400
+        match_claims: [claim_6]
+    beliefs: [unlikely, "false"]
+    believer: "https://orcid.org/0000-0002-1825-0097"
+    potential_matchstamps:
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [10, 1]
+          -
+            timeline_id: dpt_1
+            value: 441000
+        match_claims: [claim_13]
+      -
+        coordinates:
+          -
+            timeline_id: cpt_1
+            value: 4.0
+          -
+            timeline_id: dpt_1
+            value: 176400
+        match_claims: [claim_6]

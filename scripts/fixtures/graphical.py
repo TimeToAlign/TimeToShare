@@ -220,6 +220,32 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             ],
         },
     },
+    "group_groupstamp_child_member": {
+        "group_1": {
+            "timestamps": [
+                {
+                    "id": "timestamp_1",
+                    "timeline": "second-half",
+                    "coordinate": [2, 1],
+                    "name": "Bar 4",
+                    "groupstamp": True,
+                },
+            ],
+        },
+    },
+    "bundle_groupstamp_shared_member": {
+        "t": {
+            "timestamps": [
+                {
+                    "id": "timestamp_1",
+                    "timeline": "t",
+                    "coordinate": [4, 1],
+                    "name": "Bar 2",
+                    "groupstamp": True,
+                },
+            ],
+        },
+    },
     "bundle_free_ids": {
         "group_1": {
             "rules": [
@@ -352,7 +378,12 @@ shadow and a corner radius of 2.
 
 ``group_groupstamp`` names the timestamp "Bar 2" at quarter 4 of the
 member ``score`` a groupstamp, so its line extends across both members of
-``group_1``.
+``group_1``. ``group_groupstamp_child_member`` names the timestamp "Bar 4"
+at quarter 2 of ``second-half``, the child of the member ``score``, a
+groupstamp: the child lies in ``group_1`` through its parent.
+``bundle_groupstamp_shared_member`` names the timestamp "Bar 2" at quarter
+4 of ``t``, a member of ``g1`` and of ``g2``, a groupstamp, so its line
+extends across both frames.
 
 ``bundle_free_ids`` strokes the region ``take 2/intro``, selected by its
 address ``{"id": "take 2/intro"}``, teal.

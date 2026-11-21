@@ -521,7 +521,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 174 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 176 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the thirty of the table, so every code is reached by a case both
@@ -843,10 +843,12 @@ named timestamps, in `validation/timestamps.py`. What proves them:
 
 ## Groupstamps
 
-A named timestamp with `groupstamp: true` lies on a group member, and its
-line extends across every member of the groups holding that timeline; the
-members' lines are derived, never stored, so nothing beyond the flag is
-checked. What proves it:
+A named timestamp with `groupstamp: true` lies in a group: its timeline
+or one of its ancestors is listed in the group's `members` (a member's
+descendants are drawn inside the member's card in the group's frame); an
+ancestor of a member lies in no group through it. Its line extends across
+the frame of each group it lies in; the members' coordinates are derived,
+never stored, so nothing beyond the flag is checked. What proves it:
 
 - **Defaults** (`test_defaults.py`, `test_schema.py`). As stated under
   "MatchStamps and resources": `groupstamp` defaults to `false` on an
@@ -854,26 +856,45 @@ checked. What proves it:
   for both (the `then` arm repeats it, since the arm's defaults are the
   match timestamp's whole table).
 - **The rules** (`test_validate.py`, `test_identity.py`). Code
-  `groupstamp`, at the timestamp's `groupstamp` member, two cases:
-  `groupstamp_without_group` (the fixture `timestamps.yaml` with
-  `timestamp_1` made a groupstamp: the manifest has no group) gives
-  `'timestamp_1' is a groupstamp, but its timeline 'clt_1' is a member of
-  no group`; `groupstamp_match_timestamp` (the fixture
+  `groupstamp`, at the timestamp's `groupstamp` member. The boundary of
+  "lies in a group" is pinned from both sides: accepted are a member
+  (`groups/group_groupstamp`), a member shared by two groups
+  (`bundles/bundle_groupstamp_shared_member`) and a member's child
+  (`groups/group_groupstamp_child_member`, below); refused, each with
+  `'<id>' is a groupstamp, but its timeline '<timeline>' is a member of
+  no group and lies in none`, are a root in no group
+  (`groupstamp_without_group`: the fixture `timestamps.yaml` with
+  `timestamp_1` on `clt_1` made a groupstamp), a child whose ancestors
+  are in no group (`groupstamp_child_without_group`: the same fixture
+  with `timestamp_3` on the child `clt_2` made a groupstamp) and the
+  parent of a member (`groupstamp_member_parent`: the fixture
+  `groups/group_child_member.yaml`, whose member `second-half` is a child
+  of `piece`, with a groupstamp `timestamp_5` added on `piece`). A fourth
+  case, `groupstamp_match_timestamp` (the fixture
   `bundles/bundle_matchstamp_cards.yaml`, whose `score` is a member of two
-  groups, with its match timestamp `timestamp_1` made a groupstamp) gives
+  groups, with its match timestamp `timestamp_1` made a groupstamp), gives
   `'timestamp_1' is both a match timestamp and a groupstamp` and nothing
-  else, so the member check passes over a match timestamp. The first is a
-  rule of the named timestamps, reported after the timeline and coordinate
-  of the same timestamp; the second a rule of the match timestamps, so
-  `matchstamp_problems` reports it as `validate` does and returns nothing
-  for the first.
-- **The fixture** (`test_fixtures.py`). `groups/group_groupstamp.yaml`
-  and its twin hold the group `group_1` ("Performance") of `score` and
-  `performance` and the groupstamp `timestamp_1` ("Bar 2", `[4, 1]` on
-  `score`) beside the two members' origin and length timestamps
-  (`timestamp_2` to `timestamp_5`); in the fixture every timestamp states
-  `groupstamp` (`true` for `timestamp_1` alone), in the twin only
-  `timestamp_1` does; both pass `validate` and `identity_problems`.
+  else, so the membership check passes over a match timestamp. The
+  membership cases are a rule of the named timestamps, reported after the
+  timeline and coordinate of the same timestamp; the match-timestamp case
+  a rule of the match timestamps, so `matchstamp_problems` reports it as
+  `validate` does and returns nothing for the others.
+- **The fixtures** (`test_fixtures.py`). `groups/group_groupstamp.yaml`
+  and its twin hold the group `group_1` ("Performance") of `score` (with
+  a map to ticks) and `performance` (with a map to samples), so both
+  members have a conversion maps band, and the groupstamp `timestamp_1`
+  ("Bar 2", `[4, 1]` on `score`) beside the two members' origin and
+  length timestamps (`timestamp_2` to `timestamp_5`); in the fixture
+  every timestamp states `groupstamp` (`true` for `timestamp_1` alone), in
+  the twin only `timestamp_1` does.
+  `groups/group_groupstamp_child_member.yaml` holds the same group, the
+  score without its map holding the child `second-half` (4 quarters at
+  4), with the groupstamp `timestamp_1` ("Bar 4", `[2, 1]`) on the child,
+  which is listed in no group's `members`.
+  `bundles/bundle_groupstamp_shared_member.yaml` holds the bundle of
+  `bundle_shared_member` (`t` a member of `g1` and of `g2`, no band) with
+  the groupstamp `timestamp_1` ("Bar 2", `[4, 1]`) on `t`. Every one of
+  them and its twin passes `validate` and `identity_problems`.
 
 ## Statements
 
@@ -1624,7 +1645,7 @@ written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 158 files (`test_files.py`); the four statement
+`groups` and `statements`, 162 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -1872,24 +1893,42 @@ extraction's are without fontTools. What proves them:
 - **The derivation is checked against values written by hand.** The
   fixture's expected file (`expected.yaml`) is written in
   `scripts/emit_tables.py` as literal data, never computed by the
-  derivation; for each of its cases, a `believer` and a `belief` filter (no
-  believer; an actor's `not_false`, the default; that actor's `true`; a
-  second actor's `true`) `alignment_anchors` (each anchor with the MatchClaims stating
-  it) and `potential_matchstamps` equal the expected values exactly, as
-  exact fractions. The fixture covers an instant claim, an interval
+  derivation; for each of its cases, a `believer` and the `beliefs` the
+  filter keeps (no believer, every state but `false`, the default; an
+  actor's default; that actor's `true`; a second actor's `true`; the
+  first actor's `undecided`, the rows the actor holds no belief in; the
+  first actor's `unlikely` and `false` together) `alignment_anchors` (each
+  anchor with the MatchClaims stating it) and `potential_matchstamps`
+  equal the expected values exactly, as exact fractions. The fixture covers an instant claim, an interval
   claim (two anchors), two MatchClaims stating one anchor in opposite
   orientations, a chain over three timelines, one coordinate in two
   anchors, an interval claim with an anchor inside its span, a Projection
   of an event, two Projections without a source joined by one claim, a
   NOMATCH row, a conceptual row, a row one actor believes false and another
   true, a row believed `unlikely` (kept by the default filter, dropped by
-  the believed-true one) and a child timeline whose coordinates never meet
-  its parent's. Without an actor the row believed false still gives its
-  anchor.
-- **The belief filter takes two words.** `BELIEF_FILTERS` is
-  `("not_false", "true")`; `believed_rows` keeps, per believer and filter,
-  the rows listed in `test_tables_anchors.py`, and a filter `"false"`
-  raises `'false' is no belief filter: write 'not_false' or 'true'`.
+  the believed-true one, kept again by the unlikely-and-false one, which
+  splits the chain it closes) and a child timeline whose coordinates never
+  meet its parent's. Without an actor the row believed false still gives
+  its anchor.
+- **The belief filter takes the four states.** `BELIEF_STATES` is
+  `("true", "undecided", "unlikely", "false")` and `DEFAULT_BELIEFS` the
+  first three, the default of `believed_rows`, `alignment_anchors` and
+  `potential_matchstamps`. A row's state for a believer is the believer's
+  belief in it, or `undecided` where the believer holds none (a row
+  without provenance included); the row is kept when that state is one
+  the filter names. `believed_rows` keeps, per believer and collection of
+  states, the rows listed in `test_tables_anchors.py`: every state alone
+  for one actor, which partitions the fifteen rows, the default, and
+  without a believer every row whatever the states. A single string
+  raises `the belief filter takes a collection of states, not the string
+  'true': write ['true']`; an unknown word raises `'not_false' is no
+  belief state: write 'true', 'undecided', 'unlikely' or 'false'`; an
+  empty collection keeps no row for a believer. Actors compare as the
+  IRIs they stand for under the `context` given: the believer
+  `orcid:0000-0002-1825-0097` under a context declaring `orcid` as
+  `https://orcid.org/` keeps the rows of the absolute actor, and keeps
+  none of its `true` rows without that context (it then compares as
+  written).
 - **The fixture files are the script's.** The two Parquet files read back
   equal to the tables the script builds, the manifest equal to the
   script's manifest of the files written, and both tables pass every

@@ -96,11 +96,25 @@ meta:
   generator: "timetoalign 1.2.0 (40161e42)"
 timelines:
   -
+    conversion_maps:
+      -
+        id: "#cmap_2"
+        scalar: 44100
+        source_unit: seconds
+        target_unit: samples
+        type: LinearMap
     id: "#performance"
     length: 4.0
     name: Performance
     unit: seconds
   -
+    conversion_maps:
+      -
+        id: "#cmap_1"
+        scalar: 480
+        source_unit: quarters
+        target_unit: ticks
+        type: LinearMap
     id: "#score"
     length: [8, 1]
     name: Score
