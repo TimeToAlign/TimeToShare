@@ -2038,7 +2038,13 @@ extraction's are without fontTools. What proves them:
   Projection a MatchClaim names stands on that side's timeline at the
   anchor's coordinate, its duration spanning to the end anchor; the
   fixture's eleven Projections are all named but the last two, the
-  fraction interval and the float interval.
+  fraction interval and the float interval. The Projections table's rows
+  lie sorted stably by `timeline_id`, each timeline's in the order the
+  script lists them: `projection_10` on `clt_2`, `projection_7` and
+  `projection_11` on `cpt_1`, then `projection_1` to `projection_6`,
+  `projection_8` and `projection_9` on `dpt_1`, the order in which a
+  writer holding the Projections per timeline writes them, so that such a
+  writer's file can equal the fixture's byte for byte.
 
 ## Integer boundaries
 

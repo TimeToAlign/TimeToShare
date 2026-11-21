@@ -1472,3 +1472,20 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
                 end = coordinate_value(row["end_anchor"][f"coordinate_{side}"])
                 assert start + coordinate_value(standing["duration"], kind) == end
     assert set(projections) - named == {"projection_10", "projection_11"}
+
+
+def test_the_projections_lie_sorted_by_timeline() -> None:
+    rows = pq.read_table(fixture_path("projections.parquet")).to_pylist()
+    assert [(row["timeline_id"], row["id"]) for row in rows] == [
+        ("clt_2", "projection_10"),
+        ("cpt_1", "projection_7"),
+        ("cpt_1", "projection_11"),
+        ("dpt_1", "projection_1"),
+        ("dpt_1", "projection_2"),
+        ("dpt_1", "projection_3"),
+        ("dpt_1", "projection_4"),
+        ("dpt_1", "projection_5"),
+        ("dpt_1", "projection_6"),
+        ("dpt_1", "projection_8"),
+        ("dpt_1", "projection_9"),
+    ]

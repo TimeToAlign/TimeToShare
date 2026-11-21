@@ -33,7 +33,10 @@ quarter lasts one second, 44100 samples) and one child of the first:
 The Projections table holds a Projection of each number type: ints on the
 samples timeline (instants and one interval), a float instant and a float
 interval on the seconds timeline, and a fraction interval on the child,
-the Projection of an audio onset; the last two name no MatchClaim.
+the Projection of an audio onset; the last two name no MatchClaim. Its rows
+are written sorted stably by ``timeline_id``, each timeline's rows in the
+order listed here: the order in which timetoalign writes a bundle's
+Projections table, so that the two files are equal byte for byte.
 
 A number is written by its number type alone (``numerator`` for an int,
 ``numerator`` and ``denominator`` for a fraction, ``value`` for a float), the
@@ -388,7 +391,8 @@ PROJECTIONS: list[dict[str, Any]] = [
     _projection(10, "clt_2", quarters(7, 2), ("dpt_1", "onset_1"), quarters(1, 2)),
     _projection(11, "cpt_1", seconds(12.5), ("clt_1", "note_16"), seconds(0.75)),
 ]
-"""The Projections table, row by row."""
+"""The Projections, numbered in the order listed; the table writes them
+sorted stably by ``timeline_id``."""
 
 
 # The expected values, written by hand. A coordinate is its timeline and its
@@ -556,7 +560,8 @@ def match_claims_table() -> pa.Table:
 
 
 def projections_table() -> pa.Table:
-    return pa.Table.from_pylist(PROJECTIONS, schema=PROJECTION_SCHEMA)
+    rows = sorted(PROJECTIONS, key=lambda row: row["timeline_id"])
+    return pa.Table.from_pylist(rows, schema=PROJECTION_SCHEMA)
 
 
 def _write_text(path: Path, text: str) -> None:
