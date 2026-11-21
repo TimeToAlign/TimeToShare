@@ -1484,7 +1484,7 @@ export interface Declaration {
   content?: string;
   "max-width"?: number | "none";
   /**
-   * Degrees a wedge is turned about its tip; negative to the left. TimeToShare's own: SVG's rotate turns about another point and does not mirror.
+   * Degrees a wedge is turned about its tip, from the outward direction to the direction of its base; a negative rotation turns its base to the left and a positive one to the right, whichever side of the line its band lies on.
    */
   rotation?: number;
   shadow?: Paint;
