@@ -75,10 +75,10 @@ rejection cases that use them (`test_schema.py`):
   `Timestamp`'s `display` are exactly `TIMESTAMP_DISPLAY`, `wedge`, `name`,
   `id`, `coordinate` and `cross_section` in that order, so the canonical
   order the writers apply cannot drift from the words the schema admits.
-  `ElementType` is exactly the seventeen types `block`,
+  `ElementType` is exactly the eighteen types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `flow_marker`, `jump_from`,
   `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
-  `cross_section` and `alignment_anchor`. The four
+  `cross_section`, `alignment_anchor` and `ancestor_card`. The four
   measure views fix `source_unit` to `quarters` and `target_unit` to
   `floating_measures` (`FloatingMeasureMap`) or null (the other three).
 - **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
@@ -1745,10 +1745,12 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 31 rules),
+`docs/drawing.md` section 4's defaults block (three styles, 32 rules),
 read from the file, validates as the `graphical` of the smallest file; the
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
-validate; so do the band selectors, `{"element": "band"}`, `{"element":
+validate, and so do `{"element": "ancestor_card"}` and the rule that shows
+the ancestor cards of one root, `{"element": "ancestor_card", "addresses":
+[{"id": "score", "part": ["card"]}]}`, each setting `display: inline`; so do the band selectors, `{"element": "band"}`, `{"element":
 "band", "facet": <facet>}` for each of the five facets `markers`,
 `conversion_maps`, `children`, `regions` and `flow_control`,
 `{"addresses": [{"id": "score", "facet": "regions"}]}` and `{"inside":

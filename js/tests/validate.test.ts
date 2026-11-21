@@ -759,6 +759,11 @@ describe("the graphical object", () => {
     { select: { inside: "ancestor" }, set: { opacity: 0.35 } },
     { select: { element: "card" }, set: { shadow: "#B8BEC8" } },
     { select: { element: "frame" }, set: { stroke: "#7F00FF" } },
+    { select: { element: "ancestor_card" }, set: { display: "inline" } },
+    {
+      select: { element: "ancestor_card", addresses: [{ id: "score", part: ["card"] }] },
+      set: { display: "inline" },
+    },
     { select: { element: "band" }, set: { display: "none" } },
     { select: { inside: "band" }, set: { opacity: 0.5 } },
     { select: { addresses: [{ id: "score", facet: "regions" }] }, set: { display: "inline" } },
@@ -842,7 +847,7 @@ describe("the graphical object", () => {
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.rules as unknown[]).length).toBe(31);
+    expect((defaults.rules as unknown[]).length).toBe(32);
     validate({ ...SMALLEST, graphical: defaults });
   });
 

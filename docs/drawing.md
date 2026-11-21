@@ -688,6 +688,7 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"element": "ancestor", "modality": "discrete"}, "set": {"stroke-dasharray": "3 3"}},
     {"select": {"element": "frame"}, "set": {"fill": "#FFFFFF", "stroke": "#D1D5DB", "stroke-width": 1, "rx": 6}},
     {"select": {"element": "card"}, "set": {"fill": "#FFFFFF", "stroke": "#C4C9D1", "stroke-width": 0.75, "rx": 5, "shadow": "#B8BEC8"}},
+    {"select": {"element": "ancestor_card"}, "set": {"fill": "#FFFFFF", "stroke": "#C4C9D1", "stroke-width": 0.75, "rx": 5, "shadow": "#B8BEC8", "display": "none"}},
     {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
     {"select": {"element": "label"}, "set": {"fill": "#000000", "font-size": 9}},
     {"select": {"element": "name"}, "set": {"fill": "#000000", "font-size": 11, "max-width": 160}},

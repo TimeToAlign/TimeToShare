@@ -740,6 +740,14 @@ def test_graphical_property_bounds_reject_at_the_property(
         {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
         {"select": {"element": "card"}, "set": {"shadow": "#B8BEC8"}},
         {"select": {"element": "frame"}, "set": {"stroke": "#7F00FF"}},
+        {"select": {"element": "ancestor_card"}, "set": {"display": "inline"}},
+        {
+            "select": {
+                "element": "ancestor_card",
+                "addresses": [{"id": "score", "part": ["card"]}],
+            },
+            "set": {"display": "inline"},
+        },
     ],
 )
 def test_card_frame_inside_and_shadow_validate(rule: dict) -> None:
@@ -838,7 +846,7 @@ def _defaults_block() -> dict:
 def test_the_defaults_are_a_valid_graphical_object() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["rules"]) == 31
+    assert len(defaults["rules"]) == 32
     validate({**SMALLEST, "graphical": defaults})
 
 
