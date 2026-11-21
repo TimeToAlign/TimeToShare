@@ -1,6 +1,7 @@
 /** Helpers for reading the styles of a manifest's `graphical` object. */
 
 import type { Graphical } from "./generated/types.js";
+import { clone } from "./json/value.js";
 
 function compareCodePoints(left: string, right: string): number {
   const leftPoints = Array.from(left, (character) => character.codePointAt(0) as number);
@@ -13,12 +14,16 @@ function compareCodePoints(left: string, right: string): number {
   return leftPoints.length - rightPoints.length;
 }
 
-/** Return a copied `graphical` object with empty declarations for every missing style. */
+/**
+ * Return a copied `graphical` object with empty declarations for every missing style.
+ *
+ * The copy keeps every number as `loads` read it: an integral float stays a `JsonFloat`.
+ */
 export function completeStyles(graphical: Graphical): {
   graphical: Graphical;
   missing: string[];
 } {
-  const completed = structuredClone(graphical);
+  const completed = clone(graphical);
   const styles = completed.styles ?? {};
   const missing = Array.from(
     new Set(
