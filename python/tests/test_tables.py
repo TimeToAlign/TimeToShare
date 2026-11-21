@@ -42,7 +42,10 @@ from timetoshare.tables import (  # noqa: E402
     PROVENANCE_METADATA_KEY,
     PROVENANCE_TYPE,
     SCOPE_FIELD,
+    AlignmentAnchor,
     TableError,
+    TimelineCoordinate,
+    alignment_anchors,
     check_match_claims,
     check_projections,
     check_succession,
@@ -547,18 +550,6 @@ CLAIM_CASES = [
         "the coordinate's denominator 0 is below 1",
     ),
     (
-        "unreduced",
-        put(1, "start_anchor", "coordinate_a", value=q(2, 2)),
-        [("invalid_coordinate", 1, ("start_anchor", "coordinate_a"))],
-        "the coordinate's fraction 2/2 is not in lowest terms: write 1/1",
-    ),
-    (
-        "unreduced_zero",
-        put(1, "start_anchor", "coordinate_a", value=q(0, 4)),
-        [("invalid_coordinate", 1, ("start_anchor", "coordinate_a"))],
-        "the coordinate's fraction 0/4 is not in lowest terms: write 0/1",
-    ),
-    (
         "cell_unit_null",
         put(0, "start_anchor", "coordinate_a", "unit", value=None),
         [("invalid_coordinate", 0, ("start_anchor", "coordinate_a"))],
@@ -775,6 +766,41 @@ def _every_cell_of(
                 for side in ("a", "b"):
                     if row[f"timeline_{side}_id"] == timeline:
                         value[f"coordinate_{side}"] = cell(value[f"coordinate_{side}"])
+
+
+@pytest.mark.parametrize(
+    ("cell", "value"),
+    [(q(2, 2), Fraction(1)), (q(0, 4), Fraction(0))],
+    ids=["unreduced", "unreduced_zero"],
+)
+def test_an_unreduced_fraction_is_read_as_its_value(
+    cell: dict, value: Fraction
+) -> None:
+    table = claims_table(
+        changed(CLAIMS, put(1, "start_anchor", "coordinate_a", value=cell))
+    )
+    assert match_claim_problems(table) == []
+    assert match_claim_problems(table, MANIFEST) == []
+    check_match_claims(table, MANIFEST)
+    read = table.column("start_anchor")[1].as_py()["coordinate_a"]
+    assert coordinate_value(read) == value
+
+
+def test_an_unreduced_anchor_is_the_reduced_one() -> None:
+    reduced = claims_table(CLAIMS)
+    unreduced = claims_table(
+        changed(CLAIMS, put(1, "start_anchor", "coordinate_a", value=q(2, 2)))
+    )
+    anchors = alignment_anchors(unreduced)
+    assert anchors == alignment_anchors(reduced)
+    assert anchors[
+        AlignmentAnchor(
+            (
+                TimelineCoordinate("clt_1", Fraction(1)),
+                TimelineCoordinate("dpt_1", Fraction(44100)),
+            )
+        )
+    ] == ("claim_2",)
 
 
 def test_seconds_on_a_samples_timeline_are_refused_only_against_the_manifest() -> None:
@@ -1122,29 +1148,6 @@ PROJECTION_CASES = [
         "an int duration holds its numerator alone, not a denominator",
     ),
     (
-        "start_unreduced",
-        lambda rows: rows[2].update(
-            timeline_id="clt_1",
-            unit="quarters",
-            number_type="fraction",
-            start=number(q(4, 2)),
-        ),
-        [("invalid_coordinate", 2, ("start",))],
-        "the coordinate's fraction 4/2 is not in lowest terms: write 2/1",
-    ),
-    (
-        "duration_unreduced",
-        lambda rows: rows[2].update(
-            timeline_id="clt_1",
-            unit="quarters",
-            number_type="fraction",
-            start=number(q(7, 2)),
-            duration=number(q(2, 4)),
-        ),
-        [("invalid_coordinate", 2, ("duration",))],
-        "the duration's fraction 2/4 is not in lowest terms: write 1/2",
-    ),
-    (
         "two_units",
         lambda rows: rows[2].update(
             unit="seconds", number_type="float", start=number(sec(3.0))
@@ -1175,6 +1178,40 @@ def test_each_projection_rule(
     with pytest.raises(TableError) as error:
         check_projections(table)
     assert str(error.value) == message
+
+
+@pytest.mark.parametrize(
+    ("start", "duration", "values"),
+    [
+        (q(4, 2), None, (Fraction(2), None)),
+        (q(7, 2), q(2, 4), (Fraction(7, 2), Fraction(1, 2))),
+    ],
+    ids=["start_unreduced", "duration_unreduced"],
+)
+def test_an_unreduced_projection_number_is_read_as_its_value(
+    start: dict, duration: dict | None, values: tuple[Fraction, Fraction | None]
+) -> None:
+    table = projections_table(
+        changed(
+            PROJECTIONS,
+            lambda rows: rows[2].update(
+                timeline_id="clt_1",
+                unit="quarters",
+                number_type="fraction",
+                start=number(start),
+                duration=number(duration),
+            ),
+        )
+    )
+    assert projection_problems(table) == []
+    assert projection_problems(table, MANIFEST) == []
+    check_projections(table, MANIFEST)
+    row = table.to_pylist()[2]
+    read = tuple(
+        None if row[key] is None else coordinate_value(row[key], "fraction")
+        for key in ("start", "duration")
+    )
+    assert read == values
 
 
 def test_a_joined_string_is_no_projected_event() -> None:
@@ -1253,8 +1290,9 @@ def _with_belief(rows: list[dict]) -> None:
         ),
         _with_belief,
         lambda rows: rows.reverse(),
+        put(1, "start_anchor", "coordinate_a", value=q(2, 2)),
     ],
-    ids=["same", "appended", "provenance", "reordered"],
+    ids=["same", "appended", "provenance", "reordered", "unreduced"],
 )
 def test_a_successor_keeps_every_claim(change: Callable[[list[dict]], None]) -> None:
     old = claims_table(CLAIMS)

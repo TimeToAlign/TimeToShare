@@ -821,9 +821,10 @@ a `fraction` its `numerator` and its `denominator`, a `float` its
 as a fraction, nor a fraction as a float. Every cell that is not null
 states a `unit` of the format's units and a `number_type` of `int`,
 `float` and `fraction`; its `value` is finite, its integers are 64-bit,
-and a fraction has a `denominator` of at least 1 and lies in lowest
-terms, so that each value has one cell and exact ratios survive
-Parquet.
+and a fraction has a `denominator` of at least 1, so that exact ratios
+survive Parquet. A fraction in any terms is accepted and read as its
+value: `(2, 4, null)` is the value 1/2, equal to `(1, 2, null)` wherever
+cells are compared.
 
 Every coordinate lies on its timeline's own axis, in that timeline's unit
 and number type: a position given in a unit the timeline converts to is
@@ -867,9 +868,9 @@ of several manifests names each row's in its `scope` column, never in a
 string joined to the ID. Whoever writes a table over an existing one keeps the **succession
 rule**: every MatchClaim of the old table, by its scope and its ID, is in
 the new one with the same value in every column of the table's type but
-`provenance`, which alone may differ; a checked table writes each
-coordinate in one cell, so cells compare as written, and the further
-columns of a table are not compared. The Python
+`provenance`, which alone may differ; coordinates compare by unit, number
+type and exact value, and the further columns of a table are not
+compared. The Python
 package checks the rule for an old and a new table,
 `timetoshare.tables.check_succession(old, new)` raising the first breach
 and `succession_problems(old, new)` listing them ([Python](#python)). A reader refuses no table
@@ -1056,9 +1057,7 @@ coordinate holds its numerator alone, not a denominator`, `a fraction
 coordinate holds its numerator and denominator alone, not a value`); a
 value that is not finite (`the coordinate's value <value> is not
 finite`); a denominator below 1 (`the coordinate's denominator
-<denominator> is below 1`); a fraction not in lowest terms (`the
-coordinate's fraction 2/4 is not in lowest terms: write 1/2`, `the
-duration's fraction 0/4 is not in lowest terms: write 0/1`). An axis
+<denominator> is below 1`). An axis
 message is `a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit>
 (<number type>)` against a manifest, and `the timeline '<id>' has
 coordinates in <unit> (<number type>) and in <unit> (<number type>)` at

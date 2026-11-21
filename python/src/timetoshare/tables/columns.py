@@ -187,10 +187,10 @@ def number_cell(value: int | Fraction | float, number_type: str) -> dict[str, An
     """The members of a number of the number type ``number_type``.
 
     An ``int`` takes an integer (or a Fraction whose denominator is 1), a
-    ``fraction`` an integer or a Fraction, written in lowest terms, a
-    ``float`` a finite float or an integer a double holds exactly; a float
-    is never written as a Fraction, nor a Fraction as a float, and an exact
-    number's members are 64-bit integers.
+    ``fraction`` an integer or a Fraction, written as its numerator and
+    denominator, a ``float`` a finite float or an integer a double holds
+    exactly; a float is never written as a Fraction, nor a Fraction as a
+    float, and an exact number's members are 64-bit integers.
 
     Raises:
         ValueError: If ``number_type`` is no number type or ``value`` is no
@@ -232,6 +232,9 @@ def coordinate_value(
     cell: Mapping[str, Any], number_type: str | None = None
 ) -> Fraction:
     """The exact value of a well-formed number, read from its number type.
+
+    A fraction is read in whatever terms it is written: ``(2, 4, null)``
+    is the value ``1/2``.
 
     Args:
         cell: A coordinate cell, or a Projection's ``start`` or ``duration``.
