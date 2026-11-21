@@ -31,6 +31,7 @@ from .columns import (
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
+    SCOPE_FIELD,
     coordinate_value,
 )
 
@@ -316,20 +317,55 @@ class _Axes:
         return None
 
 
-def _ids(rows: list[dict[str, Any]], key: str = "id") -> Iterator[TableProblem]:
-    seen: set[str] = set()
+def _ids(rows: list[dict[str, Any]], within: str) -> Iterator[TableProblem]:
+    """Each ID valid, and given once within the value of the column ``within``.
+
+    A MatchClaim's ID is unique in its scope (``scope``, null for the
+    package's own), a Projection's on its timeline (``timeline_id``).
+    """
+    where = {"scope": "in the scope", "timeline_id": "on the timeline"}[within]
+    seen: set[tuple[Any, str]] = set()
     for index, row in enumerate(rows):
-        value = row[key]
+        value = row["id"]
         if value is None:
             continue
         problem = _id_problem(value, "the ID")
+        key = (row[within], value)
         if problem:
-            yield TableProblem("invalid_id", index, (key,), problem)
-        elif value in seen:
-            yield TableProblem(
-                "duplicate_id", index, (key,), f"the ID '{value}' is given twice"
+            yield TableProblem("invalid_id", index, ("id",), problem)
+        elif key in seen:
+            message = f"the ID '{value}' is given twice"
+            if key[0] is not None:
+                message += f" {where} '{key[0]}'"
+            yield TableProblem("duplicate_id", index, ("id",), message)
+        seen.add(key)
+
+
+def _scope_problems(table: pa.Table) -> list[TableProblem]:
+    """The problems of the optional ``scope`` column: its type."""
+    name = SCOPE_FIELD.name
+    if name in table.column_names and _shape(table.schema.field(name).type) != _shape(
+        SCOPE_FIELD.type
+    ):
+        return [
+            TableProblem(
+                "schema_violation",
+                None,
+                (name,),
+                f"the column '{name}' is {table.schema.field(name).type}, "
+                f"not {SCOPE_FIELD.type}",
             )
-        seen.add(value)
+        ]
+    return []
+
+
+def _claim_rows(table: pa.Table) -> list[dict[str, Any]]:
+    """The rows of a MatchClaim table, each with its ``scope``, null where the
+    table has no such column."""
+    names = list(MATCH_CLAIM_SCHEMA.names)
+    if SCOPE_FIELD.name in table.column_names:
+        return table.select([*names, SCOPE_FIELD.name]).to_pylist()
+    return [{**row, SCOPE_FIELD.name: None} for row in table.select(names).to_pylist()]
 
 
 def _nulls(
@@ -474,15 +510,27 @@ def match_claim_problems(
     table: pa.Table, manifest: Mapping[str, Any] | None = None
 ) -> list[TableProblem]:
     """Every problem of a MatchClaim table, checked against a manifest (as
-    read from its file, IDs written ``#``) where one is given."""
-    problems = _schema_problems(table, MATCH_CLAIM_SCHEMA)
+    read from its file, IDs written ``#``) where one is given.
+
+    A MatchClaim's ID is unique in its scope: the package's own, where the
+    table has no ``scope`` column or the row's is null, else the scope it
+    names (:data:`~timetoshare.tables.SCOPE_FIELD`)."""
+    problems = [
+        *_schema_problems(table, MATCH_CLAIM_SCHEMA),
+        *_scope_problems(table),
+    ]
     if problems:
         return problems
-    rows = table.select(list(MATCH_CLAIM_SCHEMA.names)).to_pylist()
+    rows = _claim_rows(table)
     problems = [*_nulls(rows, _REQUIRED_CLAIM)]
     if problems:
         return problems
-    problems.extend(_ids(rows))
+    for index, row in enumerate(rows):
+        if row["scope"] is not None:
+            problem = _id_problem(row["scope"], "the scope")
+            if problem:
+                problems.append(TableProblem("invalid_id", index, ("scope",), problem))
+    problems.extend(_ids(rows, "scope"))
     shared = PROVENANCE_METADATA_KEY.encode() in (table.schema.metadata or {})
     _, problem = _shared_provenance(table)
     if problem:
@@ -510,7 +558,10 @@ def projection_problems(
     table: pa.Table, manifest: Mapping[str, Any] | None = None
 ) -> list[TableProblem]:
     """Every problem of a Projections table, checked against a manifest (as
-    read from its file, IDs written ``#``) where one is given."""
+    read from its file, IDs written ``#``) where one is given.
+
+    A Projection's ID is unique on its timeline, as every event's: two
+    timelines may each hold ``projection_1``."""
     problems = _schema_problems(table, PROJECTION_SCHEMA)
     if problems:
         return problems
@@ -518,7 +569,7 @@ def projection_problems(
     problems = [*_nulls(rows, _REQUIRED_PROJECTION)]
     if problems:
         return problems
-    problems.extend(_ids(rows))
+    problems.extend(_ids(rows, "timeline_id"))
     axes = _Axes(manifest)
     for index, row in enumerate(rows):
         timeline_id = row["timeline_id"]
@@ -593,27 +644,27 @@ def _comparable(value: Any) -> Any:
 def succession_problems(old: pa.Table, new: pa.Table) -> list[TableProblem]:
     """Every breach of the succession rule by ``new`` written over ``old``.
 
-    Both are checked MatchClaim tables. Every ID of ``old`` is in ``new``,
-    and its row has the same value in every column but ``provenance``; a
-    coordinate is the same when its unit, number type and exact value are.
-    The rows of ``new`` are reported by their index in ``new``.
+    Both are checked MatchClaim tables. A MatchClaim is its scope and its
+    ID (a table without a ``scope`` column holds the package's own alone).
+    Every MatchClaim of ``old`` is in ``new``, and its row has the same
+    value in every column but ``provenance``; a coordinate is the same when
+    its unit, number type and exact value are. The rows of ``new`` are
+    reported by their index in ``new``.
     """
     columns = [name for name in MATCH_CLAIM_SCHEMA.names if name != "provenance"]
     later = {
-        row["id"]: (index, row)
-        for index, row in reversed(list(enumerate(new.select(columns).to_pylist())))
+        (row["scope"], row["id"]): (index, row)
+        for index, row in reversed(list(enumerate(_claim_rows(new))))
     }
     problems = []
-    for row in old.select(columns).to_pylist():
-        found = later.get(row["id"])
+    for row in _claim_rows(old):
+        name = f"the MatchClaim '{row['id']}'"
+        if row["scope"] is not None:
+            name += f" of the scope '{row['scope']}'"
+        found = later.get((row["scope"], row["id"]))
         if found is None:
             problems.append(
-                TableProblem(
-                    "succession_missing",
-                    None,
-                    ("id",),
-                    f"the MatchClaim '{row['id']}' is missing",
-                )
+                TableProblem("succession_missing", None, ("id",), f"{name} is missing")
             )
             continue
         index, successor = found
@@ -624,7 +675,7 @@ def succession_problems(old: pa.Table, new: pa.Table) -> list[TableProblem]:
                         "succession_changed",
                         index,
                         (column,),
-                        f"the MatchClaim '{row['id']}' changed its '{column}'",
+                        f"{name} changed its '{column}'",
                     )
                 )
     return problems

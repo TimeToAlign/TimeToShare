@@ -1716,7 +1716,9 @@ extraction's are without fontTools. What proves them:
   `certainty`, `source_claim_id`, `event_a_id`, `event_a_name`,
   `event_b_id`, `event_b_name`, `source_coordinate`, `id`, `id_minted`;
   `PROJECTION_COLUMNS` `id`, `timeline_id`, `start`, `duration`,
-  `projection_of`. A coordinate cell is the struct `value` (float64),
+  `projection_of`. `SCOPE_FIELD` is the optional key column `scope`
+  (strings), declared outside `MATCH_CLAIM_COLUMNS` since a table of one
+  scope has none. A coordinate cell is the struct `value` (float64),
   `numerator`, `denominator` (int64), `unit`, `number_type` (strings); an
   anchor the struct `timeline_a_id`, `coordinate_a`, `timeline_b_id`,
   `coordinate_b`; `projection_of` the struct `timeline_id`, `event_id`. The
@@ -1742,7 +1744,15 @@ extraction's are without fontTools. What proves them:
   list items, changes nothing; a column the type does not declare is
   kept, as an unknown key is); a null in `id`, a timeline or a flag
   (`schema_violation`); an empty ID or one with a control character
-  (`invalid_id`); an ID twice (`duplicate_id`, at its second row); a
+  (`invalid_id`); an ID twice in one scope of a MatchClaim table, or twice
+  on one timeline of a Projections table (`duplicate_id`, at its second
+  row, the message naming the scope or the timeline: `the ID 'claim_1' is
+  given twice in the scope 'take_2'`, `the ID 'projection_1' is given
+  twice on the timeline 'dpt_1'`); the same ID in two scopes (the
+  package's own, null, and a named one, or two named ones) or on two
+  timelines is no problem; a `scope` column of another type than string
+  (`schema_violation`); an empty scope or one with a control character
+  (`invalid_id` at `scope`); a
   coordinate cell with an unknown unit or number type, a null side, a
   denominator below 1, an `int` cell with a denominator other than 1, a
   non-finite float (`invalid_coordinate`); a row naming no event
@@ -1787,7 +1797,13 @@ extraction's are without fontTools. What proves them:
   and a change to any other column, an anchor moved, an event renamed, a
   timeline swapped (`succession_changed`, naming the column). A coordinate
   is compared by unit, number type and exact value, so a cell whose float
-  mirror alone differs is the same coordinate.
+  mirror alone differs is the same coordinate. A MatchClaim is its scope
+  and its ID: a table of two scopes holding `claim_1` each is succeeded by
+  itself and by its rows reordered; one whose `claim_1` of the scope
+  `take_2` is moved to the scope `take_3` misses it
+  (`succession_missing`, `the MatchClaim 'claim_1' of the scope 'take_2'
+  is missing`), and a table of one scope compares as a table whose `scope`
+  is null throughout.
 - **The derivation is checked against values written by hand.** The
   fixture's expected file (`expected.yaml`) is written in
   `scripts/emit_tables.py` as literal data, never computed by the

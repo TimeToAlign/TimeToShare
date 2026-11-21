@@ -32,6 +32,7 @@ __all__ = [
     "PROVENANCE_KEYS",
     "PROVENANCE_METADATA_KEY",
     "PROVENANCE_TYPE",
+    "SCOPE_FIELD",
     "coordinate_value",
     "fixture_path",
 ]
@@ -122,6 +123,14 @@ MATCH_CLAIM_SCHEMA = pa.schema(
     ]
 )
 """The MatchClaim table: one row per MatchClaim, one column per property."""
+
+SCOPE_FIELD = pa.field("scope", pa.string())
+"""The MatchClaim table's optional key column: the scope of each row's ID.
+
+Null for the package's own MatchClaims, else the name of the scope the row
+comes from; a table of the package's own MatchClaims alone has no such
+column. A MatchClaim is its scope and its ID, never a string joining them.
+"""
 
 PROJECTION_SCHEMA = pa.schema(
     [

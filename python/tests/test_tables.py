@@ -35,6 +35,7 @@ from timetoshare.tables import (  # noqa: E402
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
     PROVENANCE_TYPE,
+    SCOPE_FIELD,
     TableError,
     check_match_claims,
     check_projections,
@@ -753,6 +754,86 @@ def test_a_malformed_shared_provenance(text: str, message: str) -> None:
     assert str(error.value) == message
 
 
+# The scope column
+
+
+def scoped(rows: list[dict], scopes: list[str | None]) -> Any:
+    """A MatchClaim table with the key column ``scope``."""
+    return claims_table(rows).append_column(SCOPE_FIELD, pa.array(scopes, pa.string()))
+
+
+SCOPES = [None, None, "take_2", "take_2"]
+"""The package's own claim_1 and claim_2, then claim_3 and claim_4 of take_2."""
+
+
+def test_the_scope_column() -> None:
+    assert (SCOPE_FIELD.name, str(SCOPE_FIELD.type)) == ("scope", "string")
+    assert "scope" not in MATCH_CLAIM_COLUMNS
+
+
+def test_one_id_in_two_scopes_is_two_claims() -> None:
+    rows = changed(CLAIMS, put(2, "id", value="claim_1"))
+    rows = changed(rows, put(3, "id", value="claim_2"))
+    table = scoped(rows, SCOPES)
+    assert match_claim_problems(table) == []
+    assert match_claim_problems(table, MANIFEST) == []
+    check_match_claims(table, MANIFEST)
+    named = scoped(rows, ["take_1", "take_1", "take_2", "take_2"])
+    assert match_claim_problems(named, MANIFEST) == []
+
+
+@pytest.mark.parametrize(
+    ("change", "expected", "message"),
+    [
+        (
+            put(3, "id", value="claim_3"),
+            [("duplicate_id", 3, ("id",))],
+            "the ID 'claim_3' is given twice in the scope 'take_2'",
+        ),
+        (
+            put(1, "id", value="claim_1"),
+            [("duplicate_id", 1, ("id",))],
+            "the ID 'claim_1' is given twice",
+        ),
+    ],
+    ids=["named", "own"],
+)
+def test_an_id_twice_in_one_scope(
+    change: Callable[[list[dict]], None], expected: list[tuple], message: str
+) -> None:
+    table = scoped(changed(CLAIMS, change), SCOPES)
+    assert found(match_claim_problems(table)) == expected
+    with pytest.raises(TableError) as error:
+        check_match_claims(table)
+    assert str(error.value) == message
+
+
+@pytest.mark.parametrize(
+    ("scope", "message"),
+    [
+        ("", "the scope is empty"),
+        ("take\x02", "the scope 'take\\x02' holds a control character"),
+    ],
+    ids=["empty", "control"],
+)
+def test_a_malformed_scope(scope: str, message: str) -> None:
+    table = scoped(CLAIMS, [None, None, scope, None])
+    assert found(match_claim_problems(table)) == [("invalid_id", 2, ("scope",))]
+    with pytest.raises(TableError) as error:
+        check_match_claims(table)
+    assert str(error.value) == message
+
+
+def test_a_scope_column_of_another_type() -> None:
+    table = claims_table(CLAIMS).append_column("scope", pa.array([0, 0, 1, 1]))
+    assert found(match_claim_problems(table)) == [
+        ("schema_violation", None, ("scope",))
+    ]
+    with pytest.raises(TableError) as error:
+        check_match_claims(table)
+    assert str(error.value) == "the column 'scope' is int64, not string"
+
+
 # The Projections table
 
 
@@ -774,7 +855,7 @@ PROJECTION_CASES = [
         "id_twice",
         put(2, "id", value="projection_1"),
         [("duplicate_id", 2, ("id",))],
-        "the ID 'projection_1' is given twice",
+        "the ID 'projection_1' is given twice on the timeline 'dpt_1'",
     ),
     (
         "source_without_event",
@@ -838,6 +919,19 @@ def test_a_joined_string_is_no_projected_event() -> None:
         "the column 'projection_of' is string, "
         "not struct<timeline_id: string, event_id: string>"
     )
+
+
+def test_one_id_on_two_timelines_is_two_projections() -> None:
+    rows = [
+        *PROJECTIONS,
+        {
+            **projection("projection_1", q(1), ("dpt_1", "projection_2")),
+            "timeline_id": "clt_1",
+        },
+    ]
+    table = projections_table(rows)
+    assert projection_problems(table) == []
+    assert projection_problems(table, MANIFEST) == []
 
 
 def test_projections_against_the_manifest() -> None:
@@ -932,6 +1026,36 @@ def test_a_changed_claim_breaks_the_succession(
     with pytest.raises(TableError) as error:
         check_succession(old, new)
     assert str(error.value) == message
+
+
+def _two_scopes() -> list[dict]:
+    """claim_1 to claim_4, then claim_1 again, of the scope take_2."""
+    return [*CLAIMS, claim("claim_1", "note_5", "projection_4", (q(4), smp(176400)))]
+
+
+TWO_SCOPES = [None, None, None, None, "take_2"]
+
+
+def test_a_successor_keeps_every_claim_of_every_scope() -> None:
+    old = scoped(_two_scopes(), TWO_SCOPES)
+    assert succession_problems(old, old) == []
+    reordered = scoped(_two_scopes()[::-1], TWO_SCOPES[::-1])
+    assert succession_problems(old, reordered) == []
+    check_succession(old, reordered)
+    assert succession_problems(claims_table(CLAIMS), scoped(CLAIMS, [None] * 4)) == []
+
+
+def test_a_claim_moved_to_another_scope_is_missing() -> None:
+    old = scoped(_two_scopes(), TWO_SCOPES)
+    new = scoped(_two_scopes(), [*TWO_SCOPES[:4], "take_3"])
+    assert found(succession_problems(old, new)) == [
+        ("succession_missing", None, ("id",))
+    ]
+    with pytest.raises(TableError) as error:
+        check_succession(old, new)
+    assert (
+        str(error.value) == "the MatchClaim 'claim_1' of the scope 'take_2' is missing"
+    )
 
 
 # The fixture
