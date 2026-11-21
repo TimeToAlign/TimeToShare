@@ -56,7 +56,6 @@ TableCode = Literal[
     "claim_events",
     "claim_timelines",
     "claim_anchors",
-    "anchor_timelines",
     "invalid_certainty",
     "invalid_provenance",
     "axis_mismatch",
@@ -91,14 +90,7 @@ class TableError(ValueError):
 
 _CONTROL = re.compile("[\u0000-\u001f]")
 _NUMBER_TYPES = ("int", "float", "fraction")
-_REQUIRED_CLAIM = (
-    "timeline_a_id",
-    "timeline_b_id",
-    "is_synchronous",
-    "is_explicit",
-    "id",
-    "id_minted",
-)
+_REQUIRED_CLAIM = ("timeline_a_id", "timeline_b_id", "is_synchronous", "id")
 _REQUIRED_PROJECTION = ("id", "timeline_id", "start")
 
 
@@ -439,42 +431,17 @@ def _claim_problems(
             ("end_anchor",),
             "an end anchor needs a start anchor",
         )
-    nomatch = (event_a is None) != (event_b is None)
-    if row["source_coordinate"] is not None and not nomatch:
-        yield TableProblem(
-            "claim_anchors",
-            index,
-            ("source_coordinate",),
-            "only a NOMATCH MatchClaim has a source coordinate",
-        )
     for name, anchor in (("start_anchor", start), ("end_anchor", end)):
         if anchor is None:
             continue
-        if (anchor["timeline_a_id"], anchor["timeline_b_id"]) != (a, b):
-            yield TableProblem(
-                "anchor_timelines",
-                index,
-                (name,),
-                f"the anchor joins '{anchor['timeline_a_id']}' and "
-                f"'{anchor['timeline_b_id']}', the MatchClaim '{a}' and '{b}'",
-            )
-            continue
-        for side in ("a", "b"):
+        for side, timeline_id in (("a", a), ("b", b)):
             yield from _cell_problems(
                 index,
                 (name, f"coordinate_{side}"),
-                anchor[f"timeline_{side}_id"],
+                timeline_id,
                 anchor[f"coordinate_{side}"],
                 axes,
             )
-    if row["source_coordinate"] is not None and nomatch:
-        yield from _cell_problems(
-            index,
-            ("source_coordinate",),
-            a if event_a is not None else b,
-            row["source_coordinate"],
-            axes,
-        )
     certainty = row["certainty"]
     if certainty is not None and not 0 <= certainty <= 1:
         yield TableProblem(

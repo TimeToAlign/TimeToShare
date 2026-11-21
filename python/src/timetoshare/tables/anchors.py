@@ -95,10 +95,12 @@ def believed_rows(
     return kept
 
 
-def _anchor(cell: dict[str, Any]) -> AlignmentAnchor:
+def _anchor(row: dict[str, Any], key: str) -> AlignmentAnchor:
+    """The anchor of a row's anchor cell, its coordinates on the row's timelines."""
+    cell = row[key]
     first, second = sorted(
         TimelineCoordinate(
-            cell[f"timeline_{side}_id"], coordinate_value(cell[f"coordinate_{side}"])
+            row[f"timeline_{side}_id"], coordinate_value(cell[f"coordinate_{side}"])
         )
         for side in ("a", "b")
     )
@@ -110,13 +112,14 @@ def alignment_anchors(
 ) -> dict[AlignmentAnchor, tuple[str, ...]]:
     """The unique anchors of the rows the filter keeps, sorted, each with the
     sorted IDs of the MatchClaims stating it."""
-    rows = table.select(["id", "start_anchor", "end_anchor"]).to_pylist()
+    columns = ["id", "timeline_a_id", "timeline_b_id", "start_anchor", "end_anchor"]
+    rows = table.select(columns).to_pylist()
     stated: dict[AlignmentAnchor, set[str]] = {}
     for index in believed_rows(table, believer, belief):
         row = rows[index]
         for key in ("start_anchor", "end_anchor"):
             if row[key] is not None:
-                stated.setdefault(_anchor(row[key]), set()).add(row["id"])
+                stated.setdefault(_anchor(row, key), set()).add(row["id"])
     return {anchor: tuple(sorted(stated[anchor])) for anchor in sorted(stated)}
 
 

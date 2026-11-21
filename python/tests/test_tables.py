@@ -29,6 +29,7 @@ from timetoshare.tables import (  # noqa: E402
     BELIEF_KEYS,
     BELIEF_TYPE,
     COORDINATE_KEYS,
+    COORDINATE_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_SCHEMA,
     PROJECTION_COLUMNS,
@@ -85,13 +86,9 @@ def sec(value: float) -> dict[str, Any]:
     }
 
 
-def anchor(a: str, cell_a: dict, b: str, cell_b: dict) -> dict[str, Any]:
-    return {
-        "timeline_a_id": a,
-        "coordinate_a": cell_a,
-        "timeline_b_id": b,
-        "coordinate_b": cell_b,
-    }
+def anchor(cell_a: dict, cell_b: dict) -> dict[str, Any]:
+    """An anchor cell: a coordinate on each of the row's two timelines."""
+    return {"coordinate_a": cell_a, "coordinate_b": cell_b}
 
 
 PROVENANCE = {
@@ -117,22 +114,16 @@ def claim(
     row = {
         "timeline_a_id": "clt_1",
         "timeline_b_id": "dpt_1",
-        "start_anchor": None
-        if start is None
-        else anchor("clt_1", start[0], "dpt_1", start[1]),
-        "end_anchor": None if end is None else anchor("clt_1", end[0], "dpt_1", end[1]),
+        "start_anchor": None if start is None else anchor(*start),
+        "end_anchor": None if end is None else anchor(*end),
         "is_synchronous": start is not None,
-        "is_explicit": True,
         "provenance": None,
         "certainty": 1.0,
-        "source_claim_id": None,
         "event_a_id": event_a,
         "event_a_name": None,
         "event_b_id": event_b,
         "event_b_name": None,
-        "source_coordinate": None,
         "id": identifier,
-        "id_minted": False,
     }
     row.update(members)
     return row
@@ -141,7 +132,7 @@ def claim(
 CLAIMS = [
     claim("claim_1", "note_1", "projection_1", (q(0), smp(0)), provenance=PROVENANCE),
     claim("claim_2", "note_2", "projection_2", (q(1), smp(44100)), (q(2), smp(88200))),
-    claim("claim_3", "note_3", None, source_coordinate=q(3)),
+    claim("claim_3", "note_3", None),
     claim("claim_4", "note_4", "projection_3"),
 ]
 """An instant claim, an interval claim, a NOMATCH and a conceptual claim."""
@@ -223,25 +214,16 @@ def test_the_match_claim_columns() -> None:
         "start_anchor",
         "end_anchor",
         "is_synchronous",
-        "is_explicit",
         "provenance",
         "certainty",
-        "source_claim_id",
         "event_a_id",
         "event_a_name",
         "event_b_id",
         "event_b_name",
-        "source_coordinate",
         "id",
-        "id_minted",
     )
     anchor_type = MATCH_CLAIM_SCHEMA.field("start_anchor").type
-    assert [field.name for field in anchor_type] == [
-        "timeline_a_id",
-        "coordinate_a",
-        "timeline_b_id",
-        "coordinate_b",
-    ]
+    assert [field.name for field in anchor_type] == ["coordinate_a", "coordinate_b"]
     assert MATCH_CLAIM_SCHEMA.field("end_anchor").type == anchor_type
 
 
@@ -273,7 +255,8 @@ def test_a_coordinate_cell() -> None:
         ("unit", "string"),
         ("number_type", "string"),
     ]
-    assert MATCH_CLAIM_SCHEMA.field("source_coordinate").type == cell
+    anchor_type = MATCH_CLAIM_SCHEMA.field("start_anchor").type
+    assert [field.type for field in anchor_type] == [cell, cell]
     assert PROJECTION_SCHEMA.field("duration").type == cell
 
 
@@ -364,13 +347,42 @@ def test_a_missing_column() -> None:
 
 def test_a_column_of_another_type() -> None:
     table = claims_table(CLAIMS)
-    index = table.column_names.index("is_explicit")
-    table = table.set_column(index, "is_explicit", pa.array(["yes"] * 4))
+    index = table.column_names.index("is_synchronous")
+    table = table.set_column(index, "is_synchronous", pa.array(["yes"] * 4))
     with pytest.raises(TableError) as error:
         check_match_claims(table)
     assert error.value.problem.code == "schema_violation"
-    assert error.value.problem.column == ("is_explicit",)
-    assert str(error.value) == "the column 'is_explicit' is string, not bool"
+    assert error.value.problem.column == ("is_synchronous",)
+    assert str(error.value) == "the column 'is_synchronous' is string, not bool"
+
+
+def test_an_anchor_cell_holding_its_timelines_is_another_type() -> None:
+    held = pa.struct(
+        [
+            pa.field("timeline_a_id", pa.string()),
+            pa.field("coordinate_a", COORDINATE_TYPE),
+            pa.field("timeline_b_id", pa.string()),
+            pa.field("coordinate_b", COORDINATE_TYPE),
+        ]
+    )
+    rows = [
+        None
+        if row["start_anchor"] is None
+        else {"timeline_a_id": "clt_1", "timeline_b_id": "dpt_1", **row["start_anchor"]}
+        for row in CLAIMS
+    ]
+    table = claims_table(CLAIMS)
+    index = table.column_names.index("start_anchor")
+    table = table.set_column(index, "start_anchor", pa.array(rows, type=held))
+    assert found(match_claim_problems(table)) == [
+        ("schema_violation", None, ("start_anchor",))
+    ]
+    with pytest.raises(TableError) as error:
+        check_match_claims(table)
+    assert str(error.value) == (
+        f"the column 'start_anchor' is {held}, "
+        f"not {MATCH_CLAIM_SCHEMA.field('start_anchor').type}"
+    )
 
 
 CLAIM_CASES = [
@@ -382,9 +394,9 @@ CLAIM_CASES = [
     ),
     (
         "flag_null",
-        put(0, "is_explicit", value=None),
-        [("schema_violation", 0, ("is_explicit",))],
-        "'is_explicit' is null",
+        put(0, "is_synchronous", value=None),
+        [("schema_violation", 0, ("is_synchronous",))],
+        "'is_synchronous' is null",
     ),
     (
         "id_empty",
@@ -424,8 +436,8 @@ CLAIM_CASES = [
     ),
     (
         "denominator_zero",
-        put(2, "source_coordinate", "denominator", value=0),
-        [("invalid_coordinate", 2, ("source_coordinate",))],
+        put(1, "start_anchor", "coordinate_a", "denominator", value=0),
+        [("invalid_coordinate", 1, ("start_anchor", "coordinate_a"))],
         "the coordinate's denominator 0 is below 1",
     ),
     (
@@ -460,13 +472,13 @@ CLAIM_CASES = [
     ),
     (
         "nomatch_anchor",
-        put(2, "start_anchor", value=anchor("clt_1", q(3), "dpt_1", smp(132300))),
+        put(2, "start_anchor", value=anchor(q(3), smp(132300))),
         [("claim_anchors", 2, ("start_anchor",))],
         "a NOMATCH MatchClaim has no anchors",
     ),
     (
         "conceptual_anchor",
-        put(3, "end_anchor", value=anchor("clt_1", q(3), "dpt_1", smp(132300))),
+        put(3, "end_anchor", value=anchor(q(3), smp(132300))),
         [("claim_anchors", 3, ("end_anchor",)), ("claim_anchors", 3, ("end_anchor",))],
         "a conceptual MatchClaim has no anchors",
     ),
@@ -484,18 +496,6 @@ CLAIM_CASES = [
             ("claim_anchors", 1, ("end_anchor",)),
         ],
         "a synchronous MatchClaim has a start anchor",
-    ),
-    (
-        "source_coordinate_not_nomatch",
-        put(0, "source_coordinate", value=q(0)),
-        [("claim_anchors", 0, ("source_coordinate",))],
-        "only a NOMATCH MatchClaim has a source coordinate",
-    ),
-    (
-        "anchor_reversed",
-        put(0, "start_anchor", value=anchor("dpt_1", smp(0), "clt_1", q(0))),
-        [("anchor_timelines", 0, ("start_anchor",))],
-        "the anchor joins 'dpt_1' and 'clt_1', the MatchClaim 'clt_1' and 'dpt_1'",
     ),
     (
         "certainty",
@@ -625,10 +625,8 @@ def _every_cell_of(
             value = row[key]
             if value is not None:
                 for side in ("a", "b"):
-                    if value[f"timeline_{side}_id"] == timeline:
+                    if row[f"timeline_{side}_id"] == timeline:
                         value[f"coordinate_{side}"] = cell(value[f"coordinate_{side}"])
-        if row["source_coordinate"] is not None and timeline == "clt_1":
-            row["source_coordinate"] = cell(row["source_coordinate"])
 
 
 def test_seconds_on_a_samples_timeline_are_refused_only_against_the_manifest() -> None:
@@ -667,7 +665,6 @@ def test_a_float_on_a_fraction_axis_is_refused_only_against_the_manifest() -> No
         ("axis_mismatch", 0, ("start_anchor", "coordinate_a")),
         ("axis_mismatch", 1, ("start_anchor", "coordinate_a")),
         ("axis_mismatch", 1, ("end_anchor", "coordinate_a")),
-        ("axis_mismatch", 2, ("source_coordinate",)),
     ]
 
 

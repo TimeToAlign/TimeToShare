@@ -178,19 +178,13 @@ def claim(
     *,
     synchronous: bool = True,
     provenance: dict[str, Any] | None = IMPORTED,
-    source_coordinate: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """One MatchClaim row; a side is ``(timeline, event ID, event name)``."""
 
     def anchor(pair: tuple[dict[str, Any], dict[str, Any]] | None) -> Any:
         if pair is None:
             return None
-        return {
-            "timeline_a_id": a[0],
-            "coordinate_a": pair[0],
-            "timeline_b_id": b[0],
-            "coordinate_b": pair[1],
-        }
+        return {"coordinate_a": pair[0], "coordinate_b": pair[1]}
 
     return {
         "timeline_a_id": a[0],
@@ -198,17 +192,13 @@ def claim(
         "start_anchor": anchor(start),
         "end_anchor": anchor(end),
         "is_synchronous": synchronous,
-        "is_explicit": True,
         "provenance": provenance,
         "certainty": 1.0,
-        "source_claim_id": None,
         "event_a_id": a[1],
         "event_a_name": a[2],
         "event_b_id": b[1],
         "event_b_name": b[2],
-        "source_coordinate": source_coordinate,
         "id": identifier,
-        "id_minted": False,
     }
 
 
@@ -304,7 +294,6 @@ MATCH_CLAIMS: list[dict[str, Any]] = [
         note("clt_1", 10, "E5"),
         ("dpt_1", None, None),
         synchronous=False,
-        source_coordinate=quarters(9),
     ),
     claim(
         "claim_13",

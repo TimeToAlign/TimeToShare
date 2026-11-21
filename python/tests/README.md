@@ -1776,16 +1776,17 @@ extraction's are without fontTools. What proves them:
 
 - **The columns are the declared ones.** `MATCH_CLAIM_COLUMNS` names, in
   this order, `timeline_a_id`, `timeline_b_id`, `start_anchor`,
-  `end_anchor`, `is_synchronous`, `is_explicit`, `provenance`,
-  `certainty`, `source_claim_id`, `event_a_id`, `event_a_name`,
-  `event_b_id`, `event_b_name`, `source_coordinate`, `id`, `id_minted`;
+  `end_anchor`, `is_synchronous`, `provenance`, `certainty`,
+  `event_a_id`, `event_a_name`, `event_b_id`, `event_b_name`, `id`;
   `PROJECTION_COLUMNS` `id`, `timeline_id`, `start`, `duration`,
   `projection_of`. `SCOPE_FIELD` is the optional key column `scope`
   (strings), declared outside `MATCH_CLAIM_COLUMNS` since a table of one
   scope has none. A coordinate cell is the struct `value` (float64),
   `numerator`, `denominator` (int64), `unit`, `number_type` (strings); an
-  anchor the struct `timeline_a_id`, `coordinate_a`, `timeline_b_id`,
-  `coordinate_b`; `projection_of` the struct `timeline_id`, `event_id`. The
+  anchor the struct `coordinate_a`, `coordinate_b`, its timelines the
+  row's `timeline_a_id` and `timeline_b_id` (an anchor cell holding the
+  timeline IDs as well is another type, `schema_violation`);
+  `projection_of` the struct `timeline_id`, `event_id`. The
   provenance struct holds exactly `PROVENANCE_KEYS`, `stated_by`, `date`,
   `method`, `service`, `basis`, `match`, `note`, `beliefs`, and a belief
   exactly `BELIEF_KEYS`, `actor`, `belief`, `date`, `note`. Both key sets
@@ -1806,8 +1807,8 @@ extraction's are without fontTools. What proves them:
   without its manifest. The rules: a missing column or a column of
   another type (`schema_violation`; a Parquet round trip, which renames
   list items, changes nothing; a column the type does not declare is
-  kept, as an unknown key is); a null in `id`, a timeline or a flag
-  (`schema_violation`); an empty ID or one with a control character
+  kept, as an unknown key is); a null in `id`, a timeline or
+  `is_synchronous` (`schema_violation`); an empty ID or one with a control character
   (`invalid_id`); an ID twice in one scope of a MatchClaim table, or twice
   on one timeline of a Projections table (`duplicate_id`, at its second
   row, the message naming the scope or the timeline: `the ID 'claim_1' is
@@ -1823,9 +1824,7 @@ extraction's are without fontTools. What proves them:
   (`claim_events`); both timelines the same (`claim_timelines`); NOMATCH (one event null) that is
   synchronous or has an anchor, a conceptual row (two events, not
   synchronous) with an anchor, a synchronous row without `start_anchor`,
-  an `end_anchor` without a start, a `source_coordinate` on a row that is
-  not NOMATCH (`claim_anchors`); an anchor whose timelines are not the
-  row's, in the row's order (`anchor_timelines`); a certainty outside
+  an `end_anchor` without a start (`claim_anchors`); a certainty outside
   [0, 1] (`invalid_certainty`); a provenance entry, a row's cell (a null
   member being an absent one) or the file's, that is no entry of the
   provenance schema, checked by the schema itself and its first problem
@@ -1861,7 +1860,9 @@ extraction's are without fontTools. What proves them:
   and a change to any other column, an anchor moved, an event renamed, a
   timeline swapped (`succession_changed`, naming the column). A coordinate
   is compared by unit, number type and exact value, so a cell whose float
-  mirror alone differs is the same coordinate. A MatchClaim is its scope
+  mirror alone differs is the same coordinate; an anchor's coordinates
+  are compared side by side, `coordinate_a` on the row's
+  `timeline_a_id`. A MatchClaim is its scope
   and its ID: a table of two scopes holding `claim_1` each is succeeded by
   itself and by its rows reordered; one whose `claim_1` of the scope
   `take_2` is moved to the scope `take_3` misses it

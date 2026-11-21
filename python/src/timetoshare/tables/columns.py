@@ -53,13 +53,13 @@ COORDINATE_TYPE = pa.struct(
 
 ANCHOR_TYPE = pa.struct(
     [
-        pa.field("timeline_a_id", pa.string()),
         pa.field("coordinate_a", COORDINATE_TYPE),
-        pa.field("timeline_b_id", pa.string()),
         pa.field("coordinate_b", COORDINATE_TYPE),
     ]
 )
-"""An AlignmentAnchor: one coordinate of each of two timelines."""
+"""An AlignmentAnchor: one coordinate of each of the row's two timelines,
+``coordinate_a`` on its ``timeline_a_id``, ``coordinate_b`` on its
+``timeline_b_id``."""
 
 _DEFINITIONS = load_schema()["$defs"]
 _RECORD = _DEFINITIONS[PROVENANCE_DEFINITION]
@@ -109,17 +109,13 @@ MATCH_CLAIM_SCHEMA = pa.schema(
         pa.field("start_anchor", ANCHOR_TYPE),
         pa.field("end_anchor", ANCHOR_TYPE),
         pa.field("is_synchronous", pa.bool_()),
-        pa.field("is_explicit", pa.bool_()),
         pa.field("provenance", PROVENANCE_TYPE),
         pa.field("certainty", pa.float64()),
-        pa.field("source_claim_id", pa.string()),
         pa.field("event_a_id", pa.string()),
         pa.field("event_a_name", pa.string()),
         pa.field("event_b_id", pa.string()),
         pa.field("event_b_name", pa.string()),
-        pa.field("source_coordinate", COORDINATE_TYPE),
         pa.field("id", pa.string()),
-        pa.field("id_minted", pa.bool_()),
     ]
 )
 """The MatchClaim table: one row per MatchClaim, one column per property."""
