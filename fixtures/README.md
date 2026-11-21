@@ -23,8 +23,8 @@ The directories sort the manifests by content only:
   provenance ([Statement fixtures](#statement-fixtures)).
 
 Version 0.2.0 has 49 manifests directly under `fixtures/0.2.0/`, 11 under
-`groups/`, 13 under `bundles/` and 4 under `statements/`, 77 in all, each
-with its minimal twin, so 154 files. Beside them lie the expected RDF of
+`groups/`, 14 under `bundles/` and 4 under `statements/`, 78 in all, each
+with its minimal twin, so 156 files. Beside them lie the expected RDF of
 the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
 under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
 172 rejection cases and 16 warning cases.
@@ -275,6 +275,7 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `bundle_free_ids` | the bundle "Free IDs" of the group `group_1` ("Piece") of two roots whose IDs are free strings: the score `https://example.org/piece/score` ("Score", 8 quarters) with the region "Exposition" `https://example.org/piece/score#exposition` from 0 to 4, and the take `perf/take 2` ("Take 2", 4.0 seconds) with the region "Intro" `take 2/intro` from 0.0 to 1.0; one rule selects the take's region by its address `{"id": "#take 2/intro"}` and strokes it teal |
 | `bundle_resources` | the bundle "Resources" of the score `score` (8 quarters) and the recording `take_1` (352800 samples), ungrouped, with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, and `resource_2`, the Projections table `projections.parquet` holding data for `take_1`, with nothing optional; neither file lies beside the fixture, so neither states a size or a digest (the table fixture's manifest states both of its own tables')
 | `bundle_matchstamps` | the bundle "MatchStamps" of the score `score` ("Score", 8 quarters) and the takes `take_1` ("Take 1", 352800 samples) and `take_2` ("Take 2", 396900 samples), ungrouped; the match timestamp `timestamp_1` at quarter 4 of the score, without a name, shared by two MatchStamps: `matchstamp_1` ("Bar 2, downbeat (take 1)") joins it to sample 88200 of `take_1` by the anchor `anchor_1`, which also draws the name, from the MatchClaims `claim_1` and `claim_2`; `matchstamp_2` ("Bar 2, downbeat (take 2)") to sample 99225 of `take_2` (the match timestamp `timestamp_3`, named "Take 2, bar 2" and drawing its name) by `anchor_2`, from `claim_3` |
+| `bundle_matchstamp_cards` | the bundle "MatchStamp cards" of two groups that share a member, as `bundle_shared_member`: the score `score` ("Score", 8 quarters), holding the child `second-half` ("Second half", 4 quarters at 4), is a member of the group `group_1` ("Performance") beside the performance `performance` (4.0 seconds) and of the group `group_2` ("Page") beside the page `page` (800 pixels); three match timestamps without a name, `timestamp_1` at quarter 4 of the score, `timestamp_2` at second 1.0 of the performance and `timestamp_3` at quarter 2 of the child; `matchstamp_1` ("Bar 2, performed") joins the performance to the score, drawn in two cards, by `anchor_1`, from `claim_1`; `matchstamp_2` ("Second half, bar 1") the score to its child, whose lines lie in one card, by `anchor_2`, from `claim_2`; both anchors draw the name |
 | `group_measure_map` | the group "Edition" of a score of 16 quarters and its MIDI rendering of 7680 ticks, both reading one entry of `measure_maps`, four bars of 4/4: the score through its `MeasureRecordMap`, the rendering through a `ChainMap` of the `LinearMap` `ppq` to quarters (480 ticks per quarter) and its `MeasureRecordMap` |
 
 The corpus builders, prefixed `corpus_`, write the groups and bundles that
@@ -444,7 +445,7 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 `unknown_length_segments` on every regions band, `{"element": "band",
 "facet": "regions"}` (`unknown_length_segments__regions-shown`), and
 `child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`): 79 drawings in all.
+"flow_control"}` (`child_flow_control__flow-shown`): 80 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
@@ -474,14 +475,15 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   finds both font files in the directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Thirty-three `figure.svg` files are derived by hand from the
+for byte. Thirty-four `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, among them every drawing of
 a timeline of unknown length, the three variants of `bundle_ungrouped`, the
 three variants that display a band the defaults hide, the band orders of
 `styled_score_flow_inner`, `map_child_band_order` and
 `map_root_band_order`, `joint_rows`, the three drawings of conversion map
-slots (`map_row_siblings`, `map_row_subslots`, `map_row_moved`) and
-`label_float_rounding`; `drawings/README.md` lists them
+slots (`map_row_siblings`, `map_row_subslots`, `map_row_moved`),
+`label_float_rounding` and the alignment anchors of
+`bundle__bundle_matchstamp_cards`; `drawings/README.md` lists them
 with their arithmetic. Every other figure, and every `inputs.json`, is
 emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
 <TimeToShare checkout>` (run in its `app/packages/writers/`), which

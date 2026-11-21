@@ -652,7 +652,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (154 files: bundles, groups and statements included), its value and its value
+  minimal twin (156 files: bundles, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and

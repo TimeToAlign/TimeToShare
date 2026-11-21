@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Thirty-three of the 79 drawings in this directory are derived by hand from
+Thirty-four of the 80 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the metrics table
 of its two fonts alone. Their `figure.svg` files are never regenerated:
 the emitting script compares each with its writer's output instead. Every
@@ -57,15 +57,17 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `map_row_moved` | `map_row_moved.yaml` | none |
 | `label_float_rounding` | `label_float_rounding.yaml` | none |
 | `timestamps` | `timestamps.yaml` | none (each named timestamp's own `display` chooses what it draws) |
+| `bundle__bundle_matchstamp_cards` | `bundles/bundle_matchstamp_cards.yaml` | none (the manifest's own `graphical` object names its MatchStamps) |
 
 ## Shared quantities
 
 Every manifest is drawn as one block (§8). Twenty-six of these drawings show
 one ungrouped root, drawn in its card, four one group, drawn as a frame,
-and `bundle_ungrouped__places`, `bundle_ungrouped__scale` and
-`bundle_ungrouped__spacing` three ungrouped roots, each in its own card.
-Only the manifest of these three has a `name`, so only their block has a
-title; no other manifest has a `name` or an
+`bundle_ungrouped__places`, `bundle_ungrouped__scale` and
+`bundle_ungrouped__spacing` three ungrouped roots, each in its own card,
+and `bundle__bundle_matchstamp_cards` two groups sharing a member, each
+drawn as a frame. Only the manifests of these four have a `name`, so only
+their block has a title; no other manifest has a `name` or an
 `id`.
 
 Every element carries its address (§2.2) as the attributes `data-id`,
@@ -1516,3 +1518,110 @@ the root.
 - `W` = 8 + (10 + 458.91552734375) = 476.91552734375; `H` = 8 + (10 +
   104.90625) = 122.90625 → 122.9062.
 - Page 508.91552734375 × 154.90625 → **508.9155 × 154.9062**.
+
+## `bundle__bundle_matchstamp_cards`
+
+The block "MatchStamp cards" of two groups that share the member `score`
+(8 quarters), which holds the child `second-half` (4 quarters at 4): the
+frame of `group_1` "Performance", in the display order `score`,
+`performance` (4.0 seconds), and below it the frame of `group_2` "Page",
+in the display order `score`, `page` (800 pixels). `score` is so drawn in
+two cards, one in each frame, each with its children band holding the row
+of `second-half` (§8.1). Three match timestamps (§2) draw only their
+cross-section lines (`display` `["cross_section"]`): `timestamp_1` at 4 on
+`score`, `timestamp_2` at 1.0 on `performance` and `timestamp_3` at 2 on
+`second-half`. The MatchStamp `matchstamp_1` "Bar 2, performed" has the
+anchor `anchor_1` from `timestamp_2` to `timestamp_1`, and `matchstamp_2`
+"Second half, bar 1" the anchor `anchor_2` from `timestamp_1` to
+`timestamp_3`; both anchors list `name` in their `display`. The drawing
+proves the branches of §8.7 that `bundle__bundle_matchstamps` does not
+reach: two segments that overlap vertically, the shortest line over the
+several segments of a timestamp drawn in two cards, and the tie between
+two equally short lines.
+
+- `xn` = 24 (frames). `N` = w(`Performance`, 11) = 70.29150390625 (13087
+  advances), of `Score`, `Second half` (64.61962890625), `Performance` and
+  `Page`.
+- `x0` = 24 + 70.29150390625 + 8 = 102.29150390625 → 102.2915; no
+  ancestor line runs on to the left, and the centred labels of `origin`
+  and `length` give less. `L` = 400 over each member's length, so a
+  position `q` of `score` lies at `x0 + 50q`, a second `t` of
+  `performance` at `x0 + 100t`.
+- `R` = the label `800 px` of `page`'s `length`, 7072 × 9 / 2048 =
+  31.078125 wide, ending at 502.29150390625 + 15.5390625 =
+  517.83056640625, beyond the arrowhead tips at 511.29150390625 and the
+  diamond of `second-half` at 506.79150390625; neither frame's title
+  reaches as far. Each card is 517.83056640625 − 8 = 509.83056640625 →
+  509.8306 wide and each frame 517.83056640625 + 8 = 525.83056640625
+  → 525.8306, from `x` = 8.
+- The member drawing of `score`, alike in both frames: above its line
+  only the children band, starting at the larger of 1.5 + 4 = 5.5 and `p0
+  / 2` = 7; the row of `second-half` has the inner and outer halves 7 (no
+  match timestamp draws a wedge or a label, so its markers band holds
+  nothing that takes room), so its line lies 14 above `score`'s and `Ea`
+  = 7 + 14 = 21. `y_root` = max(8 + 21, 8 + 6.40234375) = 29 and `Hm` =
+  29 + 26.9765625 + 8 = 63.9765625 → 63.9766. `performance` and `page`
+  have no band above: `y_root` = 8 + 6.40234375 = 14.40234375 and `Hm` =
+  14.40234375 + 26.9765625 + 8 = 49.37890625 → 49.3789.
+- The frames (§8.4): `Pt` = 28.8046875, so `group_1`'s frame starts at
+  28.8046875 → 28.8047 and is 8 + 12.8046875 + 4 + 63.9765625 + 8 +
+  49.37890625 + 8 = 154.16015625 → 154.1602 high; its cards start at
+  28.8046875 + 24.8046875 = 53.609375 → 53.6094 (`score`) and 53.609375 +
+  63.9765625 + 8 = 125.5859375 → 125.5859 (`performance`). `group_2`'s
+  frame, the block's spacing 8 below, starts at 28.8046875 + 154.16015625
+  + 8 = 190.96484375 → 190.9648, its cards at 215.76953125 → 215.7695
+  (`score`) and 287.74609375 → 287.7461 (`page`).
+- Drawn, each line at its card's top plus `y_root`: in `group_1`, `score`
+  at 82.609375 → 82.6094, `second-half` 14 above at 68.609375 → 68.6094,
+  `performance` at 139.98828125 → 139.9883; in `group_2`, `score` at
+  244.76953125 → 244.7695 and `second-half` at 230.76953125 → 230.7695.
+- The match timestamps' abscissae: `timestamp_1` at `x0 + 200` =
+  302.29150390625 → 302.2915, `timestamp_2` at `x0 + 100` =
+  202.29150390625 → 202.2915, and `timestamp_3`, at 4 + 2 = 6 on the
+  root's axis (§3.1), at `x0 + 300` = 402.29150390625 → 402.2915.
+- The cross-section segments (§6.6, §8.7): `timestamp_1` spans `score`'s
+  line and its children band, which ends 21 above the line, in each card:
+  from 61.609375 to 82.609375 in `group_1` and from 223.76953125 to
+  244.76953125 in `group_2`, each drawn as its cross-section line
+  (`data-id="timestamp_1" data-part="line"`), the first before the second.
+  `second-half` and `performance` have neither a children band nor a
+  conversion maps band, so `timestamp_3` has the points (402.29150390625,
+  68.609375) and (402.29150390625, 230.76953125), `timestamp_2` the point
+  (202.29150390625, 139.98828125), and neither draws a line.
+- `anchor_1`, `A` the point of `timestamp_2` (`a1` = `a2` =
+  139.98828125), `B` a segment of `timestamp_1`: in `group_1`, `lo` =
+  139.98828125 > `hi` = 82.609375 and `a2` ≥ `b1` = 61.609375, so the
+  third branch, from (`Xa`, `a1`) to (`Xb`, `b2`): (202.29150390625,
+  139.98828125) to (302.29150390625, 82.609375), `dx` = 100, `dy` =
+  −57.37890625, `dx² + dy²` = 13292.3388824462890625; in `group_2`, `a2`
+  < `b1` = 223.76953125, so the second branch, to (302.29150390625,
+  223.76953125), `dy` = 83.78125, 17019.2978515625. The line of `group_1`
+  is shorter: from (202.2915, 139.9883) to (302.2915, 82.6094).
+- `anchor_2`, `A` a segment of `timestamp_1`, `B` a point of
+  `timestamp_3`, four pairs in the order of `A`'s segments, then `B`'s:
+  `group_1` with `group_1` overlaps (`lo` = `hi` = 68.609375), so the line
+  is horizontal at 68.609375, `dx` = 100, 10000; `group_1` with `group_2`,
+  `a2` = 82.609375 < `b1` = 230.76953125, `dy` = 148.16015625,
+  31951.4319000244140625; `group_2` with `group_1`, the third branch from
+  (302.29150390625, 223.76953125) to (402.29150390625, 68.609375), `dy` =
+  −155.16015625, 34074.6740875244140625; `group_2` with `group_2`
+  overlaps at 230.76953125, 10000. The first and the last tie, so the
+  first in that order is drawn: from (302.2915, 68.6094) to (402.2915,
+  68.6094), along `second-half`'s line.
+- The names, at size 9, centred on each line's midpoint with the baseline
+  `(a(9) − d(9)) / 2` = 3.11572265625 below it: `Bar 2, performed`
+  (17531 advances, 77.04052734375 wide) at (252.29150390625,
+  111.298828125 + 3.11572265625 = 114.41455078125) → (252.2915,
+  114.4146), and `Second half, bar 1` (18684 advances, 82.107421875 wide)
+  at (352.29150390625, 71.72509765625) → (352.2915, 71.7251). Neither line
+  nor name takes room: `R`, the frames and the cards are as without them.
+- The descriptors (§7.2, §8.5): each frame, its title and its cards as
+  for any frame, the cross-section line of `timestamp_1` last in each
+  `score` card; after `page`'s card the lines of `anchor_1` and
+  `anchor_2` (`data-id="anchor_1"`, `data-id="anchor_2"`), then their
+  names (`data-id="anchor_1" data-part="name"`, `data-id="anchor_2"
+  data-part="name"`).
+- `W` = 8 + 525.83056640625 + 8 = 541.83056640625, the frames' right
+  edge beyond the cards' shadows at 527.83056640625; `H` = 190.96484375 +
+  154.16015625 + 8 = 353.125.
+- Page 573.83056640625 × 385.125 → **573.8306 × 385.125**.
