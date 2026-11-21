@@ -18,9 +18,10 @@ Where the two packages answer differently by design, this README says so.
    back as `9007199254740993n` and `JsonFloat(2)`.
 2. `unknownKeys` and `manifestWarnings` return, for every manifest, the
    lists Python's `unknown_keys` and `manifest_warnings` return, byte for
-   byte once written by `dumps`; `statementProblems` returns the problems
-   Python's `statement_problems` returns, with the same codes and paths
-   and, but for a schema violation's, the same messages.
+   byte once written by `dumps`; `statementProblems` and
+   `matchstampProblems` return the problems Python's `statement_problems`
+   and `matchstamp_problems` return, with the same codes and paths and,
+   but for a schema violation's, the same messages.
 3. `complete` and `minimal` give the values Python's functions give, from a
    `DEFAULTS` table equal to the schema's `default`s, as Python's is; their
    typed forms take and give the generated `LosslessManifest` and
@@ -165,11 +166,17 @@ reverses `resources`, `matchstamps`, `alignment_anchors` and an anchor's
 `display`); the defaults of a match timestamp and an anchor
 (`defaults.test.ts`, and the `then` and `else` arms in `schema.test.ts`);
 the ten messages of its table and the one list of every problem
-(`validate.test.ts`, "the MatchStamp and resource rules").
+(`validate.test.ts`, "the MatchStamp and resource rules"); the MatchStamps
+alone (`validate.test.ts`, "the MatchStamps alone"): `matchstampProblems`
+gives, for each of the eleven MatchStamp rejection cases, a first problem
+equal in code, path and message to the one `validate` throws, nothing for
+every fixture and every other rejection case, the schema's problem at a
+match timestamp without `timeline`, and nothing for a manifest whose
+ordinary timestamps include one that is no object.
 
 ## Shared rejection cases
 
-Each of the 169 cases (`validate.test.ts`), found by its name whatever
+Each of the 172 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises

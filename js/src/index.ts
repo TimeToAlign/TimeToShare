@@ -147,6 +147,7 @@ export {
   jsonPointer,
   type ManifestWarning,
   manifestWarnings,
+  matchstampProblems,
   numberTypeOf,
   type PathSegment,
   parse,

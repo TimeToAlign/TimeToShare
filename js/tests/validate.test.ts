@@ -20,6 +20,8 @@ import {
 import { type JsonObject, plain } from "../src/json/value.js";
 import {
   expectWrittenAsStored,
+  fixtureFiles,
+  fixtureText,
   group,
   manifest,
   rejectionCase,
@@ -40,6 +42,8 @@ const SMALLEST = {
 const REJECTIONS = [
   "address_facet_with_part",
   "address_facet_without_id",
+  "alignment_anchor_display_unknown",
+  "alignment_anchor_id_malformed",
   "alignment_anchor_id_repeated",
   "alignment_anchor_one_timeline",
   "alignment_anchor_timestamp_not_match",
@@ -151,6 +155,7 @@ const REJECTIONS = [
   "reserved_key_prefix_on_manifest",
   "reserved_key_statements_on_group",
   "reserved_key_term_on_timeline",
+  "resource_id_malformed",
   "resource_integrity_algorithm_unknown",
   "resource_match_claim_twice",
   "resource_projection_twice",
@@ -892,5 +897,97 @@ describe("the MatchStamp and resource rules", () => {
       ["match_timestamp", ["graphical", "timestamps", 10]],
       ["match_timestamp", ["graphical", "timestamps", 10]],
     ]);
+  });
+});
+
+describe("the MatchStamps alone", () => {
+  /** The rejection cases whose fault lies in the named MatchStamps. */
+  const MATCHSTAMP_CASES = [
+    "alignment_anchor_display_unknown",
+    "alignment_anchor_id_malformed",
+    "alignment_anchor_id_repeated",
+    "alignment_anchor_one_timeline",
+    "alignment_anchor_timestamp_not_match",
+    "alignment_anchor_timestamp_unknown",
+    "match_timestamp_coordinate_repeated",
+    "match_timestamp_in_no_matchstamp",
+    "matchstamp_claims_repeated",
+    "matchstamp_id_malformed",
+    "matchstamp_not_connected",
+  ];
+
+  /** The code, path and message `validate` throws for `value`. */
+  function thrown(value: unknown): [string, readonly (string | number)[], string] {
+    try {
+      timetoshare.validate(value);
+    } catch (error) {
+      const problem = error as SchemaValidationError;
+      return [problem.code, problem.path, problem.detail];
+    }
+    throw new Error("the value is valid");
+  }
+
+  it.each(MATCHSTAMP_CASES)("give the first problem of validate for %s", (name) => {
+    const testCase = rejectionCase(name);
+    const [first] = timetoshare.matchstampProblems(testCase.manifest as JsonObject);
+    expect(first && [first.code, first.path, first.detail]).toEqual(thrown(testCase.manifest));
+    expect(first?.path).toEqual(testCase.path);
+  });
+
+  it("pass every other case and every fixture", () => {
+    const others = rejectionFileNames().filter(
+      (name) =>
+        !MATCHSTAMP_CASES.includes(name) &&
+        timetoshare.matchstampProblems(rejectionCase(name).manifest as JsonObject).length > 0,
+    );
+    expect(others).toEqual([]);
+    for (const file of fixtureFiles()) {
+      expect(timetoshare.matchstampProblems(loads(fixtureText(file)) as JsonObject)).toEqual([]);
+    }
+  });
+
+  it("report a malformed match timestamp by the schema", () => {
+    const value = plain(rejectionCase("matchstamp_not_connected").manifest) as JsonObject;
+    const timestamps = (value.graphical as JsonObject).timestamps as JsonObject[];
+    delete (timestamps[1] as JsonObject).timeline;
+    expect(
+      timetoshare.matchstampProblems(value).map((problem) => [problem.code, problem.path]),
+    ).toEqual([["schema", ["graphical", "timestamps", 1]]]);
+  });
+
+  it.each([
+    [
+      "coordinate",
+      ["graphical", "timestamps", 1, "coordinate"],
+      "coordinate of 'timestamp_1' is not a finite number",
+    ],
+    [
+      "match_claims",
+      ["graphical", "matchstamps", 0, "match_claims", 2],
+      "match_claims of 'matchstamp_1' is not a finite number",
+    ],
+  ])("refuse a non-finite %s as validate does", (member, path, message) => {
+    const value = plain(rejectionCase("matchstamp_not_connected").manifest) as JsonObject;
+    const graphical = value.graphical as JsonObject;
+    if (member === "coordinate") {
+      ((graphical.timestamps as JsonObject[])[1] as JsonObject).coordinate =
+        Number.POSITIVE_INFINITY;
+    } else {
+      const [matchstamp] = graphical.matchstamps as JsonObject[];
+      ((matchstamp as JsonObject).match_claims as unknown[]).push(Number.POSITIVE_INFINITY);
+    }
+    const expected = ["finite_number", path, message];
+    expect(
+      timetoshare
+        .matchstampProblems(value)
+        .map((problem) => [problem.code, problem.path, problem.detail]),
+    ).toEqual([expected]);
+    expect(thrown(value)).toEqual(expected);
+  });
+
+  it("pass over a timestamp that is no object", () => {
+    const value = plain(loads(fixtureText("bundles/bundle_matchstamps"))) as JsonObject;
+    ((value.graphical as JsonObject).timestamps as unknown[]).push(null);
+    expect(timetoshare.matchstampProblems(value)).toEqual([]);
   });
 });

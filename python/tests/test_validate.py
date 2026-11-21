@@ -29,6 +29,8 @@ SMALLEST = {
 REJECTIONS = [
     "address_facet_with_part",
     "address_facet_without_id",
+    "alignment_anchor_display_unknown",
+    "alignment_anchor_id_malformed",
     "alignment_anchor_id_repeated",
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
@@ -140,6 +142,7 @@ REJECTIONS = [
     "reserved_key_prefix_on_manifest",
     "reserved_key_statements_on_group",
     "reserved_key_term_on_timeline",
+    "resource_id_malformed",
     "resource_integrity_algorithm_unknown",
     "resource_match_claim_twice",
     "resource_projection_twice",
@@ -911,6 +914,8 @@ def test_the_matchstamp_rules_report_every_problem() -> None:
 
 
 MATCHSTAMP_CASES = [
+    "alignment_anchor_display_unknown",
+    "alignment_anchor_id_malformed",
     "alignment_anchor_id_repeated",
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
@@ -958,3 +963,48 @@ def test_a_malformed_match_timestamp_is_reported_by_the_schema() -> None:
         for problem in timetoshare.matchstamp_problems(value)
     ]
     assert found == [("schema", ("graphical", "timestamps", 1))]
+
+
+@pytest.mark.parametrize(
+    ("member", "path", "message"),
+    [
+        (
+            "coordinate",
+            ("graphical", "timestamps", 1, "coordinate"),
+            "coordinate of 'timestamp_1' is not a finite number",
+        ),
+        (
+            "match_claims",
+            ("graphical", "matchstamps", 0, "match_claims", 2),
+            "match_claims of 'matchstamp_1' is not a finite number",
+        ),
+    ],
+)
+def test_the_matchstamps_alone_refuse_a_non_finite_number_as_validate_does(
+    member: str, path: tuple[str | int, ...], message: str
+) -> None:
+    value = rejection_case(_rejection("matchstamp_not_connected")).manifest
+    if member == "coordinate":
+        value["graphical"]["timestamps"][1]["coordinate"] = math.inf
+    else:
+        value["graphical"]["matchstamps"][0]["match_claims"].append(math.inf)
+    with pytest.raises(SchemaValidationError) as raised:
+        timetoshare.validate(value)
+    found = [
+        (problem.code, problem.path, problem.message)
+        for problem in timetoshare.matchstamp_problems(value)
+    ]
+    expected = ("finite_number", path, message)
+    assert found == [expected]
+    assert (raised.value.code, raised.value.path, raised.value.message) == expected
+
+
+def test_the_matchstamps_alone_pass_over_a_timestamp_that_is_no_object() -> None:
+    (path,) = [
+        path
+        for path in timetoshare.fixture_paths()
+        if path.name == "bundle_matchstamps.yaml"
+    ]
+    value = loads(path.read_text("utf-8"))
+    value["graphical"]["timestamps"].append(None)
+    assert timetoshare.matchstamp_problems(value) == []

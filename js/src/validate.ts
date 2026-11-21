@@ -19,13 +19,18 @@ import { compareCodePoints, spell } from "./serialization/text.js";
 import { subjects } from "./statements/statements.js";
 import {
   comparePaths,
+  duplicateProblem,
   jsonPointer,
+  manifestIds,
   type PathSegment,
   SchemaValidationError,
+  stringId,
+  timestampsOf,
 } from "./validate/diagnostics.js";
 import { identityProblems as semanticProblems } from "./validate/identity.js";
 import { finiteNumberProblems, representationProblems } from "./validate/representation.js";
 import { type ManifestWarning, statementRuleProblems, warningsOf } from "./validate/statements.js";
+import { matchstampProblems as matchstampRuleProblems } from "./validate/timestamps.js";
 
 export type { JsonObject } from "./json/value.js";
 export { childEnds } from "./validate/containment.js";
@@ -127,20 +132,41 @@ function closedSchema(document: Node): Node {
 
 const check = new Ajv2020(OPTIONS).compile(schema);
 const marking = new Ajv2020(OPTIONS).compile(closedSchema(schema));
-const memberChecks = new Map<string, ValidateFunction>();
+const partChecks = new Map<string, ValidateFunction>();
 
-/** The check of one member of a definition, as the whole document checks it. */
-function memberCheck(definition: string, member: string): ValidateFunction {
-  const key = `${definition}.${member}`;
-  let compiled = memberChecks.get(key);
+/**
+ * The check of one definition, or of one member of it, as the whole document
+ * checks it.
+ */
+function partCheck(definition: string, member?: string): ValidateFunction {
+  const key = member === undefined ? definition : `${definition}.${member}`;
+  let compiled = partChecks.get(key);
   if (compiled === undefined) {
     const definitions = (schema as Node).$defs as Readonly<Record<string, Node>>;
     const owner = definitions[definition] as Node;
-    const declared = (owner.properties as Readonly<Record<string, Node>>)[member];
+    const declared =
+      member === undefined
+        ? { $ref: `#/$defs/${definition}` }
+        : (owner.properties as Readonly<Record<string, Node>>)[member];
     compiled = new Ajv2020(OPTIONS).compile({ $defs: definitions, ...declared });
-    memberChecks.set(key, compiled);
+    partChecks.set(key, compiled);
   }
   return compiled;
+}
+
+/** The first schema problem of `value` against one part of the schema, at `path`. */
+function partProblem(
+  value: unknown,
+  path: readonly PathSegment[],
+  definition: string,
+  member?: string,
+): SchemaValidationError | undefined {
+  const instance = plain(value);
+  const checkPart = partCheck(definition, member);
+  const error = checkPart(instance) ? undefined : select(checkPart.errors ?? []);
+  if (error === undefined) return undefined;
+  const at = [...path, ...toPath(error.instancePath, instance)];
+  return new SchemaValidationError("schema", at, error.message ?? error.keyword);
 }
 
 /** Convert an Ajv instance path to segments, typing array indices as numbers. */
@@ -360,13 +386,8 @@ export function statementProblems(value: LosslessManifest | JsonObject): SchemaV
       problems.push(finite);
       continue;
     }
-    const instance = plain(given);
-    const checkMember = memberCheck(definition, member);
-    const error = checkMember(instance) ? undefined : select(checkMember.errors ?? []);
-    if (error !== undefined) {
-      const at = [...path, ...toPath(error.instancePath, instance)];
-      problems.push(new SchemaValidationError("schema", at, error.message ?? error.keyword));
-    }
+    const schemaProblem = partProblem(given, path, definition, member);
+    if (schemaProblem !== undefined) problems.push(schemaProblem);
   }
   if (problems.length > 0) return problems;
   return [...statementRuleProblems(bare)];
@@ -380,4 +401,86 @@ export function statementProblems(value: LosslessManifest | JsonObject): SchemaV
  */
 export function identityProblems(value: LosslessManifest | JsonObject): SchemaValidationError[] {
   return [...semanticProblems(bareManifest(value))];
+}
+
+const MATCHSTAMPS: readonly PathSegment[] = ["graphical", "matchstamps"];
+
+/** Each match timestamp (`matchstamp: true`) of `value` with its path. */
+function* matchTimestamps(value: JsonObject): Generator<[PathSegment[], JsonObject]> {
+  for (const [index, timestamp] of timestampsOf(value).entries()) {
+    if (isJsonObject(timestamp) && timestamp.matchstamp === true) {
+      yield [["graphical", "timestamps", index], timestamp];
+    }
+  }
+}
+
+/**
+ * The repeated IDs a named MatchStamp or an alignment anchor holds. IDs are
+ * compared as `validate` compares them (each root's tree, an ID repeated
+ * within one tree counted once, then the listed elements, then the
+ * manifest's ID); a repetition is reported where `validate` reports it when
+ * the ID at it or its first occurrence belongs to a MatchStamp.
+ */
+function* matchstampIdProblems(bare: JsonObject): Generator<SchemaValidationError> {
+  const concerned = (...paths: (readonly PathSegment[])[]): boolean =>
+    paths.some((path) => MATCHSTAMPS.every((key, index) => path[index] === key));
+  const first = new Map<string, PathSegment[]>();
+  for (const [id, path, root] of manifestIds(bare)) {
+    const earlier = first.get(id);
+    if (root !== null) {
+      if (earlier === undefined) first.set(id, path);
+    } else if (path.length === 1) {
+      if (earlier !== undefined && concerned(earlier)) {
+        yield duplicateProblem(id, path, earlier, "manifest_id");
+      }
+    } else if (earlier === undefined) first.set(id, path);
+    else if (concerned(path, earlier)) yield duplicateProblem(id, path, earlier);
+  }
+}
+
+/**
+ * Return the problems of the named MatchStamps and their match timestamps
+ * alone, as Python's `matchstamp_problems` does. First, each match
+ * timestamp (a named timestamp with `matchstamp: true`) and then
+ * `graphical.matchstamps`, each checked as `validate` checks it, its first
+ * problem at its path: a number that is not finite (`finite_number`), else
+ * the schema (`schema`), reported by the one path rule. Where none has a
+ * problem, every problem beyond the schema follows, not only the first: an
+ * ID of a MatchStamp or an alignment anchor that the manifest holds twice
+ * (`duplicate_id`, or `manifest_id` where the manifest's ID repeats one),
+ * then the rules of the MatchStamps and their match timestamps
+ * (`alignment_anchor`, `matchstamp`, `match_timestamp`), in
+ * `identityProblems`' order.
+ *
+ * Nothing else is refused: an ordinary timestamp, the styles and rules, the
+ * timelines and the statements are not read beyond what the MatchStamps
+ * name. A library that keeps the rest of `graphical` unread checks its
+ * MatchStamps with this function. The messages are those of `validate`.
+ * `value` is in the file form; the rules read its IDs bare, an ID written
+ * without `#` as it stands.
+ */
+export function matchstampProblems(value: LosslessManifest | JsonObject): SchemaValidationError[] {
+  if (!isJsonObject(value)) return [];
+  const flagged = [...matchTimestamps(value)];
+  const graphical = value.graphical;
+  const stated = isJsonObject(graphical) && Object.hasOwn(graphical, "matchstamps");
+  if (flagged.length === 0 && !stated) return [];
+  const bare = lenientlyBareIds(value);
+  const owner = stringId(bare);
+  const read = [...matchTimestamps(bare)];
+  const problems: SchemaValidationError[] = [];
+  for (const [index, [path, timestamp]] of flagged.entries()) {
+    const finite = first(finiteNumberProblems(read[index]?.[1], path, owner));
+    const problem = finite ?? partProblem(timestamp, path, "Timestamp");
+    if (problem !== undefined) problems.push(problem);
+  }
+  if (stated) {
+    const content = (bare.graphical as JsonObject).matchstamps;
+    const finite = first(finiteNumberProblems(content, MATCHSTAMPS, owner, "matchstamps"));
+    const problem =
+      finite ?? partProblem(graphical.matchstamps, MATCHSTAMPS, "Graphical", "matchstamps");
+    if (problem !== undefined) problems.push(problem);
+  }
+  if (problems.length > 0) return problems;
+  return [...matchstampIdProblems(bare), ...matchstampRuleProblems(bare)];
 }
