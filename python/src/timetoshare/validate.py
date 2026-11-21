@@ -553,8 +553,14 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
     """
     if not isinstance(value, Mapping):
         return []
+    graphical = value.get("graphical")
+    flagged = list(_match_timestamps(value))
+    if not flagged and not (
+        isinstance(graphical, Mapping) and "matchstamps" in graphical
+    ):
+        return []
     problems: list[SchemaValidationError] = []
-    for path, timestamp in _match_timestamps(value):
+    for path, timestamp in flagged:
         finite = next(finite_number_problems(timestamp, path), None)
         if finite is not None:
             problems.append(finite)
@@ -563,7 +569,6 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
         if error is not None:
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, error.message))
-    graphical = value.get("graphical")
     if isinstance(graphical, Mapping) and "matchstamps" in graphical:
         validator = _member_validator("Graphical", "matchstamps")
         error = _select(validator.iter_errors(graphical["matchstamps"]))
