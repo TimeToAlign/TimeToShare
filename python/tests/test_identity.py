@@ -7,6 +7,7 @@ from typing import Any
 
 import pytest
 
+import timetoshare
 from timetoshare import (
     SchemaValidationError,
     rejection_case,
@@ -1296,6 +1297,53 @@ def test_a_named_timestamp_takes_any_id() -> None:
     )
     assert _problems(document) == []
     validate(document)
+
+
+FREE_IDS = {
+    "#matchstamp_1": "#matchstamp_3kq9x0m2ztb7a",
+    "#matchstamp_2": "#Take 2, downbeat",
+    "#anchor_1": "#anchor_00000000000zz",
+    "#anchor_2": "#Bar 2",
+    "#timestamp_1": "#score at bar 2",
+}
+"""The IDs of the MatchStamp fixture given free spellings: two as the format
+mints them (13 base-36 characters after the prefix), the others with spaces
+and a comma."""
+
+
+def _renamed(value: Any) -> Any:
+    """A value in the file form with every reference in ``FREE_IDS`` renamed."""
+    if isinstance(value, dict):
+        return {key: _renamed(member) for key, member in value.items()}
+    if isinstance(value, list):
+        return [_renamed(member) for member in value]
+    return FREE_IDS.get(value, value) if isinstance(value, str) else value
+
+
+def test_resources_matchstamps_and_anchors_take_any_id() -> None:
+    (path,) = [
+        path
+        for path in timetoshare.fixture_paths()
+        if path.name == "bundle_matchstamps.yaml"
+    ]
+    value = _renamed(timetoshare.loads(path.read_text("utf-8")))
+    value["resources"] = [
+        {
+            "id": "#MatchClaims of both takes",
+            "type": "MatchClaim",
+            "timelines": ["#score", "#take_1", "#take_2"],
+            "url": "match_claims.parquet",
+        },
+        {
+            "id": "#resource_0a1b2c3d4e5f6",
+            "type": "Projection",
+            "timelines": ["#take_2"],
+            "url": "projections.parquet",
+        },
+    ]
+    assert timetoshare.identity_problems(value) == []
+    assert timetoshare.matchstamp_problems(value) == []
+    timetoshare.validate(value)
 
 
 @pytest.mark.parametrize(
