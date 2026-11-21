@@ -9,8 +9,9 @@ These rules apply to every contributor, human or automated.
   `{timetoshare, timelines, id?, name?, meta?, groups?, measure_maps?,
   resources?, "@context"?, statements?, provenance?, graphical?}`, and
   beside it `<version>/provenance.schema.json`, the provenance entry that
-  statements and the MatchClaim table share; they are the format
-  contract and source of truth.
+  statements and the MatchClaim table share, and `<version>/tables.json`,
+  the column types of the MatchClaim and Projections tables as data; they
+  are the format contract and source of truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
   the block of frames, cards and bands (the boxes) that draws every
   manifest, and SVG and TikZ writers; and `description.md`, the
@@ -31,7 +32,9 @@ These rules apply to every contributor, human or automated.
   MatchClaim table and its Projections table, the two Parquet files and
   the anchors and potential MatchStamps expected of them, emitted),
   hand-authored rejection cases under `fixtures/rejections/<version>/`,
-  hand-authored warning cases under `fixtures/warnings/<version>/`,
+  hand-authored warning cases under `fixtures/warnings/<version>/`, the
+  hand-authored acceptance table of own-axis values under
+  `fixtures/acceptances/<version>/`,
   hand-derived serialization cases under `fixtures/serializations/`
   (`cases/<name>/` with `canonical.yaml`, `pretty.json` and
   `rfc8785.json`, the last missing where that writer refuses the value;
@@ -54,10 +57,13 @@ These rules apply to every contributor, human or automated.
 - `scripts/`: fixture emission (`emit_fixtures.py`, `emit_rdf.py`
   for the expected RDF of the statement fixtures, and `emit_tables.py` for
   the table fixture), font-metrics
-  extraction, and the check that every version declaration agrees.
+  extraction, the check that every version declaration agrees, and
+  `check_published.py`, which assembles the documents a release publishes
+  and checks their `$id`s and references.
 - `decisions/`: numbered MADR decision records.
 - `.github/workflows/`: continuous integration and the release automation,
-  which publishes both packages and the schema document on both sites.
+  which publishes both packages and, on both sites, every document of the
+  schema version and the catalogue's schema.
 
 ## Rules
 
@@ -108,8 +114,9 @@ These rules apply to every contributor, human or automated.
   Both packages reproduce every text byte for byte. A case the README does
   not determine is a defect of the README.
 - Author rejection cases under `fixtures/rejections/` by hand, one rule per
-  case, and warning cases under `fixtures/warnings/` by hand; the fixture
-  script emits neither.
+  case, warning cases under `fixtures/warnings/` and the acceptance table
+  under `fixtures/acceptances/` by hand; the fixture script emits none of
+  them.
 - Regenerate `js/src/generated/` after changing the schema or font metrics.
   The generated TypeScript files belong in this repository.
 - Regenerate `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json` with
@@ -127,6 +134,7 @@ Run these commands from the stated directory.
 | Directory | Command | Purpose |
 | --- | --- | --- |
 | repository root | `python3 scripts/check_versions.py` | Check version declarations agree. |
+| repository root | `python3 scripts/check_published.py` | Check the `$id`s and references of the documents a release publishes. |
 | repository root | `python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"` | Emit and round-trip the fixtures with an environment containing timetoalign. |
 | `python/` | `uv run python ../scripts/emit_rdf.py` | Write the expected RDF of the statement fixtures. |
 | `python/` | `uv run python ../scripts/emit_tables.py` | Write the table fixture (needs pyarrow, a development dependency). |

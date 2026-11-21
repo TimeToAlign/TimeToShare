@@ -5,12 +5,17 @@ TypeScript packages validate it, and timetoalign emits its fixtures.
 
 ## Schema changes
 
-A version's schema is one document,
-`schema/<version>/timetoshare.schema.json`, with the `$id`
-`https://timetoalign.github.io/timetoshare/<version>/timetoshare.schema.json`;
-the same file is also served at
-`https://timetoalign.github.io/TimeToShare/<version>/timetoshare.schema.json`
-by this repository's own GitHub Pages site. An unreleased version is changed in place; a released one is never altered.
+A version's schema is three documents in `schema/<version>/`: the
+manifest schema `timetoshare.schema.json`, the provenance schema
+`provenance.schema.json` and the column types of the tables,
+`tables.json`, each with the `$id`
+`https://timetoalign.github.io/timetoshare/<version>/<file>`. A release
+serves them, with the catalogue's schema `catalogue/catalogue.schema.json`
+as `<version>/catalogue.schema.json`, at their `$id`s and at
+`https://timetoalign.github.io/TimeToShare/<version>/<file>` on this
+repository's own GitHub Pages site; `python3 scripts/check_published.py`
+checks that every `$id` is the address its document is served at and that
+every reference names a served document. An unreleased version is changed in place; a released one is never altered.
 A new version replaces the current one in `schema/`: the repository and both
 packages hold the current version only, with no migrations, and a replaced
 version lives in the git history at its tag, in its released packages and
@@ -132,8 +137,8 @@ A TimeToShare version is a schema version, so release-please does not compute
 it from the commits. The commit that adds a schema version updates every
 declaration (`python/pyproject.toml`, `js/package.json`, `SCHEMA_VERSION`
 in `python/src/timetoshare/validate.py` and `js/src/validate.ts`, and the
-self entry in `python/uv.lock`), holds the document
-`schema/X.Y.Z/timetoshare.schema.json`, a non-empty `fixtures/X.Y.Z/`
+self entry in `python/uv.lock`), holds the documents of
+`schema/X.Y.Z/`, a non-empty `fixtures/X.Y.Z/`
 with its `drawings/`, and the rejection and warning cases, and passes
 `python3 scripts/check_versions.py`. The commit carries the footer:
 
@@ -150,17 +155,20 @@ both packages, and publishes them through OIDC trusted publishing. Do not
 push version tags by hand. When publishing fails part-way, run the Release
 workflow by hand from the Actions tab with the release tag (`v0.1.0`) as its
 input: it publishes that release again, skipping every file a registry
-already holds, and serves its schema again.
+already holds, and serves its documents again.
 
-The workflow then publishes the schema document of every released tag at
-two addresses. The pages job deploys this repository's own site,
+The workflow then publishes the documents of every released tag at two
+addresses, each set assembled from the tag by `scripts/check_published.py`,
+which refuses a tag whose documents name an address not served. The pages
+job deploys this repository's own site,
 `https://timetoalign.github.io/TimeToShare/`, which holds
-`<version>/timetoshare.schema.json`. A second job pushes the same file to
-`timetoshare/<version>/timetoshare.schema.json` in the organisation's site
-repository, `TimeToAlign/timetoalign.github.io`, where it is served at its
-`$id`, `https://timetoalign.github.io/timetoshare/<version>/timetoshare.schema.json`.
-GitHub Pages paths are case-sensitive, so the two addresses are two
-copies of one file.
+`<version>/<file>` for every document of every released version. A second
+job adds the released version's documents to `timetoshare/<version>/` in
+the organisation's site repository, `TimeToAlign/timetoalign.github.io`,
+where each is served at its `$id`,
+`https://timetoalign.github.io/timetoshare/<version>/<file>`. GitHub
+Pages paths are case-sensitive, so the two addresses are two copies of
+one file.
 
 The workflow needs the repository to be public (npm provenance and the
 public schema site require it), GitHub Actions to be allowed to create pull
