@@ -582,6 +582,57 @@ def test_a_band_order_may_list_a_subset_of_the_facets(suffix: str) -> None:
     assert identity_problems(file) == []
 
 
+@pytest.mark.parametrize("suffix", [".yaml", ".minimal.yaml"])
+def test_a_child_member_carries_a_timestamp_and_a_matchstamp(suffix: str) -> None:
+    file = _load(FIXTURES / "groups" / f"group_child_member_stamps{suffix}")
+    value = with_bare_ids(file)
+    assert [(group["id"], group["members"]) for group in value["groups"]] == [
+        ("group_1", ["middle", "recording"])
+    ]
+    (piece, recording) = value["timelines"]
+    assert [piece["id"], recording["id"]] == ["piece", "recording"]
+    assert [(child["id"], child["offset"]) for child in piece["children"]] == [
+        ("middle", [4, 1])
+    ]
+    stamps = {
+        stamp["id"]: stamp
+        for stamp in value["graphical"]["timestamps"]
+        if stamp.get("name") not in ("origin", "length")
+    }
+    keys = ("timeline", "coordinate", "name", "display", "matchstamp", "groupstamp")
+    # The twin leaves out every member at its default: a match timestamp's display,
+    # an ordinary timestamp's `matchstamp: false` and every `groupstamp: false`.
+    complete = {
+        "timestamp_1": ["middle", [2, 1], "Bar 2", ["cross_section"], False, False],
+        "timestamp_2": ["middle", [4, 1], None, ["cross_section"], True, False],
+        "timestamp_3": ["recording", 5.0, None, ["cross_section"], True, False],
+    }
+    minimal = {
+        "timestamp_1": ["middle", [2, 1], "Bar 2", ["cross_section"], None, None],
+        "timestamp_2": ["middle", [4, 1], None, None, True, None],
+        "timestamp_3": ["recording", 5.0, None, None, True, None],
+    }
+    found = {id: [stamp.get(key) for key in keys] for id, stamp in stamps.items()}
+    assert found == (minimal if suffix == ".minimal.yaml" else complete)
+    assert value["graphical"]["matchstamps"] == [
+        {
+            "id": "matchstamp_1",
+            "name": "Middle, bar 3",
+            "alignment_anchors": [
+                {
+                    "id": "anchor_1",
+                    "timestamps": ["timestamp_2", "timestamp_3"],
+                    "display": ["line", "name"],
+                }
+            ],
+            "match_claims": ["claim_1"],
+        }
+    ]
+    validate(file)
+    assert identity_problems(file) == []
+    assert matchstamp_problems(file) == []
+
+
 def test_no_corpus_fixture_carries_a_named_timestamp() -> None:
     corpora = [path for path in fixture_paths() if path.name.startswith("corpus_")]
     assert len(corpora) == 24

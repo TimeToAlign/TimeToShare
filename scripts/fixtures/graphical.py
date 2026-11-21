@@ -431,6 +431,45 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     "bundle_matchstamp_cards": {"score": _matchstamp_cards(groupstamp=False)},
     "bundle_matchstamp_groupstamp": {"score": _matchstamp_cards(groupstamp=True)},
     "map_band_order_subset": {"melody": {"order": {"melody": ["markers", "line"]}}},
+    "group_child_member_stamps": {
+        "group_1": {
+            "timestamps": [
+                {
+                    "id": "timestamp_1",
+                    "timeline": "middle",
+                    "coordinate": [2, 1],
+                    "name": "Bar 2",
+                    "display": ["cross_section"],
+                },
+                {
+                    "id": "timestamp_2",
+                    "timeline": "middle",
+                    "coordinate": [4, 1],
+                    "matchstamp": True,
+                },
+                {
+                    "id": "timestamp_3",
+                    "timeline": "recording",
+                    "coordinate": 5.0,
+                    "matchstamp": True,
+                },
+            ],
+            "matchstamps": [
+                {
+                    "id": "matchstamp_1",
+                    "name": "Middle, bar 3",
+                    "alignment_anchors": [
+                        {
+                            "id": "anchor_1",
+                            "timestamps": ["timestamp_2", "timestamp_3"],
+                            "display": ["line", "name"],
+                        },
+                    ],
+                    "match_claims": ["claim_1"],
+                },
+            ],
+        },
+    },
 }
 
 """The ``graphical`` object of each manifest the script styles or gives band
@@ -463,6 +502,11 @@ groupstamp: the child lies in ``group_1`` through its parent.
 extends across both frames. ``bundle_matchstamp_groupstamp`` makes the
 match timestamp ``timestamp_1`` of ``bundle_matchstamp_cards``, at quarter 4
 of ``score``, a member of ``group_1`` and of ``group_2``, a groupstamp.
+``group_child_member_stamps`` puts both kinds of line on the child member
+``middle`` of ``group_parent_both``: the timestamp "Bar 2" at its quarter 2,
+drawing its cross-section line alone, and the match timestamp at its quarter
+4 that the anchor of the MatchStamp "Middle, bar 3" joins to second 5.0 of
+the member ``recording``.
 
 ``timestamp_wedge_rotation`` turns the wedges of named timestamps, each
 named after its rotation. On the root ``melody`` they lie at quarters 2,

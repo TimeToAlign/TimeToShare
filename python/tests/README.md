@@ -1760,7 +1760,7 @@ written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 168 files (`test_files.py`); the four statement
+`groups` and `statements`, 170 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -1827,6 +1827,20 @@ cannot prove that the emitter produces them:
   with the one band order `{"melody": ["markers", "line"]}`, and pass
   `validate` and `identity_problems`, so the emitter carries a band order
   that leaves facets out.
+- **Lines on a child member.** `groups/group_child_member_stamps.yaml`
+  and its twin hold the group of `group_parent_both` (`group_1` listing
+  `middle`, the child of `piece` at 4, and `recording`) with three
+  timestamps besides `origin` and `length`: `timestamp_1` "Bar 2" at `[2,
+  1]` on `middle` with the `display` `["cross_section"]`, and the match
+  timestamps `timestamp_2` at `[4, 1]` on `middle` and `timestamp_3` at
+  `5.0` on `recording`, neither named; the one MatchStamp `matchstamp_1`
+  "Middle, bar 3" holds the anchor `anchor_1` from `timestamp_2` to
+  `timestamp_3` with the `display` `["line", "name"]` and the MatchClaim
+  `claim_1`; no timestamp is a groupstamp (the twin leaves out each
+  member at its default: the match timestamps' `display`, `timestamp_1`'s
+  `matchstamp: false`, every `groupstamp: false`). Both forms pass `validate`,
+  `identity_problems` and `matchstamp_problems`, so the emitter carries
+  named timestamps and a MatchStamp on a member that is a child.
 - **Flow-control IDs by type.** Across the complete fixtures, every
   flow-control element whose ID has the generated form `<prefix>_<N>`
   carries its own `type` as the prefix: exactly `flow_marker_1` (three

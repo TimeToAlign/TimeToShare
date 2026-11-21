@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="522.5366" height="127.8789" viewBox="0 0 522.5366 127.8789" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="490.5366" height="95.8789" rx="10" fill="#F3F4F6"/>
+<rect data-id="melody" data-part="card" x="10" y="10" width="472.5366" height="77.8789" rx="5" fill="#B8BEC8"/>
+<rect data-id="melody" data-part="card" x="8" y="8" width="472.5366" height="77.8789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-id="tempo" points="63.5366,34 463.5366,34 463.5366,36 63.5366,36" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-id="ticks" points="163.5366,16.5 363.5366,16.5 363.5366,18.5 163.5366,18.5" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<line data-id="melody" x1="63.5366" y1="71.4766" x2="463.5366" y2="71.4766" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="melody" cx="63.5366" cy="71.4766" r="3" fill="#00CC00"/>
+<polygon data-id="melody" points="472.5366,71.4766 463.5366,66.9766 463.5366,75.9766" fill="#00CC00"/>
+<line data-id="phrase" x1="163.5366" y1="23" x2="359.0366" y2="23" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="phrase" cx="163.5366" cy="23" r="3" fill="#00CC00"/>
+<polygon data-id="phrase" points="359.0366,23 363.5366,19.4 368.0366,23 363.5366,26.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_1" points="63.5366,69.9766 60.5366,56.9766 66.5366,56.9766" fill="#000000"/>
+<polygon data-id="timestamp_2" points="463.5366,69.9766 460.5366,56.9766 466.5366,56.9766" fill="#000000"/>
+<text data-id="phrase" data-part="name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">Phrase</text>
+<text data-id="melody" data-part="name" x="16" y="75.2847" text-anchor="start" font-size="11" fill="#000000">Melody</text>
+<text data-id="timestamp_1" data-part="coordinate" x="63.5366" y="52.854" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="463.5366" y="52.854" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+</g>
+</svg>
