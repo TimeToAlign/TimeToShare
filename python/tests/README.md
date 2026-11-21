@@ -1893,24 +1893,42 @@ extraction's are without fontTools. What proves them:
 - **The derivation is checked against values written by hand.** The
   fixture's expected file (`expected.yaml`) is written in
   `scripts/emit_tables.py` as literal data, never computed by the
-  derivation; for each of its cases, a `believer` and a `belief` filter (no
-  believer; an actor's `not_false`, the default; that actor's `true`; a
-  second actor's `true`) `alignment_anchors` (each anchor with the MatchClaims stating
-  it) and `potential_matchstamps` equal the expected values exactly, as
-  exact fractions. The fixture covers an instant claim, an interval
+  derivation; for each of its cases, a `believer` and the `beliefs` the
+  filter keeps (no believer, every state but `false`, the default; an
+  actor's default; that actor's `true`; a second actor's `true`; the
+  first actor's `undecided`, the rows the actor holds no belief in; the
+  first actor's `unlikely` and `false` together) `alignment_anchors` (each
+  anchor with the MatchClaims stating it) and `potential_matchstamps`
+  equal the expected values exactly, as exact fractions. The fixture covers an instant claim, an interval
   claim (two anchors), two MatchClaims stating one anchor in opposite
   orientations, a chain over three timelines, one coordinate in two
   anchors, an interval claim with an anchor inside its span, a Projection
   of an event, two Projections without a source joined by one claim, a
   NOMATCH row, a conceptual row, a row one actor believes false and another
   true, a row believed `unlikely` (kept by the default filter, dropped by
-  the believed-true one) and a child timeline whose coordinates never meet
-  its parent's. Without an actor the row believed false still gives its
-  anchor.
-- **The belief filter takes two words.** `BELIEF_FILTERS` is
-  `("not_false", "true")`; `believed_rows` keeps, per believer and filter,
-  the rows listed in `test_tables_anchors.py`, and a filter `"false"`
-  raises `'false' is no belief filter: write 'not_false' or 'true'`.
+  the believed-true one, kept again by the unlikely-and-false one, which
+  splits the chain it closes) and a child timeline whose coordinates never
+  meet its parent's. Without an actor the row believed false still gives
+  its anchor.
+- **The belief filter takes the four states.** `BELIEF_STATES` is
+  `("true", "undecided", "unlikely", "false")` and `DEFAULT_BELIEFS` the
+  first three, the default of `believed_rows`, `alignment_anchors` and
+  `potential_matchstamps`. A row's state for a believer is the believer's
+  belief in it, or `undecided` where the believer holds none (a row
+  without provenance included); the row is kept when that state is one
+  the filter names. `believed_rows` keeps, per believer and collection of
+  states, the rows listed in `test_tables_anchors.py`: every state alone
+  for one actor, which partitions the fifteen rows, the default, and
+  without a believer every row whatever the states. A single string
+  raises `the belief filter takes a collection of states, not the string
+  'true': write ['true']`; an unknown word raises `'not_false' is no
+  belief state: write 'true', 'undecided', 'unlikely' or 'false'`; an
+  empty collection keeps no row for a believer. Actors compare as the
+  IRIs they stand for under the `context` given: the believer
+  `orcid:0000-0002-1825-0097` under a context declaring `orcid` as
+  `https://orcid.org/` keeps the rows of the absolute actor, and keeps
+  none of its `true` rows without that context (it then compares as
+  written).
 - **The fixture files are the script's.** The two Parquet files read back
   equal to the tables the script builds, the manifest equal to the
   script's manifest of the files written, and both tables pass every

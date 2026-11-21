@@ -413,6 +413,11 @@ S_10 = s(
 S_11 = s([c("clt_2", [1, 1]), c("dpt_1", 396900)], "claim_15")
 S_10_WITHOUT_13 = s([c("cpt_1", 10.0), c("dpt_1", 441000)], "claim_11")
 S_13_ALONE = s([c("clt_1", [10, 1]), c("dpt_1", 441000)], "claim_13")
+S_5_WITHOUT_6 = s([c("clt_1", [4, 1]), c("dpt_1", 176400)], "claim_5")
+S_6_ALONE = s([c("cpt_1", 4.0), c("dpt_1", 176400)], "claim_6")
+
+NOT_FALSE = ["true", "undecided", "unlikely"]
+"""The default belief filter: every state but ``"false"``."""
 
 EVERY_ANCHOR = [
     A_1,
@@ -435,7 +440,7 @@ EXPECTED: dict[str, Any] = {
     "cases": [
         {
             "believer": None,
-            "belief": "not_false",
+            "beliefs": NOT_FALSE,
             "alignment_anchors": EVERY_ANCHOR,
             "potential_matchstamps": [
                 S_1,
@@ -453,7 +458,7 @@ EXPECTED: dict[str, Any] = {
         },
         {
             "believer": ACTOR,
-            "belief": "not_false",
+            "beliefs": NOT_FALSE,
             "alignment_anchors": [
                 anchor for anchor in EVERY_ANCHOR if anchor is not A_11
             ],
@@ -473,15 +478,37 @@ EXPECTED: dict[str, Any] = {
         },
         {
             "believer": ACTOR,
-            "belief": "true",
+            "beliefs": ["true"],
             "alignment_anchors": [A_1, A_14],
             "potential_matchstamps": [S_1, S_10_WITHOUT_13],
         },
         {
             "believer": OTHER_ACTOR,
-            "belief": "true",
+            "beliefs": ["true"],
             "alignment_anchors": [A_11],
             "potential_matchstamps": [S_13_ALONE],
+        },
+        {
+            "believer": ACTOR,
+            "beliefs": ["undecided"],
+            "alignment_anchors": [A_2, A_3, A_4, A_5, A_6, A_7, A_8, A_9, A_10, A_12],
+            "potential_matchstamps": [
+                S_2,
+                S_3,
+                S_4,
+                S_5_WITHOUT_6,
+                S_6,
+                S_7,
+                S_8,
+                S_9,
+                S_11,
+            ],
+        },
+        {
+            "believer": ACTOR,
+            "beliefs": ["unlikely", "false"],
+            "alignment_anchors": [A_11, A_13],
+            "potential_matchstamps": [S_13_ALONE, S_6_ALONE],
         },
     ]
 }
