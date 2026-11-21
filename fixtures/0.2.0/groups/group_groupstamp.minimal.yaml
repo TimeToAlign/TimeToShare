@@ -1,0 +1,108 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+graphical:
+  order:
+    "#group_1": ["#score", "#performance"]
+  timestamps:
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: "#timestamp_2"
+      name: origin
+      timeline: "#performance"
+    -
+      coordinate: 4.0
+      display: [wedge, coordinate]
+      id: "#timestamp_3"
+      name: length
+      timeline: "#performance"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_4"
+      name: origin
+      timeline: "#score"
+    -
+      coordinate: [4, 1]
+      groupstamp: true
+      id: "#timestamp_1"
+      name: "Bar 2"
+      timeline: "#score"
+    -
+      coordinate: [8, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_5"
+      name: length
+      timeline: "#score"
+groups:
+  -
+    id: "#group_1"
+    members: ["#performance", "#score"]
+    name: Performance
+meta:
+  generator: "timetoalign 1.2.0 (40161e42)"
+timelines:
+  -
+    id: "#performance"
+    length: 4.0
+    name: Performance
+    unit: seconds
+  -
+    id: "#score"
+    length: [8, 1]
+    name: Score
+    unit: quarters
+timetoshare: "0.2.0"

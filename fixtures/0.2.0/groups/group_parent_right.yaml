@@ -63,6 +63,7 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_1"
       matchstamp: false
       name: origin
@@ -70,6 +71,7 @@ graphical:
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_2"
       matchstamp: false
       name: length
@@ -77,6 +79,7 @@ graphical:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_3"
       matchstamp: false
       name: origin
@@ -84,6 +87,7 @@ graphical:
     -
       coordinate: 10.0
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_4"
       matchstamp: false
       name: length

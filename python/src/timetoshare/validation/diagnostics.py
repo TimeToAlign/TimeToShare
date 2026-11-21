@@ -33,6 +33,7 @@ ValidationCode: TypeAlias = Literal[
     "band_order",
     "timestamp_timeline",
     "timestamp_coordinate",
+    "groupstamp",
     "match_timestamp",
     "alignment_anchor",
     "matchstamp",

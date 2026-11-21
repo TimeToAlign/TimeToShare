@@ -189,6 +189,7 @@ CATALOGUE = (
     _group("corpus_tilia", groups.corpus_tilia_group, origin_and_length=False),
     _group("group_unknown_length", groups.group_unknown_length),
     _group("group_measure_map", groups.group_measure_map),
+    _group("group_groupstamp", groups.group_groupstamp, "group_1"),
     _bundle("bundle_mixed", bundles.bundle_mixed),
     _bundle("bundle_shared_parent", bundles.bundle_shared_parent),
     _bundle("bundle_ungrouped", bundles.bundle_ungrouped),

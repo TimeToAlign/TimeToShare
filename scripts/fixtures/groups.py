@@ -235,3 +235,19 @@ def group_measure_map() -> TimelineGroup:
         ),
     )
     return TimelineGroup(name="Edition", timelines=[score, midi])
+
+
+def group_groupstamp() -> TimelineGroup:
+    """Build a group whose score carries a groupstamp.
+
+    The group "Performance" lists the score ``score`` ("Score", 8 quarters)
+    and the performance ``performance`` ("Performance", 4.0 seconds).
+    ``group_groupstamp`` holds it with the ``graphical`` entry of
+    ``GRAPHICAL``: the timestamp "Bar 2" at quarter 4 of the score, a
+    groupstamp, whose line extends across both members.
+    """
+    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(8))
+    performance = parts.named(
+        ContinuousPhysicalTimeline, "performance", "Performance", 4.0
+    )
+    return TimelineGroup(name="Performance", timelines=[score, performance])

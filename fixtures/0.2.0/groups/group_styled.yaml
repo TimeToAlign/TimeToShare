@@ -85,6 +85,7 @@ graphical:
     -
       coordinate: 0
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_1"
       matchstamp: false
       name: origin
@@ -92,6 +93,7 @@ graphical:
     -
       coordinate: 1920
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_2"
       matchstamp: false
       name: length
@@ -99,6 +101,7 @@ graphical:
     -
       coordinate: 0.0
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_3"
       matchstamp: false
       name: origin
@@ -106,6 +109,7 @@ graphical:
     -
       coordinate: 12.5
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_4"
       matchstamp: false
       name: length
@@ -113,6 +117,7 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_5"
       matchstamp: false
       name: origin
@@ -120,6 +125,7 @@ graphical:
     -
       coordinate: [12, 1]
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_6"
       matchstamp: false
       name: length

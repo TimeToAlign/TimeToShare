@@ -279,10 +279,10 @@ describe("the complete and the minimal form", () => {
     });
     const display = ["wedge", "name", "cross_section"];
     expect((complete(value).graphical as JsonObject).timestamps).toEqual([
-      stamp(1, { display, matchstamp: false }),
-      stamp(2, { display, matchstamp: false }),
-      stamp(3, { display: ["wedge", "name"], matchstamp: false }),
-      stamp(4, { display: [], matchstamp: false }),
+      stamp(1, { display, matchstamp: false, groupstamp: false }),
+      stamp(2, { display, matchstamp: false, groupstamp: false }),
+      stamp(3, { display: ["wedge", "name"], matchstamp: false, groupstamp: false }),
+      stamp(4, { display: [], matchstamp: false, groupstamp: false }),
     ]);
     expect((minimal(value).graphical as JsonObject).timestamps).toEqual([
       stamp(1),
@@ -510,7 +510,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(78);
+    expect(twins.length).toBe(79);
     expect(twins.map((twin) => twin.replace(/\.minimal$/, ""))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal")),
     );
@@ -550,6 +550,7 @@ describe("match timestamps and alignment anchors", () => {
       ["name", "cross_section"],
     ]);
     expect(stamps.map((stamp) => stamp.matchstamp)).toEqual([false, true, true]);
+    expect(stamps.map((stamp) => stamp.groupstamp)).toEqual([false, false, false]);
     const held = (completed.matchstamps as JsonObject[])[0]?.alignment_anchors as JsonObject[];
     expect(held.map((anchor) => anchor.display)).toEqual([["line"], ["line", "name"]]);
     const stripped = minimal(value).graphical as JsonObject;
@@ -571,5 +572,17 @@ describe("match timestamps and alignment anchors", () => {
     expect(((plain.graphical as JsonObject).timestamps as JsonObject[])[0]?.display).toEqual([
       "cross_section",
     ]);
+    expect((stripped.timestamps as JsonObject[]).map((stamp) => "groupstamp" in stamp)).toEqual([
+      false,
+      false,
+      false,
+    ]);
+    const grouped = { ...ordinary, groupstamp: true };
+    const grouping = minimal(
+      manifest([timeline("score")], { graphical: { timestamps: [grouped] } }),
+    );
+    expect(((grouping.graphical as JsonObject).timestamps as JsonObject[])[0]?.groupstamp).toBe(
+      true,
+    );
   });
 });

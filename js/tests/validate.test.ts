@@ -84,6 +84,8 @@ const REJECTIONS = [
   "group_missing_members",
   "group_order_not_member",
   "group_order_repeated",
+  "groupstamp_match_timestamp",
+  "groupstamp_without_group",
   "id_control_character_tab",
   "id_control_character_trailing_newline",
   "id_duplicate_across_kinds",
@@ -600,6 +602,7 @@ describe("the shared rejection cases", () => {
       "element_value",
       "finite_number",
       "group_member",
+      "groupstamp",
       "iri",
       "manifest_id",
       "match_timestamp",
@@ -848,6 +851,7 @@ describe("the MatchStamp and resource rules", () => {
     alignment_anchor_timestamp_unknown: "'timestamp_99' names no timestamp of this manifest",
     alignment_anchor_timestamp_not_match: "'timestamp_2' is no match timestamp",
     alignment_anchor_one_timeline: "the timestamps of 'anchor_2' both lie on the timeline 'score'",
+    groupstamp_match_timestamp: "'timestamp_1' is both a match timestamp and a groupstamp",
     match_timestamp_in_no_matchstamp: "the match timestamp 'timestamp_11' belongs to no MatchStamp",
     match_timestamp_coordinate_repeated:
       "'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'",
@@ -878,6 +882,7 @@ describe("the MatchStamp and resource rules", () => {
     (graphical.timestamps as JsonObject[]).push({
       coordinate: [6, 1],
       display: ["cross_section"],
+      groupstamp: true,
       id: "#timestamp_12",
       matchstamp: true,
       timeline: "#score",
@@ -894,6 +899,7 @@ describe("the MatchStamp and resource rules", () => {
       ["matchstamp", anchors],
       ["match_timestamp", ["graphical", "timestamps", 1]],
       ["match_timestamp", ["graphical", "timestamps", 4]],
+      ["groupstamp", ["graphical", "timestamps", 10, "groupstamp"]],
       ["match_timestamp", ["graphical", "timestamps", 10]],
       ["match_timestamp", ["graphical", "timestamps", 10]],
     ]);
@@ -909,6 +915,7 @@ describe("the MatchStamps alone", () => {
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
     "alignment_anchor_timestamp_unknown",
+    "groupstamp_match_timestamp",
     "match_timestamp_coordinate_repeated",
     "match_timestamp_in_no_matchstamp",
     "matchstamp_claims_repeated",

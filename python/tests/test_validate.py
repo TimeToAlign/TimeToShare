@@ -71,6 +71,8 @@ REJECTIONS = [
     "group_missing_members",
     "group_order_not_member",
     "group_order_repeated",
+    "groupstamp_match_timestamp",
+    "groupstamp_without_group",
     "id_control_character_tab",
     "id_control_character_trailing_newline",
     "id_duplicate_across_kinds",
@@ -605,6 +607,7 @@ def test_rejections_cover_every_rule_code() -> None:
         "segment_line",
         "timestamp_coordinate",
         "timestamp_timeline",
+        "groupstamp",
         "match_timestamp",
         "alignment_anchor",
         "matchstamp",
@@ -846,6 +849,9 @@ MATCHSTAMP_MESSAGES = {
     "alignment_anchor_one_timeline": (
         "the timestamps of 'anchor_2' both lie on the timeline 'score'"
     ),
+    "groupstamp_match_timestamp": (
+        "'timestamp_1' is both a match timestamp and a groupstamp"
+    ),
     "match_timestamp_in_no_matchstamp": (
         "the match timestamp 'timestamp_11' belongs to no MatchStamp"
     ),
@@ -889,6 +895,7 @@ def test_the_matchstamp_rules_report_every_problem() -> None:
         {
             "coordinate": [6, 1],
             "display": ["cross_section"],
+            "groupstamp": True,
             "id": "#timestamp_12",
             "matchstamp": True,
             "timeline": "#score",
@@ -908,6 +915,7 @@ def test_the_matchstamp_rules_report_every_problem() -> None:
         ("matchstamp", anchors),
         ("match_timestamp", ("graphical", "timestamps", 1)),
         ("match_timestamp", ("graphical", "timestamps", 4)),
+        ("groupstamp", ("graphical", "timestamps", 10, "groupstamp")),
         ("match_timestamp", ("graphical", "timestamps", 10)),
         ("match_timestamp", ("graphical", "timestamps", 10)),
     ]
@@ -920,6 +928,7 @@ MATCHSTAMP_CASES = [
     "alignment_anchor_one_timeline",
     "alignment_anchor_timestamp_not_match",
     "alignment_anchor_timestamp_unknown",
+    "groupstamp_match_timestamp",
     "match_timestamp_coordinate_repeated",
     "match_timestamp_in_no_matchstamp",
     "matchstamp_claims_repeated",

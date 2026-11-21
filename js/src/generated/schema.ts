@@ -329,7 +329,7 @@ export const schema = {
     },
     "Timestamp": {
       "type": "object",
-      "description": "A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `[\"cross_section\"]`. Five parts of it may be drawn, as `display` selects: a wedge `{\"id\": id}`, three labels stacked outward from the wedge (its name `{\"id\": id, \"part\": [\"name\"]}`, its ID `{\"id\": id, \"part\": [\"id\"]}` and its coordinate `{\"id\": id, \"part\": [\"coordinate\"]}`) and a cross-section line `{\"id\": id, \"part\": [\"line\"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, that it lies within the timeline, and the rules of match timestamps are checked after the schema.",
+      "description": "A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `[\"cross_section\"]`. Five parts of it may be drawn, as `display` selects: a wedge `{\"id\": id}`, three labels stacked outward from the wedge (its name `{\"id\": id, \"part\": [\"name\"]}`, its ID `{\"id\": id, \"part\": [\"id\"]}` and its coordinate `{\"id\": id, \"part\": [\"coordinate\"]}`) and a cross-section line `{\"id\": id, \"part\": [\"line\"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, that it lies within the timeline, that a groupstamp lies on a group member and is no match timestamp, and the rules of match timestamps are checked after the schema.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -373,6 +373,11 @@ export const schema = {
           "type": "boolean",
           "description": "Whether the timestamp is a match timestamp, a timestamp of the named MatchStamps; false, the default, makes it an ordinary named timestamp.",
           "default": false
+        },
+        "groupstamp": {
+          "type": "boolean",
+          "description": "Whether the timestamp is a groupstamp: its timeline is a member of a group, and its line extends across every member timeline of each group having that timeline as a member. The members' lines are derived from the group and never stored. A groupstamp is never a match timestamp. False, the default, draws the line on the timestamp's own timeline alone.",
+          "default": false
         }
       },
       "required": [
@@ -396,6 +401,9 @@ export const schema = {
             "default": [
               "cross_section"
             ]
+          },
+          "groupstamp": {
+            "default": false
           }
         }
       },

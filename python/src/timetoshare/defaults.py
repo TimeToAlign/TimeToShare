@@ -54,8 +54,12 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "timestamps": [],
         "matchstamps": [],
     },
-    "timestamp": {"display": ["wedge", "name", "cross_section"], "matchstamp": False},
-    "match_timestamp": {"display": ["cross_section"]},
+    "timestamp": {
+        "display": ["wedge", "name", "cross_section"],
+        "matchstamp": False,
+        "groupstamp": False,
+    },
+    "match_timestamp": {"display": ["cross_section"], "groupstamp": False},
     "alignment_anchor": {"display": ["line"]},
 }
 """The default of every key that has one, by the kind of object holding it.

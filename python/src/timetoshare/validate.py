@@ -541,8 +541,8 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
     alignment anchor that the manifest holds twice (``duplicate_id``, or
     ``manifest_id`` where the manifest's ID repeats one), then the rules of
     the MatchStamps and their match timestamps (``alignment_anchor``,
-    ``matchstamp``, ``match_timestamp``), in :func:`identity_problems`'
-    order.
+    ``matchstamp``, ``groupstamp``, ``match_timestamp``), in
+    :func:`identity_problems`' order.
 
     Nothing else is refused: an ordinary timestamp, the styles and rules,
     the timelines and the statements are not read beyond what the

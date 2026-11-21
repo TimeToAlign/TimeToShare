@@ -207,6 +207,19 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             ],
         },
     },
+    "group_groupstamp": {
+        "group_1": {
+            "timestamps": [
+                {
+                    "id": "timestamp_1",
+                    "timeline": "score",
+                    "coordinate": [4, 1],
+                    "name": "Bar 2",
+                    "groupstamp": True,
+                },
+            ],
+        },
+    },
     "bundle_free_ids": {
         "group_1": {
             "rules": [
@@ -336,6 +349,10 @@ band by its timeline's id and its facet (``{"id": "score", "facet":
 violet stroke), fills the group's title, ``{"id": "group_1", "part":
 ["name"]}``, violet, and gives every card held by a frame a light violet
 shadow and a corner radius of 2.
+
+``group_groupstamp`` names the timestamp "Bar 2" at quarter 4 of the
+member ``score`` a groupstamp, so its line extends across both members of
+``group_1``.
 
 ``bundle_free_ids`` strokes the region ``take 2/intro``, selected by its
 address ``{"id": "take 2/intro"}``, teal.

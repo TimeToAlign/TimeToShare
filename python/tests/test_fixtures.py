@@ -354,7 +354,7 @@ def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
         (
             "timestamps.yaml",
             {"display": ["wedge", "name", "cross_section"]},
-            {"matchstamp": False},
+            {"groupstamp": False, "matchstamp": False},
         ),
         ("timestamps.minimal.yaml", {}, {}),
     ],
@@ -434,9 +434,52 @@ _ORIGIN_AND_LENGTH = {
 def test_drawn_roots_carry_their_origin_and_length(name: str, suffix: str) -> None:
     file = _load(FIXTURES / f"{name}{suffix}")
     value = with_bare_ids(file)
-    stated = {"matchstamp": False} if suffix == ".yaml" else {}
+    stated = {"groupstamp": False, "matchstamp": False} if suffix == ".yaml" else {}
     expected = [{**mark, **stated} for mark in _ORIGIN_AND_LENGTH[name]]
     assert value["graphical"]["timestamps"] == expected
+    validate(file)
+    assert identity_problems(file) == []
+
+
+@pytest.mark.parametrize(
+    ("name", "stated"),
+    [
+        ("group_groupstamp.yaml", {"groupstamp": False, "matchstamp": False}),
+        ("group_groupstamp.minimal.yaml", {}),
+    ],
+)
+def test_a_groupstamp_passes_through_the_emitter(
+    name: str, stated: dict[str, Any]
+) -> None:
+    file = _load(FIXTURES / "groups" / name)
+    value = with_bare_ids(file)
+    assert value["groups"][0]["id"] == "group_1"
+    assert sorted(value["groups"][0]["members"]) == ["performance", "score"]
+    complete = name == "group_groupstamp.yaml"
+    groupstamp = {
+        "coordinate": [4, 1],
+        "groupstamp": True,
+        "id": "timestamp_1",
+        "name": "Bar 2",
+        "timeline": "score",
+    }
+    if complete:
+        groupstamp = {
+            **groupstamp,
+            "display": ["wedge", "name", "cross_section"],
+            "matchstamp": False,
+        }
+    marks = _marks(
+        ("performance", "origin", 0.0),
+        ("performance", "length", 4.0),
+        ("score", "origin", [0, 1]),
+        ("score", "length", [8, 1]),
+    )
+    marks = [
+        {**mark, "id": f"timestamp_{number}", **stated}
+        for number, mark in enumerate(marks, start=2)
+    ]
+    assert value["graphical"]["timestamps"] == [*marks[:3], groupstamp, marks[3]]
     validate(file)
     assert identity_problems(file) == []
 

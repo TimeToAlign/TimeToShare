@@ -791,6 +791,7 @@ export type CompleteTimestamp = {
   name?: string;
   display: ("wedge" | "name" | "id" | "coordinate" | "cross_section")[];
   matchstamp: boolean;
+  groupstamp: boolean;
 };
 /**
  * `MatchStamp` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -1485,7 +1486,7 @@ export interface Declaration {
   shadow?: Paint;
 }
 /**
- * A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `["cross_section"]`. Five parts of it may be drawn, as `display` selects: a wedge `{"id": id}`, three labels stacked outward from the wedge (its name `{"id": id, "part": ["name"]}`, its ID `{"id": id, "part": ["id"]}` and its coordinate `{"id": id, "part": ["coordinate"]}`) and a cross-section line `{"id": id, "part": ["line"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, that it lies within the timeline, and the rules of match timestamps are checked after the schema.
+ * A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `["cross_section"]`. Five parts of it may be drawn, as `display` selects: a wedge `{"id": id}`, three labels stacked outward from the wedge (its name `{"id": id, "part": ["name"]}`, its ID `{"id": id, "part": ["id"]}` and its coordinate `{"id": id, "part": ["coordinate"]}`) and a cross-section line `{"id": id, "part": ["line"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, that it lies within the timeline, that a groupstamp lies on a group member and is no match timestamp, and the rules of match timestamps are checked after the schema.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Timestamp".
@@ -1515,6 +1516,10 @@ export interface Timestamp {
    * Whether the timestamp is a match timestamp, a timestamp of the named MatchStamps; false, the default, makes it an ordinary named timestamp.
    */
   matchstamp?: boolean;
+  /**
+   * Whether the timestamp is a groupstamp: its timeline is a member of a group, and its line extends across every member timeline of each group having that timeline as a member. The members' lines are derived from the group and never stored. A groupstamp is never a match timestamp. False, the default, draws the line on the timestamp's own timeline alone.
+   */
+  groupstamp?: boolean;
 }
 /**
  * A named MatchStamp: match timestamps of several timelines that MatchClaims state to be the same moment, joined by alignment anchors, with the IDs of the MatchClaims behind them at the time of naming or of the last update. The timestamps of a MatchStamp are those its anchors name. The manifest is valid whatever a MatchClaim table says. Every anchor names two match timestamps of two timelines, and the anchors are one connected set; both are checked after the schema.

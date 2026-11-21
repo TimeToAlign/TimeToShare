@@ -1,6 +1,7 @@
 """Named-timestamp, MatchStamp and resource rules.
 
-The timeline a timestamp names and its coordinate; the alignment anchors of
+The timeline a timestamp names, its coordinate and whether it may be a
+groupstamp; the alignment anchors of
 the named MatchStamps and their match timestamps; the timelines and types of
 the resources.
 """
@@ -26,13 +27,21 @@ from .diagnostics import (
 def timestamp_problems(
     manifest: Mapping[str, Any],
 ) -> Iterator[SchemaValidationError]:
-    """Yield timestamps off the manifest's timelines or outside their extent.
+    """Yield timestamps off the manifest's timelines, outside their extent or groupless.
 
     A timestamp names a timeline of the manifest, at any depth, and its
     coordinate lies between 0 and that timeline's length, or at or after 0
-    where the length is not known.
+    where the length is not known. A groupstamp (``groupstamp: true``) that
+    is no match timestamp lies on a timeline that is a member of a group;
+    a match timestamp that is a groupstamp is reported by
+    :func:`matchstamp_problems`.
     """
     timelines = timelines_by_id(manifest)
+    members = {
+        member
+        for group in _entries(manifest, "groups")
+        for member in group.get("members", [])
+    }
     for index, timestamp in enumerate(timestamps_of(manifest)):
         path = ("graphical", "timestamps", index)
         identifier = timestamp["timeline"]
@@ -60,6 +69,17 @@ def timestamp_problems(
                 f"{where} is beyond the length {spell(length)} of its timeline "
                 f"'{identifier}'",
             )
+        if (
+            timestamp.get("groupstamp") is True
+            and timestamp.get("matchstamp") is not True
+            and identifier not in members
+        ):
+            yield SchemaValidationError(
+                "groupstamp",
+                (*path, "groupstamp"),
+                f"'{timestamp['id']}' is a groupstamp, but its timeline "
+                f"'{identifier}' is a member of no group",
+            )
 
 
 def matchstamp_problems(
@@ -70,8 +90,8 @@ def matchstamp_problems(
     MatchStamp by MatchStamp, each alignment anchor names two match
     timestamps of the manifest (``matchstamp: true``) lying on two timelines,
     and the anchors are one connected set; then, timestamp by timestamp, a
-    match timestamp shares its coordinate with no earlier match timestamp
-    and some MatchStamp names it.
+    match timestamp is no groupstamp (``groupstamp``), shares its coordinate
+    with no earlier match timestamp and some MatchStamp names it.
     """
     timestamps: dict[str, Mapping[str, Any]] = {}
     for timestamp in timestamps_of(manifest):
@@ -127,6 +147,12 @@ def matchstamp_problems(
             continue
         path = ("graphical", "timestamps", index)
         identifier = timestamp["id"]
+        if timestamp.get("groupstamp") is True:
+            yield SchemaValidationError(
+                "groupstamp",
+                (*path, "groupstamp"),
+                f"'{identifier}' is both a match timestamp and a groupstamp",
+            )
         key = (timestamp["timeline"], _exact(timestamp["coordinate"]))
         if key in first:
             yield SchemaValidationError(

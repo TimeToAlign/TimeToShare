@@ -805,6 +805,11 @@ def test_a_child_without_a_double_sum_ends_at_the_exact_sum() -> None:
             "timestamp_id_is_timeline_id",
             "'timestamp_1' is not unique in the manifest, first at #/timelines/0/id",
         ),
+        (
+            "groupstamp_without_group",
+            "'timestamp_1' is a groupstamp, but its timeline 'clt_1' is a member of "
+            "no group",
+        ),
     ],
 )
 def test_the_shared_identity_rejections_carry_their_messages(

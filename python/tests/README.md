@@ -521,7 +521,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 172 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 174 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the thirty of the table, so every code is reached by a case both
@@ -780,10 +780,13 @@ named timestamps, in `validation/timestamps.py`. What proves them:
   default; `matchstamp` defaults to `false`, so an ordinary timestamp
   completes to `matchstamp: false` and minimizes without it, while a match
   timestamp keeps `matchstamp: true` in both forms (every complete fixture
-  with a named timestamp states it); an anchor's `display` defaults to
-  `["line"]`; the schema states
-  the match timestamp's default in the `then` arm of `matchstamp: true`
-  and requires `name` in the `else` arm (`test_schema.py`).
+  with a named timestamp states it); `groupstamp` defaults to `false` for
+  both kinds, so every timestamp completes to `groupstamp: false` and
+  minimizes without it, and a groupstamp keeps `groupstamp: true` in both
+  forms; an anchor's `display` defaults to `["line"]`; the schema states
+  the match timestamp's defaults (`display`, `groupstamp`) in the `then`
+  arm of `matchstamp: true` and requires `name` in the `else` arm
+  (`test_schema.py`).
 - **The rules** (`test_validate.py`). Each rejection case pins its message:
 
 | Code | Case | Message |
@@ -791,6 +794,7 @@ named timestamps, in `validation/timestamps.py`. What proves them:
 | `alignment_anchor` | `alignment_anchor_timestamp_unknown` | `'timestamp_99' names no timestamp of this manifest` |
 | `alignment_anchor` | `alignment_anchor_timestamp_not_match` | `'timestamp_2' is no match timestamp` |
 | `alignment_anchor` | `alignment_anchor_one_timeline` | `the timestamps of 'anchor_2' both lie on the timeline 'score'` |
+| `groupstamp` | `groupstamp_match_timestamp` | `'timestamp_1' is both a match timestamp and a groupstamp` |
 | `match_timestamp` | `match_timestamp_in_no_matchstamp` | `the match timestamp 'timestamp_11' belongs to no MatchStamp` |
 | `match_timestamp` | `match_timestamp_coordinate_repeated` | `'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'` |
 | `matchstamp` | `matchstamp_not_connected` | `the alignment anchors of 'matchstamp_1' are not one connected set` |
@@ -801,22 +805,25 @@ named timestamps, in `validation/timestamps.py`. What proves them:
 
   `identity_problems` lists every problem in order: per MatchStamp its
   anchors (each timestamp, then the pair), then whether they connect; then
-  each match timestamp, a shared coordinate before an unnamed one. One
+  each match timestamp, a groupstamp before a shared coordinate before an
+  unnamed one. One
   manifest proves it: `matchstamp_not_connected` with its first anchor
-  naming two ordinary timestamps and a match timestamp added at the
-  coordinate of `timestamp_11` gives exactly two `alignment_anchor`
-  problems, one `matchstamp`, and `match_timestamp` at timestamps 1, 4, 10
-  and 10.
+  naming two ordinary timestamps and a groupstamp match timestamp added at
+  the coordinate of `timestamp_11` gives exactly two `alignment_anchor`
+  problems, one `matchstamp`, `match_timestamp` at timestamps 1 and 4,
+  then `groupstamp` at timestamp 10's `groupstamp` and `match_timestamp`
+  at timestamps 10 and 10.
 - **The MatchStamps alone** (`test_validate.py`). `matchstamp_problems`,
   for a reader that keeps the rest of `graphical` unread, returns for each
-  of the eleven MatchStamp rejection cases a first problem equal, code, path
+  of the twelve MatchStamp rejection cases a first problem equal, code, path
   and message, to the one `validate` raises: the schema of
   `graphical.matchstamps` (`matchstamp_id_malformed`,
   `alignment_anchor_id_malformed`, `alignment_anchor_display_unknown`,
   `matchstamp_claims_repeated`), an ID of a MatchStamp or an anchor
-  repeated (`alignment_anchor_id_repeated`), then the rules. It returns
+  repeated (`alignment_anchor_id_repeated`), then the rules, the match
+  timestamp marked a groupstamp (`groupstamp_match_timestamp`) among them. It returns
   nothing for every fixture and for every other rejection case, the
-  named-timestamp and style cases among them, whose faults lie outside
+  named-timestamp, groupstamp-without-group and style cases among them, whose faults lie outside
   the MatchStamps; a match timestamp breaking the timestamp schema (no
   `timeline`) is reported by the schema at that timestamp, never raised
   as a `KeyError`. A number that is not finite is reported as `validate`
@@ -833,6 +840,40 @@ named timestamps, in `validation/timestamps.py`. What proves them:
   `CalendarDate` and refers to the manifest schema's `Iri` and
   `IriReference`; `load_schema()` equals `bundle_schemas` of the two files,
   every reference local; a definition of both names is refused.
+
+## Groupstamps
+
+A named timestamp with `groupstamp: true` lies on a group member, and its
+line extends across every member of the groups holding that timeline; the
+members' lines are derived, never stored, so nothing beyond the flag is
+checked. What proves it:
+
+- **Defaults** (`test_defaults.py`, `test_schema.py`). As stated under
+  "MatchStamps and resources": `groupstamp` defaults to `false` on an
+  ordinary and on a match timestamp, and the schema declares that default
+  for both (the `then` arm repeats it, since the arm's defaults are the
+  match timestamp's whole table).
+- **The rules** (`test_validate.py`, `test_identity.py`). Code
+  `groupstamp`, at the timestamp's `groupstamp` member, two cases:
+  `groupstamp_without_group` (the fixture `timestamps.yaml` with
+  `timestamp_1` made a groupstamp: the manifest has no group) gives
+  `'timestamp_1' is a groupstamp, but its timeline 'clt_1' is a member of
+  no group`; `groupstamp_match_timestamp` (the fixture
+  `bundles/bundle_matchstamp_cards.yaml`, whose `score` is a member of two
+  groups, with its match timestamp `timestamp_1` made a groupstamp) gives
+  `'timestamp_1' is both a match timestamp and a groupstamp` and nothing
+  else, so the member check passes over a match timestamp. The first is a
+  rule of the named timestamps, reported after the timeline and coordinate
+  of the same timestamp; the second a rule of the match timestamps, so
+  `matchstamp_problems` reports it as `validate` does and returns nothing
+  for the first.
+- **The fixture** (`test_fixtures.py`). `groups/group_groupstamp.yaml`
+  and its twin hold the group `group_1` ("Performance") of `score` and
+  `performance` and the groupstamp `timestamp_1` ("Bar 2", `[4, 1]` on
+  `score`) beside the two members' origin and length timestamps
+  (`timestamp_2` to `timestamp_5`); in the fixture every timestamp states
+  `groupstamp` (`true` for `timestamp_1` alone), in the twin only
+  `timestamp_1` does; both pass `validate` and `identity_problems`.
 
 ## Statements
 
@@ -1583,7 +1624,7 @@ written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 150 files (`test_files.py`); the four statement
+`groups` and `statements`, 158 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -1626,7 +1667,9 @@ cannot prove that the emitter produces them:
   rule. In the fixture `timestamp_1` states the default `display`
   `["wedge", "name", "cross_section"]`, `timestamp_2` `["wedge", "name"]`
   and `timestamp_3` all five words in canonical order; the twin leaves out
-  only `timestamp_1`'s `display`. `identity_problems` finds nothing in
+  only `timestamp_1`'s `display`; every timestamp of the fixture states
+  `matchstamp: false` and `groupstamp: false`, the twin neither.
+  `identity_problems` finds nothing in
   either form, so the emitter carries the named timestamps through the
   library with their `display` in the format's form.
 - **Origin and length.** Every fixture that a drawing under `drawings/`

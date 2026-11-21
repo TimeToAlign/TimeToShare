@@ -1,0 +1,124 @@
+code: groupstamp
+manifest:
+  "@context":
+    "@version": 1.1
+    actor:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+      "@type": "@id"
+    basis:
+      "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+      "@type": "@id"
+    belief:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+      "@type": "@vocab"
+    beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+    broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+    children: "@included"
+    close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+    date:
+      "@id": "http://purl.org/dc/terms/date"
+      "@type": "http://www.w3.org/2001/XMLSchema#date"
+    exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+    "false": "https://timetoalign.github.io/timetoshare/ns#False"
+    groups: "@included"
+    id: "@id"
+    imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+    inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+    label: "http://www.w3.org/2000/01/rdf-schema#label"
+    list: "@list"
+    manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+    match:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+      "@type": "@vocab"
+    method:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+      "@type": "@vocab"
+    narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+    note: "http://www.w3.org/2000/01/rdf-schema#comment"
+    property:
+      "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+      "@type": "@vocab"
+    provenance:
+      "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+    reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+    regions: "@included"
+    related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+    service:
+      "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+      "@type": "@id"
+    stated_by:
+      "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+      "@type": "@id"
+    statements: "@nest"
+    timelines: "@included"
+    "true": "https://timetoalign.github.io/timetoshare/ns#True"
+    type: "@type"
+    unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+    value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+  graphical:
+    matchstamps: []
+    order: {}
+    rules: []
+    styles: {}
+    timestamps:
+      -
+        coordinate: [3, 2]
+        display: [wedge, name, cross_section]
+        groupstamp: true
+        id: "#timestamp_1"
+        matchstamp: false
+        name: Downbeat
+        timeline: "#clt_1"
+      -
+        coordinate: [6, 1]
+        display: [wedge, name]
+        groupstamp: false
+        id: "#timestamp_2"
+        matchstamp: false
+        name: Climax
+        timeline: "#clt_1"
+      -
+        coordinate: [1, 1]
+        display: [wedge, name, id, coordinate, cross_section]
+        groupstamp: false
+        id: "#timestamp_3"
+        matchstamp: false
+        name: Entry
+        timeline: "#clt_2"
+  groups: []
+  measure_maps: []
+  meta:
+    generator: "timetoalign 1.2.0 (40161e42)"
+  name: null
+  resources: []
+  timelines:
+    -
+      children:
+        -
+          children: []
+          conversion_maps: []
+          flow_control: []
+          id: "#clt_2"
+          is_segment_line: false
+          length: [4, 1]
+          locked: true
+          meta: {}
+          name: null
+          number_type: fraction
+          offset: [2, 1]
+          regions: []
+          unit: quarters
+      conversion_maps: []
+      flow_control: []
+      id: "#clt_1"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+path: [graphical, timestamps, 0, groupstamp]
+reason: "A groupstamp lies on a member of a group; the timeline clt_1 of timestamp_1 is a member of no group, as the manifest has none."

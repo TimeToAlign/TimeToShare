@@ -1,6 +1,6 @@
 /**
  * Named-timestamp, MatchStamp and resource rules: the timeline a timestamp
- * names and its coordinate; the alignment anchors of the named MatchStamps
+ * names, its coordinate and whether it may be a groupstamp; the alignment anchors of the named MatchStamps
  * and their match timestamps; the timelines and types of the resources.
  * Python's `timetoshare.validation.timestamps` checks the same rules with
  * the same messages.
@@ -22,14 +22,23 @@ import {
 } from "./diagnostics.js";
 
 /**
- * Yield timestamps off the manifest's timelines or outside their extent.
+ * Yield timestamps off the manifest's timelines, outside their extent or groupless.
  *
  * A timestamp names a timeline of the manifest, at any depth, and its
  * coordinate lies between 0 and that timeline's length, or at or after 0
- * where the length is not known.
+ * where the length is not known. A groupstamp (`groupstamp: true`) that is
+ * no match timestamp lies on a timeline that is a member of a group; a
+ * match timestamp that is a groupstamp is reported by `matchstampProblems`.
  */
 export function* timestampProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const timelines = timelinesById(manifest);
+  const members = new Set(
+    entries(manifest, "groups").flatMap((group) =>
+      Array.isArray(group.members)
+        ? group.members.filter((member) => typeof member === "string")
+        : [],
+    ),
+  );
   for (const [index, timestamp] of timestampsOf(manifest).entries()) {
     const path = ["graphical", "timestamps", index];
     const id = text(timestamp, "timeline");
@@ -58,6 +67,13 @@ export function* timestampProblems(manifest: JsonObject): Generator<SchemaValida
         `${where} is beyond the length ${spell(length)} of its timeline '${id}'`,
       );
     }
+    if (timestamp.groupstamp === true && timestamp.matchstamp !== true && !members.has(id)) {
+      yield new SchemaValidationError(
+        "groupstamp",
+        [...path, "groupstamp"],
+        `'${text(timestamp, "id")}' is a groupstamp, but its timeline '${id}' is a member of no group`,
+      );
+    }
   }
 }
 
@@ -81,8 +97,8 @@ function connectedSets(pairs: readonly (readonly [string, string])[]): number {
  * MatchStamp by MatchStamp, each alignment anchor names two match
  * timestamps of the manifest (`matchstamp: true`) lying on two timelines,
  * and the anchors are one connected set; then, timestamp by timestamp, a
- * match timestamp shares its coordinate with no earlier match timestamp and
- * some MatchStamp names it. A named timestamp that is no object or holds
+ * match timestamp is no groupstamp (`groupstamp`), shares its coordinate
+ * with no earlier match timestamp and some MatchStamp names it. A named timestamp that is no object or holds
  * no string ID is passed over, so the rules read a manifest whose ordinary
  * timestamps no schema has checked.
  */
@@ -140,6 +156,13 @@ export function* matchstampProblems(manifest: JsonObject): Generator<SchemaValid
     if (!isJsonObject(timestamp) || timestamp.matchstamp !== true) continue;
     const path = ["graphical", "timestamps", index];
     const id = text(timestamp, "id");
+    if (timestamp.groupstamp === true) {
+      yield new SchemaValidationError(
+        "groupstamp",
+        [...path, "groupstamp"],
+        `'${id}' is both a match timestamp and a groupstamp`,
+      );
+    }
     const value = exact(timestamp.coordinate);
     const key = JSON.stringify([
       text(timestamp, "timeline"),

@@ -1053,6 +1053,10 @@ describe("identity", () => {
       "timestamp_id_is_timeline_id",
       "'timestamp_1' is not unique in the manifest, first at #/timelines/0/id",
     ],
+    [
+      "groupstamp_without_group",
+      "'timestamp_1' is a groupstamp, but its timeline 'clt_1' is a member of no group",
+    ],
   ])("states the message of the shared case %s", (name, message) => {
     const testCase = rejectionCase(name);
     if (!isJsonObject(testCase.manifest)) throw new Error(`${name} holds no manifest object`);

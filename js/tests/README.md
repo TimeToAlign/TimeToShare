@@ -165,18 +165,28 @@ order by ID and `ANCHOR_DISPLAY` (`manifest.test.ts`, whose reversal walk
 reverses `resources`, `matchstamps`, `alignment_anchors` and an anchor's
 `display`); the defaults of a match timestamp and an anchor
 (`defaults.test.ts`, and the `then` and `else` arms in `schema.test.ts`);
-the ten messages of its table and the one list of every problem
+the eleven messages of its table and the one list of every problem
 (`validate.test.ts`, "the MatchStamp and resource rules"); the MatchStamps
 alone (`validate.test.ts`, "the MatchStamps alone"): `matchstampProblems`
-gives, for each of the eleven MatchStamp rejection cases, a first problem
+gives, for each of the twelve MatchStamp rejection cases, a first problem
 equal in code, path and message to the one `validate` throws, nothing for
 every fixture and every other rejection case, the schema's problem at a
 match timestamp without `timeline`, and nothing for a manifest whose
 ordinary timestamps include one that is no object.
 
+## Groupstamps
+
+The Python README's section "Groupstamps" is proved here with the same
+values: `groupstamp` defaulting to `false` on both kinds of timestamp
+(`defaults.test.ts`, and the `then` arm in `schema.test.ts`); the two
+`groupstamp` cases with their messages, the match-timestamp one among the
+MatchStamp cases of `matchstampProblems` (`validate.test.ts`,
+`identity.test.ts`); and the fixture `groups/group_groupstamp` in both
+forms (`fixtures.test.ts`).
+
 ## Shared rejection cases
 
-Each of the 172 cases (`validate.test.ts`), found by its name whatever
+Each of the 174 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -241,7 +251,7 @@ left out as the defaults `1` and `0` are, and the complete form of what
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (75, one per fixture) completes to the canonical YAML of its
+minimal twin (79, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
@@ -652,7 +662,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (156 files: bundles, groups and statements included), its value and its value
+  minimal twin (158 files: bundles, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and

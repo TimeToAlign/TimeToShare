@@ -59,8 +59,8 @@ export const DEFAULTS = {
   measure_map: { name: null, meta: {} },
   group: { name: null, meta: {} },
   graphical: { styles: {}, rules: [], order: {}, timestamps: [], matchstamps: [] },
-  timestamp: { display: ["wedge", "name", "cross_section"], matchstamp: false },
-  match_timestamp: { display: ["cross_section"] },
+  timestamp: { display: ["wedge", "name", "cross_section"], matchstamp: false, groupstamp: false },
+  match_timestamp: { display: ["cross_section"], groupstamp: false },
   alignment_anchor: { display: ["line"] },
 } as const;
 

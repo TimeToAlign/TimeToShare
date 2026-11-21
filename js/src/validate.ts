@@ -449,7 +449,7 @@ function* matchstampIdProblems(bare: JsonObject): Generator<SchemaValidationErro
  * ID of a MatchStamp or an alignment anchor that the manifest holds twice
  * (`duplicate_id`, or `manifest_id` where the manifest's ID repeats one),
  * then the rules of the MatchStamps and their match timestamps
- * (`alignment_anchor`, `matchstamp`, `match_timestamp`), in
+ * (`alignment_anchor`, `matchstamp`, `groupstamp`, `match_timestamp`), in
  * `identityProblems`' order.
  *
  * Nothing else is refused: an ordinary timestamp, the styles and rules, the

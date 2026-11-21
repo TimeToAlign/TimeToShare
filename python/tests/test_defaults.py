@@ -312,10 +312,10 @@ def test_a_named_timestamp_completes_its_display() -> None:
     )
     default = ["wedge", "name", "cross_section"]
     assert complete(value)["graphical"]["timestamps"] == [
-        _stamp(1, display=default, matchstamp=False),
-        _stamp(2, display=default, matchstamp=False),
-        _stamp(3, display=["wedge", "name"], matchstamp=False),
-        _stamp(4, display=[], matchstamp=False),
+        _stamp(1, display=default, matchstamp=False, groupstamp=False),
+        _stamp(2, display=default, matchstamp=False, groupstamp=False),
+        _stamp(3, display=["wedge", "name"], matchstamp=False, groupstamp=False),
+        _stamp(4, display=[], matchstamp=False, groupstamp=False),
     ]
     assert minimal(value)["graphical"]["timestamps"] == [
         _stamp(1),
@@ -520,6 +520,11 @@ def test_a_match_timestamp_and_an_anchor_gain_their_own_defaults() -> None:
         True,
         True,
     ]
+    assert [stamp.get("groupstamp") for stamp in completed["timestamps"]] == [
+        False,
+        False,
+        False,
+    ]
     held = completed["matchstamps"][0]["alignment_anchors"]
     assert [anchor["display"] for anchor in held] == [["line"], ["line", "name"]]
     stripped = minimal(value)["graphical"]
@@ -539,3 +544,12 @@ def test_a_match_timestamp_and_an_anchor_gain_their_own_defaults() -> None:
     other = {**ordinary, "display": ["cross_section"]}
     kept = minimal(manifest(timeline("score"), graphical={"timestamps": [other]}))
     assert kept["graphical"]["timestamps"][0]["display"] == ["cross_section"]
+    assert ["groupstamp" in stamp for stamp in stripped["timestamps"]] == [
+        False,
+        False,
+        False,
+    ]
+    grouped = {**ordinary, "groupstamp": True}
+    graphical = {"timestamps": [grouped]}
+    kept = minimal(manifest(timeline("score"), graphical=graphical))
+    assert kept["graphical"]["timestamps"][0]["groupstamp"] is True

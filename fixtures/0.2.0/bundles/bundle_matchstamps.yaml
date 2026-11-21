@@ -80,6 +80,7 @@ graphical:
     -
       coordinate: [0, 1]
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_4"
       matchstamp: false
       name: origin
@@ -87,12 +88,14 @@ graphical:
     -
       coordinate: [4, 1]
       display: [cross_section]
+      groupstamp: false
       id: "#timestamp_1"
       matchstamp: true
       timeline: "#score"
     -
       coordinate: [8, 1]
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_5"
       matchstamp: false
       name: length
@@ -100,6 +103,7 @@ graphical:
     -
       coordinate: 0
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_6"
       matchstamp: false
       name: origin
@@ -107,12 +111,14 @@ graphical:
     -
       coordinate: 88200
       display: [cross_section]
+      groupstamp: false
       id: "#timestamp_2"
       matchstamp: true
       timeline: "#take_1"
     -
       coordinate: 352800
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_7"
       matchstamp: false
       name: length
@@ -120,6 +126,7 @@ graphical:
     -
       coordinate: 0
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_8"
       matchstamp: false
       name: origin
@@ -127,6 +134,7 @@ graphical:
     -
       coordinate: 99225
       display: [name, cross_section]
+      groupstamp: false
       id: "#timestamp_3"
       matchstamp: true
       name: "Take 2, bar 2"
@@ -134,6 +142,7 @@ graphical:
     -
       coordinate: 396900
       display: [wedge, coordinate]
+      groupstamp: false
       id: "#timestamp_9"
       matchstamp: false
       name: length
