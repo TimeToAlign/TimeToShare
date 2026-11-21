@@ -1,0 +1,57 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\directlua{luaotfload.add_fallback("music", {"[./NotoMusic-Regular.ttf]:mode=node;"})}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon},RawFeature={fallback=music}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{ts1BA1E2}{HTML}{1BA1E2}
+\definecolor{tsB8BEC8}{HTML}{B8BEC8}
+\definecolor{tsC4C9D1}{HTML}{C4C9D1}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFFFFFF}{HTML}{FFFFFF}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (490.8157,101.9531);
+\path[rounded corners=5pt,fill=tsB8BEC8] (10,8) rectangle (482.8157,91.9531);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (8,10) rectangle (480.8157,93.9531);
+\path[draw=ts00CC00,line width=3pt] (63.5366,44.9766) -- (463.5366,44.9766);
+\path[fill=ts00CC00] (63.5366,44.9766) circle[radius=3];
+\path[fill=ts00CC00] (472.5366,44.9766) -- (463.5366,49.4766) -- (463.5366,40.4766) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (88.5366,58.9766) -- (384.0366,58.9766);
+\path[fill=ts00CC00] (88.5366,58.9766) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (384.0366,58.9766) -- (388.5366,62.5766) -- (393.0366,58.9766) -- (388.5366,55.3766) -- cycle;
+\path[fill=ts000000] (63.5366,43.4766) -- (60.5366,30.4766) -- (66.5366,30.4766) -- cycle;
+\path[fill=ts000000] (113.5366,43.4766) -- (106.4656,54.7902) -- (102.223,50.5476) -- cycle;
+\path[fill=ts000000] (163.5366,43.4766) -- (152.223,36.4056) -- (156.4656,32.163) -- cycle;
+\path[fill=ts000000] (213.5366,43.4766) -- (210.5366,30.4766) -- (216.5366,30.4766) -- cycle;
+\path[fill=ts000000] (263.5366,43.4766) -- (270.6076,32.163) -- (274.8502,36.4056) -- cycle;
+\path[fill=ts000000] (313.5366,43.4766) -- (324.8502,50.5476) -- (320.6076,54.7902) -- cycle;
+\path[fill=ts000000] (363.5366,43.4766) -- (366.5366,56.4766) -- (360.5366,56.4766) -- cycle;
+\path[fill=ts000000] (463.5366,43.4766) -- (460.5366,30.4766) -- (466.5366,30.4766) -- cycle;
+\path[fill=ts000000] (138.5366,60.4766) -- (127.223,67.5476) -- (131.4656,71.7902) -- cycle;
+\path[fill=ts000000] (238.5366,60.4766) -- (245.6076,71.7902) -- (249.8502,67.5476) -- cycle;
+\path[fill=ts000000] (338.5366,60.4766) -- (351.5366,63.4766) -- (351.5366,57.4766) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,55.1685) {Phrase};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,41.1685) {Melody};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (63.5366,20.1226) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (113.5366,20.1226) {-135°};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (163.5366,20.1226) {-45°};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (213.5366,20.1226) {0°};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (263.5366,20.1226) {45°};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (313.5366,20.1226) {135°};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (363.5366,20.1226) {180°};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (463.5366,20.1226) {16 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (138.5366,77.5991) {-45°};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (238.5366,77.5991) {45°};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (338.5366,77.5991) {90°};
+\path[draw=ts1BA1E2,line width=1pt,dash pattern=on 3pt off 3pt] (113.5366,85.9531) -- (113.5366,44.9766);
+\path[draw=ts1BA1E2,line width=1pt,dash pattern=on 3pt off 3pt] (163.5366,85.9531) -- (163.5366,44.9766);
+\path[draw=ts1BA1E2,line width=1pt,dash pattern=on 3pt off 3pt] (213.5366,85.9531) -- (213.5366,44.9766);
+\path[draw=ts1BA1E2,line width=1pt,dash pattern=on 3pt off 3pt] (263.5366,85.9531) -- (263.5366,44.9766);
+\path[draw=ts1BA1E2,line width=1pt,dash pattern=on 3pt off 3pt] (313.5366,85.9531) -- (313.5366,44.9766);
+\path[draw=ts1BA1E2,line width=1pt,dash pattern=on 3pt off 3pt] (363.5366,85.9531) -- (363.5366,44.9766);
+\end{scope}
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="522.8157" height="133.9531" viewBox="0 0 522.8157 133.9531" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="490.8157" height="101.9531" rx="10" fill="#F3F4F6"/>
+<rect data-id="melody" data-part="card" x="10" y="10" width="472.8157" height="83.9531" rx="5" fill="#B8BEC8"/>
+<rect data-id="melody" data-part="card" x="8" y="8" width="472.8157" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="melody" x1="63.5366" y1="56.9766" x2="463.5366" y2="56.9766" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="melody" cx="63.5366" cy="56.9766" r="3" fill="#00CC00"/>
+<polygon data-id="melody" points="472.5366,56.9766 463.5366,52.4766 463.5366,61.4766" fill="#00CC00"/>
+<line data-id="phrase" x1="88.5366" y1="42.9766" x2="384.0366" y2="42.9766" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="phrase" cx="88.5366" cy="42.9766" r="3" fill="#00CC00"/>
+<polygon data-id="phrase" points="384.0366,42.9766 388.5366,39.3766 393.0366,42.9766 388.5366,46.5766" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_10" points="63.5366,58.4766 60.5366,71.4766 66.5366,71.4766" fill="#000000"/>
+<polygon data-id="timestamp_1" points="113.5366,58.4766 106.4656,47.163 102.223,51.4056" fill="#000000"/>
+<polygon data-id="timestamp_2" points="163.5366,58.4766 152.223,65.5476 156.4656,69.7902" fill="#000000"/>
+<polygon data-id="timestamp_3" points="213.5366,58.4766 210.5366,71.4766 216.5366,71.4766" fill="#000000"/>
+<polygon data-id="timestamp_4" points="263.5366,58.4766 270.6076,69.7902 274.8502,65.5476" fill="#000000"/>
+<polygon data-id="timestamp_5" points="313.5366,58.4766 324.8502,51.4056 320.6076,47.163" fill="#000000"/>
+<polygon data-id="timestamp_6" points="363.5366,58.4766 366.5366,45.4766 360.5366,45.4766" fill="#000000"/>
+<polygon data-id="timestamp_11" points="463.5366,58.4766 460.5366,71.4766 466.5366,71.4766" fill="#000000"/>
+<polygon data-id="timestamp_7" points="138.5366,41.4766 127.223,34.4056 131.4656,30.163" fill="#000000"/>
+<polygon data-id="timestamp_8" points="238.5366,41.4766 245.6076,30.163 249.8502,34.4056" fill="#000000"/>
+<polygon data-id="timestamp_9" points="338.5366,41.4766 351.5366,38.4766 351.5366,44.4766" fill="#000000"/>
+<text data-id="phrase" data-part="name" x="16" y="46.7847" text-anchor="start" font-size="11" fill="#000000">Phrase</text>
+<text data-id="melody" data-part="name" x="16" y="60.7847" text-anchor="start" font-size="11" fill="#000000">Melody</text>
+<text data-id="timestamp_10" data-part="coordinate" x="63.5366" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_1" data-part="name" x="113.5366" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">-135°</text>
+<text data-id="timestamp_2" data-part="name" x="163.5366" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">-45°</text>
+<text data-id="timestamp_3" data-part="name" x="213.5366" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">0°</text>
+<text data-id="timestamp_4" data-part="name" x="263.5366" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">45°</text>
+<text data-id="timestamp_5" data-part="name" x="313.5366" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">135°</text>
+<text data-id="timestamp_6" data-part="name" x="363.5366" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">180°</text>
+<text data-id="timestamp_11" data-part="coordinate" x="463.5366" y="81.8306" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<text data-id="timestamp_7" data-part="name" x="138.5366" y="24.354" text-anchor="middle" font-size="9" fill="#000000">-45°</text>
+<text data-id="timestamp_8" data-part="name" x="238.5366" y="24.354" text-anchor="middle" font-size="9" fill="#000000">45°</text>
+<text data-id="timestamp_9" data-part="name" x="338.5366" y="24.354" text-anchor="middle" font-size="9" fill="#000000">90°</text>
+<line data-id="timestamp_1" data-part="line" x1="113.5366" y1="16" x2="113.5366" y2="56.9766" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="163.5366" y1="16" x2="163.5366" y2="56.9766" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="213.5366" y1="16" x2="213.5366" y2="56.9766" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="263.5366" y1="16" x2="263.5366" y2="56.9766" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_5" data-part="line" x1="313.5366" y1="16" x2="313.5366" y2="56.9766" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_6" data-part="line" x1="363.5366" y1="16" x2="363.5366" y2="56.9766" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+</g>
+</svg>
