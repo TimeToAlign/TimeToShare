@@ -501,8 +501,9 @@ changing it or naming the manifest changes no address. A jump target is
 addressed like a region but draws nothing. A MeasureMap belongs to no
 timeline and is not drawn; `{"id": X}` with its ID `X` addresses it. A
 derived elision has no ID: the elisions a card derives on `T`, one on
-each side of a group member where `T` holds it, share the address `{"id":
-T, "part": ["elision"]}`, as every element drawn more than once does. A
+each of its pieces (section 8.9: none, one or several, on either side of
+the protected span), share the address `{"id": T, "part": ["elision"]}`,
+as every element drawn more than once does. A
 stored elision clipped into several pieces (section 8.9) keeps its one
 address on each, and so does a group elision on each of its drawings: its
 gap across the frame of each group its timeline lies in and every gap of
@@ -2015,14 +2016,26 @@ one below it.
   on, or of its segment line for a segment without a line, in the card
   that draws them; each label is cut to its `max-width` as a name is cut
   (Names), never to the gap. Nothing else that lies on the stretch is
-  drawn in a gap. An element that marks a position in a gap is not drawn: a wedge with its labels, a
+  drawn in a gap, but for the arc of a jump origin. An element that marks
+  a position in a gap is not drawn: a wedge with its labels, a
   cross-section line, a groupstamp's lines across a frame, a boundary, a
   segment label, a flow marker with its label, a region whose start, end
   or midpoint lies in one with its label, and a jump origin whose from, to
-  or the midpoint of the two does with its label. A region or jump origin
-  whose positions lie in no gap is drawn whole at its elided x, across a
-  gap it spans. A position at a gap's edge lies in no gap, so a named
-  timestamp there is drawn.
+  or the midpoint of the two does with its label. A region whose start,
+  end and midpoint lie in no gap is drawn at their elided x, and its brace
+  is **cut** at every gap it spans as a row is. Of the brace's two
+  straight parts at `Ym`, from `X1 + k` to `Xm − k` and from `Xm + k` to
+  `X2 − k` (`X1`, `X2`, `Xm`, `k` and `Ym` as section 7.2 writes the
+  brace), the part a gap meets leaves out the stretch from the larger of
+  the gap's left edge (`x(a)`, or `x(p)` across a frame) and the part's
+  start to the smaller of its right edge (`x(b)`, `x(q)`) and the part's
+  end, where that stretch has a length, with no tick or other mark at
+  either end of the cut; cuts that touch are one cut, and the brace's
+  arms, its tip and its label are drawn whole. A jump origin whose from,
+  to and their midpoint lie in no gap is drawn whole at their elided x,
+  its arc across every gap it spans: the one element drawn in a gap that
+  is not the gap's own. A position at a gap's edge lies in no gap, so a
+  named timestamp there is drawn.
 
 A label "beyond" a point at ordinate `y` lies outwards from it: below, its
 baseline is at `y + a(9)`; above, at `y − d(9)`, with the label gap added
@@ -2164,9 +2177,14 @@ in the order shown, `rx`, `text-anchor`,
 **The brace** from `X1` to `X2`, arms at `Yb`, tip at `(Xm, Ya)` (section
 6.6): with `Ym = (Yb + Ya) / 2` and `k = |Ya − Yb| / 2`, the path is `M X1
 Yb Q X1 Ym X1+k Ym L Xm−k Ym Q Xm Ym Xm Ya Q Xm Ym Xm+k Ym L X2−k Ym Q X2 Ym
-X2 Yb`. Path data is an upper-case command letter followed by its
-coordinates, numbers separated by one space, no space before a command
-letter (`M80 16L74 14`).
+X2 Yb`. A brace cut at gaps (section 6.6, Elisions) writes each of its
+two straight parts as the pieces the cuts leave, from the left: the part
+from `X1 + k` to `Xm − k` with the cuts `[c1, c1']`, …, `[cj, cj']`
+becomes `L c1 Ym M c1' Ym L c2 Ym … M cj' Ym L Xm−k Ym`, every `L` to the
+point the pen stands at left out, so that each `M` starts a piece after a
+cut; the part from `Xm + k` to `X2 − k` alike. Path data is an upper-case
+command letter followed by its coordinates, numbers separated by one
+space, no space before a command letter (`M80 16L74 14`).
 
 ### 7.3 SVG profile
 
@@ -2249,7 +2267,7 @@ one to one:
 | circle | `\path[{options}] ({cx},{cy}) circle[radius={r}];` |
 | polygon | `\path[{options}] ({p1}) -- ({p2}) -- … -- cycle;` |
 | polyline | `\path[{options}] ({p1}) -- ({p2}) -- ({p3});` |
-| path | `\path[{options}] ({P0}) .. controls ({C1}) and ({C2}) .. ({P3});`, a brace's quadratic `Q C P` from the current point `P0` written as the cubic with controls `P0 + 2/3 × (C − P0)` and `P + 2/3 × (C − P)`, computed as section 3.3 states (the factor `2/3` formed first), an `L P` as `-- ({P})` |
+| path | `\path[{options}] ({P0}) .. controls ({C1}) and ({C2}) .. ({P3});`, a brace's quadratic `Q C P` from the current point `P0` written as the cubic with controls `P0 + 2/3 × (C − P0)` and `P + 2/3 × (C − P)`, computed as section 3.3 states (the factor `2/3` formed first), an `L P` as `-- ({P})`, an `M P` after the first as `({P})`, a move |
 | text | `\node[anchor={base west|base},inner sep=0,{options}] at ({x},{baseline}) {{text}};` with `text=tsRRGGBB` for the fill |
 
 An elision's descriptors take these commands as every other rect, line,
@@ -2507,12 +2525,21 @@ side where the ancestor line of the root `R = A1` lies while `R`'s
 ancestor card behind `M`'s frame is drawn (section 8.8), where `Δr =
 max(dr, or + i(r + 1))`, `dr` the distance between the lines of the two
 rows' ancestors in `R`'s drawing laid out alone (section 8.8, step 1),
-the larger of their ordinates less the smaller, without the label stacks
-of its elisions (section 6.4, Markers), so that it depends on nothing of
-`M`'s card. So, `M`'s card lying aligned on `R`'s line (section 8.8),
-every ancestor row on that side lies at exactly its height on the card
-behind, unless the wedges and labels of its own named timestamps need
-more room, and then that row and the rows beyond it lie further out. The
+the larger of their ordinates less the smaller. Of the label stacks of
+elisions in its markers bands (section 6.4, Markers), `dr` counts those
+of the stored card elisions the ancestor card draws, whose pieces depend
+on the protected span alone (section 8.9), and leaves out those of the
+elisions it derives, whose coordinates depend on the card's proportion
+and the proportion on the height of `M`'s frame (section 8.9), so that
+`dr` depends on nothing of `M`'s card.
+So, `M`'s card lying aligned on `R`'s line (section 8.8), every ancestor
+row on that side lies at exactly its height on the card behind, with two
+exceptions: where the wedges and labels of its own named timestamps need
+more room, that row and the rows beyond it lie further out; and where the
+labels of a derived elision widen a markers band of the card behind that
+lies between `R`'s line and a row's line, that row lies further from
+`R`'s line on the card behind than its ancestor line does in `M`'s card.
+The
 band is `i1 + Δ1 + … + Δ(C − 1) + oC` wide for `C` rows, summed in that
 order, and its outer edge is `c0` plus that width.
 
