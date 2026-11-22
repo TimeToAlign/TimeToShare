@@ -1,0 +1,16 @@
+{
+  "layers": [],
+  "manifest": "bundles/bundle_elided_layerit.yaml",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 8,
+    "view": {
+      "height": 640,
+      "width": 1024
+    },
+    "width": null
+  },
+  "scale": 1
+}

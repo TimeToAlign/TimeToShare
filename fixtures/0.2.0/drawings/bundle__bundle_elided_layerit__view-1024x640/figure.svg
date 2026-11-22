@@ -1,0 +1,399 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1206.1591" height="938.8672" viewBox="0 0 1206.1591 938.8672" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="1174.1591" height="906.8672" rx="10" fill="#F3F4F6"/>
+<text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Suite bergamasque</text>
+<rect data-id="clt_1" data-part="card" x="282.9512" y="31.0117" width="883.2078" height="125.3555" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_1" data-part="card" x="280.9512" y="29.0117" width="883.2078" height="125.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="452.8419" y1="139.9648" x2="1146.88" y2="139.9648" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_1" cx="452.8419" cy="139.9648" r="3" fill="#00CC00"/>
+<polygon data-id="clt_1" points="1155.88,139.9648 1146.88,135.4648 1146.88,144.4648" fill="#00CC00"/>
+<line data-id="clt_2" x1="452.8419" y1="125.9648" x2="910.825" y2="125.9648" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_2" cx="452.8419" cy="125.9648" r="3" fill="#00CC00"/>
+<polygon data-id="clt_2" points="910.825,125.9648 915.325,122.3648 919.825,125.9648 915.325,129.5648" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_6" x1="452.8419" y1="91.9883" x2="848.3419" y2="91.9883" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_6" cx="452.8419" cy="91.9883" r="3" fill="#00CC00"/>
+<polygon data-id="clt_6" points="848.3419,91.9883 852.8419,88.3883 857.3419,91.9883 852.8419,95.5883" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_3" x1="915.325" y1="125.9648" x2="968.1624" y2="125.9648" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_3" cx="915.325" cy="125.9648" r="3" fill="#00CC00"/>
+<polygon data-id="clt_3" points="968.1624,125.9648 972.6624,122.3648 977.1624,125.9648 972.6624,129.5648" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_4" x1="972.6624" y1="77.9883" x2="1027.7051" y2="77.9883" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_4" cx="972.6624" cy="77.9883" r="3" fill="#00CC00"/>
+<polygon data-id="clt_4" points="1027.7051,77.9883 1032.2051,74.3883 1036.7051,77.9883 1032.2051,81.5883" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_5" x1="1032.2051" y1="125.9648" x2="1142.38" y2="125.9648" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_5" cx="1032.2051" cy="125.9648" r="3" fill="#00CC00"/>
+<polygon data-id="clt_5" points="1142.38,125.9648 1146.88,122.3648 1151.38,125.9648 1146.88,129.5648" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_1" points="452.8419,93.4883 449.8419,106.4883 455.8419,106.4883" fill="#000000"/>
+<polygon data-id="timestamp_2" points="852.8419,93.4883 849.8419,106.4883 855.8419,106.4883" fill="#000000"/>
+<polygon data-id="timestamp_5" points="972.6624,45.5117 969.6624,58.5117 975.6624,58.5117" fill="#000000"/>
+<polygon data-id="timestamp_8" points="1146.88,93.4883 1143.88,106.4883 1149.88,106.4883" fill="#000000"/>
+<text data-id="clt_8" data-part="name" x="288.9512" y="47.8198" text-anchor="start" font-size="11" fill="#000000">Clair de Lune mm. 1–6</text>
+<text data-id="clt_4" data-part="name" x="288.9512" y="81.7964" text-anchor="start" font-size="11" fill="#000000">Clair de Lune</text>
+<text data-id="clt_6" data-part="name" x="288.9512" y="95.7964" text-anchor="start" font-size="11" fill="#000000">Prelude mm. 1–4, Menuet …</text>
+<text data-id="clt_2" data-part="name" x="288.9512" y="129.7729" text-anchor="start" font-size="11" fill="#000000">Prelude, Menuet, Passepied</text>
+<text data-id="clt_1" data-part="name" x="288.9512" y="143.7729" text-anchor="start" font-size="11" fill="#000000">Suite bergamasque</text>
+<text data-id="timestamp_1" data-part="coordinate" x="452.8419" y="116.8423" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="852.8419" y="116.8423" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<text data-id="timestamp_5" data-part="coordinate" x="972.6624" y="68.8657" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_8" data-part="coordinate" x="1146.88" y="116.8423" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<rect data-id="clt_2" data-part="elision" x="852.8419" y="29.0117" width="62.4831" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_2" data-part="elision" x1="852.8419" y1="139.9648" x2="915.325" y2="139.9648" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_2" data-part="elision" x1="852.8419" y1="125.9648" x2="915.325" y2="125.9648" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_3" data-part="elision" x="915.325" y="29.0117" width="57.3374" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_3" data-part="elision" x1="915.325" y1="29.0117" x2="915.325" y2="154.3672" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="915.325" y1="139.9648" x2="972.6624" y2="139.9648" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="915.325" y1="125.9648" x2="972.6624" y2="125.9648" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_4" data-part="elision" x="972.6624" y="29.0117" width="59.5427" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_4" data-part="elision" x1="972.6624" y1="29.0117" x2="972.6624" y2="154.3672" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_4" data-part="elision" x1="972.6624" y1="139.9648" x2="1032.2051" y2="139.9648" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_4" data-part="elision" x1="972.6624" y1="77.9883" x2="1032.2051" y2="77.9883" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_5" data-part="elision" x="1032.2051" y="29.0117" width="114.6749" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_5" data-part="elision" x1="1032.2051" y1="29.0117" x2="1032.2051" y2="154.3672" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_5" data-part="elision" x1="1032.2051" y1="139.9648" x2="1146.88" y2="139.9648" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_5" data-part="elision" x1="1032.2051" y1="125.9648" x2="1146.88" y2="125.9648" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<text data-id="clt_2" data-part="elision name" x="884.0834" y="120.3423" text-anchor="middle" font-size="9" fill="#6B7280">Prelude</text>
+<text data-id="clt_2" data-part="elision coordinate" x="884.0834" y="137.8188" text-anchor="middle" font-size="9" fill="#6B7280">16–356 ♩</text>
+<text data-id="clt_3" data-part="elision name" x="943.9937" y="120.3423" text-anchor="middle" font-size="9" fill="#6B7280">Menuet</text>
+<text data-id="clt_3" data-part="elision coordinate" x="943.9937" y="137.8188" text-anchor="middle" font-size="9" fill="#6B7280">0–312 ♩</text>
+<text data-id="clt_4" data-part="elision name" x="1002.4338" y="72.3657" text-anchor="middle" font-size="9" fill="#6B7280">Clair de L…</text>
+<text data-id="clt_4" data-part="elision coordinate" x="1002.4338" y="89.8423" text-anchor="middle" font-size="9" fill="#6B7280">0–324 ♩</text>
+<text data-id="clt_5" data-part="elision name" x="1089.5426" y="120.3423" text-anchor="middle" font-size="9" fill="#6B7280">Passepied</text>
+<text data-id="clt_5" data-part="elision coordinate" x="1089.5426" y="137.8188" text-anchor="middle" font-size="9" fill="#6B7280">0–624 ♩</text>
+<rect data-id="clt_1" data-part="card" x="164.248" y="250.5273" width="989.1697" height="125.3555" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_1" data-part="card" x="162.248" y="248.5273" width="989.1697" height="125.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="334.1386" y1="359.4805" x2="1134.1386" y2="359.4805" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_1" cx="334.1386" cy="359.4805" r="3" fill="#00CC00"/>
+<polygon data-id="clt_1" points="1143.1386,359.4805 1134.1386,354.9805 1134.1386,363.9805" fill="#00CC00"/>
+<line data-id="clt_2" x1="334.1386" y1="345.4805" x2="418.4167" y2="345.4805" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_2" cx="334.1386" cy="345.4805" r="3" fill="#00CC00"/>
+<polygon data-id="clt_2" points="418.4167,345.4805 422.9167,341.8805 427.4167,345.4805 422.9167,349.0805" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_3" x1="422.9167" y1="345.4805" x2="893.2296" y2="345.4805" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_3" cx="422.9167" cy="345.4805" r="3" fill="#00CC00"/>
+<polygon data-id="clt_3" points="893.2296,345.4805 897.7296,341.8805 902.2296,345.4805 897.7296,349.0805" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_7" x1="452.8419" y1="311.5039" x2="848.3419" y2="311.5039" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_7" cx="452.8419" cy="311.5039" r="3" fill="#00CC00"/>
+<polygon data-id="clt_7" points="848.3419,311.5039 852.8419,307.9039 857.3419,311.5039 852.8419,315.1039" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_4" x1="897.7296" y1="297.5039" x2="974.0276" y2="297.5039" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_4" cx="897.7296" cy="297.5039" r="3" fill="#00CC00"/>
+<polygon data-id="clt_4" points="974.0276,297.5039 978.5276,293.9039 983.0276,297.5039 978.5276,301.1039" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_5" x1="978.5276" y1="345.4805" x2="1129.6386" y2="345.4805" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_5" cx="978.5276" cy="345.4805" r="3" fill="#00CC00"/>
+<polygon data-id="clt_5" points="1129.6386,345.4805 1134.1386,341.8805 1138.6386,345.4805 1134.1386,349.0805" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_1" points="334.1386,313.0039 331.1386,326.0039 337.1386,326.0039" fill="#000000"/>
+<polygon data-id="timestamp_3" points="452.8419,313.0039 449.8419,326.0039 455.8419,326.0039" fill="#000000"/>
+<polygon data-id="timestamp_4" points="852.8419,313.0039 849.8419,326.0039 855.8419,326.0039" fill="#000000"/>
+<polygon data-id="timestamp_5" points="897.7296,265.0273 894.7296,278.0273 900.7296,278.0273" fill="#000000"/>
+<polygon data-id="timestamp_8" points="1134.1386,313.0039 1131.1386,326.0039 1137.1386,326.0039" fill="#000000"/>
+<text data-id="clt_8" data-part="name" x="170.248" y="267.3354" text-anchor="start" font-size="11" fill="#000000">Clair de Lune mm. 1–6</text>
+<text data-id="clt_4" data-part="name" x="170.248" y="301.312" text-anchor="start" font-size="11" fill="#000000">Clair de Lune</text>
+<text data-id="clt_6" data-part="name" x="170.248" y="315.312" text-anchor="start" font-size="11" fill="#000000">Prelude mm. 1–4, Menuet …</text>
+<text data-id="clt_2" data-part="name" x="170.248" y="349.2886" text-anchor="start" font-size="11" fill="#000000">Prelude, Menuet, Passepied</text>
+<text data-id="clt_1" data-part="name" x="170.248" y="363.2886" text-anchor="start" font-size="11" fill="#000000">Suite bergamasque</text>
+<text data-id="timestamp_1" data-part="coordinate" x="334.1386" y="336.3579" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_3" data-part="coordinate" x="452.8419" y="336.3579" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_4" data-part="coordinate" x="852.8419" y="336.3579" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
+<text data-id="timestamp_5" data-part="coordinate" x="897.7296" y="288.3813" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_8" data-part="coordinate" x="1134.1386" y="336.3579" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<rect data-id="clt_2" data-part="elision" x="334.1386" y="248.5273" width="88.7781" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_2" data-part="elision" x1="334.1386" y1="359.4805" x2="422.9167" y2="359.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_2" data-part="elision" x1="334.1386" y1="345.4805" x2="422.9167" y2="345.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_3" data-part="elision" x="422.9167" y="248.5273" width="29.9252" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_3" data-part="elision" x1="422.9167" y1="248.5273" x2="422.9167" y2="373.8828" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="422.9167" y1="359.4805" x2="452.8419" y2="359.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="422.9167" y1="345.4805" x2="452.8419" y2="345.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_3" data-part="elision" x="852.8419" y="248.5273" width="44.8878" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_3" data-part="elision" x1="852.8419" y1="359.4805" x2="897.7296" y2="359.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="852.8419" y1="345.4805" x2="897.7296" y2="345.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_4" data-part="elision" x="897.7296" y="248.5273" width="80.798" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_4" data-part="elision" x1="897.7296" y1="248.5273" x2="897.7296" y2="373.8828" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_4" data-part="elision" x1="897.7296" y1="359.4805" x2="978.5276" y2="359.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_4" data-part="elision" x1="897.7296" y1="297.5039" x2="978.5276" y2="297.5039" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_5" data-part="elision" x="978.5276" y="248.5273" width="155.611" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_5" data-part="elision" x1="978.5276" y1="248.5273" x2="978.5276" y2="373.8828" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_5" data-part="elision" x1="978.5276" y1="359.4805" x2="1134.1386" y2="359.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_5" data-part="elision" x1="978.5276" y1="345.4805" x2="1134.1386" y2="345.4805" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<text data-id="clt_2" data-part="elision name" x="378.5276" y="339.8579" text-anchor="middle" font-size="9" fill="#6B7280">Prelude</text>
+<text data-id="clt_2" data-part="elision coordinate" x="378.5276" y="357.3345" text-anchor="middle" font-size="9" fill="#6B7280">0–356 ♩</text>
+<text data-id="clt_3" data-part="elision name" x="437.8793" y="339.8579" text-anchor="middle" font-size="9" fill="#6B7280">Me…</text>
+<text data-id="clt_3" data-part="elision coordinate" x="437.8793" y="357.3345" text-anchor="middle" font-size="9" fill="#6B7280">0–1…</text>
+<text data-id="clt_3" data-part="elision name" x="875.2857" y="339.8579" text-anchor="middle" font-size="9" fill="#6B7280">Menuet</text>
+<text data-id="clt_3" data-part="elision coordinate" x="875.2857" y="357.3345" text-anchor="middle" font-size="9" fill="#6B7280">132–3…</text>
+<text data-id="clt_4" data-part="elision name" x="938.1286" y="291.8813" text-anchor="middle" font-size="9" fill="#6B7280">Clair de Lune</text>
+<text data-id="clt_4" data-part="elision coordinate" x="938.1286" y="309.3579" text-anchor="middle" font-size="9" fill="#6B7280">0–324 ♩</text>
+<text data-id="clt_5" data-part="elision name" x="1056.3331" y="339.8579" text-anchor="middle" font-size="9" fill="#6B7280">Passepied</text>
+<text data-id="clt_5" data-part="elision coordinate" x="1056.3331" y="357.3345" text-anchor="middle" font-size="9" fill="#6B7280">0–624 ♩</text>
+<rect data-id="clt_1" data-part="card" x="114.7952" y="470.043" width="989.1697" height="125.3555" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_1" data-part="card" x="112.7952" y="468.043" width="989.1697" height="125.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="284.6858" y1="578.9961" x2="1084.6858" y2="578.9961" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_1" cx="284.6858" cy="578.9961" r="3" fill="#00CC00"/>
+<polygon data-id="clt_1" points="1093.6858,578.9961 1084.6858,574.4961 1084.6858,583.4961" fill="#00CC00"/>
+<line data-id="clt_2" x1="284.6858" y1="564.9961" x2="369.8019" y2="564.9961" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_2" cx="284.6858" cy="564.9961" r="3" fill="#00CC00"/>
+<polygon data-id="clt_2" points="369.8019,564.9961 374.3019,561.3961 378.8019,564.9961 374.3019,568.5961" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_3" x1="374.3019" y1="564.9961" x2="448.3419" y2="564.9961" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_3" cx="374.3019" cy="564.9961" r="3" fill="#00CC00"/>
+<polygon data-id="clt_3" points="448.3419,564.9961 452.8419,561.3961 457.3419,564.9961 452.8419,568.5961" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_4" x1="452.8419" y1="517.0195" x2="923.1059" y2="517.0195" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_4" cx="452.8419" cy="517.0195" r="3" fill="#00CC00"/>
+<polygon data-id="clt_4" points="923.1059,517.0195 927.6059,513.4195 932.1059,517.0195 927.6059,520.6195" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_8" x1="452.8419" y1="483.043" x2="848.3419" y2="483.043" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_8" cx="452.8419" cy="483.043" r="3" fill="#00CC00"/>
+<polygon data-id="clt_8" points="848.3419,483.043 852.8419,479.443 857.3419,483.043 852.8419,486.643" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_5" x1="927.6059" y1="564.9961" x2="1080.1858" y2="564.9961" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_5" cx="927.6059" cy="564.9961" r="3" fill="#00CC00"/>
+<polygon data-id="clt_5" points="1080.1858,564.9961 1084.6858,561.3961 1089.1858,564.9961 1084.6858,568.5961" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_1" points="284.6858,532.5195 281.6858,545.5195 287.6858,545.5195" fill="#000000"/>
+<polygon data-id="timestamp_5" points="452.8419,484.543 449.8419,497.543 455.8419,497.543" fill="#000000"/>
+<polygon data-id="timestamp_6" points="852.8419,484.543 849.8419,497.543 855.8419,497.543" fill="#000000"/>
+<polygon data-id="timestamp_8" points="1084.6858,532.5195 1081.6858,545.5195 1087.6858,545.5195" fill="#000000"/>
+<text data-id="clt_8" data-part="name" x="120.7952" y="486.8511" text-anchor="start" font-size="11" fill="#000000">Clair de Lune mm. 1–6</text>
+<text data-id="clt_4" data-part="name" x="120.7952" y="520.8276" text-anchor="start" font-size="11" fill="#000000">Clair de Lune</text>
+<text data-id="clt_6" data-part="name" x="120.7952" y="534.8276" text-anchor="start" font-size="11" fill="#000000">Prelude mm. 1–4, Menuet …</text>
+<text data-id="clt_2" data-part="name" x="120.7952" y="568.8042" text-anchor="start" font-size="11" fill="#000000">Prelude, Menuet, Passepied</text>
+<text data-id="clt_1" data-part="name" x="120.7952" y="582.8042" text-anchor="start" font-size="11" fill="#000000">Suite bergamasque</text>
+<text data-id="timestamp_1" data-part="coordinate" x="284.6858" y="555.8735" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_5" data-part="coordinate" x="452.8419" y="507.897" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_6" data-part="coordinate" x="852.8419" y="507.897" text-anchor="middle" font-size="9" fill="#000000">27 ♩</text>
+<text data-id="timestamp_8" data-part="coordinate" x="1084.6858" y="555.8735" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<rect data-id="clt_2" data-part="elision" x="284.6858" y="468.043" width="89.6161" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_2" data-part="elision" x1="284.6858" y1="578.9961" x2="374.3019" y2="578.9961" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_2" data-part="elision" x1="284.6858" y1="564.9961" x2="374.3019" y2="564.9961" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_3" data-part="elision" x="374.3019" y="468.043" width="78.54" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_3" data-part="elision" x1="374.3019" y1="468.043" x2="374.3019" y2="593.3984" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="374.3019" y1="578.9961" x2="452.8419" y2="578.9961" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="374.3019" y1="564.9961" x2="452.8419" y2="564.9961" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_4" data-part="elision" x="852.8419" y="468.043" width="74.764" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_4" data-part="elision" x1="852.8419" y1="578.9961" x2="927.6059" y2="578.9961" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_4" data-part="elision" x1="852.8419" y1="517.0195" x2="927.6059" y2="517.0195" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_5" data-part="elision" x="927.6059" y="468.043" width="157.0799" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_5" data-part="elision" x1="927.6059" y1="468.043" x2="927.6059" y2="593.3984" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_5" data-part="elision" x1="927.6059" y1="578.9961" x2="1084.6858" y2="578.9961" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_5" data-part="elision" x1="927.6059" y1="564.9961" x2="1084.6858" y2="564.9961" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<text data-id="clt_2" data-part="elision name" x="329.4938" y="559.3735" text-anchor="middle" font-size="9" fill="#6B7280">Prelude</text>
+<text data-id="clt_2" data-part="elision coordinate" x="329.4938" y="576.8501" text-anchor="middle" font-size="9" fill="#6B7280">0–356 ♩</text>
+<text data-id="clt_3" data-part="elision name" x="413.5719" y="559.3735" text-anchor="middle" font-size="9" fill="#6B7280">Menuet</text>
+<text data-id="clt_3" data-part="elision coordinate" x="413.5719" y="576.8501" text-anchor="middle" font-size="9" fill="#6B7280">0–312 ♩</text>
+<text data-id="clt_4" data-part="elision name" x="890.2239" y="511.397" text-anchor="middle" font-size="9" fill="#6B7280">Clair de Lune</text>
+<text data-id="clt_4" data-part="elision coordinate" x="890.2239" y="528.8735" text-anchor="middle" font-size="9" fill="#6B7280">27–324 ♩</text>
+<text data-id="clt_5" data-part="elision name" x="1006.1458" y="559.3735" text-anchor="middle" font-size="9" fill="#6B7280">Passepied</text>
+<text data-id="clt_5" data-part="elision coordinate" x="1006.1458" y="576.8501" text-anchor="middle" font-size="9" fill="#6B7280">0–624 ♩</text>
+<rect data-id="clt_1" data-part="card" x="10" y="689.5586" width="862.1209" height="125.3555" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_1" data-part="card" x="8" y="687.5586" width="862.1209" height="125.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="179.8906" y1="798.5117" x2="852.8419" y2="798.5117" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_1" cx="179.8906" cy="798.5117" r="3" fill="#00CC00"/>
+<polygon data-id="clt_1" points="861.8419,798.5117 852.8419,794.0117 852.8419,803.0117" fill="#00CC00"/>
+<line data-id="clt_2" x1="179.8906" y1="784.5117" x2="236.1223" y2="784.5117" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_2" cx="179.8906" cy="784.5117" r="3" fill="#00CC00"/>
+<polygon data-id="clt_2" points="236.1223,784.5117 240.6223,780.9117 245.1223,784.5117 240.6223,788.1117" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_3" x1="240.6223" y1="784.5117" x2="289.3478" y2="784.5117" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_3" cx="240.6223" cy="784.5117" r="3" fill="#00CC00"/>
+<polygon data-id="clt_3" points="289.3478,784.5117 293.8478,780.9117 298.3478,784.5117 293.8478,788.1117" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_4" x1="293.8478" y1="736.5352" x2="344.6204" y2="736.5352" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_4" cx="293.8478" cy="736.5352" r="3" fill="#00CC00"/>
+<polygon data-id="clt_4" points="344.6204,736.5352 349.1204,732.9352 353.6204,736.5352 349.1204,740.1352" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_5" x1="349.1204" y1="784.5117" x2="848.3419" y2="784.5117" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_5" cx="349.1204" cy="784.5117" r="3" fill="#00CC00"/>
+<polygon data-id="clt_5" points="848.3419,784.5117 852.8419,780.9117 857.3419,784.5117 852.8419,788.1117" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="clt_9" x1="452.8419" y1="750.5352" x2="848.3419" y2="750.5352" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_9" cx="452.8419" cy="750.5352" r="3" fill="#00CC00"/>
+<polygon data-id="clt_9" points="848.3419,750.5352 852.8419,746.9352 857.3419,750.5352 852.8419,754.1352" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_1" points="179.8906,752.0352 176.8906,765.0352 182.8906,765.0352" fill="#000000"/>
+<polygon data-id="timestamp_5" points="293.8478,704.0586 290.8478,717.0586 296.8478,717.0586" fill="#000000"/>
+<polygon data-id="timestamp_7" points="452.8419,752.0352 449.8419,765.0352 455.8419,765.0352" fill="#000000"/>
+<polygon data-id="timestamp_8" points="852.8419,752.0352 849.8419,765.0352 855.8419,765.0352" fill="#000000"/>
+<text data-id="clt_8" data-part="name" x="16" y="706.3667" text-anchor="start" font-size="11" fill="#000000">Clair de Lune mm. 1–6</text>
+<text data-id="clt_4" data-part="name" x="16" y="740.3433" text-anchor="start" font-size="11" fill="#000000">Clair de Lune</text>
+<text data-id="clt_6" data-part="name" x="16" y="754.3433" text-anchor="start" font-size="11" fill="#000000">Prelude mm. 1–4, Menuet …</text>
+<text data-id="clt_2" data-part="name" x="16" y="788.3198" text-anchor="start" font-size="11" fill="#000000">Prelude, Menuet, Passepied</text>
+<text data-id="clt_1" data-part="name" x="16" y="802.3198" text-anchor="start" font-size="11" fill="#000000">Suite bergamasque</text>
+<text data-id="timestamp_1" data-part="coordinate" x="179.8906" y="775.3892" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_5" data-part="coordinate" x="293.8478" y="727.4126" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_7" data-part="coordinate" x="452.8419" y="775.3892" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_8" data-part="coordinate" x="852.8419" y="775.3892" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<rect data-id="clt_2" data-part="elision" x="179.8906" y="687.5586" width="60.7316" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_2" data-part="elision" x1="179.8906" y1="798.5117" x2="240.6223" y2="798.5117" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_2" data-part="elision" x1="179.8906" y1="784.5117" x2="240.6223" y2="784.5117" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_3" data-part="elision" x="240.6223" y="687.5586" width="53.2255" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_3" data-part="elision" x1="240.6223" y1="687.5586" x2="240.6223" y2="812.9141" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="240.6223" y1="798.5117" x2="293.8478" y2="798.5117" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_3" data-part="elision" x1="240.6223" y1="784.5117" x2="293.8478" y2="784.5117" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_4" data-part="elision" x="293.8478" y="687.5586" width="55.2726" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_4" data-part="elision" x1="293.8478" y1="687.5586" x2="293.8478" y2="812.9141" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_4" data-part="elision" x1="293.8478" y1="798.5117" x2="349.1204" y2="798.5117" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_4" data-part="elision" x1="293.8478" y1="736.5352" x2="349.1204" y2="736.5352" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<rect data-id="clt_5" data-part="elision" x="349.1204" y="687.5586" width="103.7215" height="125.3555" fill="#F2F2F2"/>
+<line data-id="clt_5" data-part="elision" x1="349.1204" y1="687.5586" x2="349.1204" y2="812.9141" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_5" data-part="elision" x1="349.1204" y1="798.5117" x2="452.8419" y2="798.5117" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<line data-id="clt_5" data-part="elision" x1="349.1204" y1="784.5117" x2="452.8419" y2="784.5117" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2 2"/>
+<text data-id="clt_2" data-part="elision name" x="210.2564" y="778.8892" text-anchor="middle" font-size="9" fill="#6B7280">Prelude</text>
+<text data-id="clt_2" data-part="elision coordinate" x="210.2564" y="796.3657" text-anchor="middle" font-size="9" fill="#6B7280">0–356 ♩</text>
+<text data-id="clt_3" data-part="elision name" x="267.235" y="778.8892" text-anchor="middle" font-size="9" fill="#6B7280">Menuet</text>
+<text data-id="clt_3" data-part="elision coordinate" x="267.235" y="796.3657" text-anchor="middle" font-size="9" fill="#6B7280">0–312 ♩</text>
+<text data-id="clt_4" data-part="elision name" x="321.4841" y="730.9126" text-anchor="middle" font-size="9" fill="#6B7280">Clair de …</text>
+<text data-id="clt_4" data-part="elision coordinate" x="321.4841" y="748.3892" text-anchor="middle" font-size="9" fill="#6B7280">0–324 ♩</text>
+<text data-id="clt_5" data-part="elision name" x="400.9811" y="778.8892" text-anchor="middle" font-size="9" fill="#6B7280">Passepied</text>
+<text data-id="clt_5" data-part="elision coordinate" x="400.9811" y="796.3657" text-anchor="middle" font-size="9" fill="#6B7280">0–608 ♩</text>
+<rect data-id="group_1" x="270.0381" y="28.8047" width="622.8037" height="211.5156" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-id="group_1" data-part="name" x="278.0381" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Prelude mm. 1–4</text>
+<rect data-id="clt_6" data-part="card" x="280.0381" y="55.6094" width="606.8037" height="121.332" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_6" data-part="card" x="278.0381" y="53.6094" width="606.8037" height="121.332" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="452.8419" y1="139.9648" x2="864.8419" y2="139.9648" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<circle data-id="clt_1" cx="452.8419" cy="139.9648" r="3" fill="#00CC00" opacity="0.35"/>
+<polyline data-id="clt_1" points="867.8419,135.4648 872.3419,139.9648 867.8419,144.4648" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_1" points="872.3419,135.4648 876.8419,139.9648 872.3419,144.4648" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="clt_2" x1="452.8419" y1="105.9883" x2="864.8419" y2="105.9883" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<circle data-id="clt_2" cx="452.8419" cy="105.9883" r="3" fill="#00CC00" opacity="0.35"/>
+<polyline data-id="clt_2" points="867.8419,101.4883 872.3419,105.9883 867.8419,110.4883" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_2" points="872.3419,101.4883 876.8419,105.9883 872.3419,110.4883" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="clt_6" x1="452.8419" y1="68.0117" x2="848.3419" y2="68.0117" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_6" cx="452.8419" cy="68.0117" r="3" fill="#00CC00"/>
+<polygon data-id="clt_6" points="848.3419,68.0117 852.8419,64.4117 857.3419,68.0117 852.8419,71.6117" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="clt_6" data-part="start" points="452.8419,141.4648 449.8419,154.4648 455.8419,154.4648" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_6" data-part="end" points="852.8419,141.4648 849.8419,154.4648 855.8419,154.4648" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_6" data-part="start" points="452.8419,107.4883 449.8419,120.4883 455.8419,120.4883" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_6" data-part="end" points="852.8419,107.4883 849.8419,120.4883 855.8419,120.4883" fill="#000000" opacity="0.35"/>
+<polygon data-id="timestamp_1" points="452.8419,69.5117 449.8419,82.5117 455.8419,82.5117" fill="#000000"/>
+<polygon data-id="timestamp_2" points="852.8419,69.5117 849.8419,82.5117 855.8419,82.5117" fill="#000000"/>
+<text data-id="clt_1" data-part="name" x="286.0381" y="143.0806" text-anchor="start" font-size="9" fill="#6B7280">Suite bergamasque</text>
+<text data-id="clt_2" data-part="name" x="286.0381" y="109.104" text-anchor="start" font-size="9" fill="#6B7280">Prelude</text>
+<text data-id="clt_6" data-part="name" x="286.0381" y="71.8198" text-anchor="start" font-size="11" fill="#000000">Prelude mm. 1–4</text>
+<text data-id="clt_6" data-part="start label" x="452.8419" y="164.8188" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">0 ♩</text>
+<text data-id="clt_6" data-part="end label" x="852.8419" y="164.8188" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">16 ♩</text>
+<text data-id="clt_6" data-part="start label" x="452.8419" y="130.8423" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">0 ♩</text>
+<text data-id="clt_6" data-part="end label" x="852.8419" y="130.8423" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">16 ♩</text>
+<text data-id="timestamp_1" data-part="coordinate" x="452.8419" y="92.8657" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="852.8419" y="92.8657" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<rect data-id="cpt_1" data-part="card" x="280.0381" y="184.9414" width="606.8037" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="cpt_1" data-part="card" x="278.0381" y="182.9414" width="606.8037" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="cpt_1" x1="452.8419" y1="197.3438" x2="852.8419" y2="197.3438" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="cpt_1" cx="452.8419" cy="197.3438" r="3" fill="#0050EF"/>
+<polygon data-id="cpt_1" points="861.8419,197.3438 852.8419,192.8438 852.8419,201.8438" fill="#0050EF"/>
+<polygon data-id="timestamp_9" points="452.8419,198.8438 449.8419,211.8438 455.8419,211.8438" fill="#000000"/>
+<polygon data-id="timestamp_10" points="852.8419,198.8438 849.8419,211.8438 855.8419,211.8438" fill="#000000"/>
+<text data-id="cpt_1" data-part="name" x="286.0381" y="201.1519" text-anchor="start" font-size="11" fill="#000000">Prelude recording</text>
+<text data-id="timestamp_9" data-part="coordinate" x="452.8419" y="222.1978" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_10" data-part="coordinate" x="852.8419" y="222.1978" text-anchor="middle" font-size="9" fill="#000000">14″</text>
+<rect data-id="group_2" x="270.0381" y="248.3203" width="622.8037" height="211.5156" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-id="group_2" data-part="name" x="278.0381" y="266.5308" text-anchor="start" font-size="11" fill="#000000">Menuet mm. 41–44</text>
+<rect data-id="clt_7" data-part="card" x="280.0381" y="275.125" width="606.8037" height="121.332" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_7" data-part="card" x="278.0381" y="273.125" width="606.8037" height="121.332" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="440.8419" y1="359.4805" x2="864.8419" y2="359.4805" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-id="clt_1" points="437.8419,354.9805 433.3419,359.4805 437.8419,363.9805" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_1" points="433.3419,354.9805 428.8419,359.4805 433.3419,363.9805" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_1" points="867.8419,354.9805 872.3419,359.4805 867.8419,363.9805" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_1" points="872.3419,354.9805 876.8419,359.4805 872.3419,363.9805" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="clt_3" x1="440.8419" y1="325.5039" x2="864.8419" y2="325.5039" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-id="clt_3" points="437.8419,321.0039 433.3419,325.5039 437.8419,330.0039" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_3" points="433.3419,321.0039 428.8419,325.5039 433.3419,330.0039" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_3" points="867.8419,321.0039 872.3419,325.5039 867.8419,330.0039" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_3" points="872.3419,321.0039 876.8419,325.5039 872.3419,330.0039" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="clt_7" x1="452.8419" y1="287.5273" x2="848.3419" y2="287.5273" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_7" cx="452.8419" cy="287.5273" r="3" fill="#00CC00"/>
+<polygon data-id="clt_7" points="848.3419,287.5273 852.8419,283.9273 857.3419,287.5273 852.8419,291.1273" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="clt_7" data-part="start" points="452.8419,360.9805 449.8419,373.9805 455.8419,373.9805" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_7" data-part="end" points="852.8419,360.9805 849.8419,373.9805 855.8419,373.9805" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_7" data-part="start" points="452.8419,327.0039 449.8419,340.0039 455.8419,340.0039" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_7" data-part="end" points="852.8419,327.0039 849.8419,340.0039 855.8419,340.0039" fill="#000000" opacity="0.35"/>
+<polygon data-id="timestamp_3" points="452.8419,289.0273 449.8419,302.0273 455.8419,302.0273" fill="#000000"/>
+<polygon data-id="timestamp_4" points="852.8419,289.0273 849.8419,302.0273 855.8419,302.0273" fill="#000000"/>
+<text data-id="clt_1" data-part="name" x="286.0381" y="362.5962" text-anchor="start" font-size="9" fill="#6B7280">Suite bergamasque</text>
+<text data-id="clt_3" data-part="name" x="286.0381" y="328.6196" text-anchor="start" font-size="9" fill="#6B7280">Menuet</text>
+<text data-id="clt_7" data-part="name" x="286.0381" y="291.3354" text-anchor="start" font-size="11" fill="#000000">Menuet mm. 41–44</text>
+<text data-id="clt_7" data-part="start label" x="452.8419" y="384.3345" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">476 ♩</text>
+<text data-id="clt_7" data-part="end label" x="852.8419" y="384.3345" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">488 ♩</text>
+<text data-id="clt_7" data-part="start label" x="452.8419" y="350.3579" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">120 ♩</text>
+<text data-id="clt_7" data-part="end label" x="852.8419" y="350.3579" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">132 ♩</text>
+<text data-id="timestamp_3" data-part="coordinate" x="452.8419" y="312.3813" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_4" data-part="coordinate" x="852.8419" y="312.3813" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
+<rect data-id="cpt_2" data-part="card" x="280.0381" y="404.457" width="606.8037" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="cpt_2" data-part="card" x="278.0381" y="402.457" width="606.8037" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="cpt_2" x1="452.8419" y1="416.8594" x2="852.8419" y2="416.8594" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="cpt_2" cx="452.8419" cy="416.8594" r="3" fill="#0050EF"/>
+<polygon data-id="cpt_2" points="861.8419,416.8594 852.8419,412.3594 852.8419,421.3594" fill="#0050EF"/>
+<polygon data-id="timestamp_11" points="452.8419,418.3594 449.8419,431.3594 455.8419,431.3594" fill="#000000"/>
+<polygon data-id="timestamp_12" points="852.8419,418.3594 849.8419,431.3594 855.8419,431.3594" fill="#000000"/>
+<text data-id="cpt_2" data-part="name" x="286.0381" y="420.6675" text-anchor="start" font-size="11" fill="#000000">Menuet recording</text>
+<text data-id="timestamp_11" data-part="coordinate" x="452.8419" y="441.7134" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_12" data-part="coordinate" x="852.8419" y="441.7134" text-anchor="middle" font-size="9" fill="#000000">6.5″</text>
+<rect data-id="group_3" x="270.0381" y="467.8359" width="622.8037" height="211.5156" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-id="group_3" data-part="name" x="278.0381" y="486.0464" text-anchor="start" font-size="11" fill="#000000">Clair de Lune mm. 1–6</text>
+<rect data-id="clt_8" data-part="card" x="280.0381" y="494.6406" width="606.8037" height="121.332" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_8" data-part="card" x="278.0381" y="492.6406" width="606.8037" height="121.332" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="440.8419" y1="578.9961" x2="864.8419" y2="578.9961" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-id="clt_1" points="437.8419,574.4961 433.3419,578.9961 437.8419,583.4961" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_1" points="433.3419,574.4961 428.8419,578.9961 433.3419,583.4961" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_1" points="867.8419,574.4961 872.3419,578.9961 867.8419,583.4961" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_1" points="872.3419,574.4961 876.8419,578.9961 872.3419,583.4961" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="clt_4" x1="452.8419" y1="545.0195" x2="864.8419" y2="545.0195" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<circle data-id="clt_4" cx="452.8419" cy="545.0195" r="3" fill="#00CC00" opacity="0.35"/>
+<polyline data-id="clt_4" points="867.8419,540.5195 872.3419,545.0195 867.8419,549.5195" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_4" points="872.3419,540.5195 876.8419,545.0195 872.3419,549.5195" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="clt_8" x1="452.8419" y1="507.043" x2="848.3419" y2="507.043" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_8" cx="452.8419" cy="507.043" r="3" fill="#00CC00"/>
+<polygon data-id="clt_8" points="848.3419,507.043 852.8419,503.443 857.3419,507.043 852.8419,510.643" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="clt_8" data-part="start" points="452.8419,580.4961 449.8419,593.4961 455.8419,593.4961" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_8" data-part="end" points="852.8419,580.4961 849.8419,593.4961 855.8419,593.4961" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_8" data-part="start" points="452.8419,546.5195 449.8419,559.5195 455.8419,559.5195" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_8" data-part="end" points="852.8419,546.5195 849.8419,559.5195 855.8419,559.5195" fill="#000000" opacity="0.35"/>
+<polygon data-id="timestamp_5" points="452.8419,508.543 449.8419,521.543 455.8419,521.543" fill="#000000"/>
+<polygon data-id="timestamp_6" points="852.8419,508.543 849.8419,521.543 855.8419,521.543" fill="#000000"/>
+<text data-id="clt_1" data-part="name" x="286.0381" y="582.1118" text-anchor="start" font-size="9" fill="#6B7280">Suite bergamasque</text>
+<text data-id="clt_4" data-part="name" x="286.0381" y="548.1353" text-anchor="start" font-size="9" fill="#6B7280">Clair de Lune</text>
+<text data-id="clt_8" data-part="name" x="286.0381" y="510.8511" text-anchor="start" font-size="11" fill="#000000">Clair de Lune mm. 1–6</text>
+<text data-id="clt_8" data-part="start label" x="452.8419" y="603.8501" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">668 ♩</text>
+<text data-id="clt_8" data-part="end label" x="852.8419" y="603.8501" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">695 ♩</text>
+<text data-id="clt_8" data-part="start label" x="452.8419" y="569.8735" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">0 ♩</text>
+<text data-id="clt_8" data-part="end label" x="852.8419" y="569.8735" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">27 ♩</text>
+<text data-id="timestamp_5" data-part="coordinate" x="452.8419" y="531.897" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_6" data-part="coordinate" x="852.8419" y="531.897" text-anchor="middle" font-size="9" fill="#000000">27 ♩</text>
+<rect data-id="cpt_3" data-part="card" x="280.0381" y="623.9727" width="606.8037" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="cpt_3" data-part="card" x="278.0381" y="621.9727" width="606.8037" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="cpt_3" x1="452.8419" y1="636.375" x2="852.8419" y2="636.375" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="cpt_3" cx="452.8419" cy="636.375" r="3" fill="#0050EF"/>
+<polygon data-id="cpt_3" points="861.8419,636.375 852.8419,631.875 852.8419,640.875" fill="#0050EF"/>
+<polygon data-id="timestamp_13" points="452.8419,637.875 449.8419,650.875 455.8419,650.875" fill="#000000"/>
+<polygon data-id="timestamp_14" points="852.8419,637.875 849.8419,650.875 855.8419,650.875" fill="#000000"/>
+<text data-id="cpt_3" data-part="name" x="286.0381" y="640.1831" text-anchor="start" font-size="11" fill="#000000">Clair de Lune recording</text>
+<text data-id="timestamp_13" data-part="coordinate" x="452.8419" y="661.229" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_14" data-part="coordinate" x="852.8419" y="661.229" text-anchor="middle" font-size="9" fill="#000000">33.35″</text>
+<rect data-id="group_4" x="270.0381" y="687.3516" width="622.8037" height="211.5156" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-id="group_4" data-part="name" x="278.0381" y="705.562" text-anchor="start" font-size="11" fill="#000000">Passepied mm. 153–156</text>
+<rect data-id="clt_9" data-part="card" x="280.0381" y="714.1562" width="606.8037" height="121.332" rx="5" fill="#B8BEC8"/>
+<rect data-id="clt_9" data-part="card" x="278.0381" y="712.1562" width="606.8037" height="121.332" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="clt_1" x1="440.8419" y1="798.5117" x2="852.8419" y2="798.5117" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-id="clt_1" points="437.8419,794.0117 433.3419,798.5117 437.8419,803.0117" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_1" points="433.3419,794.0117 428.8419,798.5117 433.3419,803.0117" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polygon data-id="clt_1" points="861.8419,798.5117 852.8419,794.0117 852.8419,803.0117" fill="#00CC00" opacity="0.35"/>
+<line data-id="clt_5" x1="440.8419" y1="764.5352" x2="848.3419" y2="764.5352" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-id="clt_5" points="437.8419,760.0352 433.3419,764.5352 437.8419,769.0352" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="clt_5" points="433.3419,760.0352 428.8419,764.5352 433.3419,769.0352" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polygon data-id="clt_5" points="848.3419,764.5352 852.8419,760.9352 857.3419,764.5352 852.8419,768.1352" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="clt_9" x1="452.8419" y1="726.5586" x2="848.3419" y2="726.5586" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="clt_9" cx="452.8419" cy="726.5586" r="3" fill="#00CC00"/>
+<polygon data-id="clt_9" points="848.3419,726.5586 852.8419,722.9586 857.3419,726.5586 852.8419,730.1586" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="clt_9" data-part="start" points="452.8419,800.0117 449.8419,813.0117 455.8419,813.0117" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_9" data-part="end" points="852.8419,800.0117 849.8419,813.0117 855.8419,813.0117" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_9" data-part="start" points="452.8419,766.0352 449.8419,779.0352 455.8419,779.0352" fill="#000000" opacity="0.35"/>
+<polygon data-id="clt_9" data-part="end" points="852.8419,766.0352 849.8419,779.0352 855.8419,779.0352" fill="#000000" opacity="0.35"/>
+<polygon data-id="timestamp_7" points="452.8419,728.0586 449.8419,741.0586 455.8419,741.0586" fill="#000000"/>
+<polygon data-id="timestamp_8" points="852.8419,728.0586 849.8419,741.0586 855.8419,741.0586" fill="#000000"/>
+<text data-id="clt_1" data-part="name" x="286.0381" y="801.6274" text-anchor="start" font-size="9" fill="#6B7280">Suite bergamasque</text>
+<text data-id="clt_5" data-part="name" x="286.0381" y="767.6509" text-anchor="start" font-size="9" fill="#6B7280">Passepied</text>
+<text data-id="clt_9" data-part="name" x="286.0381" y="730.3667" text-anchor="start" font-size="11" fill="#000000">Passepied mm. 153–156</text>
+<text data-id="clt_9" data-part="start label" x="452.8419" y="823.3657" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">1600 ♩</text>
+<text data-id="clt_9" data-part="end label" x="852.8419" y="823.3657" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">1616 ♩</text>
+<text data-id="clt_9" data-part="start label" x="452.8419" y="789.3892" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">608 ♩</text>
+<text data-id="clt_9" data-part="end label" x="852.8419" y="789.3892" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">624 ♩</text>
+<text data-id="timestamp_7" data-part="coordinate" x="452.8419" y="751.4126" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_8" data-part="coordinate" x="852.8419" y="751.4126" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<rect data-id="cpt_4" data-part="card" x="280.0381" y="843.4883" width="606.8037" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="cpt_4" data-part="card" x="278.0381" y="841.4883" width="606.8037" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="cpt_4" x1="452.8419" y1="855.8906" x2="852.8419" y2="855.8906" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="cpt_4" cx="452.8419" cy="855.8906" r="3" fill="#0050EF"/>
+<polygon data-id="cpt_4" points="861.8419,855.8906 852.8419,851.3906 852.8419,860.3906" fill="#0050EF"/>
+<polygon data-id="timestamp_15" points="452.8419,857.3906 449.8419,870.3906 455.8419,870.3906" fill="#000000"/>
+<polygon data-id="timestamp_16" points="852.8419,857.3906 849.8419,870.3906 855.8419,870.3906" fill="#000000"/>
+<text data-id="cpt_4" data-part="name" x="286.0381" y="859.6987" text-anchor="start" font-size="11" fill="#000000">Passepied recording</text>
+<text data-id="timestamp_15" data-part="coordinate" x="452.8419" y="880.7446" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_16" data-part="coordinate" x="852.8419" y="880.7446" text-anchor="middle" font-size="9" fill="#000000">5.5″</text>
+</g>
+</svg>
