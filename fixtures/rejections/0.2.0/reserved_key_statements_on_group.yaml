@@ -84,5 +84,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'statements' is reserved on a group"
 path: [groups, 0, statements]
 reason: "Only the manifest, timelines and regions carry statements; statements is reserved on a group."

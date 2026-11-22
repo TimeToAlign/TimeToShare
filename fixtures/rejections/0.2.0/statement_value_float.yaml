@@ -79,5 +79,6 @@ manifest:
         "schema:position": [4.5]
       unit: quarters
   timetoshare: "0.2.0"
+message: "4.5 is not of type 'string'"
 path: [timelines, 0, statements, "schema:position", 0]
 reason: "A statement value is a string, an integer, a boolean, a value object or a node, never a float such as 4.5."

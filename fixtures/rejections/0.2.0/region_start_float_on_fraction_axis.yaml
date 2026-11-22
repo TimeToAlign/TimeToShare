@@ -53,5 +53,6 @@ manifest:
           start: 2.5
       unit: quarters
   timetoshare: "0.2.0"
+message: "start 2.5 of 'region_1' is a float on a fraction axis: write [5, 2]"
 path: [timelines, 0, regions, 0, start]
 reason: "A region bound is represented as its timeline's number type selects; a fraction axis takes a [numerator, denominator] pair."

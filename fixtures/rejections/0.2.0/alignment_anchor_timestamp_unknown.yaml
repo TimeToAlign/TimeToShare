@@ -181,5 +181,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "'timestamp_99' names no timestamp of this manifest"
 path: [graphical, matchstamps, 0, alignment_anchors, 0, timestamps, 1]
 reason: "An alignment anchor names two timestamps of the manifest; timestamp_99 names none."

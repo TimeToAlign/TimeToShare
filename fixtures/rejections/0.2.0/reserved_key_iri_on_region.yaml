@@ -84,5 +84,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'schema:name' is reserved on a region"
 path: [timelines, 0, regions, 0, "schema:name"]
 reason: "A key holding a colon is reserved on a region; a property of the region belongs in its statements."

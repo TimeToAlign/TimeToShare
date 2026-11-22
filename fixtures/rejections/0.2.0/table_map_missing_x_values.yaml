@@ -166,5 +166,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'x_values' is a required property"
 path: [timelines, 0, conversion_maps, 9]
 reason: "A TableMap must carry its anchor positions."

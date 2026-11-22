@@ -220,5 +220,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "1.5 is greater than the maximum of 1"
 path: [graphical, rules, 2, set, opacity]
 reason: "An opacity lies from 0 to 1."

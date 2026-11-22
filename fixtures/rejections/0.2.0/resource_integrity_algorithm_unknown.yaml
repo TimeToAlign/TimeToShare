@@ -189,5 +189,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "'SHA-3' is not one of ['MD5', 'SHA-1', 'SHA-256', 'SHA-384', 'SHA-512']"
 path: [resources, 0, integrity, algorithm]
 reason: "A digest names its hash function as the PREMIS vocabulary does; SHA-3 is none of the five."

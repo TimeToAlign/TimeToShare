@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'decimal' is not one of ['int', 'float', 'fraction']"
 path: [timelines, 0, number_type]
 reason: "A timeline number type must be int, float, or fraction."

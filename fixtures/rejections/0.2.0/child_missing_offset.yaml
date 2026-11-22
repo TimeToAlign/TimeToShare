@@ -60,5 +60,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'offset' is a required property"
 path: [timelines, 0, children, 0]
 reason: "A child carries its offset on its parent's axis."

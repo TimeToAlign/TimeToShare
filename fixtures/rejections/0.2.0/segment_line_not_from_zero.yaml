@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "segment 'a' of segment line 'bare' does not start at 0"
 path: [timelines, 0, children, 0, offset]
 reason: "The first segment starts at 0."

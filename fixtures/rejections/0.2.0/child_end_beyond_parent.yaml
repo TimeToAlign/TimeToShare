@@ -33,5 +33,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'"
 path: [timelines, 0, children, 0, length]
 reason: "A child whose offset and length are both known ends within its parent's known length."

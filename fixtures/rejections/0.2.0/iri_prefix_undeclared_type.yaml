@@ -79,5 +79,6 @@ manifest:
         type: ["schemaa:MusicRecording"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'schemaa:MusicRecording': the prefix 'schemaa' is not declared in @context"
 path: [timelines, 0, statements, type, 0]
 reason: "A class written as a compact IRI uses a prefix declared in @context; schemaa is not declared."

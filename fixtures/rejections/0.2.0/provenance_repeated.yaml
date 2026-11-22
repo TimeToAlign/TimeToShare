@@ -90,5 +90,6 @@ manifest:
             id: "wd:Q255"
       unit: quarters
   timetoshare: "0.2.0"
+message: "the entry repeats the pair of entry 0"
 path: [timelines, 0, provenance, 1]
 reason: "A subject holds one provenance entry per pair; the second entry annotates the pair of the first."

@@ -80,5 +80,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'unit' is not one of ['@version', 'id', 'type', 'statements', 'list', 'timelines', 'children', 'regions', 'groups', 'label', 'provenance', 'property', 'value', 'stated_by', 'date', 'method', 'service', 'basis', 'match', 'note', 'beliefs', 'actor', 'belief', 'manual', 'reconciled', 'imported', 'inferred', 'true', 'false', 'unlikely', 'exact', 'close', 'broad', 'narrow', 'related']"
 path: ["@context"]
 reason: "A prefix is never named after a key of the manifest's elements; unit is the key of a timeline's unit."

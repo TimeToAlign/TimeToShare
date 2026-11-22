@@ -191,5 +191,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "the timestamps of 'anchor_2' both lie on the timeline 'score'"
 path: [graphical, matchstamps, 1, alignment_anchors, 0, timestamps, 1]
 reason: "The two timestamps of an alignment anchor lie on two timelines; timestamp_1 and timestamp_11 both lie on score."

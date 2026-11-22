@@ -81,5 +81,6 @@ manifest:
             id: "_:b0"
       unit: quarters
   timetoshare: "0.2.0"
+message: "'_:b0' begins with '_:': no blank node identifier is admitted here"
 path: [timelines, 0, statements, "schema:sameAs", 0, id]
 reason: "The id of a value node is an IRI or a reference, never a blank-node label such as _:b0."

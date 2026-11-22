@@ -79,5 +79,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'http://www.wikidata.org/entity' does not match '^[A-Za-z][A-Za-z0-9+.-]*:.*[/#](?!.)'"
 path: ["@context", wd]
 reason: "A prefix stands for a namespace, an absolute IRI ending in / or #; http://www.wikidata.org/entity ends in neither."

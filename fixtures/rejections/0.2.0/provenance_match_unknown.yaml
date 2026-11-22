@@ -86,5 +86,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'exactly' is not one of ['exact', 'close', 'broad', 'narrow', 'related']"
 path: [timelines, 0, provenance, 0, match]
 reason: "The match of a provenance entry is exact, close, broad, narrow or related; exactly is none of them."

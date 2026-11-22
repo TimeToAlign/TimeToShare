@@ -84,5 +84,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'children' is reserved on a region"
 path: [timelines, 0, regions, 0, children]
 reason: "A term of the format's @context is reserved as a key of a region outside its place; children belongs to a timeline."

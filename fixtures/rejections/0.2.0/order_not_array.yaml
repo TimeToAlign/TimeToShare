@@ -103,5 +103,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'score' is not of type 'array'"
 path: [graphical, order, "#group_1"]
 reason: "Each display order is an array of ids."

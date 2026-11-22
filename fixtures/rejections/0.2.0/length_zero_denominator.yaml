@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "0 is less than the minimum of 1"
 path: [timelines, 0, length, 1]
 reason: "A fraction denominator must be strictly positive."

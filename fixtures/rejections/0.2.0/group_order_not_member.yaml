@@ -57,5 +57,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'piece' is not a member of group 'group_1'"
 path: [graphical, order, group_1, 1]
 reason: "A display order names members only; the stranger is reported."

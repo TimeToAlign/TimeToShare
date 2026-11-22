@@ -38,5 +38,6 @@ manifest:
       regions: []
       unit: ticks
   timetoshare: "0.2.0"
+message: "MeasureRecordMap 'bars' has source unit 'quarters', its timeline 'score' has 'ticks'"
 path: [timelines, 0, conversion_maps, 0, source_unit]
 reason: "A map attached to a timeline converts from the timeline's unit: a MeasureRecordMap, which converts from quarters, cannot be attached to a timeline in ticks; a ChainMap whose first map is a LinearMap from ticks to quarters reaches it."

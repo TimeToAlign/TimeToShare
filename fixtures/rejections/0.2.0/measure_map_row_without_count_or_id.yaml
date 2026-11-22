@@ -305,5 +305,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'ID' is a required property"
 path: [measure_maps, 0, rows, 0]
 reason: "A MeasureMap row must carry count or ID."

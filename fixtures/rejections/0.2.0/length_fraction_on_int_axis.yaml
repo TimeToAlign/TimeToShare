@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: ticks
   timetoshare: "0.2.0"
+message: "length [480, 1] of 'dlt_1' is a fraction on an int axis: write 480"
 path: [timelines, 0, length]
 reason: "A length is represented as its timeline's number type selects; an int axis takes a JSON integer."

@@ -79,5 +79,6 @@ manifest:
         performer: [x]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'type' was expected"
 path: [timelines, 0, statements]
 reason: "A key of statements is type or a property IRI; performer is a bare word."

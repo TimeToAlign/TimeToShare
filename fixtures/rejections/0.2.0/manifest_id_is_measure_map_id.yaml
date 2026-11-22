@@ -39,5 +39,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'measures' is not unique in the manifest, first at #/measure_maps/0/id"
 path: [id]
 reason: "The manifest ID is no MeasureMap ID."

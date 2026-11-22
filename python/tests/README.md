@@ -9,7 +9,9 @@ editing a fixture: the documents are the smallest that exercise the rule, so
 a passing test cannot be a restatement of a fixture the implementation
 produced. The shared rejection and warning cases (`fixtures/rejections/0.2.0/`
 and `fixtures/warnings/0.2.0/`) are read by this suite and by the JavaScript
-suite, so both validators are held to the same paths and the same lists.
+suite, so both validators are held to the same paths, the same messages
+and the same lists; so are the cases of several problems
+(`fixtures/precedence/0.2.0/`), which pin the one path rule.
 
 ## What the package promises
 
@@ -272,8 +274,9 @@ number_type: int, value: 8}` at `number_type` by
 `else/else/properties/number_type/enum`; each is the one error found, and
 `{ticks, int, 480}`, `{seconds, float, 1.5}`, `{quarters, fraction, [1,
 2]}` and `{number, int, 2}` validate. The JavaScript suite checks the
-same coordinates with Ajv and finds the same paths and keywords; the
-message of a `schema` problem is each validator's own.
+same coordinates with Ajv and finds the same paths and keywords; both
+packages word a `schema` problem alike ([One path rule for both
+validators](#one-path-rule-for-both-validators)).
 
 ## Reading by the declared number type
 
@@ -511,8 +514,9 @@ the maps it holds, a `CombinationMap`'s by output name in code-point order,
 and a map's source unit before its arrays.
 `identity_problems` returns every semantic problem in that order; `validate`
 stops at the first. A message names an element by its ID in single quotes,
-as written (a unit and an order entry too), so every message but a schema
-violation's is the same text in both packages.
+as written (a unit and an order entry too), so every message is the same
+text in both packages, a schema violation's included: the JavaScript
+package words it as this package does.
 
 | Code | Rule | Reported at | Message |
 | --- | --- | --- | --- |
@@ -585,12 +589,19 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 175 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
-path and the code (`test_validate.py`); `validate` raises
-`SchemaValidationError` with exactly both, and the codes of the cases are
+the 178 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+path, the code and the message (`test_validate.py`); `validate` raises
+`SchemaValidationError` with exactly all three, and the JavaScript suite
+holds its validator to the same three, so the two packages refuse every
+case at one path with one code and one message. The codes of the cases are
 exactly the thirty of the table, so every code is reached by a case both
 suites read. `version_unknown` raises `UnsupportedVersionError` and stores
-`["timetoshare"]` and the code `null`. Every case is read through the
+`["timetoshare"]`, the code `null` and the error's message. Three cases
+refuse a conversion map that is no object, which the schema types as an
+object beside its discriminated `oneOf`: `conversion_map_not_object` (`0`),
+`conversion_map_null` (`null`) and `combination_map_member_not_object` (a
+`CombinationMap` output `9`), each at the value with `… is not of type
+'object'`. Every case is read through the
 package's one reader, `rejection_case`, which every consumer uses too; it
 puts the infinity or NaN a `finite_number` case names at the stored path.
 Three tests pin the reader: `nan_offset` and `infinite_length` hold the
@@ -1369,7 +1380,14 @@ maps a fixture and its twin to the same file.
 ## One path rule for both validators
 
 Among the diagnostic leaves of every violation, a validator reports the one
-with the deepest instance path, ties going to the first reported. A
+with the deepest instance path; among leaves equally deep, the one whose
+path comes first compared element by element (indices by number, keys by
+code point); among leaves at one path, the first the walk reports, which
+visits the schemas applied at a place in the order the document writes
+their keywords. The order of the paths decides between two places, never
+the order of a report, so the result does not depend on how the walk
+iterates the members of an `additionalProperties` (`jsonschema` iterates a
+set, whose order changes with `PYTHONHASHSEED`). A
 discriminated `oneOf` contributes only the candidate whose tag `const` equals
 the instance's tag value (resolved through `$ref`), and is itself the
 reported error when no candidate carries that value. The shared rejections
@@ -1380,6 +1398,21 @@ unknown conversion-map type the map, a missing `x_values` the `TableMap`, a
 measure view's `source_unit` other than `quarters` the unit, a `target` on a
 jump target or a `repeat_count` on a `to_coda` the member, a `dal_segno`
 without a `target` the element.
+
+The cases of several problems, `fixtures/precedence/0.2.0/cases.yaml`,
+pin the rule where a manifest breaks it twice (`test_validate.py`). Each
+names a fixture, the members it sets and the code, path and message
+reported, which both packages give: two declarations refused at one depth
+(`styles/alpha` before `styles/zeta`), two prefixes of `@context` (`aa`
+before `zz`), a deeper refusal in a later root before a shallower one in
+an earlier root, two members of one timeline (`is_segment_line` before
+`locked`), two conversion maps that are no objects (index 1 before 3),
+and one number type refused by the list of number types and by its
+unit's list at one path (the list of number types, which the walk applies
+first). Before the rule broke ties by path, the first two depended on the
+hash seed and the fourth went to `locked`; the cases are run in three
+interpreters started with `PYTHONHASHSEED` 1, 2 and 3, which report the
+same.
 
 Three shapes of the schema are worded by the package, so a refusal says
 what to write; the path and the code stay the path rule's and `schema`.
@@ -1412,7 +1445,8 @@ what to write; the path and the code stay the path rule's and `schema`.
    name's two words are proven on the definition itself.
 
 Every other error keeps the schema library's message, a `not` requiring
-members included. `test_validate.py` proves it on every place of the
+members included; the JavaScript package spells those messages as
+`jsonschema` 4.26 does, each value as Python's `repr` spells it. `test_validate.py` proves it on every place of the
 schema with one of the three shapes, and a census of the schema fails when
 a place is added without a case: the time unit; the four forbidden members
 of a flow-control element (`repeat_count` on a `dal_segno` and on a
@@ -1900,7 +1934,7 @@ read from the file, validates as the `graphical` of the smallest file; the
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate, and so do `{"element": "ancestor_card"}` and the rule that
 addresses the ancestor cards of one root, `{"element": "ancestor_card", "addresses":
-[{"id": "score", "part": ["card"]}]}`, each setting `display: inline`; so do the band selectors, `{"element": "band"}`, `{"element":
+[{"id": "score", "part": ["card"]}]}`, each setting `display: none`; so do the band selectors, `{"element": "band"}`, `{"element":
 "band", "facet": <facet>}` for each of the five facets `markers`,
 `conversion_maps`, `children`, `regions` and `flow_control`,
 `{"addresses": [{"id": "score", "facet": "regions"}]}` and `{"inside":

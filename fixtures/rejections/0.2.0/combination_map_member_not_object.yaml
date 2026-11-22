@@ -1,0 +1,32 @@
+code: schema
+manifest:
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  timelines:
+    -
+      children: []
+      conversion_maps:
+        -
+          id: "#position"
+          maps:
+            number: 9
+          name: null
+          source_unit: quarters
+          target_unit: null
+          type: CombinationMap
+      flow_control: []
+      id: "#score"
+      is_segment_line: false
+      length: [16, 1]
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "9 is not of type 'object'"
+path: [timelines, 0, conversion_maps, 0, maps, number]
+reason: "Each output of a CombinationMap is a conversion map, an object; a number is none."

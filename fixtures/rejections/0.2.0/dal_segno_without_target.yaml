@@ -55,5 +55,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'target' is a required property"
 path: [timelines, 0, flow_control, 2]
 reason: "A dal_segno must name the jump_to it leads to."

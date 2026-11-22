@@ -1,5 +1,6 @@
 code: schema
 manifest:
   timetoshare: "0.2.0"
+message: "'timelines' is a required property"
 path: []
 reason: "A manifest holds its timelines, an array that may be empty."

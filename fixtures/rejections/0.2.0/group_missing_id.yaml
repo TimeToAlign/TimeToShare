@@ -102,5 +102,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'id' is a required property"
 path: [groups, 1]
 reason: "Every group carries an id."

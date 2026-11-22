@@ -50,5 +50,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'score' is not unique in the manifest, first at #/timelines/0/id"
 path: [measure_maps, 1, id]
 reason: "A MeasureMap ID differs from every other ID of the manifest, a timeline's included."

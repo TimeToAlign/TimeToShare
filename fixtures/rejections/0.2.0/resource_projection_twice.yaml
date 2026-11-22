@@ -196,5 +196,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "a manifest names at most one resource of the type Projection; 'resource_2' is one"
 path: [resources, 2, type]
 reason: "A manifest names at most one Projections table; resource_2 is one."

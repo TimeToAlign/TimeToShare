@@ -34,7 +34,12 @@ These rules apply to every contributor, human or automated.
   hand-authored rejection cases under `fixtures/rejections/<version>/`,
   hand-authored warning cases under `fixtures/warnings/<version>/`, the
   hand-authored acceptance table of own-axis values under
-  `fixtures/acceptances/<version>/`,
+  `fixtures/acceptances/<version>/`, and the hand-authored cases of a
+  manifest that breaks the schema twice under
+  `fixtures/precedence/<version>/cases.yaml` (which problem is reported
+  first; a case names a fixture and the members to set on it); every
+  rejection and precedence case records the `message` of the two reference
+  packages beside the `code` and `path` the format requires,
   hand-derived serialization cases under `fixtures/serializations/`
   (`cases/<name>/` with `canonical.yaml`, `pretty.json` and
   `rfc8785.json`, the last missing where that writer refuses the value;
@@ -114,9 +119,9 @@ These rules apply to every contributor, human or automated.
   Both packages reproduce every text byte for byte. A case the README does
   not determine is a defect of the README.
 - Author rejection cases under `fixtures/rejections/` by hand, one rule per
-  case, warning cases under `fixtures/warnings/` and the acceptance table
-  under `fixtures/acceptances/` by hand; the fixture script emits none of
-  them.
+  case, warning cases under `fixtures/warnings/`, the acceptance table
+  under `fixtures/acceptances/` and the cases of several problems under
+  `fixtures/precedence/` by hand; the fixture script emits none of them.
 - Regenerate `js/src/generated/` after changing the schema or font metrics.
   The generated TypeScript files belong in this repository.
 - Regenerate `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json` with

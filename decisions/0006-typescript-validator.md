@@ -30,6 +30,11 @@ would complicate generation and review. The selected route fits the release
 cadence; the adapter in `validate.ts` caps exit cost. Writing it ourselves
 would require ongoing draft compatibility and security work.
 
+The pattern engine (`pythonSearch` in `validate/schemaMessages.ts`) follows
+Python's `re.search` rather than ECMA-262 where `$` precedes a final line
+feed. Every `$`-pattern of the schema is guarded, so validity is unchanged;
+only the leaf that reports the refusal is Python's.
+
 ## Review date
 
 2027-10-09.

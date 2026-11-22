@@ -6,6 +6,7 @@ manifest:
       length: 0.0
       unit: seconds
   timetoshare: "0.2.0"
+message: "length of 'recording' is not a finite number"
 non_finite: Infinity
 path: [timelines, 0, length]
 reason: "Every numeric leaf is finite; the test substitutes positive infinity for the placeholder at the stored path."

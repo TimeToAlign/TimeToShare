@@ -176,5 +176,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "{'id': '#umap_1', 'name': None, 'source_unit': 'quarters', 'target_unit': None, 'type': 'UnknownMap', 'value': 'section-a'} is not valid under any of the given schemas"
 path: [timelines, 0, conversion_maps, 11]
 reason: "A conversion-map type must name one of the ten map types."

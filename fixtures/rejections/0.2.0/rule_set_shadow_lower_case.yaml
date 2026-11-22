@@ -224,5 +224,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'#b8bec8' does not match '^(#[0-9A-F]{6}|none)$'"
 path: [graphical, rules, 21, set, shadow]
 reason: "A shadow colour is #RRGGBB with upper-case hexadecimal digits, or none."

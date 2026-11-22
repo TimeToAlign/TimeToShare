@@ -57,5 +57,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "member 'second-half' lies inside member 'piece' of the same group"
 path: [groups, 0, members, 2]
 reason: "No member of a group lies inside another member of the same group; the later one is reported."

@@ -78,5 +78,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "[] should be non-empty"
 path: [timelines, 0, provenance]
 reason: "Provenance, where present, holds at least one entry."

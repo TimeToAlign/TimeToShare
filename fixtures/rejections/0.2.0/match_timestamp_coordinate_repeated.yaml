@@ -187,5 +187,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'"
 path: [graphical, timestamps, 9]
 reason: "At most one match timestamp lies on a coordinate; timestamp_11 lies at 8/2 on score, where timestamp_1 lies."

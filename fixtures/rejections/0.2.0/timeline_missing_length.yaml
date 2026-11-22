@@ -46,5 +46,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'length' is a required property"
 path: [timelines, 0]
 reason: "Every timeline states its length, null when it is not known."

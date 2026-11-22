@@ -103,5 +103,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "member 'recording' contains member 'excerpt' of the same group"
 path: [groups, 1, members, 2]
 reason: "No member of a group contains another member of the same group; the later one is reported."

@@ -19,5 +19,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'int' is not one of ['float', 'fraction']"
 path: [timelines, 0, number_type]
 reason: "A continuous unit other than number admits float or fraction; quarters is declared int."

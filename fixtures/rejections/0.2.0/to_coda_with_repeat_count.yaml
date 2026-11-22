@@ -57,5 +57,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "the key 'repeat_count' is not admitted here"
 path: [timelines, 0, flow_control, 2, repeat_count]
 reason: "Only a repeat_end carries a repeat count."

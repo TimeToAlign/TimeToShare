@@ -104,5 +104,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'group_9' names no group or timeline of this manifest"
 path: [graphical, order, group_9]
 reason: "Each key of the order names a group or a timeline of the manifest; group_9 names no group or timeline."

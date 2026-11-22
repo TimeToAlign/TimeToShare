@@ -44,5 +44,6 @@ manifest:
           start: [2, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'region_1' is not unique in the manifest, first at #/timelines/0/regions/0/id"
 path: [timelines, 1, regions, 0, id]
 reason: "IDs are unique across the manifest, not only within a root's tree; region_1 is a region of performance and of score, and the later one is reported."

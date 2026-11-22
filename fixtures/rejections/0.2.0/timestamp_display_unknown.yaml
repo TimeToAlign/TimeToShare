@@ -44,5 +44,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'flag' is not one of ['wedge', 'name', 'id', 'coordinate', 'cross_section']"
 path: [graphical, timestamps, 0, display, 1]
 reason: "The words of a named timestamp's display are wedge, name, id, coordinate and cross_section; flag is none of them."

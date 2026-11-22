@@ -53,5 +53,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it"
 path: [timelines, 0, conversion_maps, 0, maps, 0, breaks, 2]
 reason: "A PiecewiseMap's breaks increase strictly, in a nested map too."

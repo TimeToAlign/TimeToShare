@@ -155,5 +155,6 @@ manifest:
       regions: []
       unit: seconds
   timetoshare: "0.2.0"
+message: "'timestamp_5' is a groupstamp, but its timeline 'piece' is a member of no group and lies in none"
 path: [graphical, timestamps, 4, groupstamp]
 reason: "A groupstamp lies in a group: on a member or a member's descendant; timestamp_5 lies on piece, the parent of the member second-half, and an ancestor of a member lies in no group through it."

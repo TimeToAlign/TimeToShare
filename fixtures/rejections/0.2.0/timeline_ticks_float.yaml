@@ -19,5 +19,6 @@ manifest:
       regions: []
       unit: ticks
   timetoshare: "0.2.0"
+message: "'int' was expected"
 path: [timelines, 0, number_type]
 reason: "A discrete unit admits the number type int only; ticks is declared float."

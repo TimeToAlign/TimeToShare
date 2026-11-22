@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: beats
   timetoshare: "0.2.0"
+message: "'beats' is not one of ['number', 'floating_measures', 'whole_notes', 'quarters', 'ticks', 'milliseconds', 'seconds', 'minutes', 'samples', 'frames', 'pixels', 'meters', 'centimeters', 'millimeters', 'inches', 'points', 'css_pixels', 'user_units']"
 path: [timelines, 0, unit]
 reason: "A timeline unit must be in the TimeUnit vocabulary."

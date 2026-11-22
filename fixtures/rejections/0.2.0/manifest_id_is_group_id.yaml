@@ -103,5 +103,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'group_2' is not unique in the manifest, first at #/groups/1/id"
 path: [id]
 reason: "The manifest id differs from every group id."

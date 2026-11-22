@@ -24,5 +24,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "statements and provenance need the manifest's @context"
 path: [provenance]
 reason: "Provenance needs the manifest's @context; the manifest carries provenance and no @context."

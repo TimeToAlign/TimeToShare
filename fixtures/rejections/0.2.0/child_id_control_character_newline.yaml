@@ -33,5 +33,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'#child\\nid' holds U+000A: no control character (U+0000 to U+001F) is admitted here"
 path: [timelines, 0, children, 0, id]
 reason: "A child's id contains no control character."

@@ -29,5 +29,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "5 is not of type 'string'"
 path: [graphical, rules, 0, set, content]
 reason: "Content is a string."

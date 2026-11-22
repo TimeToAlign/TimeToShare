@@ -98,5 +98,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "segment 'b' of segment line 'sketch' does not start where the one before it ends"
 path: [timelines, 2, children, 1, offset]
 reason: "Every root keeps the segment-line rules."

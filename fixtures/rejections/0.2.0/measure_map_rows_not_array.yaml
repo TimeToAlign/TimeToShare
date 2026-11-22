@@ -146,5 +146,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "{'measures': []} is not of type 'array'"
 path: [measure_maps, 0, rows]
 reason: "A MeasureMap's rows are an array."

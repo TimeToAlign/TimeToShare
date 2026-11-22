@@ -1,0 +1,83 @@
+-
+  code: schema
+  fixture: styled__score
+  message: "'wide' is not of type 'number'"
+  name: declarations_by_key
+  path: [graphical, styles, alpha, stroke-width]
+  reason: "Two declarations refused at the same depth: the one whose key comes first by code point is reported."
+  set:
+    -
+      path: [graphical, styles, zeta]
+      value:
+        stroke: 5
+    -
+      path: [graphical, styles, alpha]
+      value:
+        stroke-width: wide
+-
+  code: schema
+  fixture: with_region
+  message: "'neither' does not match '^[A-Za-z][A-Za-z0-9+.-]*:.*[/#](?!.)'"
+  name: prefixes_by_key
+  path: ["@context", aa]
+  reason: "Two prefixes refused at the same depth: the one whose key comes first by code point is reported."
+  set:
+    -
+      path: ["@context", zz]
+      value: "no namespace"
+    -
+      path: ["@context", aa]
+      value: neither
+-
+  code: schema
+  fixture: bundles/bundle_ungrouped
+  message: "None is not of type 'object'"
+  name: deeper_root_wins
+  path: [timelines, 2, conversion_maps, 0]
+  reason: "A refusal deeper in a later root is reported before a shallower one in an earlier root."
+  set:
+    -
+      path: [timelines, 0, unit]
+      value: furlongs
+    -
+      path: [timelines, 2, conversion_maps, 0]
+      value: null
+-
+  code: schema
+  fixture: with_region
+  message: "'no' is not of type 'boolean'"
+  name: timeline_members_by_key
+  path: [timelines, 0, is_segment_line]
+  reason: "Two members of one timeline refused: the one whose key comes first by code point is reported."
+  set:
+    -
+      path: [timelines, 0, locked]
+      value: "no"
+    -
+      path: [timelines, 0, is_segment_line]
+      value: "no"
+-
+  code: schema
+  fixture: conversion_maps__maps_quarters
+  message: "None is not of type 'object'"
+  name: conversion_maps_by_index
+  path: [timelines, 0, conversion_maps, 1]
+  reason: "Two conversion maps that are no objects: the one at the lower index is reported."
+  set:
+    -
+      path: [timelines, 0, conversion_maps, 3]
+      value: 0
+    -
+      path: [timelines, 0, conversion_maps, 1]
+      value: null
+-
+  code: schema
+  fixture: with_region
+  message: "'decimal' is not one of ['int', 'float', 'fraction']"
+  name: number_type_first_applied
+  path: [timelines, 0, number_type]
+  reason: "A number type no unit admits fails the list of number types and the unit's own list at one path: the list of number types, which the walk applies first, is reported."
+  set:
+    -
+      path: [timelines, 0, number_type]
+      value: decimal

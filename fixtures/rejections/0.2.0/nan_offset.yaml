@@ -12,6 +12,7 @@ manifest:
       length: 60.0
       unit: seconds
   timetoshare: "0.2.0"
+message: "offset of 'take' is not a finite number"
 non_finite: NaN
 path: [timelines, 0, children, 0, offset]
 reason: "Every numeric leaf is finite; the test substitutes NaN for the placeholder at the stored path."

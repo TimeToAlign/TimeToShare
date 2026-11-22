@@ -79,5 +79,6 @@ manifest:
         "schema:position": [1, null]
       unit: quarters
   timetoshare: "0.2.0"
+message: "None is not of type 'string'"
 path: [timelines, 0, statements, "schema:position", 1]
 reason: "A statement value is never null."

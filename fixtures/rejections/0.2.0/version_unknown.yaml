@@ -48,5 +48,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.1.0"
+message: "unsupported TimeToShare version \"0.1.0\"; this package reads 0.2.0 only"
 path: [timetoshare]
 reason: "This release reads 0.2.0 only; another version, here the 0.1.0 it replaces, is refused with UnsupportedVersionError."

@@ -44,5 +44,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'ghost' names no timeline of this manifest"
 path: [graphical, timestamps, 0, timeline]
 reason: "A named timestamp names a timeline of the manifest; ghost names none."

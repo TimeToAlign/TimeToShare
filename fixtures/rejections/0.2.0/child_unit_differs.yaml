@@ -33,5 +33,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "child 'take' has unit 'seconds', its parent 'score' has 'quarters'"
 path: [timelines, 0, children, 0, unit]
 reason: "A child shares its parent's unit."

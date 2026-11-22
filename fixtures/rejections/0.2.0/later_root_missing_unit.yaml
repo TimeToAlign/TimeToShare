@@ -56,5 +56,6 @@ manifest:
       number_type: fraction
       regions: []
   timetoshare: "0.2.0"
+message: "'unit' is a required property"
 path: [timelines, 1]
 reason: "Every timeline names its unit."

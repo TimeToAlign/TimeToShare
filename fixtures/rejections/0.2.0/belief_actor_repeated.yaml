@@ -95,5 +95,6 @@ manifest:
             id: "wd:Q255"
       unit: quarters
   timetoshare: "0.2.0"
+message: "'https://example.org/people/editor' already holds belief 0 of this entry; an actor holds one belief"
 path: [timelines, 0, provenance, 0, beliefs, 1, actor]
 reason: "An actor holds at most one belief in an entry; the editor holds two."

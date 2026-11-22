@@ -44,5 +44,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'timestamp_1' is not unique in the manifest, first at #/timelines/0/id"
 path: [graphical, timestamps, 0, id]
 reason: "A named timestamp's id differs from every other id of the manifest, a timeline's included."

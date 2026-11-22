@@ -38,5 +38,6 @@ manifest:
           start: [2, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'performance' is not unique in the manifest, first at #/timelines/0/id"
 path: [timelines, 1, regions, 0, id]
 reason: "A region's ID differs from every timeline ID; the region performance of score shares the ID of the root performance."

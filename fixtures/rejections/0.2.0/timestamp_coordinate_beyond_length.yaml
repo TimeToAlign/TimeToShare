@@ -44,5 +44,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "coordinate [5, 1] of 'timestamp_1' is beyond the length [4, 1] of its timeline 'verse'"
 path: [graphical, timestamps, 0, coordinate]
 reason: "A named timestamp lies within its timeline's own length; 5 is beyond the length 4 of verse, though within its parent."
