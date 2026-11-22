@@ -12,6 +12,7 @@
 <text data-id="score" data-part="name" x="16" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Score</text>
 <text data-id="timestamp_4" data-part="coordinate" x="61.0928" y="68.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_5" data-part="coordinate" x="461.0928" y="68.061" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+<line data-id="timestamp_1" data-part="line" x1="261.0928" y1="28.8047" x2="261.0928" y2="78.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <rect data-id="take_1" data-part="card" x="10" y="88.1836" width="490.7163" height="49.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="take_1" data-part="card" x="8" y="86.1836" width="490.7163" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="take_1" x1="61.0928" y1="100.5859" x2="461.0928" y2="100.5859" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
@@ -22,6 +23,7 @@
 <text data-id="take_1" data-part="name" x="16" y="104.394" text-anchor="start" font-size="11" fill="#000000">Take 1</text>
 <text data-id="timestamp_6" data-part="coordinate" x="61.0928" y="125.4399" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
 <text data-id="timestamp_7" data-part="coordinate" x="461.0928" y="125.4399" text-anchor="middle" font-size="9" fill="#000000">352 800 smp</text>
+<line data-id="timestamp_2" data-part="line" x1="161.0928" y1="86.1836" x2="161.0928" y2="135.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <rect data-id="take_2" data-part="card" x="10" y="145.5625" width="490.7163" height="49.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="take_2" data-part="card" x="8" y="143.5625" width="490.7163" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="take_2" x1="61.0928" y1="157.9648" x2="461.0928" y2="157.9648" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
@@ -33,8 +35,10 @@
 <text data-id="timestamp_8" data-part="coordinate" x="61.0928" y="182.8188" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
 <text data-id="timestamp_3" data-part="name" x="161.0928" y="182.8188" text-anchor="middle" font-size="9" fill="#000000">Take 2, bar 2</text>
 <text data-id="timestamp_9" data-part="coordinate" x="461.0928" y="182.8188" text-anchor="middle" font-size="9" fill="#000000">396 900 smp</text>
-<line data-id="anchor_1" x1="261.0928" y1="43.207" x2="161.0928" y2="100.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="anchor_2" x1="261.0928" y1="43.207" x2="161.0928" y2="157.9648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<text data-id="anchor_1" data-part="name" x="211.0928" y="75.0122" text-anchor="middle" font-size="9" fill="#000000">Bar 2, downbeat (take 1)</text>
+<line data-id="timestamp_3" data-part="line" x1="161.0928" y1="143.5625" x2="161.0928" y2="174.4648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="161.0928" y1="184.9414" x2="161.0928" y2="192.9414" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="anchor_1" x1="261.0928" y1="78.1836" x2="161.0928" y2="86.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="anchor_2" x1="261.0928" y1="78.1836" x2="161.0928" y2="143.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<text data-id="anchor_1" data-part="name" x="211.0928" y="85.2993" text-anchor="middle" font-size="9" fill="#000000">Bar 2, downbeat (take 1)</text>
 </g>
 </svg>

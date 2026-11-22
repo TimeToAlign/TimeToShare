@@ -19,6 +19,9 @@
 <text data-id="timestamp_3" data-part="name" x="199.9155" y="47.854" text-anchor="middle" font-size="9" fill="#000000">Entry</text>
 <text data-id="timestamp_3" data-part="id" x="199.9155" y="58.3306" text-anchor="middle" font-size="9" fill="#000000">timestamp_3</text>
 <text data-id="timestamp_3" data-part="coordinate" x="199.9155" y="68.8071" text-anchor="middle" font-size="9" fill="#000000">1 ♩</text>
-<line data-id="timestamp_1" data-part="line" x1="124.9155" y1="16" x2="124.9155" y2="77.9297" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="124.9155" y1="8" x2="124.9155" y2="79.4297" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="124.9155" y1="104.9062" x2="124.9155" y2="112.9062" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="199.9155" y1="8" x2="199.9155" y2="24.5" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="199.9155" y1="70.9297" x2="199.9155" y2="112.9062" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 </g>
 </svg>

@@ -15,6 +15,8 @@
 <text data-id="piece" data-part="name" x="16" y="88.9917" text-anchor="start" font-size="11" fill="#000000">Piece</text>
 <text data-id="timestamp_4" data-part="coordinate" x="260.3354" y="76.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_5" data-part="coordinate" x="660.3354" y="76.061" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+<line data-id="timestamp_1" data-part="line" x1="360.3354" y1="36.207" x2="360.3354" y2="99.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="460.3354" y1="36.207" x2="460.3354" y2="99.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <rect data-id="group_1" x="156.6318" y="8" width="543.7036" height="177.5391" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-id="group_1" data-part="name" x="164.6318" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Middle</text>
 <rect data-id="middle" data-part="card" x="166.6318" y="34.8047" width="527.7036" height="87.3555" rx="5" fill="#B8BEC8"/>
@@ -37,8 +39,8 @@
 <text data-id="middle" data-part="end label" x="660.3354" y="110.0376" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">12 ♩</text>
 <text data-id="timestamp_4" data-part="coordinate" x="260.3354" y="72.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_5" data-part="coordinate" x="660.3354" y="72.061" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
-<line data-id="timestamp_1" data-part="line" x1="360.3354" y1="47.207" x2="360.3354" y2="85.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_2" data-part="line" x1="460.3354" y1="47.207" x2="460.3354" y2="85.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="360.3354" y1="32.8047" x2="360.3354" y2="120.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="460.3354" y1="32.8047" x2="460.3354" y2="120.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <rect data-id="recording" data-part="card" x="166.6318" y="130.1602" width="527.7036" height="49.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="recording" data-part="card" x="164.6318" y="128.1602" width="527.7036" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="recording" x1="260.3354" y1="142.5625" x2="660.3354" y2="142.5625" stroke="#0050EF" stroke-width="3"/>
@@ -49,7 +51,8 @@
 <text data-id="recording" data-part="name" x="172.6318" y="146.3706" text-anchor="start" font-size="11" fill="#000000">Recording</text>
 <text data-id="timestamp_6" data-part="coordinate" x="260.3354" y="167.4165" text-anchor="middle" font-size="9" fill="#000000">0″</text>
 <text data-id="timestamp_7" data-part="coordinate" x="660.3354" y="167.4165" text-anchor="middle" font-size="9" fill="#000000">10″</text>
-<line data-id="anchor_1" x1="460.3354" y1="85.1836" x2="460.3354" y2="142.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<text data-id="anchor_1" data-part="name" x="460.3354" y="116.9888" text-anchor="middle" font-size="9" fill="#000000">Middle, bar 3</text>
+<line data-id="timestamp_3" data-part="line" x1="460.3354" y1="128.1602" x2="460.3354" y2="177.5391" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="anchor_1" x1="460.3354" y1="120.1602" x2="460.3354" y2="128.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<text data-id="anchor_1" data-part="name" x="460.3354" y="127.2759" text-anchor="middle" font-size="9" fill="#000000">Middle, bar 3</text>
 </g>
 </svg>

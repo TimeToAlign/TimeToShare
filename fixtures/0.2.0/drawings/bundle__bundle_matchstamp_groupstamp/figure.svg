@@ -18,7 +18,8 @@
 <text data-id="score" data-part="name" x="24" y="86.4175" text-anchor="start" font-size="11" fill="#000000">Score</text>
 <text data-id="timestamp_8" data-part="coordinate" x="102.2915" y="107.4634" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_9" data-part="coordinate" x="502.2915" y="107.4634" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
-<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="61.6094" x2="302.2915" y2="82.6094" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="53.6094" x2="302.2915" y2="117.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="402.2915" y1="53.6094" x2="402.2915" y2="117.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <rect data-id="performance" data-part="card" x="18" y="127.5859" width="509.8306" height="49.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="performance" data-part="card" x="16" y="125.5859" width="509.8306" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="performance" x1="102.2915" y1="139.9883" x2="502.2915" y2="139.9883" stroke="#0050EF" stroke-width="3"/>
@@ -29,6 +30,7 @@
 <text data-id="performance" data-part="name" x="24" y="143.7964" text-anchor="start" font-size="11" fill="#000000">Performance</text>
 <text data-id="timestamp_6" data-part="coordinate" x="102.2915" y="164.8423" text-anchor="middle" font-size="9" fill="#000000">0″</text>
 <text data-id="timestamp_7" data-part="coordinate" x="502.2915" y="164.8423" text-anchor="middle" font-size="9" fill="#000000">4″</text>
+<line data-id="timestamp_2" data-part="line" x1="202.2915" y1="125.5859" x2="202.2915" y2="174.9648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <rect data-id="group_2" x="8" y="190.9648" width="525.8306" height="154.1602" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-id="group_2" data-part="name" x="16" y="209.1753" text-anchor="start" font-size="11" fill="#000000">Page</text>
 <rect data-id="score" data-part="card" x="18" y="217.7695" width="509.8306" height="63.9766" rx="5" fill="#B8BEC8"/>
@@ -45,7 +47,8 @@
 <text data-id="score" data-part="name" x="24" y="248.5776" text-anchor="start" font-size="11" fill="#000000">Score</text>
 <text data-id="timestamp_8" data-part="coordinate" x="102.2915" y="269.6235" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_9" data-part="coordinate" x="502.2915" y="269.6235" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
-<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="223.7695" x2="302.2915" y2="244.7695" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="215.7695" x2="302.2915" y2="279.7461" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="402.2915" y1="215.7695" x2="402.2915" y2="279.7461" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <rect data-id="page" data-part="card" x="18" y="289.7461" width="509.8306" height="49.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="page" data-part="card" x="16" y="287.7461" width="509.8306" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="page" x1="102.2915" y1="302.1484" x2="502.2915" y2="302.1484" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
@@ -56,13 +59,11 @@
 <text data-id="page" data-part="name" x="24" y="305.9565" text-anchor="start" font-size="11" fill="#000000">Page</text>
 <text data-id="timestamp_4" data-part="coordinate" x="102.2915" y="327.0024" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
 <text data-id="timestamp_5" data-part="coordinate" x="502.2915" y="327.0024" text-anchor="middle" font-size="9" fill="#000000">800 px</text>
-<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="53.6094" x2="302.2915" y2="61.6094" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="82.6094" x2="302.2915" y2="174.9648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="215.7695" x2="302.2915" y2="223.7695" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="244.7695" x2="302.2915" y2="337.125" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="anchor_1" x1="202.2915" y1="139.9883" x2="302.2915" y2="82.6094" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="anchor_2" x1="302.2915" y1="68.6094" x2="402.2915" y2="68.6094" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<text data-id="anchor_1" data-part="name" x="252.2915" y="114.4146" text-anchor="middle" font-size="9" fill="#000000">Bar 2, performed</text>
-<text data-id="anchor_2" data-part="name" x="352.2915" y="71.7251" text-anchor="middle" font-size="9" fill="#000000">Second half, bar 1</text>
+<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="117.5859" x2="302.2915" y2="174.9648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="302.2915" y1="279.7461" x2="302.2915" y2="337.125" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="anchor_1" x1="202.2915" y1="125.5859" x2="302.2915" y2="117.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="anchor_2" x1="302.2915" y1="85.5977" x2="402.2915" y2="85.5977" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<text data-id="anchor_1" data-part="name" x="252.2915" y="124.7017" text-anchor="middle" font-size="9" fill="#000000">Bar 2, performed</text>
+<text data-id="anchor_2" data-part="name" x="352.2915" y="88.7134" text-anchor="middle" font-size="9" fill="#000000">Second half, bar 1</text>
 </g>
 </svg>
