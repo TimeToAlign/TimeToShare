@@ -499,6 +499,10 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             "rules": [
                 {"select": {"addresses": [{"id": "coda"}]}, "set": {"display": "none"}},
                 {
+                    "select": {"element": "elision", "within": "session"},
+                    "set": {"display": "none"},
+                },
+                {
                     "select": {"addresses": [{"id": "session", "part": ["card"]}]},
                     "set": {"elision-mode": "full"},
                 },
@@ -650,7 +654,12 @@ alone, and ``elision_6`` from 40 to 56 with ``{"canvas": 30}``, which
 overlaps ``elision_5`` and draws a bare gap; and ``elision_7`` from 0.0
 to 30.0 of the root ``session``, behind the frame of its child member
 ``take``, whose cards the rule ``elision-mode: full`` draws whole, so
-``elision_7`` is kept and not drawn.
+``elision_7`` is kept and not drawn. Beside it the rule
+``{"element": "elision", "within": "session"}`` hides every elision
+within the session: it hides ``elision_7`` a second time and leaves
+``elision_3`` drawn where the frame carries it into the session's
+ancestor card, since a carried gap follows the frame's display and not the
+card's cascade, while the mode rule shows that it is drawn in every mode.
 
 ``group_elided_members`` stores two elisions on timelines lying in the
 group "Theme", each drawn across its frame: ``elision_1`` "Development"

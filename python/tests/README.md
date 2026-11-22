@@ -1105,8 +1105,8 @@ proves it:
   states `elisions`, `[]` but in three, every twin leaves out an empty
   list; `bundles/bundle_elisions_stored` holds seven elisions, one of each
   width form and on each kind of timeline the drawing treats apart, names
-  and display words among them, and the rule `elision-mode: full` on a
-  root's cards; `groups/group_elided_members` holds two elisions on
+  and display words among them, the rule `elision-mode: full` on a
+  root's cards and a rule hiding every elision within that root; `groups/group_elided_members` holds two elisions on
   timelines lying in its group, one on a member that is a child timeline
   and one on a member's child, without `width` and with a ratio width;
   `bundles/bundle_groupstamp_shared_member` holds one on a member of two

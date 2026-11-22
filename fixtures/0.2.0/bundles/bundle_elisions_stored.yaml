@@ -118,6 +118,12 @@ graphical:
         display: none
     -
       select:
+        element: elision
+        within: "#session"
+      set:
+        display: none
+    -
+      select:
         addresses:
           -
             id: "#session"

@@ -450,7 +450,7 @@ def bundle_elisions_stored() -> AlignmentBundle:
     ``theme``, ``take`` and the recording ``recording`` ("Recording", 10.0
     seconds) as "Theme", whose id is minted, and holds the page ``page``
     ("Page", 1754 pixels) ungrouped. Its ``graphical`` entry
-    (``GRAPHICAL``) stores the elisions and the two rules.
+    (``GRAPHICAL``) stores the elisions and the three rules.
     """
     score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(64))
     theme = parts.holding(
