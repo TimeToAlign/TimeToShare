@@ -470,6 +470,21 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             ],
         },
     },
+    "group_grandchild_parent_on_top": {
+        "group_1": {
+            "order": {
+                "group_1": ["theme", "recording"],
+                "movement": [
+                    "line",
+                    "children",
+                    "conversion_maps",
+                    "markers",
+                    "regions",
+                    "flow_control",
+                ],
+            },
+        },
+    },
 }
 
 """The ``graphical`` object of each manifest the script styles or gives band
@@ -507,6 +522,17 @@ of ``score``, a member of ``group_1`` and of ``group_2``, a groupstamp.
 drawing its cross-section line alone, and the match timestamp at its quarter
 4 that the anchor of the MatchStamp "Middle, bar 3" joins to second 5.0 of
 the member ``recording``.
+
+``group_grandchild_parent_on_top`` gives the parent ``movement`` of the
+member ``theme`` of ``group_grandchild`` the band order ``line``,
+``children``, ``conversion_maps``, ``markers``, ``regions``,
+``flow_control``, which lays its children below its line, while the root
+``score`` keeps the default, its children above its line. In the card of
+``theme`` the faded line of ``movement`` therefore lies above the member's
+line and that of ``score`` below it: each on the side opposite to where its
+own band order puts its children. Its ``order`` also states the display
+order ``group_grandchild`` has, ``theme`` before ``recording``, which the
+entry replaces.
 
 ``timestamp_wedge_rotation`` turns the wedges of named timestamps, each
 named after its rotation. On the root ``melody`` they lie at quarters 2,

@@ -1802,7 +1802,7 @@ written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 170 files (`test_files.py`); the four statement
+`groups` and `statements`, 172 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -1883,6 +1883,17 @@ cannot prove that the emitter produces them:
   `matchstamp: false`, every `groupstamp: false`). Both forms pass `validate`,
   `identity_problems` and `matchstamp_problems`, so the emitter carries
   named timestamps and a MatchStamp on a member that is a child.
+- **A parent's band order with its children below.**
+  `groups/group_grandchild_parent_on_top.yaml` and its twin hold the
+  timelines and the group of `group_grandchild` (`score` holding
+  `movement` at `[16, 1]`, which holds `theme` at `[8, 1]`; `group_1`
+  listing `recording` and `theme`) with exactly two `graphical.order`
+  entries: the display order `{"group_1": ["theme", "recording"]}` of
+  `group_grandchild` and the band order `{"movement": ["line", "children",
+  "conversion_maps", "markers", "regions", "flow_control"]}`, no entry
+  for `score`. Both forms pass `validate` and `identity_problems`, so the
+  emitter carries a band order on an ancestor of a member, the one case
+  whose drawing puts an ancestor line on each side of the member.
 - **Flow-control IDs by type.** Across the complete fixtures, every
   flow-control element whose ID has the generated form `<prefix>_<N>`
   carries its own `type` as the prefix: exactly `flow_marker_1` (three
