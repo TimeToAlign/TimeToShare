@@ -2652,9 +2652,7 @@ closed document's root):
   non-finite ones with their value in place), every shared warning case,
   and the two large manifests below;
 - seeded mutations of the manifest fixtures, each drawn from its own stream
-  `random.Random("20261123-<kind>-<n>")` (the seed chosen so that the
-  mutations of every kind reach valid and invalid manifests over the
-  current fixture set), of nine kinds: a key deleted from
+  `random.Random("20261123-<kind>-<n>")`, sixty of each of nine kinds: a key deleted from
   an object; a value replaced by one of another JSON type; an undeclared
   key added to an object; an element's ID given the ID of another element;
   a string replaced by another `const` or `enum` string of the schema (a
@@ -2670,8 +2668,15 @@ closed document's root):
   `defaultdict`, subclasses of `dict`, `list`, `str`, `int` and `float`, a
   dictionary whose `keys()` disagrees with its iteration, and keys that are
   integers, `None` or tuples). Every kind is asserted to yield both
-  answers of the walk, valid and invalid manifests alike; the kind adding
-  an undeclared key is asserted to yield valid manifests with listed keys;
+  answers of the walk, valid and invalid manifests alike, and the kind
+  adding an undeclared key a valid manifest with listed keys: the
+  mutations of the kind are enumerated from the first, past the sixty
+  where needed, up to the 3000th, and the first mutation giving each
+  sought answer is found and the four facts asserted on it. So the
+  assertion holds whatever the seed and the fixture set, as long as such a
+  mutation is not rarer than about one in a few hundred (a repeated item
+  or an appended pair is valid only in free data, such as an array in a
+  `meta` object, or in an array taking repeats, such as `rules`);
 - per definition, seeded: a sub-value of a manifest fixture is drawn, a
   definition of the schema whose walk accepts it is drawn, the sub-value
   is mutated by one of the operators above, and fact 1 is asserted for

@@ -39,6 +39,8 @@ current = import_module("timetoshare.validate")
 SEED = 20261123
 MUTATIONS = 60
 """Mutations of each kind."""
+SEARCH = 3000
+"""How far the mutations of a kind are enumerated for an answer they must reach."""
 DEFINITION_CASES = 600
 """Mutated sub-values checked against one definition each."""
 
@@ -417,16 +419,30 @@ def test_a_mutated_fixture_holds_the_facts(kind: str, number: int) -> None:
     _assert_facts(_mutated(kind, number))
 
 
+def _first_mutation(kind: str, sought: Callable[[tuple[Any, ...]], bool]) -> int:
+    """The number of the first mutation of ``kind`` whose outcome is sought,
+    the facts asserted on it; ``SEARCH`` where none of the first is."""
+    for number in range(SEARCH):
+        value = _mutated(kind, number)
+        if sought(_outcome(value)):
+            assert sought(_assert_facts(value))
+            return number
+    return SEARCH
+
+
+@pytest.mark.parametrize("valid", [True, False])
 @pytest.mark.parametrize("kind", KINDS)
-def test_the_mutations_of_a_kind_reach_both_answers(kind: str) -> None:
+def test_the_mutations_of_a_kind_reach_both_answers(kind: str, valid: bool) -> None:
     """The mutations exercise valid and invalid manifests, not only one."""
-    outcomes = [_outcome(_mutated(kind, number)) for number in range(MUTATIONS)]
-    assert {True, False} <= {_valid(outcome) for outcome in outcomes}
+    number = _first_mutation(kind, lambda outcome: _valid(outcome) is valid)
+    assert number < SEARCH
 
 
 def test_an_undeclared_key_reaches_valid_manifests_with_listed_keys() -> None:
-    outcomes = [_outcome(_mutated("unknown", number)) for number in range(MUTATIONS)]
-    assert any(_valid(outcome) and outcome[0][1] for outcome in outcomes)
+    number = _first_mutation(
+        "unknown", lambda outcome: _valid(outcome) and bool(outcome[0][1])
+    )
+    assert number < SEARCH
 
 
 # Per definition.
