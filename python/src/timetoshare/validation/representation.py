@@ -7,12 +7,12 @@ from collections.abc import Iterator, Mapping
 from fractions import Fraction
 from typing import Any
 
-from ..manifest import _exact
+from ..manifest import exact
 from ..serialization import spell
 from .diagnostics import (
+    InstancePath,
     SchemaValidationError,
-    _entries,
-    _Path,
+    entries_of,
     json_pointer,
     number_type_of,
     timelines_by_id,
@@ -40,20 +40,20 @@ def _represents(value: Any, number_type: str) -> bool:
 
 def rewritten(value: Any, number_type: str) -> str | None:
     """Return an exact rewriting in ``number_type``, or ``None``."""
-    exact = _exact(value)
+    read = exact(value)
     if number_type == "fraction":
-        return spell([exact.numerator, exact.denominator])
+        return spell([read.numerator, read.denominator])
     if number_type == "int":
-        return spell(exact.numerator) if exact.denominator == 1 else None
+        return spell(read.numerator) if read.denominator == 1 else None
     try:
-        double = exact.numerator / exact.denominator
+        double = read.numerator / read.denominator
     except OverflowError:
         return None
-    return spell(double) if Fraction(double) == exact else None
+    return spell(double) if Fraction(double) == read else None
 
 
 def _representation_problem(
-    key: str, owner: Mapping[str, Any], path: _Path, number_type: str
+    key: str, owner: Mapping[str, Any], path: InstancePath, number_type: str
 ) -> Iterator[SchemaValidationError]:
     value = owner.get(key)
     if value is None or _represents(value, number_type):
@@ -68,21 +68,21 @@ def _representation_problem(
 
 
 def _timeline_representation(
-    timeline: Mapping[str, Any], path: _Path, offset_type: str | None
+    timeline: Mapping[str, Any], path: InstancePath, offset_type: str | None
 ) -> Iterator[SchemaValidationError]:
     own = number_type_of(timeline)
     yield from _representation_problem("offset", timeline, path, offset_type or own)
     yield from _representation_problem("length", timeline, path, own)
-    for index, region in enumerate(_entries(timeline, "regions")):
+    for index, region in enumerate(entries_of(timeline, "regions")):
         for key in ("start", "end"):
             yield from _representation_problem(
                 key, region, (*path, "regions", index), own
             )
-    for index, entry in enumerate(_entries(timeline, "flow_control")):
+    for index, entry in enumerate(entries_of(timeline, "flow_control")):
         yield from _representation_problem(
             "coordinate", entry, (*path, "flow_control", index), own
         )
-    for index, child in enumerate(_entries(timeline, "children")):
+    for index, child in enumerate(entries_of(timeline, "children")):
         yield from _timeline_representation(child, (*path, "children", index), own)
 
 
@@ -94,7 +94,7 @@ def representation_problems(
     The timelines first, then the coordinate of every named timestamp on a
     timeline of the manifest, read as that timeline's number type.
     """
-    for index, root in enumerate(_entries(manifest, "timelines")):
+    for index, root in enumerate(entries_of(manifest, "timelines")):
         yield from _timeline_representation(root, ("timelines", index), None)
     timelines = timelines_by_id(manifest)
     for index, timestamp in enumerate(timestamps_of(manifest)):
@@ -139,7 +139,7 @@ def plainly_finite(value: Any) -> bool:
 
 def finite_number_problems(
     value: Any,
-    path: _Path = (),
+    path: InstancePath = (),
     owner_id: str | None = None,
     owner_key: str | None = None,
 ) -> Iterator[SchemaValidationError]:

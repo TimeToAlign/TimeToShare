@@ -518,7 +518,7 @@ violation's is the same text in both packages.
 | --- | --- | --- | --- |
 | `not_a_manifest` | an object holding `timetoshare` | the root | `not a TimeToShare manifest` |
 | `finite_number` | every number finite | the leaf | `length of 'take' is not a finite number`, or `#/graphical/styles/s/opacity is not a finite number` with no ID above it |
-| `schema` | the schema document | the path rule below | the schema library's |
+| `schema` | the schema document | the path rule below | the schema library's, but for the three shapes worded below |
 | `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
 | `duplicate_id` | IDs unique within a root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds included after the tree's other IDs | the later ID | `'m' is not unique in the manifest, first at #/…` |
 | `dangling_target` | a jump origin's `target` names a jump target of its timeline; then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the target, the `measure_map` | `'there' names no jump_to of this timeline`, `'ghost' names no MeasureMap of this manifest` |
@@ -1380,6 +1380,48 @@ unknown conversion-map type the map, a missing `x_values` the `TableMap`, a
 measure view's `source_unit` other than `quarters` the unit, a `target` on a
 jump target or a `repeat_count` on a `to_coda` the member, a `dal_segno`
 without a `target` the element.
+
+Three shapes of the schema are worded by the package, so a refusal says
+what to write; the path and the code stay the path rule's and `schema`.
+
+1. A `oneOf` (or `anyOf`) whose every branch is a `const` is one leaf,
+   never its branches, and its message lists the admitted constants in the
+   schema's order as an `enum`'s does: `'furlongs' is not one of
+   ['number', 'floating_measures', …, 'user_units']` at a timeline's `unit`.
+2. A member whose schema admits no value (`not: {}` or `false`) reads
+   `the key 'repeat_count' is not admitted here`.
+3. A `not` refusing a pattern, or any of several patterns and words, names
+   the value, the part of it the refused branch finds (the first branch
+   that finds one) and what is not admitted, in the words of the schema's
+   description where it has them: a character is named as itself where it
+   is printable and no whitespace, else by its code point. `'#a\tb' holds
+   U+0009: no control character (U+0000 to U+001F) is admitted here` for an
+   ID (and for every other string the schema closes against control
+   characters: an order entry, a paint, a dash array, a media type, a
+   digest); `'match claims.parquet' holds U+0020: no whitespace and no
+   control character is admitted here` for an IRI or IRI reference, a
+   prefix's IRI included; `'_:b0' begins with '_:': no blank node
+   identifier is admitted here` and `'@id' begins with '@': no keyword is
+   admitted here` for an IRI reference; `'en_GB' holds '_': only A-Z, a-z,
+   0-9 and '-' are admitted here` for a language tag; for a prefix name
+   `'my.wd' holds '.': only A-Z, a-z, 0-9, '_' and '-' are admitted here`
+   and `'https' is not admitted here: it names a key of the manifest's
+   elements or a URI scheme the format reads as such`. A prefix name is
+   reached only as a key of `@context`, where the format's own terms are
+   the first branch, so `validate` reports the term list there; the prefix
+   name's two words are proven on the definition itself.
+
+Every other error keeps the schema library's message, a `not` requiring
+members included. `test_validate.py` proves it on every place of the
+schema with one of the three shapes, and a census of the schema fails when
+a place is added without a case: the time unit; the four forbidden members
+of a flow-control element (`repeat_count` on a `dal_segno` and on a
+`da_capo`, `target` and `repeat_count` on a jump target or a flow marker);
+and the eleven `not` places (an ID, an order entry, a paint, a dash array,
+a resource's media type and its digest, an IRI, an IRI reference with each
+of its three branches, a prefix's IRI, a language tag, a prefix name with
+each of its two branches), each message stated literally, at the path the
+walk reports.
 
 ## The canonical order
 

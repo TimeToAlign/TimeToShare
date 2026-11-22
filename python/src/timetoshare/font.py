@@ -16,7 +16,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
-from .validate import _data_root
+from .validate import data_root
 
 FONT_FILES = ("DejaVuSans.ttf", "NotoMusic-Regular.ttf")
 """The bundled TrueType files in fallback order: the text font, DejaVu Sans
@@ -28,12 +28,12 @@ METRICS_FILE = "dejavu-sans-2.37+noto-music-2.004.metrics.json"
 
 def font_paths() -> tuple[Path, ...]:
     """Return the paths of the bundled TrueType files, in ``FONT_FILES`` order."""
-    return tuple(_data_root() / "fonts" / name for name in FONT_FILES)
+    return tuple(data_root() / "fonts" / name for name in FONT_FILES)
 
 
 @cache
 def _metrics() -> dict[str, Any]:
-    with (_data_root() / "fonts" / METRICS_FILE).open(encoding="utf-8") as handle:
+    with (data_root() / "fonts" / METRICS_FILE).open(encoding="utf-8") as handle:
         return json.load(handle)
 
 

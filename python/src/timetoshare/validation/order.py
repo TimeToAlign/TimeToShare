@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Collection, Iterator, Mapping, Sequence
 from typing import Any
 
-from .diagnostics import SchemaValidationError, ValidationCode, _entries, _Path
+from .diagnostics import InstancePath, SchemaValidationError, ValidationCode, entries_of
 
 _DEFAULT_BAND_ORDER = (
     "children",
@@ -22,7 +22,7 @@ def _listing_problems(
     owner: str,
     order: list[str],
     expected: Sequence[str],
-    path: _Path,
+    path: InstancePath,
     messages: tuple[str, str],
     required: Collection[str] | None = None,
 ) -> Iterator[SchemaValidationError]:
@@ -63,7 +63,7 @@ def order_problems(
     ``timelines`` holds every timeline ID and ``first_group`` the index of the
     first group of each group ID, as the identity rules collected them.
     """
-    groups = _entries(manifest, "groups")
+    groups = entries_of(manifest, "groups")
     orders = (manifest.get("graphical") or {}).get("order") or {}
     for key in sorted(orders):
         path = ("graphical", "order", key)

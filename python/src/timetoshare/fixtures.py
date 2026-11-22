@@ -19,13 +19,13 @@ from pathlib import Path
 from typing import Any
 
 from .serialization import loads
-from .validate import SCHEMA_VERSION, _data_root
-from .validation.diagnostics import _Path
+from .validate import SCHEMA_VERSION, data_root
+from .validation.diagnostics import InstancePath
 
 
 def fixture_paths() -> list[Path]:
     """Return every bundled manifest fixture, excluding drawings."""
-    directory = _data_root() / "fixtures" / SCHEMA_VERSION
+    directory = data_root() / "fixtures" / SCHEMA_VERSION
     return sorted(
         path
         for path in directory.rglob("*.yaml")
@@ -42,7 +42,7 @@ def rdf_expectation(path: Path) -> Path:
     The file may not exist yet; the caller reads it.
     """
     name = path.name.removesuffix(".yaml").removesuffix(".minimal")
-    return _data_root() / "fixtures" / "rdf" / SCHEMA_VERSION / f"{name}.nq"
+    return data_root() / "fixtures" / "rdf" / SCHEMA_VERSION / f"{name}.nq"
 
 
 def _cases(directory: Path) -> list[Path]:
@@ -53,7 +53,7 @@ def _cases(directory: Path) -> list[Path]:
 
 def rejection_paths() -> list[Path]:
     """Return the shared rejection cases, sorted by name."""
-    return _cases(_data_root() / "fixtures" / "rejections" / SCHEMA_VERSION)
+    return _cases(data_root() / "fixtures" / "rejections" / SCHEMA_VERSION)
 
 
 @dataclass(frozen=True)
@@ -71,7 +71,7 @@ class RejectionCase:
     """
 
     manifest: Any
-    path: _Path
+    path: InstancePath
     code: str | None
     error: str | None
     reason: str
@@ -114,4 +114,4 @@ def rejection_case(path: Path) -> RejectionCase:
 
 def warning_paths() -> list[Path]:
     """Return the shared warning cases, sorted by name."""
-    return _cases(_data_root() / "fixtures" / "warnings" / SCHEMA_VERSION)
+    return _cases(data_root() / "fixtures" / "warnings" / SCHEMA_VERSION)

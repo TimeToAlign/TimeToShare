@@ -45,7 +45,7 @@ from collections.abc import Iterable, Iterator, Mapping, Sequence
 from typing import Any, Literal, cast
 
 from .serialization import spell
-from .validation.diagnostics import _Path, json_pointer
+from .validation.diagnostics import InstancePath, json_pointer
 
 __all__ = [
     "BELIEFS",
@@ -233,7 +233,7 @@ def calendar_date(text: str) -> datetime.date:
     raise ValueError(f"'{text}' is no Gregorian calendar date written YYYY-MM-DD")
 
 
-def _prefixes(context: Any) -> Mapping[str, str]:
+def declared_prefixes(context: Any) -> Mapping[str, str]:
     """The prefixes a context declares: its keys that are no format term."""
     if not isinstance(context, Mapping):
         return {}
@@ -274,16 +274,16 @@ def expand_iri(context: Mapping[str, Any] | None, text: str) -> str | None:
         return None
     if rest.startswith("//") or prefix in URI_SCHEMES:
         return text
-    namespace = _prefixes(context).get(prefix)
+    namespace = declared_prefixes(context).get(prefix)
     return None if namespace is None else namespace + rest
 
 
-def _is_iri(text: str) -> bool:
+def is_iri(text: str) -> bool:
     """Whether ``text`` begins with a scheme or a prefix: no relative reference."""
     return _SCHEME.match(text) is not None
 
 
-def _prefix_of(text: str) -> str | None:
+def prefix_of(text: str) -> str | None:
     """The prefix of a compact IRI, or ``None`` for an absolute IRI or no IRI."""
     prefix, colon, rest = text.partition(":")
     if not colon or rest.startswith("//") or prefix in URI_SCHEMES:
@@ -293,7 +293,7 @@ def _prefix_of(text: str) -> str | None:
 
 # The walk of statements -----------------------------------------------------
 
-Position = tuple[str, _Path, Any]
+Position = tuple[str, InstancePath, Any]
 """A position of the statements of a manifest: ``(kind, path, value)``.
 
 ``subject`` an element carrying statements or provenance, before its pairs;
@@ -309,7 +309,7 @@ def _entries_of(value: Any) -> list[Any]:
     return value if isinstance(value, list) else []
 
 
-def subjects(manifest: Any) -> Iterator[tuple[_Path, Mapping[str, Any], str]]:
+def subjects(manifest: Any) -> Iterator[tuple[InstancePath, Mapping[str, Any], str]]:
     """Yield the elements that may carry statements, in subject order.
 
     The manifest, then root by root the timeline, its regions in array
@@ -321,7 +321,9 @@ def subjects(manifest: Any) -> Iterator[tuple[_Path, Mapping[str, Any], str]]:
         return
     yield (), manifest, "manifest"
 
-    def visit(timeline: Any, path: _Path) -> Iterator[tuple[_Path, Mapping, str]]:
+    def visit(
+        timeline: Any, path: InstancePath
+    ) -> Iterator[tuple[InstancePath, Mapping, str]]:
         if not isinstance(timeline, Mapping):
             return
         yield path, timeline, "timeline"
@@ -349,7 +351,8 @@ def _node_container(node: Mapping[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in node.items() if key not in NODE_MEMBERS}
 
 
-def _is_value_object(value: Any) -> bool:
+def is_value_object(value: Any) -> bool:
+    """Whether a value is a JSON-LD value object (it holds ``@value``)."""
     return isinstance(value, Mapping) and "@value" in value
 
 
@@ -357,15 +360,16 @@ def _is_ordered(value: Any) -> bool:
     return isinstance(value, Mapping) and "list" in value
 
 
-def _is_node(value: Any) -> bool:
+def is_node(value: Any) -> bool:
+    """Whether a value is a node: an object that is no value object and no list."""
     return (
         isinstance(value, Mapping)
-        and not _is_value_object(value)
+        and not is_value_object(value)
         and not _is_ordered(value)
     )
 
 
-def _visit_value(value: Any, path: _Path) -> Iterator[Position]:
+def _visit_value(value: Any, path: InstancePath) -> Iterator[Position]:
     if isinstance(value, float):
         yield "float", path, value
     elif not isinstance(value, Mapping):
@@ -373,7 +377,7 @@ def _visit_value(value: Any, path: _Path) -> Iterator[Position]:
     elif _is_ordered(value):
         for index, item in enumerate(_entries_of(value["list"])):
             yield from _visit_value(item, (*path, "list", index))
-    elif _is_value_object(value):
+    elif is_value_object(value):
         if isinstance(value.get("@type"), str):
             yield "iri", (*path, "@type"), value["@type"]
     else:
@@ -387,7 +391,7 @@ def _visit_value(value: Any, path: _Path) -> Iterator[Position]:
         )
 
 
-def _visit_entry(entry: Mapping[str, Any], path: _Path) -> Iterator[Position]:
+def _visit_entry(entry: Mapping[str, Any], path: InstancePath) -> Iterator[Position]:
     for key in sorted(entry):
         member, at = entry[key], (*path, key)
         if key in ("basis", "stated_by"):
@@ -417,7 +421,7 @@ def _visit_entry(entry: Mapping[str, Any], path: _Path) -> Iterator[Position]:
 
 
 def _visit_subject(
-    container: Any, key_path: _Path, provenance: Any, subject: _Path
+    container: Any, key_path: InstancePath, provenance: Any, subject: InstancePath
 ) -> Iterator[Position]:
     if isinstance(container, Mapping):
         for key in sorted(container):
@@ -471,8 +475,8 @@ def used_prefixes(manifest: Mapping[str, Any]) -> list[str]:
     """
     found: set[str] = set()
     for kind, _, text in statement_positions(manifest):
-        if kind == "iri" or (kind == "ref" and _is_iri(text)):
-            prefix = _prefix_of(text)
+        if kind == "iri" or (kind == "ref" and is_iri(text)):
+            prefix = prefix_of(text)
             if prefix is not None:
                 found.add(prefix)
     return sorted(found)
@@ -491,7 +495,7 @@ def with_context(
         ValueError: If a prefix the statements use is declared neither in the
             manifest's ``@context`` nor in ``prefixes``.
     """
-    declared = _prefixes(manifest.get("@context"))
+    declared = declared_prefixes(manifest.get("@context"))
     context = copy.deepcopy(FORMAT_CONTEXT)
     for prefix in used_prefixes(manifest):
         if prefix in declared:
@@ -585,7 +589,7 @@ class _References:
         if _is_ordered(value) and isinstance(value["list"], list):
             value["list"] = self.values(value["list"])
             return bool(value["list"])
-        if not _is_node(value):
+        if not is_node(value):
             return True
         if self.dropped(value.get("id")):
             return False
@@ -682,7 +686,7 @@ def with_references_renamed(
 # Pairs ----------------------------------------------------------------------
 
 
-def _strictly_equal(left: Any, right: Any) -> bool:
+def strictly_equal(left: Any, right: Any) -> bool:
     """JSON equality that tells a boolean, an integer and a float apart."""
     if type(left) is not type(right) and not (
         isinstance(left, Mapping) and isinstance(right, Mapping)
@@ -690,32 +694,32 @@ def _strictly_equal(left: Any, right: Any) -> bool:
         return False
     if isinstance(left, Mapping):
         return left.keys() == right.keys() and all(
-            _strictly_equal(left[key], right[key]) for key in left
+            strictly_equal(left[key], right[key]) for key in left
         )
     if isinstance(left, list):
         return len(left) == len(right) and all(
-            _strictly_equal(a, b) for a, b in zip(left, right, strict=True)
+            strictly_equal(a, b) for a, b in zip(left, right, strict=True)
         )
     return left == right
 
 
-def _reference_iri(context: Mapping[str, Any] | None, text: Any) -> Any:
+def reference_iri(context: Mapping[str, Any] | None, text: Any) -> Any:
     """An ``id`` compared as its IRI; a relative reference as written."""
-    if isinstance(text, str) and _is_iri(text):
+    if isinstance(text, str) and is_iri(text):
         return expand_iri(context, text) or text
     return text
 
 
 def _same_value(context: Mapping[str, Any] | None, left: Any, right: Any) -> bool:
     if isinstance(left, Mapping) and isinstance(right, Mapping):
-        if _is_value_object(left) or _is_value_object(right):
+        if is_value_object(left) or is_value_object(right):
             return (
-                _is_value_object(left)
-                and _is_value_object(right)
-                and _strictly_equal(left.get("@value"), right.get("@value"))
+                is_value_object(left)
+                and is_value_object(right)
+                and strictly_equal(left.get("@value"), right.get("@value"))
                 and left.get("@language") == right.get("@language")
-                and _reference_iri(context, left.get("@type"))
-                == _reference_iri(context, right.get("@type"))
+                and reference_iri(context, left.get("@type"))
+                == reference_iri(context, right.get("@type"))
             )
         if _is_ordered(left) or _is_ordered(right):
             items = (_entries_of(left.get("list")), _entries_of(right.get("list")))
@@ -729,14 +733,14 @@ def _same_value(context: Mapping[str, Any] | None, left: Any, right: Any) -> boo
             return (
                 "id" in left
                 and "id" in right
-                and _reference_iri(context, left["id"])
-                == _reference_iri(context, right["id"])
+                and reference_iri(context, left["id"])
+                == reference_iri(context, right["id"])
             )
-        return _strictly_equal(
+        return strictly_equal(
             {key: value for key, value in left.items() if key != "provenance"},
             {key: value for key, value in right.items() if key != "provenance"},
         )
-    return _strictly_equal(left, right)
+    return strictly_equal(left, right)
 
 
 def _as_thing(property: str, value: Any) -> Any:
@@ -781,7 +785,7 @@ def same_pair(
 # Subjects -------------------------------------------------------------------
 
 
-def _element_at(manifest: Any, subject: _Path) -> tuple[Any, int]:
+def _element_at(manifest: Any, subject: InstancePath) -> tuple[Any, int]:
     """The element a subject path begins with and the length of its prefix."""
     target, position = manifest, 0
     expected = ("timelines",)
@@ -831,7 +835,7 @@ def _holder(manifest: Any, subject: Sequence[str | int]) -> tuple[dict, bool]:
             target = target[step]
         else:
             raise missing
-    if not isinstance(target, dict) or not _is_node(target):
+    if not isinstance(target, dict) or not is_node(target):
         raise missing
     return target, False
 
@@ -840,12 +844,13 @@ def _container(holder: Mapping[str, Any], element: bool) -> Any:
     return holder.get("statements") if element else _node_container(holder)
 
 
-def _context(manifest: Any) -> Mapping[str, Any] | None:
+def context_of(manifest: Any) -> Mapping[str, Any] | None:
+    """The manifest's ``@context`` where it is an object, else ``None``."""
     context = manifest.get("@context") if isinstance(manifest, Mapping) else None
     return context if isinstance(context, Mapping) else None
 
 
-def subject_path(manifest: Mapping[str, Any], element_id: str | None) -> _Path:
+def subject_path(manifest: Mapping[str, Any], element_id: str | None) -> InstancePath:
     """Return the path of the subject an element ID names.
 
     ``None`` names the bundle, ``()``; an ID names the timeline (at any
@@ -893,11 +898,11 @@ def _believes(
     context: Mapping[str, Any] | None, entry: Mapping[str, Any], actor: str, belief: Any
 ) -> bool:
     """Whether ``actor`` holds ``belief`` in an entry's pair, compared as IRIs."""
-    wanted = _reference_iri(context, actor)
+    wanted = reference_iri(context, actor)
     return any(
         isinstance(held, Mapping)
-        and _reference_iri(context, held.get("actor")) == wanted
-        and _strictly_equal(held.get("belief"), belief)
+        and reference_iri(context, held.get("actor")) == wanted
+        and strictly_equal(held.get("belief"), belief)
         for held in _entries_of(entry.get("beliefs"))
     )
 
@@ -916,7 +921,7 @@ def candidates(
         ValueError: If the path addresses no element and no value node.
     """
     holder, element = _holder(manifest, subject)
-    context = _context(manifest)
+    context = context_of(manifest)
     stated = container_pairs(_container(holder, element))
     return [
         copy.deepcopy(entry)
@@ -970,7 +975,7 @@ class _Edit:
         for date in dates:
             if date is not None:
                 calendar_date(date)
-        self.context = _context(self.result)
+        self.context = context_of(self.result)
         self.pair = (property, copy.deepcopy(value))
 
     def matches(self, pair: tuple[str, Any]) -> bool:
@@ -999,7 +1004,7 @@ class _Edit:
         property, value = self.pair
         if property == "type":
             written: Any = {"id": value}
-        elif _is_node(value) and "id" in value:
+        elif is_node(value) and "id" in value:
             written = {"id": value["id"]}
         else:
             written = copy.deepcopy(value)
@@ -1026,11 +1031,11 @@ class _Edit:
         if note is not None:
             held["note"] = note
         beliefs = self.the_entry().setdefault("beliefs", [])
-        wanted = _reference_iri(self.context, actor)
+        wanted = reference_iri(self.context, actor)
         for index, earlier in enumerate(beliefs):
             if (
                 isinstance(earlier, Mapping)
-                and _reference_iri(self.context, earlier.get("actor")) == wanted
+                and reference_iri(self.context, earlier.get("actor")) == wanted
             ):
                 beliefs[index] = held
                 return

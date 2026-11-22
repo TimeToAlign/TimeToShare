@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
+from fractions import Fraction
 from typing import Any
 
-from ..manifest import _exact
+from ..manifest import exact
 from ..serialization import spell
-from .diagnostics import SchemaValidationError, _entries, _Path
+from .diagnostics import InstancePath, SchemaValidationError, entries_of
 
 MEASURE_VIEWS = frozenset(
     {"MeasureRecordMap", "MeasureNumberMap", "FloatingMeasureMap", "MeasureBeatMap"}
@@ -20,8 +21,8 @@ _Reader = tuple[str, str] | None
 
 
 def _held(
-    conversion_map: Mapping[str, Any], path: _Path, reader: _Reader
-) -> Iterator[tuple[Any, _Path, _Reader]]:
+    conversion_map: Mapping[str, Any], path: InstancePath, reader: _Reader
+) -> Iterator[tuple[Any, InstancePath, _Reader]]:
     yield conversion_map, path, reader
     source = conversion_map.get("source_unit")
     holder = (
@@ -41,16 +42,16 @@ def _held(
 
 
 def _timeline_held(
-    timeline: Mapping[str, Any], path: _Path
-) -> Iterator[tuple[Mapping[str, Any], _Path, _Reader]]:
+    timeline: Mapping[str, Any], path: InstancePath
+) -> Iterator[tuple[Mapping[str, Any], InstancePath, _Reader]]:
     reader = (timeline["unit"], f"its timeline '{timeline['id']}'")
-    for index, entry in enumerate(_entries(timeline, "conversion_maps")):
+    for index, entry in enumerate(entries_of(timeline, "conversion_maps")):
         yield from _held(entry, (*path, "conversion_maps", index), reader)
 
 
 def timeline_maps(
-    timeline: Mapping[str, Any], path: _Path
-) -> Iterator[tuple[Mapping[str, Any], _Path]]:
+    timeline: Mapping[str, Any], path: InstancePath
+) -> Iterator[tuple[Mapping[str, Any], InstancePath]]:
     """Yield a timeline's conversion maps with their paths, each before those it holds.
 
     A ``CombinationMap``'s outputs carry no order; they are visited by name, in
@@ -65,21 +66,26 @@ def _count(number: int, noun: str) -> str:
 
 
 def _increasing(
-    conversion_map: Mapping[str, Any], key: str, noun: str, path: _Path
+    conversion_map: Mapping[str, Any], key: str, noun: str, path: InstancePath
 ) -> Iterator[SchemaValidationError]:
     values = conversion_map[key]
+    before: Fraction | None = None
     for index in range(1, len(values)):
-        if _exact(values[index]) <= _exact(values[index - 1]):
+        value = exact(values[index])
+        if before is None:
+            before = exact(values[0])
+        if value <= before:
             yield SchemaValidationError(
                 "conversion_map",
                 (*path, key, index),
                 f"{noun} {spell(values[index])} of {conversion_map['type']} "
                 f"'{conversion_map['id']}' does not exceed the one before it",
             )
+        before = value
 
 
 def _map_problems(
-    conversion_map: Mapping[str, Any], path: _Path, reader: _Reader
+    conversion_map: Mapping[str, Any], path: InstancePath, reader: _Reader
 ) -> Iterator[SchemaValidationError]:
     identifier = conversion_map["id"]
     source = conversion_map.get("source_unit")
@@ -113,7 +119,7 @@ def _map_problems(
 
 
 def timeline_map_problems(
-    timeline: Mapping[str, Any], path: _Path
+    timeline: Mapping[str, Any], path: InstancePath
 ) -> Iterator[SchemaValidationError]:
     """Yield the map rules a timeline tree breaks: source units, arrays that agree.
 
@@ -124,5 +130,5 @@ def timeline_map_problems(
     """
     for conversion_map, at, reader in _timeline_held(timeline, path):
         yield from _map_problems(conversion_map, at, reader)
-    for index, child in enumerate(_entries(timeline, "children")):
+    for index, child in enumerate(entries_of(timeline, "children")):
         yield from timeline_map_problems(child, (*path, "children", index))

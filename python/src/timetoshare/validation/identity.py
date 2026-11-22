@@ -7,10 +7,10 @@ from typing import Any
 
 from .containment import timeline_containment_problems
 from .diagnostics import (
+    InstancePath,
     SchemaValidationError,
-    _entries,
-    _Path,
     duplicate_problem,
+    entries_of,
     listed_ids,
     tree_ids,
 )
@@ -21,9 +21,9 @@ from .timestamps import matchstamp_problems, resource_problems, timestamp_proble
 
 
 def _dangling_targets(
-    timeline: Mapping[str, Any], path: _Path, measure_maps: set[str]
+    timeline: Mapping[str, Any], path: InstancePath, measure_maps: set[str]
 ) -> Iterator[SchemaValidationError]:
-    flow = _entries(timeline, "flow_control")
+    flow = entries_of(timeline, "flow_control")
     targets = {entry["id"] for entry in flow if entry["type"] == "jump_to"}
     for index, entry in enumerate(flow):
         if "target" in entry and entry["target"] not in targets:
@@ -40,14 +40,14 @@ def _dangling_targets(
                 (*at, "measure_map"),
                 f"'{reference}' names no MeasureMap of this manifest",
             )
-    for index, child in enumerate(_entries(timeline, "children")):
+    for index, child in enumerate(entries_of(timeline, "children")):
         yield from _dangling_targets(child, (*path, "children", index), measure_maps)
 
 
 def _root_problems(
-    root: Mapping[str, Any], path: _Path, measure_maps: set[str]
+    root: Mapping[str, Any], path: InstancePath, measure_maps: set[str]
 ) -> Iterator[SchemaValidationError]:
-    first: dict[str, _Path] = {}
+    first: dict[str, InstancePath] = {}
     for identifier, at in tree_ids(root, path):
         if identifier in first:
             yield duplicate_problem(identifier, at, first[identifier])
@@ -64,7 +64,7 @@ def _parents(roots: list[Mapping[str, Any]]) -> dict[str, str | None]:
 
     def visit(timeline: Mapping[str, Any], parent: str | None) -> None:
         found.setdefault(timeline["id"], parent)
-        for child in _entries(timeline, "children"):
+        for child in entries_of(timeline, "children"):
             visit(child, timeline["id"])
 
     for root in roots:
@@ -83,7 +83,7 @@ def _ancestors(identifier: str, parents: Mapping[str, str | None]) -> list[str]:
 
 def _member_problems(
     group: Mapping[str, Any],
-    path: _Path,
+    path: InstancePath,
     parents: Mapping[str, str | None],
 ) -> Iterator[SchemaValidationError]:
     selected: dict[str, int] = {}
@@ -130,16 +130,16 @@ def identity_problems(
     resources' IDs, and last the manifest ID); then group members, graphical
     orders, named timestamps, named MatchStamps and resources.
     """
-    roots = _entries(value, "timelines")
-    groups = _entries(value, "groups")
-    measure_maps = _entries(value, "measure_maps")
+    roots = entries_of(value, "timelines")
+    groups = entries_of(value, "groups")
+    measure_maps = entries_of(value, "measure_maps")
     measure_map_ids = {measure_map["id"] for measure_map in measure_maps}
     for index, root in enumerate(roots):
         yield from _root_problems(root, ("timelines", index), measure_map_ids)
 
-    first: dict[str, _Path] = {}
+    first: dict[str, InstancePath] = {}
     for index, root in enumerate(roots):
-        seen: dict[str, _Path] = {}
+        seen: dict[str, InstancePath] = {}
         for identifier, path in tree_ids(root, ("timelines", index)):
             if identifier in seen:
                 continue
