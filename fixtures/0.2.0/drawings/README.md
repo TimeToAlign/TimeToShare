@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Thirty-six of the 90 drawings in this directory are derived by hand from
+Thirty-seven of the 91 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the metrics table
 of its two fonts alone. Their `figure.svg` files are never regenerated:
 the emitting script compares each with its writer's output instead. Every
@@ -60,11 +60,12 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `bundle__bundle_matchstamp_cards` | `bundles/bundle_matchstamp_cards.yaml` | none (the manifest's own `graphical` object names its MatchStamps) |
 | `map_band_order_subset` | `map_band_order_subset.yaml` | none (the manifest's own `graphical` object orders the bands of `melody`) |
 | `group__group_child_member_stamps` | `groups/group_child_member_stamps.yaml` | none (the manifest's own `graphical` object names its timestamps and its MatchStamp) |
+| `group__group_grandchild_parent_on_top` | `groups/group_grandchild_parent_on_top.yaml` | none (the manifest's own `graphical` object orders the bands of `movement`) |
 
 ## Shared quantities
 
 Every manifest is drawn as one block (§8). Twenty-seven of these drawings show
-one ungrouped root, drawn in its card, five one group, drawn as a frame,
+one ungrouped root, drawn in its card, six one group, drawn as a frame,
 `bundle_ungrouped__places`, `bundle_ungrouped__scale` and
 `bundle_ungrouped__spacing` three ungrouped roots, each in its own card,
 and `bundle__bundle_matchstamp_cards` two groups sharing a member, each
@@ -155,11 +156,12 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   0 and the smallest top minus `Pt`; `Pt` = `P + h(11) + F` = 28.8046875 when
   the manifest's title is displayed and `P` otherwise. The place origin
   `(Ox, Oy)` = (0 − `Xl`, 0 − `Yt`) is added to every position last. Of
-  the hand-derived drawings, five reach left of the padding or above `Pt`:
+  the hand-derived drawings, six reach left of the padding or above `Pt`:
   an item does in `bundle_ungrouped__places`, and an ancestor card (below)
-  does in the four drawings of a group with a child member
+  does in the five drawings of a group with a child member
   (`group__group_child_member`, `group__group_parents_mixed`,
-  `group__group_grandchild` and `group__group_child_member_stamps`). In
+  `group__group_grandchild`, `group__group_child_member_stamps` and
+  `group__group_grandchild_parent_on_top`), each to the left alone. In
   every other hand-derived drawing `Xl` = `Yt` = 0 and the origin is (0,
   0), so `Wb = P` plus the largest right edge and `Hb = P` plus the
   largest bottom edge. No drawing here requests a block size, so `W = Wb`
@@ -216,6 +218,23 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   4w` and the outer of its three chevrons has its tip, and the right edge,
   at `Xr + 5.5w`, `Xr` computed first (§6.6, §6.7): `(x0 + L + 12) + 16.5`
   for `w` = 3, 28.5 past `Xe`.
+- A child member `M` is drawn with the faded lines of its ancestors (§8.3).
+  An ancestor whose band order puts its children above its line, as the
+  default does, has its line below `M`'s, in the ancestor band of the below
+  side; one whose order puts them below its line, in
+  `group__group_grandchild_parent_on_top` alone, has it above. Below `M`'s
+  line its markers band of 26.9765625 lies at level −1, so the ancestor band
+  there starts at max(`p0 / 2` = 7, max(26.9765625, 1.5) + `S`) = 30.9765625.
+  Each of its rows has the inner half 7 and the outer half 26.9765625, the
+  ancestor's marks of `M`'s start and end hanging below its line with their
+  labels in one tier (§8.3): so the nearest ancestor line lies 30.9765625 +
+  7 = 37.9765625 below `M`'s, each further one 26.9765625 + 7 = 33.9765625
+  below the one before, and `Eb` is 30.9765625 + 7 + 26.9765625 =
+  64.953125 for one row and 98.9296875 for two. A mark there has its tip
+  1.5 and its base 14.5 below its line, and its label's baseline lies
+  `w / 2 + 13 + 2 + a(9)` = 24.85400390625 below it. `M` with no band
+  above its line has `y_root` = `P + h(11) / 2` = 14.40234375, so `Hm` =
+  14.40234375 + 64.953125 + 8 = 87.35546875 with one ancestor row.
 - The defaults show every ancestor card (§4, §8.8). For the root `R` of a
   child member `M` of a frame of length `L` = 400 starting at `s0` (in item
   coordinates): `ts` = −(the offsets from `R` down to `M`, summed), `λ`
@@ -226,21 +245,26 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   name of `R`'s own drawing (every name there at size 11, none faded), its
   left edge `xs − s0'` and its width `s0' + LA + Mr' + K`, `Mr'` the
   furthest a right edge of that drawing lies past `s0' + LA`. It is moved so
-  that `R`'s line lies on `R`'s ancestor row in `M`'s card, and drawn at
+  that `R`'s line lies on `R`'s faded line in `M`'s card, and drawn at
   the frame's place, after the block's background and before the frame
   (§8.5). It takes no room, but the block grows to hold it, its shadow
   included, so the origin moves by (0 − `Xl`, 0 − `Yt`) and every other
   element lies where it lies without it, moved by that origin. In each of
-  the four drawings `R` draws no wedge of its own, and its drawing holds
+  the five drawings `R` draws no wedge of its own, and its drawing holds
   one child row above `R`'s line for `M` and one for each timeline between
-  them, outermost `M` (§6.4, §6.5): each children band starts `p0 / 2` = 7
+  them. In the four drawings of default band orders `M` lies outermost
+  (§6.4, §6.5): each children band starts `p0 / 2` = 7
   from its timeline's line, each row's line lies `p / 2` = 7 inside its
   row, and `M`'s row draws `M`'s `origin` and `length` wedges and their
   labels in a markers band of 26.9765625 below its line. So `M`'s line
   lies `P + 7` = 15 below the card's top; the next line down, `M`'s parent,
   lies 26.9765625 + 7 = 33.9765625 below it, and every further line 7 + 7
   = 14 below the one before, `R`'s last; the card is `R`'s line plus
-  `h(11) / 2` = 6.40234375 plus `P` high.
+  `h(11) / 2` = 6.40234375 plus `P` high. With `R` the parent of `M`, the
+  card puts `M`'s row 33.9765625 above `R`'s line where `M`'s card puts
+  `R`'s faded line 37.9765625 below `M`'s: the row lies 4 lower than `M`'s
+  own line, `S` parting `M`'s markers band from its ancestor band in `M`'s
+  card and having no counterpart in `R`'s drawing.
 
 ## `bare`
 
@@ -459,8 +483,8 @@ pixels. A row of segment lines has no name, so `Pages` is the only one.
 The group "Second half" in the display order `second-half`, `recording`:
 the child `second-half` (8 quarters at 8) of the piece `piece` (16
 quarters), and the root `recording` (10.0 seconds). The member
-`second-half` carries the ancestor line of `piece`, which runs on to the
-left, and `piece` is drawn whole in its ancestor card behind the frame
+`second-half` carries the ancestor line of `piece` below its own line
+(Shared quantities), which runs on to the left, and `piece` is drawn whole in its ancestor card behind the frame
 (§8.8). The bullets before the ancestor card's give positions in place
 coordinates; drawn, each lies 368 further right.
 
@@ -479,9 +503,25 @@ coordinates; drawn, each lies 368 further right.
   `length` at 520.61962890625 + 7.406982421875 = 528.026611328125. Each
   card is 529.898681640625 − 8 = 521.898681640625 → 521.8987 wide and the
   frame 529.898681640625 + 8 = 537.898681640625 → 537.8987.
-- `Hm` = 83.953125 (`second-half`, its ancestor band above) and
-  49.37890625 (`recording`); the frame is 8 + 12.8046875 + 4 + 83.953125
-  + 8 + 49.37890625 + 8 = 174.13671875 high.
+- `Hm` = 14.40234375 + 64.953125 + 8 = 87.35546875 (`second-half`,
+  nothing above its line, below it its markers band and its ancestor band
+  of one row, Shared quantities) and 49.37890625 (`recording`); the frame
+  is 8 + 12.8046875 + 4 + 87.35546875 + 8 + 49.37890625 + 8 = 177.5390625
+  → 177.5391 high, `second-half`'s card at 8 + 8 + 12.8046875 + 4 =
+  32.8046875 → 32.8047 and `recording`'s at 32.8046875 + 87.35546875 + 8
+  = 128.16015625 → 128.1602.
+- Drawn, each line at its card's top plus `y_root`: `second-half` at
+  32.8046875 + 14.40234375 = 47.20703125 → 47.207, its wedges from their
+  tips at 48.707 to their bases at 61.707 and the baseline of its labels
+  `0 ♩` and `8 ♩` at 47.20703125 + 24.85400390625 = 72.06103515625 →
+  72.061; `piece`'s ancestor line 37.9765625 below it, at 85.18359375 →
+  85.1836, the marks of `second-half` on it from their tips at 86.6836 to
+  their bases at 99.6836 and their labels `8 ♩` and `16 ♩` with the
+  baseline 85.18359375 + 24.85400390625 = 110.03759765625 → 110.0376; the
+  names `Second half` at 47.20703125 + 3.80810546875 = 51.01513671875 →
+  51.0151 and `Piece`, at size 9, at 85.18359375 + 3.11572265625 =
+  88.29931640625 → 88.2993; `recording` at 128.16015625 + 14.40234375 =
+  142.5625.
 - The ancestor card of `piece` (Shared quantities), aligned to
   `second-half`: `s0` = 112.61962890625 (`x0` less the place's 8), `ts` =
   −8, `λ` = 8, `te` = −8 + 16 = 8, so `us` = −1, `ue` = 1, `xs` =
@@ -492,21 +532,22 @@ coordinates; drawn, each lies 368 further right.
   `8 ♩` of `length` at the end of `second-half` (2920 advances,
   12.83203125 wide), so the card is 80.61962890625 + 800 + 9 + 8 =
   897.61962890625 → 897.6196 wide. `piece`'s ancestor line in
-  `second-half`'s card lies at 32.8046875 + 48.9765625 − 14 = 67.78125
-  and `piece`'s line 48.9765625 below its card's top, so the card's top is
-  18.8046875 → 18.8047, 63.37890625 → 63.3789 high, its bottom with its
-  shadow 84.18359375 above the frame's. `Xl` = −360 − 8 = −368: the origin
-  is (368, 0), and the card is drawn at (8, 18.8047), its shadow at (10,
-  20.8047). In it (drawn): `piece`'s line at 67.7812 from 8 + 80.61962890625
-  = 88.61962890625 → 88.6196 to 888.61962890625 → 888.6196, its
-  arrowhead's tip at 897.6196; `second-half`'s row at 18.8046875 + 15 =
-  33.8046875 → 33.8047 from 488.6196 (8 of 16 quarters) to 888.6196, the
-  wedges of `origin` and `length` and their labels `0 ♩` and `8 ♩` at its
-  ends; the names `Second half` and `Piece` at 8 + `K` = 16.
+  `second-half`'s card lies at 85.18359375 and `piece`'s line 48.9765625
+  below its card's top, so the card's top is 85.18359375 − 48.9765625 =
+  36.20703125 → 36.207, 63.37890625 → 63.3789 high, its bottom with its
+  shadow at 101.5859375, inside the frame. `Xl` = −360 − 8 = −368 and `Yt`
+  = 0: the origin is (368, 0), and the card is drawn at (8, 36.207), its
+  shadow at (10, 38.207). In it (drawn): `piece`'s line at 85.1836 from 8
+  + 80.61962890625 = 88.61962890625 → 88.6196 to 888.61962890625 →
+  888.6196, its arrowhead's tip at 897.6196; `second-half`'s row at
+  36.20703125 + 15 = 51.20703125 → 51.207 from 488.6196 (8 of 16 quarters)
+  to 888.6196, the wedges of `origin` and `length` and their labels `0 ♩`
+  and `8 ♩` (baseline 76.061) at its ends; the names `Second half` and
+  `Piece` at 8 + `K` = 16, with the baselines 55.0151 and 88.9917.
 - `W` = 8 + (529.898681640625 + 8 + 8) + 368 = 921.898681640625, the
   frame's right edge beyond the card's shadow at −360 + 897.61962890625 +
-  2 = 539.61962890625; `H` = 8 + (8 + 174.13671875) = 190.13671875.
-- Page 953.898681640625 × 222.13671875 → **953.8987 × 222.1367**.
+  2 = 539.61962890625; `H` = 8 + (8 + 177.5390625) = 193.5390625.
+- Page 953.898681640625 × 225.5390625 → **953.8987 × 225.5391**.
 
 ## `group__group_parents_mixed`
 
@@ -550,29 +591,28 @@ each lies 423.5276884191177 further right.
   every member's markers band reaches 26.9765625.
 - `audio` has no other band above: `Ea` = 6.5, so `y_root` = 14.5 and `Hm`
   = 49.4765625 (Shared quantities).
-- `take` meets its ancestor band (§8.3) beyond the map: the band starts at
-  the larger of `p0 / 2` = 7 and the outer edge of the above side plus `S`,
-  6.5 + 4 = 10.5. The row of `session` has the inner half 7 and the outer half
-  26.9765625 (its marks and their labels in one tier), so the line of
-  `session` lies 10.5 + 7 = 17.5 above `take`'s and `Ea` = 10.5 +
-  33.9765625 = 44.4765625; `y_root` = 52.4765625 and `Hm` = 52.4765625 +
-  26.9765625 + 8 = 87.453125. `exposition` and `system` have no map: their
-  ancestor bands start at 7, their ancestor lines lie 14 above their own,
-  and `Hm` = 48.9765625 + 26.9765625 + 8 = 83.953125. Every ancestor line so
-  lies 34.9765625 below its card's top, and the map of `take` lies between
-  `take`'s line and that of `session`, which stand 17.5 apart instead of 14.
+- Every ancestor line lies below its member, 37.9765625 below the member's
+  line, and every child member's `Eb` is 64.953125 (Shared quantities).
+  `take`'s map lies above `take`'s line, on the side away from `session`'s:
+  `Ea` = 6.5, `y_root` = 14.5 and `Hm` = 14.5 + 64.953125 + 8 = 87.453125.
+  `exposition` and `system` have no band above: `y_root` = 14.40234375 and
+  `Hm` = 87.35546875. Every ancestor line so lies 52.37890625 below its
+  card's top, `take`'s 52.4765625.
 - The frame's rows (§8.4): the cards start at 8 + (8 + 12.8046875 + 4) =
   32.8046875 → 32.8047 (`exposition`) and each the frame's spacing `Sf` =
-  8 below the one before, at 124.7578125 → 124.7578 (`take`), 220.2109375
-  → 220.2109 (`system`) and
-  312.1640625 → 312.1641 (`audio`); the frame is 8 + 12.8046875 + 4 +
-  83.953125 + 8 + 87.453125 + 8 + 83.953125 + 8 + 49.4765625 + 8 =
-  361.640625 → 361.6406 high.
-- Drawn, each line at its card's top plus `y_root`: `take` at 177.234375 →
-  177.2344, its map's outline from 170.734375 → 170.7344 to 172.734375 →
-  172.7344 and the line of `session` at 159.734375 → 159.7344; `audio` at
-  326.6640625 → 326.6641, its map's outline from 320.1640625 → 320.1641 to
-  322.1640625 → 322.1641.
+  8 below the one before, at 128.16015625 → 128.1602 (`take`),
+  223.61328125 → 223.6133 (`system`) and 318.96875 → 318.9688 (`audio`);
+  the frame is 8 + 12.8046875 + 4 + 87.35546875 + 8 + 87.453125 + 8 +
+  87.35546875 + 8 + 49.4765625 + 8 = 368.4453125 → 368.4453 high.
+- Drawn, each line at its card's top plus `y_root` and each ancestor line
+  37.9765625 below its member's: `exposition` at 47.20703125 → 47.207 and
+  `sonata` at 85.18359375 → 85.1836; `take` at 142.66015625 → 142.6602,
+  its map's outline from 136.16015625 → 136.1602 to 138.16015625 →
+  138.1602, and `session` at 180.63671875 → 180.6367; `system` at
+  238.015625 → 238.0156 and `page` at 275.9921875 → 275.9922; `audio` at
+  333.46875 → 333.4688, its map's outline from 326.96875 → 326.9688 to
+  328.96875 → 328.9688. The labels of the marks lie 24.85400390625 below
+  each ancestor line: at 110.0376, 205.4907 and 300.8462.
 - The ancestor cards (Shared quantities), one per root in the members'
   display order, `s0` = 105.0302734375 (`x0` less the place's 8):
   - `sonata`, aligned to `exposition`: `ts` = −16, `λ` = 32, `λR` = 48, `te`
@@ -598,30 +638,35 @@ each lies 423.5276884191177 further right.
     w(`System`, 11) = 41.01904296875, `s0'` = 57.01904296875, left
     48.01123046875, place 56.01123046875; `Mr'` = 9: the card is
     1243.3523763020833 → 1243.3524 wide.
-  Each card's top is its member's ancestor row less 48.9765625: 67.78125,
-  159.734375 and 255.1875 give 18.8046875 → 18.8047, 110.7578125 →
-  110.7578 and 206.2109375 → 206.2109, each 63.37890625 → 63.3789 high.
-  `Xl` = −415.5276884191177 − 8: the origin is (423.5276884191177, 0), and
-  the cards are drawn at `x` 263.5276884191177 → 263.5277, 8 and
-  479.5389188878677 → 479.5389, the lines of `sonata` from 336.558 to
-  936.558, of `session` from 65.9697 to 1477.7344 and of `page` from
-  536.558 to 1705.8913, each member's row in them from 536.558, where its
-  own line starts in the frame.
+  Each card's top is its member's ancestor line less 48.9765625 (in
+  `session`'s card, too, `take`'s row has the inner half 26.9765625, its
+  markers band, and the outer half 7, its map reaching only 6.5): 85.18359375,
+  180.63671875 and 275.9921875 give 36.20703125 → 36.207, 131.66015625 →
+  131.6602 and 227.015625 → 227.0156, each 63.37890625 → 63.3789 high, and
+  each member's row lies 15 below its card's top, at 51.207, 146.6602 and
+  242.0156. `Xl` = −415.5276884191177 − 8 and `Yt` = 0: the origin is
+  (423.5276884191177, 0), and the cards are drawn at `x` 263.5276884191177
+  → 263.5277, 8 and 479.5389188878677 → 479.5389, the lines of `sonata`
+  from 336.558 to 936.558, of `session` from 65.9697 to 1477.7344 and of
+  `page` from 536.558 to 1705.8913, each member's row in them from
+  536.558, where its own line starts in the frame. The lowest card,
+  `page`'s, ends with its shadow at 292.39453125, inside the frame.
 - `W` = 8 + 1301.3636067708333 + 423.5276884191177 = 1732.891295189951,
   the right edge of `page`'s card with its shadow, 56.01123046875 +
   1243.3523763020833 + 2, beyond the frame's 554.947265625 + 8; `H` = 8 +
-  369.640625 = 377.640625.
-- Page 1764.891295189951 × 409.640625 → **1764.8913 × 409.6406**.
+  (8 + 368.4453125) = 384.4453125.
+- Page 1764.891295189951 × 416.4453125 → **1764.8913 × 416.4453**.
 
 ## `group__group_grandchild`
 
 The group "Theme" in the display order `theme`, `recording`: the grandchild
 `theme` (8 quarters at 8 in the movement of 16 quarters at 16 in the score
 of 64) and the root `recording` (12.0 seconds). `theme` carries two
-ancestor lines, `movement` and `score`, both running on to the left, and
+ancestor lines below its own, `movement` nearer and `score` beyond it
+(Shared quantities), both running on to the left, and
 `score` is drawn whole in its ancestor card behind the frame (§8.8). The
 bullets before the ancestor card's give positions in place coordinates;
-drawn, each lies 1170.56201171875 further right and 3.1953125 lower.
+drawn, each lies 1170.56201171875 further right.
 
 - `xn` = 24. `N` = w(`Recording`, 11) = 55.70361328125, of `Theme`,
   `Score`, `Movement` and `Recording`.
@@ -632,9 +677,22 @@ drawn, each lies 1170.56201171875 further right and 3.1953125 lower.
   beyond the label of `recording`'s `length`, the clock `12″` (§5.2; the
   advances 2 × 1303 + 765 = 3371, 14.81396484375 wide), at 511.70361328125
   + 7.406982421875 = 519.110595703125. `origin`'s label is `0″`.
-- `Hm` = 82.953125 + 26.9765625 + 8 = 117.9296875 (`theme`, two ancestor
-  rows above) and 49.37890625 (`recording`); the frame is 208.11328125
-  high.
+- `Hm` = 14.40234375 + 98.9296875 + 8 = 121.33203125 (`theme`, nothing
+  above its line, below it its markers band and its ancestor band of two
+  rows, Shared quantities) and 49.37890625 (`recording`); the frame is 8 +
+  12.8046875 + 4 + 121.33203125 + 8 + 49.37890625 + 8 = 211.515625 →
+  211.5156 high, `theme`'s card at 32.8046875 → 32.8047 and `recording`'s
+  at 32.8046875 + 121.33203125 + 8 = 162.13671875 → 162.1367.
+- Drawn: `theme`'s line at 32.8046875 + 14.40234375 = 47.20703125 →
+  47.207; `movement`'s ancestor line 37.9765625 below it at 85.18359375 →
+  85.1836, `score`'s 26.9765625 + 7 = 33.9765625 further at 119.16015625
+  → 119.1602; the marks of `theme` hang below each, their labels `8 ♩`
+  and `16 ♩` on `movement`'s line with the baseline 110.03759765625 →
+  110.0376 and `24 ♩` and `32 ♩` on `score`'s with the baseline
+  119.16015625 + 24.85400390625 = 144.01416015625 → 144.0142; the names
+  `Theme` at 51.0151, `Movement` at 88.2993 and `Score` at 119.16015625 +
+  3.11572265625 = 122.27587890625 → 122.2759; `recording`'s line at
+  162.13671875 + 14.40234375 = 176.5390625 → 176.5391.
 - The ancestor card of `score` (Shared quantities), aligned to `theme`:
   `s0` = 103.70361328125, `ts` = −(16 + 8) = −24, `λ` = 8, `te` = −24 + 64
   = 40, `us` = −3, `ue` = 5, `xs` = −1096.29638671875, `xe` =
@@ -645,21 +703,22 @@ drawn, each lies 1170.56201171875 further right and 3.1953125 lower.
   + 9 + 8 = 3291.265625 → 3291.2656 wide. In it `theme`'s line lies 15
   below the top, `movement`'s 15 + 33.9765625 = 48.9765625 and `score`'s
   62.9765625; the card is 62.9765625 + 6.40234375 + 8 = 77.37890625 →
-  77.3789 high. `score`'s ancestor line in `theme`'s card lies 14 +
-  33.9765625 above `theme`'s line at 32.8046875 + 82.953125 = 115.7578125
-  (`movement`'s row, then the marks of `theme` on it and their labels), at
-  67.78125, so the card's top is 67.78125 − 62.9765625 = 4.8046875, above `Pt` = 8: `Yt` =
-  −3.1953125 and `Xl` = −1170.56201171875, the origin (1170.56201171875,
-  3.1953125), and the card is drawn at (8, 8). In it (drawn): `score`'s
-  line at 70.9766 from 82.265625 → 82.2656 to 3282.265625 → 3282.2656,
-  `movement`'s from 882.2656 (16 of 64 quarters) at 56.9766 and `theme`'s
-  from 1282.2656 (24 of 64) at 23, where `theme`'s own line starts in the
-  frame, 111.70361328125 + 1170.56201171875.
+  77.3789 high. `score`'s ancestor line in `theme`'s card lies at
+  119.16015625, so the card's top is 119.16015625 − 62.9765625 =
+  56.18359375 → 56.1836, below `Pt` = 8, and its bottom with its shadow at
+  135.5625, inside the frame: `Yt` = 0 and `Xl` = −1170.56201171875, the
+  origin (1170.56201171875, 0), and the card is drawn at (8, 56.1836). In
+  it (drawn): `score`'s line at 119.1602 from 82.265625 → 82.2656 to
+  3282.265625 → 3282.2656, `movement`'s from 882.2656 (16 of 64 quarters)
+  at 105.1602 and `theme`'s from 1282.2656 (24 of 64) at 71.1836, where
+  `theme`'s own line starts in the frame, 111.70361328125 +
+  1170.56201171875; the names `Theme`, `Movement` and `Score` at 16, with
+  the baselines 74.9917, 108.9683 and 122.9683.
 - `W` = 8 + 2130.70361328125 + 1170.56201171875 = 3309.265625, the right
   edge of the card with its shadow, −1162.56201171875 + 3291.265625 + 2,
-  beyond the frame's 551.70361328125; `H` = 8 + 216.11328125 + 3.1953125 =
-  227.30859375.
-- Page 3341.265625 × 259.30859375 → **3341.2656 × 259.3086**.
+  beyond the frame's 551.70361328125; `H` = 8 + (8 + 211.515625) =
+  227.515625.
+- Page 3341.265625 × 259.515625 → **3341.2656 × 259.5156**.
 
 ## `unknown_length`
 
@@ -1806,12 +1865,13 @@ The markers band of `melody` so lies against its line above it, the map
 The group "Middle" of `group_parent_both` in the display order `middle`,
 `recording`: the child `middle` (8 quarters at 4) of the piece `piece` (16
 quarters), and the root `recording` (10.0 seconds). The member `middle`
-carries the ancestor line of `piece`, which runs on to both sides. Three
+carries the ancestor line of `piece` below its own line (Shared
+quantities), which runs on to both sides. Three
 timestamps on the members draw their cross-section lines alone: `timestamp_1`
 "Bar 2" at 2 on `middle`, and the match timestamps `timestamp_2` at 4 on
 `middle` and `timestamp_3` at 5.0 on `recording`, which the anchor
 `anchor_1` of the MatchStamp "Middle, bar 3" joins, its name drawn. The
-drawing proves that a child member's cross-section lines reach up to its
+drawing proves that a child member's cross-section lines reach down to its
 outermost displayed ancestor line (§6.6, Cross-section lines) and that an
 anchor attaches to such a line's segment (§8.7). `piece` is drawn whole in
 its ancestor card behind the frame (§8.8). The bullets before the ancestor
@@ -1833,43 +1893,48 @@ card's give positions in place coordinates; drawn, each lies
   arrowhead tip of `recording` at 520.70361328125. Each card is
   535.70361328125 − 8 = 527.70361328125 → 527.7036 wide and the frame
   535.70361328125 + 8 = 543.70361328125 → 543.7036.
-- The member drawing of `middle`: no band above its line, so its ancestor
-  band starts at max(`p0 / 2` = 7, max(0, 1.5) + 4) = 7 (§8.3); its one
-  row, `piece`, has the inner half 7, so `piece`'s ancestor line lies 7 +
-  7 = 14 above `middle`'s, and the outer half 1.5 + 13 + 2 + 10.4765625 =
-  26.9765625 (the marks and their labels' one tier), so `Ea` = 7 + 7 +
-  26.9765625 = 40.9765625. `y_root` = 8 + 40.9765625 = 48.9765625 and `Hm`
-  = 48.9765625 + 26.9765625 + 8 = 83.953125, as in
-  `group__group_child_member`. `recording`: `y_root` = 8 + 6.40234375 =
-  14.40234375 and `Hm` = 49.37890625.
-- The frame (§8.4) starts at 8 and is 8 + 12.8046875 + 4 + 83.953125 + 8
-  + 49.37890625 + 8 = 174.13671875 high; `middle`'s card starts at 8 + 8
-  + 12.8046875 + 4 = 32.8046875 → 32.8047, `recording`'s at 32.8046875 +
-  83.953125 + 8 = 124.7578125 → 124.7578.
-- Drawn: `middle`'s line at 32.8046875 + 48.9765625 = 81.78125 → 81.7812,
-  `piece`'s ancestor line at 67.78125 → 67.7812, `recording`'s line at
-  124.7578125 + 14.40234375 = 139.16015625 → 139.1602.
+- The member drawing of `middle`: no band above its line, so `y_root` = 8
+  + 6.40234375 = 14.40234375; below it its markers band of 26.9765625 and
+  then its ancestor band, which starts at max(`p0 / 2` = 7, max(26.9765625,
+  1.5) + 4) = 30.9765625 (§8.3); its one row, `piece`, has the inner half
+  7, so `piece`'s ancestor line lies 30.9765625 + 7 = 37.9765625 below
+  `middle`'s, and the outer half 1.5 + 13 + 2 + 10.4765625 = 26.9765625
+  (the marks below the line and their labels' one tier), so `Eb` =
+  30.9765625 + 7 + 26.9765625 = 64.953125 and `Hm` = 14.40234375 +
+  64.953125 + 8 = 87.35546875, as in `group__group_child_member`.
+  `recording`: `y_root` = 14.40234375 and `Hm` = 49.37890625.
+- The frame (§8.4) starts at 8 and is 8 + 12.8046875 + 4 + 87.35546875 +
+  8 + 49.37890625 + 8 = 177.5390625 → 177.5391 high; `middle`'s card
+  starts at 8 + 8 + 12.8046875 + 4 = 32.8046875 → 32.8047, `recording`'s
+  at 32.8046875 + 87.35546875 + 8 = 128.16015625 → 128.1602.
+- Drawn: `middle`'s line at 32.8046875 + 14.40234375 = 47.20703125 →
+  47.207, `piece`'s ancestor line at 47.20703125 + 37.9765625 =
+  85.18359375 → 85.1836, `recording`'s line at 128.16015625 + 14.40234375
+  = 142.5625.
 - The cross-section lines (§6.6): `middle` is the root of a member drawing
   with an ancestor band and has neither a children band nor a conversion
-  maps band, so each line on it runs from the ordinate of its outermost
-  displayed ancestor line, `piece`'s at 67.78125, to its own line at
-  81.78125, crossing the ancestor line and not reaching its marks:
-  `timestamp_1` at `x0 + 100` = 211.70361328125 → 211.7036 and
-  `timestamp_2` at `x0 + 200` = 311.70361328125 → 311.7036, each written
-  `y1="67.7812" y2="81.7812"` (`data-part="line"`), after the member
-  drawing's labels. `recording` has no band its line could cross, so
-  `timestamp_3`, at `x0 + 200` = 311.70361328125, has the point
-  (311.70361328125, 139.16015625) and draws no line.
+  maps band, so each line on it runs from its own line at 47.20703125 down
+  to the ordinate of its outermost displayed ancestor line, `piece`'s at
+  85.18359375, crossing `middle`'s markers band, whose wedges and labels
+  lie at its quarters 0 and 8, away from both lines, and the ancestor line,
+  and not reaching its marks: `timestamp_1` at `x0 + 100` =
+  211.70361328125 → 211.7036 and `timestamp_2` at `x0 + 200` =
+  311.70361328125 → 311.7036, each written `y1="47.207" y2="85.1836"`
+  (`data-part="line"`), after the member drawing's labels. `recording` has
+  no band its line could cross, so `timestamp_3`, at `x0 + 200` =
+  311.70361328125, has the point (311.70361328125, 142.5625) and draws no
+  line.
 - `anchor_1` (§8.7), `A` the segment of `timestamp_2` from `a1` =
-  67.78125 to `a2` = 81.78125, `B` the point of `timestamp_3` (`b1` = `b2`
-  = 139.16015625): `a2 < b1`, so `A` lies above `B` and the line runs
-  from (`Xa`, `a2`) to (`Xb`, `b1`), from (311.7036, 81.7812) to
-  (311.7036, 139.1602), vertical, the two coordinates lying at one
+  47.20703125 to `a2` = 85.18359375, `B` the point of `timestamp_3` (`b1` =
+  `b2` = 142.5625): `a2 < b1`, so `A` lies above `B` and the line runs
+  from (`Xa`, `a2`) to (`Xb`, `b1`), from (311.7036, 85.1836) to
+  (311.7036, 142.5625), vertical, the two coordinates lying at one
   proportion of the frame's length (4 of 8 quarters, 5.0 of 10.0 seconds).
 - Its name `Middle, bar 3` (13418 advances at size 9, 58.9658203125 wide)
-  is centred on the line's midpoint, (311.70361328125, 110.470703125),
-  with its baseline `(a(9) − d(9)) / 2` = 3.11572265625 below it, at
-  113.58642578125 → 113.5864. Neither line nor name takes room.
+  is centred on the line's midpoint, (311.70361328125, (85.18359375 +
+  142.5625) / 2 = 113.873046875), with its baseline `(a(9) − d(9)) / 2` =
+  3.11572265625 below it, at 116.98876953125 → 116.9888. Neither line nor
+  name takes room.
 - The descriptors (§8.5): the line and then the name of `anchor_1` are the
   last two, after `recording`'s card and member drawing.
 - The ancestor card of `piece` (Shared quantities), aligned to `middle`:
@@ -1879,15 +1944,139 @@ card's give positions in place coordinates; drawn, each lies
   52.33544921875; the left edge −148.6318359375, the place
   −140.6318359375; `Mr'` = the arrowhead 9: the card is 52.33544921875 +
   800 + 9 + 8 = 869.33544921875 → 869.3354 wide, 63.37890625 → 63.3789
-  high, its top 67.78125 − 48.9765625 = 18.8046875 → 18.8047. The origin
-  is (148.6318359375, 0), and the card is drawn at (8, 18.8047). In it
-  (drawn): `piece`'s line at 67.7812 from 60.3354 to 860.3354, `middle`'s
-  row at 33.8047 from 260.3354 (4 of 16 quarters) to 660.3354 with the
+  high, its top 85.18359375 − 48.9765625 = 36.20703125 → 36.207 and its
+  bottom with its shadow at 101.5859375, inside the frame. The origin is
+  (148.6318359375, 0), and the card is drawn at (8, 36.207). In it
+  (drawn): `piece`'s line at 85.1836 from 60.3354 to 860.3354, `middle`'s
+  row at 51.207 from 260.3354 (4 of 16 quarters) to 660.3354 with the
   wedges and labels of `origin` and `length`; `middle`'s timestamps
   `timestamp_1` and `timestamp_2` draw nothing there, their cross-section
   lines having no length in a row without bands.
 - `W` = 8 + 730.70361328125 + 148.6318359375 = 887.33544921875, the right
   edge of the card with its shadow, −140.6318359375 + 869.33544921875 + 2,
-  beyond the frame's 551.70361328125; `H` = 8 + (8 + 174.13671875) =
-  190.13671875.
-- Page 919.33544921875 × 222.13671875 → **919.3354 × 222.1367**.
+  beyond the frame's 551.70361328125; `H` = 8 + (8 + 177.5390625) =
+  193.5390625.
+- Page 919.33544921875 × 225.5390625 → **919.3354 × 225.5391**.
+
+## `group__group_grandchild_parent_on_top`
+
+The manifest of `group__group_grandchild` (the grandchild `theme`, 8
+quarters at 8 in the movement `movement` of 16 quarters at 16 in the score
+`score` of 64, and the root `recording`, 12.0 seconds, in the group "Theme"
+in the display order `theme`, `recording`) with the band order `["line",
+"children"]` for `movement` in its `graphical.order`. Completed against the
+order `movement` inherits, `score`'s, which is the default (§6.4, The band
+order), it is `conversion_maps`, `line`, `children`, `markers`, `regions`,
+`flow_control`: `movement`'s children lie below its line. `theme` has no
+entry and follows that completed order, its markers band below its line as
+in the default. So in `theme`'s card the faded line of `movement` lies
+above `theme`'s, the parent on top, and that of `score`, whose order is the
+default, below it (§8.3, Sides): the member drawing has an ancestor band on
+each side. `score` is drawn whole in its ancestor card behind the frame
+(§8.8), and there `theme`'s row lies between the lines of `movement` and
+`score`, as in `theme`'s card. The bullets before the ancestor card's give
+positions in place coordinates; drawn, each lies 1170.56201171875 further
+right.
+
+- As in `group__group_grandchild`: `xn` = 24, `N` = w(`Recording`, 11) =
+  55.70361328125, `x0` = the chevron term 111.70361328125 → 111.7036 (both
+  ancestor lines run on to the left, `movement` starting at −8 and `score`
+  at −24 on `theme`'s axis), and `R` = the outer chevron tip of `score`,
+  which runs on to the right, 535.70361328125. `movement` ends with
+  `theme`, `te` = −8 + 16 = 8 = `λ`, so its faded line ends at `x0 + L` =
+  511.70361328125 with its own end, the diamond of a child (§8.3). The
+  labels of the marks are `8 ♩` and `16 ♩` on `movement`'s line and `24 ♩`
+  and `32 ♩` on `score`'s; the widest, `16 ♩` and `32 ♩` (4223 advances,
+  18.55810546875 wide), end at 511.70361328125 + 9.279052734375 =
+  520.982666015625. Each card is 535.70361328125 − 8 = 527.70361328125 →
+  527.7036 wide and the frame 535.70361328125 + 8 = 543.70361328125 →
+  543.7036.
+- `theme`'s card, above its line: `theme` has no map, so no band of its
+  own lies there, and the ancestor band starts at max(`p0 / 2` = 7,
+  max(0, 1.5) + 4) = 7 (§8.3). Its one row, `movement`, has the inner half
+  7 and the outer half 1.5 + 13 + 2 + 10.4765625 = 26.9765625, the marks of
+  `theme` standing above `movement`'s line and their labels in one tier
+  above them, so `movement`'s faded line lies 7 + 7 = 14 above `theme`'s
+  and `Ea` = 7 + 7 + 26.9765625 = 40.9765625.
+- Below `theme`'s line: its markers band of 26.9765625 and the ancestor
+  band of one row, `score` (Shared quantities): `score`'s faded line lies
+  30.9765625 + 7 = 37.9765625 below `theme`'s, and `Eb` = 64.953125.
+- `y_root` = max(8 + 40.9765625, 8 + 6.40234375) = 48.9765625 and `Hm` =
+  48.9765625 + 64.953125 + 8 = 121.9296875 → 121.9297 (`theme`) and
+  49.37890625 (`recording`); the frame starts at 8 and is 8 + 12.8046875 +
+  4 + 121.9296875 + 8 + 49.37890625 + 8 = 212.11328125 → 212.1133 high,
+  `theme`'s card at 32.8046875 → 32.8047 and `recording`'s at 32.8046875 +
+  121.9296875 + 8 = 162.734375 → 162.7344.
+- Drawn, in `theme`'s card:
+  - `theme`'s line at 32.8046875 + 48.9765625 = 81.78125 → 81.7812, its
+    diamond from 78.1813 to 85.3812 (`81.78125 ∓ 1.2w` in binary64), its
+    wedges from their tips at 83.28125 → 83.2812 to their bases at
+    96.28125 → 96.2812, and its labels `0 ♩` and `8 ♩` with the baseline
+    81.78125 + 24.85400390625 = 106.63525390625 → 106.6353;
+  - `movement`'s faded line at 81.78125 − 14 = 67.78125 → 67.7812, its
+    chevrons on the left from 63.2812 to 72.2812 and its diamond from
+    64.1813 to 71.3812; the marks of `theme` above it, their tips 1.5 above
+    the line at 66.28125 → 66.2812 and their bases 14.5 above it at
+    53.28125 → 53.2812, and their labels `8 ♩` and `16 ♩` with the
+    baseline 67.78125 − 16.5 − 2.12255859375 = 49.15869140625 → 49.1587
+    (§6.6: a label beyond a point above has its baseline `d(9)` above it);
+  - `score`'s faded line at 81.78125 + 37.9765625 = 119.7578125 →
+    119.7578, its chevrons on both sides from 115.2578 to 124.2578; the
+    marks of `theme` below it, their tips at 121.2578125 → 121.2578 and
+    their bases at 134.2578125 → 134.2578, and their labels `24 ♩` and
+    `32 ♩` with the baseline 119.7578125 + 24.85400390625 =
+    144.61181640625 → 144.6118;
+  - the names at 1194.562 drawn: `Score` (size 9) at 119.7578125 +
+    3.11572265625 = 122.87353515625 → 122.8735, `Movement` (size 9) at
+    67.78125 + 3.11572265625 = 70.89697265625 → 70.897 and `Theme` at
+    81.78125 + 3.80810546875 = 85.58935546875 → 85.5894;
+  - the descriptors follow §8.5, each kind from `A1` to `Ak`: the faded
+    line of `score` and its chevrons before `movement`'s, the marks on
+    `score`'s line before those on `movement`'s, the names `Score` and
+    `Movement` before `Theme`, and the labels `24 ♩`, `32 ♩` before `8 ♩`,
+    `16 ♩`.
+- `recording`'s line at 162.734375 + 14.40234375 = 177.13671875 →
+  177.1367, its wedges from 178.6367 to 191.6367, its labels `0″` and
+  `12″` with the baseline 177.13671875 + 24.85400390625 = 201.99072265625
+  → 201.9907, its name at 180.9448.
+- The ancestor card of `score`, aligned to `theme`, horizontally as in
+  `group__group_grandchild`: `s0` = 103.70361328125, `ts` = −24, `λ` = 8,
+  `te` = 40, `us` = −3, `ue` = 5, `xs` = −1096.29638671875, `xe` =
+  2103.70361328125, `LA` = 3200, `N'` = w(`Movement`, 11) = 58.265625,
+  `s0'` = 74.265625, the left edge −1170.56201171875, the place
+  −1162.56201171875, `Mr'` = the arrowhead 9 and the card 3291.265625 →
+  3291.2656 wide. Vertically, `score`'s own drawing (§6.4): its children
+  band lies above its line, from max(1.5 + 4, `p0 / 2` = 7) = 7, and holds
+  `movement`'s row. `movement` draws no wedge, so its markers band is
+  absent and its children band lies at level −1, below its line, from
+  max(1.5 + 4, 7) = 7, holding `theme`'s row: the inner half 7 (`theme`
+  draws nothing above its line) and the outer half 26.9765625 (its markers
+  band below it). So `theme`'s line lies 7 + 7 = 14 below `movement`'s,
+  and `movement`'s below side reaches 7 + 7 + 26.9765625 = 40.9765625.
+  `movement`'s row in `score`'s band has the inner half max(7, 40.9765625)
+  = 40.9765625, towards `score`'s line, and the outer half 7: `movement`'s
+  line lies 7 + 40.9765625 = 47.9765625 above `score`'s, `theme`'s
+  47.9765625 − 14 = 33.9765625 above it, and `Ea` = 7 + 40.9765625 + 7 =
+  54.9765625. `score`'s line lies 8 + 54.9765625 = 62.9765625 below the
+  card's top, `movement`'s 15 and `theme`'s 29, and the card is 62.9765625
+  + 6.40234375 + 8 = 77.37890625 → 77.3789 high.
+- `score`'s faded line in `theme`'s card lies at 119.7578125, so the
+  card's top is 119.7578125 − 62.9765625 = 56.78125 → 56.7812, below `Pt`
+  = 8, and its bottom with its shadow at 136.16015625, inside the frame:
+  `Yt` = 0 and `Xl` = −1170.56201171875, the origin (1170.56201171875, 0),
+  and the card is drawn at (8, 56.7812), its shadow at (10, 58.7812). In it
+  (drawn): `score`'s line at 119.7578 from 82.2656 to 3282.2656, its
+  arrowhead's tip at 3291.2656; `movement`'s at 56.78125 + 15 = 71.78125
+  → 71.7812 from 882.2656 (16 of 64 quarters) to its diamond at 1682.2656
+  (from 68.1813 to 75.3812); `theme`'s at 56.78125 + 29 = 85.78125 →
+  85.7812 from 1282.2656 (24 of 64), where `theme`'s own line starts in
+  the frame, to its diamond at 1682.2656 (from 82.1813 to 89.3812), its
+  wedges from 87.2812 to 100.2812 and its labels `0 ♩` and `8 ♩` with the
+  baseline 110.6353; the names at 16, all at size 11: `Movement` at
+  75.5894, `Theme` at 89.5894 and `Score` at 123.5659. `movement` and
+  `theme` lie 4 lower than their faded and own lines in `theme`'s card
+  (Shared quantities).
+- `W` = 8 + 2130.70361328125 + 1170.56201171875 = 3309.265625, the right
+  edge of the card with its shadow, as in `group__group_grandchild`; `H` =
+  8 + (8 + 212.11328125) = 228.11328125.
+- Page 3341.265625 × 260.11328125 → **3341.2656 × 260.1133**.
