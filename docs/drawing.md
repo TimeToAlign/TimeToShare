@@ -3324,10 +3324,15 @@ such a position are not drawn, and at a gap's edge they are.
 (section 8.8), keeps `M`'s span on `R` over `M`'s line, so it draws the
 frame's gaps inside its protected span: each gap of the frame over `[p,
 q]` becomes a gap of the card over `R`'s stretch from `−ts + p × λ` to
-`−ts + q × λ`, combined as section 3.1 combines values, with the frame's
-natural width `n` and drawn width `g`, taken and never recomputed, so
-that the card's gaps lie over the frame's, up to the rounding of
-binary64. A carried gap is drawn where the frame draws its gap, by the
+`−ts + q × λ`, with the frame's natural width `n` and drawn width `g`,
+taken and never recomputed, so that the card's gaps lie over the frame's,
+up to the rounding of binary64. Here `p` and `q` are the exact quotients
+of the elision's `start` and `end`, carried to `M`'s axis, and `λ`, each
+clipped to `[0, 1]` (a float taken at its exact binary value), not the
+doubles that place the frame's gap: on an exact axis of `R` the stretch
+is exact, `−ts`, `p × λ` and their sum computed exactly, and on a float
+axis it is combined as section 3.1 combines values, each exact operand
+converted to the nearest double; only its x is rounded (section 3.2). A carried gap is drawn where the frame draws its gap, by the
 frame's mode and display and not by the card's cascade, in every mode of
 `R`; it is a further drawing of the frame's gap, carries its elision's
 address and takes the values cascaded for the frame's gap, ellipses
@@ -3355,8 +3360,9 @@ lying on that timeline, its ends on that timeline's own axis. A stretch
 no chosen depth covers stays at full scale. So with `auto` `M`'s parent
 and its siblings take what they cover of `R`, what they leave uncovered
 falls to the next depth up and `R` takes the rest, and with `"1"` alone
-`R` is elided once on each side of the protected span, its children
-drawn whole where they lie outside it.
+`R` is elided once on each side of the protected span, its pieces taken
+from `R`'s own span and their gaps cutting every row of the card that
+crosses them, its children's rows included (section 6.6).
 
 Each piece is drawn as **its middle left out**: a piece over `[a, b]`
 of its timeline's own axis, `[aR, bR]` on the root's axis, with the
@@ -3497,8 +3503,9 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   lies in the second gap and is not drawn; that at 21 is drawn, faded
   over `sketch` (section 6.6). The ancestor card of `piece` (48
   quarters; `ts` = −16, `LA` = 1200, 25 canvas units per quarter) carries
-  the gaps over `piece` 18.0 to 24.0 and 25.333333333333336 to 28.0, 32
-  and 33.33333333333333 wide of 150 and 66.66666666666666. Under `auto`
+  the gaps over `piece` 18 to 24 and 76/3 to 28 (`16 + 7/12 × 16` and `16
+  + 3/4 × 16`, exact on its fraction axis), 32 and 33.33333333333333 wide
+  of 150 and 66.66666666666666. Under `auto`
   it derives elisions at `r` = 0.5 × (248.66666666666669 / 400) =
   0.31083333333333335, set by (a), the frame being drawn 383.2599283854167
   wide (`DG` narrower) and 240.015625 high: `zG` = 2.399843760171864, `c`
@@ -3522,10 +3529,14 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   scale. `elision_3` on the member root `recording` (10.0 seconds) from
   0.0 to 2.0 is a group elision: its stretch in the frame runs from 0.0
   to 0.2, its natural width 80 and its standard gap 32, so `DG` = 48 and
-  `L'` = 352; it is carried into the ancestor card of `score` over 16.0
-  to 17.6 and into that of `session` over 30.0 to 35.1, which draws it
-  although the session's cards are `full`, its own `elision_7` kept and
-  not drawn. In the ungrouped card of `page` (1754 pixels, length 400),
+  `L'` = 352; it is carried into the ancestor card of `score` over 16
+  to 88/5 (`16 + 1/5 × 8`, 1/5 the exact quotient of 2.0 and 10.0, exact
+  on the score's fraction axis) and into that of `session` over 30.0 to
+  35.1 (on its float axis), which draws it although the session's cards
+  are `full`: a carried gap follows the frame, not the card's mode, and
+  the rule hiding every elision `within` `session` matches no elision of
+  `recording`. The session's own `elision_7` is not drawn, hidden by that
+  rule and left out by `full` alike, and kept in the manifest. In the ungrouped card of `page` (1754 pixels, length 400),
   `elision_2` "Appendix" from 600 to 1754 has the natural width
   263.169897377423 and the standard gap 32, so the line is
   168.830102622577 long, and its labels `Appendix` and `600–1 754 px`

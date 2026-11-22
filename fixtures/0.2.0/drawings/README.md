@@ -2473,8 +2473,11 @@ drawn, each lies 92.33333333333337 further right.
   `excerpt` row draws no label of `elision_1`, so it lies 7 + 26.9765625
   above `piece`'s line, at 15 below the card's top, and the card is
   63.37890625 high, its top 95.66015625 − 48.9765625 = 46.68359375 →
-  46.6836. It carries the frame's gaps over `piece` 18.0 to 24.0 and
-  25.333333333333336 to 28.0 (`−ts + p × λ`, `−ts + q × λ`), 32 and
+  46.6836. It carries the frame's gaps over `piece` 18 to 24 and 76/3
+  to 28 (`−ts + p × λ`, `−ts + q × λ` with the exact proportions 1/8, 1/2,
+  7/12 and 3/4, so exact on `piece`'s fraction axis; x(76/3) =
+  205.42659505208337 in the card's own coordinates after the shift, where
+  the frame's gap edge lies at 205.42659505208334), 32 and
   33.33333333333333 wide of 150 and 66.66666666666666. Its proportion
   (§8.9): `Fw` = 383.2599283854167, `Fh` = 240.015625, `zG` =
   2.399843760171864, `zb` = `Z`, `B` = 716.8, `c` = 191.62996419270834,
