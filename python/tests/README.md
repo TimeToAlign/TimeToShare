@@ -438,13 +438,17 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `timelines[2]`; the manifest's own keys come first.
 - **An invalid value** raises the error `validate` raises, before any key
   is listed.
-- **One walk.** The keys come from the schema walk `validate` runs. It
-  walks an in-memory variant of the document that closes every object the
-  document leaves open (`unevaluatedProperties: false` on each object node
-  with `properties` outside a branch, except the base an `allOf` shares), and
-  a failure that only an undeclared key causes is a key to list, not a
-  violation. Listing them walks the manifest with the schema once, as a
-  counting validator proves.
+- **One reading.** The keys come from the schema reading `validate` runs.
+  It reads an in-memory variant of the document that closes every object
+  the document leaves open (`unevaluatedProperties: false` on each object
+  node with `properties` outside a branch, except the base an `allOf`
+  shares and the maps keyed by data whose `additionalProperties` admits
+  every key: the `@context`, statements and value nodes), and a failure
+  that only an undeclared key causes is a key to list, not a violation.
+  An unknown key inside a statement's value node is listed alone, never
+  the statement's or the value node's own keys beside it. A valid manifest's keys are listed by the schema
+  gate without the `jsonschema` walk, as a counting validator proves (see
+  "The schema gate"); an invalid one is walked once.
 
 ## Defaults: the complete and the minimal form
 
@@ -2475,37 +2479,52 @@ use no shared mutable input; the files a test writes lie in its own
 temporary directory. Building the distributions needs `uv`, and the network
 unless uv's cache already holds the build backend.
 
-## The compiled schema check
+## The schema gate
 
 `validate`, `unknown_keys`, `manifest_warnings`, `statement_problems` and
-`matchstamp_problems` walk the value with `jsonschema` only where the value
-is not valid: a check compiled once from the closed document
-(`timetoshare.validation.schema_check`) first answers whether that walk
-would yield no error at all, and only where it answers no, or cannot answer,
-does the walk run and build the diagnostics. The finite rule's copy of the
-value with bare IDs is skipped likewise where the value is plain JSON data
-with no float that is not finite, and the ID conversions copy JSON data
-without `copy.deepcopy`. The change is meant to change no outcome, only the
-time. Every outcome follows from three facts, and the tests prove those
-facts rather than compare transcripts (`test_validator_parity.py`):
+`matchstamp_problems` walk the value with `jsonschema` only where
+`jsonschema-rs` does not find it valid. Every schema node the validator
+checks (the closed document, `Timestamp`, and each member
+`statement_problems` and `matchstamp_problems` check alone) has two
+validators compiled from the very same schema: the walk, which builds every
+diagnostic, and the gate. The gate is asked only where the value is plain
+JSON data whose every float is finite (`plainly_finite`); there it answers
+"valid" where it finds no error, or where every error it finds is one an
+undeclared key alone causes (an `unevaluatedProperties` failure, or a
+`oneOf`/`anyOf` one of whose branches fails by such failures alone), and
+then lists those keys. Where it finds any other error, raises, or is not
+asked, the walk runs as it ran before. The finite rule's copy of the value
+with bare IDs is skipped likewise where `plainly_finite` holds, and the ID
+conversions copy JSON data without `copy.deepcopy`. The gate is meant to
+change no outcome, only the time. Every outcome follows from four facts,
+which the tests prove rather than compare transcripts
+(`test_validator_parity.py`):
 
-1. **The check answers as the walk.** Where the compiled check answers
-   `True`, the walk of the same schema node yields no error; where it
-   answers `False`, the walk yields one (or raises, as it does on a
-   dictionary with keys it cannot sort). The diagnostics, codes, paths and
-   messages then come from the walk alone, as before. The check may
-   decline to answer (raise) only on a value that is not plain JSON data
-   (exact `dict` with string keys, `list`, `str`, `int`, `float`, `bool`,
-   `None`); on plain JSON data it always answers.
-2. **The finite rule is skipped only where it finds nothing.** Wherever
+1. **The gate answers as the walk.** On plain JSON data whose every float
+   is finite, the gate answers "valid" exactly where the one path rule
+   (`select`) finds nothing among the walk's errors of the same schema, and
+   where it answers "valid" the keys it lists are exactly those the walk's
+   errors give. The diagnostics, codes, paths and messages come from the
+   walk alone.
+2. **The outcome is the walk's.** For every input, plain or not, the
+   outcome of `validate` (the code, path and message it raises, else the
+   unknown keys and the warnings), of `statement_problems` and of
+   `matchstamp_problems` is the outcome with the gate removed, the walk
+   running on every value.
+3. **The finite rule is skipped only where it finds nothing.** Wherever
    `plainly_finite(value)` holds, the finite rule yields nothing on
    `leniently_bare_ids(value)`, the copy it would read.
-3. **The copies are copies.** The ID conversions' copy of a value equals
+4. **The copies are copies.** The ID conversions' copy of a value equals
    `copy.deepcopy` of it, has the same type at every node, and shares no
    list or dictionary with the input; `with_file_ids(with_bare_ids(value))`
    gives the manifest fixture back, sharing nothing with either.
 
-The inputs, on each of which all three facts are asserted (fact 1 for the
+Fact 2 covers what fact 1 leaves to the walk: `jsonschema-rs` reads a
+tuple as an array, a dictionary subclass as a dictionary, `NaN` and the
+infinities as `null`, and refuses non-string keys; none of these reaches
+the gate.
+
+The inputs, on each of which the four facts are asserted (fact 1 for the
 closed document's root):
 
 - every manifest fixture and minimal twin, every shared rejection case (the
@@ -2528,42 +2547,32 @@ closed document's root):
   `defaultdict`, subclasses of `dict`, `list`, `str`, `int` and `float`, a
   dictionary whose `keys()` disagrees with its iteration, and keys that are
   integers, `None` or tuples). Every kind is asserted to yield both
-  answers of the check, valid and invalid manifests alike;
+  answers of the walk, valid and invalid manifests alike; the kind adding
+  an undeclared key is asserted to yield valid manifests with listed keys;
 - per definition, seeded: a sub-value of a manifest fixture is drawn, a
-  definition of the schema that the check accepts it under is drawn, the
-  sub-value is mutated by one of the operators above, and fact 1 is
-  asserted for the definition's compiled check against the walk of
-  `{"$defs": ..., "$ref": "#/$defs/<definition>"}`.
+  definition of the schema whose walk accepts it is drawn, the sub-value
+  is mutated by one of the operators above, and fact 1 is asserted for
+  the gate and the walk of `{"$defs": ..., "$ref": "#/$defs/<definition>"}`.
 
 Around the facts:
 
-- **Keyword semantics.** A few small schemas pin what the check must share
-  with the walk: `True` is neither `1` in `const`, `enum` and
-  `uniqueItems` nor an integer, `1.0` is an integer, a string is checked by
-  `pattern` with `re.search`, `unevaluatedProperties` counts the keys of
-  the `oneOf` branch a value is valid under and not those of a failing one.
-- **What the check refuses to compile.** A keyword it does not compile
-  (`patternProperties`, `dependentSchemas`, `contains`, `format`), a
-  reference outside the document, and a keyword that changes how a
-  reference resolves (`$id` or `$schema` below the root, `$anchor`,
-  `$dynamicAnchor`, `$vocabulary`) raise `NotImplementedError`; `$id` and
-  `$schema` on the root do not. A nested `$id` with its own `$defs` would
-  otherwise resolve a reference against the wrong definitions.
-- **What the check declines.** A dictionary whose `keys()` disagrees with
-  its iteration and an `OrderedDict` make the check decline, and the
-  validator's result for them is the walk's.
-- **No answer before compilation ends.** A check run while a reference it
-  reaches is still being compiled declines, so the walk runs (simulated by
-  leaving a reference's placeholder in place, under `oneOf`, where an
-  answer of `False` would make the check accept what the walk refuses).
-  Every entry point the validator uses (the root, `Timestamp`,
-  `Graphical.matchstamps` and every member `statement_problems` checks) is
-  compiled before the first check is handed out: after the first call no
-  node is compiled again, whichever entry point a later call uses.
+- **Keyword semantics.** A few small schemas pin what the gate must share
+  with the walk where the package relies on it: `True` is neither `1` in
+  `const`, `enum` and `uniqueItems` nor an integer, `1.0` is an integer,
+  `unevaluatedProperties` counts the keys of the `oneOf` branch a value is
+  valid under and not those of a failing one, and those of an `allOf`
+  base and of an `if`/`then`/`else` arm. One difference is pinned as
+  known: a `pattern` ending in `$` matches before a final line feed in
+  Python's `re`, not in `jsonschema-rs` (which follows ECMA 262); the gate
+  then refuses and the walk decides, so the outcome is the walk's.
+- **Every entry point has its gate.** The root, `Timestamp`,
+  `Graphical.matchstamps` and every member `statement_problems` checks
+  (each subject's `provenance` and `statements`, the manifest's
+  `@context`) have one, eight members in all.
 - **The walk is skipped.** A valid manifest, the two large ones below
-  included, validates without one call to the walk's validator (a
-  counting validator); a manifest with an undeclared key calls it once,
-  as before.
+  included, validates without one call to the walk's validator (a counting
+  validator), and so does a manifest with an undeclared key, whose key is
+  listed; an invalid manifest calls it once.
 
 The two large manifests are built in `large_manifests.py`: 500 root
 timelines with 10,000 named timestamps (twenty per timeline), and 38 root
@@ -2571,3 +2580,6 @@ timelines each with a `LinearMap` and a `TableMap` whose `x_values` and
 `y_values` hold 340 Fraction pairs, the shape of a DJ-software beat grid.
 Their timings, and those of the largest fixture, are measured and
 reported outside the suite, never asserted.
+
+The gate's dependency is pinned to one minor version; a bump of it reruns
+this file before the lockfile moves.

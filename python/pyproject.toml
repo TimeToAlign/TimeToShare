@@ -20,7 +20,11 @@ classifiers = [
   "Topic :: File Formats :: JSON :: JSON Schema",
   "Typing :: Typed",
 ]
-dependencies = ["jsonschema>=4.26.0,<5", "PyYAML>=6.0.3,<7"]
+dependencies = [
+  "jsonschema>=4.26.0,<5",
+  "jsonschema-rs>=0.60.3,<0.61",
+  "PyYAML>=6.0.3,<7",
+]
 
 [project.optional-dependencies]
 # The table types (`timetoshare.tables`): the MatchClaim table and the

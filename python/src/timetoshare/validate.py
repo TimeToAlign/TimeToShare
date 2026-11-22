@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import json
 import re
-import threading
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator, Mapping
 from dataclasses import dataclass
@@ -24,6 +23,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
+import jsonschema_rs
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
@@ -52,7 +52,6 @@ from .validation.representation import (
     plainly_finite,
     representation_problems,
 )
-from .validation.schema_check import Check, SchemaCompiler
 from .validation.statements import statement_rule_problems, statement_warnings
 from .validation.timestamps import matchstamp_problems as _matchstamp_rule_problems
 
@@ -209,7 +208,12 @@ def _close(node: Any, inside: bool, bases: frozenset[str]) -> Any:
             closed[key] = value
         else:
             closed[key] = _close(value, inside, bases)
-    if not inside and node.get("type") == "object" and "properties" in node:
+    if (
+        not inside
+        and node.get("type") == "object"
+        and "properties" in node
+        and "additionalProperties" not in node
+    ):
         closed["unevaluatedProperties"] = False
     return closed
 
@@ -220,8 +224,11 @@ def _closed_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
     The document keeps its objects open; this variant, built in memory only,
     sets ``unevaluatedProperties: false`` on every object node with
     ``properties`` outside a ``oneOf``/``anyOf`` branch or an
-    ``if``/``then``/``else`` arm, except the bases an ``allOf`` shares, so a
-    key no definition declares fails where it stands.
+    ``if``/``then``/``else`` arm, except the bases an ``allOf`` shares and
+    the maps keyed by data, whose ``additionalProperties`` admits every key
+    (the ``@context``, statements and value nodes), so a key no definition
+    declares fails where it stands. Closing a map keyed by data would find
+    no key of its own, only its keys again wherever a value below it fails.
     """
     return _close(schema, False, frozenset(_allof_bases(schema)))
 
@@ -231,11 +238,6 @@ def _closed_document() -> dict[str, Any]:
     schema = load_schema()
     Draft202012Validator.check_schema(schema)
     return _closed_schema(schema)
-
-
-@cache
-def _marking_validator() -> Any:
-    return Draft202012Validator(_closed_document())
 
 
 _SUBJECT_DEFINITIONS = {
@@ -248,58 +250,113 @@ _SUBJECT_DEFINITIONS = {
 _STATEMENT_MEMBERS = ("provenance", "statements")
 """The members of a subject checked alone, in the order they are checked."""
 
-_CHECKED_MEMBERS: tuple[tuple[str, str], ...] = (
-    ("Manifest", "@context"),
-    *(
-        (definition, member)
-        for definition in _SUBJECT_DEFINITIONS.values()
-        for member in _STATEMENT_MEMBERS
-    ),
-    ("Graphical", "matchstamps"),
-)
-"""The members ``statement_problems`` and ``matchstamp_problems`` check alone."""
+_Keys = set[tuple[InstancePath, str]]
+"""Unknown keys, each with the path of the object holding it."""
 
 
 @dataclass(frozen=True)
-class _Checks:
-    """The compiled checks of every node the validator walks (``schema_check``)."""
+class _Schema:
+    """A schema node the validator checks: the ``jsonschema`` walk behind a gate.
 
-    compiler: SchemaCompiler
-    manifest: Check
-    timestamp: Check
-    members: Mapping[tuple[str, str], Check]
-
-
-_COMPILING = threading.Lock()
-
-
-def _checks() -> _Checks:
-    """The compiled checks, every one compiled before any is handed out.
-
-    A reference's check is complete only once its definition is compiled, so
-    no thread may run a check while another compiles: the first call
-    compiles every entry point under the lock, and later calls find them.
+    Both validators are compiled from the very same schema. The gate,
+    ``jsonschema-rs``, answers only for plain JSON data whose every float is
+    finite (:func:`plainly_finite`): it reads a tuple as an array and ``NaN``
+    as ``null``, and refuses a key that is no string. Where it finds the
+    value valid, the walk is skipped; every diagnostic comes from the walk.
     """
-    with _COMPILING:
-        return _compiled_checks()
+
+    walk: Any
+    gate: Any
+
+    @classmethod
+    def of(cls, schema: Mapping[str, Any]) -> _Schema:
+        """Both validators of ``schema``; either may be used from any thread."""
+        return cls(
+            Draft202012Validator(schema), jsonschema_rs.Draft202012Validator(schema)
+        )
+
+    def gated(self, value: Any) -> _Keys | None:
+        """The unknown keys where the gate finds ``value`` valid, else None.
+
+        Valid means no error, or only errors an undeclared key alone causes
+        (as :func:`_key_failures_only` reads the walk's); None where any other
+        error is found or the gate raises.
+        """
+        try:
+            if self.gate.is_valid(value):
+                return set()
+            errors = list(self.gate.iter_errors(value))
+        except Exception:
+            return None
+        if not all(_gate_key_failures_only(error) for error in errors):
+            return None
+        return set(_gate_keys(errors))
+
+    def read(self, value: Any, plain: bool) -> tuple[list[ValidationError], _Keys]:
+        """The walk's errors and the unknown keys, walking only past the gate.
+
+        ``plain`` says whether :func:`plainly_finite` holds for ``value``;
+        only then is the gate asked. Where it answers, there are no errors
+        to report and its keys are the keys.
+        """
+        if plain:
+            keys = self.gated(value)
+            if keys is not None:
+                return [], keys
+        errors = list(self.walk.iter_errors(value))
+        return errors, set(_keys(errors))
+
+
+def _gate_branches(error: Any) -> list[list[Any]]:
+    return getattr(error.kind, "context", None) or []
+
+
+def _gate_key_failures_only(error: Any) -> bool:
+    """:func:`_key_failures_only` for an error of the gate."""
+    name = error.kind.name
+    if name == "unevaluatedProperties":
+        return True
+    if name in ("oneOf", "anyOf"):
+        return any(
+            branch and all(_gate_key_failures_only(child) for child in branch)
+            for branch in _gate_branches(error)
+        )
+    return False
+
+
+def _gate_keys(errors: Iterable[Any]) -> Iterator[tuple[InstancePath, str]]:
+    """:func:`_keys` for the errors of the gate."""
+    for error in errors:
+        name = error.kind.name
+        if name == "unevaluatedProperties":
+            path = tuple(error.instance_path)
+            for key in error.kind.unexpected:
+                yield path, key
+        elif name in ("oneOf", "anyOf"):
+            for branch in _gate_branches(error):
+                if branch and all(_gate_key_failures_only(child) for child in branch):
+                    yield from _gate_keys(branch)
 
 
 @cache
-def _compiled_checks() -> _Checks:
+def _manifest_schema() -> _Schema:
+    """The closed document, the schema of a whole manifest."""
+    return _Schema.of(_closed_document())
+
+
+@cache
+def _member_schema(definition: str, member: str) -> _Schema:
+    """One member of a definition, as the whole walk checks it."""
     document = _closed_document()
-    definitions = document["$defs"]
-    compiler = SchemaCompiler(document)
-    return _Checks(
-        compiler=compiler,
-        manifest=compiler.check(document),
-        timestamp=compiler.check(definitions["Timestamp"]),
-        members={
-            (definition, member): compiler.check(
-                definitions[definition]["properties"][member]
-            )
-            for definition, member in _CHECKED_MEMBERS
-        },
-    )
+    declared = document["$defs"][definition]["properties"][member]
+    return _Schema.of({"$defs": document["$defs"], **declared})
+
+
+@cache
+def _definition_schema(definition: str) -> _Schema:
+    """One definition, as the whole walk checks it."""
+    document = _closed_document()
+    return _Schema.of({"$defs": document["$defs"], "$ref": f"#/$defs/{definition}"})
 
 
 def _plainly_finite(value: Any) -> bool:
@@ -310,35 +367,9 @@ def _plainly_finite(value: Any) -> bool:
         return False
 
 
-def _walk_errors(validator: Any, check: Check, value: Any) -> list[ValidationError]:
-    """The errors of the walk, skipped where the compiled check finds none.
-
-    The check answers whether the walk yields no error; where it cannot
-    answer (it raises, :class:`~.schema_check.Unanswered` or any other
-    error) or finds one, the walk builds every error.
-    """
-    try:
-        valid = check(value)
-    except Exception:
-        valid = False
-    return [] if valid else list(validator.iter_errors(value))
-
-
-@cache
-def _member_validator(definition: str, member: str) -> Any:
-    """The validator of one member of a definition, as the whole walk checks it."""
-    document = _closed_document()
-    declared = document["$defs"][definition]["properties"][member]
-    return Draft202012Validator({"$defs": document["$defs"], **declared})
-
-
-def _member_errors(definition: str, member: str, value: Any) -> list[ValidationError]:
-    """The errors of :func:`_member_validator`'s walk, skipped where none."""
-    return _walk_errors(
-        _member_validator(definition, member),
-        _checks().members[definition, member],
-        value,
-    )
+def _schema_errors(schema: _Schema, value: Any) -> list[ValidationError]:
+    """The errors of ``schema``'s walk of ``value``, none where the gate finds none."""
+    return schema.read(value, _plainly_finite(value))[0]
 
 
 def _branch_tag(candidate: Mapping[str, Any], tag: str) -> Any:
@@ -566,12 +597,13 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if value["timetoshare"] != SCHEMA_VERSION:
         raise UnsupportedVersionError(value["timetoshare"])
 
-    if not _plainly_finite(value):
+    plain = _plainly_finite(value)
+    if not plain:
         finite = next(finite_number_problems(leniently_bare_ids(value)), None)
         if finite is not None:
             raise finite
 
-    errors = _walk_errors(_marking_validator(), _checks().manifest, value)
+    errors, found = _manifest_schema().read(value, plain)
     error = select(errors)
     if error is not None:
         raise SchemaValidationError("schema", tuple(error.absolute_path), worded(error))
@@ -587,7 +619,6 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if statement is not None:
         raise statement
 
-    found = set(_keys(errors))
     keys = [
         {"path": list(path), "key": key}
         for path, key in sorted(found, key=lambda entry: (entry[0], entry[1]))
@@ -689,22 +720,13 @@ def statement_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
         if finite is not None:
             problems.append(finite)
             continue
-        error = select(_member_errors(definition, member, content))
+        error = select(_schema_errors(_member_schema(definition, member), content))
         if error is not None:
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, worded(error)))
     if problems:
         return problems
     return list(statement_rule_problems(bare))
-
-
-@cache
-def _definition_validator(definition: str) -> Any:
-    """The validator of one definition, as the whole walk checks it."""
-    document = _closed_document()
-    return Draft202012Validator(
-        {"$defs": document["$defs"], "$ref": f"#/$defs/{definition}"}
-    )
 
 
 _MATCHSTAMPS: InstancePath = ("graphical", "matchstamps")
@@ -787,11 +809,7 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
         if finite is not None:
             problems.append(finite)
             continue
-        error = select(
-            _walk_errors(
-                _definition_validator("Timestamp"), _checks().timestamp, timestamp
-            )
-        )
+        error = select(_schema_errors(_definition_schema("Timestamp"), timestamp))
         if error is not None:
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, worded(error)))
@@ -804,7 +822,9 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
             problems.append(finite)
         else:
             error = select(
-                _member_errors("Graphical", "matchstamps", graphical["matchstamps"])
+                _schema_errors(
+                    _member_schema("Graphical", "matchstamps"), graphical["matchstamps"]
+                )
             )
             if error is not None:
                 at = (*_MATCHSTAMPS, *error.absolute_path)

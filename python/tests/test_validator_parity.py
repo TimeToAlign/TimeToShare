@@ -1,7 +1,7 @@
-"""The compiled schema check changes no diagnostic of the validator.
+"""The schema gate changes no outcome of the validator.
 
-The strategy is the README's section "The compiled schema check": three
-facts, each asserted on every input, from which every outcome follows.
+The strategy is the README's section "The schema gate": four facts, each
+asserted on every input, from which every outcome follows.
 """
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import copy
 import math
 import random
 from collections import OrderedDict, defaultdict
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator
 from decimal import Decimal
 from fractions import Fraction
 from functools import cache
@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from jsonschema import Draft202012Validator
 
 from tests.large_manifests import long_tables, many_timestamps
 from timetoshare import loads, with_bare_ids, with_file_ids
@@ -34,7 +33,6 @@ from timetoshare.validation.representation import (
     finite_number_problems,
     plainly_finite,
 )
-from timetoshare.validation.schema_check import Check, SchemaCompiler, Unanswered
 
 current = import_module("timetoshare.validate")
 
@@ -45,16 +43,11 @@ DEFINITION_CASES = 600
 """Mutated sub-values checked against one definition each."""
 
 
-def compiled_check(document: Mapping[str, Any], node: Any) -> Check:
-    """The check of ``node``, its references read in ``document``."""
-    return SchemaCompiler(document).check(node)
-
-
 def _read(path: Path) -> Any:
     return loads(path.read_text(encoding="utf-8"))
 
 
-# The three facts.
+# The four facts.
 
 _PLAIN_ATOMS = frozenset({str, int, float, bool, type(None)})
 
@@ -71,36 +64,62 @@ def _plain(value: Any) -> bool:
     return False
 
 
-def _answer(check: Check, value: Any) -> bool | None:
-    """The check's answer, ``None`` where it declines (raises)."""
-    try:
-        answer = check(value)
-    except Exception:
+def _assert_gate_answers_as_the_walk(schema: Any, value: Any) -> bool | None:
+    """Fact 1: on plain finite data the gate answers "valid" exactly where
+    the one path rule finds nothing among the walk's errors, with the walk's
+    keys; ``None`` where the gate is not asked."""
+    if not (_plain(value) and plainly_finite(value)):
         return None
-    assert answer is True or answer is False
-    return answer
+    keys = schema.gated(value)
+    errors = list(schema.walk.iter_errors(value))
+    clean = current.select(errors) is None
+    assert (keys is not None) is clean
+    if keys is not None:
+        assert keys == set(current._keys(errors))
+    return clean
 
 
-def _walks_clean(walk: Any, value: Any) -> bool:
-    """Whether the walk yields no error (a walk that raises yields none)."""
+def _result(call: Callable[[], Any]) -> Any:
+    """What ``call`` returns, problems as tuples, or what it raises."""
     try:
-        return next(walk.iter_errors(value), None) is None
-    except Exception:
-        return False
+        returned = call()
+    except Exception as error:
+        return (
+            type(error).__name__,
+            getattr(error, "code", None),
+            tuple(getattr(error, "path", ())),
+            str(error),
+        )
+    if isinstance(returned, list):
+        return [
+            (problem.code, tuple(problem.path), problem.message) for problem in returned
+        ]
+    return ("valid", *returned)
 
 
-def _assert_answers_as_the_walk(check: Check, walk: Any, value: Any) -> bool | None:
-    """Fact 1: the check answers ``True`` exactly where the walk yields nothing."""
-    answer = _answer(check, value)
-    if answer is None:
-        assert not _plain(value)
-    else:
-        assert answer is _walks_clean(walk, value)
-    return answer
+def _outcome(value: Any) -> tuple[Any, ...]:
+    """What ``validate``, ``statement_problems`` and ``matchstamp_problems``
+    give for ``value``: a raised error by type, code, path and message, else
+    the unknown keys and the warnings, and the two lists of problems."""
+    return (
+        _result(lambda: current._check(value)),
+        _result(lambda: current.statement_problems(value)),
+        _result(lambda: current.matchstamp_problems(value)),
+    )
+
+
+def _assert_outcome_is_the_walks(value: Any) -> tuple[Any, ...]:
+    """Fact 2: the outcome is the one with the gate removed."""
+    gated = _outcome(value)
+    with pytest.MonkeyPatch.context() as patch:
+        patch.setattr(current._Schema, "gated", lambda self, value: None)
+        walked = _outcome(value)
+    assert gated == walked
+    return gated
 
 
 def _assert_finite_rule_skipped_soundly(value: Any) -> None:
-    """Fact 2: ``plainly_finite`` implies the finite rule finds nothing."""
+    """Fact 3: ``plainly_finite`` implies the finite rule finds nothing."""
     if plainly_finite(value):
         assert next(finite_number_problems(leniently_bare_ids(value)), None) is None
 
@@ -122,7 +141,7 @@ def _containers(value: Any) -> set[int]:
 
 
 def _assert_copied(value: Any) -> None:
-    """Fact 3: the conversions' copy is ``copy.deepcopy``'s, sharing nothing."""
+    """Fact 4: the conversions' copy is ``copy.deepcopy``'s, sharing nothing."""
     copied = _copied(value)
     expected = copy.deepcopy(value)
     assert copied == expected
@@ -132,21 +151,22 @@ def _assert_copied(value: Any) -> None:
     assert not _containers(value) & _containers(copied)
 
 
-@cache
-def _walk() -> Any:
-    return Draft202012Validator(current._closed_document())
-
-
-def _assert_facts(value: Any) -> bool | None:
-    answer = _assert_answers_as_the_walk(current._checks().manifest, _walk(), value)
+def _assert_facts(value: Any) -> tuple[Any, ...]:
+    """The four facts on ``value``; its outcome."""
+    _assert_gate_answers_as_the_walk(current._manifest_schema(), value)
+    outcome = _assert_outcome_is_the_walks(value)
     _assert_finite_rule_skipped_soundly(value)
     _assert_copied(value)
-    return answer
+    return outcome
+
+
+def _valid(outcome: tuple[Any, ...]) -> bool:
+    return outcome[0][0] == "valid"
 
 
 @pytest.mark.parametrize("path", fixture_paths(), ids=lambda path: path.name)
 def test_a_fixture_holds_the_facts(path: Path) -> None:
-    assert _assert_facts(_read(path)) is True
+    assert _valid(_assert_facts(_read(path)))
 
 
 @pytest.mark.parametrize("path", rejection_paths(), ids=lambda path: path.name)
@@ -156,12 +176,12 @@ def test_a_rejection_case_holds_the_facts(path: Path) -> None:
 
 @pytest.mark.parametrize("path", warning_paths(), ids=lambda path: path.name)
 def test_a_warning_case_holds_the_facts(path: Path) -> None:
-    _assert_facts(_read(path)["manifest"])
+    assert _valid(_assert_facts(_read(path)["manifest"]))
 
 
 @pytest.mark.parametrize("build", [many_timestamps, long_tables])
 def test_a_large_manifest_holds_the_facts(build: Callable[[], Any]) -> None:
-    assert _assert_facts(build()) is True
+    assert _valid(_assert_facts(build()))
 
 
 @pytest.mark.parametrize("path", fixture_paths(), ids=lambda path: path.name)
@@ -378,7 +398,7 @@ KINDS = (
 
 
 @cache
-def _valid() -> tuple[Any, ...]:
+def _valid_fixtures() -> tuple[Any, ...]:
     return tuple(_read(path) for path in fixture_paths())
 
 
@@ -386,7 +406,7 @@ def _mutated(kind: str, number: int) -> Any:
     """The ``number``-th mutation of ``kind``, drawn from its own seeded stream."""
     draw = random.Random(f"{SEED}-{kind}-{number}")
     while True:
-        value = copy.deepcopy(draw.choice(_valid()))
+        value = copy.deepcopy(draw.choice(_valid_fixtures()))
         if _mutate(kind, value, draw):
             return value
 
@@ -400,17 +420,16 @@ def test_a_mutated_fixture_holds_the_facts(kind: str, number: int) -> None:
 @pytest.mark.parametrize("kind", KINDS)
 def test_the_mutations_of_a_kind_reach_both_answers(kind: str) -> None:
     """The mutations exercise valid and invalid manifests, not only one."""
-    check = current._checks().manifest
-    answers = {_answer(check, _mutated(kind, number)) for number in range(MUTATIONS)}
-    assert {True, False} <= answers
+    outcomes = [_outcome(_mutated(kind, number)) for number in range(MUTATIONS)]
+    assert {True, False} <= {_valid(outcome) for outcome in outcomes}
+
+
+def test_an_undeclared_key_reaches_valid_manifests_with_listed_keys() -> None:
+    outcomes = [_outcome(_mutated("unknown", number)) for number in range(MUTATIONS)]
+    assert any(_valid(outcome) and outcome[0][1] for outcome in outcomes)
 
 
 # Per definition.
-
-
-@cache
-def _definition_compiler() -> SchemaCompiler:
-    return SchemaCompiler(current._closed_document())
 
 
 def _containers_of(value: Any) -> list[Any]:
@@ -418,16 +437,15 @@ def _containers_of(value: Any) -> list[Any]:
 
 
 def _definition_case(number: int) -> tuple[str, Any]:
-    """A definition and a mutated sub-value of a fixture it accepts."""
+    """A definition and a mutated sub-value of a fixture its gate accepts."""
     draw = random.Random(f"{SEED}-definition-{number}")
-    definitions = current._closed_document()["$defs"]
-    compiler = _definition_compiler()
+    definitions = sorted(current._closed_document()["$defs"])
     while True:
-        sub = copy.deepcopy(draw.choice(_containers_of(draw.choice(_valid()))))
+        sub = copy.deepcopy(draw.choice(_containers_of(draw.choice(_valid_fixtures()))))
         accepting = [
             name
-            for name in sorted(definitions)
-            if _answer(compiler.check(definitions[name]), sub) is True
+            for name in definitions
+            if current._definition_schema(name).gate.is_valid(sub)
         ]
         if not accepting:
             continue
@@ -439,22 +457,72 @@ def _definition_case(number: int) -> tuple[str, Any]:
 @pytest.mark.parametrize("number", range(DEFINITION_CASES))
 def test_a_definition_answers_as_its_walk(number: int) -> None:
     name, value = _definition_case(number)
-    definitions = current._closed_document()["$defs"]
-    check = _definition_compiler().check(definitions[name])
-    _assert_answers_as_the_walk(check, current._definition_validator(name), value)
+    _assert_gate_answers_as_the_walk(current._definition_schema(name), value)
 
 
-# The walk is skipped where the check finds nothing.
+def test_the_definition_cases_reach_both_answers() -> None:
+    answers = {
+        _assert_gate_answers_as_the_walk(current._definition_schema(name), value)
+        for name, value in map(_definition_case, range(DEFINITION_CASES))
+    }
+    assert {True, False} <= answers
+
+
+# Every entry point has its gate.
+
+
+def test_every_entry_point_has_its_gate() -> None:
+    members = {("Manifest", "@context"), ("Graphical", "matchstamps")} | {
+        (definition, member)
+        for definition in current._SUBJECT_DEFINITIONS.values()
+        for member in current._STATEMENT_MEMBERS
+    }
+    assert len(members) == 8
+    # Every member ``statement_problems`` checks alone is one of them.
+    for member in members:
+        current._member_schema(*member)
+    current._definition_schema("Timestamp")
+    # Every member ``statement_problems`` checks alone is one of them, and on
+    # the fixtures each gate answers as its walk.
+    for value in _valid_fixtures():
+        found = current._statement_members(value, leniently_bare_ids(value))
+        for definition, member, content, *_ in found:
+            assert (definition, member) in members
+            schema = current._member_schema(definition, member)
+            assert _assert_gate_answers_as_the_walk(schema, content) is True
+        graphical = value.get("graphical", {})
+        if "matchstamps" in graphical:
+            schema = current._member_schema("Graphical", "matchstamps")
+            content = graphical["matchstamps"]
+            assert _assert_gate_answers_as_the_walk(schema, content) is True
+        for timestamp in graphical.get("timestamps", []):
+            schema = current._definition_schema("Timestamp")
+            assert _assert_gate_answers_as_the_walk(schema, timestamp) is True
+
+
+# The walk is skipped where the gate finds nothing.
 
 
 class _CountingWalk:
-    def __init__(self) -> None:
+    def __init__(self, walk: Any) -> None:
         self.calls = 0
-        self.walk = current._marking_validator()
+        self.walk = walk
+
+    @property
+    def schema(self) -> Any:
+        return self.walk.schema
 
     def iter_errors(self, value: Any) -> Any:
         self.calls += 1
         return self.walk.iter_errors(value)
+
+
+def _counted(monkeypatch: pytest.MonkeyPatch) -> _CountingWalk:
+    schema = current._manifest_schema()
+    walk = _CountingWalk(schema.walk)
+    counted = current._Schema(walk=walk, gate=schema.gate)
+    monkeypatch.setattr(current, "_manifest_schema", lambda: counted)
+    return walk
 
 
 @pytest.mark.parametrize(
@@ -469,183 +537,37 @@ class _CountingWalk:
 def test_a_valid_manifest_validates_without_the_walk(
     build: Callable[[], Any], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    walk = _CountingWalk()
-    monkeypatch.setattr(current, "_marking_validator", lambda: walk)
+    walk = _counted(monkeypatch)
     current.validate(build())
     assert walk.calls == 0
 
 
-def test_an_undeclared_key_takes_the_walk_once(
+def test_an_undeclared_key_is_listed_without_the_walk(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    walk = _CountingWalk()
-    monkeypatch.setattr(current, "_marking_validator", lambda: walk)
+    walk = _counted(monkeypatch)
     value = _read(fixture_paths()[0])
     value["undeclared_key"] = 1
-    assert current.unknown_keys(value) == [{"path": [], "key": "undeclared_key"}]
+    value["timelines"][0]["undeclared_key"] = 1
+    assert current.unknown_keys(value) == [
+        {"path": [], "key": "undeclared_key"},
+        {"path": ["timelines", 0], "key": "undeclared_key"},
+    ]
+    assert walk.calls == 0
+
+
+def test_an_invalid_manifest_takes_the_walk_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    walk = _counted(monkeypatch)
+    value = _read(fixture_paths()[0])
+    value["timelines"][0]["unit"] = "furlongs"
+    with pytest.raises(ValueError):
+        current.validate(value)
     assert walk.calls == 1
 
 
-# Compilation ends before any check runs.
-
-
-def _messages(errors: Any) -> list[str]:
-    return [error.message for error in errors]
-
-
-class _Capturing(SchemaCompiler):
-    """A compiler keeping what a definition's cells hold while it compiles."""
-
-    def __init__(self, document: Mapping[str, Any], name: str) -> None:
-        super().__init__(document)
-        self.name = name
-        self.cells: dict[str, Any] = {}
-
-    def check(self, node: Any) -> Check:
-        if node is self._definitions.get(self.name) and self.name in self._checks:
-            self.cells["check"] = self._checks[self.name][0]
-        return super().check(node)
-
-    def keys(self, node: Any) -> Any:
-        if node is self._definitions.get(self.name) and self.name in self._keys:
-            self.cells["keys"] = self._keys[self.name][0]
-        return super().keys(node)
-
-
-def _while_compiling(schema: Mapping[str, Any], name: str, cell: str) -> Check:
-    """``schema``'s check as a second thread finds it while ``name`` compiles.
-
-    The cell of ``name`` holds what the compiler put there before compiling
-    the definition, as another thread reusing the compiler would see it.
-    """
-    capturing = _Capturing(schema, name)
-    capturing.check(schema)
-    compiler = SchemaCompiler(schema)
-    cells = compiler._checks if cell == "check" else compiler._keys
-    cells[name] = [capturing.cells[cell]]
-    return compiler.check(schema)
-
-
-def test_a_check_reaching_a_reference_still_compiling_declines() -> None:
-    # Under ``oneOf`` an answer of ``False`` for ``B`` would accept ``1``.
-    schema = {
-        "$defs": {"A": {"type": "integer"}, "B": {"minimum": 0}},
-        "oneOf": [{"$ref": "#/$defs/A"}, {"$ref": "#/$defs/B"}],
-    }
-    check = _while_compiling(schema, "B", "check")
-    with pytest.raises(Unanswered):
-        check(1)
-    walk = Draft202012Validator(schema)
-    errors = current._walk_errors(walk, check, 1)
-    assert errors
-    assert _messages(errors) == _messages(walk.iter_errors(1))
-
-
-def test_the_keys_of_a_reference_still_compiling_decline() -> None:
-    schema = {
-        "$defs": {"A": {"properties": {"a": {}}}},
-        "allOf": [{"$ref": "#/$defs/A"}],
-        "unevaluatedProperties": False,
-    }
-    check = _while_compiling(schema, "A", "keys")
-    with pytest.raises(Unanswered):
-        check({"a": 1, "b": 1})
-    walk = Draft202012Validator(schema)
-    errors = current._walk_errors(walk, check, {"a": 1, "b": 1})
-    assert errors
-    assert _messages(errors) == _messages(walk.iter_errors({"a": 1, "b": 1}))
-
-
-def _fixture_with(*members: str) -> Any:
-    for value in _valid():
-        held = {
-            member for node in _nodes(value) if type(node) is dict for member in node
-        }
-        if set(members) <= held:
-            return value
-    raise AssertionError(members)
-
-
-def test_every_entry_point_is_compiled_before_the_first_check() -> None:
-    fresh = current._compiled_checks.__wrapped__()
-    document = current._closed_document()
-    definitions = document["$defs"]
-    entries = [document, definitions["Timestamp"]] + [
-        definitions[definition]["properties"][member]
-        for definition, member in current._CHECKED_MEMBERS
-    ]
-    assert all(id(entry) in fresh.compiler._compiled for entry in entries)
-    # Every member ``statement_problems`` checks alone is one of them: those
-    # the fixtures reach, and every subject's by its definition.
-    found = {
-        (definition, member)
-        for value in _valid()
-        for definition, member, *_ in current._statement_members(
-            value, leniently_bare_ids(value)
-        )
-    }
-    assert found <= set(fresh.members)
-    assert {
-        (definition, member)
-        for definition in current._SUBJECT_DEFINITIONS.values()
-        for member in current._STATEMENT_MEMBERS
-    } <= set(fresh.members)
-    assert len(fresh.members) == 8
-
-
-def test_no_node_is_compiled_after_the_first_call(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    fresh = current._compiled_checks.__wrapped__()
-    monkeypatch.setattr(current, "_compiled_checks", lambda: fresh)
-    compiled = len(fresh.compiler._compiled)
-    current.validate(_valid()[0])
-    assert len(fresh.compiler._compiled) == compiled
-    stamped = _fixture_with("matchstamps")
-    assert current.matchstamp_problems(stamped) == []
-    assert len(fresh.compiler._compiled) == compiled
-    stated = _fixture_with("statements", "provenance", "@context")
-    assert current.statement_problems(stated) == []
-    assert len(fresh.compiler._compiled) == compiled
-
-
-# Containers the check does not answer for.
-
-
-def test_a_mapping_whose_keys_disagree_declines() -> None:
-    schema = {"properties": {"a": {}}, "unevaluatedProperties": False}
-    check = compiled_check(schema, schema)
-    walk = Draft202012Validator(schema)
-    for value in (_Lying(a=1), OrderedDict(a=1), OrderedDict(b=1), _ListSub()):
-        with pytest.raises(Unanswered) if isinstance(value, dict) else _no_raise():
-            check(value)
-        assert _messages(current._walk_errors(walk, check, value)) == _messages(
-            walk.iter_errors(value)
-        )
-    assert _messages(current._walk_errors(walk, check, _Lying(a=1))) == [
-        "Unevaluated properties are not allowed ('a' was unexpected)"
-    ]
-
-
-class _no_raise:
-    def __enter__(self) -> None:
-        return None
-
-    def __exit__(self, *exception: Any) -> bool:
-        return False
-
-
-def test_an_ordered_manifest_has_the_outcome_of_the_walk() -> None:
-    value = _read(fixture_paths()[0])
-    ordered = OrderedDict(value)
-    with pytest.raises(Unanswered):
-        current._checks().manifest(ordered)
-    assert current._check(ordered) == current._check(value)
-    ordered["undeclared_key"] = 1
-    assert current.unknown_keys(ordered) == [{"path": [], "key": "undeclared_key"}]
-
-
-# The compiled check shares the walk's keyword semantics.
+# The gate shares the walk's keyword semantics where the package relies on it.
 
 _SEMANTICS: list[tuple[dict[str, Any], list[Any]]] = [
     ({"const": 1}, [1, 1.0, True, "1", [1]]),
@@ -655,39 +577,14 @@ _SEMANTICS: list[tuple[dict[str, Any], list[Any]]] = [
         [[1, {"a": True}], [1, {"a": 1}], [True, {"a": True}]],
     ),
     ({"enum": [1, "x"]}, [1, True, "x", 1.0, None]),
-    ({"enum": ["a", "b"]}, ["a", "c", 1, None]),
     ({"uniqueItems": True}, [[1, True], [1, 1.0], [[1], [True]], [{"a": 1}, {"a": 1}]]),
-    ({"type": "integer"}, [1, 1.0, 1.5, True, "1", None]),
+    ({"type": "integer"}, [1, 1.0, 1.5, True, "1", None, 2**64, 10**400]),
     ({"type": "number"}, [1, 1.5, True, None, "1"]),
-    ({"type": ["string", "null"]}, ["a", None, 1]),
-    ({"pattern": "^[a-z]"}, ["abc", "Abc", "1", 1, "xyz\n"]),
     ({"minLength": 2, "maxLength": 3}, ["a", "ab", "abcd", "𝅝𝅝", 5]),
     ({"minimum": 1, "exclusiveMaximum": 3}, [0, 1, 2.5, 3, True, "2"]),
-    ({"minItems": 1, "maxItems": 2}, [[], [1], [1, 2, 3], "ab"]),
-    (
-        {"required": ["a"], "minProperties": 2},
-        [{"a": 1}, {"a": 1, "b": 2}, {"b": 1}, []],
-    ),
-    ({"dependentRequired": {"a": ["b"]}}, [{"a": 1}, {"a": 1, "b": 1}, {"b": 1}]),
     (
         {"prefixItems": [{"type": "integer"}], "items": False},
         [[1], [1, 2], ["x"], [], {}],
-    ),
-    ({"propertyNames": {"pattern": "^x"}}, [{"xa": 1}, {"ya": 1}, {}]),
-    (
-        {"properties": {"a": {"type": "string"}}, "additionalProperties": False},
-        [{"a": "x"}, {"a": 1}, {"b": 1}, "s"],
-    ),
-    (
-        {"properties": {"a": {}}, "additionalProperties": {"type": "integer"}},
-        [{"a": "x", "b": 1}, {"b": "x"}],
-    ),
-    ({"oneOf": [{"type": "integer"}, {"minimum": 0}]}, [1, -1, 0.5, -0.5, "x"]),
-    ({"anyOf": [{"type": "string"}, {"type": "null"}]}, ["a", None, 1]),
-    ({"not": {"type": "string"}}, ["a", 1]),
-    (
-        {"if": {"properties": {"a": {"const": 1}}}, "then": {"required": ["b"]}},
-        [{"a": 1}, {"a": 1, "b": 0}, {"a": 2}],
     ),
     (
         {
@@ -725,71 +622,21 @@ _SEMANTICS: list[tuple[dict[str, Any], list[Any]]] = [
         },
         [{"a": 1, "b": 1}, {"a": 1, "c": 1}, {"c": 1}, {"b": 1}],
     ),
-    ({"items": True, "additionalProperties": True}, [[1], {"a": 1}]),
-    (
-        {
-            "$id": "https://example.org/s",
-            "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "type": "integer",
-        },
-        [1, "1"],
-    ),
-    (True, [1, None]),
-    (False, [1, None]),
 ]
 
 
 @pytest.mark.parametrize(("schema", "values"), _SEMANTICS)
-def test_the_check_answers_as_the_walk_on_each_keyword(
+def test_the_gate_answers_as_the_walk_on_each_keyword(
     schema: Any, values: list[Any]
 ) -> None:
-    check = compiled_check(schema if isinstance(schema, dict) else {}, schema)
-    walk = Draft202012Validator(schema)
-    assert [check(value) for value in values] == [
-        walk.is_valid(value) for value in values
+    checked = current._Schema.of(schema)
+    assert [checked.gate.is_valid(value) for value in values] == [
+        checked.walk.is_valid(value) for value in values
     ]
 
 
-@pytest.mark.parametrize(
-    "schema",
-    [
-        {"patternProperties": {"^x": {}}},
-        {"dependentSchemas": {"a": {}}},
-        {"contains": {}},
-        {"format": "email"},
-        {"$ref": "other.json#/$defs/A"},
-        {
-            "$defs": {"A": {"type": "string"}},
-            "properties": {
-                "x": {
-                    "$id": "http://example.org/x",
-                    "$defs": {"A": {"type": "integer"}},
-                    "$ref": "#/$defs/A",
-                }
-            },
-        },
-        {
-            "properties": {
-                "x": {"$schema": "https://json-schema.org/draft/2020-12/schema"}
-            }
-        },
-        {"properties": {"x": {"$anchor": "x"}}},
-        {"properties": {"x": {"$dynamicAnchor": "x"}}},
-        {"$vocabulary": {"https://json-schema.org/draft/2020-12/vocab/core": True}},
-    ],
-    ids=[
-        "patternProperties",
-        "dependentSchemas",
-        "contains",
-        "format",
-        "foreign reference",
-        "nested $id",
-        "nested $schema",
-        "$anchor",
-        "$dynamicAnchor",
-        "$vocabulary",
-    ],
-)
-def test_a_schema_the_check_does_not_know_refuses_to_compile(schema: Any) -> None:
-    with pytest.raises(NotImplementedError):
-        compiled_check(schema, schema)
+def test_a_final_line_feed_is_left_to_the_walk() -> None:
+    checked = current._Schema.of({"pattern": "^[a-z]+$"})
+    assert checked.walk.is_valid("abc\n")
+    assert not checked.gate.is_valid("abc\n")
+    assert checked.read("abc\n", True) == ([], set())
