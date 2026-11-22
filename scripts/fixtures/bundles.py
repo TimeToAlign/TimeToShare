@@ -70,8 +70,9 @@ def bundle_mixed() -> AlignmentBundle:
     map to seconds each; the ungrouped ``annotations`` (12 quarters) the
     regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map. No
     group names ``recording``, but it contains the member ``excerpt`` and so
-    is drawn only as its ancestor line: its map is kept in the manifest but
-    not drawn. Every id of a map, region or jump is minted.
+    is drawn as its ancestor line and, whole with its map, in an ancestor
+    card behind the frame of ``excerpt``. Every id of a map, region or jump
+    is minted.
     """
     score = parts.with_maps(
         ContinuousLogicalTimeline(
@@ -143,9 +144,9 @@ def bundle_shared_parent() -> AlignmentBundle:
     ``take_1_first`` ("First theme", 14.0 seconds) and ``take_1_second``
     ("Second theme", 16.0 seconds); ``take_2`` is a plain timeline. The page
     ``page`` ("Page", 1754 pixels) is ungrouped. No group names ``score``, but
-    it contains both members and so is drawn only as their ancestor line: its
-    map, region and repeat are kept in the manifest but not drawn. Every id of
-    a map, region or jump is minted.
+    it contains both members and so is drawn as their ancestor line and,
+    whole with its map, region and repeat, in an ancestor card behind each of
+    the two frames. Every id of a map, region or jump is minted.
     """
 
     def quarters(uid: str, name: str, length: int) -> Timeline:
