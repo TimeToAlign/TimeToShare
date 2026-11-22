@@ -82,7 +82,7 @@ groups beside ungrouped timelines. The smallest manifest is
 | `@context` | no | the inline JSON-LD context: the format's terms and the prefixes the statements use; required where any element carries `statements` or `provenance`, and warned of where absent (`context_absent`) ([Describing a manifest](#describing-a-manifest)) |
 | `statements` | no | property–value pairs about the manifest as a whole, among them the work it is about under `schema:about` ([Describing a manifest](#describing-a-manifest)) |
 | `provenance` | no | the annotations of those pairs, how each was made and who believes it, and candidate pairs, which are never stated ([Provenance and beliefs](#provenance-and-beliefs)) |
-| `graphical` | no | the styling of the manifest's drawing, its groups' display orders, its timelines' band orders, its named timestamps and its named MatchStamps |
+| `graphical` | no | the styling of the manifest's drawing, its groups' display orders, its timelines' band orders, its named timestamps, its named MatchStamps and its elisions |
 | `$schema` | no | a string naming the schema, for editors; never read |
 
 A single timeline is a bundle of one root, and a group is a bundle of one
@@ -359,8 +359,8 @@ arrays and objects are equal when their items and members are. Before a
 value is compared with its default, in either form, the manifest's
 own-axis values are respelled as their number type selects ([Values on a
 timeline's own axis](#values-on-a-timelines-own-axis)) and the `display`
-of each named timestamp and of each alignment anchor is put in canonical
-order, so a timestamp's `display` written
+of each named timestamp, of each alignment anchor and of each elision is
+put in canonical order, so a timestamp's `display` written
 `[name, wedge, cross_section]` equals its default and is omitted. Either form reads to
 the same objects, and each writes back to itself. `length` is required in
 both forms.
@@ -378,9 +378,10 @@ both forms.
 | a `TableMap` besides (`table_map`) | `kind`: `"linear"`; `extrapolate`: `"none"` |
 | MeasureMap (`measure_map`) | `name`: `null`; `meta`: `{}` |
 | group | `name`: `null`; `meta`: `{}` |
-| graphical | `styles`: `{}`; `rules`: `[]`; `order`: `{}`; `timestamps`, `matchstamps`: `[]` |
+| graphical | `styles`: `{}`; `rules`: `[]`; `order`: `{}`; `timestamps`, `matchstamps`, `elisions`: `[]` |
 | named timestamp (`timestamp`) | `matchstamp`, `groupstamp`: `false`; `display`: `["wedge", "name", "cross_section"]`, on a match timestamp `["cross_section"]` |
 | alignment anchor (`alignment_anchor`) | `display`: `["line"]` |
+| elision (`elision`) | `width`: absent (the card's default proportion); `display`: `["strip", "name", "coordinate"]` |
 
 `@context`, `statements` and `provenance` have no default: neither form
 adds or drops them, and both write them as given. A row marked "besides"
@@ -430,11 +431,12 @@ roots that no group names, and that contain no member, are ungrouped. A
 manifest holding a group always holds its members' roots, so a member that
 is a child keeps its parent.
 
-`graphical` is `{styles?, rules?, order?, timestamps?, matchstamps?}`, at
-the manifest's top level only, never on a timeline: a timeline holds time,
-and what is graphical lies in this object. `styles` and `rules` style the
-drawing ([Drawing a manifest](#drawing-a-manifest)); `matchstamps` lists
-the named MatchStamps ([Named MatchStamps](#named-matchstamps)).
+`graphical` is `{styles?, rules?, order?, timestamps?, matchstamps?,
+elisions?}`, at the manifest's top level only, never on a timeline: a
+timeline holds time, and what is graphical lies in this object. `styles`
+and `rules` style the drawing ([Drawing a manifest](#drawing-a-manifest));
+`matchstamps` lists the named MatchStamps ([Named
+MatchStamps](#named-matchstamps)); `elisions` lists the elisions (below).
 `timestamps` lists the **named timestamps**, each `{id, timeline,
 coordinate, name, display?, matchstamp?, groupstamp?}`: a
 position `coordinate` on the own axis of the timeline `timeline`, a root or
@@ -517,6 +519,43 @@ table beside it ([The MatchClaim table](#the-matchclaim-table)), and
 `graphical` holds only the MatchStamps someone named from them, so that
 the manifest draws without the table.
 
+`elisions` lists the **elisions**, each `{id, timeline, start, end,
+width?, display?}`: a stretch of the timeline `timeline` drawn as a narrow
+labelled strip, inside which nothing is drawn but that timeline's name and
+the coordinates the strip leaves out, `start–end`. The elision **lies on**
+its timeline, a root or a descendant at any depth, a segment included:
+`timeline` has the meaning and the validation of a named timestamp's
+`timeline`, and `start < end` are values on that timeline's own axis,
+from its zero to its `length` (to its reach when the length is `null`),
+written as its number type selects and respelled by writers as every
+own-axis value is ([Values on a timeline's own
+axis](#values-on-a-timelines-own-axis)). An elision moves with its
+timeline when the timeline's offset changes. Nothing refers to an elision
+but an address in a rule, and no timeline lists its elisions: an elision
+hides what lies on its stretch by position, so a child added there later
+is elided without an edit. `width` is exactly one of `{"ratio": q}` (`q`
+times the stretch's width at full scale, `0 < q ≤ 1`), `{"span": v}` (as
+wide as `v` units of its timeline at full scale) and `{"canvas": c}` (`c`
+canvas units); absent, the strip takes its card's default proportion,
+which the drawing computes from the screen it draws for. A strip is never
+wider than its stretch at full scale. `display` lists what the elision
+draws, distinct words from `strip`, `name` and `coordinate`, by default
+all three; without `strip` it draws nothing and hides nothing. Elisions
+are drawn wherever a timeline is drawn whole outside a frame: in an
+ungrouped root's card and in the ancestor card behind a group's frame,
+never in a member's card, since the members of a group convert linearly.
+Where no elision lies on the root of an ancestor card, the card draws
+default elisions of its own: the member's parent and its siblings, and
+above them the next timelines up, are elided outside the member, all at
+one proportion that keeps the strips no wider than the member's line and
+the card within the screen around the group. Two elisions may overlap,
+and an elision may overlap the member's span: neither is refused, the
+earlier in canonical order is drawn whole, the later clipped, and the
+member's span is never elided. The rule `{"select": {"element":
+"elision", "within": "#score"}, "set": {"display": "none"}}` draws the
+root `score` whole, its stored and its default elisions hidden (the
+drawing specification, sections 2, 3.2, 6.6 and 8.9).
+
 ### Unknown keys
 
 Every object of the schema is open but `@context`, a `statements`
@@ -545,23 +584,24 @@ open: the MatchClaim table refuses a key its provenance does not declare
 ### Identity
 
 Every timeline, group, MeasureMap, conversion map, region,
-flow-control element, resource, named timestamp, named MatchStamp and
-alignment anchor carries an `id`, which identifies it, and so may the
-manifest. A `name`, where an element has
+flow-control element, resource, named timestamp, named MatchStamp,
+alignment anchor and elision carries an `id`, which identifies it, and so
+may the manifest. A `name`, where an element has
 one, is what is displayed, and it may repeat. An ID is any non-empty string without control characters
 (U+0000 to U+001F): `/`, spaces, colons and URIs are allowed. Every ID is
 unique across the whole manifest: the manifest's own, and the IDs of every
 timeline (root or descendant), group, MeasureMap, conversion map at any
 depth of nesting, region, flow-control element, resource, named
-timestamp, named MatchStamp and alignment anchor. An ID is never parsed
+timestamp, named MatchStamp, alignment anchor and elision. An ID is never parsed
 and never composed with another. A reference is an ID, written in a file
 as an ID is ([Written in a file](#written-in-a-file)): a jump origin's
 `target` names a jump target of the same timeline, a measure view's
 `measure_map` an entry of `measure_maps`, a group's `members` name
 timelines of the manifest, a key of `graphical.order` a group or a
-timeline, a named timestamp's `timeline` a timeline of the manifest, a
-resource's `timelines` timelines of the manifest, and an alignment
-anchor's `timestamps` named timestamps. A MatchStamp's `match_claims`
+timeline, a named timestamp's `timeline` a timeline of the manifest, an
+elision's `timeline` a timeline of the manifest, a resource's `timelines`
+timelines of the manifest, and an alignment anchor's `timestamps` named
+timestamps. A MatchStamp's `match_claims`
 are no references: they name the package's own MatchClaims in the
 MatchClaim table, whose IDs are not the manifest's ([Named
 MatchStamps](#named-matchstamps)).
@@ -585,10 +625,10 @@ Exactly one leading `#` is stripped to get the ID, so `##x` is the ID `#x`.
 The `#` stands on the manifest's own `id` and on the IDs of timelines at any
 depth, groups, MeasureMaps, conversion maps (nested ones included), regions,
 flow-control elements, resources, named timestamps (`#timestamp_1`),
-named MatchStamps and alignment anchors; and on the
+named MatchStamps, alignment anchors and elisions; and on the
 references: a group's `members`, the keys of `graphical.order` and the
-member IDs of a group's entry, a named timestamp's `timeline`, a
-resource's `timelines`, an alignment anchor's `timestamps`, an address's
+member IDs of a group's entry, a named timestamp's `timeline`, an
+elision's `timeline`, a resource's `timelines`, an alignment anchor's `timestamps`, an address's
 `id`, a selector's `within`, a flow-control element's `target` and a
 measure view's `measure_map`. The IDs of MatchClaims in a MatchStamp's
 `match_claims` are written bare (`claim_27`), as their table holds them.
@@ -624,7 +664,8 @@ of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor that a named timestamp lies
 on a timeline of the manifest and within it, nor that a groupstamp lies
-in a group, nor that a resource's
+in a group, nor that an elision lies on a timeline of the manifest and
+within it, nor that a resource's
 timelines are timelines of the manifest, nor the rules of named
 MatchStamps ([Named MatchStamps](#named-matchstamps)), nor the representation of
 own-axis values, so both validators check them after the schema. Each
@@ -647,7 +688,7 @@ stable code:
 | A segment does not start where the one before it ends, or the first at 0 | `segment_line` | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
 | The last segment does not end at the segment line's length, both known | `segment_line` | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
 | An ID of a root's tree repeats an ID of an earlier root's tree | `duplicate_id` | the later occurrence | `'<id>' is not unique in the manifest, first at <pointer>` |
-| A group ID, a MeasureMap ID, a named timestamp's ID, a named MatchStamp's ID, an alignment anchor's ID or a resource's ID repeats an earlier ID of the manifest | `duplicate_id` | that element's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
+| A group ID, a MeasureMap ID, a named timestamp's ID, an elision's ID, a named MatchStamp's ID, an alignment anchor's ID or a resource's ID repeats an earlier ID of the manifest | `duplicate_id` | that element's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
 | The manifest's ID repeats another ID of the manifest | `manifest_id` | `id` | `'<id>' is not unique in the manifest, first at <pointer>`, the pointer naming the first occurrence of that ID |
 | A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
@@ -659,6 +700,10 @@ stable code:
 | A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
 | A groupstamp lies on a timeline that lies in no group (neither it nor any of its ancestors is a member) | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group and lies in none` |
+| An elision's `timeline` names no timeline of the manifest | `elision_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
+| An elision's `start` lies before 0 | `elision_stretch` | the `start` | `start <value> of '<id>' lies before the start of its timeline '<timeline id>'` |
+| An elision's `end` lies beyond its timeline's known length | `elision_stretch` | the `end` | `end <value> of '<id>' is beyond the length <length> of its timeline '<timeline id>'` |
+| An elision's `end` does not lie after its `start` | `elision_stretch` | the `end` | `end <value> of '<id>' does not lie after its start <value>` |
 | An entry of an alignment anchor's `timestamps` names no named timestamp | `alignment_anchor` | the entry | `'<id>' names no timestamp of this manifest` |
 | An entry of an alignment anchor's `timestamps` names a timestamp that is no match timestamp | `alignment_anchor` | the entry | `'<id>' is no match timestamp` |
 | The two match timestamps of an alignment anchor lie on one timeline | `alignment_anchor` | the anchor's second entry of `timestamps` | `the timestamps of '<anchor id>' both lie on the timeline '<timeline id>'` |
@@ -686,13 +731,16 @@ with the next segment's offset and the last one's with the line's length. Across
 order: each root's own problems, roots in array order; then the IDs
 repeated across roots (root by root, each ID of its tree in identity order,
 the IDs of the maps other maps hold last), the group IDs, the MeasureMap
-IDs, the named timestamps' IDs, the named MatchStamps' IDs, each followed
-by its anchors' IDs, the resources' IDs, the manifest's ID; members
+IDs, the named timestamps' IDs, the elisions' IDs, the named MatchStamps'
+IDs, each followed by its anchors' IDs, the resources' IDs, the
+manifest's ID; members
 (member by member: dangling, nested); the entries of `graphical.order` in
 code-point order of their keys: an order's strangers first, in its order,
 then what it misses, a display order's members in the order of the group's
 `members` and a band order's `line`; then the named timestamps, in array order, each its
 timeline, its coordinate, then whether it may be a groupstamp; then the
+elisions, in array order, each its timeline, then its start, its end
+against the timeline's length and its end against its start; then the
 named MatchStamps in array order, each anchor in turn (its two
 timestamps in order, then whether they lie on one timeline) before
 whether the MatchStamp's anchors connect, followed by the match
@@ -705,7 +753,10 @@ rules of statements and their provenance follow the identity rules
 (the description specification, section 12). A timestamp's
 coordinate is an own-axis value of its timeline, so its representation is
 checked as every such value is (`representation`, at its `coordinate`); a
-timestamp naming no timeline is checked for its timeline alone. `<pointer>`
+timestamp naming no timeline is checked for its timeline alone. An
+elision's `start` and `end`, and the `span` of its `width`, are own-axis
+values of its timeline too, checked and respelled so, and an elision
+naming no timeline is checked for its timeline alone. `<pointer>`
 is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
 `json_pointer(path)` and npm's `jsonPointer(path)` render a path. Both
 packages write the messages above alike, a bare ID verbatim in single quotes
@@ -1305,8 +1356,10 @@ as an arc to its target or to the start; a jump target draws nothing),
 `wedge` (a coordinate marker), `cross_section` (a named timestamp's
 cross-section line), `alignment_anchor` (the line of an alignment anchor
 of a named MatchStamp, drawn last, across the cards between its two
-timestamps), `name` and `label` (every other text, a named
-timestamp's name and a MatchStamp's name among them). Besides `element`, a selector may name `addresses` (address
+timestamps), `elision` (the strip of an elision, over the stretch it
+hides), `name` and `label` (every other text, a named
+timestamp's name, a MatchStamp's name and an elision's two labels among
+them). Besides `element`, a selector may name `addresses` (address
 objects, each matched as a whole object), `domain`, `modality`, `class`
 (the class a timeline's unit decides, such as
 `ContinuousPhysicalTimeline` for `seconds`, or a conversion map's type),
@@ -1381,7 +1434,10 @@ order keys cannot express are put in this order:
   code point and then by any other values in their given order;
 - `graphical.matchstamps` by ID, every MatchStamp's `alignment_anchors`
   by ID, and every anchor's `display` in the order `line`, `name`,
-  followed by other values as a timestamp's are.
+  followed by other values as a timestamp's are;
+- `graphical.elisions` by `timeline` (code point), then start, then ID,
+  and every elision's `display` in the order `strip`, `name`,
+  `coordinate`, followed by other values as a timestamp's are.
 
 Coordinates compare by exact numeric value, never by spelling. Strings
 compare by Unicode code point. IDs are unique across a valid manifest, so

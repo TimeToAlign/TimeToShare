@@ -54,7 +54,14 @@ containers are the **boxes** of a drawing.
     `cards`, an object keyed by the ID of a member `T`, whose value states
     the `width`, `height`, `spacing` and `margin` of `T`'s card in that group's
     frame, so that `places[G].cards[T]` is the card of member `T` in the
-    frame of group `G` (default `{}`).
+    frame of group `G` (default `{}`);
+  - `view`, the **view** `{width, height}`, the screen area the drawing
+    is meant for, in canvas units at the scale 1 (CSS pixels), each a
+    finite number > 0 (default `{width: 1280, height: 720}`). It sets the
+    default width of elisions (section 8.9) and nothing else: an editor
+    passes the area of its canvas, a script its own or the default, and
+    the manifest stores nothing of it, so one manifest drawn for two views
+    may differ in the widths of its elisions.
 - `layers`: the rule lists that style the drawing, from the lowest to
   the highest precedence: the defaults of section 4, then any lists an
   application supplies below the manifest (such as an editor's settings),
@@ -151,7 +158,7 @@ each a selector (`select`, section 2.3) and either a declaration or the name
 of a style in the same layer's `styles` (`set`). The order of the
 rules matters, so writers never reorder them. Every layer of section 1
 has this shape. The manifest's own `graphical` also holds `order`,
-`timestamps` and `matchstamps`, which no other layer holds. `order` maps a group's ID to the
+`timestamps`, `matchstamps` and `elisions`, which no other layer holds. `order` maps a group's ID to the
 display order of the group's members (section 8.1) and a timeline's ID to
 the timeline's band order (section 6.4).
 
@@ -245,6 +252,44 @@ MatchClaim table, such as the potential MatchStamps it shows in grey or
 the anchors of a named MatchStamp that the current table no longer gives,
 which it marks in red, is the editor's own and never part of a drawing.
 
+`elisions` is a list of **elisions** (default `[]`), each an object `{id,
+timeline, start, end, width?, display?}` that draws a stretch of one
+timeline as a narrow labelled **strip**, inside which nothing is drawn but
+the name of that timeline and the coordinates the strip leaves out
+(sections 6.6 and 8.9). `id` is its ID (README, "Identity"); `timeline`
+names the timeline the elision **lies on**, at any depth, a segment
+included, with the meaning and the validation of a named timestamp's
+`timeline`; `start` and `end`, `start < end`, are positions on that
+timeline's own axis, from its zero to its `length` (to its reach when the
+length is `null`), each a number as the timeline's number type selects
+(README, "Values on a timeline's own axis"). An elision moves with its
+timeline when that timeline's offset changes. Nothing refers to an
+elision but an address in a rule (section 2.2), and no timeline lists its
+elisions. An elision is a container: it hides what lies on its stretch by
+position (section 2.4), so a child added inside the stretch later is
+elided without any edit. Its **natural width** is the width its stretch
+has at full scale (section 3.2), and `width` sets the strip's drawn width
+in exactly one of four forms:
+
+| `width` | The strip's drawn width |
+|---|---|
+| absent | the **default proportion** `r` of its card (section 8.9) times its natural width |
+| `{"ratio": q}`, `0 < q ≤ 1` | `q` times its natural width |
+| `{"span": v}`, `v > 0` | the width of `v` units of its timeline at full scale |
+| `{"canvas": c}`, `c > 0` | `c` canvas units |
+
+A width larger than the natural width is drawn at the natural width: an
+elision never widens its stretch. `display` lists what the elision draws,
+distinct words from `strip`, the strip with what it draws through it, and
+`name` and `coordinate`, its two labels; when it is absent the elision
+draws all three, and writers write it in the canonical order `strip`,
+`name`, `coordinate`. An elision whose `display` leaves out `strip` draws
+nothing and hides nothing. Elisions may overlap each other and the span
+of a group member; neither is refused, and section 8.9 states what is
+drawn. Their canonical order is by `timeline`, compared by Unicode code
+point, then by `start`, compared by exact value, then by `id`, compared by
+code point.
+
 A reader that meets rules naming styles its `styles` does not hold
 issues one warning naming every missing style, and adds each to `styles` as
 an empty declaration; such a rule then sets nothing, and the
@@ -273,8 +318,9 @@ of a timeline, which draws nothing of its own:
 | `wedge` | a coordinate marker: of a named timestamp of any timeline, at its primary coordinate or at a secondary one (section 2); on an ancestor line, also the member's start or end on the ancestor's axis (section 8.3) |
 | `cross_section` | the cross-section line of a named timestamp, a vertical line across each card its timeline is drawn in, as a line or as an ancestor line, from border to border, with a gap where the wedge and labels of its primary coordinate stand, and for a groupstamp also its lines across the frame of each group its timeline lies in (section 6.6) |
 | `alignment_anchor` | the line of an alignment anchor of a named MatchStamp, the shortest line between the cross-section lines of its two timestamps (section 8.7) |
+| `elision` | the strip of an elision: a stretch of a timeline drawn narrow, from its card's top border to its bottom border, with the continuations of the lines that cross it (sections 6.6 and 8.9) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
-| `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the coordinate of a mark on an ancestor line, or the label of a region, jump origin, flow marker or segment |
+| `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the coordinate of a mark on an ancestor line, the name or coordinates of an elision, or the label of a region, jump origin, flow marker or segment |
 
 A drawing has two kinds of marker, and they are never confused. A
 **coordinate marker** marks a position of a timeline: it is a wedge, and
@@ -330,15 +376,16 @@ named timestamps' coordinates on its timeline, primary and secondary
 by it, the conversion maps band its maps, the children band
 its child timelines, the regions band its regions, and the flow control
 band its flow markers and jump origins; a `timeline` or `child` also holds
-the cross-section lines of its timeline's named timestamps, directly and in
-no band; any other element holds its own `name` and `label` where it has
+the cross-section lines of its timeline's named timestamps and the
+elisions lying on its timeline, each elision holding its two labels,
+directly and in no band; any other element holds its own `name` and `label` where it has
 one (section 5.3; a map and a band have neither), except that a segment's
 label and its `boundary` are held by its segment line, directly and in no
 band, as parts of that line (section 6.4). A segment is a child timeline of
 its segment line, held by its children band. One that is not a segment
 line is a node of the tree although no line of its own is drawn, holding
-its five bands and its named timestamps' cross-section lines as a line
-does, whose content is drawn at its segment line's line (section 6.4), and
+its five bands, its named timestamps' cross-section lines and the
+elisions lying on it as a line does, whose content is drawn at its segment line's line (section 6.4), and
 has no element type, so `inside` never names it; one that is a segment
 line is drawn as a `child` (section 6.1).
 Section 8 states the top of the tree: the block, frames, cards, ancestor
@@ -353,8 +400,8 @@ and compared as a whole object. No address is a string composed from IDs.
 `id` is an element's ID; `facet` is one of the five facets `markers`,
 `conversion_maps`, `children`, `regions` and `flow_control`, and names a
 band; `part` is a non-empty array of the words `start`, `end`, `name`,
-`label`, `id`, `coordinate`, `card` and `line`, and names a part of an
-element. `facet` stands only with `id`, and never with `part`. The name or
+`label`, `id`, `coordinate`, `card`, `line` and `elision`, and names a
+part of an element. `facet` stands only with `id`, and never with `part`. The name or
 label of an element is addressed by the element's address with `name` or
 `label` appended to its `part`; a named timestamp has no row and so no
 `name` element, and the part `name` of its address names its first label,
@@ -379,6 +426,10 @@ and `X` an element's ID:
 | the cross-section line of that timestamp, and of a groupstamp each of its lines across a frame | `{"id": X, "part": ["line"]}` | `T` |
 | the line of an alignment anchor with ID `A` | `{"id": A}` | none |
 | the MatchStamp's name at that anchor, a `label` element | `{"id": A, "part": ["name"]}` | none |
+| the strip of an elision with ID `E` lying on `T` | `{"id": E}` | `T` |
+| its labels, both `label` elements: the name of `T`, its coordinates | `{"id": E, "part": ["name"]}`, `{"id": E, "part": ["coordinate"]}` | `T` |
+| the strip of a default elision lying on `T` (section 8.9) | `{"id": T, "part": ["elision"]}` | `T` |
+| its labels | `{"id": T, "part": ["elision", "name"]}`, `{"id": T, "part": ["elision", "coordinate"]}` | `T` |
 | the name of an element with ID `X` | `{"id": X, "part": ["name"]}` | that element's timeline |
 | the label of an element with ID `X` | `{"id": X, "part": ["label"]}` | that element's timeline |
 | every card of a timeline with ID `T`: an ungrouped root's, one in the frame of each group that has `T` as a member, or an ancestor card behind the frame of each group having a member below `T` | `{"id": T, "part": ["card"]}` | `T` |
@@ -410,7 +461,12 @@ title is addressed `{"part": ["name"]}` whether or not the manifest has an
 `id`: the manifest's own `id` addresses nothing, so giving a manifest an ID,
 changing it or naming the manifest changes no address. A jump target is
 addressed like a region but draws nothing. A MeasureMap belongs to no
-timeline and is not drawn; `{"id": X}` with its ID `X` addresses it.
+timeline and is not drawn; `{"id": X}` with its ID `X` addresses it. A
+default elision is derived and has no ID: the default elisions lying on
+`T` in a card, one on each side of a group member where `T` holds it,
+share the address `{"id": T, "part": ["elision"]}`, as every element drawn
+more than once does, and a stored elision clipped into several pieces
+(section 8.9) keeps its one address on each.
 
 One timeline may be drawn more than once: as a member in the frame of each
 group that has it as a member, as an ancestor line of several members, in
@@ -488,7 +544,7 @@ wedge is written by its points, never with a `transform` (section 7.2).
 | `stroke` | `#RRGGBB` (upper-case) or `none` | yes | every type but `block`, `band`, `wedge`, `name` and `label` |
 | `stroke-width` | a number ≥ 0 | yes | as `stroke` |
 | `stroke-dasharray` | `none`, or numbers separated by single spaces | yes | as `stroke` |
-| `fill` | `#RRGGBB` or `none` | yes | `block`, `frame`, `card`, `ancestor_card`, `timeline`, `child`, `ancestor` (the circles at their start and end, the arrowhead at their end), `jump_from` (its arrowhead), `wedge`, `name`, `label` |
+| `fill` | `#RRGGBB` or `none` | yes | `block`, `frame`, `card`, `ancestor_card`, `timeline`, `child`, `ancestor` (the circles at their start and end, the arrowhead at their end), `jump_from` (its arrowhead), `wedge`, `elision` (its strip), `name`, `label` |
 | `opacity` | a number from 0 to 1 | no | every type but `band` |
 | `font-size` | a number > 0 | yes | `name`, `label` |
 | `rx` | a number ≥ 0 | no | `block`, `frame`, `card`, `ancestor_card` (the corner radius) |
@@ -502,9 +558,10 @@ A rule may set any property on any element; an element ignores the
 properties its type does not read. `display: none` is the filter: an element
 that is not displayed is not drawn and takes no room. An element is
 **displayed** when its `display` is `inline`, no rule of this list hides
-it, and, for an element of a named timestamp or of an alignment anchor,
-the timestamp's or the anchor's own `display` lists its word (section
-2). The two are independent filters,
+it, and, for an element of a named timestamp, of an alignment anchor or
+of an elision, the timestamp's, the anchor's or the elision's own
+`display` lists its word (section 2; for an elision's labels, `name` or
+`coordinate`, and `strip` besides). The two are independent filters,
 both of which an element of a named timestamp must pass: its `display`
 array chooses what the timestamp draws at all, and the cascade's `display`
 property may still hide any one element of it, its wedge, any of its
@@ -516,13 +573,13 @@ refer to it:
 - **A band hides everything it holds.** A band that is not displayed hides
   every element it holds, at any depth of the tree of section 2.1.
 - **An element hides its label.** The label of a region, jump origin,
-  flow marker or mark on an ancestor line is displayed only when that
-  element is displayed. A named timestamp's labels are not its wedge's
+  flow marker or mark on an ancestor line, and each label of an elision,
+  is displayed only when that element is displayed. A named timestamp's labels are not its wedge's
   (section 2.1), and its wedge hides none of them.
 - **A line hides its timeline's whole drawing.** A line that is not
   displayed, the root's and a child's alike, hides its name, the maps,
   boundaries and segment labels on it (section 6.4), the cross-section
-  lines it holds (section 2.1), and its five bands with everything they
+  lines and the elisions it holds (section 2.1), and its five bands with everything they
   hold, at any depth, its children and its segments with everything of
   theirs included. It takes no room, its stroke
   included: a child whose line is not displayed is not placed and has no
@@ -545,6 +602,12 @@ refer to it:
 - **An ancestor card hides its drawing.** An ancestor card (section 8.8)
   that is not displayed draws nothing of its member drawing, takes no
   room, and the block does not grow for it.
+- **An elision hides what lies on its stretch.** A displayed elision
+  whose `display` lists `strip` draws its strip (section 6.6, Elisions)
+  and hides every element of its card that marks a position in the strip
+  (section 3.2), whatever timeline holds it. An elision that is not
+  displayed, or whose `display` leaves out `strip`, hides nothing: its
+  stretch is drawn at full scale, as without the elision.
 
 No other element hides another. A frame or card that is not displayed
 keeps everything drawn in it (section 8.4); a member's line keeps its
@@ -642,6 +705,33 @@ float; 0 when `λ` is 0. Its x in item coordinates (section 8.2) is
 in binary64, `x0` the start of the root's line (section 8.2). This is the
 only step from an exact value to a double, at any depth of nesting. A
 label is spelled from the coordinate (section 5.2), never from the double.
+
+**The elided axis.** A card that draws strips (section 8.9: an ancestor
+card or an ungrouped root's card) has an x-axis that is linear piece by
+piece. Each strip lies over a stretch `[a, b]` of the root's axis, `a <
+b`, and no two strips of a card overlap. A strip's **natural width** is
+`n = L × ub − L × ua`, `ua` and `ub` the proportions of `a` and `b`, the
+products formed first; its drawn width `w` (section 8.9) is at most `n`,
+and its **shrink** is `n − w`. A position `t` lies **in** a strip when
+`a < t < b`, compared exactly: the ends of a strip lie in none. A position
+in no strip has the x
+
+    x(t) = x0 + (L × u − D)
+
+`D` being the sum of the shrinks of the strips with `b ≤ t`, compared
+exactly, each shrink formed first and the shrinks summed from the left.
+Before the first strip `D` is 0 and `x(t)` is the value above, `x0 + L ×
+u`; so a full stretch keeps the scale `L / λ`, a strip is drawn `x(b) −
+x(a)` wide, and every position right of a strip lies its shrink further
+left. The end of a root of unknown length (section 3.4) lies at `x0 + (L −
+D)`, `D` the sum of every shrink. A position in a strip has no x: an
+element marking it is not drawn (section 6.6, Elisions). Wherever
+sections 6.7 and 8.2 write `L × u` for a drawn position, it stands here
+for `L × u − D`. Strips move x alone: section 6 lays the card out as
+without them, its first fits (section 6.3) measuring every extent by `L ×
+u`, so that the card's rows, tiers, slots, widths and ordinates are those
+of the card drawn whole, and an element that is not drawn because it lies
+in a strip keeps its room.
 
 ### 3.3 Canvas arithmetic
 
@@ -757,12 +847,14 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"element": "frame"}, "set": {"fill": "#FFFFFF", "stroke": "#D1D5DB", "stroke-width": 1, "rx": 6}},
     {"select": {"element": "card"}, "set": {"fill": "#FFFFFF", "stroke": "#C4C9D1", "stroke-width": 0.75, "rx": 5, "shadow": "#B8BEC8"}},
     {"select": {"element": "ancestor_card"}, "set": {"fill": "#FFFFFF", "stroke": "#C4C9D1", "stroke-width": 0.75, "rx": 5, "shadow": "#B8BEC8"}},
+    {"select": {"element": "elision"}, "set": {"fill": "#F2F2F2", "stroke": "#9CA3AF", "stroke-width": 1, "stroke-dasharray": "2 2"}},
     {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
     {"select": {"element": "cross_section", "inside": "ancestor"}, "set": {"opacity": 1}},
     {"select": {"coordinates": "primary", "inside": "ancestor"}, "set": {"opacity": 1}},
     {"select": {"element": "label"}, "set": {"fill": "#000000", "font-size": 9}},
     {"select": {"element": "name"}, "set": {"fill": "#000000", "font-size": 11, "max-width": 160}},
     {"select": {"element": "name", "inside": "ancestor"}, "set": {"fill": "#6B7280", "font-size": 9, "opacity": 1}},
+    {"select": {"element": "label", "inside": "elision"}, "set": {"fill": "#6B7280"}},
     {"select": {"element": "band", "facet": "regions", "inside": "band"}, "set": {"display": "none"}},
     {"select": {"element": "band", "facet": "flow_control", "inside": "band"}, "set": {"display": "none"}},
     {"select": {"coordinates": "secondary"}, "set": {"display": "none", "rotation": -45}}
@@ -796,7 +888,13 @@ outline and a grey offset shadow, so that it stands out from the grey block
 and from a frame alike. A card has its timeline's domain and modality, so
 a rule can style the cards of one domain. An ancestor card looks like a
 card and is shown; a rule setting its `display` to `none` hides it
-(section 8.8). The two rules selecting `band`
+(section 8.8). An elision's strip is light grey and not stroked; its
+stroke, thin, dashed and grey, draws the continuations of the lines
+through it and the rule between neighbouring strips (section 6.6); the
+default rule selecting it names `element` and so outranks the domain
+rules (section 2.5), and a strip is grey on every timeline; its labels
+are grey, as an ancestor's name is.
+The two rules selecting `band`
 hide the regions and flow control bands of every timeline that is
 held by a band, which is every timeline of a member drawing but its root
 (a child is held by its parent's children band, a segment without a line
@@ -952,7 +1050,14 @@ jump target draws no label; a segment's label is
 its `name`, and a segment whose `name` is null has none; a named
 timestamp has three labels, its `name`, its whole `id`, and its
 `coordinate`, labelled as section 5.2 labels a coordinate, in its
-timeline's unit, and draws those its `display` lists (section 2). The title of a
+timeline's unit, and draws those its `display` lists (section 2). An
+elision has two labels: its `name` label, the name of the timeline it
+lies on, and its `coordinate` label, the pretty text (section 5.2) of the
+start of its strip without its pretty unit, `–` (U+2013) and the pretty
+text of its end, both on that timeline's own axis, so `0–16 ♩` and `600–1
+754 px`; in seconds both values are clocks, `55.5″–1′30″`. The start and
+end are those of the stretch the strip draws (section 8.9), which a
+clipped elision or a default one shows. The title of a
 group, or of the manifest, is its `name`, or, when `name` is null, its whole
 `id`. A manifest with neither a `name` nor an `id`, an
 anonymous bundle, has no title.
@@ -1749,6 +1854,44 @@ one below it.
   centred on the row: baseline at `y + (a(s) − d(s)) / 2`, `s` the font size of that first
   name, whose address the text carries. Name descriptors are ordered from
   the top row down.
+- **Elisions.** The strip of an elision (section 8.9) over the stretch
+  `[a, b]` of the card's root axis is a rectangle from `x(a)` to `x(b)`
+  (section 3.2), and from the card's top `yt` to its bottom `yb`, the
+  card's rectangle as sections 8.4 and 8.8 write it, its shadow not
+  counted: filled and not stroked. Its stroke draws two kinds of line. A
+  **continuation**, from `(x(a), y)` to `(x(b), y)`, continues every line
+  drawn in the card whose span holds the whole stretch, its start at or
+  before `a` and its end (section 3.4) at or after `b`, compared exactly,
+  `y` that line's ordinate, the root's and every child's line alike: the
+  row continues, and no value is joined across the strip. A **rule**, from
+  `(x(a), yt)` to `(x(a), yb)`, parts a strip that starts where the strip
+  before it ends from that one. Nothing else is drawn in a strip. An
+  element that marks a position in a strip is not drawn: a wedge with its
+  labels, a cross-section line, a boundary, a segment label, a flow marker
+  with its label, a region whose start, end or midpoint lies in one with
+  its label, and a jump origin whose from, to or the midpoint of the two
+  does with its label. A line or a map whose start lies in a strip starts
+  at that strip's right edge `x(b)`, without a start circle, and one whose
+  end lies in a strip ends at that strip's left edge `x(a)`, without an
+  arrowhead, end circle, diamond or chevrons; one whose start and end so
+  meet or cross is not drawn. An element whose positions lie in no strip
+  is drawn whole at its elided x, a region or jump origin over a strip and
+  a line through one included: the strip, written after it (section 8.5),
+  lies over it, so that a line stops at the strip's left edge and resumes
+  at its right edge. A position at a strip's edge lies in no strip, so a
+  named timestamp there is drawn.
+
+  The labels of a strip lying on a timeline `T` are centred on `xm =
+  (x(a) + x(b)) / 2`: its `name` label above `T`'s line, its baseline at
+  `y − (w / 2 + 2) − d(s)`, and its `coordinate` label below it, its
+  baseline at `y + (w / 2 + 2) + a(s)`, `y` the ordinate of `T`'s line, or
+  of its segment line's for a segment without a line (section 6.4), `w`
+  that line's stroke width and `s` the label's font size, each distance
+  summed whole first (section 3.3). A label wider than `x(b) − x(a) − 4`,
+  the strip less the label separation on either side, is cut to its
+  longest prefix that, followed by `…` (U+2026), fits that width, as a
+  name is cut (Names), and a label of which not even `…` fits is not
+  drawn. A strip and its labels take no room.
 
 A label "beyond" a point at ordinate `y` lies outwards from it: below, its
 baseline is at `y + a(9)`; above, at `y − d(9)`, with the label gap added
@@ -1779,8 +1922,11 @@ on to the right `Xr + 4w`, with `Xr = x0 + L + 4w` computed first (section
 or a cross-section line's `X`, the largest x of a wedge's three points
 (section 6.6), `X + 3` for a wedge not rotated, the largest x of
 the points written in a brace's or a jump origin's descriptors (control
-points and a jump origin's arrowhead corners included), and a text's end from its advance
-widths.
+points and a jump origin's arrowhead corners included), a strip's `x(b)`,
+and a text's end from its advance
+widths. In a card with strips every x here is the elided one (section
+3.2), and a line or map that ends in a strip ends at its left edge
+without its mark (section 6.6, Elisions).
 
 ## 7. Writers
 
@@ -1860,6 +2006,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | boundary | `<line x1="{X}" y1="{y−k}" x2="{X}" y2="{y+k}">` (section 6.6) |
 | cross-section line | for each of its lines (section 6.6: up to two in a card, one on each side of its gap, and a groupstamp's up to two in a frame), `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, from `(X, y1)` to `(X, y2)`, `y1` the smaller ordinate, the upper line first |
 | alignment anchor | `<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}">`, from the point on the first timestamp's line to the point on the second's (section 8.7) |
+| elision | `<rect x="{x(a)}" y="{yt}" width="{x(b) − x(a)}" height="{yb − yt}">`, filled and not stroked; then its rule, when it has one, `<line x1="{x(a)}" y1="{yt}" x2="{x(a)}" y2="{yb}">`; then its continuations, `<line x1="{x(a)}" y1="{y}" x2="{x(b)}" y2="{y}">` each, in the traversal order of their lines (section 6.6) |
 | name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and flow-marker labels, `middle` for the centred labels |
 
 The **stroke attributes** are `stroke`, `stroke-width` and, unless it is
@@ -1869,7 +2016,7 @@ and a text carry `fill`, and the open arrowhead, the diamond and the map's
 outline, the stroked polygons, also the stroke attributes (the map's dash
 included); a polyline carries `fill="none"` and the stroke attributes; a
 group frame, a card and an ancestor card carry `fill` and the stroke
-attributes, a card's shadow `fill` alone. A line's descriptors are, in this order, its `<line>`,
+attributes, a card's shadow and an elision's rectangle `fill` alone. A line's descriptors are, in this order, its `<line>`,
 its start circle or left chevrons, and its end or right chevrons. Every
 descriptor of an element, a card's shadow included, carries the element's
 `opacity`, written when it is not 1. An
@@ -1971,6 +2118,10 @@ one to one:
 | polyline | `\path[{options}] ({p1}) -- ({p2}) -- ({p3});` |
 | path | `\path[{options}] ({P0}) .. controls ({C1}) and ({C2}) .. ({P3});`, a brace's quadratic `Q C P` from the current point `P0` written as the cubic with controls `P0 + 2/3 × (C − P0)` and `P + 2/3 × (C − P)`, computed as section 3.3 states (the factor `2/3` formed first), an `L P` as `-- ({P})` |
 | text | `\node[anchor={base west|base},inner sep=0,{options}] at ({x},{baseline}) {{text}};` with `text=tsRRGGBB` for the fill |
+
+An elision's descriptors take these commands as every other rect, line
+and text does: its rectangle a `rect` with the `fill` option alone, its
+rule and continuations `line`s, its labels `text`s anchored `base`.
 
 Options are written in the order of the attributes of section 7.2. In text,
 `\` becomes `\textbackslash{}`, `~` becomes `\textasciitilde{}`, `^`
@@ -2299,11 +2450,15 @@ background is a rectangle filling it with corner radius `rx`.
 
 A manifest becomes element descriptors in this order: the background; the
 manifest's title; then each displayed ancestor card in the order of
-section 8.8 and the descriptors of its member drawing; then, for each
-frame in drawing order, the frame, its
+section 8.8, the descriptors of its member drawing and its strips; then,
+for each frame in drawing order, the frame, its
 title, and for each of its members in display order, the member's card and
 the descriptors of its member drawing; then, for each ungrouped root, its
-card and the descriptors of its member drawing. The descriptors of a member
+card, the descriptors of its member drawing and its strips. A card's
+strips (section 8.9) follow its member drawing, so that each lies over
+what it hides: first every strip's descriptors (section 7.2), strip by
+strip from the left, and then their labels, strip by strip, each strip's
+`name` label before its `coordinate` label. The descriptors of a member
 drawing follow section 7.2, with its ancestor lines, from `A1` to `Ak`,
 each with its chevrons, just before its root; their marks and the wedges
 of the named timestamps' coordinates on them, from `A1` to `Ak`, each
@@ -2527,15 +2682,20 @@ forms them. With `x0` the start of the member drawings of `G`'s frame and
 1. **Alone.** `R` is laid out by sections 3 to 6, 8.2 and 8.4 as the one
    ungrouped root of a block that holds nothing else and has no title: at
    the graphical length `LA`, with the card spacing 4 and the card margin
-   0 whatever `places` states, the name column at `n = K`, and its own
+   0 whatever `places` states, the name column at `n = K`, its strips
+   (section 8.9) on its elided axis (section 3.2), and its own
    `N`, `G'`, start `s0'` and right margin, so that its card spans `0` to
    `Ri' + K` and is `Hm` high, its top at 0. `R` is a root, so its drawing
    has no ancestor band. `yR` is the ordinate of `R`'s line in it.
 2. **Placed.** `yA` is the ordinate, in `G`'s item coordinates, of `R`'s
    ancestor line in `M`'s card, or of `M`'s line where that ancestor line
    is not displayed. Every position `(px, py)` of the layout of 1, its
-   card's included, becomes `(px + dx, py + dy)` with `dx = xs − s0'` and
-   `dy = yA − yR`, so that `R`'s line starts at `xs` and lies at `yA`.
+   card's included, becomes `(px + dx, py + dy)` with `dx = (xs + DL) −
+   s0'` and `dy = yA − yR`, `DL` the sum of the shrinks of the strips left
+   of `M`'s span (section 8.9), summed from the left, and 0 without strips:
+   so `R`'s line starts at `xs + DL`, `M`'s span on it lies over `M`'s line
+   and the strips on its right shorten the card there, and `R`'s line lies
+   at `yA`.
    The ancestor card is then drawn at `G`'s place and scale, as every
    element of the frame (section 8.6).
 3. **No room.** No item's default `y` (section 8.6), no quantity of the
@@ -2560,7 +2720,8 @@ forms them. With `x0` the start of the member drawings of `G`'s frame and
 The fixture `group_parent_both` drawn with the defaults shows the root
 `piece` (16 quarters) behind the frame of its child `middle` (8 quarters
 at offset 4), so `us = −0.5` and `ue = 1.5` and `LA = 800` at the
-length 400: the card is written at `x` 8 and `y` 36.207, 869.3354 wide
+length 400; its default proportion is 1 (section 8.9), so it draws no
+strip, and the card is written at `x` 8 and `y` 36.207, 869.3354 wide
 and 63.3789 high, `piece`'s line runs from 60.3354 to 860.3354 at
 `y` 85.1836, on the faded ancestor line of `piece`, which the default band
 order puts below `middle`'s line in `middle`'s card, and the block grows
@@ -2571,5 +2732,182 @@ at 47.207: between `middle`'s markers band and the line of `piece`,
 row of `piece`, and `piece`'s drawing only the start 7 of its children
 band.
 In `group_parents_mixed`, three roots lie behind one frame, each aligned
-to the first of its members in the display order, the root `page`, of
-unknown length, at its reach.
+to the first of its members in the display order; `sonata` is drawn
+whole, `session` and `page` with strips (section 8.9).
+
+### 8.9 Elisions
+
+**Where.** Elisions (section 2) are drawn in every card that draws a
+timeline whole outside a frame: in an ungrouped root's card and in every
+ancestor card (section 8.8). Each such card draws the elisions lying on
+its root or on a descendant of it: the stored ones of `elisions` in both
+kinds of card, and the default ones below in ancestor cards alone. No
+elision is drawn in a member's card, in a frame: the members of a group
+convert linearly between their shared start and end (README, "Groups and
+the `graphical` object"), and a groupstamp's line marks the same
+proportion of every member, which a strip would break. A stored elision
+whose timeline is drawn in member cards alone, such as one lying on a root
+that is a group member, is kept and drawn nowhere. An elision is drawn
+where it is displayed (section 2.4).
+
+**Pieces.** An elision's stretch on the root's axis runs from its `start`
+to its `end`, each carried to the root as section 3.1 carries a
+coordinate, and no further than the root's start and end (section 3.4).
+In an ancestor card aligned to a member `M`, the **protected span**, `M`'s
+span on the root's axis from `−ts` to `−ts + λ` (section 8.8), is never
+elided. The elisions a card draws are taken in canonical order (section
+2), and each draws as its **pieces** what of its stretch lies outside the
+protected span and outside every piece taken before it: none, one or
+several stretches, each with the elision's address, `width` and
+`display`. So an elision overlapping the protected span is clipped to what
+lies outside it, drawn as up to two pieces; of two elisions that overlap,
+the earlier is drawn whole and the later clipped; a piece without length
+is not drawn; and nothing is refused. Each piece is one strip of section
+3.2.
+
+**Widths.** A piece over `[a, b]` has the natural width `n` of section
+3.2 and the drawn width set by its elision's `width` (section 2): when it
+is absent, `r × n`, `r` the card's default proportion (below); for
+`{"ratio": q}`, `q × n`; for `{"span": v}`, `L × uv`, `uv = v / λR` a
+proportion formed as section 3.2 forms one and `λR` the root's length, or
+its reach when its length is `null`; for `{"canvas": c}`, `c`; each in
+binary64, and `n` instead when it is larger than `n`. Each piece of a
+clipped elision takes its width so, as if it were the whole elision.
+
+**Defaults.** An ancestor card of a root `R` aligned to a member `M`
+draws **default elisions** when no stored elision, displayed or not, lies
+on `R` or on a descendant of `R`, and its default proportion `r` is less
+than 1. Let `A1 = R, …, Ak` be `M`'s ancestors, `Ak` its parent (section
+8.3). The **generation** `j` holds `Aj` and every other child of `A(j −
+1)` that the card draws (a displayed child, section 2.4; a segment
+without a line of its own counts when it is displayed); generation 1
+holds `R` alone. From generation `k` up to generation 1, and within a
+generation in canonical order (section 6.1), each stretch of a timeline's
+span (from its start to its end, sections 3.1 and 3.4) that lies outside
+the protected span and outside every default elision found before becomes
+one default elision lying on that timeline, its start and end on that
+timeline's own axis, without `width` and displaying all three words. So
+`M`'s parent and its siblings take what they cover of `R`, and what they
+leave uncovered falls to the next generation up, `R` at last: the default
+elisions together cover everything of `R` outside the protected span.
+
+**The default proportion** `r` of an ancestor card behind the frame of a
+group `G` is the largest at which (a) the strips together are no wider
+than `M`'s line and (b) with the view (section 1) centred on the frame at
+the zoom `zb`, the elided card lies within the view. With, in `G`'s item
+coordinates:
+
+| Symbol | Meaning |
+|---|---|
+| `VW`, `VH` | the `width` and `height` of the placement's `view` (section 1) |
+| `sG` | `G`'s `scale` (section 8.6) |
+| `L`, `x0` | `G`'s graphical length and the start of its member drawings (section 8.2) |
+| `Fw`, `Fh` | the width and the height of `G`'s frame (sections 8.4 and 8.6, its requests included); its centre `c = Fw / 2` |
+| `σ` | `K + N' + G'` of `R`'s drawing alone (section 8.8, step 1): its name column and the gap after it, which strips do not change |
+| `EL`, `ER` | the stretches of `R` left and right of `M`, on `M`'s axis: `EL = −ts` and `ER = te − λ` (section 8.8), and `E = EL + ER`, each combined as section 3.1 combines values |
+
+the zoom at which the group's frame fills four fifths of the view, capped
+at 4, is `zG = min(4, 0.8 × VW / (sG × Fw), 0.8 × VH / (sG × Fh))`, the
+constant factor `0.8` formed first (section 3.3); `Z` is the double
+nearest 5/7, the legibility floor: a row of the default pitch 14 drawn at
+`Z` lies 10 from the next, the fixed part of its pitch (section 6.2); and
+`zb = min(zG, Z)`, so that a frame whose `zG` is below `Z` is not zoomed
+out further. At `zb` the view shows `B = 0.8 × VW / ((2 × zb) × sG)` on
+either side of `c`; the card's line reaches `dl = (c − x0) + σ` left of
+`c` and `dr = ((x0 + L) + 8) − c` right of it before its strips, 8 being
+the card padding `K` past the member's end. Then
+
+    r = min(1, λ / E, (B − dl) / (L × uL), (B − dr) / (L × uR))
+
+with `uL = EL / λ` and `uR = ER / λ`; `λ / E`, `uL` and `uR` are
+proportions formed as section 3.2 forms one, and everything else is
+binary64 in the order written. The term `λ / E` is left out when `E` is
+0, the left term when `EL` is 0 or `B ≤ dl`, and the right term when `ER`
+is 0 or `B ≤ dr`: a side with nothing to elide, or on which the root
+cannot lie within the view whatever its strips, sets no bound. When `r`
+is 1 no default elision is drawn, since the card meets (a) and (b) drawn
+whole. Where `λ / E` is the minimum, the drawn widths of the default
+strips sum to `L`, up to the rounding of binary64, and the elided line
+is `2L` long. The stored elisions
+without `width` of an ancestor card take this `r` as well, whether or not
+defaults are drawn.
+
+An **ungrouped root's card** draws its stored elisions alone, and its
+default proportion is `r = min(1, Rf / E)`, `E` the sum of the lengths
+of its pieces on the root's axis, summed from the left, `Rf = λR − E` what
+remains of the root, and `Rf / E` a proportion formed as section 3.2 forms
+one, left out when `Rf` or `E` is 0: its strips without `width` together are no wider than what
+remains of the root at full scale.
+
+**Elided and full.** Since `within` selects every element belonging to a
+timeline or to any of its descendants (section 2.3), one rule draws a
+root `clt_1` whole in every card, whatever elisions lie on it, stored,
+default or added later:
+
+```json
+{"select": {"element": "elision", "within": "#clt_1"}, "set": {"display": "none"}}
+```
+
+and the rule of section 8.8 hides its ancestor card instead.
+
+**Worked examples**, at the default view `1280 × 720` and the length 400,
+so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
+`B = 716.8` wherever `zG` exceeds `Z`:
+
+- The fixture `group_grandchild`: `theme` (8 quarters at 8 in `movement`,
+  16 quarters at 16 in `score` of 64) in a frame 543.70361328125 ×
+  211.515625 with `x0` = 103.70361328125, and `σ` = 74.265625 (`N'` the
+  width 58.265625 of `Movement`): `ts` = −24, `EL` = 24, `ER` = 32, `E` =
+  56; `zG` = 1024 / 543.70361328125 = 1.8833790598156273, `c` =
+  271.851806640625, `dl` = 242.413818359375 and `dr` = 239.851806640625,
+  so `r` = min(1, 0.14285714285714285, 0.39532181803385413,
+  0.29809262084960936) = 0.14285714285714285, set by (a). Generation 2
+  holds `movement`, whose stretch 16 to 24 on `score`'s axis outside
+  `theme` becomes the default elision `movement` 0–8; generation 1 gives
+  `score` 0–16 and 32–64. At `LA` = 3200 their natural widths are 800,
+  400 and 1600 (`score` 0–16, `movement` 0–8, `score` 32–64, from the
+  left), their drawn widths 114.28571428571428, 57.14285714285714 and
+  228.57142857142856, summing to 400, their shrinks 685.7142857142858,
+  342.8571428571429 and 1371.4285714285716, and `DL` =
+  1028.5714285714287. `score`'s line runs, in its own drawing, from 74.265625
+  to 874.265625: 800 long, the frame's 400 and the strips' 400. Its card
+  is 891.265625 wide and moved by `dx` = −141.99058314732133. Each strip
+  continues `score`'s line, the strip of `movement` `movement`'s too, and
+  the strip of `movement` starts with a rule where that of `score` 0–16
+  ends; their labels are `Score` and `0–16 ♩`, `Movement` and `0–8 ♩`,
+  and `Score` and `32–64 ♩`.
+- A member inside a movement: the root `piece` of 64 quarters with the
+  children `first` (32 at 0) and `second` (32 at 32), and the member
+  `excerpt` of 8 at 8 in `first`. Generation 2 holds `first` and `second`
+  and gives `first` 0–8, `first` 16–32 and `second` 0–32; generation 1 is
+  left nothing. `E` = 56 and `r` = 0.14285714285714285 by (a); the
+  natural widths at `LA` = 3200 are 400, 800 and 1600, the drawn widths
+  57.14285714285714, 114.28571428571428 and 228.57142857142856, the first
+  strip left of the frame, the other two right of it, parted by a rule.
+- The fixture `group_parents_mixed`: `sonata` behind `exposition` has `λ /
+  E` = 2 and `r` = 1, and is drawn whole. `session` (90.0 seconds) behind
+  `take` (25.5 at 30.0) has `r` = 25.5 / 64.5 = 0.3953488372093023 and the
+  strips `session` 0.0–30.0, 186.046511627907 wide, and 55.5–90.0,
+  213.95348837209303 wide, labelled `0″–30″` and `55.5″–1′30″`. `page`
+  (1754 pixels) behind `system` (600 at 0) has `r` = 600 / 1154 =
+  0.5199306759098787 and the one strip `page` 600–1754, 400 wide,
+  labelled `600–1 754 px`.
+- Stored elisions, in an ancestor card of a root `score` of 64 quarters
+  aligned to its child `theme` of 8 at 16 (`LA` = 3200, the protected span
+  16 to 24): one lying on `score` from 0 to 20 with `{"ratio": 0.5}` is
+  clipped to 0–16, natural width 800, drawn 400 wide; one from 32 to 48
+  with `{"span": 4}` is drawn 3200 × 0.0625 = 200 wide of 800; one from 40
+  to 56 with `{"canvas": 30}` overlaps it, comes later in canonical order
+  and is clipped to 48–56, 30 wide of 400, starting with a rule, its
+  `name` label `Score` (25.40478515625 wide) fitting the 26 left inside
+  it and its `coordinate` label `48–56 ♩` cut to `48–…`; one lying on a
+  child of `score` whose line a rule hides is not drawn, and the child's
+  stretch is drawn at full scale; these elisions switch the card's
+  defaults off. One lying on a root that is a group member is drawn
+  nowhere, and one lying on a root behind the frame that the rule above
+  draws whole is not drawn, nor are that root's defaults. In an ungrouped
+  root's card, the root `page` of 1754 pixels at the length 400 with one
+  elision from 600 to 1754 without `width` has `E` = 1154, `Rf` = 600 and
+  `r` = 0.5199306759098787; the strip's natural width is 400 − 400 ×
+  0.34207525655644244 = 263.169897377423 and its drawn width
+  136.83010262257696, so the line is 273.660205245154 long.
