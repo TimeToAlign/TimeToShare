@@ -22,9 +22,9 @@ The directories sort the manifests by content only:
 - under `statements/`, manifests whose elements carry statements and
   provenance ([Statement fixtures](#statement-fixtures)).
 
-Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 14 under
-`groups/`, 16 under `bundles/` and 4 under `statements/`, 85 in all, each
-with its minimal twin, so 170 files. Beside them lie the expected RDF of
+Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 15 under
+`groups/`, 16 under `bundles/` and 4 under `statements/`, 86 in all, each
+with its minimal twin, so 172 files. Beside them lie the expected RDF of
 the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
 under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
 178 rejection cases, 16 warning cases, one table of acceptances under
@@ -274,9 +274,10 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `group_parent_exact` | as above with the child `whole` (16 quarters at 0); the piece coincides with the member |
 | `group_parents_mixed` | three child members of different parents (an exposition of 32 quarters at 16 in a locked sonata of 48; a take of 25.5 seconds at 30.0 in a session of 90.0 seconds, with a map to samples; a system of 600 pixels at 0 in a page of 1754) and the root `audio` of 1323000 samples, with a map to seconds |
 | `group_grandchild` | a grandchild `theme` (8 quarters at 8 in a movement of 16 quarters at 16 in a score of 64) with a recording of 12.0 seconds |
+| `group_grandchild_parent_on_top` | the group of `group_grandchild` with the band order `["line", "children", "conversion_maps", "markers", "regions", "flow_control"]` for the movement `movement` in `graphical.order`, which puts its children band below its line: in the card of `theme` the ancestor line of `movement` lies above the member and that of `score`, of the default order, below it |
 | `group_groupstamp` | the group "Performance" of the score `score` ("Score", 8 quarters, with a map to ticks) and the performance `performance` ("Performance", 4.0 seconds, with a map to samples), so that each member has a conversion maps band; the timestamp `timestamp_1` "Bar 2" at quarter 4 of the score is a groupstamp, its line across both cards of the frame |
 | `group_groupstamp_child_member` | the group "Performance" of the score `score` ("Score", 8 quarters), holding the child `second-half` ("Second half", 4 quarters at 4), and the performance `performance` ("Performance", 4.0 seconds), no timeline carrying a map; the timestamp `timestamp_1` "Bar 4" at quarter 2 of the child is a groupstamp, since the child lies in the group through its parent |
-| `group_child_member_stamps` | the group of `group_parent_both` (the child member `middle`, 8 quarters at 4 in the piece `piece` of 16, and the root member `recording`, 10.0 seconds), whose child member carries both kinds of line: the timestamp `timestamp_1` "Bar 2" at quarter 2 of `middle`, drawing its cross-section line alone (`display` `["cross_section"]`), and the match timestamps `timestamp_2`, without a name, at quarter 4 of `middle` and `timestamp_3` at second 5.0 of `recording`, which the MatchStamp `matchstamp_1` ("Middle, bar 3") joins by the anchor `anchor_1`, drawing the name, from `claim_1`; no timestamp is a groupstamp. The child's lines reach up to the ancestor line of `piece` in its card, and the anchor attaches there |
+| `group_child_member_stamps` | the group of `group_parent_both` (the child member `middle`, 8 quarters at 4 in the piece `piece` of 16, and the root member `recording`, 10.0 seconds), whose child member carries both kinds of line: the timestamp `timestamp_1` "Bar 2" at quarter 2 of `middle`, drawing its cross-section line alone (`display` `["cross_section"]`), and the match timestamps `timestamp_2`, without a name, at quarter 4 of `middle` and `timestamp_3` at second 5.0 of `recording`, which the MatchStamp `matchstamp_1` ("Middle, bar 3") joins by the anchor `anchor_1`, drawing the name, from `claim_1`; no timestamp is a groupstamp. The child's lines reach down to the ancestor line of `piece` in its card, and the anchor attaches there |
 | `bundle_mixed` | the bundle "Mixed" of two groups, a score with its performance and a page with an excerpt (a child of a recording); `annotations` is ungrouped, and the recording, which no group names, contains the member `excerpt` and is drawn as its ancestor line and whole in its ancestor card behind the frame. The score has a map to ticks, then a tempo map to seconds, and a repeat from 8 back to 0; the performance a map to samples; the page a map to points; the excerpt a map to seconds; the recording a map to seconds, drawn in its ancestor card only; `annotations` the regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map |
 | `bundle_shared_parent` | the bundle "Sonata" of two groups whose members are two children of one score (an exposition at 0 and a recapitulation at 20, 12 quarters each), each with a take; a page is ungrouped, and the score, which no group names, contains both members and is drawn as an ancestor line of each and whole in an ancestor card behind each frame. Both children are segment lines: the exposition, with a map to ticks, of the segments "First theme" and "Second theme" of 6 quarters, the second with a tempo map to seconds; the recapitulation, with no map, of the segment lines "First theme" and "Second theme" of 6 quarters, each of the segments "Phrase 1" and "Phrase 2" of 3 quarters, and only its "Second theme" has a map to ticks. The take `take_1` is a segment line, with a map to samples, of "First theme" (14.0 seconds) and "Second theme" (16.0 seconds); the take `take_2` and the page carry no map. The score has a map to ticks, the region "Development" from 12 to 20 and a repeat from 12 back to 0, drawn in its ancestor cards only. A segment's ID begins with its segment line's (`exposition_first`, `recapitulation_second_1`) |
 | `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the flow marker "Fine" at 8 (`fine`) and the jump origin "D.C. al Fine" at 16 back to 0 (`da_capo_al_fine`); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
@@ -301,8 +302,9 @@ groups and bundles and the single-timeline fixtures `styled__score`,
 `child_jumps`, `map_row_siblings`, `map_row_subslots` and `map_row_moved`
 so that each case below occurs in one of them at least.
 `group_number_types`, `group_child_member`, the three `group_parent_*`,
-`group_grandchild` and `group_groupstamp_child_member` hold none of them, and `group_unknown_length` holds only
-a region. The segment lines of the single-timeline fixtures but
+`group_grandchild`, `group_grandchild_parent_on_top` and `group_groupstamp_child_member` hold none of them, and `group_unknown_length` holds only
+a region. The table also names where each side of a child member's
+ancestor band occurs (drawing specification, section 8.3). The segment lines of the single-timeline fixtures but
 `map_row_subslots` (`segment_line`, `segment_pages`, `segment_pages_locked`,
 `segment_pages_accolades`, `segment_children` and
 `unknown_length_segments`) and their segments carry no conversion map;
@@ -334,6 +336,8 @@ segment line carries a map only in `bundle_shared_parent`.
 | maps of two keys on two lines of one row, sharing the row's slots | `ante` and `cons` of `map_row_siblings` |
 | maps of one key on a segment line and two of its segments that are not segment lines, in two sub-slots | `form`, `b` and `c` of `map_row_subslots` |
 | maps on two siblings in two rows, each row with slots of its own | `ante` and `cons` of `map_row_moved` |
+| ancestor lines below a child member, beyond its markers band, in the default band order: one ancestor, one with a map on the member's other side, and two | `second-half` of `group_child_member`; `take` of `group_parents_mixed`; `theme` of `group_grandchild` |
+| an ancestor line above a child member, its ancestor's band order putting the children band below its line, and one below it in the default order | `theme` of `group_grandchild_parent_on_top` |
 
 The conversion maps bands of the lines of one row share their slots, a
 map's key being its `name` and `type`, or its `type` alone when it has no
@@ -477,13 +481,14 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 an application layer of one rule that hides the ancestor cards the
 defaults show, `{"element": "ancestor_card"}` set to `display` `none`:
 `group_parent_both`, `group_parent_right` and `group_parents_mixed`
-(`group__<name>__ancestor-cards-hidden`): 90 drawings in all.
+(`group__<name>__ancestor-cards-hidden`): 91 drawings in all.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
 carrying the same address in both. No variant sets a band order: band orders are the manifests' own,
 in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
-`map_child_band_order`, `map_root_band_order`, `map_band_order_subset`, `timestamp_wedge_rotation`). Each directory holds:
+`map_child_band_order`, `map_root_band_order`, `map_band_order_subset`, `timestamp_wedge_rotation`,
+`group_grandchild_parent_on_top`). Each directory holds:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
   the two fonts, written with `dumps` in pretty JSON:
@@ -507,7 +512,7 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   finds both font files in the directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Thirty-six `figure.svg` files are derived by hand from the
+for byte. Thirty-seven `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, among them every drawing of
 a timeline of unknown length, the three variants of `bundle_ungrouped`, the
 three variants that display a band the defaults hide, the band orders of
@@ -515,8 +520,10 @@ three variants that display a band the defaults hide, the band orders of
 and `map_band_order_subset`, `joint_rows`, the three drawings of conversion map
 slots (`map_row_siblings`, `map_row_subslots`, `map_row_moved`),
 `label_float_rounding`, the alignment anchors of
-`bundle__bundle_matchstamp_cards` and the cross-section lines and the
-anchor on a child member of `group__group_child_member_stamps`;
+`bundle__bundle_matchstamp_cards`, the cross-section lines and the
+anchor on a child member of `group__group_child_member_stamps` and the
+ancestor lines on both sides of the member of
+`group__group_grandchild_parent_on_top`;
 `drawings/README.md` lists them with their arithmetic. Every other figure, and every `inputs.json`, is
 emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
 <TimeToShare checkout>` (run in its `app/packages/writers/`), which

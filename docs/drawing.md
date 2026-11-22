@@ -93,8 +93,8 @@ horizontal Stretch of the block scales every `x`, `length` and `width` that
 `places` states by the ratio of the lengths, and keeps every `scale`.
 
 A container's **contents** are a block's items, a frame's cards, a card's
-root row, the root's present bands (section 6.4) and its ancestor band
-(section 8.3) when it has one. A vertical Stretch of a container with two
+root row, the root's present bands (section 6.4) and its ancestor bands
+(section 8.3), none, one or two. A vertical Stretch of a container with two
 or more contents changes its `spacing`; with exactly one it changes its
 `margin` instead, the gaps being none, so that the container grows or
 shrinks by equal margins above and below its contents (sections 6.5 and
@@ -743,12 +743,17 @@ its children beyond them, its coordinate markers (its named timestamps'
 wedges, with their labels) against its line below it, then its regions and
 its flow control; its descendants follow it, so every child's maps lie
 against the child's line above it and its own children beyond them, and
-its named timestamps' wedges against its line below it. A cross-section
-line spans its timeline's line, children band and conversion maps band,
-and a member's ancestor lines, which lie above every band (section 6.6),
-and so never reaches the wedges in this order; in an order
-that puts the markers band between them, it crosses the wedges unless
-their `rotation` turns them aside (section 6.6).
+its named timestamps' wedges against its line below it. The ancestors of a
+member that is a child timeline all put their children above their lines,
+so their faded lines lie below the member, beyond every band of its below
+side (section 8.3). A cross-section line spans its timeline's line,
+children band and conversion maps band, and so never reaches the wedges
+in this order, except on a member that is a child timeline: its line also
+reaches down to the member's ancestor lines and so crosses the member's
+markers band (section 6.6). In an order that puts the markers band
+between the line and those bands, it crosses the wedges likewise. A wedge
+it crosses is passed beside only when its `rotation` turns it aside
+(section 6.6).
 
 ## 5. Text
 
@@ -1361,7 +1366,10 @@ the member drawing (section 8.6), drawn inside the padding above the
 first row or band. The content's height is
 `Hc = y_root + max(Eb, h(s) / 2) + V + P`, `Eb` the outer edge of the below
 side, the card margin drawn again inside the padding below the last row or
-band. Here `s` is the root's row's name font size. So a card margin `V`
+band. Where the member drawing has an ancestor band on a side (section
+8.3), `Ea` or `Eb` is instead the outer edge of that band, which lies
+beyond every other band of that side. Here `s` is the root's row's name
+font size. So a card margin `V`
 adds `V` to the card above its contents and `V` below them, and moves its
 contents `V` down.
 
@@ -1369,11 +1377,12 @@ contents `V` down.
 2.4): none of its bands is present and its line reaches nothing, so the
 outer edges of both its sides are 0. Its row remains, with the name size
 `s` and the pitch `p0` of section 6.2, which count its name although the
-name is hidden. The formulas above then hold with `Eb = 0` and with `Ea`
-the outer edge of its ancestor band (section 8.3), or 0 when it has none:
-`y_root = max(P + Ea, P + h(s) / 2) + V` and `Hc = y_root + h(s) / 2 +
-V + P`. Its ancestor band, when it has one, starts at `max(p0 / 2, S)`, the
-start of section 8.3 with `Ea` and `wm` 0. Such a member
+name is hidden. The formulas above then hold with `Ea` and `Eb` the outer
+edges of its ancestor bands above and below (section 8.3), each 0 where it
+has none: `y_root = max(P + Ea, P + h(s) / 2) + V` and `Hc = y_root +
+max(Eb, h(s) / 2) + V + P`. Each of its ancestor bands starts at
+`max(p0 / 2, S)`, the start of section 8.3 with the side's outer edge and
+`wm` 0. Such a member
 drawing draws its displayed ancestor lines, with their displayed names,
 marks and mark labels, and nothing else, and lies in its card, `Hm = Hc`
 high, as every member drawing does (section 8.4). One without a displayed
@@ -1489,18 +1498,24 @@ one below it.
   those bands counting only when it is present, `y1` is the smallest and
   `y2` the largest, and the line runs from `(X, y1)` to `(X, y2)`. When
   `T` is the root of a member drawing that has an ancestor band (section
-  8.3), the ordinate of its outermost displayed ancestor line counts too,
-  so that the line crosses every ancestor line drawn for the member as it
-  crosses the member's children; it does not reach their marks. Each of
+  8.3), the ordinate of its outermost displayed ancestor line on each side
+  that has one counts too, so that the line crosses every ancestor line
+  drawn for the member as it crosses the member's children, and every band
+  of `T` that lies between `T`'s line and those ancestor lines; it does not
+  reach their marks. Each of
   these ordinates is `y ± o`, `y` the ordinate of `T`'s line and `o` the
   distance outwards, summed whole first (section 3.3). When none of these
   is present, the line has no length and is not drawn. Nothing else bounds
   it: it reaches no card margin, no other band of `T` and no row beyond
   these. In the default band order (section 4)
   both bands lie above `T`'s line and its markers band below, so the line
-  never meets a wedge; a band order that puts the markers band between the
-  line and either of the two bands makes it cross the wedges, unless their
-  `rotation` turns them aside (Wedges).
+  never meets a wedge, unless `T` is a member that is a child timeline:
+  its ancestor lines then lie below its markers band (section 8.3), and
+  the line crosses that band down to them, through the wedge and the
+  labels of every named timestamp of `T` at its `x`, its own included. A
+  band order that puts the markers band between the line and either of the
+  two bands makes it cross the wedges likewise. A wedge so crossed is
+  passed beside only when its `rotation` turns it aside (Wedges).
 
   A named timestamp whose timeline is drawn in several cards, as a member
   in the frame of each group that has it as a member, as a descendant in
@@ -1882,8 +1897,10 @@ root of unknown length is drawn with its reach at the shared end (section
   member that is a child timeline in `timelines` is still a `timeline`
   element in its member drawing, so rules selecting `child` do not
   reach its line, and it ends with the diamond, or with three chevrons
-  when its length is `null` (section 6.6). Such a member's drawing also has an
-  **ancestor band** (section 8.3).
+  when its length is `null` (section 6.6). Such a member's drawing also has
+  the faded lines of its ancestors, in an **ancestor band** on each side of
+  its line where one of them lies (section 8.3): by default all of them
+  below it.
 - **Titles.** A group's title, a `name` element with the address `{"id":
   G, "part": ["name"]}`, opens its frame. The manifest's title, a `name`
   element with the address `{"part": ["name"]}`, opens the block.
@@ -1979,43 +1996,64 @@ the line's stroke width and `y` its ordinate:
   elements with the addresses `{"id": M, "part": ["start"]}` and `{"id":
   M, "part": ["end"]}` (section 2.2); when `M`'s length is `null`, its end
   is not known and only the start mark and its label are drawn.
-  The marks lie always above the line, outside every band, at `x0` and
-  `x0 + L`, each a wedge of section 6.6 above the line with its tip on the
-  line's edge (`y − w / 2`), turned by its `rotation` (section 6.6), so
-  that, not rotated, its base lies 13 further up. Each is labelled with
-  the coordinate it marks in `Aj`'s unit: `−ts` and `−ts + λ`, combined as
-  section 3.1 combines values. The labels are placed by first fit, start
-  before end, into tiers beyond the room of the marks, as the markers
-  band places its stacks (section 6.4, Markers), each label a stack of one
-  line.
+  The marks lie on the line's **outer side**, the side away from the
+  member's line (below), outside every band, at `x0` and `x0 + L`, each a
+  wedge of section 6.6 on that side with its tip on the line's edge (`y −
+  w / 2` above the line, `y + w / 2` below it), turned by its `rotation`
+  (section 6.6), so that, not rotated, its base lies 13 further out. Each
+  is labelled with the coordinate it marks in `Aj`'s unit: `−ts` and `−ts
+  + λ`, combined as section 3.1 combines values. The labels are placed by
+  first fit, start before end, into tiers beyond the room of the marks on
+  the same side, as the markers band places its stacks (section 6.4,
+  Markers), each label a stack of one line: line `n` starts `w / 2 + 13 +
+  2 + (n − 1) × h(9)` out from the ancestor line, and the label's baseline
+  lies beyond that start (section 6.6).
 - **Nothing else** of `Aj` is drawn: no maps, regions, flow control,
   named timestamps, boundaries or other descendants. Its name is drawn in the name column on its row
   (section 6.6, names).
 
-The **ancestor band** is the outermost band of the member drawing's above
-side, beyond the root's bands and outside every band order; it is not an
-element and has no address. It starts at the larger of `p0 / 2` and `S`
-beyond the larger of the outer edge `Ea` of the above side (section 6.4)
-and half the stroke width `wm` of the member's line, `wm` being 0 when
-that line is not displayed (section 6.5): at `max(p0 / 2, max(Ea, wm / 2)
-+ S)`, so that the band keeps the gap `S` from the line's stroke, as a
-band at level 1 does.
-It holds one row per ancestor, `Ak` nearest the member's line and `A1`
-outermost; an ancestor line that is not displayed has no row (section 2.4
-states what it hides), and a member drawing without a displayed ancestor
-line has no ancestor band. Row `j` (counted from `Ak`) has the row pitch `qj` of its name's
-font size (`p` of section 6.2), an inner half `ij = qj / 2` and an outer half `oj`, the larger of
-`qj / 2` and the reach of its marks, `w / 2 + 13`, or `w / 2 + 13 + 2 + T ×
-h(9)` (left to right) when their labels fill `T ≥ 1` tiers (9 standing for
-its labels' largest font size), or `qj / 2` alone when no mark is drawn.
-The line of the first row lies at `c0 + i1`, `c0` the start of the band,
-and that of row `j + 1` at `oj + i(j + 1)` beyond the row before. The
-band is `i1 + o1 + … + ik + ok` wide, summed in that order.
+**Sides.** Each ancestor line lies on one side of the member's line: the
+side opposite to where `Aj`'s own band order (section 6.4, completed
+against its inherited order) puts its children band, below `M`'s line
+when `children` comes before `line` in that order and above it when
+`children` comes after `line`. `Aj`'s children band holds the way down to
+`M`, so the member's card shows `Aj` on the side of `M` where `Aj`'s own
+drawing has it, and in the same order as the ancestor card does (section
+8.8). In the default band order (section 4) every ancestor line lies below
+the member. An ancestor line's outer side is up when it lies above `M`'s
+line and down when it lies below it.
+
+The ancestor lines of one side lie in that side's **ancestor band**, the
+outermost band of the side, beyond the root's bands and outside every
+band order; it is not an element and has no address. A member drawing
+has an ancestor band on each side where a displayed ancestor line lies:
+none, one or two. A band starts at the larger of `p0 / 2` and `S` beyond
+the larger of the outer edge `E` of its side (section 6.4: `Ea` above,
+`Eb` below, of the root's own bands) and half the stroke width `wm` of the
+member's line, `wm` being 0 when that line is not displayed (section 6.5):
+at `max(p0 / 2, max(E, wm / 2) + S)`, so that the band keeps the gap `S`
+from the outermost band of its side and from the line's stroke, as a band
+at level 1 or −1 does.
+It holds one row per ancestor on its side, the deeper ancestor (the larger
+`j`) nearer the member's line: of the ancestors on one side, the one
+nearest `M` in the tree lies nearest and the one nearest the root
+outermost. An ancestor line that is not
+displayed has no row (section 2.4 states what it hides). Row `r` of a band,
+counted outwards from the member's line, has the row pitch `qr` of its
+name's font size (`p` of section 6.2), an inner half `ir = qr / 2`
+towards the member's line and an outer half `or` on its line's outer side,
+the larger of `qr / 2` and the reach of its marks, `w / 2 + 13`, or `w / 2
++ 13 + 2 + T × h(9)` (left to right) when their labels fill `T ≥ 1` tiers
+(9 standing for its labels' largest font size), or `qr / 2` alone when no
+mark is drawn. The line of row 1 lies at `c0 + i1` from the member's line,
+`c0` the start of the band, and that of row `r + 1` at `or + i(r + 1)`
+beyond row `r`. The band is `i1 + o1 + … + iC + oC` wide for `C` rows,
+summed in that order, and its outer edge is `c0` plus that width.
 
 ### 8.4 Vertical
 
 Every member drawing has its own height `Hm`, its content height `Hc` of
-section 6.5 with its ancestor band included in `Ea` and its card margin
+section 6.5 with its ancestor bands included in `Ea` and `Eb` and its card margin
 `V` above and below; its card is `Hm` high, and the drawing's top is the
 card's top. The card padding `K` is
 horizontal only: above and below, the member drawing's own padding `P`
@@ -2348,10 +2386,16 @@ forms them. With `x0` the start of the member drawings of `G`'s frame and
 The fixture `group_parent_both` drawn with the defaults shows the root
 `piece` (16 quarters) behind the frame of its child `middle` (8 quarters
 at offset 4), so `us = −0.5` and `ue = 1.5` and `LA = 800` at the
-length 400: the card is written at `x` 8 and `y` 18.8047, 869.3354 wide
+length 400: the card is written at `x` 8 and `y` 36.207, 869.3354 wide
 and 63.3789 high, `piece`'s line runs from 60.3354 to 860.3354 at
-`y` 67.7812, on the faded ancestor line of `piece` in `middle`'s card,
-and the block grows to the left, its place origin at `(148.6318, 0)`.
+`y` 85.1836, on the faded ancestor line of `piece`, which the default band
+order puts below `middle`'s line in `middle`'s card, and the block grows
+to the left, its place origin at `(148.6318, 0)`. In the card `middle`'s
+row lies above `piece`'s line, at 51.207, 4 lower than `middle`'s own line
+at 47.207: between `middle`'s markers band and the line of `piece`,
+`middle`'s card holds the card spacing `S` and the inner half 7 of the
+row of `piece`, and `piece`'s drawing only the start 7 of its children
+band.
 In `group_parents_mixed`, three roots lie behind one frame, each aligned
 to the first of its members in the display order, the root `page`, of
 unknown length, at its reach.
