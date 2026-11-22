@@ -11,12 +11,13 @@ from __future__ import annotations
 import json
 import math
 import re
-from collections.abc import Iterator, Mapping
+from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import cache
 from typing import Any, Literal
 
 import pyarrow as pa
+import pyarrow.compute as pc
 from jsonschema import Draft202012Validator
 
 from ..ids import with_bare_ids
@@ -91,7 +92,8 @@ class TableError(ValueError):
         self.problem = problem
 
 
-_CONTROL = re.compile("[\u0000-\u001f]")
+_CONTROL = re.compile(r"[\x00-\x1f]")
+"""A control character, in the syntax of Python's ``re`` and of RE2 (``pyarrow``)."""
 
 
 def _shape(data_type: pa.DataType) -> Any:
@@ -285,210 +287,577 @@ def row_provenance(table: pa.Table) -> list[dict[str, Any] | None]:
     ]
 
 
-class _Axes:
-    """Collects the axis of each timeline a table's cells lie on."""
+# The rules are computed over whole columns. Python reads only the cells a
+# rule flags, to word their problems, and one cell per distinct provenance
+# cell, to check it against the provenance schema; every problem is then put
+# where a reading row by row lists it (``_Found``). A Python value handed to
+# pyarrow.compute is converted on every call, which costs more than the call
+# on a small table, so the constants below are converted once.
 
-    def __init__(self, manifest: Mapping[str, Any] | None) -> None:
-        self.seen: dict[str, tuple[str, str]] = {}
-        self.timelines = (
-            None if manifest is None else timelines_by_id(with_bare_ids(manifest))
+_FALSE = pa.scalar(False)
+_ZERO = pa.scalar(0, pa.int64())
+_ONE = pa.scalar(1, pa.int64())
+_ZERO32 = pa.scalar(0, pa.int32())
+_EMPTY = pa.scalar("")
+_COMMA = pa.scalar(",")
+_NO_ROW = pa.scalar(None, pa.int64())
+_ENCODE = pc.DictionaryEncodeOptions(null_encoding="encode")
+_KINDS = {kind: pa.scalar(kind) for kind in NUMBER_MEMBERS}
+_ADMITTING = {
+    kind: pa.array(
+        [name for name, entry in UNITS.items() if kind in entry.number_types],
+        pa.string(),
+    )
+    for kind in NUMBER_MEMBERS
+}
+"""The units admitting each number type."""
+
+
+def _array(table: pa.Table, name: str) -> pa.Array:
+    """A column as one array, however many chunks the table holds it in."""
+    return table.column(name).combine_chunks()
+
+
+def _held(mask: pa.Array) -> pa.Array:
+    """A mask with every null read as false."""
+    return pc.coalesce(mask, _FALSE)
+
+
+def _all(*masks: pa.Array) -> pa.Array:
+    """Where every mask (none of them null) holds."""
+    result = masks[0]
+    for mask in masks[1:]:
+        result = pc.and_(result, mask)
+    return result
+
+
+def _any(*masks: pa.Array) -> pa.Array:
+    """Where some mask (none of them null) holds."""
+    result = masks[0]
+    for mask in masks[1:]:
+        result = pc.or_(result, mask)
+    return result
+
+
+def _not(mask: pa.Array) -> pa.Array:
+    return pc.invert(mask)
+
+
+def _int(value: int) -> pa.Scalar:
+    """An integer as an Arrow scalar, without converting a Python scalar."""
+    return pa.array([value], pa.int64())[0]
+
+
+def _member(values: pa.Array, name: str) -> pa.Array:
+    """A member of a struct array, null where the struct is."""
+    return values.flatten()[values.type.get_field_index(name)]
+
+
+def _indices(mask: pa.Array) -> pa.Array:
+    """The rows where a mask holds, in order."""
+    return pc.indices_nonzero(_held(mask)).cast(pa.int64())
+
+
+def _rows(mask: pa.Array) -> list[int]:
+    return pc.indices_nonzero(_held(mask)).to_pylist()
+
+
+def _at(values: pa.Array, rows: list[int]) -> list[Any]:
+    """The values at some rows, as Python values."""
+    if not rows:
+        return []
+    return values.take(pa.array(rows, pa.int64())).to_pylist()
+
+
+def _dense(values: pa.Array) -> pa.Array:
+    """The values numbered from 0 in the order they first occur, null one of them."""
+    return pc.dictionary_encode(values, options=_ENCODE).indices.cast(pa.int64())
+
+
+def _firsts(codes: pa.Array) -> pa.Array:
+    """For each code of :func:`_dense`, the row it first occurs in: codes are
+    numbered in that order, so the ``k``-th row where a code exceeds every
+    code before it is where code ``k`` first occurs."""
+    if len(codes) == 0:
+        return codes
+    before = pa.concat_arrays(
+        [pa.array([-1], pa.int64()), pc.cumulative_max(codes)[:-1]]
+    )
+    return _indices(pc.greater(codes, before))
+
+
+def _first_rows(keys: pa.Array, lookup: pa.Array) -> pa.Array:
+    """For each value of ``lookup``, the first row of ``keys`` holding it
+    (null matching null), else null."""
+    codes = _dense(pa.concat_arrays([keys, lookup]))
+    rows = _firsts(codes).take(codes[len(keys) :])
+    return pc.if_else(pc.less(rows, _int(len(keys))), rows, _NO_ROW)
+
+
+class _Found:
+    """The problems found, listed as a reading row by row lists them.
+
+    Each problem is added with the row it is read at (``-1`` for the
+    table's own) and the place of its rule in the reading of a row; the
+    list is ordered by row, then place, then the order of adding.
+    """
+
+    def __init__(self) -> None:
+        self._found: list[tuple[int, int, int, TableProblem]] = []
+
+    def add(self, row: int, place: int, problem: TableProblem) -> None:
+        self._found.append((row, place, len(self._found), problem))
+
+    def problems(self) -> list[TableProblem]:
+        return [found[3] for found in sorted(self._found, key=lambda f: f[:3])]
+
+
+def _null_problems(table: pa.Table, required: tuple[str, ...]) -> list[TableProblem]:
+    found = _Found()
+    for place, key in enumerate(required):
+        for row in _rows(pc.is_null(_array(table, key))):
+            found.add(
+                row,
+                place,
+                TableProblem("schema_violation", row, (key,), f"'{key}' is null"),
+            )
+    return found.problems()
+
+
+def _malformed(values: pa.Array) -> pa.Array:
+    """Where a string is an ID :func:`_id_problem` refuses: empty, or holding
+    a control character."""
+    return _held(
+        pc.or_(
+            pc.equal(values, _EMPTY),
+            pc.match_substring_regex(values, _CONTROL.pattern),
         )
-
-    def timeline(
-        self, row: int, column: Column, timeline_id: Any
-    ) -> TableProblem | None:
-        if self.timelines is not None and timeline_id not in self.timelines:
-            return TableProblem(
-                "unknown_timeline",
-                row,
-                column,
-                f"the manifest has no timeline '{timeline_id}'",
-            )
-        return None
-
-    def expected(self, timeline_id: str) -> tuple[str, str] | None:
-        """The axis a timeline's cells must have: the manifest's timeline's,
-        else that of the first cell seen on it, else ``None``."""
-        timeline = (self.timelines or {}).get(timeline_id)
-        if timeline is not None:
-            return (timeline["unit"], number_type_of(timeline))
-        return self.seen.get(timeline_id)
-
-    def axis(
-        self, row: int, column: Column, timeline_id: str, axis: tuple[str, str]
-    ) -> TableProblem | None:
-        """The problem of a unit and a number type on the timeline, or ``None``."""
-        if self.timelines is not None:
-            timeline = self.timelines.get(timeline_id)
-            if timeline is None:
-                return None
-            own = (timeline["unit"], number_type_of(timeline))
-            if axis != own:
-                return TableProblem(
-                    "axis_mismatch",
-                    row,
-                    column,
-                    f"a coordinate in {axis[0]} ({axis[1]}) on the timeline "
-                    f"'{timeline_id}' in {own[0]} ({own[1]})",
-                )
-        first = self.seen.setdefault(timeline_id, axis)
-        if first != axis:
-            return TableProblem(
-                "axis_mismatch",
-                row,
-                column,
-                f"the timeline '{timeline_id}' has coordinates in {first[0]} "
-                f"({first[1]}) and in {axis[0]} ({axis[1]})",
-            )
-        return None
+    )
 
 
-def _ids(rows: list[dict[str, Any]]) -> Iterator[TableProblem]:
+def _id_problems(found: _Found, ids: pa.Array) -> None:
     """Each ID valid, and given once in the table.
 
     A MatchClaim is addressed by its ID alone; a Projection's ID is unique
     in the package, as every event's, so two timelines never share one.
     """
-    seen: set[str] = set()
-    for index, row in enumerate(rows):
-        value = row["id"]
-        if value is None:
-            continue
-        problem = _id_problem(value, "the ID")
-        if problem:
-            yield TableProblem("invalid_id", index, ("id",), problem)
-        elif value in seen:
-            yield TableProblem(
-                "duplicate_id", index, ("id",), f"the ID '{value}' is given twice"
-            )
-        seen.add(value)
-
-
-def _claim_rows(table: pa.Table) -> list[dict[str, Any]]:
-    """The rows of a MatchClaim table, its declared columns alone."""
-    return table.select(list(MATCH_CLAIM_SCHEMA.names)).to_pylist()
-
-
-def _nulls(
-    rows: list[dict[str, Any]], required: tuple[str, ...]
-) -> Iterator[TableProblem]:
-    for index, row in enumerate(rows):
-        for key in required:
-            if row[key] is None:
-                yield TableProblem(
-                    "schema_violation", index, (key,), f"'{key}' is null"
-                )
-
-
-def _claim_problems(
-    index: int, row: dict[str, Any], axes: _Axes
-) -> Iterator[TableProblem]:
-    a, b = row["timeline_a_id"], row["timeline_b_id"]
-    for key in ("timeline_a_id", "timeline_b_id"):
-        problem = axes.timeline(index, (key,), row[key])
-        if problem:
-            yield problem
-    if a == b:
-        yield TableProblem(
-            "claim_timelines", index, ("timeline_b_id",), f"both sides are '{a}'"
+    malformed = _malformed(ids)
+    rows = _rows(malformed)
+    for row, value in zip(rows, _at(ids, rows), strict=True):
+        found.add(
+            row,
+            0,
+            TableProblem("invalid_id", row, ("id",), _id_problem(value, "the ID")),
         )
-    for key in ("event_a_id", "event_b_id"):
-        if row[key] is not None:
-            problem = _id_problem(row[key], "the event ID")
-            if problem:
-                yield TableProblem("invalid_id", index, (key,), problem)
-    event_a, event_b = row["event_a_id"], row["event_b_id"]
-    start, end = row["start_anchor"], row["end_anchor"]
-    if event_a is None and event_b is None:
-        yield TableProblem(
-            "claim_events", index, ("event_a_id",), "the MatchClaim names no event"
+    first = _first_rows(ids, ids)
+    again = _held(pc.not_equal(first, pa.array(range(len(ids)), pa.int64())))
+    rows = _rows(_all(again, _not(malformed), pc.is_valid(ids)))
+    for row, value in zip(rows, _at(ids, rows), strict=True):
+        found.add(
+            row,
+            0,
+            TableProblem(
+                "duplicate_id", row, ("id",), f"the ID '{value}' is given twice"
+            ),
         )
-    elif event_a is None or event_b is None:
-        if row["is_synchronous"]:
-            yield TableProblem(
-                "claim_anchors",
-                index,
-                ("is_synchronous",),
-                "a NOMATCH MatchClaim is not synchronous",
+
+
+class _Manifest:
+    """The axes of a manifest's timelines, as columns to look timelines up in."""
+
+    def __init__(self, manifest: Mapping[str, Any]) -> None:
+        timelines = timelines_by_id(with_bare_ids(manifest))
+        ids = [key for key in timelines if isinstance(key, str)]
+        self.ids = pa.array(ids, pa.string())
+        self.units = pa.array([timelines[key]["unit"] for key in ids], pa.string())
+        self.number_types = pa.array(
+            [number_type_of(timelines[key]) for key in ids], pa.string()
+        )
+
+    def unknown(self, timelines: pa.Array) -> pa.Array:
+        """Where a timeline ID names no timeline of the manifest."""
+        return _not(pc.is_in(timelines, value_set=self.ids))
+
+
+def _unknown_problems(
+    found: _Found,
+    manifest: _Manifest,
+    timelines: pa.Array,
+    place: int,
+    column: Column,
+    mask: pa.Array | None = None,
+) -> None:
+    unknown = manifest.unknown(timelines)
+    rows = _rows(unknown if mask is None else _all(mask, unknown))
+    for row, value in zip(rows, _at(timelines, rows), strict=True):
+        found.add(
+            row,
+            place,
+            TableProblem(
+                "unknown_timeline",
+                row,
+                column,
+                f"the manifest has no timeline '{value}'",
+            ),
+        )
+
+
+def _axis_admitted(unit: pa.Array, number_type: pa.Array) -> pa.Array:
+    """Where a unit and a number type make an axis (:func:`_axis_problem`)."""
+    return _any(
+        *(
+            _all(
+                _held(pc.equal(number_type, _KINDS[kind])),
+                pc.is_in(unit, value_set=_ADMITTING[kind]),
             )
-        elif start is not None or end is not None:
-            yield TableProblem(
-                "claim_anchors",
-                index,
-                ("start_anchor" if start is not None else "end_anchor",),
-                "a NOMATCH MatchClaim has no anchors",
+            for kind in NUMBER_MEMBERS
+        )
+    )
+
+
+def _number_held(number: pa.Array, number_type: pa.Array) -> pa.Array:
+    """Where a non-null number is a number of its number type
+    (:func:`_number_problem`): the members of the type filled, the others
+    null, a float finite, a fraction's denominator at least 1."""
+    filled = {key: pc.is_valid(_member(number, key)) for key in NUMBER_KEYS}
+    bounded = {
+        "float": _held(pc.is_finite(_member(number, "value"))),
+        "fraction": _held(pc.greater_equal(_member(number, "denominator"), _ONE)),
+    }
+    return _any(
+        *(
+            _all(
+                _held(pc.equal(number_type, _KINDS[kind])),
+                *(
+                    filled[key] if key in held else _not(filled[key])
+                    for key in NUMBER_KEYS
+                ),
+                *([bounded[kind]] if kind in bounded else []),
             )
-    elif row["is_synchronous"]:
-        if start is None:
-            yield TableProblem(
-                "claim_anchors",
-                index,
-                ("start_anchor",),
-                "a synchronous MatchClaim has a start anchor",
+            for kind, held in NUMBER_MEMBERS.items()
+        )
+    )
+
+
+def _mismatched(cells: pa.Table, manifest: _Manifest | None) -> list[dict[str, Any]]:
+    """The cells whose axis is not the axis of their timeline's cells.
+
+    ``cells`` holds one row per cell stating an axis: its ``order`` of
+    reading, its ``timeline``, ``unit`` and ``number_type``, and whatever its
+    caller words a problem with. A timeline's cells have the axis of the
+    manifest's timeline where a manifest is given (a timeline it lacks
+    checks none), else the axis of the first cell read on the timeline. Each
+    mismatched cell is returned with that axis added, as ``expected_unit``
+    and ``expected_number_type``.
+    """
+    if manifest is not None:
+        found = pc.index_in(_array(cells, "timeline"), value_set=manifest.ids)
+        unit = manifest.units.take(found)
+        number_type = manifest.number_types.take(found)
+    else:
+        cells = cells.sort_by("order")
+        codes = _dense(_array(cells, "timeline"))
+        first = _firsts(codes).take(codes)
+        unit = _array(cells, "unit").take(first)
+        number_type = _array(cells, "number_type").take(first)
+    differs = _any(
+        _held(pc.not_equal(_array(cells, "unit"), unit)),
+        _held(pc.not_equal(_array(cells, "number_type"), number_type)),
+    )
+    return (
+        cells.append_column("expected_unit", unit)
+        .append_column("expected_number_type", number_type)
+        .filter(differs)
+        .to_pylist()
+    )
+
+
+def _mismatch(cell: Mapping[str, Any], manifest: bool) -> str:
+    axis = f"{cell['unit']} ({cell['number_type']})"
+    expected = f"{cell['expected_unit']} ({cell['expected_number_type']})"
+    if manifest:
+        return (
+            f"a coordinate in {axis} on the timeline '{cell['timeline']}' in {expected}"
+        )
+    return (
+        f"the timeline '{cell['timeline']}' has coordinates in {expected} and in {axis}"
+    )
+
+
+def _cell_problem(cell: Mapping[str, Any] | None) -> str | None:
+    """Why an anchor's coordinate cell, which states its own axis, is no
+    coordinate."""
+    if cell is None:
+        return "the coordinate is null"
+    for key in ("unit", "number_type"):
+        if cell[key] is None:
+            return f"the coordinate has no {key}"
+    return _axis_problem(cell["unit"], cell["number_type"]) or _number_problem(
+        cell, cell["number_type"], "coordinate"
+    )
+
+
+_CELLS = tuple(
+    (name, f"coordinate_{side}")
+    for name in ("start_anchor", "end_anchor")
+    for side in ("a", "b")
+)
+"""The coordinate cells of a MatchClaim, in the order a row is read."""
+
+
+def _claim_problems(found: _Found, table: pa.Table, manifest: _Manifest | None) -> None:
+    """The rules of a MatchClaim's timelines, events, anchors, cells and
+    certainty, at the places 1 to 12 of a row."""
+    sides = {
+        "a": _array(table, "timeline_a_id"),
+        "b": _array(table, "timeline_b_id"),
+    }
+    if manifest is not None:
+        for place, side in ((1, "a"), (2, "b")):
+            _unknown_problems(
+                found,
+                manifest,
+                sides[side],
+                place,
+                (f"timeline_{side}_id",),
             )
-    elif start is not None or end is not None:
-        yield TableProblem(
+    rows = _rows(pc.equal(sides["a"], sides["b"]))
+    for row, value in zip(rows, _at(sides["a"], rows), strict=True):
+        found.add(
+            row,
+            3,
+            TableProblem(
+                "claim_timelines", row, ("timeline_b_id",), f"both sides are '{value}'"
+            ),
+        )
+    for place, key in ((4, "event_a_id"), (5, "event_b_id")):
+        events = _array(table, key)
+        rows = _rows(_malformed(events))
+        for row, value in zip(rows, _at(events, rows), strict=True):
+            found.add(
+                row,
+                place,
+                TableProblem(
+                    "invalid_id", row, (key,), _id_problem(value, "the event ID")
+                ),
+            )
+    _anchor_problems(found, table)
+    _cell_problems(found, table, sides, manifest)
+    certainty = _array(table, "certainty")
+    inside = _all(
+        _held(pc.greater_equal(certainty, _ZERO)),
+        _held(pc.less_equal(certainty, _ONE)),
+    )
+    rows = _rows(_all(pc.is_valid(certainty), _not(inside)))
+    for row, value in zip(rows, _at(certainty, rows), strict=True):
+        found.add(
+            row,
+            12,
+            TableProblem(
+                "invalid_certainty",
+                row,
+                ("certainty",),
+                f"the certainty {value} lies outside [0, 1]",
+            ),
+        )
+
+
+def _anchor_problems(found: _Found, table: pa.Table) -> None:
+    """Which anchors a MatchClaim has, by its events and whether it is
+    synchronous: one problem at most at place 6, and an end anchor without
+    a start at place 7."""
+    without_a = pc.is_null(_array(table, "event_a_id"))
+    without_b = pc.is_null(_array(table, "event_b_id"))
+    synchronous = _array(table, "is_synchronous")
+    start = pc.is_valid(_array(table, "start_anchor"))
+    end = pc.is_valid(_array(table, "end_anchor"))
+    anchored = _any(start, end)
+    nomatch = pc.xor(without_a, without_b)
+    both = _all(_not(without_a), _not(without_b))
+    rules: tuple[tuple[TableCode, pa.Array, str | None, str], ...] = (
+        (
+            "claim_events",
+            _all(without_a, without_b),
+            "event_a_id",
+            "the MatchClaim names no event",
+        ),
+        (
             "claim_anchors",
-            index,
-            ("start_anchor" if start is not None else "end_anchor",),
+            _all(nomatch, synchronous),
+            "is_synchronous",
+            "a NOMATCH MatchClaim is not synchronous",
+        ),
+        (
+            "claim_anchors",
+            _all(nomatch, _not(synchronous), anchored),
+            None,
+            "a NOMATCH MatchClaim has no anchors",
+        ),
+        (
+            "claim_anchors",
+            _all(both, synchronous, _not(start)),
+            "start_anchor",
+            "a synchronous MatchClaim has a start anchor",
+        ),
+        (
+            "claim_anchors",
+            _all(both, _not(synchronous), anchored),
+            None,
             "a conceptual MatchClaim has no anchors",
-        )
-    if end is not None and start is None:
-        yield TableProblem(
+        ),
+        (
             "claim_anchors",
-            index,
-            ("end_anchor",),
+            _all(end, _not(start)),
+            "end_anchor",
             "an end anchor needs a start anchor",
-        )
-    for name, anchor in (("start_anchor", start), ("end_anchor", end)):
-        if anchor is None:
-            continue
-        for side, timeline_id in (("a", a), ("b", b)):
-            yield from _cell_problems(
-                index,
-                (name, f"coordinate_{side}"),
-                timeline_id,
-                anchor[f"coordinate_{side}"],
-                axes,
+        ),
+    )
+    for place, (code, mask, key, message) in enumerate(rules):
+        rows = _rows(mask)
+        for row, starts in zip(rows, _at(start, rows), strict=True):
+            column = key or ("start_anchor" if starts else "end_anchor")
+            found.add(
+                row, 6 if place < 5 else 7, TableProblem(code, row, (column,), message)
             )
-    certainty = row["certainty"]
-    if certainty is not None and not 0 <= certainty <= 1:
-        yield TableProblem(
-            "invalid_certainty",
-            index,
-            ("certainty",),
-            f"the certainty {certainty} lies outside [0, 1]",
-        )
 
 
 def _cell_problems(
-    index: int,
-    column: Column,
-    timeline_id: str,
-    cell: Mapping[str, Any] | None,
-    axes: _Axes,
-) -> Iterator[TableProblem]:
-    """The problems of an anchor's coordinate cell, which states its own axis."""
-    if cell is None:
-        yield TableProblem(
-            "invalid_coordinate", index, column, "the coordinate is null"
+    found: _Found,
+    table: pa.Table,
+    sides: Mapping[str, pa.Array],
+    manifest: _Manifest | None,
+) -> None:
+    """The coordinate cells of the anchors a row has, at places 8 to 11: a
+    cell that is no coordinate, else one off its timeline's axis."""
+    axes = []
+    for place, (name, member) in enumerate(_CELLS):
+        anchor = _array(table, name)
+        cell = _member(anchor, member)
+        unit = _member(cell, "unit")
+        number_type = _member(cell, "number_type")
+        present = pc.is_valid(anchor)
+        sound = _all(
+            pc.is_valid(cell),
+            _axis_admitted(unit, number_type),
+            _number_held(cell, number_type),
         )
-        return
-    for key in ("unit", "number_type"):
-        if cell[key] is None:
-            yield TableProblem(
-                "invalid_coordinate", index, column, f"the coordinate has no {key}"
+        rows = _rows(_all(present, _not(sound)))
+        for row, value in zip(rows, _at(cell, rows), strict=True):
+            found.add(
+                row,
+                8 + place,
+                TableProblem(
+                    "invalid_coordinate", row, (name, member), _cell_problem(value)
+                ),
             )
-            return
-    problem = _axis_problem(cell["unit"], cell["number_type"]) or _number_problem(
-        cell, cell["number_type"], "coordinate"
-    )
-    if problem:
-        yield TableProblem("invalid_coordinate", index, column, problem)
+        rows_sound = _indices(_all(present, sound))
+        axes.append(
+            pa.table(
+                {
+                    "order": pc.add(
+                        pc.multiply(rows_sound, _int(len(_CELLS))), _int(place)
+                    ),
+                    "row": rows_sound,
+                    "timeline": sides[member[-1]].take(rows_sound),
+                    "unit": unit.take(rows_sound),
+                    "number_type": number_type.take(rows_sound),
+                }
+            )
+        )
+    for cell in _mismatched(pa.concat_tables(axes), manifest):
+        row, place = divmod(cell["order"], len(_CELLS))
+        found.add(
+            row,
+            8 + place,
+            TableProblem(
+                "axis_mismatch",
+                row,
+                _CELLS[place],
+                _mismatch(cell, manifest is not None),
+            ),
+        )
+
+
+def _codes(values: pa.Array) -> pa.Array:
+    """A code per value, two codes equal exactly where the two values read
+    in Python (``to_pylist``) are equal; for strings, booleans, integers and
+    the lists and structs of them."""
+    kind = values.type
+    if pa.types.is_struct(kind):
+        return _combined(
+            [
+                pc.cast(pc.is_valid(values), pa.int64()),
+                *(_codes(member) for member in values.flatten()),
+            ]
+        )
+    if pa.types.is_list(kind):
+        lengths = pc.coalesce(pc.list_value_length(values), _ZERO32)
+        offsets = pa.concat_arrays(
+            [pa.array([0], pa.int32()), pc.cumulative_sum(lengths).cast(pa.int32())]
+        )
+        items = pc.cast(_codes(pc.list_flatten(values)), pa.string())
+        joined = pc.binary_join(pa.ListArray.from_arrays(offsets, items), _COMMA)
+        return _combined([pc.cast(pc.is_valid(values), pa.int64()), _dense(joined)])
+    if (
+        pa.types.is_string(kind)
+        or pa.types.is_boolean(kind)
+        or pa.types.is_integer(kind)
+    ):
+        return _dense(values)
+    raise TypeError(f"no codes for values of the type {kind}")
+
+
+def _combined(parts: list[pa.Array]) -> pa.Array:
+    """One code per row for the tuple of the rows' codes, numbered from 0."""
+    code = parts[0]
+    for part in parts[1:]:
+        width = (pc.max(part).as_py() or 0) + 1
+        code = _dense(pc.add_checked(pc.multiply_checked(code, _int(width)), part))
+    return code
+
+
+def _row_provenance_problems(
+    found: _Found,
+    cells: pa.Array,
+    shared: bool,
+    context: Mapping[str, Any] | None,
+) -> None:
+    """The provenance of each row, at place 13: none beside the file's, and
+    each a provenance entry; each distinct cell is checked once."""
+    present = pc.is_valid(cells)
+    if shared:
+        for row in _rows(present):
+            found.add(
+                row,
+                13,
+                TableProblem(
+                    "invalid_provenance",
+                    row,
+                    ("provenance",),
+                    "the provenance is stated in the file's metadata and in the row",
+                ),
+            )
         return
-    axis = axes.axis(index, column, timeline_id, (cell["unit"], cell["number_type"]))
-    if axis:
-        yield axis
+    codes = _codes(cells)
+    stated = _indices(present)
+    first = _firsts(_dense(codes.take(stated)))
+    distinct = stated.take(first).to_pylist()
+    failing = {}
+    for code, cell in zip(_at(codes, distinct), _at(cells, distinct), strict=True):
+        problem = _provenance_problem(_present(cell), "the provenance", context)
+        if problem:
+            failing[code] = problem
+    if not failing:
+        return
+    rows = _rows(
+        _all(present, pc.is_in(codes, value_set=pa.array(list(failing), pa.int64())))
+    )
+    for row, code in zip(rows, _at(codes, rows), strict=True):
+        found.add(
+            row,
+            13,
+            TableProblem("invalid_provenance", row, ("provenance",), failing[code]),
+        )
 
 
 def match_claim_problems(
@@ -504,33 +873,21 @@ def match_claim_problems(
     problems = _schema_problems(table, MATCH_CLAIM_SCHEMA)
     if problems:
         return problems
-    rows = _claim_rows(table)
-    problems = [*_nulls(rows, MATCH_CLAIM_REQUIRED)]
+    problems = _null_problems(table, MATCH_CLAIM_REQUIRED)
     if problems:
         return problems
-    problems.extend(_ids(rows))
+    found = _Found()
+    _id_problems(found, _array(table, "id"))
     shared = PROVENANCE_METADATA_KEY.encode() in (table.schema.metadata or {})
     context = None if manifest is None else manifest.get("@context")
     _, problem = _shared_provenance(table, context)
     if problem:
-        problems.append(
-            TableProblem("invalid_provenance", None, ("provenance",), problem)
+        found.add(
+            -1, 0, TableProblem("invalid_provenance", None, ("provenance",), problem)
         )
-    axes = _Axes(manifest)
-    for index, row in enumerate(rows):
-        problems.extend(_claim_problems(index, row, axes))
-        cell = row["provenance"]
-        if cell is not None:
-            problem = (
-                "the provenance is stated in the file's metadata and in the row"
-                if shared
-                else _provenance_problem(_present(cell), "the provenance", context)
-            )
-            if problem:
-                problems.append(
-                    TableProblem("invalid_provenance", index, ("provenance",), problem)
-                )
-    return sorted(problems, key=_order)
+    _claim_problems(found, table, None if manifest is None else _Manifest(manifest))
+    _row_provenance_problems(found, _array(table, "provenance"), shared, context)
+    return found.problems()
 
 
 def projection_problems(
@@ -544,92 +901,207 @@ def projection_problems(
     problems = _schema_problems(table, PROJECTION_SCHEMA)
     if problems:
         return problems
-    rows = table.select(list(PROJECTION_SCHEMA.names)).to_pylist()
-    problems = [*_nulls(rows, PROJECTION_REQUIRED)]
+    problems = _null_problems(table, PROJECTION_REQUIRED)
     if problems:
         return problems
-    problems.extend(_ids(rows))
-    axes = _Axes(manifest)
-    for index, row in enumerate(rows):
-        timeline_id = row["timeline_id"]
-        problem = axes.timeline(index, ("timeline_id",), timeline_id)
-        if problem:
-            problems.append(problem)
-        problems.extend(_projection_numbers(index, row, axes))
-        source = row["projection_of"]
-        if source is None:
-            continue
-        for key in ("timeline_id", "event_id"):
-            if not source[key]:
-                problems.append(
-                    TableProblem(
-                        "invalid_projection_of",
-                        index,
-                        ("projection_of", key),
-                        f"the projected event has no {key}",
-                    )
-                )
-        if source["timeline_id"] == timeline_id:
-            problems.append(
-                TableProblem(
-                    "invalid_projection_of",
-                    index,
-                    ("projection_of", "timeline_id"),
-                    f"a Projection stands for an event of another timeline than "
-                    f"'{timeline_id}'",
-                )
-            )
-        elif source["timeline_id"]:
-            problem = axes.timeline(
-                index, ("projection_of", "timeline_id"), source["timeline_id"]
-            )
-            if problem:
-                problems.append(problem)
-    return sorted(problems, key=_order)
+    found = _Found()
+    _id_problems(found, _array(table, "id"))
+    axes = None if manifest is None else _Manifest(manifest)
+    timelines = _array(table, "timeline_id")
+    if axes is not None:
+        _unknown_problems(found, axes, timelines, 1, ("timeline_id",))
+    _projection_numbers(found, table, timelines, axes)
+    _projected_events(found, table, timelines, axes)
+    return found.problems()
 
 
 def _projection_numbers(
-    index: int, row: Mapping[str, Any], axes: _Axes
-) -> Iterator[TableProblem]:
-    """The problems of a Projection's axis, ``start`` and ``duration``: its
-    row states the unit and the number type of both, never null here."""
-    unit, number_type = row["unit"], row["number_type"]
-    problem = _axis_problem(unit, number_type)
-    if problem:
-        column = "unit" if unit not in UNITS else "number_type"
-        yield TableProblem("invalid_coordinate", index, (column,), problem)
-        return
-    expected = axes.expected(row["timeline_id"])
-    column = ("unit",) if expected and expected[0] != unit else ("number_type",)
-    axis = axes.axis(index, column, row["timeline_id"], (unit, number_type))
-    if axis:
-        yield axis
-    for key, what in (("start", "coordinate"), ("duration", "duration")):
-        number = row[key]
-        if number is None:
-            continue
-        problem = _number_problem(number, number_type, what)
-        if problem:
-            yield TableProblem("invalid_coordinate", index, (key,), problem)
-        elif key == "duration" and coordinate_value(number, number_type) < 0:
-            yield TableProblem(
-                "invalid_duration", index, (key,), "the duration is negative"
+    found: _Found, table: pa.Table, timelines: pa.Array, manifest: _Manifest | None
+) -> None:
+    """The problems of a Projection's axis (place 2), ``start`` (3) and
+    ``duration`` (4): its row states the unit and the number type of both,
+    never null here; a row without an axis has no numbers checked."""
+    unit, number_type = _array(table, "unit"), _array(table, "number_type")
+    admitted = _axis_admitted(unit, number_type)
+    rows = _rows(_not(admitted))
+    for row, row_unit, row_type in zip(
+        rows, _at(unit, rows), _at(number_type, rows), strict=True
+    ):
+        column = "unit" if row_unit not in UNITS else "number_type"
+        found.add(
+            row,
+            2,
+            TableProblem(
+                "invalid_coordinate",
+                row,
+                (column,),
+                _axis_problem(row_unit, row_type),
+            ),
+        )
+    stated = _indices(admitted)
+    axes = pa.table(
+        {
+            "order": stated,
+            "row": stated,
+            "timeline": timelines.take(stated),
+            "unit": unit.take(stated),
+            "number_type": number_type.take(stated),
+        }
+    )
+    for cell in _mismatched(axes, manifest):
+        column = "unit" if cell["expected_unit"] != cell["unit"] else "number_type"
+        found.add(
+            cell["row"],
+            2,
+            TableProblem(
+                "axis_mismatch",
+                cell["row"],
+                (column,),
+                _mismatch(cell, manifest is not None),
+            ),
+        )
+    for place, key, what in ((3, "start", "coordinate"), (4, "duration", "duration")):
+        number = _array(table, key)
+        checked = _all(admitted, pc.is_valid(number))
+        held = _number_held(number, number_type)
+        rows = _rows(_all(checked, _not(held)))
+        for row, value, row_type in zip(
+            rows, _at(number, rows), _at(number_type, rows), strict=True
+        ):
+            found.add(
+                row,
+                place,
+                TableProblem(
+                    "invalid_coordinate",
+                    row,
+                    (key,),
+                    _number_problem(value, row_type, what),
+                ),
             )
+        if key == "duration":
+            # A number holds its numerator or its value, never both.
+            negative = _any(
+                _held(pc.less(_member(number, "numerator"), _ZERO)),
+                _held(pc.less(_member(number, "value"), _ZERO)),
+            )
+            for row in _rows(_all(checked, held, negative)):
+                found.add(
+                    row,
+                    place,
+                    TableProblem(
+                        "invalid_duration", row, (key,), "the duration is negative"
+                    ),
+                )
 
 
-def _order(problem: TableProblem) -> int:
-    return -1 if problem.row is None else problem.row
+def _projected_events(
+    found: _Found, table: pa.Table, timelines: pa.Array, manifest: _Manifest | None
+) -> None:
+    """The event a Projection stands for: both members given (places 5 and
+    6), on another timeline than the Projection's, one the manifest has (7)."""
+    source = _array(table, "projection_of")
+    present = pc.is_valid(source)
+    members = {key: _member(source, key) for key in ("timeline_id", "event_id")}
+    for place, (key, member) in enumerate(members.items(), 5):
+        missing = _any(pc.is_null(member), _held(pc.equal(member, _EMPTY)))
+        for row in _rows(_all(present, missing)):
+            found.add(
+                row,
+                place,
+                TableProblem(
+                    "invalid_projection_of",
+                    row,
+                    ("projection_of", key),
+                    f"the projected event has no {key}",
+                ),
+            )
+    source_timeline = members["timeline_id"]
+    same = _all(present, _held(pc.equal(source_timeline, timelines)))
+    rows = _rows(same)
+    for row, value in zip(rows, _at(timelines, rows), strict=True):
+        found.add(
+            row,
+            7,
+            TableProblem(
+                "invalid_projection_of",
+                row,
+                ("projection_of", "timeline_id"),
+                f"a Projection stands for an event of another timeline than '{value}'",
+            ),
+        )
+    if manifest is not None:
+        named = _all(present, _not(same), _held(pc.not_equal(source_timeline, _EMPTY)))
+        _unknown_problems(
+            found,
+            manifest,
+            source_timeline,
+            7,
+            ("projection_of", "timeline_id"),
+            named,
+        )
 
 
-def _comparable(value: Any) -> Any:
-    """A value with every coordinate cell read as (unit, number type, exact value)."""
-    if isinstance(value, dict):
-        if set(value) == set(COORDINATE_KEYS):
-            return (value["unit"], value["number_type"], coordinate_value(value))
-        return {key: _comparable(member) for key, member in value.items()}
-    if isinstance(value, list):
-        return [_comparable(member) for member in value]
-    return value
+def _differs(old: pa.Array, new: pa.Array) -> pa.Array:
+    """Where two columns of one type hold different values, compared as the
+    succession rule compares them: a coordinate cell by its unit, its number
+    type and its exact value, a struct member by member, null equal to null
+    alone."""
+    nulls = pc.xor(pc.is_null(old), pc.is_null(new))
+    kind = old.type
+    if pa.types.is_struct(kind):
+        both = _all(pc.is_valid(old), pc.is_valid(new))
+        if {field.name for field in kind} == set(COORDINATE_KEYS):
+            inner = _coordinates_differ(old, new)
+        else:
+            inner = _any(
+                _not(both),
+                *(
+                    _differs(before, after)
+                    for before, after in zip(old.flatten(), new.flatten(), strict=True)
+                ),
+            )
+        return _any(nulls, _all(both, inner))
+    if pa.types.is_nested(kind):
+        raise TypeError(f"no comparison of values of the type {kind}")
+    return _any(nulls, _held(pc.not_equal(old, new)))
+
+
+def _coordinates_differ(old: pa.Array, new: pa.Array) -> pa.Array:
+    """Where two coordinate cells, both stated, differ in unit, number type
+    or exact value; a fraction whose members differ is compared exactly."""
+
+    def member(cells: pa.Array, key: str) -> pa.Array:
+        return _member(cells, key)
+
+    unit = _differs(member(old, "unit"), member(new, "unit"))
+    number_type = _differs(member(old, "number_type"), member(new, "number_type"))
+    raw = {key: _differs(member(old, key), member(new, key)) for key in NUMBER_KEYS}
+    kind = member(old, "number_type")
+    is_int = _held(pc.equal(kind, _KINDS["int"]))
+    is_float = _held(pc.equal(kind, _KINDS["float"]))
+    axis = _any(unit, number_type)
+    respelled = _all(
+        _not(axis),
+        _not(is_int),
+        _not(is_float),
+        _any(raw["numerator"], raw["denominator"]),
+    )
+    rows = _rows(respelled)
+    unequal = [
+        row
+        for row, before, after in zip(rows, _at(old, rows), _at(new, rows), strict=True)
+        if coordinate_value(before) != coordinate_value(after)
+    ]
+    exact = pc.is_in(
+        pa.array(range(len(old)), pa.int64()),
+        value_set=pa.array(unequal, pa.int64()),
+    )
+    return _any(
+        axis,
+        _all(is_int, raw["numerator"]),
+        _all(is_float, raw["value"]),
+        exact,
+    )
 
 
 def succession_problems(old: pa.Table, new: pa.Table) -> list[TableProblem]:
@@ -643,31 +1115,44 @@ def succession_problems(old: pa.Table, new: pa.Table) -> list[TableProblem]:
     ``new`` are reported by their index in ``new``.
     """
     columns = [name for name in MATCH_CLAIM_SCHEMA.names if name != "provenance"]
-    later = {
-        row["id"]: (index, row)
-        for index, row in reversed(list(enumerate(_claim_rows(new))))
-    }
-    problems = []
-    for row in _claim_rows(old):
-        name = f"the MatchClaim '{row['id']}'"
-        found = later.get(row["id"])
-        if found is None:
-            problems.append(
-                TableProblem("succession_missing", None, ("id",), f"{name} is missing")
+    old_ids = _array(old, "id")
+    successors = _first_rows(_array(new, "id"), old_ids)
+    found = _Found()
+    rows = _rows(pc.is_null(successors))
+    for row, value in zip(rows, _at(old_ids, rows), strict=True):
+        found.add(
+            row,
+            0,
+            TableProblem(
+                "succession_missing",
+                None,
+                ("id",),
+                f"the MatchClaim '{value}' is missing",
+            ),
+        )
+    kept = _indices(pc.is_valid(successors))
+    later = successors.take(kept)
+    for place, column in enumerate(columns, 1):
+        differs = _indices(
+            _differs(_array(old, column).take(kept), _array(new, column).take(later))
+        )
+        for row, successor, value in zip(
+            kept.take(differs).to_pylist(),
+            later.take(differs).to_pylist(),
+            old_ids.take(kept.take(differs)).to_pylist(),
+            strict=True,
+        ):
+            found.add(
+                row,
+                place,
+                TableProblem(
+                    "succession_changed",
+                    successor,
+                    (column,),
+                    f"the MatchClaim '{value}' changed its '{column}'",
+                ),
             )
-            continue
-        index, successor = found
-        for column in columns:
-            if _comparable(row[column]) != _comparable(successor[column]):
-                problems.append(
-                    TableProblem(
-                        "succession_changed",
-                        index,
-                        (column,),
-                        f"{name} changed its '{column}'",
-                    )
-                )
-    return problems
+    return found.problems()
 
 
 def _first(problems: list[TableProblem]) -> None:
