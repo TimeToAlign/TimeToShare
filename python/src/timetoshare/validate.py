@@ -347,7 +347,22 @@ def _branch_tag(candidate: Mapping[str, Any], tag: str) -> Any:
     return candidate.get("properties", {}).get(tag, {}).get("const")
 
 
+def _constants(error: ValidationError) -> list[Any] | None:
+    """The constants a ``oneOf``/``anyOf`` of ``const`` branches admits, or None."""
+    if error.validator not in ("oneOf", "anyOf"):
+        return None
+    branches = error.validator_value
+    if not all(
+        isinstance(branch, Mapping) and "const" in branch for branch in branches
+    ):
+        return None
+    return [branch["const"] for branch in branches]
+
+
 def _candidate_leaves(error: ValidationError) -> Iterable[ValidationError]:
+    if _constants(error) is not None:
+        yield error
+        return
     if (
         error.validator in ("oneOf", "anyOf")
         and error.context
@@ -396,6 +411,26 @@ def select(errors: Iterable[ValidationError]) -> ValidationError | None:
             if best is None or len(leaf.absolute_path) > len(best.absolute_path):
                 best = leaf
     return best
+
+
+def worded(error: ValidationError) -> str:
+    """The message of a selected error, naming what is admitted where the walk does not.
+
+    A value outside a ``oneOf`` or ``anyOf`` of ``const`` branches lists the
+    admitted constants, as an ``enum`` does; a key whose schema refuses every
+    value (``not: {}`` or ``false``) is named as not admitted. Every other
+    error keeps the walk's message.
+    """
+    constants = _constants(error)
+    if constants is not None:
+        return f"{error.instance!r} is not one of {constants!r}"
+    refuses_all = (
+        error.validator == "not" and error.validator_value in ({}, True)
+    ) or (error.validator is None and error.schema is False)
+    path = error.absolute_path
+    if refuses_all and path and isinstance(path[-1], str):
+        return f"the key {path[-1]!r} is not admitted here"
+    return error.message
 
 
 def _key_failures_only(error: ValidationError) -> bool:
@@ -455,7 +490,7 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     errors = _walk_errors(_marking_validator(), _checks().manifest, value)
     error = select(errors)
     if error is not None:
-        raise SchemaValidationError("schema", tuple(error.absolute_path), error.message)
+        raise SchemaValidationError("schema", tuple(error.absolute_path), worded(error))
 
     bare = _bare_manifest(value)
     representation = next(representation_problems(bare), None)
@@ -573,7 +608,7 @@ def statement_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
         error = select(_member_errors(definition, member, content))
         if error is not None:
             at = (*path, *error.absolute_path)
-            problems.append(SchemaValidationError("schema", at, error.message))
+            problems.append(SchemaValidationError("schema", at, worded(error)))
     if problems:
         return problems
     return list(statement_rule_problems(bare))
@@ -675,7 +710,7 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
         )
         if error is not None:
             at = (*path, *error.absolute_path)
-            problems.append(SchemaValidationError("schema", at, error.message))
+            problems.append(SchemaValidationError("schema", at, worded(error)))
     if isinstance(graphical, Mapping) and "matchstamps" in graphical:
         content = bare["graphical"]["matchstamps"]
         finite = next(
@@ -689,7 +724,7 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
             )
             if error is not None:
                 at = (*_MATCHSTAMPS, *error.absolute_path)
-                problems.append(SchemaValidationError("schema", at, error.message))
+                problems.append(SchemaValidationError("schema", at, worded(error)))
     if problems:
         return problems
     return [*_matchstamp_id_problems(bare), *_matchstamp_rule_problems(bare)]

@@ -518,7 +518,7 @@ violation's is the same text in both packages.
 | --- | --- | --- | --- |
 | `not_a_manifest` | an object holding `timetoshare` | the root | `not a TimeToShare manifest` |
 | `finite_number` | every number finite | the leaf | `length of 'take' is not a finite number`, or `#/graphical/styles/s/opacity is not a finite number` with no ID above it |
-| `schema` | the schema document | the path rule below | the schema library's |
+| `schema` | the schema document | the path rule below | the schema library's, but for the two shapes worded below |
 | `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
 | `duplicate_id` | IDs unique within a root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds included after the tree's other IDs | the later ID | `'m' is not unique in the manifest, first at #/…` |
 | `dangling_target` | a jump origin's `target` names a jump target of its timeline; then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the target, the `measure_map` | `'there' names no jump_to of this timeline`, `'ghost' names no MeasureMap of this manifest` |
@@ -1380,6 +1380,23 @@ unknown conversion-map type the map, a missing `x_values` the `TableMap`, a
 measure view's `source_unit` other than `quarters` the unit, a `target` on a
 jump target or a `repeat_count` on a `to_coda` the member, a `dal_segno`
 without a `target` the element.
+
+Two shapes of the schema are reported whole and worded by the package, so a
+refusal says what to write; the path and the code stay the path rule's and
+`schema`. A `oneOf` (or `anyOf`) whose every branch is a `const` is one
+leaf, never its branches, and its message lists the admitted constants in
+the schema's order as an `enum`'s does: `'furlongs' is not one of
+['number', 'floating_measures', …, 'user_units']` at a timeline's `unit`
+(before, the first branch's `'number' was expected`). A member whose schema
+admits no value (`not: {}` or `false`) reads `the key 'repeat_count' is not
+admitted here` (before, `2 should not be valid under {}`). Every other
+error keeps the schema library's message. `test_validate.py` proves it on
+every place of the schema with either shape, and a census of the schema
+fails when a place is added without a case: the time unit, and the four
+forbidden members of a flow-control element (`repeat_count` on a
+`dal_segno` and on a `da_capo`, `target` and `repeat_count` on a jump target
+or a flow marker), each message stated literally; the selected path is the
+one the walk reported before.
 
 ## The canonical order
 

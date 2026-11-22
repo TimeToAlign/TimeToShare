@@ -952,6 +952,96 @@ def test_a_da_capo_and_a_repeat_end_need_no_target() -> None:
     assert _problem(missing)[0] == ("timelines", 0, "flow_control", 0)
 
 
+def _worded_places(node: Any, pointer: str) -> list[str]:
+    """The places of a schema the package words itself, as JSON pointers."""
+    places: list[str] = []
+    if isinstance(node, dict):
+        for keyword in ("oneOf", "anyOf"):
+            branches = node.get(keyword)
+            if isinstance(branches, list) and all(
+                isinstance(branch, dict) and "const" in branch for branch in branches
+            ):
+                places.append(f"{pointer}/{keyword}")
+        if node.get("not") in ({}, True):
+            places.append(f"{pointer}/not")
+        for key, child in node.items():
+            if key in ("properties", "patternProperties", "$defs") and isinstance(
+                child, dict
+            ):
+                places.extend(
+                    f"{pointer}/{key}/{name}"
+                    for name, member in child.items()
+                    if member is False
+                )
+            places.extend(_worded_places(child, f"{pointer}/{key}"))
+    elif isinstance(node, list):
+        for index, child in enumerate(node):
+            places.extend(_worded_places(child, f"{pointer}/{index}"))
+    return places
+
+
+def test_the_worded_shapes_lie_where_the_cases_below_reach() -> None:
+    element = "#/$defs/FlowControlElement"
+    assert _worded_places(timetoshare.load_schema(), "#") == [
+        "#/$defs/TimeUnit/oneOf",
+        f"{element}/then/then/properties/repeat_count/not",
+        f"{element}/then/else/else/properties/repeat_count/not",
+        f"{element}/else/properties/target/not",
+        f"{element}/else/properties/repeat_count/not",
+    ]
+
+
+def test_an_unknown_unit_names_the_admitted_units() -> None:
+    assert _problem(manifest(timeline("score", "furlongs"))) == (
+        ("timelines", 0, "unit"),
+        "'furlongs' is not one of ['number', 'floating_measures', 'whole_notes', "
+        "'quarters', 'ticks', 'milliseconds', 'seconds', 'minutes', 'samples', "
+        "'frames', 'pixels', 'meters', 'centimeters', 'millimeters', 'inches', "
+        "'points', 'css_pixels', 'user_units']",
+    )
+
+
+def test_a_unit_of_another_type_keeps_the_type_message() -> None:
+    assert _problem(manifest(timeline("score", 4))) == (
+        ("timelines", 0, "unit"),
+        "4 is not of type 'string'",
+    )
+
+
+@pytest.mark.parametrize(
+    ("element", "key"),
+    [
+        (
+            {
+                "type": "jump_from",
+                "manifestation": "dal_segno",
+                "target": "s",
+                "repeat_count": 2,
+            },
+            "repeat_count",
+        ),
+        (
+            {"type": "jump_from", "manifestation": "da_capo", "repeat_count": 2},
+            "repeat_count",
+        ),
+        ({"type": "jump_to", "manifestation": "segno", "target": "s"}, "target"),
+        (
+            {"type": "flow_marker", "manifestation": "fine", "repeat_count": 1},
+            "repeat_count",
+        ),
+    ],
+)
+def test_a_forbidden_flow_control_member_is_named(element: dict, key: str) -> None:
+    flow = [
+        {"id": "s", "type": "jump_to", "manifestation": "segno", "coordinate": [2, 1]},
+        {"id": "e", "coordinate": [6, 1], **element},
+    ]
+    assert _problem(manifest(timeline("score", flow_control=flow))) == (
+        ("timelines", 0, "flow_control", 1, key),
+        f"the key '{key}' is not admitted here",
+    )
+
+
 @pytest.mark.parametrize(
     ("select", "member"),
     [

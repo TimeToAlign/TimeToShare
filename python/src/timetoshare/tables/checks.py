@@ -22,7 +22,7 @@ from jsonschema import Draft202012Validator
 from ..ids import with_bare_ids
 from ..manifest import UNITS
 from ..statements import calendar_date, expand_iri
-from ..validate import PROVENANCE_DEFINITION, load_schema, select
+from ..validate import PROVENANCE_DEFINITION, load_schema, select, worded
 from ..validation.diagnostics import json_pointer, number_type_of, timelines_by_id
 from .columns import (
     BELIEF_KEYS,
@@ -211,7 +211,7 @@ def _provenance_problem(
     """
     error = select(_provenance_validator().iter_errors(entry))
     if error is not None:
-        return f"{what} {json_pointer(error.absolute_path)}: {error.message}"
+        return f"{what} {json_pointer(error.absolute_path)}: {worded(error)}"
     beliefs = entry.get("beliefs", [])
     for keys, known, path, kind in (
         (entry, PROVENANCE_KEYS, (), "a provenance entry"),
