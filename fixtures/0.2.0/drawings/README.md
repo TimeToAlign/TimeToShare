@@ -1964,12 +1964,12 @@ The manifest of `group__group_grandchild` (the grandchild `theme`, 8
 quarters at 8 in the movement `movement` of 16 quarters at 16 in the score
 `score` of 64, and the root `recording`, 12.0 seconds, in the group "Theme"
 in the display order `theme`, `recording`) with the band order `["line",
-"children"]` for `movement` in its `graphical.order`. Completed against the
-order `movement` inherits, `score`'s, which is the default (§6.4, The band
-order), it is `conversion_maps`, `line`, `children`, `markers`, `regions`,
-`flow_control`: `movement`'s children lie below its line. `theme` has no
-entry and follows that completed order, its markers band below its line as
-in the default. So in `theme`'s card the faded line of `movement` lies
+"children", "conversion_maps", "markers", "regions", "flow_control"]` for
+`movement` in its `graphical.order` (§6.4, The band order):
+`movement`'s children lie below its line. `theme` has no entry and follows
+that order, its markers band below its line as in the default, and
+neither carries a map, so where the conversion maps band lies moves
+nothing. So in `theme`'s card the faded line of `movement` lies
 above `theme`'s, the parent on top, and that of `score`, whose order is the
 default, below it (§8.3, Sides): the member drawing has an ancestor band on
 each side. `score` is drawn whole in its ancestor card behind the frame
