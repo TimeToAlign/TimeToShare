@@ -1856,8 +1856,8 @@ cannot prove that the emitter produces them:
 `docs/drawing.md` section 4's defaults block (three styles, 32 rules),
 read from the file, validates as the `graphical` of the smallest file; the
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
-validate, and so do `{"element": "ancestor_card"}` and the rule that shows
-the ancestor cards of one root, `{"element": "ancestor_card", "addresses":
+validate, and so do `{"element": "ancestor_card"}` and the rule that
+addresses the ancestor cards of one root, `{"element": "ancestor_card", "addresses":
 [{"id": "score", "part": ["card"]}]}`, each setting `display: inline`; so do the band selectors, `{"element": "band"}`, `{"element":
 "band", "facet": <facet>}` for each of the five facets `markers`,
 `conversion_maps`, `children`, `regions` and `flow_control`,

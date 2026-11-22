@@ -226,7 +226,7 @@ of a timeline, which draws nothing of its own:
 | `block` | the block: the background of the drawing, holding everything drawn (section 8) |
 | `frame` | a group's frame (section 8) |
 | `card` | the raised container of a member drawing: one in the frame of each group that has the timeline as a member, or one for an ungrouped root (section 8) |
-| `ancestor_card` | the card of a root that contains a member, behind the frame of that member's group, at the proportions of the root's axis; hidden by default (section 8.8) |
+| `ancestor_card` | the card of a root that contains a member, behind the frame of that member's group, at the proportions of the root's axis; shown by default, hidden by a rule (section 8.8) |
 | `timeline` | the line of a timeline drawn in a card (section 8) |
 | `child` | a child timeline's line, at any depth |
 | `band` | one of the five bands of a timeline, each drawing one of its facets: its markers, conversion maps, children, regions or flow control (below; section 6.4) |
@@ -694,7 +694,7 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"element": "ancestor", "modality": "discrete"}, "set": {"stroke-dasharray": "3 3"}},
     {"select": {"element": "frame"}, "set": {"fill": "#FFFFFF", "stroke": "#D1D5DB", "stroke-width": 1, "rx": 6}},
     {"select": {"element": "card"}, "set": {"fill": "#FFFFFF", "stroke": "#C4C9D1", "stroke-width": 0.75, "rx": 5, "shadow": "#B8BEC8"}},
-    {"select": {"element": "ancestor_card"}, "set": {"fill": "#FFFFFF", "stroke": "#C4C9D1", "stroke-width": 0.75, "rx": 5, "shadow": "#B8BEC8", "display": "none"}},
+    {"select": {"element": "ancestor_card"}, "set": {"fill": "#FFFFFF", "stroke": "#C4C9D1", "stroke-width": 0.75, "rx": 5, "shadow": "#B8BEC8"}},
     {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
     {"select": {"element": "label"}, "set": {"fill": "#000000", "font-size": 9}},
     {"select": {"element": "name"}, "set": {"fill": "#000000", "font-size": 11, "max-width": 160}},
@@ -2269,11 +2269,12 @@ continues the member's faded ancestor line of `R` beyond the frame's
 borders. In the tree of section 2.1 the block holds the ancestor card and
 the `timeline` element of `R` drawn in it, and the ancestor card holds
 nothing, so nothing of its drawing lies inside an `ancestor` element and
-none of it is faded. The defaults hide every ancestor card (section 4);
-a rule of a later layer shows them, all of them with
+none of it is faded. The defaults show every ancestor card (section 4);
+a rule of a later layer hides them as it hides any element, all of them
+with
 
 ```json
-{"select": {"element": "ancestor_card"}, "set": {"display": "inline"}}
+{"select": {"element": "ancestor_card"}, "set": {"display": "none"}}
 ```
 
 and those of one root `R` with `"addresses": [{"id": "#R", "part":
