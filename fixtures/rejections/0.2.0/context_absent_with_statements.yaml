@@ -21,5 +21,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "statements and provenance need the manifest's @context"
 path: [timelines, 0, statements]
 reason: "Statements need the manifest's @context; the timeline carries statements and the manifest has no @context."

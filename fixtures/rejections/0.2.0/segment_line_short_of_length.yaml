@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "the segments of segment line 'bare' do not end at its length"
 path: [timelines, 0, length]
 reason: "The segments end at the segment line's length."

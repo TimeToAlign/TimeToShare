@@ -81,5 +81,6 @@ manifest:
             id: "wd:Q84148"
       unit: quarters
   timetoshare: "0.2.0"
+message: "'wdtt:P175': the prefix 'wdtt' is not declared in @context"
 path: [timelines, 0, statements, "wdtt:P175"]
 reason: "A property written as a compact IRI uses a prefix declared in @context; wdtt is not declared."

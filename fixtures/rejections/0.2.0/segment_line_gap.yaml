@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "segment 'b' of segment line 'bare' does not start where the one before it ends"
 path: [timelines, 0, children, 1, offset]
 reason: "Each segment starts where the one before it ends."

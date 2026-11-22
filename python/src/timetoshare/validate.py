@@ -405,12 +405,23 @@ def _candidate_leaves(error: ValidationError) -> Iterable[ValidationError]:
 
 
 def select(errors: Iterable[ValidationError]) -> ValidationError | None:
-    """The error the one path rule reports: the deepest leaf, the first on a tie."""
+    """The error the one path rule reports.
+
+    The deepest leaf wins; among leaves equally deep, the one whose path
+    comes first, compared element by element (indices by number, keys by
+    code point); among leaves at one path, the first reported. The walk
+    reports the members an ``additionalProperties`` checks in no fixed order,
+    so the order of the paths, never the order of the report, decides
+    between two places.
+    """
     best: ValidationError | None = None
+    best_key: tuple[int, tuple[str | int, ...]] | None = None
     for error in errors:
         for leaf in _candidate_leaves(error):
-            if best is None or len(leaf.absolute_path) > len(best.absolute_path):
-                best = leaf
+            path = tuple(leaf.absolute_path)
+            key = (-len(path), path)
+            if best_key is None or key < best_key:
+                best, best_key = leaf, key
     return best
 
 

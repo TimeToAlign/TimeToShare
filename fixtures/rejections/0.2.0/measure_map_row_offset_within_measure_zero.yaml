@@ -307,5 +307,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "0 is less than or equal to the minimum of 0"
 path: [measure_maps, 0, rows, 1, offset_within_measure]
 reason: "A row at offset 0 omits offset_within_measure; a stated offset is strictly positive."

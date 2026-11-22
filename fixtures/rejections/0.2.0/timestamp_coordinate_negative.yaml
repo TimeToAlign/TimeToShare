@@ -44,5 +44,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'"
 path: [graphical, timestamps, 0, coordinate]
 reason: "A named timestamp lies at or after its timeline's zero."

@@ -85,5 +85,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'type' does not match '^[A-Za-z][A-Za-z0-9_+.-]*:.'"
 path: [timelines, 0, provenance, 0, property]
 reason: "The property of a provenance entry is an IRI; the pair type X is annotated with the property rdf:type, never type."

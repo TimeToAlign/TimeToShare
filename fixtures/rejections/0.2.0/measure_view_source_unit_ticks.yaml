@@ -38,5 +38,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'quarters' was expected"
 path: [timelines, 0, conversion_maps, 0, source_unit]
 reason: "A measure view reads quarters, the unit of every MeasureMap position."

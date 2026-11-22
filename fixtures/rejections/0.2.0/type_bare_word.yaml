@@ -79,5 +79,6 @@ manifest:
         type: [MusicRecording]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'MusicRecording' does not match '^[A-Za-z][A-Za-z0-9_+.-]*:.'"
 path: [timelines, 0, statements, type, 0]
 reason: "A class under type is an IRI, compact or absolute; MusicRecording is a bare word."

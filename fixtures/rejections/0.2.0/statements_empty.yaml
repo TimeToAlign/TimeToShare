@@ -78,5 +78,6 @@ manifest:
       statements: {}
       unit: quarters
   timetoshare: "0.2.0"
+message: "{} should be non-empty"
 path: [timelines, 0, statements]
 reason: "Statements, where present, hold at least one pair."

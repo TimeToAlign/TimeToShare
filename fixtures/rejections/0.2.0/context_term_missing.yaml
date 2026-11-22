@@ -77,5 +77,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'provenance' is a required property"
 path: ["@context"]
 reason: "@context holds every term of the format; it lacks provenance."

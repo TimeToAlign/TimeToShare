@@ -79,5 +79,6 @@ manifest:
         "schema:sameAs": []
       unit: quarters
   timetoshare: "0.2.0"
+message: "[] should be non-empty"
 path: [timelines, 0, statements, "schema:sameAs"]
 reason: "The values of a property are a non-empty list."

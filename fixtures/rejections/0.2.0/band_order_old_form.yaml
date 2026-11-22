@@ -25,5 +25,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'score/regions_1' is not 'line' or a facet, in the band order of 'score'"
 path: [graphical, order, score, 6]
 reason: "A band order names a facet by its word alone; score/regions_1, a timeline ID joined to a numbered band, is neither line nor a facet."

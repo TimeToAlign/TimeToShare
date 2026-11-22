@@ -44,5 +44,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "['wedge', 'name', 'name'] has non-unique elements"
 path: [graphical, timestamps, 0, display]
 reason: "A named timestamp's display states each word at most once; name is stated twice."

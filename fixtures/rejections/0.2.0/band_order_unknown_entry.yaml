@@ -25,5 +25,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'annotations' is not 'line' or a facet, in the band order of 'score'"
 path: [graphical, order, score, 6]
 reason: "A band order names only line and the five facets; annotations is none of them."

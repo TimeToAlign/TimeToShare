@@ -82,5 +82,6 @@ manifest:
             id: "#cpt_9"
       unit: quarters
   timetoshare: "0.2.0"
+message: "'#cpt_9' names no element of this manifest"
 path: [timelines, 0, statements, "dcterms:source", 0, id]
 reason: "A value naming an element of this manifest by #id names one that exists; no element has the ID cpt_9."

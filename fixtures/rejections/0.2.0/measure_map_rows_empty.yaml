@@ -145,5 +145,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "[] should be non-empty"
 path: [measure_maps, 0, rows]
 reason: "A MeasureMap's rows hold at least one row."

@@ -79,5 +79,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'@nest' was expected"
 path: ["@context", statements]
 reason: "The terms of the format in @context are fixed: statements stands for @nest, never for @set."

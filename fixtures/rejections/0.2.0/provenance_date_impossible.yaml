@@ -86,5 +86,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'2026-02-30' is no Gregorian calendar date written YYYY-MM-DD"
 path: [timelines, 0, provenance, 0, date]
 reason: "The date of a provenance entry is a Gregorian calendar date; 2026 has no 30 February."

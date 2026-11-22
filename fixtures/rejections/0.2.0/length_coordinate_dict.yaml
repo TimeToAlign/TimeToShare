@@ -50,5 +50,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "{'number_type': 'fraction', 'unit': 'quarters', 'value': [12, 1]} is not of type 'number'"
 path: [timelines, 0, length]
 reason: "A length on the timeline's own axis is a bare Number, not a coordinate dict."

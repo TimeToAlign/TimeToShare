@@ -20,8 +20,8 @@ Where the two packages answer differently by design, this README says so.
    lists Python's `unknown_keys` and `manifest_warnings` return, byte for
    byte once written by `dumps`; `statementProblems` and
    `matchstampProblems` return the problems Python's `statement_problems`
-   and `matchstamp_problems` return, with the same codes and paths and,
-   but for a schema violation's, the same messages.
+   and `matchstamp_problems` return, with the same codes, paths and
+   messages.
 3. `complete` and `minimal` give the values Python's functions give, from a
    `DEFAULTS` table equal to the schema's `default`s, as Python's is; their
    typed forms take and give the generated `LosslessManifest` and
@@ -128,12 +128,21 @@ problems and codes `identityProblems` lists in order and whose first problem
 decomposition in both packages, so a rule changes in both or the shared
 cases fail. The packages differ only where JavaScript must:
 
-- **Messages.** Every message but a schema violation's is the same text in
-  both packages: an ID, a unit or an order entry in single quotes, as
-  written (`'m' is not unique in the manifest, first at …`), a value as the
-  writers spell it (`unsupported TimeToShare version "9.9.9"; this
-  package reads 0.2.0 only`). A schema violation carries Ajv's message
-  (`must match pattern …`, `must NOT have duplicate items …`).
+- **Messages.** Every message is the same text in both packages: an ID, a
+  unit or an order entry in single quotes, as written (`'m' is not unique
+  in the manifest, first at …`), a value as the writers spell it
+  (`unsupported TimeToShare version "9.9.9"; this package reads 0.2.0
+  only`). A schema violation is worded as Python's validator words it, not
+  as Ajv does: the message `jsonschema` 4.26 gives the keyword, each value
+  spelled as Python's `repr` spells the value Python reads (`None`,
+  `True`, `2.0` for a `JsonFloat`, a string holding `'` and no `"` in
+  double quotes), and the
+  three shapes the Python README's "One path rule for both validators"
+  words itself (`'furlongs' is not one of ['number', …]`, `the key
+  'target' is not admitted here`, `'#a\tb' holds U+0009: …`). Ajv runs
+  with `verbose` so each error carries its data and schemas; the message
+  spells the value as read, its `JsonFloat`s and `bigint`s kept, so a
+  value read through `plain` may be spelled otherwise (`2` for `2.0`).
 - **Integral floats.** `loads` keeps `2.0` as a `JsonFloat`, so
   `length 2.0` on a fraction axis is "a float … write [2, 1]" as in Python;
   a number built in code as `2` is an int. A `JsonFloat` member of a
@@ -208,15 +217,18 @@ no problem from `matchstampProblems` either.
 
 ## Shared rejection cases
 
-Each of the 175 cases (`validate.test.ts`), found by its name whatever
+Each of the 178 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
 `SchemaValidationError` with its stored path and code through `validate`
 on the read value, through `validate` on the value as `JSON.parse` would
 read it (`plain`: every `JsonFloat` and `bigint` a plain number), and
-through `parse` of its compact text; `version_unknown` raises
-`UnsupportedVersionError`. Each case is read through one reader, the mirror
+through `parse` of its compact text, and with its stored message through
+`validate` on the read value and through `parse`, the message the Python
+suite holds its validator to, so both packages give every case one
+message; `version_unknown` raises `UnsupportedVersionError` with its
+stored message. Each case is read through one reader, the mirror
 of Python's `rejection_case`, which puts the infinity or NaN a
 `finite_number` case names at its path; such a case has one reading, the
 reader's value, since no text carries it, and a test pins the two values in
@@ -227,9 +239,24 @@ the integer `1`; the test asserts that these lossy readings validate. The set of
 literally, and the cases whose messages the Python suite pins carry the same
 messages here (`identity.test.ts`, `statements.test.ts`).
 
-The path rule is the Python README's ("One path rule for both validators");
-Ajv applies a discriminated `oneOf` to the candidate its tag selects through
-its `discriminator` option. The shared cases pin the paths.
+The path rule is the Python README's ("One path rule for both
+validators"): the deepest leaf, then the path that comes first element by
+element (`comparePaths`), then the first the walk reports. Ajv reports
+its errors in an order of its own, so the validator reads from them the
+leaves Python's walk reports (a `oneOf` or `anyOf` of constants is one, a
+failed `oneOf`, `anyOf`, `if` or `propertyNames` none, its branches' errors
+being the leaves, a discriminator naming no branch the `oneOf` failing
+whole) and orders the leaves at one path as the walk visits them: the
+schemas applied there in the order the document writes their keywords,
+`$ref`, `allOf`, `anyOf`, `oneOf` and `if` in place, then a schema's
+keywords in its own order. Ajv applies a discriminated `oneOf` to the
+candidate its tag selects through its `discriminator` option, which the
+schema's `ConversionMap` and `Coordinate` read only on an object, each
+typing itself `object` (Ajv's discriminator would otherwise accept a map
+`0` and throw on a map `null`). The shared cases pin the paths and the
+messages; the cases of several problems (`fixtures/precedence/0.2.0/`)
+pin the order, each built from its fixture by the members it sets, with
+the code, path and message both packages report.
 
 ## Unknown keys
 
@@ -701,8 +728,8 @@ would otherwise change. The tables equal the schema's ID positions as in
 the Python suite, and every fixture round-trips. The validators read the
 file form as the Python suite's "IDs in a file" states, with its one
 refusal the schema cannot type (a bare member ID in a group's order), and a
-bare ID of any length refused by the `#` rule (Ajv's message `must match
-pattern "^#[\s\S]"`). The IRIs of statements are no IDs: `#verse` in a
+bare ID of any length refused by the `#` rule (Python's message `'s' does
+not match '^#[\\s\\S]'`). The IRIs of statements are no IDs: `#verse` in a
 region's statements stays `#verse` in both forms, `statementProblems` reads
 an ID outside the statements as it stands, and an element named by a
 statement resolves against the bare IDs. The inline documents write IDs

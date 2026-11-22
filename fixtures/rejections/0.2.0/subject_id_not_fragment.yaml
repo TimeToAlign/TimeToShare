@@ -79,5 +79,6 @@ manifest:
         type: ["schema:MusicRecording"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "the ID 'Bass Kick' of an element with statements is no IRI fragment"
 path: [timelines, 0, id]
 reason: "An element with statements has an ID that is an IRI fragment; Bass Kick holds a space."

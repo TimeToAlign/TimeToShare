@@ -32,5 +32,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "TableMap 'tempo' has 3 x values and 2 y values"
 path: [timelines, 0, conversion_maps, 0, y_values]
 reason: "A TableMap has one y value per x value."

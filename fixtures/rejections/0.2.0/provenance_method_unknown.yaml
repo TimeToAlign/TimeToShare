@@ -86,5 +86,6 @@ manifest:
         type: ["schema:MusicComposition"]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'guessed' is not one of ['manual', 'reconciled', 'imported', 'inferred']"
 path: [timelines, 0, provenance, 0, method]
 reason: "The method of a provenance entry is manual, reconciled, imported, inferred or an IRI; guessed is none of them."

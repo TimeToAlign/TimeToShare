@@ -84,5 +84,6 @@ manifest:
             "@value": "Op. 106"
       unit: quarters
   timetoshare: "0.2.0"
+message: "{'@language': 'en', '@type': 'xsd:string', '@value': 'Op. 106'} is not of type 'string'"
 path: [timelines, 0, statements, "schema:name", 0]
 reason: "A value object carries a language or a datatype, never both."

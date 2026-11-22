@@ -181,5 +181,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "'timestamp_2' is no match timestamp"
 path: [graphical, matchstamps, 0, alignment_anchors, 0, timestamps, 1]
 reason: "An alignment anchor names match timestamps; timestamp_2 is an ordinary named timestamp."

@@ -57,5 +57,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "['#recording', '#recording'] has non-unique elements"
 path: [groups, 0, members]
 reason: "Members are distinct."

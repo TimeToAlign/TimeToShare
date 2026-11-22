@@ -9,7 +9,7 @@
  * `graphical.order` bare too.
  */
 
-import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
+import { Ajv2020, type ValidateFunction } from "ajv/dist/2020.js";
 import { schema } from "./generated/schema.js";
 import type { LosslessManifest } from "./generated/types.js";
 import { FileIdError, lenientlyBareIds, withBareIds } from "./ids.js";
@@ -29,6 +29,7 @@ import {
 } from "./validate/diagnostics.js";
 import { identityProblems as semanticProblems } from "./validate/identity.js";
 import { finiteNumberProblems, representationProblems } from "./validate/representation.js";
+import { pythonSearch, schemaRefusal, toPath } from "./validate/schemaMessages.js";
 import { type ManifestWarning, statementRuleProblems, warningsOf } from "./validate/statements.js";
 import { matchstampProblems as matchstampRuleProblems } from "./validate/timestamps.js";
 
@@ -73,6 +74,7 @@ const OPTIONS = {
   allErrors: true,
   allowUnionTypes: true,
   discriminator: true,
+  code: { regExp: pythonSearch },
 } as const;
 
 type Node = Readonly<Record<string, unknown>>;
@@ -129,9 +131,35 @@ function closedSchema(document: Node): Node {
   return close(document, false, allOfBases(document)) as Node;
 }
 
-const check = new Ajv2020(OPTIONS).compile(schema);
+/** The options of the checks whose errors are reported: each error carries its data and schemas. */
+const REPORTING = { ...OPTIONS, verbose: true } as const;
+
+const check = new Ajv2020(REPORTING).compile(schema);
 const marking = new Ajv2020(OPTIONS).compile(closedSchema(schema));
 const partChecks = new Map<string, ValidateFunction>();
+const branchChecks = new WeakMap<object, ValidateFunction>();
+
+/** Whether `data` passes `branch`, a schema of the document, as the document checks it. */
+function passes(branch: unknown, data: unknown): boolean {
+  if (typeof branch === "boolean") return branch;
+  if (typeof branch !== "object" || branch === null) return false;
+  let compiled = branchChecks.get(branch);
+  if (compiled === undefined) {
+    const definitions = (schema as Node).$defs;
+    compiled = new Ajv2020(OPTIONS).compile({ $defs: definitions, ...(branch as Node) });
+    branchChecks.set(branch, compiled);
+  }
+  return compiled(data);
+}
+
+/** The refusal of a value the schema check failed, as Python chooses and words it. */
+function refusalOf(
+  checked: ValidateFunction,
+  instance: unknown,
+  original: unknown,
+): { path: PathSegment[]; message: string } | undefined {
+  return schemaRefusal(checked.errors ?? [], instance, original, checked.schema, passes);
+}
 
 /**
  * The check of one definition, or of one member of it, as the whole document
@@ -147,7 +175,7 @@ function partCheck(definition: string, member?: string): ValidateFunction {
       member === undefined
         ? { $ref: `#/$defs/${definition}` }
         : (owner.properties as Readonly<Record<string, Node>>)[member];
-    compiled = new Ajv2020(OPTIONS).compile({ $defs: definitions, ...declared });
+    compiled = new Ajv2020(REPORTING).compile({ $defs: definitions, ...declared });
     partChecks.set(key, compiled);
   }
   return compiled;
@@ -162,43 +190,10 @@ function partProblem(
 ): SchemaValidationError | undefined {
   const instance = plain(value);
   const checkPart = partCheck(definition, member);
-  const error = checkPart(instance) ? undefined : select(checkPart.errors ?? []);
-  if (error === undefined) return undefined;
-  const at = [...path, ...toPath(error.instancePath, instance)];
-  return new SchemaValidationError("schema", at, error.message ?? error.keyword);
-}
-
-/** Convert an Ajv instance path to segments, typing array indices as numbers. */
-function toPath(instancePath: string, value: unknown): PathSegment[] {
-  if (instancePath === "") return [];
-  const path: PathSegment[] = [];
-  let cursor: unknown = value;
-  for (const raw of instancePath.slice(1).split("/")) {
-    const key = raw.replace(/~1/g, "/").replace(/~0/g, "~");
-    if (Array.isArray(cursor)) {
-      const index = Number(key);
-      path.push(index);
-      cursor = cursor[index];
-    } else {
-      path.push(key);
-      cursor = isJsonObject(cursor) ? cursor[key] : undefined;
-    }
-  }
-  return path;
-}
-
-/** Pick the deepest diagnostic leaf, with the first reported leaf winning ties. */
-function select(errors: readonly ErrorObject[]): ErrorObject | undefined {
-  let best: ErrorObject | undefined;
-  let bestDepth = -1;
-  for (const error of errors) {
-    const depth = error.instancePath === "" ? 0 : error.instancePath.split("/").length - 1;
-    if (depth > bestDepth) {
-      best = error;
-      bestDepth = depth;
-    }
-  }
-  return best;
+  if (checkPart(instance)) return undefined;
+  const refusal = refusalOf(checkPart, instance, value);
+  if (refusal === undefined) return undefined;
+  return new SchemaValidationError("schema", [...path, ...refusal.path], refusal.message);
 }
 
 function first(problems: Iterable<SchemaValidationError>): SchemaValidationError | undefined {
@@ -225,7 +220,7 @@ function run(value: unknown): Warnings {
   const found: UnknownKey[] = [];
   if (!marking(instance)) {
     // The closed variant refuses undeclared keys; the document decides validity.
-    if (!check(instance)) reject(check.errors ?? [], instance);
+    if (!check(instance)) reject(instance, value);
     for (const error of marking.errors ?? []) {
       if (error.keyword !== "unevaluatedProperties") continue;
       found.push({
@@ -291,16 +286,12 @@ export function manifestWarnings(value: unknown): ManifestWarning[] {
   return run(value).warnings;
 }
 
-function reject(errors: readonly ErrorObject[], instance: unknown): never {
-  const error = select(errors);
-  if (error === undefined) {
+function reject(instance: unknown, original: unknown): never {
+  const refusal = refusalOf(check, instance, original);
+  if (refusal === undefined) {
     throw new SchemaValidationError("schema", [], "value is invalid");
   }
-  throw new SchemaValidationError(
-    "schema",
-    toPath(error.instancePath, instance),
-    error.message ?? error.keyword,
-  );
+  throw new SchemaValidationError("schema", refusal.path, refusal.message);
 }
 
 /**

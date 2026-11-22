@@ -220,5 +220,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'3,3' does not match '^(none|(0|[1-9][0-9]*)(\\\\.[0-9]+)?( (0|[1-9][0-9]*)(\\\\.[0-9]+)?)*)$'"
 path: [graphical, rules, 2, set, stroke-dasharray]
 reason: "A dash array is none or non-negative numbers separated by single spaces."

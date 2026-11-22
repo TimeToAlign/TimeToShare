@@ -31,5 +31,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'nearest' is not one of ['linear', 'previous']"
 path: [timelines, 0, conversion_maps, 0, kind]
 reason: "A TableMap interpolates linearly or takes the previous anchor's value."

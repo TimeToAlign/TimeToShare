@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "7 is not of type 'string', 'null'"
 path: [timelines, 0, name]
 reason: "A timeline name must be a string or null."

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import * as timetoshare from "../src/index.js";
 import {
@@ -18,6 +19,7 @@ import {
   UnsupportedVersionError,
 } from "../src/index.js";
 import { type JsonObject, plain } from "../src/json/value.js";
+import { pythonRepr, schemaRefusal } from "../src/validate/schemaMessages.js";
 import {
   expectWrittenAsStored,
   fixtureFiles,
@@ -60,12 +62,15 @@ const REJECTIONS = [
   "child_offset_beyond_parent",
   "child_offset_fraction_on_float_axis",
   "child_unit_differs",
+  "combination_map_member_not_object",
   "context_absent_with_provenance",
   "context_absent_with_statements",
   "context_prefix_not_namespace",
   "context_prefix_reserved_name",
   "context_term_altered",
   "context_term_missing",
+  "conversion_map_not_object",
+  "conversion_map_null",
   "conversion_map_unknown_type",
   "dal_segno_without_target",
   "element_value_dangling",
@@ -566,6 +571,7 @@ describe("the shared rejection cases", () => {
   it.each(rejectionFileNames())("refuse %s at the stored path", (name) => {
     expectWrittenAsStored(rejectionText(name));
     const testCase = rejectionCase(name);
+    const { message } = loads(rejectionText(name)) as { message: string };
     // JSON text holds no non-finite number, so a case about the finite rule
     // has one reading: the reader's, with the value in place.
     const readings =
@@ -585,7 +591,8 @@ describe("the shared rejection cases", () => {
       if (testCase.error === "UnsupportedVersionError") {
         expect(testCase.path).toEqual(["timetoshare"]);
         expect(testCase.code).toBeNull();
-        expect(read).toThrow(UnsupportedVersionError);
+        expect(read).toThrow(new UnsupportedVersionError("0.1.0"));
+        expect(new UnsupportedVersionError("0.1.0").message).toBe(message);
         continue;
       }
       expect(testCase.error).toBeNull();
@@ -595,6 +602,8 @@ describe("the shared rejection cases", () => {
         expect(error).toBeInstanceOf(SchemaValidationError);
         expect((error as SchemaValidationError).path).toEqual(testCase.path);
         expect((error as SchemaValidationError).code).toBe(testCase.code);
+        // The plain reading spells the value as JSON.parse reads it (`2` for `2.0`).
+        if (index !== 1) expect((error as SchemaValidationError).detail).toBe(message);
         continue;
       }
       throw new Error(`${name} was accepted`);
@@ -676,6 +685,283 @@ describe("the shared rejection cases", () => {
   });
 });
 
+describe("the worded refusals", () => {
+  /** The code, path and message `check` throws for `value`. */
+  function thrownBy(
+    check: (value: unknown) => void,
+    value: unknown,
+  ): [string, readonly (string | number)[], string] {
+    try {
+      check(value);
+    } catch (error) {
+      const { code, path, detail } = error as SchemaValidationError;
+      return [code, path, detail];
+    }
+    throw new Error("the value was accepted");
+  }
+
+  /** The refusal of an inline document, its IDs written as the file form writes them. */
+  const refusal = (value: unknown) => thrownBy(validate, value);
+  /** The refusal of a document in the file form. */
+  const fileRefusal = (value: unknown) => thrownBy(timetoshare.validate, value);
+
+  /** The minimal fixture `name` with the member at `path` set to `value`. */
+  function edited(name: string, path: readonly (string | number)[], value: unknown): JsonObject {
+    const document = loads(fixtureText(name)) as JsonObject;
+    let holder: unknown = document;
+    for (const key of path.slice(0, -1)) holder = (holder as Record<string, unknown>)[key];
+    (holder as Record<string, unknown>)[path[path.length - 1] as string | number] = value;
+    return document;
+  }
+
+  it.each([
+    [null, "None"],
+    [true, "True"],
+    [false, "False"],
+    [0n, "0"],
+    [-7, "-7"],
+    [12345678901234567890n, "12345678901234567890"],
+    [new JsonFloat(2), "2.0"],
+    [-0.5, "-0.5"],
+    [0.1, "0.1"],
+    [1e-5, "1e-05"],
+    [1.5e-5, "1.5e-05"],
+    [new JsonFloat(1e16), "1e+16"],
+    [new JsonFloat(1.25e300), "1.25e+300"],
+    [123456789012345.6, "123456789012345.6"],
+    ["it's", `"it's"`],
+    [`say "hi" it's`, `'say "hi" it\\'s'`],
+    ["back\\slash", "'back\\\\slash'"],
+    ["tab\there", "'tab\\there'"],
+    ["\u0000\u001f\u007f", "'\\x00\\x1f\\x7f'"],
+    ["\u0085 é", "'\\x85\\xa0é'"],
+    ["​ 　﻿", "'\\u200b\\u2028\\u3000\\ufeff'"],
+    ["\u{1d15d}", "'\u{1d15d}'"],
+    ["\u{e0001}", "'\\U000e0001'"],
+    ["\ud800", "'\\ud800'"],
+    [[1n, [new JsonFloat(2)]], "[1, [2.0]]"],
+    [{ a: null, b: [true] }, "{'a': None, 'b': [True]}"],
+    [{}, "{}"],
+  ])("spell %o as Python's repr spells it", (value, spelled) => {
+    expect(pythonRepr(value)).toBe(spelled);
+  });
+
+  it("name the admitted units for an unknown unit", () => {
+    expect(refusal(manifest([timeline("score", "furlongs")]))).toEqual([
+      "schema",
+      ["timelines", 0, "unit"],
+      "'furlongs' is not one of ['number', 'floating_measures', 'whole_notes', " +
+        "'quarters', 'ticks', 'milliseconds', 'seconds', 'minutes', 'samples', " +
+        "'frames', 'pixels', 'meters', 'centimeters', 'millimeters', 'inches', " +
+        "'points', 'css_pixels', 'user_units']",
+    ]);
+  });
+
+  it("keep the type message for a unit of another type", () => {
+    expect(refusal(manifest([timeline("score", 4n as unknown as string)]))).toEqual([
+      "schema",
+      ["timelines", 0, "unit"],
+      "4 is not of type 'string'",
+    ]);
+  });
+
+  it.each([
+    [
+      { type: "jump_from", manifestation: "dal_segno", target: "s", repeat_count: 2 },
+      "repeat_count",
+    ],
+    [{ type: "jump_from", manifestation: "da_capo", repeat_count: 2 }, "repeat_count"],
+    [{ type: "jump_to", manifestation: "segno", target: "s" }, "target"],
+    [{ type: "flow_marker", manifestation: "fine", repeat_count: 1 }, "repeat_count"],
+  ])("name the forbidden flow-control member of %o", (element, key) => {
+    const flow = [
+      { id: "s", type: "jump_to", manifestation: "segno", coordinate: [2, 1] },
+      { id: "e", coordinate: [6, 1], ...element },
+    ];
+    expect(
+      refusal(manifest([timeline("score", "quarters", [8, 1], { flow_control: flow })])),
+    ).toEqual([
+      "schema",
+      ["timelines", 0, "flow_control", 1, key],
+      `the key '${key}' is not admitted here`,
+    ]);
+  });
+
+  const STYLED = "styled__score.minimal";
+  const RESOURCES = "bundles/bundle_resources.minimal";
+  const STATEMENTS = "statements/nielsen_record.minimal";
+  const CONTROL = "no control character (U+0000 to U+001F) is admitted here";
+  const SPACE = "no whitespace and no control character is admitted here";
+  const BANDS = ["children", "markers", "line\t", "conversion_maps", "regions", "flow_control"];
+
+  it.each([
+    [STYLED, ["timelines", 0, "id"], "#a\tb", [], `'#a\\tb' holds U+0009: ${CONTROL}`],
+    [STYLED, ["graphical", "order", "#score"], BANDS, [2], `'line\\t' holds U+0009: ${CONTROL}`],
+    [
+      STYLED,
+      ["graphical", "rules", 0, "set", "fill"],
+      "#404040\n",
+      [],
+      `'#404040\\n' holds U+000A: ${CONTROL}`,
+    ],
+    [
+      STYLED,
+      ["graphical", "rules", 0, "set", "stroke-dasharray"],
+      "3 3\n",
+      [],
+      `'3 3\\n' holds U+000A: ${CONTROL}`,
+    ],
+    [
+      RESOURCES,
+      ["resources", 0, "media_type"],
+      "application/x\n",
+      [],
+      `'application/x\\n' holds U+000A: ${CONTROL}`,
+    ],
+    [
+      RESOURCES,
+      ["resources", 0, "integrity"],
+      { algorithm: "SHA-256", digest: "ab\n" },
+      ["digest"],
+      `'ab\\n' holds U+000A: ${CONTROL}`,
+    ],
+    [
+      RESOURCES,
+      ["resources", 0, "url"],
+      "match claims.parquet",
+      [],
+      `'match claims.parquet' holds U+0020: ${SPACE}`,
+    ],
+    [
+      RESOURCES,
+      ["resources", 0, "url"],
+      "_:b0",
+      [],
+      "'_:b0' begins with '_:': no blank node identifier is admitted here",
+    ],
+    [
+      RESOURCES,
+      ["resources", 0, "url"],
+      "@id",
+      [],
+      "'@id' begins with '@': no keyword is admitted here",
+    ],
+    [
+      STATEMENTS,
+      ["@context", "wd"],
+      "http://www.wikidata.org/ entity/",
+      [],
+      `'http://www.wikidata.org/\\xa0entity/' holds U+00A0: ${SPACE}`,
+    ],
+    [
+      STATEMENTS,
+      ["statements", "rdfs:label"],
+      [{ "@value": "Sang", "@type": "xsd:da te" }],
+      [0, "@type"],
+      `'xsd:da te' holds U+0020: ${SPACE}`,
+    ],
+    [
+      STATEMENTS,
+      ["statements", "rdfs:label"],
+      [{ "@value": "Sang", "@language": "en_GB" }],
+      [0, "@language"],
+      "'en_GB' holds '_': only A-Z, a-z, 0-9 and '-' are admitted here",
+    ],
+  ] as const)("name the refused part of %s at %j", (name, path, value, at, message) => {
+    expect(fileRefusal(edited(name, path, value))).toEqual(["schema", [...path, ...at], message]);
+  });
+
+  it.each([
+    ["my.wd", "'my.wd' holds '.': only A-Z, a-z, 0-9, '_' and '-' are admitted here"],
+    [
+      "https",
+      "'https' is not admitted here: it names a key of the manifest's elements " +
+        "or a URI scheme the format reads as such",
+    ],
+  ])("name the refused part of the prefix name %j", (value, message) => {
+    const definitions = (timetoshare.schema as JsonObject).$defs;
+    const root = { $defs: definitions, $ref: "#/$defs/PrefixName" };
+    const check = new Ajv2020({ strict: false, allErrors: true, verbose: true }).compile(root);
+    expect(check(value)).toBe(false);
+    const refused = schemaRefusal(check.errors ?? [], value, value, root, () => false);
+    expect(refused).toEqual({ path: [], message });
+  });
+
+  it("keep the term list for a context key that is no prefix name", () => {
+    const value = loads(fixtureText(STATEMENTS)) as JsonObject;
+    (value["@context"] as JsonObject)["my.wd"] = "http://www.wikidata.org/entity/";
+    const [code, path, message] = fileRefusal(value);
+    expect([code, path]).toEqual(["schema", ["@context"]]);
+    expect(message.startsWith("'my.wd' is not one of ['@version', 'id', 'type', ")).toBe(true);
+  });
+
+  it("keep the library's message for a not requiring members", () => {
+    const address = { id: "#a", facet: "markers", part: ["name"] };
+    const value = edited(STYLED, ["graphical", "rules", 2, "select", "addresses"], [address]);
+    expect(fileRefusal(value)).toEqual([
+      "schema",
+      ["graphical", "rules", 2, "select", "addresses", 0],
+      "{'id': '#a', 'facet': 'markers', 'part': ['name']} should not be valid " +
+        "under {'required': ['facet', 'part']}",
+    ]);
+  });
+});
+
+/** One case of several problems: a fixture, the members set on it and what is reported. */
+interface PrecedenceCase {
+  readonly name: string;
+  readonly fixture: string;
+  readonly set: readonly { readonly path: readonly (string | number)[]; readonly value: unknown }[];
+  readonly code: string;
+  readonly path: readonly (string | number)[];
+  readonly message: string;
+}
+
+const PRECEDENCE = resolve(repositoryRoot, "fixtures", "precedence", "0.2.0", "cases.yaml");
+
+function precedenceCases(): PrecedenceCase[] {
+  return loads(readFileSync(PRECEDENCE, "utf8")) as unknown as PrecedenceCase[];
+}
+
+/** The case's fixture as read, with the case's members set. */
+function withEdits(testCase: PrecedenceCase): JsonObject {
+  const value = loads(fixtureText(testCase.fixture)) as JsonObject;
+  for (const { path, value: member } of testCase.set) {
+    let owner: unknown = value;
+    for (const step of path.slice(0, -1)) owner = (owner as Record<string, unknown>)[step];
+    (owner as Record<string, unknown>)[path[path.length - 1] as string | number] = member;
+  }
+  return value;
+}
+
+describe("the cases of several problems", () => {
+  it("are stated", () => {
+    expectWrittenAsStored(readFileSync(PRECEDENCE, "utf8"));
+    expect(precedenceCases().map((testCase) => testCase.name)).toEqual([
+      "declarations_by_key",
+      "prefixes_by_key",
+      "deeper_root_wins",
+      "timeline_members_by_key",
+      "conversion_maps_by_index",
+      "number_type_first_applied",
+    ]);
+  });
+
+  it.each(precedenceCases().map((testCase) => [testCase.name, testCase] as const))(
+    "report the problem the path rule selects in %s",
+    (_name, testCase) => {
+      let thrown: unknown;
+      try {
+        timetoshare.validate(withEdits(testCase));
+      } catch (error) {
+        thrown = error;
+      }
+      expect(thrown).toBeInstanceOf(SchemaValidationError);
+      const { code, path, detail } = thrown as SchemaValidationError;
+      expect([code, path, detail]).toEqual([testCase.code, testCase.path, testCase.message]);
+    },
+  );
+});
 describe("the finite-number rule", () => {
   it.each([
     [
@@ -815,10 +1101,10 @@ describe("the graphical object", () => {
     { select: { inside: "ancestor" }, set: { opacity: 0.35 } },
     { select: { element: "card" }, set: { shadow: "#B8BEC8" } },
     { select: { element: "frame" }, set: { stroke: "#7F00FF" } },
-    { select: { element: "ancestor_card" }, set: { display: "inline" } },
+    { select: { element: "ancestor_card" }, set: { display: "none" } },
     {
       select: { element: "ancestor_card", addresses: [{ id: "score", part: ["card"] }] },
-      set: { display: "inline" },
+      set: { display: "none" },
     },
     { select: { element: "band" }, set: { display: "none" } },
     { select: { inside: "band" }, set: { opacity: 0.5 } },
@@ -844,10 +1130,7 @@ describe("the graphical object", () => {
 
   it("refuses an empty order entry by the schema", () => {
     const value = manifest([timeline("score")], { graphical: { order: { score: [""] } } });
-    expect(problem(value)).toEqual([
-      ["graphical", "order", "#score", 0],
-      "must NOT have fewer than 1 characters",
-    ]);
+    expect(problem(value)).toEqual([["graphical", "order", "#score", 0], "'' should be non-empty"]);
   });
 
   it("refuses a repeated band order entry by the schema", () => {
@@ -856,7 +1139,7 @@ describe("the graphical object", () => {
     });
     expect(problem(value)).toEqual([
       ["graphical", "order", "#score"],
-      "must NOT have duplicate items (items ## 2 and 0 are identical)",
+      "['line', 'markers', 'line'] has non-unique elements",
     ]);
   });
 

@@ -27,8 +27,10 @@ Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 14 under
 with its minimal twin, so 170 files. Beside them lie the expected RDF of
 the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
 under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
-175 rejection cases, 16 warning cases and one table of acceptances under
-`fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)).
+178 rejection cases, 16 warning cases, one table of acceptances under
+`fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)) and
+one list of cases of several problems under `fixtures/precedence/0.2.0/`
+([Cases of several problems](#cases-of-several-problems)).
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -42,9 +44,10 @@ Regenerate them after a serialization change and review the diff. The CLI
 refuses to replace the fixtures of a version whose tag
 `v<version>` exists, so a released version's fixtures stay as released.
 
-The rejection cases under `fixtures/rejections/<version>/` and the warning
-cases under `fixtures/warnings/<version>/` are hand-authored. The emission
-script does not touch them.
+The rejection cases under `fixtures/rejections/<version>/`, the warning
+cases under `fixtures/warnings/<version>/` and the cases of several
+problems under `fixtures/precedence/<version>/` are hand-authored. The
+emission script does not touch them.
 
 ## Formats
 
@@ -524,16 +527,20 @@ The script refuses to replace the drawings of a version whose tag
 ## Rejection coverage
 
 Each rejection case breaks one rule of an accepted manifest and records the
-`path` and the `code` both validators must report, and a `reason`. A rule
-inside a timeline is located under the root that holds it, `/timelines/0/…`.
-Tests in both packages load the same files and compare the error's path and
-code with the case's. The cases cover every code:
+`path`, the `code` and the `message` both validators must report, and a
+`reason`. A rule inside a timeline is located under the root that holds it,
+`/timelines/0/…`. Tests in both packages load the same files and compare the
+error's path, code and message with the case's. A `schema` message is the
+one Python's `jsonschema` 4.26 gives, each value spelled as Python's `repr`
+spells it, but for the shapes both packages word themselves (the admitted
+constants of a `oneOf` of constants, a key no value is admitted at, the
+part of a string a `not` refuses). The cases cover every code:
 
 | Code | Rule | Cases |
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timetoshare` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 89 cases named after the member they break: units and number types (a number type the unit does not admit: `timeline_ticks_float`, `timeline_seconds_int`, `timeline_quarters_int`), lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (an empty ID, `id_empty`, and IDs holding a control character, a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps, flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, 23 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an unknown method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`), and a belief that is none of the strings `true`, `false` and `unlikely`, a word or the JSON boolean `true` (`belief_value_unknown`, `belief_value_boolean`); and 3 cases of MatchStamps and resources: a word of an anchor's `display` other than `line` and `name` (`alignment_anchor_display_unknown`), a MatchClaim ID listed twice (`matchstamp_claims_repeated`) and a digest whose hash function the PREMIS vocabulary does not name (`resource_integrity_algorithm_unknown`) |
+| `schema` | the schema document | 92 cases named after the member they break: units and number types (a number type the unit does not admit: `timeline_ticks_float`, `timeline_seconds_int`, `timeline_quarters_int`), lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (an empty ID, `id_empty`, and IDs holding a control character, a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps (a map that is no object: `conversion_map_not_object`, `conversion_map_null`, and an output of a `CombinationMap` that is none, `combination_map_member_not_object`), flow control, MeasureMaps, groups, `graphical` selectors, declarations and `order`, 23 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an unknown method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`), and a belief that is none of the strings `true`, `false` and `unlikely`, a word or the JSON boolean `true` (`belief_value_unknown`, `belief_value_boolean`); and 3 cases of MatchStamps and resources: a word of an anchor's `display` other than `line` and `name` (`alignment_anchor_display_unknown`), a MatchClaim ID listed twice (`matchstamp_claims_repeated`) and a digest whose hash function the PREMIS vocabulary does not name (`resource_integrity_algorithm_unknown`) |
 | `representation` | an own-axis value is accepted when its axis's number type reads it exactly, in any terms of a fraction, and is written in the form that number type takes (a bare number on an `int` or a `float` axis, a pair of integers on a `fraction` axis; in the tables the cell members that form fills); another form, or a value the number type cannot hold exactly, is refused; a statement value is never a float | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis`, `statement_value_integral_float` |
 | `duplicate_id` | every ID unique across the manifest, that of a map another map holds of a named timestamp, a MatchStamp, an alignment anchor and a resource included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `region_id_duplicate_across_roots`, `region_id_is_timeline_id`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id`, `alignment_anchor_id_repeated` |
 | `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps`, and a `#` reference of the statements an element of the manifest | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling`, `element_value_dangling` |
@@ -573,6 +580,29 @@ instead. No serialization writes a non-finite number, so the two `finite_number`
 a finite placeholder at their path and name in `non_finite` (`"Infinity"` or
 `"NaN"`) the value a test puts there before validating; Python's
 `timetoshare.fixtures.rejection_case` reads a case with that value in place.
+
+## Cases of several problems
+
+`fixtures/precedence/<version>/cases.yaml`, hand-authored in canonical
+YAML, pins which problem both validators report when a manifest breaks
+the schema more than once: the deepest; among problems equally deep, the
+one whose path comes first compared element by element (indices by
+number, keys by code point); among problems at one path, the first the
+walk of `jsonschema` reports, which visits the schemas applied there in
+the order the document writes their keywords. Each case names a
+`fixture` under `fixtures/<version>/` (its path without extension) and a
+list `set` of `{path, value}`, the members a test sets on the fixture as
+read, in order, and records the `code`, `path` and `message` reported,
+with a `name` and a `reason`:
+
+| Case | Problems | Reported |
+| --- | --- | --- |
+| `declarations_by_key` | two declarations of `graphical.styles` | the one under `alpha`, before `zeta` |
+| `prefixes_by_key` | two prefixes of `@context` that are no namespaces | `aa`, before `zz` |
+| `deeper_root_wins` | an unknown unit in the first root, a conversion map `null` in the third | the conversion map, the deeper |
+| `timeline_members_by_key` | `locked` and `is_segment_line` no booleans | `is_segment_line` |
+| `conversion_maps_by_index` | the conversion maps 3 (`0`) and 1 (`null`) no objects | index 1 |
+| `number_type_first_applied` | a number type outside the list of number types and its unit's | the list of number types, which the walk applies first |
 
 ## Acceptance cases
 

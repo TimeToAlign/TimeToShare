@@ -120,5 +120,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'timestamp_1' is a groupstamp, but its timeline 'clt_1' is a member of no group and lies in none"
 path: [graphical, timestamps, 0, groupstamp]
 reason: "A groupstamp lies on a member of a group; the timeline clt_1 of timestamp_1 is a member of no group, as the manifest has none."

@@ -196,5 +196,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "'timestamp_1' is a groupstamp, but its timeline 'score' is a member of no group and lies in none"
 path: [graphical, timestamps, 1, groupstamp]
 reason: "A match timestamp may be a groupstamp only on a timeline lying in a group; score lies in none."

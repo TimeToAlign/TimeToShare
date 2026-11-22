@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: ticks
   timetoshare: "0.2.0"
+message: "length 480.5 of 'dlt_1' is a float on an int axis: write an int"
 path: [timelines, 0, length]
 reason: "A value on an int axis is an integer: a number with a fractional part is refused, however it is written."

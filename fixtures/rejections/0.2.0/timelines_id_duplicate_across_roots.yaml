@@ -57,5 +57,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'piece' is not unique in the manifest, first at #/timelines/0/id"
 path: [timelines, 1, id]
 reason: "Timeline IDs are unique across the manifest; the later occurrence is reported."

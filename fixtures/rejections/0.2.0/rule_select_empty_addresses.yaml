@@ -217,5 +217,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "[] should be non-empty"
 path: [graphical, rules, 3, select, addresses]
 reason: "A selector's addresses list is not empty."

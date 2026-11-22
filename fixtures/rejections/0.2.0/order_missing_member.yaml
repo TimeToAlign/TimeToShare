@@ -103,5 +103,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "member 'excerpt' of group 'group_2' is missing"
 path: [graphical, order, group_2]
 reason: "Each display order is a permutation of its group's members."

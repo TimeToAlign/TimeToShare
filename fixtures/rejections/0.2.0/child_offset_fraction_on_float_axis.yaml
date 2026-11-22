@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: seconds
   timetoshare: "0.2.0"
+message: "offset [1, 2] of 'cpt_2' is a fraction on a float axis: write 0.5"
 path: [timelines, 0, children, 0, offset]
 reason: "A child's offset is represented as its parent's number type selects; a float axis takes a JSON number."

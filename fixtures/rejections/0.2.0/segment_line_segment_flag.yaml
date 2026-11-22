@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "segment 'b' of segment line 'bare' differs from segment 'a' in is_segment_line"
 path: [timelines, 0, children, 1, is_segment_line]
 reason: "The segments of a segment line share one is_segment_line value."

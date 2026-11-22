@@ -78,5 +78,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'@context' is reserved on a timeline"
 path: [timelines, 0, "@context"]
 reason: "A key beginning with @ is reserved on a timeline; @context belongs to the manifest alone."

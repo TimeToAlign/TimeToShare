@@ -19,5 +19,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'clt_1' does not match '^#[\\\\s\\\\S]'"
 path: [timelines, 0, id]
 reason: "A timeline's ID is written '#' followed by the ID; clt_1 has no '#'."

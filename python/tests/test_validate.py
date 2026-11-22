@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import json
 import math
+import os
+import subprocess
+import sys
 from fractions import Fraction
 from importlib import import_module
 from pathlib import Path
@@ -50,12 +53,15 @@ REJECTIONS = [
     "child_offset_beyond_parent",
     "child_offset_fraction_on_float_axis",
     "child_unit_differs",
+    "combination_map_member_not_object",
     "context_absent_with_provenance",
     "context_absent_with_statements",
     "context_prefix_not_namespace",
     "context_prefix_reserved_name",
     "context_term_altered",
     "context_term_missing",
+    "conversion_map_not_object",
+    "conversion_map_null",
     "conversion_map_unknown_type",
     "dal_segno_without_target",
     "element_value_dangling",
@@ -644,17 +650,101 @@ def test_the_rejection_cases_are_stated() -> None:
 @pytest.mark.parametrize("path", rejection_paths(), ids=lambda path: path.stem)
 def test_shared_rejection_is_rejected_at_its_path(path: Path) -> None:
     case = rejection_case(path)
+    message = loads(path.read_text(encoding="utf-8"))["message"]
     if case.error == "UnsupportedVersionError":
         assert case.path == ("timetoshare",)
         assert case.code is None
-        with pytest.raises(UnsupportedVersionError):
+        with pytest.raises(UnsupportedVersionError) as unsupported:
             timetoshare.validate(case.manifest)
+        assert str(unsupported.value) == message
         return
     assert case.error is None
     with pytest.raises(SchemaValidationError) as caught:
         timetoshare.validate(case.manifest)
     assert caught.value.path == case.path
     assert caught.value.code == case.code
+    assert caught.value.message == message
+
+
+# -- several problems: the one path rule ------------------------------------------
+
+PRECEDENCE = REPOSITORY_ROOT / "fixtures" / "precedence" / "0.2.0" / "cases.yaml"
+
+
+def _precedence_cases() -> list[dict[str, Any]]:
+    return loads(PRECEDENCE.read_text(encoding="utf-8"))
+
+
+def _with_edits(case: dict[str, Any]) -> Any:
+    fixture = REPOSITORY_ROOT / "fixtures" / "0.2.0" / f"{case['fixture']}.yaml"
+    value = loads(fixture.read_text(encoding="utf-8"))
+    for edit in case["set"]:
+        owner = value
+        for step in edit["path"][:-1]:
+            owner = owner[step]
+        owner[edit["path"][-1]] = edit["value"]
+    return value
+
+
+def _reported(value: Any) -> tuple[str, list[str | int], str]:
+    with pytest.raises(SchemaValidationError) as caught:
+        timetoshare.validate(value)
+    return caught.value.code, list(caught.value.path), caught.value.message
+
+
+def test_the_cases_of_several_problems_are_stated() -> None:
+    assert PRECEDENCE.read_text(encoding="utf-8") == dumps(_precedence_cases())
+    assert [case["name"] for case in _precedence_cases()] == [
+        "declarations_by_key",
+        "prefixes_by_key",
+        "deeper_root_wins",
+        "timeline_members_by_key",
+        "conversion_maps_by_index",
+        "number_type_first_applied",
+    ]
+
+
+@pytest.mark.parametrize("case", _precedence_cases(), ids=lambda case: case["name"])
+def test_several_problems_report_the_one_the_path_rule_selects(case: dict) -> None:
+    assert _reported(_with_edits(case)) == (case["code"], case["path"], case["message"])
+
+
+_SEEDED = """
+import json, sys
+from pathlib import Path
+from timetoshare import SchemaValidationError, loads, validate
+
+cases = loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+root = Path(sys.argv[2])
+reported = []
+for case in cases:
+    value = loads((root / f"{case['fixture']}.yaml").read_text(encoding="utf-8"))
+    for edit in case["set"]:
+        owner = value
+        for step in edit["path"][:-1]:
+            owner = owner[step]
+        owner[edit["path"][-1]] = edit["value"]
+    try:
+        validate(value)
+    except SchemaValidationError as error:
+        reported.append(list(error.path))
+print(json.dumps(reported))
+"""
+
+
+def test_the_path_rule_does_not_depend_on_the_hash_seed() -> None:
+    expected = [case["path"] for case in _precedence_cases()]
+    fixtures = REPOSITORY_ROOT / "fixtures" / "0.2.0"
+    for seed in ("1", "2", "3"):
+        environment = {**os.environ, "PYTHONHASHSEED": seed}
+        run = subprocess.run(
+            [sys.executable, "-c", _SEEDED, str(PRECEDENCE), str(fixtures)],
+            capture_output=True,
+            check=True,
+            env=environment,
+            text=True,
+        )
+        assert json.loads(run.stdout) == expected, seed
 
 
 def _rejection(name: str) -> Path:
@@ -875,13 +965,13 @@ def test_graphical_property_bounds_reject_at_the_property(
         {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
         {"select": {"element": "card"}, "set": {"shadow": "#B8BEC8"}},
         {"select": {"element": "frame"}, "set": {"stroke": "#7F00FF"}},
-        {"select": {"element": "ancestor_card"}, "set": {"display": "inline"}},
+        {"select": {"element": "ancestor_card"}, "set": {"display": "none"}},
         {
             "select": {
                 "element": "ancestor_card",
                 "addresses": [{"id": "score", "part": ["card"]}],
             },
-            "set": {"display": "inline"},
+            "set": {"display": "none"},
         },
     ],
 )

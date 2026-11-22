@@ -56,5 +56,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'members' is a required property"
 path: [groups, 0]
 reason: "A group names its members."

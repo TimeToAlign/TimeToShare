@@ -189,5 +189,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "'label' is not one of ['line', 'name']"
 path: [graphical, matchstamps, 0, alignment_anchors, 0, display, 1]
 reason: "The words of an alignment anchor's display are line and name; label is none of them."

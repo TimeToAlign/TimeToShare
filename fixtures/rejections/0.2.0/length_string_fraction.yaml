@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'12/1' is not of type 'number'"
 path: [timelines, 0, length]
 reason: "Fractions do not have a string form."

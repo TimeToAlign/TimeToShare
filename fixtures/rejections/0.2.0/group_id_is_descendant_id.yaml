@@ -103,5 +103,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'excerpt' is not unique in the manifest, first at #/timelines/3/children/0/id"
 path: [groups, 1, id]
 reason: "A group id differs from every timeline id, descendants included."

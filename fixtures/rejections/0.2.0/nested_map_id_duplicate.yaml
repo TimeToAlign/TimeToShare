@@ -42,5 +42,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'lmap_1' is not unique in the manifest, first at #/timelines/0/conversion_maps/0/maps/0/id"
 path: [timelines, 0, conversion_maps, 0, maps, 1, id]
 reason: "IDs are unique across the manifest, the maps a ChainMap, PiecewiseMap or CombinationMap holds included; a ChainMap holds two maps lmap_1, and the second is reported."

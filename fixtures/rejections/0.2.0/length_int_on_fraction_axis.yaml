@@ -47,5 +47,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "length 12 of 'clt_1' is an int on a fraction axis: write [12, 1]"
 path: [timelines, 0, length]
 reason: "A length is represented as its timeline's number type selects; a fraction axis takes a [numerator, denominator] pair."

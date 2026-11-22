@@ -181,5 +181,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "['claim_1', 'claim_1'] has non-unique elements"
 path: [graphical, matchstamps, 0, match_claims]
 reason: "A MatchStamp lists each MatchClaim ID once."

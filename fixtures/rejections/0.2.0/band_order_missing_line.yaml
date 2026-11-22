@@ -25,5 +25,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'line' is missing from the band order of 'score'"
 path: [graphical, order, score]
 reason: "A band order lists line and any of the timeline's five facets; line is missing."

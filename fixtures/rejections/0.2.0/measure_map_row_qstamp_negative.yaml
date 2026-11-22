@@ -306,5 +306,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "-1 is less than the minimum of 0"
 path: [measure_maps, 0, rows, 1, qstamp, 0]
 reason: "A MeasureMap row qstamp cannot be negative."

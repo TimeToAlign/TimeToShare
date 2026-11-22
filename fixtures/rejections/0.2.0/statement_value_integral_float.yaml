@@ -79,5 +79,6 @@ manifest:
         "schema:position": [1.0]
       unit: quarters
   timetoshare: "0.2.0"
+message: "a statement value is an integer or a string, never a float: 1.0"
 path: [timelines, 0, statements, "schema:position", 0]
 reason: "A statement value is an integer or a string, never a float, not even one written with a zero fractional part such as 1.0."

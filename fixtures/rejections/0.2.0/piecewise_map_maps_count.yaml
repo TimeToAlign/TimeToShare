@@ -38,5 +38,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps"
 path: [timelines, 0, conversion_maps, 0, maps]
 reason: "A PiecewiseMap has one map fewer than breaks."

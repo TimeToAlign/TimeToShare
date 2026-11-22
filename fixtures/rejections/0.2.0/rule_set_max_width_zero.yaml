@@ -29,5 +29,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "0 is less than or equal to the minimum of 0"
 path: [graphical, rules, 0, set, max-width]
 reason: "A numeric max-width is strictly positive."

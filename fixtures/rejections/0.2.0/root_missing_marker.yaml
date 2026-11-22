@@ -46,5 +46,6 @@ manifest:
       number_type: fraction
       regions: []
       unit: quarters
+message: "not a TimeToShare manifest"
 path: []
 reason: "A manifest holds the version marker timetoshare; a value without it is no TimeToShare manifest."

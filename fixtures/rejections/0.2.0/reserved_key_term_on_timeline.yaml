@@ -78,5 +78,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'label' is reserved on a timeline"
 path: [timelines, 0, label]
 reason: "A term of the format's @context is reserved as a key of a timeline; label is one."

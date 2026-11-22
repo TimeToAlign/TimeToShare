@@ -80,5 +80,6 @@ manifest:
           - {}
       unit: quarters
   timetoshare: "0.2.0"
+message: "{} is not of type 'string'"
 path: [timelines, 0, statements, "schema:sameAs", 0]
 reason: "A value node holds at least one key."

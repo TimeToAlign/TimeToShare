@@ -430,7 +430,7 @@ describe("the validators", () => {
     expect([code, path, detail]).toEqual([
       "schema",
       ["timelines", 0, "id"],
-      'must match pattern "^#[\\s\\S]"',
+      `'${written}' does not match '^#[\\\\s\\\\S]'`,
     ]);
   });
 

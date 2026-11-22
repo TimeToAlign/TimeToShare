@@ -37,5 +37,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
+message: "'id' is a dependency of 'facet'"
 path: [graphical, rules, 0, select, addresses, 0]
 reason: "An address naming a facet names the timeline whose band draws it."

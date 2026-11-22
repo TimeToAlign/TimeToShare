@@ -78,5 +78,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'schema' is reserved on the manifest"
 path: [schema]
 reason: "A prefix of @context is reserved as a key of the manifest; schema is one."

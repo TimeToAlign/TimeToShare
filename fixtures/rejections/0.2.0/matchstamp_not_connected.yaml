@@ -182,5 +182,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "the alignment anchors of 'matchstamp_1' are not one connected set"
 path: [graphical, matchstamps, 0, alignment_anchors]
 reason: "The alignment anchors of a MatchStamp are one connected set; anchor_1 joins score at 4 with take_1, anchor_2 score at 6 with take_2, and nothing joins the two."

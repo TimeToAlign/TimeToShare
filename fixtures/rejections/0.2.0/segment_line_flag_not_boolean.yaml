@@ -19,5 +19,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'no' is not of type 'boolean'"
 path: [timelines, 0, is_segment_line]
 reason: "is_segment_line is a boolean."

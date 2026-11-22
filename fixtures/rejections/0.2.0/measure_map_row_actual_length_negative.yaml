@@ -306,5 +306,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "-1 is less than or equal to the minimum of 0"
 path: [measure_maps, 0, rows, 0, actual_length]
 reason: "A MeasureMap row actual_length must be strictly positive."

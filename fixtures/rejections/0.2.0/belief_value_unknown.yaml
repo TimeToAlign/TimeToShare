@@ -91,5 +91,6 @@ manifest:
             id: "wd:Q255"
       unit: quarters
   timetoshare: "0.2.0"
+message: "'likely' is not one of ['true', 'false', 'unlikely']"
 path: [timelines, 0, provenance, 0, beliefs, 0, belief]
 reason: "A belief is one of the strings true, false and unlikely; likely is none."

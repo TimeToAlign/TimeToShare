@@ -50,5 +50,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "{'number_type': 'fraction', 'unit': 'quarters', 'value': [2, 1]} is not of type 'number'"
 path: [timelines, 0, flow_control, 0, coordinate]
 reason: "A flow-control coordinate on its timeline's own axis is a bare Number, not a coordinate dict."

@@ -2125,13 +2125,12 @@ rewrite(text) === text; // true: the text is canonical YAML
   and `manifestWarnings(value)` the same list as Python's
   `manifest_warnings`.
 - `statementProblems(value)` returns the problems of the statements
-  alone, as Python's `statement_problems` does, with the same codes and
-  paths; a `schema` problem carries the TypeScript schema validator's own
-  message.
+  alone, as Python's `statement_problems` does, with the same codes,
+  paths and messages, a `schema` problem's included.
 - `matchstampProblems(value)` returns the problems of the named
   MatchStamps and match timestamps alone, as Python's
-  `matchstamp_problems` does, with the same codes and paths; a `schema`
-  problem carries the TypeScript schema validator's own message.
+  `matchstamp_problems` does, with the same codes, paths and messages, a
+  `schema` problem's included.
 - `pairs`, `entries`, `candidates`, `withPair`, `withoutPair`,
   `withCandidate`, `withBelief`, `subjectPath`, `subjects`,
   `withContext`, `samePair`, `expandIri` and `usedPrefixes` do what Python's functions of

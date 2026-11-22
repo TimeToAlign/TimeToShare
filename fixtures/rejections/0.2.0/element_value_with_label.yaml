@@ -96,5 +96,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
+message: "'#clt_2' names an element; a value naming an element holds its id alone"
 path: [timelines, 0, statements, "dcterms:source", 0]
 reason: "A value naming an element of this manifest holds its id alone; this one adds a label."

@@ -187,5 +187,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
+message: "the match timestamp 'timestamp_11' belongs to no MatchStamp"
 path: [graphical, timestamps, 9]
 reason: "Some MatchStamp names every match timestamp; none names timestamp_11."
