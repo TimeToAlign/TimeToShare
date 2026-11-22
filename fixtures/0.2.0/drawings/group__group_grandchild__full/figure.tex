@@ -1,0 +1,80 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\directlua{luaotfload.add_fallback("music", {"[./NotoMusic-Regular.ttf]:mode=node;"})}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon},RawFeature={fallback=music}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts0050EF}{HTML}{0050EF}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{ts6B7280}{HTML}{6B7280}
+\definecolor{tsB8BEC8}{HTML}{B8BEC8}
+\definecolor{tsC4C9D1}{HTML}{C4C9D1}
+\definecolor{tsD1D5DB}{HTML}{D1D5DB}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFFFFFF}{HTML}{FFFFFF}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (3309.2656,227.5156);
+\path[rounded corners=5pt,fill=tsB8BEC8] (10,91.9531) rectangle (3301.2656,169.332);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (8,93.9531) rectangle (3299.2656,171.332);
+\path[draw=ts00CC00,line width=3pt] (82.2656,108.3555) -- (3282.2656,108.3555);
+\path[fill=ts00CC00] (82.2656,108.3555) circle[radius=3];
+\path[fill=ts00CC00] (3291.2656,108.3555) -- (3282.2656,112.8555) -- (3282.2656,103.8555) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (882.2656,122.3555) -- (1677.7656,122.3555);
+\path[fill=ts00CC00] (882.2656,122.3555) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (1677.7656,122.3555) -- (1682.2656,125.9555) -- (1686.7656,122.3555) -- (1682.2656,118.7555) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (1282.2656,156.332) -- (1677.7656,156.332);
+\path[fill=ts00CC00] (1282.2656,156.332) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (1677.7656,156.332) -- (1682.2656,159.932) -- (1686.7656,156.332) -- (1682.2656,152.732) -- cycle;
+\path[fill=ts000000] (1282.2656,154.832) -- (1279.2656,141.832) -- (1285.2656,141.832) -- cycle;
+\path[fill=ts000000] (1682.2656,154.832) -- (1679.2656,141.832) -- (1685.2656,141.832) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,152.5239) {Theme};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,118.5474) {Movement};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,104.5474) {Score};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (1282.2656,131.478) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (1682.2656,131.478) {8 ♩};
+\path[rounded corners=6pt,fill=tsFFFFFF,draw=tsD1D5DB,line width=1pt] (1178.562,8) rectangle (1722.2656,219.5156);
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (1186.562,201.3052) {Theme};
+\path[rounded corners=5pt,fill=tsB8BEC8] (1188.562,71.3789) rectangle (1716.2656,192.7109);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (1186.562,73.3789) rectangle (1714.2656,194.7109);
+\path[draw=ts00CC00,line width=3pt,opacity=0.35] (1270.2656,108.3555) -- (1694.2656,108.3555);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (1267.2656,112.8555) -- (1262.7656,108.3555) -- (1267.2656,103.8555);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (1262.7656,112.8555) -- (1258.2656,108.3555) -- (1262.7656,103.8555);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (1697.2656,112.8555) -- (1701.7656,108.3555) -- (1697.2656,103.8555);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (1701.7656,112.8555) -- (1706.2656,108.3555) -- (1701.7656,103.8555);
+\path[draw=ts00CC00,line width=3pt,opacity=0.35] (1270.2656,142.332) -- (1677.7656,142.332);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (1267.2656,146.832) -- (1262.7656,142.332) -- (1267.2656,137.832);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (1262.7656,146.832) -- (1258.2656,142.332) -- (1262.7656,137.832);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (1677.7656,142.332) -- (1682.2656,145.932) -- (1686.7656,142.332) -- (1682.2656,138.732) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (1282.2656,180.3086) -- (1677.7656,180.3086);
+\path[fill=ts00CC00] (1282.2656,180.3086) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (1677.7656,180.3086) -- (1682.2656,183.9086) -- (1686.7656,180.3086) -- (1682.2656,176.7086) -- cycle;
+\path[fill=ts000000,opacity=0.35] (1282.2656,106.8555) -- (1279.2656,93.8555) -- (1285.2656,93.8555) -- cycle;
+\path[fill=ts000000,opacity=0.35] (1682.2656,106.8555) -- (1679.2656,93.8555) -- (1685.2656,93.8555) -- cycle;
+\path[fill=ts000000,opacity=0.35] (1282.2656,140.832) -- (1279.2656,127.832) -- (1285.2656,127.832) -- cycle;
+\path[fill=ts000000,opacity=0.35] (1682.2656,140.832) -- (1679.2656,127.832) -- (1685.2656,127.832) -- cycle;
+\path[fill=ts000000] (1282.2656,178.8086) -- (1279.2656,165.8086) -- (1285.2656,165.8086) -- cycle;
+\path[fill=ts000000] (1682.2656,178.8086) -- (1679.2656,165.8086) -- (1685.2656,165.8086) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts6B7280] at (1194.562,105.2397) {Score};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts6B7280] at (1194.562,139.2163) {Movement};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (1194.562,176.5005) {Theme};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000,opacity=0.35] at (1282.2656,83.5015) {24 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000,opacity=0.35] at (1682.2656,83.5015) {32 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000,opacity=0.35] at (1282.2656,117.478) {8 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000,opacity=0.35] at (1682.2656,117.478) {16 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (1282.2656,155.4546) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (1682.2656,155.4546) {8 ♩};
+\path[rounded corners=5pt,fill=tsB8BEC8] (1188.562,14) rectangle (1716.2656,63.3789);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (1186.562,16) rectangle (1714.2656,65.3789);
+\path[draw=ts0050EF,line width=3pt] (1282.2656,50.9766) -- (1682.2656,50.9766);
+\path[fill=ts0050EF] (1282.2656,50.9766) circle[radius=3];
+\path[fill=ts0050EF] (1691.2656,50.9766) -- (1682.2656,55.4766) -- (1682.2656,46.4766) -- cycle;
+\path[fill=ts000000] (1282.2656,49.4766) -- (1279.2656,36.4766) -- (1285.2656,36.4766) -- cycle;
+\path[fill=ts000000] (1682.2656,49.4766) -- (1679.2656,36.4766) -- (1685.2656,36.4766) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (1194.562,47.1685) {Recording};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (1282.2656,26.1226) {0″};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (1682.2656,26.1226) {12″};
+\end{scope}
+\end{tikzpicture}
+\end{document}

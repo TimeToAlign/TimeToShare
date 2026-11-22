@@ -1,0 +1,25 @@
+{
+  "layers": [
+    {
+      "rules": [
+        {
+          "select": {
+            "element": "elision"
+          },
+          "set": {
+            "display": "none"
+          }
+        }
+      ]
+    }
+  ],
+  "manifest": "groups/group_grandchild.yaml",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}
