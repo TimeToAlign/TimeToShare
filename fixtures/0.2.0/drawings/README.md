@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Forty-three of the 102 drawings in this directory are derived by hand from
+Forty-four of the 101 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the metrics table
 of its two fonts alone. Their `figure.svg` files are never regenerated:
 the emitting script compares each with its writer's output instead. Every
@@ -67,6 +67,7 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `group__group_grandchild_parent_on_top__full` | `groups/group_grandchild_parent_on_top.yaml` | the application layer `[{"select": {"element": "elision"}, "set": {"display": "none"}}]` (and the manifest's own band order of `movement`) |
 | `group__group_parents_mixed__full` | `groups/group_parents_mixed.yaml` | the application layer `[{"select": {"element": "elision"}, "set": {"display": "none"}}]` |
 | `group__group_elided_members` | `groups/group_elided_members.yaml` | none (the manifest's own `graphical` object holds its two group elisions) |
+| `bundle__bundle_arranged_roots__horizontal` | `bundles/bundle_arranged_roots.yaml` | `arrangement` `{"direction": "horizontal", "order": ["page", "group_3", "group_1", "group_2"]}` |
 
 ## Shared quantities
 
@@ -2502,3 +2503,75 @@ drawn, each lies 92.33333333333337 further right.
   572.4265950520835 + 2, beyond the frame's 391.2599283854167; `H` = 8 +
   (8 + 240.015625) = 256.015625.
 - Page 622.4265950520835 × 288.015625 → **622.4266 × 288.0156**.
+
+## `bundle__bundle_arranged_roots__horizontal`
+
+The bundle "Arranged" side by side (§8.6, §8.8 Drawn once), its worked
+example in §8.8. The stored order `page`, `group_3`, `group_1`,
+`group_2` becomes the row `page`, `group_1`, `group_2`, `group_3`: on
+`score` Exposition (0–16) comes before Development (16–32) before
+Recapitulation (32–48), touching, on `session` Exposition (0.0–30.0)
+before Recapitulation (100.0–130.0), and `page`, hanging on nothing,
+keeps its first place. The roots are `score` above `session` (Exposition
+and Recapitulation hold them in that order). Each frame and card is laid
+out by §8.2 and §8.4 as in the drawing of the manifest with the default
+placement: `x0` = 127.39013671875 (the chevron term of the ancestor
+lines that run on to the left), `R` = 551.39013671875 (the right
+chevrons, 24 past the shared end 527.39013671875), every item
+567.39013671875 wide; a child member's card 67.37890625 high, its
+ancestor line 52.37890625 below its top, a root member's card
+49.37890625; the frames' titles put the first card 24.8046875 below
+their tops. The once cards are the ancestor cards behind Exposition laid
+out alone (§8.8, step 1): `score`'s at `LA` = 1200, `s0'` =
+159.41357421875 (`N'` = w(`Exposition, Recapitulation`, 11): the two
+movements that do not touch share the row nearer the line, `development`
+lies on the row above), its line at 82.953125 of 97.35546875, `Ri' + K
+− xe'` = 17.279052734375 (the label `16 ♩` of `recapitulation`'s
+`length` past its end); `session`'s at `LA` = 1733.3333333333333, `s0'`
+= 98.2529296875, its line at 48.9765625 of 63.37890625, `Ri' + K − xe'`
+= 17, its arrowhead.
+
+- Row: `x` 8, 623.39013671875, 1238.7802734375 and 1854.17041015625
+  (row gap 48).
+- Lines: `score` at 0; `session` at max(0 + 14.40234375 + 8 + 48.9765625,
+  0 + (152.5625 − 77.18359375), 0 + (209.94140625 − 77.18359375)) =
+  max(71.37890625, 75.37890625, 132.7578125) = 132.7578125. Padding in
+  Exposition above `take_a`: 132.7578125 − 75.37890625 = 57.37890625, so
+  `take_a`'s card lies at 157.5625 in the frame and Exposition is
+  232.94140625 high, as Recapitulation is; Development is 157.5625 high.
+- Tops: −77.18359375 (each frame), −82.953125 (`score`'s card), 83.78125
+  (`session`'s); `T0` = −82.953125, `Y` = 28.8046875, everything moves
+  by 111.7578125: frames at 34.57421875, `page` at 28.8046875, `score`'s
+  line at 111.7578125 → 111.7578, `session`'s at 244.515625 → 244.5156,
+  the once cards' tops at 28.8046875 and 195.5390625. No once card lies
+  left of `P`.
+- `score`'s runs, `XM(t)` = `xG` + (127.39013671875 + 400 × ((t − a) /
+  16)): seams at 16 (`c` = 1214.7802734375; `s` = 17, `XA(18)` =
+  1200.7802734375 > 1198.7802734375; `e` = 11, `XB(10)` =
+  1216.17041015625 < 1230.7802734375), from 1150.7802734375 → 1150.7803
+  to 1366.17041015625 → 1366.1704, and at 32 (`c` = 1830.17041015625),
+  from 1766.17041015625 → 1766.1704 to 1981.560546875 → 1981.5605; the
+  line of `score` in three pieces, the circle on the first and the
+  arrowhead on the last, 2381.560546875 → 2381.5605, each seam's
+  continuation at 111.7578 in `#9CA3AF`, dashed `2 2`. The wedges,
+  coordinate labels and cross-section lines of `timestamp_6` (the end of
+  `exposition`) and `timestamp_4` lie on the left runs, at 1150.7803 and
+  1766.1704; those of `timestamp_3` and `timestamp_11` (the starts of
+  `development` and `recapitulation`) and the lines' starts on the right
+  ones, at 1366.1704 and 1981.5605.
+- `session`'s runs, `XM(t)` = `xG` + (127.39013671875 + 400 × ((t − a) /
+  30.0)): the gap over 33.0–44.0 from 1190.7802734375 → 1190.7803 to
+  1234.8938802083335 → 1234.8939 (`XA(34.0)` = 1204.1136067708333 >
+  1198.7802734375, `XB(43.0)` = 1221.560546875 < 1230.7802734375), its
+  ellipsis at 1212.8370768229167: the circles at 1206.8371, 1212.8371 and
+  1218.8371 on 244.5156; the line of `session` in two pieces, from
+  750.7802734375 → 750.7803 to the gap and from the gap to
+  2381.560546875.
+- The once cards: `score` from 750.7802734375 − 159.41357421875 =
+  591.36669921875 → 591.3667, 2398.839599609375 − 591.36669921875 =
+  1807.472900390625 → 1807.4729 wide; `session` from 652.52734375 →
+  652.5273, 1746.033203125 → 1746.0332 wide; both written before the
+  items, `score`'s first.
+- `W` = 8 + 2421.560546875 = 2429.560546875, the right edge of
+  Recapitulation's frame plus `P`; `H` = 8 + 267.515625 = 275.515625;
+  the page 2461.560546875 × 307.515625 → **2461.5605 × 307.5156**.

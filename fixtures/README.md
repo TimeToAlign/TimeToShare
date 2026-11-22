@@ -23,8 +23,8 @@ The directories sort the manifests by content only:
   provenance ([Statement fixtures](#statement-fixtures)).
 
 Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 17 under
-`groups/`, 18 under `bundles/` and 4 under `statements/`, 90 in all, each
-with its minimal twin, so 180 files. Beside them lie the expected RDF of
+`groups/`, 20 under `bundles/` and 4 under `statements/`, 92 in all, each
+with its minimal twin, so 184 files. Beside them lie the expected RDF of
 the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
 under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
 194 rejection cases, 16 warning cases, one table of acceptances under
@@ -295,6 +295,8 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `bundle_groupstamp_shared_member` | the bundle of `bundle_shared_member` with the timestamp `timestamp_1` "Bar 2" at quarter 4 of the shared member `t`, a groupstamp, its wedge unturned, its line across the frame of `g1` and that of `g2`: in each, its own line crosses `t`'s card, cut where its wedge and its label stand, and its frame line runs on across the other member's card; no member has a band. The elision `elision_1` on `t` from 1 to 3 with `{"canvas": 24}` lies in both groups, so it is drawn across both frames |
 | `bundle_elisions_stored` | the bundle "Elisions" of the group "Theme" of the child `theme` (8 quarters at 16 in the score `score` of 64, which also holds the coda `coda`, 8 quarters at 56), the child `take` (25.5 seconds at 30.0 in the session `session` of 90.0 seconds) and the root `recording` (10.0 seconds), and of the ungrouped page `page` (1754 pixels); one rule hides the line of `coda`, another, `{"element": "elision", "within": "session"}`, hides every elision within the session, and a third, addressed to the cards of the session, `{"elision-mode": "full"}`, draws them whole. Seven stored elisions, in canonical order: `elision_1` on `coda` from 0 to 8, a child whose line is hidden; `elision_2` "Appendix" on `page` from 600 to 1754, in an ungrouped root's card, drawing its ellipsis, name and coordinates; `elision_3` on the member root `recording` from 0.0 to 2.0, which lies in the group and so is drawn across its frame and carried into the ancestor cards behind it, drawing its ellipsis and coordinates; on `score`, behind the frame of `theme` (16 to 24 on its axis), `elision_4` from 0 to 20 with the width `{"ratio": 0.5}`, which overlaps the member and draws its ellipsis, ID and continuations, `elision_5` "Development" from 32 to 48 with `{"span": [4, 1]}`, drawing its name alone, and `elision_6` from 40 to 56 with `{"canvas": 30}`, which overlaps `elision_5` and draws a bare gap; and `elision_7` on `session` from 0.0 to 30.0, kept and not drawn under the session's `full` and hidden a second time by the rule within the session. The gap of `elision_3` carried into the ancestor card of `session` stays drawn under both rules: a carried gap is drawn by the frame's mode and display, not by the card's cascade |
 | `bundle_elided_layerit` | the bundle "Suite bergamasque" of the suite `clt_1` (1616 quarters) and its four movements, locked and without maps, `clt_2` "Prelude" (356 at 0), `clt_3` "Menuet" (312 at 356), `clt_4` "Clair de Lune" (324 at 668) and `clt_5` "Passepied" (624 at 992); each movement holds one excerpt on its own axis, `clt_6` "Prelude mm. 1–4" (16 at 0), `clt_7` "Menuet mm. 41–44" (12 at 120), `clt_8` "Clair de Lune mm. 1–6" (27 at 0) and `clt_9` "Passepied mm. 153–156" (16 at 608), and four groups, each named as its excerpt, list the excerpt and a recording in seconds (`cpt_1` to `cpt_4`: 14.0, 6.5, 33.35 and 5.5 seconds): the suite's ancestor card behind each frame elides it around the opening of the work, an excerpt inside a movement, the opening of a later movement and the ending |
+| `bundle_arranged_roots` | the bundle "Arranged" for the arrangement side by side (drawing specification, section 8.8, Drawn once): the score `score` (48 quarters) holds three touching movements, `exposition`, `development` and `recapitulation` (16 quarters at 0, 16 and 32), the session `session` (130.0 seconds) the takes `take_a` and `take_b` (30.0 seconds at 0.0 and 100.0); the group "Exposition" lists `exposition` and `take_a`, "Development" `development` and the root `notes` (800 pixels), "Recapitulation" `recapitulation`, the root `annotations` (600 pixels) and `take_b`, and the page `page` (1754 pixels) is ungrouped. Side by side the three groups follow one another along the score, touching (seams), Exposition and Recapitulation hang on the session too with Development between them (a gap, the session passing behind Development), the annotations make Recapitulation's two anchors lie further apart than Exposition's (padding), and the page hangs on nothing |
+| `bundle_arranged_conflict` | the bundle "Conflict" of the score `score` (32 quarters) holding the themes `theme_a` (16 quarters at 0) and `theme_b` (16 quarters at 8), each alone in a group named as it, "Theme A" and "Theme B": their stretches on the score overlap from 8 to 16, so the two groups cannot stand side by side |
 | `group_measure_map` | the group "Edition" of a score of 16 quarters and its MIDI rendering of 7680 ticks, both reading one entry of `measure_maps`, four bars of 4/4: the score through its `MeasureRecordMap`, the rendering through a `ChainMap` of the `LinearMap` `ppq` to quarters (480 ticks per quarter) and its `MeasureRecordMap` |
 
 The corpus builders, prefixed `corpus_`, write the groups and bundles that
@@ -309,7 +311,7 @@ groups and bundles and the single-timeline fixtures `styled__score`,
 `child_jumps`, `map_row_siblings`, `map_row_subslots` and `map_row_moved`
 so that each case below occurs in one of them at least.
 `group_number_types`, `group_child_member`, the three `group_parent_*`,
-`group_grandchild`, `group_grandchild_parent_on_top`, `group_groupstamp_child_member`, `group_elided_inside`, `group_elided_members`, `bundle_elisions_stored` and `bundle_elided_layerit` hold none of them, and `group_unknown_length` holds only
+`group_grandchild`, `group_grandchild_parent_on_top`, `group_groupstamp_child_member`, `group_elided_inside`, `group_elided_members`, `bundle_elisions_stored`, `bundle_elided_layerit`, `bundle_arranged_roots` and `bundle_arranged_conflict` hold none of them, and `group_unknown_length` holds only
 a region. The table also names where each side of a child member's
 ancestor band occurs (drawing specification, section 8.3). The segment lines of the single-timeline fixtures but
 `map_row_subslots` (`segment_line`, `segment_pages`, `segment_pages_locked`,
@@ -457,7 +459,7 @@ released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
 ones (`corpus_*`) and the statement fixtures, at the default placement, and
-twenty-six variants. The
+twenty-seven variants. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -496,7 +498,11 @@ card is drawn whole: `group_grandchild`, `group_grandchild_parent_on_top`,
 and `bundle_elided_layerit` in the view 1024 × 640
 (`bundle__bundle_elided_layerit__view-1024x640`), where the bound of the
 view sets the default proportion of the excerpts at the opening and the
-ending. 99 drawings lie here.
+ending; and `bundle_arranged_roots` arranged side by side in the order
+`page`, `group_3`, `group_1`, `group_2`
+(`bundle__bundle_arranged_roots__horizontal`), whose row the rules of the
+arrangement repair to `page`, `group_1`, `group_2`, `group_3`. 101
+drawings lie here.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
@@ -514,7 +520,10 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
     five always written, defaults included (400, 8, `null`, `null`, `{}`),
     and `view`, the view `{width, height}` the drawing is shown in,
     written only where a variant states one (default `{width: 1280,
-    height: 720}`, drawing specification, section 1);
+    height: 720}`, drawing specification, section 1), and
+    `arrangement`, the block's arrangement `{direction, order}`,
+    likewise written only where a variant states one (default `null`,
+    each item at its place; drawing specification, sections 1 and 8.6);
     `spacing` is the block's, the gap between its items at their default
     `y`, and a place's `spacing` the gap between that frame's cards or that
     card's rows and bands (drawing specification, section 8.6);
@@ -530,7 +539,7 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   finds both font files in the directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Forty-three `figure.svg` files are derived by hand from the
+for byte. Forty-four `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, among them every drawing of
 a timeline of unknown length, the three variants of `bundle_ungrouped`, the
 three variants that display a band the defaults hide, the band orders of
@@ -543,9 +552,10 @@ anchor on a child member of `group__group_child_member_stamps` and the
 ancestor lines on both sides of the member of
 `group__group_grandchild_parent_on_top`, the default elisions of
 `group__group_elided_inside` and the four `__full` cases, which draw the
-same ancestor cards whole, and the group elisions of
+same ancestor cards whole, the group elisions of
 `group__group_elided_members`, drawn across its frame and carried into the
-ancestor card behind it;
+ancestor card behind it, and the arrangement side by side of
+`bundle__bundle_arranged_roots__horizontal`;
 `drawings/README.md` lists them with their arithmetic. Every other figure, and every `inputs.json`, is
 emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
 <TimeToShare checkout>` (run in its `app/packages/writers/`), which
