@@ -1679,22 +1679,31 @@ the root.
   The names' baselines lie at 23 + (10.21044921875 − 2.59423828125) / 2 =
   26.80810546875 → 26.8081 and 77.9296875 + 3.80810546875 =
   81.73779296875 → 81.7378.
-- The cross-section lines (§6.6), drawn last (§7.2): `timestamp_1` spans
-  `clt_1`'s line and its children band, which starts 7 and ends 61.9296875
-  above the line; no conversion maps band is present. Its ordinates are
-  77.9296875, 77.9296875 − 7 = 70.9296875 and 77.9296875 − 61.9296875 =
-  16, so it runs from `y1` = 16 to `y2` = 77.9296875 → 77.9297 at
-  124.9155, and never reaches the wedges below the line. `timestamp_2`
-  does not list `cross_section`, and `timestamp_3`'s timeline `clt_2` has
-  neither a children band nor a conversion maps band, so its line has no
-  length: neither has a descriptor.
+- The cross-section lines (§6.6), drawn last (§7.2), each across the
+  whole card, from its top at 8 to its bottom at 8 + 104.90625 =
+  112.90625 → 112.9062, less its gap, where its own wedge (at the
+  rotation 0) and its labels stand. `timestamp_1`, at 124.9155, has its
+  wedge's tip 1.5 below `clt_1`'s line and its one label's line ending
+  1.5 + 13 + 2 + 10.4765625 = 26.9765625 below it, so the gap runs from
+  79.4296875 to 77.9296875 + 26.9765625 = 104.90625, and the line is
+  drawn as two: from `y1` = 8 to `y2` = 79.4296875 → 79.4297, through
+  the children band and `clt_1`'s line, and from 104.90625 → 104.9062
+  to 112.90625 → 112.9062. `timestamp_3`, at 199.9155, has its gap below
+  `clt_2`'s line, from its tip at 24.5 to the end of its third line, 23 +
+  (16.5 + 3 × 10.4765625) = 23 + 47.9296875 = 70.9296875: from 8 to 24.5,
+  through `clt_2`'s line, and from 70.9296875 → 70.9297 to 112.90625 →
+  112.9062, through `clt_1`'s line and its markers band, which holds
+  nothing at that `x`. `timestamp_2` does not list `cross_section` and
+  draws no line. No line takes room or reaches the card's shadow.
 - The descriptors (§7.2): the card's shadow and the card; `clt_1`'s line,
   circle and arrowhead; `clt_2`'s line, circle and diamond; the wedges of
   `timestamp_1`, `timestamp_2` and `timestamp_3`; the names `clt_2` and
   `clt_1`; the labels `Downbeat`, `Climax`, `Entry`, `timestamp_3` and
   `1 ♩`, addressed `{"id": X, "part": ["name"]}` for each timestamp `X` and
   `{"id": "timestamp_3", "part": ["id"]}` and `{"id": "timestamp_3",
-  "part": ["coordinate"]}`; and the cross-section line of `timestamp_1`.
+  "part": ["coordinate"]}`; and the two lines of `timestamp_1`'s
+  cross-section line, then the two of `timestamp_3`'s, each pair from the
+  top down, all addressed `{"id": X, "part": ["line"]}`.
 - `W` = 8 + (10 + 458.91552734375) = 476.91552734375; `H` = 8 + (10 +
   104.90625) = 122.90625 → 122.9062.
 - Page 508.91552734375 × 154.90625 → **508.9155 × 154.9062**.
@@ -1708,7 +1717,8 @@ frame of `group_1` "Performance", in the display order `score`,
 in the display order `score`, `page` (800 pixels). `score` is so drawn in
 two cards, one in each frame, each with its children band holding the row
 of `second-half` (§8.1). Three match timestamps (§2) draw only their
-cross-section lines (`display` `["cross_section"]`): `timestamp_1` at 4 on
+cross-section lines (`display` `["cross_section"]`), so none has a gap
+(§6.6): `timestamp_1` at 4 on
 `score`, `timestamp_2` at 1.0 on `performance` and `timestamp_3` at 2 on
 `second-half`. The MatchStamp `matchstamp_1` "Bar 2, performed" has the
 anchor `anchor_1` from `timestamp_2` to `timestamp_1`, and `matchstamp_2`
@@ -1759,45 +1769,48 @@ two equally short lines.
   302.29150390625 → 302.2915, `timestamp_2` at `x0 + 100` =
   202.29150390625 → 202.2915, and `timestamp_3`, at 4 + 2 = 6 on the
   root's axis (§3.1), at `x0 + 300` = 402.29150390625 → 402.2915.
-- The cross-section segments (§6.6, §8.7): `timestamp_1` spans `score`'s
-  line and its children band, which ends 21 above the line, in each card:
-  from 61.609375 to 82.609375 in `group_1` and from 223.76953125 to
-  244.76953125 in `group_2`, each drawn as its cross-section line
-  (`data-id="timestamp_1" data-part="line"`), the first before the second.
-  `second-half` and `performance` have neither a children band nor a
-  conversion maps band, so `timestamp_3` has the points (402.29150390625,
-  68.609375) and (402.29150390625, 230.76953125), `timestamp_2` the point
-  (202.29150390625, 139.98828125), and neither draws a line.
-- `anchor_1`, `A` the point of `timestamp_2` (`a1` = `a2` =
-  139.98828125), `B` a segment of `timestamp_1`: in `group_1`, `lo` =
-  139.98828125 > `hi` = 82.609375 and `a2` ≥ `b1` = 61.609375, so the
+- The cross-section segments (§6.6, §8.7), each a match timestamp's line
+  across the whole card that draws its timeline's line, from its top to
+  its bottom: `timestamp_1` and `timestamp_3`, whose `second-half` is drawn
+  in both `score` cards, from 53.609375 → 53.6094 to 53.609375 +
+  63.9765625 = 117.5859375 → 117.5859 in `group_1` and from
+  215.76953125 → 215.7695 to 279.74609375 → 279.7461 in `group_2`;
+  `timestamp_2` from 125.5859375 → 125.5859 to 125.5859375 + 49.37890625
+  = 174.96484375 → 174.9648 in `performance`'s card. Each is drawn as one
+  line (`data-id="timestamp_N" data-part="line"`).
+- `anchor_1`, `A` the segment of `timestamp_2` (`a1` = 125.5859375, `a2`
+  = 174.96484375), `B` a segment of `timestamp_1`: in `group_1`, `lo` =
+  125.5859375 > `hi` = 117.5859375 and `a2` ≥ `b1` = 53.609375, so the
   third branch, from (`Xa`, `a1`) to (`Xb`, `b2`): (202.29150390625,
-  139.98828125) to (302.29150390625, 82.609375), `dx` = 100, `dy` =
-  −57.37890625, `dx² + dy²` = 13292.3388824462890625; in `group_2`, `a2`
-  < `b1` = 223.76953125, so the second branch, to (302.29150390625,
-  223.76953125), `dy` = 83.78125, 17019.2978515625. The line of `group_1`
-  is shorter: from (202.2915, 139.9883) to (302.2915, 82.6094).
-- `anchor_2`, `A` a segment of `timestamp_1`, `B` a point of
+  125.5859375) to (302.29150390625, 117.5859375), `dx` = 100, `dy` = −8,
+  `dx² + dy²` = 10064; in `group_2`, `a2` < `b1` = 215.76953125, so the
+  second branch, from (202.29150390625, 174.96484375) to
+  (302.29150390625, 215.76953125), `dy` = 40.8046875,
+  11665.02252197265625. The line of `group_1` is shorter: from
+  (202.2915, 125.5859), the top of `performance`'s card, to (302.2915,
+  117.5859), the bottom of `score`'s.
+- `anchor_2`, `A` a segment of `timestamp_1`, `B` a segment of
   `timestamp_3`, four pairs in the order of `A`'s segments, then `B`'s:
-  `group_1` with `group_1` overlaps (`lo` = `hi` = 68.609375), so the line
-  is horizontal at 68.609375, `dx` = 100, 10000; `group_1` with `group_2`,
-  `a2` = 82.609375 < `b1` = 230.76953125, `dy` = 148.16015625,
-  31951.4319000244140625; `group_2` with `group_1`, the third branch from
-  (302.29150390625, 223.76953125) to (402.29150390625, 68.609375), `dy` =
-  −155.16015625, 34074.6740875244140625; `group_2` with `group_2`
-  overlaps at 230.76953125, 10000. The first and the last tie, so the
-  first in that order is drawn: from (302.2915, 68.6094) to (402.2915,
-  68.6094), along `second-half`'s line.
+  `group_1` with `group_1` overlaps wholly (`lo` = 53.609375, `hi` =
+  117.5859375), so the line is horizontal at their middle 85.59765625,
+  `dx` = 100, 10000; `group_1` with `group_2`, `a2` = 117.5859375 < `b1`
+  = 215.76953125, `dy` = 98.18359375, 19640.0180816650390625; `group_2` with `group_1`, the third branch from
+  (302.29150390625, 215.76953125) to (402.29150390625, 117.5859375), `dy`
+  = −98.18359375, the same; `group_2` with `group_2` overlaps at
+  247.7578125, 10000. The first and the last tie, so the first in that
+  order is drawn: from (302.2915, 85.5977) to (402.2915, 85.5977).
 - The names, at size 9, centred on each line's midpoint with the baseline
   `(a(9) − d(9)) / 2` = 3.11572265625 below it: `Bar 2, performed`
   (17531 advances, 77.04052734375 wide) at (252.29150390625,
-  111.298828125 + 3.11572265625 = 114.41455078125) → (252.2915,
-  114.4146), and `Second half, bar 1` (18684 advances, 82.107421875 wide)
-  at (352.29150390625, 71.72509765625) → (352.2915, 71.7251). Neither line
-  nor name takes room: `R`, the frames and the cards are as without them.
+  121.5859375 + 3.11572265625 = 124.70166015625) → (252.2915,
+  124.7017), and `Second half, bar 1` (18684 advances, 82.107421875 wide)
+  at (352.29150390625, 85.59765625 + 3.11572265625 = 88.71337890625) →
+  (352.2915, 88.7134). Neither line nor name takes room: `R`, the frames
+  and the cards are as without them.
 - The descriptors (§7.2, §8.5): each frame, its title and its cards as
-  for any frame, the cross-section line of `timestamp_1` last in each
-  `score` card; after `page`'s card the lines of `anchor_1` and
+  for any frame, the cross-section lines of `timestamp_1` and then
+  `timestamp_3` last in each `score` card, that of `timestamp_2` last in
+  `performance`'s; after `page`'s card the lines of `anchor_1` and
   `anchor_2` (`data-id="anchor_1"`, `data-id="anchor_2"`), then their
   names (`data-id="anchor_1" data-part="name"`, `data-id="anchor_2"
   data-part="name"`).
@@ -1871,10 +1884,11 @@ timestamps on the members draw their cross-section lines alone: `timestamp_1`
 "Bar 2" at 2 on `middle`, and the match timestamps `timestamp_2` at 4 on
 `middle` and `timestamp_3` at 5.0 on `recording`, which the anchor
 `anchor_1` of the MatchStamp "Middle, bar 3" joins, its name drawn. The
-drawing proves that a child member's cross-section lines reach down to its
-outermost displayed ancestor line (§6.6, Cross-section lines) and that an
-anchor attaches to such a line's segment (§8.7). `piece` is drawn whole in
-its ancestor card behind the frame (§8.8). The bullets before the ancestor
+drawing proves that a cross-section line crosses each card its timeline
+is drawn in, a child member's ancestor line and an ancestor card included
+(§6.6, Cross-section lines), and that an anchor joins two such lines across
+the gap between their cards (§8.7). `piece` is drawn whole in its ancestor
+card behind the frame (§8.8). The bullets before the ancestor
 card's give positions in place coordinates; drawn, each lies
 148.6318359375 further right.
 
@@ -1911,30 +1925,32 @@ card's give positions in place coordinates; drawn, each lies
   47.207, `piece`'s ancestor line at 47.20703125 + 37.9765625 =
   85.18359375 → 85.1836, `recording`'s line at 128.16015625 + 14.40234375
   = 142.5625.
-- The cross-section lines (§6.6): `middle` is the root of a member drawing
-  with an ancestor band and has neither a children band nor a conversion
-  maps band, so each line on it runs from its own line at 47.20703125 down
-  to the ordinate of its outermost displayed ancestor line, `piece`'s at
-  85.18359375, crossing `middle`'s markers band, whose wedges and labels
-  lie at its quarters 0 and 8, away from both lines, and the ancestor line,
-  and not reaching its marks: `timestamp_1` at `x0 + 100` =
-  211.70361328125 → 211.7036 and `timestamp_2` at `x0 + 200` =
-  311.70361328125 → 311.7036, each written `y1="47.207" y2="85.1836"`
-  (`data-part="line"`), after the member drawing's labels. `recording` has
-  no band its line could cross, so `timestamp_3`, at `x0 + 200` =
-  311.70361328125, has the point (311.70361328125, 142.5625) and draws no
-  line.
+- The cross-section lines (§6.6): no timestamp draws a wedge or a label,
+  so none has a gap, and each line runs across its card from its top to
+  its bottom: `timestamp_1` at `x0 + 100` = 211.70361328125 → 211.7036
+  and `timestamp_2` at `x0 + 200` = 311.70361328125 → 311.7036 across
+  `middle`'s card, each written `y1="32.8047" y2="120.1602"` (32.8046875
+  to 32.8046875 + 87.35546875 = 120.16015625; `data-part="line"`), after
+  the member drawing's labels, crossing `middle`'s line, its markers band,
+  whose wedges and labels lie at its quarters 0 and 8, away from both
+  lines, and the ancestor line of `piece` at 85.18359375; `timestamp_3`,
+  at `x0 + 200` = 311.70361328125, across `recording`'s card, `y1="128.1602"
+  y2="177.5391"` (128.16015625 to 128.16015625 + 49.37890625 =
+  177.5390625).
 - `anchor_1` (§8.7), `A` the segment of `timestamp_2` from `a1` =
-  47.20703125 to `a2` = 85.18359375, `B` the point of `timestamp_3` (`b1` =
-  `b2` = 142.5625): `a2 < b1`, so `A` lies above `B` and the line runs
-  from (`Xa`, `a2`) to (`Xb`, `b1`), from (311.7036, 85.1836) to
-  (311.7036, 142.5625), vertical, the two coordinates lying at one
-  proportion of the frame's length (4 of 8 quarters, 5.0 of 10.0 seconds).
+  32.8046875 to `a2` = 120.16015625, `B` that of `timestamp_3` from `b1` =
+  128.16015625 to `b2` = 177.5390625 (the ancestor card gives none):
+  `a2 < b1`, so `A` lies above `B` and the line runs from (`Xa`, `a2`) to
+  (`Xb`, `b1`), from (311.7036, 120.1602) to (311.7036, 128.1602),
+  vertical and 8 long, across the frame's spacing between the two cards,
+  the two coordinates lying at one proportion of the frame's length (4 of
+  8 quarters, 5.0 of 10.0 seconds): with the two cross-section lines it
+  forms one vertical from 32.8046875 to 177.5390625.
 - Its name `Middle, bar 3` (13418 advances at size 9, 58.9658203125 wide)
-  is centred on the line's midpoint, (311.70361328125, (85.18359375 +
-  142.5625) / 2 = 113.873046875), with its baseline `(a(9) − d(9)) / 2` =
-  3.11572265625 below it, at 116.98876953125 → 116.9888. Neither line nor
-  name takes room.
+  is centred on the line's midpoint, (311.70361328125, (120.16015625 +
+  128.16015625) / 2 = 124.16015625), with its baseline `(a(9) − d(9)) /
+  2` = 3.11572265625 below it, at 127.27587890625 → 127.2759. Neither
+  line nor name takes room.
 - The descriptors (§8.5): the line and then the name of `anchor_1` are the
   last two, after `recording`'s card and member drawing.
 - The ancestor card of `piece` (Shared quantities), aligned to `middle`:
@@ -1950,8 +1966,12 @@ card's give positions in place coordinates; drawn, each lies
   (drawn): `piece`'s line at 85.1836 from 60.3354 to 860.3354, `middle`'s
   row at 51.207 from 260.3354 (4 of 16 quarters) to 660.3354 with the
   wedges and labels of `origin` and `length`; `middle`'s timestamps
-  `timestamp_1` and `timestamp_2` draw nothing there, their cross-section
-  lines having no length in a row without bands.
+  `timestamp_1` and `timestamp_2` draw their cross-section lines across
+  the whole ancestor card, at 211.7036 and 311.7036 in place coordinates
+  (360.3354 and 460.3354 drawn), each from its top at 36.20703125 → 36.207
+  to its bottom at 36.20703125 + 63.37890625 = 99.5859375 → 99.5859,
+  written last in the card's drawing, `timestamp_1`'s first, before the
+  frame.
 - `W` = 8 + 730.70361328125 + 148.6318359375 = 887.33544921875, the right
   edge of the card with its shadow, −140.6318359375 + 869.33544921875 + 2,
   beyond the frame's 551.70361328125; `H` = 8 + (8 + 177.5390625) =
