@@ -161,11 +161,13 @@ _ATOMS = frozenset({str, int, float, bool, type(None)})
 
 
 def _copied(value: Any) -> Any:
-    """``copy.deepcopy`` of a value, quick on the JSON types.
+    """A copy of JSON data, quicker than ``copy.deepcopy``.
 
     Strings, numbers, booleans and ``None`` are kept (``deepcopy`` keeps them
-    too), lists and dictionaries are rebuilt member by member, and any other
-    value goes through ``copy.deepcopy``.
+    too); lists and dictionaries of exactly those types are rebuilt member by
+    member, so one shared by two members is no longer shared in the copy and
+    a cycle raises ``RecursionError``; any other value goes through
+    ``copy.deepcopy``.
     """
     kind = type(value)
     if kind in _ATOMS:

@@ -2265,53 +2265,86 @@ is not valid: a check compiled once from the closed document
 would yield no error at all, and only where it answers no, or cannot answer,
 does the walk run and build the diagnostics. The finite rule's copy of the
 value with bare IDs is skipped likewise where the value is plain JSON data
-with no float that is not finite. The change is meant to change no outcome,
-only the time, so what proves it is a comparison with the validator as it
-stood before, never a transcript of today's answers
-(`test_validator_parity.py`):
+with no float that is not finite, and the ID conversions copy JSON data
+without `copy.deepcopy`. The change is meant to change no outcome, only the
+time. Every outcome follows from three facts, and the tests prove those
+facts rather than compare transcripts (`test_validator_parity.py`):
 
-- **The reference.** `tests/reference/` holds copies of the two modules
-  the change rewrote, `validate.py` and `ids.py`, taken from commit
-  `20fabae`, their imports pointed at each other and at the modules of
-  the package the change left alone (`validation/representation.py` only
-  gained a function). Nothing but the parity test reads them.
-- **One outcome.** For an input, the outcome of each of the one check
-  behind `validate`, `unknown_keys` and `manifest_warnings` (the module's
-  `_check`, which raises what `validate` raises and returns both lists),
-  `identity_problems`, `statement_problems` and `matchstamp_problems` is
-  either the error raised (its class name, and for a
-  `SchemaValidationError` its `code`, `path` and `message`, else its text)
-  or the value returned (problems as `(code, path, message)` in order,
-  keys and warnings as the lists returned). Both implementations give the
-  same outcome on every input, each call on its own copy of it.
-- **The inputs.** Every manifest fixture and minimal twin, every shared
-  rejection case (the non-finite ones with their value in place), every
-  shared warning case, the two large manifests below, and 400
-  mutations of the manifest fixtures, 100 of each kind, each drawn from
-  its own stream `random.Random("20261122-<kind>-<n>")`: a key deleted
-  from an object (a required key among them), a value replaced by one of
-  another JSON type, an undeclared key added to an object, and an
-  element's ID given the ID of another element. Every kind yields
-  refusals, and the added keys yield lists of unknown keys too (both
-  asserted), so the walk's own diagnostics are compared where it runs,
-  and the skipped walk where it does not.
-- **The check against the walk.** On every input above, the compiled check
-  of the closed document answers `True` exactly where
-  `Draft202012Validator` of the same document yields no error. A few
-  small schemas pin the keyword semantics it must share with the walk:
-  `True` is neither `1` in `const`, `enum` and `uniqueItems` nor an
-  integer, `1.0` is an integer, a string is checked by `pattern` with
-  `re.search`, `unevaluatedProperties` counts the keys of the `oneOf`
-  branch a value is valid under and not those of a failing one, and a
-  keyword the module does not compile (`patternProperties`,
-  `dependentSchemas`, `contains`) refuses to compile.
+1. **The check answers as the walk.** Where the compiled check answers
+   `True`, the walk of the same schema node yields no error; where it
+   answers `False`, the walk yields one (or raises, as it does on a
+   dictionary with keys it cannot sort). The diagnostics, codes, paths and
+   messages then come from the walk alone, as before. The check may
+   decline to answer (raise) only on a value that is not plain JSON data
+   (exact `dict` with string keys, `list`, `str`, `int`, `float`, `bool`,
+   `None`); on plain JSON data it always answers.
+2. **The finite rule is skipped only where it finds nothing.** Wherever
+   `plainly_finite(value)` holds, the finite rule yields nothing on
+   `leniently_bare_ids(value)`, the copy it would read.
+3. **The copies are copies.** The ID conversions' copy of a value equals
+   `copy.deepcopy` of it, has the same type at every node, and shares no
+   list or dictionary with the input; `with_file_ids(with_bare_ids(value))`
+   gives the manifest fixture back, sharing nothing with either.
+
+The inputs, on each of which all three facts are asserted (fact 1 for the
+closed document's root):
+
+- every manifest fixture and minimal twin, every shared rejection case (the
+  non-finite ones with their value in place), every shared warning case,
+  and the two large manifests below;
+- seeded mutations of the manifest fixtures, each drawn from its own stream
+  `random.Random("20261122-<kind>-<n>")`, of nine kinds: a key deleted from
+  an object; a value replaced by one of another JSON type; an undeclared
+  key added to an object; an element's ID given the ID of another element;
+  a string replaced by another `const` or `enum` string of the schema (a
+  renamed discriminator, a second matching `oneOf` branch); a key of one
+  object copied into another; an item of an array repeated, or a pair of
+  items equal as numbers but not under JSON Schema's equality appended to
+  an array (`1` beside `True`,
+  `1` beside `1.0`, `[1, 2]` beside `[1.0, 2]`, `{"a": 1}` beside
+  `{"a": 1.0}`); a value replaced by a number that is not finite or lies
+  beyond 2^53 (`NaN`, both infinities, `2**53 + 1`, `2**64`, `10**400`);
+  and a value replaced by a Python value that is no JSON (`Fraction`,
+  `Decimal`, a tuple, bytes, a complex number, `OrderedDict`,
+  `defaultdict`, subclasses of `dict`, `list`, `str`, `int` and `float`, a
+  dictionary whose `keys()` disagrees with its iteration, and keys that are
+  integers, `None` or tuples). Every kind is asserted to yield both
+  answers of the check, valid and invalid manifests alike;
+- per definition, seeded: a sub-value of a manifest fixture is drawn, a
+  definition of the schema that the check accepts it under is drawn, the
+  sub-value is mutated by one of the operators above, and fact 1 is
+  asserted for the definition's compiled check against the walk of
+  `{"$defs": ..., "$ref": "#/$defs/<definition>"}`.
+
+Around the facts:
+
+- **Keyword semantics.** A few small schemas pin what the check must share
+  with the walk: `True` is neither `1` in `const`, `enum` and
+  `uniqueItems` nor an integer, `1.0` is an integer, a string is checked by
+  `pattern` with `re.search`, `unevaluatedProperties` counts the keys of
+  the `oneOf` branch a value is valid under and not those of a failing one.
+- **What the check refuses to compile.** A keyword it does not compile
+  (`patternProperties`, `dependentSchemas`, `contains`, `format`), a
+  reference outside the document, and a keyword that changes how a
+  reference resolves (`$id` or `$schema` below the root, `$anchor`,
+  `$dynamicAnchor`, `$vocabulary`) raise `NotImplementedError`; `$id` and
+  `$schema` on the root do not. A nested `$id` with its own `$defs` would
+  otherwise resolve a reference against the wrong definitions.
+- **What the check declines.** A dictionary whose `keys()` disagrees with
+  its iteration and an `OrderedDict` make the check decline, and the
+  validator's result for them is the walk's.
+- **No answer before compilation ends.** A check run while a reference it
+  reaches is still being compiled declines, so the walk runs (simulated by
+  leaving a reference's placeholder in place, under `oneOf`, where an
+  answer of `False` would make the check accept what the walk refuses).
+  Every entry point the validator uses (the root, `Timestamp`,
+  `Graphical.matchstamps` and every member `statement_problems` checks) is
+  compiled before the first check is handed out: after the first call no
+  node is compiled again, whichever entry point a later call uses.
 - **The walk is skipped.** A valid manifest, the two large ones below
   included, validates without one call to the walk's validator (a
   counting validator); a manifest with an undeclared key calls it once,
   as before.
-- **The copies stay copies.** `with_bare_ids` and `with_file_ids` give
-  the reference's value on every manifest fixture and share no list or
-  dictionary with their input.
 
 The two large manifests are built in `large_manifests.py`: 500 root
 timelines with 10,000 named timestamps (twenty per timeline), and 38 root

@@ -14,12 +14,18 @@ Schema 2020-12 (its type checker, its equality, which tells ``True`` from
 ``unevaluatedProperties`` the keys its ``find_evaluated_property_keys_by_schema``
 counts). A schema node is valid when every keyword is, so the order the
 closures test them in changes no answer. A keyword ``jsonschema`` validates
-and this module does not know refuses to compile, so the schema can never
-quietly outgrow the check.
+and this module does not know refuses to compile, and so does a keyword that
+changes how a reference resolves (``$id`` or ``$schema`` below the document's
+root, ``$anchor``, ``$dynamicAnchor``, ``$vocabulary``, ``format``), so the
+schema can never quietly outgrow the check.
 
 The check is used one way only: where it answers ``True`` the walk is
 skipped, since it would yield nothing; where it answers ``False`` or raises,
-the caller runs the walk, which builds the diagnostics as before.
+the caller runs the walk, which builds the diagnostics as before. It raises
+:class:`Unanswered` for a value it does not answer for: a list or dictionary
+of a subclass (whose own ``keys`` or iteration the walk may read
+differently), and any value reaching a reference whose compilation has not
+finished.
 """
 
 from __future__ import annotations
@@ -61,7 +67,6 @@ _ORDER = (
     "exclusiveMinimum",
     "exclusiveMaximum",
     "pattern",
-    "format",
     "uniqueItems",
     "$ref",
     "properties",
@@ -79,17 +84,39 @@ _ORDER = (
 """The compiled keywords, ``type`` first and the cheap ones before the deep."""
 
 _NOT_COMPILED = frozenset(Draft202012Validator.VALIDATORS).difference(_ORDER)
-"""The keywords ``jsonschema`` validates that this module does not compile."""
+"""The keywords ``jsonschema`` validates that this module does not compile.
+
+``format`` among them: the walk's validator has no format checker today, but
+should it gain one, the check must learn the formats first.
+"""
+
+_RESOLUTION = frozenset({"$id", "$schema", "$anchor", "$dynamicAnchor", "$vocabulary"})
+"""The keywords that change how a reference resolves, not compiled."""
+
+_AT_ROOT = frozenset({"$id", "$schema"})
+"""The keywords of :data:`_RESOLUTION` a document's root may carry."""
 
 _DEFINITIONS = "#/$defs/"
 
 
+class Unanswered(Exception):
+    """The check does not answer for this value; the caller runs the walk."""
+
+
 def _is_object(value: Any) -> bool:
-    return isinstance(value, dict)
+    if type(value) is dict:
+        return True
+    if isinstance(value, dict):
+        raise Unanswered(f"a dictionary of type {type(value).__name__}")
+    return False
 
 
 def _is_array(value: Any) -> bool:
-    return isinstance(value, list)
+    if type(value) is list:
+        return True
+    if isinstance(value, list):
+        raise Unanswered(f"a list of type {type(value).__name__}")
+    return False
 
 
 def _is_string(value: Any) -> bool:
@@ -225,6 +252,16 @@ def _no_keys(value: Any) -> set[str]:
     return set()
 
 
+def _compiling(value: Any) -> bool:
+    """The check of a definition whose compilation has not finished."""
+    raise Unanswered("a reference is still being compiled")
+
+
+def _compiling_keys(value: Any) -> set[str]:
+    """The evaluated keys of a definition whose compilation has not finished."""
+    raise Unanswered("a reference is still being compiled")
+
+
 def _all(checks: list[Check]) -> Check:
     if not checks:
         return _always
@@ -252,6 +289,7 @@ class SchemaCompiler:
     """Compiles nodes of one schema document whose references are all local."""
 
     def __init__(self, document: Mapping[str, Any]) -> None:
+        self._document = document
         self._definitions: Mapping[str, Any] = document.get("$defs", {})
         self._checks: dict[str, list[Check]] = {}
         self._keys: dict[str, list[Keys]] = {}
@@ -293,6 +331,10 @@ class SchemaCompiler:
         if not isinstance(node, Mapping):
             raise NotImplementedError(f"not a schema: {node!r}")
         unknown = _NOT_COMPILED.intersection(node)
+        resolving = _RESOLUTION.intersection(node)
+        if node is self._document:
+            resolving -= _AT_ROOT
+        unknown |= resolving
         if unknown:
             raise NotImplementedError(f"keywords not compiled: {sorted(unknown)}")
         # A node of one type checks the type first, and every other keyword
@@ -378,7 +420,7 @@ class SchemaCompiler:
         name = self._definition(reference)
         cell = self._checks.get(name)
         if cell is None:
-            cell = self._checks[name] = [_never]
+            cell = self._checks[name] = [_compiling]
             cell[0] = self.check(self._definitions[name])
 
         def referred(value: Any) -> bool:
@@ -390,7 +432,7 @@ class SchemaCompiler:
         name = self._definition(reference)
         cell = self._keys.get(name)
         if cell is None:
-            cell = self._keys[name] = [_no_keys]
+            cell = self._keys[name] = [_compiling_keys]
             cell[0] = self.keys(self._definitions[name])
 
         def referred(value: Any) -> set[str]:
@@ -520,10 +562,6 @@ class SchemaCompiler:
 
         return _guarded("number", known, below)
 
-    def _format(self, name: Any, node: Node, known: Kind) -> None:
-        # The walk's validator has no format checker: ``format`` annotates.
-        return None
-
     def _pattern(self, pattern: str, node: Node, known: Kind) -> Check | None:
         search = re.compile(pattern).search
 
@@ -555,8 +593,6 @@ class SchemaCompiler:
     def _additionalProperties(
         self, additional: Any, node: Node, known: Kind
     ) -> Check | None:
-        if "patternProperties" in node:
-            raise NotImplementedError("patternProperties is not compiled")
         declared = frozenset(node.get("properties", {}))
         if additional is True:
             return None
@@ -692,17 +728,3 @@ class SchemaCompiler:
             return True
 
         return _guarded("object", known, evaluated_only)
-
-
-def compiled_check(document: Mapping[str, Any], node: Any) -> Check:
-    """Return the validity check of ``node``, its references read in ``document``.
-
-    The check answers whether ``jsonschema``'s 2020-12 walk of ``node`` would
-    yield no error; an exception it raises (a value no keyword can compare,
-    a nesting beyond the recursion limit) means only that it cannot answer.
-
-    Raises:
-        NotImplementedError: If the schema holds a keyword or a reference
-            this module does not compile.
-    """
-    return SchemaCompiler(document).check(node)

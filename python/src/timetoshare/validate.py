@@ -14,8 +14,10 @@ the identity rules, then the statement rules
 from __future__ import annotations
 
 import json
+import threading
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator, Mapping
+from dataclasses import dataclass
 from functools import cache
 from importlib.resources import files
 from pathlib import Path
@@ -234,16 +236,68 @@ def _marking_validator() -> Any:
     return Draft202012Validator(_closed_document())
 
 
-@cache
-def _compiler() -> SchemaCompiler:
-    """The one compiler of the closed document, every node compiled once."""
-    return SchemaCompiler(_closed_document())
+_SUBJECT_DEFINITIONS = {
+    "manifest": "Manifest",
+    "timeline": "Timeline",
+    "region": "Region",
+}
+"""The definition of each kind of subject a statement may have."""
+
+_STATEMENT_MEMBERS = ("provenance", "statements")
+"""The members of a subject checked alone, in the order they are checked."""
+
+_CHECKED_MEMBERS: tuple[tuple[str, str], ...] = (
+    ("Manifest", "@context"),
+    *(
+        (definition, member)
+        for definition in _SUBJECT_DEFINITIONS.values()
+        for member in _STATEMENT_MEMBERS
+    ),
+    ("Graphical", "matchstamps"),
+)
+"""The members ``statement_problems`` and ``matchstamp_problems`` check alone."""
+
+
+@dataclass(frozen=True)
+class _Checks:
+    """The compiled checks of every node the validator walks (``schema_check``)."""
+
+    compiler: SchemaCompiler
+    manifest: Check
+    timestamp: Check
+    members: Mapping[tuple[str, str], Check]
+
+
+_COMPILING = threading.Lock()
+
+
+def _checks() -> _Checks:
+    """The compiled checks, every one compiled before any is handed out.
+
+    A reference's check is complete only once its definition is compiled, so
+    no thread may run a check while another compiles: the first call
+    compiles every entry point under the lock, and later calls find them.
+    """
+    with _COMPILING:
+        return _compiled_checks()
 
 
 @cache
-def _marking_check() -> Check:
-    """The compiled validity check of the whole walk (``schema_check``)."""
-    return _compiler().check(_closed_document())
+def _compiled_checks() -> _Checks:
+    document = _closed_document()
+    definitions = document["$defs"]
+    compiler = SchemaCompiler(document)
+    return _Checks(
+        compiler=compiler,
+        manifest=compiler.check(document),
+        timestamp=compiler.check(definitions["Timestamp"]),
+        members={
+            (definition, member): compiler.check(
+                definitions[definition]["properties"][member]
+            )
+            for definition, member in _CHECKED_MEMBERS
+        },
+    )
 
 
 def _plainly_finite(value: Any) -> bool:
@@ -258,7 +312,8 @@ def _walk_errors(validator: Any, check: Check, value: Any) -> list[ValidationErr
     """The errors of the walk, skipped where the compiled check finds none.
 
     The check answers whether the walk yields no error; where it cannot
-    answer (it raises) or finds one, the walk builds every error.
+    answer (it raises, :class:`~.schema_check.Unanswered` or any other
+    error) or finds one, the walk builds every error.
     """
     try:
         valid = check(value)
@@ -277,9 +332,10 @@ def _member_validator(definition: str, member: str) -> Any:
 
 def _member_errors(definition: str, member: str, value: Any) -> list[ValidationError]:
     """The errors of :func:`_member_validator`'s walk, skipped where none."""
-    declared = _closed_document()["$defs"][definition]["properties"][member]
     return _walk_errors(
-        _member_validator(definition, member), _compiler().check(declared), value
+        _member_validator(definition, member),
+        _checks().members[definition, member],
+        value,
     )
 
 
@@ -394,7 +450,7 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         if finite is not None:
             raise finite
 
-    errors = _walk_errors(_marking_validator(), _marking_check(), value)
+    errors = _walk_errors(_marking_validator(), _checks().manifest, value)
     error = _select(errors)
     if error is not None:
         raise SchemaValidationError("schema", tuple(error.absolute_path), error.message)
@@ -466,14 +522,13 @@ def _statement_members(
     """
     if "@context" in value:
         yield "Manifest", "@context", value["@context"], ("@context",), string_id(bare)
-    definitions = {"manifest": "Manifest", "timeline": "Timeline", "region": "Region"}
     for (path, element, kind), (_, plain, _) in zip(
         subjects(value), subjects(bare), strict=True
     ):
-        for member in ("provenance", "statements"):
+        for member in _STATEMENT_MEMBERS:
             if member in element:
                 yield (
-                    definitions[kind],
+                    _SUBJECT_DEFINITIONS[kind],
                     member,
                     element[member],
                     (*path, member),
@@ -613,9 +668,7 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
             continue
         error = _select(
             _walk_errors(
-                _definition_validator("Timestamp"),
-                _compiler().check(_closed_document()["$defs"]["Timestamp"]),
-                timestamp,
+                _definition_validator("Timestamp"), _checks().timestamp, timestamp
             )
         )
         if error is not None:
