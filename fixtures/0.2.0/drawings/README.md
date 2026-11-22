@@ -154,15 +154,16 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   smaller of 0 and the smallest left edge minus `P`, and `Yt` the smaller of
   0 and the smallest top minus `Pt`; `Pt` = `P + h(11) + F` = 28.8046875 when
   the manifest's title is displayed and `P` otherwise. The place origin
-  `(Ox, Oy)` = (0 − `Xl`, 0 − `Yt`) is added to every position last. Only
-  in `bundle_ungrouped__places` does an item reach left of the padding or
-  above `Pt`, and only in the four drawings of a group with a child member
+  `(Ox, Oy)` = (0 − `Xl`, 0 − `Yt`) is added to every position last. Of
+  the hand-derived drawings, five reach left of the padding or above `Pt`:
+  an item does in `bundle_ungrouped__places`, and an ancestor card (below)
+  does in the four drawings of a group with a child member
   (`group__group_child_member`, `group__group_parents_mixed`,
-  `group__group_grandchild` and `group__group_child_member_stamps`) does an
-  ancestor card (below); everywhere else `Xl` = `Yt` = 0 and the origin is
-  (0, 0), so
-  `Wb = P` plus the largest right edge and `Hb = P` plus the largest bottom
-  edge. No drawing here requests a block size, so `W = Wb` and `H = Hb`.
+  `group__group_grandchild` and `group__group_child_member_stamps`). In
+  every other hand-derived drawing `Xl` = `Yt` = 0 and the origin is (0,
+  0), so `Wb = P` plus the largest right edge and `Hb = P` plus the
+  largest bottom edge. No drawing here requests a block size, so `W = Wb`
+  and `H = Hb`.
 - Font measures (§5.1) at size 9: `a(9)` = 8.35400390625, `d(9)` =
   2.12255859375, `h(9)` = 10.4765625; at size 11: `a(11)` =
   10.21044921875, `d(11)` = 2.59423828125, `h(11)` = 12.8046875.
@@ -594,7 +595,7 @@ each lies 423.5276884191177 further right.
   - `page`, aligned to `system`, in pixels (`int`): `ts` = 0, `λ` = 600,
     `λR` = 1754, `us` = 0, `ue` = 1754 / 600 = 2.9233333333333333, `xs` =
     `s0`, `xe` = 1274.3636067708333, `LA` = 1169.3333333333333; `N'` =
-    w(`System`, 11) = 49.01904296875, `s0'` = 57.01904296875, left
+    w(`System`, 11) = 41.01904296875, `s0'` = 57.01904296875, left
     48.01123046875, place 56.01123046875; `Mr'` = 9: the card is
     1243.3523763020833 → 1243.3524 wide.
   Each card's top is its member's ancestor row less 48.9765625: 67.78125,
