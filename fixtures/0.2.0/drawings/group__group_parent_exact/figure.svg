@@ -1,6 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="552.9827" height="222.1367" viewBox="0 0 552.9827 222.1367" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
 <rect x="0" y="0" width="520.9827" height="190.1367" rx="10" fill="#F3F4F6"/>
+<rect data-id="piece" data-part="card" x="39.3018" y="20.8047" width="467.6809" height="63.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="piece" data-part="card" x="37.3018" y="18.8047" width="467.6809" height="63.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="piece" x1="87.7036" y1="67.7812" x2="487.7036" y2="67.7812" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="piece" cx="87.7036" cy="67.7812" r="3" fill="#00CC00"/>
+<polygon data-id="piece" points="496.7036,67.7812 487.7036,63.2812 487.7036,72.2812" fill="#00CC00"/>
+<line data-id="whole" x1="87.7036" y1="33.8047" x2="483.2036" y2="33.8047" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="whole" cx="87.7036" cy="33.8047" r="3" fill="#00CC00"/>
+<polygon data-id="whole" points="483.2036,33.8047 487.7036,30.2047 492.2036,33.8047 487.7036,37.4047" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_3" points="87.7036,35.3047 84.7036,48.3047 90.7036,48.3047" fill="#000000"/>
+<polygon data-id="timestamp_4" points="487.7036,35.3047 484.7036,48.3047 490.7036,48.3047" fill="#000000"/>
+<text data-id="whole" data-part="name" x="45.3018" y="37.6128" text-anchor="start" font-size="11" fill="#000000">Whole</text>
+<text data-id="piece" data-part="name" x="45.3018" y="71.5894" text-anchor="start" font-size="11" fill="#000000">Piece</text>
+<text data-id="timestamp_3" data-part="coordinate" x="87.7036" y="58.6587" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_4" data-part="coordinate" x="487.7036" y="58.6587" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
 <rect data-id="group_1" x="8" y="8" width="504.9827" height="174.1367" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-id="group_1" data-part="name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Whole</text>
 <rect data-id="whole" data-part="card" x="18" y="34.8047" width="488.9827" height="83.9531" rx="5" fill="#B8BEC8"/>

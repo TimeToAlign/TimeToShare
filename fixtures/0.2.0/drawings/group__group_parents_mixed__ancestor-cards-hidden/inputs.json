@@ -7,7 +7,7 @@
             "element": "ancestor_card"
           },
           "set": {
-            "display": "inline"
+            "display": "none"
           }
         }
       ]

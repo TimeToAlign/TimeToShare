@@ -1281,11 +1281,11 @@ by its title: its `name`, or its `id` when it has no name; an anonymous
 bundle has none. Each group is a frame; each ungrouped root lies in a card
 of its own, and each member in one card in the frame of each group that
 has it as a member; a member that is a child timeline is drawn with the
-faded lines of its ancestors and, where a rule displays it, with its
+faded lines of its ancestors and, unless a rule hides it, with its
 root's **ancestor card** behind its group's frame, the root drawn whole
 at the proportions of its own axis, its line continuing the faded one.
 The element types are the containers `block`, `frame`, `card`,
-`ancestor_card` (hidden by default) and `band` (a band draws one of a timeline's five
+`ancestor_card` (shown by default) and `band` (a band draws one of a timeline's five
 facets and lies above or below its line as the timeline's band order
 places it; a band that is not displayed hides everything it holds, and by
 default the regions and flow control bands are hidden on every timeline
