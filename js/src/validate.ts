@@ -9,7 +9,7 @@
  * `graphical.order` bare too.
  */
 
-import { Ajv2020, type ValidateFunction } from "ajv/dist/2020.js";
+import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
 import { schema } from "./generated/schema.js";
 import type { LosslessManifest } from "./generated/types.js";
 import { FileIdError, lenientlyBareIds, withBareIds } from "./ids.js";
@@ -112,7 +112,12 @@ function close(node: unknown, inside: boolean, bases: ReadonlySet<string>): unkn
     else closed[key] = close(value, inside, bases);
   }
   const object = node as Node;
-  if (!inside && object.type === "object" && "properties" in object) {
+  if (
+    !inside &&
+    object.type === "object" &&
+    "properties" in object &&
+    !("additionalProperties" in object)
+  ) {
     closed.unevaluatedProperties = false;
   }
   return closed;
@@ -124,8 +129,11 @@ function close(node: unknown, inside: boolean, bases: ReadonlySet<string>): unkn
  * The document keeps its objects open; this variant, built in memory only,
  * sets `unevaluatedProperties: false` on every object node with `properties`
  * outside a `oneOf`/`anyOf` branch or an `if`/`then`/`else` arm, except the
- * bases an `allOf` shares, so a key no definition declares fails where it
- * stands.
+ * bases an `allOf` shares and the maps keyed by data, whose
+ * `additionalProperties` admits every key (the `@context`, statements and
+ * value nodes), so a key no definition declares fails where it stands.
+ * Closing a map keyed by data would find no key of its own, only its keys
+ * again wherever a value below it fails.
  */
 function closedSchema(document: Node): Node {
   return close(document, false, allOfBases(document)) as Node;
@@ -135,7 +143,8 @@ function closedSchema(document: Node): Node {
 const REPORTING = { ...OPTIONS, verbose: true } as const;
 
 const check = new Ajv2020(REPORTING).compile(schema);
-const marking = new Ajv2020(OPTIONS).compile(closedSchema(schema));
+const closed = closedSchema(schema);
+const marking = new Ajv2020(REPORTING).compile(closed);
 const partChecks = new Map<string, ValidateFunction>();
 const branchChecks = new WeakMap<object, ValidateFunction>();
 
@@ -150,6 +159,87 @@ function passes(branch: unknown, data: unknown): boolean {
     branchChecks.set(branch, compiled);
   }
   return compiled(data);
+}
+
+/** The definition a local `$ref` (`#/$defs/Name`) names in `root`. */
+function definitionOf(root: Node, reference: unknown): unknown {
+  if (typeof reference !== "string" || !reference.startsWith("#/$defs/")) return undefined;
+  return (root.$defs as Node)[reference.slice("#/$defs/".length)];
+}
+
+/**
+ * The closed schemas the walk applies at `path` of `instance` through the
+ * branches the value takes there: a `oneOf`/`anyOf` branch only where the
+ * document's branch passes the value, the `then` or the `else` arm as the
+ * document's `if` decides. The closed variant and the document are walked
+ * side by side, the variant being the document with keys added.
+ */
+function takenAt(path: readonly PathSegment[], instance: unknown): Set<object> {
+  let level: [unknown, unknown][] = [[closed, schema]];
+  let data = instance;
+  for (let depth = 0; ; depth += 1) {
+    const step = path[depth];
+    const taken = new Set<object>();
+    const next: [unknown, unknown][] = [];
+    const visit = (variant: unknown, document: unknown): void => {
+      if (!isJsonObject(variant) || !isJsonObject(document) || taken.has(variant)) return;
+      taken.add(variant);
+      for (const [key, member] of Object.entries(variant)) {
+        const original = document[key];
+        if (key === "$ref") {
+          visit(definitionOf(closed, member), definitionOf(schema as Node, member));
+        } else if (key === "allOf" || key === "anyOf" || key === "oneOf") {
+          (member as unknown[]).forEach((branch, index) => {
+            const counterpart = (original as unknown[])[index];
+            if (key === "allOf" || passes(counterpart, data)) visit(branch, counterpart);
+          });
+        } else if (key === "if") {
+          const arm = passes(original, data) ? "then" : "else";
+          visit(variant[arm], document[arm]);
+        } else if (key === "properties" && typeof step === "string") {
+          if (Object.hasOwn(member as Node, step)) {
+            next.push([(member as Node)[step], (original as Node)[step]]);
+          }
+        } else if (key === "additionalProperties" && typeof step === "string") {
+          if (!Object.hasOwn((variant.properties ?? {}) as Node, step))
+            next.push([member, original]);
+        } else if (key === "prefixItems" && typeof step === "number") {
+          const items = member as unknown[];
+          if (step < items.length) next.push([items[step], (original as unknown[])[step]]);
+        } else if (key === "items" && typeof step === "number") {
+          const prefix = Array.isArray(variant.prefixItems) ? variant.prefixItems.length : 0;
+          if (step >= prefix) next.push([member, original]);
+        }
+      }
+    };
+    for (const [variant, document] of level) visit(variant, document);
+    if (step === undefined) return taken;
+    level = next;
+    data = (data as Record<string | number, unknown>)[step];
+  }
+}
+
+/**
+ * The unknown keys the closed variant's errors name: a key is listed where
+ * the closed object refusing it is applied on a branch the value takes,
+ * never from a `oneOf`/`anyOf` branch the document refuses the value, as
+ * Python lists only the keys of branches that fail for undeclared keys alone.
+ */
+function keysOf(errors: readonly ErrorObject[], instance: unknown): UnknownKey[] {
+  const found: UnknownKey[] = [];
+  const takenByPath = new Map<string, Set<object>>();
+  for (const error of errors) {
+    if (error.keyword !== "unevaluatedProperties") continue;
+    const path = toPath(error.instancePath, instance);
+    let taken = takenByPath.get(error.instancePath);
+    if (taken === undefined) {
+      taken = takenAt(path, instance);
+      takenByPath.set(error.instancePath, taken);
+    }
+    if (!taken.has(error.parentSchema as object)) continue;
+    found.push({ path, key: String(error.params.unevaluatedProperty) });
+  }
+  return found;
 }
 
 /** The refusal of a value the schema check failed, as Python chooses and words it. */
@@ -217,17 +307,11 @@ function run(value: unknown): Warnings {
   if (finite !== undefined) throw finite;
 
   const instance = plain(value);
-  const found: UnknownKey[] = [];
+  let found: UnknownKey[] = [];
   if (!marking(instance)) {
     // The closed variant refuses undeclared keys; the document decides validity.
     if (!check(instance)) reject(instance, value);
-    for (const error of marking.errors ?? []) {
-      if (error.keyword !== "unevaluatedProperties") continue;
-      found.push({
-        path: toPath(error.instancePath, instance),
-        key: String(error.params.unevaluatedProperty),
-      });
-    }
+    found = keysOf(marking.errors ?? [], instance);
   }
 
   const bare = bareManifest(value);

@@ -277,7 +277,23 @@ document itself, which decides validity, and then reads each key from the
 variant's `unevaluatedProperties` errors. A discriminated `oneOf` evaluates
 only the candidate its tag selects, so a key is never reported from a
 candidate the value does not match (the nested conversion map of
-`several_depths` proves it). The keys belong to one run, so a refused
+`several_depths` proves it). The variant leaves the maps keyed by data open
+(`@context`, statements and value nodes, whose `additionalProperties`
+admits every key), and a key refused inside a `oneOf`/`anyOf` branch the
+document refuses the value (a statement value read as a `list` object, say)
+is not listed: only a branch that fails for undeclared keys alone counts,
+as in Python. Two inputs prove it, each with the list Python's
+`unknown_keys` returns for it (the first is also a Python test):
+`nielsen_record` with the key `x` added to the first provenance entry of
+`statements.schema:about[0]` lists exactly `x` at
+`["statements", "schema:about", 0, "provenance", 0]`, never the keys of the
+value node that holds it; and the same fixture whose `@context` declares one more prefix
+`ex` (`http://example.org/`), with a pair `ex:extra` on that value node whose
+value node states `ex:part` and a provenance entry for it carrying `zz`, and
+an `x` on the manifest, lists exactly `x` at `[]` and `zz` at
+`["statements", "schema:about", 0, "ex:extra", 0, "provenance", 0]`: the
+prefix, the pairs and the value nodes' own keys are declared by their maps.
+No test runs the two languages side by side; the lists are literal. The keys belong to one run, so a refused
 manifest's keys never appear in the next run's list (`validate.test.ts`).
 
 ## The units

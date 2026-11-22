@@ -4,6 +4,7 @@ import { dumps, loads, SchemaValidationError, UnsupportedVersionError } from "..
 import type { JsonObject } from "../src/json/value.js";
 import {
   expectWrittenAsStored,
+  fixtureText,
   group,
   manifest,
   timeline,
@@ -137,6 +138,33 @@ describe("unknown keys", () => {
       { path: [], key: "\u{1F600}" },
       { path: ["timelines", 2], key: "zz" },
       { path: ["timelines", 10], key: "zz" },
+    ]);
+  });
+
+  it("lists an undeclared key below a statement alone", () => {
+    const value = loads(fixtureText("statements/nielsen_record")) as JsonObject;
+    const subject = ((value.statements as JsonObject)["schema:about"] as JsonObject[])[0];
+    (((subject as JsonObject).provenance as JsonObject[])[0] as JsonObject).x = 1;
+    expect(timetoshare.unknownKeys(value)).toEqual([
+      { path: ["statements", "schema:about", 0, "provenance", 0], key: "x" },
+    ]);
+  });
+
+  it("lists no key of the maps keyed by data, only the undeclared keys around them", () => {
+    const value = loads(fixtureText("statements/nielsen_record")) as JsonObject;
+    (value["@context"] as JsonObject).ex = "http://example.org/";
+    value.x = { inner: 1 };
+    const subject = ((value.statements as JsonObject)["schema:about"] as JsonObject[])[0];
+    (subject as JsonObject)["ex:extra"] = [
+      {
+        label: "b",
+        "ex:part": ["c"],
+        provenance: [{ method: "manual", property: "ex:part", value: "c", zz: 1 }],
+      },
+    ];
+    expect(timetoshare.unknownKeys(value)).toEqual([
+      { path: [], key: "x" },
+      { path: ["statements", "schema:about", 0, "ex:extra", 0, "provenance", 0], key: "zz" },
     ]);
   });
 
