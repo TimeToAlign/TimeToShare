@@ -530,7 +530,7 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   finds both font files in the directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Forty-two `figure.svg` files are derived by hand from the
+for byte. Forty-three `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, among them every drawing of
 a timeline of unknown length, the three variants of `bundle_ungrouped`, the
 three variants that display a band the defaults hide, the band orders of
@@ -543,7 +543,9 @@ anchor on a child member of `group__group_child_member_stamps` and the
 ancestor lines on both sides of the member of
 `group__group_grandchild_parent_on_top`, the default elisions of
 `group__group_elided_inside` and the four `__full` cases, which draw the
-same ancestor cards whole;
+same ancestor cards whole, and the group elisions of
+`group__group_elided_members`, drawn across its frame and carried into the
+ancestor card behind it;
 `drawings/README.md` lists them with their arithmetic. Every other figure, and every `inputs.json`, is
 emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
 <TimeToShare checkout>` (run in its `app/packages/writers/`), which

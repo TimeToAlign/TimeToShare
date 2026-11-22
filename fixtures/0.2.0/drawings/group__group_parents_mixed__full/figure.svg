@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1764.8913" height="416.4453" viewBox="0 0 1764.8913 416.4453" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="1764.8913" height="356.5156" viewBox="0 0 1764.8913 356.5156" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="1732.8913" height="384.4453" rx="10" fill="#F3F4F6"/>
+<rect x="0" y="0" width="1732.8913" height="324.5156" rx="10" fill="#F3F4F6"/>
 <rect data-id="sonata" data-part="card" x="265.5277" y="38.207" width="690.3093" height="63.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="sonata" data-part="card" x="263.5277" y="36.207" width="690.3093" height="63.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="sonata" x1="336.558" y1="85.1836" x2="936.558" y2="85.1836" stroke="#00CC00" stroke-width="3"/>
@@ -15,39 +15,51 @@
 <text data-id="sonata" data-part="name" x="271.5277" y="88.9917" text-anchor="start" font-size="11" fill="#000000">Sonata</text>
 <text data-id="timestamp_3" data-part="coordinate" x="536.558" y="76.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_4" data-part="coordinate" x="936.558" y="76.061" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
-<rect data-id="session" data-part="card" x="10" y="133.6602" width="1486.7344" height="63.3789" rx="5" fill="#B8BEC8"/>
-<rect data-id="session" data-part="card" x="8" y="131.6602" width="1486.7344" height="63.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<polygon data-id="cmap_1" points="536.558,140.1602 936.558,140.1602 936.558,142.1602 536.558,142.1602" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
-<line data-id="session" x1="65.9697" y1="180.6367" x2="1477.7344" y2="180.6367" stroke="#0050EF" stroke-width="3"/>
-<circle data-id="session" cx="65.9697" cy="180.6367" r="3" fill="#0050EF"/>
-<polygon data-id="session" points="1486.7344,180.6367 1477.7344,176.1367 1477.7344,185.1367" fill="#0050EF"/>
-<line data-id="take" x1="536.558" y1="146.6602" x2="932.058" y2="146.6602" stroke="#0050EF" stroke-width="3"/>
-<circle data-id="take" cx="536.558" cy="146.6602" r="3" fill="#0050EF"/>
-<polygon data-id="take" points="932.058,146.6602 936.558,143.0602 941.058,146.6602 936.558,150.2602" fill="none" stroke="#0050EF" stroke-width="1.5"/>
-<polygon data-id="timestamp_7" points="536.558,148.1602 533.558,161.1602 539.558,161.1602" fill="#000000"/>
-<polygon data-id="timestamp_8" points="936.558,148.1602 933.558,161.1602 939.558,161.1602" fill="#000000"/>
-<text data-id="take" data-part="name" x="16" y="150.4683" text-anchor="start" font-size="11" fill="#000000">Take</text>
-<text data-id="session" data-part="name" x="16" y="184.4448" text-anchor="start" font-size="11" fill="#000000">Session</text>
-<text data-id="timestamp_7" data-part="coordinate" x="536.558" y="171.5142" text-anchor="middle" font-size="9" fill="#000000">0″</text>
-<text data-id="timestamp_8" data-part="coordinate" x="936.558" y="171.5142" text-anchor="middle" font-size="9" fill="#000000">25.5″</text>
-<rect data-id="page" data-part="card" x="481.5389" y="229.0156" width="1243.3524" height="63.3789" rx="5" fill="#B8BEC8"/>
-<rect data-id="page" data-part="card" x="479.5389" y="227.0156" width="1243.3524" height="63.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="page" x1="536.558" y1="275.9922" x2="1705.8913" y2="275.9922" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
-<circle data-id="page" cx="536.558" cy="275.9922" r="3" fill="#FF0000"/>
-<polygon data-id="page" points="1714.8913,275.9922 1705.8913,271.4922 1705.8913,280.4922" fill="#FF0000"/>
-<line data-id="system" x1="536.558" y1="242.0156" x2="932.058" y2="242.0156" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
-<circle data-id="system" cx="536.558" cy="242.0156" r="3" fill="#FF0000"/>
-<polygon data-id="system" points="932.058,242.0156 936.558,238.4156 941.058,242.0156 936.558,245.6156" fill="none" stroke="#FF0000" stroke-width="1.5"/>
-<polygon data-id="timestamp_5" points="536.558,243.5156 533.558,256.5156 539.558,256.5156" fill="#000000"/>
-<polygon data-id="timestamp_6" points="936.558,243.5156 933.558,256.5156 939.558,256.5156" fill="#000000"/>
-<text data-id="system" data-part="name" x="487.5389" y="245.8237" text-anchor="start" font-size="11" fill="#000000">System</text>
-<text data-id="page" data-part="name" x="487.5389" y="279.8003" text-anchor="start" font-size="11" fill="#000000">Page</text>
-<text data-id="timestamp_5" data-part="coordinate" x="536.558" y="266.8696" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
-<text data-id="timestamp_6" data-part="coordinate" x="936.558" y="266.8696" text-anchor="middle" font-size="9" fill="#000000">600 px</text>
-<rect data-id="group_1" x="431.5277" y="8" width="554.9473" height="368.4453" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<line data-id="timestamp_3" data-part="line" x1="536.558" y1="36.207" x2="536.558" y2="52.707" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="536.558" y1="78.1836" x2="536.558" y2="99.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="936.558" y1="36.207" x2="936.558" y2="52.707" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="936.558" y1="78.1836" x2="936.558" y2="99.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="session" data-part="card" x="10" y="113.6836" width="1486.7344" height="63.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="session" data-part="card" x="8" y="111.6836" width="1486.7344" height="63.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-id="cmap_1" points="536.558,120.1836 936.558,120.1836 936.558,122.1836 536.558,122.1836" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
+<line data-id="session" x1="65.9697" y1="160.6602" x2="1477.7344" y2="160.6602" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="session" cx="65.9697" cy="160.6602" r="3" fill="#0050EF"/>
+<polygon data-id="session" points="1486.7344,160.6602 1477.7344,156.1602 1477.7344,165.1602" fill="#0050EF"/>
+<line data-id="take" x1="536.558" y1="126.6836" x2="932.058" y2="126.6836" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="take" cx="536.558" cy="126.6836" r="3" fill="#0050EF"/>
+<polygon data-id="take" points="932.058,126.6836 936.558,123.0836 941.058,126.6836 936.558,130.2836" fill="none" stroke="#0050EF" stroke-width="1.5"/>
+<polygon data-id="timestamp_7" points="536.558,128.1836 533.558,141.1836 539.558,141.1836" fill="#000000"/>
+<polygon data-id="timestamp_8" points="936.558,128.1836 933.558,141.1836 939.558,141.1836" fill="#000000"/>
+<text data-id="take" data-part="name" x="16" y="130.4917" text-anchor="start" font-size="11" fill="#000000">Take</text>
+<text data-id="session" data-part="name" x="16" y="164.4683" text-anchor="start" font-size="11" fill="#000000">Session</text>
+<text data-id="timestamp_7" data-part="coordinate" x="536.558" y="151.5376" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_8" data-part="coordinate" x="936.558" y="151.5376" text-anchor="middle" font-size="9" fill="#000000">25.5″</text>
+<line data-id="timestamp_7" data-part="line" x1="536.558" y1="111.6836" x2="536.558" y2="128.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_7" data-part="line" x1="536.558" y1="153.6602" x2="536.558" y2="175.0625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_8" data-part="line" x1="936.558" y1="111.6836" x2="936.558" y2="128.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_8" data-part="line" x1="936.558" y1="153.6602" x2="936.558" y2="175.0625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="page" data-part="card" x="481.5389" y="189.0625" width="1243.3524" height="63.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="page" data-part="card" x="479.5389" y="187.0625" width="1243.3524" height="63.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="page" x1="536.558" y1="236.0391" x2="1705.8913" y2="236.0391" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-id="page" cx="536.558" cy="236.0391" r="3" fill="#FF0000"/>
+<polygon data-id="page" points="1714.8913,236.0391 1705.8913,231.5391 1705.8913,240.5391" fill="#FF0000"/>
+<line data-id="system" x1="536.558" y1="202.0625" x2="932.058" y2="202.0625" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-id="system" cx="536.558" cy="202.0625" r="3" fill="#FF0000"/>
+<polygon data-id="system" points="932.058,202.0625 936.558,198.4625 941.058,202.0625 936.558,205.6625" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<polygon data-id="timestamp_5" points="536.558,203.5625 533.558,216.5625 539.558,216.5625" fill="#000000"/>
+<polygon data-id="timestamp_6" points="936.558,203.5625 933.558,216.5625 939.558,216.5625" fill="#000000"/>
+<text data-id="system" data-part="name" x="487.5389" y="205.8706" text-anchor="start" font-size="11" fill="#000000">System</text>
+<text data-id="page" data-part="name" x="487.5389" y="239.8472" text-anchor="start" font-size="11" fill="#000000">Page</text>
+<text data-id="timestamp_5" data-part="coordinate" x="536.558" y="226.9165" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
+<text data-id="timestamp_6" data-part="coordinate" x="936.558" y="226.9165" text-anchor="middle" font-size="9" fill="#000000">600 px</text>
+<line data-id="timestamp_5" data-part="line" x1="536.558" y1="187.0625" x2="536.558" y2="203.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_5" data-part="line" x1="536.558" y1="229.0391" x2="536.558" y2="250.4414" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_6" data-part="line" x1="936.558" y1="187.0625" x2="936.558" y2="203.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_6" data-part="line" x1="936.558" y1="229.0391" x2="936.558" y2="250.4414" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="group_1" x="431.5277" y="8" width="554.9473" height="308.5156" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-id="group_1" data-part="name" x="439.5277" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Exposition</text>
-<rect data-id="exposition" data-part="card" x="441.5277" y="34.8047" width="538.9473" height="87.3555" rx="5" fill="#B8BEC8"/>
-<rect data-id="exposition" data-part="card" x="439.5277" y="32.8047" width="538.9473" height="87.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-id="exposition" data-part="card" x="441.5277" y="34.8047" width="538.9473" height="67.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="exposition" data-part="card" x="439.5277" y="32.8047" width="538.9473" height="67.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="sonata" x1="524.558" y1="85.1836" x2="936.558" y2="85.1836" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
 <polyline data-id="sonata" points="521.558,80.6836 517.058,85.1836 521.558,89.6836" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
 <polyline data-id="sonata" points="517.058,80.6836 512.558,85.1836 517.058,89.6836" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
@@ -55,66 +67,76 @@
 <line data-id="exposition" x1="536.558" y1="47.207" x2="932.058" y2="47.207" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="exposition" cx="536.558" cy="47.207" r="3" fill="#00CC00"/>
 <polygon data-id="exposition" points="932.058,47.207 936.558,43.607 941.058,47.207 936.558,50.807" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<polygon data-id="exposition" data-part="start" points="536.558,86.6836 533.558,99.6836 539.558,99.6836" fill="#000000" opacity="0.35"/>
-<polygon data-id="exposition" data-part="end" points="936.558,86.6836 933.558,99.6836 939.558,99.6836" fill="#000000" opacity="0.35"/>
 <polygon data-id="timestamp_3" points="536.558,48.707 533.558,61.707 539.558,61.707" fill="#000000"/>
 <polygon data-id="timestamp_4" points="936.558,48.707 933.558,61.707 939.558,61.707" fill="#000000"/>
 <text data-id="sonata" data-part="name" x="447.5277" y="88.2993" text-anchor="start" font-size="9" fill="#6B7280">Sonata</text>
 <text data-id="exposition" data-part="name" x="447.5277" y="51.0151" text-anchor="start" font-size="11" fill="#000000">Exposition</text>
-<text data-id="exposition" data-part="start label" x="536.558" y="110.0376" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">16 ♩</text>
-<text data-id="exposition" data-part="end label" x="936.558" y="110.0376" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">48 ♩</text>
 <text data-id="timestamp_3" data-part="coordinate" x="536.558" y="72.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_4" data-part="coordinate" x="936.558" y="72.061" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
-<rect data-id="take" data-part="card" x="441.5277" y="130.1602" width="538.9473" height="87.4531" rx="5" fill="#B8BEC8"/>
-<rect data-id="take" data-part="card" x="439.5277" y="128.1602" width="538.9473" height="87.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<polygon data-id="cmap_1" points="536.558,136.1602 936.558,136.1602 936.558,138.1602 536.558,138.1602" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
-<line data-id="session" x1="524.558" y1="180.6367" x2="948.558" y2="180.6367" stroke="#0050EF" stroke-width="3" opacity="0.35"/>
-<polyline data-id="session" points="521.558,176.1367 517.058,180.6367 521.558,185.1367" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="session" points="517.058,176.1367 512.558,180.6367 517.058,185.1367" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="session" points="951.558,176.1367 956.058,180.6367 951.558,185.1367" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="session" points="956.058,176.1367 960.558,180.6367 956.058,185.1367" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
-<line data-id="take" x1="536.558" y1="142.6602" x2="932.058" y2="142.6602" stroke="#0050EF" stroke-width="3"/>
-<circle data-id="take" cx="536.558" cy="142.6602" r="3" fill="#0050EF"/>
-<polygon data-id="take" points="932.058,142.6602 936.558,139.0602 941.058,142.6602 936.558,146.2602" fill="none" stroke="#0050EF" stroke-width="1.5"/>
-<polygon data-id="take" data-part="start" points="536.558,182.1367 533.558,195.1367 539.558,195.1367" fill="#000000" opacity="0.35"/>
-<polygon data-id="take" data-part="end" points="936.558,182.1367 933.558,195.1367 939.558,195.1367" fill="#000000" opacity="0.35"/>
-<polygon data-id="timestamp_7" points="536.558,144.1602 533.558,157.1602 539.558,157.1602" fill="#000000"/>
-<polygon data-id="timestamp_8" points="936.558,144.1602 933.558,157.1602 939.558,157.1602" fill="#000000"/>
-<text data-id="session" data-part="name" x="447.5277" y="183.7524" text-anchor="start" font-size="9" fill="#6B7280">Session</text>
-<text data-id="take" data-part="name" x="447.5277" y="146.4683" text-anchor="start" font-size="11" fill="#000000">Take</text>
-<text data-id="take" data-part="start label" x="536.558" y="205.4907" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">30″</text>
-<text data-id="take" data-part="end label" x="936.558" y="205.4907" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">55.5″</text>
-<text data-id="timestamp_7" data-part="coordinate" x="536.558" y="167.5142" text-anchor="middle" font-size="9" fill="#000000">0″</text>
-<text data-id="timestamp_8" data-part="coordinate" x="936.558" y="167.5142" text-anchor="middle" font-size="9" fill="#000000">25.5″</text>
-<rect data-id="system" data-part="card" x="441.5277" y="225.6133" width="538.9473" height="87.3555" rx="5" fill="#B8BEC8"/>
-<rect data-id="system" data-part="card" x="439.5277" y="223.6133" width="538.9473" height="87.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="page" x1="536.558" y1="275.9922" x2="948.558" y2="275.9922" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3" opacity="0.35"/>
-<circle data-id="page" cx="536.558" cy="275.9922" r="3" fill="#FF0000" opacity="0.35"/>
-<polyline data-id="page" points="951.558,271.4922 956.058,275.9922 951.558,280.4922" fill="none" stroke="#FF0000" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="page" points="956.058,271.4922 960.558,275.9922 956.058,280.4922" fill="none" stroke="#FF0000" stroke-width="1.5" opacity="0.35"/>
-<line data-id="system" x1="536.558" y1="238.0156" x2="932.058" y2="238.0156" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
-<circle data-id="system" cx="536.558" cy="238.0156" r="3" fill="#FF0000"/>
-<polygon data-id="system" points="932.058,238.0156 936.558,234.4156 941.058,238.0156 936.558,241.6156" fill="none" stroke="#FF0000" stroke-width="1.5"/>
-<polygon data-id="system" data-part="start" points="536.558,277.4922 533.558,290.4922 539.558,290.4922" fill="#000000" opacity="0.35"/>
-<polygon data-id="system" data-part="end" points="936.558,277.4922 933.558,290.4922 939.558,290.4922" fill="#000000" opacity="0.35"/>
-<polygon data-id="timestamp_5" points="536.558,239.5156 533.558,252.5156 539.558,252.5156" fill="#000000"/>
-<polygon data-id="timestamp_6" points="936.558,239.5156 933.558,252.5156 939.558,252.5156" fill="#000000"/>
-<text data-id="page" data-part="name" x="447.5277" y="279.1079" text-anchor="start" font-size="9" fill="#6B7280">Page</text>
-<text data-id="system" data-part="name" x="447.5277" y="241.8237" text-anchor="start" font-size="11" fill="#000000">System</text>
-<text data-id="system" data-part="start label" x="536.558" y="300.8462" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">0 px</text>
-<text data-id="system" data-part="end label" x="936.558" y="300.8462" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">600 px</text>
-<text data-id="timestamp_5" data-part="coordinate" x="536.558" y="262.8696" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
-<text data-id="timestamp_6" data-part="coordinate" x="936.558" y="262.8696" text-anchor="middle" font-size="9" fill="#000000">600 px</text>
-<rect data-id="audio" data-part="card" x="441.5277" y="320.9688" width="538.9473" height="49.4766" rx="5" fill="#B8BEC8"/>
-<rect data-id="audio" data-part="card" x="439.5277" y="318.9688" width="538.9473" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<polygon data-id="cmap_2" points="536.558,326.9688 936.558,326.9688 936.558,328.9688 536.558,328.9688" fill="none" stroke="#0050EF" stroke-width="1"/>
-<line data-id="audio" x1="536.558" y1="333.4688" x2="936.558" y2="333.4688" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
-<circle data-id="audio" cx="536.558" cy="333.4688" r="3" fill="#0050EF"/>
-<polygon data-id="audio" points="945.558,333.4688 936.558,328.9688 936.558,337.9688" fill="#0050EF"/>
-<polygon data-id="timestamp_1" points="536.558,334.9688 533.558,347.9688 539.558,347.9688" fill="#000000"/>
-<polygon data-id="timestamp_2" points="936.558,334.9688 933.558,347.9688 939.558,347.9688" fill="#000000"/>
-<text data-id="audio" data-part="name" x="447.5277" y="337.2769" text-anchor="start" font-size="11" fill="#000000">Audio</text>
-<text data-id="timestamp_1" data-part="coordinate" x="536.558" y="358.3228" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
-<text data-id="timestamp_2" data-part="coordinate" x="936.558" y="358.3228" text-anchor="middle" font-size="9" fill="#000000">1 323 000 smp</text>
+<line data-id="timestamp_3" data-part="line" x1="536.558" y1="32.8047" x2="536.558" y2="48.707" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="536.558" y1="74.1836" x2="536.558" y2="100.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="936.558" y1="32.8047" x2="936.558" y2="48.707" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="936.558" y1="74.1836" x2="936.558" y2="100.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="take" data-part="card" x="441.5277" y="110.1836" width="538.9473" height="67.4766" rx="5" fill="#B8BEC8"/>
+<rect data-id="take" data-part="card" x="439.5277" y="108.1836" width="538.9473" height="67.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-id="cmap_1" points="536.558,116.1836 936.558,116.1836 936.558,118.1836 536.558,118.1836" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
+<line data-id="session" x1="524.558" y1="160.6602" x2="948.558" y2="160.6602" stroke="#0050EF" stroke-width="3" opacity="0.35"/>
+<polyline data-id="session" points="521.558,156.1602 517.058,160.6602 521.558,165.1602" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="session" points="517.058,156.1602 512.558,160.6602 517.058,165.1602" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="session" points="951.558,156.1602 956.058,160.6602 951.558,165.1602" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="session" points="956.058,156.1602 960.558,160.6602 956.058,165.1602" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
+<line data-id="take" x1="536.558" y1="122.6836" x2="932.058" y2="122.6836" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="take" cx="536.558" cy="122.6836" r="3" fill="#0050EF"/>
+<polygon data-id="take" points="932.058,122.6836 936.558,119.0836 941.058,122.6836 936.558,126.2836" fill="none" stroke="#0050EF" stroke-width="1.5"/>
+<polygon data-id="timestamp_7" points="536.558,124.1836 533.558,137.1836 539.558,137.1836" fill="#000000"/>
+<polygon data-id="timestamp_8" points="936.558,124.1836 933.558,137.1836 939.558,137.1836" fill="#000000"/>
+<text data-id="session" data-part="name" x="447.5277" y="163.7759" text-anchor="start" font-size="9" fill="#6B7280">Session</text>
+<text data-id="take" data-part="name" x="447.5277" y="126.4917" text-anchor="start" font-size="11" fill="#000000">Take</text>
+<text data-id="timestamp_7" data-part="coordinate" x="536.558" y="147.5376" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_8" data-part="coordinate" x="936.558" y="147.5376" text-anchor="middle" font-size="9" fill="#000000">25.5″</text>
+<line data-id="timestamp_7" data-part="line" x1="536.558" y1="108.1836" x2="536.558" y2="124.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_7" data-part="line" x1="536.558" y1="149.6602" x2="536.558" y2="175.6602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_8" data-part="line" x1="936.558" y1="108.1836" x2="936.558" y2="124.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_8" data-part="line" x1="936.558" y1="149.6602" x2="936.558" y2="175.6602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="system" data-part="card" x="441.5277" y="185.6602" width="538.9473" height="67.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="system" data-part="card" x="439.5277" y="183.6602" width="538.9473" height="67.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="page" x1="536.558" y1="236.0391" x2="948.558" y2="236.0391" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3" opacity="0.35"/>
+<circle data-id="page" cx="536.558" cy="236.0391" r="3" fill="#FF0000" opacity="0.35"/>
+<polyline data-id="page" points="951.558,231.5391 956.058,236.0391 951.558,240.5391" fill="none" stroke="#FF0000" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="page" points="956.058,231.5391 960.558,236.0391 956.058,240.5391" fill="none" stroke="#FF0000" stroke-width="1.5" opacity="0.35"/>
+<line data-id="system" x1="536.558" y1="198.0625" x2="932.058" y2="198.0625" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-id="system" cx="536.558" cy="198.0625" r="3" fill="#FF0000"/>
+<polygon data-id="system" points="932.058,198.0625 936.558,194.4625 941.058,198.0625 936.558,201.6625" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<polygon data-id="timestamp_5" points="536.558,199.5625 533.558,212.5625 539.558,212.5625" fill="#000000"/>
+<polygon data-id="timestamp_6" points="936.558,199.5625 933.558,212.5625 939.558,212.5625" fill="#000000"/>
+<text data-id="page" data-part="name" x="447.5277" y="239.1548" text-anchor="start" font-size="9" fill="#6B7280">Page</text>
+<text data-id="system" data-part="name" x="447.5277" y="201.8706" text-anchor="start" font-size="11" fill="#000000">System</text>
+<text data-id="timestamp_5" data-part="coordinate" x="536.558" y="222.9165" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
+<text data-id="timestamp_6" data-part="coordinate" x="936.558" y="222.9165" text-anchor="middle" font-size="9" fill="#000000">600 px</text>
+<line data-id="timestamp_5" data-part="line" x1="536.558" y1="183.6602" x2="536.558" y2="199.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_5" data-part="line" x1="536.558" y1="225.0391" x2="536.558" y2="251.0391" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_6" data-part="line" x1="936.558" y1="183.6602" x2="936.558" y2="199.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_6" data-part="line" x1="936.558" y1="225.0391" x2="936.558" y2="251.0391" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="audio" data-part="card" x="441.5277" y="261.0391" width="538.9473" height="49.4766" rx="5" fill="#B8BEC8"/>
+<rect data-id="audio" data-part="card" x="439.5277" y="259.0391" width="538.9473" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-id="cmap_2" points="536.558,267.0391 936.558,267.0391 936.558,269.0391 536.558,269.0391" fill="none" stroke="#0050EF" stroke-width="1"/>
+<line data-id="audio" x1="536.558" y1="273.5391" x2="936.558" y2="273.5391" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-id="audio" cx="536.558" cy="273.5391" r="3" fill="#0050EF"/>
+<polygon data-id="audio" points="945.558,273.5391 936.558,269.0391 936.558,278.0391" fill="#0050EF"/>
+<polygon data-id="timestamp_1" points="536.558,275.0391 533.558,288.0391 539.558,288.0391" fill="#000000"/>
+<polygon data-id="timestamp_2" points="936.558,275.0391 933.558,288.0391 939.558,288.0391" fill="#000000"/>
+<text data-id="audio" data-part="name" x="447.5277" y="277.3472" text-anchor="start" font-size="11" fill="#000000">Audio</text>
+<text data-id="timestamp_1" data-part="coordinate" x="536.558" y="298.3931" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
+<text data-id="timestamp_2" data-part="coordinate" x="936.558" y="298.3931" text-anchor="middle" font-size="9" fill="#000000">1 323 000 smp</text>
+<line data-id="timestamp_3" data-part="line" x1="536.558" y1="100.1836" x2="536.558" y2="308.5156" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="936.558" y1="100.1836" x2="936.558" y2="308.5156" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_5" data-part="line" x1="536.558" y1="32.8047" x2="536.558" y2="183.6602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_5" data-part="line" x1="536.558" y1="251.0391" x2="536.558" y2="308.5156" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_6" data-part="line" x1="936.558" y1="32.8047" x2="936.558" y2="183.6602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_6" data-part="line" x1="936.558" y1="251.0391" x2="936.558" y2="308.5156" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_7" data-part="line" x1="536.558" y1="32.8047" x2="536.558" y2="108.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_7" data-part="line" x1="536.558" y1="175.6602" x2="536.558" y2="308.5156" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_8" data-part="line" x1="936.558" y1="32.8047" x2="936.558" y2="108.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_8" data-part="line" x1="936.558" y1="175.6602" x2="936.558" y2="308.5156" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 </g>
 </svg>
