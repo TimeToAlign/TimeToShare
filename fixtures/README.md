@@ -22,9 +22,9 @@ The directories sort the manifests by content only:
 - under `statements/`, manifests whose elements carry statements and
   provenance ([Statement fixtures](#statement-fixtures)).
 
-Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 15 under
-`groups/`, 16 under `bundles/` and 4 under `statements/`, 86 in all, each
-with its minimal twin, so 172 files. Beside them lie the expected RDF of
+Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 16 under
+`groups/`, 18 under `bundles/` and 4 under `statements/`, 89 in all, each
+with its minimal twin, so 178 files. Beside them lie the expected RDF of
 the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
 under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
 185 rejection cases, 16 warning cases, one table of acceptances under
@@ -278,6 +278,7 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `group_groupstamp` | the group "Performance" of the score `score` ("Score", 8 quarters, with a map to ticks) and the performance `performance` ("Performance", 4.0 seconds, with a map to samples), so that each member has a conversion maps band; the timestamp `timestamp_1` "Bar 2" at quarter 4 of the score is a groupstamp, its wedge unturned: its own line crosses the score's card, cut where its wedge and its label stand, and its frame line runs on across the performance's card |
 | `group_groupstamp_child_member` | the group "Performance" of the score `score` ("Score", 8 quarters), holding the child `second-half` ("Second half", 4 quarters at 4), and the performance `performance` ("Performance", 4.0 seconds), no timeline carrying a map; the timestamp `timestamp_1` "Bar 4" at quarter 2 of the child is a groupstamp, since the child lies in the group through its parent, its wedge unturned: its own line crosses the score's card, cut where its wedge and its label stand below the child's line, and its frame line runs on across the performance's card |
 | `group_child_member_stamps` | the group of `group_parent_both` (the child member `middle`, 8 quarters at 4 in the piece `piece` of 16, and the root member `recording`, 10.0 seconds), whose child member carries both kinds of line: the timestamp `timestamp_1` "Bar 2" at quarter 2 of `middle`, drawing its cross-section line alone (`display` `["cross_section"]`), and the match timestamps `timestamp_2`, without a name, at quarter 4 of `middle` and `timestamp_3` at second 5.0 of `recording`, which the MatchStamp `matchstamp_1` ("Middle, bar 3") joins by the anchor `anchor_1`, drawing the name, from `claim_1`; no timestamp is a groupstamp. Each line runs from border to border across every card that draws its timeline's line, uncut: the child's card, where it crosses the ancestor line of `piece`, the ancestor card of `piece`, which draws `middle` as its child, and the recording's card; the anchor joins the bottom of the child's card to the top of the recording's |
+| `group_elided_inside` | the group "Excerpt" of the excerpt `excerpt` ("Excerpt", 8 quarters at 8 in the movement `first`, 32 quarters at 0 in the piece `piece` of 64, whose second movement `second` lies at 32) and the recording `recording` (10.0 seconds); `first` and `second` share one row of `piece`'s children band, and the piece's ancestor card elides both movements around the excerpt by default |
 | `bundle_mixed` | the bundle "Mixed" of two groups, a score with its performance and a page with an excerpt (a child of a recording); `annotations` is ungrouped, and the recording, which no group names, contains the member `excerpt` and is drawn as its ancestor line and whole in its ancestor card behind the frame. The score has a map to ticks, then a tempo map to seconds, and a repeat from 8 back to 0; the performance a map to samples; the page a map to points; the excerpt a map to seconds; the recording a map to seconds, drawn in its ancestor card only; `annotations` the regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map |
 | `bundle_shared_parent` | the bundle "Sonata" of two groups whose members are two children of one score (an exposition at 0 and a recapitulation at 20, 12 quarters each), each with a take; a page is ungrouped, and the score, which no group names, contains both members and is drawn as an ancestor line of each and whole in an ancestor card behind each frame. Both children are segment lines: the exposition, with a map to ticks, of the segments "First theme" and "Second theme" of 6 quarters, the second with a tempo map to seconds; the recapitulation, with no map, of the segment lines "First theme" and "Second theme" of 6 quarters, each of the segments "Phrase 1" and "Phrase 2" of 3 quarters, and only its "Second theme" has a map to ticks. The take `take_1` is a segment line, with a map to samples, of "First theme" (14.0 seconds) and "Second theme" (16.0 seconds); the take `take_2` and the page carry no map. The score has a map to ticks, the region "Development" from 12 to 20 and a repeat from 12 back to 0, drawn in its ancestor cards only. A segment's ID begins with its segment line's (`exposition_first`, `recapitulation_second_1`) |
 | `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the flow marker "Fine" at 8 (`fine`) and the jump origin "D.C. al Fine" at 16 back to 0 (`da_capo_al_fine`); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
@@ -288,6 +289,8 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `bundle_matchstamp_cards` | the bundle "MatchStamp cards" of two groups that share a member, as `bundle_shared_member`: the score `score` ("Score", 8 quarters), holding the child `second-half` ("Second half", 4 quarters at 4), is a member of the group `group_1` ("Performance") beside the performance `performance` (4.0 seconds) and of the group `group_2` ("Page") beside the page `page` (800 pixels); three match timestamps without a name, `timestamp_1` at quarter 4 of the score, `timestamp_2` at second 1.0 of the performance and `timestamp_3` at quarter 2 of the child; `matchstamp_1` ("Bar 2, performed") joins the performance to the score, drawn in two cards, by `anchor_1`, from `claim_1`; `matchstamp_2` ("Second half, bar 1") the score to its child, whose lines lie in one card, by `anchor_2`, from `claim_2`; both anchors draw the name |
 | `bundle_matchstamp_groupstamp` | the bundle of `bundle_matchstamp_cards` whose match timestamp `timestamp_1` at quarter 4 of the score, a member of both groups, is a groupstamp, its line across the frame of `group_1` and that of `group_2` |
 | `bundle_groupstamp_shared_member` | the bundle of `bundle_shared_member` with the timestamp `timestamp_1` "Bar 2" at quarter 4 of the shared member `t`, a groupstamp, its wedge unturned, its line across the frame of `g1` and that of `g2`: in each, its own line crosses `t`'s card, cut where its wedge and its label stand, and its frame line runs on across the other member's card; no member has a band |
+| `bundle_elisions_stored` | the bundle "Elisions" of the group "Theme" of the child `theme` (8 quarters at 16 in the score `score` of 64, which also holds the coda `coda`, 8 quarters at 56), the child `take` (25.5 seconds at 30.0 in the session `session` of 90.0 seconds) and the root `recording` (10.0 seconds), and of the ungrouped page `page` (1754 pixels); one rule hides the line of `coda`, another, `{"element": "elision", "within": "#session"}`, every elision of the session. Seven stored elisions, in canonical order: `elision_1` on `coda` from 0 to 8, a child whose line is hidden; `elision_2` on `page` from 600 to 1754, in an ungrouped root's card; `elision_3` on the member root `recording` from 0.0 to 2.0, drawn nowhere; on `score`, behind the frame of `theme` (16 to 24 on its axis), `elision_4` from 0 to 20 with the width `{"ratio": 0.5}`, which overlaps the member, `elision_5` from 32 to 48 with `{"span": [4, 1]}` and `elision_6` from 40 to 56 with `{"canvas": 30}`, which overlaps `elision_5`; and `elision_7` on `session` from 0.0 to 30.0, hidden by the rule |
+| `bundle_elided_layerit` | the bundle "Suite bergamasque" of the suite `clt_1` (1616 quarters) and its four movements, locked and without maps, `clt_2` "Prelude" (356 at 0), `clt_3` "Menuet" (312 at 356), `clt_4` "Clair de Lune" (324 at 668) and `clt_5` "Passepied" (624 at 992); each movement holds one excerpt on its own axis, `clt_6` "Prelude mm. 1–4" (16 at 0), `clt_7` "Menuet mm. 41–44" (12 at 120), `clt_8` "Clair de Lune mm. 1–6" (27 at 0) and `clt_9` "Passepied mm. 153–156" (16 at 608), and four groups, each named as its excerpt, list the excerpt and a recording in seconds (`cpt_1` to `cpt_4`: 14.0, 6.5, 33.35 and 5.5 seconds): the suite's ancestor card behind each frame elides it around the opening of the work, an excerpt inside a movement, the opening of a later movement and the ending |
 | `group_measure_map` | the group "Edition" of a score of 16 quarters and its MIDI rendering of 7680 ticks, both reading one entry of `measure_maps`, four bars of 4/4: the score through its `MeasureRecordMap`, the rendering through a `ChainMap` of the `LinearMap` `ppq` to quarters (480 ticks per quarter) and its `MeasureRecordMap` |
 
 The corpus builders, prefixed `corpus_`, write the groups and bundles that
@@ -302,7 +305,7 @@ groups and bundles and the single-timeline fixtures `styled__score`,
 `child_jumps`, `map_row_siblings`, `map_row_subslots` and `map_row_moved`
 so that each case below occurs in one of them at least.
 `group_number_types`, `group_child_member`, the three `group_parent_*`,
-`group_grandchild`, `group_grandchild_parent_on_top` and `group_groupstamp_child_member` hold none of them, and `group_unknown_length` holds only
+`group_grandchild`, `group_grandchild_parent_on_top`, `group_groupstamp_child_member`, `group_elided_inside`, `bundle_elisions_stored` and `bundle_elided_layerit` hold none of them, and `group_unknown_length` holds only
 a region. The table also names where each side of a child member's
 ancestor band occurs (drawing specification, section 8.3). The segment lines of the single-timeline fixtures but
 `map_row_subslots` (`segment_line`, `segment_pages`, `segment_pages_locked`,
@@ -450,7 +453,7 @@ released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
 ones (`corpus_*`) and the statement fixtures, at the default placement, and
-twenty-one variants. The
+twenty-five variants. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -481,7 +484,21 @@ defaults hide: `unknown_length_child` on the band `{"id": "movement",
 an application layer of one rule that hides the ancestor cards the
 defaults show, `{"element": "ancestor_card"}` set to `display` `none`:
 `group_parent_both`, `group_parent_right` and `group_parents_mixed`
-(`group__<name>__ancestor-cards-hidden`): 91 drawings in all.
+(`group__<name>__ancestor-cards-hidden`); and four groups with an
+application layer of one rule that hides every elision,
+`{"element": "elision"}` set to `display` `none`, so that each ancestor
+card is drawn whole: `group_grandchild`, `group_grandchild_parent_on_top`,
+`group_parents_mixed` and `group_elided_inside` (`group__<name>__full`).
+96 drawings lie here. Not yet emitted are the drawings of
+`bundle_elisions_stored` and `bundle_elided_layerit`, and the variant
+of the latter at the view 1024 × 640 (`bundle__bundle_elided_layerit__view-1024x640`),
+where the bound of the view sets the default proportion of the excerpts
+at the opening and the ending; not yet emitted again, for the elisions
+their ancestor cards draw by default, are `bundle__bundle_mixed` with its
+four variants and `bundle__bundle_shared_parent`, and the `figure.tex`
+of `group__group_grandchild`, `group__group_grandchild_parent_on_top`
+and `group__group_parents_mixed`; `group__group_elided_inside` and its
+`__full` case hold no `figure.tex` yet.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
@@ -512,7 +529,7 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   finds both font files in the directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Thirty-seven `figure.svg` files are derived by hand from the
+for byte. Forty-two `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, among them every drawing of
 a timeline of unknown length, the three variants of `bundle_ungrouped`, the
 three variants that display a band the defaults hide, the band orders of
@@ -523,7 +540,9 @@ slots (`map_row_siblings`, `map_row_subslots`, `map_row_moved`),
 `bundle__bundle_matchstamp_cards`, the cross-section lines and the
 anchor on a child member of `group__group_child_member_stamps` and the
 ancestor lines on both sides of the member of
-`group__group_grandchild_parent_on_top`;
+`group__group_grandchild_parent_on_top`, the default elisions of
+`group__group_elided_inside` and the four `__full` cases, which draw the
+same ancestor cards whole;
 `drawings/README.md` lists them with their arithmetic. Every other figure, and every `inputs.json`, is
 emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
 <TimeToShare checkout>` (run in its `app/packages/writers/`), which
