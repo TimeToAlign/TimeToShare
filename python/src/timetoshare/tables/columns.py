@@ -30,7 +30,7 @@ from ..validate import (
     PROVENANCE_DEFINITION,
     PROVENANCE_DOCUMENT,
     SCHEMA_VERSION,
-    _data_root,
+    data_root,
     load_schema,
 )
 
@@ -71,7 +71,7 @@ def tables_path() -> Path:
     :data:`PROJECTION_SCHEMA`: its ``types`` declare the structs a cell
     holds, its ``tables`` each table's status and its columns, in order.
     """
-    return _data_root() / "schema" / SCHEMA_VERSION / TABLES_DOCUMENT
+    return data_root() / "schema" / SCHEMA_VERSION / TABLES_DOCUMENT
 
 
 def _read_tables() -> dict[str, Any]:
@@ -296,4 +296,4 @@ def fixture_path(name: str) -> Path:
     potential MatchStamps expected of the MatchClaim table
     (``expected.yaml``).
     """
-    return _data_root() / "fixtures" / "tables" / SCHEMA_VERSION / name
+    return data_root() / "fixtures" / "tables" / SCHEMA_VERSION / name

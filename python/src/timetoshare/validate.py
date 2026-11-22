@@ -30,17 +30,17 @@ from .ids import FileIdError, leniently_bare_ids, with_bare_ids
 from .serialization import spell
 from .statements import subjects
 from .validation.containment import child_ends as child_ends
-from .validation.diagnostics import ManifestWarning as ManifestWarning
 from .validation.diagnostics import (
+    InstancePath,
     SchemaValidationError,
-    _entries,
-    _Path,
     duplicate_problem,
+    entries_of,
     listed_ids,
     string_id,
     timestamps_of,
     tree_ids,
 )
+from .validation.diagnostics import ManifestWarning as ManifestWarning
 from .validation.diagnostics import ValidationCode as ValidationCode
 from .validation.diagnostics import WarningCode as WarningCode
 from .validation.diagnostics import json_pointer as json_pointer
@@ -70,7 +70,8 @@ class UnsupportedVersionError(ValueError):
         )
 
 
-def _data_root() -> Path:
+def data_root() -> Path:
+    """The directory holding the schema, catalogue, fonts and fixtures."""
     package = Path(str(files("timetoshare")))
     if (package / "schema").is_dir():
         return package
@@ -79,12 +80,12 @@ def _data_root() -> Path:
 
 def schema_path() -> Path:
     """Return the path of the schema document."""
-    return _data_root() / "schema" / SCHEMA_VERSION / "timetoshare.schema.json"
+    return data_root() / "schema" / SCHEMA_VERSION / "timetoshare.schema.json"
 
 
 def provenance_schema_path() -> Path:
     """Return the path of the provenance schema, the one provenance entry."""
-    return _data_root() / "schema" / SCHEMA_VERSION / PROVENANCE_DOCUMENT
+    return data_root() / "schema" / SCHEMA_VERSION / PROVENANCE_DOCUMENT
 
 
 PROVENANCE_DOCUMENT = "provenance.schema.json"
@@ -387,7 +388,8 @@ def _candidate_leaves(error: ValidationError) -> Iterable[ValidationError]:
         yield from _candidate_leaves(child)
 
 
-def _select(errors: Iterable[ValidationError]) -> ValidationError | None:
+def select(errors: Iterable[ValidationError]) -> ValidationError | None:
+    """The error the one path rule reports: the deepest leaf, the first on a tie."""
     best: ValidationError | None = None
     for error in errors:
         for leaf in _candidate_leaves(error):
@@ -424,7 +426,7 @@ def _declared(node: Mapping[str, Any]) -> set[str]:
     return declared
 
 
-def _keys(errors: Iterable[ValidationError]) -> Iterator[tuple[_Path, str]]:
+def _keys(errors: Iterable[ValidationError]) -> Iterator[tuple[InstancePath, str]]:
     for error in errors:
         if error.validator == "unevaluatedProperties":
             declared = _declared(error.schema)
@@ -451,7 +453,7 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
             raise finite
 
     errors = _walk_errors(_marking_validator(), _checks().manifest, value)
-    error = _select(errors)
+    error = select(errors)
     if error is not None:
         raise SchemaValidationError("schema", tuple(error.absolute_path), error.message)
 
@@ -514,7 +516,7 @@ def manifest_warnings(value: Mapping[str, Any]) -> list[ManifestWarning]:
 
 def _statement_members(
     value: Mapping[str, Any], bare: Mapping[str, Any]
-) -> Iterator[tuple[str, str, Any, _Path, str | None]]:
+) -> Iterator[tuple[str, str, Any, InstancePath, str | None]]:
     """``@context``, then each ``statements`` and ``provenance`` in subject order.
 
     Each with the definition declaring it, its value, its path and the bare
@@ -568,7 +570,7 @@ def statement_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
         if finite is not None:
             problems.append(finite)
             continue
-        error = _select(_member_errors(definition, member, content))
+        error = select(_member_errors(definition, member, content))
         if error is not None:
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, error.message))
@@ -586,10 +588,10 @@ def _definition_validator(definition: str) -> Any:
     )
 
 
-_MATCHSTAMPS: _Path = ("graphical", "matchstamps")
+_MATCHSTAMPS: InstancePath = ("graphical", "matchstamps")
 
 
-def _match_timestamps(value: Mapping[str, Any]) -> Iterator[tuple[_Path, Any]]:
+def _match_timestamps(value: Mapping[str, Any]) -> Iterator[tuple[InstancePath, Any]]:
     """Each match timestamp (``matchstamp: true``) with its path."""
     for index, timestamp in enumerate(timestamps_of(value)):
         if isinstance(timestamp, Mapping) and timestamp.get("matchstamp") is True:
@@ -607,12 +609,12 @@ def _matchstamp_id_problems(
     it when the ID at it or its first occurrence belongs to a MatchStamp.
     """
 
-    def concerned(*paths: _Path) -> bool:
+    def concerned(*paths: InstancePath) -> bool:
         return any(path[: len(_MATCHSTAMPS)] == _MATCHSTAMPS for path in paths)
 
-    first: dict[str, _Path] = {}
-    for index, root in enumerate(_entries(bare, "timelines")):
-        seen: dict[str, _Path] = {}
+    first: dict[str, InstancePath] = {}
+    for index, root in enumerate(entries_of(bare, "timelines")):
+        seen: dict[str, InstancePath] = {}
         for identifier, path in tree_ids(root, ("timelines", index)):
             seen.setdefault(identifier, path)
         for identifier, path in seen.items():
@@ -666,7 +668,7 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
         if finite is not None:
             problems.append(finite)
             continue
-        error = _select(
+        error = select(
             _walk_errors(
                 _definition_validator("Timestamp"), _checks().timestamp, timestamp
             )
@@ -682,7 +684,7 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
         if finite is not None:
             problems.append(finite)
         else:
-            error = _select(
+            error = select(
                 _member_errors("Graphical", "matchstamps", graphical["matchstamps"])
             )
             if error is not None:

@@ -17,7 +17,7 @@ from collections.abc import Callable
 from fractions import Fraction
 from typing import Any
 
-from .manifest import UNITS, _order_displays, _respell, fraction_pair
+from .manifest import UNITS, fraction_pair, order_displays, respell
 
 __all__ = ["DEFAULTS", "complete", "minimal"]
 
@@ -228,8 +228,8 @@ def complete(value: Any) -> Any:
     The JavaScript package's ``complete`` gives the same value.
     """
     result = copy.deepcopy(value)
-    _respell(result)
-    _order_displays(result)
+    respell(result)
+    order_displays(result)
     _visit_manifest(result, _complete_one)
     return result
 

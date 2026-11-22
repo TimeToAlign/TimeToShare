@@ -11,12 +11,12 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import Any
 
-from ..manifest import _exact
+from ..manifest import exact
 from ..serialization import spell
 from .diagnostics import (
     SchemaValidationError,
-    _entries,
     connected_sets,
+    entries_of,
     matchstamps_of,
     string_id,
     timelines_by_id,
@@ -34,7 +34,7 @@ def _grouped_timelines(manifest: Mapping[str, Any]) -> set[str]:
     """
     members = {
         member
-        for group in _entries(manifest, "groups")
+        for group in entries_of(manifest, "groups")
         for member in group.get("members", [])
     }
     grouped: set[str] = set()
@@ -43,10 +43,10 @@ def _grouped_timelines(manifest: Mapping[str, Any]) -> set[str]:
         inside = inside or timeline["id"] in members
         if inside:
             grouped.add(timeline["id"])
-        for child in _entries(timeline, "children"):
+        for child in entries_of(timeline, "children"):
             visit(child, inside)
 
-    for root in _entries(manifest, "timelines"):
+    for root in entries_of(manifest, "timelines"):
         visit(root, False)
     return grouped
 
@@ -77,13 +77,13 @@ def timestamp_problems(
         coordinate = timestamp["coordinate"]
         length = timeline.get("length")
         where = f"coordinate {spell(coordinate)} of '{timestamp['id']}'"
-        if _exact(coordinate) < 0:
+        if exact(coordinate) < 0:
             yield SchemaValidationError(
                 "timestamp_coordinate",
                 (*path, "coordinate"),
                 f"{where} lies before the start of its timeline '{identifier}'",
             )
-        elif length is not None and _exact(coordinate) > _exact(length):
+        elif length is not None and exact(coordinate) > exact(length):
             yield SchemaValidationError(
                 "timestamp_coordinate",
                 (*path, "coordinate"),
@@ -164,7 +164,7 @@ def matchstamp_problems(
             continue
         path = ("graphical", "timestamps", index)
         identifier = timestamp["id"]
-        key = (timestamp["timeline"], _exact(timestamp["coordinate"]))
+        key = (timestamp["timeline"], exact(timestamp["coordinate"]))
         if key in first:
             yield SchemaValidationError(
                 "match_timestamp",
@@ -197,7 +197,7 @@ def resource_problems(
     """
     timelines = timelines_by_id(manifest)
     first: dict[str, str] = {}
-    for index, resource in enumerate(_entries(manifest, "resources")):
+    for index, resource in enumerate(entries_of(manifest, "resources")):
         path = ("resources", index)
         for number, identifier in enumerate(resource["timelines"]):
             if identifier not in timelines:

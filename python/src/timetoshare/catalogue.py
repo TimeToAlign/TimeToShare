@@ -44,15 +44,15 @@ from urllib.parse import unquote
 from .serialization import loads
 from .statements import (
     BLANK,
-    _context,
-    _is_iri,
-    _is_node,
-    _is_value_object,
-    _prefix_of,
-    _strictly_equal,
     container_pairs,
+    context_of,
     expand_iri,
+    is_iri,
+    is_node,
+    is_value_object,
     pairs,
+    prefix_of,
+    strictly_equal,
 )
 
 __all__ = [
@@ -190,8 +190,8 @@ def _used_prefixes(document: Mapping[str, Any]) -> Iterator[str]:
 
 def _compact_prefixes(texts: Any) -> Iterator[str]:
     for text in texts:
-        if _is_iri(text):
-            prefix = _prefix_of(text)
+        if is_iri(text):
+            prefix = prefix_of(text)
             if prefix is not None:
                 yield prefix
 
@@ -294,9 +294,9 @@ def load_catalogue() -> Catalogue:
 
     It is read once; treat it as read-only.
     """
-    from .validate import _data_root
+    from .validate import data_root
 
-    path = _data_root() / "catalogue" / "catalogue.yaml"
+    path = data_root() / "catalogue" / "catalogue.yaml"
     return read_catalogue(loads(path.read_text(encoding="utf-8")))
 
 
@@ -435,27 +435,27 @@ class _Reading:
 
     def reference(self, text: Any) -> Any:
         """A node's ``id`` as its IRI; a relative reference as written."""
-        if isinstance(text, str) and _is_iri(text):
+        if isinstance(text, str) and is_iri(text):
             return self.held(text)
         return text
 
     def constant(self, template: Any, value: Any) -> bool:
         if isinstance(template, str) and isinstance(value, str):
             return template == value or (
-                _is_iri(template) and self.own(template) == self.held(value)
+                is_iri(template) and self.own(template) == self.held(value)
             )
-        return _strictly_equal(template, value)
+        return strictly_equal(template, value)
 
     def matches(self, template: Any, value: Any) -> int | None:
         """The number of constants of a template that ``value`` matches, or ``None``."""
         if isinstance(template, str) and template.startswith("?"):
             literal = not isinstance(value, list) and (
-                not isinstance(value, Mapping) or _is_value_object(value)
+                not isinstance(value, Mapping) or is_value_object(value)
             )
             return 0 if literal else None
         if not isinstance(template, Mapping):
             return 1 if self.constant(template, value) else None
-        if not _is_node(value):
+        if not is_node(value):
             return None
         count = 0
         for key, item in template.items():
@@ -514,7 +514,7 @@ class _Reading:
     def things(self, property: str, value: Any) -> list[str]:
         if property == "type" and isinstance(value, str):
             return [self.held(value)]
-        if not _is_node(value):
+        if not is_node(value):
             return []
         found = [self.reference(value["id"])] if "id" in value else []
         for key, members in value.items():
@@ -523,7 +523,7 @@ class _Reading:
             if self.held(key) not in _SAME_AS:
                 continue
             for member in members if isinstance(members, list) else ():
-                if _is_node(member) and "id" in member:
+                if is_node(member) and "id" in member:
                     found.append(self.reference(member["id"]))
         return found
 
@@ -568,11 +568,11 @@ def rectangles(
         ValueError: If the path addresses no element and no value node.
     """
     stated = pairs(manifest, subject)
-    reading = _Reading(catalogue, _context(manifest))
+    reading = _Reading(catalogue, context_of(manifest))
     things = [reading.things(property, value) for property, value in stated]
     labels = [
         value["label"]
-        if _is_node(value) and isinstance(value.get("label"), str)
+        if is_node(value) and isinstance(value.get("label"), str)
         else None
         for _, value in stated
     ]

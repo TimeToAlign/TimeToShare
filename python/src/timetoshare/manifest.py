@@ -128,7 +128,7 @@ def fraction_pair(value: Any) -> Fraction | None:
     return Fraction(numerator, denominator)
 
 
-def _exact(value: Any) -> Fraction:
+def exact(value: Any) -> Fraction:
     """Return the exact value of a coordinate: a JSON number or a Fraction pair.
 
     Raises:
@@ -167,7 +167,7 @@ def _order_display(owner: dict[str, Any], words: tuple[str, ...]) -> None:
         owner["display"] = sorted(display, key=_display_key(words))
 
 
-def _order_displays(manifest: Any) -> None:
+def order_displays(manifest: Any) -> None:
     """Put every timestamp's and alignment anchor's ``display`` in canonical order."""
     for timestamp in _dicts(_timestamps(manifest)):
         _order_display(timestamp, TIMESTAMP_DISPLAY)
@@ -201,7 +201,7 @@ def _order_timeline(timeline: dict[str, Any]) -> None:
             _order_timeline(child)
         timeline["children"] = _sorted(
             children,
-            lambda entry: (_exact(entry["offset"]), _by_id(entry)),
+            lambda entry: (exact(entry["offset"]), _by_id(entry)),
             "children",
         )
     if isinstance(timeline.get("conversion_maps"), list):
@@ -211,13 +211,13 @@ def _order_timeline(timeline: dict[str, Any]) -> None:
     if isinstance(timeline.get("regions"), list):
         timeline["regions"] = _sorted(
             timeline["regions"],
-            lambda entry: (_exact(entry["start"]), _exact(entry["end"]), _by_id(entry)),
+            lambda entry: (exact(entry["start"]), exact(entry["end"]), _by_id(entry)),
             "regions",
         )
     if isinstance(timeline.get("flow_control"), list):
         timeline["flow_control"] = _sorted(
             timeline["flow_control"],
-            lambda entry: (_exact(entry["coordinate"]), _by_id(entry)),
+            lambda entry: (exact(entry["coordinate"]), _by_id(entry)),
             "flow_control",
         )
 
@@ -324,7 +324,7 @@ def _matchstamps(manifest: Any) -> Any:
     return graphical.get("matchstamps") if isinstance(graphical, dict) else None
 
 
-def _respell(manifest: Any) -> None:
+def respell(manifest: Any) -> None:
     """Respell every own-axis value of a manifest as its number type selects, in place.
 
     The own-axis values are a timeline's ``length`` and ``offset``, its
@@ -365,7 +365,7 @@ def canonical_order(value: Any) -> Any:
     result = copy.deepcopy(value)
     if not is_manifest(result):
         return result
-    _respell(result)
+    respell(result)
     timelines = result["timelines"]
     for timeline in _dicts(timelines):
         _order_timeline(timeline)
@@ -384,7 +384,7 @@ def canonical_order(value: Any) -> Any:
             timestamps,
             lambda entry: (
                 _identifier(entry["timeline"]),
-                _exact(entry["coordinate"]),
+                exact(entry["coordinate"]),
                 _by_id(entry),
             ),
             "timestamps",
@@ -399,5 +399,5 @@ def canonical_order(value: Any) -> Any:
                     matchstamp["alignment_anchors"], _by_id, "alignment_anchors"
                 )
         result["graphical"]["matchstamps"] = _sorted(matchstamps, _by_id, "matchstamps")
-    _order_displays(result)
+    order_displays(result)
     return result

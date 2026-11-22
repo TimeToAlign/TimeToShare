@@ -8,9 +8,9 @@ from fractions import Fraction
 from itertools import pairwise
 from typing import Any
 
-from ..manifest import _exact
+from ..manifest import exact
 from ..serialization import spell
-from .diagnostics import SchemaValidationError, _entries, _Path, number_type_of
+from .diagnostics import InstancePath, SchemaValidationError, entries_of, number_type_of
 from .representation import rewritten
 
 
@@ -18,7 +18,7 @@ def offset_order(children: list[Any]) -> list[int]:
     """Return child indices in exact offset order, ties by id."""
     return sorted(
         range(len(children)),
-        key=lambda index: (_exact(children[index]["offset"]), children[index]["id"]),
+        key=lambda index: (exact(children[index]["offset"]), children[index]["id"]),
     )
 
 
@@ -35,7 +35,7 @@ def _double(value: Any) -> float | None:
         return None
 
 
-def _child_end(timeline: Mapping[str, Any], child: Mapping[str, Any]) -> Fraction:
+def child_end(timeline: Mapping[str, Any], child: Mapping[str, Any]) -> Fraction:
     """Return where a child of known length ends on its parent's axis.
 
     The offset lies on the parent's axis and the length on the child's. Where
@@ -48,7 +48,7 @@ def _child_end(timeline: Mapping[str, Any], child: Mapping[str, Any]) -> Fractio
         offset, length = _double(child["offset"]), _double(child["length"])
         if offset is not None and length is not None and math.isfinite(offset + length):
             return Fraction(offset + length)
-    return _exact(child["offset"]) + _exact(child["length"])
+    return exact(child["offset"]) + exact(child["length"])
 
 
 def child_ends(timeline: Mapping[str, Any]) -> list[Fraction | None]:
@@ -64,9 +64,9 @@ def child_ends(timeline: Mapping[str, Any]) -> list[Fraction | None]:
     end ``None``, except a child of a segment line without a length, whose
     end is the offset of the next child in offset order.
     """
-    children = _entries(timeline, "children")
+    children = entries_of(timeline, "children")
     ends: list[Fraction | None] = [
-        _child_end(timeline, child)
+        child_end(timeline, child)
         if child.get("length") is not None and child["unit"] == timeline["unit"]
         else None
         for child in children
@@ -75,19 +75,19 @@ def child_ends(timeline: Mapping[str, Any]) -> list[Fraction | None]:
         order = offset_order(children)
         for index, successor in pairwise(order):
             if children[index].get("length") is None:
-                ends[index] = _exact(children[successor]["offset"])
+                ends[index] = exact(children[successor]["offset"])
     return ends
 
 
 def timeline_containment_problems(
-    timeline: Mapping[str, Any], path: _Path
+    timeline: Mapping[str, Any], path: InstancePath
 ) -> Iterator[SchemaValidationError]:
     """Yield children off their parent's axis or beyond its known end."""
     length = timeline.get("length")
     ends = child_ends(timeline)
-    for index, child in enumerate(_entries(timeline, "children")):
+    for index, child in enumerate(entries_of(timeline, "children")):
         at = (*path, "children", index)
-        offset = _exact(child["offset"])
+        offset = exact(child["offset"])
         if child["unit"] != timeline["unit"]:
             yield SchemaValidationError(
                 "child_unit",
@@ -96,14 +96,14 @@ def timeline_containment_problems(
                 f"'{timeline['id']}' has '{timeline['unit']}'",
             )
         end = ends[index]
-        if length is not None and offset > _exact(length):
+        if length is not None and offset > exact(length):
             yield SchemaValidationError(
                 "child_offset",
                 (*at, "offset"),
                 f"offset {spell(child['offset'])} of '{child['id']}' is beyond the "
                 f"length {spell(length)} of its parent '{timeline['id']}'",
             )
-        elif length is not None and end is not None and end > _exact(length):
+        elif length is not None and end is not None and end > exact(length):
             pair = [end.numerator, end.denominator]
             yield SchemaValidationError(
                 "child_end",

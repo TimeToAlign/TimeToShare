@@ -28,17 +28,17 @@ from ..statements import (
     BLANK,
     FORMAT_CONTEXT,
     URI_SCHEMES,
-    _prefixes,
-    _reference_iri,
     calendar_date,
+    declared_prefixes,
+    reference_iri,
     same_pair,
     statement_positions,
     subjects,
 )
 from .diagnostics import (
+    InstancePath,
     SchemaValidationError,
-    _entries,
-    _Path,
+    entries_of,
     manifest_ids,
 )
 
@@ -79,9 +79,9 @@ def _context_problems(manifest: Mapping[str, Any]) -> Iterator[SchemaValidationE
 
 def _elements(
     manifest: Mapping[str, Any],
-) -> Iterator[tuple[_Path, Mapping[str, Any], str]]:
+) -> Iterator[tuple[InstancePath, Mapping[str, Any], str]]:
     yield from subjects(manifest)
-    for index, group in enumerate(_entries(manifest, "groups")):
+    for index, group in enumerate(entries_of(manifest, "groups")):
         if isinstance(group, Mapping):
             yield ("groups", index), group, "group"
 
@@ -99,7 +99,7 @@ def _reserved(key: str, kind: str, prefixes: Mapping[str, str]) -> bool:
 def _reserved_key_problems(
     manifest: Mapping[str, Any],
 ) -> Iterator[SchemaValidationError]:
-    prefixes = _prefixes(manifest.get("@context"))
+    prefixes = declared_prefixes(manifest.get("@context"))
     for path, element, kind in _elements(manifest):
         for key in sorted(key for key in element if isinstance(key, str)):
             if _reserved(key, kind, prefixes):
@@ -120,10 +120,10 @@ class _Walk:
     def __init__(self, manifest: Mapping[str, Any]) -> None:
         context = manifest.get("@context")
         self.context = context if isinstance(context, Mapping) else None
-        self.prefixes = _prefixes(context)
+        self.prefixes = declared_prefixes(context)
         self.ids = {identifier for identifier, _ in manifest_ids(manifest)}
 
-    def iri(self, text: str, path: _Path) -> Iterator[SchemaValidationError]:
+    def iri(self, text: str, path: InstancePath) -> Iterator[SchemaValidationError]:
         prefix, _, rest = text.partition(":")
         if rest.startswith("//") or prefix in self.prefixes or prefix in URI_SCHEMES:
             return
@@ -133,7 +133,7 @@ class _Walk:
             f"'{text}': the prefix '{prefix}' is not declared in @context",
         )
 
-    def ref(self, text: str, path: _Path) -> Iterator[SchemaValidationError]:
+    def ref(self, text: str, path: InstancePath) -> Iterator[SchemaValidationError]:
         if _SCHEME.match(text) is not None:
             yield from self.iri(text, path)
         elif text.startswith("#") and text[1:] not in self.ids:
@@ -142,7 +142,7 @@ class _Walk:
             )
 
     def annotations(
-        self, pairs: list[tuple[str, Any]], provenance: list[Any], path: _Path
+        self, pairs: list[tuple[str, Any]], provenance: list[Any], path: InstancePath
     ) -> Iterator[SchemaValidationError]:
         written: list[tuple[str, Any]] = []
         for index, entry in enumerate(provenance):
@@ -166,11 +166,11 @@ class _Walk:
             written.append(pair)
 
     def beliefs(
-        self, entry: Mapping[str, Any], path: _Path
+        self, entry: Mapping[str, Any], path: InstancePath
     ) -> Iterator[SchemaValidationError]:
         actors: dict[Any, int] = {}
-        for index, belief in enumerate(_entries(entry, "beliefs")):
-            actor = _reference_iri(self.context, belief["actor"])
+        for index, belief in enumerate(entries_of(entry, "beliefs")):
+            actor = reference_iri(self.context, belief["actor"])
             if actor in actors:
                 yield SchemaValidationError(
                     "belief_actor",

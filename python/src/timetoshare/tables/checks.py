@@ -22,7 +22,7 @@ from jsonschema import Draft202012Validator
 from ..ids import with_bare_ids
 from ..manifest import UNITS
 from ..statements import calendar_date, expand_iri
-from ..validate import PROVENANCE_DEFINITION, _select, load_schema
+from ..validate import PROVENANCE_DEFINITION, load_schema, select
 from ..validation.diagnostics import json_pointer, number_type_of, timelines_by_id
 from .columns import (
     BELIEF_KEYS,
@@ -209,7 +209,7 @@ def _provenance_problem(
     ``what`` names the entry in the message, and the member at fault follows
     as a JSON pointer into it.
     """
-    error = _select(_provenance_validator().iter_errors(entry))
+    error = select(_provenance_validator().iter_errors(entry))
     if error is not None:
         return f"{what} {json_pointer(error.absolute_path)}: {error.message}"
     beliefs = entry.get("beliefs", [])

@@ -14,7 +14,7 @@ from typing import Any, Literal, TypeAlias, TypedDict, TypeVar
 
 from ..manifest import UNITS
 
-_Path = tuple[str | int, ...]
+InstancePath = tuple[str | int, ...]
 ValidationCode: TypeAlias = Literal[
     "not_a_manifest",
     "schema",
@@ -95,7 +95,7 @@ def json_pointer(path: Iterable[str | int]) -> str:
 class SchemaValidationError(ValueError):
     """Raised when a value violates the schema or a semantic rule."""
 
-    def __init__(self, code: ValidationCode, path: _Path, message: str) -> None:
+    def __init__(self, code: ValidationCode, path: InstancePath, message: str) -> None:
         self.code = code
         self.path = path
         self.message = message
@@ -104,8 +104,8 @@ class SchemaValidationError(ValueError):
 
 def duplicate_problem(
     identifier: str,
-    path: _Path,
-    first: _Path,
+    path: InstancePath,
+    first: InstancePath,
     code: ValidationCode = "duplicate_id",
 ) -> SchemaValidationError:
     """The problem of an ID at ``path`` that the manifest holds first at ``first``."""
@@ -116,7 +116,8 @@ def duplicate_problem(
     )
 
 
-def _entries(owner: Any, key: str) -> list[Any]:
+def entries_of(owner: Any, key: str) -> list[Any]:
+    """The list an object holds at ``key``, else an empty list."""
     value = owner.get(key) if isinstance(owner, Mapping) else None
     return value if isinstance(value, list) else []
 
@@ -127,20 +128,24 @@ def string_id(element: Any) -> str | None:
     return identifier if isinstance(identifier, str) else None
 
 
-def _element_ids(timeline: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
+def _element_ids(
+    timeline: Any, path: InstancePath
+) -> Iterator[tuple[str, InstancePath]]:
     identifier = string_id(timeline)
     if identifier is not None:
         yield identifier, (*path, "id")
     for member in ("conversion_maps", "regions", "flow_control"):
-        for index, entry in enumerate(_entries(timeline, member)):
+        for index, entry in enumerate(entries_of(timeline, member)):
             identifier = string_id(entry)
             if identifier is not None:
                 yield identifier, (*path, member, index, "id")
-    for index, child in enumerate(_entries(timeline, "children")):
+    for index, child in enumerate(entries_of(timeline, "children")):
         yield from _element_ids(child, (*path, "children", index))
 
 
-def _held_ids(conversion_map: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
+def _held_ids(
+    conversion_map: Any, path: InstancePath
+) -> Iterator[tuple[str, InstancePath]]:
     maps = conversion_map.get("maps") if isinstance(conversion_map, Mapping) else None
     if isinstance(maps, list):
         held = list(enumerate(maps))
@@ -156,14 +161,16 @@ def _held_ids(conversion_map: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
         yield from _held_ids(entry, at)
 
 
-def _nested_map_ids(timeline: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
-    for index, entry in enumerate(_entries(timeline, "conversion_maps")):
+def _nested_map_ids(
+    timeline: Any, path: InstancePath
+) -> Iterator[tuple[str, InstancePath]]:
+    for index, entry in enumerate(entries_of(timeline, "conversion_maps")):
         yield from _held_ids(entry, (*path, "conversion_maps", index))
-    for index, child in enumerate(_entries(timeline, "children")):
+    for index, child in enumerate(entries_of(timeline, "children")):
         yield from _nested_map_ids(child, (*path, "children", index))
 
 
-def tree_ids(root: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
+def tree_ids(root: Any, path: InstancePath) -> Iterator[tuple[str, InstancePath]]:
     """Yield every ID of a root's tree with its path, in the order of the rules.
 
     The timelines depth first, each with its conversion maps', regions' and
@@ -177,7 +184,7 @@ def tree_ids(root: Any, path: _Path) -> Iterator[tuple[str, _Path]]:
     yield from _nested_map_ids(root, path)
 
 
-def listed_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
+def listed_ids(manifest: Any) -> Iterator[tuple[str, InstancePath]]:
     """Yield the IDs of the elements a manifest lists outside its timelines.
 
     The groups, the MeasureMaps, the named timestamps, the named
@@ -186,8 +193,8 @@ def listed_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
     no string ``id`` is passed over, so the walk reads any value.
     """
     for key, entries in (
-        (("groups",), _entries(manifest, "groups")),
-        (("measure_maps",), _entries(manifest, "measure_maps")),
+        (("groups",), entries_of(manifest, "groups")),
+        (("measure_maps",), entries_of(manifest, "measure_maps")),
         (("graphical", "timestamps"), timestamps_of(manifest)),
     ):
         for index, entry in enumerate(entries):
@@ -199,24 +206,24 @@ def listed_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
         identifier = string_id(matchstamp)
         if identifier is not None:
             yield identifier, (*at, "id")
-        for number, anchor in enumerate(_entries(matchstamp, "alignment_anchors")):
+        for number, anchor in enumerate(entries_of(matchstamp, "alignment_anchors")):
             identifier = string_id(anchor)
             if identifier is not None:
                 yield identifier, (*at, "alignment_anchors", number, "id")
-    for index, resource in enumerate(_entries(manifest, "resources")):
+    for index, resource in enumerate(entries_of(manifest, "resources")):
         identifier = string_id(resource)
         if identifier is not None:
             yield identifier, ("resources", index, "id")
 
 
-def manifest_ids(manifest: Any) -> Iterator[tuple[str, _Path]]:
+def manifest_ids(manifest: Any) -> Iterator[tuple[str, InstancePath]]:
     """Yield every ID of a manifest with its path, in the order of the rules.
 
     Each root's tree (``tree_ids``), then the listed elements
     (``listed_ids``), then the manifest's own ``id``. The walk reads any
     value.
     """
-    for index, root in enumerate(_entries(manifest, "timelines")):
+    for index, root in enumerate(entries_of(manifest, "timelines")):
         yield from tree_ids(root, ("timelines", index))
     yield from listed_ids(manifest)
     identifier = string_id(manifest)
@@ -233,10 +240,10 @@ def timelines_by_id(manifest: Any) -> dict[str, Mapping[str, Any]]:
 
     def visit(timeline: Mapping[str, Any]) -> None:
         found.setdefault(timeline["id"], timeline)
-        for child in _entries(timeline, "children"):
+        for child in entries_of(timeline, "children"):
             visit(child)
 
-    for root in _entries(manifest, "timelines"):
+    for root in entries_of(manifest, "timelines"):
         visit(root)
     return found
 
@@ -244,13 +251,13 @@ def timelines_by_id(manifest: Any) -> dict[str, Mapping[str, Any]]:
 def timestamps_of(manifest: Any) -> list[Any]:
     """Return the named timestamps of a manifest's ``graphical`` object, or none."""
     graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
-    return _entries(graphical, "timestamps")
+    return entries_of(graphical, "timestamps")
 
 
 def matchstamps_of(manifest: Any) -> list[Any]:
     """Return the named MatchStamps of a manifest's ``graphical`` object, or none."""
     graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
-    return _entries(graphical, "matchstamps")
+    return entries_of(graphical, "matchstamps")
 
 
 def number_type_of(timeline: Mapping[str, Any]) -> str:

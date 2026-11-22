@@ -6,16 +6,16 @@ from collections.abc import Iterator, Mapping
 from fractions import Fraction
 from typing import Any
 
-from ..manifest import _exact
-from .containment import _child_end, offset_order
-from .diagnostics import SchemaValidationError, _entries, _Path
+from ..manifest import exact
+from .containment import child_end, offset_order
+from .diagnostics import InstancePath, SchemaValidationError, entries_of
 
 
 def timeline_segment_problems(
-    timeline: Mapping[str, Any], path: _Path
+    timeline: Mapping[str, Any], path: InstancePath
 ) -> Iterator[SchemaValidationError]:
     """Yield segment-line violations for one timeline tree."""
-    children = _entries(timeline, "children")
+    children = entries_of(timeline, "children")
     if timeline.get("is_segment_line") is True:
         order = offset_order(children)
         end: Fraction | None = Fraction(0)
@@ -34,7 +34,7 @@ def timeline_segment_problems(
                     (*at, "is_segment_line") if "is_segment_line" in segment else at,
                     f"{name} differs from segment '{first_id}' in is_segment_line",
                 )
-            offset = _exact(segment["offset"])
+            offset = exact(segment["offset"])
             if end is not None and offset != end:
                 yield SchemaValidationError(
                     "segment_line",
@@ -47,9 +47,9 @@ def timeline_segment_problems(
                     ),
                 )
             length = segment.get("length")
-            end = None if length is None else _child_end(timeline, segment)
+            end = None if length is None else child_end(timeline, segment)
         length = timeline.get("length")
-        if end is not None and length is not None and end != _exact(length):
+        if end is not None and length is not None and end != exact(length):
             yield SchemaValidationError(
                 "segment_line",
                 (*path, "length"),
