@@ -35,6 +35,8 @@ export type ValidationCode =
   | "timestamp_timeline"
   | "timestamp_coordinate"
   | "groupstamp"
+  | "elision_timeline"
+  | "elision_stretch"
   | "match_timestamp"
   | "alignment_anchor"
   | "matchstamp"
@@ -170,7 +172,7 @@ export type ManifestId = readonly [id: string, path: PathSegment[], root: number
 /**
  * Every ID of a manifest with its path, in the order of the identity rules:
  * each root's tree (as `treeIds` walks it), the groups', the MeasureMaps',
- * the named timestamps' IDs, the named MatchStamps', each followed by its
+ * the named timestamps' IDs, the elisions', the named MatchStamps', each followed by its
  * alignment anchors', the resources', then the manifest's own at `["id"]`.
  * What holds no string `id` is passed over.
  */
@@ -182,6 +184,7 @@ export function* manifestIds(manifest: unknown): Generator<ManifestId> {
     [["groups"], entries(manifest, "groups")],
     [["measure_maps"], entries(manifest, "measure_maps")],
     [["graphical", "timestamps"], timestampsOf(manifest)],
+    [["graphical", "elisions"], elisionsOf(manifest)],
   ];
   for (const [key, list] of keyed) {
     for (const [index, entry] of list.entries()) {
@@ -229,6 +232,11 @@ export function timelinesById(manifest: unknown): Map<string, JsonObject> {
 /** The named timestamps of a manifest's `graphical` object, or none. */
 export function timestampsOf(manifest: unknown): JsonObject[] {
   return entries(isJsonObject(manifest) ? manifest.graphical : undefined, "timestamps");
+}
+
+/** The elisions of a manifest's `graphical` object, or none. */
+export function elisionsOf(manifest: unknown): JsonObject[] {
+  return entries(isJsonObject(manifest) ? manifest.graphical : undefined, "elisions");
 }
 
 /** The named MatchStamps of a manifest's `graphical` object, or none. */

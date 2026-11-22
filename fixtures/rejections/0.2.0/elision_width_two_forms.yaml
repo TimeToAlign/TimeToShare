@@ -1,0 +1,55 @@
+code: schema
+manifest:
+  graphical:
+    elisions:
+      -
+        display: [strip, name, coordinate]
+        end: [3, 1]
+        id: "#elision_1"
+        start: [1, 1]
+        timeline: "#verse"
+        width:
+          canvas: 40
+          ratio: 0.5
+    matchstamps: []
+    order: {}
+    rules: []
+    styles: {}
+    timestamps: []
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  resources: []
+  timelines:
+    -
+      children:
+        -
+          children: []
+          conversion_maps: []
+          flow_control: []
+          id: "#verse"
+          is_segment_line: false
+          length: [4, 1]
+          locked: true
+          meta: {}
+          name: null
+          number_type: fraction
+          offset: [2, 1]
+          regions: []
+          unit: quarters
+      conversion_maps: []
+      flow_control: []
+      id: "#score"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "{'canvas': 40, 'ratio': 0.5} is valid under each of {'required': ['canvas']}, {'required': ['ratio']}"
+path: [graphical, elisions, 0, width]
+reason: "An elision's width takes exactly one of its three forms; this one states a ratio and a canvas width."

@@ -27,7 +27,8 @@ import { exactValue, sameRational } from "./numbers/exact.js";
  * those of `repeat_end`, as no other element carries a repeat count. Every named timestamp of
  * `graphical.timestamps` has the keys of `timestamp`, a match timestamp
  * (`matchstamp: true`) those of `match_timestamp` instead, and every
- * alignment anchor of a named MatchStamp those of `alignment_anchor`. A
+ * alignment anchor of a named MatchStamp those of `alignment_anchor`, and every
+ * elision of `graphical.elisions` those of `elision` (its `width` has none). A
  * resource has no defaults. `@context`,
  * `statements` and `provenance` have no default and are never added or
  * removed. Python's
@@ -53,10 +54,18 @@ export const DEFAULTS = {
   table_map: { kind: "linear", extrapolate: "none" },
   measure_map: { name: null, meta: {} },
   group: { name: null, meta: {} },
-  graphical: { styles: {}, rules: [], order: {}, timestamps: [], matchstamps: [] },
+  graphical: {
+    styles: {},
+    rules: [],
+    order: {},
+    timestamps: [],
+    matchstamps: [],
+    elisions: [],
+  },
   timestamp: { display: ["wedge", "name", "cross_section"], matchstamp: false, groupstamp: false },
   match_timestamp: { display: ["cross_section"], groupstamp: false },
   alignment_anchor: { display: ["line"] },
+  elision: { display: ["strip", "name", "coordinate"] },
 } as const;
 
 type Kind = keyof typeof DEFAULTS;
@@ -115,6 +124,7 @@ function visitManifest(manifest: unknown, pass: Pass): void {
   for (const matchstamp of objects(graphical, "matchstamps")) {
     for (const anchor of objects(matchstamp, "alignment_anchors")) pass(anchor, "alignment_anchor");
   }
+  for (const elision of objects(graphical, "elisions")) pass(elision, "elision");
 }
 
 /** The default number type of a timeline, or `undefined` where its unit is none. */
@@ -175,8 +185,8 @@ const stripOne: Pass = (owner, kind) => {
  * that is absent is added with its default, at every depth (a timeline's
  * `number_type` is its unit's default). Keys whose default is "absent" are
  * never added, present keys keep their values, spelled as their number type
- * selects (as `canonicalOrder` spells them), a named timestamp's `display`
- * in canonical order, and unknown keys pass through.
+ * selects (as `canonicalOrder` spells them), the `display` of a named
+ * timestamp, an alignment anchor and an elision in canonical order, and unknown keys pass through.
  * Any other value is copied, its manifest-shaped parts completed, so a
  * `graphical` object alone completes as `complete({ graphical }).graphical`.
  * Python's `timetoshare.complete` gives the same value.

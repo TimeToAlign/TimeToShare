@@ -1,7 +1,9 @@
 /**
- * Named-timestamp, MatchStamp and resource rules: the timeline a timestamp
- * names, its coordinate and whether it may be a groupstamp; the alignment anchors of the named MatchStamps
- * and their match timestamps; the timelines and types of the resources.
+ * Named-timestamp, elision, MatchStamp and resource rules: the timeline a
+ * timestamp names, its coordinate and whether it may be a groupstamp; the
+ * timeline an elision names and its stretch; the alignment anchors of the
+ * named MatchStamps and their match timestamps; the timelines and types of
+ * the resources.
  * Python's `timetoshare.validation.timestamps` checks the same rules with
  * the same messages.
  */
@@ -10,6 +12,7 @@ import { isJsonObject, type JsonObject } from "../json/value.js";
 import { compareExact, exact } from "../numbers/exact.js";
 import { spell } from "../serialization/text.js";
 import {
+  elisionsOf,
   entries,
   lengthOf,
   matchstampsOf,
@@ -91,6 +94,55 @@ export function* timestampProblems(manifest: JsonObject): Generator<SchemaValida
         "groupstamp",
         [...path, "groupstamp"],
         `'${text(timestamp, "id")}' is a groupstamp, but its timeline '${id}' is a member of no group and lies in none`,
+      );
+    }
+  }
+}
+
+/**
+ * Yield elisions off the manifest's timelines or outside their extent.
+ *
+ * An elision names a timeline of the manifest, at any depth, and its `start`
+ * lies before its `end`, both between 0 and that timeline's length, or at or
+ * after 0 where the length is not known. Elisions may overlap; no overlap is
+ * a problem.
+ */
+export function* elisionProblems(manifest: JsonObject): Generator<SchemaValidationError> {
+  const timelines = timelinesById(manifest);
+  for (const [index, elision] of elisionsOf(manifest).entries()) {
+    const path = ["graphical", "elisions", index];
+    const id = text(elision, "timeline");
+    const timeline = timelines.get(id);
+    if (timeline === undefined) {
+      yield new SchemaValidationError(
+        "elision_timeline",
+        [...path, "timeline"],
+        `'${id}' names no timeline of this manifest`,
+      );
+      continue;
+    }
+    const { start, end } = elision;
+    const name = text(elision, "id");
+    if (compareExact(start, 0) < 0) {
+      yield new SchemaValidationError(
+        "elision_stretch",
+        [...path, "start"],
+        `start ${spell(start)} of '${name}' lies before the start of its timeline '${id}'`,
+      );
+    }
+    const length = lengthOf(timeline);
+    if (length !== null && compareExact(end, length) > 0) {
+      yield new SchemaValidationError(
+        "elision_stretch",
+        [...path, "end"],
+        `end ${spell(end)} of '${name}' is beyond the length ${spell(length)} of its timeline '${id}'`,
+      );
+    }
+    if (compareExact(start, end) >= 0) {
+      yield new SchemaValidationError(
+        "elision_stretch",
+        [...path, "end"],
+        `end ${spell(end)} of '${name}' does not lie after its start ${spell(start)}`,
       );
     }
   }

@@ -53,6 +53,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "order": {},
         "timestamps": [],
         "matchstamps": [],
+        "elisions": [],
     },
     "timestamp": {
         "display": ["wedge", "name", "cross_section"],
@@ -61,6 +62,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     },
     "match_timestamp": {"display": ["cross_section"], "groupstamp": False},
     "alignment_anchor": {"display": ["line"]},
+    "elision": {"display": ["strip", "name", "coordinate"]},
 }
 """The default of every key that has one, by the kind of object holding it.
 
@@ -71,9 +73,10 @@ flow-control element has the keys of ``flow_control_element``, and one whose
 manifestation is ``repeat_end`` adds those of ``repeat_end``, as no other
 element carries a repeat count. Every named timestamp of
 ``graphical.timestamps`` has the keys of ``timestamp``, a match timestamp
-(``matchstamp: true``) those of ``match_timestamp`` instead, and every
-alignment anchor of a named MatchStamp those of ``alignment_anchor``. A
-resource has no defaults. ``@context``,
+(``matchstamp: true``) those of ``match_timestamp`` instead, every
+alignment anchor of a named MatchStamp those of ``alignment_anchor``, and
+every elision of ``graphical.elisions`` those of ``elision`` (its ``width``
+has none). A resource has no defaults. ``@context``,
 ``statements`` and ``provenance`` have no default: ``complete`` and
 ``minimal`` neither add nor drop them. The JavaScript package's
 ``DEFAULTS`` holds the same table, and the schema declares each value as the
@@ -149,6 +152,8 @@ def _visit_manifest(manifest: Any, apply: _Pass) -> None:
         for matchstamp in _objects(graphical, "matchstamps"):
             for anchor in _objects(matchstamp, "alignment_anchors"):
                 apply(anchor, "alignment_anchor")
+        for elision in _objects(graphical, "elisions"):
+            apply(elision, "elision")
 
 
 def _default_number_type(timeline: dict[str, Any]) -> str | None:
@@ -223,8 +228,9 @@ def complete(value: Any) -> Any:
     every depth (a timeline's ``number_type`` is its unit's default). Keys
     whose default is "absent" are never added, present keys keep their
     values, own-axis values respelled as their number type selects (as
-    ``canonical_order`` respells them), a named timestamp's and an alignment
-    anchor's ``display`` in canonical order, and unknown keys pass through.
+    ``canonical_order`` respells them), the ``display`` of a named timestamp,
+    an alignment anchor and an elision in canonical order, and unknown keys
+    pass through.
     The JavaScript package's ``complete`` gives the same value.
     """
     result = copy.deepcopy(value)

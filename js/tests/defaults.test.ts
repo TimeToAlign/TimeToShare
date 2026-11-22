@@ -200,6 +200,7 @@ describe("the complete and the minimal form", () => {
       order: {},
       timestamps: [],
       matchstamps: [],
+      elisions: [],
     });
     validate(value);
   });
@@ -250,6 +251,7 @@ describe("the complete and the minimal form", () => {
       order: {},
       timestamps: [],
       matchstamps: [],
+      elisions: [],
     });
     const child = manifest([
       timeline("score", "quarters", [8, 1], {
@@ -289,6 +291,39 @@ describe("the complete and the minimal form", () => {
       stamp(2),
       stamp(3, { display: ["wedge", "name"] }),
       stamp(4, { display: [] }),
+    ]);
+  });
+
+  it("completes the display of an elision and never its width", () => {
+    const elision = (number: number, members: JsonObject = {}): JsonObject => ({
+      id: `elision_${number}`,
+      timeline: "score",
+      start: [1, 1],
+      end: [3, 1],
+      ...members,
+    });
+    const value = manifest([timeline("score")], {
+      graphical: {
+        elisions: [
+          elision(1),
+          elision(2, { display: ["coordinate", "strip", "name"] }),
+          elision(3, { display: ["name"] }),
+          elision(4, { width: { ratio: 1 } }),
+        ],
+      },
+    });
+    const display = ["strip", "name", "coordinate"];
+    expect((complete(value).graphical as JsonObject).elisions).toEqual([
+      elision(1, { display }),
+      elision(2, { display }),
+      elision(3, { display: ["name"] }),
+      elision(4, { width: { ratio: 1 }, display }),
+    ]);
+    expect((minimal(value).graphical as JsonObject).elisions).toEqual([
+      elision(1),
+      elision(2),
+      elision(3, { display: ["name"] }),
+      elision(4, { width: { ratio: 1 } }),
     ]);
   });
 
@@ -469,7 +504,14 @@ describe("the typed forms", () => {
     const named: CompleteManifest = {
       ...COMPLETE,
       id: "op35",
-      graphical: { styles: {}, rules: [], order: {}, timestamps: [], matchstamps: [] },
+      graphical: {
+        styles: {},
+        rules: [],
+        order: {},
+        timestamps: [],
+        matchstamps: [],
+        elisions: [],
+      },
     };
     const placed: CompleteTimeline = { ...COMPLETE_ROOT, offset: [-1, 2] };
     // Numbers are lossless and a Fraction stays a pair.

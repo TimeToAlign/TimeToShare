@@ -13,6 +13,7 @@ from timetoshare import (
     BELIEFS,
     BLANK,
     DEFAULTS,
+    ELISION_DISPLAY,
     FORMAT_CONTEXT,
     MATCHES,
     METHODS,
@@ -181,11 +182,16 @@ def test_the_ten_map_types() -> None:
         "line",
         "id",
         "coordinate",
+        "elision",
     ]
     display = defs["Timestamp"]["properties"]["display"]
     assert display["items"]["enum"] == list(TIMESTAMP_DISPLAY)
     assert TIMESTAMP_DISPLAY == ("wedge", "name", "id", "coordinate", "cross_section")
     assert display["uniqueItems"] is True
+    elided = defs["Elision"]["properties"]["display"]
+    assert elided["items"]["enum"] == list(ELISION_DISPLAY)
+    assert ELISION_DISPLAY == ("strip", "name", "coordinate")
+    assert elided["uniqueItems"] is True
     assert defs["Selector"]["properties"]["facet"]["$ref"] == "#/$defs/Facet"
     coordinates = defs["Selector"]["properties"]["coordinates"]
     assert coordinates["enum"] == ["primary", "secondary"]
@@ -208,11 +214,51 @@ def test_the_ten_map_types() -> None:
         "cross_section",
         "alignment_anchor",
         "ancestor_card",
+        "elision",
     ]
     assert defs["MeasureView"]["properties"]["source_unit"]["const"] == "quarters"
     for name, target in MEASURE_VIEWS.items():
         assert defs[name]["allOf"] == [{"$ref": "#/$defs/MeasureView"}], name
         assert defs[name]["properties"]["target_unit"]["const"] == target, name
+
+
+def test_an_elision_width_takes_exactly_one_form() -> None:
+    width = _defs()["Elision"]["properties"]["width"]
+    ratio, span, canvas = (
+        width["properties"][key] for key in ("ratio", "span", "canvas")
+    )
+    assert list(width["properties"]) == ["ratio", "span", "canvas"]
+    assert (ratio["type"], ratio["exclusiveMinimum"], ratio["maximum"]) == (
+        "number",
+        0,
+        1,
+    )
+    assert span["$ref"] == "#/$defs/NumberPositive"
+    assert (canvas["type"], canvas["exclusiveMinimum"]) == ("number", 0)
+    assert width["oneOf"] == [
+        {"required": ["ratio"]},
+        {"required": ["span"]},
+        {"required": ["canvas"]},
+    ]
+    validator = Draft202012Validator({**width, "$defs": _defs()})
+    for accepted in (
+        {"ratio": 0.5},
+        {"ratio": 1},
+        {"span": [3, 2]},
+        {"span": 0.25},
+        {"canvas": 40},
+    ):
+        assert validator.is_valid(accepted), accepted
+    for refused in (
+        {},
+        {"ratio": 0.5, "canvas": 40},
+        {"ratio": 0.5, "span": [1, 1], "canvas": 4},
+        {"ratio": 0},
+        {"ratio": 1.5},
+        {"span": [0, 1]},
+        {"canvas": 0},
+    ):
+        assert not validator.is_valid(refused), refused
 
 
 _CONTINUOUS = ("float", "fraction")
@@ -577,6 +623,7 @@ def test_the_defaults_are_the_table() -> None:
         "graphical": ["Graphical"],
         "timestamp": ["Timestamp"],
         "alignment_anchor": ["AlignmentAnchor"],
+        "elision": ["Elision"],
     }
     own = {"LinearMap": "linear_map", "TableMap": "table_map"}
     element = ["flow_control_element", "repeat_end"]

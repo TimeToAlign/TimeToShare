@@ -377,7 +377,7 @@ export type NumberPositive = number | FractionPositive;
  */
 export type FractionPositive = [number, number];
 /**
- * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline; on an ancestor line, a member's start or end), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), and an ancestor line of a member that is a child timeline (`ancestor`).
+ * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline; on an ancestor line, a member's start or end), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), and the strip of an elision (`elision`), held by the line of the timeline the elision lies on; an elision's labels are `label` elements held by its strip.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -400,7 +400,8 @@ export type ElementType =
   | "card"
   | "cross_section"
   | "alignment_anchor"
-  | "ancestor_card";
+  | "ancestor_card"
+  | "elision";
 /**
  * One of the five facets every timeline has: its coordinate markers (the wedges of the timeline's named timestamps and their labels; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet.
  *
@@ -414,7 +415,7 @@ export type Facet = "markers" | "conversion_maps" | "children" | "regions" | "fl
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Part".
  */
-export type Part = "start" | "end" | "name" | "label" | "card" | "line" | "id" | "coordinate";
+export type Part = "start" | "end" | "name" | "label" | "card" | "line" | "id" | "coordinate" | "elision";
 /**
  * A colour as #RRGGBB with upper-case hexadecimal digits, or none.
  *
@@ -778,6 +779,7 @@ export type CompleteGraphical = {
   };
   timestamps: CompleteTimestamp[];
   matchstamps: CompleteMatchStamp[];
+  elisions: CompleteElision[];
 };
 /**
  * `Timestamp` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -824,9 +826,27 @@ export type CompleteAlignmentAnchor = {
   timestamps: [Id, Id];
   display: ("line" | "name")[];
 };
+/**
+ * `Elision` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompleteElision".
+ */
+export type CompleteElision = {
+  id: Id;
+  timeline: Id;
+  start: Lossless<Number>;
+  end: Lossless<Number>;
+  width?: {
+    ratio?: JsonNumber;
+    span?: Lossless<NumberPositive>;
+    canvas?: JsonNumber;
+  };
+  display: ("strip" | "name" | "coordinate")[];
+};
 
 /**
- * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp, MatchStamp, alignment anchor and resource. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the resources are written sorted by ID, each group's members by code point and the named timestamps by timeline, then coordinate, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry `statements` and `provenance`; no other element carries any. A manifest carrying either holds the inline JSON-LD context `@context`, which makes it a YAML-LD document. The values of a pair and the entries of `provenance` keep the order they are given in.
+ * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp, elision, MatchStamp, alignment anchor and resource. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the resources are written sorted by ID, each group's members by code point, the named timestamps by timeline, then coordinate, then ID, and the elisions by timeline, then start, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry `statements` and `provenance`; no other element carries any. A manifest carrying either holds the inline JSON-LD context `@context`, which makes it a YAML-LD document. The values of a pair and the entries of `provenance` keep the order they are given in.
  */
 export interface Manifest {
   /**
@@ -1354,7 +1374,7 @@ export interface Resource {
   };
 }
 /**
- * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of rules, the display order of each group's members, the band order of each timeline, the named timestamps and the named MatchStamps. A rule selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the rules or an order. An absent `graphical` object draws every element with the other style layers alone.
+ * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of rules, the display order of each group's members, the band order of each timeline, the named timestamps, the named MatchStamps and the elisions. A rule selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the rules or an order. An absent `graphical` object draws every element with the other style layers alone.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Graphical".
@@ -1384,6 +1404,10 @@ export interface Graphical {
    * The named MatchStamps, written sorted by ID. Readers accept any order.
    */
   matchstamps?: MatchStamp[];
+  /**
+   * The elisions, written in canonical order: by timeline (code point), then start, then ID. Readers accept any order. Elisions may overlap, on one timeline or on a timeline and its descendants; an overlap is never refused.
+   */
+  elisions?: Elision[];
 }
 /**
  * One rule: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.
@@ -1455,7 +1479,7 @@ export interface Selector {
   coordinates?: "primary" | "secondary";
 }
 /**
- * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element or a named timestamp (its wedge). `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` and `["end"]` a member's marks on its ancestor lines or a segment's boundary, `["start", "label"]` and `["end", "label"]` a mark's label, `["name"]` and `["label"]` the element's name or label (a named timestamp's name label is `["name"]`), `["id"]` and `["coordinate"]` a named timestamp's ID label and coordinate label, and `["line"]` a named timestamp's cross-section line. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.
+ * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element, a named timestamp (its wedge) or an elision (its strip). `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` and `["end"]` a member's marks on its ancestor lines or a segment's boundary, `["start", "label"]` and `["end", "label"]` a mark's label, `["name"]` and `["label"]` the element's name or label (a named timestamp's name label is `["name"]`), `["id"]` and `["coordinate"]` a named timestamp's ID label and coordinate label (an elision's coordinate label is `["coordinate"]`, its timeline's name label `["name"]`), `["line"]` a named timestamp's cross-section line, and `["elision"]` the strip of a default elision of the timeline X, an elision the drawing derives, which has no ID, with its labels `["elision", "name"]` and `["elision", "coordinate"]`. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Address".
@@ -1578,6 +1602,51 @@ export interface AlignmentAnchor {
    * What is drawn of the anchor, each word at most once: `line` its line, `name` the MatchStamp's name at the middle of the line. The order carries no meaning: readers accept any order, and writers write the canonical order line, name.
    */
   display?: ("line" | "name")[];
+}
+/**
+ * An elision: the stretch from `start` to `end` on the own axis of the timeline `timeline` (any depth, a segment included), drawn as a narrow strip in which nothing is drawn but the name of that timeline and the stretch's coordinates. The elision lies on its timeline and moves with it; nothing refers to an elision but an address in a rule: its strip `{"id": id}` and its two labels, the timeline's name `{"id": id, "part": ["name"]}` and the coordinates `{"id": id, "part": ["coordinate"]}`. `start` and `end` are numbers as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), `start` before `end`. Where an elision is drawn, and how its strip is laid out, is the drawing specification's (`docs/drawing.md`). That the timeline is one of the manifest's, that `start` and `end` read as its number type, and that they lie in order within the timeline are checked after the schema.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Elision".
+ */
+export interface Elision {
+  /**
+   * The elision ID.
+   */
+  id: Id;
+  /**
+   * The ID of the timeline the elision lies on: a root or a descendant at any depth, a segment included.
+   */
+  timeline: Id;
+  /**
+   * Where the elided stretch starts on its timeline's own axis, represented as the axis's number type selects.
+   */
+  start: Number;
+  /**
+   * Where the elided stretch ends on its timeline's own axis, represented as the axis's number type selects; after `start`.
+   */
+  end: Number;
+  /**
+   * How wide the strip is drawn, in exactly one of three forms: `ratio`, `span` or `canvas`. A width larger than the stretch drawn at full scale draws the stretch at full scale: an elision never widens. Absent, the strip takes the default proportion of the card that draws it (`docs/drawing.md`).
+   */
+  width?: {
+    /**
+     * The strip's width as a share of the stretch's width at full scale, greater than 0 and at most 1.
+     */
+    ratio?: number;
+    /**
+     * The strip is as wide as this many units of the elision's timeline drawn at full scale, greater than 0 and represented as the axis's number type selects.
+     */
+    span?: NumberPositive;
+    /**
+     * The strip's width in canvas units, greater than 0.
+     */
+    canvas?: number;
+  };
+  /**
+   * What is drawn of the elision, each word at most once: `strip` its strip, `name` its timeline's name label and `coordinate` its coordinate label. Without `strip` the stretch is drawn whole, at full scale, and neither label is drawn. The order carries no meaning: readers accept any order, and writers write the canonical order strip, name, coordinate.
+   */
+  display?: ("strip" | "name" | "coordinate")[];
 }
 /**
  * Values in order (an RDF list).

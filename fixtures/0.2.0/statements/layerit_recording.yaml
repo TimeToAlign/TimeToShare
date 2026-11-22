@@ -64,6 +64,7 @@
   wdt: "http://www.wikidata.org/prop/direct/"
   xsd: "http://www.w3.org/2001/XMLSchema#"
 graphical:
+  elisions: []
   matchstamps: []
   order:
     "#group_1": ["#cpt_2", "#dpt_1"]

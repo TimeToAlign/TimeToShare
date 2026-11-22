@@ -2,13 +2,13 @@
 
 A manifest file writes every ID with a leading ``#``: an element's own ID
 (``"id": "#clt_1"``) as well as every reference to one (a group's members,
-the keys of ``graphical.order``, a named timestamp's timeline, an alignment
-anchor's timestamps, a resource's timelines, an address's ``id``, a
-selector's ``within``, a flow-control element's ``target``, a measure view's
-``measure_map``). The IDs of MatchClaims a MatchStamp lists name rows of
-a MatchClaim table, not elements, and are no ID position. In
-memory an ID is bare: ``clt_1``. Exactly one ``#`` is stripped, so the file
-text ``##x`` is the bare ID ``#x``.
+the keys of ``graphical.order``, a named timestamp's timeline, an elision's
+timeline, an alignment anchor's timestamps, a resource's timelines, an
+address's ``id``, a selector's ``within``, a flow-control element's
+``target``, a measure view's ``measure_map``). The IDs of MatchClaims a
+MatchStamp lists name rows of a MatchClaim table, not elements, and are no
+ID position. In memory an ID is bare: ``clt_1``. Exactly one ``#`` is
+stripped, so the file text ``##x`` is the bare ID ``#x``.
 
 One position holds an ID or something else: the values of a group's entry
 in ``graphical.order`` are member IDs, while a timeline's entry holds band
@@ -49,6 +49,8 @@ ID_POSITIONS: tuple[tuple[str, str, Shape], ...] = (
     ("Graphical", "order", "order"),
     ("Timestamp", "id", "id"),
     ("Timestamp", "timeline", "id"),
+    ("Elision", "id", "id"),
+    ("Elision", "timeline", "id"),
     ("MatchStamp", "id", "id"),
     ("AlignmentAnchor", "id", "id"),
     ("AlignmentAnchor", "timestamps", "ids"),
@@ -80,6 +82,7 @@ CONTAINERS: tuple[tuple[str, str, Holding, str], ...] = (
     ("Timeline", "flow_control", "list", "FlowControlElement"),
     ("Graphical", "rules", "list", "Rule"),
     ("Graphical", "timestamps", "list", "Timestamp"),
+    ("Graphical", "elisions", "list", "Elision"),
     ("Graphical", "matchstamps", "list", "MatchStamp"),
     ("MatchStamp", "alignment_anchors", "list", "AlignmentAnchor"),
     ("Rule", "select", "one", "Selector"),

@@ -54,6 +54,7 @@
   unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
+  elisions: []
   matchstamps: []
   order:
     "#group_1": ["#first-half", "#recording"]

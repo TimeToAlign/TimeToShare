@@ -12,6 +12,7 @@ from ..serialization import spell
 from .diagnostics import (
     InstancePath,
     SchemaValidationError,
+    elisions_of,
     entries_of,
     json_pointer,
     number_type_of,
@@ -53,8 +54,16 @@ def rewritten(value: Any, number_type: str) -> str | None:
 
 
 def _representation_problem(
-    key: str, owner: Mapping[str, Any], path: InstancePath, number_type: str
+    key: str,
+    owner: Mapping[str, Any],
+    path: InstancePath,
+    number_type: str,
+    of: str | None = None,
 ) -> Iterator[SchemaValidationError]:
+    """Yield the representation problem of ``owner[key]``, if any.
+
+    The message names the element ``of``, by default the owner's ``id``.
+    """
     value = owner.get(key)
     if value is None or _represents(value, number_type):
         return
@@ -62,7 +71,8 @@ def _representation_problem(
     yield SchemaValidationError(
         "representation",
         (*path, key),
-        f"{key} {spell(value)} of '{owner['id']}' is {_ARTICLES[_written_as(value)]} "
+        f"{key} {spell(value)} of '{owner['id'] if of is None else of}' is "
+        f"{_ARTICLES[_written_as(value)]} "
         f"on {_ARTICLES[number_type]} axis: write {fix}",
     )
 
@@ -92,7 +102,8 @@ def representation_problems(
     """Yield own-axis representation violations in manifest order.
 
     The timelines first, then the coordinate of every named timestamp on a
-    timeline of the manifest, read as that timeline's number type.
+    timeline of the manifest, then the ``start``, ``end`` and width ``span``
+    of every elision on one, each read as that timeline's number type.
     """
     for index, root in enumerate(entries_of(manifest, "timelines")):
         yield from _timeline_representation(root, ("timelines", index), None)
@@ -105,6 +116,18 @@ def representation_problems(
                 timestamp,
                 ("graphical", "timestamps", index),
                 number_type_of(timeline),
+            )
+    for index, elision in enumerate(elisions_of(manifest)):
+        timeline = timelines.get(elision["timeline"])
+        if timeline is None:
+            continue
+        path = ("graphical", "elisions", index)
+        number_type = number_type_of(timeline)
+        for key in ("start", "end"):
+            yield from _representation_problem(key, elision, path, number_type)
+        if "width" in elision:
+            yield from _representation_problem(
+                "span", elision["width"], (*path, "width"), number_type, elision["id"]
             )
 
 

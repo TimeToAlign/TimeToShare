@@ -86,9 +86,9 @@ function respellTimeline(timeline: JsonObject, offsetAxis: Axis | undefined): vo
  * Respell every own-axis value of a manifest as its number type selects, in
  * place: a timeline's `length`, a root's `offset` on its own axis, a child's
  * `offset` on its parent's, region `start` and `end`, flow-control
- * `coordinate`s, and every named timestamp's `coordinate` on the axis of the
- * one timeline its `timeline` names (as given where it names none or
- * several). Anything else is left as it is, so any value may be given.
+ * `coordinate`s, every named timestamp's `coordinate`, and every elision's
+ * `start`, `end` and width `span`, on the axis of the one timeline its
+ * `timeline` names (as given where it names none or several). Anything else is left as it is, so any value may be given.
  */
 export function respell(manifest: unknown): void {
   if (!isJsonObject(manifest)) return;
@@ -100,10 +100,19 @@ export function respell(manifest: unknown): void {
     for (const child of objects(timeline.children)) visit(child);
   };
   for (const timeline of objects(manifest.timelines)) visit(timeline);
+  const axisNamed = (timeline: unknown): Axis | undefined => {
+    const found = typeof timeline === "string" ? axes.get(timeline) : undefined;
+    return found?.length === 1 ? found[0] : undefined;
+  };
   const { graphical } = manifest;
   for (const timestamp of objects(isJsonObject(graphical) ? graphical.timestamps : undefined)) {
-    const { timeline } = timestamp;
-    const found = typeof timeline === "string" ? axes.get(timeline) : undefined;
-    if (found?.length === 1) respellMembers(timestamp, ["coordinate"], found[0] as Axis);
+    const axis = axisNamed(timestamp.timeline);
+    if (axis !== undefined) respellMembers(timestamp, ["coordinate"], axis);
+  }
+  for (const elision of objects(isJsonObject(graphical) ? graphical.elisions : undefined)) {
+    const axis = axisNamed(elision.timeline);
+    if (axis === undefined) continue;
+    respellMembers(elision, ["start", "end"], axis);
+    if (isJsonObject(elision.width)) respellMembers(elision.width, ["span"], axis);
   }
 }

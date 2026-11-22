@@ -1,9 +1,9 @@
-"""Named-timestamp, MatchStamp and resource rules.
+"""Named-timestamp, elision, MatchStamp and resource rules.
 
 The timeline a timestamp names, its coordinate and whether it may be a
-groupstamp; the alignment anchors of
-the named MatchStamps and their match timestamps; the timelines and types of
-the resources.
+groupstamp; the timeline an elision names and its stretch; the alignment
+anchors of the named MatchStamps and their match timestamps; the timelines
+and types of the resources.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from ..serialization import spell
 from .diagnostics import (
     SchemaValidationError,
     connected_sets,
+    elisions_of,
     entries_of,
     matchstamps_of,
     string_id,
@@ -104,6 +105,58 @@ def timestamp_problems(
                 (*path, "groupstamp"),
                 f"'{timestamp['id']}' is a groupstamp, but its timeline "
                 f"'{identifier}' is a member of no group and lies in none",
+            )
+
+
+def elision_problems(
+    manifest: Mapping[str, Any],
+) -> Iterator[SchemaValidationError]:
+    """Yield elisions off the manifest's timelines or outside their extent.
+
+    An elision names a timeline of the manifest, at any depth, and its
+    ``start`` lies before its ``end``, both between 0 and that timeline's
+    length, or at or after 0 where the length is not known. Elisions may
+    overlap; no overlap is a problem.
+    """
+    timelines = timelines_by_id(manifest)
+    ends: dict[str, Fraction] = {}
+    for index, elision in enumerate(elisions_of(manifest)):
+        path = ("graphical", "elisions", index)
+        identifier = elision["timeline"]
+        timeline = timelines.get(identifier)
+        if timeline is None:
+            yield SchemaValidationError(
+                "elision_timeline",
+                (*path, "timeline"),
+                f"'{identifier}' names no timeline of this manifest",
+            )
+            continue
+        start, end = elision["start"], elision["end"]
+        if exact(start) < 0:
+            yield SchemaValidationError(
+                "elision_stretch",
+                (*path, "start"),
+                f"start {spell(start)} of '{elision['id']}' lies before the start "
+                f"of its timeline '{identifier}'",
+            )
+        length = timeline.get("length")
+        if length is not None:
+            known = ends.get(identifier)
+            if known is None:
+                known = ends[identifier] = exact(length)
+            if exact(end) > known:
+                yield SchemaValidationError(
+                    "elision_stretch",
+                    (*path, "end"),
+                    f"end {spell(end)} of '{elision['id']}' is beyond the length "
+                    f"{spell(length)} of its timeline '{identifier}'",
+                )
+        if exact(start) >= exact(end):
+            yield SchemaValidationError(
+                "elision_stretch",
+                (*path, "end"),
+                f"end {spell(end)} of '{elision['id']}' does not lie after its "
+                f"start {spell(start)}",
             )
 
 

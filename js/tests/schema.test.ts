@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { bundleSchemas } from "../scripts/generate.js";
 import { DEFAULTS } from "../src/defaults.js";
 import { schema } from "../src/generated/schema.js";
-import { TIMESTAMP_DISPLAY } from "../src/manifest/order.js";
+import { ELISION_DISPLAY, TIMESTAMP_DISPLAY } from "../src/manifest/order.js";
 import { UNITS } from "../src/manifest/units.js";
 import { loads } from "../src/serialization/read.js";
 import { BELIEFS, BLANK, FORMAT_CONTEXT, MATCHES, METHODS } from "../src/statements/statements.js";
@@ -211,11 +211,16 @@ describe("the schema document", () => {
       "line",
       "id",
       "coordinate",
+      "elision",
     ]);
     const display = ((defs.Timestamp as Node).properties as Node).display as Node;
     expect((display.items as Node).enum).toEqual([...TIMESTAMP_DISPLAY]);
     expect(TIMESTAMP_DISPLAY).toEqual(["wedge", "name", "id", "coordinate", "cross_section"]);
     expect(display.uniqueItems).toBe(true);
+    const elided = properties("Elision").display as Node;
+    expect((elided.items as Node).enum).toEqual([...ELISION_DISPLAY]);
+    expect(ELISION_DISPLAY).toEqual(["strip", "name", "coordinate"]);
+    expect(elided.uniqueItems).toBe(true);
     expect(properties("Selector").facet?.$ref).toBe("#/$defs/Facet");
     expect(properties("Selector").coordinates?.enum).toEqual(["primary", "secondary"]);
     expect(defs.ElementType?.enum).toEqual([
@@ -237,11 +242,51 @@ describe("the schema document", () => {
       "cross_section",
       "alignment_anchor",
       "ancestor_card",
+      "elision",
     ]);
     expect(properties("MeasureView").source_unit?.const).toBe("quarters");
     for (const [name, unit] of Object.entries(MEASURE_VIEWS)) {
       expect(defs[name]?.allOf, name).toEqual([{ $ref: "#/$defs/MeasureView" }]);
       expect(properties(name).target_unit?.const, name).toBe(unit);
+    }
+  });
+
+  it("takes exactly one of an elision's three width forms", () => {
+    const width = properties("Elision").width as Node;
+    const forms = width.properties as Record<string, Node>;
+    expect(Object.keys(forms)).toEqual(["ratio", "span", "canvas"]);
+    expect([forms.ratio?.type, forms.ratio?.exclusiveMinimum, forms.ratio?.maximum]).toEqual([
+      "number",
+      0,
+      1,
+    ]);
+    expect(forms.span?.$ref).toBe("#/$defs/NumberPositive");
+    expect([forms.canvas?.type, forms.canvas?.exclusiveMinimum]).toEqual(["number", 0]);
+    expect(width.oneOf).toEqual([
+      { required: ["ratio"] },
+      { required: ["span"] },
+      { required: ["canvas"] },
+    ]);
+    const accepts = new Ajv2020({ strict: false }).compile({ ...width, $defs: defs });
+    for (const accepted of [
+      { ratio: 0.5 },
+      { ratio: 1 },
+      { span: [3, 2] },
+      { span: 0.25 },
+      { canvas: 40 },
+    ]) {
+      expect(accepts(accepted), JSON.stringify(accepted)).toBe(true);
+    }
+    for (const refused of [
+      {},
+      { ratio: 0.5, canvas: 40 },
+      { ratio: 0.5, span: [1, 1], canvas: 4 },
+      { ratio: 0 },
+      { ratio: 1.5 },
+      { span: [0, 1] },
+      { canvas: 0 },
+    ]) {
+      expect(accepts(refused), JSON.stringify(refused)).toBe(false);
     }
   });
 
@@ -539,6 +584,7 @@ describe("the schema document", () => {
       graphical: ["Graphical"],
       timestamp: ["Timestamp"],
       alignment_anchor: ["AlignmentAnchor"],
+      elision: ["Elision"],
     };
     const own: Readonly<Record<string, Kind>> = { LinearMap: "linear_map", TableMap: "table_map" };
     const element = ["flow_control_element", "repeat_end"];

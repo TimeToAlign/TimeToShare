@@ -202,6 +202,7 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         "order": {},
         "timestamps": [],
         "matchstamps": [],
+        "elisions": [],
     }
     validate(value)
 
@@ -235,6 +236,7 @@ def test_absent_defaults_are_never_added_or_removed() -> None:
         "order": {},
         "timestamps": [],
         "matchstamps": [],
+        "elisions": [],
     }
     child = manifest(timeline("score", children=[timeline("c", offset=(0, 1))]))
     assert minimal(child)["timelines"][0]["children"][0]["offset"] == [0, 1]
@@ -322,6 +324,44 @@ def test_a_named_timestamp_completes_its_display() -> None:
         _stamp(2),
         _stamp(3, display=["wedge", "name"]),
         _stamp(4, display=[]),
+    ]
+
+
+def _elision(number: int, **members: Any) -> dict[str, Any]:
+    """An elision on ``score`` from 1 to 3, with the given further members."""
+    return {
+        "id": f"elision_{number}",
+        "timeline": "score",
+        "start": [1, 1],
+        "end": [3, 1],
+        **members,
+    }
+
+
+def test_an_elision_completes_its_display_and_never_its_width() -> None:
+    value = manifest(
+        timeline("score"),
+        graphical={
+            "elisions": [
+                _elision(1),
+                _elision(2, display=["coordinate", "strip", "name"]),
+                _elision(3, display=["name"]),
+                _elision(4, width={"ratio": 1}),
+            ]
+        },
+    )
+    default = ["strip", "name", "coordinate"]
+    assert complete(value)["graphical"]["elisions"] == [
+        _elision(1, display=default),
+        _elision(2, display=default),
+        _elision(3, display=["name"]),
+        _elision(4, width={"ratio": 1}, display=default),
+    ]
+    assert minimal(value)["graphical"]["elisions"] == [
+        _elision(1),
+        _elision(2),
+        _elision(3, display=["name"]),
+        _elision(4, width={"ratio": 1}),
     ]
 
 

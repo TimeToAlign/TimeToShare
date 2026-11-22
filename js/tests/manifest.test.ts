@@ -9,7 +9,7 @@ import {
   type Lossless,
   objectFrom,
 } from "../src/json/value.js";
-import { ANCHOR_DISPLAY, canonicalOrder } from "../src/manifest/order.js";
+import { ANCHOR_DISPLAY, canonicalOrder, ELISION_DISPLAY } from "../src/manifest/order.js";
 import { JsonSyntaxError } from "../src/serialization/errors.js";
 import { parseJson } from "../src/serialization/json.js";
 import { loads } from "../src/serialization/read.js";
@@ -844,5 +844,60 @@ describe("resources and MatchStamps", () => {
       { id: "anchor_2", timestamps: ["b", "a"], display: ["line", "name", "x"] },
     ]);
     expect([...ANCHOR_DISPLAY]).toEqual(["line", "name"]);
+  });
+});
+
+describe("elisions", () => {
+  it("are ordered by timeline, start and ID, and respelled on their timeline's axis", () => {
+    const value = {
+      timetoshare: "0.2.0",
+      timelines: [
+        { id: "b", unit: "quarters", length: [8, 1] },
+        { id: "a", unit: "quarters", length: [8, 1] },
+      ],
+      graphical: {
+        elisions: [
+          { id: "elision_4", timeline: "b", start: [1, 1], end: [2, 1] },
+          {
+            id: "elision_3",
+            timeline: "a",
+            start: [2, 4],
+            end: [new JsonFloat(6), 1],
+            width: { span: [4, 8] },
+            display: ["coordinate", "zeta", "strip"],
+          },
+          { id: "elision_2", timeline: "a", start: [1, 2], end: [1, 1] },
+          { id: "elision_1", timeline: "a", start: [3, 1], end: [4, 1] },
+          { id: "elision_0", timeline: "ghost", start: [4, 8], end: 2 },
+        ],
+      },
+    };
+    expect(compactJson(canonicalOrder(value).graphical.elisions)).toBe(
+      compactJson([
+        { id: "elision_2", timeline: "a", start: [1, 2], end: [1, 1] },
+        {
+          id: "elision_3",
+          timeline: "a",
+          start: [1, 2],
+          end: [6, 1],
+          width: { span: [1, 2] },
+          display: ["strip", "coordinate", "zeta"],
+        },
+        { id: "elision_1", timeline: "a", start: [3, 1], end: [4, 1] },
+        { id: "elision_4", timeline: "b", start: [1, 1], end: [2, 1] },
+        { id: "elision_0", timeline: "ghost", start: [4, 8], end: 2 },
+      ]),
+    );
+    expect([...ELISION_DISPLAY]).toEqual(["strip", "name", "coordinate"]);
+    const unorderable = {
+      timetoshare: "0.2.0",
+      timelines: [{ id: "a", unit: "quarters", length: [8, 1] }],
+      graphical: { elisions: [{ id: "e", timeline: "a", start: "x", end: 1 }] },
+    };
+    expect(() => canonicalOrder(unorderable)).toThrow(
+      new TypeError(
+        'graphical.elisions[0] cannot be put in canonical order: its start "x" is no number or Fraction pair',
+      ),
+    );
   });
 });

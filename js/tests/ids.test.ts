@@ -62,6 +62,8 @@ graphical:
     set: {stroke: red}
   timestamps:
   - {id: timestamp_1, timeline: verse, coordinate: 1}
+  elisions:
+  - {id: elision_1, timeline: verse, start: 0, end: 1}
 meta: {id: untouched}
 `;
 
@@ -107,6 +109,8 @@ graphical:
     set: {stroke: red}
   timestamps:
   - {id: "#timestamp_1", timeline: "#verse", coordinate: 1}
+  elisions:
+  - {id: "#elision_1", timeline: "#verse", start: 0, end: 1}
 meta: {id: untouched}
 `;
 

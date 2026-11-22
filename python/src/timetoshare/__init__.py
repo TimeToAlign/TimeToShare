@@ -39,6 +39,7 @@ from .font import FONT_FILES, font_metrics, font_paths
 from .ids import FileIdError, from_file_id, to_file_id, with_bare_ids, with_file_ids
 from .manifest import (
     ANCHOR_DISPLAY,
+    ELISION_DISPLAY,
     TIMESTAMP_DISPLAY,
     UNITS,
     UnitEntry,
@@ -100,6 +101,7 @@ __all__ = [
     "BLANK",
     "DEFAULTS",
     "DEFAULT_BELIEFS",
+    "ELISION_DISPLAY",
     "FONT_FILES",
     "FORMAT_CONTEXT",
     "MATCHES",

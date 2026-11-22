@@ -8,6 +8,7 @@ import pytest
 
 from timetoshare import (
     ANCHOR_DISPLAY,
+    ELISION_DISPLAY,
     canonical_order,
     complete,
     dumps,
@@ -400,3 +401,50 @@ def test_resources_and_matchstamps_are_ordered_by_id() -> None:
         {"id": "anchor_2", "timestamps": ["b", "a"], "display": ["line", "name", "x"]},
     ]
     assert ANCHOR_DISPLAY == ("line", "name")
+
+
+def test_elisions_are_ordered_by_timeline_start_and_id() -> None:
+    value = manifest(
+        timeline("b"),
+        timeline("a"),
+        graphical={
+            "elisions": [
+                {"id": "elision_4", "timeline": "b", "start": [1, 1], "end": [2, 1]},
+                {
+                    "id": "elision_3",
+                    "timeline": "a",
+                    "start": [2, 4],
+                    "end": [6.0, 1],
+                    "width": {"span": [4, 8]},
+                    "display": ["coordinate", "zeta", "strip"],
+                },
+                {"id": "elision_2", "timeline": "a", "start": [1, 2], "end": [1, 1]},
+                {"id": "elision_1", "timeline": "a", "start": [3, 1], "end": [4, 1]},
+                {"id": "elision_0", "timeline": "ghost", "start": [4, 8], "end": 2},
+            ]
+        },
+    )
+    ordered = canonical_order(value)["graphical"]["elisions"]
+    assert ordered == [
+        {"id": "elision_2", "timeline": "a", "start": [1, 2], "end": [1, 1]},
+        {
+            "id": "elision_3",
+            "timeline": "a",
+            "start": [1, 2],
+            "end": [6, 1],
+            "width": {"span": [1, 2]},
+            "display": ["strip", "coordinate", "zeta"],
+        },
+        {"id": "elision_1", "timeline": "a", "start": [3, 1], "end": [4, 1]},
+        {"id": "elision_4", "timeline": "b", "start": [1, 1], "end": [2, 1]},
+        {"id": "elision_0", "timeline": "ghost", "start": [4, 8], "end": 2},
+    ]
+    assert ELISION_DISPLAY == ("strip", "name", "coordinate")
+    unorderable = manifest(
+        timeline("a"),
+        graphical={
+            "elisions": [{"id": "e", "timeline": "a", "start": "x", "end": 1}] * 2
+        },
+    )
+    with pytest.raises(ValueError, match="cannot put elisions in canonical order"):
+        canonical_order(unorderable)

@@ -1,0 +1,52 @@
+code: duplicate_id
+manifest:
+  graphical:
+    elisions:
+      -
+        display: [strip, name, coordinate]
+        end: [3, 1]
+        id: "#verse"
+        start: [1, 1]
+        timeline: "#verse"
+    matchstamps: []
+    order: {}
+    rules: []
+    styles: {}
+    timestamps: []
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  resources: []
+  timelines:
+    -
+      children:
+        -
+          children: []
+          conversion_maps: []
+          flow_control: []
+          id: "#verse"
+          is_segment_line: false
+          length: [4, 1]
+          locked: true
+          meta: {}
+          name: null
+          number_type: fraction
+          offset: [2, 1]
+          regions: []
+          unit: quarters
+      conversion_maps: []
+      flow_control: []
+      id: "#score"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "'verse' is not unique in the manifest, first at #/timelines/0/children/0/id"
+path: [graphical, elisions, 0, id]
+reason: "An elision's ID is unique across the manifest; verse is the ID of a timeline."

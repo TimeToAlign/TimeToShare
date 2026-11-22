@@ -17,7 +17,12 @@ from .diagnostics import (
 from .maps import MEASURE_VIEWS, timeline_map_problems, timeline_maps
 from .order import order_problems
 from .segments import timeline_segment_problems
-from .timestamps import matchstamp_problems, resource_problems, timestamp_problems
+from .timestamps import (
+    elision_problems,
+    matchstamp_problems,
+    resource_problems,
+    timestamp_problems,
+)
 
 
 def _dangling_targets(
@@ -126,9 +131,10 @@ def identity_problems(
     Root by root: duplicates, dangling targets, conversion maps, containment
     and segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
-    named MatchStamps' IDs each followed by its alignment anchors' IDs, the
-    resources' IDs, and last the manifest ID); then group members, graphical
-    orders, named timestamps, named MatchStamps and resources.
+    elisions' IDs, the named MatchStamps' IDs each followed by its alignment
+    anchors' IDs, the resources' IDs, and last the manifest ID); then group
+    members, graphical orders, named timestamps, elisions, named MatchStamps
+    and resources.
     """
     roots = entries_of(value, "timelines")
     groups = entries_of(value, "groups")
@@ -165,5 +171,6 @@ def identity_problems(
         first_group.setdefault(group["id"], index)
     yield from order_problems(value, parents, first_group)
     yield from timestamp_problems(value)
+    yield from elision_problems(value)
     yield from matchstamp_problems(value)
     yield from resource_problems(value)

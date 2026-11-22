@@ -34,6 +34,8 @@ ValidationCode: TypeAlias = Literal[
     "timestamp_timeline",
     "timestamp_coordinate",
     "groupstamp",
+    "elision_timeline",
+    "elision_stretch",
     "match_timestamp",
     "alignment_anchor",
     "matchstamp",
@@ -187,15 +189,16 @@ def tree_ids(root: Any, path: InstancePath) -> Iterator[tuple[str, InstancePath]
 def listed_ids(manifest: Any) -> Iterator[tuple[str, InstancePath]]:
     """Yield the IDs of the elements a manifest lists outside its timelines.
 
-    The groups, the MeasureMaps, the named timestamps, the named
-    MatchStamps, each followed by its alignment anchors, and the resources,
-    in that order, each with its path. An entry that is no object or holds
+    The groups, the MeasureMaps, the named timestamps, the elisions, the
+    named MatchStamps, each followed by its alignment anchors, and the
+    resources, in that order, each with its path. An entry that is no object or holds
     no string ``id`` is passed over, so the walk reads any value.
     """
     for key, entries in (
         (("groups",), entries_of(manifest, "groups")),
         (("measure_maps",), entries_of(manifest, "measure_maps")),
         (("graphical", "timestamps"), timestamps_of(manifest)),
+        (("graphical", "elisions"), elisions_of(manifest)),
     ):
         for index, entry in enumerate(entries):
             identifier = string_id(entry)
@@ -252,6 +255,12 @@ def timestamps_of(manifest: Any) -> list[Any]:
     """Return the named timestamps of a manifest's ``graphical`` object, or none."""
     graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
     return entries_of(graphical, "timestamps")
+
+
+def elisions_of(manifest: Any) -> list[Any]:
+    """Return the elisions of a manifest's ``graphical`` object, or none."""
+    graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
+    return entries_of(graphical, "elisions")
 
 
 def matchstamps_of(manifest: Any) -> list[Any]:

@@ -73,14 +73,21 @@ rejection cases that use them (`test_schema.py`):
   `facet` refer to `Facet`, exactly the five facets `markers`,
   `conversion_maps`, `children`, `regions` and `flow_control`, and the words
   of an `Address`'s `part` to `Part`, exactly `start`, `end`, `name`,
-  `label`, `card`, `line`, `id` and `coordinate`. The words of a
+  `label`, `card`, `line`, `id`, `coordinate` and `elision`. The words of a
   `Timestamp`'s `display` are exactly `TIMESTAMP_DISPLAY`, `wedge`, `name`,
-  `id`, `coordinate` and `cross_section` in that order, so the canonical
-  order the writers apply cannot drift from the words the schema admits.
-  `ElementType` is exactly the eighteen types `block`,
+  `id`, `coordinate` and `cross_section` in that order, and those of an
+  `Elision`'s `display` exactly `ELISION_DISPLAY`, `strip`, `name` and
+  `coordinate` in that order, so the canonical order the writers apply
+  cannot drift from the words the schema admits.
+  `ElementType` is exactly the nineteen types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `flow_marker`, `jump_from`,
   `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
-  `cross_section`, `alignment_anchor` and `ancestor_card`.
+  `cross_section`, `alignment_anchor`, `ancestor_card` and `elision`.
+  An `Elision`'s `width` declares exactly `ratio` (a number, exclusive
+  minimum 0, maximum 1), `span` (`NumberPositive`) and `canvas` (a number,
+  exclusive minimum 0), and its `oneOf` is exactly the three subschemas
+  requiring one of them each, so `{"ratio": 0.5}`, `{"span": [3, 2]}`
+  and `{"canvas": 40}` pass and `{}` and two forms together are refused.
   `Selector.coordinates` is exactly the two words `primary` and
   `secondary`. The four
   measure views fix `source_unit` to `quarters` and `target_unit` to
@@ -197,7 +204,7 @@ rejection cases that use them (`test_schema.py`):
 - **Defaults agree with the table.** For every kind of `DEFAULTS` the
   schema's corresponding definitions (`Manifest`, `Timeline`,
   `Region`, `FlowControlElement`, `MeasureMap`, `Group`, `Graphical`,
-  `Timestamp`, every conversion map) declare `default` on exactly the keys
+  `Timestamp`, `AlignmentAnchor`, `Elision`, every conversion map) declare `default` on exactly the keys
   of that kind's table, each equal to the table's value, and on no other
   key; a conversion map's kind is `conversion_map`, joined by `linear_map`
   for a `LinearMap` (`scalar` 1, `offset` 0) and by `table_map` for a
@@ -475,14 +482,20 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   minimizes without `display`, as the default in another order is still
   the default; one stating `["name", "wedge"]` completes to `["wedge",
   "name"]` and keeps it in the minimal form; one stating `[]` keeps `[]` in
-  both forms.
+  both forms. An elision without `display` gains `display: ["strip",
+  "name", "coordinate"]` and nothing else, its `width` neither added nor
+  completed; one stating `["coordinate", "strip", "name"]` completes to the
+  default order and minimizes without `display`; one stating `["name"]`
+  keeps it in both forms; its `width` `{"ratio": 1}` stays in both forms,
+  as no width has a default.
   The unit default of `number_type` is stated for ticks (`int`), seconds
   (`float`), whole_notes (`fraction`), pixels (`int`), and the two
   vector-graphics units css_pixels and user_units (`float`).
 - **Never added, never removed.** `id`, `graphical` and a root's `offset`
   are absent from the completion of a manifest without them; a present
-  `graphical: {}` completes to its four keys (`styles`, `rules`,
-  `order`, `timestamps`) and minimizes to `{}`; a
+  `graphical: {}` completes to its six keys (`styles`, `rules`,
+  `order`, `timestamps`, `matchstamps`, `elisions`, each empty) and
+  minimizes to `{}`; a
   child's `offset` stays in the minimal form.
 - **Values that differ from the default stay.** `locked: true`,
   `number_type` `float` on quarters and a `repeat_end` with `repeat_count` 2
@@ -537,7 +550,7 @@ package words it as this package does.
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
 | `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
 | `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
-| `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, then each named timestamp's ID, against every ID before it | the later ID | as above |
+| `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, then each named timestamp's ID, then each elision's ID, against every ID before it | the later ID | as above |
 | `manifest_id` | the manifest ID is no other ID of the manifest | `id` | `'g2' is not unique in the manifest, first at #/groups/1/id` |
 | `group_member` | a member names a timeline and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `member 'b' lies inside member 'a' of the same group` |
 | `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
@@ -545,6 +558,8 @@ package words it as this package does.
 | `band_order` | a timeline's order lists `line` and any of the five facets | the entry, then the order | `'annotations' is not 'line' or a facet, in the band order of 'score'`, `'line' is missing from the band order of 'score'` |
 | `timestamp_timeline` | a named timestamp's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
 | `timestamp_coordinate` | its `coordinate` lies from 0 to its timeline's length, from 0 on where the length is null | its `coordinate` | `coordinate [9, 1] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'`, `coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'` |
+| `elision_timeline` | an elision's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
+| `elision_stretch` | its `start` lies at or after 0, its `end` at or before its timeline's length where the length is known, and its `start` before its `end`; each elision checked in that order | its `start`, its `end`, its `end` | `start [-1, 1] of 'elision_1' lies before the start of its timeline 'score'`, `end [5, 1] of 'elision_1' is beyond the length [4, 1] of its timeline 'verse'`, `end [3, 1] of 'elision_1' does not lie after its start [3, 1]` |
 | `context` | a manifest whose manifest, timeline or region carries `statements` or `provenance` holds `@context` | the first such key in subject order, `provenance` before `statements` | `statements and provenance need the manifest's @context` |
 | `reserved_key` | no key of the manifest, a timeline, a region or a group begins with `@` (but the manifest's `@context`), holds a `:`, is a term of the context the element may not use or names a prefix of `@context` | the key | `'label' is reserved on a timeline` |
 | `iri` | subject by subject: the ID of an element with statements is an IRI fragment; every compact IRI names a prefix of `@context`, unless it is `//`-absolute or of the schemes `info`, `mailto`, `tag`, `urn` | the `id`, the key or value | `the ID 'Bass Kick' of an element with statements is no IRI fragment`, `'wdtt:P175': the prefix 'wdtt' is not declared in @context` |
@@ -565,7 +580,11 @@ timestamp on a timeline of the manifest is an own-axis value of that
 timeline and is checked with the `representation` rule (`coordinate 3 of
 'timestamp_1' is an int on a fraction axis: write [3, 1]`, at its
 `coordinate`); a timestamp naming no timeline is checked for its timeline
-alone.
+alone. The elisions are read after the named timestamps, in array order;
+an elision's `start`, `end` and width `span` are own-axis values of its
+timeline, checked with the `representation` rule after the timestamps'
+coordinates (`span 2 of 'elision_1' is an int on a fraction axis: write
+[2, 1]`, at `width/span`).
 
 The statement rules read the manifest with bare IDs and its statements as
 written (they are the same in both forms). Subject order is the manifest,
@@ -595,12 +614,12 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 179 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 185 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
 case at one path with one code and one message. The codes of the cases are
-exactly the thirty of the table, so every code is reached by a case both
+exactly the thirty-three of the table, so every code is reached by a case both
 suites read. `version_unknown` raises `UnsupportedVersionError` and stores
 `["timetoshare"]`, the code `null` and the error's message. Three cases
 refuse a conversion map that is no object, which the schema types as an
@@ -668,7 +687,9 @@ Two more break the schema's `display` of a timestamp on `score`:
 states `["wedge", "name", "name"]` (`schema` at `display`, the duplicate
 breaking `uniqueItems`), each `display` in canonical order, so ordering it
 moves nothing. Every case is written in the complete form, so a timestamp
-of a case states its `display`.
+of a case states its `display`. The six cases of elisions are written so
+too, on the same manifest, each with one elision `elision_1` on `verse`
+from `[1, 1]` to `[3, 1]` but for what it breaks (section "Elisions").
 
 **Each semantic rule has the smallest inline document with exactly one
 problem** (`test_identity.py`, `test_segment_lines.py`), whose path and
@@ -997,6 +1018,71 @@ never stored, so nothing beyond the flag is checked. What proves it:
   `groupstamp` nor, unless a match timestamp, `matchstamp`. Every one of
   them and its twin passes `validate` and `identity_problems`, and
   `matchstamp_problems` finds nothing in either form.
+
+## Elisions
+
+An elision `{id, timeline, start, end, width?, display?}` of
+`graphical.elisions` lies on the timeline it names, at any depth, a
+segment included, and draws the stretch from `start` to `end` of that
+timeline's own axis as a narrow strip. Nothing refers to an elision; its
+ID is unique across the manifest like any other. What proves it:
+
+- **The schema** (`test_schema.py`, section "The schema document"): its
+  `display` words, its three width forms and their `oneOf`, the element
+  type and the part word `elision`; the `display` default `["strip",
+  "name", "coordinate"]` and `elisions: []` agree with `DEFAULTS`.
+- **The rules** (`test_validate.py`, `test_identity.py`). Six shared
+  cases break one rule each of the manifest `score` (8 quarters) with the
+  child `verse` (4 at 2), the elision `elision_1` on `verse`:
+  `elision_timeline_unknown` (on `ghost`, `elision_timeline` at its
+  `timeline`), `elision_end_beyond_length` (to `[5, 1]`, `elision_stretch`
+  at its `end`, beyond `verse`'s own length 4 though within its parent),
+  `elision_start_not_before_end` (from `[3, 1]` to `[3, 1]`,
+  `elision_stretch` at its `end`: an empty stretch),
+  `elision_width_two_forms` (`{"canvas": 40, "ratio": 0.5}`, `schema` at
+  `width`, valid under two branches of its `oneOf`),
+  `elision_ratio_zero` (`{"ratio": 0}`, `schema` at `width/ratio`, the
+  exclusive minimum) and `elision_id_is_timeline_id` (the ID `verse`,
+  `duplicate_id` at the elision's `id`, first at the timeline's). Inline
+  documents bound the rules from the other side: on `score` an elision
+  from 0 to its length 8 passes; one from `[-1, 1]` is refused at its
+  `start` before anything else of it; on a root of unknown length one from
+  `[100, 1]` to `[200, 1]` passes and one from `[-1, 1]` does not; one
+  from `[5, 1]` to `[2, 1]` is refused at its `end` with `end [2, 1] of
+  'elision_1' does not lie after its start [5, 1]`; an elision on a
+  segment passes; the ID of an elision equal to a named timestamp's is
+  `duplicate_id` at the elision's `id`, first at the timestamp's, and the
+  manifest ID equal to an elision's is `manifest_id`. The own-axis values
+  are read as the timeline's number type: `start` `1.0` on quarters is
+  `representation` at `start` (`write [1, 1]`), `span` `2` at
+  `width/span` (`write [2, 1]`), and on seconds `start` `1` passes as the
+  float it equals.
+- **Overlaps are accepted** (`test_identity.py`). On `score` the
+  elisions `[0, 1]`–`[4, 1]`, `[2, 1]`–`[6, 1]` (overlapping it), one on
+  the child `verse` from `[0, 1]` to `[4, 1]` (lying inside both), and a
+  fourth with exactly the first one's stretch and a canvas width, in a
+  manifest holding the format's `@context`, validate, draw no warning
+  (`manifest_warnings` is empty) and have no unknown keys.
+- **The forms and the order** (`test_defaults.py`, `test_manifest.py`).
+  The defaults as stated under "Defaults". `canonical_order` puts
+  `graphical.elisions` by timeline (code point), then `start` by exact
+  value, then ID: `elision_4` on `b` from `[1, 1]`, `elision_3` on `a`
+  from `[2, 4]`, `elision_2` on `a` from `[1, 2]`, `elision_1` on `a` from
+  `[3, 1]` and `elision_0` on `ghost` come out `elision_2`, `elision_3`
+  (tied in value with it), `elision_1`, `elision_4`, `elision_0`; each
+  `display` in the order of `ELISION_DISPLAY` (`["coordinate", "zeta",
+  "strip"]` as `["strip", "coordinate", "zeta"]`); `start`, `end` and the
+  width's `span` are respelled on the timeline's axis (`[2, 4]` and `[4,
+  8]` as `[1, 2]`, `[6.0, 1]` as `[6, 1]`), and those of `elision_0`,
+  naming no timeline, stay as given (`[4, 8]`, `2`); two elisions whose
+  `start` is a string are refused (`cannot put elisions in canonical
+  order`).
+- **IDs in a file** (`test_ids.py`). The elision's `id` and `timeline` are
+  ID positions, held through `graphical.elisions`; the tables stay the
+  schema's.
+- **The fixtures.** Every complete fixture holding a `graphical` object
+  states `elisions: []`, every twin leaves it out; no fixture holds an
+  elision yet.
 
 ## Statements
 
@@ -1469,7 +1555,8 @@ Every array whose order carries no meaning has one order: `timelines` by ID;
 in every timeline `children` by offset then ID, `conversion_maps` by ID,
 `regions` by start, end, ID, `flow_control` by coordinate then ID; `groups`
 by ID and `members` by code point; `measure_maps` by ID;
-`graphical.timestamps` by timeline (code point), then coordinate, then ID.
+`graphical.timestamps` by timeline (code point), then coordinate, then ID;
+`graphical.elisions` by timeline, then start, then ID (section "Elisions").
 The arrays of statements keep their order: the values of a pair, an
 ordered list's items and the entries of `provenance`.
 Values compare exactly; strings by code point. The timestamps
@@ -1710,7 +1797,7 @@ definition is held (`CONTAINERS`). What proves them:
   MeasureMap, a `CombinationMap` holding a map by output name, a region, a
   jump_to and the jump_from targeting it, a group, a MeasureMap, a
   timeline's and a group's `graphical.order` entry, a rule with an address
-  and `within`, a named timestamp), plus the unknown key `extra: score` on
+  and `within`, a named timestamp, an elision), plus the unknown key `extra: score` on
   the root, a `meta` holding `id: untouched`, the bundle's statement
   naming `#score` and the region's statement naming `#verse` with its
   provenance's `basis` `#intro` and `other.yaml#score`; `with_file_ids`

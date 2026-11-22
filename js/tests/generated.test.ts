@@ -58,6 +58,7 @@ describe("generated files", () => {
       "Timestamp",
       "MatchStamp",
       "AlignmentAnchor",
+      "Elision",
     ];
     expect(exportsOf(committed("types.ts"))).toEqual(
       [...definitions, ...completed.map((name) => `Complete${name}`), "LosslessManifest"].sort(),

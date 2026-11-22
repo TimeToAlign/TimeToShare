@@ -15,7 +15,16 @@ from timetoshare import (
     with_bare_ids,
 )
 
-from .conftest import bundle, group, identity_problems, manifest, timeline, validate
+from .conftest import (
+    bundle,
+    group,
+    identity_problems,
+    manifest,
+    manifest_warnings,
+    timeline,
+    unknown_keys,
+    validate,
+)
 
 
 def _problems(value: dict) -> list[tuple[tuple[str | int, ...], str]]:
@@ -1307,6 +1316,152 @@ def test_a_named_timestamp_takes_any_id() -> None:
     )
     assert _problems(document) == []
     validate(document)
+
+
+# -- elisions ----------------------------------------------------------------------
+
+
+def _elision(
+    identifier: str, line: str, start: object, end: object, **rest: object
+) -> dict:
+    return {"id": identifier, "timeline": line, "start": start, "end": end, **rest}
+
+
+def _elided(*elisions: dict, **members: object) -> dict:
+    """``score`` (8 quarters) with ``verse`` (4 at 2), and elisions."""
+    root = timeline("score", children=[timeline("verse", length=(4, 1), offset=(2, 1))])
+    return manifest(root, graphical={"elisions": list(elisions)}, **members)
+
+
+def test_overlapping_elisions_are_accepted_without_a_warning() -> None:
+    document = _elided(
+        _elision("elision_1", "score", [0, 1], [4, 1]),
+        _elision("elision_2", "score", [2, 1], [6, 1]),
+        _elision("elision_3", "verse", [0, 1], [4, 1]),
+        _elision("elision_4", "score", [0, 1], [4, 1], width={"canvas": 12}),
+        **{"@context": timetoshare.FORMAT_CONTEXT},
+    )
+    assert _problems(document) == []
+    validate(document)
+    assert manifest_warnings(document) == []
+    assert unknown_keys(document) == []
+
+
+def test_elisions_lie_on_their_timelines() -> None:
+    segments = timeline(
+        "form",
+        is_segment_line=True,
+        children=[
+            timeline("a", length=(4, 1), offset=(0, 1)),
+            timeline("b", length=(4, 1), offset=(4, 1)),
+        ],
+    )
+    for document in (
+        _elided(_elision("elision_1", "score", [0, 1], [8, 1])),
+        manifest(
+            timeline("score"),
+            segments,
+            graphical={"elisions": [_elision("elision_1", "b", [1, 1], [4, 1])]},
+        ),
+        manifest(
+            timeline("take", "quarters", None),
+            graphical={"elisions": [_elision("elision_1", "take", [100, 1], [200, 1])]},
+        ),
+        manifest(
+            timeline("take", "seconds", 60.0),
+            graphical={"elisions": [_elision("elision_1", "take", 1, 2.5)]},
+        ),
+    ):
+        assert _problems(document) == []
+        validate(document)
+
+
+def test_an_elision_names_a_timeline() -> None:
+    assert _only(_elided(_elision("elision_1", "ghost", [1, 1], [3, 1]))) == (
+        ("graphical", "elisions", 0, "timeline"),
+        "'ghost' names no timeline of this manifest",
+    )
+    value = _elided(
+        _elision("elision_1", "g", [1, 1], [3, 1]), groups=[group("g", "score")]
+    )
+    assert _only(value) == (
+        ("graphical", "elisions", 0, "timeline"),
+        "'g' names no timeline of this manifest",
+    )
+
+
+def test_an_elision_lies_in_order_within_its_timeline() -> None:
+    assert _only(_elided(_elision("elision_1", "score", [-1, 1], [3, 1]))) == (
+        ("graphical", "elisions", 0, "start"),
+        "start [-1, 1] of 'elision_1' lies before the start of its timeline 'score'",
+    )
+    assert _only(_elided(_elision("elision_1", "verse", [1, 1], [5, 1]))) == (
+        ("graphical", "elisions", 0, "end"),
+        "end [5, 1] of 'elision_1' is beyond the length [4, 1] of its timeline 'verse'",
+    )
+    assert _only(_elided(_elision("elision_1", "score", [5, 1], [2, 1]))) == (
+        ("graphical", "elisions", 0, "end"),
+        "end [2, 1] of 'elision_1' does not lie after its start [5, 1]",
+    )
+    assert _only(_elided(_elision("elision_1", "score", [3, 1], [3, 1]))) == (
+        ("graphical", "elisions", 0, "end"),
+        "end [3, 1] of 'elision_1' does not lie after its start [3, 1]",
+    )
+    # The start is reported before anything else of the same elision.
+    assert _problems(_elided(_elision("elision_1", "verse", [-1, 1], [-2, 1])))[0] == (
+        ("graphical", "elisions", 0, "start"),
+        "start [-1, 1] of 'elision_1' lies before the start of its timeline 'verse'",
+    )
+    open_ended = manifest(
+        timeline("take", "quarters", None),
+        graphical={"elisions": [_elision("elision_1", "take", [-1, 1], [2, 1])]},
+    )
+    assert _only(open_ended) == (
+        ("graphical", "elisions", 0, "start"),
+        "start [-1, 1] of 'elision_1' lies before the start of its timeline 'take'",
+    )
+
+
+def test_elision_ids_share_the_manifest_scope() -> None:
+    value = _elided(_elision("timestamp_1", "score", [1, 1], [3, 1]))
+    value["graphical"]["timestamps"] = [_stamp("timestamp_1", "score", [1, 1])]
+    assert _only(value) == (
+        ("graphical", "elisions", 0, "id"),
+        "'timestamp_1' is not unique in the manifest, "
+        "first at #/graphical/timestamps/0/id",
+    )
+    value = _elided(_elision("elision_1", "score", [1, 1], [3, 1]), id="elision_1")
+    assert _only(value) == (
+        ("id",),
+        "'elision_1' is not unique in the manifest, first at #/graphical/elisions/0/id",
+    )
+
+
+@pytest.mark.parametrize(
+    ("elision", "path", "message"),
+    [
+        (
+            _elision("elision_1", "score", 1.0, [3, 1]),
+            ("graphical", "elisions", 0, "start"),
+            "start 1.0 of 'elision_1' is a float on a fraction axis: write [1, 1]",
+        ),
+        (
+            _elision("elision_1", "score", [1, 1], [3, 1], width={"span": 2}),
+            ("graphical", "elisions", 0, "width", "span"),
+            "span 2 of 'elision_1' is an int on a fraction axis: write [2, 1]",
+        ),
+    ],
+)
+def test_an_elision_is_read_as_its_timelines_number_type(
+    elision: dict, path: tuple, message: str
+) -> None:
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(_elided(elision))
+    assert (caught.value.code, caught.value.path, caught.value.message) == (
+        "representation",
+        path,
+        message,
+    )
 
 
 FREE_IDS = {

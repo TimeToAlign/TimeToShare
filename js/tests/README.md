@@ -58,7 +58,7 @@ statements has an ID), and satisfies both round trips of `complete` and
 refactor that keeps the accepted language stays green: the bundled `schema`
 is the file; references are local and resolve; the public definitions exist and the root's description names exactly them; `ConversionMap` chooses between exactly the ten
 map types, `Selector.class` names the six timeline classes and the ten types,
-`Facet`, `Part`, `ElementType`, the words of `Selector.coordinates` and the words of a `Timestamp`'s `display` (`TIMESTAMP_DISPLAY`) are exactly the Python suite's lists, and
+`Facet`, `Part`, `ElementType`, the words of `Selector.coordinates`, the words of a `Timestamp`'s `display` (`TIMESTAMP_DISPLAY`) and of an `Elision`'s (`ELISION_DISPLAY`) are exactly the Python suite's lists, an `Elision`'s `width` declares the Python suite's three forms, one of them required by its `oneOf`, and accepts and refuses the Python suite's widths, and
 each measure view fixes its target unit over
 `MeasureView`, which fixes the source unit; the unit
 table's consts are exactly the keys of
@@ -204,6 +204,21 @@ every other rejection case (`groupstamp_match_without_group` among them), the sc
 match timestamp without `timeline`, and nothing for a manifest whose
 ordinary timestamps include one that is no object.
 
+## Elisions
+
+The Python README's section "Elisions" is proved here with the same values:
+the schema's words, width forms, element type and part word
+(`schema.test.ts`); the defaults (`defaults.test.ts`, `elisions: []` and
+an elision's `display`, its `width` never added); the order by timeline,
+start and ID, the `display` order and the respelling of `start`, `end`
+and `span` (`manifest.test.ts`); the ID positions (`ids.test.ts`, the
+manifest naming every position holds the elision `elision_1` on `verse`);
+the six shared cases with their messages (`validate.test.ts`, "the shared
+rejection cases"); and the inline documents of the rules, the overlapping
+elisions accepted without a warning, the number-type readings and the
+shared ID scope (`identity.test.ts`), each with the Python suite's code,
+path and message.
+
 ## Groupstamps
 
 The Python README's section "Groupstamps" is proved here with the same
@@ -224,7 +239,7 @@ no problem from `matchstampProblems` either.
 
 ## Shared rejection cases
 
-Each of the 179 cases (`validate.test.ts`), found by its name whatever
+Each of the 185 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises

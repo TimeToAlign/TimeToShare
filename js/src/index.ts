@@ -25,6 +25,7 @@ export { schema } from "./generated/schema.js";
 export type {
   Address,
   CompleteConversionMap,
+  CompleteElision,
   CompleteFlowControlElement,
   CompleteGraphical,
   CompleteGroup,
@@ -38,6 +39,7 @@ export type {
   Coordinate,
   Declaration,
   ElementType,
+  Elision,
   Facet,
   FlowControlElement,
   Fraction,
@@ -78,7 +80,12 @@ export {
   type JsonNumber,
   type Lossless,
 } from "./json/value.js";
-export { ANCHOR_DISPLAY, canonicalOrder, TIMESTAMP_DISPLAY } from "./manifest/order.js";
+export {
+  ANCHOR_DISPLAY,
+  canonicalOrder,
+  ELISION_DISPLAY,
+  TIMESTAMP_DISPLAY,
+} from "./manifest/order.js";
 export { UNITS, type UnitEntry } from "./manifest/units.js";
 export { exactValue, jsonInteger, type Rational } from "./numbers/exact.js";
 export { JsonSyntaxError, YamlSyntaxError } from "./serialization/errors.js";

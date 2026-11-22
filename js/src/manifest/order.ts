@@ -9,7 +9,9 @@
  * by timeline, then coordinate, then id, and every timestamp's `display` in
  * the order of `TIMESTAMP_DISPLAY`; `graphical.matchstamps` by id, each one's
  * `alignment_anchors` by id, and every anchor's `display` in the order of
- * `ANCHOR_DISPLAY`. Own-axis values compare by exact numeric
+ * `ANCHOR_DISPLAY`; `graphical.elisions` by timeline, then start, then id,
+ * and every elision's `display` in the order of `ELISION_DISPLAY`. Own-axis
+ * values compare by exact numeric
  * value, strings by Unicode code point. A `graphical.order` array is a
  * display order and is never re-ordered, nor is any array of `statements`
  * or `provenance` (the values of a pair and the annotations keep the order
@@ -31,6 +33,9 @@ export const TIMESTAMP_DISPLAY = ["wedge", "name", "id", "coordinate", "cross_se
 
 /** The words of an alignment anchor's `display`, in canonical order. */
 export const ANCHOR_DISPLAY = ["line", "name"] as const;
+
+/** The words of an elision's `display`, in canonical order. */
+export const ELISION_DISPLAY = ["strip", "name", "coordinate"] as const;
 
 /**
  * Order the words of a `display`: the known `words` canonically, then any
@@ -55,7 +60,7 @@ function orderDisplay(owner: unknown, words: readonly string[]): void {
   if (Array.isArray(display)) display.sort(byDisplay(words));
 }
 
-/** Put every timestamp's and alignment anchor's `display` in canonical order, in place. */
+/** Put every timestamp's, alignment anchor's and elision's `display` in canonical order, in place. */
 export function orderDisplays(manifest: unknown): void {
   const graphical = member(manifest, "graphical");
   const timestamps = member(graphical, "timestamps");
@@ -69,6 +74,10 @@ export function orderDisplays(manifest: unknown): void {
       if (!Array.isArray(anchors)) continue;
       for (const anchor of anchors) orderDisplay(anchor, ANCHOR_DISPLAY);
     }
+  }
+  const elisions = member(graphical, "elisions");
+  if (Array.isArray(elisions)) {
+    for (const elision of elisions) orderDisplay(elision, ELISION_DISPLAY);
   }
 }
 
@@ -168,7 +177,9 @@ function orderTimeline(timeline: JsonObject, where: string): void {
  * by id, its `resources` by id, its `graphical.timestamps` by timeline, then
  * coordinate, then id, each with its `display` in canonical order, and its
  * `graphical.matchstamps` by id, each with its `alignment_anchors` by id and
- * every anchor's `display` in canonical order. Entries
+ * every anchor's `display` in canonical order, and its `graphical.elisions`
+ * by timeline, then start, then id, each with its `display` in canonical
+ * order. Entries
  * that tie keep their given order, and a member that should hold an ordered
  * array but holds no array is left as it is. Object keys are left as they
  * are (the writers sort them), and any other JSON value is copied unchanged.
@@ -224,6 +235,14 @@ export function canonicalOrder<T>(value: T): T {
         sortBy(anchors, `graphical.matchstamps[${index}].alignment_anchors`, byId);
       }
     }
+  }
+  const elisions = member(result.graphical, "elisions");
+  if (Array.isArray(elisions)) {
+    sortBy(elisions, "graphical.elisions", (elision, at) => [
+      text(elision, "timeline", at),
+      coordinate(elision, "start", at),
+      text(elision, "id", at),
+    ]);
   }
   orderDisplays(result);
   return result;

@@ -9,8 +9,10 @@ import {
   group,
   identityProblems,
   manifest,
+  manifestWarnings,
   rejectionCase,
   timeline,
+  unknownKeys,
   validate,
 } from "./fixtures.js";
 
@@ -1398,5 +1400,150 @@ describe("identity", () => {
       ...Array<string>(2).fill("timestamp_coordinate"),
     ]);
     expect(() => validate(value)).toThrow(identityProblems(value)[0]?.message);
+  });
+});
+
+const elision = (
+  id: string,
+  line: string,
+  start: unknown,
+  end: unknown,
+  rest: JsonObject = {},
+): JsonObject => ({ id, timeline: line, start, end, ...rest });
+
+/** `score` (8 quarters) with `verse` (4 at 2), and elisions. */
+const elided = (elisions: JsonObject[], members: JsonObject = {}): JsonObject =>
+  manifest(
+    [
+      timeline("score", "quarters", [8, 1], {
+        children: [timeline("verse", "quarters", [4, 1], { offset: [2, 1] })],
+      }),
+    ],
+    { graphical: { elisions }, ...members },
+  );
+
+describe("elisions", () => {
+  it("accepts overlapping elisions without a warning", () => {
+    const value = elided(
+      [
+        elision("elision_1", "score", [0, 1], [4, 1]),
+        elision("elision_2", "score", [2, 1], [6, 1]),
+        elision("elision_3", "verse", [0, 1], [4, 1]),
+        elision("elision_4", "score", [0, 1], [4, 1], { width: { canvas: 12 } }),
+      ],
+      { "@context": timetoshare.FORMAT_CONTEXT },
+    );
+    expect(problems(value)).toEqual([]);
+    validate(value);
+    expect(manifestWarnings(value)).toEqual([]);
+    expect(unknownKeys(value)).toEqual([]);
+  });
+
+  it("accepts elisions on their timelines", () => {
+    const segments = timeline("form", "quarters", [8, 1], {
+      is_segment_line: true,
+      children: [
+        timeline("a", "quarters", [4, 1], { offset: [0, 1] }),
+        timeline("b", "quarters", [4, 1], { offset: [4, 1] }),
+      ],
+    });
+    for (const value of [
+      elided([elision("elision_1", "score", [0, 1], [8, 1])]),
+      manifest([timeline("score"), segments], {
+        graphical: { elisions: [elision("elision_1", "b", [1, 1], [4, 1])] },
+      }),
+      manifest([timeline("take", "quarters", null)], {
+        graphical: { elisions: [elision("elision_1", "take", [100, 1], [200, 1])] },
+      }),
+      manifest([timeline("take", "seconds", new JsonFloat(60))], {
+        graphical: { elisions: [elision("elision_1", "take", 1, 2.5)] },
+      }),
+    ]) {
+      expect(problems(value)).toEqual([]);
+      validate(value);
+    }
+  });
+
+  it("holds an elision to name a timeline", () => {
+    expect(only(elided([elision("elision_1", "ghost", [1, 1], [3, 1])]))).toEqual([
+      ["graphical", "elisions", 0, "timeline"],
+      "'ghost' names no timeline of this manifest",
+    ]);
+    const value = elided([elision("elision_1", "g", [1, 1], [3, 1])], {
+      groups: [group("g", ["score"])],
+    });
+    expect(only(value)).toEqual([
+      ["graphical", "elisions", 0, "timeline"],
+      "'g' names no timeline of this manifest",
+    ]);
+  });
+
+  it("holds an elision in order within its timeline", () => {
+    expect(only(elided([elision("elision_1", "score", [-1, 1], [3, 1])]))).toEqual([
+      ["graphical", "elisions", 0, "start"],
+      "start [-1, 1] of 'elision_1' lies before the start of its timeline 'score'",
+    ]);
+    expect(only(elided([elision("elision_1", "verse", [1, 1], [5, 1])]))).toEqual([
+      ["graphical", "elisions", 0, "end"],
+      "end [5, 1] of 'elision_1' is beyond the length [4, 1] of its timeline 'verse'",
+    ]);
+    expect(only(elided([elision("elision_1", "score", [5, 1], [2, 1])]))).toEqual([
+      ["graphical", "elisions", 0, "end"],
+      "end [2, 1] of 'elision_1' does not lie after its start [5, 1]",
+    ]);
+    expect(only(elided([elision("elision_1", "score", [3, 1], [3, 1])]))).toEqual([
+      ["graphical", "elisions", 0, "end"],
+      "end [3, 1] of 'elision_1' does not lie after its start [3, 1]",
+    ]);
+    // The start is reported before anything else of the same elision.
+    expect(problems(elided([elision("elision_1", "verse", [-1, 1], [-2, 1])]))[0]).toEqual([
+      ["graphical", "elisions", 0, "start"],
+      "start [-1, 1] of 'elision_1' lies before the start of its timeline 'verse'",
+    ]);
+    const openEnded = manifest([timeline("take", "quarters", null)], {
+      graphical: { elisions: [elision("elision_1", "take", [-1, 1], [2, 1])] },
+    });
+    expect(only(openEnded)).toEqual([
+      ["graphical", "elisions", 0, "start"],
+      "start [-1, 1] of 'elision_1' lies before the start of its timeline 'take'",
+    ]);
+  });
+
+  it("shares the manifest's ID scope", () => {
+    const value = elided([elision("timestamp_1", "score", [1, 1], [3, 1])]);
+    (value.graphical as JsonObject).timestamps = [stamp("timestamp_1", "score", [1, 1])];
+    expect(only(value)).toEqual([
+      ["graphical", "elisions", 0, "id"],
+      "'timestamp_1' is not unique in the manifest, first at #/graphical/timestamps/0/id",
+    ]);
+    expect(
+      only(elided([elision("elision_1", "score", [1, 1], [3, 1])], { id: "elision_1" })),
+    ).toEqual([
+      ["id"],
+      "'elision_1' is not unique in the manifest, first at #/graphical/elisions/0/id",
+    ]);
+  });
+
+  it.each([
+    [
+      elision("elision_1", "score", new JsonFloat(1), [3, 1]),
+      ["graphical", "elisions", 0, "start"],
+      "start 1.0 of 'elision_1' is a float on a fraction axis: write [1, 1]",
+    ],
+    [
+      elision("elision_1", "score", [1, 1], [3, 1], { width: { span: 2 } }),
+      ["graphical", "elisions", 0, "width", "span"],
+      "span 2 of 'elision_1' is an int on a fraction axis: write [2, 1]",
+    ],
+  ])("reads an elision as its timeline's number type", (value, path, message) => {
+    try {
+      validate(elided([value]));
+    } catch (error) {
+      expect(error).toBeInstanceOf(SchemaValidationError);
+      const { code, path: at, detail } = error as SchemaValidationError;
+      expect([code, at, detail]).toEqual(["representation", path, message]);
+      return;
+    }
+    throw new Error("value was accepted");
   });
 });

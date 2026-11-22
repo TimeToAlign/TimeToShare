@@ -3,6 +3,7 @@ import { isJsonObject, JsonFloat, type JsonObject } from "../json/value.js";
 import { exact, exactNumber, jsonInteger, type Rational } from "../numbers/exact.js";
 import { spell } from "../serialization/text.js";
 import {
+  elisionsOf,
   entries,
   jsonPointer,
   numberTypeOf,
@@ -52,11 +53,13 @@ export function rewritten(value: unknown, numberType: NumberType): string | null
   return spell(Number.isInteger(double) ? new JsonFloat(double) : double);
 }
 
+/** The representation problem of `owner[key]`, if any, naming the element `of` (by default the owner's `id`). */
 function* representationProblem(
   key: string,
   owner: JsonObject,
   path: readonly PathSegment[],
   numberType: NumberType,
+  of: string = text(owner, "id"),
 ): Generator<SchemaValidationError> {
   const value = owner[key];
   if (value === undefined || value === null || represents(value, numberType)) return;
@@ -64,7 +67,7 @@ function* representationProblem(
   yield new SchemaValidationError(
     "representation",
     [...path, key],
-    `${key} ${spell(value)} of '${text(owner, "id")}' is ${ARTICLES[writtenAs(value)]} on ${ARTICLES[numberType]} axis: write ${fix}`,
+    `${key} ${spell(value)} of '${of}' is ${ARTICLES[writtenAs(value)]} on ${ARTICLES[numberType]} axis: write ${fix}`,
   );
 }
 
@@ -92,7 +95,8 @@ function* timelineRepresentation(
 /**
  * Yield own-axis representation violations in manifest order: the timelines
  * first, then the coordinate of every named timestamp on a timeline of the
- * manifest, read as that timeline's number type.
+ * manifest, then the `start`, `end` and width `span` of every elision on one,
+ * each read as that timeline's number type.
  */
 export function* representationProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   for (const [index, root] of entries(manifest, "timelines").entries()) {
@@ -108,6 +112,25 @@ export function* representationProblems(manifest: JsonObject): Generator<SchemaV
       ["graphical", "timestamps", index],
       numberTypeOf(timeline as { unit: TimeUnit; number_type?: NumberType }),
     );
+  }
+  for (const [index, elision] of elisionsOf(manifest).entries()) {
+    const timeline = timelines.get(text(elision, "timeline"));
+    if (timeline === undefined) continue;
+    const path = ["graphical", "elisions", index];
+    const numberType = numberTypeOf(timeline as { unit: TimeUnit; number_type?: NumberType });
+    for (const key of ["start", "end"]) {
+      yield* representationProblem(key, elision, path, numberType);
+    }
+    const { width } = elision;
+    if (isJsonObject(width)) {
+      yield* representationProblem(
+        "span",
+        width,
+        [...path, "width"],
+        numberType,
+        text(elision, "id"),
+      );
+    }
   }
 }
 

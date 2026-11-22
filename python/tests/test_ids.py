@@ -93,6 +93,9 @@ def every_position() -> dict:
                 }
             ],
             "timestamps": [{"id": "timestamp_1", "timeline": "verse", "coordinate": 1}],
+            "elisions": [
+                {"id": "elision_1", "timeline": "verse", "start": 0, "end": 1}
+            ],
         },
         "meta": {"id": "untouched"},
     }
@@ -126,6 +129,8 @@ def every_position_in_file_form() -> dict:
     }
     graphical["timestamps"][0]["id"] = "#timestamp_1"
     graphical["timestamps"][0]["timeline"] = "#verse"
+    graphical["elisions"][0]["id"] = "#elision_1"
+    graphical["elisions"][0]["timeline"] = "#verse"
     return value
 
 

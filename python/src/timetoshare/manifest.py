@@ -15,7 +15,10 @@ order (the README's "Canonical order"):
   order;
 * ``graphical.matchstamps`` by ID, the ``alignment_anchors`` of each by ID,
   and every anchor's ``display`` in the order of :data:`ANCHOR_DISPLAY`, as
-  a timestamp's.
+  a timestamp's;
+* ``graphical.elisions`` by timeline, then start, then ID, and every
+  elision's ``display`` in the order of :data:`ELISION_DISPLAY`, as a
+  timestamp's.
 
 Coordinates compare by their exact numeric value, never by their spelling;
 strings compare by Unicode code point; entries that tie keep their given
@@ -43,6 +46,7 @@ from typing import Any, NamedTuple
 
 __all__ = [
     "ANCHOR_DISPLAY",
+    "ELISION_DISPLAY",
     "TIMESTAMP_DISPLAY",
     "UNITS",
     "UnitEntry",
@@ -101,6 +105,9 @@ TIMESTAMP_DISPLAY = ("wedge", "name", "id", "coordinate", "cross_section")
 
 ANCHOR_DISPLAY = ("line", "name")
 """The words of an alignment anchor's ``display``, in canonical order."""
+
+ELISION_DISPLAY = ("strip", "name", "coordinate")
+"""The words of an elision's ``display``, in canonical order."""
 
 
 def _integral(value: Any) -> int | None:
@@ -170,12 +177,14 @@ def _order_display(owner: dict[str, Any], words: tuple[str, ...]) -> None:
 
 
 def order_displays(manifest: Any) -> None:
-    """Put every timestamp's and alignment anchor's ``display`` in canonical order."""
+    """Put the ``display`` of every timestamp, anchor and elision in canonical order."""
     for timestamp in _dicts(_timestamps(manifest)):
         _order_display(timestamp, TIMESTAMP_DISPLAY)
     for matchstamp in _dicts(_matchstamps(manifest)):
         for anchor in _dicts(matchstamp.get("alignment_anchors")):
             _order_display(anchor, ANCHOR_DISPLAY)
+    for elision in _dicts(_elisions(manifest)):
+        _order_display(elision, ELISION_DISPLAY)
 
 
 def _sorted(entries: list[Any], key: Callable[[Any], Any], where: str) -> list[Any]:
@@ -326,13 +335,19 @@ def _matchstamps(manifest: Any) -> Any:
     return graphical.get("matchstamps") if isinstance(graphical, dict) else None
 
 
+def _elisions(manifest: Any) -> Any:
+    graphical = manifest.get("graphical") if isinstance(manifest, Mapping) else None
+    return graphical.get("elisions") if isinstance(graphical, dict) else None
+
+
 def respell(manifest: Any) -> None:
     """Respell every own-axis value of a manifest as its number type selects, in place.
 
     The own-axis values are a timeline's ``length`` and ``offset``, its
-    regions' ``start`` and ``end``, its flow-control coordinates and the
-    coordinate of every named timestamp on it. A timestamp whose
-    ``timeline`` names no timeline, or more than one, keeps its coordinate.
+    regions' ``start`` and ``end``, its flow-control coordinates, the
+    coordinate of every named timestamp on it, and the ``start``, ``end`` and
+    width ``span`` of every elision on it. A timestamp or an elision whose
+    ``timeline`` names no timeline, or more than one, keeps its values.
     """
     if not isinstance(manifest, dict):
         return
@@ -343,6 +358,14 @@ def respell(manifest: Any) -> None:
         timeline = timestamp.get("timeline")
         if isinstance(timeline, str):
             _respell_axis(timestamp, ("coordinate",), axis_types.get(timeline))
+    for elision in _dicts(_elisions(manifest)):
+        timeline = elision.get("timeline")
+        if isinstance(timeline, str):
+            number_type = axis_types.get(timeline)
+            _respell_axis(elision, ("start", "end"), number_type)
+            width = elision.get("width")
+            if isinstance(width, dict):
+                _respell_axis(width, ("span",), number_type)
 
 
 def is_manifest(value: Any) -> bool:
@@ -401,5 +424,16 @@ def canonical_order(value: Any) -> Any:
                     matchstamp["alignment_anchors"], _by_id, "alignment_anchors"
                 )
         result["graphical"]["matchstamps"] = _sorted(matchstamps, _by_id, "matchstamps")
+    elisions = _elisions(result)
+    if isinstance(elisions, list):
+        result["graphical"]["elisions"] = _sorted(
+            elisions,
+            lambda entry: (
+                _identifier(entry["timeline"]),
+                exact(entry["start"]),
+                _by_id(entry),
+            ),
+            "elisions",
+        )
     order_displays(result)
     return result
