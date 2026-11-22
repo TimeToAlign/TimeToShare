@@ -186,6 +186,36 @@ def group_grandchild() -> TimelineGroup:
     return TimelineGroup(name="Theme", timelines=[theme, recording])
 
 
+def group_elided_inside() -> TimelineGroup:
+    """Build a group of an excerpt inside the first of two movements.
+
+    The piece ``piece`` ("Piece", 64 quarters) holds the movements ``first``
+    ("First", 32 quarters) at 0 and ``second`` ("Second", 32 quarters) at
+    32; ``first`` holds the excerpt ``excerpt`` ("Excerpt", 8 quarters) at 8.
+    The group "Excerpt" lists ``excerpt`` and the root ``recording``
+    ("Recording", 10.0 seconds). Drawn, the piece's card behind the frame
+    elides both movements around the excerpt.
+    """
+    piece = parts.named(ContinuousLogicalTimeline, "piece", "Piece", Fraction(64))
+    first = parts.holding(
+        piece,
+        parts.named(ContinuousLogicalTimeline, "first", "First", Fraction(32)),
+        Fraction(0),
+    )
+    parts.holding(
+        piece,
+        parts.named(ContinuousLogicalTimeline, "second", "Second", Fraction(32)),
+        Fraction(32),
+    )
+    excerpt = parts.holding(
+        first,
+        parts.named(ContinuousLogicalTimeline, "excerpt", "Excerpt", Fraction(8)),
+        Fraction(8),
+    )
+    recording = parts.named(ContinuousPhysicalTimeline, "recording", "Recording", 10.0)
+    return TimelineGroup(name="Excerpt", timelines=[excerpt, recording])
+
+
 def corpus_tilia_group() -> TimelineGroup:
     """Load the group a public TiLiA loader builds from its corpus specimen."""
     tilia = ensure_data("score") / parts.TILIA

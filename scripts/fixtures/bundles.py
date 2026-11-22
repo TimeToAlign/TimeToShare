@@ -438,3 +438,137 @@ def bundle_matchstamp_cards() -> AlignmentBundle:
     )
     bundle.add_group(TimelineGroup(id="group_2", name="Page", timelines=[score, page]))
     return bundle
+
+
+def bundle_elisions_stored() -> AlignmentBundle:
+    """Build a bundle whose ``graphical`` entry stores elisions of every kind.
+
+    The score ``score`` ("Score", 64 quarters) holds the theme ``theme``
+    ("Theme", 8 quarters) at 16 and the coda ``coda`` ("Coda", 8 quarters)
+    at 56; the session ``session`` ("Session", 90.0 seconds) holds the take
+    ``take`` ("Take", 25.5 seconds) at 30.0. The bundle "Elisions" groups
+    ``theme``, ``take`` and the recording ``recording`` ("Recording", 10.0
+    seconds) as "Theme", whose id is minted, and holds the page ``page``
+    ("Page", 1754 pixels) ungrouped. Its ``graphical`` entry
+    (``GRAPHICAL``) stores the elisions and the two rules.
+    """
+    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(64))
+    theme = parts.holding(
+        score,
+        parts.named(ContinuousLogicalTimeline, "theme", "Theme", Fraction(8)),
+        Fraction(16),
+    )
+    parts.holding(
+        score,
+        parts.named(ContinuousLogicalTimeline, "coda", "Coda", Fraction(8)),
+        Fraction(56),
+    )
+    session = parts.named(ContinuousPhysicalTimeline, "session", "Session", 90.0)
+    take = parts.holding(
+        session,
+        parts.named(ContinuousPhysicalTimeline, "take", "Take", 25.5),
+        30.0,
+    )
+    recording = parts.named(ContinuousPhysicalTimeline, "recording", "Recording", 10.0)
+    bundle = AlignmentBundle(name="Elisions")
+    bundle.add_group(
+        TimelineGroup(name="Theme", timelines=[theme, take, recording])
+    )
+    bundle.add_timeline(
+        parts.named(DiscreteGraphicalTimeline, "page", "Page", Fraction(1754))
+    )
+    return bundle
+
+
+LAYERIT_EXCERPTS = (
+    ("clt_2", "Prelude", 0, 356, "clt_6", "Prelude mm. 1–4", 0, 16, "cpt_1", 14.0),
+    ("clt_3", "Menuet", 356, 312, "clt_7", "Menuet mm. 41–44", 120, 12, "cpt_2", 6.5),
+    (
+        "clt_4",
+        "Clair de Lune",
+        668,
+        324,
+        "clt_8",
+        "Clair de Lune mm. 1–6",
+        0,
+        27,
+        "cpt_3",
+        33.35,
+    ),
+    (
+        "clt_5",
+        "Passepied",
+        992,
+        624,
+        "clt_9",
+        "Passepied mm. 153–156",
+        608,
+        16,
+        "cpt_4",
+        5.5,
+    ),
+)
+
+"""The movements of the Suite bergamasque and one excerpt of each, with its
+recording: the movement's id, name, offset and length in quarters; the
+excerpt's id, name, offset on the movement and length in quarters; the
+recording's id and length in seconds."""
+
+
+def bundle_elided_layerit() -> AlignmentBundle:
+    """Build the Suite bergamasque with one excerpt of each movement in a group.
+
+    The suite ``clt_1`` ("Suite bergamasque", 1616 quarters) holds its four
+    movements, locked and without maps (``LAYERIT_EXCERPTS``): Prelude 0 to
+    356, Menuet 356 to 668, Clair de Lune 668 to 992 and Passepied 992 to
+    1616. Each movement holds one excerpt on its own axis: Prelude [0, 16],
+    Menuet [120, 132], Clair de Lune [0, 27] and Passepied [608, 624]. The
+    bundle "Suite bergamasque" holds four groups, each named as its excerpt
+    and listing the excerpt and a short recording in seconds, so the suite
+    is drawn in an ancestor card behind each frame: the opening of the work,
+    an excerpt inside a movement, the opening of a later movement and the
+    ending. Every group id is minted.
+    """
+    suite = parts.named(
+        ContinuousLogicalTimeline, "clt_1", "Suite bergamasque", Fraction(1616)
+    )
+    bundle = AlignmentBundle(name="Suite bergamasque")
+    for (
+        movement_id,
+        movement_name,
+        offset,
+        length,
+        excerpt_id,
+        excerpt_name,
+        excerpt_offset,
+        excerpt_length,
+        recording_id,
+        recording_length,
+    ) in LAYERIT_EXCERPTS:
+        movement = parts.holding(
+            suite,
+            parts.named(
+                ContinuousLogicalTimeline, movement_id, movement_name, Fraction(length)
+            ),
+            Fraction(offset),
+        )
+        excerpt = parts.holding(
+            movement,
+            parts.named(
+                ContinuousLogicalTimeline,
+                excerpt_id,
+                excerpt_name,
+                Fraction(excerpt_length),
+            ),
+            Fraction(excerpt_offset),
+        )
+        recording = parts.named(
+            ContinuousPhysicalTimeline,
+            recording_id,
+            f"{movement_name} recording",
+            recording_length,
+        )
+        bundle.add_group(
+            TimelineGroup(name=excerpt_name, timelines=[excerpt, recording])
+        )
+    return bundle

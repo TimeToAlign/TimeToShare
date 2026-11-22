@@ -1,0 +1,399 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+graphical:
+  elisions: []
+  matchstamps: []
+  order:
+    "#group_1": ["#clt_6", "#cpt_1"]
+    "#group_2": ["#clt_7", "#cpt_2"]
+    "#group_3": ["#clt_8", "#cpt_3"]
+    "#group_4": ["#clt_9", "#cpt_4"]
+  rules: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_1"
+      matchstamp: false
+      name: origin
+      timeline: "#clt_6"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_2"
+      matchstamp: false
+      name: length
+      timeline: "#clt_6"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_3"
+      matchstamp: false
+      name: origin
+      timeline: "#clt_7"
+    -
+      coordinate: [12, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_4"
+      matchstamp: false
+      name: length
+      timeline: "#clt_7"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_5"
+      matchstamp: false
+      name: origin
+      timeline: "#clt_8"
+    -
+      coordinate: [27, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_6"
+      matchstamp: false
+      name: length
+      timeline: "#clt_8"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_7"
+      matchstamp: false
+      name: origin
+      timeline: "#clt_9"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_8"
+      matchstamp: false
+      name: length
+      timeline: "#clt_9"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_9"
+      matchstamp: false
+      name: origin
+      timeline: "#cpt_1"
+    -
+      coordinate: 14.0
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_10"
+      matchstamp: false
+      name: length
+      timeline: "#cpt_1"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_11"
+      matchstamp: false
+      name: origin
+      timeline: "#cpt_2"
+    -
+      coordinate: 6.5
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_12"
+      matchstamp: false
+      name: length
+      timeline: "#cpt_2"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_13"
+      matchstamp: false
+      name: origin
+      timeline: "#cpt_3"
+    -
+      coordinate: 33.35
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_14"
+      matchstamp: false
+      name: length
+      timeline: "#cpt_3"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_15"
+      matchstamp: false
+      name: origin
+      timeline: "#cpt_4"
+    -
+      coordinate: 5.5
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_16"
+      matchstamp: false
+      name: length
+      timeline: "#cpt_4"
+groups:
+  -
+    id: "#group_1"
+    members: ["#clt_6", "#cpt_1"]
+    meta: {}
+    name: "Prelude mm. 1–4"
+  -
+    id: "#group_2"
+    members: ["#clt_7", "#cpt_2"]
+    meta: {}
+    name: "Menuet mm. 41–44"
+  -
+    id: "#group_3"
+    members: ["#clt_8", "#cpt_3"]
+    meta: {}
+    name: "Clair de Lune mm. 1–6"
+  -
+    id: "#group_4"
+    members: ["#clt_9", "#cpt_4"]
+    meta: {}
+    name: "Passepied mm. 153–156"
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (b20a8427)"
+name: "Suite bergamasque"
+resources: []
+timelines:
+  -
+    children:
+      -
+        children:
+          -
+            children: []
+            conversion_maps: []
+            flow_control: []
+            id: "#clt_6"
+            is_segment_line: false
+            length: [16, 1]
+            locked: true
+            meta: {}
+            name: "Prelude mm. 1–4"
+            number_type: fraction
+            offset: [0, 1]
+            regions: []
+            unit: quarters
+        conversion_maps: []
+        flow_control: []
+        id: "#clt_2"
+        is_segment_line: false
+        length: [356, 1]
+        locked: true
+        meta: {}
+        name: Prelude
+        number_type: fraction
+        offset: [0, 1]
+        regions: []
+        unit: quarters
+      -
+        children:
+          -
+            children: []
+            conversion_maps: []
+            flow_control: []
+            id: "#clt_7"
+            is_segment_line: false
+            length: [12, 1]
+            locked: true
+            meta: {}
+            name: "Menuet mm. 41–44"
+            number_type: fraction
+            offset: [120, 1]
+            regions: []
+            unit: quarters
+        conversion_maps: []
+        flow_control: []
+        id: "#clt_3"
+        is_segment_line: false
+        length: [312, 1]
+        locked: true
+        meta: {}
+        name: Menuet
+        number_type: fraction
+        offset: [356, 1]
+        regions: []
+        unit: quarters
+      -
+        children:
+          -
+            children: []
+            conversion_maps: []
+            flow_control: []
+            id: "#clt_8"
+            is_segment_line: false
+            length: [27, 1]
+            locked: true
+            meta: {}
+            name: "Clair de Lune mm. 1–6"
+            number_type: fraction
+            offset: [0, 1]
+            regions: []
+            unit: quarters
+        conversion_maps: []
+        flow_control: []
+        id: "#clt_4"
+        is_segment_line: false
+        length: [324, 1]
+        locked: true
+        meta: {}
+        name: "Clair de Lune"
+        number_type: fraction
+        offset: [668, 1]
+        regions: []
+        unit: quarters
+      -
+        children:
+          -
+            children: []
+            conversion_maps: []
+            flow_control: []
+            id: "#clt_9"
+            is_segment_line: false
+            length: [16, 1]
+            locked: true
+            meta: {}
+            name: "Passepied mm. 153–156"
+            number_type: fraction
+            offset: [608, 1]
+            regions: []
+            unit: quarters
+        conversion_maps: []
+        flow_control: []
+        id: "#clt_5"
+        is_segment_line: false
+        length: [624, 1]
+        locked: true
+        meta: {}
+        name: Passepied
+        number_type: fraction
+        offset: [992, 1]
+        regions: []
+        unit: quarters
+    conversion_maps: []
+    flow_control: []
+    id: "#clt_1"
+    is_segment_line: false
+    length: [1616, 1]
+    locked: false
+    meta: {}
+    name: "Suite bergamasque"
+    number_type: fraction
+    regions: []
+    unit: quarters
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#cpt_1"
+    is_segment_line: false
+    length: 14.0
+    locked: false
+    meta: {}
+    name: "Prelude recording"
+    number_type: float
+    regions: []
+    unit: seconds
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#cpt_2"
+    is_segment_line: false
+    length: 6.5
+    locked: false
+    meta: {}
+    name: "Menuet recording"
+    number_type: float
+    regions: []
+    unit: seconds
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#cpt_3"
+    is_segment_line: false
+    length: 33.35
+    locked: false
+    meta: {}
+    name: "Clair de Lune recording"
+    number_type: float
+    regions: []
+    unit: seconds
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#cpt_4"
+    is_segment_line: false
+    length: 5.5
+    locked: false
+    meta: {}
+    name: "Passepied recording"
+    number_type: float
+    regions: []
+    unit: seconds
+timetoshare: "0.2.0"

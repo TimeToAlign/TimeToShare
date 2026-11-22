@@ -1,0 +1,216 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+graphical:
+  elisions:
+    -
+      end: [8, 1]
+      id: "#elision_1"
+      start: [0, 1]
+      timeline: "#coda"
+    -
+      end: 1754
+      id: "#elision_2"
+      start: 600
+      timeline: "#page"
+    -
+      end: 2.0
+      id: "#elision_3"
+      start: 0.0
+      timeline: "#recording"
+    -
+      end: [20, 1]
+      id: "#elision_4"
+      start: [0, 1]
+      timeline: "#score"
+      width:
+        ratio: 0.5
+    -
+      end: [48, 1]
+      id: "#elision_5"
+      start: [32, 1]
+      timeline: "#score"
+      width:
+        span: [4, 1]
+    -
+      end: [56, 1]
+      id: "#elision_6"
+      start: [40, 1]
+      timeline: "#score"
+      width:
+        canvas: 30
+    -
+      end: 30.0
+      id: "#elision_7"
+      start: 0.0
+      timeline: "#session"
+  order:
+    "#group_1": ["#theme", "#take", "#recording"]
+  rules:
+    -
+      select:
+        addresses:
+          -
+            id: "#coda"
+      set:
+        display: none
+    -
+      select:
+        element: elision
+        within: "#session"
+      set:
+        display: none
+  timestamps:
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: "#timestamp_1"
+      name: origin
+      timeline: "#page"
+    -
+      coordinate: 1754
+      display: [wedge, coordinate]
+      id: "#timestamp_2"
+      name: length
+      timeline: "#page"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: "#timestamp_3"
+      name: origin
+      timeline: "#recording"
+    -
+      coordinate: 10.0
+      display: [wedge, coordinate]
+      id: "#timestamp_4"
+      name: length
+      timeline: "#recording"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: "#timestamp_5"
+      name: origin
+      timeline: "#take"
+    -
+      coordinate: 25.5
+      display: [wedge, coordinate]
+      id: "#timestamp_6"
+      name: length
+      timeline: "#take"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_7"
+      name: origin
+      timeline: "#theme"
+    -
+      coordinate: [8, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_8"
+      name: length
+      timeline: "#theme"
+groups:
+  -
+    id: "#group_1"
+    members: ["#recording", "#take", "#theme"]
+    name: Theme
+meta:
+  generator: "timetoalign 1.2.0 (b20a8427)"
+name: Elisions
+timelines:
+  -
+    id: "#page"
+    length: 1754
+    name: Page
+    unit: pixels
+  -
+    id: "#recording"
+    length: 10.0
+    name: Recording
+    unit: seconds
+  -
+    children:
+      -
+        id: "#theme"
+        length: [8, 1]
+        locked: true
+        name: Theme
+        offset: [16, 1]
+        unit: quarters
+      -
+        id: "#coda"
+        length: [8, 1]
+        locked: true
+        name: Coda
+        offset: [56, 1]
+        unit: quarters
+    id: "#score"
+    length: [64, 1]
+    name: Score
+    unit: quarters
+  -
+    children:
+      -
+        id: "#take"
+        length: 25.5
+        locked: true
+        name: Take
+        offset: 30.0
+        unit: seconds
+    id: "#session"
+    length: 90.0
+    name: Session
+    unit: seconds
+timetoshare: "0.2.0"

@@ -485,6 +485,44 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             },
         },
     },
+    "bundle_elisions_stored": {
+        "group_1": {
+            "rules": [
+                {"select": {"addresses": [{"id": "coda"}]}, "set": {"display": "none"}},
+                {
+                    "select": {"element": "elision", "within": "session"},
+                    "set": {"display": "none"},
+                },
+            ],
+            "elisions": [
+                {"id": "elision_1", "timeline": "coda", "start": [0, 1], "end": [8, 1]},
+                {"id": "elision_2", "timeline": "page", "start": 600, "end": 1754},
+                {"id": "elision_3", "timeline": "recording", "start": 0.0, "end": 2.0},
+                {
+                    "id": "elision_4",
+                    "timeline": "score",
+                    "start": [0, 1],
+                    "end": [20, 1],
+                    "width": {"ratio": 0.5},
+                },
+                {
+                    "id": "elision_5",
+                    "timeline": "score",
+                    "start": [32, 1],
+                    "end": [48, 1],
+                    "width": {"span": [4, 1]},
+                },
+                {
+                    "id": "elision_6",
+                    "timeline": "score",
+                    "start": [40, 1],
+                    "end": [56, 1],
+                    "width": {"canvas": 30},
+                },
+                {"id": "elision_7", "timeline": "session", "start": 0.0, "end": 30.0},
+            ],
+        },
+    },
 }
 
 """The ``graphical`` object of each manifest the script styles or gives band
@@ -533,6 +571,20 @@ line and that of ``score`` below it: each on the side opposite to where its
 own band order puts its children. Its ``order`` also states the display
 order ``group_grandchild`` has, ``theme`` before ``recording``, which the
 entry replaces.
+
+``bundle_elisions_stored`` stores one elision of each kind the drawing
+treats apart, in canonical order: ``elision_1`` from 0 to 8 of the child
+``coda``, whose line a rule hides; ``elision_2`` from 600 to 1754 of the
+ungrouped ``page``; ``elision_3`` from 0.0 to 2.0 of the member
+``recording``, a root drawn in member cards alone; on the root ``score``,
+behind the frame of its child member ``theme`` (16 to 24),
+``elision_4`` from 0 to 20 with the width ``{"ratio": 0.5}``, which
+overlaps the member, ``elision_5`` from 32 to 48 with ``{"span": [4, 1]}``
+and ``elision_6`` from 40 to 56 with ``{"canvas": 30}``, which overlaps
+``elision_5``; and ``elision_7`` from 0.0 to 30.0 of the root
+``session``, behind the frame of its child member ``take``, which the rule
+``{"element": "elision", "within": "session"}`` hides, so the session is
+drawn whole.
 
 ``timestamp_wedge_rotation`` turns the wedges of named timestamps, each
 named after its rotation. On the root ``melody`` they lie at quarters 2,

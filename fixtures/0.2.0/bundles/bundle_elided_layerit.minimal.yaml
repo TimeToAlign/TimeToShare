@@ -1,0 +1,266 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+graphical:
+  order:
+    "#group_1": ["#clt_6", "#cpt_1"]
+    "#group_2": ["#clt_7", "#cpt_2"]
+    "#group_3": ["#clt_8", "#cpt_3"]
+    "#group_4": ["#clt_9", "#cpt_4"]
+  timestamps:
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_1"
+      name: origin
+      timeline: "#clt_6"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_2"
+      name: length
+      timeline: "#clt_6"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_3"
+      name: origin
+      timeline: "#clt_7"
+    -
+      coordinate: [12, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_4"
+      name: length
+      timeline: "#clt_7"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_5"
+      name: origin
+      timeline: "#clt_8"
+    -
+      coordinate: [27, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_6"
+      name: length
+      timeline: "#clt_8"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_7"
+      name: origin
+      timeline: "#clt_9"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate]
+      id: "#timestamp_8"
+      name: length
+      timeline: "#clt_9"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: "#timestamp_9"
+      name: origin
+      timeline: "#cpt_1"
+    -
+      coordinate: 14.0
+      display: [wedge, coordinate]
+      id: "#timestamp_10"
+      name: length
+      timeline: "#cpt_1"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: "#timestamp_11"
+      name: origin
+      timeline: "#cpt_2"
+    -
+      coordinate: 6.5
+      display: [wedge, coordinate]
+      id: "#timestamp_12"
+      name: length
+      timeline: "#cpt_2"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: "#timestamp_13"
+      name: origin
+      timeline: "#cpt_3"
+    -
+      coordinate: 33.35
+      display: [wedge, coordinate]
+      id: "#timestamp_14"
+      name: length
+      timeline: "#cpt_3"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate]
+      id: "#timestamp_15"
+      name: origin
+      timeline: "#cpt_4"
+    -
+      coordinate: 5.5
+      display: [wedge, coordinate]
+      id: "#timestamp_16"
+      name: length
+      timeline: "#cpt_4"
+groups:
+  -
+    id: "#group_1"
+    members: ["#clt_6", "#cpt_1"]
+    name: "Prelude mm. 1–4"
+  -
+    id: "#group_2"
+    members: ["#clt_7", "#cpt_2"]
+    name: "Menuet mm. 41–44"
+  -
+    id: "#group_3"
+    members: ["#clt_8", "#cpt_3"]
+    name: "Clair de Lune mm. 1–6"
+  -
+    id: "#group_4"
+    members: ["#clt_9", "#cpt_4"]
+    name: "Passepied mm. 153–156"
+meta:
+  generator: "timetoalign 1.2.0 (b20a8427)"
+name: "Suite bergamasque"
+timelines:
+  -
+    children:
+      -
+        children:
+          -
+            id: "#clt_6"
+            length: [16, 1]
+            locked: true
+            name: "Prelude mm. 1–4"
+            offset: [0, 1]
+            unit: quarters
+        id: "#clt_2"
+        length: [356, 1]
+        locked: true
+        name: Prelude
+        offset: [0, 1]
+        unit: quarters
+      -
+        children:
+          -
+            id: "#clt_7"
+            length: [12, 1]
+            locked: true
+            name: "Menuet mm. 41–44"
+            offset: [120, 1]
+            unit: quarters
+        id: "#clt_3"
+        length: [312, 1]
+        locked: true
+        name: Menuet
+        offset: [356, 1]
+        unit: quarters
+      -
+        children:
+          -
+            id: "#clt_8"
+            length: [27, 1]
+            locked: true
+            name: "Clair de Lune mm. 1–6"
+            offset: [0, 1]
+            unit: quarters
+        id: "#clt_4"
+        length: [324, 1]
+        locked: true
+        name: "Clair de Lune"
+        offset: [668, 1]
+        unit: quarters
+      -
+        children:
+          -
+            id: "#clt_9"
+            length: [16, 1]
+            locked: true
+            name: "Passepied mm. 153–156"
+            offset: [608, 1]
+            unit: quarters
+        id: "#clt_5"
+        length: [624, 1]
+        locked: true
+        name: Passepied
+        offset: [992, 1]
+        unit: quarters
+    id: "#clt_1"
+    length: [1616, 1]
+    name: "Suite bergamasque"
+    unit: quarters
+  -
+    id: "#cpt_1"
+    length: 14.0
+    name: "Prelude recording"
+    unit: seconds
+  -
+    id: "#cpt_2"
+    length: 6.5
+    name: "Menuet recording"
+    unit: seconds
+  -
+    id: "#cpt_3"
+    length: 33.35
+    name: "Clair de Lune recording"
+    unit: seconds
+  -
+    id: "#cpt_4"
+    length: 5.5
+    name: "Passepied recording"
+    unit: seconds
+timetoshare: "0.2.0"
