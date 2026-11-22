@@ -381,7 +381,7 @@ both forms.
 | graphical | `styles`: `{}`; `rules`: `[]`; `order`: `{}`; `timestamps`, `matchstamps`, `elisions`: `[]` |
 | named timestamp (`timestamp`) | `matchstamp`, `groupstamp`: `false`; `display`: `["wedge", "name", "cross_section"]`, on a match timestamp `["cross_section"]` |
 | alignment anchor (`alignment_anchor`) | `display`: `["line"]` |
-| elision (`elision`) | `width`: absent (the card's default proportion); `display`: `["strip", "name", "coordinate"]` |
+| elision (`elision`) | `name`, `width`: absent (the timeline's name and the standard gap); `display`: `["ellipsis"]` |
 
 `@context`, `statements` and `provenance` have no default: neither form
 adds or drops them, and both write them as given. A row marked "besides"
@@ -429,7 +429,10 @@ descendant in one group would give two answers for one position; a child
 may belong to one group while its root belongs to another or to none. The
 roots that no group names, and that contain no member, are ungrouped. A
 manifest holding a group always holds its members' roots, so a member that
-is a child keeps its parent.
+is a child keeps its parent. An editor that makes a child timeline a
+member of a group may name its zero and its known length as groupstamps
+(below), so that their lines cross the frame and the member's ancestor
+lines; the format requires nothing of the kind.
 
 `graphical` is `{styles?, rules?, order?, timestamps?, matchstamps?,
 elisions?}`, at the manifest's top level only, never on a timeline: a
@@ -530,42 +533,60 @@ table beside it ([The MatchClaim table](#the-matchclaim-table)), and
 the manifest draws without the table.
 
 `elisions` lists the **elisions**, each `{id, timeline, start, end,
-width?, display?}`: a stretch of the timeline `timeline` drawn as a narrow
-labelled strip, inside which nothing is drawn but that timeline's name and
-the coordinates the strip leaves out, `start–end`. The elision **lies on**
-its timeline, a root or a descendant at any depth, a segment included:
-`timeline` has the meaning and the validation of a named timestamp's
-`timeline`, and `start < end` are values on that timeline's own axis,
-from its zero to its `length` (and only from its zero when the length is
-`null`), written as its number type selects and respelled by writers as every
-own-axis value is ([Values on a timeline's own
+name?, width?, display?}`: a stretch of the timeline `timeline` left out
+of the drawing. Every row drawn across the stretch stops where the
+stretch starts and resumes where it ends, at full scale on either side,
+and a narrow **gap** lies between, holding an **ellipsis** (`•••`) on each
+row that crosses it. The elision **lies on** its timeline, a root or a
+descendant at any depth, a segment included: `timeline` has the meaning
+and the validation of a named timestamp's `timeline`, and `start < end`,
+its **elided coordinates**, are values on that timeline's own axis, from
+its zero to its `length` (and only from its zero when the length is
+`null`), written as its number type selects and respelled by writers as
+every own-axis value is ([Values on a timeline's own
 axis](#values-on-a-timelines-own-axis)). An elision moves with its
 timeline when the timeline's offset changes. Nothing refers to an elision
 but an address in a rule, and no timeline lists its elisions: an elision
-hides what lies on its stretch by position, so a child added there later
-is elided without an edit. `width` is exactly one of `{"ratio": q}` (`q`
-times the stretch's width at full scale, `0 < q ≤ 1`), `{"span": v}` (as
-wide as `v` units of its timeline at full scale) and `{"canvas": c}` (`c`
-canvas units); absent, the strip takes its card's default proportion,
-which the drawing computes from the screen it draws for. A strip is never
-wider than its stretch at full scale. `display` lists what the elision
-draws, distinct words from `strip`, `name` and `coordinate`, by default
-all three; without `strip` it draws nothing and hides nothing. Elisions
-are drawn wherever a timeline is drawn whole outside a frame: in an
-ungrouped root's card and in the ancestor card behind a group's frame,
-never in a member's card, since the members of a group convert linearly.
-Where no stored elision, displayed or not, lies on the root of an
-ancestor card or on any of its descendants, the card draws default
-elisions of its own when they narrow it: the member's parent and its siblings, and
-above them the next timelines up, are elided outside the member, all at
-one proportion that keeps the strips no wider than the member's line and
-the card within the screen around the group. Two elisions may overlap,
-and an elision may overlap the member's span: neither is refused, the
-earlier in canonical order is drawn whole, the later clipped, and the
-member's span is never elided. The rule `{"select": {"element":
-"elision", "within": "#score"}, "set": {"display": "none"}}` draws the
-root `score` whole, its stored and its default elisions hidden (the
-drawing specification, sections 2, 3.2, 6.6 and 8.9).
+leaves out what lies on its stretch by position, so a child added there
+later is elided without an edit. `name`, a non-empty string, is its name;
+without one its name label shows the name of its timeline. `width` is the
+gap's drawn width, exactly one of `{"ratio": q}` (`q` times the
+stretch's width at full scale, `0 < q ≤ 1`), `{"span": v}` (as wide as
+`v` units of its timeline at full scale) and `{"canvas": c}` (`c` canvas
+units); absent, the gap takes the standard width of 32 canvas units. A
+gap is never wider than its stretch at full scale. `display` lists what
+the elision draws besides its gap, distinct words from `ellipsis` (its
+ellipses), `name`, `id` and `coordinate` (its three labels, stacked as a
+named timestamp's) and `continuation` (grey continuations of the rows
+across the gap), by default `["ellipsis"]`; an empty array draws a bare
+gap.
+
+An elision on a timeline that lies in a group, as a groupstamp's
+timeline does, is drawn across that group's frame, at one place in every
+member card, the frame drawn shorter by its gaps, and carried into the
+ancestor cards behind the frame; every other elision is drawn wherever
+its root is drawn whole outside a frame: in an ungrouped root's card and
+in the ancestor cards behind the frames of the groups holding a member
+below it. Which of these a root's cards draw is a styling property of
+those cards, `elision-mode` in a rule addressed to `{"id": "#R", "part":
+["card"]}`: `full` draws none, `custom` the stored ones, `proportional`
+elisions the drawing derives around the member in each ancestor card, and
+`auto`, the initial value, the stored ones where the root has any, else
+the derived ones. A derived elision leaves out the middle of a timeline's
+stretch outside the member, rounded outwards to whole units of its axis,
+so that each stretch keeps its start and its end at full scale; all of a
+card's derived elisions share one proportion, which `elision-proportion`
+states or the drawing computes from the screen it draws for, and lie on
+the rows `elision-depths` chooses, drawing what `elision-display` lists.
+A frame reads `elision-mode` too, `full` drawing its group's elisions
+whole. Two elisions may overlap, and an elision may overlap the member's
+span: neither is refused, the earlier in canonical order is drawn whole,
+the later clipped, and the member's span is never elided in the card
+behind its frame but by the frame's own elisions. The rule `{"select":
+{"addresses": [{"id": "#score", "part": ["card"]}]}, "set":
+{"elision-mode": "full"}}` draws the root `score` whole, its stored
+elisions kept (the drawing specification, sections 2, 2.4, 3.2, 6.6 and
+8.9).
 
 ### Unknown keys
 
@@ -1367,9 +1388,10 @@ as an arc to its target or to the start; a jump target draws nothing),
 `wedge` (a coordinate marker), `cross_section` (a named timestamp's
 cross-section line), `alignment_anchor` (the line of an alignment anchor
 of a named MatchStamp, drawn last, across the cards between its two
-timestamps), `elision` (the strip of an elision, over the stretch it
-hides), `name` and `label` (every other text, a named
-timestamp's name, a MatchStamp's name and an elision's two labels among
+timestamps), `elision` (the gap of an elision, over the stretch it
+leaves out), `ellipsis` (an elision's ellipsis on one row its gap
+crosses), `name` and `label` (every other text, a named
+timestamp's name, a MatchStamp's name and an elision's three labels among
 them). Besides `element`, a selector may name `addresses` (address
 objects, each matched as a whole object), `domain`, `modality`, `class`
 (the class a timeline's unit decides, such as
@@ -1382,6 +1404,15 @@ ones; no other element). The defaults hide the secondary ones, so the rule
 `{"select": {"element": "wedge", "coordinates": "secondary"}, "set":
 {"display": "inline"}}` shows their wedges. The property `shadow` colours a card's offset shadow, and
 `rotation` turns a wedge about its tip, in whole degrees from −180 to 180.
+Four properties of a card, an ancestor card and, for the first, a frame
+choose its elisions (the elisions paragraph of [Groups and the `graphical`
+object](#groups-and-the-graphical-object)): `elision-mode` (`auto`,
+`full`, `proportional`, `custom`), `elision-proportion` (`auto` or a
+number from above 0 to 1), `elision-depths` (`auto` or positive integers
+separated by single spaces, the root's depth 1) and `elision-display`
+(`none` or words of an elision's `display` separated by single spaces);
+the schema alone checks their values, and none has a default in the
+`DEFAULTS` table: their initial values are the drawing specification's.
 The group fixture `group_styled` frames its group in violet, fills the
 group's title violet, and gives every card in a frame a light violet
 shadow:
@@ -1447,8 +1478,9 @@ order keys cannot express are put in this order:
   by ID, and every anchor's `display` in the order `line`, `name`,
   followed by other values as a timestamp's are;
 - `graphical.elisions` by `timeline` (code point), then start, then ID,
-  and every elision's `display` in the order `strip`, `name`,
-  `coordinate`, followed by other values as a timestamp's are.
+  and every elision's `display` in the order `ellipsis`, `name`, `id`,
+  `coordinate`, `continuation`, followed by other values as a timestamp's
+  are.
 
 Coordinates compare by exact numeric value, never by spelling. Strings
 compare by Unicode code point. IDs are unique across a valid manifest, so
