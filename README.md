@@ -449,14 +449,22 @@ MatchStamps](#named-matchstamps)). A timestamp whose
 repeating), has its coordinate written as given. Only that coordinate is
 stored, never a map's value at it. `display` lists what the timestamp
 draws, distinct words from `wedge` (its coordinate marker), `name`, `id`
-and `coordinate` (its labels, stacked beyond the wedge in this order: its
-name, its ID, its coordinate with its unit) and `cross_section` (a vertical
-line across its timeline's line, children band and conversion maps band
-and, for a member that is a child timeline, its ancestor lines);
-its order means nothing and writers write it in the order just given. A
-timestamp draws by default its wedge, its name and its cross-section line,
-a match timestamp its cross-section line alone (the drawing
-specification, sections 2, 6.4 and 6.6). A **groupstamp**, a timestamp
+and `coordinate` (its labels, stacked at the wedge's thick end in this
+order: its name, its ID, its coordinate with its unit) and `cross_section`
+(a vertical line across each card its timeline is drawn in, as a line or
+as the faded line of an ancestor, from border to border, with a gap where
+its wedge and labels stand); its order means nothing and writers write it
+in the order just given. A timestamp draws by default its wedge, its name
+and its cross-section line, a match timestamp its cross-section line alone
+(the drawing specification, sections 2, 6.4 and 6.6). A timestamp's
+**coordinates** are what its line crosses in a card: every timeline and
+conversion map drawn there at its position. Its **primary coordinate** is
+its `coordinate` on its `timeline`, which its wedge and labels mark,
+whether that timeline is a root, a child or an ancestor drawn as a faded
+line; the others are its **secondary coordinates**, drawn on a timeline
+as wedges and labels too but hidden by default, their wedges turned −45°;
+an application listing the coordinates lists them all and highlights the
+primary one. A **groupstamp**, a timestamp
 with `groupstamp: true` (default `false`), lies on a timeline that lies in
 a group: the timeline or one of its ancestors is listed in the group's
 `members` (an ancestor of a member lies in no group through it). In the
@@ -465,11 +473,11 @@ across the frame, from the upper border of the topmost member card to the
 lower border of the bottommost, as one vertical line at the timestamp's
 position, which marks the same proportion of every member's drawn length.
 The members' coordinates at that line are derived from the group and
-never stored; the line is drawn in the style of the timestamp's own line,
-without a wedge or labels, has no settings of its own, and leaves out the
-lines on which the timestamp's labels lie; the timestamp's own wedge is
-turned −45° by default, so that the line leaves it aside (the drawing
-specification, sections 2.5 and 6.6). A match timestamp may be a
+never stored; they are secondary coordinates of the timestamp. The line is
+drawn in the style of the timestamp's own line, has no settings of its
+own, and leaves out the member's card, which the timestamp's own line
+crosses; the timestamp's own wedge is not turned (the drawing
+specification, section 6.6). A match timestamp may be a
 groupstamp too. Both validators refuse a groupstamp whose timeline lies in
 no group. `order` maps the
 ID of a group or of a timeline to the order of what it stacks, top to bottom, and
@@ -1303,8 +1311,12 @@ objects, each matched as a whole object), `domain`, `modality`, `class`
 (the class a timeline's unit decides, such as
 `ContinuousPhysicalTimeline` for `seconds`, or a conversion map's type),
 `facet` (the bands drawing that facet), `within` (a timeline and its
-descendants) and `inside` (an element type that holds the element at any
-depth). The property `shadow` colours a card's offset shadow, and
+descendants), `inside` (an element type that holds the element at any
+depth) and `coordinates` (`"primary"` or `"secondary"`: the wedges and
+labels of the named timestamps' primary coordinates, or of their secondary
+ones; no other element). The defaults hide the secondary ones, so the rule
+`{"select": {"element": "wedge", "coordinates": "secondary"}, "set":
+{"display": "inline"}}` shows their wedges. The property `shadow` colours a card's offset shadow, and
 `rotation` turns a wedge about its tip, in whole degrees from −180 to 180.
 The group fixture `group_styled` frames its group in violet, fills the
 group's title violet, and gives every card in a frame a light violet
