@@ -536,8 +536,8 @@ the coordinates the strip leaves out, `start–end`. The elision **lies on**
 its timeline, a root or a descendant at any depth, a segment included:
 `timeline` has the meaning and the validation of a named timestamp's
 `timeline`, and `start < end` are values on that timeline's own axis,
-from its zero to its `length` (to its reach when the length is `null`),
-written as its number type selects and respelled by writers as every
+from its zero to its `length` (and only from its zero when the length is
+`null`), written as its number type selects and respelled by writers as every
 own-axis value is ([Values on a timeline's own
 axis](#values-on-a-timelines-own-axis)). An elision moves with its
 timeline when the timeline's offset changes. Nothing refers to an elision
@@ -554,8 +554,9 @@ all three; without `strip` it draws nothing and hides nothing. Elisions
 are drawn wherever a timeline is drawn whole outside a frame: in an
 ungrouped root's card and in the ancestor card behind a group's frame,
 never in a member's card, since the members of a group convert linearly.
-Where no elision lies on the root of an ancestor card, the card draws
-default elisions of its own: the member's parent and its siblings, and
+Where no stored elision, displayed or not, lies on the root of an
+ancestor card or on any of its descendants, the card draws default
+elisions of its own when they narrow it: the member's parent and its siblings, and
 above them the next timelines up, are elided outside the member, all at
 one proportion that keeps the strips no wider than the member's line and
 the card within the screen around the group. Two elisions may overlap,

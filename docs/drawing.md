@@ -276,8 +276,8 @@ the name of that timeline and the coordinates the strip leaves out
 names the timeline the elision **lies on**, at any depth, a segment
 included, with the meaning and the validation of a named timestamp's
 `timeline`; `start` and `end`, `start < end`, are positions on that
-timeline's own axis, from its zero to its `length` (to its reach when the
-length is `null`), each a number as the timeline's number type selects
+timeline's own axis, from its zero to its `length` (and only from its zero
+when the length is `null`), each a number as the timeline's number type selects
 (README, "Values on a timeline's own axis"). An elision moves with its
 timeline when that timeline's offset changes. Nothing refers to an
 elision but an address in a rule (section 2.2), and no timeline lists its
