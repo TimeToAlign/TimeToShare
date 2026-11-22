@@ -1101,8 +1101,9 @@ not compared.
 In a provenance message, `<pointer>` locates the member at fault as a
 JSON pointer into the entry in URI fragment form (`#` for the entry,
 `#/beliefs/1/actor`), and `<problem>` names the first of: the entry's
-first problem against `provenance.schema.json`, with the Python schema
-validator's message; a key the entry or a belief does not declare (`'<key>'
+first problem against `provenance.schema.json`, worded as `validate`
+words a `schema` refusal (`'maybe' is not one of ['true', 'false',
+'unlikely']`); a key the entry or a belief does not declare (`'<key>'
 is no key of a provenance entry`, `… of a belief`); a date that is no
 day of the Gregorian calendar (`'<date>' is no Gregorian calendar date
 written YYYY-MM-DD`); an actor holding a second belief (`'<actor>'
