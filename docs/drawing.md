@@ -759,6 +759,7 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"element": "ancestor_card"}, "set": {"fill": "#FFFFFF", "stroke": "#C4C9D1", "stroke-width": 0.75, "rx": 5, "shadow": "#B8BEC8"}},
     {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
     {"select": {"element": "cross_section", "inside": "ancestor"}, "set": {"opacity": 1}},
+    {"select": {"coordinates": "primary", "inside": "ancestor"}, "set": {"opacity": 1}},
     {"select": {"element": "label"}, "set": {"fill": "#000000", "font-size": 9}},
     {"select": {"element": "name"}, "set": {"fill": "#000000", "font-size": 11, "max-width": 160}},
     {"select": {"element": "name", "inside": "ancestor"}, "set": {"fill": "#6B7280", "font-size": 9, "opacity": 1}},
@@ -781,18 +782,21 @@ thin, dashed and light blue, a blue distinct from the physical domain's
 cross-section line of a physical timeline keeps it, section 2.5), and an
 alignment anchor's line is drawn alike; an
 ancestor line is its timeline's line,
-faded, with faded marks, wedges and labels, and its name small and grey,
-while the cross-section line of a timestamp of its timeline keeps the
-opacity 1 of every cross-section line (its rule names `element` and
-`inside` and so outranks the fading one, section 2.5), so that a timestamp
-named on an ancestor crosses the member's card as one named on the member
-does; a group's
+faded, with faded marks of the member's start and end and their labels,
+and its name small and grey, while a timestamp named on its timeline keeps
+the opacity 1 of a timestamp named on the member: its cross-section line
+(its rule names `element` and `inside`) and the wedge and labels of its
+primary coordinate (its rule names `coordinates` and `inside`) each
+outrank the fading rule (section 2.5), so that a timestamp named on an
+ancestor is drawn in the member's card as one named on the member is,
+only beside the ancestor line; a secondary coordinate on an ancestor line,
+where a rule shows it, stays faded with the line; a group's
 frame is white with a light grey outline; a card is white with a grey
 outline and a grey offset shadow, so that it stands out from the grey block
 and from a frame alike. A card has its timeline's domain and modality, so
 a rule can style the cards of one domain. An ancestor card looks like a
 card and is shown; a rule setting its `display` to `none` hides it
-(section 8.8). The last two rules
+(section 8.8). The two rules selecting `band`
 hide the regions and flow control bands of every timeline that is
 held by a band, which is every timeline of a member drawing but its root
 (a child is held by its parent's children band, a segment without a line
@@ -2161,12 +2165,15 @@ the line's stroke width and `y` its ordinate:
   2 + 13 + 2 + (n − 1) × h(9)` out from the ancestor line, the label's
   baseline beyond that start; a turned wedge carries its stack as section 6.6 does (Labels of
   named timestamps), with `c` 0. Its cross-section line crosses the whole
-  of `M`'s card, cut by its gap (section 6.6, Cross-section lines). After
+  of `M`'s card, cut by its gap (section 6.6, Cross-section lines). The
+  defaults draw its wedge, its labels and its cross-section line at
+  opacity 1 on the faded line, as for a timestamp named on `M` (section
+  4). After
   `Aj`'s own timestamps come the secondary coordinates on `Aj` of the
   timestamps whose cross-section lines cross its line in `M`'s card
   (section 2), in the canonical order of their timestamps, each drawn so,
   by its wedge and its labels, where it is displayed (the defaults hide
-  it, section 4). A timestamp of `Aj` at a position outside `M`'s span is
+  it, and fade it with the line where a rule shows it, section 4). A timestamp of `Aj` at a position outside `M`'s span is
   not drawn in `M`'s card; it is drawn where `Aj` is drawn whole, in an
   ancestor card (section 8.8) or a card of its own.
 - **Nothing else** of `Aj` is drawn: no maps, regions, flow control,
