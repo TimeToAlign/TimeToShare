@@ -64,16 +64,16 @@ graphical:
   timestamps:
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_1"
       matchstamp: false
       name: origin
       timeline: "#exposition"
     -
       coordinate: [12, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_2"
       matchstamp: false
       name: length
@@ -96,16 +96,16 @@ graphical:
       timeline: "#page"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_5"
       matchstamp: false
       name: origin
       timeline: "#recapitulation"
     -
       coordinate: [12, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_6"
       matchstamp: false
       name: length
@@ -155,7 +155,7 @@ groups:
     name: Recapitulation
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: Sonata
 resources: []
 timelines:

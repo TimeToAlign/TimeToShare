@@ -79,16 +79,16 @@ graphical:
       timeline: "#recording"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_3"
       matchstamp: false
       name: origin
       timeline: "#second-half"
     -
       coordinate: [8, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       matchstamp: false
       name: length
@@ -101,7 +101,7 @@ groups:
     name: "Second half"
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: null
 resources: []
 timelines:

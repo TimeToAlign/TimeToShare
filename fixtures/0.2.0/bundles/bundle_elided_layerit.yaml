@@ -66,64 +66,64 @@ graphical:
   timestamps:
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_1"
       matchstamp: false
       name: origin
       timeline: "#clt_6"
     -
       coordinate: [16, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_2"
       matchstamp: false
       name: length
       timeline: "#clt_6"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_3"
       matchstamp: false
       name: origin
       timeline: "#clt_7"
     -
       coordinate: [12, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       matchstamp: false
       name: length
       timeline: "#clt_7"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_5"
       matchstamp: false
       name: origin
       timeline: "#clt_8"
     -
       coordinate: [27, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_6"
       matchstamp: false
       name: length
       timeline: "#clt_8"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_7"
       matchstamp: false
       name: origin
       timeline: "#clt_9"
     -
       coordinate: [16, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_8"
       matchstamp: false
       name: length
@@ -215,7 +215,7 @@ groups:
     name: "Passepied mm. 153–156"
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (b20a8427)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: "Suite bergamasque"
 resources: []
 timelines:

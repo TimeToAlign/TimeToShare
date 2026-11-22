@@ -60,13 +60,15 @@ graphical:
   timestamps:
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_1"
       name: origin
       timeline: "#exposition"
     -
       coordinate: [12, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_2"
       name: length
       timeline: "#exposition"
@@ -84,13 +86,15 @@ graphical:
       timeline: "#page"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_5"
       name: origin
       timeline: "#recapitulation"
     -
       coordinate: [12, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_6"
       name: length
       timeline: "#recapitulation"
@@ -128,7 +132,7 @@ groups:
     members: ["#recapitulation", "#take_2"]
     name: Recapitulation
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: Sonata
 timelines:
   -

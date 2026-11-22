@@ -72,13 +72,15 @@ graphical:
       timeline: "#recording"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_3"
       name: origin
       timeline: "#theme"
     -
       coordinate: [8, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       name: length
       timeline: "#theme"
@@ -88,7 +90,7 @@ groups:
     members: ["#recording", "#theme"]
     name: Theme
 meta:
-  generator: "timetoalign 1.2.0 (47cb22c4)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 timelines:
   -
     id: "#recording"

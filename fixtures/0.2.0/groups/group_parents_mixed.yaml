@@ -79,48 +79,48 @@ graphical:
       timeline: "#audio"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_3"
       matchstamp: false
       name: origin
       timeline: "#exposition"
     -
       coordinate: [32, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       matchstamp: false
       name: length
       timeline: "#exposition"
     -
       coordinate: 0
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_5"
       matchstamp: false
       name: origin
       timeline: "#system"
     -
       coordinate: 600
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_6"
       matchstamp: false
       name: length
       timeline: "#system"
     -
       coordinate: 0.0
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_7"
       matchstamp: false
       name: origin
       timeline: "#take"
     -
       coordinate: 25.5
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_8"
       matchstamp: false
       name: length
@@ -133,7 +133,7 @@ groups:
     name: Exposition
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: null
 resources: []
 timelines:

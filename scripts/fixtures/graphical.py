@@ -315,6 +315,15 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
                     "groupstamp": True,
                 },
             ],
+            "elisions": [
+                {
+                    "id": "elision_1",
+                    "timeline": "t",
+                    "start": [1, 1],
+                    "end": [3, 1],
+                    "width": {"canvas": 24},
+                },
+            ],
         },
     },
     "bundle_free_ids": {
@@ -490,27 +499,43 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             "rules": [
                 {"select": {"addresses": [{"id": "coda"}]}, "set": {"display": "none"}},
                 {
-                    "select": {"element": "elision", "within": "session"},
-                    "set": {"display": "none"},
+                    "select": {"addresses": [{"id": "session", "part": ["card"]}]},
+                    "set": {"elision-mode": "full"},
                 },
             ],
             "elisions": [
                 {"id": "elision_1", "timeline": "coda", "start": [0, 1], "end": [8, 1]},
-                {"id": "elision_2", "timeline": "page", "start": 600, "end": 1754},
-                {"id": "elision_3", "timeline": "recording", "start": 0.0, "end": 2.0},
+                {
+                    "id": "elision_2",
+                    "timeline": "page",
+                    "start": 600,
+                    "end": 1754,
+                    "name": "Appendix",
+                    "display": ["ellipsis", "name", "coordinate"],
+                },
+                {
+                    "id": "elision_3",
+                    "timeline": "recording",
+                    "start": 0.0,
+                    "end": 2.0,
+                    "display": ["ellipsis", "coordinate"],
+                },
                 {
                     "id": "elision_4",
                     "timeline": "score",
                     "start": [0, 1],
                     "end": [20, 1],
                     "width": {"ratio": 0.5},
+                    "display": ["ellipsis", "id", "continuation"],
                 },
                 {
                     "id": "elision_5",
                     "timeline": "score",
                     "start": [32, 1],
                     "end": [48, 1],
+                    "name": "Development",
                     "width": {"span": [4, 1]},
+                    "display": ["name"],
                 },
                 {
                     "id": "elision_6",
@@ -518,8 +543,46 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
                     "start": [40, 1],
                     "end": [56, 1],
                     "width": {"canvas": 30},
+                    "display": [],
                 },
                 {"id": "elision_7", "timeline": "session", "start": 0.0, "end": 30.0},
+            ],
+        },
+    },
+    "group_elided_members": {
+        "group_1": {
+            "timestamps": [
+                {
+                    "id": "timestamp_1",
+                    "timeline": "voice",
+                    "coordinate": [15, 1],
+                    "name": "Climax",
+                    "groupstamp": True,
+                },
+                {
+                    "id": "timestamp_2",
+                    "timeline": "voice",
+                    "coordinate": [21, 1],
+                    "name": "Return",
+                    "groupstamp": True,
+                },
+            ],
+            "elisions": [
+                {
+                    "id": "elision_1",
+                    "timeline": "excerpt",
+                    "start": [2, 1],
+                    "end": [8, 1],
+                    "name": "Development",
+                    "display": ["ellipsis", "name", "coordinate"],
+                },
+                {
+                    "id": "elision_2",
+                    "timeline": "phrase",
+                    "start": [2, 1],
+                    "end": [6, 1],
+                    "width": {"ratio": 0.5},
+                },
             ],
         },
     },
@@ -574,17 +637,31 @@ entry replaces.
 
 ``bundle_elisions_stored`` stores one elision of each kind the drawing
 treats apart, in canonical order: ``elision_1`` from 0 to 8 of the child
-``coda``, whose line a rule hides; ``elision_2`` from 600 to 1754 of the
-ungrouped ``page``; ``elision_3`` from 0.0 to 2.0 of the member
-``recording``, a root drawn in member cards alone; on the root ``score``,
-behind the frame of its child member ``theme`` (16 to 24),
-``elision_4`` from 0 to 20 with the width ``{"ratio": 0.5}``, which
-overlaps the member, ``elision_5`` from 32 to 48 with ``{"span": [4, 1]}``
-and ``elision_6`` from 40 to 56 with ``{"canvas": 30}``, which overlaps
-``elision_5``; and ``elision_7`` from 0.0 to 30.0 of the root
-``session``, behind the frame of its child member ``take``, which the rule
-``{"element": "elision", "within": "session"}`` hides, so the session is
-drawn whole.
+``coda``, whose line a rule hides; ``elision_2`` "Appendix" from 600 to
+1754 of the ungrouped ``page``, drawing its ellipsis, its name and its
+coordinates; ``elision_3`` from 0.0 to 2.0 of the member ``recording``,
+which lies in the group and so is drawn across its frame, with its
+ellipsis and its coordinates; on the root ``score``, behind the frame of
+its child member ``theme`` (16 to 24), ``elision_4`` from 0 to 20 with
+the width ``{"ratio": 0.5}``, which overlaps the member and draws its
+ellipsis, its ID and the continuations of its rows, ``elision_5``
+"Development" from 32 to 48 with ``{"span": [4, 1]}``, drawing its name
+alone, and ``elision_6`` from 40 to 56 with ``{"canvas": 30}``, which
+overlaps ``elision_5`` and draws a bare gap; and ``elision_7`` from 0.0
+to 30.0 of the root ``session``, behind the frame of its child member
+``take``, whose cards the rule ``elision-mode: full`` draws whole, so
+``elision_7`` is kept and not drawn.
+
+``group_elided_members`` stores two elisions on timelines lying in the
+group "Theme", each drawn across its frame: ``elision_1`` "Development"
+from 2 to 8 of the member ``excerpt``, without ``width``, drawing its
+ellipsis, its name and its coordinates, and ``elision_2`` from 2 to 6 of
+``phrase``, the child of the member ``voice``, with ``{"ratio": 0.5}``.
+The groupstamps "Climax" at 15 and "Return" at 21 of ``voice`` lie in
+the gap of ``elision_2`` and after it.
+
+``bundle_groupstamp_shared_member`` also stores the elision ``elision_1``
+from 1 to 3 of ``t`` with ``{"canvas": 24}``, drawn across both frames.
 
 ``timestamp_wedge_rotation`` turns the wedges of named timestamps, each
 named after its rotation. On the root ``melody`` they lie at quarters 2,
@@ -657,6 +734,8 @@ _ZERO: dict[str, Any] = {"int": 0, "float": 0.0, "fraction": [0, 1]}
 
 _ORIGIN_AND_LENGTH_DISPLAY = ["wedge", "coordinate"]
 
+_MEMBER_ORIGIN_AND_LENGTH_DISPLAY = ["wedge", "coordinate", "cross_section"]
+
 
 def _ids(value: Any) -> Iterator[str]:
     """Yield every ``id`` held at any depth of a manifest written by the library."""
@@ -710,7 +789,11 @@ def origin_and_length(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
 
     An editor names the zero of every root of a member drawing ``origin`` and,
     when its length is known, its length ``length``, each drawing its wedge
-    and its coordinate label (``display`` ``["wedge", "coordinate"]``). The
+    and its coordinate label (``display`` ``["wedge", "coordinate"]``). On a
+    member that is a child timeline both are groupstamps that also draw
+    their cross-section lines (``["wedge", "coordinate", "cross_section"]``),
+    as an editor gives them to a child joining a group, so that their lines
+    cross the frame and the member's ancestor lines. The
     timestamps are returned in canonical order (by timeline, then coordinate),
     each with the smallest ``timestamp_N`` the manifest's ids leave free,
     minted in that order. ``manifest`` is the library's complete form, which
@@ -720,6 +803,11 @@ def origin_and_length(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
     used.update(
         stamp["id"] for stamp in manifest.get("graphical", {}).get("timestamps", [])
     )
+    children = {
+        timeline["id"]
+        for timeline, ancestors in _tree(manifest["timelines"])
+        if ancestors
+    }
     marks: list[tuple[str, Any, str]] = []
     for timeline in sorted(drawn_roots(manifest), key=lambda timeline: timeline["id"]):
         marks.append((timeline["id"], _ZERO[timeline["number_type"]], "origin"))
@@ -731,15 +819,17 @@ def origin_and_length(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
         number += 1
         while f"timestamp_{number}" in used:
             number += 1
-        timestamps.append(
-            {
-                "id": f"timestamp_{number}",
-                "timeline": timeline_id,
-                "coordinate": coordinate,
-                "name": name,
-                "display": list(_ORIGIN_AND_LENGTH_DISPLAY),
-            }
-        )
+        stamp: dict[str, Any] = {
+            "id": f"timestamp_{number}",
+            "timeline": timeline_id,
+            "coordinate": coordinate,
+            "name": name,
+            "display": list(_ORIGIN_AND_LENGTH_DISPLAY),
+        }
+        if timeline_id in children:
+            stamp["display"] = list(_MEMBER_ORIGIN_AND_LENGTH_DISPLAY)
+            stamp["groupstamp"] = True
+        timestamps.append(stamp)
     return timestamps
 
 

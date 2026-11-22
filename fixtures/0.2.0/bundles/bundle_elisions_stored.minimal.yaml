@@ -61,16 +61,20 @@ graphical:
       start: [0, 1]
       timeline: "#coda"
     -
+      display: [ellipsis, name, coordinate]
       end: 1754
       id: "#elision_2"
+      name: Appendix
       start: 600
       timeline: "#page"
     -
+      display: [ellipsis, coordinate]
       end: 2.0
       id: "#elision_3"
       start: 0.0
       timeline: "#recording"
     -
+      display: [ellipsis, id, continuation]
       end: [20, 1]
       id: "#elision_4"
       start: [0, 1]
@@ -78,13 +82,16 @@ graphical:
       width:
         ratio: 0.5
     -
+      display: [name]
       end: [48, 1]
       id: "#elision_5"
+      name: Development
       start: [32, 1]
       timeline: "#score"
       width:
         span: [4, 1]
     -
+      display: []
       end: [56, 1]
       id: "#elision_6"
       start: [40, 1]
@@ -108,10 +115,12 @@ graphical:
         display: none
     -
       select:
-        element: elision
-        within: "#session"
+        addresses:
+          -
+            id: "#session"
+            part: [card]
       set:
-        display: none
+        elision-mode: full
   timestamps:
     -
       coordinate: 0
@@ -139,25 +148,29 @@ graphical:
       timeline: "#recording"
     -
       coordinate: 0.0
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_5"
       name: origin
       timeline: "#take"
     -
       coordinate: 25.5
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_6"
       name: length
       timeline: "#take"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_7"
       name: origin
       timeline: "#theme"
     -
       coordinate: [8, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_8"
       name: length
       timeline: "#theme"
@@ -167,7 +180,7 @@ groups:
     members: ["#recording", "#take", "#theme"]
     name: Theme
 meta:
-  generator: "timetoalign 1.2.0 (b20a8427)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: Elisions
 timelines:
   -

@@ -71,13 +71,15 @@ graphical:
       timeline: "#recording"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_3"
       name: origin
       timeline: "#second-half"
     -
       coordinate: [8, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       name: length
       timeline: "#second-half"
@@ -87,7 +89,7 @@ groups:
     members: ["#recording", "#second-half"]
     name: "Second half"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 timelines:
   -
     children:

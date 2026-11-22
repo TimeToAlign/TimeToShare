@@ -62,49 +62,57 @@ graphical:
   timestamps:
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_1"
       name: origin
       timeline: "#clt_6"
     -
       coordinate: [16, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_2"
       name: length
       timeline: "#clt_6"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_3"
       name: origin
       timeline: "#clt_7"
     -
       coordinate: [12, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       name: length
       timeline: "#clt_7"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_5"
       name: origin
       timeline: "#clt_8"
     -
       coordinate: [27, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_6"
       name: length
       timeline: "#clt_8"
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_7"
       name: origin
       timeline: "#clt_9"
     -
       coordinate: [16, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_8"
       name: length
       timeline: "#clt_9"
@@ -174,7 +182,7 @@ groups:
     members: ["#clt_9", "#cpt_4"]
     name: "Passepied mm. 153–156"
 meta:
-  generator: "timetoalign 1.2.0 (b20a8427)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: "Suite bergamasque"
 timelines:
   -

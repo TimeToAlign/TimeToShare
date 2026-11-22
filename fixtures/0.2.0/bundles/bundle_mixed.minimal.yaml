@@ -72,13 +72,15 @@ graphical:
       timeline: "#annotations"
     -
       coordinate: 0
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_3"
       name: origin
       timeline: "#excerpt"
     -
       coordinate: 88200
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       name: length
       timeline: "#excerpt"
@@ -128,7 +130,7 @@ groups:
     members: ["#excerpt", "#page"]
     name: Facsimile
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: Mixed
 timelines:
   -

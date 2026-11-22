@@ -80,16 +80,16 @@ graphical:
       timeline: "#annotations"
     -
       coordinate: 0
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_3"
       matchstamp: false
       name: origin
       timeline: "#excerpt"
     -
       coordinate: 88200
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       matchstamp: false
       name: length
@@ -155,7 +155,7 @@ groups:
     name: Facsimile
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: Mixed
 resources: []
 timelines:

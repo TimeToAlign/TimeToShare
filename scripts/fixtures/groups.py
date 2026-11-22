@@ -216,6 +216,35 @@ def group_elided_inside() -> TimelineGroup:
     return TimelineGroup(name="Excerpt", timelines=[excerpt, recording])
 
 
+def group_elided_members() -> TimelineGroup:
+    """Build a group whose members carry elisions drawn across its frame.
+
+    The piece ``piece`` ("Piece", 48 quarters) holds the excerpt ``excerpt``
+    ("Excerpt", 16 quarters) at 16; the voice ``voice`` ("Voice", 24
+    quarters) holds the phrase ``phrase`` ("Phrase", 8 quarters) at 12; the
+    sketch ``sketch`` ("Sketch", seconds) has an unknown length. The group
+    "Theme" lists ``excerpt``, ``voice`` and ``sketch``, in that order;
+    ``group_elided_members`` holds it with the elisions and groupstamps of
+    ``GRAPHICAL``.
+    """
+    piece = parts.named(ContinuousLogicalTimeline, "piece", "Piece", Fraction(48))
+    excerpt = parts.holding(
+        piece,
+        parts.named(ContinuousLogicalTimeline, "excerpt", "Excerpt", Fraction(16)),
+        Fraction(16),
+    )
+    voice = parts.named(ContinuousLogicalTimeline, "voice", "Voice", Fraction(24))
+    parts.holding(
+        voice,
+        parts.named(ContinuousLogicalTimeline, "phrase", "Phrase", Fraction(8)),
+        Fraction(12),
+    )
+    sketch = ContinuousPhysicalTimeline(
+        length=None, unit="seconds", uid="sketch", name="Sketch"
+    )
+    return TimelineGroup(name="Theme", timelines=[excerpt, voice, sketch])
+
+
 def corpus_tilia_group() -> TimelineGroup:
     """Load the group a public TiLiA loader builds from its corpus specimen."""
     tilia = ensure_data("score") / parts.TILIA

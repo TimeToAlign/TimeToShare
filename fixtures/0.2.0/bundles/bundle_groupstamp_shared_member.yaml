@@ -54,7 +54,15 @@
   unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
-  elisions: []
+  elisions:
+    -
+      display: [ellipsis]
+      end: [3, 1]
+      id: "#elision_1"
+      start: [1, 1]
+      timeline: "#t"
+      width:
+        canvas: 24
   matchstamps: []
   order:
     "#g1": ["#t", "#u"]
@@ -131,7 +139,7 @@ groups:
     name: Page
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: Shared
 resources: []
 timelines:

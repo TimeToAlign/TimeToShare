@@ -72,8 +72,8 @@ graphical:
   timestamps:
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_4"
       matchstamp: false
       name: origin
@@ -95,8 +95,8 @@ graphical:
       timeline: "#middle"
     -
       coordinate: [8, 1]
-      display: [wedge, coordinate]
-      groupstamp: false
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_5"
       matchstamp: false
       name: length
@@ -132,7 +132,7 @@ groups:
     name: Middle
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (7d9fcbff)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 name: null
 resources: []
 timelines:

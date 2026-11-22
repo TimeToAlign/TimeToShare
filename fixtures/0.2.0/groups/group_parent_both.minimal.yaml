@@ -59,13 +59,15 @@ graphical:
   timestamps:
     -
       coordinate: [0, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_1"
       name: origin
       timeline: "#middle"
     -
       coordinate: [8, 1]
-      display: [wedge, coordinate]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
       id: "#timestamp_2"
       name: length
       timeline: "#middle"
@@ -87,7 +89,7 @@ groups:
     members: ["#middle", "#recording"]
     name: Middle
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (45d76023)"
 timelines:
   -
     children:
