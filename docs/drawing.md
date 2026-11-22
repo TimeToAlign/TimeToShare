@@ -1856,9 +1856,9 @@ root of unknown length is drawn with its reach at the shared end (section
 - **Groups.** A block draws the manifest's groups in canonical order (by ID), and
   then every **ungrouped root**, a root of `timelines` that no group names
   as a member and that contains no member, in canonical order (by ID). A
-  root that contains a member is drawn only as an ancestor line of that
-  member and, where displayed, as an ancestor card behind its frame
-  (section 8.8).
+  root that contains a member is no ungrouped root: it is drawn as an
+  ancestor line of that member and, unless a rule hides it, whole in an
+  ancestor card behind the member's frame (section 8.8).
 - **Frames.** Each group is a **frame**, a `frame` element: a rounded
   rectangle holding the group's title and then its members' cards, one
   under the other, in the group's display order: the entry of
