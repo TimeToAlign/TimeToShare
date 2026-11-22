@@ -453,7 +453,7 @@ released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
 ones (`corpus_*`) and the statement fixtures, at the default placement, and
-twenty-five variants. The
+twenty-six variants. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -488,17 +488,11 @@ defaults show, `{"element": "ancestor_card"}` set to `display` `none`:
 application layer of one rule that hides every elision,
 `{"element": "elision"}` set to `display` `none`, so that each ancestor
 card is drawn whole: `group_grandchild`, `group_grandchild_parent_on_top`,
-`group_parents_mixed` and `group_elided_inside` (`group__<name>__full`).
-96 drawings lie here. Not yet emitted are the drawings of
-`bundle_elisions_stored` and `bundle_elided_layerit`, and the variant
-of the latter at the view 1024 × 640 (`bundle__bundle_elided_layerit__view-1024x640`),
-where the bound of the view sets the default proportion of the excerpts
-at the opening and the ending; not yet emitted again, for the elisions
-their ancestor cards draw by default, are `bundle__bundle_mixed` with its
-four variants and `bundle__bundle_shared_parent`, and the `figure.tex`
-of `group__group_grandchild`, `group__group_grandchild_parent_on_top`
-and `group__group_parents_mixed`; `group__group_elided_inside` and its
-`__full` case hold no `figure.tex` yet.
+`group_parents_mixed` and `group_elided_inside` (`group__<name>__full`);
+and `bundle_elided_layerit` in the view 1024 × 640
+(`bundle__bundle_elided_layerit__view-1024x640`), where the bound of the
+view sets the default proportion of the excerpts at the opening and the
+ending. 99 drawings lie here.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings
@@ -513,7 +507,10 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
     the same version's directory (`nested.yaml`,
     `groups/group_child_member.yaml`);
   - `placement`: `length`, `spacing`, `width`, `height` and `places`, all
-    five always written, defaults included (400, 8, `null`, `null`, `{}`);
+    five always written, defaults included (400, 8, `null`, `null`, `{}`),
+    and `view`, the view `{width, height}` the drawing is shown in,
+    written only where a variant states one (default `{width: 1280,
+    height: 720}`, drawing specification, section 1);
     `spacing` is the block's, the gap between its items at their default
     `y`, and a place's `spacing` the gap between that frame's cards or that
     card's rows and bands (drawing specification, section 8.6);
