@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 import pyarrow as pa
@@ -13,14 +14,32 @@ ACTOR = "https://orcid.org/0000-0002-1825-0097"
 BELIEF_WORDS = ("true", "unlikely", "false")
 
 
-def large_manifest(rows: int) -> dict[str, Any]:
-    """The two timelines of :func:`many_claims`, in the file form."""
+BAD_TIMELINES: tuple[dict[str, Any], ...] = (
+    {"unit": "furlongs", "length": 1},
+    {"length": 1},
+    {"unit": 5, "number_type": "int", "length": 1},
+    {"unit": "samples", "number_type": 7, "length": 1},
+    {"unit": None, "number_type": "int", "length": 1},
+    {"unit": ["samples"], "number_type": "int", "length": 1},
+)
+"""Timelines a manifest that was never validated may hold, without ``id``:
+a unit that is none, no unit, a unit or number type that is no string, a
+null unit."""
+
+
+def large_manifest(rows: int, unused: Sequence[dict[str, Any]] = ()) -> dict[str, Any]:
+    """The two timelines of :func:`many_claims`, in the file form, followed
+    by the ``unused`` timelines, which no row names, as ``unused_1``, … ."""
     return with_file_ids(
         {
             "timetoshare": "0.2.0",
             "timelines": [
                 {"id": "clt_1", "unit": "quarters", "length": [rows, 1]},
                 {"id": "dpt_1", "unit": "samples", "length": rows * 22050},
+                *(
+                    {**timeline, "id": f"unused_{index}"}
+                    for index, timeline in enumerate(unused, 1)
+                ),
             ],
         }
     )

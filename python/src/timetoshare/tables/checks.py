@@ -318,6 +318,33 @@ def _array(table: pa.Table, name: str) -> pa.Array:
     return table.column(name).combine_chunks()
 
 
+def _utf8(values: pa.Array) -> bool:
+    """Whether every string the values hold where they are stated is UTF-8:
+    a member under a null struct, an item of a null list and a null string
+    are not read."""
+    kind = values.type
+    if pa.types.is_struct(kind):
+        return all(_utf8(member) for member in values.flatten())
+    if pa.types.is_list(kind):
+        return _utf8(values.flatten())
+    if pa.types.is_string(kind):
+        try:
+            values.validate(full=True)
+        except pa.ArrowInvalid:
+            return False
+    return True
+
+
+def _readable(table: pa.Table, names: list[str]) -> None:
+    """Raise, as reading the columns in Python raises, where a string they
+    state is no UTF-8: the first such string in the order of the columns,
+    then of their rows, is read, which raises ``UnicodeDecodeError``."""
+    for name in names:
+        column = table.column(name)
+        if not all(_utf8(chunk) for chunk in column.chunks):
+            column.to_pylist()
+
+
 def _held(mask: pa.Array) -> pa.Array:
     """A mask with every null read as false."""
     return pc.coalesce(mask, _FALSE)
@@ -406,6 +433,9 @@ class _Found:
         self._found: list[tuple[int, int, int, TableProblem]] = []
 
     def add(self, row: int, place: int, problem: TableProblem) -> None:
+        if problem.message is None:
+            # A rule's mask flagged a cell its message helper finds sound.
+            raise AssertionError(f"no message for '{problem.code}' at row {row}")
         self._found.append((row, place, len(self._found), problem))
 
     def problems(self) -> list[TableProblem]:
@@ -463,20 +493,27 @@ def _id_problems(found: _Found, ids: pa.Array) -> None:
 
 
 class _Manifest:
-    """The axes of a manifest's timelines, as columns to look timelines up in."""
+    """A manifest's timelines by ID. A timeline's axis is read only where a
+    sound cell or an admitted row lies on it, so a timeline no checked cell
+    names is never read."""
 
     def __init__(self, manifest: Mapping[str, Any]) -> None:
-        timelines = timelines_by_id(with_bare_ids(manifest))
-        ids = [key for key in timelines if isinstance(key, str)]
-        self.ids = pa.array(ids, pa.string())
-        self.units = pa.array([timelines[key]["unit"] for key in ids], pa.string())
-        self.number_types = pa.array(
-            [number_type_of(timelines[key]) for key in ids], pa.string()
+        self.timelines = timelines_by_id(with_bare_ids(manifest))
+        self.ids = pa.array(
+            [key for key in self.timelines if isinstance(key, str)], pa.string()
         )
 
     def unknown(self, timelines: pa.Array) -> pa.Array:
         """Where a timeline ID names no timeline of the manifest."""
         return _not(pc.is_in(timelines, value_set=self.ids))
+
+    def axis(self, timeline_id: str) -> tuple[Any, Any] | None:
+        """The unit and number type of a timeline as the manifest states
+        them, whatever their type, or ``None`` where it has no such timeline."""
+        timeline = self.timelines.get(timeline_id)
+        if timeline is None:
+            return None
+        return (timeline["unit"], number_type_of(timeline))
 
 
 def _unknown_problems(
@@ -543,33 +580,59 @@ def _mismatched(cells: pa.Table, manifest: _Manifest | None) -> list[dict[str, A
     """The cells whose axis is not the axis of their timeline's cells.
 
     ``cells`` holds one row per cell stating an axis: its ``order`` of
-    reading, its ``timeline``, ``unit`` and ``number_type``, and whatever its
-    caller words a problem with. A timeline's cells have the axis of the
-    manifest's timeline where a manifest is given (a timeline it lacks
-    checks none), else the axis of the first cell read on the timeline. Each
-    mismatched cell is returned with that axis added, as ``expected_unit``
-    and ``expected_number_type``.
+    reading, its ``timeline``, ``unit`` and ``number_type`` (both strings,
+    the cell being sound), and whatever its caller words a problem with. A
+    timeline's cells have the axis of the manifest's timeline where a
+    manifest is given (a timeline it lacks checks none), else the axis of
+    the first cell read on the timeline. Each mismatched cell is returned
+    with that axis added, as ``expected_unit`` and ``expected_number_type``.
+
+    The manifest's axes are read in Python, one per timeline in the order
+    the timelines are first read, as a reading row by row reads them: a
+    unit or number type that is no string (null included) matches no cell.
     """
+    cells = cells.sort_by("order")
+    timelines = _array(cells, "timeline")
+    codes = _dense(timelines)
+    firsts = _firsts(codes)
     if manifest is not None:
-        found = pc.index_in(_array(cells, "timeline"), value_set=manifest.ids)
-        unit = manifest.units.take(found)
-        number_type = manifest.number_types.take(found)
+        axes = [manifest.axis(key) for key in timelines.take(firsts).to_pylist()]
     else:
-        cells = cells.sort_by("order")
-        codes = _dense(_array(cells, "timeline"))
-        first = _firsts(codes).take(codes)
-        unit = _array(cells, "unit").take(first)
-        number_type = _array(cells, "number_type").take(first)
-    differs = _any(
-        _held(pc.not_equal(_array(cells, "unit"), unit)),
-        _held(pc.not_equal(_array(cells, "number_type"), number_type)),
+        axes = list(
+            zip(
+                _array(cells, "unit").take(firsts).to_pylist(),
+                _array(cells, "number_type").take(firsts).to_pylist(),
+                strict=True,
+            )
+        )
+    plain = [
+        axis is not None and all(isinstance(part, str) for part in axis)
+        for axis in axes
+    ]
+    checked = pa.array([axis is not None for axis in axes], pa.bool_()).take(codes)
+    strange = pa.array(
+        [axis is not None and not ok for axis, ok in zip(axes, plain, strict=True)],
+        pa.bool_(),
+    ).take(codes)
+    unit, number_type = (
+        pa.array(
+            [axis[part] if ok else None for axis, ok in zip(axes, plain, strict=True)],
+            pa.string(),
+        ).take(codes)
+        for part in (0, 1)
     )
-    return (
-        cells.append_column("expected_unit", unit)
-        .append_column("expected_number_type", number_type)
-        .filter(differs)
-        .to_pylist()
+    differs = _all(
+        checked,
+        _any(
+            strange,
+            _held(pc.not_equal(_array(cells, "unit"), unit)),
+            _held(pc.not_equal(_array(cells, "number_type"), number_type)),
+        ),
     )
+    mismatched = cells.append_column("code", codes).filter(differs).to_pylist()
+    for cell in mismatched:
+        cell["expected_unit"], cell["expected_number_type"] = axes[cell.pop("code")]
+    return mismatched
 
 
 def _mismatch(cell: Mapping[str, Any], manifest: bool) -> str:
@@ -873,6 +936,7 @@ def match_claim_problems(
     problems = _schema_problems(table, MATCH_CLAIM_SCHEMA)
     if problems:
         return problems
+    _readable(table, MATCH_CLAIM_SCHEMA.names)
     problems = _null_problems(table, MATCH_CLAIM_REQUIRED)
     if problems:
         return problems
@@ -901,6 +965,7 @@ def projection_problems(
     problems = _schema_problems(table, PROJECTION_SCHEMA)
     if problems:
         return problems
+    _readable(table, PROJECTION_SCHEMA.names)
     problems = _null_problems(table, PROJECTION_REQUIRED)
     if problems:
         return problems
@@ -1081,6 +1146,8 @@ def _coordinates_differ(old: pa.Array, new: pa.Array) -> pa.Array:
     is_float = _held(pc.equal(kind, _KINDS["float"]))
     axis = _any(unit, number_type)
     respelled = _all(
+        pc.is_valid(old),
+        pc.is_valid(new),
         _not(axis),
         _not(is_int),
         _not(is_float),
@@ -1114,6 +1181,8 @@ def succession_problems(old: pa.Table, new: pa.Table) -> list[TableProblem]:
     exact value are, so ``2/4`` and ``1/2`` are one coordinate. The rows of
     ``new`` are reported by their index in ``new``.
     """
+    _readable(new, MATCH_CLAIM_SCHEMA.names)
+    _readable(old, MATCH_CLAIM_SCHEMA.names)
     columns = [name for name in MATCH_CLAIM_SCHEMA.names if name != "provenance"]
     old_ids = _array(old, "id")
     successors = _first_rows(_array(new, "id"), old_ids)

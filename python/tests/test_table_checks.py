@@ -21,6 +21,7 @@ from timetoshare.tables import (  # noqa: E402
     MATCH_CLAIM_SCHEMA,
     PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
+    checks,
     fixture_path,
     match_claim_problems,
     projection_problems,
@@ -28,7 +29,7 @@ from timetoshare.tables import (  # noqa: E402
 )
 
 from . import table_checks_reference as reference  # noqa: E402
-from .large_tables import large_manifest, many_claims  # noqa: E402
+from .large_tables import BAD_TIMELINES, large_manifest, many_claims  # noqa: E402
 from .test_tables import (  # noqa: E402
     ACTOR,
     CLAIM_CASES,
@@ -106,6 +107,70 @@ def test_each_claim_case(case: tuple, manifest: Any) -> None:
 def test_each_projection_case(case: tuple, manifest: Any) -> None:
     table = projections_table(changed(PROJECTIONS, case[1]))
     assert assert_same_projection_problems(table, manifest) != []
+
+
+# A manifest's timelines, read where a row reaches them
+
+_BAD_NAMES = [
+    "furlongs",
+    "no-unit",
+    "unit-5",
+    "number-type-7",
+    "null-unit",
+    "list-unit",
+]
+_NAMED_OUTCOMES = {
+    "furlongs": ("raises", "KeyError", "'furlongs'"),
+    "no-unit": ("raises", "KeyError", "'unit'"),
+    "unit-5": "in 5 (int)",
+    "number-type-7": "in samples (7)",
+    "null-unit": "in None (int)",
+    "list-unit": "in ['samples'] (int)",
+}
+"""What the inline tables meet against a manifest whose ``dpt_1`` is the bad
+timeline: an exception, or an ``axis_mismatch`` at every cell or row on
+``dpt_1`` whose expected axis is worded so."""
+
+
+def _with_bad_timeline(manifest: dict, bad: dict, named: bool) -> dict:
+    """The manifest with the bad timeline added as ``x``, which no row names,
+    or put in place of ``dpt_1``, which the rows name."""
+    manifest = copy.deepcopy(manifest)
+    if not named:
+        manifest["timelines"].append({**bad, "id": "#x"})
+        return manifest
+    manifest["timelines"] = [
+        {**bad, "id": "#dpt_1"} if timeline["id"] == "#dpt_1" else timeline
+        for timeline in manifest["timelines"]
+    ]
+    return manifest
+
+
+@pytest.mark.parametrize("named", [False, True], ids=["unnamed", "named"])
+@pytest.mark.parametrize("bad", BAD_TIMELINES, ids=_BAD_NAMES)
+def test_a_bad_timeline_is_read_where_a_row_reaches_it(bad: dict, named: bool) -> None:
+    manifest = _with_bad_timeline(MANIFEST, bad, named)
+    for compared, check, table in (
+        (assert_same_claim_problems, match_claim_problems, claims_table(CLAIMS)),
+        (
+            assert_same_projection_problems,
+            projection_problems,
+            projections_table(PROJECTIONS),
+        ),
+    ):
+        problems = compared(table, manifest)
+        if not named:
+            assert problems == []
+            continue
+        outcome = _NAMED_OUTCOMES[_BAD_NAMES[BAD_TIMELINES.index(bad)]]
+        if isinstance(outcome, tuple):
+            assert problems == ["raised"]
+            assert _outcome(check, table, manifest) == outcome
+            continue
+        assert {problem.code for problem in problems} == {"axis_mismatch"}
+        assert problems[0].message == (
+            f"a coordinate in samples (int) on the timeline 'dpt_1' {outcome}"
+        )
 
 
 # The values a change puts in, by the key they go to
@@ -403,7 +468,37 @@ def _built(rng: random.Random, rows: list[dict], schema: Any, kind: str) -> Any:
 
 
 _TABLE_KINDS = ("shared", "chunks", "dictionary")
-KINDS = (*_ROW_CHANGES, *_TABLE_KINDS)
+KINDS = (*_ROW_CHANGES, *_TABLE_KINDS, "manifest")
+
+
+def _manifest_timelines(manifest: dict) -> list[dict]:
+    """Every timeline of a manifest, children included."""
+    found = []
+
+    def visit(timeline: dict) -> None:
+        found.append(timeline)
+        for child in timeline.get("children", []):
+            visit(child)
+
+    for root in manifest["timelines"]:
+        visit(root)
+    return found
+
+
+def _bad_manifest(rng: random.Random, manifest: dict) -> dict:
+    """The manifest with a bad timeline added unnamed, or put in place of
+    one of its timelines (its ID and children kept)."""
+    manifest = copy.deepcopy(manifest)
+    bad = rng.choice(BAD_TIMELINES)
+    if rng.random() < 0.5:
+        manifest["timelines"].append({**bad, "id": "#x"})
+        return manifest
+    timeline = rng.choice(_manifest_timelines(manifest))
+    kept = {key: timeline[key] for key in ("id", "children") if key in timeline}
+    timeline.clear()
+    timeline.update({**bad, **kept})
+    return manifest
+
 
 _CLAIM_BASES = [
     (_fixture_rows("match_claims.parquet"), FIXTURE_MANIFEST),
@@ -421,7 +516,8 @@ def mutated(
 ) -> tuple[Any, list[dict], Any]:
     """The ``n``-th table of a kind: a base changed once by the kind and up
     to twice by any row change, its rows, and the manifest it is checked
-    against (``None`` in about a third of the tables)."""
+    against (``None`` in about a third of the tables, never for the kind
+    ``manifest``, which gives the manifest a bad timeline)."""
     rng = random.Random(f"20261122-tables-{kind}-{n}")
     base, manifest = rng.choice(bases)
     rows = copy.deepcopy(base)
@@ -430,6 +526,8 @@ def mutated(
     for change in changes:
         change(rng, rows)
     table = _built(rng, rows, schema, kind)
+    if kind == "manifest":
+        return table, rows, _bad_manifest(rng, manifest)
     return table, rows, None if rng.random() < 0.34 else manifest
 
 
@@ -440,7 +538,7 @@ def test_mutated_match_claim_tables() -> None:
             table, _, manifest = mutated(kind, n, _CLAIM_BASES, MATCH_CLAIM_SCHEMA)
             problems = assert_same_claim_problems(table, manifest)
             outcomes[kind]["problems" if problems else "none"] += 1
-    assert sum(sum(counts.values()) for counts in outcomes.values()) >= 1_760
+    assert sum(sum(counts.values()) for counts in outcomes.values()) == 1_920
     for kind, counts in outcomes.items():
         assert counts["problems"] > 0 and counts["none"] > 0, (kind, counts)
 
@@ -454,7 +552,7 @@ def test_mutated_projection_tables() -> None:
             table, _, manifest = mutated(kind, n, _PROJECTION_BASES, PROJECTION_SCHEMA)
             problems = assert_same_projection_problems(table, manifest)
             outcomes[kind]["problems" if problems else "none"] += 1
-    assert sum(sum(counts.values()) for counts in outcomes.values()) >= 900
+    assert sum(sum(counts.values()) for counts in outcomes.values()) == 1_000
     for kind, counts in outcomes.items():
         if counts:
             assert counts["problems"] > 0 and counts["none"] > 0, (kind, counts)
@@ -524,9 +622,29 @@ _SUCCESSIONS = {
 }
 
 
+def _one_sided(rng: random.Random, old_rows: list[dict], new_rows: list[dict]) -> None:
+    """A coordinate stated on one side alone: in one table the cell is null,
+    in the other it keeps its number but loses its unit, its number type or
+    both."""
+    paths = [
+        path
+        for path in _cell_paths(old_rows, "coordinate_a", "coordinate_b")
+        if _get(old_rows, path) is not None
+    ]
+    if not paths:
+        return
+    path = rng.choice(paths)
+    stripped, nulled = (
+        (old_rows, new_rows) if rng.random() < 0.5 else (new_rows, old_rows)
+    )
+    for key in rng.choice([("unit", "number_type"), ("unit",), ("number_type",)]):
+        _get(stripped, path)[key] = None
+    _put(nulled, path, None)
+
+
 def test_the_succession_rule_on_pairs() -> None:
     outcomes = Counter()
-    for kind, change in _SUCCESSIONS.items():
+    for kind in (*_SUCCESSIONS, "one_sided"):
         for n in range(60):
             rng = random.Random(f"20261122-succession-{kind}-{n}")
             base, _ = rng.choice(_CLAIM_BASES)
@@ -534,10 +652,15 @@ def test_the_succession_rule_on_pairs() -> None:
             if rng.random() < 0.3:
                 _rows(rng, old_rows)
             new_rows = copy.deepcopy(old_rows)
-            for step in [
-                change,
-                *rng.choices(list(_SUCCESSIONS.values()), k=rng.randint(0, 1)),
-            ]:
+            if kind == "one_sided":
+                _one_sided(rng, old_rows, new_rows)
+                steps = rng.choices(list(_SUCCESSIONS.values()), k=rng.randint(0, 1))
+            else:
+                steps = [
+                    _SUCCESSIONS[kind],
+                    *rng.choices(list(_SUCCESSIONS.values()), k=rng.randint(0, 1)),
+                ]
+            for step in steps:
                 step(rng, new_rows)
             old = claims_table(old_rows)
             new = _built(
@@ -554,8 +677,165 @@ def test_the_succession_rule_on_pairs() -> None:
                 continue
             assert _outcome(succession_problems, old, new) == expected
             outcomes[("checked" if checked else "unchecked", bool(expected[1]))] += 1
+            outcomes[(kind, "compared")] += 1
     assert outcomes[("checked", True)] > 0 and outcomes[("checked", False)] > 0
     assert sum(count for key, count in outcomes.items() if key[0] == "checked") >= 250
+    assert outcomes[("one_sided", "compared")] > 0
+
+
+def test_a_coordinate_stated_on_one_side() -> None:
+    old_rows, new_rows = copy.deepcopy(CLAIMS), copy.deepcopy(CLAIMS)
+    old_rows[0]["start_anchor"]["coordinate_a"] = {
+        "numerator": 1,
+        "denominator": 2,
+        "value": None,
+        "unit": None,
+        "number_type": None,
+    }
+    new_rows[0]["start_anchor"]["coordinate_a"] = None
+    old, new = claims_table(old_rows), claims_table(new_rows)
+    expected = [
+        (
+            "succession_changed",
+            0,
+            ("start_anchor",),
+            "the MatchClaim 'claim_1' changed its 'start_anchor'",
+        )
+    ]
+    for check in (reference.succession_problems, succession_problems):
+        assert [
+            (problem.code, problem.row, problem.column, problem.message)
+            for problem in check(old, new)
+        ] == expected
+
+
+# Text that is no UTF-8
+
+_HOLE = "QQQ"
+"""A placeholder written into a string cell and replaced, in the table's
+Arrow IPC bytes, by three bytes that are no UTF-8."""
+
+
+def _broken(table: Any) -> Any:
+    """The table with every placeholder's bytes replaced by ``ff fe fd``."""
+    sink = pa.BufferOutputStream()
+    with pa.ipc.new_stream(sink, table.schema) as writer:
+        writer.write_table(table)
+    data = sink.getvalue().to_pybytes()
+    assert _HOLE.encode() in data
+    return pa.ipc.open_stream(data.replace(_HOLE.encode(), b"\xff\xfe\xfd")).read_all()
+
+
+def _undecodable(position: int) -> tuple:
+    return (
+        "raises",
+        "UnicodeDecodeError",
+        f"'utf-8' codec can't decode byte 0xff in position {position}: "
+        "invalid start byte",
+    )
+
+
+def _claims_with(change: Callable[[list[dict]], None]) -> Any:
+    return _broken(claims_table(changed(CLAIMS, change)))
+
+
+_UNDECODABLE_CLAIMS = {
+    "id": (lambda rows: rows[1].update(id=_HOLE), 0),
+    "unit": (
+        lambda rows: rows[0]["start_anchor"]["coordinate_a"].update(unit=_HOLE),
+        0,
+    ),
+    "actor": (
+        lambda rows: rows[0]["provenance"]["beliefs"][0].update(actor="a" + _HOLE),
+        1,
+    ),
+    "first-column-first": (
+        lambda rows: (
+            rows[0].update(id=_HOLE),
+            rows[3].update(timeline_a_id="clt_" + _HOLE),
+        ),
+        4,
+    ),
+}
+
+
+@pytest.mark.parametrize("case", _UNDECODABLE_CLAIMS, ids=list(_UNDECODABLE_CLAIMS))
+@pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
+def test_text_that_is_no_utf8_raises_as_reading_it_does(
+    case: str, manifest: Any
+) -> None:
+    change, position = _UNDECODABLE_CLAIMS[case]
+    table = _claims_with(change)
+    assert assert_same_claim_problems(table, manifest) == ["raised"]
+    assert _outcome(match_claim_problems, table, manifest) == _undecodable(position)
+    valid = claims_table(CLAIMS)
+    for old, new in ((table, valid), (valid, table)):
+        expected = _outcome(reference.succession_problems, old, new)
+        assert _outcome(succession_problems, old, new) == expected
+        assert expected == _undecodable(position)
+
+
+@pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
+def test_a_projection_that_is_no_utf8(manifest: Any) -> None:
+    rows = changed(
+        PROJECTIONS, lambda rows: rows[0]["projection_of"].update(event_id=_HOLE)
+    )
+    table = _broken(projections_table(rows))
+    assert assert_same_projection_problems(table, manifest) == ["raised"]
+    assert _outcome(projection_problems, table, manifest) == _undecodable(0)
+
+
+def test_bytes_that_are_never_read() -> None:
+    """Bytes that are no UTF-8 in a null slot of a string column and in a
+    member of a null struct are no problem."""
+    table = claims_table(CLAIMS)
+    offsets = pa.array([0, 0, 3, 3, 3], pa.int32()).buffers()[1]
+    validity = pa.array([True, False, True, True]).buffers()[1]
+    names = pa.Array.from_buffers(
+        pa.string(), 4, [validity, offsets, pa.py_buffer(b"\xff\xfe\xfd")]
+    )
+    assert names.to_pylist() == ["", None, "", ""]
+    table = table.set_column(
+        table.column_names.index("event_a_name"), "event_a_name", names
+    )
+    for manifest in (None, MANIFEST):
+        assert assert_same_claim_problems(table, manifest) == []
+    projections = projections_table(PROJECTIONS)
+    source = projections.column("projection_of").combine_chunks()
+    events = pa.Array.from_buffers(
+        pa.string(),
+        3,
+        [
+            None,
+            pa.array([0, 6, 9, 9], pa.int32()).buffers()[1],
+            pa.py_buffer(b"note_1\xff\xfe\xfd"),
+        ],
+    )
+    source = pa.StructArray.from_arrays(
+        [source.field("timeline_id"), events],
+        names=["timeline_id", "event_id"],
+        mask=pa.array([False, True, True]),
+    )
+    assert source.to_pylist() == [
+        {"timeline_id": "clt_1", "event_id": "note_1"},
+        None,
+        None,
+    ]
+    projections = projections.set_column(
+        projections.column_names.index("projection_of"), "projection_of", source
+    )
+    for manifest in (None, MANIFEST):
+        assert assert_same_projection_problems(projections, manifest) == []
+
+
+# Every flagged cell has its message
+
+
+def test_a_flagged_cell_without_a_message(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(checks, "_id_problem", lambda value, what: None)
+    table = claims_table(changed(CLAIMS, lambda rows: rows[0].update(id="")))
+    with pytest.raises(AssertionError, match="^no message for 'invalid_id' at row 0$"):
+        match_claim_problems(table)
 
 
 # A larger table
@@ -566,7 +846,7 @@ def test_a_larger_table(provenance: bool) -> None:
     rows = 2_000
     table = many_claims(rows, provenance)
     manifest = large_manifest(rows)
-    for against in (None, manifest):
+    for against in (None, manifest, large_manifest(rows, BAD_TIMELINES)):
         assert assert_same_claim_problems(table, against) == []
     rng = random.Random(f"20261122-tables-larger-{provenance}")
     rows_changed = table.to_pylist()

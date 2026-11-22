@@ -2236,26 +2236,51 @@ extraction's are without fontTools. What proves them:
 
 `match_claim_problems`, `projection_problems` and `succession_problems`
 compute their rules over whole columns (`pyarrow.compute`); Python reads
-only the cells a rule flags, to word their problems, and one cell per
+only the cells a rule flags, to word their problems, one cell per
 distinct provenance cell, which is checked against the provenance schema
-once. The change is meant to change no outcome, only the time: the list of
-problems is the one the former reading row by row gives, the same codes,
-rows, columns and messages in the same order, for every table. What proves
-it (`test_table_checks.py`):
+once, and, against a manifest, the unit and number type of each timeline
+a sound cell or an admitted Projection lies on, once per timeline in the
+order the rows first reach it. The change is meant to change no outcome,
+only the time: the list of problems is the one the former reading row by
+row gives, the same codes, rows, columns and messages in the same order,
+for every table, and where the former reading raised, the same exception
+with the same message. What proves it (`test_table_checks.py`):
 
 - **The reference is the former implementation.** `table_checks_reference.py`
   holds the row-by-row checks as they were before the change, unchanged but
-  for their imports; it is no part of the package and nothing else reads
-  it. Each comparison asserts that both implementations return equal lists
-  of `TableProblem` (code, row, column and message, in order), for the
-  MatchClaim table without and with its manifest, and for the Projections
-  table likewise.
+  for their imports: the row loops (the axes of the timelines, the IDs, the
+  nulls, each MatchClaim's and each Projection's rules, the succession
+  rule) are its own, and the helpers the change left as they were (the
+  schema shape check, the message of an ID, an axis or a number, the check
+  of a provenance entry and of the file's) are imported from the package,
+  so the comparison is of the rules, their order and the cells they read,
+  while the wording is pinned by the exact messages of `test_tables.py`.
+  It is no part of the package and nothing else reads it. Each comparison
+  asserts that both implementations return equal lists of `TableProblem`
+  (code, row, column and message, in order), or raise the same exception
+  type with the same message, for the MatchClaim table without and with
+  its manifest, and for the Projections table likewise.
 - **The fixture tables and every inline case.** The two Parquet files of
   the table fixture, against their manifest and without; the inline tables
   of `test_tables.py` and every one of their rule cases (`CLAIM_CASES`,
   `PROVENANCE_CASES`, `PROJECTION_CASES`), so every code and every message
   the suite names is reached by both.
-- **Seeded mutations.** 1,760 MatchClaim tables (160 per kind) and 900
+- **A manifest's timeline is read where a row reaches it.** The inline
+  tables are checked against their manifest with one more timeline, `x`,
+  that no row names, and against the manifest whose `dpt_1`, which the
+  rows name, is that timeline instead; `x` is each of: the unit
+  `furlongs`, no unit, the unit `5` (number type `int`), the number type
+  `7` (unit `samples`), the unit null (number type `int`), the unit a
+  list. Unnamed, none changes the outcome: both tables have no problem.
+  Named, the outcome is the reference's: `furlongs` raises
+  `KeyError: 'furlongs'` and no unit `KeyError: 'unit'` (the unit's
+  default number type is looked up, as before), a list unit with a stated
+  number type, `5`, `7` and null are an `axis_mismatch` at every cell or
+  row on `dpt_1`, worded with the value as Python prints it (`a coordinate
+  in samples (int) on the timeline 'dpt_1' in None (int)`). A check that
+  reads a timeline no row reaches, or compares a null unit as a column
+  value (null equal to everything), fails here.
+- **Seeded mutations.** 1,920 MatchClaim tables (160 per kind) and 1,000
   Projections tables (100 per kind; the two provenance kinds do not apply
   to them), each drawn from its own stream
   `random.Random("20261122-tables-<kind>-<n>")` from a fixture table or an
@@ -2278,28 +2303,59 @@ it (`test_table_checks.py`):
   compactly and once absolutely, a null belief) beside cells repeated
   across rows, so that one distinct cell stands for many rows; the file's
   provenance stated beside the rows' or malformed; the rows reordered, cut
-  to none or to one, or a row repeated; the columns cut into chunks of
+  to none or to one, or a row repeated; the manifest given (never left out
+  for this kind) with a bad timeline of the pool above added unnamed, or
+  put in place of a timeline the rows name; the columns cut into chunks of
   random lengths; an undeclared column added dictionary-encoded, and a
   declared column dictionary-encoded (a `schema_violation`). Every kind is
   asserted to have yielded tables with problems and tables without, so no
   kind compares only the empty list.
-- **The succession rule on pairs.** 540 pairs (60 per kind) of a table
+- **The succession rule on pairs.** 600 pairs (60 per kind) of a table
   and a successor made by the row kinds above plus a row removed, a fraction
   respelled in other terms (`(1, 2)` as `(2, 4)`, the same coordinate), a
-  float moved to the next double, an integer moved by one, and a
-  provenance changed, the successor in chunks in about half: compared
-  wherever both tables pass the checks, the rule's domain (at least 250
-  pairs, with breaches and without), and also wherever the reference
-  returns at all on tables that do not; where the reference raises (a cell
-  it cannot read), the pair lies outside the domain and is not compared.
+  float moved to the next double, an integer moved by one, a
+  provenance changed, and a coordinate stated on one side alone (one
+  table's cell null, the other's holding its number without a unit or a
+  number type, or without both), the successor in chunks in about half:
+  compared wherever both tables pass the checks, the rule's domain (at
+  least 250 pairs, with breaches and without), and also wherever the
+  reference returns at all on tables that do not, as long as both hold
+  the declared column types; where the reference raises (a cell it cannot
+  read: a null member, a denominator 0, a float that is not finite), the
+  pair lies outside the domain and is not compared, and the column checks,
+  which read only cells whose members differ, may answer there instead.
+  Tables whose declared columns have another physical type on one side
+  (`large_string` for `string`) are schema violations, outside the domain
+  as well; neither the suite nor the column checks compare them. The
+  smallest one-sided pair is also a case of its own: `claim_1`'s
+  `start_anchor.coordinate_a` written `(1, 2, null)` without unit and
+  number type in the old table and null in the new one is exactly one
+  `succession_changed` at row 0, column `start_anchor`.
+- **Text that is no UTF-8.** A string cell whose bytes are no UTF-8 cannot
+  be read in Python, and the reference raises `UnicodeDecodeError` reading
+  the table's declared columns, column by column in the type's order and
+  row by row; so do the column checks, for the first such cell in the same
+  order, with the same message: an invalid `id`, an invalid
+  `start_anchor.coordinate_a.unit` and an invalid provenance actor in a
+  MatchClaim table, an invalid `projection_of.event_id` in a Projections
+  table, in the old and in the new table of a succession. The same bytes
+  in a null slot of a string column, or in a member of a null struct, are
+  never read and are no problem, by both.
+- **Every flagged cell has its message.** Each rule exists twice, as a
+  column mask and as the helper wording a flagged cell; a cell the mask
+  flags and the helper finds sound would give a problem without a message,
+  so the checks raise `AssertionError` (`no message for 'invalid_id' at row
+  0`) instead, which a test proves by replacing the ID's message helper
+  with one that finds every ID sound.
 - **A larger table.** The 2,000-row MatchClaim table of `large_tables.py`
   (synchronous, interval, NOMATCH and conceptual rows over two timelines),
   without and with a provenance in every row (84 distinct cells), has no
   problem by either implementation, and the same table changed thirty
   times by the row kinds, cut into chunks, has the same problems by both,
-  and the same succession breaches where the reference reads it. The same
-  module builds the 250,000-row tables whose timings are measured outside
-  the suite and never asserted.
+  and the same succession breaches where the reference reads it. Its
+  manifest is checked also with the bad timelines above added, which no
+  row names: no problem, by both. The same module builds the 250,000-row
+  tables whose timings are measured outside the suite and never asserted.
 
 The whole comparison runs in under a minute.
 

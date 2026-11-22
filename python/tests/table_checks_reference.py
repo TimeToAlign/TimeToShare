@@ -3,232 +3,45 @@
 The package's checks (``timetoshare.tables``) find their problems column by
 column; this module is the implementation they replaced, one row at a time,
 kept unchanged but for its imports so that ``test_table_checks.py`` can
-compare the two on every table it builds. It is no part of the package.
+compare the two on every table it builds. The helpers the change left as
+they were (the shape check, the messages, the check of a provenance entry)
+are the package's own, imported; the row loops are this module's. It is no
+part of the package.
 """
 
 from __future__ import annotations
 
-import json
-import math
-import re
 from collections.abc import Iterator, Mapping
-from functools import cache
 from typing import Any
 
 import pyarrow as pa
-from jsonschema import Draft202012Validator
 
 from timetoshare.ids import with_bare_ids
 from timetoshare.manifest import UNITS
-from timetoshare.statements import calendar_date, expand_iri
 from timetoshare.tables import TableProblem
+from timetoshare.tables.checks import (
+    _axis_problem,
+    _id_problem,
+    _number_problem,
+    _present,
+    _provenance_problem,
+    _schema_problems,
+    _shared_provenance,
+)
 from timetoshare.tables.columns import (
-    BELIEF_KEYS,
     COORDINATE_KEYS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
-    NUMBER_KEYS,
-    NUMBER_MEMBERS,
     PROJECTION_REQUIRED,
     PROJECTION_SCHEMA,
-    PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
     coordinate_value,
 )
-from timetoshare.validate import PROVENANCE_DEFINITION, load_schema, select, worded
-from timetoshare.validation.diagnostics import (
-    json_pointer,
-    number_type_of,
-    timelines_by_id,
-)
+from timetoshare.validation.diagnostics import number_type_of, timelines_by_id
 
 __all__ = ["match_claim_problems", "projection_problems", "succession_problems"]
 
 Column = tuple[str, ...]
-
-
-_CONTROL = re.compile("[\u0000-\u001f]")
-
-
-def _shape(data_type: pa.DataType) -> Any:
-    """A type's shape, blind to nullability and to the name of list items."""
-    if pa.types.is_struct(data_type):
-        return ("struct", tuple((f.name, _shape(f.type)) for f in data_type))
-    if pa.types.is_list(data_type):
-        return ("list", _shape(data_type.value_type))
-    return str(data_type)
-
-
-def _schema_problems(table: pa.Table, schema: pa.Schema) -> list[TableProblem]:
-    problems = []
-    for field in schema:
-        if field.name not in table.column_names:
-            problems.append(
-                TableProblem(
-                    "schema_violation",
-                    None,
-                    (field.name,),
-                    f"the table has no column '{field.name}'",
-                )
-            )
-        elif _shape(table.schema.field(field.name).type) != _shape(field.type):
-            problems.append(
-                TableProblem(
-                    "schema_violation",
-                    None,
-                    (field.name,),
-                    f"the column '{field.name}' is "
-                    f"{table.schema.field(field.name).type}, not {field.type}",
-                )
-            )
-    return problems
-
-
-def _id_problem(value: Any, what: str) -> str | None:
-    if value == "":
-        return f"{what} is empty"
-    if _CONTROL.search(value):
-        return f"{what} {value!r} holds a control character"
-    return None
-
-
-def _axis_problem(unit: str, number_type: str) -> str | None:
-    """Why a unit and a number type, both stated, are no axis, or ``None``.
-
-    The unit is one of :data:`~timetoshare.UNITS`, the number type one of the
-    three, and one the unit admits."""
-    if unit not in UNITS:
-        return f"'{unit}' is no unit"
-    if number_type not in NUMBER_MEMBERS:
-        return f"'{number_type}' is no number type"
-    if number_type not in UNITS[unit].number_types:
-        return f"'{unit}' admits no number type '{number_type}'"
-    return None
-
-
-def _number_problem(
-    number: Mapping[str, Any], number_type: str, what: str
-) -> str | None:
-    """Why a non-null number is no number of ``number_type``, or ``None``.
-
-    A number fills the members of its number type and leaves the others
-    null (:data:`~timetoshare.tables.NUMBER_MEMBERS`); a float is finite, a
-    fraction's denominator at least 1.
-    """
-    held = NUMBER_MEMBERS[number_type]
-    kind = f"{'an' if number_type == 'int' else 'a'} {number_type} {what}"
-    for key in held:
-        if number[key] is None:
-            return f"{kind} has no {key}"
-    for key in NUMBER_KEYS:
-        if key not in held and number[key] is not None:
-            return f"{kind} holds its {' and '.join(held)} alone, not a {key}"
-    if number_type == "float" and not math.isfinite(number["value"]):
-        return f"the {what}'s value {number['value']} is not finite"
-    if number_type == "fraction" and number["denominator"] < 1:
-        return f"the {what}'s denominator {number['denominator']} is below 1"
-    return None
-
-
-@cache
-def _provenance_validator() -> Draft202012Validator:
-    """The validator of one provenance entry: the provenance schema's root."""
-    definitions = load_schema()["$defs"]
-    return Draft202012Validator(
-        {"$defs": definitions, "$ref": f"#/$defs/{PROVENANCE_DEFINITION}"}
-    )
-
-
-def _present(cell: Mapping[str, Any]) -> dict[str, Any]:
-    """A row's provenance cell as the entry it holds: a null member is absent."""
-    entry = {key: value for key, value in cell.items() if value is not None}
-    if "beliefs" in entry:
-        entry["beliefs"] = [
-            {key: value for key, value in belief.items() if value is not None}
-            if isinstance(belief, Mapping)
-            else belief
-            for belief in entry["beliefs"]
-        ]
-    return entry
-
-
-def _provenance_problem(
-    entry: Any, what: str, context: Mapping[str, Any] | None
-) -> str | None:
-    """Why a provenance entry is no entry of the provenance schema, or ``None``.
-
-    The schema first, its problem chosen by the validators' one path rule;
-    then a key the schema does not declare, of the entry or of a belief;
-    then a date that is no day of the Gregorian calendar; then an actor
-    holding a second belief, actors compared as the IRIs they stand for
-    under ``context`` (the manifest's ``@context``), else as written.
-    ``what`` names the entry in the message, and the member at fault follows
-    as a JSON pointer into it.
-    """
-    error = select(_provenance_validator().iter_errors(entry))
-    if error is not None:
-        return f"{what} {json_pointer(error.absolute_path)}: {worded(error)}"
-    beliefs = entry.get("beliefs", [])
-    for keys, known, path, kind in (
-        (entry, PROVENANCE_KEYS, (), "a provenance entry"),
-        *(
-            (belief, BELIEF_KEYS, ("beliefs", index), "a belief")
-            for index, belief in enumerate(beliefs)
-        ),
-    ):
-        unknown = sorted(set(keys) - set(known))
-        if unknown:
-            return f"{what} {json_pointer(path)}: '{unknown[0]}' is no key of {kind}"
-    dates = [(("date",), entry["date"])] if "date" in entry else []
-    dates.extend(
-        (("beliefs", index, "date"), belief["date"])
-        for index, belief in enumerate(beliefs)
-    )
-    for path, date in dates:
-        try:
-            calendar_date(date)
-        except ValueError as problem:
-            return f"{what} {json_pointer(path)}: {problem}"
-    held: dict[str, int] = {}
-    for index, belief in enumerate(beliefs):
-        actor = expand_iri(context, belief["actor"]) or belief["actor"]
-        if actor in held:
-            return (
-                f"{what} {json_pointer(('beliefs', index, 'actor'))}: "
-                f"'{belief['actor']}' already holds belief {held[actor]} of this "
-                "entry; an actor holds one belief"
-            )
-        held[actor] = index
-    return None
-
-
-def _shared_provenance(
-    table: pa.Table, context: Mapping[str, Any] | None = None
-) -> tuple[dict[str, Any] | None, str | None]:
-    """The provenance the file's metadata states for every row, and a problem.
-
-    The entry is checked as a row's is, and returned with every member,
-    an absent one ``None``, as a row's cell holds it.
-    """
-    metadata = table.schema.metadata or {}
-    text = metadata.get(PROVENANCE_METADATA_KEY.encode())
-    if text is None:
-        return None, None
-    try:
-        entry = json.loads(text)
-    except ValueError:
-        return None, "the file's provenance is no JSON text"
-    if not isinstance(entry, dict):
-        return None, "the file's provenance is no object"
-    problem = _provenance_problem(entry, "the file's provenance", context)
-    if problem:
-        return None, problem
-    cell = {key: entry.get(key) for key in PROVENANCE_KEYS}
-    if cell["beliefs"] is not None:
-        cell["beliefs"] = [
-            {key: belief.get(key) for key in BELIEF_KEYS} for belief in cell["beliefs"]
-        ]
-    return cell, None
 
 
 class _Axes:
