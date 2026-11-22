@@ -65,7 +65,7 @@ export const DEFAULTS = {
   timestamp: { display: ["wedge", "name", "cross_section"], matchstamp: false, groupstamp: false },
   match_timestamp: { display: ["cross_section"], groupstamp: false },
   alignment_anchor: { display: ["line"] },
-  elision: { display: ["strip", "name", "coordinate"] },
+  elision: { display: ["ellipsis"] },
 } as const;
 
 type Kind = keyof typeof DEFAULTS;

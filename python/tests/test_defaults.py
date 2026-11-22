@@ -344,24 +344,28 @@ def test_an_elision_completes_its_display_and_never_its_width() -> None:
         graphical={
             "elisions": [
                 _elision(1),
-                _elision(2, display=["coordinate", "strip", "name"]),
-                _elision(3, display=["name"]),
-                _elision(4, width={"ratio": 1}),
+                _elision(2, display=["ellipsis"]),
+                _elision(3, display=["continuation", "name", "ellipsis"]),
+                _elision(4, name="Coda", width={"ratio": 1}),
+                _elision(5, display=[]),
             ]
         },
     )
-    default = ["strip", "name", "coordinate"]
+    default = ["ellipsis"]
+    stated = ["ellipsis", "name", "continuation"]
     assert complete(value)["graphical"]["elisions"] == [
         _elision(1, display=default),
         _elision(2, display=default),
-        _elision(3, display=["name"]),
-        _elision(4, width={"ratio": 1}, display=default),
+        _elision(3, display=stated),
+        _elision(4, name="Coda", width={"ratio": 1}, display=default),
+        _elision(5, display=[]),
     ]
     assert minimal(value)["graphical"]["elisions"] == [
         _elision(1),
         _elision(2),
-        _elision(3, display=["name"]),
-        _elision(4, width={"ratio": 1}),
+        _elision(3, display=stated),
+        _elision(4, name="Coda", width={"ratio": 1}),
+        _elision(5, display=[]),
     ]
 
 

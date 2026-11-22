@@ -66,8 +66,17 @@ REJECTIONS = [
     "dal_segno_without_target",
     "element_value_dangling",
     "element_value_with_label",
+    "elision_depths_comma",
+    "elision_depths_zero",
+    "elision_display_none_with_word",
+    "elision_display_strip",
+    "elision_display_unknown",
     "elision_end_beyond_length",
     "elision_id_is_timeline_id",
+    "elision_mode_unknown",
+    "elision_name_empty",
+    "elision_proportion_word",
+    "elision_proportion_zero",
     "elision_ratio_zero",
     "elision_start_not_before_end",
     "elision_timeline_unknown",
@@ -1118,6 +1127,8 @@ def test_the_worded_shapes_lie_where_the_cases_below_reach() -> None:
         "#/$defs/Order/items/not",
         "#/$defs/Paint/not",
         "#/$defs/Declaration/properties/stroke-dasharray/not",
+        "#/$defs/Declaration/properties/elision-depths/not",
+        "#/$defs/Declaration/properties/elision-display/not",
         "#/$defs/PrefixName/not",
         "#/$defs/PrefixIri/not",
         "#/$defs/Iri/not",
@@ -1236,6 +1247,20 @@ BANDS = ["children", "markers", "line\t", "conversion_maps", "regions", "flow_co
             "3 3\n",
             (),
             f"'3 3\\n' holds U+000A: {CONTROL}",
+        ),
+        (
+            STYLED,
+            ("graphical", "rules", 0, "set", "elision-depths"),
+            "1 2\n",
+            (),
+            f"'1 2\\n' holds U+000A: {CONTROL}",
+        ),
+        (
+            STYLED,
+            ("graphical", "rules", 0, "set", "elision-display"),
+            "name\n",
+            (),
+            f"'name\\n' holds U+000A: {CONTROL}",
         ),
         (
             RESOURCES,
@@ -1377,7 +1402,7 @@ def _defaults_block() -> dict:
 def test_the_defaults_are_a_valid_graphical_object() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["rules"]) == 37
+    assert len(defaults["rules"]) == 38
     validate({**SMALLEST, "graphical": defaults})
 
 

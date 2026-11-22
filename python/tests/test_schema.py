@@ -183,6 +183,7 @@ def test_the_ten_map_types() -> None:
         "id",
         "coordinate",
         "elision",
+        "ellipsis",
     ]
     display = defs["Timestamp"]["properties"]["display"]
     assert display["items"]["enum"] == list(TIMESTAMP_DISPLAY)
@@ -190,7 +191,7 @@ def test_the_ten_map_types() -> None:
     assert display["uniqueItems"] is True
     elided = defs["Elision"]["properties"]["display"]
     assert elided["items"]["enum"] == list(ELISION_DISPLAY)
-    assert ELISION_DISPLAY == ("strip", "name", "coordinate")
+    assert ELISION_DISPLAY == ("ellipsis", "name", "id", "coordinate", "continuation")
     assert elided["uniqueItems"] is True
     assert defs["Selector"]["properties"]["facet"]["$ref"] == "#/$defs/Facet"
     coordinates = defs["Selector"]["properties"]["coordinates"]
@@ -215,7 +216,10 @@ def test_the_ten_map_types() -> None:
         "alignment_anchor",
         "ancestor_card",
         "elision",
+        "ellipsis",
     ]
+    name = defs["Elision"]["properties"]["name"]
+    assert (name["type"], name["minLength"]) == ("string", 1)
     assert defs["MeasureView"]["properties"]["source_unit"]["const"] == "quarters"
     for name, target in MEASURE_VIEWS.items():
         assert defs[name]["allOf"] == [{"$ref": "#/$defs/MeasureView"}], name
@@ -259,6 +263,33 @@ def test_an_elision_width_takes_exactly_one_form() -> None:
         {"canvas": 0},
     ):
         assert not validator.is_valid(refused), refused
+
+
+def test_the_elision_properties_admit_their_values() -> None:
+    properties = _defs()["Declaration"]["properties"]
+    assert properties["elision-mode"]["enum"] == [
+        "auto",
+        "full",
+        "proportional",
+        "custom",
+    ]
+    cases = {
+        "elision-proportion": ((0.25, 1, "auto"), (0, 1.5, "half")),
+        "elision-depths": (
+            ("auto", "1", "1 2", "2 1"),
+            ("", "0", "1,2", "1  2", "auto\n"),
+        ),
+        "elision-display": (
+            ("none", "ellipsis", "coordinate name continuation"),
+            ("strip", "none name", "name\n"),
+        ),
+    }
+    for key, (accepted, refused) in cases.items():
+        validator = Draft202012Validator({**properties[key], "$defs": _defs()})
+        for value in accepted:
+            assert validator.is_valid(value), (key, value)
+        for value in refused:
+            assert not validator.is_valid(value), (key, value)
 
 
 _CONTINUOUS = ("float", "fraction")
@@ -511,6 +542,8 @@ def test_references_are_ids_and_addresses() -> None:
 ANCHORED = {
     ("Paint",): "none",
     ("Declaration", "properties", "stroke-dasharray"): "4 2",
+    ("Declaration", "properties", "elision-depths"): "1 2",
+    ("Declaration", "properties", "elision-display"): "ellipsis name",
     ("CalendarDate",): "2026-11-17",
     ("Resource", "properties", "media_type"): "application/vnd.apache.parquet",
     ("Resource", "properties", "integrity", "properties", "digest"): "00ff",

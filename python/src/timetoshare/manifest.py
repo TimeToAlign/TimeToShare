@@ -106,7 +106,7 @@ TIMESTAMP_DISPLAY = ("wedge", "name", "id", "coordinate", "cross_section")
 ANCHOR_DISPLAY = ("line", "name")
 """The words of an alignment anchor's ``display``, in canonical order."""
 
-ELISION_DISPLAY = ("strip", "name", "coordinate")
+ELISION_DISPLAY = ("ellipsis", "name", "id", "coordinate", "continuation")
 """The words of an elision's ``display``, in canonical order."""
 
 

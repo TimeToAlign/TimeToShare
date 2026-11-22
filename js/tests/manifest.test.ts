@@ -864,7 +864,7 @@ describe("elisions", () => {
             start: [2, 4],
             end: [new JsonFloat(6), 1],
             width: { span: [4, 8] },
-            display: ["coordinate", "zeta", "strip"],
+            display: ["coordinate", "zeta", "ellipsis"],
           },
           { id: "elision_2", timeline: "a", start: [1, 2], end: [1, 1] },
           { id: "elision_1", timeline: "a", start: [3, 1], end: [4, 1] },
@@ -881,14 +881,14 @@ describe("elisions", () => {
           start: [1, 2],
           end: [6, 1],
           width: { span: [1, 2] },
-          display: ["strip", "coordinate", "zeta"],
+          display: ["ellipsis", "coordinate", "zeta"],
         },
         { id: "elision_1", timeline: "a", start: [3, 1], end: [4, 1] },
         { id: "elision_4", timeline: "b", start: [1, 1], end: [2, 1] },
         { id: "elision_0", timeline: "ghost", start: [4, 8], end: 2 },
       ]),
     );
-    expect([...ELISION_DISPLAY]).toEqual(["strip", "name", "coordinate"]);
+    expect([...ELISION_DISPLAY]).toEqual(["ellipsis", "name", "id", "coordinate", "continuation"]);
     const unorderable = {
       timetoshare: "0.2.0",
       timelines: [{ id: "a", unit: "quarters", length: [8, 1] }],

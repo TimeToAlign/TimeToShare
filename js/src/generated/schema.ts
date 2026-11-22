@@ -541,7 +541,7 @@ export const schema = {
     },
     "Elision": {
       "type": "object",
-      "description": "An elision: the stretch from `start` to `end` on the own axis of the timeline `timeline` (any depth, a segment included), drawn as a narrow strip in which nothing is drawn but the name of that timeline and the stretch's coordinates. The elision lies on its timeline and moves with it; nothing refers to an elision but an address in a rule: its strip `{\"id\": id}` and its two labels, the timeline's name `{\"id\": id, \"part\": [\"name\"]}` and the coordinates `{\"id\": id, \"part\": [\"coordinate\"]}`. `start` and `end` are numbers as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), `start` before `end`. Where an elision is drawn, and how its strip is laid out, is the drawing specification's (`docs/drawing.md`). That the timeline is one of the manifest's, that `start` and `end` read as its number type, and that they lie in order within the timeline are checked after the schema.",
+      "description": "An elision: the stretch from `start` to `end` on the own axis of the timeline `timeline` (any depth, a segment included), left out of the drawing. Every row drawn across the stretch stops where it starts and resumes where it ends, at full scale on either side, and the narrow gap between holds an ellipsis on each such row and, as `display` selects, the elision's labels and grey continuations of the rows. The elision lies on its timeline and moves with it; nothing refers to an elision but an address in a rule: its gap `{\"id\": id}`, its ellipses `{\"id\": id, \"part\": [\"ellipsis\"]}` and its three labels, its name `{\"id\": id, \"part\": [\"name\"]}`, its ID `{\"id\": id, \"part\": [\"id\"]}` and its elided coordinates `{\"id\": id, \"part\": [\"coordinate\"]}`. `start` and `end` are numbers as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), `start` before `end`. An elision on a timeline that lies in a group is drawn across that group's frame; every other is drawn in the cards of its timeline's root as their `elision-mode` selects; both are the drawing specification's (`docs/drawing.md`). That the timeline is one of the manifest's, that `start` and `end` read as its number type, and that they lie in order within the timeline are checked after the schema.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -559,24 +559,29 @@ export const schema = {
           "$ref": "#/$defs/Number",
           "description": "Where the elided stretch ends on its timeline's own axis, represented as the axis's number type selects; after `start`."
         },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The elision's human-readable name, which its name label shows; never empty. Absent, the label shows the name of the timeline the elision lies on."
+        },
         "width": {
           "type": "object",
-          "description": "How wide the strip is drawn, in exactly one of three forms: `ratio`, `span` or `canvas`. A width larger than the stretch drawn at full scale draws the stretch at full scale: an elision never widens. Absent, the strip takes the default proportion of the card that draws it (`docs/drawing.md`).",
+          "description": "How wide the gap is drawn, in exactly one of three forms: `ratio`, `span` or `canvas`. A width larger than the stretch drawn at full scale draws the stretch at full scale: an elision never widens. Absent, the gap takes the standard width of the drawing specification (`docs/drawing.md`).",
           "properties": {
             "ratio": {
               "type": "number",
               "exclusiveMinimum": 0,
               "maximum": 1,
-              "description": "The strip's width as a share of the stretch's width at full scale, greater than 0 and at most 1."
+              "description": "The gap's width as a share of the stretch's width at full scale, greater than 0 and at most 1."
             },
             "span": {
               "$ref": "#/$defs/NumberPositive",
-              "description": "The strip is as wide as this many units of the elision's timeline drawn at full scale, greater than 0 and represented as the axis's number type selects."
+              "description": "The gap is as wide as this many units of the elision's timeline drawn at full scale, greater than 0 and represented as the axis's number type selects."
             },
             "canvas": {
               "type": "number",
               "exclusiveMinimum": 0,
-              "description": "The strip's width in canvas units, greater than 0."
+              "description": "The gap's width in canvas units, greater than 0."
             }
           },
           "oneOf": [
@@ -599,20 +604,20 @@ export const schema = {
         },
         "display": {
           "type": "array",
-          "description": "What is drawn of the elision, each word at most once: `strip` its strip, `name` its timeline's name label and `coordinate` its coordinate label. Without `strip` the stretch is drawn whole, at full scale, and neither label is drawn. The order carries no meaning: readers accept any order, and writers write the canonical order strip, name, coordinate.",
+          "description": "What is drawn of the elision besides its gap, each word at most once: `ellipsis` its ellipsis on each row it crosses, `name` its name label, `id` its ID label, `coordinate` the label of its elided coordinates and `continuation` the grey continuations of the rows across its gap. The gap is drawn whatever `display` lists, so an empty array draws a bare gap. The order carries no meaning: readers accept any order, and writers write the canonical order ellipsis, name, id, coordinate, continuation.",
           "uniqueItems": true,
           "items": {
             "type": "string",
             "enum": [
-              "strip",
+              "ellipsis",
               "name",
-              "coordinate"
+              "id",
+              "coordinate",
+              "continuation"
             ]
           },
           "default": [
-            "strip",
-            "name",
-            "coordinate"
+            "ellipsis"
           ]
         }
       },
@@ -910,13 +915,14 @@ export const schema = {
         "line",
         "id",
         "coordinate",
-        "elision"
+        "elision",
+        "ellipsis"
       ],
       "description": "A word naming a part of an element in an `Address`."
     },
     "Address": {
       "type": "object",
-      "description": "The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{\"part\": [\"name\"]}` the manifest's title. `{\"id\": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element, a named timestamp (its wedge) or an elision (its strip). `{\"id\": T, \"facet\": F}` addresses the band drawing the facet F of the timeline T, and `{\"id\": T, \"part\": [\"card\"]}` every card of T. Any other `part` addresses a part of the element X: `[\"start\"]` and `[\"end\"]` a member's marks on its ancestor lines or a segment's boundary, `[\"start\", \"label\"]` and `[\"end\", \"label\"]` a mark's label, `[\"name\"]` and `[\"label\"]` the element's name or label (a named timestamp's name label is `[\"name\"]`), `[\"id\"]` and `[\"coordinate\"]` a named timestamp's ID label and coordinate label (an elision's coordinate label is `[\"coordinate\"]`, its timeline's name label `[\"name\"]`), `[\"line\"]` a named timestamp's cross-section line, and `[\"elision\"]` the strip of a default elision of the timeline X, an elision the drawing derives, which has no ID, with its labels `[\"elision\", \"name\"]` and `[\"elision\", \"coordinate\"]`. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.",
+      "description": "The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{\"part\": [\"name\"]}` the manifest's title. `{\"id\": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element, a named timestamp (its wedge) or an elision (its gap). `{\"id\": T, \"facet\": F}` addresses the band drawing the facet F of the timeline T, and `{\"id\": T, \"part\": [\"card\"]}` every card of T. Any other `part` addresses a part of the element X: `[\"start\"]` a segment's boundary, `[\"name\"]` and `[\"label\"]` the element's name or label (a named timestamp's and an elision's name label is `[\"name\"]`), `[\"id\"]` and `[\"coordinate\"]` the ID label and the coordinate label of a named timestamp or an elision, `[\"line\"]` a named timestamp's cross-section line, `[\"ellipsis\"]` an elision's ellipses, and `[\"elision\"]` the gap of an elision the drawing derives on the timeline X, which has no ID, with its ellipses `[\"elision\", \"ellipsis\"]` and its labels `[\"elision\", \"name\"]` and `[\"elision\", \"coordinate\"]`. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id"
@@ -1483,7 +1489,7 @@ export const schema = {
     },
     "ElementType": {
       "type": "string",
-      "description": "The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline; on an ancestor line, a member's start or end), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), and the strip of an elision (`elision`), held by the line of the timeline the elision lies on; an elision's labels are `label` elements held by its strip.",
+      "description": "The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision on each row its gap crosses (`ellipsis`); an elision's ellipses and labels are held by its gap, its labels as `label` elements.",
       "enum": [
         "block",
         "timeline",
@@ -1503,7 +1509,8 @@ export const schema = {
         "cross_section",
         "alignment_anchor",
         "ancestor_card",
-        "elision"
+        "elision",
+        "ellipsis"
       ]
     },
     "Paint": {
@@ -1516,7 +1523,7 @@ export const schema = {
     },
     "Declaration": {
       "type": "object",
-      "description": "Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation and shadow are TimeToShare's own. An element reads only the properties its type reads; the others are ignored.",
+      "description": "Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation, shadow and the four elision properties are TimeToShare's own. An element reads only the properties its type reads; the others are ignored.",
       "properties": {
         "stroke": {
           "$ref": "#/$defs/Paint"
@@ -1578,6 +1585,45 @@ export const schema = {
         },
         "shadow": {
           "$ref": "#/$defs/Paint"
+        },
+        "elision-mode": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "full",
+            "proportional",
+            "custom"
+          ],
+          "description": "Which elisions the cards of a root draw (read by a card and an ancestor card; a frame reads it too, for the elisions drawn across it): `full` none, `proportional` the elisions the drawing derives, `custom` the stored ones, and `auto` the stored ones where the root has any, else the derived ones."
+        },
+        "elision-proportion": {
+          "oneOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            {
+              "const": "auto"
+            }
+          ],
+          "description": "The proportion at which the derived elisions are drawn, greater than 0 and at most 1, or `auto` for the one the drawing computes from its view."
+        },
+        "elision-depths": {
+          "type": "string",
+          "description": "`auto`, or the depths below the root whose timelines the derived elisions lie on, as positive integers separated by single spaces (the root's depth is 1); the order and a repeated depth carry no meaning.",
+          "pattern": "^(auto|[1-9][0-9]*( [1-9][0-9]*)*)$",
+          "not": {
+            "pattern": "[\\u0000-\\u001f]"
+          }
+        },
+        "elision-display": {
+          "type": "string",
+          "description": "What the derived elisions draw besides their gaps: `none`, or the words of an elision's `display` separated by single spaces; the order and a repeated word carry no meaning.",
+          "pattern": "^(none|(ellipsis|name|id|coordinate|continuation)( (ellipsis|name|id|coordinate|continuation))*)$",
+          "not": {
+            "pattern": "[\\u0000-\\u001f]"
+          }
         }
       }
     },

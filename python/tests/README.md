@@ -73,17 +73,17 @@ rejection cases that use them (`test_schema.py`):
   `facet` refer to `Facet`, exactly the five facets `markers`,
   `conversion_maps`, `children`, `regions` and `flow_control`, and the words
   of an `Address`'s `part` to `Part`, exactly `start`, `end`, `name`,
-  `label`, `card`, `line`, `id`, `coordinate` and `elision`. The words of a
+  `label`, `card`, `line`, `id`, `coordinate`, `elision` and `ellipsis`. The words of a
   `Timestamp`'s `display` are exactly `TIMESTAMP_DISPLAY`, `wedge`, `name`,
   `id`, `coordinate` and `cross_section` in that order, and those of an
-  `Elision`'s `display` exactly `ELISION_DISPLAY`, `strip`, `name` and
-  `coordinate` in that order, so the canonical order the writers apply
-  cannot drift from the words the schema admits.
-  `ElementType` is exactly the nineteen types `block`,
+  `Elision`'s `display` exactly `ELISION_DISPLAY`, `ellipsis`, `name`,
+  `id`, `coordinate` and `continuation` in that order, so the canonical
+  order the writers apply cannot drift from the words the schema admits.
+  `ElementType` is exactly the twenty types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `flow_marker`, `jump_from`,
   `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
-  `cross_section`, `alignment_anchor`, `ancestor_card` and `elision`.
-  An `Elision`'s `width` declares exactly `ratio` (a number, exclusive
+  `cross_section`, `alignment_anchor`, `ancestor_card`, `elision` and
+  `ellipsis`. An `Elision`'s `name` is a non-empty string. Its `width` declares exactly `ratio` (a number, exclusive
   minimum 0, maximum 1), `span` (`NumberPositive`) and `canvas` (a number,
   exclusive minimum 0), and its `oneOf` is exactly the three subschemas
   requiring one of them each, so `{"ratio": 0.5}`, `{"span": [3, 2]}`
@@ -190,12 +190,13 @@ rejection cases that use them (`test_schema.py`):
   JavaScript's `RegExp`, so a definition that needs to refuse control
   characters says so with an unanchored `not`, never with an anchored
   class: `Id` is a string of `minLength` 1 whose `not` refuses U+0000 to
-  U+001F, and an entry of an `Order` has the same two keywords. The five
-  patterns that still end in `$`, `Paint`, `stroke-dasharray`, a
-  provenance entry's `date`, a resource's `media_type` and its
-  integrity's `digest`, are exactly those the document holds, and each
-  refuses a value it accepts (`none`, `4 2`, `2026-11-17`,
-  `application/vnd.apache.parquet`, `00ff`) once a newline follows it; no
+  U+001F, and an entry of an `Order` has the same two keywords. The seven
+  patterns that still end in `$`, `Paint`, `stroke-dasharray`,
+  `elision-depths`, `elision-display`, a provenance entry's `date`, a
+  resource's `media_type` and its integrity's `digest`, are exactly those
+  the document holds, and each refuses a value it accepts (`none`, `4 2`,
+  `1 2`, `ellipsis name`, `2026-11-17`, `application/vnd.apache.parquet`,
+  `00ff`) once a newline follows it; no
   ID has a pattern of its own (a named timestamp's, a resource's, a
   MatchStamp's and an anchor's are any `Id`); an `Order` refuses
   `["line\n"]`. The JavaScript suite
@@ -482,11 +483,12 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   minimizes without `display`, as the default in another order is still
   the default; one stating `["name", "wedge"]` completes to `["wedge",
   "name"]` and keeps it in the minimal form; one stating `[]` keeps `[]` in
-  both forms. An elision without `display` gains `display: ["strip",
-  "name", "coordinate"]` and nothing else, its `width` neither added nor
-  completed; one stating `["coordinate", "strip", "name"]` completes to the
-  default order and minimizes without `display`; one stating `["name"]`
-  keeps it in both forms; its `width` `{"ratio": 1}` stays in both forms,
+  both forms. An elision without `display` gains `display: ["ellipsis"]`
+  and nothing else, its `name` and `width` neither added nor completed;
+  one stating `["ellipsis"]` minimizes without `display`; one stating
+  `["continuation", "name", "ellipsis"]` completes to `["ellipsis", "name",
+  "continuation"]` and keeps it in the minimal form; one stating `[]`
+  keeps `[]` in both forms; its `width` `{"ratio": 1}` stays in both forms,
   as no width has a default.
   The unit default of `number_type` is stated for ticks (`int`), seconds
   (`float`), whole_notes (`fraction`), pixels (`int`), and the two
@@ -614,7 +616,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 185 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 194 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
@@ -1021,16 +1023,28 @@ never stored, so nothing beyond the flag is checked. What proves it:
 
 ## Elisions
 
-An elision `{id, timeline, start, end, width?, display?}` of
+An elision `{id, timeline, start, end, name?, width?, display?}` of
 `graphical.elisions` lies on the timeline it names, at any depth, a
-segment included, and draws the stretch from `start` to `end` of that
-timeline's own axis as a narrow strip. Nothing refers to an elision; its
-ID is unique across the manifest like any other. What proves it:
+segment included, and leaves the stretch from `start` to `end` of that
+timeline's own axis out of the drawing, a narrow gap in its place.
+Nothing refers to an elision; its ID is unique across the manifest like
+any other. Four presentation properties of a card's rule, `elision-mode`,
+`elision-proportion`, `elision-depths` and `elision-display`, choose which
+elisions a root's cards draw; the schema alone checks their values. What
+proves it:
 
 - **The schema** (`test_schema.py`, section "The schema document"): its
   `display` words, its three width forms and their `oneOf`, the element
-  type and the part word `elision`; the `display` default `["strip",
-  "name", "coordinate"]` and `elisions: []` agree with `DEFAULTS`.
+  types `elision` and `ellipsis` and the part words `elision` and
+  `ellipsis`; the `display` default `["ellipsis"]` and `elisions: []`
+  agree with `DEFAULTS`. The four properties of `Declaration`:
+  `elision-mode` is exactly the enum `auto`, `full`, `proportional`,
+  `custom`; `elision-proportion` admits `"auto"`, `0.25` and `1` and
+  refuses `0`, `1.5` and `"half"`; `elision-depths` admits `"auto"`,
+  `"1"`, `"1 2"` and `"2 1"` and refuses `""`, `"0"`, `"1,2"`, `"1  2"`
+  and `"auto\n"`; `elision-display` admits `"none"`, `"ellipsis"` and
+  `"coordinate name continuation"` and refuses `"strip"`, `"none name"`
+  and `"name\n"`.
 - **The rules** (`test_validate.py`, `test_identity.py`). Six shared
   cases break one rule each of the manifest `score` (8 quarters) with the
   child `verse` (4 at 2), the elision `elision_1` on `verse`:
@@ -1043,7 +1057,14 @@ ID is unique across the manifest like any other. What proves it:
   `width`, valid under two branches of its `oneOf`),
   `elision_ratio_zero` (`{"ratio": 0}`, `schema` at `width/ratio`, the
   exclusive minimum) and `elision_id_is_timeline_id` (the ID `verse`,
-  `duplicate_id` at the elision's `id`, first at the timeline's). Inline
+  `duplicate_id` at the elision's `id`, first at the timeline's). Nine
+  more break the schema at one value each, `schema` at that value:
+  `elision_name_empty` (`name: ""`), `elision_display_strip` (the word
+  `strip`, at `display/0`), and in a rule's `set`, `elision_mode_unknown`
+  (`elided`), `elision_proportion_zero` (`0`), `elision_proportion_word`
+  (`half`), `elision_depths_zero` (`"0 1"`), `elision_depths_comma`
+  (`"1,2"`), `elision_display_unknown` (`"ellipsis strip"`) and
+  `elision_display_none_with_word` (`"none name"`). Inline
   documents bound the rules from the other side: on `score` an elision
   from 0 to its length 8 passes; one from `[-1, 1]` is refused at its
   `start` before anything else of it; on a root of unknown length one from
@@ -1071,7 +1092,7 @@ ID is unique across the manifest like any other. What proves it:
   `[3, 1]` and `elision_0` on `ghost` come out `elision_2`, `elision_3`
   (tied in value with it), `elision_1`, `elision_4`, `elision_0`; each
   `display` in the order of `ELISION_DISPLAY` (`["coordinate", "zeta",
-  "strip"]` as `["strip", "coordinate", "zeta"]`); `start`, `end` and the
+  "ellipsis"]` as `["ellipsis", "coordinate", "zeta"]`); `start`, `end` and the
   width's `span` are respelled on the timeline's axis (`[2, 4]` and `[4,
   8]` as `[1, 2]`, `[6.0, 1]` as `[6, 1]`), and those of `elision_0`,
   naming no timeline, stay as given (`[4, 8]`, `2`); two elisions whose
@@ -1081,10 +1102,15 @@ ID is unique across the manifest like any other. What proves it:
   ID positions, held through `graphical.elisions`; the tables stay the
   schema's.
 - **The fixtures.** Every complete fixture holding a `graphical` object
-  states `elisions`, `[]` but in one, every twin leaves out an empty list;
-  `bundles/bundle_elisions_stored` holds seven elisions, one of each width
-  form and on each kind of timeline the drawing treats apart, and passes
-  every check of the fixture set.
+  states `elisions`, `[]` but in three, every twin leaves out an empty
+  list; `bundles/bundle_elisions_stored` holds seven elisions, one of each
+  width form and on each kind of timeline the drawing treats apart, names
+  and display words among them, and the rule `elision-mode: full` on a
+  root's cards; `groups/group_elided_members` holds two elisions on
+  timelines lying in its group, one on a member that is a child timeline
+  and one on a member's child, without `width` and with a ratio width;
+  `bundles/bundle_groupstamp_shared_member` holds one on a member of two
+  groups; each passes every check of the fixture set.
 
 ## Statements
 
@@ -1545,8 +1571,8 @@ schema with one of the three shapes, and a census of the schema fails when
 a place is added without a case: the time unit; the four forbidden members
 of a flow-control element (`repeat_count` on a `dal_segno` and on a
 `da_capo`, `target` and `repeat_count` on a jump target or a flow marker);
-and the eleven `not` places (an ID, an order entry, a paint, a dash array,
-a resource's media type and its digest, an IRI, an IRI reference with each
+and the thirteen `not` places (an ID, an order entry, a paint, a dash array,
+the elision depths and display of a declaration, a resource's media type and its digest, an IRI, an IRI reference with each
 of its three branches, a prefix's IRI, a language tag, a prefix name with
 each of its two branches), each message stated literally, at the path the
 walk reports.
@@ -1931,7 +1957,7 @@ written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 178 files (`test_files.py`); the four statement
+`groups` and `statements`, 180 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -2035,7 +2061,7 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 37 rules),
+`docs/drawing.md` section 4's defaults block (three styles, 38 rules),
 read from the file, validates as the `graphical` of the smallest file; the
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate, and so do `{"element": "ancestor_card"}` and the rule that
@@ -2626,7 +2652,9 @@ closed document's root):
   non-finite ones with their value in place), every shared warning case,
   and the two large manifests below;
 - seeded mutations of the manifest fixtures, each drawn from its own stream
-  `random.Random("20261122-<kind>-<n>")`, of nine kinds: a key deleted from
+  `random.Random("20261123-<kind>-<n>")` (the seed chosen so that the
+  mutations of every kind reach valid and invalid manifests over the
+  current fixture set), of nine kinds: a key deleted from
   an object; a value replaced by one of another JSON type; an undeclared
   key added to an object; an element's ID given the ID of another element;
   a string replaced by another `const` or `enum` string of the schema (a

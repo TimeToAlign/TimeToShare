@@ -219,6 +219,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
-message: "'segment' is not one of ['block', 'timeline', 'child', 'band', 'map', 'region', 'flow_marker', 'jump_from', 'wedge', 'name', 'label', 'boundary', 'ancestor', 'frame', 'card', 'cross_section', 'alignment_anchor', 'ancestor_card', 'elision']"
+message: "'segment' is not one of ['block', 'timeline', 'child', 'band', 'map', 'region', 'flow_marker', 'jump_from', 'wedge', 'name', 'label', 'boundary', 'ancestor', 'frame', 'card', 'cross_section', 'alignment_anchor', 'ancestor_card', 'elision', 'ellipsis']"
 path: [graphical, rules, 0, select, element]
-reason: "An element type is one of the fifteen types of the drawing."
+reason: "An element type is one of the twenty types of the drawing."

@@ -42,6 +42,8 @@ const PUBLIC = [
 const ANCHORED: [string[], string][] = [
   [["Paint"], "none"],
   [["Declaration", "properties", "stroke-dasharray"], "4 2"],
+  [["Declaration", "properties", "elision-depths"], "1 2"],
+  [["Declaration", "properties", "elision-display"], "ellipsis name"],
   [["CalendarDate"], "2026-11-17"],
   [["Resource", "properties", "media_type"], "application/vnd.apache.parquet"],
   [["Resource", "properties", "integrity", "properties", "digest"], "00ff"],
@@ -212,6 +214,7 @@ describe("the schema document", () => {
       "id",
       "coordinate",
       "elision",
+      "ellipsis",
     ]);
     const display = ((defs.Timestamp as Node).properties as Node).display as Node;
     expect((display.items as Node).enum).toEqual([...TIMESTAMP_DISPLAY]);
@@ -219,7 +222,7 @@ describe("the schema document", () => {
     expect(display.uniqueItems).toBe(true);
     const elided = properties("Elision").display as Node;
     expect((elided.items as Node).enum).toEqual([...ELISION_DISPLAY]);
-    expect(ELISION_DISPLAY).toEqual(["strip", "name", "coordinate"]);
+    expect(ELISION_DISPLAY).toEqual(["ellipsis", "name", "id", "coordinate", "continuation"]);
     expect(elided.uniqueItems).toBe(true);
     expect(properties("Selector").facet?.$ref).toBe("#/$defs/Facet");
     expect(properties("Selector").coordinates?.enum).toEqual(["primary", "secondary"]);
@@ -243,7 +246,10 @@ describe("the schema document", () => {
       "alignment_anchor",
       "ancestor_card",
       "elision",
+      "ellipsis",
     ]);
+    const name = properties("Elision").name as Node;
+    expect([name.type, name.minLength]).toEqual(["string", 1]);
     expect(properties("MeasureView").source_unit?.const).toBe("quarters");
     for (const [name, unit] of Object.entries(MEASURE_VIEWS)) {
       expect(defs[name]?.allOf, name).toEqual([{ $ref: "#/$defs/MeasureView" }]);
@@ -287,6 +293,30 @@ describe("the schema document", () => {
       { canvas: 0 },
     ]) {
       expect(accepts(refused), JSON.stringify(refused)).toBe(false);
+    }
+  });
+
+  it("admits the values of the elision properties", () => {
+    const declared = properties("Declaration");
+    expect(declared["elision-mode"]?.enum).toEqual(["auto", "full", "proportional", "custom"]);
+    const cases: Record<string, [readonly unknown[], readonly unknown[]]> = {
+      "elision-proportion": [
+        ["auto", 0.25, 1],
+        [0, 1.5, "half"],
+      ],
+      "elision-depths": [
+        ["auto", "1", "1 2", "2 1"],
+        ["", "0", "1,2", "1  2", "auto\n"],
+      ],
+      "elision-display": [
+        ["none", "ellipsis", "coordinate name continuation"],
+        ["strip", "none name", "name\n"],
+      ],
+    };
+    for (const [key, [accepted, refused]] of Object.entries(cases)) {
+      const accepts = new Ajv2020({ strict: false }).compile({ ...declared[key], $defs: defs });
+      for (const value of accepted) expect(accepts(value), `${key} ${value}`).toBe(true);
+      for (const value of refused) expect(accepts(value), `${key} ${value}`).toBe(false);
     }
   });
 

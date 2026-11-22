@@ -207,13 +207,14 @@ ordinary timestamps include one that is no object.
 ## Elisions
 
 The Python README's section "Elisions" is proved here with the same values:
-the schema's words, width forms, element type and part word
-(`schema.test.ts`); the defaults (`defaults.test.ts`, `elisions: []` and
-an elision's `display`, its `width` never added); the order by timeline,
+the schema's words, `name`, width forms, element types and part words,
+and the values the four elision properties of `Declaration` admit and
+refuse (`schema.test.ts`); the defaults (`defaults.test.ts`, `elisions:
+[]` and an elision's `display`, its `name` and `width` never added); the order by timeline,
 start and ID, the `display` order and the respelling of `start`, `end`
 and `span` (`manifest.test.ts`); the ID positions (`ids.test.ts`, the
 manifest naming every position holds the elision `elision_1` on `verse`);
-the six shared cases with their messages (`validate.test.ts`, "the shared
+the fifteen shared cases with their messages (`validate.test.ts`, "the shared
 rejection cases"); and the inline documents of the rules, the overlapping
 elisions accepted without a warning, the number-type readings and the
 shared ID scope (`identity.test.ts`), each with the Python suite's code,
@@ -239,7 +240,7 @@ no problem from `matchstampProblems` either.
 
 ## Shared rejection cases
 
-Each of the 185 cases (`validate.test.ts`), found by its name whatever
+Each of the 194 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -356,7 +357,7 @@ left out as the defaults `1` and `0` are, and the complete form of what
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (89, one per fixture) completes to the canonical YAML of its
+minimal twin (90, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
@@ -787,7 +788,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (178 files: bundles, groups and statements included), its value and its value
+  minimal twin (180 files: bundles, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and

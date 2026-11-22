@@ -36,7 +36,7 @@ from timetoshare.validation.representation import (
 
 current = import_module("timetoshare.validate")
 
-SEED = 20261122
+SEED = 20261123
 MUTATIONS = 60
 """Mutations of each kind."""
 DEFINITION_CASES = 600

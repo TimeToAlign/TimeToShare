@@ -306,24 +306,28 @@ describe("the complete and the minimal form", () => {
       graphical: {
         elisions: [
           elision(1),
-          elision(2, { display: ["coordinate", "strip", "name"] }),
-          elision(3, { display: ["name"] }),
-          elision(4, { width: { ratio: 1 } }),
+          elision(2, { display: ["ellipsis"] }),
+          elision(3, { display: ["continuation", "name", "ellipsis"] }),
+          elision(4, { name: "Coda", width: { ratio: 1 } }),
+          elision(5, { display: [] }),
         ],
       },
     });
-    const display = ["strip", "name", "coordinate"];
+    const display = ["ellipsis"];
+    const stated = ["ellipsis", "name", "continuation"];
     expect((complete(value).graphical as JsonObject).elisions).toEqual([
       elision(1, { display }),
       elision(2, { display }),
-      elision(3, { display: ["name"] }),
-      elision(4, { width: { ratio: 1 }, display }),
+      elision(3, { display: stated }),
+      elision(4, { name: "Coda", width: { ratio: 1 }, display }),
+      elision(5, { display: [] }),
     ]);
     expect((minimal(value).graphical as JsonObject).elisions).toEqual([
       elision(1),
       elision(2),
-      elision(3, { display: ["name"] }),
-      elision(4, { width: { ratio: 1 } }),
+      elision(3, { display: stated }),
+      elision(4, { name: "Coda", width: { ratio: 1 } }),
+      elision(5, { display: [] }),
     ]);
   });
 
@@ -552,7 +556,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(89);
+    expect(twins.length).toBe(90);
     expect(twins.map((twin) => twin.replace(/\.minimal$/, ""))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal")),
     );

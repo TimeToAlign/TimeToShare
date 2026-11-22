@@ -35,7 +35,7 @@ export const TIMESTAMP_DISPLAY = ["wedge", "name", "id", "coordinate", "cross_se
 export const ANCHOR_DISPLAY = ["line", "name"] as const;
 
 /** The words of an elision's `display`, in canonical order. */
-export const ELISION_DISPLAY = ["strip", "name", "coordinate"] as const;
+export const ELISION_DISPLAY = ["ellipsis", "name", "id", "coordinate", "continuation"] as const;
 
 /**
  * Order the words of a `display`: the known `words` canonically, then any

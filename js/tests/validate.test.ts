@@ -75,8 +75,17 @@ const REJECTIONS = [
   "dal_segno_without_target",
   "element_value_dangling",
   "element_value_with_label",
+  "elision_depths_comma",
+  "elision_depths_zero",
+  "elision_display_none_with_word",
+  "elision_display_strip",
+  "elision_display_unknown",
   "elision_end_beyond_length",
   "elision_id_is_timeline_id",
+  "elision_mode_unknown",
+  "elision_name_empty",
+  "elision_proportion_word",
+  "elision_proportion_zero",
   "elision_ratio_zero",
   "elision_start_not_before_end",
   "elision_timeline_unknown",
@@ -821,6 +830,20 @@ describe("the worded refusals", () => {
       `'3 3\\n' holds U+000A: ${CONTROL}`,
     ],
     [
+      STYLED,
+      ["graphical", "rules", 0, "set", "elision-depths"],
+      "1 2\n",
+      [],
+      `'1 2\\n' holds U+000A: ${CONTROL}`,
+    ],
+    [
+      STYLED,
+      ["graphical", "rules", 0, "set", "elision-display"],
+      "name\n",
+      [],
+      `'name\\n' holds U+000A: ${CONTROL}`,
+    ],
+    [
       RESOURCES,
       ["resources", 0, "media_type"],
       "application/x\n",
@@ -1205,7 +1228,7 @@ describe("the graphical object", () => {
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.rules as unknown[]).length).toBe(37);
+    expect((defaults.rules as unknown[]).length).toBe(38);
     validate({ ...SMALLEST, graphical: defaults });
   });
 

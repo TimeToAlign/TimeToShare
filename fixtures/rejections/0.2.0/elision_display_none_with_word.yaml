@@ -1,0 +1,60 @@
+code: schema
+manifest:
+  graphical:
+    elisions:
+      -
+        display: [ellipsis]
+        end: [3, 1]
+        id: "#elision_1"
+        start: [1, 1]
+        timeline: "#verse"
+    matchstamps: []
+    order: {}
+    rules:
+      -
+        select:
+          addresses:
+            -
+              id: "#score"
+              part: [card]
+        set:
+          elision-display: "none name"
+    styles: {}
+    timestamps: []
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  resources: []
+  timelines:
+    -
+      children:
+        -
+          children: []
+          conversion_maps: []
+          flow_control: []
+          id: "#verse"
+          is_segment_line: false
+          length: [4, 1]
+          locked: true
+          meta: {}
+          name: null
+          number_type: fraction
+          offset: [2, 1]
+          regions: []
+          unit: quarters
+      conversion_maps: []
+      flow_control: []
+      id: "#score"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: null
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "'none name' does not match '^(none|(ellipsis|name|id|coordinate|continuation)( (ellipsis|name|id|coordinate|continuation))*)$'"
+path: [graphical, rules, 0, set, elision-display]
+reason: "elision-display is none or display words, never both."
