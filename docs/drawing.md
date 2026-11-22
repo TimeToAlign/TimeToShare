@@ -2001,7 +2001,13 @@ one below it.
   end lies in a gap ends at that gap's left edge, without an arrowhead,
   end circle, diamond or chevrons, and one whose start and end so meet or
   cross is not drawn. A line that really starts or ends at a gap's edge
-  keeps its mark there, since an edge lies in no gap.
+  keeps its mark there, since an edge lies in no gap. The pieces are
+  written from the left, each a `<line>` of the line (for a map a closed
+  outline over the piece), and then the line's start and end marks
+  (section 7.2); a piece that does not end right of where it starts, as
+  where a line starts at a gap's left edge, two gaps touch, or a child's
+  line ending at a gap's right edge would stop at its diamond's left
+  corner before that edge, is not written.
 
   On each row that crosses a gap the elision draws, where its `display`
   lists `ellipsis` (for a derived elision the card's `elision-display`),
@@ -3149,7 +3155,13 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   = 48, `E` = 56 and `LA` = 3200, 50 canvas units per quarter. Depth 2
   holds `first` and `second` and gives the pieces `first` 0–8, `first`
   16–32 and `second` 0–32; depth 1 is left nothing. `r` =
-  0.14285714285714285, set by (a). The natural widths are 400, 800 and
+  0.14285714285714285, set by (a): the frame, 543.70361328125 wide and
+  171.5625 high, gives `zG` = 1.8833790598156273 and `c` =
+  271.851806640625, and with `x0` = 103.70361328125 and `σ` =
+  87.4248046875 (`N'` the width of the row name `First, Second`), `dl` =
+  255.572998046875 and `dr` = 239.851806640625, so (b)'s terms are
+  1.1530675048828123 on the left and 0.19872841389973955 on the right.
+  The natural widths are 400, 800 and
   1600, `W` 57.14285714285714, 114.28571428571428 and
   228.57142857142856, and `h / k` 0.2514285714285714, 0.8228571428571427
   and 1.9657142857142855: the first two round outwards to their own ends,
@@ -3164,7 +3176,15 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   (27 at 0 in `clt_4` "Clair de Lune", 324 at 668): `x0` =
   182.8037109375, the block's start (`n + N + G' + 8w`, `N` the width
   134.8037109375 of `Passepied mm. 153–156`), `LA` = 23940.74074074074,
-  `E` = 1589 and `r` = 0.016991818753933293, set by (a). Depth 2 gives
+  `E` = 1589 and `r` = 0.016991818753933293, set by (a): the frame of
+  `clt_8` is `x0 + L + 8w + K + Q` = 622.8037109375 wide, its right edge the
+  outer chevron tip of `clt_1`'s ancestor line, and 171.5625 high, so `zG`
+  = 1.6441777433512452 and `c` = 311.40185546875; `σ` = 175.8974609375,
+  `N'` = 159.8974609375 being the width of the movements' row name cut to
+  `Prelude, Menuet, Clair de L…` (section 6.6, Names), so `dl` =
+  304.49560546875, `dr` = 279.40185546875 and (b)'s terms are
+  0.041662494956376306 on the left and 0.03205686727020561 on the right.
+  Depth 2 gives
   the pieces Prelude 0–356, Menuet 0–312, Clair de Lune 27–324 and
   Passepied 0–624, drawn `W` = 89.61611076148522, 78.53996224040277,
   74.7640025173065 and 157.07992448080557 wide. Their gaps leave out
@@ -3199,7 +3219,11 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   the gaps over `piece` 18.0 to 24.0 and 25.333333333333336 to 28.0, 32
   and 33.33333333333333 wide of 150 and 66.66666666666666. Under `auto`
   it derives elisions at `r` = 0.5 × (248.66666666666669 / 400) =
-  0.31083333333333335, set by (a): depth 1 gives `piece` 0–16 and
+  0.31083333333333335, set by (a), the frame being drawn 383.2599283854167
+  wide (`DG` narrower) and 240.015625 high: `zG` = 2.399843760171864, `c`
+  = 191.62996419270834, `x0` = 90.09326171875, `σ` = 58.09326171875, `dl`
+  = 159.62996419270834 and `dr` = 155.12996419270834, so (b)'s terms are
+  1.392925089518229 and 1.404175089518229. Depth 1 gives `piece` 0–16 and
   32–48, each of natural width 400, `W` = 124.33333333333334 and `h / k`
   = 1.846666666666667, so their gaps leave out `piece` 1–15 and 33–47,
   25 at full scale on either side and 74.33333333333334 wide; `DL` =
