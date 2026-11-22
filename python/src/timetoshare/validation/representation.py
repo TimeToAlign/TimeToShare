@@ -108,6 +108,35 @@ def representation_problems(
             )
 
 
+_PLAIN = frozenset({str, int, bool, type(None)})
+
+
+def plainly_finite(value: Any) -> bool:
+    """Whether ``value`` is plain JSON data whose every float is finite.
+
+    Plain JSON data is made of ``dict``, ``list``, ``str``, ``int``,
+    ``float``, ``bool`` and ``None`` alone. Where this answers ``True``,
+    :func:`finite_number_problems` yields nothing for ``value`` and for any
+    copy of it that only rewrites its strings; ``False`` means only that the
+    rule must run.
+    """
+    kind = type(value)
+    if kind is float:
+        return math.isfinite(value)
+    if kind is list:
+        items: Any = value
+    elif kind is dict:
+        items = value.values()
+    else:
+        return kind in _PLAIN
+    for item in items:
+        if type(item) in _PLAIN:
+            continue
+        if not plainly_finite(item):
+            return False
+    return True
+
+
 def finite_number_problems(
     value: Any,
     path: _Path = (),

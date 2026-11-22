@@ -46,8 +46,10 @@ from .validation.diagnostics import number_type_of as number_type_of
 from .validation.identity import identity_problems as _semantic_problems
 from .validation.representation import (
     finite_number_problems,
+    plainly_finite,
     representation_problems,
 )
+from .validation.schema_check import Check, SchemaCompiler
 from .validation.statements import statement_rule_problems, statement_warnings
 from .validation.timestamps import matchstamp_problems as _matchstamp_rule_problems
 
@@ -233,11 +235,52 @@ def _marking_validator() -> Any:
 
 
 @cache
+def _compiler() -> SchemaCompiler:
+    """The one compiler of the closed document, every node compiled once."""
+    return SchemaCompiler(_closed_document())
+
+
+@cache
+def _marking_check() -> Check:
+    """The compiled validity check of the whole walk (``schema_check``)."""
+    return _compiler().check(_closed_document())
+
+
+def _plainly_finite(value: Any) -> bool:
+    """Whether the finite rule may be skipped: :func:`plainly_finite`, never raising."""
+    try:
+        return plainly_finite(value)
+    except RecursionError:
+        return False
+
+
+def _walk_errors(validator: Any, check: Check, value: Any) -> list[ValidationError]:
+    """The errors of the walk, skipped where the compiled check finds none.
+
+    The check answers whether the walk yields no error; where it cannot
+    answer (it raises) or finds one, the walk builds every error.
+    """
+    try:
+        valid = check(value)
+    except Exception:
+        valid = False
+    return [] if valid else list(validator.iter_errors(value))
+
+
+@cache
 def _member_validator(definition: str, member: str) -> Any:
     """The validator of one member of a definition, as the whole walk checks it."""
     document = _closed_document()
     declared = document["$defs"][definition]["properties"][member]
     return Draft202012Validator({"$defs": document["$defs"], **declared})
+
+
+def _member_errors(definition: str, member: str, value: Any) -> list[ValidationError]:
+    """The errors of :func:`_member_validator`'s walk, skipped where none."""
+    declared = _closed_document()["$defs"][definition]["properties"][member]
+    return _walk_errors(
+        _member_validator(definition, member), _compiler().check(declared), value
+    )
 
 
 def _branch_tag(candidate: Mapping[str, Any], tag: str) -> Any:
@@ -346,11 +389,12 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     if value["timetoshare"] != SCHEMA_VERSION:
         raise UnsupportedVersionError(value["timetoshare"])
 
-    finite = next(finite_number_problems(leniently_bare_ids(value)), None)
-    if finite is not None:
-        raise finite
+    if not _plainly_finite(value):
+        finite = next(finite_number_problems(leniently_bare_ids(value)), None)
+        if finite is not None:
+            raise finite
 
-    errors = list(_marking_validator().iter_errors(value))
+    errors = _walk_errors(_marking_validator(), _marking_check(), value)
     error = _select(errors)
     if error is not None:
         raise SchemaValidationError("schema", tuple(error.absolute_path), error.message)
@@ -469,7 +513,7 @@ def statement_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
         if finite is not None:
             problems.append(finite)
             continue
-        error = _select(_member_validator(definition, member).iter_errors(content))
+        error = _select(_member_errors(definition, member, content))
         if error is not None:
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, error.message))
@@ -567,7 +611,13 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
         if finite is not None:
             problems.append(finite)
             continue
-        error = _select(_definition_validator("Timestamp").iter_errors(timestamp))
+        error = _select(
+            _walk_errors(
+                _definition_validator("Timestamp"),
+                _compiler().check(_closed_document()["$defs"]["Timestamp"]),
+                timestamp,
+            )
+        )
         if error is not None:
             at = (*path, *error.absolute_path)
             problems.append(SchemaValidationError("schema", at, error.message))
@@ -579,8 +629,9 @@ def matchstamp_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]
         if finite is not None:
             problems.append(finite)
         else:
-            validator = _member_validator("Graphical", "matchstamps")
-            error = _select(validator.iter_errors(graphical["matchstamps"]))
+            error = _select(
+                _member_errors("Graphical", "matchstamps", graphical["matchstamps"])
+            )
             if error is not None:
                 at = (*_MATCHSTAMPS, *error.absolute_path)
                 problems.append(SchemaValidationError("schema", at, error.message))

@@ -157,6 +157,26 @@ def _leniently_bare(text: str) -> str:
     return text[1:] if text.startswith(HASH) and len(text) > 1 else text
 
 
+_ATOMS = frozenset({str, int, float, bool, type(None)})
+
+
+def _copied(value: Any) -> Any:
+    """``copy.deepcopy`` of a value, quick on the JSON types.
+
+    Strings, numbers, booleans and ``None`` are kept (``deepcopy`` keeps them
+    too), lists and dictionaries are rebuilt member by member, and any other
+    value goes through ``copy.deepcopy``.
+    """
+    kind = type(value)
+    if kind in _ATOMS:
+        return value
+    if kind is list:
+        return [_copied(item) for item in value]
+    if kind is dict:
+        return {key: _copied(item) for key, item in value.items()}
+    return copy.deepcopy(value)
+
+
 def definitions_of(definition: str, value: Mapping[str, Any]) -> tuple[str, ...]:
     """The definitions whose members ``value``, held as ``definition``, carries.
 
@@ -198,19 +218,19 @@ class _Converter:
 
     def id(self, text: Any, path: _Path) -> Any:
         if not isinstance(text, str):
-            return copy.deepcopy(text)
+            return _copied(text)
         if self.to_file:
             return to_file_id(text)
         return _bare(text, path) if self.strict else _leniently_bare(text)
 
     def ids(self, value: Any, path: _Path) -> Any:
         if not isinstance(value, list):
-            return copy.deepcopy(value)
+            return _copied(value)
         return [self.id(item, (*path, index)) for index, item in enumerate(value)]
 
     def order(self, value: Any, path: _Path) -> Any:
         if not isinstance(value, Mapping):
-            return copy.deepcopy(value)
+            return _copied(value)
         result: dict[str, Any] = {}
         for key, entry in value.items():
             renamed = self.id(key, (*path, key))
@@ -218,12 +238,12 @@ class _Converter:
             if bare in self.groups:
                 result[renamed] = self.ids(entry, (*path, key))
             else:
-                result[renamed] = copy.deepcopy(entry)
+                result[renamed] = _copied(entry)
         return result
 
     def held(self, value: Any, definition: str, path: _Path) -> Any:
         if not isinstance(value, Mapping):
-            return copy.deepcopy(value)
+            return _copied(value)
         definitions = definitions_of(definition, value)
         shapes: dict[str, Shape] = {}
         holds: dict[str, tuple[Holding, str]] = {}
@@ -238,7 +258,7 @@ class _Converter:
             elif key in holds:
                 result[key] = self.holding(member, *holds[key], at)
             else:
-                result[key] = copy.deepcopy(member)
+                result[key] = _copied(member)
         return result
 
     def holding(self, value: Any, holding: Holding, child: str, path: _Path) -> Any:
@@ -253,7 +273,7 @@ class _Converter:
             return {
                 key: self.held(item, child, (*path, key)) for key, item in value.items()
             }
-        return copy.deepcopy(value)
+        return _copied(value)
 
 
 def with_file_ids(manifest: Mapping[str, Any]) -> dict[str, Any]:

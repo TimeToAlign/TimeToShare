@@ -2255,3 +2255,67 @@ Tests obtain fixtures through package accessors, never relative paths. They
 use no shared mutable input; the files a test writes lie in its own
 temporary directory. Building the distributions needs `uv`, and the network
 unless uv's cache already holds the build backend.
+
+## The compiled schema check
+
+`validate`, `unknown_keys`, `manifest_warnings`, `statement_problems` and
+`matchstamp_problems` walk the value with `jsonschema` only where the value
+is not valid: a check compiled once from the closed document
+(`timetoshare.validation.schema_check`) first answers whether that walk
+would yield no error at all, and only where it answers no, or cannot answer,
+does the walk run and build the diagnostics. The finite rule's copy of the
+value with bare IDs is skipped likewise where the value is plain JSON data
+with no float that is not finite. The change is meant to change no outcome,
+only the time, so what proves it is a comparison with the validator as it
+stood before, never a transcript of today's answers
+(`test_validator_parity.py`):
+
+- **The reference.** `tests/reference/` holds copies of the two modules
+  the change rewrote, `validate.py` and `ids.py`, taken from commit
+  `20fabae`, their imports pointed at each other and at the modules of
+  the package the change left alone (`validation/representation.py` only
+  gained a function). Nothing but the parity test reads them.
+- **One outcome.** For an input, the outcome of each of the one check
+  behind `validate`, `unknown_keys` and `manifest_warnings` (the module's
+  `_check`, which raises what `validate` raises and returns both lists),
+  `identity_problems`, `statement_problems` and `matchstamp_problems` is
+  either the error raised (its class name, and for a
+  `SchemaValidationError` its `code`, `path` and `message`, else its text)
+  or the value returned (problems as `(code, path, message)` in order,
+  keys and warnings as the lists returned). Both implementations give the
+  same outcome on every input, each call on its own copy of it.
+- **The inputs.** Every manifest fixture and minimal twin, every shared
+  rejection case (the non-finite ones with their value in place), every
+  shared warning case, the two large manifests below, and 400
+  mutations of the manifest fixtures, 100 of each kind, each drawn from
+  its own stream `random.Random("20261122-<kind>-<n>")`: a key deleted
+  from an object (a required key among them), a value replaced by one of
+  another JSON type, an undeclared key added to an object, and an
+  element's ID given the ID of another element. Every kind yields
+  refusals, and the added keys yield lists of unknown keys too (both
+  asserted), so the walk's own diagnostics are compared where it runs,
+  and the skipped walk where it does not.
+- **The check against the walk.** On every input above, the compiled check
+  of the closed document answers `True` exactly where
+  `Draft202012Validator` of the same document yields no error. A few
+  small schemas pin the keyword semantics it must share with the walk:
+  `True` is neither `1` in `const`, `enum` and `uniqueItems` nor an
+  integer, `1.0` is an integer, a string is checked by `pattern` with
+  `re.search`, `unevaluatedProperties` counts the keys of the `oneOf`
+  branch a value is valid under and not those of a failing one, and a
+  keyword the module does not compile (`patternProperties`,
+  `dependentSchemas`, `contains`) refuses to compile.
+- **The walk is skipped.** A valid manifest, the two large ones below
+  included, validates without one call to the walk's validator (a
+  counting validator); a manifest with an undeclared key calls it once,
+  as before.
+- **The copies stay copies.** `with_bare_ids` and `with_file_ids` give
+  the reference's value on every manifest fixture and share no list or
+  dictionary with their input.
+
+The two large manifests are built in `large_manifests.py`: 500 root
+timelines with 10,000 named timestamps (twenty per timeline), and 38 root
+timelines each with a `LinearMap` and a `TableMap` whose `x_values` and
+`y_values` hold 340 Fraction pairs, the shape of a DJ-software beat grid.
+Their timings, and those of the largest fixture, are measured and
+reported outside the suite, never asserted.
