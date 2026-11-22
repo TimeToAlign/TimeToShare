@@ -1,0 +1,29 @@
+{
+  "layers": [
+    {
+      "rules": [
+        {
+          "select": {
+            "addresses": [
+              {
+                "id": "group_1"
+              }
+            ]
+          },
+          "set": {
+            "elision-mode": "full"
+          }
+        }
+      ]
+    }
+  ],
+  "manifest": "groups/group_elided_members.yaml",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}

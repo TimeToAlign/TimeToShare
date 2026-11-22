@@ -1,0 +1,30 @@
+{
+  "layers": [
+    {
+      "rules": [
+        {
+          "select": {
+            "addresses": [
+              {
+                "id": "piece",
+                "part": ["card"]
+              }
+            ]
+          },
+          "set": {
+            "elision-display": "ellipsis name coordinate"
+          }
+        }
+      ]
+    }
+  ],
+  "manifest": "groups/group_elided_inside.yaml",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}

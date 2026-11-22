@@ -459,7 +459,7 @@ released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
 ones (`corpus_*`) and the statement fixtures, at the default placement, and
-twenty-seven variants. The
+thirty-one variants. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -498,10 +498,26 @@ card is drawn whole: `group_grandchild`, `group_grandchild_parent_on_top`,
 and `bundle_elided_layerit` in the view 1024 × 640
 (`bundle__bundle_elided_layerit__view-1024x640`), where the bound of the
 view sets the default proportion of the excerpts at the opening and the
-ending; and `bundle_arranged_roots` arranged side by side in the order
+ending; and `group_elided_inside` with an application layer of one rule
+addressed to the cards of `piece`, `{"addresses": [{"id": "piece",
+"part": ["card"]}]}`: setting `elision-display` to `ellipsis name
+coordinate`, so that the derived elisions of its ancestor card show their
+name and coordinate labels (`group__group_elided_inside__labels`), and
+setting `elision-mode` to `custom`, which draws that card whole while no
+card elision is stored (`group__group_elided_inside__custom`); and
+`group_elided_members` with an application layer of one rule addressed to
+the frame, `{"addresses": [{"id": "group_1"}]}`, setting `elision-mode` to
+`full`, so that the frame and the ancestor card behind it are drawn without
+the group's two gaps, the ancestor card keeping its derived elisions
+around the member (`group__group_elided_members__full`); and
+`bundle_groupstamp_shared_member` with the place `{g2: {scale: 1.5}}`, where
+the gap of the elision on the shared member `t` is drawn in both frames,
+the second at the scale 1.5
+(`bundle__bundle_groupstamp_shared_member__scaled`); and
+`bundle_arranged_roots` arranged side by side in the order
 `page`, `group_3`, `group_1`, `group_2`
 (`bundle__bundle_arranged_roots__horizontal`), whose row the rules of the
-arrangement repair to `page`, `group_1`, `group_2`, `group_3`. 101
+arrangement repair to `page`, `group_1`, `group_2`, `group_3`. 107
 drawings lie here.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
