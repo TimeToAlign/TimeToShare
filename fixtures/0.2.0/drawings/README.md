@@ -1695,6 +1695,10 @@ the root.
   112.9062, through `clt_1`'s line and its markers band, which holds
   nothing at that `x`. `timestamp_2` does not list `cross_section` and
   draws no line. No line takes room or reaches the card's shadow.
+  `timestamp_3`'s line crosses `clt_1` at 3, a secondary coordinate
+  (§2), whose wedge and labels the last default rule hides (§4): it
+  draws nothing, takes no room and cuts no line; `timestamp_1`, at 3/2,
+  lies before `clt_2`'s start and crosses no other timeline.
 - The descriptors (§7.2): the card's shadow and the card; `clt_1`'s line,
   circle and arrowhead; `clt_2`'s line, circle and diamond; the wedges of
   `timestamp_1`, `timestamp_2` and `timestamp_3`; the names `clt_2` and
@@ -1777,7 +1781,12 @@ two equally short lines.
   215.76953125 → 215.7695 to 279.74609375 → 279.7461 in `group_2`;
   `timestamp_2` from 125.5859375 → 125.5859 to 125.5859375 + 49.37890625
   = 174.96484375 → 174.9648 in `performance`'s card. Each is drawn as one
-  line (`data-id="timestamp_N" data-part="line"`).
+  line (`data-id="timestamp_N" data-part="line"`). In each `score` card
+  the line of `timestamp_1` also crosses `second-half` at its start 0, its
+  ends included, and that of `timestamp_3` crosses `score` at 6: secondary
+  coordinates (§2), which draw nothing, a match timestamp's `display`
+  listing neither a wedge nor a label and the last default rule hiding
+  them (§4).
 - `anchor_1`, `A` the segment of `timestamp_2` (`a1` = 125.5859375, `a2`
   = 174.96484375), `B` a segment of `timestamp_1`: in `group_1`, `lo` =
   125.5859375 > `hi` = 117.5859375 and `a2` ≥ `b1` = 53.609375, so the
@@ -1933,7 +1942,10 @@ card's give positions in place coordinates; drawn, each lies
   to 32.8046875 + 87.35546875 = 120.16015625; `data-part="line"`), after
   the member drawing's labels, crossing `middle`'s line, its markers band,
   whose wedges and labels lie at its quarters 0 and 8, away from both
-  lines, and the ancestor line of `piece` at 85.18359375; `timestamp_3`,
+  lines, and the ancestor line of `piece` at 85.18359375, where each has
+  a secondary coordinate (§2), at 6 and 8 of `piece`'s quarters, which
+  draws nothing (its `display` lists no wedge or label, and the last
+  default rule hides them, §4); `timestamp_3`,
   at `x0 + 200` = 311.70361328125, across `recording`'s card, `y1="128.1602"
   y2="177.5391"` (128.16015625 to 128.16015625 + 49.37890625 =
   177.5390625).
