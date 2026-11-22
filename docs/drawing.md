@@ -210,12 +210,28 @@ coordinate's wedge and labels stand: in that timeline's markers band
 (section 6.4, Markers), or beside its ancestor line (section 8.3). A
 secondary coordinate on a timeline is drawn as the primary one is, by a wedge and the labels the timestamp's
 `display` lists, in that timeline's markers band or beside its ancestor
-line, its `coordinate` label read on that timeline's axis; a map has no
+line, its `coordinate` label read on that timeline's axis and written in
+that timeline's number type: on an `int` axis the integer nearest the
+exact value, ties to even, on a `float` axis the double nearest it, and on
+a `fraction` axis the exact value (section 5.2); a map has no
 markers band, and a coordinate on a map is listed but draws no wedge.
 The words of `display` govern the elements of the secondary coordinates
 as they govern the primary one's. The defaults hide every element of a
 secondary coordinate and turn its wedge −45 (section 4); a rule selecting
 them by the selector member `coordinates` (section 2.3) shows them.
+
+A groupstamp's coordinates on the other members of its groups are read
+at one proportion of each member's drawn length (section 6.6), and only a
+known length gives a value there: one member's length is never carried
+to another. So where the line crosses the card of a member whose length
+is unknown, it gives that member, and every timeline its card draws, a
+coordinate **without a value**; and where the member holding the
+timestamp's own timeline has an unknown length, the proportion is one of
+its reach, and the line gives every other member, and every timeline
+their cards draw, a coordinate without a value. A coordinate without a
+value is drawn faded and without its `coordinate` label (section 6.6),
+and an application listing the coordinates lists it, in its place, with
+no value.
 
 A named timestamp draws up to five kinds of element, each named by one word of its
 `display`: `wedge`, its coordinate marker, at its primary coordinate and
@@ -995,7 +1011,10 @@ discrete `pixels`: a coordinate in CSS pixels is labelled with the unit's
 name, `800.0 css_pixels`.
 
 The value a label shows is a position of section 3.1, a float or an exact
-value, and its number is written as follows; a negative value is written
+value, or, on a secondary coordinate, that position written in its
+timeline's number type (section 2): a float on a `float` axis, an integer
+on an `int` axis and an exact value on a `fraction` axis. Its number is
+written as follows; a negative value is written
 as its magnitude preceded by `-`.
 
 - **A float** is rounded to three decimal places as Python's `round(x, 3)`
@@ -1790,7 +1809,28 @@ one below it.
   and whatever lies between, less `M`'s card, from its top to its bottom,
   which the timestamp's own cross-section line crosses. What remains is
   drawn as up to two lines, above `M`'s card and below it, from the top
-  down, and a line of no length is not drawn. These lines have no gap:
+  down, and a line of no length is not drawn.
+
+  The line lies within the drawn span of every member, a member of
+  unknown length included, which it crosses up to its reach; but a
+  proportion of a reach is no coordinate, so the line gives a coordinate
+  without a value (section 2) on a member of unknown length other than
+  `M`, and on every timeline that member's card draws, and, when `M` has
+  an unknown length, on every member other than `M` and every timeline
+  their cards draw. Such a coordinate is shown as undefined, as a rule of
+  the drawing that no style changes: the part of the line over the card of
+  a member it gives no value, from the card's top to its bottom, is cut
+  out of the line above and drawn as a line of its own at opacity 0.35,
+  the opacity the defaults give an ancestor line (section 4), in place of
+  the opacity cascaded for the line; when `M` has an unknown length, both
+  lines are drawn so, whole and uncut. On a timeline where the coordinate
+  has no value, its wedge, where it is displayed, is drawn at opacity 0.35
+  in place of its cascaded opacity, and no `coordinate` label is drawn,
+  whatever its `display` lists, its `name` and `id` labels standing as at
+  any secondary coordinate. Where every member's length is known, none
+  of this applies.
+
+  These lines have no gap:
   they cross secondary coordinates alone (section 2), and cross the
   wedges and labels of other timestamps and of those secondary
   coordinates where they meet them. The groupstamp's own
@@ -1800,7 +1840,7 @@ one below it.
   place as every element of the frame is (section 8.6), and the lines take
   no room and widen nothing.
 
-  Each of these lines is a further drawing of the timestamp's cross-section line
+  Each of these lines, a faded one included, is a further drawing of the timestamp's cross-section line
   (section 2.2): it carries the line's address, belongs to `T`, has no
   settings of its own, and is drawn when the timestamp's `display` lists
   `cross_section` and that line is displayed in `M`'s card of the frame,

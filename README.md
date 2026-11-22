@@ -464,7 +464,8 @@ conversion map drawn there at its position. Its **primary coordinate** is
 its `coordinate` on its `timeline`, which its wedge and labels mark,
 whether that timeline is a root, a child or an ancestor drawn as a faded
 line; the others are its **secondary coordinates**, drawn on a timeline
-as wedges and labels too but hidden by default, their wedges turned −45°;
+as wedges and labels too but hidden by default, their wedges turned −45°
+and their coordinate labels written in their timeline's number type;
 an application listing the coordinates lists them all and highlights the
 primary one. A **groupstamp**, a timestamp
 with `groupstamp: true` (default `false`), lies on a timeline that lies in
@@ -475,7 +476,16 @@ across the frame, from the upper border of the topmost member card to the
 lower border of the bottommost, as one vertical line at the timestamp's
 position, which marks the same proportion of every member's drawn length.
 The members' coordinates at that line are derived from the group and
-never stored; they are secondary coordinates of the timestamp. The line is
+never stored; they are secondary coordinates of the timestamp. Only a
+known length gives one a value, since one member's length is never
+carried to another: the line still crosses a member of unknown length, up
+to its reach, but gives that member, and every timeline its card draws, a
+coordinate without a value, and a groupstamp on a member of unknown
+length, or on a timeline inside one, gives none on the other members.
+The drawing shows such a coordinate as undefined, its piece of the line
+and its wedge at the opacity of an ancestor line and without a coordinate
+label, and an application listing the coordinates lists it without a
+value. The line is
 drawn in the style of the timestamp's own line, has no settings of its
 own, and leaves out the member's card, which the timestamp's own line
 crosses; the timestamp's own wedge is not turned (the drawing

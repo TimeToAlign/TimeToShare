@@ -1377,7 +1377,7 @@ def _defaults_block() -> dict:
 def test_the_defaults_are_a_valid_graphical_object() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["rules"]) == 35
+    assert len(defaults["rules"]) == 37
     validate({**SMALLEST, "graphical": defaults})
 
 
