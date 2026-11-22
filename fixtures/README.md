@@ -527,14 +527,18 @@ The script refuses to replace the drawings of a version whose tag
 ## Rejection coverage
 
 Each rejection case breaks one rule of an accepted manifest and records the
-`path`, the `code` and the `message` both validators must report, and a
-`reason`. A rule inside a timeline is located under the root that holds it,
-`/timelines/0/…`. Tests in both packages load the same files and compare the
-error's path, code and message with the case's. A `schema` message is the
-one Python's `jsonschema` 4.26 gives, each value spelled as Python's `repr`
-spells it, but for the shapes both packages word themselves (the admitted
-constants of a `oneOf` of constants, a key no value is admitted at, the
-part of a string a `not` refuses). The cases cover every code:
+`path` and the `code` any validator must report, the `message` the two
+reference packages report, and a `reason`. A rule inside a timeline is
+located under the root that holds it, `/timelines/0/…`. Tests in both
+packages load the same files and compare the error's path, code and message
+with the case's. The `message` is the wording of the two reference
+packages, held equal by their suites; another implementation must report
+the `code` and the `path`, and may word the message its own way. A `schema`
+message is the one Python's `jsonschema` 4.26 gives, each value spelled as
+Python's `repr` spells it, but for the shapes both packages word themselves
+(the admitted constants of a `oneOf` of constants, a key no value is
+admitted at, the part of a string a `not` refuses). The cases cover every
+code:
 
 | Code | Rule | Cases |
 | --- | --- | --- |
