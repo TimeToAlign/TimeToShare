@@ -1081,8 +1081,10 @@ ID is unique across the manifest like any other. What proves it:
   ID positions, held through `graphical.elisions`; the tables stay the
   schema's.
 - **The fixtures.** Every complete fixture holding a `graphical` object
-  states `elisions: []`, every twin leaves it out; no fixture holds an
-  elision yet.
+  states `elisions`, `[]` but in one, every twin leaves out an empty list;
+  `bundles/bundle_elisions_stored` holds seven elisions, one of each width
+  form and on each kind of timeline the drawing treats apart, and passes
+  every check of the fixture set.
 
 ## Statements
 
@@ -1929,7 +1931,7 @@ written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 172 files (`test_files.py`); the four statement
+`groups` and `statements`, 178 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every

@@ -471,9 +471,7 @@ def bundle_elisions_stored() -> AlignmentBundle:
     )
     recording = parts.named(ContinuousPhysicalTimeline, "recording", "Recording", 10.0)
     bundle = AlignmentBundle(name="Elisions")
-    bundle.add_group(
-        TimelineGroup(name="Theme", timelines=[theme, take, recording])
-    )
+    bundle.add_group(TimelineGroup(name="Theme", timelines=[theme, take, recording]))
     bundle.add_timeline(
         parts.named(DiscreteGraphicalTimeline, "page", "Page", Fraction(1754))
     )
