@@ -217,6 +217,7 @@ describe("the schema document", () => {
     expect(TIMESTAMP_DISPLAY).toEqual(["wedge", "name", "id", "coordinate", "cross_section"]);
     expect(display.uniqueItems).toBe(true);
     expect(properties("Selector").facet?.$ref).toBe("#/$defs/Facet");
+    expect(properties("Selector").coordinates?.enum).toEqual(["primary", "secondary"]);
     expect(defs.ElementType?.enum).toEqual([
       "block",
       "timeline",

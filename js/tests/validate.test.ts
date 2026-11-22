@@ -168,6 +168,7 @@ const REJECTIONS = [
   "resource_timeline_unknown",
   "root_missing_marker",
   "root_missing_timelines",
+  "rule_select_coordinates_unknown",
   "rule_select_empty_addresses",
   "rule_select_inside_unknown_element",
   "rule_select_projection",
@@ -1116,6 +1117,16 @@ describe("the graphical object", () => {
   ])("accepts %o", (rule) => {
     validate(manifest([timeline("score")], { graphical: { rules: [rule] } }));
   });
+
+  it.each([{ coordinates: "primary" }, { element: "wedge", coordinates: "secondary" }])(
+    "accepts the selector %o choosing a stamp's coordinates",
+    (select) => {
+      const rule = { select, set: { display: "none" } };
+      const value = manifest([timeline("score")], { graphical: { rules: [rule] } });
+      validate(value);
+      expect(unknownKeys(value)).toEqual([]);
+    },
+  );
 
   it("accepts a selector naming every card of a timeline in several groups", () => {
     const card = { id: "t", part: ["card"] };

@@ -80,7 +80,9 @@ rejection cases that use them (`test_schema.py`):
   `ElementType` is exactly the eighteen types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `flow_marker`, `jump_from`,
   `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
-  `cross_section`, `alignment_anchor` and `ancestor_card`. The four
+  `cross_section`, `alignment_anchor` and `ancestor_card`.
+  `Selector.coordinates` is exactly the two words `primary` and
+  `secondary`. The four
   measure views fix `source_unit` to `quarters` and `target_unit` to
   `floating_measures` (`FloatingMeasureMap`) or null (the other three).
 - **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
@@ -593,7 +595,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 178 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 179 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
@@ -1958,7 +1960,11 @@ addresses the ancestor cards of one root, `{"element": "ancestor_card", "address
 at its `element`, and an empty `addresses` at `addresses`. In the
 manifest whose groups `g1` and `g2` share the member `t`, a selector
 `{"addresses": [{"id": "t", "part": ["card"]}]}`, every card of `t`,
-validates. The schema shapes each entry of an order as an ID: the empty
+validates. A selector's `coordinates` chooses a stamp's primary or its
+secondary coordinates: `{"coordinates": "primary"}` and `{"element":
+"wedge", "coordinates": "secondary"}` each validate and leave
+`unknown_keys` empty, and any other word is refused at the selector's
+`coordinates` (`rule_select_coordinates_unknown`, the word `both`). The schema shapes each entry of an order as an ID: the empty
 string is refused at the entry, and a repeated entry (`line`, `markers`,
 `line`) at the order, before any identity rule is read; property
 bounds accept `stroke-width` and `rx` 0, `opacity` 0 and 1, positive

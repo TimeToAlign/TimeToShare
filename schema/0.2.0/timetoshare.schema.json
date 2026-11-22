@@ -1376,6 +1376,14 @@
         "inside": {
           "$ref": "#/$defs/ElementType",
           "description": "An element type: the element must be held, at any depth, by an element of that type in the drawing's element tree."
+        },
+        "coordinates": {
+          "type": "string",
+          "enum": [
+            "primary",
+            "secondary"
+          ],
+          "description": "Coordinates of a stamp: the element must belong to a stamp's primary coordinate (`primary`) or to one of its secondary coordinates (`secondary`). An element that belongs to no coordinate of a stamp matches neither."
         }
       }
     },

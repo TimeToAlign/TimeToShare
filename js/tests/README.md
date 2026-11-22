@@ -58,7 +58,7 @@ statements has an ID), and satisfies both round trips of `complete` and
 refactor that keeps the accepted language stays green: the bundled `schema`
 is the file; references are local and resolve; the public definitions exist and the root's description names exactly them; `ConversionMap` chooses between exactly the ten
 map types, `Selector.class` names the six timeline classes and the ten types,
-`Facet`, `Part`, `ElementType` and the words of a `Timestamp`'s `display` (`TIMESTAMP_DISPLAY`) are exactly the Python suite's lists, and
+`Facet`, `Part`, `ElementType`, the words of `Selector.coordinates` and the words of a `Timestamp`'s `display` (`TIMESTAMP_DISPLAY`) are exactly the Python suite's lists, and
 each measure view fixes its target unit over
 `MeasureView`, which fixes the source unit; the unit
 table's consts are exactly the keys of
@@ -178,6 +178,13 @@ as `read`, compared as `dumps` texts. So `[1, 8.0]` (a `JsonFloat` member)
 is 1/8 and `9007199254740993` (a `bigint`) is refused on a float axis, as
 in Python.
 
+**A selector's `coordinates`** (the Python README's "The graphical
+object"): `{coordinates: "primary"}` and `{element: "wedge", coordinates:
+"secondary"}` each validate and leave `unknownKeys` empty
+(`validate.test.ts`), and the shared case `rule_select_coordinates_unknown`
+refuses any other word at the selector's `coordinates` with the Python
+suite's code, path and message.
+
 ## MatchStamps and resources
 
 The Python README's section "MatchStamps and resources" is proved here with
@@ -217,7 +224,7 @@ no problem from `matchstampProblems` either.
 
 ## Shared rejection cases
 
-Each of the 178 cases (`validate.test.ts`), found by its name whatever
+Each of the 179 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises

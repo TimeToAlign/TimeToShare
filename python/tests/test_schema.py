@@ -187,6 +187,8 @@ def test_the_ten_map_types() -> None:
     assert TIMESTAMP_DISPLAY == ("wedge", "name", "id", "coordinate", "cross_section")
     assert display["uniqueItems"] is True
     assert defs["Selector"]["properties"]["facet"]["$ref"] == "#/$defs/Facet"
+    coordinates = defs["Selector"]["properties"]["coordinates"]
+    assert coordinates["enum"] == ["primary", "secondary"]
     assert defs["ElementType"]["enum"] == [
         "block",
         "timeline",

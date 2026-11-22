@@ -159,6 +159,7 @@ REJECTIONS = [
     "resource_timeline_unknown",
     "root_missing_marker",
     "root_missing_timelines",
+    "rule_select_coordinates_unknown",
     "rule_select_empty_addresses",
     "rule_select_inside_unknown_element",
     "rule_select_projection",
@@ -995,6 +996,19 @@ def test_card_frame_inside_and_shadow_validate(rule: dict) -> None:
 def test_band_selectors_validate(select: dict) -> None:
     rule = {"select": select, "set": {"display": "none"}}
     validate(manifest(timeline("score"), graphical={"rules": [rule]}))
+
+
+@pytest.mark.parametrize(
+    "select",
+    [{"coordinates": "primary"}, {"element": "wedge", "coordinates": "secondary"}],
+)
+def test_a_selector_chooses_a_stamps_primary_or_secondary_coordinates(
+    select: dict,
+) -> None:
+    rule = {"select": select, "set": {"display": "none"}}
+    value = manifest(timeline("score"), graphical={"rules": [rule]})
+    validate(value)
+    assert unknown_keys(value) == []
 
 
 def test_a_selector_names_every_card_of_a_timeline_in_several_groups() -> None:

@@ -1449,6 +1449,10 @@ export interface Selector {
    * An element type: the element must be held, at any depth, by an element of that type in the drawing's element tree.
    */
   inside?: ElementType;
+  /**
+   * Coordinates of a stamp: the element must belong to a stamp's primary coordinate (`primary`) or to one of its secondary coordinates (`secondary`). An element that belongs to no coordinate of a stamp matches neither.
+   */
+  coordinates?: "primary" | "secondary";
 }
 /**
  * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element or a named timestamp (its wedge). `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` and `["end"]` a member's marks on its ancestor lines or a segment's boundary, `["start", "label"]` and `["end", "label"]` a mark's label, `["name"]` and `["label"]` the element's name or label (a named timestamp's name label is `["name"]`), `["id"]` and `["coordinate"]` a named timestamp's ID label and coordinate label, and `["line"]` a named timestamp's cross-section line. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.
