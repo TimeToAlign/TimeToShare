@@ -1946,7 +1946,7 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 32 rules),
+`docs/drawing.md` section 4's defaults block (three styles, 35 rules),
 read from the file, validates as the `graphical` of the smallest file; the
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate, and so do `{"element": "ancestor_card"}` and the rule that

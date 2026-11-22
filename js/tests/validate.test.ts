@@ -1197,7 +1197,7 @@ describe("the graphical object", () => {
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.rules as unknown[]).length).toBe(32);
+    expect((defaults.rules as unknown[]).length).toBe(35);
     validate({ ...SMALLEST, graphical: defaults });
   });
 
