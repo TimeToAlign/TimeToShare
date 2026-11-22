@@ -633,6 +633,35 @@ def test_a_child_member_carries_a_timestamp_and_a_matchstamp(suffix: str) -> Non
     assert matchstamp_problems(file) == []
 
 
+@pytest.mark.parametrize("suffix", [".yaml", ".minimal.yaml"])
+def test_a_parent_of_a_member_lays_its_children_below(suffix: str) -> None:
+    file = _load(FIXTURES / "groups" / f"group_grandchild_parent_on_top{suffix}")
+    value = with_bare_ids(file)
+    assert [(group["id"], group["members"]) for group in value["groups"]] == [
+        ("group_1", ["recording", "theme"])
+    ]
+    (recording, score) = value["timelines"]
+    assert [recording["id"], score["id"]] == ["recording", "score"]
+    (movement,) = score["children"]
+    assert (movement["id"], movement["offset"]) == ("movement", [16, 1])
+    assert [(child["id"], child["offset"]) for child in movement["children"]] == [
+        ("theme", [8, 1])
+    ]
+    assert value["graphical"]["order"] == {
+        "group_1": ["theme", "recording"],
+        "movement": [
+            "line",
+            "children",
+            "conversion_maps",
+            "markers",
+            "regions",
+            "flow_control",
+        ],
+    }
+    validate(file)
+    assert identity_problems(file) == []
+
+
 def test_no_corpus_fixture_carries_a_named_timestamp() -> None:
     corpora = [path for path in fixture_paths() if path.name.startswith("corpus_")]
     assert len(corpora) == 24

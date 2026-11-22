@@ -510,7 +510,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(85);
+    expect(twins.length).toBe(86);
     expect(twins.map((twin) => twin.replace(/\.minimal$/, ""))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal")),
     );
