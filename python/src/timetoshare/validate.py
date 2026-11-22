@@ -14,6 +14,7 @@ the identity rules, then the statement rules
 from __future__ import annotations
 
 import json
+import re
 import threading
 from collections import defaultdict
 from collections.abc import Callable, Iterable, Iterator, Mapping
@@ -413,13 +414,82 @@ def select(errors: Iterable[ValidationError]) -> ValidationError | None:
     return best
 
 
+#: The patterns a ``not`` of the schema refuses, each with how a value meets
+#: it and what is not admitted, in the words of the schema's descriptions
+#: where they have them.
+_REFUSED_PATTERNS: dict[str, tuple[str, str]] = {
+    "[\\u0000-\\u001f]": (
+        "holds",
+        "no control character (U+0000 to U+001F) is admitted here",
+    ),
+    "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a"
+    "\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]": (
+        "holds",
+        "no whitespace and no control character is admitted here",
+    ),
+    "^_:": ("begins with", "no blank node identifier is admitted here"),
+    "^@": ("begins with", "no keyword is admitted here"),
+    "[^A-Za-z0-9-]": ("holds", "only A-Z, a-z, 0-9 and '-' are admitted here"),
+    "[^A-Za-z0-9_-]": ("holds", "only A-Z, a-z, 0-9, '_' and '-' are admitted here"),
+}
+
+#: Why a word a ``not`` lists is refused: the one such list is the prefix
+#: names'.
+_REFUSED_WORDS = (
+    "it names a key of the manifest's elements or a URI scheme the format reads as such"
+)
+
+
+def _character(text: str) -> str:
+    """The first character of ``text``: itself where printable, else its code point."""
+    character = text[0]
+    if character.isprintable() and not character.isspace():
+        return repr(character)
+    return f"U+{ord(character):04X}"
+
+
+def _not_admitted(error: ValidationError) -> str | None:
+    """The message of a string a ``not`` of patterns or words refuses, or None.
+
+    The first branch of the refused schema that finds part of the value
+    names it; a branch of another shape, or a pattern without words, leaves
+    the walk's message.
+    """
+    refused = error.validator_value
+    value = error.instance
+    if error.validator != "not" or not isinstance(value, str):
+        return None
+    if not isinstance(refused, Mapping):
+        return None
+    for branch in refused.get("anyOf", [refused]):
+        if not isinstance(branch, Mapping):
+            return None
+        if branch.keys() == {"enum"}:
+            if value in branch["enum"]:
+                return f"{value!r} is not admitted here: {_REFUSED_WORDS}"
+            continue
+        if branch.keys() != {"pattern"}:
+            return None
+        found = re.search(branch["pattern"], value)
+        if found is None:
+            continue
+        words = _REFUSED_PATTERNS.get(branch["pattern"])
+        if words is None:
+            return None
+        verb, what = words
+        part = _character(found.group()) if verb == "holds" else repr(found.group())
+        return f"{value!r} {verb} {part}: {what}"
+    return None
+
+
 def worded(error: ValidationError) -> str:
     """The message of a selected error, naming what is admitted where the walk does not.
 
     A value outside a ``oneOf`` or ``anyOf`` of ``const`` branches lists the
     admitted constants, as an ``enum`` does; a key whose schema refuses every
-    value (``not: {}`` or ``false``) is named as not admitted. Every other
-    error keeps the walk's message.
+    value (``not: {}`` or ``false``) is named as not admitted; a string a
+    ``not`` of patterns or words refuses names the part refused and what is
+    not admitted. Every other error keeps the walk's message.
     """
     constants = _constants(error)
     if constants is not None:
@@ -430,6 +500,9 @@ def worded(error: ValidationError) -> str:
     path = error.absolute_path
     if refuses_all and path and isinstance(path[-1], str):
         return f"the key {path[-1]!r} is not admitted here"
+    not_admitted = _not_admitted(error)
+    if not_admitted is not None:
+        return not_admitted
     return error.message
 
 

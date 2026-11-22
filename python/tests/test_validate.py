@@ -3,10 +3,12 @@ from __future__ import annotations
 import json
 import math
 from fractions import Fraction
+from importlib import import_module
 from pathlib import Path
 from typing import Any
 
 import pytest
+from jsonschema import Draft202012Validator
 
 import timetoshare
 from timetoshare import (
@@ -952,6 +954,16 @@ def test_a_da_capo_and_a_repeat_end_need_no_target() -> None:
     assert _problem(missing)[0] == ("timelines", 0, "flow_control", 0)
 
 
+def _refuses_patterns(refused: Any) -> bool:
+    """Whether a ``not`` refuses patterns or words, alone or as an ``anyOf``."""
+    if not isinstance(refused, dict) or refused == {}:
+        return False
+    return all(
+        isinstance(branch, dict) and branch.keys() in ({"pattern"}, {"enum"})
+        for branch in refused.get("anyOf", [refused])
+    )
+
+
 def _worded_places(node: Any, pointer: str) -> list[str]:
     """The places of a schema the package words itself, as JSON pointers."""
     places: list[str] = []
@@ -962,7 +974,7 @@ def _worded_places(node: Any, pointer: str) -> list[str]:
                 isinstance(branch, dict) and "const" in branch for branch in branches
             ):
                 places.append(f"{pointer}/{keyword}")
-        if node.get("not") in ({}, True):
+        if node.get("not") in ({}, True) or _refuses_patterns(node.get("not")):
             places.append(f"{pointer}/not")
         for key, child in node.items():
             if key in ("properties", "patternProperties", "$defs") and isinstance(
@@ -983,11 +995,22 @@ def _worded_places(node: Any, pointer: str) -> list[str]:
 def test_the_worded_shapes_lie_where_the_cases_below_reach() -> None:
     element = "#/$defs/FlowControlElement"
     assert _worded_places(timetoshare.load_schema(), "#") == [
+        "#/$defs/Resource/properties/media_type/not",
+        "#/$defs/Resource/properties/integrity/properties/digest/not",
         "#/$defs/TimeUnit/oneOf",
+        "#/$defs/Id/not",
         f"{element}/then/then/properties/repeat_count/not",
         f"{element}/then/else/else/properties/repeat_count/not",
         f"{element}/else/properties/target/not",
         f"{element}/else/properties/repeat_count/not",
+        "#/$defs/Order/items/not",
+        "#/$defs/Paint/not",
+        "#/$defs/Declaration/properties/stroke-dasharray/not",
+        "#/$defs/PrefixName/not",
+        "#/$defs/PrefixIri/not",
+        "#/$defs/Iri/not",
+        "#/$defs/IriReference/not",
+        "#/$defs/LanguageTag/not",
     ]
 
 
@@ -1039,6 +1062,179 @@ def test_a_forbidden_flow_control_member_is_named(element: dict, key: str) -> No
     assert _problem(manifest(timeline("score", flow_control=flow))) == (
         ("timelines", 0, "flow_control", 1, key),
         f"the key '{key}' is not admitted here",
+    )
+
+
+def _fixture(name: str) -> Any:
+    return loads((REPOSITORY_ROOT / "fixtures" / "0.2.0" / name).read_text("utf-8"))
+
+
+def _edited(name: str, path: tuple[str | int, ...], value: Any) -> Any:
+    """The minimal fixture ``name`` with the member at ``path`` set to ``value``."""
+    document = _fixture(name)
+    holder = document
+    for key in path[:-1]:
+        holder = holder[key]
+    holder[path[-1]] = value
+    return document
+
+
+def _file_problem(value: Any) -> tuple[tuple[str | int, ...], str]:
+    with pytest.raises(SchemaValidationError) as caught:
+        timetoshare.validate(value)
+    assert caught.value.code == "schema"
+    return caught.value.path, caught.value.message
+
+
+STYLED = "styled__score.minimal.yaml"
+RESOURCES = "bundles/bundle_resources.minimal.yaml"
+STATEMENTS = "statements/nielsen_record.minimal.yaml"
+CONTROL = "no control character (U+0000 to U+001F) is admitted here"
+SPACE = "no whitespace and no control character is admitted here"
+BANDS = ["children", "markers", "line\t", "conversion_maps", "regions", "flow_control"]
+
+
+@pytest.mark.parametrize(
+    ("name", "path", "value", "at", "message"),
+    [
+        (
+            STYLED,
+            ("timelines", 0, "id"),
+            "#a\tb",
+            (),
+            f"'#a\\tb' holds U+0009: {CONTROL}",
+        ),
+        (
+            STYLED,
+            ("graphical", "order", "#score"),
+            BANDS,
+            (2,),
+            f"'line\\t' holds U+0009: {CONTROL}",
+        ),
+        (
+            STYLED,
+            ("graphical", "rules", 0, "set", "fill"),
+            "#404040\n",
+            (),
+            f"'#404040\\n' holds U+000A: {CONTROL}",
+        ),
+        (
+            STYLED,
+            ("graphical", "rules", 0, "set", "stroke-dasharray"),
+            "3 3\n",
+            (),
+            f"'3 3\\n' holds U+000A: {CONTROL}",
+        ),
+        (
+            RESOURCES,
+            ("resources", 0, "media_type"),
+            "application/x\n",
+            (),
+            f"'application/x\\n' holds U+000A: {CONTROL}",
+        ),
+        (
+            RESOURCES,
+            ("resources", 0, "integrity"),
+            {"algorithm": "SHA-256", "digest": "ab\n"},
+            ("digest",),
+            f"'ab\\n' holds U+000A: {CONTROL}",
+        ),
+        (
+            RESOURCES,
+            ("resources", 0, "url"),
+            "match claims.parquet",
+            (),
+            f"'match claims.parquet' holds U+0020: {SPACE}",
+        ),
+        (
+            RESOURCES,
+            ("resources", 0, "url"),
+            "_:b0",
+            (),
+            "'_:b0' begins with '_:': no blank node identifier is admitted here",
+        ),
+        (
+            RESOURCES,
+            ("resources", 0, "url"),
+            "@id",
+            (),
+            "'@id' begins with '@': no keyword is admitted here",
+        ),
+        (
+            STATEMENTS,
+            ("@context", "wd"),
+            "http://www.wikidata.org/\u00a0entity/",
+            (),
+            f"'http://www.wikidata.org/\\xa0entity/' holds U+00A0: {SPACE}",
+        ),
+        (
+            STATEMENTS,
+            ("statements", "rdfs:label"),
+            [{"@value": "Sang", "@type": "xsd:da te"}],
+            (0, "@type"),
+            f"'xsd:da te' holds U+0020: {SPACE}",
+        ),
+        (
+            STATEMENTS,
+            ("statements", "rdfs:label"),
+            [{"@value": "Sang", "@language": "en_GB"}],
+            (0, "@language"),
+            "'en_GB' holds '_': only A-Z, a-z, 0-9 and '-' are admitted here",
+        ),
+    ],
+)
+def test_a_refused_pattern_names_the_part_and_what_is_not_admitted(
+    name: str,
+    path: tuple[str | int, ...],
+    value: Any,
+    at: tuple[str | int, ...],
+    message: str,
+) -> None:
+    assert _file_problem(_edited(name, path, value)) == ((*path, *at), message)
+
+
+@pytest.mark.parametrize(
+    ("value", "message"),
+    [
+        (
+            "my.wd",
+            "'my.wd' holds '.': only A-Z, a-z, 0-9, '_' and '-' are admitted here",
+        ),
+        (
+            "https",
+            "'https' is not admitted here: it names a key of the manifest's elements "
+            "or a URI scheme the format reads as such",
+        ),
+    ],
+)
+def test_a_refused_prefix_name_names_the_part_and_what_is_not_admitted(
+    value: str, message: str
+) -> None:
+    module = import_module("timetoshare.validate")
+    schema = timetoshare.load_schema()
+    definition = {"$defs": schema["$defs"], "$ref": "#/$defs/PrefixName"}
+    checker = Draft202012Validator(definition)
+    (error,) = checker.iter_errors(value)
+    assert error.validator == "not"
+    assert module.worded(error) == message
+
+
+def test_a_context_key_that_is_no_prefix_name_keeps_the_term_list() -> None:
+    edited = _fixture(STATEMENTS)
+    edited["@context"]["my.wd"] = "http://www.wikidata.org/entity/"
+    path, message = _file_problem(edited)
+    assert path == ("@context",)
+    assert message.startswith("'my.wd' is not one of ['@version', 'id', 'type', ")
+
+
+def test_a_not_requiring_members_keeps_the_library_message() -> None:
+    address = {"id": "#a", "facet": "markers", "part": ["name"]}
+    value = _edited(STYLED, ("graphical", "rules", 2, "select", "addresses"), [address])
+    path, message = _file_problem(value)
+    assert path == ("graphical", "rules", 2, "select", "addresses", 0)
+    assert message == (
+        "{'id': '#a', 'facet': 'markers', 'part': ['name']} should not be valid "
+        "under {'required': ['facet', 'part']}"
     )
 
 
