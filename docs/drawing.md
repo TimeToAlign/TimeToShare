@@ -722,7 +722,7 @@ frame is white with a light grey outline; a card is white with a grey
 outline and a grey offset shadow, so that it stands out from the grey block
 and from a frame alike. A card has its timeline's domain and modality, so
 a rule can style the cards of one domain. An ancestor card looks like a
-card and is hidden: a rule setting its `display` to `inline` shows it
+card and is shown; a rule setting its `display` to `none` hides it
 (section 8.8). The last two rules
 hide the regions and flow control bands of every timeline that is
 held by a band, which is every timeline of a member drawing but its root
@@ -2345,7 +2345,7 @@ forms them. With `x0` the start of the member drawings of `G`'s frame and
    the named timestamps of its drawing draw their own cross-section lines
    in it, as in every member drawing.
 
-The fixture `group_parent_both` drawn with the rule above shows the root
+The fixture `group_parent_both` drawn with the defaults shows the root
 `piece` (16 quarters) behind the frame of its child `middle` (8 quarters
 at offset 4), so `us = −0.5` and `ue = 1.5` and `LA = 800` at the
 length 400: the card is written at `x` 8 and `y` 18.8047, 869.3354 wide
