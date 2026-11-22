@@ -9,6 +9,7 @@ the resources.
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
+from fractions import Fraction
 from typing import Any
 
 from ..manifest import exact
@@ -63,6 +64,7 @@ def timestamp_problems(
     """
     timelines = timelines_by_id(manifest)
     grouped = _grouped_timelines(manifest)
+    ends: dict[str, Fraction] = {}
     for index, timestamp in enumerate(timestamps_of(manifest)):
         path = ("graphical", "timestamps", index)
         identifier = timestamp["timeline"]
@@ -76,20 +78,26 @@ def timestamp_problems(
             continue
         coordinate = timestamp["coordinate"]
         length = timeline.get("length")
-        where = f"coordinate {spell(coordinate)} of '{timestamp['id']}'"
-        if exact(coordinate) < 0:
+        value = exact(coordinate)
+        if value < 0:
             yield SchemaValidationError(
                 "timestamp_coordinate",
                 (*path, "coordinate"),
-                f"{where} lies before the start of its timeline '{identifier}'",
+                f"coordinate {spell(coordinate)} of '{timestamp['id']}' lies "
+                f"before the start of its timeline '{identifier}'",
             )
-        elif length is not None and exact(coordinate) > exact(length):
-            yield SchemaValidationError(
-                "timestamp_coordinate",
-                (*path, "coordinate"),
-                f"{where} is beyond the length {spell(length)} of its timeline "
-                f"'{identifier}'",
-            )
+        elif length is not None:
+            end = ends.get(identifier)
+            if end is None:
+                end = ends[identifier] = exact(length)
+            if value > end:
+                yield SchemaValidationError(
+                    "timestamp_coordinate",
+                    (*path, "coordinate"),
+                    f"coordinate {spell(coordinate)} of '{timestamp['id']}' is "
+                    f"beyond the length {spell(length)} of its timeline "
+                    f"'{identifier}'",
+                )
         if timestamp.get("groupstamp") is True and identifier not in grouped:
             yield SchemaValidationError(
                 "groupstamp",

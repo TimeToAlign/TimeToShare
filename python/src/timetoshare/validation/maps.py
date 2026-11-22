@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
+from fractions import Fraction
 from typing import Any
 
 from ..manifest import exact
@@ -68,14 +69,19 @@ def _increasing(
     conversion_map: Mapping[str, Any], key: str, noun: str, path: InstancePath
 ) -> Iterator[SchemaValidationError]:
     values = conversion_map[key]
+    before: Fraction | None = None
     for index in range(1, len(values)):
-        if exact(values[index]) <= exact(values[index - 1]):
+        value = exact(values[index])
+        if before is None:
+            before = exact(values[0])
+        if value <= before:
             yield SchemaValidationError(
                 "conversion_map",
                 (*path, key, index),
                 f"{noun} {spell(values[index])} of {conversion_map['type']} "
                 f"'{conversion_map['id']}' does not exceed the one before it",
             )
+        before = value
 
 
 def _map_problems(

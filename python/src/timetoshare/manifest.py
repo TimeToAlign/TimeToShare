@@ -105,6 +105,8 @@ ANCHOR_DISPLAY = ("line", "name")
 
 def _integral(value: Any) -> int | None:
     """The integer a JSON integer or an integral float equals, else ``None``."""
+    if type(value) is int:
+        return value
     if isinstance(value, bool):
         return None
     if isinstance(value, int):
@@ -122,7 +124,7 @@ def fraction_pair(value: Any) -> Fraction | None:
     """
     if not isinstance(value, list) or len(value) != 2:
         return None
-    numerator, denominator = (_integral(member) for member in value)
+    numerator, denominator = _integral(value[0]), _integral(value[1])
     if numerator is None or denominator is None or denominator < 1:
         return None
     return Fraction(numerator, denominator)
