@@ -237,6 +237,8 @@ CATALOGUE = (
     ),
     _bundle("bundle_elisions_stored", bundles.bundle_elisions_stored, "group_1"),
     _bundle("bundle_elided_layerit", bundles.bundle_elided_layerit),
+    _bundle("bundle_arranged_roots", bundles.bundle_arranged_roots),
+    _bundle("bundle_arranged_conflict", bundles.bundle_arranged_conflict),
     _described("op106_work", statements.op106_work),
     _described("layerit_recording", statements.layerit_recording),
     _described("djset_segment", statements.djset_segment),

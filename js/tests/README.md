@@ -357,7 +357,7 @@ left out as the defaults `1` and `0` are, and the complete form of what
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (90, one per fixture) completes to the canonical YAML of its
+minimal twin (92, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
@@ -788,7 +788,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (180 files: bundles, groups and statements included), its value and its value
+  minimal twin (184 files: bundles, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and

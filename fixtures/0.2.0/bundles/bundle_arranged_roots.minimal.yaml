@@ -1,0 +1,247 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+graphical:
+  order:
+    "#group_1": ["#exposition", "#take_a"]
+    "#group_2": ["#development", "#notes"]
+    "#group_3": ["#recapitulation", "#annotations", "#take_b"]
+  timestamps:
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: "#timestamp_1"
+      name: origin
+      timeline: "#annotations"
+    -
+      coordinate: 600
+      display: [wedge, coordinate]
+      id: "#timestamp_2"
+      name: length
+      timeline: "#annotations"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_3"
+      name: origin
+      timeline: "#development"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_4"
+      name: length
+      timeline: "#development"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_5"
+      name: origin
+      timeline: "#exposition"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_6"
+      name: length
+      timeline: "#exposition"
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: "#timestamp_7"
+      name: origin
+      timeline: "#notes"
+    -
+      coordinate: 800
+      display: [wedge, coordinate]
+      id: "#timestamp_8"
+      name: length
+      timeline: "#notes"
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      id: "#timestamp_9"
+      name: origin
+      timeline: "#page"
+    -
+      coordinate: 1754
+      display: [wedge, coordinate]
+      id: "#timestamp_10"
+      name: length
+      timeline: "#page"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_11"
+      name: origin
+      timeline: "#recapitulation"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_12"
+      name: length
+      timeline: "#recapitulation"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_13"
+      name: origin
+      timeline: "#take_a"
+    -
+      coordinate: 30.0
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_14"
+      name: length
+      timeline: "#take_a"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_15"
+      name: origin
+      timeline: "#take_b"
+    -
+      coordinate: 30.0
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_16"
+      name: length
+      timeline: "#take_b"
+groups:
+  -
+    id: "#group_1"
+    members: ["#exposition", "#take_a"]
+    name: Exposition
+  -
+    id: "#group_2"
+    members: ["#development", "#notes"]
+    name: Development
+  -
+    id: "#group_3"
+    members: ["#annotations", "#recapitulation", "#take_b"]
+    name: Recapitulation
+meta:
+  generator: "timetoalign 1.2.0 (45d76023)"
+name: Arranged
+timelines:
+  -
+    id: "#annotations"
+    length: 600
+    name: Annotations
+    unit: pixels
+  -
+    id: "#notes"
+    length: 800
+    name: Notes
+    unit: pixels
+  -
+    id: "#page"
+    length: 1754
+    name: Page
+    unit: pixels
+  -
+    children:
+      -
+        id: "#exposition"
+        length: [16, 1]
+        locked: true
+        name: Exposition
+        offset: [0, 1]
+        unit: quarters
+      -
+        id: "#development"
+        length: [16, 1]
+        locked: true
+        name: Development
+        offset: [16, 1]
+        unit: quarters
+      -
+        id: "#recapitulation"
+        length: [16, 1]
+        locked: true
+        name: Recapitulation
+        offset: [32, 1]
+        unit: quarters
+    id: "#score"
+    length: [48, 1]
+    name: Score
+    unit: quarters
+  -
+    children:
+      -
+        id: "#take_a"
+        length: 30.0
+        locked: true
+        name: "Take A"
+        offset: 0.0
+        unit: seconds
+      -
+        id: "#take_b"
+        length: 30.0
+        locked: true
+        name: "Take B"
+        offset: 100.0
+        unit: seconds
+    id: "#session"
+    length: 130.0
+    name: Session
+    unit: seconds
+timetoshare: "0.2.0"

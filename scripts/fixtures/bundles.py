@@ -570,3 +570,84 @@ def bundle_elided_layerit() -> AlignmentBundle:
             TimelineGroup(name=excerpt_name, timelines=[excerpt, recording])
         )
     return bundle
+
+
+def bundle_arranged_roots() -> AlignmentBundle:
+    """Build a bundle whose groups stand side by side along two roots.
+
+    The score ``score`` ("Score", 48 quarters) holds three movements that
+    touch, the exposition ``exposition`` ("Exposition", 16 quarters) at 0,
+    the development ``development`` ("Development", 16 quarters) at 16 and
+    the recapitulation ``recapitulation`` ("Recapitulation", 16 quarters) at
+    32; the session ``session`` ("Session", 130.0 seconds) holds the takes
+    ``take_a`` ("Take A", 30.0 seconds) at 0.0 and ``take_b`` ("Take B", 30.0
+    seconds) at 100.0. The bundle "Arranged" groups ``exposition`` and
+    ``take_a`` as "Exposition", ``development`` and the notes ``notes``
+    ("Notes", 800 pixels) as "Development", and ``recapitulation``, the
+    annotations ``annotations`` ("Annotations", 600 pixels) and ``take_b`` as
+    "Recapitulation", and holds the page ``page`` ("Page", 1754 pixels)
+    ungrouped. Side by side the three groups follow one another along the
+    score, touching, and "Exposition" and "Recapitulation" hang on the
+    session too, with "Development" between them; the annotations lie
+    between the score's and the session's members in "Recapitulation", so
+    "Exposition" is padded above ``take_a``. Every group id is minted.
+    """
+
+    def quarters(parent: Timeline, uid: str, name: str, offset: int) -> Timeline:
+        child = parts.named(ContinuousLogicalTimeline, uid, name, Fraction(16))
+        return parts.holding(parent, child, Fraction(offset))
+
+    def seconds(uid: str, name: str, offset: float) -> Timeline:
+        take = parts.named(ContinuousPhysicalTimeline, uid, name, 30.0)
+        return parts.holding(session, take, offset)
+
+    def pixels(uid: str, name: str, length: int) -> Timeline:
+        return parts.named(DiscreteGraphicalTimeline, uid, name, Fraction(length))
+
+    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(48))
+    session = parts.named(ContinuousPhysicalTimeline, "session", "Session", 130.0)
+    exposition = quarters(score, "exposition", "Exposition", 0)
+    development = quarters(score, "development", "Development", 16)
+    recapitulation = quarters(score, "recapitulation", "Recapitulation", 32)
+    take_a = seconds("take_a", "Take A", 0.0)
+    take_b = seconds("take_b", "Take B", 100.0)
+    bundle = AlignmentBundle(name="Arranged")
+    bundle.add_group(TimelineGroup(name="Exposition", timelines=[exposition, take_a]))
+    bundle.add_group(
+        TimelineGroup(
+            name="Development", timelines=[development, pixels("notes", "Notes", 800)]
+        )
+    )
+    bundle.add_group(
+        TimelineGroup(
+            name="Recapitulation",
+            timelines=[
+                recapitulation,
+                pixels("annotations", "Annotations", 600),
+                take_b,
+            ],
+        )
+    )
+    bundle.add_timeline(pixels("page", "Page", 1754))
+    return bundle
+
+
+def bundle_arranged_conflict() -> AlignmentBundle:
+    """Build a bundle whose two groups overlap on one root.
+
+    The score ``score`` ("Score", 32 quarters) holds the themes ``theme_a``
+    ("Theme A", 16 quarters) at 0 and ``theme_b`` ("Theme B", 16 quarters) at
+    8. The bundle "Conflict" groups each theme alone, as "Theme A" and
+    "Theme B": their stretches on the score overlap from 8 to 16, so the two
+    groups cannot stand side by side. Every group id is minted.
+    """
+    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(32))
+    bundle = AlignmentBundle(name="Conflict")
+    for uid, name, offset in (("theme_a", "Theme A", 0), ("theme_b", "Theme B", 8)):
+        theme = parts.holding(
+            score,
+            parts.named(ContinuousLogicalTimeline, uid, name, Fraction(16)),
+            Fraction(offset),
+        )
+        bundle.add_group(TimelineGroup(name=name, timelines=[theme]))
+    return bundle

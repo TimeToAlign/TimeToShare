@@ -1,0 +1,351 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+graphical:
+  elisions: []
+  matchstamps: []
+  order:
+    "#group_1": ["#exposition", "#take_a"]
+    "#group_2": ["#development", "#notes"]
+    "#group_3": ["#recapitulation", "#annotations", "#take_b"]
+  rules: []
+  styles: {}
+  timestamps:
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_1"
+      matchstamp: false
+      name: origin
+      timeline: "#annotations"
+    -
+      coordinate: 600
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_2"
+      matchstamp: false
+      name: length
+      timeline: "#annotations"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_3"
+      matchstamp: false
+      name: origin
+      timeline: "#development"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_4"
+      matchstamp: false
+      name: length
+      timeline: "#development"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_5"
+      matchstamp: false
+      name: origin
+      timeline: "#exposition"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_6"
+      matchstamp: false
+      name: length
+      timeline: "#exposition"
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_7"
+      matchstamp: false
+      name: origin
+      timeline: "#notes"
+    -
+      coordinate: 800
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_8"
+      matchstamp: false
+      name: length
+      timeline: "#notes"
+    -
+      coordinate: 0
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_9"
+      matchstamp: false
+      name: origin
+      timeline: "#page"
+    -
+      coordinate: 1754
+      display: [wedge, coordinate]
+      groupstamp: false
+      id: "#timestamp_10"
+      matchstamp: false
+      name: length
+      timeline: "#page"
+    -
+      coordinate: [0, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_11"
+      matchstamp: false
+      name: origin
+      timeline: "#recapitulation"
+    -
+      coordinate: [16, 1]
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_12"
+      matchstamp: false
+      name: length
+      timeline: "#recapitulation"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_13"
+      matchstamp: false
+      name: origin
+      timeline: "#take_a"
+    -
+      coordinate: 30.0
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_14"
+      matchstamp: false
+      name: length
+      timeline: "#take_a"
+    -
+      coordinate: 0.0
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_15"
+      matchstamp: false
+      name: origin
+      timeline: "#take_b"
+    -
+      coordinate: 30.0
+      display: [wedge, coordinate, cross_section]
+      groupstamp: true
+      id: "#timestamp_16"
+      matchstamp: false
+      name: length
+      timeline: "#take_b"
+groups:
+  -
+    id: "#group_1"
+    members: ["#exposition", "#take_a"]
+    meta: {}
+    name: Exposition
+  -
+    id: "#group_2"
+    members: ["#development", "#notes"]
+    meta: {}
+    name: Development
+  -
+    id: "#group_3"
+    members: ["#annotations", "#recapitulation", "#take_b"]
+    meta: {}
+    name: Recapitulation
+measure_maps: []
+meta:
+  generator: "timetoalign 1.2.0 (45d76023)"
+name: Arranged
+resources: []
+timelines:
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#annotations"
+    is_segment_line: false
+    length: 600
+    locked: false
+    meta: {}
+    name: Annotations
+    number_type: int
+    regions: []
+    unit: pixels
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#notes"
+    is_segment_line: false
+    length: 800
+    locked: false
+    meta: {}
+    name: Notes
+    number_type: int
+    regions: []
+    unit: pixels
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#page"
+    is_segment_line: false
+    length: 1754
+    locked: false
+    meta: {}
+    name: Page
+    number_type: int
+    regions: []
+    unit: pixels
+  -
+    children:
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: "#exposition"
+        is_segment_line: false
+        length: [16, 1]
+        locked: true
+        meta: {}
+        name: Exposition
+        number_type: fraction
+        offset: [0, 1]
+        regions: []
+        unit: quarters
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: "#development"
+        is_segment_line: false
+        length: [16, 1]
+        locked: true
+        meta: {}
+        name: Development
+        number_type: fraction
+        offset: [16, 1]
+        regions: []
+        unit: quarters
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: "#recapitulation"
+        is_segment_line: false
+        length: [16, 1]
+        locked: true
+        meta: {}
+        name: Recapitulation
+        number_type: fraction
+        offset: [32, 1]
+        regions: []
+        unit: quarters
+    conversion_maps: []
+    flow_control: []
+    id: "#score"
+    is_segment_line: false
+    length: [48, 1]
+    locked: false
+    meta: {}
+    name: Score
+    number_type: fraction
+    regions: []
+    unit: quarters
+  -
+    children:
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: "#take_a"
+        is_segment_line: false
+        length: 30.0
+        locked: true
+        meta: {}
+        name: "Take A"
+        number_type: float
+        offset: 0.0
+        regions: []
+        unit: seconds
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: "#take_b"
+        is_segment_line: false
+        length: 30.0
+        locked: true
+        meta: {}
+        name: "Take B"
+        number_type: float
+        offset: 100.0
+        regions: []
+        unit: seconds
+    conversion_maps: []
+    flow_control: []
+    id: "#session"
+    is_segment_line: false
+    length: 130.0
+    locked: false
+    meta: {}
+    name: Session
+    number_type: float
+    regions: []
+    unit: seconds
+timetoshare: "0.2.0"
