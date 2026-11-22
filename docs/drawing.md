@@ -2005,7 +2005,9 @@ one below it.
   after `b`, compared exactly, or, across a frame, the proportions of its
   start and its end at or before `p` and at or after `q`, compared as
   doubles, the end of a member whose end is open (section 3.4, rule 2)
-  counting as 1; its **ordinate** is its line's `y`, or a map's centre `yc`. A
+  counting as 1, and an ancestor line that runs on to the right (section
+  8.3) counting as open like it, so that it crosses every gap at or after
+  its start; its **ordinate** is its line's `y`, or a map's centre `yc`. A
   row that crosses a gap stops at `x(a)` and resumes at `x(b)`: its line
   or outline is drawn in pieces, from run to run, with no end mark where a
   piece stops at a gap and no start mark where one resumes after it, and
@@ -2070,8 +2072,11 @@ elisions) has width `wi` and the proportion `ui` (section 3.2) of the
 exact position it is centred on, and its **carry** `vi`: a label of a
 named timestamp is centred at its timestamp's position, moved by the
 carry its wedge gives it (section 6.6, Labels of named timestamps;
-section 8.3), a label of an elision at its gap's middle `xm`, for which
-`L × u` stands for `xm − x0` (section 6.6, Elisions), and every other
+section 8.3), a label of an elision at its gap's middle (section 6.6,
+Elisions), for which `L × u` stands for `(l + r) / 2`, `l` and `r` the
+gap's edges less `x0`: `l = L × ua − D` with `D` the shrinks of the gaps
+left of it, and `r = L × ub − D'` with `D'` those and its own shrink
+(section 3.2), so that no `x0` enters it, and every other
 centred label has the carry 0.
 A centred label at `X` ends at `(X + vi) + wi / 2`. Its **right edge** is the largest right edge of any element it
 draws (lines, markers, wedges, braces, arcs, labels and names). Right
@@ -2542,8 +2547,10 @@ labels' largest font size), or `qr / 2` alone when no wedge or label of a
 named timestamp is drawn on it. The line of row 1 lies at `c0 + i1` from
 the member's line, `c0` the start of the band, and that of row `r + 1` at
 the distance `Δr` beyond row `r`: `Δr = or + i(r + 1)`, except on the
-side where the ancestor line of the root `R = A1` lies while `R`'s
-ancestor card behind `M`'s frame is drawn (section 8.8), where `Δr =
+side where the ancestor line of the root `R = A1` lies while an ancestor
+card of `R` is drawn behind `M`'s frame (section 8.8), whether it is
+aligned to `M` or to an earlier member below `R`, so in every member
+card of that frame below `R`, where `Δr =
 max(dr, or + i(r + 1))`, `dr` the distance between the lines of the two
 rows' ancestors in `R`'s drawing laid out alone (section 8.8, step 1),
 the larger of their ordinates less the smaller. Of the label stacks of
@@ -2553,8 +2560,10 @@ on the protected span alone (section 8.9), and leaves out those of the
 elisions it derives, whose coordinates depend on the card's proportion
 and the proportion on the height of `M`'s frame (section 8.9), so that
 `dr` depends on nothing of `M`'s card.
-So, `M`'s card lying aligned on `R`'s line (section 8.8), every ancestor
-row on that side lies at exactly its height on the card behind, with two
+So, in the card of the member the ancestor card is aligned to, which lies
+aligned on `R`'s line (section 8.8), every ancestor row on that side lies
+at exactly its height on the card behind (in a later member's card the
+rows keep those distances from one another), with two
 exceptions: where the wedges and labels of its own named timestamps need
 more room, that row and the rows beyond it lie further out; and where the
 labels of a derived elision widen a markers band of the card behind that
@@ -2652,9 +2661,13 @@ card, the descriptors of its member drawing and its gaps. A card's gaps
 drawing, gap by gap from the left, each gap's descriptors in this order:
 its rectangle where it is filled, its continuations, its ellipses, then
 its labels, name, ID and coordinate. A gap's rows, which its
-continuations and ellipses follow, are taken in the order their lines'
-and maps' descriptors are written (section 7.2), each line before the
-maps of its band. The descriptors of a member
+continuations and ellipses follow, are taken in their own order, which
+is not that of their descriptors (section 7.2, maps before lines): first
+the ancestor lines, from `A1` to `Ak` (section 8.3), then the lines of
+the member drawing in the traversal order of their timelines (section
+6.1), each line followed by the maps of its conversion maps band in the
+order that band places them (section 6.4); a row is taken only where it
+is drawn and crosses the gap (section 6.6, Elisions). The descriptors of a member
 drawing follow section 7.2, with its ancestor lines, from `A1` to `Ak`,
 each with its chevrons, just before its root; the wedges of the named
 timestamps' coordinates on them, from `A1` to `Ak`, each ancestor's in
@@ -3309,10 +3322,21 @@ the bottom of the bottommost (section 6.6); every row of every member
 card that crosses it stops and resumes there with its own ellipsis
 (section 6.6); its label stack is drawn once, in the markers band of the
 elision's own timeline `T` in its card in that frame (section 6.4,
-Markers), and nowhere else. The gap's elided coordinates on another
-member, or on a timeline its card draws, are the positions at the
-proportions `p` and `q` of that member's drawn length, read as a
-groupstamp's coordinates on it are (section 2), exact, and without a
+Markers), and nowhere else. Its labels show the piece's ends on `T`'s
+own axis: the elision's `start` and `end` where the piece is its whole
+stretch, neither clipped to `[0, 1]` nor cut by an earlier piece; on any
+other piece both ends are read on `T` at the piece's proportions, `p ×
+λ` and `q × λ` on `M`'s axis (the double `p` taken at its exact binary
+value and the product exact where `λ` is, binary64 where `λ` is a
+float), less `T`'s start on `M`'s axis, combined as section 3.1 combines
+values, and written as section 5.2 writes a coordinate. The gap's elided
+coordinates on another member, or on a timeline its card draws, are the
+positions at the proportions `p` and `q` of that member's drawn length,
+read as a groupstamp's coordinates on it are (section 2), exact: each the
+exact product of the proportion and that member's length, a float of
+either taken at its exact binary value, the proportion of a whole piece
+being the exact quotient of the elision's `start` or `end`, carried to
+`M`'s axis, and `λ`, and that of any other piece its double. They have no
 value where a groupstamp's coordinate would have none: on a member of
 unknown length, and on every member when `M`'s length is unknown. They
 are listed by an application and never drawn. The gap is a place of the
@@ -3404,7 +3428,7 @@ elided card lies within the view. With, in `G`'s item coordinates:
 | `sG` | `G`'s `scale` (section 8.6) |
 | `L`, `L'`, `x0` | `G`'s graphical length, its members' drawn length (section 8.2; `L` without group elisions) and the start of its member drawings |
 | `Fw`, `Fh` | the width and the height of `G`'s frame as drawn (sections 8.2, 8.4 and 8.6, its requests included); its centre `c = Fw / 2` |
-| `σ` | `K + N' + G'` of `R`'s drawing alone (section 8.8, step 1): its name column and the gap after it, which gaps do not change |
+| `σ` | `K + N' + G'` of `R` laid out as section 8.8, step 1 lays it out but without any gap, and so without the label stacks of its elisions (section 6.4, Markers), which can change its rows and so its names: its name column and the gap after it, `N'` the width of its widest name and `G'` 8 where it draws a name and 0 otherwise (section 8.2) |
 | `EL`, `ER` | the stretches of `R` left and right of `M`, on `M`'s axis: `EL = −ts` and `ER = te − λ` (section 8.8), and `E = EL + ER`, each combined as section 3.1 combines values |
 
 the zoom at which the group's frame fills four fifths of the view, capped
