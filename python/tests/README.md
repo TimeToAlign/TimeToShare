@@ -2272,14 +2272,19 @@ with the same message. What proves it (`test_table_checks.py`):
   `furlongs`, no unit, the unit `5` (number type `int`), the number type
   `7` (unit `samples`), the unit null (number type `int`), the unit a
   list. Unnamed, none changes the outcome: both tables have no problem.
-  Named, the outcome is the reference's: `furlongs` raises
-  `KeyError: 'furlongs'` and no unit `KeyError: 'unit'` (the unit's
-  default number type is looked up, as before), a list unit with a stated
-  number type, `5`, `7` and null are an `axis_mismatch` at every cell or
-  row on `dpt_1`, worded with the value as Python prints it (`a coordinate
-  in samples (int) on the timeline 'dpt_1' in None (int)`). A check that
-  reads a timeline no row reaches, or compares a null unit as a column
-  value (null equal to everything), fails here.
+  Named, every one is an `axis_mismatch` at every cell or row on
+  `dpt_1`. A unit that is missing or unknown, with no number type stated
+  (`furlongs`, no unit), has no axis to compare with; the problem says so
+  (`a coordinate in samples (int) on the timeline 'dpt_1', whose unit
+  'furlongs' is unknown`, `..., which has no unit`). This case used to
+  raise `KeyError` from the default number type's lookup, which made a
+  server that checks a posted table without validating its manifest answer
+  with an error instead of a problem; the reference was changed alike, so
+  the comparison still proves identity. A list unit with a stated number
+  type, `5`, `7` and null are worded with the value as Python prints it
+  (`a coordinate in samples (int) on the timeline 'dpt_1' in None (int)`).
+  A check that reads a timeline no row reaches, or compares a null unit as
+  a column value (null equal to everything), fails here.
 - **Seeded mutations.** 1,920 MatchClaim tables (160 per kind) and 1,000
   Projections tables (100 per kind; the two provenance kinds do not apply
   to them), each drawn from its own stream

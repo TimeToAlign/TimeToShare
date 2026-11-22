@@ -70,8 +70,18 @@ class _Axes:
         else that of the first cell seen on it, else ``None``."""
         timeline = (self.timelines or {}).get(timeline_id)
         if timeline is not None:
-            return (timeline["unit"], number_type_of(timeline))
+            return self.own(timeline)
         return self.seen.get(timeline_id)
+
+    @staticmethod
+    def own(timeline: dict[str, Any]) -> tuple[Any, Any]:
+        """A manifest timeline's unit and number type; the number type is
+        ``None`` where the unit is missing or unknown and none is stated."""
+        unit = timeline.get("unit")
+        try:
+            return (unit, number_type_of(timeline))
+        except (KeyError, TypeError):
+            return (unit, None)
 
     def axis(
         self, row: int, column: Column, timeline_id: str, axis: tuple[str, str]
@@ -81,15 +91,24 @@ class _Axes:
             timeline = self.timelines.get(timeline_id)
             if timeline is None:
                 return None
-            own = (timeline["unit"], number_type_of(timeline))
+            own = self.own(timeline)
             if axis != own:
-                return TableProblem(
-                    "axis_mismatch",
-                    row,
-                    column,
-                    f"a coordinate in {axis[0]} ({axis[1]}) on the timeline "
-                    f"'{timeline_id}' in {own[0]} ({own[1]})",
-                )
+                if own[1] is None:
+                    reason = (
+                        "which has no unit"
+                        if own[0] is None
+                        else f"whose unit {own[0]!r} is unknown"
+                    )
+                    message = (
+                        f"a coordinate in {axis[0]} ({axis[1]}) on the timeline "
+                        f"'{timeline_id}', {reason}"
+                    )
+                else:
+                    message = (
+                        f"a coordinate in {axis[0]} ({axis[1]}) on the timeline "
+                        f"'{timeline_id}' in {own[0]} ({own[1]})"
+                    )
+                return TableProblem("axis_mismatch", row, column, message)
         first = self.seen.setdefault(timeline_id, axis)
         if first != axis:
             return TableProblem(

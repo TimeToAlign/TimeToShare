@@ -509,11 +509,17 @@ class _Manifest:
 
     def axis(self, timeline_id: str) -> tuple[Any, Any] | None:
         """The unit and number type of a timeline as the manifest states
-        them, whatever their type, or ``None`` where it has no such timeline."""
+        them, whatever their type, or ``None`` where it has no such timeline.
+        A timeline whose unit is missing or unknown and which states no
+        number type has no axis: its number type is ``None``."""
         timeline = self.timelines.get(timeline_id)
         if timeline is None:
             return None
-        return (timeline["unit"], number_type_of(timeline))
+        unit = timeline.get("unit")
+        try:
+            return (unit, number_type_of(timeline))
+        except (KeyError, TypeError):
+            return (unit, None)
 
 
 def _unknown_problems(
@@ -638,6 +644,11 @@ def _mismatched(cells: pa.Table, manifest: _Manifest | None) -> list[dict[str, A
 def _mismatch(cell: Mapping[str, Any], manifest: bool) -> str:
     axis = f"{cell['unit']} ({cell['number_type']})"
     expected = f"{cell['expected_unit']} ({cell['expected_number_type']})"
+    if manifest and cell["expected_number_type"] is None:
+        unit = cell["expected_unit"]
+        return f"a coordinate in {axis} on the timeline '{cell['timeline']}', " + (
+            "which has no unit" if unit is None else f"whose unit {unit!r} is unknown"
+        )
     if manifest:
         return (
             f"a coordinate in {axis} on the timeline '{cell['timeline']}' in {expected}"

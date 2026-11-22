@@ -120,16 +120,16 @@ _BAD_NAMES = [
     "list-unit",
 ]
 _NAMED_OUTCOMES = {
-    "furlongs": ("raises", "KeyError", "'furlongs'"),
-    "no-unit": ("raises", "KeyError", "'unit'"),
-    "unit-5": "in 5 (int)",
-    "number-type-7": "in samples (7)",
-    "null-unit": "in None (int)",
-    "list-unit": "in ['samples'] (int)",
+    "furlongs": ", whose unit 'furlongs' is unknown",
+    "no-unit": ", which has no unit",
+    "unit-5": " in 5 (int)",
+    "number-type-7": " in samples (7)",
+    "null-unit": " in None (int)",
+    "list-unit": " in ['samples'] (int)",
 }
 """What the inline tables meet against a manifest whose ``dpt_1`` is the bad
-timeline: an exception, or an ``axis_mismatch`` at every cell or row on
-``dpt_1`` whose expected axis is worded so."""
+timeline: an ``axis_mismatch`` at every cell or row on ``dpt_1``, whose
+message ends as worded here."""
 
 
 def _with_bad_timeline(manifest: dict, bad: dict, named: bool) -> dict:
@@ -150,26 +150,18 @@ def _with_bad_timeline(manifest: dict, bad: dict, named: bool) -> dict:
 @pytest.mark.parametrize("bad", BAD_TIMELINES, ids=_BAD_NAMES)
 def test_a_bad_timeline_is_read_where_a_row_reaches_it(bad: dict, named: bool) -> None:
     manifest = _with_bad_timeline(MANIFEST, bad, named)
-    for compared, check, table in (
-        (assert_same_claim_problems, match_claim_problems, claims_table(CLAIMS)),
-        (
-            assert_same_projection_problems,
-            projection_problems,
-            projections_table(PROJECTIONS),
-        ),
+    for compared, table in (
+        (assert_same_claim_problems, claims_table(CLAIMS)),
+        (assert_same_projection_problems, projections_table(PROJECTIONS)),
     ):
         problems = compared(table, manifest)
         if not named:
             assert problems == []
             continue
         outcome = _NAMED_OUTCOMES[_BAD_NAMES[BAD_TIMELINES.index(bad)]]
-        if isinstance(outcome, tuple):
-            assert problems == ["raised"]
-            assert _outcome(check, table, manifest) == outcome
-            continue
         assert {problem.code for problem in problems} == {"axis_mismatch"}
         assert problems[0].message == (
-            f"a coordinate in samples (int) on the timeline 'dpt_1' {outcome}"
+            f"a coordinate in samples (int) on the timeline 'dpt_1'{outcome}"
         )
 
 
