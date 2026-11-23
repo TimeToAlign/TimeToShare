@@ -58,18 +58,14 @@
 <text data-id="v" data-part="name" x="32" y="326.9583" text-anchor="start" font-size="16.5" fill="#000000">Page</text>
 <text data-id="timestamp_6" data-part="coordinate" x="149.4373" y="358.5271" text-anchor="middle" font-size="13.5" fill="#000000">0 px</text>
 <text data-id="timestamp_7" data-part="coordinate" x="635.4373" y="358.5271" text-anchor="middle" font-size="13.5" fill="#000000">800 px</text>
-<circle data-id="elision_1" data-part="ellipsis" cx="158.2915" cy="68.0117" r="2" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="164.2915" cy="68.0117" r="2" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="170.2915" cy="68.0117" r="2" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="158.2915" cy="125.3906" r="2" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="164.2915" cy="125.3906" r="2" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="170.2915" cy="125.3906" r="2" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="233.4373" cy="235.1777" r="3" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="242.4373" cy="235.1777" r="3" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="251.4373" cy="235.1777" r="3" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="233.4373" cy="321.2461" r="3" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="242.4373" cy="321.2461" r="3" fill="#000000"/>
-<circle data-id="elision_1" data-part="ellipsis" cx="251.4373" cy="321.2461" r="3" fill="#000000"/>
+<circle data-id="elision_1" data-part="ellipsis" cx="158.2915" cy="106.9883" r="2" fill="#000000"/>
+<circle data-id="elision_1" data-part="ellipsis" cx="164.2915" cy="106.9883" r="2" fill="#000000"/>
+<circle data-id="elision_1" data-part="ellipsis" cx="170.2915" cy="106.9883" r="2" fill="#000000"/>
+<text data-id="elision_1" data-part="name" x="164.2915" y="119.3423" text-anchor="middle" font-size="9" fill="#6B7280">Score</text>
+<circle data-id="elision_1" data-part="ellipsis" cx="233.4373" cy="293.6426" r="3" fill="#000000"/>
+<circle data-id="elision_1" data-part="ellipsis" cx="242.4373" cy="293.6426" r="3" fill="#000000"/>
+<circle data-id="elision_1" data-part="ellipsis" cx="251.4373" cy="293.6426" r="3" fill="#000000"/>
+<text data-id="elision_1" data-part="name" x="242.4373" y="312.1736" text-anchor="middle" font-size="13.5" fill="#6B7280">Score</text>
 <line data-id="timestamp_1" data-part="line" x1="226.2915" y1="102.9883" x2="226.2915" y2="160.3672" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_1" data-part="line" x1="335.4373" y1="287.6426" x2="335.4373" y2="373.7109" stroke="#1BA1E2" stroke-width="1.5" stroke-dasharray="4.5 4.5"/>
 </g>

@@ -3012,11 +3012,11 @@ The fixture `group_parent_both` drawn with the defaults shows the root
 `piece` (16 quarters) behind the frame of its child `middle` (8 quarters
 at offset 4), so `us = −0.5` and `ue = 1.5` and `LA = 800` at the
 length 400; its proportion is 1 (section 8.9), so it derives no elision,
-and the card is written at `x` 8 and `y` 36.207, 869.3354 wide
-and 63.3789 high, `piece`'s line runs from 60.3354 to 860.3354 at
+and the card is written at `x` 8 and `y` 36.207, 1013.0391 wide
+and 63.3789 high, `piece`'s line runs from 60.3354 to 1004.0391 at
 `y` 85.1836, on the faded ancestor line of `piece`, which the default band
 order puts below `middle`'s line in `middle`'s card, and the block grows
-to the left, its place origin at `(148.6318, 0)`. In the card `middle`'s
+to the left, its place origin at `(252.3354, 0)`. In the card `middle`'s
 row lies above `piece`'s line, at 51.207, 4 lower than `middle`'s own line
 at 47.207: between `middle`'s markers band and the line of `piece`,
 `middle`'s card holds the card spacing `S` and the inner half 7 of the
@@ -3232,7 +3232,7 @@ Every item is 567.39013671875 wide, so with the row gap 48 they lie at
 
 - Vertically: `score`'s once card, laid out at `LA` = 1200, has its line
   at 82.953125 of 97.35546875, `session`'s, at `LA` = 1733.3333333333333,
-  at 48.9765625 of 63.37890625. The ancestor line of `score` lies at
+  at 48.9765625 of 83.953125. The ancestor line of `score` lies at
   77.18359375 in each frame, that of `session` at 152.5625 in Exposition
   and 209.94140625 in Recapitulation, so `session`'s line lies at the
   largest of 71.37890625, 75.37890625 and 132.7578125, the last set by
@@ -3260,8 +3260,8 @@ Every item is 567.39013671875 wide, so with the row gap 48 they lie at
 - The once cards span 591.36669921875 to 2398.839599609375 (`score`,
   `s0'` = 159.41357421875) and 652.52734375 to 2398.560546875
   (`session`, `s0'` = 98.2529296875). The block is 2429.560546875 wide,
-  the right edge of Recapitulation's frame plus `P`, and 275.515625
-  high, the bottom of Exposition's and Recapitulation's frames plus `P`.
+  the right edge of Recapitulation's frame plus `P`, and 289.4921875
+  high, the bottom of `session`'s once card with its shadow plus `P`.
 
 ### 8.9 Elisions
 
@@ -3538,8 +3538,8 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   171.5625 high, gives `zG` = 1.8833790598156273 and `c` =
   271.851806640625, and with `x0` = 103.70361328125 and `σ` =
   87.4248046875 (`N'` the width of the row name `First, Second`), `dl` =
-  255.572998046875 and `dr` = 239.851806640625, so (b)'s terms are
-  1.1530675048828123 on the left and 0.19872841389973955 on the right.
+  359.276611328125 and `dr` = 279.851806640625, so (b)'s terms are
+  0.8938084716796874 on the left and 0.1820617472330729 on the right.
   The natural widths are 400, 800 and
   1600, `W` 57.14285714285714, 114.28571428571428 and
   228.57142857142856, and `h / k` 0.2514285714285714, 0.8228571428571427
@@ -3547,7 +3547,8 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   so each is a gap whole, 57.14285714285714 and 114.28571428571428 wide;
   the third leaves out `second` 1–31 (labelled `1–31 ♩`), keeping 50 of
   `second` at full scale on each side, its gap 128.57142857142856 wide.
-  `DL` = 342.8571428571429, the shrink of the one gap left of the frame.
+  `DL` = 239.1535295758929, the shrink 342.8571428571429 of the one gap
+  left of the frame less `OL` = 103.70361328125.
   The gaps over `first` cut the rows of `piece` and `first`, that over
   `second` the rows of `piece` and `second`, each gap with one ellipsis.
 - The fixture `bundle_elided_layerit`, the card of the suite `clt_1`
@@ -3561,8 +3562,8 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   = 1.6441777433512452 and `c` = 311.40185546875; `σ` = 175.8974609375,
   `N'` = 159.8974609375 being the width of the movements' row name cut to
   `Prelude, Menuet, Clair de L…` (section 6.6, Names), so `dl` =
-  304.49560546875, `dr` = 279.40185546875 and (b)'s terms are
-  0.041662494956376306 on the left and 0.03205686727020561 on the right.
+  487.29931640625, `dr` = 319.40185546875 and (b)'s terms are
+  0.023190563087691803 on the left and 0.029125271179000402 on the right.
   Depth 2 gives
   the pieces Prelude 0–356, Menuet 0–312, Clair de Lune 27–324 and
   Passepied 0–624, drawn `W` = 89.61611076148522, 78.53996224040277,
@@ -3602,14 +3603,15 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   of 150 and 66.66666666666666. Under `auto`
   it derives elisions at `r` = 0.5 × (248.66666666666669 / 400) =
   0.31083333333333335, set by (a), the frame being drawn 383.2599283854167
-  wide (`DG` narrower) and 240.015625 high: `zG` = 2.399843760171864, `c`
+  wide (`DG` narrower) and 259.9921875 high: `zG` = 2.2154511854322547, `c`
   = 191.62996419270834, `x0` = 90.09326171875, `σ` = 58.09326171875, `dl`
-  = 159.62996419270834 and `dr` = 155.12996419270834, so (b)'s terms are
-  1.392925089518229 and 1.404175089518229. Depth 1 gives `piece` 0–16 and
+  = 249.72322591145834 and `dr` = 199.62996419270834, so (b)'s terms are
+  1.167691935221354 and 1.292925089518229. Depth 1 gives `piece` 0–16 and
   32–48, each of natural width 400, `W` = 124.33333333333334 and `h / k`
   = 1.846666666666667, so their gaps leave out `piece` 1–15 and 33–47,
   25 at full scale on either side and 74.33333333333334 wide; `DL` =
-  275.66666666666663.
+  185.57340494791663, their shrink 275.66666666666663 left of the frame
+  less `OL` = 90.09326171875.
 - Stored elisions, the fixture `bundle_elisions_stored`. In the ancestor
   card of `score` (64 quarters) aligned to its child `theme` (8 at 16;
   `LA` = 3200, the protected span 16 to 24), under `auto`, which reads

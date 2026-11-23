@@ -174,7 +174,7 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   `group__group_grandchild`, `group__group_child_member_stamps`,
   `group__group_grandchild_parent_on_top`, `group__group_elided_inside`,
   `group__group_elided_members` and the four `__full` cases), each to the
-  left alone. In
+  left, and in `group__group_grandchild_parent_on_top` also above `Pt`. In
   every other hand-derived drawing `Xl` = `Yt` = 0 and the origin is (0,
   0), so `Wb = P` plus the largest right edge and `Hb = P` plus the
   largest bottom edge. No drawing here requests a block size, so `W = Wb`
@@ -265,9 +265,18 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   us`, `xe = s0 + L × ue` and `LA = xe − xs`. The card is `R` drawn as the
   one ungrouped root of a block holding nothing else, at the length `LA`,
   spacing 4 and margin 0: its own start `s0' = K + N' + G'`, `N'` the widest
-  name of `R`'s own drawing (every name there at size 11, none faded), its
-  left edge `xs − s0'` and its width `s0' + LA + Mr' + K`, `Mr'` the
-  furthest a right edge of that drawing lies past `s0' + LA`. It is moved so
+  name of `R`'s own drawing (every name there at size 11, none faded), and
+  `Mr'` the furthest a right edge of that drawing lies past `s0' + LA`. Its
+  axis has two seams (§3.2, §8.8 step 2), at the start and the end of
+  `M`'s span on `R`: `OL = s0`, the frame's room from its left edge to its
+  member drawings, and `OR = Fw − (s0 + L')`, `Fw` the frame's width, the
+  room from the members' drawn end to its right edge. Everything left of
+  the span, the names included, lies `OL` further left than without them,
+  and everything right of it `OR` further right; a position at either seam
+  lies on the span's side, and `R`'s line runs whole across both. So the
+  card is moved by `dx = (xs − OL) − s0'` without gaps, its left edge
+  `xs − OL − s0'`, and its width is `OL + s0' + LA + Mr' + K`, plus `OR`
+  where `R` ends right of `M`'s span. It is moved so
   that `R`'s line lies on `R`'s faded line in `M`'s card, and drawn at
   the frame's place, after the block's background and before the frame
   (§8.5). It takes no room, but the block grows to hold it, its shadow
@@ -301,9 +310,9 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   `zG` exceeds `Z`, `zb` = `Z` and `B` = 1024 / (2 × `Z`) = 716.8. `r` =
   min(1, `λ / E × (L' / L)`, (`B − dl`) / (`L × uL`), (`B − dr`) / (`L ×
   uR`)), `σ` = `K + N' + G'`, here equal to `s0'`, `c` = `Fw / 2`, `dl =
-  (c − x0) + σ` and `dr = ((x0 + L') + 8) − c`, `x0` the start of the
-  frame's member drawings in item coordinates (`s0` above) and `L' = L`
-  but in `group__group_elided_members`. With `elision-depths` `auto` every
+  c + σ` and `dr = (Fw + 8) − c`, the seams putting what lies outside
+  `M`'s span outside the frame's edges, and `L' = L` but in
+  `group__group_elided_members`. With `elision-depths` `auto` every
   depth is chosen: the pieces are taken from `M`'s parent's depth up to
   `R`'s, each stretch outside `M`'s span and outside every earlier one.
   Each piece over `[a, b]` of its timeline's axis has the natural width `n
@@ -313,25 +322,42 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   the visible ends `e1` and `e2` keep their natural widths, and the gap is
   `g = W − e1 − e2` wide, its shrink its own natural width less `g`. The
   card's own x is `s0' + (LA × u − D)`, `D` the shrinks of the gaps ending
-  at or before the position, and the card is moved by `dx = (xs + DL) −
-  s0'`, `DL` the shrinks left of `M`, so its width is its elided right edge
+  at or before the position, and `−OL` and `−OR` for the seams it lies
+  right of (on the span's side of), summed from the left; the card is moved by `dx = (xs + DL) −
+  s0'`, `DL` the shrinks left of `M` less `OL`, so its width is its elided right edge
   plus `K` and, where it is the leftmost item, the origin is `−dx`, the
   card drawn at `x` = 8 and each of its x at 8 plus its own. A gap is not
   filled and writes no rectangle. Every line of the card whose span holds
   the whole gap stops at its left edge and resumes at its right edge: it is
   written as one `<line>` per piece between the gaps, from the left, a
   piece of no length not written, then its start mark and its end mark,
-  each kept where the line really starts or ends at a gap's edge; and on
-  that line the gap draws its ellipsis, three `<circle>`s of radius 2
-  filled `#000000` at `xm − 6`, `xm` and `xm + 6`, `xm = (x(a) + x(b)) / 2`
-  in the card's own coordinates, addressed `{"id": T, "part": ["elision",
-  "ellipsis"]}` (`data-part="elision ellipsis"`), `T` the timeline the
-  piece lies on. The defaults draw no continuation and no label of a
-  derived elision. The gaps follow the card's member drawing, from the
-  left, each its ellipses line by line in the order the lines are written
-  (§8.5). No element but a line marks a position inside a gap here: the
-  cross-section lines of `M`'s `origin` and `length` lie at the ends of
-  `M`'s span, which no gap holds.
+  each kept where the line really starts or ends at a gap's edge. A gap
+  that ends where `M`'s span starts, or starts where it ends, lies wholly
+  outside the frame: its edge at the seam lies on its own side, at the
+  frame's edge, and the rows running on from it cross the seam whole
+  under the frame (§8.8 step 2: everything left of the span lies left of
+  the frame, everything right of it right of the frame, and `R`'s line
+  runs whole across both seams). The gap draws one ellipsis, three
+  `<circle>`s of radius 2 filled `#000000` at `xm − 6`, `xm` and `xm + 6`
+  and `ym`, `xm = (x(a) + x(b)) / 2` in the card's own coordinates and
+  `ym` the middle of the card's height, addressed `{"id": T, "part":
+  ["elision", "ellipsis"]}` (`data-part="elision ellipsis"`), `T` the
+  timeline the piece lies on; and, the card's `elision-display` being
+  `ellipsis name` (§2.5), its name label, the name of `T` at size 9,
+  filled `#6B7280`, centred on `xm` with its baseline at `ym + 4 + a(9)`
+  = `ym` + 12.35400390625 (§6.6), addressed `{"id": T, "part":
+  ["elision", "name"]}`. The label's room is a stack in `T`'s markers
+  band of the card, one tier at its full-scale place (§6.4, Markers), so
+  `T`'s markers band below its line is 26.9765625 wide: a row of
+  movements so gets the inner half 26.9765625 for 7 and `R` the outer
+  edge 26.9765625 below its line for 6.40234375, which moves the card's
+  rows and its height but none of `M`'s card, whose ancestor rows count
+  no derived stack (§8.3). The defaults draw no continuation. The gaps
+  follow the card's member drawing, from the left, each its ellipsis then
+  its label (§8.5). No element but a line marks a position inside a gap
+  here: the cross-section lines of `M`'s `origin` and `length` lie at the
+  ends of `M`'s span, which no gap holds, and cross the card from its top
+  to its bottom less their gap.
 
 ## `bare`
 
@@ -551,9 +577,11 @@ The group "Second half" in the display order `second-half`, `recording`:
 the child `second-half` (8 quarters at 8) of the piece `piece` (16
 quarters), and the root `recording` (10.0 seconds). The member
 `second-half` carries the ancestor line of `piece` below its own line
-(Shared quantities), which runs on to the left, and `piece` is drawn whole in its ancestor card behind the frame
-(§8.8). The bullets before the ancestor card's give positions in place
-coordinates; drawn, each lies 368 further right.
+(Shared quantities), which runs on to the left, and `piece` is drawn in
+its ancestor card behind the frame (§8.8), with the elision it derives
+(§8.9). The bullets before the
+ancestor card's give positions in place coordinates; drawn, each lies
+447.99018554687495 further right.
 
 - `xn` = 24 (a frame). `N` = w(`Second half`, 11) = 64.61962890625, of
   `Second half`, `Piece` and `Recording`.
@@ -597,29 +625,57 @@ coordinates; drawn, each lies 368 further right.
   −8, `λ` = 8, `te` = −8 + 16 = 8, so `us` = −1, `ue` = 1, `xs` =
   −287.38037109375, `xe` = 512.61962890625 and `LA` = 800. `N'` =
   w(`Second half`, 11) = 64.61962890625 (wider than `Piece`, 29.2724609375),
-  `s0'` = 80.61962890625; the left edge `xs − s0'` = −368, the place −360;
-  `Mr'` = the arrowhead of `piece`, `3w` = 9, beyond the half of the label
-  `8 ♩` of `length` at the end of `second-half` (2920 advances,
-  12.83203125 wide), so the card is 80.61962890625 + 800 + 9 + 8 =
-  897.61962890625 → 897.6196 wide. `r` = 1 (`λ / E` = 1): drawn whole.
-  `piece`'s ancestor line in `second-half`'s card lies at 85.18359375 and
-  `piece`'s line 48.9765625 below its card's top, so the card's top is
-  85.18359375 − 48.9765625 = 36.20703125 → 36.207, 63.37890625 → 63.3789
-  high, its bottom with its shadow at 101.5859375, inside the frame. `Xl`
-  = −360 − 8 = −368 and `Yt` = 0: the origin is (368, 0), and the card is
-  drawn at (8, 36.207), its shadow at (10, 38.207). In it (drawn):
-  `piece`'s line at 85.1836 from 8 + 80.61962890625 = 88.61962890625 →
-  88.6196 to 888.61962890625 → 888.6196, its arrowhead's tip at 897.6196;
+  `s0'` = 80.61962890625; `Mr'` = the arrowhead of `piece`, `3w` = 9,
+  beyond the half of the label `8 ♩` of `length` at the end of
+  `second-half` (2920 advances, 12.83203125 wide). The seams: `OL` =
+  112.61962890625 and `OR` = 537.61962890625 − 512.61962890625 = 25, at
+  `piece`'s 8 and 16; `piece` ends with `second-half`, at the second
+  seam, on the span's side, so nothing lies right of the span.
+- Derived (Shared quantities): `Fw` = 537.61962890625, `Fh` = 157.5625,
+  `zG` = min(4, 1.9046923604394008, 3.6556921856406186) =
+  1.9046923604394008, `zb` = `Z`, `B` = 716.8, `c` = 268.809814453125,
+  `σ` = 80.61962890625, `dl` = 349.429443359375; `EL` = 8, `ER` = 0, `E`
+  = 8, `uL` = 1: `r` = min(1, 1, (716.8 − 349.429443359375) / 400) =
+  0.9184263916015624, set by the left term, the right one left out.
+  Depth 1 gives `piece` 0–8, natural width 400 at `LA` = 800 (`k` = 50),
+  `W` = 367.37055664062495, `h` = 167.68527832031248 and `h / k` =
+  3.3537055664062496: the gap leaves out `piece` 3–5, the visible ends
+  150 each, the gap 67.37055664062495 wide of 100, shrink
+  32.629443359375045. `DL` = 32.629443359375045 − 112.61962890625 =
+  −79.99018554687495, `dx` = (−287.38037109375 − 79.99018554687495) −
+  80.61962890625 = −447.99018554687495, the card's place
+  −439.99018554687495; own x(3) = 230.61962890625, x(5) =
+  297.99018554687495, x(8) = 560.609814453125 and x(16) =
+  960.609814453125, the card 960.609814453125 + 9 + 8 = 977.609814453125
+  → 977.6098 wide. Vertically the stack `Piece` of the gap in `piece`'s
+  markers band makes the card 48.9765625 + 26.9765625 + 8 = 83.953125 →
+  83.9531 high, `piece`'s line still 48.9765625 below its top.
+  `piece`'s ancestor line in `second-half`'s card lies at 85.18359375, so
+  the card's top is 85.18359375 − 48.9765625 = 36.20703125 → 36.207, its
+  bottom 120.16015625 and with its shadow 122.16015625, inside the frame.
+  `Xl` = −447.99018554687495 and `Yt` = 0: the origin is
+  (447.99018554687495, 0), and the card is drawn at (8, 36.207), its
+  shadow at (10, 38.207). In it (drawn): `piece`'s line at 85.1836 from
+  8 + 80.61962890625 = 88.61962890625 → 88.6196 to the gap at
+  238.61962890625 → 238.6196 and from 305.99018554687495 → 305.9902 to
+  968.609814453125 → 968.6098, its arrowhead's tip at 977.6098;
   `second-half`'s row at 36.20703125 + 15 = 51.20703125 → 51.207 from
-  488.6196 (8 of 16 quarters) to 888.6196, the wedges of `origin` and
-  `length` and their labels `0 ♩` and `8 ♩` (baseline 76.061) at its ends,
-  and their cross-section lines from 36.207 to 52.707 and from 78.1836 to
-  99.5859; the names `Second half` and `Piece` at 8 + `K` = 16, with the
-  baselines 55.0151 and 88.9917.
-- `W` = 8 + (529.61962890625 + 8 + 8) + 368 = 921.61962890625, the
-  frame's right edge beyond the card's shadow at −360 + 897.61962890625 +
-  2 = 539.61962890625; `H` = 8 + (8 + 157.5625) = 173.5625.
-- Page 953.61962890625 × 205.5625 → **953.6196 × 205.5625**.
+  568.6098, where its own line starts in the frame (120.61962890625 +
+  447.99018554687495), to 968.6098, the wedges of `origin` and `length`
+  and their labels `0 ♩` and `8 ♩` (baseline 76.061) at its ends, and
+  their cross-section lines from 36.207 to 52.707 and from 78.1836 to the
+  card's bottom 120.1602; the names `Second half` and `Piece` at 8 + `K`
+  = 16, with the baselines 55.0151 and 88.9917; then the gap's ellipsis
+  at `xm` = 272.3049072265625 (circles at 266.3049, 272.3049 and
+  278.3049) and `ym` = (36.20703125 + 120.16015625) / 2 = 78.18359375 →
+  78.1836, and its label `Piece` at 272.3049 with the baseline
+  90.53759765625 → 90.5376.
+- `W` = 8 + (529.61962890625 + 8 + 8) + 447.99018554687495 =
+  1001.609814453125, the frame's right edge beyond the card's shadow at
+  −439.99018554687495 + 977.609814453125 + 2 = 539.61962890625; `H` = 8 +
+  (8 + 157.5625) = 173.5625.
+- Page 1033.609814453125 × 205.5625 → **1033.6098 × 205.5625**.
+
 
 ## `group__group_parents_mixed`
 
@@ -638,8 +694,8 @@ colour of the physical domain they convert to, the first dotted `1 1`
 (§8.8), `session` and `page` with the elisions they derive (§8.9) and every
 card whole in `group__group_parents_mixed__full`, and `take`'s map is drawn
 again in `session`'s. The bullets before the ancestor cards' give
-positions in place coordinates; drawn, each lies 168 further right, and
-423.5276884191177 in the `__full` case.
+positions in place coordinates; drawn, each lies 273.0302734375 further
+right, and 528.5579618566177 in the `__full` case.
 
 - `xn` = 24. `N` = w(`Exposition`, 11) = 57.0302734375.
 - `x0` = the chevron term 24 + 57.0302734375 + 8 + 24 = 113.0302734375 →
@@ -695,30 +751,35 @@ positions in place coordinates; drawn, each lies 168 further right, and
   from 32.8047 to 183.6602 and from 251.0391 down, `take`'s from 32.8047
   to 108.1836 and from 175.6602 down.
 - The ancestor cards (Shared quantities), one per root in the members'
-  display order, `s0` = 105.0302734375 (`x0` less the place's 8):
+  display order, `s0` = 105.0302734375 (`x0` less the place's 8), each
+  with the seams `OL` = 105.0302734375 and `OR` = 554.947265625 −
+  505.0302734375 = 49.9169921875 at the ends of its member's span:
   - `sonata`, aligned to `exposition`: `ts` = −16, `λ` = 32, `λR` = 48, `te`
     = 32, `us` = −0.5, `ue` = 1, `xs` = −94.9697265625, `LA` = 600; `N'` =
-    w(`Exposition`, 11) = 57.0302734375, `s0'` = 73.0302734375, left −168,
-    place −160; `sonata` is locked and ends in a circle, so `Mr'` is the
-    half of the label `32 ♩` of `length` at the end of `exposition` (4223
-    advances at size 9, 18.55810546875 wide), 9.279052734375: the card is
-    73.0302734375 + 600 + 9.279052734375 + 8 = 690.309326171875 → 690.3093
-    wide.
+    w(`Exposition`, 11) = 57.0302734375, `s0'` = 73.0302734375, left
+    −273.0302734375, place −265.0302734375; `sonata` is locked and ends in
+    a circle, at the second seam with `exposition`, so `Mr'` is the half of
+    the label `32 ♩` of `length` at the end of `exposition` (4223 advances
+    at size 9, 18.55810546875 wide), 9.279052734375: the card is
+    105.0302734375 + 73.0302734375 + 600 + 9.279052734375 + 8 =
+    795.339599609375 → 795.3396 wide.
   - `session`, aligned to `take`, in seconds (floats, binary64): `ts` =
     −30.0, `λ` = 25.5, `te` = 60.0, `us` = −30.0 / 25.5 =
     −1.1764705882352942, `ue` = 60.0 / 25.5 = 2.3529411764705883, `xs` =
     105.0302734375 + 400 × `us` = −365.5579618566177, `xe` =
     1046.2067440257354, `LA` = `xe − xs` = 1411.7647058823532; `N'` =
     w(`Session`, 11) = 41.9697265625, `s0'` = 57.9697265625, left
-    −423.5276884191177, place −415.5276884191177; `Mr'` = the arrowhead 9:
-    the card is 1486.7344324448532 → 1486.7344 wide. `take`'s map lies
+    −528.5579618566177, place −520.5579618566177; `Mr'` = the arrowhead 9:
+    the card is 1641.6816980698532 → 1641.6817 wide, `OL` and `OR`
+    included. `take`'s map lies
     above `take`'s row, 4.5 to 6.5 from its line, inside the row's `p / 2`.
   - `page`, aligned to `system`, in pixels (`int`): `ts` = 0, `λ` = 600,
     `λR` = 1754, `us` = 0, `ue` = 1754 / 600 = 2.9233333333333333, `xs` =
     `s0`, `xe` = 1274.3636067708333, `LA` = 1169.3333333333333; `N'` =
     w(`System`, 11) = 41.01904296875, `s0'` = 57.01904296875, left
-    48.01123046875, place 56.01123046875; `Mr'` = 9: the card is
-    1243.3523763020833 → 1243.3524 wide.
+    −57.01904296875, place −49.01904296875 (`page` starts at the first
+    seam, on the span's side, its names `OL` further left); `Mr'` = 9: the
+    card is 1398.2996419270833 → 1398.2996 wide, `OL` and `OR` included.
   Each card's top is its member's ancestor line less 48.9765625 (in
   `session`'s card, too, `take`'s row has the inner half 26.9765625, its
   markers band, and the outer half 7, its map reaching only 6.5): 85.18359375,
@@ -726,28 +787,28 @@ positions in place coordinates; drawn, each lies 168 further right, and
   111.6836 and 187.0625, each 63.37890625 → 63.3789 high, and each
   member's row lies 15 below its card's top, at 51.207, 126.6836 and
   202.0625, its `origin` and `length` crossing the card. Whole
-  (`__full`): `Xl` = −415.5276884191177 − 8 and `Yt` = 0: the origin is
-  (423.5276884191177, 0), and the cards are drawn at `x` 263.5276884191177
+  (`__full`): `Xl` = −520.5579618566177 − 8 and `Yt` = 0: the origin is
+  (528.5579618566177, 0), and the cards are drawn at `x` 263.5276884191177
   → 263.5277, 8 and 479.5389188878677 → 479.5389, the lines of `sonata`
-  from 336.558 to 936.558, of `session` from 65.9697 to 1477.7344 and of
-  `page` from 536.558 to 1705.8913, each member's row in them from
-  536.558, where its own line starts in the frame. The lowest card,
-  `page`'s, ends with its shadow at 252.44140625, inside the frame. `W` =
-  8 + 1301.3636067708333 + 423.5276884191177 = 1732.891295189951, the
-  right edge of `page`'s card with its shadow, 56.01123046875 +
-  1243.3523763020833 + 2, beyond the frame's 554.947265625 + 8; `H` = 8 +
-  (8 + 308.515625) = 324.515625; the page 1764.891295189951 × 356.515625
-  → **1764.8913 × 356.5156**.
+  from 336.558 to 1041.5882, of `session` from 65.9697, whole across both
+  seams, to 1632.6817 and of `page` from 641.5882 to 1860.8386, each
+  member's row in them from 641.5882, where its own line starts in the
+  frame. The lowest card, `page`'s, ends with its shadow at 252.44140625,
+  inside the frame. `W` = 8 + 1351.2805989583333 + 528.5579618566177 =
+  1887.838560814951, the right edge of `page`'s card with its shadow,
+  −49.01904296875 + 1398.2996419270833 + 2, beyond the frame's
+  554.947265625 + 8; `H` = 8 + (8 + 308.515625) = 324.515625; the page
+  1919.838560814951 × 356.515625 → **1919.8386 × 356.5156**.
 - Derived (Shared quantities): `Fw` = 554.947265625, `Fh` = 308.515625,
   `zG` = min(4, 1024 / `Fw`, 576 / `Fh`) = 1.8452203721496623, so `zb` =
-  `Z`, `B` = 716.8 and `c` = 277.4736328125; `dr` = 235.556640625 for
+  `Z`, `B` = 716.8 and `c` = 277.4736328125; `dr` = 285.4736328125 for
   every card.
   - `sonata` (`σ` = 73.0302734375): `EL` = 16, `ER` = 0, `λ / E` = 2,
-    `dl` = 245.4736328125 and the left term (716.8 − 245.4736328125) /
-    (400 × 0.5) = 2.3566318359375, so `r` = 1: drawn whole.
+    `dl` = 350.50390625 and the left term (716.8 − 350.50390625) /
+    (400 × 0.5) = 1.8314804687499997, so `r` = 1: drawn whole.
   - `session` (`σ` = 57.9697265625, floats): `EL` = 30.0, `ER` = 60.0 −
-    25.5 = 34.5, `E` = 64.5, `dl` = 230.4130859375; `r` = min(1, 25.5 /
-    64.5 = 0.3953488372093023, 1.0335721923828123, 0.8892540336277172) =
+    25.5 = 34.5, `E` = 64.5, `dl` = 335.443359375; `r` = min(1, 25.5 /
+    64.5 = 0.3953488372093023, 0.8103828613281249, 0.7970161132812498) =
     0.3953488372093023. Depth 1 holds `session` alone: the pieces
     `session` 0.0–30.0 and 55.5–90.0, natural widths 470.5882352941177 and
     541.1764705882354 at `LA` = 1411.7647058823532, `W` = 186.046511627907
@@ -757,31 +818,44 @@ positions in place coordinates; drawn, each lies 168 further right, and
     62.74509803921569, 86.27450980392166 and 78.43137254901967, the gaps
     60.55631554947561 and 49.2476060191517 wide of 345.0980392156863 and
     376.47058823529403, shrinks 284.5417236662107 and 327.2229822161423,
-    `DL` = 284.5417236662107. The card is 874.9697265625001 → 874.9697
-    wide, `dx` = −138.98596475290697, its place −130.98596475290697.
+    `DL` = 284.5417236662107 − 105.0302734375 = 179.51145022871071. The
+    card is 1029.9169921875 → 1029.917 wide, `dx` = −244.01623819040697,
+    its place −236.01623819040697.
   - `page` (`σ` = 57.01904296875, `int`): `EL` = 0, `ER` = 1154, `dl` =
-    229.46240234375; `r` = min(1, 600 / 1154 = 0.5199306759098787,
-    0.625532962792461) = 0.5199306759098787, the left term left out. The
+    334.49267578125; `r` = min(1, 600 / 1154 = 0.5199306759098787,
+    0.5606495240738734) = 0.5199306759098787, the left term left out. The
     piece `page` 600–1754, natural width 769.3333333333333, `W` = 400,
     `h` = 184, `k` = 0.6666666666666666 and `h / k` = 276: its gap leaves
     out `page` 876–1478, the visible ends 184 each, the gap 32 wide,
-    shrink 369.33333333333326, `DL` = 0, `dx` = 48.01123046875 as whole.
-    The card is 874.01904296875 → 874.019 wide, its place 56.01123046875.
-  The leftmost card is now `sonata`'s: `Xl` = −168, `Yt` = 0, the origin
-  (168, 0). Drawn: the cards at `x` 8, 37.01403524709303 → 37.014 and
-  224.01123046875 → 224.0112; `sonata`'s line from 81.0303 to 681.0303,
-  `session`'s from 94.9838 to 894.9838 (its arrowhead's tip at 903.9838)
+    shrink 369.33333333333326, `DL` = −105.0302734375, `dx` =
+    −57.01904296875 as whole. The card is 1028.96630859375 → 1028.9663
+    wide, its place −49.01904296875.
+  Vertically the stacks `Session`, of the two gaps on `session`, and
+  `Page` take the markers bands below those roots' lines, 26.9765625
+  wide, so those two cards are 48.9765625 + 26.9765625 + 8 = 83.953125 →
+  83.9531 high, their tops where they were, their bottoms at
+  195.63671875 and 271.015625, the latter with its shadow 273.015625,
+  inside the frame; the cross-section lines of `take`'s and `system`'s
+  `origin` and `length` run down to those bottoms.
+  The leftmost card is still `sonata`'s: `Xl` = −273.0302734375, `Yt` = 0,
+  the origin (273.0302734375, 0). Drawn: the cards at `x` 8,
+  37.014035247093034 → 37.014 and 224.01123046875 → 224.0112; `sonata`'s
+  line from 81.0303, whole across both seams, to its circle at 786.0605;
+  `session`'s from 94.9838 to 1049.931 (its arrowhead's tip at 1058.931)
   in three pieces, stopping at the gaps 157.7289–218.2852 and
-  767.3048–816.5524, and `page`'s from 281.0303 to 1081.0303 (tip
-  1090.0303) in two, stopping at the gap 865.0303–897.0303; each member's
-  row in them from 281.0303, where its own line starts in the frame, and
-  `take`'s map over `take`'s row from 281.0303 to 681.0303. The
-  ellipses, on `session`'s line at 160.6602 centred at 188.007 and
-  791.9286, and on `page`'s at 236.0391 centred at 881.0303. `W` = 8 +
-  932.0302734375 + 168 = 1108.0302734375, the right edge of `page`'s card
-  with its shadow, 56.01123046875 + 874.01904296875 + 2; `H` =
-  324.515625.
-- Page 1140.0302734375 × 356.515625 → **1140.0303 × 356.5156**.
+  922.252–971.4997 and running whole across both seams between them;
+  `page`'s from 386.0605 to 1235.9775 (tip 1244.9775) in two, stopping
+  at the gap 1019.9775–1051.9775; each member's row in them from
+  386.0605, where its own line starts in the frame, and `take`'s map over
+  `take`'s row from 386.0605 to 786.0605. One ellipsis per gap at the
+  middle of its card: `session`'s centred at 188.007 and 946.8759 and at
+  `ym` = (111.68359375 + 195.63671875) / 2 = 153.66015625 → 153.6602,
+  each with its label `Session` below it with the baseline 166.0142, and
+  `page`'s centred at 1035.9775 and at `ym` = 229.0390625 → 229.0391, its
+  label `Page` with the baseline 241.3931. `W` = 8 + 981.947265625 +
+  273.0302734375 = 1262.9775390625, the right edge of `page`'s card with
+  its shadow, −49.01904296875 + 1028.96630859375 + 2; `H` = 324.515625.
+- Page 1294.9775390625 × 356.515625 → **1294.9775 × 356.5156**.
 
 ## `group__group_grandchild`
 
@@ -793,8 +867,8 @@ ancestor lines below its own, `movement` nearer and `score` beyond it
 `score` is drawn in its ancestor card behind the frame (§8.8), with the
 elisions it derives (§8.9) and whole in `group__group_grandchild__full`.
 The bullets before the ancestor card's give positions in place
-coordinates; drawn, each lies 141.99058314732133 further right, and
-1170.56201171875 in the `__full` case.
+coordinates; drawn, each lies 245.69419642857133 further right, and
+1274.265625 in the `__full` case.
 
 - `xn` = 24. `N` = w(`Recording`, 11) = 55.70361328125, of `Theme`,
   `Score`, `Movement` and `Recording`.
@@ -826,36 +900,39 @@ coordinates; drawn, each lies 141.99058314732133 further right, and
   = 40, `us` = −3, `ue` = 5, `xs` = −1096.29638671875, `xe` =
   2103.70361328125, `LA` = 3200. `N'` = w(`Movement`, 11) = 58.265625
   (10848 advances; `Theme` 37.94140625, `Score` 31.05029296875), `s0'` =
-  74.265625; the left edge −1170.56201171875, the place
-  −1162.56201171875; `Mr'` = the arrowhead 9: the card is 74.265625 + 3200
-  + 9 + 8 = 3291.265625 → 3291.2656 wide. In it `theme`'s line lies 15
-  below the top, `movement`'s 15 + 33.9765625 = 48.9765625 and `score`'s
-  62.9765625; the card is 62.9765625 + 6.40234375 + 8 = 77.37890625 →
-  77.3789 high. `score`'s ancestor line in `theme`'s card lies at
-  99.18359375, so the card's top is 99.18359375 − 62.9765625 = 36.20703125
-  → 36.207, below `Pt` = 8, and its bottom with its shadow at 115.5859375,
-  inside the frame, elided or whole: `movement`'s line in it lies on
-  `movement`'s faded line, at 85.1836, `theme`'s 4 lower than `theme`'s
-  own line, at 51.207.
-- Whole (`__full`): `Yt` = 0 and `Xl` = −1170.56201171875, the
-  origin (1170.56201171875, 0), and the card is drawn at (8, 36.207). In
-  it (drawn): `score`'s line at 99.1836 from 82.265625 → 82.2656 to
-  3282.265625 → 3282.2656, `movement`'s from 882.2656 (16 of 64 quarters)
-  at 85.1836 and `theme`'s from 1282.2656 (24 of 64) at 51.207, where
-  `theme`'s own line starts in the frame, 111.70361328125 +
-  1170.56201171875, its `origin` and `length` crossing the card from 36.207
-  to 52.707 and from 78.1836 to 113.5859; the names `Theme`, `Movement` and
-  `Score` at 16, with the baselines 55.0151, 88.9917 and 102.9917. `W` = 8
-  + 2130.70361328125 + 1170.56201171875 = 3309.265625, the right edge of
-  the card with its shadow, −1162.56201171875 + 3291.265625 + 2, beyond the
+  74.265625; `Mr'` = the arrowhead 9. The seams, at `score`'s 24 and
+  32: `OL` = 103.70361328125 and `OR` = 543.70361328125 −
+  503.70361328125 = 40; `score` runs on past both. Whole, the card is
+  103.70361328125 + 74.265625 + 3200 + 40 + 9 + 8 = 3434.96923828125 →
+  3434.9692 wide, its left edge `xs − OL − s0'` = −1274.265625, the place
+  −1266.265625. In it `theme`'s line lies 15 below the top, `movement`'s
+  15 + 33.9765625 = 48.9765625 and `score`'s 62.9765625; the card is
+  62.9765625 + 6.40234375 + 8 = 77.37890625 → 77.3789 high. `score`'s
+  ancestor line in `theme`'s card lies at 99.18359375, so the card's top
+  is 99.18359375 − 62.9765625 = 36.20703125 → 36.207, below `Pt` = 8, and
+  its bottom with its shadow at 115.5859375, inside the frame:
+  `movement`'s line in it lies on `movement`'s faded line, at 85.1836,
+  `theme`'s 4 lower than `theme`'s own line, at 51.207.
+- Whole (`__full`): `Yt` = 0 and `Xl` = −1274.265625, the origin
+  (1274.265625, 0), and the card is drawn at (8, 36.207). In it (drawn):
+  `score`'s line at 99.1836 from 82.265625 → 82.2656, whole across both
+  seams, to 3425.96923828125 → 3425.9692, `movement`'s from 882.2656 (16
+  of 64 quarters) at 85.1836 to its diamond at 1785.9692 and `theme`'s
+  from 1385.9692 (24 of 64) at 51.207, where `theme`'s own line starts in
+  the frame, 111.70361328125 + 1274.265625, to its diamond at 1785.9692,
+  its `origin` and `length` crossing the card from 36.207 to 52.707 and
+  from 78.1836 to 113.5859; the names `Theme`, `Movement` and `Score` at
+  16, with the baselines 55.0151, 88.9917 and 102.9917. `W` = 8 +
+  2170.70361328125 + 1274.265625 = 3452.96923828125, the right edge of the
+  card with its shadow, −1266.265625 + 3434.96923828125 + 2, beyond the
   frame's 551.70361328125; `H` = 8 + (8 + 171.5625) = 187.5625; the page
-  3341.265625 × 219.5625 → **3341.2656 × 219.5625**.
+  3484.96923828125 × 219.5625 → **3484.9692 × 219.5625**.
 - Derived (Shared quantities): `Fw` = 543.70361328125, `Fh` = 171.5625,
   so `zG` = min(4, 1024 / `Fw`, 576 / `Fh`) = 1.8833790598156273, `zb` =
   `Z`, `B` = 716.8; `c` = 271.851806640625, `σ` = 74.265625, `dl` =
-  242.413818359375, `dr` = 239.851806640625; `EL` = 24, `ER` = 32, `E` =
+  346.117431640625, `dr` = 279.851806640625; `EL` = 24, `ER` = 32, `E` =
   56, `uL` = 3 and `uR` = 4: `r` = min(1, 0.14285714285714285,
-  0.39532181803385413, 0.29809262084960936) = 0.14285714285714285, set by
+  0.30890214029947916, 0.27309262084960934) = 0.14285714285714285, set by
   `λ / E`. Depth 2 holds `movement`, which covers 16 to 24 of `score`'s
   axis outside `theme`: the piece `movement` 0–8; depth 1 `score` 0–16 and
   32–64. Their natural widths at `LA` = 3200 (`k` = 50 for each) are 800,
@@ -865,32 +942,51 @@ coordinates; drawn, each lies 141.99058314732133 further right, and
   first two are gaps whole, the third leaves out `score` 33–63, 50 of
   `score` at full scale on either side, its gap 128.57142857142856 wide of
   1500. The shrinks are 685.7142857142858, 342.8571428571429 and
-  1371.4285714285716, `DL` = 685.7142857142858 + 342.8571428571429 =
-  1028.5714285714287 and `D` = 2400 in all. In `score`'s own drawing x(0)
-  = 74.265625, x(16) = 188.55133928571422, x(24) = 245.69419642857133,
-  x(32) = 645.6941964285713, x(33) = 695.6941964285713, x(63) =
-  824.265625 and x(64) = 874.265625: the card (874.265625 + 9) + 8 =
-  891.265625 → 891.2656 wide. `dx` = (−1096.29638671875 +
-  1028.5714285714287) − 74.265625 = −141.99058314732133, the card's place
-  −133.99058314732133, so `Xl` = −141.99058314732133, the origin
-  (141.99058314732133, 0), and the card is drawn at (8, 36.207).
-- Drawn with its derived elisions: `score`'s start circle at 82.2656 and
-  its line, at 99.1836, in two pieces, from 253.6942 to 703.6942 and from
-  832.2656 to 882.2656, its arrowhead's tip at 891.2656 (the pieces of no
-  length at the touching gaps' edges 82.2656 and 196.5513 are not
-  written); `movement`'s start circle at 196.5513 and its line from
-  253.6942 to its diamond at 653.6942, at 85.1836; `theme`'s from 253.6942,
-  where `theme`'s own line starts in the frame (111.70361328125 +
-  141.99058314732133), to its diamond at 653.6942, its wedges and labels
-  `0 ♩` and `8 ♩` there and its `origin` and `length` crossing the card at
-  253.6942 and 653.6942. The gaps `score` 0–16 from 82.2656 to 196.5513,
-  `movement` 0–8 from 196.5513 to 253.6942 and `score` 33–63 from
-  703.6942 to 832.2656 draw their ellipses, centred at 139.4085, 225.1228
-  and 767.9799, on `score`'s line, and the second also on `movement`'s. `W`
-  = 8 + 759.2750418526787 + 141.99058314732133 = 909.265625, the right edge
-  of the card with its shadow, −133.99058314732133 + 891.265625 + 2; `H` =
-  187.5625.
-- Page 941.265625 × 219.5625 → **941.2656 × 219.5625**.
+  1371.4285714285716, `DL` = (685.7142857142858 + 342.8571428571429) −
+  103.70361328125 = 924.8678152901787 and `D` = 2400 in all. In `score`'s
+  own drawing x(0) = 74.265625, x(16) = 188.55133928571422, x(24) =
+  245.69419642857133 left of the first seam and 349.3978097098213 right
+  of it, x(32) = 749.3978097098213 on the span's side, x(33) =
+  839.3978097098213, x(63) = 967.96923828125 and x(64) =
+  1017.96923828125: the card (1017.96923828125 + 9) + 8 = 1034.96923828125
+  → 1034.9692 wide. `dx` = (−1096.29638671875 + 924.8678152901787) −
+  74.265625 = −245.69419642857133, the card's place −237.69419642857133,
+  so `Xl` = −245.69419642857133 and the origin (245.69419642857133, 0).
+  Vertically the stacks `Score`, of the two gaps on `score`, take
+  `score`'s markers band, 26.9765625 below its line, and the stack
+  `Movement` `movement`'s, below its line, so `movement`'s row has the
+  inner half 26.9765625: `movement`'s line lies 7 + 26.9765625 =
+  33.9765625 above `score`'s and `theme`'s 33.9765625 above that, `Ea` =
+  7 + 26.9765625 + 40.9765625 = 74.953125, `score`'s line 82.953125 below
+  the card's top and the card 82.953125 + 26.9765625 + 8 = 117.9296875 →
+  117.9297 high. Its top is 99.18359375 − 82.953125 = 16.23046875 →
+  16.2305, its bottom 134.16015625 and with its shadow 136.16015625,
+  inside the frame, `Yt` still 0.
+- Drawn with its derived elisions, the card at (8, 16.2305): `theme`'s row
+  at 31.23046875 → 31.2305, `movement`'s at 65.20703125 → 65.207 and
+  `score`'s line at 99.1836; `score`'s start circle at 82.2656 and its
+  line in two pieces, from 253.6942, the right edge of the gap of
+  `movement`, which ends at the first seam and so lies left of the frame,
+  whole across that seam and the second to 847.3978, and from 975.9692 to
+  1025.9692, its arrowhead's tip at 1034.9692 (the pieces of no length at
+  the touching gaps' edges 82.2656 and 196.5513 are not written);
+  `movement`'s start circle at 196.5513 and its line from 253.6942 to its
+  diamond at 757.3978; `theme`'s from 357.3978, where `theme`'s own line
+  starts in the frame (111.70361328125 + 245.69419642857133), to its
+  diamond at 757.3978, its wedges and labels `0 ♩` and `8 ♩` there
+  (baseline 56.0845) and its `origin` and `length` crossing the card at
+  357.3978 and 757.3978, from 16.2305 to 32.7305 and from 58.207 to
+  134.1602; the names `Theme`, `Movement` and `Score` at 16, with the
+  baselines 35.0386, 69.0151 and 102.9917. The gaps `score` 0–16 from
+  82.2656 to 196.5513, `movement` 0–8 from 196.5513 to 253.6942 and
+  `score` 33–63 from 847.3978 to 975.9692 draw one ellipsis each, centred
+  at 139.4085, 225.1228 and 911.6835 and at `ym` = (16.23046875 +
+  134.16015625) / 2 = 75.1953125 → 75.1953, and below it their labels
+  `Score`, `Movement` and `Score` with the baseline 87.54931640625 →
+  87.5493. `W` = 8 + 799.2750418526787 + 245.69419642857133 =
+  1052.96923828125, the right edge of the card with its shadow,
+  −237.69419642857133 + 1034.96923828125 + 2; `H` = 187.5625.
+- Page 1084.96923828125 × 219.5625 → **1084.9692 × 219.5625**.
 
 ## `unknown_length`
 
@@ -2072,7 +2168,7 @@ ancestor card included (§6.6, Cross-section lines), and that an anchor
 joins two such lines across the gap between their cards (§8.7). `piece`
 is drawn whole in its ancestor card behind the frame (§8.8). The bullets
 before the ancestor card's give positions in place coordinates; drawn,
-each lies 148.6318359375 further right.
+each lies 252.33544921875 further right.
 
 - `xn` = 24 (a frame). `N` = w(`Recording`, 11) = 55.70361328125 (10371
   advances), of `Middle` (36.33544921875), `Recording` and `Piece` (at
@@ -2140,28 +2236,40 @@ each lies 148.6318359375 further right.
   `s0` = 103.70361328125, `ts` = −4, `λ` = 8, `te` = 12, `us` = −0.5,
   `ue` = 1.5, `xs` = −96.29638671875, `xe` = 703.70361328125, `LA` = 800.
   `N'` = w(`Middle`, 11) = 36.33544921875 (wider than `Piece`), `s0'` =
-  52.33544921875; the left edge −148.6318359375, the place
-  −140.6318359375; `Mr'` = the arrowhead 9: the card is 52.33544921875 +
-  800 + 9 + 8 = 869.33544921875 → 869.3354 wide, 63.37890625 → 63.3789
+  52.33544921875; `Mr'` = the arrowhead 9. The seams, at `piece`'s 4 and
+  12: `OL` = 103.70361328125 and `OR` = 543.70361328125 −
+  503.70361328125 = 40; `piece` runs on past both. `r` = 1: with `Fw` =
+  543.70361328125 and `Fh` = 157.5625, `zG` = 1.8833790598156273, `zb` =
+  `Z`, `B` = 716.8, `c` = 271.851806640625, `σ` = 52.33544921875, `dl` =
+  324.187255859375 and `dr` = 279.851806640625, `EL` = `ER` = 4, `uL` =
+  `uR` = 0.5: `r` = min(1, 1, 1.9630637207031247, 2.1847409667968747),
+  drawn whole. `dx` = (−96.29638671875 − 103.70361328125) −
+  52.33544921875 = −252.33544921875, the left edge −252.33544921875, the
+  place −244.33544921875; the card is 103.70361328125 + 52.33544921875 +
+  800 + 40 + 9 + 8 = 1013.0390625 → 1013.0391 wide, 63.37890625 → 63.3789
   high, its top 85.18359375 − 48.9765625 = 36.20703125 → 36.207 and its
-  bottom with its shadow at 101.5859375, inside the frame; `r` = 1 (`λ /
-  E` = 1): drawn whole. The origin is (148.6318359375, 0), and the card is
-  drawn at (8, 36.207). In it (drawn): `piece`'s line at 85.1836 from
-  60.3354 to 860.3354, `middle`'s row at 51.207 from 260.3354 (4 of 16
-  quarters) to 660.3354 with the wedges and labels of `origin` and
+  bottom with its shadow at 101.5859375, inside the frame. The origin is
+  (252.33544921875, 0), and the card is drawn at (8, 36.207). In it
+  (drawn): `piece`'s line at 85.1836 from 60.3354, whole across both
+  seams, to 1004.0390625 → 1004.0391, its arrowhead's tip at 1013.0391;
+  `middle`'s row at 51.207 from 364.0391 (4 of 16 quarters, where
+  `middle`'s own line starts in the frame, 111.70361328125 +
+  252.33544921875) to 764.0391 with the wedges and labels of `origin` and
   `length`; `middle`'s timestamps draw their cross-section lines across
   the ancestor card, in the order `timestamp_4`, `timestamp_1`,
-  `timestamp_2`, `timestamp_5`, at 260.3354, 360.3354, 460.3354 and
-  660.3354 drawn, `timestamp_1`'s and `timestamp_2`'s each from its top at
+  `timestamp_2`, `timestamp_5`, at 364.0391, 464.0391, 564.0391 and
+  764.0391 drawn, `timestamp_1`'s and `timestamp_2`'s each from its top at
+
   36.20703125 → 36.207 to its bottom at 36.20703125 + 63.37890625 =
   99.5859375 → 99.5859, `origin`'s and `length`'s from 36.207 to 52.707
   and from 78.1836 to 99.5859, written last in the card's drawing, before
   the frame.
-- `W` = 8 + 730.70361328125 + 148.6318359375 = 887.33544921875, the right
-  edge of the card with its shadow, −140.6318359375 + 869.33544921875 + 2,
+- `W` = 8 + 770.70361328125 + 252.33544921875 = 1031.0390625, the right
+  edge of the card with its shadow, −244.33544921875 + 1013.0390625 + 2,
   beyond the frame's 551.70361328125; `H` = 8 + (8 + 157.5625) =
   173.5625.
-- Page 919.33544921875 × 205.5625 → **919.3354 × 205.5625**.
+- Page 1063.0390625 × 205.5625 → **1063.0391 × 205.5625**.
+
 
 ## `group__group_grandchild_parent_on_top`
 
@@ -2182,8 +2290,8 @@ with the elisions it derives (§8.9) and whole in
 `group__group_grandchild_parent_on_top__full`, and there `theme`'s row
 lies between the lines of `movement` and `score`, as in `theme`'s card.
 The bullets before the ancestor card's give positions in place
-coordinates; drawn, each lies 141.99058314732133 further right, and
-1170.56201171875 in the `__full` case.
+coordinates; drawn, each lies 245.69419642857133 further right and
+2.171875 lower, and 1274.265625 further right in the `__full` case.
 
 - As in `group__group_grandchild`: `xn` = 24, `N` = w(`Recording`, 11) =
   55.70361328125, `x0` = the chevron term 111.70361328125 → 111.7036 (both
@@ -2236,9 +2344,9 @@ coordinates; drawn, each lies 141.99058314732133 further right, and
   `group__group_grandchild`: `s0` = 103.70361328125, `ts` = −24, `λ` = 8,
   `te` = 40, `us` = −3, `ue` = 5, `xs` = −1096.29638671875, `xe` =
   2103.70361328125, `LA` = 3200, `N'` = w(`Movement`, 11) = 58.265625,
-  `s0'` = 74.265625, the left edge −1170.56201171875, the place
-  −1162.56201171875, `Mr'` = the arrowhead 9 and the card 3291.265625 →
-  3291.2656 wide. Vertically, `score`'s own drawing (§6.4): its children
+  `s0'` = 74.265625, `Mr'` = the arrowhead 9, the seams `OL` =
+  103.70361328125 and `OR` = 40, and whole the left edge −1274.265625, the
+  place −1266.265625 and the card 3434.96923828125 → 3434.9692 wide. Vertically, `score`'s own drawing (§6.4): its children
   band lies above its line, from max(1.5 + 4, `p0 / 2` = 7) = 7, and holds
   `movement`'s row. `movement` draws no wedge, so its markers band is
   absent and its children band lies at level −1, below its line, from
@@ -2255,39 +2363,57 @@ coordinates; drawn, each lies 141.99058314732133 further right, and
   + 6.40234375 + 8 = 77.37890625 → 77.3789 high.
 - `score`'s faded line in `theme`'s card lies at 99.78125, so the card's
   top is 99.78125 − 62.9765625 = 36.8046875 → 36.8047, below `Pt` = 8, and
-  its bottom with its shadow at 116.18359375, inside the frame, derived or
-  whole; `movement`'s row in it at 51.8046875 → 51.8047 and `theme`'s at
+  its bottom with its shadow at 116.18359375, inside the frame, whole;
+  `movement`'s row in it at 51.8046875 → 51.8047 and `theme`'s at
   65.8046875 → 65.8047 lie 4 lower than their faded and own lines in
   `theme`'s card (Shared quantities). Whole (`__full`):
-  `Yt` = 0 and `Xl` = −1170.56201171875, the origin (1170.56201171875, 0),
+  `Yt` = 0 and `Xl` = −1274.265625, the origin (1274.265625, 0),
   and the card is drawn at (8, 36.8047), its shadow at (10, 38.8047). In it
-  (drawn): `score`'s line at 99.7812 from 82.2656 to 3282.2656, its
-  arrowhead's tip at 3291.2656; `movement`'s from 882.2656 (16 of 64
-  quarters) to its diamond at 1682.2656; `theme`'s from 1282.2656 (24 of
-  64), where `theme`'s own line starts in the frame, to its diamond at
-  1682.2656, its wedges and labels `0 ♩` and `8 ♩` with the baseline
+  (drawn): `score`'s line at 99.7812 from 82.2656, whole across both
+  seams, to 3425.9692, its arrowhead's tip at 3434.9692; `movement`'s from
+  882.2656 (16 of 64 quarters) to its diamond at 1785.9692; `theme`'s from
+  1385.9692 (24 of 64), where `theme`'s own line starts in the frame, to
+  its diamond at 1785.9692, its wedges and labels `0 ♩` and `8 ♩` with the baseline
   90.6587, its `origin` and `length` crossing the card from 36.8047 to
   67.3047 and from 92.7812 to 114.1836; the names at 16, all at size 11:
   `Movement` at 55.6128, `Theme` at 69.6128 and `Score` at 103.5894. `W` =
-  8 + 2130.70361328125 + 1170.56201171875 = 3309.265625, the right edge of
+  8 + 2170.70361328125 + 1274.265625 = 3452.96923828125, the right edge of
   the card with its shadow, as in `group__group_grandchild`; `H` = 8 + (8 +
-  172.16015625) = 188.16015625; the page 3341.265625 × 220.16015625 →
-  **3341.2656 × 220.1602**.
+  172.16015625) = 188.16015625; the page 3484.96923828125 × 220.16015625 →
+  **3484.9692 × 220.1602**.
 - Derived: horizontally as `group__group_grandchild`, whose frame and card
   have the same widths, `σ` and pieces: `r` = 0.14285714285714285, the
   gaps `score` 0–16, `movement` 0–8 and `score` 33–63, `dx` =
-  −141.99058314732133, the card 891.265625 → 891.2656 wide, the origin
-  (141.99058314732133, 0); `Fh` = 172.16015625 changes no term, `zG` being
-  set by `Fw`. Drawn: the card at (8, 36.8047); `score`'s start circle at
-  82.2656 and its line at 99.7812 from 253.6942 to 703.6942 and from
-  832.2656 to 882.2656; `movement`'s start circle at 196.5513 and its line
-  from 253.6942 to its diamond at 653.6942, at 51.8047; `theme`'s from
-  253.6942 to its diamond at 653.6942, at 65.8047. The ellipses on
-  `score`'s line in all three gaps, centred at 139.4085, 225.1228 and
-  767.9799, and on `movement`'s in the gap of `movement`, above `theme`'s
-  row. `W` = 909.265625, as in `group__group_grandchild`; `H` =
-  188.16015625.
-- Page 941.265625 × 220.16015625 → **941.2656 × 220.1602**.
+  −245.69419642857133, the card 1034.96923828125 → 1034.9692 wide, the
+  origin's `x` 245.69419642857133; `Fh` = 172.16015625 changes no term,
+  `zG` being set by `Fw`. Vertically the stacks of the gaps take room:
+  `Score` twice in `score`'s markers band, 26.9765625 below its line, and
+  `Movement` in `movement`'s, which `movement`'s band order puts after
+  its children band, at level −2, from 40.9765625 + 4 = 44.9765625 to
+  71.953125 below `movement`'s line. So `movement`'s row in `score`'s
+  children band has the inner half 71.953125: `movement`'s line lies 7 +
+  71.953125 = 78.953125 above `score`'s, `theme`'s 14 below `movement`'s,
+  `Ea` = 85.953125, `score`'s line 93.953125 below the card's top and the
+  card 93.953125 + 26.9765625 + 8 = 128.9296875 → 128.9297 high. Its top
+  lies at 99.78125 − 93.953125 = 5.828125, above `Pt` = 8: `Yt` = −2.171875
+  and the origin (245.69419642857133, 2.171875), so the block is 8 + (8 +
+  172.16015625) + 2.171875 = 190.33203125 high. Drawn: the card at (8, 8),
+  its bottom at 136.9296875 and with its shadow at 138.9296875, inside the
+  frame, which lies at (253.6942, 10.1719); `movement`'s row at 23,
+  `theme`'s at 37 and `score`'s line at 101.953125 → 101.9531, each name
+  at 16 (baselines 26.8081, 40.8081 and 105.7612); `score`'s start circle
+  at 82.2656 and its line from 253.6942, whole across both seams, to
+  847.3978 and from 975.9692 to 1025.9692, its arrowhead's tip at
+  1034.9692; `movement`'s start circle at 196.5513 and its line from
+  253.6942 to its diamond at 757.3978; `theme`'s from 357.3978 to its
+  diamond at 757.3978, its labels `0 ♩` and `8 ♩` with the baseline 61.854
+  and its `origin` and `length` crossing the card from 8 to 38.5 and from
+  63.9766 to 136.9297. The gaps draw one ellipsis each, centred at
+  139.4085, 225.1228 and 911.6835 and at `ym` = (8 + 136.9296875) / 2 =
+  72.46484375 → 72.4648, and below it the labels `Score`, `Movement` and
+  `Score` with the baseline 84.81884765625 → 84.8188. `W` =
+  1052.96923828125, as in `group__group_grandchild`; `H` = 190.33203125.
+- Page 1084.96923828125 × 222.33203125 → **1084.9692 × 222.332**.
 
 ## `group__group_elided_inside`
 
@@ -2305,8 +2431,8 @@ the right where `movement`'s ended in its diamond; `excerpt`'s `origin`
 and `length` are `timestamp_1` and `timestamp_2`, `recording`'s
 `timestamp_3` and `timestamp_4`, labelled `0″` and `10″` (3371 advances
 as `12″`). The bullets before the ancestor card's give positions in place
-coordinates; drawn, each lies 40.86404854910711 further right, and
-383.72119140625 in the `__full` case.
+coordinates; drawn, each lies 144.5676618303571 further right, and
+487.4248046875 in the `__full` case.
 
 - As in `group__group_grandchild`: `xn` = 24, `N` = w(`Recording`, 11) =
   55.70361328125 (`Excerpt` is 42.09326171875 wide), `x0` = the chevron
@@ -2323,7 +2449,9 @@ coordinates; drawn, each lies 40.86404854910711 further right, and
   band (§6.3), named `First, Second` and addressed `{"id": "first", "part":
   ["name"]}` (§6.6); `N'` = w(`First, Second`, 11) = 71.4248046875 (13298
   advances), wider than `Excerpt` and `Piece`, so `s0'` = 87.4248046875.
-  Vertically the card is that of `group__group_grandchild`: its top at
+  The seams lie at `piece`'s 8 and 16: `OL` = 103.70361328125 and `OR` =
+  40. Vertically the card drawn whole is that of
+  `group__group_grandchild`: its top at
   36.20703125 → 36.207, 77.37890625 → 77.3789 high, `excerpt`'s row at
   51.207 with its wedges and labels `0 ♩` and `8 ♩` (the baseline 76.061)
   and its `origin` and `length` crossing the card, the row of `first` and
@@ -2331,59 +2459,79 @@ coordinates; drawn, each lies 40.86404854910711 further right, and
   the baselines 55.0151, 88.9917 and 102.9917. `first` ends at 32 in its
   diamond, where `second` starts with its circle; `second` ends at 64 in
   its diamond, under `piece`'s arrowhead.
-- Whole (`__full`): the card 87.4248046875 + 3200 + 9 + 8 =
-  3304.4248046875 → 3304.4248 wide, `dx` = −296.29638671875 −
-  87.4248046875 = −383.72119140625, so `Xl` = −383.72119140625, the
-  origin (383.72119140625, 0), and the card is drawn at (8, 36.207):
-  `piece`'s line from 95.4248 to 3295.4248, `first`'s from 95.4248 to its
-  diamond at 1695.4248, `second`'s from 1695.4248 to its diamond at
-  3295.4248 and `excerpt`'s from 495.4248, where `excerpt`'s own line
-  starts in the frame (111.70361328125 + 383.72119140625), to its diamond
-  at 895.4248. `W` = 8 + 2930.70361328125 + 383.72119140625 =
-  3322.4248046875, the right edge of the card with its shadow,
-  −375.72119140625 + 3304.4248046875 + 2; `H` = 8 + (8 + 171.5625) =
-  187.5625; the page 3354.4248046875 × 219.5625 → **3354.4248 ×
-  219.5625**.
+- Whole (`__full`): the card 103.70361328125 + 87.4248046875 + 3200 + 40
+  + 9 + 8 = 3448.12841796875 → 3448.1284 wide, `dx` = (−296.29638671875 −
+  103.70361328125) − 87.4248046875 = −487.4248046875, so `Xl` =
+  −487.4248046875, the origin (487.4248046875, 0), and the card is drawn
+  at (8, 36.207): `piece`'s line from 95.4248, whole across both seams, to
+  3439.1284, `first`'s from 95.4248 to its diamond at 1839.1284,
+  `second`'s from 1839.1284 to its diamond at 3439.1284 and `excerpt`'s
+  from 599.1284, where `excerpt`'s own line starts in the frame
+  (111.70361328125 + 487.4248046875), to its diamond at 999.1284. `W` = 8
+  + 2970.70361328125 + 487.4248046875 = 3466.12841796875, the right edge
+  of the card with its shadow, −479.4248046875 + 3448.12841796875 + 2;
+  `H` = 8 + (8 + 171.5625) = 187.5625; the page 3498.12841796875 ×
+  219.5625 → **3498.1284 × 219.5625**.
 - Derived (Shared quantities): `zG` = 1.8833790598156273, `zb`, `B`, `c`
-  and `dr` as in `group__group_grandchild` (the same frame), `σ` =
-  87.4248046875 and `dl` = 255.572998046875; `EL` = 8, `ER` = 48, `E` =
-  56, `uL` = 1 and `uR` = 6: `r` = min(1, 0.14285714285714285,
-  1.1530675048828123, 0.19872841389973955) = 0.14285714285714285, set by
-  `λ / E`. Depth 2 holds `first` and `second`, in canonical order: `first`
-  gives its 0–8 and 16–32, outside `excerpt`, `second` its 0–32 (32 to 64
-  of `piece`'s axis), and depth 1, `piece`, is left nothing. Natural
-  widths 400, 800 and 1600 at `LA` = 3200 (`k` = 50), `W` =
-  57.14285714285714, 114.28571428571428 and 228.57142857142856 (400
-  together), `h / k` = 0.2514285714285714, 0.8228571428571427 and
-  1.9657142857142855 (§8.9): the first two are gaps whole, the third
-  leaves out `second` 1–31, 50 of `second` at full scale on either side,
-  its gap 128.57142857142856 wide. Shrinks 342.8571428571429,
-  685.7142857142858 and 1371.4285714285716, `DL` = 342.8571428571429. Own
-  x(0) = 87.4248046875, x(8) = 144.5676618303571, x(16) =
-  544.5676618303571, x(32) = 658.8533761160713, x(33) =
-  708.8533761160713, x(63) = 837.4248046875 and x(64) = 887.4248046875;
-  the card is (887.4248046875 + 9) + 8 = 904.4248046875 → 904.4248 wide;
-  `dx` = (−296.29638671875 + 342.8571428571429) − 87.4248046875 =
-  −40.86404854910711, so `Xl` = −40.86404854910711 and the origin
-  (40.86404854910711, 0).
-- Drawn with its derived elisions: the card at (8, 36.207); `piece`'s
-  start circle at 95.4248 and its line from 152.5677 to 552.5677, from
-  666.8534 to 716.8534 and from 845.4248 to 895.4248, its arrowhead's tip
-  at 904.4248; `first`'s start circle at 95.4248, its line from 152.5677
-  to 552.5677 and its diamond at 666.8534, at the right edge of the gap
+  and `dr` = 279.851806640625 as in `group__group_grandchild` (the same
+  frame), `σ` = 87.4248046875 and `dl` = 359.276611328125; `EL` = 8, `ER`
+  = 48, `E` = 56, `uL` = 1 and `uR` = 6: `r` = min(1,
+  0.14285714285714285, 0.8938084716796874, 0.1820617472330729) =
+  0.14285714285714285, set by `λ / E`. Depth 2 holds `first` and
+  `second`, in canonical order: `first` gives its 0–8 and 16–32, outside
+  `excerpt`, `second` its 0–32 (32 to 64 of `piece`'s axis), and depth 1,
+  `piece`, is left nothing. Natural widths 400, 800 and 1600 at `LA` =
+  3200 (`k` = 50), `W` = 57.14285714285714, 114.28571428571428 and
+  228.57142857142856 (400 together), `h / k` = 0.2514285714285714,
+  0.8228571428571427 and 1.9657142857142855 (§8.9): the first two are
+  gaps whole, the third leaves out `second` 1–31, 50 of `second` at full
+  scale on either side, its gap 128.57142857142856 wide. Shrinks
+  342.8571428571429, 685.7142857142858 and 1371.4285714285716, `DL` =
+  342.8571428571429 − 103.70361328125 = 239.1535295758929. Own x(0) =
+  87.4248046875, x(8) = 144.5676618303571 left of the first seam and
+  248.2712751116071 right of it, x(16) = 648.2712751116071 left of the
+  second seam and 688.2712751116071 right of it, x(32) =
+  802.5569893973213, x(33) = 852.5569893973213, x(63) = 981.12841796875
+  and x(64) = 1031.12841796875; the card is (1031.12841796875 + 9) + 8 =
+  1048.12841796875 → 1048.1284 wide; `dx` = (−296.29638671875 +
+  239.1535295758929) − 87.4248046875 = −144.5676618303571, so `Xl` =
+  −144.5676618303571 and the origin (144.5676618303571, 0). The gaps
+  `first` 0–8 and `first` 16–32 touch the seams, and each lies wholly
+  outside the frame (Shared quantities). Vertically the stacks `First`,
+  `First` and `Second` take the markers bands of `first` and `second`,
+  26.9765625 below their row, so that row has the inner half 26.9765625:
+  it lies 7 + 26.9765625 = 33.9765625 above `piece`'s line and
+  `excerpt`'s 33.9765625 above it, `piece`'s line 8 + 7 + 26.9765625 +
+  40.9765625 = 82.953125 below the card's top, and the card 82.953125 +
+  6.40234375 + 8 = 97.35546875 → 97.3555 high.
+- Drawn with its derived elisions: the card at (8, 16.23046875 →
+  16.2305), its top 99.18359375 − 82.953125, its bottom 113.5859375 and
+  with its shadow 115.5859375, inside the frame; `excerpt`'s row at
+  31.23046875 → 31.2305, the row of `first` and `second` at 65.20703125 →
+  65.207 and `piece`'s line at 99.1836, the names at 16 with the
+  baselines 35.0386, 69.0151 and 102.9917. `piece`'s start circle at
+  95.4248 and its line from 152.5677, at the frame's left edge, whole
+  across the seam at 8, to 696.2713, at the frame's right edge, from
+  810.557 to 860.557 and from 989.1284 to 1039.1284, its arrowhead's tip
+  at 1048.1284; `first`'s start circle at 95.4248, its line from 152.5677
+  to 696.2713 and its diamond at 810.557, at the right edge of the gap
   over its 16–32, which leaves the line no piece there; `second`'s start
-  circle at 666.8534 and its line from 666.8534 to 716.8534 and from
-  845.4248 to its diamond at 895.4248; `excerpt`'s from 152.5677, where
+  circle at 810.557 and its line from 810.557 to 860.557 and from
+  989.1284 to its diamond at 1039.1284; `excerpt`'s from 256.2713, where
   `excerpt`'s own line starts in the frame (111.70361328125 +
-  40.86404854910711), to its diamond at 552.5677, with its wedges and
-  labels there. The gaps `first` 0–8 from 95.4248 to 152.5677, under the
-  frame, `first` 16–32 from 552.5677 to 666.8534 and `second` 1–31 from
-  716.8534 to 845.4248 draw their ellipses, centred at 123.9962, 609.7105
-  and 781.1391, on `piece`'s line at 99.1836 and on the row of `first` and
-  `second` at 85.1836. `W` = 8 + 873.5607561383929 + 40.86404854910711 =
-  922.4248046875, the right edge of the card with its shadow,
-  −32.86404854910711 + 904.4248046875 + 2; `H` = 187.5625.
-- Page 954.4248046875 × 219.5625 → **954.4248 × 219.5625**.
+  144.5676618303571), to its diamond at 656.2713, with its wedges and
+  labels there (the baseline 56.0845) and its `origin` and `length`
+  crossing the card from 16.2305 to 32.7305 and from 58.207 to 113.5859.
+  The gaps `first` 0–8 from 95.4248 to 152.5677, `first` 16–32 from
+  696.2713 to 810.557 and `second` 1–31 from 860.557 to 989.1284 draw one
+  ellipsis each, centred at 123.9962, 753.4141 and 924.8427 and at `ym` =
+  (16.23046875 + 113.5859375) / 2 = 64.908203125 → 64.9082, and below it
+  their labels `First`, `First` and `Second`, with the baseline
+  77.26220703125 → 77.2622. `W` = 8 + 913.5607561383929 +
+  144.5676618303571 = 1066.12841796875, the right edge of the card with
+  its shadow, −136.5676618303571 + 1048.12841796875 + 2; `H` =
+  187.5625.
+- Page 1098.12841796875 × 219.5625 → **1098.1284 × 219.5625**.
 
 
 ## `group__group_elided_members`
@@ -2401,7 +2549,7 @@ groupstamps `timestamp_1` "Climax" at 15 and `timestamp_2` "Return" at 21
 on `voice` draw their wedge, name and lines. The drawing is the reference
 for a frame's elided axis, carried gaps and the proportion with `L'`. The
 bullets before the ancestor card's give positions in place coordinates;
-drawn, each lies 92.33333333333337 further right.
+drawn, each lies 182.42659505208337 further right.
 
 - `xn` = 24. `N` = w(`Excerpt`, 11) = 42.09326171875, wider than `Voice`,
   `Phrase`, `Sketch` and `Piece` at size 9. `x0` = the chevron term 24 +
@@ -2434,78 +2582,94 @@ drawn, each lies 92.33333333333337 further right.
   10.4765625 = 37.453125 wide. The ancestor band below starts at max(7,
   37.453125 + 4) = 41.453125, its row `piece` at 41.453125 + 7 =
   48.453125 below `excerpt`'s line, `Eb` = 55.453125 and `Hm` =
-  14.40234375 + 55.453125 + 8 = 77.85546875 → 77.8555. `voice`'s
-  children band holds `phrase` 7 + 7 = 14 above `voice`'s line (`phrase`
-  draws no wedge and no label: `elision_2` shows its ellipses alone), so
-  `Ea` = 21, `y_root` = 29 and `Hm` = 29 + 26.9765625 + 8 = 63.9765625 →
-  63.9766, `Climax` keeping its room in the band although it is not drawn
-  (§3.2). `sketch`: `Hm` = 49.37890625. The frame is 8 + 12.8046875 + 4 +
-  77.85546875 + 8 + 63.9765625 + 8 + 49.37890625 + 8 = 240.015625 →
-  240.0156 high, the cards at 32.8046875, 118.66015625 and 190.63671875.
+  14.40234375 + 55.453125 + 8 = 77.85546875 → 77.8555. `phrase` draws no
+  wedge, but `elision_2`, which states no `display`, draws its name label
+  `Phrase` (§2), whose stack, centred at full scale on 400 × (0.5833333333333334
+  + 0.75) / 2, takes `phrase`'s markers band, 26.9765625 below its line:
+  `voice`'s children band holds `phrase` 7 + 26.9765625 = 33.9765625
+  above `voice`'s line, so `Ea` = 40.9765625, `y_root` = 48.9765625 and
+  `Hm` = 48.9765625 + 26.9765625 + 8 = 83.953125 → 83.9531, `Climax`
+  keeping its room in the band although it is not drawn (§3.2). `sketch`:
+  `Hm` = 49.37890625. The frame is 8 + 12.8046875 + 4 + 77.85546875 + 8 +
+  83.953125 + 8 + 49.37890625 + 8 = 259.9921875 → 259.9922 high, the cards
+  at 32.8046875, 118.66015625 and 210.61328125.
 - Drawn lines: `excerpt` at 47.207, the faded `piece` at 95.66015625 →
-  95.6602, `phrase` at 133.66015625 → 133.6602, `voice` at 147.66015625 →
-  147.6602, `sketch` at 205.0390625 → 205.0391. Every row whose span holds
+  95.6602, `phrase` at 133.66015625 → 133.6602, `voice` at 167.63671875 →
+  167.6367, `sketch` at 225.015625 → 225.0156. Every row whose span holds
   a gap, `phrase` only the second (it starts at `voice`'s 12, the
   proportion 0.5, the first gap's right edge), stops at its left edge and
   resumes at its right edge, written in pieces from the left: drawn the
-  gaps run from 240.4266 to 272.4266 and from 305.7599 to 339.0933, and
-  the lines end at 439.0933, `sketch`'s three chevrons beyond 451.0933.
+  gaps run from 330.5199 to 362.5199 and from 395.8532 to 429.1865, and
+  the lines end at 529.1865, `sketch`'s three chevrons beyond 541.1865.
 - The frame's gaps are written after `sketch`'s card (§8.5), from the
-  left, each with its ellipses card by card from the top, each card's rows
-  as its lines are written, the faded line of `piece` before `excerpt`'s:
-  `elision_1`'s at 256.4266 on the lines of `piece`, `excerpt`, `voice`
-  and `sketch`, then its labels `Development` and `2–8 ♩`, centred at
-  256.4266, with the baselines 72.061 and 82.5376 (lines 1 and 2 below
-  `excerpt`'s line), filled `#6B7280`; `elision_2`'s at 322.4266 on the
-  lines of `piece`, `excerpt`, `voice`, `phrase` and `sketch`. Then the
+  left, each drawing one ellipsis at its middle `xm` and at `ym` = (32.8046875
+  + 259.9921875) / 2 = 146.3984375 → 146.3984, the middle of the member
+  cards together (§6.6), and below it its labels: `elision_1`'s ellipsis
+  at 346.5199, then its labels `Development` and `2–8 ♩`, centred at
+  346.5199, with the baselines 146.3984375 + 4 + 8.35400390625 =
+  158.75244140625 → 158.7524 and 158.75244140625 + 10.4765625 =
+  169.22900390625 → 169.229, filled `#6B7280`; `elision_2`'s ellipsis at
+  412.5199 and its label `Phrase` with the baseline 158.7524. Then the
   groupstamps' lines across the frame (§6.6), each less its member's card
   and with the part over the card of `sketch`, of unknown length, cut out
   and drawn at opacity 0.35: `timestamp_3` and `timestamp_4` (`excerpt`'s
-  `origin` and `length`) at 190.4266 and 439.0933 from 110.6602 to
-  190.6367 and, faded, to 240.0156; `timestamp_2` "Return" at 21 of 24, the
-  proportion 0.875, at 389.0933, from 32.8047 to 118.6602, from 182.6367 to
-  190.6367 and, faded, to 240.0156. `timestamp_1` "Climax" at 15, the
+  `origin` and `length`) at 280.5199 and 529.1865 from 110.6602 to
+  210.6133 and, faded, to 259.9922; `timestamp_2` "Return" at 21 of 24, the
+  proportion 0.875, at 479.1865, from 32.8047 to 118.6602, from 202.6133 to
+  210.6133 and, faded, to 259.9922. `timestamp_1` "Climax" at 15, the
   proportion 0.625, lies in the second gap and draws nothing.
 - The ancestor card of `piece`, aligned to `excerpt`: `s0` =
   90.09326171875, `ts` = −16, `λ` = 16, `λR` = 48, `te` = 32, `us` = −1,
   `ue` = 2, `xs` = −309.90673828125, `LA` = 1200 (25 canvas units per
   quarter); `N'` = w(`Excerpt`, 11), `s0'` = `σ` = 58.09326171875; its
   `excerpt` row draws no label of `elision_1`, so it lies 7 + 26.9765625
-  above `piece`'s line, at 15 below the card's top, and the card is
-  63.37890625 high, its top 95.66015625 − 48.9765625 = 46.68359375 →
-  46.6836. It carries the frame's gaps over `piece` 18 to 24 and 76/3
+  above `piece`'s line, at 15 below the card's top; the stacks `Piece` of
+  its two derived gaps take `piece`'s markers band, 26.9765625 below its
+  line, so the card is 48.9765625 + 26.9765625 + 8 = 83.953125 → 83.9531
+  high, its top 95.66015625 − 48.9765625 = 46.68359375 → 46.6836 and its
+  bottom 130.63671875. Its seams lie at `piece`'s 16 and 32: `OL` =
+  90.09326171875 and `OR` = 383.2599283854167 − (90.09326171875 +
+  248.66666666666669) = 44.5. It carries the frame's gaps over `piece` 18 to 24 and 76/3
   to 28 (`−ts + p × λ`, `−ts + q × λ` with the exact proportions 1/8, 1/2,
   7/12 and 3/4, so exact on `piece`'s fraction axis; its x, shifted
   by `dx`, is 205.42659505208337 in the frame's item coordinates, where
   the frame's own gap starts at 205.42659505208334), 32 and
   33.33333333333333 wide of 150 and 66.66666666666666. Its proportion
-  (§8.9): `Fw` = 383.2599283854167, `Fh` = 240.015625, `zG` =
-  2.399843760171864, `zb` = `Z`, `B` = 716.8, `c` = 191.62996419270834,
-  `dl` = 159.62996419270834, `dr` = 155.12996419270834, `EL` = `ER` = 16:
-  `r` = min(1, 0.5 × (248.66666666666669 / 400), 1.392925089518229,
-  1.404175089518229) = 0.31083333333333335. Depth 1 gives `piece` 0–16 and
+  (§8.9): `Fw` = 383.2599283854167, `Fh` = 259.9921875, `zG` =
+  2.2154511854322547, `zb` = `Z`, `B` = 716.8, `c` = 191.62996419270834,
+  `dl` = 249.72322591145834, `dr` = 199.62996419270834, `EL` = `ER` = 16:
+  `r` = min(1, 0.5 × (248.66666666666669 / 400), 1.167691935221354,
+  1.292925089518229) = 0.31083333333333335. Depth 1 gives `piece` 0–16 and
   32–48, natural width 400 each, `W` = 124.33333333333334, `k` = 25 and
   `h / k` = 1.846666666666667: their gaps leave out `piece` 1–15 and 33–47,
   25 at full scale on either side, each 74.33333333333334 wide of 350,
-  shrink 275.66666666666663. `DL` = 275.66666666666663, `dx` =
-  (−309.90673828125 + 275.66666666666663) − 58.09326171875 =
-  −92.33333333333337, so the origin is (92.33333333333337, 0) and the card,
-  572.4265950520835 → 572.4266 wide (`piece`'s arrowhead tip at x(48) + 9
-  plus `K`), is drawn at (8, 46.6836). In it: `piece`'s line at 95.6602,
+  shrink 275.66666666666663. `DL` = 275.66666666666663 − 90.09326171875 =
+  185.57340494791663, `dx` = (−309.90673828125 + 185.57340494791663) −
+  58.09326171875 = −182.42659505208337, so the origin is
+  (182.42659505208337, 0) and the card, 707.0198567708335 → 707.0199 wide
+  (`piece`'s arrowhead tip at x(48) + 9 plus `K`, `OL` and `OR`
+  included), is drawn at (8, 46.6836). In it: `piece`'s line at 95.6602,
   its start circle at 66.0933 and its pieces 66.0933–91.0933,
-  165.4266–240.4266, 272.4266–305.7599, 339.0933–464.0933 and
-  538.4266–563.4266, its arrowhead's tip at 572.4266; `excerpt`'s row at
-  61.6836 from 190.4266, where `excerpt`'s own line starts, to its diamond
-  at 439.0933, in three pieces about the carried gaps, with its `origin`
-  and `length` crossing the card; the gaps from the left, `piece` 1–15
-  (ellipsis at 128.2599), `elision_1` and `elision_2` (at 256.4266 and
-  322.4266, on `piece`'s and `excerpt`'s rows) and `piece` 33–47 (at
-  501.2599).
-- `W` = 8 + 490.0932617187502 + 92.33333333333337 = 590.4265950520835, the
-  right edge of the ancestor card with its shadow, −84.33333333333337 +
-  572.4265950520835 + 2, beyond the frame's 391.2599283854167; `H` = 8 +
-  (8 + 240.015625) = 256.015625.
-- Page 622.4265950520835 × 288.015625 → **622.4266 × 288.0156**.
+  165.4266–330.5199 and 429.1865–598.6865, each whole across a seam (at
+  280.5199 and 529.1865 on the left and the right of the span),
+  362.5199–395.8532 and 673.0199–698.0199, its arrowhead's tip at
+  707.0199; `excerpt`'s row at 61.6836 from 280.5199, where `excerpt`'s
+  own line starts, to its diamond at 529.1865, in three pieces about the
+  carried gaps, with its `origin` and `length` crossing the card from
+  46.6836 to 63.1836 and from 88.6602 to 130.6367; the carried gaps lie
+  over the frame's (the second's x, shifted by `dx`, is
+  205.42659505208337 in the frame's item coordinates, where the frame's
+  own gap starts at 205.42659505208334); the gaps from the left, `piece`
+  1–15 (ellipsis at 128.2599, its label `Piece` below it), `elision_1` and
+  `elision_2` (ellipses at 346.5199 and 412.5199, no label) and `piece`
+  33–47 (ellipsis at 635.8532, label `Piece`), every ellipsis at `ym` =
+  (46.68359375 + 130.63671875) / 2 = 88.66015625 → 88.6602 and each label
+  with the baseline 101.01416015625 → 101.0142.
+- `W` = 8 + 534.5932617187501 + 182.42659505208337 = 725.0198567708335,
+  the right edge of the ancestor card with its shadow, −174.42659505208337
+  + 707.0198567708335 + 2, beyond the frame's 391.2599283854167; `H` = 8 +
+  (8 + 259.9921875) = 275.9921875.
+- Page 757.0198567708335 × 307.9921875 → **757.0199 × 307.9922**.
 
 ## `bundle__bundle_arranged_roots__horizontal`
 
@@ -2531,8 +2695,14 @@ movements that do not touch share the row nearer the line, `development`
 lies on the row above), its line at 82.953125 of 97.35546875, `Ri' + K
 − xe'` = 17.279052734375 (the label `16 ♩` of `recapitulation`'s
 `length` past its end); `session`'s at `LA` = 1733.3333333333333, `s0'`
-= 98.2529296875, its line at 48.9765625 of 63.37890625, `Ri' + K − xe'`
-= 17, its arrowhead.
+= 98.2529296875, its line at 48.9765625 of 83.953125 (below its line
+the markers band of 26.9765625 that the label stack of its one gap
+takes, §6.4), `Ri' + K − xe'` = 17, its arrowhead. Each root starts
+where its first stretch starts and ends where its last one ends, so the
+seams `s1 × OL` and `sN × OR` (§8.8, Drawn once) lie at its own start and
+end, which lie on their stretches' sides: nothing of either line lies
+left of the first stretch or right of the last, and the names keep their
+distance `s0'` from `X(start)`.
 
 - Row: `x` 8, 623.39013671875, 1238.7802734375 and 1854.17041015625
   (row gap 48).
@@ -2553,10 +2723,10 @@ lies on the row above), its line at 82.953125 of 97.35546875, `Ri' + K
   1200.7802734375 > 1198.7802734375; `e` = 11, `XB(10)` =
   1216.17041015625 < 1230.7802734375), from 1150.7802734375 → 1150.7803
   to 1366.17041015625 → 1366.1704, and at 32 (`c` = 1830.17041015625),
-  from 1766.17041015625 → 1766.1704 to 1981.560546875 → 1981.5605; the
-  line of `score` in three pieces, the circle on the first and the
-  arrowhead on the last, 2381.560546875 → 2381.5605, each seam's
-  continuation at 111.7578 in `#9CA3AF`, dashed `2 2`. The wedges,
+  from 1766.17041015625 → 1766.1704 to 1981.560546875 → 1981.5605; a seam
+  draws nothing (§3.2), and the line of `score`, the one row crossing
+  them, is one `<line>` from 750.7802734375 → 750.7803 to 2381.560546875
+  → 2381.5605, its circle and arrowhead at its ends. The wedges,
   coordinate labels and cross-section lines of `timestamp_6` (the end of
   `exposition`) and `timestamp_4` lie on the left runs, at 1150.7803 and
   1766.1704; those of `timestamp_3` and `timestamp_11` (the starts of
@@ -2566,15 +2736,22 @@ lies on the row above), its line at 82.953125 of 97.35546875, `Ri' + K
   30.0)): the gap over 33.0–44.0 from 1190.7802734375 → 1190.7803 to
   1234.8938802083335 → 1234.8939 (`XA(34.0)` = 1204.1136067708333 >
   1198.7802734375, `XB(43.0)` = 1221.560546875 < 1230.7802734375), its
-  ellipsis at 1212.8370768229167: the circles at 1206.8371, 1212.8371 and
-  1218.8371 on 244.5156; the line of `session` in two pieces, from
+  one ellipsis at `xm` = 1212.8370768229167 and the middle of the once
+  card, `ym` = (195.5390625 + 279.4921875) / 2 = 237.515625: the circles at
+  1206.8371, 1212.8371 and 1218.8371 on 237.5156, and below them its
+  label `Session` (the card's `elision-display` `ellipsis name`), centred
+  at 1212.8371 with the baseline 237.515625 + 4 + 8.35400390625 =
+  249.86962890625 → 249.8696; the line of `session` in two pieces, from
   750.7802734375 → 750.7803 to the gap and from the gap to
   2381.560546875.
 - The once cards: `score` from 750.7802734375 − 159.41357421875 =
   591.36669921875 → 591.3667, 2398.839599609375 − 591.36669921875 =
   1807.472900390625 → 1807.4729 wide; `session` from 652.52734375 →
-  652.5273, 1746.033203125 → 1746.0332 wide; both written before the
-  items, `score`'s first.
+  652.5273, 1746.033203125 → 1746.0332 wide and 83.953125 → 83.9531 high,
+  from 195.5390625 to 279.4921875, the cross-section lines of `take_a`'s
+  and `take_b`'s `origin` and `length` in it running down to 279.4922;
+  both written before the items, `score`'s first.
 - `W` = 8 + 2421.560546875 = 2429.560546875, the right edge of
-  Recapitulation's frame plus `P`; `H` = 8 + 267.515625 = 275.515625;
-  the page 2461.560546875 × 307.515625 → **2461.5605 × 307.5156**.
+  Recapitulation's frame plus `P`; `H` = 8 + 281.4921875 = 289.4921875,
+  the bottom of `session`'s once card with its shadow plus `P`; the page
+  2461.560546875 × 321.4921875 → **2461.5605 × 321.4922**.
