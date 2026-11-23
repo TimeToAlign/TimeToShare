@@ -2584,26 +2584,25 @@ aligned to `M` or to an earlier member below `R`, so in every member
 card of that frame below `R`, where `Δr =
 max(dr, or + i(r + 1))`, `dr` the distance between the lines of the two
 rows' ancestors in `R`'s drawing laid out alone (section 8.8, step 1),
-the larger of their ordinates less the smaller. Of the label stacks of
-elisions in its markers bands (section 6.4, Markers), `dr` counts those
-of the stored card elisions the ancestor card draws, whose pieces depend
-on the protected span alone (section 8.9), and leaves out those of the
-elisions it derives, whose coordinates depend on the card's proportion
-and the proportion on the height of `M`'s frame (section 8.9), so that
-`dr` depends on nothing of `M`'s card. For `dr`, `R`'s drawing alone is
-laid out on the gaps carried into the ancestor card (section 8.9), which
-draw no label but move what lies right of them, and, where the card's
-mode is `custom`, on the pieces of its stored card elisions, so that
-there it is the ancestor card's own layout.
+the larger of their ordinates less the smaller. For `dr`, `R`'s drawing
+alone is laid out on the ancestor card's elided axis (section 8.9): on the
+gaps carried into it, which draw no label but move what lies right of
+them, and, as its mode chooses, on the pieces of its stored card elisions
+or on the elisions it derives, so that it is the ancestor card's own
+layout, and `dr` counts the label stacks of every elision the card draws
+in its markers bands (section 6.4, Markers), stored and derived alike;
+for a root drawn once behind a row (section 8.8, Drawn once) it is the
+layout of its once card. The coordinates of the derived elisions depend
+on the card's proportion, and the proportion on the height of `M`'s frame
+(section 8.9), which it reads as laid out before any of its rows align on
+a card behind, every `Δr` there `or + i(r + 1)`, so that `dr` depends on
+nothing of `M`'s card as drawn.
 So, in the card of the member the ancestor card is aligned to, which lies
 aligned on `R`'s line (section 8.8), every ancestor row on that side lies
 at exactly its height on the card behind (in a later member's card the
-rows keep those distances from one another), with two
-exceptions: where the wedges and labels of its own named timestamps need
-more room, that row and the rows beyond it lie further out; and where the
-labels of a derived elision widen a markers band of the card behind that
-lies between `R`'s line and a row's line, that row lies further from
-`R`'s line on the card behind than its ancestor line does in `M`'s card.
+rows keep those distances from one another), with one exception: where
+the wedges and labels of its own named timestamps need more room, that
+row and the rows beyond it lie further out.
 The
 band is `i1 + Δ1 + … + Δ(C − 1) + oC` wide for `C` rows, summed in that
 order, and its outer edge is `c0` plus that width.
@@ -3493,7 +3492,7 @@ elided card lies within the view. With, in `G`'s item coordinates:
 | `VW`, `VH` | the `width` and `height` of the placement's `view` (section 1) |
 | `sG` | `G`'s `scale` (section 8.6) |
 | `L`, `L'`, `x0` | `G`'s graphical length, its members' drawn length (section 8.2; `L` without group elisions) and the start of its member drawings |
-| `Fw`, `Fh` | the width and the height of `G`'s frame as drawn (sections 8.2, 8.4 and 8.6, its requests included); its centre `c = Fw / 2` |
+| `Fw`, `Fh` | the width and the height of `G`'s frame (sections 8.2, 8.4 and 8.6, its requests included) as laid out before the ancestor rows of its member cards align on the cards behind them, every `Δr` of section 8.3 `or + i(r + 1)`: so `Fw` is its width as drawn, and `Fh` does not depend on the rows the ancestor card's own elisions move; its centre `c = Fw / 2` |
 | `σ` | `K + N' + G'` of `R` laid out as section 8.8, step 1 lays it out but without any gap, and so without the label stacks of its elisions (section 6.4, Markers), which can change its rows and so its names: its name column and the gap after it, `N'` the width of its widest name and `G'` 8 where it draws a name and 0 otherwise (section 8.2) |
 | `EL`, `ER` | the stretches of `R` left and right of `M`, on `M`'s axis: `EL = −ts` and `ER = te − λ` (section 8.8), and `E = EL + ER`, each combined as section 3.1 combines values |
 
