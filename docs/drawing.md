@@ -798,7 +798,9 @@ without them, its first fits (section 6.3) measuring every extent by `L ×
 u`, so that the card's rows, slots, widths and ordinates are those of the
 card drawn whole, and an element that is not drawn because it lies in a
 gap keeps its room; only the label stacks of elisions (section 6.4,
-Markers) are added to the card's markers bands.
+Markers) are added to the card's markers bands, each as high as the
+lines it reaches in its drawn tier, which the gaps' x set (section 6.6,
+Elisions).
 
 **Seams.** An ancestor card's axis may also jump where it leaves nothing
 out. A **seam** at a position `m` of the root's axis parts two runs: the
@@ -1526,17 +1528,21 @@ coordinate, the first at the top, the words of the elision's
 `display`, of a derived elision the card's `elision-display`, choosing
 them. A stack enters the band's first fit after the stacks of the named
 timestamps' coordinates, primary and secondary, as their stacks do, one
-item as many lines high as it has labels, its extent that of one label as
-wide as its widest label centred on `L × um`, `um` the proportion
+item as many lines high as the lines it reaches in its **drawn tier**
+(section 6.6, Elisions): `m1 + … + m(k − 1) + j` for a stack of `j`
+labels in drawn tier `k`, `mq` the height of drawn tier `q` in lines, so
+`j` in drawn tier 1. Its extent is that of one label as wide as its
+widest label centred on `L × um`, `um` the proportion
 (section 3.2) of the midpoint (section 3.1) of its gap's piece on the
 root's axis (section 8.9), and for a group elision `(p + q) / 2` of its
 piece in the frame, in binary64: its place at full scale,
-so that its tier does not depend on the widths of the gaps. It lies at
+so that its tier in the band does not depend on the widths of the gaps;
+its height does, through its drawn tier. It lies at
 its unturned place beyond the room of the wedges, which an elision leaves
 empty. The band takes the stack's room there, so the stack's room sets
 the band and the card's rows, but the stack is drawn centred below its
-gap's ellipsis (section 6.6), whether or not the ellipsis is drawn, so
-that showing or hiding an ellipsis moves no label. A band holding a
+gap's ellipsis, in its drawn tier (section 6.6), whether or not the
+ellipsis is drawn, so that showing or hiding an ellipsis moves no label. A band holding a
 displayed elision label is present, and its width counts the tiers as for
 a timestamp's labels.
 
@@ -2062,11 +2068,26 @@ one below it.
   crosses the gap gets a **continuation**, a line from `(x(a), y)` to
   `(x(b), y)`, `y` its ordinate, drawn in the gap's stroke, under the
   ellipsis. Its labels, the stack of section 6.4 (Markers), are drawn
-  with the ellipsis, centred on `xm` just below it, whether or not the
-  ellipsis is drawn: its `i`-th label, from 1, has its baseline at `ym +
-  (2 + 2 + (i − 1) × h(9)) + a(9)`, the dot radius and the label gap
-  below `ym`, `h(9)` and `a(9)` those of the markers band that takes the
-  stack's room, in the card that draws them; each label is cut to its
+  with the ellipsis, centred on `xm` below it, whether or not the
+  ellipsis is drawn, in the stack's **drawn tier**. The stacks drawn
+  under one `ym`, those of one card's gaps or those of one frame's gaps
+  across its member cards, are placed by one first fit (section 6.3)
+  into drawn tiers, in the order of their gaps from the left, each stack
+  one item as many lines high as it has labels, its extent that of one
+  label as wide as its widest label, each label cut as below, centred on
+  the gap's middle as section 6.7 places an elision's label, `(l + r) /
+  2`: so the stacks of neighbouring gaps that would touch or overlap as
+  drawn lie one below the other, as the stacks of named timestamps do in
+  their band (section 6.4, Markers). A drawn tier is as many lines high
+  as its highest stack, and each of its stacks starts on its first line.
+  The `i`-th label, from 1, of a stack in drawn tier `k` lies on line `n
+  = m1 + … + m(k − 1) + i`, `mq` the height of drawn tier `q` in lines,
+  and has its baseline at `ym + (2 + 2 + (n − 1) × h(9)) + a(9)`, the
+  dot radius and the label gap below `ym`, `h(9)` and `a(9)` those of
+  the markers band that takes the stack's room, in the card that draws
+  them; that band takes the room of every line up to the stack's last
+  (section 6.4, Markers). Gaps never move apart for their labels: no gap
+  is widened and no proportion changes. Each label is cut to its
   `max-width` as a name is cut (Names), never to the gap. Nothing else that lies on the stretch is
   drawn in a gap, but for the arc of a jump origin. An element that marks
   a position in a gap is not drawn: a wedge with its labels, a
@@ -3381,9 +3402,9 @@ gap runs across the frame's member cards, from the top of the topmost to
 the bottom of the bottommost (section 6.6); every row of every member
 card that crosses it stops and resumes there, and the gap draws one
 ellipsis, centred on the member cards together, with its label stack
-once, below that ellipsis (section 6.6), its room taken in the markers
-band of the elision's own timeline `T` in its card in that frame
-(section 6.4, Markers) and nowhere else. Its labels show the piece's ends on `T`'s
+once, below that ellipsis in its drawn tier (section 6.6), its room
+taken in the markers band of the elision's own timeline `T` in its card
+in that frame (section 6.4, Markers) and nowhere else. Its labels show the piece's ends on `T`'s
 own axis: the elision's `start` and `end` where the piece is its whole
 stretch, neither clipped to `[0, 1]` nor cut by an earlier piece; on any
 other piece both ends are read on `T` at the piece's proportions, `p ×
@@ -3589,7 +3610,14 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   14.81481481481569 and 14.814814814813872 of Clair de Lune, and
   59.259259259259125 on either side of Passepied, the gaps
   59.986481131855626, 48.91033261077412, 45.13437288767693 and
-  38.561405962287324 wide.
+  38.561405962287324 wide. In the card of `clt_1` behind the frame of
+  `clt_9` (Passepied mm. 153–156) the name labels `Menuet`
+  (33.7763671875 wide) and `Clair de Lune` (59.431640625 wide) of the
+  neighbouring gaps over Menuet and Clair de Lune would overlap as
+  drawn, so `Clair de Lune` lies in drawn tier 2, one line below the
+  labels `Prelude`, `Menuet` and `Passepied` in drawn tier 1, and the
+  markers band of Clair de Lune takes its room as an item two lines
+  high; no gap moves and `r` is unchanged (section 6.6).
 - The fixture `group_elided_members`: the frame of `group_1` (`L` 400)
   draws two group elisions. `elision_1` on the member `excerpt` (16
   quarters) from 2 to 8 has the stretch `p` = 0.125 to `q` = 0.5, the
