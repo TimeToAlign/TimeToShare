@@ -557,9 +557,10 @@ units); absent, the gap takes the standard width of 32 canvas units. A
 gap is never wider than its stretch at full scale. `display` lists what
 the elision draws besides its gap, distinct words from `ellipsis` (its
 ellipsis), `name`, `id` and `coordinate` (its three labels, stacked as a
-named timestamp's) and `continuation` (grey continuations of the rows
-across the gap), by default `["ellipsis", "name"]`; an empty array draws
-a bare gap.
+named timestamp's under the ellipsis, a stack that would touch a
+neighbouring gap's standing below it) and `continuation` (grey
+continuations of the rows across the gap), by default `["ellipsis",
+"name"]`; an empty array draws a bare gap.
 
 An elision on a timeline that lies in a group, as a groupstamp's
 timeline does, is drawn across that group's frame, at one place in every
