@@ -3027,18 +3027,21 @@ names the conflict:
   earlier end, written as an elision's coordinate label writes its
   elided coordinates (section 5.3): `"Theme A" and "Theme B" overlap on
   "Score" (8–16 ♩)`.
-- **The row in a cycle**: from the first item of the item order that the
-  sort leaves, step along the first relation, each time to the item
-  earliest in the item order among those the sort left, until an item
-  repeats. The cycle so found, begun at its item earliest in the item
-  order, gives the groups, the root of each step (of two roots giving
-  one step, the earlier in canonical order) and the reason, for two
-  groups `on "R" "G" comes first, on "S" "H"`, and for more `on "R" "G"
-  comes before "H", on "S" "H" before "J", on "T" "J" before "G"`.
+- **The row in a cycle**: of the items the sort leaves, every item that
+  must precede none of the others still left is set aside, again and
+  again until none is. From the first item of the item order still left,
+  step along the first relation, each time to the item earliest in the
+  item order among those still left, until an item repeats. The cycle so
+  found, begun at its item earliest in the item order, gives the
+  groups, the root of each step (of two roots giving one step, the
+  earlier in canonical order) and the reason, for two groups `on "R" "G"
+  comes first, on "S" "H"`, and for more `on "R" "G" comes before "H", on
+  "S" "H" before "J", on "T" "J" before "G"`.
 - **The roots in a cycle**, found and begun likewise among the roots in
-  canonical order: the groups of its steps (of two groups giving one
-  step, the earlier in canonical order), its roots and the reason
-  `"G" holds "R" above "S", "H" holds "S" above "R"`.
+  canonical order, every root that must lie above none of the others
+  still left set aside first: the groups of its steps (of two groups
+  giving one step, the earlier in canonical order), its roots and the
+  reason `"G" holds "R" above "S", "H" holds "S" above "R"`.
 
 Each group and root is named in a reason by its title or name (section
 5.3), in double quotes. A refused arrangement is drawn as `vertical`
@@ -3285,9 +3288,11 @@ address, `name`, `width` and `display`. So an elision overlapping the
 protected span is clipped to what lies outside it, drawn as up to two
 pieces; of two elisions that overlap, the earlier is drawn whole and the
 later clipped; a piece without length is not drawn; and nothing is
-refused. Each piece of a stored elision is one gap of section 3.2 over
-the whole piece, its elided coordinates the piece's ends on the
-elision's timeline's own axis.
+refused. A stored elision the card does not draw, its gap not displayed
+or its timeline not drawn there (Where, above), has no pieces and takes
+no stretch from the elisions after it. Each piece of a stored elision
+is one gap of section 3.2 over the whole piece, its elided coordinates
+the piece's ends on the elision's timeline's own axis.
 
 **Widths.** A gap of a stored elision over `[a, b]` has the natural width
 `n` of section 3.2 and the drawn width set by its elision's `width`
@@ -3308,8 +3313,9 @@ coordinate to a root, become the proportions `p` and `q` of `λ` (section
 3.2), each clipped to `[0, 1]`: the elision's **stretch in the frame**.
 The frame's group elisions are taken in canonical order, and each draws
 as its pieces what of its stretch lies outside every piece taken before
-it; each piece is one gap of the frame's elided axis (section 3.2), with
-the natural width `n = L × q − L × p` and the drawn width set by its
+it, one the frame does not draw (Where, above) taking no stretch; each
+piece is one gap of the frame's elided axis (section 3.2), with the
+natural width `n = L × q − L × p` and the drawn width set by its
 elision's `width` as above, `{"span": v}` giving `L × uv` with `uv = v /
 λ`, and `{"canvas": c}` `c` in the frame's item coordinates, so the
 frame's `scale` scales it; `n` instead when it is larger. One stored
