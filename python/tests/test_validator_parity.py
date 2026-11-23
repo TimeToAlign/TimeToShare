@@ -651,6 +651,79 @@ def test_the_gate_answers_as_the_walk_on_each_keyword(
     ]
 
 
+_BELIEF_BASE = {
+    "$defs": {
+        "Record": {
+            "properties": {
+                "date": {},
+                "beliefs": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {"actor": {}},
+                        "unevaluatedProperties": False,
+                    },
+                },
+            }
+        }
+    },
+    "type": "object",
+    "allOf": [{"$ref": "#/$defs/Record"}],
+    "properties": {"property": {}},
+    "unevaluatedProperties": False,
+}
+
+
+def test_a_failing_allof_base_leaves_its_keys_unevaluated_in_both() -> None:
+    checked = current._Schema.of(_BELIEF_BASE)
+    value = {"property": 1, "date": 1, "beliefs": [{"actor": 1, "x": 1}]}
+    walked = {
+        (tuple(error.absolute_path), tuple(sorted(error.instance)))
+        for error in checked.walk.iter_errors(value)
+        if error.validator == "unevaluatedProperties"
+    }
+    gated = {
+        (tuple(error.instance_path), tuple(sorted(error.kind.unexpected)))
+        for error in checked.gate.iter_errors(value)
+    }
+    assert gated == {(("beliefs", 0), ("x",)), ((), ("beliefs", "date"))}
+    assert {path for path, _ in walked} == {path for path, _ in gated}
+
+
+def _belief_with_undeclared_key() -> Any:
+    value = _read(next(p for p in fixture_paths() if p.name == "bare.minimal.yaml"))
+    value["provenance"] = [
+        {
+            "property": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+            "value": {"id": "http://example.org/work"},
+            "beliefs": [
+                {
+                    "actor": "http://example.org/editor",
+                    "belief": "true",
+                    "date": "2026-11-18",
+                    "x": 1,
+                }
+            ],
+        }
+    ]
+    return value
+
+
+def test_an_undeclared_key_below_an_allof_base_is_listed_alone(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    value = _belief_with_undeclared_key()
+    listed = {(("provenance", 0, "beliefs", 0), "x")}
+    assert current._manifest_schema().gated(value) == listed
+    assert _assert_gate_answers_as_the_walk(current._manifest_schema(), value) is True
+    walk = _counted(monkeypatch)
+    assert current.unknown_keys(value) == [
+        {"path": ["provenance", 0, "beliefs", 0], "key": "x"}
+    ]
+    assert walk.calls == 0
+    _assert_facts(value)
+
+
 def test_a_final_line_feed_is_left_to_the_walk() -> None:
     checked = current._Schema.of({"pattern": "^[a-z]+$"})
     assert checked.walk.is_valid("abc\n")

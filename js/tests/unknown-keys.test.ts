@@ -168,6 +168,20 @@ describe("unknown keys", () => {
     ]);
   });
 
+  it("lists an undeclared key of a belief alone, not the keys of the record around it", () => {
+    const value = loads(fixtureText("bare.minimal")) as JsonObject;
+    value.provenance = [
+      {
+        property: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        value: { id: "http://example.org/work" },
+        beliefs: [{ actor: "http://example.org/editor", belief: "true", date: "2026-11-18", x: 1 }],
+      },
+    ];
+    expect(timetoshare.unknownKeys(value)).toEqual([
+      { path: ["provenance", 0, "beliefs", 0], key: "x" },
+    ]);
+  });
+
   it("raises for an invalid value before listing any key", () => {
     expect(() => unknownKeys(manifest([timeline("score", "quarters", 32)], { extra: 1 }))).toThrow(
       SchemaValidationError,

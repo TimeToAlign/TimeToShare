@@ -2616,7 +2616,8 @@ JSON data whose every float is finite (`plainly_finite`); there it answers
 "valid" where it finds no error, or where every error it finds is one an
 undeclared key alone causes (an `unevaluatedProperties` failure, or a
 `oneOf`/`anyOf` one of whose branches fails by such failures alone), and
-then lists those keys. Where it finds any other error, raises, or is not
+then lists the keys among them that the object holding them does not
+declare, as the walk does. Where it finds any other error, raises, or is not
 asked, the walk runs as it ran before. The finite rule's copy of the value
 with bare IDs is skipped likewise where `plainly_finite` holds, and the ID
 conversions copy JSON data without `copy.deepcopy`. The gate is meant to
@@ -2696,6 +2697,17 @@ Around the facts:
   known: a `pattern` ending in `$` matches before a final line feed in
   Python's `re`, not in `jsonschema-rs` (which follows ECMA 262); the gate
   then refuses and the walk decides, so the outcome is the walk's.
+- **An undeclared key below an `allOf` base.** A schema that fails gives
+  no evaluated keys, so an undeclared key inside a value an `allOf` base
+  holds (a key of a belief, inside a provenance entry, which is `allOf`
+  the provenance record) fails the base, and both validators then report
+  every key of the base on the closed object holding it as unevaluated
+  too, besides the undeclared key where it stands; a small schema pins
+  that both report them. Those keys are declared, so neither side lists
+  them: the bare manifest with `provenance: [{property, value, beliefs:
+  [{actor, belief, date, x: 1}]}]` lists the key `x` at
+  `provenance/0/beliefs/0` and nothing else, through the gate (without one
+  call to the walk) as through the walk.
 - **Every entry point has its gate.** The root, `Timestamp`,
   `Graphical.matchstamps` and every member `statement_problems` checks
   (each subject's `provenance` and `statements`, the manifest's

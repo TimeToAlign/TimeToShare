@@ -316,6 +316,11 @@ value node states `ex:part` and a provenance entry for it carrying `zz`, and
 an `x` on the manifest, lists exactly `x` at `[]` and `zz` at
 `["statements", "schema:about", 0, "ex:extra", 0, "provenance", 0]`: the
 prefix, the pairs and the value nodes' own keys are declared by their maps.
+A third input is also a Python test: the bare manifest with `provenance:
+[{property, value, beliefs: [{actor, belief, date, x: 1}]}]` lists exactly
+`x` at `["provenance", 0, "beliefs", 0]`, never the keys the provenance
+record declares on the entry (`beliefs`), though the key below fails the
+record the entry is `allOf`.
 No test runs the two languages side by side; the lists are literal. The keys belong to one run, so a refused
 manifest's keys never appear in the next run's list (`validate.test.ts`).
 

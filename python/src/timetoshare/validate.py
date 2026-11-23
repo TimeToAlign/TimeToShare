@@ -290,7 +290,7 @@ class _Schema:
             return None
         if not all(_gate_key_failures_only(error) for error in errors):
             return None
-        return set(_gate_keys(errors))
+        return set(_gate_keys(errors, self.walk.schema))
 
     def read(self, value: Any, plain: bool) -> tuple[list[ValidationError], _Keys]:
         """The walk's errors and the unknown keys, walking only past the gate.
@@ -324,18 +324,29 @@ def _gate_key_failures_only(error: Any) -> bool:
     return False
 
 
-def _gate_keys(errors: Iterable[Any]) -> Iterator[tuple[InstancePath, str]]:
-    """:func:`_keys` for the errors of the gate."""
+def _gate_keys(
+    errors: Iterable[Any], root: Mapping[str, Any]
+) -> Iterator[tuple[InstancePath, str]]:
+    """:func:`_keys` for the errors of the gate, whose schema document is ``root``.
+
+    A key the gate finds unevaluated is listed only where the object node
+    refusing it does not declare it, as the walk lists it: a failing
+    ``allOf`` base evaluates no key, so the keys it declares are unevaluated
+    too wherever an undeclared key fails it from below.
+    """
     for error in errors:
         name = error.kind.name
         if name == "unevaluatedProperties":
             path = tuple(error.instance_path)
-            for key in error.kind.unexpected:
+            node: Any = root
+            for step in error.schema_path[:-1]:
+                node = node[step]
+            for key in _undeclared(node, error.kind.unexpected):
                 yield path, key
         elif name in ("oneOf", "anyOf"):
             for branch in _gate_branches(error):
                 if branch and all(_gate_key_failures_only(child) for child in branch):
-                    yield from _gate_keys(branch)
+                    yield from _gate_keys(branch, root)
 
 
 @cache
@@ -576,14 +587,18 @@ def _declared(node: Mapping[str, Any]) -> set[str]:
     return declared
 
 
+def _undeclared(node: Mapping[str, Any], keys: Iterable[str]) -> Iterator[str]:
+    """The ``keys`` the object ``node`` does not declare."""
+    declared = _declared(node)
+    return (key for key in keys if key not in declared)
+
+
 def _keys(errors: Iterable[ValidationError]) -> Iterator[tuple[InstancePath, str]]:
     for error in errors:
         if error.validator == "unevaluatedProperties":
-            declared = _declared(error.schema)
             path = tuple(error.absolute_path)
-            for key in error.instance:
-                if key not in declared:
-                    yield path, key
+            for key in _undeclared(error.schema, error.instance):
+                yield path, key
         elif error.validator in ("oneOf", "anyOf"):
             for branch in _branches(error):
                 if all(_key_failures_only(child) for child in branch):
