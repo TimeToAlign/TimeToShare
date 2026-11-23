@@ -2778,7 +2778,9 @@ gives no use for (a member's card uses only `width`, `height`,
   Vb` below the manifest's title, `s` its font size and `Vb` the block's
   margin, or `P + Vb` when there is no title or it is not displayed; for
   every further item, the block's spacing
-  below the largest bottom edge `d` of the items before it. That edge is
+  below the largest bottom edge `d` of the items before it and of their
+  displayed ancestor cards (section 8.8), and lower still where its own
+  ancestor cards rise above it (section 8.8, No room). That edge is
   the frame's or card's `d` of section 8.4, its place `y` plus `scale` times its
   height, summed in place coordinates before any shift; a card's shadow does not count, and
   an item that a `height` request makes higher ends at its requested
@@ -2797,7 +2799,8 @@ not arranged; every other member of its place applies as above.
 - `vertical`: every item lies at its default `x` and `y`, as above, the
   items taken in the item order instead of drawing order: the first at
   the first item's default `y`, each further one the block's spacing
-  below the largest bottom edge of the items before it.
+  below the largest bottom edge of the items before it and of their
+  displayed ancestor cards, as above.
 - `horizontal`: the items stand in one row, in the **row** of section
   8.8 (Drawn once), which keeps the item order wherever the stretches of
   the groups on their roots leave it free. The first item lies at `x =
@@ -3009,9 +3012,14 @@ forms them. With `x0` the start of the member drawings of `G`'s frame and
    and it lies at `yA`.
    The ancestor card is then drawn at `G`'s place and scale, as every
    element of the frame (section 8.6).
-3. **No room.** No item's default `y` (section 8.6), no quantity of the
-   block's one horizontal layout (section 8.2) and no size of `G`'s frame
-   or cards counts it. The block grows to hold it as it holds a card: its
+3. **No room.** No quantity of the block's one horizontal layout
+   (section 8.2) and no size of `G`'s frame or cards counts it; but an
+   item's default `y` (section 8.6) counts the displayed ancestor cards
+   behind the frames before it and behind its own frame: it lies the
+   block's spacing below the largest bottom edge of the earlier items and
+   their ancestor cards, and so much lower that its own ancestor cards'
+   tops lie that spacing below too (the first item keeps its default
+   `y`), shadows not counted. The block grows to hold it as it holds a card: its
    left edge, top, right and bottom edges, its shadow included, count
    among the edges of section 8.4, so the block may grow to the left or
    upwards, moving the place origin within it while every item keeps its

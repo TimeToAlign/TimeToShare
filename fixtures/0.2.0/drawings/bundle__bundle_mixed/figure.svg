@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1099.7556" height="485.6523" viewBox="0 0 1099.7556 485.6523" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="1099.7556" height="497.6289" viewBox="0 0 1099.7556 497.6289" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="1067.7556" height="453.6523" rx="10" fill="#F3F4F6"/>
+<rect x="0" y="0" width="1067.7556" height="465.6289" rx="10" fill="#F3F4F6"/>
 <text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Mixed</text>
 <rect data-id="recording" data-part="card" x="10" y="290.3203" width="1049.7556" height="87.4531" rx="5" fill="#B8BEC8"/>
 <rect data-id="recording" data-part="card" x="8" y="288.3203" width="1049.7556" height="87.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
@@ -96,20 +96,20 @@
 <line data-id="timestamp_3" data-part="line" x1="247.9951" y1="329.7969" x2="247.9951" y2="355.7969" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_4" data-part="line" x1="647.9951" y1="288.3203" x2="647.9951" y2="304.3203" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_4" data-part="line" x1="647.9951" y1="329.7969" x2="647.9951" y2="355.7969" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<rect data-id="annotations" data-part="card" x="131.7036" y="373.7969" width="561.052" height="71.8555" rx="5" fill="#B8BEC8"/>
-<rect data-id="annotations" data-part="card" x="129.7036" y="371.7969" width="561.052" height="71.8555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<path data-id="region_1" d="M247.9951 417.1758Q247.9951 420.1758 250.9951 420.1758L311.6618 420.1758Q314.6618 420.1758 314.6618 423.1758Q314.6618 420.1758 317.6618 420.1758L378.3285 420.1758Q381.3285 420.1758 381.3285 417.1758" fill="none" stroke="#000000" stroke-width="1"/>
-<path data-id="region_2" d="M381.3285 417.1758Q381.3285 420.1758 384.3285 420.1758L511.6618 420.1758Q514.6618 420.1758 514.6618 423.1758Q514.6618 420.1758 517.6618 420.1758L644.9951 420.1758Q647.9951 420.1758 647.9951 417.1758" fill="none" stroke="#000000" stroke-width="1"/>
-<line data-id="annotations" x1="247.9951" y1="386.1992" x2="647.9951" y2="386.1992" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="annotations" cx="247.9951" cy="386.1992" r="3" fill="#00CC00"/>
-<polygon data-id="annotations" points="656.9951,386.1992 647.9951,381.6992 647.9951,390.6992" fill="#00CC00"/>
-<polygon data-id="timestamp_1" points="247.9951,387.6992 244.9951,400.6992 250.9951,400.6992" fill="#000000"/>
-<polygon data-id="timestamp_2" points="647.9951,387.6992 644.9951,400.6992 650.9951,400.6992" fill="#000000"/>
-<text data-id="annotations" data-part="name" x="145.7036" y="390.0073" text-anchor="start" font-size="11" fill="#000000">Annotations</text>
-<text data-id="timestamp_1" data-part="coordinate" x="247.9951" y="411.0532" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="timestamp_2" data-part="coordinate" x="647.9951" y="411.0532" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
-<text data-id="region_1" data-part="label" x="314.6618" y="433.5298" text-anchor="middle" font-size="9" fill="#000000">Verse</text>
-<text data-id="region_2" data-part="label" x="514.6618" y="433.5298" text-anchor="middle" font-size="9" fill="#000000">Chorus</text>
+<rect data-id="annotations" data-part="card" x="131.7036" y="385.7734" width="561.052" height="71.8555" rx="5" fill="#B8BEC8"/>
+<rect data-id="annotations" data-part="card" x="129.7036" y="383.7734" width="561.052" height="71.8555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-id="region_1" d="M247.9951 429.1523Q247.9951 432.1523 250.9951 432.1523L311.6618 432.1523Q314.6618 432.1523 314.6618 435.1523Q314.6618 432.1523 317.6618 432.1523L378.3285 432.1523Q381.3285 432.1523 381.3285 429.1523" fill="none" stroke="#000000" stroke-width="1"/>
+<path data-id="region_2" d="M381.3285 429.1523Q381.3285 432.1523 384.3285 432.1523L511.6618 432.1523Q514.6618 432.1523 514.6618 435.1523Q514.6618 432.1523 517.6618 432.1523L644.9951 432.1523Q647.9951 432.1523 647.9951 429.1523" fill="none" stroke="#000000" stroke-width="1"/>
+<line data-id="annotations" x1="247.9951" y1="398.1758" x2="647.9951" y2="398.1758" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="annotations" cx="247.9951" cy="398.1758" r="3" fill="#00CC00"/>
+<polygon data-id="annotations" points="656.9951,398.1758 647.9951,393.6758 647.9951,402.6758" fill="#00CC00"/>
+<polygon data-id="timestamp_1" points="247.9951,399.6758 244.9951,412.6758 250.9951,412.6758" fill="#000000"/>
+<polygon data-id="timestamp_2" points="647.9951,399.6758 644.9951,412.6758 650.9951,412.6758" fill="#000000"/>
+<text data-id="annotations" data-part="name" x="145.7036" y="401.9839" text-anchor="start" font-size="11" fill="#000000">Annotations</text>
+<text data-id="timestamp_1" data-part="coordinate" x="247.9951" y="423.0298" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="647.9951" y="423.0298" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
+<text data-id="region_1" data-part="label" x="314.6618" y="445.5063" text-anchor="middle" font-size="9" fill="#000000">Verse</text>
+<text data-id="region_2" data-part="label" x="514.6618" y="445.5063" text-anchor="middle" font-size="9" fill="#000000">Chorus</text>
 <line data-id="timestamp_3" data-part="line" x1="247.9951" y1="230.8438" x2="247.9951" y2="288.3203" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_4" data-part="line" x1="647.9951" y1="230.8438" x2="647.9951" y2="288.3203" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 </g>

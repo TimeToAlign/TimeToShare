@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1268.9688" height="282.9414" viewBox="0 0 1268.9688 282.9414" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="1268.9688" height="288.7109" viewBox="0 0 1268.9688 288.7109" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="1236.9688" height="250.9414" rx="10" fill="#F3F4F6"/>
+<rect x="0" y="0" width="1236.9688" height="256.7109" rx="10" fill="#F3F4F6"/>
 <text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Conflict</text>
 <rect data-id="score" data-part="card" x="210" y="30.8047" width="1018.9688" height="97.3555" rx="5" fill="#B8BEC8"/>
 <rect data-id="score" data-part="card" x="208" y="28.8047" width="1018.9688" height="97.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
@@ -32,36 +32,36 @@
 <line data-id="timestamp_3" data-part="line" x1="569.9688" y1="70.7812" x2="569.9688" y2="126.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_4" data-part="line" x1="1009.9688" y1="28.8047" x2="1009.9688" y2="45.3047" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_4" data-part="line" x1="1009.9688" y1="70.7812" x2="1009.9688" y2="126.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<rect data-id="score" data-part="card" x="10" y="138.9883" width="1018.9688" height="97.3555" rx="5" fill="#B8BEC8"/>
-<rect data-id="score" data-part="card" x="8" y="136.9883" width="1018.9688" height="97.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="score" x1="72.9844" y1="219.9414" x2="1009.9688" y2="219.9414" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="score" cx="72.9844" cy="219.9414" r="3" fill="#00CC00"/>
-<polygon data-id="score" points="1018.9688,219.9414 1009.9688,215.4414 1009.9688,224.4414" fill="#00CC00"/>
-<line data-id="theme_a" x1="72.9844" y1="185.9648" x2="565.4688" y2="185.9648" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="theme_a" cx="72.9844" cy="185.9648" r="3" fill="#00CC00"/>
-<polygon data-id="theme_a" points="565.4688,185.9648 569.9688,182.3648 574.4688,185.9648 569.9688,189.5648" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<line data-id="theme_b" x1="369.9688" y1="151.9883" x2="765.4688" y2="151.9883" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="theme_b" cx="369.9688" cy="151.9883" r="3" fill="#00CC00"/>
-<polygon data-id="theme_b" points="765.4688,151.9883 769.9688,148.3883 774.4688,151.9883 769.9688,155.5883" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<polygon data-id="timestamp_1" points="72.9844,187.4648 69.9844,200.4648 75.9844,200.4648" fill="#000000"/>
-<polygon data-id="timestamp_2" points="569.9688,187.4648 566.9688,200.4648 572.9688,200.4648" fill="#000000"/>
-<polygon data-id="timestamp_3" points="369.9688,153.4883 366.9688,166.4883 372.9688,166.4883" fill="#000000"/>
-<polygon data-id="timestamp_4" points="769.9688,153.4883 766.9688,166.4883 772.9688,166.4883" fill="#000000"/>
-<text data-id="theme_b" data-part="name" x="16" y="155.7964" text-anchor="start" font-size="11" fill="#000000">Theme B</text>
-<text data-id="theme_a" data-part="name" x="16" y="189.7729" text-anchor="start" font-size="11" fill="#000000">Theme A</text>
-<text data-id="score" data-part="name" x="16" y="223.7495" text-anchor="start" font-size="11" fill="#000000">Score</text>
-<text data-id="timestamp_1" data-part="coordinate" x="72.9844" y="210.8188" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="timestamp_2" data-part="coordinate" x="569.9688" y="210.8188" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
-<text data-id="timestamp_3" data-part="coordinate" x="369.9688" y="176.8423" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="timestamp_4" data-part="coordinate" x="769.9688" y="176.8423" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
-<line data-id="timestamp_1" data-part="line" x1="72.9844" y1="136.9883" x2="72.9844" y2="187.4648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_1" data-part="line" x1="72.9844" y1="212.9414" x2="72.9844" y2="234.3438" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_2" data-part="line" x1="569.9688" y1="136.9883" x2="569.9688" y2="187.4648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_2" data-part="line" x1="569.9688" y1="212.9414" x2="569.9688" y2="234.3438" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_3" data-part="line" x1="369.9688" y1="136.9883" x2="369.9688" y2="153.4883" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_3" data-part="line" x1="369.9688" y1="178.9648" x2="369.9688" y2="234.3438" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_4" data-part="line" x1="769.9688" y1="136.9883" x2="769.9688" y2="153.4883" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_4" data-part="line" x1="769.9688" y1="178.9648" x2="769.9688" y2="234.3438" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="score" data-part="card" x="10" y="144.7578" width="1018.9688" height="97.3555" rx="5" fill="#B8BEC8"/>
+<rect data-id="score" data-part="card" x="8" y="142.7578" width="1018.9688" height="97.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="score" x1="72.9844" y1="225.7109" x2="1009.9688" y2="225.7109" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="score" cx="72.9844" cy="225.7109" r="3" fill="#00CC00"/>
+<polygon data-id="score" points="1018.9688,225.7109 1009.9688,221.2109 1009.9688,230.2109" fill="#00CC00"/>
+<line data-id="theme_a" x1="72.9844" y1="191.7344" x2="565.4688" y2="191.7344" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="theme_a" cx="72.9844" cy="191.7344" r="3" fill="#00CC00"/>
+<polygon data-id="theme_a" points="565.4688,191.7344 569.9688,188.1344 574.4688,191.7344 569.9688,195.3344" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="theme_b" x1="369.9688" y1="157.7578" x2="765.4688" y2="157.7578" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="theme_b" cx="369.9688" cy="157.7578" r="3" fill="#00CC00"/>
+<polygon data-id="theme_b" points="765.4688,157.7578 769.9688,154.1578 774.4688,157.7578 769.9688,161.3578" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_1" points="72.9844,193.2344 69.9844,206.2344 75.9844,206.2344" fill="#000000"/>
+<polygon data-id="timestamp_2" points="569.9688,193.2344 566.9688,206.2344 572.9688,206.2344" fill="#000000"/>
+<polygon data-id="timestamp_3" points="369.9688,159.2578 366.9688,172.2578 372.9688,172.2578" fill="#000000"/>
+<polygon data-id="timestamp_4" points="769.9688,159.2578 766.9688,172.2578 772.9688,172.2578" fill="#000000"/>
+<text data-id="theme_b" data-part="name" x="16" y="161.5659" text-anchor="start" font-size="11" fill="#000000">Theme B</text>
+<text data-id="theme_a" data-part="name" x="16" y="195.5425" text-anchor="start" font-size="11" fill="#000000">Theme A</text>
+<text data-id="score" data-part="name" x="16" y="229.519" text-anchor="start" font-size="11" fill="#000000">Score</text>
+<text data-id="timestamp_1" data-part="coordinate" x="72.9844" y="216.5884" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="569.9688" y="216.5884" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<text data-id="timestamp_3" data-part="coordinate" x="369.9688" y="182.6118" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_4" data-part="coordinate" x="769.9688" y="182.6118" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<line data-id="timestamp_1" data-part="line" x1="72.9844" y1="142.7578" x2="72.9844" y2="193.2344" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="72.9844" y1="218.7109" x2="72.9844" y2="240.1133" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="569.9688" y1="142.7578" x2="569.9688" y2="193.2344" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="569.9688" y1="218.7109" x2="569.9688" y2="240.1133" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="369.9688" y1="142.7578" x2="369.9688" y2="159.2578" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="369.9688" y1="184.7344" x2="369.9688" y2="240.1133" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="769.9688" y1="142.7578" x2="769.9688" y2="159.2578" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="769.9688" y1="184.7344" x2="769.9688" y2="240.1133" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <rect data-id="group_1" x="272.9844" y="34.5742" width="536.9844" height="100.1836" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-id="group_1" data-part="name" x="280.9844" y="52.7847" text-anchor="start" font-size="11" fill="#000000">Theme A</text>
 <rect data-id="theme_a" data-part="card" x="282.9844" y="61.3789" width="520.9844" height="67.3789" rx="5" fill="#B8BEC8"/>
@@ -83,27 +83,27 @@
 <line data-id="timestamp_1" data-part="line" x1="369.9688" y1="100.7578" x2="369.9688" y2="126.7578" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_2" data-part="line" x1="769.9688" y1="59.3789" x2="769.9688" y2="75.2812" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_2" data-part="line" x1="769.9688" y1="100.7578" x2="769.9688" y2="126.7578" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<rect data-id="group_2" x="272.9844" y="142.7578" width="536.9844" height="100.1836" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
-<text data-id="group_2" data-part="name" x="280.9844" y="160.9683" text-anchor="start" font-size="11" fill="#000000">Theme B</text>
-<rect data-id="theme_b" data-part="card" x="282.9844" y="169.5625" width="520.9844" height="67.3789" rx="5" fill="#B8BEC8"/>
-<rect data-id="theme_b" data-part="card" x="280.9844" y="167.5625" width="520.9844" height="67.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="score" x1="357.9688" y1="219.9414" x2="781.9688" y2="219.9414" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
-<polyline data-id="score" points="354.9688,215.4414 350.4688,219.9414 354.9688,224.4414" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="score" points="350.4688,215.4414 345.9688,219.9414 350.4688,224.4414" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="score" points="784.9688,215.4414 789.4688,219.9414 784.9688,224.4414" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="score" points="789.4688,215.4414 793.9688,219.9414 789.4688,224.4414" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
-<line data-id="theme_b" x1="369.9688" y1="181.9648" x2="765.4688" y2="181.9648" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="theme_b" cx="369.9688" cy="181.9648" r="3" fill="#00CC00"/>
-<polygon data-id="theme_b" points="765.4688,181.9648 769.9688,178.3648 774.4688,181.9648 769.9688,185.5648" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<polygon data-id="timestamp_3" points="369.9688,183.4648 366.9688,196.4648 372.9688,196.4648" fill="#000000"/>
-<polygon data-id="timestamp_4" points="769.9688,183.4648 766.9688,196.4648 772.9688,196.4648" fill="#000000"/>
-<text data-id="score" data-part="name" x="288.9844" y="223.0571" text-anchor="start" font-size="9" fill="#6B7280">Score</text>
-<text data-id="theme_b" data-part="name" x="288.9844" y="185.7729" text-anchor="start" font-size="11" fill="#000000">Theme B</text>
-<text data-id="timestamp_3" data-part="coordinate" x="369.9688" y="206.8188" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="timestamp_4" data-part="coordinate" x="769.9688" y="206.8188" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
-<line data-id="timestamp_3" data-part="line" x1="369.9688" y1="167.5625" x2="369.9688" y2="183.4648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_3" data-part="line" x1="369.9688" y1="208.9414" x2="369.9688" y2="234.9414" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_4" data-part="line" x1="769.9688" y1="167.5625" x2="769.9688" y2="183.4648" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_4" data-part="line" x1="769.9688" y1="208.9414" x2="769.9688" y2="234.9414" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="group_2" x="272.9844" y="148.5273" width="536.9844" height="100.1836" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-id="group_2" data-part="name" x="280.9844" y="166.7378" text-anchor="start" font-size="11" fill="#000000">Theme B</text>
+<rect data-id="theme_b" data-part="card" x="282.9844" y="175.332" width="520.9844" height="67.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="theme_b" data-part="card" x="280.9844" y="173.332" width="520.9844" height="67.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="score" x1="357.9688" y1="225.7109" x2="781.9688" y2="225.7109" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-id="score" points="354.9688,221.2109 350.4688,225.7109 354.9688,230.2109" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="score" points="350.4688,221.2109 345.9688,225.7109 350.4688,230.2109" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="score" points="784.9688,221.2109 789.4688,225.7109 784.9688,230.2109" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="score" points="789.4688,221.2109 793.9688,225.7109 789.4688,230.2109" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-id="theme_b" x1="369.9688" y1="187.7344" x2="765.4688" y2="187.7344" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="theme_b" cx="369.9688" cy="187.7344" r="3" fill="#00CC00"/>
+<polygon data-id="theme_b" points="765.4688,187.7344 769.9688,184.1344 774.4688,187.7344 769.9688,191.3344" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_3" points="369.9688,189.2344 366.9688,202.2344 372.9688,202.2344" fill="#000000"/>
+<polygon data-id="timestamp_4" points="769.9688,189.2344 766.9688,202.2344 772.9688,202.2344" fill="#000000"/>
+<text data-id="score" data-part="name" x="288.9844" y="228.8267" text-anchor="start" font-size="9" fill="#6B7280">Score</text>
+<text data-id="theme_b" data-part="name" x="288.9844" y="191.5425" text-anchor="start" font-size="11" fill="#000000">Theme B</text>
+<text data-id="timestamp_3" data-part="coordinate" x="369.9688" y="212.5884" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_4" data-part="coordinate" x="769.9688" y="212.5884" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<line data-id="timestamp_3" data-part="line" x1="369.9688" y1="173.332" x2="369.9688" y2="189.2344" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_3" data-part="line" x1="369.9688" y1="214.7109" x2="369.9688" y2="240.7109" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="769.9688" y1="173.332" x2="769.9688" y2="189.2344" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_4" data-part="line" x1="769.9688" y1="214.7109" x2="769.9688" y2="240.7109" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 </g>
 </svg>

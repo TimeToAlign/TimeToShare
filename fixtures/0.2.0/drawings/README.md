@@ -286,8 +286,10 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   where `R` ends right of `M`'s span. It is moved so
   that `R`'s line lies on `R`'s faded line in `M`'s card, and drawn at
   the frame's place, after the block's background and before the frame
-  (§8.5). It takes no room, but the block grows to hold it, its shadow
-  included, so the origin moves by (0 − `Xl`, 0 − `Yt`) and every other
+  (§8.5). It takes no room here, since the frame is the block's first
+  item, which keeps its default `y` (a later item would lie below the
+  ancestor cards before it and its own, §8.8 No room), but the block
+  grows to hold it, its shadow included, so the origin moves by (0 − `Xl`, 0 − `Yt`) and every other
   element lies where it lies without it, moved by that origin. In each of
   the eleven drawings `R` draws no wedge of its own, and its drawing holds
   one child row above `R`'s line for `M` and one for each timeline between
