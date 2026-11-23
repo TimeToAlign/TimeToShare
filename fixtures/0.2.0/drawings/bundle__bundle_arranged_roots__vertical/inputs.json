@@ -1,0 +1,16 @@
+{
+  "layers": [],
+  "manifest": "bundles/bundle_arranged_roots.yaml",
+  "placement": {
+    "arrangement": {
+      "direction": "vertical",
+      "order": ["page", "group_3", "group_1", "group_2"]
+    },
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}

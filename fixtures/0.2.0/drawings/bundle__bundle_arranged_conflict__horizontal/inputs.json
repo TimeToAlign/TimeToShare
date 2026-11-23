@@ -1,0 +1,16 @@
+{
+  "layers": [],
+  "manifest": "bundles/bundle_arranged_conflict.yaml",
+  "placement": {
+    "arrangement": {
+      "direction": "horizontal",
+      "order": []
+    },
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}

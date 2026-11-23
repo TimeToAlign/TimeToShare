@@ -5,9 +5,9 @@
 <rect data-id="score" data-part="card" x="593.3667" y="30.8047" width="1807.4729" height="97.3555" rx="5" fill="#B8BEC8"/>
 <rect data-id="score" data-part="card" x="591.3667" y="28.8047" width="1807.4729" height="97.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="score" x1="750.7803" y1="111.7578" x2="1150.7803" y2="111.7578" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="score" cx="750.7803" cy="111.7578" r="3" fill="#00CC00"/>
 <line data-id="score" x1="1366.1704" y1="111.7578" x2="1766.1704" y2="111.7578" stroke="#00CC00" stroke-width="3"/>
 <line data-id="score" x1="1981.5605" y1="111.7578" x2="2381.5605" y2="111.7578" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="score" cx="750.7803" cy="111.7578" r="3" fill="#00CC00"/>
 <polygon data-id="score" points="2390.5605,111.7578 2381.5605,107.2578 2381.5605,116.2578" fill="#00CC00"/>
 <line data-id="exposition" x1="750.7803" y1="77.7812" x2="1146.2803" y2="77.7812" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="exposition" cx="750.7803" cy="77.7812" r="3" fill="#00CC00"/>
@@ -50,8 +50,8 @@
 <rect data-id="session" data-part="card" x="654.5273" y="197.5391" width="1746.0332" height="63.3789" rx="5" fill="#B8BEC8"/>
 <rect data-id="session" data-part="card" x="652.5273" y="195.5391" width="1746.0332" height="63.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="session" x1="750.7803" y1="244.5156" x2="1190.7803" y2="244.5156" stroke="#0050EF" stroke-width="3"/>
-<circle data-id="session" cx="750.7803" cy="244.5156" r="3" fill="#0050EF"/>
 <line data-id="session" x1="1234.8939" y1="244.5156" x2="2381.5605" y2="244.5156" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="session" cx="750.7803" cy="244.5156" r="3" fill="#0050EF"/>
 <polygon data-id="session" points="2390.5605,244.5156 2381.5605,240.0156 2381.5605,249.0156" fill="#0050EF"/>
 <line data-id="take_a" x1="750.7803" y1="210.5391" x2="1146.2803" y2="210.5391" stroke="#0050EF" stroke-width="3"/>
 <circle data-id="take_a" cx="750.7803" cy="210.5391" r="3" fill="#0050EF"/>
