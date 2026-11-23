@@ -3,7 +3,7 @@ manifest:
   graphical:
     elisions:
       -
-        display: [ellipsis]
+        display: [ellipsis, name]
         end: [3, 1]
         id: "#elision_1"
         start: [3, 1]

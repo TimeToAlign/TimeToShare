@@ -381,7 +381,7 @@ both forms.
 | graphical | `styles`: `{}`; `rules`: `[]`; `order`: `{}`; `timestamps`, `matchstamps`, `elisions`: `[]` |
 | named timestamp (`timestamp`) | `matchstamp`, `groupstamp`: `false`; `display`: `["wedge", "name", "cross_section"]`, on a match timestamp `["cross_section"]` |
 | alignment anchor (`alignment_anchor`) | `display`: `["line"]` |
-| elision (`elision`) | `name`, `width`: absent (the timeline's name and the standard gap); `display`: `["ellipsis"]` |
+| elision (`elision`) | `name`, `width`: absent (the timeline's name and the standard gap); `display`: `["ellipsis", "name"]` |
 
 `@context`, `statements` and `provenance` have no default: neither form
 adds or drops them, and both write them as given. A row marked "besides"
@@ -536,8 +536,8 @@ the manifest draws without the table.
 name?, width?, display?}`: a stretch of the timeline `timeline` left out
 of the drawing. Every row drawn across the stretch stops where the
 stretch starts and resumes where it ends, at full scale on either side,
-and a narrow **gap** lies between, holding an **ellipsis** (`•••`) on each
-row that crosses it. The elision **lies on** its timeline, a root or a
+and a narrow **gap** lies between, holding one **ellipsis** (`•••`),
+centred in it, and below it the elision's name. The elision **lies on** its timeline, a root or a
 descendant at any depth, a segment included: `timeline` has the meaning
 and the validation of a named timestamp's `timeline`, and `start < end`,
 its **elided coordinates**, are values on that timeline's own axis, from
@@ -556,10 +556,10 @@ stretch's width at full scale, `0 < q ≤ 1`), `{"span": v}` (as wide as
 units); absent, the gap takes the standard width of 32 canvas units. A
 gap is never wider than its stretch at full scale. `display` lists what
 the elision draws besides its gap, distinct words from `ellipsis` (its
-ellipses), `name`, `id` and `coordinate` (its three labels, stacked as a
+ellipsis), `name`, `id` and `coordinate` (its three labels, stacked as a
 named timestamp's) and `continuation` (grey continuations of the rows
-across the gap), by default `["ellipsis"]`; an empty array draws a bare
-gap.
+across the gap), by default `["ellipsis", "name"]`; an empty array draws
+a bare gap.
 
 An elision on a timeline that lies in a group, as a groupstamp's
 timeline does, is drawn across that group's frame, at one place in every
@@ -1389,8 +1389,8 @@ as an arc to its target or to the start; a jump target draws nothing),
 cross-section line), `alignment_anchor` (the line of an alignment anchor
 of a named MatchStamp, drawn last, across the cards between its two
 timestamps), `elision` (the gap of an elision, over the stretch it
-leaves out), `ellipsis` (an elision's ellipsis on one row its gap
-crosses), `name` and `label` (every other text, a named
+leaves out), `ellipsis` (an elision's ellipsis, one centred in each
+drawing of its gap), `name` and `label` (every other text, a named
 timestamp's name, a MatchStamp's name and an elision's three labels among
 them). Besides `element`, a selector may name `addresses` (address
 objects, each matched as a whole object), `domain`, `modality`, `class`

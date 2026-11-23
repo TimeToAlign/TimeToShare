@@ -63,7 +63,7 @@ graphical:
       start: [2, 1]
       timeline: "#excerpt"
     -
-      display: [ellipsis]
+      display: [ellipsis, name]
       end: [6, 1]
       id: "#elision_2"
       start: [2, 1]

@@ -62,7 +62,7 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     },
     "match_timestamp": {"display": ["cross_section"], "groupstamp": False},
     "alignment_anchor": {"display": ["line"]},
-    "elision": {"display": ["ellipsis"]},
+    "elision": {"display": ["ellipsis", "name"]},
 }
 """The default of every key that has one, by the kind of object holding it.
 

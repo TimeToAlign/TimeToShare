@@ -483,9 +483,12 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   minimizes without `display`, as the default in another order is still
   the default; one stating `["name", "wedge"]` completes to `["wedge",
   "name"]` and keeps it in the minimal form; one stating `[]` keeps `[]` in
-  both forms. An elision without `display` gains `display: ["ellipsis"]`
-  and nothing else, its `name` and `width` neither added nor completed;
-  one stating `["ellipsis"]` minimizes without `display`; one stating
+  both forms. An elision without `display` gains `display: ["ellipsis",
+  "name"]` and nothing else, its `name` and `width` neither added nor
+  completed; one stating `["name", "ellipsis"]` completes to `["ellipsis",
+  "name"]` and minimizes without `display`, the default in another order;
+  one stating `["ellipsis"]`, the former default, is a stated value and
+  keeps it in both forms; one stating
   `["continuation", "name", "ellipsis"]` completes to `["ellipsis", "name",
   "continuation"]` and keeps it in the minimal form; one stating `[]`
   keeps `[]` in both forms; its `width` `{"ratio": 1}` stays in both forms,
@@ -1036,7 +1039,7 @@ proves it:
 - **The schema** (`test_schema.py`, section "The schema document"): its
   `display` words, its three width forms and their `oneOf`, the element
   types `elision` and `ellipsis` and the part words `elision` and
-  `ellipsis`; the `display` default `["ellipsis"]` and `elisions: []`
+  `ellipsis`; the `display` default `["ellipsis", "name"]` and `elisions: []`
   agree with `DEFAULTS`. The four properties of `Declaration`:
   `elision-mode` is exactly the enum `auto`, `full`, `proportional`,
   `custom`; `elision-proportion` admits `"auto"`, `0.25` and `1` and

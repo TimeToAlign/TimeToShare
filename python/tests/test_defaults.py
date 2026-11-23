@@ -344,28 +344,31 @@ def test_an_elision_completes_its_display_and_never_its_width() -> None:
         graphical={
             "elisions": [
                 _elision(1),
-                _elision(2, display=["ellipsis"]),
-                _elision(3, display=["continuation", "name", "ellipsis"]),
-                _elision(4, name="Coda", width={"ratio": 1}),
-                _elision(5, display=[]),
+                _elision(2, display=["name", "ellipsis"]),
+                _elision(3, display=["ellipsis"]),
+                _elision(4, display=["continuation", "name", "ellipsis"]),
+                _elision(5, name="Coda", width={"ratio": 1}),
+                _elision(6, display=[]),
             ]
         },
     )
-    default = ["ellipsis"]
+    default = ["ellipsis", "name"]
     stated = ["ellipsis", "name", "continuation"]
     assert complete(value)["graphical"]["elisions"] == [
         _elision(1, display=default),
         _elision(2, display=default),
-        _elision(3, display=stated),
-        _elision(4, name="Coda", width={"ratio": 1}, display=default),
-        _elision(5, display=[]),
+        _elision(3, display=["ellipsis"]),
+        _elision(4, display=stated),
+        _elision(5, name="Coda", width={"ratio": 1}, display=default),
+        _elision(6, display=[]),
     ]
     assert minimal(value)["graphical"]["elisions"] == [
         _elision(1),
         _elision(2),
-        _elision(3, display=stated),
-        _elision(4, name="Coda", width={"ratio": 1}),
-        _elision(5, display=[]),
+        _elision(3, display=["ellipsis"]),
+        _elision(4, display=stated),
+        _elision(5, name="Coda", width={"ratio": 1}),
+        _elision(6, display=[]),
     ]
 
 

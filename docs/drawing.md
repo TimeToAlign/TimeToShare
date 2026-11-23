@@ -287,8 +287,8 @@ timeline, start, end, name?, width?, display?}` that leaves a stretch of
 one timeline out of the drawing: every row drawn across the stretch stops
 where the stretch starts and resumes where it ends, at full scale on
 either side,
-and a narrow **gap** lies between, holding an **ellipsis** on each row
-that crosses it (sections 6.6 and 8.9). `id` is its ID (README,
+and a narrow **gap** lies between, holding one **ellipsis**, centred in
+it, with the elision's labels below it (sections 6.6 and 8.9). `id` is its ID (README,
 "Identity"); `timeline` names the timeline the elision **lies on**, at
 any depth, a segment included, with the meaning and the validation of a
 named timestamp's `timeline`; `start` and `end`, `start < end`, are its
@@ -315,11 +315,11 @@ four forms:
 
 A width larger than the natural width is drawn at the natural width: an
 elision never widens its stretch. `display` lists what the elision draws
-besides its gap, distinct words from `ellipsis`, its ellipses, `name`,
+besides its gap, distinct words from `ellipsis`, its ellipsis, `name`,
 `id` and `coordinate`, its three labels, stacked as a named timestamp's
 are, and `continuation`, grey continuations of the rows across the gap;
-when it is absent the elision draws `["ellipsis"]`, an empty array draws a
-bare gap, and writers write it in the canonical order `ellipsis`, `name`,
+when it is absent the elision draws `["ellipsis", "name"]`, an empty
+array draws a bare gap, and writers write it in the canonical order `ellipsis`, `name`,
 `id`, `coordinate`, `continuation`. Its order means nothing. Whatever
 `display` lists, the gap leaves the stretch out. Elisions may overlap
 each other and the span of a group member; neither is refused, and
@@ -368,7 +368,7 @@ of a timeline, which draws nothing of its own:
 | `cross_section` | the cross-section line of a named timestamp, a vertical line across each card its timeline is drawn in, as a line or as an ancestor line, from border to border, with a gap where the wedge and labels of its primary coordinate stand, and for a groupstamp also its lines across the frame of each group its timeline lies in (section 6.6) |
 | `alignment_anchor` | the line of an alignment anchor of a named MatchStamp, the shortest line between the cross-section lines of its two timestamps (section 8.7) |
 | `elision` | the gap of an elision: the narrow rectangle in which a stretch of a timeline is left out, from its card's top border to its bottom border, or for a group elision across the frame's member cards; it draws nothing unless a rule fills it, and its stroke draws the continuations of the rows that cross it (sections 6.6 and 8.9) |
-| `ellipsis` | the ellipsis of an elision on one row that crosses its gap, three filled dots (section 6.6) |
+| `ellipsis` | the ellipsis of an elision, three filled dots, one centred in each drawing of its gap (section 6.6) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
 | `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the name, ID or elided coordinates of an elision, or the label of a region, jump origin, flow marker or segment |
 
@@ -427,7 +427,7 @@ its child timelines, the regions band its regions, and the flow control
 band its flow markers and jump origins; a `timeline` or `child` also holds
 the cross-section lines of its timeline's named timestamps and the gaps
 of the card elisions and derived elisions lying on its timeline (section
-8.9), each gap holding its ellipses and its labels, directly and in no
+8.9), each gap holding its ellipsis and its labels, directly and in no
 band; any other element holds its own `name` and `label` where it has
 one (section 5.3; a map and a band have neither), except that a segment's
 label and its `boundary` are held by its segment line, directly and in no
@@ -478,10 +478,10 @@ and `X` an element's ID:
 | the line of an alignment anchor with ID `A` | `{"id": A}` | none |
 | the MatchStamp's name at that anchor, a `label` element | `{"id": A, "part": ["name"]}` | none |
 | the gap of an elision with ID `E` lying on `T`, wherever it is drawn | `{"id": E}` | `T` |
-| its ellipses | `{"id": E, "part": ["ellipsis"]}` | `T` |
+| its ellipsis | `{"id": E, "part": ["ellipsis"]}` | `T` |
 | its labels, all `label` elements: its name, its ID, its elided coordinates | `{"id": E, "part": ["name"]}`, `{"id": E, "part": ["id"]}`, `{"id": E, "part": ["coordinate"]}` | `T` |
 | the gap of an elision a card derives on `T` (section 8.9) | `{"id": T, "part": ["elision"]}` | `T` |
-| its ellipses and labels | `{"id": T, "part": ["elision", "ellipsis"]}`, `{"id": T, "part": ["elision", "name"]}`, `{"id": T, "part": ["elision", "coordinate"]}` | `T` |
+| its ellipsis and labels | `{"id": T, "part": ["elision", "ellipsis"]}`, `{"id": T, "part": ["elision", "name"]}`, `{"id": T, "part": ["elision", "coordinate"]}` | `T` |
 | the name of an element with ID `X` | `{"id": X, "part": ["name"]}` | that element's timeline |
 | the label of an element with ID `X` | `{"id": X, "part": ["label"]}` | that element's timeline |
 | every card of a timeline with ID `T`: an ungrouped root's, one in the frame of each group that has `T` as a member, or an ancestor card behind the frame of each group having a member below `T` | `{"id": T, "part": ["card"]}` | `T` |
@@ -520,9 +520,9 @@ as every element drawn more than once does. A
 stored elision clipped into several pieces (section 8.9) keeps its one
 address on each, and so does a group elision on each of its drawings: its
 gap across the frame of each group its timeline lies in and every gap of
-it carried into an ancestor card. Its ellipses, one on each row its gap
-crosses, share their one address, as its labels do in every card that
-draws them.
+it carried into an ancestor card. Its ellipsis, one in each drawing of
+its gap, keeps its one address in every drawing, as its labels do in
+every card that draws them.
 
 One timeline may be drawn more than once: as a member in the frame of each
 group that has it as a member, as an ancestor line of several members, in
@@ -619,7 +619,7 @@ that is not displayed is not drawn and takes no room. An element is
 **displayed** when its `display` is `inline`, no rule of this list hides
 it, and, for an element of a named timestamp, of an alignment anchor or
 of an elision, the timestamp's, the anchor's or the elision's own
-`display` lists its word (section 2; for an elision's ellipses
+`display` lists its word (section 2; for an elision's ellipsis
 `ellipsis`, for its labels `name`, `id` or `coordinate`, and for its
 continuations `continuation`, while its gap has no word). The two are independent filters,
 both of which an element of a named timestamp must pass: its `display`
@@ -698,7 +698,7 @@ The value of a property on an element is found per property:
    `font-size` 9, `rx` 0, `shadow` `none`, `display` `inline`, `content`
    `none`, `max-width` `none`, `rotation` 0, `elision-mode` `auto`,
    `elision-proportion` `auto`, `elision-depths` `auto`, `elision-display`
-   `ellipsis`.
+   `ellipsis name`.
 
 The rank of a rule is, from the most to the least significant:
 
@@ -799,6 +799,26 @@ u`, so that the card's rows, slots, widths and ordinates are those of the
 card drawn whole, and an element that is not drawn because it lies in a
 gap keeps its room; only the label stacks of elisions (section 6.4,
 Markers) are added to the card's markers bands.
+
+**Seams.** An ancestor card's axis may also jump where it leaves nothing
+out. A **seam** at a position `m` of the root's axis parts two runs: the
+run left of it ends at `m` and the run right of it starts at `m`, its
+**width** `w ≥ 0` further right. On an axis of one scale, the card's
+`L / λ`, a seam counts in `D` above as the shrink `−w` of every position
+right of it, so everything right of it lies `w` further right; where the
+runs on its two sides have scales of their own (section 8.8, Drawn once),
+the section placing it gives each run's x. A position at `m`
+itself lies on the side the section placing the seam states (section
+8.8). A seam is no gap and no elision: it lies in no gap, leaves out no
+stretch, has no address and draws no rectangle, ellipsis, continuation
+or label: it is no element of the drawing (section 1), and an application
+listing a drawing's elisions lists none. A row that crosses a seam, starting before `m` and ending
+after it, compared exactly, is drawn across it whole, its line or
+outline running on from the one run to the other without a break; an
+element at a position other than `m` takes the x of the run it lies on.
+Seams lie where an ancestor card's member lies behind its frame (section
+8.8, step 2) and where an arrangement changes the scale of a root drawn
+once without leaving anything out (section 8.8, Drawn once).
 
 **The frame's elided axis.** The member drawings of a frame share `x0`
 and `L` (section 8.2). A frame with group elisions (section 8.9) has one
@@ -933,6 +953,7 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"coordinates": "primary", "inside": "ancestor"}, "set": {"opacity": 1}},
     {"select": {"element": "label"}, "set": {"fill": "#000000", "font-size": 9}},
     {"select": {"element": "name"}, "set": {"fill": "#000000", "font-size": 11, "max-width": 160}},
+    {"select": {"addresses": [{"part": ["name"]}]}, "set": {"max-width": "none"}},
     {"select": {"element": "name", "inside": "ancestor"}, "set": {"fill": "#6B7280", "font-size": 9, "opacity": 1}},
     {"select": {"element": "label", "inside": "elision"}, "set": {"fill": "#6B7280"}},
     {"select": {"element": "band", "facet": "regions", "inside": "band"}, "set": {"display": "none"}},
@@ -947,7 +968,8 @@ solid when continuous (dotted: dashes and gaps as long as the stroke is
 wide); a conversion map takes the colour and pattern of the domain and
 modality it converts to; wedges and braces are black and solid; jump
 origins are thin, black and dotted, and flow markers dotted red; a name longer than 160 is
-cut (section 6.6). Segment
+cut (section 6.6), but the manifest's title, whose addressed rule
+outranks the rule of every name (section 2.5). Segment
 boundaries are thin black rules; a named timestamp's cross-section line is
 thin, dashed and light blue, a blue distinct from the physical domain's
 (its rule names `element`, which outranks the domain rules, so a
@@ -970,11 +992,11 @@ card and is shown; a rule setting its `display` to `none` hides it
 (section 8.8). An elision's gap is not filled, so it draws nothing of
 its own; its stroke, thin, dashed and grey, draws the continuations of
 the rows across it where its `display` lists `continuation` (section
-6.6); its ellipses are black and its labels grey, as an ancestor's name
+6.6); its ellipsis is black and its labels grey, as an ancestor's name
 is. The rules selecting a gap and an ellipsis name `element` and so
 outrank the domain rules (section 2.5): a gap is unfilled and an ellipsis
 black on every timeline. A rule of a later layer setting a gap's `fill`
-draws it as a filled rectangle under its ellipses.
+draws it as a filled rectangle under its ellipsis.
 The two rules selecting `band`
 hide the regions and flow control bands of every timeline that is
 held by a band, which is every timeline of a member drawing but its root
@@ -1493,14 +1515,14 @@ the tiers, the first fit and the band's width are those of the unturned
 places, so that turning a wedge moves no other label and takes no room
 in its band.
 
-After the secondary coordinates the band places the **label stacks of
-elisions** on its timeline: of every gap the card draws for an elision
+After the secondary coordinates the band takes the room of the **label
+stacks of elisions** on its timeline: of every gap the card draws for an elision
 lying on the timeline (section 8.9) whose `display` lists a label, a card
 elision's and a derived one's in the card that draws the gap, a group
 elision's in the card of its own timeline in each frame that draws its
 gap, never a gap carried into an ancestor card, in the order of the gaps
 from the left. Each gap has one stack, its labels in the order name, ID,
-coordinate, the first nearest the line, the words of the elision's
+coordinate, the first at the top, the words of the elision's
 `display`, of a derived elision the card's `elision-display`, choosing
 them. A stack enters the band's first fit after the stacks of the named
 timestamps' coordinates, primary and secondary, as their stacks do, one
@@ -1511,7 +1533,10 @@ root's axis (section 8.9), and for a group elision `(p + q) / 2` of its
 piece in the frame, in binary64: its place at full scale,
 so that its tier does not depend on the widths of the gaps. It lies at
 its unturned place beyond the room of the wedges, which an elision leaves
-empty: so showing or hiding an ellipsis moves no label. A band holding a
+empty. The band takes the stack's room there, so the stack's room sets
+the band and the card's rows, but the stack is drawn centred below its
+gap's ellipsis (section 6.6), whether or not the ellipsis is drawn, so
+that showing or hiding an ellipsis moves no label. A band holding a
 displayed elision label is present, and its width counts the tiers as for
 a timestamp's labels.
 
@@ -2024,19 +2049,25 @@ one below it.
   line ending at a gap's right edge would stop at its diamond's left
   corner before that edge, is not written.
 
-  On each row that crosses a gap the elision draws, where its `display`
-  lists `ellipsis` (for a derived elision the card's `elision-display`),
-  its **ellipsis**: three filled circles of radius 2 centred at `xm − 6`,
-  `xm` and `xm + 6`, at the row's ordinate, `xm = (x(a) + x(b)) / 2` the
-  gap's middle; an ellipsis is not drawn in a gap narrower than 20, `x(b)
-  − x(a) < 20`. Where its `display` lists `continuation`, each such row
-  also gets a **continuation**, a line from `(x(a), y)` to `(x(b), y)`, `y`
-  its ordinate, drawn in the gap's stroke, under the ellipsis. Its labels
-  form the stack of section 6.4 (Markers), centred on `xm` and placed at
-  its tier there, outwards from the line of the timeline the elision lies
-  on, or of its segment line for a segment without a line, in the card
-  that draws them; each label is cut to its `max-width` as a name is cut
-  (Names), never to the gap. Nothing else that lies on the stretch is
+  A gap draws, where its elision's `display` lists `ellipsis` (for a
+  derived elision the card's `elision-display`), exactly one
+  **ellipsis**, never one per row: three filled circles of radius 2
+  centred at `xm − 6`, `xm` and `xm + 6`, at the ordinate `ym`, with `xm
+  = (x(a) + x(b)) / 2` the gap's middle and `ym = (yt + yb) / 2` the
+  middle of its height, `yt` and `yb` the top and the bottom border of
+  the card that draws it, or, for a gap across a frame, the top of the
+  topmost and the bottom of the bottommost member card (section 8.9), in
+  binary64; an ellipsis is not drawn in a gap narrower than 20, `x(b) −
+  x(a) < 20`. Where its `display` lists `continuation`, each row that
+  crosses the gap gets a **continuation**, a line from `(x(a), y)` to
+  `(x(b), y)`, `y` its ordinate, drawn in the gap's stroke, under the
+  ellipsis. Its labels, the stack of section 6.4 (Markers), are drawn
+  with the ellipsis, centred on `xm` just below it, whether or not the
+  ellipsis is drawn: its `i`-th label, from 1, has its baseline at `ym +
+  (2 + 2 + (i − 1) × h(9)) + a(9)`, the dot radius and the label gap
+  below `ym`, `h(9)` and `a(9)` those of the markers band that takes the
+  stack's room, in the card that draws them; each label is cut to its
+  `max-width` as a name is cut (Names), never to the gap. Nothing else that lies on the stretch is
   drawn in a gap, but for the arc of a jump origin. An element that marks
   a position in a gap is not drawn: a wedge with its labels, a
   cross-section line, a groupstamp's lines across a frame, a boundary, a
@@ -2176,7 +2207,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | cross-section line | for each of its lines (section 6.6: up to two in a card, one on each side of its gap, and a groupstamp's up to two in a frame), `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, from `(X, y1)` to `(X, y2)`, `y1` the smaller ordinate, the upper line first |
 | alignment anchor | `<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}">`, from the point on the first timestamp's line to the point on the second's (section 8.7) |
 | elision | its gap, `<rect x="{x(a)}" y="{yt}" width="{x(b) − x(a)}" height="{yb − yt}">`, filled and not stroked, written only when its `fill` is not `none`; then its continuations, `<line x1="{x(a)}" y1="{y}" x2="{x(b)}" y2="{y}">` each, in the order of its rows (section 8.5) |
-| ellipsis | `<circle cx="{xm − 6}" cy="{y}" r="2">`, `<circle cx="{xm}" cy="{y}" r="2">`, `<circle cx="{xm + 6}" cy="{y}" r="2">`, filled and not stroked (section 6.6) |
+| ellipsis | `<circle cx="{xm − 6}" cy="{ym}" r="2">`, `<circle cx="{xm}" cy="{ym}" r="2">`, `<circle cx="{xm + 6}" cy="{ym}" r="2">`, filled and not stroked (section 6.6) |
 | name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and flow-marker labels, `middle` for the centred labels |
 
 The **stroke attributes** are `stroke`, `stroke-width` and, unless it is
@@ -2296,7 +2327,7 @@ one to one:
 
 An elision's descriptors take these commands as every other rect, line,
 circle and text does: its gap a `rect` with the `fill` option alone, its
-continuations `line`s, the dots of its ellipses `circle`s with the
+continuations `line`s, the dots of its ellipsis `circle`s with the
 `fill` option, `\path[fill=ts000000] (…,…) circle[radius=2];`, and its
 labels `text`s anchored `base`.
 
@@ -2372,7 +2403,7 @@ The tree of section 2.1: the `block` holds the manifest's title, the
 ancestor cards and the `timeline` elements of their roots, the frames,
 and the cards and `timeline` elements of the ungrouped roots; a frame holds
 its title, its members' cards and `timeline` elements and the gaps of its
-group elisions (section 8.9), each gap holding its ellipses and its
+group elisions (section 8.9), each gap holding its ellipsis and its
 labels; a card or ancestor card holds nothing; a member's `timeline`
 element holds what a root holds (section 2.1) and its ancestor lines; an
 ancestor line holds its `name`, the
@@ -2663,9 +2694,9 @@ the descriptors of its member drawing; then, for each ungrouped root, its
 card, the descriptors of its member drawing and its gaps. A card's gaps
 (section 8.9), its own and those carried into it, follow its member
 drawing, gap by gap from the left, each gap's descriptors in this order:
-its rectangle where it is filled, its continuations, its ellipses, then
+its rectangle where it is filled, its continuations, its ellipsis, then
 its labels, name, ID and coordinate. A gap's rows, which its
-continuations and ellipses follow, are taken in their own order, which
+continuations follow, are taken in their own order, which
 is not that of their descriptors (section 7.2, maps before lines): first
 the ancestor lines, from `A1` to `Ak` (section 8.3), then the lines of
 the member drawing in the traversal order of their timelines (section
@@ -2693,9 +2724,10 @@ throughout: the frames and the ungrouped roots' cards are written in
 that one order, a frame or a card each where it stands in it, and the
 gaps of the frames follow it too. In a block arranged `horizontal` the
 ancestor cards written are its once cards (section 8.8, Drawn once), in
-the order of their roots from the top, each followed by its gaps and
-seams from the left as a card's gaps are; a line of the member drawing
-cut by them is written as its pieces from the left, in the line's place.
+the order of their roots from the top, each followed by its gaps from
+the left as a card's gaps are, a seam writing nothing; a line of the
+member drawing cut by gaps is written as its pieces from the left, in the
+line's place.
 A title is a text descriptor of section 7.2, anchored at `start`;
 its `content` and `max-width` apply as section 6.6 applies them to a row's
 name.
@@ -2939,11 +2971,22 @@ forms them. With `x0` the start of the member drawings of `G`'s frame and
    is not displayed. Every position `(px, py)` of the layout of 1, its
    card's included, becomes `(px + dx, py + dy)` with `dx = (xs + DL) −
    s0'` and `dy = yA − yR`, `DL` the sum of the shrinks of the gaps left
-   of `M`'s span (section 8.9), summed from the left, and 0 without gaps:
-   so `R`'s line starts at `xs + DL`, `M`'s span on it lies over `M`'s line,
-   its gaps carried from the frame (section 8.9) over the frame's gaps,
-   everything right of the span lies `DG` further left with the frame's
-   shared end, and `R`'s line lies at `yA`.
+   of `M`'s span (section 8.9), summed from the left, and 0 without gaps,
+   less `OL`. The card's axis has two **seams** (section 3.2), at the start
+   `−ts` and at the end `−ts + λ` of `M`'s span on `R`: the first `OL =
+   x0` wide, the room of `G`'s frame from its left edge, at 0 in item
+   coordinates, to its member drawings, and the second `OR = Fw − (x0 +
+   L')` wide, the room from the members' drawn end to the frame's right
+   edge, `Fw` the width of the frame as drawn and `L'` its members' drawn
+   length (section 8.9), in binary64. A position at either seam lies on
+   the side of `M`'s span, so an element at the span's start or end lies
+   under the frame. So `R`'s line starts at `xs + DL`, `M`'s span on it
+   lies over `M`'s line, its gaps carried from the frame (section 8.9)
+   over the frame's gaps, everything left of the span, the card's names
+   included, lies left of the frame, everything right of it lies right of
+   the frame, `OR` further right and `DG` further left with the frame's
+   shared end, `R`'s line runs whole across both seams under the frame,
+   and it lies at `yA`.
    The ancestor card is then drawn at `G`'s place and scale, as every
    element of the frame (section 8.6).
 3. **No room.** No item's default `y` (section 8.6), no quantity of the
@@ -3113,25 +3156,22 @@ the row, in binary64:
 - when `s < e`, a **gap** leaves out `R` from `s` to `e`: `R` lies on
   `A`'s run up to `s` and on `B`'s from `e`, and the gap is drawn from
   `XA(s)` to `XB(e)`, at least the standard gap of 32 wide;
-- otherwise a **seam** lies at `m = max(b, min(a, s))`: `R` lies on
-  `A`'s run up to `m` and on `B`'s from `m`, and the seam is drawn from
-  `XA(m)` to `XB(m)`, at least 32 wide. It leaves out nothing: it marks
-  where the scale changes where the room holds no whole unit.
+- otherwise a **seam** (section 3.2) lies at `m = max(b, min(a, s))`:
+  `R` lies on `A`'s run up to `m` and on `B`'s from `m`, the seam
+  `XB(m) − XA(m)` wide. It leaves out nothing: it marks where the scale
+  changes where the room holds no whole unit.
 
-So every change of scale is marked by a gap or a seam. Both are elisions
+So every change of scale lies in a gap or at a seam. A gap is an elision
 the card derives on `R` (section 8.9), with the address `{"id": R,
 "part": ["elision"]}` (section 2.2) and the elided coordinates `s` and
-`e`, or `m` and `m`; a gap is drawn as every gap is (section 6.6), its
-`display` the card's `elision-display`. A seam lies in no gap of section
-3.2: a row **crosses** it when it starts before `m` and ends after it,
-compared exactly, and it draws on each such row its continuation, from
-`XA(m)` to `XB(m)` at the row's ordinate in the gap's stroke, whatever
-its `display` lists, and no ellipsis and no label. An element at `m`
-lies on `B`'s run when it belongs to a timeline that starts at `m` (its
-line's start, its named timestamps there with their wedges, labels and
-cross-section lines) or is the start of a region or a jump target at
-`m`, and on `A`'s run otherwise; a line ending at `m` ends there on
-`A`'s run, one starting there starts on `B`'s.
+`e`, drawn as every gap is (section 6.6), its `display` the card's
+`elision-display`. A seam is none, and a row crossing it is drawn across
+it whole (section 3.2). An element at `m` lies on `B`'s run when it
+belongs to a timeline that starts at `m` (its line's start, its named
+timestamps there with their wedges, labels and cross-section lines) or
+is the start of a region or a jump target at `m`, and on `A`'s run
+otherwise; a line ending at `m` ends there on `A`'s run, one starting
+there starts on `B`'s.
 
 Left of the first anchor's stretch `R` lies on that anchor's run and
 right of the last one's on the last anchor's run, and there the card
@@ -3142,14 +3182,17 @@ behind the last anchor's group draws right of its own, with their
 natural and drawn widths taken from those cards and multiplied by their
 groups' scales; the proportion `r` of their derived elisions is the
 least of the proportions of `R`'s ancestor cards behind every group
-hanging on it (section 8.9), each as section 8.9 gives it. A position
-`t` left of the first stretch in no gap lies at `XM(t) + s1 × DL`, `DL`
-the sum of the shrinks of those gaps that start at or after `t`, and one
-right of the last stretch at `XN(t) − sN × DR`, `DR` the sum of those
-that end at or before `t`, `N` the last anchor and `sN` its group's
-scale, each sum taken from the left. Between the first stretch and the
-last the arrangement's gaps and seams leave out what they leave out
-whatever the mode, and stored card elisions lying there are kept and
+hanging on it (section 8.9), each as section 8.9 gives it. As in an ancestor card (step 2), a seam lies at the start of the
+first stretch, `s1 × OL` wide with the `OL` of the first anchor's frame,
+and one at the end of the last stretch, `sN × OR` wide with the `OR` of
+the last anchor's frame, `N` the last anchor and `sN` its group's scale;
+a position at either lies on its stretch's side. A position `t` left of
+the first stretch in no gap lies at `XM(t) + s1 × (DL − OL)`, `DL` the
+sum of the shrinks of those gaps that start at or after `t`, and one
+right of the last stretch at `XN(t) − sN × (DR − OR)`, `DR` the sum of
+those that end at or before `t`, each sum taken from the left. Between
+the first stretch and the last the arrangement's gaps leave out what
+they leave out whatever the mode, and stored card elisions lying there are kept and
 not drawn; the gaps of each anchor's frame lie in its run, carried as
 section 8.9 carries them.
 
@@ -3158,8 +3201,8 @@ every ordinate `y` of it at `(yR − aR) + s1 × y`, and every abscissa by
 the position it belongs to: an element at a position `t` of `R`'s axis,
 or at an offset `o` from it (a wedge's corners, a label centred on it, a
 mark at a line's end), lies at `X(t) + s1 × o`, `X` the run the position
-lies on; a line or row crossing a gap or a seam is drawn in pieces
-(section 6.6, Elisions); the names, the chevrons and everything else of
+lies on; a line or row crossing a gap is drawn in pieces (section 6.6,
+Elisions), and one crossing a seam whole across it (section 3.2); the names, the chevrons and everything else of
 the layout left of `R`'s start `s0'` keep their distance from it at
 `X(start) + s1 × (x − s0')`, so the card's left edge lies at `X(start) −
 s1 × s0'`; and the card's right edge lies at `X(end) + s1 × ((Ri' + K) −
@@ -3201,18 +3244,18 @@ Every item is 567.39013671875 wide, so with the row gap 48 they lie at
   111.7578125 and `session`'s at 244.515625.
 - Along `score`, 25 canvas units per quarter in each frame: between
   Exposition and Development `c` = 1214.7802734375, `s` = 17 and `e` =
-  11, so a seam at 16, drawn from 1150.7802734375 to 1366.17041015625;
+  11, so a seam at 16, from 1150.7802734375 to 1366.17041015625;
   between Development and Recapitulation a seam at 32, from
-  1766.17041015625 to 1981.560546875. Each carries the continuation of
-  `score`'s line, the one row crossing it; the movements' lines and the
+  1766.17041015625 to 1981.560546875. `score`'s line, the one row
+  crossing them, runs across each whole; the movements' lines and the
   timestamps at their starts lie on the right runs, those at their ends
   on the left ones.
 - Along `session`, 400 / 30.0 canvas units per second: between Exposition
   and Recapitulation, through the room right of Exposition, `s` = 33.0
   (`XA(33.0)` = 1190.7802734375 ≤ 1198.7802734375) and `e` = 44.0
   (`XB(44.0)` = 1234.8938802083335 ≥ 1230.7802734375): a gap leaving out
-  33.0 to 44.0, 44.113606770833485 wide, its ellipsis on `session`'s
-  line at 1212.8370768229167, and `session`'s line runs on behind
+  33.0 to 44.0, 44.113606770833485 wide, its ellipsis centred at x
+  1212.8370768229167, and `session`'s line runs on behind
   Development to `take_b`.
 - The once cards span 591.36669921875 to 2398.839599609375 (`score`,
   `s0'` = 159.41357421875) and 652.52734375 to 2398.560546875
@@ -3276,7 +3319,7 @@ the rules
 
 draw the root `clt_1` whole in every card, its stored elisions kept and
 not drawn; derive its elisions at the proportion 0.05 on its own row
-alone, each drawing its ellipses and its name and coordinate labels; and
+alone, each drawing its ellipsis and its name and coordinate labels; and
 draw the frame of `group_1` without its group elisions.
 
 **Pieces.** A card elision's stretch on the root's axis runs from its
@@ -3329,10 +3372,11 @@ and `scale`. The frame is drawn shorter by `DG`, the sum of the shrinks
 of its gaps (section 8.2), its members' drawn length `L' = L − DG`. A
 gap runs across the frame's member cards, from the top of the topmost to
 the bottom of the bottommost (section 6.6); every row of every member
-card that crosses it stops and resumes there with its own ellipsis
-(section 6.6); its label stack is drawn once, in the markers band of the
-elision's own timeline `T` in its card in that frame (section 6.4,
-Markers), and nowhere else. Its labels show the piece's ends on `T`'s
+card that crosses it stops and resumes there, and the gap draws one
+ellipsis, centred on the member cards together, with its label stack
+once, below that ellipsis (section 6.6), its room taken in the markers
+band of the elision's own timeline `T` in its card in that frame
+(section 6.4, Markers) and nowhere else. Its labels show the piece's ends on `T`'s
 own axis: the elision's `start` and `end` where the piece is its whole
 stretch, neither clipped to `[0, 1]` nor cut by an earlier piece; on any
 other piece both ends are read on `T` at the piece's proportions, `p ×
@@ -3380,12 +3424,13 @@ axis it is combined as section 3.1 combines values, each exact operand
 converted to the nearest double; only its x is rounded (section 3.2). A carried gap is drawn where the frame draws its gap, by the
 frame's mode and display and not by the card's cascade, in every mode of
 `R`; it is a further drawing of the frame's gap, carries its elision's
-address and takes the values cascaded for the frame's gap, ellipses
-included, and it draws the ellipses of the card's rows that cross it and
+address and takes the values cascaded for the frame's gap, ellipsis
+included, and it draws one ellipsis, centred on the ancestor card, and
 no label. Card
 elisions and derived ones are clipped around the protected span, so they
-never meet a carried gap, and everything right of `M`'s span lies `DG`
-further left with the frame's shared end (section 8.8, step 2). Rows
+never meet a carried gap, and everything right of `M`'s span lies `OR`
+further right and `DG` further left with the frame's shared end (section
+8.8, step 2). Rows
 are untouched: the card's ordinates are those of section 8.8.
 
 **Derived elisions.** An ancestor card of a root `R` aligned to a member
@@ -3459,9 +3504,11 @@ nearest 5/7, the legibility floor: a row of the default pitch 14 drawn at
 `Z` lies 10 from the next, the fixed part of its pitch (section 6.2); and
 `zb = min(zG, Z)`, so that a frame whose `zG` is below `Z` is not zoomed
 out further. At `zb` the view shows `B = 0.8 × VW / ((2 × zb) × sG)` on
-either side of `c`; the card's line reaches `dl = (c − x0) + σ` left of
-`c` and `dr = ((x0 + L') + 8) − c` right of it before its gaps, 8 being
-the card padding `K` past the member's end. Then
+either side of `c`; the card's line reaches `dl = c + σ` left of `c` and `dr = (Fw +
+8) − c` right of it before its gaps, since its seams (section 8.8, step
+2) put what lies outside `M`'s span outside the frame's edges, at 0 and
+`Fw`, the name column `σ` left of the one and the card padding `K`, 8,
+right of the other. Then
 
     r = min(1, λ / E × (L' / L), (B − dl) / (L × uL), (B − dr) / (L × uR))
 
@@ -3502,7 +3549,7 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   `second` at full scale on each side, its gap 128.57142857142856 wide.
   `DL` = 342.8571428571429, the shrink of the one gap left of the frame.
   The gaps over `first` cut the rows of `piece` and `first`, that over
-  `second` the rows of `piece` and `second`, each with its ellipsis.
+  `second` the rows of `piece` and `second`, each gap with one ellipsis.
 - The fixture `bundle_elided_layerit`, the card of the suite `clt_1`
   (1616 quarters) behind the frame of `clt_8` "Clair de Lune mm. 1–6"
   (27 at 0 in `clt_4` "Clair de Lune", 324 at 668): `x0` =
@@ -3541,8 +3588,10 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   crosses it, the ancestor line of `piece` in the card of `excerpt`
   included, and the line of `sketch`, whose open end counts as its whole
   drawn length; the
-  stack of `elision_1`, `Development` and `2–8 ♩`, stands in the markers
-  band of `excerpt`; `elision_2` draws its ellipses alone. On `voice`
+  stack of `elision_1`, `Development` and `2–8 ♩`, takes its room in the
+  markers band of `excerpt` and stands under the gap's ellipsis;
+  `elision_2`, which states no `display`, draws its ellipsis and its name
+  label `Phrase`, whose room the markers band of `phrase` takes. On `voice`
   the elided coordinates are 3 to 12 and 14 to 18, on `sketch`, of
   unknown length, none have a value. The groupstamp at 15 of `voice`
   lies in the second gap and is not drawn; that at 21 is drawn, faded

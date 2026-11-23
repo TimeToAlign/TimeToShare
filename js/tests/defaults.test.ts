@@ -306,28 +306,31 @@ describe("the complete and the minimal form", () => {
       graphical: {
         elisions: [
           elision(1),
-          elision(2, { display: ["ellipsis"] }),
-          elision(3, { display: ["continuation", "name", "ellipsis"] }),
-          elision(4, { name: "Coda", width: { ratio: 1 } }),
-          elision(5, { display: [] }),
+          elision(2, { display: ["name", "ellipsis"] }),
+          elision(3, { display: ["ellipsis"] }),
+          elision(4, { display: ["continuation", "name", "ellipsis"] }),
+          elision(5, { name: "Coda", width: { ratio: 1 } }),
+          elision(6, { display: [] }),
         ],
       },
     });
-    const display = ["ellipsis"];
+    const display = ["ellipsis", "name"];
     const stated = ["ellipsis", "name", "continuation"];
     expect((complete(value).graphical as JsonObject).elisions).toEqual([
       elision(1, { display }),
       elision(2, { display }),
-      elision(3, { display: stated }),
-      elision(4, { name: "Coda", width: { ratio: 1 }, display }),
-      elision(5, { display: [] }),
+      elision(3, { display: ["ellipsis"] }),
+      elision(4, { display: stated }),
+      elision(5, { name: "Coda", width: { ratio: 1 }, display }),
+      elision(6, { display: [] }),
     ]);
     expect((minimal(value).graphical as JsonObject).elisions).toEqual([
       elision(1),
       elision(2),
-      elision(3, { display: stated }),
-      elision(4, { name: "Coda", width: { ratio: 1 } }),
-      elision(5, { display: [] }),
+      elision(3, { display: ["ellipsis"] }),
+      elision(4, { display: stated }),
+      elision(5, { name: "Coda", width: { ratio: 1 } }),
+      elision(6, { display: [] }),
     ]);
   });
 
