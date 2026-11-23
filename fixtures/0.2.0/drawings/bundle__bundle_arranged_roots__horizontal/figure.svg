@@ -2,8 +2,8 @@
 <g transform="translate(16 16)">
 <rect x="0" y="0" width="2429.5605" height="289.4922" rx="10" fill="#F3F4F6"/>
 <text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Arranged</text>
-<rect data-id="score" data-part="card" x="593.3667" y="30.8047" width="1807.4729" height="97.3555" rx="5" fill="#B8BEC8"/>
-<rect data-id="score" data-part="card" x="591.3667" y="28.8047" width="1807.4729" height="97.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-id="score" data-part="card" x="465.9766" y="30.8047" width="1934.863" height="97.3555" rx="5" fill="#B8BEC8"/>
+<rect data-id="score" data-part="card" x="463.9766" y="28.8047" width="1934.863" height="97.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="score" x1="750.7803" y1="111.7578" x2="2381.5605" y2="111.7578" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="score" cx="750.7803" cy="111.7578" r="3" fill="#00CC00"/>
 <polygon data-id="score" points="2390.5605,111.7578 2381.5605,107.2578 2381.5605,116.2578" fill="#00CC00"/>
@@ -22,9 +22,9 @@
 <polygon data-id="timestamp_4" points="1766.1704,45.3047 1763.1704,58.3047 1769.1704,58.3047" fill="#000000"/>
 <polygon data-id="timestamp_11" points="1981.5605,79.2812 1978.5605,92.2812 1984.5605,92.2812" fill="#000000"/>
 <polygon data-id="timestamp_12" points="2381.5605,79.2812 2378.5605,92.2812 2384.5605,92.2812" fill="#000000"/>
-<text data-id="development" data-part="name" x="599.3667" y="47.6128" text-anchor="start" font-size="11" fill="#000000">Development</text>
-<text data-id="exposition" data-part="name" x="599.3667" y="81.5894" text-anchor="start" font-size="11" fill="#000000">Exposition, Recapitulation</text>
-<text data-id="score" data-part="name" x="599.3667" y="115.5659" text-anchor="start" font-size="11" fill="#000000">Score</text>
+<text data-id="development" data-part="name" x="471.9766" y="47.6128" text-anchor="start" font-size="11" fill="#000000">Development</text>
+<text data-id="exposition" data-part="name" x="471.9766" y="81.5894" text-anchor="start" font-size="11" fill="#000000">Exposition, Recapitulation</text>
+<text data-id="score" data-part="name" x="471.9766" y="115.5659" text-anchor="start" font-size="11" fill="#000000">Score</text>
 <text data-id="timestamp_5" data-part="coordinate" x="750.7803" y="102.6353" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_6" data-part="coordinate" x="1150.7803" y="102.6353" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
 <text data-id="timestamp_3" data-part="coordinate" x="1366.1704" y="68.6587" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
@@ -43,8 +43,8 @@
 <line data-id="timestamp_11" data-part="line" x1="1981.5605" y1="104.7578" x2="1981.5605" y2="126.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_12" data-part="line" x1="2381.5605" y1="28.8047" x2="2381.5605" y2="79.2812" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_12" data-part="line" x1="2381.5605" y1="104.7578" x2="2381.5605" y2="126.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<rect data-id="session" data-part="card" x="654.5273" y="197.5391" width="1746.0332" height="83.9531" rx="5" fill="#B8BEC8"/>
-<rect data-id="session" data-part="card" x="652.5273" y="195.5391" width="1746.0332" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-id="session" data-part="card" x="527.1372" y="197.5391" width="1873.4233" height="83.9531" rx="5" fill="#B8BEC8"/>
+<rect data-id="session" data-part="card" x="525.1372" y="195.5391" width="1873.4233" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="session" x1="750.7803" y1="244.5156" x2="1190.7803" y2="244.5156" stroke="#0050EF" stroke-width="3"/>
 <line data-id="session" x1="1234.8939" y1="244.5156" x2="2381.5605" y2="244.5156" stroke="#0050EF" stroke-width="3"/>
 <circle data-id="session" cx="750.7803" cy="244.5156" r="3" fill="#0050EF"/>
@@ -59,8 +59,8 @@
 <polygon data-id="timestamp_14" points="1150.7803,212.0391 1147.7803,225.0391 1153.7803,225.0391" fill="#000000"/>
 <polygon data-id="timestamp_15" points="1981.5605,212.0391 1978.5605,225.0391 1984.5605,225.0391" fill="#000000"/>
 <polygon data-id="timestamp_16" points="2381.5605,212.0391 2378.5605,225.0391 2384.5605,225.0391" fill="#000000"/>
-<text data-id="take_a" data-part="name" x="660.5273" y="214.3472" text-anchor="start" font-size="11" fill="#000000">Take A, Take B</text>
-<text data-id="session" data-part="name" x="660.5273" y="248.3237" text-anchor="start" font-size="11" fill="#000000">Session</text>
+<text data-id="take_a" data-part="name" x="533.1372" y="214.3472" text-anchor="start" font-size="11" fill="#000000">Take A, Take B</text>
+<text data-id="session" data-part="name" x="533.1372" y="248.3237" text-anchor="start" font-size="11" fill="#000000">Session</text>
 <text data-id="timestamp_13" data-part="coordinate" x="750.7803" y="235.3931" text-anchor="middle" font-size="9" fill="#000000">0″</text>
 <text data-id="timestamp_14" data-part="coordinate" x="1150.7803" y="235.3931" text-anchor="middle" font-size="9" fill="#000000">30″</text>
 <text data-id="timestamp_15" data-part="coordinate" x="1981.5605" y="235.3931" text-anchor="middle" font-size="9" fill="#000000">0″</text>

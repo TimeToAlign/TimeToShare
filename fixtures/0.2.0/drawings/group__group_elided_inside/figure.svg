@@ -1,55 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1098.1284" height="219.5625" viewBox="0 0 1098.1284 219.5625" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="1098.1284" height="239.5391" viewBox="0 0 1098.1284 239.5391" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="1066.1284" height="187.5625" rx="10" fill="#F3F4F6"/>
-<rect data-id="piece" data-part="card" x="10" y="18.2305" width="1048.1284" height="97.3555" rx="5" fill="#B8BEC8"/>
-<rect data-id="piece" data-part="card" x="8" y="16.2305" width="1048.1284" height="97.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="piece" x1="152.5677" y1="99.1836" x2="696.2713" y2="99.1836" stroke="#00CC00" stroke-width="3"/>
-<line data-id="piece" x1="810.557" y1="99.1836" x2="860.557" y2="99.1836" stroke="#00CC00" stroke-width="3"/>
-<line data-id="piece" x1="989.1284" y1="99.1836" x2="1039.1284" y2="99.1836" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="piece" cx="95.4248" cy="99.1836" r="3" fill="#00CC00"/>
-<polygon data-id="piece" points="1048.1284,99.1836 1039.1284,94.6836 1039.1284,103.6836" fill="#00CC00"/>
-<line data-id="first" x1="152.5677" y1="65.207" x2="696.2713" y2="65.207" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="first" cx="95.4248" cy="65.207" r="3" fill="#00CC00"/>
-<polygon data-id="first" points="806.057,65.207 810.557,61.607 815.057,65.207 810.557,68.807" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<line data-id="excerpt" x1="256.2713" y1="31.2305" x2="651.7713" y2="31.2305" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="excerpt" cx="256.2713" cy="31.2305" r="3" fill="#00CC00"/>
-<polygon data-id="excerpt" points="651.7713,31.2305 656.2713,27.6305 660.7713,31.2305 656.2713,34.8305" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<line data-id="second" x1="810.557" y1="65.207" x2="860.557" y2="65.207" stroke="#00CC00" stroke-width="3"/>
-<line data-id="second" x1="989.1284" y1="65.207" x2="1034.6284" y2="65.207" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="second" cx="810.557" cy="65.207" r="3" fill="#00CC00"/>
-<polygon data-id="second" points="1034.6284,65.207 1039.1284,61.607 1043.6284,65.207 1039.1284,68.807" fill="none" stroke="#00CC00" stroke-width="1.5"/>
-<polygon data-id="timestamp_1" points="256.2713,32.7305 253.2713,45.7305 259.2713,45.7305" fill="#000000"/>
-<polygon data-id="timestamp_2" points="656.2713,32.7305 653.2713,45.7305 659.2713,45.7305" fill="#000000"/>
-<text data-id="excerpt" data-part="name" x="16" y="35.0386" text-anchor="start" font-size="11" fill="#000000">Excerpt</text>
-<text data-id="first" data-part="name" x="16" y="69.0151" text-anchor="start" font-size="11" fill="#000000">First, Second</text>
-<text data-id="piece" data-part="name" x="16" y="102.9917" text-anchor="start" font-size="11" fill="#000000">Piece</text>
-<text data-id="timestamp_1" data-part="coordinate" x="256.2713" y="56.0845" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="timestamp_2" data-part="coordinate" x="656.2713" y="56.0845" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
-<line data-id="timestamp_1" data-part="line" x1="256.2713" y1="16.2305" x2="256.2713" y2="32.7305" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_1" data-part="line" x1="256.2713" y1="58.207" x2="256.2713" y2="113.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_2" data-part="line" x1="656.2713" y1="16.2305" x2="656.2713" y2="32.7305" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_2" data-part="line" x1="656.2713" y1="58.207" x2="656.2713" y2="113.5859" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<circle data-id="first" data-part="elision ellipsis" cx="117.9962" cy="64.9082" r="2" fill="#000000"/>
-<circle data-id="first" data-part="elision ellipsis" cx="123.9962" cy="64.9082" r="2" fill="#000000"/>
-<circle data-id="first" data-part="elision ellipsis" cx="129.9962" cy="64.9082" r="2" fill="#000000"/>
-<text data-id="first" data-part="elision name" x="123.9962" y="77.2622" text-anchor="middle" font-size="9" fill="#6B7280">First</text>
-<circle data-id="first" data-part="elision ellipsis" cx="747.4141" cy="64.9082" r="2" fill="#000000"/>
-<circle data-id="first" data-part="elision ellipsis" cx="753.4141" cy="64.9082" r="2" fill="#000000"/>
-<circle data-id="first" data-part="elision ellipsis" cx="759.4141" cy="64.9082" r="2" fill="#000000"/>
-<text data-id="first" data-part="elision name" x="753.4141" y="77.2622" text-anchor="middle" font-size="9" fill="#6B7280">First</text>
-<circle data-id="second" data-part="elision ellipsis" cx="918.8427" cy="64.9082" r="2" fill="#000000"/>
-<circle data-id="second" data-part="elision ellipsis" cx="924.8427" cy="64.9082" r="2" fill="#000000"/>
-<circle data-id="second" data-part="elision ellipsis" cx="930.8427" cy="64.9082" r="2" fill="#000000"/>
-<text data-id="second" data-part="elision name" x="924.8427" y="77.2622" text-anchor="middle" font-size="9" fill="#6B7280">Second</text>
-<rect data-id="group_1" x="152.5677" y="8" width="543.7036" height="171.5625" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<rect x="0" y="0" width="1066.1284" height="207.5391" rx="10" fill="#F3F4F6"/>
+<rect data-id="piece" data-part="card" x="10" y="38.207" width="1048.1284" height="97.3555" rx="5" fill="#B8BEC8"/>
+<rect data-id="piece" data-part="card" x="8" y="36.207" width="1048.1284" height="97.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="piece" x1="152.5677" y1="119.1602" x2="696.2713" y2="119.1602" stroke="#00CC00" stroke-width="3"/>
+<line data-id="piece" x1="810.557" y1="119.1602" x2="860.557" y2="119.1602" stroke="#00CC00" stroke-width="3"/>
+<line data-id="piece" x1="989.1284" y1="119.1602" x2="1039.1284" y2="119.1602" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="piece" cx="95.4248" cy="119.1602" r="3" fill="#00CC00"/>
+<polygon data-id="piece" points="1048.1284,119.1602 1039.1284,114.6602 1039.1284,123.6602" fill="#00CC00"/>
+<line data-id="first" x1="152.5677" y1="85.1836" x2="696.2713" y2="85.1836" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="first" cx="95.4248" cy="85.1836" r="3" fill="#00CC00"/>
+<polygon data-id="first" points="806.057,85.1836 810.557,81.5836 815.057,85.1836 810.557,88.7836" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="excerpt" x1="256.2713" y1="51.207" x2="651.7713" y2="51.207" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="excerpt" cx="256.2713" cy="51.207" r="3" fill="#00CC00"/>
+<polygon data-id="excerpt" points="651.7713,51.207 656.2713,47.607 660.7713,51.207 656.2713,54.807" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-id="second" x1="810.557" y1="85.1836" x2="860.557" y2="85.1836" stroke="#00CC00" stroke-width="3"/>
+<line data-id="second" x1="989.1284" y1="85.1836" x2="1034.6284" y2="85.1836" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="second" cx="810.557" cy="85.1836" r="3" fill="#00CC00"/>
+<polygon data-id="second" points="1034.6284,85.1836 1039.1284,81.5836 1043.6284,85.1836 1039.1284,88.7836" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-id="timestamp_1" points="256.2713,52.707 253.2713,65.707 259.2713,65.707" fill="#000000"/>
+<polygon data-id="timestamp_2" points="656.2713,52.707 653.2713,65.707 659.2713,65.707" fill="#000000"/>
+<text data-id="excerpt" data-part="name" x="16" y="55.0151" text-anchor="start" font-size="11" fill="#000000">Excerpt</text>
+<text data-id="first" data-part="name" x="16" y="88.9917" text-anchor="start" font-size="11" fill="#000000">First, Second</text>
+<text data-id="piece" data-part="name" x="16" y="122.9683" text-anchor="start" font-size="11" fill="#000000">Piece</text>
+<text data-id="timestamp_1" data-part="coordinate" x="256.2713" y="76.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="656.2713" y="76.061" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+<line data-id="timestamp_1" data-part="line" x1="256.2713" y1="36.207" x2="256.2713" y2="52.707" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="256.2713" y1="78.1836" x2="256.2713" y2="133.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="656.2713" y1="36.207" x2="656.2713" y2="52.707" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="656.2713" y1="78.1836" x2="656.2713" y2="133.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<circle data-id="first" data-part="elision ellipsis" cx="117.9962" cy="84.8848" r="2" fill="#000000"/>
+<circle data-id="first" data-part="elision ellipsis" cx="123.9962" cy="84.8848" r="2" fill="#000000"/>
+<circle data-id="first" data-part="elision ellipsis" cx="129.9962" cy="84.8848" r="2" fill="#000000"/>
+<text data-id="first" data-part="elision name" x="123.9962" y="97.2388" text-anchor="middle" font-size="9" fill="#6B7280">First</text>
+<circle data-id="first" data-part="elision ellipsis" cx="747.4141" cy="84.8848" r="2" fill="#000000"/>
+<circle data-id="first" data-part="elision ellipsis" cx="753.4141" cy="84.8848" r="2" fill="#000000"/>
+<circle data-id="first" data-part="elision ellipsis" cx="759.4141" cy="84.8848" r="2" fill="#000000"/>
+<text data-id="first" data-part="elision name" x="753.4141" y="97.2388" text-anchor="middle" font-size="9" fill="#6B7280">First</text>
+<circle data-id="second" data-part="elision ellipsis" cx="918.8427" cy="84.8848" r="2" fill="#000000"/>
+<circle data-id="second" data-part="elision ellipsis" cx="924.8427" cy="84.8848" r="2" fill="#000000"/>
+<circle data-id="second" data-part="elision ellipsis" cx="930.8427" cy="84.8848" r="2" fill="#000000"/>
+<text data-id="second" data-part="elision name" x="924.8427" y="97.2388" text-anchor="middle" font-size="9" fill="#6B7280">Second</text>
+<rect data-id="group_1" x="152.5677" y="8" width="543.7036" height="191.5391" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-id="group_1" data-part="name" x="160.5677" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Excerpt</text>
-<rect data-id="excerpt" data-part="card" x="162.5677" y="34.8047" width="527.7036" height="81.3789" rx="5" fill="#B8BEC8"/>
-<rect data-id="excerpt" data-part="card" x="160.5677" y="32.8047" width="527.7036" height="81.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="piece" x1="244.2713" y1="99.1836" x2="668.2713" y2="99.1836" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
-<polyline data-id="piece" points="241.2713,94.6836 236.7713,99.1836 241.2713,103.6836" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="piece" points="236.7713,94.6836 232.2713,99.1836 236.7713,103.6836" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="piece" points="671.2713,94.6836 675.7713,99.1836 671.2713,103.6836" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
-<polyline data-id="piece" points="675.7713,94.6836 680.2713,99.1836 675.7713,103.6836" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<rect data-id="excerpt" data-part="card" x="162.5677" y="34.8047" width="527.7036" height="101.3555" rx="5" fill="#B8BEC8"/>
+<rect data-id="excerpt" data-part="card" x="160.5677" y="32.8047" width="527.7036" height="101.3555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="piece" x1="244.2713" y1="119.1602" x2="668.2713" y2="119.1602" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-id="piece" points="241.2713,114.6602 236.7713,119.1602 241.2713,123.6602" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="piece" points="236.7713,114.6602 232.2713,119.1602 236.7713,123.6602" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="piece" points="671.2713,114.6602 675.7713,119.1602 671.2713,123.6602" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-id="piece" points="675.7713,114.6602 680.2713,119.1602 675.7713,123.6602" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
 <line data-id="first" x1="244.2713" y1="85.1836" x2="668.2713" y2="85.1836" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
 <polyline data-id="first" points="241.2713,80.6836 236.7713,85.1836 241.2713,89.6836" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
 <polyline data-id="first" points="236.7713,80.6836 232.2713,85.1836 236.7713,89.6836" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
@@ -60,26 +60,26 @@
 <polygon data-id="excerpt" points="651.7713,47.207 656.2713,43.607 660.7713,47.207 656.2713,50.807" fill="none" stroke="#00CC00" stroke-width="1.5"/>
 <polygon data-id="timestamp_1" points="256.2713,48.707 253.2713,61.707 259.2713,61.707" fill="#000000"/>
 <polygon data-id="timestamp_2" points="656.2713,48.707 653.2713,61.707 659.2713,61.707" fill="#000000"/>
-<text data-id="piece" data-part="name" x="168.5677" y="102.2993" text-anchor="start" font-size="9" fill="#6B7280">Piece</text>
+<text data-id="piece" data-part="name" x="168.5677" y="122.2759" text-anchor="start" font-size="9" fill="#6B7280">Piece</text>
 <text data-id="first" data-part="name" x="168.5677" y="88.2993" text-anchor="start" font-size="9" fill="#6B7280">First</text>
 <text data-id="excerpt" data-part="name" x="168.5677" y="51.0151" text-anchor="start" font-size="11" fill="#000000">Excerpt</text>
 <text data-id="timestamp_1" data-part="coordinate" x="256.2713" y="72.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_2" data-part="coordinate" x="656.2713" y="72.061" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
 <line data-id="timestamp_1" data-part="line" x1="256.2713" y1="32.8047" x2="256.2713" y2="48.707" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_1" data-part="line" x1="256.2713" y1="74.1836" x2="256.2713" y2="114.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_1" data-part="line" x1="256.2713" y1="74.1836" x2="256.2713" y2="134.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_2" data-part="line" x1="656.2713" y1="32.8047" x2="656.2713" y2="48.707" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_2" data-part="line" x1="656.2713" y1="74.1836" x2="656.2713" y2="114.1836" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<rect data-id="recording" data-part="card" x="162.5677" y="124.1836" width="527.7036" height="49.3789" rx="5" fill="#B8BEC8"/>
-<rect data-id="recording" data-part="card" x="160.5677" y="122.1836" width="527.7036" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="recording" x1="256.2713" y1="136.5859" x2="656.2713" y2="136.5859" stroke="#0050EF" stroke-width="3"/>
-<circle data-id="recording" cx="256.2713" cy="136.5859" r="3" fill="#0050EF"/>
-<polygon data-id="recording" points="665.2713,136.5859 656.2713,132.0859 656.2713,141.0859" fill="#0050EF"/>
-<polygon data-id="timestamp_3" points="256.2713,138.0859 253.2713,151.0859 259.2713,151.0859" fill="#000000"/>
-<polygon data-id="timestamp_4" points="656.2713,138.0859 653.2713,151.0859 659.2713,151.0859" fill="#000000"/>
-<text data-id="recording" data-part="name" x="168.5677" y="140.394" text-anchor="start" font-size="11" fill="#000000">Recording</text>
-<text data-id="timestamp_3" data-part="coordinate" x="256.2713" y="161.4399" text-anchor="middle" font-size="9" fill="#000000">0″</text>
-<text data-id="timestamp_4" data-part="coordinate" x="656.2713" y="161.4399" text-anchor="middle" font-size="9" fill="#000000">10″</text>
-<line data-id="timestamp_1" data-part="line" x1="256.2713" y1="114.1836" x2="256.2713" y2="171.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
-<line data-id="timestamp_2" data-part="line" x1="656.2713" y1="114.1836" x2="656.2713" y2="171.5625" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="656.2713" y1="74.1836" x2="656.2713" y2="134.1602" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<rect data-id="recording" data-part="card" x="162.5677" y="144.1602" width="527.7036" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="recording" data-part="card" x="160.5677" y="142.1602" width="527.7036" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="recording" x1="256.2713" y1="156.5625" x2="656.2713" y2="156.5625" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="recording" cx="256.2713" cy="156.5625" r="3" fill="#0050EF"/>
+<polygon data-id="recording" points="665.2713,156.5625 656.2713,152.0625 656.2713,161.0625" fill="#0050EF"/>
+<polygon data-id="timestamp_3" points="256.2713,158.0625 253.2713,171.0625 259.2713,171.0625" fill="#000000"/>
+<polygon data-id="timestamp_4" points="656.2713,158.0625 653.2713,171.0625 659.2713,171.0625" fill="#000000"/>
+<text data-id="recording" data-part="name" x="168.5677" y="160.3706" text-anchor="start" font-size="11" fill="#000000">Recording</text>
+<text data-id="timestamp_3" data-part="coordinate" x="256.2713" y="181.4165" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_4" data-part="coordinate" x="656.2713" y="181.4165" text-anchor="middle" font-size="9" fill="#000000">10″</text>
+<line data-id="timestamp_1" data-part="line" x1="256.2713" y1="134.1602" x2="256.2713" y2="191.5391" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
+<line data-id="timestamp_2" data-part="line" x1="656.2713" y1="134.1602" x2="656.2713" y2="191.5391" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 </g>
 </svg>

@@ -3205,7 +3205,13 @@ Elisions), and one crossing a seam whole across it (section 3.2); the names, the
 the layout left of `R`'s start `s0'` keep their distance from it at
 `X(start) + s1 × (x − s0')`, so the card's left edge lies at `X(start) −
 s1 × s0'`; and the card's right edge lies at `X(end) + s1 × ((Ri' + K) −
-xe')`, `xe'` the x of `R`'s end in the layout of step 1. Every length of
+xe')`, `xe'` the x of `R`'s end in the layout of step 1. Where `R`
+starts where the first stretch starts, its start lies on the seam there,
+on the stretch's side, while its names and everything else of the layout
+left of `s0'` keep their distance from `X(start) − s1 × OL`, outside the
+first anchor's frame, as a card behind one frame keeps its names outside
+it (step 2), so that the card's left edge lies at `X(start) − s1 × (OL +
+s0')`. Every length of
 it, a stroke width, a font size, a mark, is `s1` times its length there.
 The rows are those of step 1, as gaps never move a row (section 3.2).
 The once card is the ancestor card of `R` behind `G1`; `R`'s ancestor
@@ -3256,9 +3262,11 @@ Every item is 567.39013671875 wide, so with the row gap 48 they lie at
   33.0 to 44.0, 44.113606770833485 wide, its ellipsis centred at x
   1212.8370768229167, and `session`'s line runs on behind
   Development to `take_b`.
-- The once cards span 591.36669921875 to 2398.839599609375 (`score`,
-  `s0'` = 159.41357421875) and 652.52734375 to 2398.560546875
-  (`session`, `s0'` = 98.2529296875). The block is 2429.560546875 wide,
+- Both roots start where Exposition's stretch starts, so their names
+  lie `s1 × OL` = 127.39013671875 further left, outside Exposition's
+  frame, and the once cards span 463.9765625 to 2398.839599609375
+  (`score`, `s0'` = 159.41357421875) and 525.13720703125 to
+  2398.560546875 (`session`, `s0'` = 98.2529296875). The block is 2429.560546875 wide,
   the right edge of Recapitulation's frame plus `P`, and 289.4921875
   high, the bottom of `session`'s once card with its shadow plus `P`.
 
@@ -3429,7 +3437,10 @@ no label. Card
 elisions and derived ones are clipped around the protected span, so they
 never meet a carried gap, and everything right of `M`'s span lies `OR`
 further right and `DG` further left with the frame's shared end (section
-8.8, step 2). Rows
+8.8, step 2). A gap of theirs whose edge falls on a seam at the protected
+span's start or end ends or starts there on its own side, at the frame's
+edge, and every row running on from it crosses the seam whole (section
+3.2). Rows
 are untouched: the card's ordinates are those of section 8.8.
 
 **Derived elisions.** An ancestor card of a root `R` aligned to a member
@@ -3534,7 +3545,8 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   holds `first` and `second` and gives the pieces `first` 0–8, `first`
   16–32 and `second` 0–32; depth 1 is left nothing. `r` =
   0.14285714285714285, set by (a): the frame, 543.70361328125 wide and
-  171.5625 high, gives `zG` = 1.8833790598156273 and `c` =
+  171.5625 high as laid out before its rows align (drawn 191.5390625 high
+  once `piece`'s row aligns on the card, section 8.3), gives `zG` = 1.8833790598156273 and `c` =
   271.851806640625, and with `x0` = 103.70361328125 and `σ` =
   87.4248046875 (`N'` the width of the row name `First, Second`), `dl` =
   359.276611328125 and `dr` = 279.851806640625, so (b)'s terms are
@@ -3557,7 +3569,9 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   134.8037109375 of `Passepied mm. 153–156`), `LA` = 23940.74074074074,
   `E` = 1589 and `r` = 0.016991818753933293, set by (a): the frame of
   `clt_8` is `x0 + L + 8w + K + Q` = 622.8037109375 wide, its right edge the
-  outer chevron tip of `clt_1`'s ancestor line, and 171.5625 high, so `zG`
+  outer chevron tip of `clt_1`'s ancestor line, and 171.5625 high as laid
+  out before its rows align (drawn 259.4921875 high once they align on
+  the card, section 8.3), so `zG`
   = 1.6441777433512452 and `c` = 311.40185546875; `σ` = 175.8974609375,
   `N'` = 159.8974609375 being the width of the movements' row name cut to
   `Prelude, Menuet, Clair de L…` (section 6.6, Names), so `dl` =
