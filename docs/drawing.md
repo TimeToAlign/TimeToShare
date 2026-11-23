@@ -2559,7 +2559,11 @@ of the stored card elisions the ancestor card draws, whose pieces depend
 on the protected span alone (section 8.9), and leaves out those of the
 elisions it derives, whose coordinates depend on the card's proportion
 and the proportion on the height of `M`'s frame (section 8.9), so that
-`dr` depends on nothing of `M`'s card.
+`dr` depends on nothing of `M`'s card. For `dr`, `R`'s drawing alone is
+laid out on the gaps carried into the ancestor card (section 8.9), which
+draw no label but move what lies right of them, and, where the card's
+mode is `custom`, on the pieces of its stored card elisions, so that
+there it is the ancestor card's own layout.
 So, in the card of the member the ancestor card is aligned to, which lies
 aligned on `R`'s line (section 8.8), every ancestor row on that side lies
 at exactly its height on the card behind (in a later member's card the
@@ -3332,23 +3336,31 @@ Markers), and nowhere else. Its labels show the piece's ends on `T`'s
 own axis: the elision's `start` and `end` where the piece is its whole
 stretch, neither clipped to `[0, 1]` nor cut by an earlier piece; on any
 other piece both ends are read on `T` at the piece's proportions, `p ×
-λ` and `q × λ` on `M`'s axis (the double `p` taken at its exact binary
-value and the product exact where `λ` is, binary64 where `λ` is a
-float), less `T`'s start on `M`'s axis, combined as section 3.1 combines
-values, and written as section 5.2 writes a coordinate. The gap's elided
-coordinates on another member, or on a timeline its card draws, are the
-positions at the proportions `p` and `q` of that member's drawn length,
-read as a groupstamp's coordinates on it are (section 2), exact: each the
-exact product of the proportion and that member's length, a float of
-either taken at its exact binary value, the proportion of a whole piece
-being the exact quotient of the elision's `start` or `end`, carried to
-`M`'s axis, and `λ`, and that of any other piece its double. They have no
-value where a groupstamp's coordinate would have none: on a member of
-unknown length, and on every member when `M`'s length is unknown. They
-are listed by an application and never drawn. The gap is a place of the
-drawing, not a coordinate, so nothing of it is faded. A position in a
-frame's gap has no x (section 3.2): a groupstamp's lines and wedges at
-such a position are not drawn, and at a gap's edge they are.
+λ` and `q × λ` on `M`'s axis (where `λ` is exact, the piece's exact
+proportions, defined under Carried gaps below, and the products exact;
+where `λ` is a float, the doubles `p` and `q` and the products in
+binary64), less `T`'s start on `M`'s axis, combined as section 3.1
+combines values, and written as section 5.2 writes a coordinate. The
+gap's elided coordinates on a member, or on a timeline its card draws,
+are the positions at the proportions `p` and `q` of that member's drawn
+length, each the exact product of the piece's exact proportion (Carried
+gaps, below) and that length, a float length taken at its exact binary
+value, read on the timeline and written in its number type as a
+groupstamp's coordinates are (section 2). They have no value where a
+groupstamp's coordinate would have none: on a member of unknown length,
+and on every member when `M`'s length is unknown; where a member has
+none, no timeline of its card has one. They are listed by an application
+and never drawn: card by card in the display order of the frame's
+members, in each card its member, then the other timelines of the
+member's tree the card draws, in traversal order (section 6.1), then the
+ancestors whose lines the card draws, from the member's parent up to its
+root. A timeline other than the member is listed only where its span,
+its ends included, holds both positions, as a row crossing the gap does
+(section 6.6), an ancestor of unknown length having no end. The gap is a
+place of the drawing, not a coordinate, so nothing of it is faded. A
+position in a frame's gap has no x (section 3.2): a groupstamp's lines
+and wedges at such a position are not drawn, and at a gap's edge they
+are.
 
 **Carried gaps.** The ancestor card of `R` behind `G`, aligned to `M`
 (section 8.8), keeps `M`'s span on `R` over `M`'s line, so it draws the
@@ -3356,10 +3368,13 @@ frame's gaps inside its protected span: each gap of the frame over `[p,
 q]` becomes a gap of the card over `R`'s stretch from `−ts + p × λ` to
 `−ts + q × λ`, with the frame's natural width `n` and drawn width `g`,
 taken and never recomputed, so that the card's gaps lie over the frame's,
-up to the rounding of binary64. Here `p` and `q` are the exact quotients
-of the elision's `start` and `end`, carried to `M`'s axis, and `λ`, each
-clipped to `[0, 1]` (a float taken at its exact binary value), not the
-doubles that place the frame's gap: on an exact axis of `R` the stretch
+up to the rounding of binary64. Here `p` and `q` are the piece's
+**exact proportions**: the exact quotients of the elision's `start` and
+`end`, carried to `M`'s axis, and `λ`, each clipped to `[0, 1]` (a float
+taken at its exact binary value), not the doubles that place the frame's
+gap; where an earlier piece cut the elision's stretch, the cut end is
+the earlier piece's exact end there, so that the carried gaps meet
+exactly where the frame's gaps meet. On an exact axis of `R` the stretch
 is exact, `−ts`, `p × λ` and their sum computed exactly, and on a float
 axis it is combined as section 3.1 combines values, each exact operand
 converted to the nearest double; only its x is rounded (section 3.2). A carried gap is drawn where the frame draws its gap, by the
