@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Forty-four of the 107 drawings in this directory are derived by hand from
+Forty-four of the 111 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the metrics table
 of its two fonts alone. Their `figure.svg` files are never regenerated:
 the emitting script compares each with its writer's output instead. Every
