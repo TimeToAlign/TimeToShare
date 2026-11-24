@@ -219,7 +219,7 @@ measure_maps:
         time_signature: "4/4"
         volta: 2
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aeb4625b)"
 timelines:
   -
     children:
@@ -303,5 +303,6 @@ timelines:
         type: jump_from
     id: "#clt_1"
     length: [37, 1]
+    locked: true
     unit: quarters
 timetoshare: "0.2.0"

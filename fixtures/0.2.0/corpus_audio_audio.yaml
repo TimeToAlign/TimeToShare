@@ -56,7 +56,7 @@
 groups: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aeb4625b)"
 name: null
 resources: []
 timelines:
@@ -75,7 +75,7 @@ timelines:
     id: "#Bass Kick"
     is_segment_line: false
     length: 10188800
-    locked: false
+    locked: true
     meta: {}
     name: "Bass Kick.mp3"
     number_type: int

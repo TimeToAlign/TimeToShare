@@ -222,7 +222,7 @@ measure_maps:
         time_signature: "4/4"
         volta: 2
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aeb4625b)"
 name: null
 resources: []
 timelines:
@@ -345,7 +345,7 @@ timelines:
     id: "#clt_1"
     is_segment_line: false
     length: [37, 1]
-    locked: false
+    locked: true
     meta: {}
     name: null
     number_type: fraction

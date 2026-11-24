@@ -54,7 +54,7 @@
   unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aeb4625b)"
 timelines:
   -
     conversion_maps:
@@ -66,6 +66,7 @@ timelines:
         type: LinearMap
     id: "#Bass Kick"
     length: 10188800
+    locked: true
     name: "Bass Kick.mp3"
     unit: samples
 timetoshare: "0.2.0"
