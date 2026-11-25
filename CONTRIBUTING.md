@@ -40,7 +40,8 @@ written by hand in canonical YAML with `dumps`, each with its minimal
 twin, and `fixtures/flows/<version>/` holds their expected flows, derived
 by hand, each beside its trace. A manifest whose flow control is written
 in the earlier form (the key `type` with `jump_from`, `jump_to` or
-`flow_marker`, and `target`) is converted with
+`flow_marker`, one of those words as its `role`, or `target` without
+`role`) is converted with
 `python scripts/convert_flow_control.py <file>…`, which the validators'
 refusal names. Rejection cases under
 `fixtures/rejections/` and warning cases under `fixtures/warnings/` are

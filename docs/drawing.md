@@ -497,9 +497,10 @@ So a region `region_1` is `{"id": "region_1"}` and its label `{"id":
 "region_1", "part": ["label"]}`, whether the manifest holds its root alone
 or many roots, and also when a member below its root is drawn as the root
 of its own member drawing; a jump `jump_1` is `{"id": "jump_1"}` on each
-of its arcs, and the label of each arc `{"id": "jump_1", "part":
-["label"]}`, since a jump is one element, whose every arc and label
-carries its address; a
+of its arcs, and the label of each arc, its destination's `label` or
+`manifestation` (section 5.3), `{"id": "jump_1", "part": ["label"]}`,
+since a jump is one element, whose every arc and arc label carries its
+address; a
 named timestamp `timestamp_1` draws its wedge `{"id": "timestamp_1"}`, its
 labels `{"id": "timestamp_1", "part": ["name"]}`, `{"id": "timestamp_1",
 "part": ["id"]}` and `{"id": "timestamp_1", "part": ["coordinate"]}`, and
@@ -742,7 +743,10 @@ it names, or 0 for the timeline itself; for a `by`, the jump's coordinate
 plus `by`; for a destination without a place, the coordinate of the
 nearest section break before the jump that is not rejected (README, "Flow
 control"), else 0. A destination with `by` 0 draws no arc, nor does one
-of a rejected jump whose `to` names nothing. Where a length is `null`,
+of a rejected jump whose `to` names nothing or names a rejected element:
+a `to` naming an element that some actor believes `false` names nothing
+(README, "Flow control"), so no arc is drawn to that element's place.
+Where a length is `null`,
 section 3.4 says where the timeline ends.
 
 A coordinate's value is read as its number type selects: a `float` value is
@@ -1164,9 +1168,11 @@ The name of a timeline is its `name`, or, when `name` is null, its whole
 `id`, which is never parsed (`original_score:dgt_1` is named
 `original_score:dgt_1`). A
 conversion map has no name or label in the drawing. A region's label is its `name`, and a region whose `name` is null has none; the label of
-each arc of a jump is its destination's `label`, else the jump's `label`,
-else the destination's `manifestation`, and an arc for which all three
-are null or absent has none; a flow line's label is its `label`, and a
+each arc of a jump is its destination's `label`, else that destination's
+`manifestation`, never the jump's own `label`, and an arc for which both
+are null or absent has none; the jump's own `label` and `name` label the
+jump once, never each of its arcs, and this version of the drawing draws
+neither; a flow line's label is its `label`, and a
 flow line whose `label` is null has none; a jump target draws no label;
 a segment's label is
 its `name`, and a segment whose `name` is null has none; a named
@@ -1676,8 +1682,8 @@ jumps leave and arrive and flow lines end: the flow row lies `T × h(9)`
 beyond the start of the band. Each displayed jump draws one **arc** per
 destination, from and to the positions of section 3.1, but none for a
 destination with `by` 0 (going on, no jump) and none for a destination of
-a rejected jump whose `to` names nothing; a jump with no such arc draws
-nothing. The arcs, jump by jump in canonical order and each jump's in the
+a rejected jump whose `to` names nothing or names a rejected element
+(section 3.1); a jump with no such arc draws nothing. The arcs, jump by jump in canonical order and each jump's in the
 canonical order of its `targets`, are sorted stably by span (the absolute
 exact difference of their to and from positions), smallest first, and
 placed by first fit with the extent from the smaller to the larger of

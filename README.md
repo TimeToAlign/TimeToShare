@@ -259,8 +259,10 @@ positions are quarters by definition, so it fits every timeline. `rows` is
 the [Measure Map standard](https://github.com/measure-map/specification)'s
 compressed row array, at least one row: an entry equal to the preceding
 entry's default successor is omitted. A row is the standard's Measure plus
-two extensions: `volta`, the pass a volta bracket is played in or a list
-of several (`[1, 3]`), kept as written, and `offset_within_measure`, where
+two extensions: `volta`, the pass a volta bracket is played in, an
+integer from 1, or a non-empty list of distinct such passes where the
+bracket stands for several (a bracket printed "1, 3" is `[1, 3]`), kept as
+written (no reader turns `1` into `[1]` or `[1]` into `1`), and `offset_within_measure`, where
 the row begins inside its nominal measure in quarter notes. Lengths are
 strictly positive and `qstamp` is non-negative; exact Fraction pairs are
 permitted wherever the standard uses JSON numbers. A measure view's
@@ -291,7 +293,8 @@ element or a destination is notated, a word of an open vocabulary: a word
 the format does not define for its role is valid and kept, and both
 validators report it as the warning `manifestation_unknown`. The
 manifestation never decides the flow. `label` is the text an element is
-drawn with, or `null`.
+drawn with, or `null`; on a Jump it labels the Jump once, never each of
+its arcs.
 
 **Destinations.** A Jump's `targets` are its destinations
 (`$defs/JumpDestination`), which carry no order and in which every key is
@@ -307,7 +310,7 @@ optional:
 | `determined` | `false` for a choice nobody can check, such as an ossia, which a reader computing a flow never takes; default `true` |
 | `reset` | whether taking the destination, where it lies before its Jump, restores what lies in the stretch gone back over (below); default `true` |
 | `manifestation` | `repeat_end`, `da_capo`, `da_capo_al_fine`, `da_capo_al_coda`, `dal_segno`, `dal_segno_al_fine`, `dal_segno_al_coda`, `to_coda`, `volta` or `ossia`, an open vocabulary as above |
-| `label` | the text the destination is drawn with, or `null` |
+| `label` | the text the destination's arc is drawn with, or `null`: an arc without one is labelled with the destination's `manifestation`, never with the Jump's `label` |
 
 A destination's place is `to`, `by` or neither, never both, and lies from
 0 to the timeline's length. A destination without a place lands at the
@@ -346,8 +349,11 @@ not played again (senza repetizione).
 **Breaks, voltas and sections.** A Break without `ends` always ends the
 flow. One with `ends`, `{passes?, after?}`, at least one of the two
 stated and both holding where both are, ends it only while that condition
-holds: `passes` counts the arrivals of the flow at the Break, and `after`
-names a destination as a destination's `after` does. A Fine is a Break of
+holds: `passes` counts the arrivals of the flow at the Break and means
+exactly the arrivals listed, or with `from` that arrival and every later
+one (what holds beyond the highest pass holds for a Jump's destinations
+only, never for a Break), and `after` names a destination as a
+destination's `after` does. A Fine is a Break of
 the manifestation `fine` whose `ends.after` names the destination of the
 da capo al fine or dal segno al fine. Volta brackets are written with
 three kinds of element: one Jump at the end of the measure before the
@@ -361,8 +367,8 @@ first is written with `reset: false`: with the default it would restore
 the Jump before the brackets wherever all that Jump's places lie before
 the sign, and the later passes would never be reached. A section break
 ends a section, a movement included: no atomic section spans it, a
-destination without a place lands no further back than the nearest one
-before its Jump, and a flow that has ended at a Break begins again at the
+destination without a place lands at the nearest one before its Jump, and
+a flow that has ended at a Break begins again at the
 nearest section break at or after that Break, where one lies before the
 timeline's end.
 
@@ -376,7 +382,9 @@ changes one. An element that some actor believes `false` is **rejected**:
 a reader computing a flow leaves it out, and the validators apply the
 rules of flow control to the elements not rejected, so a rejected Jump and
 its replacement may share a coordinate, and a `to` or an `after` naming a
-rejected element names nothing. Such provenance needs the `@context` only
+rejected element names nothing: the validators report it as they report a
+`to` or an `after` naming no element (`dangling_target`), and a drawing
+draws no arc to it. Such provenance needs the `@context` only
 where it uses a prefix; JSON-LD reads none of it, since `flow_control` is
 no term of the context.
 
@@ -395,26 +403,43 @@ python scripts/convert_flow_control.py score.yaml other.json
 python scripts/convert_flow_control.py --check score.yaml   # report only
 ```
 
-A `jump_to` becomes a `jump_target`, its manifestation kept; a
-`flow_marker` a `break` (`fine`, whose `ends.after` names the destination
-of the timeline's one jump al fine), a `section_break` (without a
-manifestation) or a `barline` (`double_barline`, `final_barline`); a
-`jump_from` a `jump` with one destination, `to` its `target` (no place
-where it had none) and its manifestation, a repeat end's `repeat_count`
-(1 where it stated none), `repeat_count: 1` and `reset: false` on every
-da capo and dal segno, and on a `to_coda` an `after` naming the
-destination of the timeline's one jump al coda. Two `jump_from` at one
-coordinate become one Jump holding both destinations, under the ID that
-comes first by code point; the other element's label moves to its
-destination, every address naming its ID names the kept one, and its
+The script reads one of the three words under `role` as it reads it
+under `type`. A `jump_to` becomes a `jump_target`, its manifestation
+kept; a `flow_marker` a `break` (`fine`, whose `ends.after` names the
+destination of the timeline's one jump al fine), a `section_break`
+(without a manifestation) or a `barline` (`double_barline`,
+`final_barline`); a `jump_from` a `jump` with one destination, `to` its
+`target` and its manifestation, a repeat end's `repeat_count` (1 where it
+stated none), `repeat_count: 1` and `reset: false` on every da capo and
+dal segno, and on a `to_coda` an `after` naming the destination of the
+timeline's one jump al coda. A repeat end and every da capo form without
+a `target` went to the timeline's start: their destination is `to` the
+timeline's own ID, written as that ID is written in the file, never a
+destination without a place, which would land at the nearest section
+break before the Jump. Two `jump_from` at one coordinate become one Jump
+holding both destinations, under the ID that comes first by code point;
+the other element's label moves to its destination, the kept element's
+label is copied to its own destination where that has none, every
+address naming the other ID names the kept one, and the other element's
 `name` and `meta` are dropped. A drawing rule selecting the element type
 `jump_from` selects `jump`, and one selecting `flow_marker` becomes three
-rules, for `break`, `section_break` and `barline`. The script never
-guesses: a Fine or a To Coda on a timeline with none or several of the
-jumps it waits for, a merge that would give one Jump two destinations at
-one place and an element it cannot read are reported, and the file is
-left as it was. Its exit status is 0 when every file is converted or needs
-nothing and 1 when one is refused; it needs the `timetoshare` package.
+rules, for `break`, `section_break` and `barline`.
+
+The script never guesses. It reports, and leaves the file as it was: an
+element holding a `target` and none of the three words; one stating two
+different words under `type` and `role`; one mixing the earlier form with
+`targets` or `ends`; a `jump_from` without a `target` that is neither a
+repeat end nor a da capo, or that lies on a timeline without an ID; a
+`jump_from` at the coordinate of a Jump not of the earlier form; a
+`flow_marker` whose manifestation names no role; a Fine or a To Coda on a
+timeline with none or several of the jumps it waits for; a merge that
+would give one Jump two destinations at one place, such as a repeat end
+and a da capo without targets on one barline, both going to the
+timeline's start; and an element without a coordinate it can read. Every
+manifest the validators refuse with `flow_control_form` is either
+converted or refused, never left as needing nothing. Its exit status is 0
+when every file is converted or needs nothing and 1 when one is refused;
+it needs the `timetoshare` package.
 
 ### FlowMaps and virtual timelines
 
@@ -442,8 +467,11 @@ is a FlowMap written by hand. The manifest's `flow_maps` hold them, each
 - `canonical: true` marks the canonical FlowMap of its timeline, at most
   one;
 - `provenance` records how the FlowMap was made and who believes it, in
-  the entries a flow-control element carries; no reading of its beliefs is
-  fixed.
+  the entries a flow-control element carries: a FlowMap computed from the
+  flow control of its timeline, which states the `convention` it follows,
+  carries an entry of method `inferred`, as the atomic sections it plays
+  do, and one written by hand an entry of method `manual`; no reading of
+  its beliefs is fixed.
 
 **Atomic sections.** The flow of a timeline runs over its **atomic
 sections**, the intervals between consecutive boundaries of its flow
@@ -458,7 +486,8 @@ compact IRI under a prefix the `@context` declares for the format's
 namespace (`tts:AtomicSection`), each with its letter as `name` and a
 provenance entry of method `inferred` for that pair. Both packages export
 the class as `ATOMIC_SECTION`. The FlowMaps computed from flow control
-list these regions as their chunks.
+list these regions as their chunks, and each carries its own provenance
+entry of method `inferred`.
 
 **Virtual timelines.** The manifest's `virtual_timelines` hold `{id, map,
 timeline, unit, number_type, length, through?, name?}`, each the
@@ -475,6 +504,24 @@ at 0 with the first chunk and is as long as its chunks and gaps together.
 `through` names the group or conversion map that carries the map to
 `timeline` where the map's own elements do not lie on that timeline; the
 validators do not resolve it.
+
+Both validators hold a virtual timeline to the map it applies, under the
+code `virtual_timeline`. Virtual timeline by virtual timeline, it comes
+from a timeline of the manifest: none comes from itself through others,
+which is reported at each virtual timeline of such a ring, never at one
+that only leads into it. Where `map` is a FlowMap and no `through` is
+stated, the timeline it comes from, followed through virtual timelines to
+a timeline of the manifest, lies in the tree of the FlowMap's root
+timeline; and there its `length` is the sum of the FlowMap's chunks and
+gaps, compared by exact value where every chunk has a known length on an
+axis of the virtual timeline's unit and number type: a region on the axis
+of its timeline, a child timeline and a virtual timeline on their own, a
+gap on the axis of the FlowMap's root. A `float` axis is never compared,
+since a sum of doubles depends on the order of its additions, and no
+length is compared where a chunk lies on another axis or has no known
+length. Where `through` is stated, neither
+the tree nor the length is read; a conversion map as `map` is read for
+neither.
 
 **Computing a flow.** Each convention reads a timeline's elements that are
 not rejected and its length, never a manifestation. The `default` flow
@@ -494,8 +541,10 @@ second bracket. The `printed` flow is the atomic sections in the order of
 the axis. A reader computing the `default` flow reports **findings**, each
 at a coordinate, which refuse nothing: `flow_ends_at_break` where the flow
 ends at a Break that has no `ends`, lies before the length and shares its
-coordinate with no section break; `never_played` at the start of each
-atomic section no run covers; `endless_loop` where the flow comes
+coordinate with no section break, unless a Break with `ends` holds at that
+coordinate; `never_played` once for each stretch of the axis from 0 to
+the length that no run covers, at its start, however many atomic sections
+the stretch holds; `endless_loop` where the flow comes
 back to a place with every count and condition as it was there before;
 `ambiguous_targets` where two destinations of one kind hold together;
 and `undetermined_target` where the flow passes a Jump holding a
@@ -515,16 +564,25 @@ flow_maps:
     chunks: ["#region_1", "#region_2", "#region_1", "#region_3"]
     convention: default
     id: "#flow_map_1"
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
   -
     chunks: ["#region_1", "#region_3"]
     convention: single
     id: "#flow_map_2"
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
   -
     chunks: ["#region_1", "#region_2", "#region_3"]
     convention: printed
     id: "#flow_map_3"
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
 name: "Sonata exposition"
 timelines:
@@ -635,8 +693,10 @@ pass 2 takes it to 16, and it plays C up to the length: A B A C, the
 chunks of `flow_map_1`, with no finding. The `single` flow arrives at
 `jump_1` on pass 1 + 1, since the repeat end restores, is taken once and
 goes back over 12: A C, `flow_map_2`. The `printed` flow is A B C,
-`flow_map_3`. `virtual_1` is `flow_map_1` applied to `score`, and is
-12 + 4 + 12 + 8 = 36 quarters long. The expected flows
+`flow_map_3`. The three FlowMaps are computed from the flow control, so
+each carries a provenance entry of method `inferred`. `virtual_1` is
+`flow_map_1` applied to `score`, and is 12 + 4 + 12 + 8 = 36 quarters
+long, the length both validators compare with the sum of its chunks. The expected flows
 `fixtures/flows/0.2.0/sonata_exposition.yaml` state these runs and
 sections.
 
@@ -1087,12 +1147,12 @@ stable code:
 | --- | --- | --- | --- |
 | An ID repeats an earlier ID of its root's tree | `duplicate_id` | the later occurrence | `'<id>' is not unique in the manifest, first at <pointer>` |
 | A flow-control element's `coordinate` lies before 0, or beyond its timeline's known length | `flow_coordinate` | the `coordinate` | `coordinate <value> of '<id>' is not on '<timeline id>': it lies outside 0 to the length <length>` (`… it lies before 0` where the length is unknown) |
-| The `jump` of an `after` names no jump of the timeline, or the jump holding the destination | `dangling_target` | the `jump` | `'<id>' names no jump of this timeline` (`'<id>' is the jump holding this destination; after names a destination of another jump`) |
+| The `jump` of an `after` names no jump of the timeline, a rejected one, or the jump holding the destination | `dangling_target` | the `jump` | `'<id>' names no jump of this timeline` (`'<id>' is the jump holding this destination; after names a destination of another jump`) |
 | The `to` or `by` of an `after` names no destination of that jump | `dangling_target` | the `to` or the `by` | `jump '<id>' has no destination to '<to>'` (`… by <value>`) |
 | An `after` without `to` and `by` names a jump of several destinations, none without a place | `dangling_target` | the `after` | `jump '<id>' has <n> destinations and none without a place; after names one by its to or by` |
 | A jump lies at the coordinate of an earlier jump of its timeline, compared by exact value | `jump_repeated` | the later jump | `'<id>' is a second jump at coordinate <value> of '<timeline id>', after '<earlier id>': several signs at one place are destinations of one jump` |
 | A destination has the place of an earlier destination of its jump, `by` compared by exact value | `jump_destination` | the later destination | `destination <n> of '<id>' has the place of destination <m>, to '<to>'` (`… by <value>`, `… without a place`) |
-| A destination's `to` names no jump target, region or child of its timeline, nor the timeline | `dangling_target` | the `to` | `'<to>' names no jump target, region or child of this timeline, nor the timeline itself` |
+| A destination's `to` names no jump target, region or child of its timeline, nor the timeline, or names a rejected jump target | `dangling_target` | the `to` | `'<to>' names no jump target, region or child of this timeline, nor the timeline itself` |
 | The place a destination's `by` reaches lies before 0, or beyond its timeline's known length | `flow_coordinate` | the `by` | `by <value> from coordinate <value> of '<id>' is not on '<timeline id>': it lies outside 0 to the length <length>` (`… it lies before 0`) |
 | A measure view's `measure_map` names no entry of `measure_maps` | `dangling_target` | the `measure_map` | `'<id>' names no MeasureMap of this manifest` |
 | A map's non-null `source_unit` is not its timeline's unit, or, for a map a `PiecewiseMap` or `CombinationMap` holds or a `ChainMap`'s first map, not its holder's non-null `source_unit` | `conversion_map` | the `source_unit` | `<type> '<id>' has source unit '<unit>', its timeline '<id>' has '<unit>'` (`… its <holder type> '<id>' has '<unit>'`) |
@@ -1134,7 +1194,10 @@ stable code:
 | An ID among a FlowMap's `chunks` names no region, child timeline or virtual timeline inside the tree of its root | `flow_map_chunk` | the chunk | `'<id>' names no region, child timeline or virtual timeline in the tree of '<timeline id>'` |
 | A FlowMap is canonical after an earlier canonical FlowMap of its timeline | `flow_map_canonical` | its `canonical` | `'<id>' is a second canonical FlowMap of '<timeline id>', after '<earlier id>'` |
 | A virtual timeline's `map` names no FlowMap and no conversion map | `dangling_target` | the `map` | `'<id>' names no FlowMap or conversion map of this manifest` |
-| A virtual timeline's `timeline` names no timeline and no other virtual timeline | `dangling_target` | the `timeline` | `'<id>' names no timeline and no other virtual timeline of this manifest` |
+| A virtual timeline's `timeline` names no timeline and no other virtual timeline, or the virtual timeline itself | `dangling_target` | the `timeline` | `'<id>' names no timeline and no other virtual timeline of this manifest` |
+| A virtual timeline comes from itself through other virtual timelines, reported at each virtual timeline of the ring | `virtual_timeline` | the `timeline` | `'<id>' comes from itself through '<id>', '<id>': a virtual timeline comes, virtual timeline by virtual timeline, from a timeline of this manifest` |
+| A virtual timeline without `through` applies a FlowMap of another root than the one its `timeline` comes from | `virtual_timeline` | the `map` | `'<map id>' is a FlowMap of '<root id>', and '<timeline>' comes from the tree of '<root id>': without through, a virtual timeline applies a FlowMap within the tree of the FlowMap's root timeline` |
+| A virtual timeline without `through` applies a FlowMap of its own root, and its `length` is not the sum of the FlowMap's chunks and gaps, every chunk of a known length on its axis, the axis not `float` | `virtual_timeline` | the `length` | `length <value> of '<id>' is not the sum of the chunks and gaps of '<map id>', <sum>` |
 
 Within one root's tree, IDs are visited in identity order (a timeline,
 then its conversion maps, regions and flow-control elements, then its
@@ -1177,7 +1240,8 @@ coordinate shared with an earlier one, then belonging to no MatchStamp; then the
 order, each its `timeline`, then its chunks in order (none where the
 `timeline` names no root), then whether it is a second canonical FlowMap;
 and last the virtual timelines, in array order, each its `map`, then its
-`timeline`. Before the schema, both validators refuse flow control written
+`timeline`, then the ring it lies in, then the FlowMap of another root,
+else its length. Before the schema, both validators refuse flow control written
 in the earlier form (`flow_control_form`, [Flow control](#flow-control)),
 root by root, each timeline's elements before its children's. A repeated anchor ID is a
 `duplicate_id` wherever the earlier ID stands, and a repeated ID within
@@ -1798,7 +1862,9 @@ but the one a card holds), and the content `timeline`, `child`,
 `boundary` (a segment's start on its segment line), `ancestor`, `map`,
 `region`, `break`, `section_break` and `barline` (each a vertical line
 at its coordinate), `jump` (one arc per destination whose place is not
-`by` 0, from the jump's coordinate to that place; a jump target draws
+`by` 0, from the jump's coordinate to that place, labelled with its
+destination's `label`, else its `manifestation`, and none to a place a
+`to` names where the element named is rejected; a jump target draws
 nothing; a rejected element is drawn faded),
 `wedge` (a coordinate marker), `cross_section` (a named timestamp's
 cross-section line), `alignment_anchor` (the line of an alignment anchor

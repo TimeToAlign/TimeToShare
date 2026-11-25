@@ -827,8 +827,10 @@ nothing outside the statements and do not read the version marker.
 Four fixtures under `fixtures/0.2.0/statements/`, each with its minimal
 twin, carry statements; besides them, `fixtures/0.2.0/flow/sonata_exposition`
 states its three atomic sections, regions of the type
-`tts:AtomicSection`, each pair with an entry of method `inferred` (README,
-"FlowMaps and virtual timelines"), and every other fixture holds the
+`tts:AtomicSection`, each pair with an entry of method `inferred`, and
+three FlowMaps computed from its flow control, each with a provenance
+entry of method `inferred` about the FlowMap itself (README, "FlowMaps and
+virtual timelines"), and every other fixture holds the
 format's context and no statement. Their structure is built by timetoalign and their
 statements and provenance are attached from
 `scripts/fixtures/descriptions/<name>.yaml` when they are emitted.
@@ -846,5 +848,6 @@ canonical N-Quads (RDFC-1.0) of its JSON-LD reading with the base
 reproduce byte for byte with a JSON-LD processor that fetches nothing.
 The fixture and its twin read to the same graph. `sonata_exposition`
 reads to the fifteen quads of its three typed regions and their entries,
-which its package tests state without a file, and every other fixture
+which its package tests state without a file; its FlowMaps and their
+provenance add none, since `flow_maps` is no term of the context, and every other fixture
 reads to the empty graph.
