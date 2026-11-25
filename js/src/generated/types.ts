@@ -1679,7 +1679,7 @@ export interface Selector {
    */
   modality?: "continuous" | "discrete";
   /**
-   * The class of the element: the timeline class its unit decides, or a conversion map's type; or the IRI of a class, compact or full, which matches a region whose `type` statement names that class and no other element. The two are compared expanded: in a selector the prefix `tts` stands for the format's namespace `https://timetoalign.github.io/timetoshare/ns#`, another compact IRI is expanded by the manifest's `@context`, a full IRI is itself. So `tts:AtomicSection` selects the atomic sections.
+   * The class of the element: the timeline class its unit decides, or a conversion map's type; or the IRI of a class, compact or full, which matches a region whose `type` statement names that class and no other element. The two are compared expanded: in a selector the prefix `tts` stands for the format's namespace `https://timetoalign.github.io/timetoshare/ns#`, another compact IRI is expanded by the manifest's `@context`, whose prefix the validators check after the schema (`iri`), a full IRI is itself. So `tts:AtomicSection` selects the atomic sections.
    */
   class?:
     | (

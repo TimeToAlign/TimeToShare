@@ -30,7 +30,7 @@ Version 0.2.0 has 52 manifests directly under `fixtures/0.2.0/`, 17 under
 lie the expected RDF of the 4 statement fixtures under
 `fixtures/rdf/0.2.0/`, the expected flows of 9 flow fixtures under
 `fixtures/flows/0.2.0/`, the table fixture under `fixtures/tables/0.2.0/`
-([The table fixture](#the-table-fixture)), 247 rejection cases, 18 warning
+([The table fixture](#the-table-fixture)), 248 rejection cases, 18 warning
 cases, one table of acceptances under
 `fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)) and
 one list of cases of several problems under `fixtures/precedence/0.2.0/`
@@ -706,7 +706,7 @@ code:
 | `elision_stretch` | an elision starts at 0 or later, ends within its timeline's known length, and starts before it ends | `elision_end_beyond_length`, `elision_start_not_before_end` |
 | `context` | a manifest whose elements carry `statements` or `provenance` holds `@context` | `context_absent_with_statements`, `context_absent_with_provenance` |
 | `reserved_key` | no element key is one JSON-LD would read | `reserved_key_term_on_timeline` (`label`), `reserved_key_iri_on_region`, `reserved_key_statements_on_group`, `reserved_key_prefix_on_manifest`, `reserved_key_context_on_timeline`, `reserved_key_children_on_region` |
-| `iri` | every compact IRI names a declared prefix, and every element with statements has an ID that is an IRI fragment | `iri_prefix_undeclared_key`, `iri_prefix_undeclared_id`, `iri_prefix_undeclared_type`, `provenance_basis_prefix_undeclared`, `subject_id_not_fragment` |
+| `iri` | every compact IRI names a declared prefix, a selector's `class` included (`tts` excepted, the format's namespace in every selector), and every element with statements has an ID that is an IRI fragment | `iri_prefix_undeclared_key`, `iri_prefix_undeclared_id`, `iri_prefix_undeclared_type`, `provenance_basis_prefix_undeclared`, `subject_id_not_fragment`, `rule_select_class_prefix_undeclared` |
 | `element_value` | a value naming an element holds its `id` alone | `element_value_with_label` |
 | `calendar_date` | a provenance entry's or a belief's `date` names a day of the Gregorian calendar from 0001-01-01 | `provenance_date_impossible`, `belief_date_impossible` |
 | `provenance_duplicate` | a subject has one entry per pair | `provenance_repeated` |

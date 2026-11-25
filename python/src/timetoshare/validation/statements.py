@@ -16,7 +16,10 @@ candidate. Last, the provenance of the flow-control elements and of the
 FlowMaps, whose entries name no pair: every compact IRI names a declared
 prefix (``iri``), every ``#`` reference an element (``dangling_target``), a
 date is a calendar day (``calendar_date``), then entry by entry no actor
-holds two beliefs (``belief_actor``). The manifest is read with bare IDs; the IRIs of
+holds two beliefs (``belief_actor``). After them, rule by rule, the ``class``
+of each selector of ``graphical.rules`` written as a compact IRI names a
+declared prefix (``iri``), but for ``tts``, which in a selector always
+stands for the format's namespace. The manifest is read with bare IDs; the IRIs of
 statements are the same in either form. The walks read any value, so a
 reader of part of a manifest can check its statements alone.
 """
@@ -192,11 +195,31 @@ class _Walk:
                 actors[actor] = index
 
     def problems(self, manifest: Mapping[str, Any]) -> Iterator[SchemaValidationError]:
-        """Yield the problems of the statements, then of element provenance."""
+        """Yield the problems of statements, element provenance, selector classes."""
         yield from self.positions(statement_positions(manifest))
         yield from self.positions(element_provenance_positions(manifest))
         for path, entry in element_provenance(manifest):
             yield from self.beliefs(entry, path)
+        yield from self.selector_classes(manifest)
+
+    def selector_classes(
+        self, manifest: Mapping[str, Any]
+    ) -> Iterator[SchemaValidationError]:
+        """Yield a problem for each selector ``class`` whose prefix is not declared.
+
+        A class written as an IRI is a compact or an absolute IRI; the prefix
+        ``tts`` always stands for the format's namespace in a selector, of
+        every layer, so it needs no declaration.
+        """
+        graphical = manifest.get("graphical")
+        for index, rule in enumerate(entries_of(graphical, "rules")):
+            select = rule.get("select") if isinstance(rule, Mapping) else None
+            text = select.get("class") if isinstance(select, Mapping) else None
+            if not isinstance(text, str) or ":" not in text:
+                continue
+            if text.partition(":")[0] != "tts":
+                at = ("graphical", "rules", index, "select", "class")
+                yield from self.iri(text, at)
 
     def positions(self, positions: Iterator[Any]) -> Iterator[SchemaValidationError]:
         """Yield the problems of the positions of a walk, each by its kind."""
@@ -245,10 +268,10 @@ def statement_rule_problems(
     The context rule over every subject, then the reserved keys of the
     manifest, the timelines and regions in subject order and the groups,
     each element's keys in code-point order, then the subject walk, then
-    the provenance of the flow-control elements and the FlowMaps. The
-    manifest is taken with bare IDs and its statements and provenance as
-    schema-checked; everything else is read wherever it has the expected
-    type.
+    the provenance of the flow-control elements and the FlowMaps, then the
+    ``class`` of each rule's selector. The manifest is taken with bare IDs
+    and its statements and provenance as schema-checked; everything else is
+    read wherever it has the expected type.
     """
     yield from _context_problems(manifest)
     yield from _reserved_key_problems(manifest)

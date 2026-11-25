@@ -17,6 +17,10 @@
  *    (`provenance_duplicate`); one belief per actor in an entry
  *    (`belief_actor`). An entry may match a stated pair or none: an entry of
  *    a pair not stated is a candidate.
+ * 4. `iri` again, rule by rule: the `class` of each selector of
+ *    `graphical.rules` written as a compact IRI names a declared prefix, but
+ *    for `tts`, which in a selector always stands for the format's
+ *    namespace.
  *
  * The rules read the manifest with bare IDs; the IRIs of statements and
  * provenance are the same in both forms. The validators never consult the
@@ -315,6 +319,25 @@ export function* statementRuleProblems(manifest: JsonObject): Generator<SchemaVa
   yield* contextProblems(manifest);
   yield* reservedKeyProblems(manifest);
   yield* subjectProblems(manifest);
+  yield* selectorClassProblems(manifest);
+}
+
+/**
+ * Yield a problem for each selector `class` whose prefix is not declared,
+ * rule by rule. A class written as an IRI is a compact or an absolute IRI;
+ * the prefix `tts` always stands for the format's namespace in a selector,
+ * of every layer, so it needs no declaration.
+ */
+function* selectorClassProblems(manifest: JsonObject): Generator<SchemaValidationError> {
+  const context = manifest["@context"];
+  for (const [index, rule] of entries(manifest.graphical, "rules").entries()) {
+    const select = isJsonObject(rule) ? rule.select : undefined;
+    const text = isJsonObject(select) ? select.class : undefined;
+    if (typeof text !== "string" || !text.includes(":")) continue;
+    if (text.slice(0, text.indexOf(":")) === "tts") continue;
+    const problem = iriProblem(context, text, ["graphical", "rules", index, "select", "class"]);
+    if (problem !== null) yield problem;
+  }
 }
 
 /** What a manifest is warned of, never refused for. */

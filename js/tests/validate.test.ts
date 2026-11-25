@@ -227,6 +227,7 @@ const REJECTIONS = [
   "resource_timeline_unknown",
   "root_missing_marker",
   "root_missing_timelines",
+  "rule_select_class_prefix_undeclared",
   "rule_select_coordinates_unknown",
   "rule_select_empty_addresses",
   "rule_select_inside_unknown_element",

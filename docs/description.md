@@ -767,14 +767,18 @@ elements, root by root and each timeline's before its children's, then
 those of the FlowMaps: each entry's keys in code-point order, and then,
 entry by entry, the actors of its beliefs against each other. Of the
 rules below, `iri` (a compact IRI), `dangling_target`, `calendar_date` and
-`belief_actor` apply to these entries.
+`belief_actor` apply to these entries. Last, rule by rule, comes the
+`class` of each selector of `graphical.rules` written as a compact IRI
+(the drawing specification, section 2.3), to which `iri` applies, but for
+the prefix `tts`, which in a selector always stands for the format's
+namespace.
 
 | Rule | Code | Location | Message |
 | --- | --- | --- | --- |
 | A manifest without `@context` carries `statements` or `provenance` | `context` | the first such key, `provenance` before `statements` within an element | `statements and provenance need the manifest's @context` |
 | An element key that JSON-LD would read (section 8) | `reserved_key` | the key | `'<key>' is reserved on the manifest` (`a timeline`, `a region`, `a group`) |
 | An element carrying statements or provenance has an ID that is no IRI fragment, such as one holding a space | `iri` | the element's `id` | `the ID '<id>' of an element with statements is no IRI fragment` |
-| A compact IRI names a prefix the context does not declare | `iri` | the IRI | `'<iri>': the prefix '<prefix>' is not declared in @context` |
+| A compact IRI names a prefix the context does not declare (in a selector's `class`, `tts` excepted) | `iri` | the IRI | `'<iri>': the prefix '<prefix>' is not declared in @context` |
 | A reference beginning with `#` names no element of the manifest | `dangling_target` | the reference | `'<reference>' names no element of this manifest` |
 | A node naming an element holds another key | `element_value` | the node | `'<id>' names an element; a value naming an element holds its id alone` |
 | A statement value is an integral float, such as `1.0` | `representation` | the value | `a statement value is an integer or a string, never a float: <value>` |
