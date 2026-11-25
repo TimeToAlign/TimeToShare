@@ -53,14 +53,14 @@ def long_tables(roots: int = 38, anchors: int = 340) -> dict[str, Any]:
                 "length": 600.0,
                 "conversion_maps": [
                     {
-                        "id": f"cmap_{n}",
+                        "id": f"cmap_{2 * n - 1}",
                         "type": "LinearMap",
                         "source_unit": "seconds",
                         "target_unit": "samples",
                         "scalar": 48000,
                     },
                     {
-                        "id": f"tmap_{n}",
+                        "id": f"cmap_{2 * n}",
                         "type": "TableMap",
                         "name": "beat grid",
                         "source_unit": "seconds",
