@@ -1569,11 +1569,11 @@ export interface VirtualTimeline {
    */
   id: Id;
   /**
-   * The ID of the map applied: a FlowMap or a conversion map of the manifest; checked after the schema.
+   * The ID of the map applied: a FlowMap or a conversion map of the manifest; checked after the schema. A FlowMap is applied within the tree of its own root timeline: unless `through` is stated, the timeline this virtual timeline comes from lies in that tree (checked after the schema).
    */
   map: Id;
   /**
-   * The ID of the timeline the map is applied to: a timeline of the manifest at any depth, or another virtual timeline; checked after the schema.
+   * The ID of the timeline the map is applied to: a timeline of the manifest at any depth, or another virtual timeline; checked after the schema. Virtual timeline by virtual timeline, a virtual timeline comes from a timeline of the manifest: none comes from itself through others (checked after the schema).
    */
   timeline: Id;
   unit: TimeUnit;
@@ -1582,11 +1582,11 @@ export interface VirtualTimeline {
    */
   number_type: NumberType;
   /**
-   * The end of the virtual timeline on its own axis, in its number type.
+   * The end of the virtual timeline on its own axis, in its number type. Where `map` is a FlowMap and no `through` is stated, it is the sum of the FlowMap's chunks and gaps. The TimeToShare validators compare the two by exact value where every chunk has a known length on an axis of this unit and number type (a region on its timeline's axis, a child timeline and a virtual timeline on their own, a gap on the axis of the FlowMap's timeline), and never on a `float` axis, where a sum depends on the order of its additions.
    */
   length: NumberNonnegative;
   /**
-   * The ID of the group or conversion map that carries the map to `timeline`, where the map's own elements do not lie on that timeline.
+   * The ID of the group or conversion map that carries the map to `timeline`, where the map's own elements do not lie on that timeline. Where it is stated, no rule reads how the map reaches the timeline, nor the length.
    */
   through?: Id;
   name?: Name;

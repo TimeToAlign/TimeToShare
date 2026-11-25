@@ -278,8 +278,11 @@ REJECTIONS = [
     "value_node_empty",
     "value_object_language_and_type",
     "version_unknown",
+    "virtual_timeline_cycle",
     "virtual_timeline_id_is_timeline_id",
     "virtual_timeline_length_int_on_fraction_axis",
+    "virtual_timeline_length_not_the_sum",
+    "virtual_timeline_map_other_root",
     "virtual_timeline_map_unknown",
     "virtual_timeline_ticks_fraction",
     "virtual_timeline_timeline_itself",
@@ -944,6 +947,7 @@ def test_rejections_cover_every_rule_code() -> None:
         "belief_actor",
         "jump_destination",
         "jump_repeated",
+        "virtual_timeline",
     }
 
 

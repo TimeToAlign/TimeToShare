@@ -137,12 +137,12 @@ manifest:
   virtual_timelines:
     -
       id: "#virtual_1"
-      length: 30
+      length: 22
       map: "#flow_map_1"
       name: null
       number_type: fraction
       timeline: "#score"
       unit: quarters
-message: "length 30 of 'virtual_1' is an int on a fraction axis: write [30, 1]"
+message: "length 22 of 'virtual_1' is an int on a fraction axis: write [22, 1]"
 path: [virtual_timelines, 0, length]
 reason: "A virtual timeline's length is written in its own number type."

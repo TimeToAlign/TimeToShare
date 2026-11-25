@@ -432,14 +432,17 @@ def _mapped(**members: Any) -> dict:
     return manifest(score, other, **members)
 
 
-def _virtual(identifier: str, map_id: str, timeline_id: str) -> dict:
+def _virtual(
+    identifier: str, map_id: str, timeline_id: str, length: Any = (2, 1), **more: Any
+) -> dict:
     return {
         "id": identifier,
         "map": map_id,
         "timeline": timeline_id,
         "unit": "quarters",
         "number_type": "fraction",
-        "length": [2, 1],
+        "length": list(length) if isinstance(length, tuple) else length,
+        **more,
     }
 
 
@@ -447,11 +450,13 @@ def test_a_chunk_is_anything_giving_an_interval_inside_the_roots_tree() -> None:
     flow_maps = [
         {"id": "f", "timeline": "score", "chunks": ["intro", "verse", "line", "v2"]},
         {"id": "g", "timeline": "sketch", "chunks": ["idea", "v3"]},
+        {"id": "h", "timeline": "score", "chunks": ["intro"]},
+        {"id": "k", "timeline": "sketch", "chunks": ["idea"]},
     ]
     virtual = [
-        _virtual("v1", "f", "verse"),
-        _virtual("v2", "f", "v1"),
-        _virtual("v3", "g", "sketch"),
+        _virtual("v1", "h", "verse"),
+        _virtual("v2", "h", "v1"),
+        _virtual("v3", "k", "sketch", (1, 1)),
     ]
     value = _mapped(flow_maps=flow_maps, virtual_timelines=virtual)
     assert _problems(value) == []
@@ -464,7 +469,18 @@ def test_a_chunk_is_anything_giving_an_interval_inside_the_roots_tree() -> None:
     ]
 
 
-def test_virtual_timelines_naming_each_other_resolve_to_no_tree() -> None:
+def _from_itself(identifier: str, index: int, *through: str) -> tuple[str, tuple, str]:
+    return (
+        "virtual_timeline",
+        ("virtual_timelines", index, "timeline"),
+        f"'{identifier}' comes from itself through "
+        + ", ".join(f"'{other}'" for other in through)
+        + ": a virtual timeline comes, virtual timeline by virtual timeline, from a "
+        "timeline of this manifest",
+    )
+
+
+def test_virtual_timelines_naming_each_other_come_from_no_timeline() -> None:
     flow_maps = [{"id": "f", "timeline": "score", "chunks": ["a"]}]
     virtual = [_virtual("a", "f", "b"), _virtual("b", "f", "a")]
     assert _problems(_mapped(flow_maps=flow_maps, virtual_timelines=virtual)) == [
@@ -473,8 +489,225 @@ def test_virtual_timelines_naming_each_other_resolve_to_no_tree() -> None:
             ("flow_maps", 0, "chunks", 0),
             "'a' names no region, child timeline or virtual timeline in the tree of "
             "'score'",
+        ),
+        _from_itself("a", 0, "b"),
+        _from_itself("b", 1, "a"),
+    ]
+
+
+def test_a_cycle_is_reported_at_each_of_its_members_and_nowhere_else() -> None:
+    """A chain of virtual timelines ends at a timeline.
+
+    Three name each other in a ring; a fourth comes from the ring and a
+    fifth from a timeline through a chain. The ring's members are reported,
+    each with the others in the order of its chain; the fourth is not (its
+    own ``timeline`` names a virtual timeline that exists), and nothing of
+    the FlowMap or of the length is read for any of the four.
+    """
+    flow_maps = [{"id": "f", "timeline": "score", "chunks": ["intro"]}]
+    virtual = [
+        _virtual("a", "f", "b", (99, 1)),
+        _virtual("b", "f", "c"),
+        _virtual("c", "f", "a"),
+        _virtual("d", "f", "a", (99, 1)),
+        _virtual("e", "f", "score"),
+        _virtual("g", "f", "e"),
+    ]
+    assert _problems(_mapped(flow_maps=flow_maps, virtual_timelines=virtual)) == [
+        _from_itself("a", 0, "b", "c"),
+        _from_itself("b", 1, "c", "a"),
+        _from_itself("c", 2, "a", "b"),
+    ]
+    virtual[2]["timeline"] = "verse"
+    for entry in virtual:
+        entry["length"] = [2, 1]
+    assert _problems(_mapped(flow_maps=flow_maps, virtual_timelines=virtual)) == []
+
+
+def test_a_flow_map_is_applied_within_the_tree_of_its_own_root() -> None:
+    """Without ``through``, a FlowMap is applied inside its own root's tree.
+
+    The FlowMap ``f`` of ``score`` is applied to the root, to its child and
+    to a virtual timeline that comes from the child: accepted. Applied to
+    the other root ``sketch``, or to a virtual timeline coming from it, it
+    is refused at ``map``, and the length (99, no sum of ``f``) is not read
+    there. With ``through`` stated nothing of the two is read. A conversion
+    map is no FlowMap: the rule does not read it.
+    """
+    flow_maps = [
+        {"id": "f", "timeline": "score", "chunks": ["intro"]},
+        {"id": "k", "timeline": "sketch", "chunks": ["idea", "idea"]},
+    ]
+    within = [
+        _virtual("v1", "f", "score"),
+        _virtual("v2", "f", "verse"),
+        _virtual("v3", "f", "v2"),
+        _virtual("v4", "k", "sketch"),
+    ]
+    assert _problems(_mapped(flow_maps=flow_maps, virtual_timelines=within)) == []
+    across = [
+        _virtual("v1", "f", "sketch", (99, 1)),
+        _virtual("v2", "k", "sketch"),
+        _virtual("v3", "f", "v2", (99, 1)),
+        _virtual("v4", "k", "verse"),
+    ]
+    message = (
+        "'{}' is a FlowMap of '{}', and '{}' comes from the tree of '{}': without "
+        "through, a virtual timeline applies a FlowMap within the tree of the "
+        "FlowMap's root timeline"
+    )
+    assert _problems(_mapped(flow_maps=flow_maps, virtual_timelines=across)) == [
+        (
+            "virtual_timeline",
+            ("virtual_timelines", 0, "map"),
+            message.format("f", "score", "sketch", "sketch"),
+        ),
+        (
+            "virtual_timeline",
+            ("virtual_timelines", 2, "map"),
+            message.format("f", "score", "v2", "sketch"),
+        ),
+        (
+            "virtual_timeline",
+            ("virtual_timelines", 3, "map"),
+            message.format("k", "sketch", "verse", "score"),
+        ),
+    ]
+    for index in (0, 2, 3):
+        across[index]["through"] = "ensemble"
+    value = _mapped(flow_maps=flow_maps, virtual_timelines=across)
+    value["groups"] = [{"id": "ensemble", "members": ["score", "sketch"]}]
+    assert _problems(value) == []
+    validate(value)
+    linear = {"type": "LinearMap", "id": "tempo"}
+    linear |= {"source_unit": "quarters", "target_unit": "seconds"}
+    value = _mapped(virtual_timelines=[_virtual("v", "tempo", "sketch", (99, 1))])
+    value["timelines"][0]["conversion_maps"] = [linear]
+    assert _problems(value) == []
+
+
+def _not_the_sum(index: int, name: str, length: str, played: str) -> tuple:
+    return (
+        "virtual_timeline",
+        ("virtual_timelines", index, "length"),
+        f"length {length} of '{name}' is not the sum of the chunks and gaps of 'f', "
+        f"{played}",
+    )
+
+
+def test_the_length_of_a_virtual_timeline_is_the_sum_of_chunks_and_gaps() -> None:
+    """The length is the sum of the FlowMap's chunks and gaps, by exact value.
+
+    ``f`` plays the region ``intro`` (2), a gap of 3/2, the child ``verse``
+    (4), ``intro`` again and the virtual timeline ``w`` (1/2): 10. The sum
+    is the same for every timeline of the tree the FlowMap is applied to,
+    and a length is compared by value, however its pair is spelled.
+    """
+    chunks = ["intro", {"gap": [3, 2]}, "verse", "intro", "w"]
+    flow_maps = [
+        {"id": "f", "timeline": "score", "chunks": chunks},
+        {"id": "h", "timeline": "score", "chunks": [{"gap": [1, 2]}]},
+    ]
+    virtual = [
+        _virtual("v1", "f", "score", (10, 1)),
+        _virtual("v2", "f", "verse", (20, 2)),
+        _virtual("v3", "f", "v2", (10, 1)),
+        _virtual("w", "h", "score", (1, 2)),
+    ]
+    value = _mapped(flow_maps=flow_maps, virtual_timelines=virtual)
+    assert _problems(value) == []
+    validate(value)
+    virtual[0]["length"] = [19, 2]
+    virtual[2]["length"] = [0, 1]
+    virtual[3]["length"] = [1, 1]
+    assert _problems(value) == [
+        _not_the_sum(0, "v1", "[19, 2]", "[21, 2]"),
+        _not_the_sum(1, "v2", "[20, 2]", "[21, 2]"),
+        _not_the_sum(2, "v3", "[0, 1]", "[21, 2]"),
+        (
+            "virtual_timeline",
+            ("virtual_timelines", 3, "length"),
+            "length [1, 1] of 'w' is not the sum of the chunks and gaps of 'h', [1, 2]",
+        ),
+    ]
+    flow_maps[0]["chunks"] = []
+    virtual[3]["length"] = [1, 2]
+    assert _problems(value) == [
+        _not_the_sum(0, "v1", "[19, 2]", "[0, 1]"),
+        _not_the_sum(1, "v2", "[20, 2]", "[0, 1]"),
+    ]
+
+
+def test_an_integer_axis_spells_the_sum_as_an_integer() -> None:
+    take = timeline("take", "samples", 100)
+    take["regions"] = [{"id": "a", "start": 10, "end": 40}]
+    flow_maps = [{"id": "f", "timeline": "take", "chunks": ["a", {"gap": 5}, "a"]}]
+    virtual = [_virtual("v", "f", "take", 60, unit="samples", number_type="int")]
+    value = manifest(take, flow_maps=flow_maps, virtual_timelines=virtual)
+    assert _problems(value) == [
+        (
+            "virtual_timeline",
+            ("virtual_timelines", 0, "length"),
+            "length 60 of 'v' is not the sum of the chunks and gaps of 'f', 65",
         )
     ]
+    virtual[0]["length"] = 65
+    validate(value)
+
+
+def test_a_sum_that_cannot_be_read_on_the_axis_leaves_the_length_as_stated() -> None:
+    """The length is compared only where every chunk lies on the virtual axis.
+
+    Not read, each with a length that is no sum: a ``float`` axis (the sum
+    of doubles depends on the order of its additions); a virtual timeline
+    of another unit or number type than a chunk's axis; a gap on a root of
+    another axis; a child of unknown length; a chunk naming nothing (its
+    own problem); ``through``.
+    """
+    take = timeline("take", "seconds", 8.0)
+    take["regions"] = [{"id": "a", "start": 0.1, "end": 0.4}]
+    beats = timeline("beats", "quarters", 8.0, number_type="float")
+    beats["regions"] = [{"id": "b", "start": 0.0, "end": 2.0}]
+    open_child = timeline("open", "quarters", None, offset=(0, 1))
+    piece = timeline("piece", children=[open_child])
+    piece["regions"] = [{"id": "c", "start": [0, 1], "end": [2, 1]}]
+    flow_maps = [
+        {"id": "f", "timeline": "take", "chunks": ["a", {"gap": 1.5}]},
+        {"id": "g", "timeline": "beats", "chunks": ["b"]},
+        {"id": "h", "timeline": "piece", "chunks": ["c", "open"]},
+        {"id": "i", "timeline": "piece", "chunks": ["c", "v2"]},
+        {"id": "j", "timeline": "beats", "chunks": ["v5", {"gap": 1.0}]},
+    ]
+    virtual = [
+        _virtual("v1", "f", "take", 99.0, unit="seconds", number_type="float"),
+        _virtual("v2", "g", "beats", (99, 1)),
+        _virtual("v3", "h", "piece", (99, 1)),
+        _virtual("v4", "i", "piece", (99, 1), unit="seconds"),
+        _virtual("v5", "h", "open", (99, 1), through="tempo"),
+        _virtual("v6", "j", "beats", (99, 1)),
+    ]
+    value = manifest(take, beats, piece, flow_maps=flow_maps, virtual_timelines=virtual)
+    linear = {"type": "LinearMap", "id": "tempo"}
+    linear |= {"source_unit": "quarters", "target_unit": "seconds"}
+    value["timelines"][2]["conversion_maps"] = [linear]
+    assert _problems(value) == [
+        (
+            "flow_map_chunk",
+            ("flow_maps", 3, "chunks", 1),
+            "'v2' names no region, child timeline or virtual timeline in the tree "
+            "of 'piece'",
+        ),
+        (
+            "flow_map_chunk",
+            ("flow_maps", 4, "chunks", 0),
+            "'v5' names no region, child timeline or virtual timeline in the tree "
+            "of 'beats'",
+        ),
+    ]
+    flow_maps[3]["chunks"] = ["c"]
+    flow_maps[4]["chunks"] = ["v2", {"gap": 1.0}]
+    assert _problems(value) == []
+    validate(value)
 
 
 def test_a_virtual_timeline_applies_a_flow_map_or_a_conversion_map() -> None:

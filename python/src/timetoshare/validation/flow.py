@@ -26,7 +26,12 @@ chunk ID a region or a child timeline inside that root's tree, or a virtual
 timeline of a timeline of it (``flow_map_chunk``), and at most one FlowMap of
 a timeline is canonical (``flow_map_canonical``); and the virtual timelines:
 ``map`` names a FlowMap or a conversion map, ``timeline`` a timeline or
-another virtual timeline (``dangling_target``).
+another virtual timeline (``dangling_target``). A virtual timeline comes,
+virtual timeline by virtual timeline, from a timeline: none comes from itself
+through others. Where its ``map`` is a FlowMap and it states no ``through``,
+the timeline it comes from lies in the tree of the FlowMap's root, and its
+``length`` is the sum of the FlowMap's chunks and gaps where all of them lie
+on its own axis (``virtual_timeline``); with ``through`` neither is read.
 
 A manifestation or a convention outside the format's vocabulary is valid:
 :func:`flow_warnings` reports it.
@@ -339,6 +344,79 @@ def _tree(
     return timelines, intervals
 
 
+Axis = tuple[str, str]
+"""The unit and the number type of an axis."""
+
+
+def _extents(manifest: Mapping[str, Any]) -> dict[str, tuple[Axis, Fraction | None]]:
+    """The axis and the length of everything a chunk may name, by ID.
+
+    A region (its end less its start, on its timeline's axis), a child
+    timeline (its length on its own axis, None where unknown) and a virtual
+    timeline. Of a repeated ID the first in this order is kept.
+    """
+    found: dict[str, tuple[Axis, Fraction | None]] = {}
+
+    def visit(timeline: Mapping[str, Any], child: bool) -> None:
+        axis = (timeline["unit"], number_type_of(timeline))
+        length = timeline.get("length")
+        if child:
+            found.setdefault(
+                timeline["id"], (axis, None if length is None else exact(length))
+            )
+        for region in entries_of(timeline, "regions"):
+            found.setdefault(
+                region["id"], (axis, exact(region["end"]) - exact(region["start"]))
+            )
+        for entry in entries_of(timeline, "children"):
+            visit(entry, True)
+
+    for root in entries_of(manifest, "timelines"):
+        visit(root, False)
+    for entry in entries_of(manifest, "virtual_timelines"):
+        found.setdefault(
+            entry["id"],
+            ((entry["unit"], entry["number_type"]), exact(entry["length"])),
+        )
+    return found
+
+
+def _played(
+    flow_map: Mapping[str, Any],
+    axis: Axis,
+    gaps: Axis,
+    extents: Mapping[str, tuple[Axis, Fraction | None]],
+) -> Fraction | None:
+    """The sum of a FlowMap's chunks and gaps on ``axis``, or None.
+
+    None where the sum is not read: on a ``float`` axis, whose sum depends
+    on the order of its additions, and where a chunk names nothing, has no
+    known length or lies on another axis than ``axis`` (a gap lies on the
+    axis ``gaps`` of the FlowMap's timeline).
+    """
+    if axis[1] == "float":
+        return None
+    total = Fraction(0)
+    for chunk in flow_map["chunks"]:
+        if isinstance(chunk, str):
+            on, length = extents.get(chunk, (None, None))
+            if on != axis or length is None:
+                return None
+            total += length
+        else:
+            if gaps != axis:
+                return None
+            total += exact(chunk["gap"])
+    return total
+
+
+def _spelled(value: Fraction, number_type: str) -> str:
+    """An exact value as an axis of ``number_type`` spells it."""
+    if number_type == "fraction":
+        return spell([value.numerator, value.denominator])
+    return spell(value.numerator)
+
+
 def _map_ids(manifest: Mapping[str, Any]) -> set[str]:
     """The IDs of every conversion map of a manifest, at any depth."""
     found: set[str] = set()
@@ -355,7 +433,9 @@ def flow_map_problems(manifest: Mapping[str, Any]) -> Iterator[SchemaValidationE
     FlowMap by FlowMap: its timeline, its chunks in their order (none where
     the timeline is no root), then a second canonical FlowMap of its
     timeline. Virtual timeline by virtual timeline: its map, then its
-    timeline.
+    timeline, then the virtual timelines it comes from itself through, and,
+    where it comes from a timeline and applies a FlowMap of a root without
+    ``through``, the FlowMap of another root, else its length.
     """
     roots = {root["id"]: root for root in entries_of(manifest, "timelines")}
     trees = {identifier: _tree(root) for identifier, root in roots.items()}
@@ -412,6 +492,14 @@ def flow_map_problems(manifest: Mapping[str, Any]) -> Iterator[SchemaValidationE
                 canonical[name] = flow_map["id"]
 
     maps = {flow_map["id"] for flow_map in flow_maps} | _map_ids(manifest)
+    applied: dict[str, Mapping[str, Any]] = {}
+    for flow_map in flow_maps:
+        applied.setdefault(flow_map["id"], flow_map)
+    root_of: dict[str, str] = {}
+    for identifier, (timelines, _) in trees.items():
+        for member in timelines:
+            root_of.setdefault(member, identifier)
+    extents = _extents(manifest)
     for index, entry in enumerate(virtual):
         at = ("virtual_timelines", index)
         if entry["map"] not in maps:
@@ -427,6 +515,47 @@ def flow_map_problems(manifest: Mapping[str, Any]) -> Iterator[SchemaValidationE
                 (*at, "timeline"),
                 f"'{name}' names no timeline and no other virtual timeline of "
                 "this manifest",
+            )
+            continue
+        chain = [entry["id"]]
+        while name in comes_from and name not in chain:
+            chain.append(name)
+            name = comes_from[name]
+        if name == entry["id"]:
+            through = ", ".join(f"'{other}'" for other in chain[1:])
+            yield SchemaValidationError(
+                "virtual_timeline",
+                (*at, "timeline"),
+                f"'{name}' comes from itself through {through}: a virtual "
+                "timeline comes, virtual timeline by virtual timeline, from a "
+                "timeline of this manifest",
+            )
+        flow_map = applied.get(entry["map"])
+        if name not in root_of or flow_map is None or entry.get("through") is not None:
+            continue
+        of = flow_map["timeline"]
+        if of not in roots:
+            continue
+        if of != root_of[name]:
+            yield SchemaValidationError(
+                "virtual_timeline",
+                (*at, "map"),
+                f"'{entry['map']}' is a FlowMap of '{of}', and "
+                f"'{entry['timeline']}' comes from the tree of '{root_of[name]}': "
+                "without through, a virtual timeline applies a FlowMap within the "
+                "tree of the FlowMap's root timeline",
+            )
+            continue
+        axis = (entry["unit"], entry["number_type"])
+        gaps = (roots[of]["unit"], number_type_of(roots[of]))
+        played = _played(flow_map, axis, gaps, extents)
+        if played is not None and played != exact(entry["length"]):
+            yield SchemaValidationError(
+                "virtual_timeline",
+                (*at, "length"),
+                f"length {spell(entry['length'])} of '{entry['id']}' is not the "
+                f"sum of the chunks and gaps of '{entry['map']}', "
+                f"{_spelled(played, axis[1])}",
             )
 
 

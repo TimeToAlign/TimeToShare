@@ -367,31 +367,48 @@ describe("FlowMaps and virtual timelines", () => {
       ],
       members,
     );
-  const virtual = (id: string, map: string, line: string): JsonObject => ({
-    id,
-    map,
-    timeline: line,
-    unit: "quarters",
-    number_type: "fraction",
-    length: [2, 1],
-  });
-  const noChunk = (name: string) =>
-    `'${name}' names no region, child timeline or virtual timeline in the tree of 'score'`;
+  const virtual = (
+    id: string,
+    map: string,
+    line: string,
+    length: unknown = [2, 1],
+    more: JsonObject = {},
+  ): JsonObject =>
+    ({
+      id,
+      map,
+      timeline: line,
+      unit: "quarters",
+      number_type: "fraction",
+      length,
+      ...more,
+    }) as JsonObject;
+  const noChunk = (name: string, root = "score") =>
+    `'${name}' names no region, child timeline or virtual timeline in the tree of '${root}'`;
+  const fromItself = (id: string, index: number, ...through: string[]): Found => [
+    "virtual_timeline",
+    ["virtual_timelines", index, "timeline"],
+    `'${id}' comes from itself through ${through.map((other) => `'${other}'`).join(", ")}: a virtual timeline comes, virtual timeline by virtual timeline, from a timeline of this manifest`,
+  ];
 
   it("take as a chunk anything giving an interval inside the root's tree", () => {
     const virtuals = [
-      virtual("v1", "f", "verse"),
-      virtual("v2", "f", "v1"),
-      virtual("v3", "g", "sketch"),
+      virtual("v1", "h", "verse"),
+      virtual("v2", "h", "v1"),
+      virtual("v3", "k", "sketch", [1, 1]),
     ];
-    const second = { id: "g", timeline: "sketch", chunks: ["idea", "v3"] };
+    const others = [
+      { id: "g", timeline: "sketch", chunks: ["idea", "v3"] },
+      { id: "h", timeline: "score", chunks: ["intro"] },
+      { id: "k", timeline: "sketch", chunks: ["idea"] },
+    ];
     const good = { id: "f", timeline: "score", chunks: ["intro", "verse", "line", "v2"] };
-    expect(problems(mapped({ flow_maps: [good, second], virtual_timelines: virtuals }))).toEqual(
+    expect(problems(mapped({ flow_maps: [good, ...others], virtual_timelines: virtuals }))).toEqual(
       [],
     );
     const chunks = ["v3", "idea", "sketch", "score", "f", "nowhere"];
     const bad = { id: "f", timeline: "score", chunks };
-    expect(problems(mapped({ flow_maps: [bad, second], virtual_timelines: virtuals }))).toEqual(
+    expect(problems(mapped({ flow_maps: [bad, ...others], virtual_timelines: virtuals }))).toEqual(
       chunks.map((name, index) => [
         "flow_map_chunk",
         ["flow_maps", 0, "chunks", index],
@@ -400,14 +417,193 @@ describe("FlowMaps and virtual timelines", () => {
     );
   });
 
-  it("resolve virtual timelines naming each other to no tree", () => {
+  it("refuse virtual timelines naming each other: they come from no timeline", () => {
     const value = mapped({
       flow_maps: [{ id: "f", timeline: "score", chunks: ["a"] }],
       virtual_timelines: [virtual("a", "f", "b"), virtual("b", "f", "a")],
     });
     expect(problems(value)).toEqual([
       ["flow_map_chunk", ["flow_maps", 0, "chunks", 0], noChunk("a")],
+      fromItself("a", 0, "b"),
+      fromItself("b", 1, "a"),
     ]);
+  });
+
+  it("report a cycle at each of its members and nowhere else", () => {
+    const flowMaps = [{ id: "f", timeline: "score", chunks: ["intro"] }];
+    const virtuals = (third: string, length: unknown) => [
+      virtual("a", "f", "b", length),
+      virtual("b", "f", "c"),
+      virtual("c", "f", third),
+      virtual("d", "f", "a", length),
+      virtual("e", "f", "score"),
+      virtual("g", "f", "e"),
+    ];
+    expect(
+      problems(mapped({ flow_maps: flowMaps, virtual_timelines: virtuals("a", [99, 1]) })),
+    ).toEqual([
+      fromItself("a", 0, "b", "c"),
+      fromItself("b", 1, "c", "a"),
+      fromItself("c", 2, "a", "b"),
+    ]);
+    expect(
+      problems(mapped({ flow_maps: flowMaps, virtual_timelines: virtuals("verse", [2, 1]) })),
+    ).toEqual([]);
+  });
+
+  it("apply a FlowMap within the tree of its own root, unless through is stated", () => {
+    const flowMaps = [
+      { id: "f", timeline: "score", chunks: ["intro"] },
+      { id: "k", timeline: "sketch", chunks: ["idea", "idea"] },
+    ];
+    const within = [
+      virtual("v1", "f", "score"),
+      virtual("v2", "f", "verse"),
+      virtual("v3", "f", "v2"),
+      virtual("v4", "k", "sketch"),
+    ];
+    expect(problems(mapped({ flow_maps: flowMaps, virtual_timelines: within }))).toEqual([]);
+    const across = (more: JsonObject) => [
+      virtual("v1", "f", "sketch", [99, 1], more),
+      virtual("v2", "k", "sketch"),
+      virtual("v3", "f", "v2", [99, 1], more),
+      virtual("v4", "k", "verse", [2, 1], more),
+    ];
+    const otherRoot = (index: number, map: string, of: string, line: string, root: string) => [
+      "virtual_timeline",
+      ["virtual_timelines", index, "map"],
+      `'${map}' is a FlowMap of '${of}', and '${line}' comes from the tree of '${root}': without through, a virtual timeline applies a FlowMap within the tree of the FlowMap's root timeline`,
+    ];
+    expect(problems(mapped({ flow_maps: flowMaps, virtual_timelines: across({}) }))).toEqual([
+      otherRoot(0, "f", "score", "sketch", "sketch"),
+      otherRoot(2, "f", "score", "v2", "sketch"),
+      otherRoot(3, "k", "sketch", "verse", "score"),
+    ]);
+    const carried = mapped({
+      flow_maps: flowMaps,
+      virtual_timelines: across({ through: "ensemble" }),
+      groups: [{ id: "ensemble", members: ["score", "sketch"] }],
+    });
+    expect(problems(carried)).toEqual([]);
+    validate(carried);
+    const converted = mapped({ virtual_timelines: [virtual("v", "tempo", "sketch", [99, 1])] });
+    const [root] = converted.timelines as [JsonObject];
+    root.conversion_maps = [
+      { type: "LinearMap", id: "tempo", source_unit: "quarters", target_unit: "seconds" },
+    ];
+    expect(problems(converted)).toEqual([]);
+  });
+
+  it("refuse a length that is not the sum of the FlowMap's chunks and gaps", () => {
+    const notTheSum = (index: number, name: string, length: string, sum: string, map = "f") => [
+      "virtual_timeline",
+      ["virtual_timelines", index, "length"],
+      `length ${length} of '${name}' is not the sum of the chunks and gaps of '${map}', ${sum}`,
+    ];
+    const flowMaps = (chunks: unknown[]) => [
+      { id: "f", timeline: "score", chunks },
+      { id: "h", timeline: "score", chunks: [{ gap: [1, 2] }] },
+    ];
+    const chunks = ["intro", { gap: [3, 2] }, "verse", "intro", "w"];
+    const good = mapped({
+      flow_maps: flowMaps(chunks),
+      virtual_timelines: [
+        virtual("v1", "f", "score", [10, 1]),
+        virtual("v2", "f", "verse", [20, 2]),
+        virtual("v3", "f", "v2", [10, 1]),
+        virtual("w", "h", "score", [1, 2]),
+      ],
+    });
+    expect(problems(good)).toEqual([]);
+    validate(good);
+    const bad = (played: unknown[], last: unknown) =>
+      mapped({
+        flow_maps: flowMaps(played),
+        virtual_timelines: [
+          virtual("v1", "f", "score", [19, 2]),
+          virtual("v2", "f", "verse", [20, 2]),
+          virtual("v3", "f", "v2", [0, 1]),
+          virtual("w", "h", "score", last),
+        ],
+      });
+    expect(problems(bad(chunks, [1, 1]))).toEqual([
+      notTheSum(0, "v1", "[19, 2]", "[21, 2]"),
+      notTheSum(1, "v2", "[20, 2]", "[21, 2]"),
+      notTheSum(2, "v3", "[0, 1]", "[21, 2]"),
+      notTheSum(3, "w", "[1, 1]", "[1, 2]", "h"),
+    ]);
+    expect(problems(bad([], [1, 2]))).toEqual([
+      notTheSum(0, "v1", "[19, 2]", "[0, 1]"),
+      notTheSum(1, "v2", "[20, 2]", "[0, 1]"),
+    ]);
+  });
+
+  it("spell the sum on an integer axis as an integer", () => {
+    const value = (length: number) =>
+      manifest([timeline("take", "samples", 100, { regions: [{ id: "a", start: 10, end: 40 }] })], {
+        flow_maps: [{ id: "f", timeline: "take", chunks: ["a", { gap: 5 }, "a"] }],
+        virtual_timelines: [
+          virtual("v", "f", "take", length, { unit: "samples", number_type: "int" }),
+        ],
+      });
+    expect(problems(value(60))).toEqual([
+      [
+        "virtual_timeline",
+        ["virtual_timelines", 0, "length"],
+        "length 60 of 'v' is not the sum of the chunks and gaps of 'f', 65",
+      ],
+    ]);
+    validate(value(65));
+  });
+
+  it("leave the length as stated where the sum cannot be read on the axis", () => {
+    const value = (fourth: unknown[], fifth: unknown[]) =>
+      manifest(
+        [
+          timeline("take", "seconds", new JsonFloat(8), {
+            regions: [{ id: "a", start: 0.1, end: 0.4 }],
+          }),
+          timeline("beats", "quarters", new JsonFloat(8), {
+            number_type: "float",
+            regions: [{ id: "b", start: new JsonFloat(0), end: new JsonFloat(2) }],
+          }),
+          timeline("piece", "quarters", [8, 1], {
+            regions: [{ id: "c", start: [0, 1], end: [2, 1] }],
+            children: [timeline("open", "quarters", null, { offset: [0, 1] })],
+            conversion_maps: [
+              { type: "LinearMap", id: "tempo", source_unit: "quarters", target_unit: "seconds" },
+            ],
+          }),
+        ],
+        {
+          flow_maps: [
+            { id: "f", timeline: "take", chunks: ["a", { gap: 1.5 }] },
+            { id: "g", timeline: "beats", chunks: ["b"] },
+            { id: "h", timeline: "piece", chunks: ["c", "open"] },
+            { id: "i", timeline: "piece", chunks: fourth },
+            { id: "j", timeline: "beats", chunks: fifth },
+          ],
+          virtual_timelines: [
+            virtual("v1", "f", "take", new JsonFloat(99), {
+              unit: "seconds",
+              number_type: "float",
+            }),
+            virtual("v2", "g", "beats", [99, 1]),
+            virtual("v3", "h", "piece", [99, 1]),
+            virtual("v4", "i", "piece", [99, 1], { unit: "seconds" }),
+            virtual("v5", "h", "open", [99, 1], { through: "tempo" }),
+            virtual("v6", "j", "beats", [99, 1]),
+          ],
+        },
+      );
+    const gap = { gap: new JsonFloat(1) };
+    expect(problems(value(["c", "v2"], ["v5", gap]))).toEqual([
+      ["flow_map_chunk", ["flow_maps", 3, "chunks", 1], noChunk("v2", "piece")],
+      ["flow_map_chunk", ["flow_maps", 4, "chunks", 0], noChunk("v5", "beats")],
+    ]);
+    const read = value(["c"], ["v2", gap]);
+    expect(problems(read)).toEqual([]);
+    validate(read);
   });
 
   it("apply a FlowMap or a conversion map, a held one included", () => {

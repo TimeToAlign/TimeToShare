@@ -28,6 +28,7 @@ ValidationCode: TypeAlias = Literal[
     "flow_map_timeline",
     "flow_map_chunk",
     "flow_map_canonical",
+    "virtual_timeline",
     "conversion_map",
     "child_unit",
     "child_offset",

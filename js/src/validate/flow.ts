@@ -26,7 +26,12 @@
  * timeline of a timeline of it (`flow_map_chunk`), and at most one FlowMap of
  * a timeline is canonical (`flow_map_canonical`); and the virtual timelines:
  * `map` names a FlowMap or a conversion map, `timeline` a timeline or another
- * virtual timeline (`dangling_target`).
+ * virtual timeline (`dangling_target`). A virtual timeline comes, virtual
+ * timeline by virtual timeline, from a timeline: none comes from itself
+ * through others. Where its `map` is a FlowMap and it states no `through`,
+ * the timeline it comes from lies in the tree of the FlowMap's root, and its
+ * `length` is the sum of the FlowMap's chunks and gaps where all of them lie
+ * on its own axis (`virtual_timeline`); with `through` neither is read.
  *
  * A manifestation or a convention outside the format's vocabulary is valid:
  * `flowWarnings` reports it. Python's `timetoshare.validation.flow` holds the
@@ -372,6 +377,87 @@ function treeOf(root: JsonObject): { timelines: Set<string>; intervals: Set<stri
   return { timelines, intervals };
 }
 
+/** The unit and the number type of an axis. */
+type AxisOf = readonly [unit: string, numberType: string];
+
+/** The axis and the length (`null` where unknown) of what a chunk may name. */
+type Extent = { readonly axis: AxisOf; readonly length: Rational | null };
+
+function sameAxis(left: AxisOf, right: AxisOf): boolean {
+  return left[0] === right[0] && left[1] === right[1];
+}
+
+function subtract(left: Rational, right: Rational): Rational {
+  return add(left, rational(-right.numerator, right.denominator));
+}
+
+/**
+ * The axis and the length of everything a chunk may name, by ID: a region
+ * (its end less its start, on its timeline's axis), a child timeline (its
+ * length on its own axis, `null` where unknown) and a virtual timeline. Of a
+ * repeated ID the first in this order is kept.
+ */
+function extentsOf(manifest: JsonObject): Map<string, Extent> {
+  const found = new Map<string, Extent>();
+  const keep = (id: string, extent: Extent): void => {
+    if (!found.has(id)) found.set(id, extent);
+  };
+  const visit = (timeline: JsonObject, child: boolean): void => {
+    const axis: AxisOf = [text(timeline, "unit"), numberTypeOf(timeline as Axis)];
+    const length = lengthOf(timeline);
+    if (child) keep(text(timeline, "id"), { axis, length: length === null ? null : exact(length) });
+    for (const region of entries(timeline, "regions")) {
+      keep(text(region, "id"), { axis, length: subtract(exact(region.end), exact(region.start)) });
+    }
+    for (const entry of entries(timeline, "children")) visit(entry, true);
+  };
+  for (const root of entries(manifest, "timelines")) visit(root, false);
+  for (const entry of entries(manifest, "virtual_timelines")) {
+    keep(text(entry, "id"), {
+      axis: [text(entry, "unit"), text(entry, "number_type")],
+      length: exact(entry.length),
+    });
+  }
+  return found;
+}
+
+/**
+ * The sum of a FlowMap's chunks and gaps on `axis`, or `null` where the sum
+ * is not read: on a `float` axis, whose sum depends on the order of its
+ * additions, and where a chunk names nothing, has no known length or lies on
+ * another axis than `axis` (a gap lies on the axis `gaps` of the FlowMap's
+ * timeline).
+ */
+function played(
+  flowMap: JsonObject,
+  axis: AxisOf,
+  gaps: AxisOf,
+  extents: ReadonlyMap<string, Extent>,
+): Rational | null {
+  if (axis[1] === "float") return null;
+  let total = ZERO;
+  for (const chunk of listed(flowMap, "chunks")) {
+    if (typeof chunk === "string") {
+      const extent = extents.get(chunk);
+      if (extent === undefined || !sameAxis(extent.axis, axis) || extent.length === null) {
+        return null;
+      }
+      total = add(total, extent.length);
+    } else {
+      if (!sameAxis(gaps, axis)) return null;
+      total = add(total, exact((chunk as JsonObject).gap));
+    }
+  }
+  return total;
+}
+
+/** An exact value as an axis of `numberType` spells it. */
+function spelled(value: Rational, numberType: string): string {
+  return numberType === "fraction"
+    ? spell([value.numerator, value.denominator])
+    : spell(value.numerator);
+}
+
 /** The IDs of every conversion map of a manifest, at any depth. */
 function mapIds(manifest: JsonObject): Set<string> {
   const found = new Set<string>();
@@ -387,13 +473,20 @@ function mapIds(manifest: JsonObject): Set<string> {
  * Yield the problems of the FlowMaps, then of the virtual timelines. FlowMap
  * by FlowMap: its timeline, its chunks in their order (none where the
  * timeline is no root), then a second canonical FlowMap of its timeline.
- * Virtual timeline by virtual timeline: its map, then its timeline.
+ * Virtual timeline by virtual timeline: its map, then its timeline, then the
+ * virtual timelines it comes from itself through, and, where it comes from a
+ * timeline and applies a FlowMap of a root without `through`, the FlowMap of
+ * another root, else its length.
  */
 export function* flowMapProblems(manifest: JsonObject): Generator<SchemaValidationError> {
+  const roots = new Map<string, JsonObject>();
   const trees = new Map<string, { timelines: Set<string>; intervals: Set<string> }>();
   const every = new Set<string>();
   // Of a repeated root ID the last root's tree is read.
-  for (const root of entries(manifest, "timelines")) trees.set(text(root, "id"), treeOf(root));
+  for (const root of entries(manifest, "timelines")) {
+    roots.set(text(root, "id"), root);
+    trees.set(text(root, "id"), treeOf(root));
+  }
   for (const tree of trees.values()) for (const timeline of tree.timelines) every.add(timeline);
   const flowMaps = entries(manifest, "flow_maps");
   const virtual = entries(manifest, "virtual_timelines");
@@ -450,7 +543,17 @@ export function* flowMapProblems(manifest: JsonObject): Generator<SchemaValidati
   }
 
   const maps = mapIds(manifest);
-  for (const flowMap of flowMaps) maps.add(text(flowMap, "id"));
+  const applied = new Map<string, JsonObject>();
+  for (const flowMap of flowMaps) {
+    const id = text(flowMap, "id");
+    maps.add(id);
+    if (!applied.has(id)) applied.set(id, flowMap);
+  }
+  const rootOf = new Map<string, string>();
+  for (const [id, tree] of trees) {
+    for (const member of tree.timelines) if (!rootOf.has(member)) rootOf.set(member, id);
+  }
+  const extents = extentsOf(manifest);
   for (const [index, entry] of virtual.entries()) {
     const at = ["virtual_timelines", index];
     if (!maps.has(text(entry, "map"))) {
@@ -460,12 +563,54 @@ export function* flowMapProblems(manifest: JsonObject): Generator<SchemaValidati
         `'${entry.map}' names no FlowMap or conversion map of this manifest`,
       );
     }
-    const name = text(entry, "timeline");
-    if (name === entry.id || (!every.has(name) && !comesFrom.has(name))) {
+    const id = text(entry, "id");
+    let name = text(entry, "timeline");
+    if (name === id || (!every.has(name) && !comesFrom.has(name))) {
       yield new SchemaValidationError(
         "dangling_target",
         [...at, "timeline"],
         `'${name}' names no timeline and no other virtual timeline of this manifest`,
+      );
+      continue;
+    }
+    const chain = [id];
+    while (comesFrom.has(name) && !chain.includes(name)) {
+      chain.push(name);
+      name = comesFrom.get(name) as string;
+    }
+    if (name === id) {
+      const through = chain
+        .slice(1)
+        .map((other) => `'${other}'`)
+        .join(", ");
+      yield new SchemaValidationError(
+        "virtual_timeline",
+        [...at, "timeline"],
+        `'${name}' comes from itself through ${through}: a virtual timeline comes, virtual timeline by virtual timeline, from a timeline of this manifest`,
+      );
+    }
+    const flowMap = applied.get(text(entry, "map"));
+    const root = rootOf.get(name);
+    if (root === undefined || flowMap === undefined || (entry.through ?? null) !== null) continue;
+    const of = text(flowMap, "timeline");
+    const ofRoot = roots.get(of);
+    if (ofRoot === undefined) continue;
+    if (of !== root) {
+      yield new SchemaValidationError(
+        "virtual_timeline",
+        [...at, "map"],
+        `'${entry.map}' is a FlowMap of '${of}', and '${entry.timeline}' comes from the tree of '${root}': without through, a virtual timeline applies a FlowMap within the tree of the FlowMap's root timeline`,
+      );
+      continue;
+    }
+    const axis: AxisOf = [text(entry, "unit"), text(entry, "number_type")];
+    const gaps: AxisOf = [text(ofRoot, "unit"), numberTypeOf(ofRoot as Axis)];
+    const sum = played(flowMap, axis, gaps, extents);
+    if (sum !== null && !sameRational(sum, exact(entry.length))) {
+      yield new SchemaValidationError(
+        "virtual_timeline",
+        [...at, "length"],
+        `length ${spell(entry.length)} of '${id}' is not the sum of the chunks and gaps of '${entry.map}', ${spelled(sum, axis[1])}`,
       );
     }
   }

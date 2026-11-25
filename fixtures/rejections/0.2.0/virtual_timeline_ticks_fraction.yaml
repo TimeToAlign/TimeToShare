@@ -137,7 +137,7 @@ manifest:
   virtual_timelines:
     -
       id: "#virtual_1"
-      length: 30
+      length: 22
       map: "#flow_map_1"
       name: null
       number_type: fraction
