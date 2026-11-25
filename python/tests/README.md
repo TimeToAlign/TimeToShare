@@ -1007,6 +1007,17 @@ named timestamps, in `validation/timestamps.py`. What proves them:
   `CalendarDate` and refers to the manifest schema's `Iri` and
   `IriReference`; `load_schema()` equals `bundle_schemas` of the two files,
   every reference local; a definition of both names is refused.
+  Every reference leads to the same place in the bundle as in its own
+  document, each case on a small pair of schemas: from the provenance schema,
+  `timetoshare.schema.json` gives `#`, `timetoshare.schema.json#/$defs/A`
+  gives `#/$defs/A`, `#` and `provenance.schema.json` give
+  `#/$defs/ProvenanceRecord`, `#/$defs/P` and
+  `provenance.schema.json#/$defs/P` give `#/$defs/P`, `#/properties/a` gives
+  `#/$defs/ProvenanceRecord/properties/a`; from the manifest schema,
+  `#/$defs/A` stays and `provenance.schema.json#/properties/a` gives
+  `#/$defs/ProvenanceRecord/properties/a`. A reference to any other document,
+  `https://example.org/other.json` in either schema, is refused with
+  "reference 'https://example.org/other.json' leads outside the two schemas".
 
 ## Groupstamps
 

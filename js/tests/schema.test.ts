@@ -167,6 +167,50 @@ describe("the schema document", () => {
     );
   });
 
+  const bundleCases: readonly (readonly [string, string, string])[] = [
+    ["provenance", "timetoshare.schema.json", "#"],
+    ["provenance", "timetoshare.schema.json#/$defs/A", "#/$defs/A"],
+    ["provenance", "#", "#/$defs/ProvenanceRecord"],
+    ["provenance", "provenance.schema.json", "#/$defs/ProvenanceRecord"],
+    ["provenance", "#/$defs/P", "#/$defs/P"],
+    ["provenance", "provenance.schema.json#/$defs/P", "#/$defs/P"],
+    ["provenance", "#/properties/a", "#/$defs/ProvenanceRecord/properties/a"],
+    ["manifest", "#/$defs/A", "#/$defs/A"],
+    ["manifest", "provenance.schema.json#/properties/a", "#/$defs/ProvenanceRecord/properties/a"],
+  ];
+  /** A manifest and a provenance schema, `reference` written in `inside`. */
+  const bundlePair = (inside: string, reference: string): [Node, Node] => {
+    const manifest: Node = { $defs: { A: { type: "string" } } };
+    const provenance: Node = {
+      $defs: { P: { type: "integer" } },
+      properties: { a: { type: "boolean" } },
+    };
+    if (inside === "manifest") (manifest.$defs as Node).B = { $ref: reference };
+    else (provenance.properties as Node).b = { $ref: reference };
+    return [manifest, provenance];
+  };
+
+  it.each(bundleCases)(
+    "bundles a reference in the %s schema, %s, to %s",
+    (inside, reference, expected) => {
+      const definitions = bundleSchemas(...bundlePair(inside, reference)).$defs as Node;
+      const node =
+        inside === "manifest"
+          ? definitions.B
+          : ((definitions.ProvenanceRecord as Node).properties as Node).b;
+      expect(node).toEqual({ $ref: expected });
+    },
+  );
+
+  it.each(["manifest", "provenance"])(
+    "refuses a reference outside the two schemas in the %s schema",
+    (inside) => {
+      expect(() => bundleSchemas(...bundlePair(inside, "https://example.org/other.json"))).toThrow(
+        "reference 'https://example.org/other.json' leads outside the two schemas",
+      );
+    },
+  );
+
   it("refers locally, without anchors", () => {
     const all = [...nodes(document)].map(([node]) => node);
     const references = all.filter((node) => typeof node.$ref === "string");

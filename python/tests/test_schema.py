@@ -837,3 +837,57 @@ def test_the_provenance_schema_is_bundled() -> None:
     with pytest.raises(ValueError) as raised:
         bundle_schemas(manifest, {**provenance, "$defs": {"Timeline": {}}})
     assert str(raised.value) == "both schemas define 'Timeline'"
+
+
+BUNDLE_CASES = [
+    ("provenance", "timetoshare.schema.json", "#"),
+    ("provenance", "timetoshare.schema.json#/$defs/A", "#/$defs/A"),
+    ("provenance", "#", "#/$defs/ProvenanceRecord"),
+    ("provenance", "provenance.schema.json", "#/$defs/ProvenanceRecord"),
+    ("provenance", "#/$defs/P", "#/$defs/P"),
+    ("provenance", "provenance.schema.json#/$defs/P", "#/$defs/P"),
+    ("provenance", "#/properties/a", "#/$defs/ProvenanceRecord/properties/a"),
+    ("manifest", "#/$defs/A", "#/$defs/A"),
+    (
+        "manifest",
+        "provenance.schema.json#/properties/a",
+        "#/$defs/ProvenanceRecord/properties/a",
+    ),
+]
+
+
+def _bundle_pair(inside: str, reference: str) -> tuple[dict, dict]:
+    """A manifest and a provenance schema, ``reference`` written in ``inside``."""
+    manifest: dict[str, Any] = {"$defs": {"A": {"type": "string"}}}
+    provenance: dict[str, Any] = {
+        "$defs": {"P": {"type": "integer"}},
+        "properties": {"a": {"type": "boolean"}},
+    }
+    if inside == "manifest":
+        manifest["$defs"]["B"] = {"$ref": reference}
+    else:
+        provenance["properties"]["b"] = {"$ref": reference}
+    return manifest, provenance
+
+
+@pytest.mark.parametrize(("inside", "reference", "expected"), BUNDLE_CASES)
+def test_a_bundled_reference_leads_to_the_same_place(
+    inside: str, reference: str, expected: str
+) -> None:
+    bundled = bundle_schemas(*_bundle_pair(inside, reference))
+    definitions = bundled["$defs"]
+    node = (
+        definitions["B"]
+        if inside == "manifest"
+        else definitions["ProvenanceRecord"]["properties"]["b"]
+    )
+    assert node == {"$ref": expected}
+
+
+@pytest.mark.parametrize("inside", ["manifest", "provenance"])
+def test_a_reference_outside_the_two_schemas_is_refused(inside: str) -> None:
+    with pytest.raises(ValueError) as raised:
+        bundle_schemas(*_bundle_pair(inside, "https://example.org/other.json"))
+    assert str(raised.value) == (
+        "reference 'https://example.org/other.json' leads outside the two schemas"
+    )

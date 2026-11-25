@@ -82,13 +82,16 @@ def data_root() -> Path:
 
 def schema_path() -> Path:
     """Return the path of the schema document."""
-    return data_root() / "schema" / SCHEMA_VERSION / "timetoshare.schema.json"
+    return data_root() / "schema" / SCHEMA_VERSION / MANIFEST_DOCUMENT
 
 
 def provenance_schema_path() -> Path:
     """Return the path of the provenance schema, the one provenance entry."""
     return data_root() / "schema" / SCHEMA_VERSION / PROVENANCE_DOCUMENT
 
+
+MANIFEST_DOCUMENT = "timetoshare.schema.json"
+"""The file name of the manifest schema."""
 
 PROVENANCE_DOCUMENT = "provenance.schema.json"
 """The file name of the provenance schema beside the manifest schema."""
@@ -123,34 +126,41 @@ def bundle_schemas(
 
     The provenance schema's root joins ``$defs`` as ``ProvenanceRecord`` and
     its own definitions join under their names; every reference between
-    the two documents becomes a local ``#/$defs/...`` reference, so the
-    bundle is one document whose references are all local. The JavaScript
+    the two documents becomes a local reference to the same place in the
+    bundle, so the bundle is one document whose references are all local.
+    A reference into the manifest schema keeps its pointer (the whole
+    manifest schema is ``#``); one into the provenance schema, by its file
+    name or from inside it, leads to ``ProvenanceRecord``, to one of the
+    provenance schema's definitions, or below either. The JavaScript
     package's generated ``schema`` is the same bundle.
 
     Raises:
         ValueError: If a definition of the provenance schema has the name of
-            one of the manifest schema.
+            one of the manifest schema, or a reference leads to a document
+            that is neither of the two.
     """
-    definitions = "#/$defs/"
+    definitions = "/$defs/"
+    record = "#" + definitions + PROVENANCE_DEFINITION
+
+    def local(reference: str, inside: str) -> str:
+        """``reference``, written in the document ``inside``, made local."""
+        document, _, pointer = reference.partition("#")
+        document = document or inside
+        if document == MANIFEST_DOCUMENT:
+            return "#" + pointer
+        if document != PROVENANCE_DOCUMENT:
+            raise ValueError(f"reference '{reference}' leads outside the two schemas")
+        if pointer.startswith(definitions):
+            return "#" + pointer
+        return record + pointer
 
     def from_manifest(reference: str) -> str:
-        """A manifest schema reference, one into the provenance schema made local."""
-        document, _, pointer = reference.partition("#")
-        if document != PROVENANCE_DOCUMENT:
-            return reference
-        return pointer and "#" + pointer or definitions + PROVENANCE_DEFINITION
+        """A reference of the manifest schema made local."""
+        return local(reference, MANIFEST_DOCUMENT)
 
     def from_provenance(reference: str) -> str:
-        """A provenance schema reference made local.
-
-        A pointer into it or into the manifest schema is kept; any other
-        reference becomes one to the provenance schema's root,
-        ``ProvenanceRecord``.
-        """
-        document, _, pointer = reference.partition("#")
-        if document in ("", "timetoshare.schema.json") and pointer:
-            return "#" + pointer
-        return definitions + PROVENANCE_DEFINITION
+        """A reference of the provenance schema made local."""
+        return local(reference, PROVENANCE_DOCUMENT)
 
     bundled = _with_references(manifest, from_manifest)
     root = _with_references(provenance, from_provenance)

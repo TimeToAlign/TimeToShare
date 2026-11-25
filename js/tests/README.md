@@ -96,7 +96,7 @@ one, a URN; a bare word, an empty prefix or suffix, a leading digit, white
 space and a trailing newline; a relative reference, never a blank node
 `_:b0` or a keyword `@id`; a prefix name that is no element key and no URI
 scheme; a namespace ending in `/` or `#`; a language tag of subtags up to
-eight characters). The patterns ending in `$` are five. `generated.test.ts`: a fresh generator run exports the committed
+eight characters). The patterns ending in `$` are five. `bundleSchemas` leads every reference to the same place in the bundle as in its own document, each case on a small pair of schemas exactly as in the Python suite's "The bundle": from the provenance schema, `timetoshare.schema.json` gives `#`, `#` gives `#/$defs/ProvenanceRecord`, `provenance.schema.json#/$defs/P` gives `#/$defs/P` and `#/properties/a` gives `#/$defs/ProvenanceRecord/properties/a`, and so on for every case listed there; a reference to any other document is refused with the same message. `generated.test.ts`: a fresh generator run exports the committed
 names, which are every definition, the complete form of exactly the
 definitions holding a default, and `LosslessManifest`, and `catalogue.ts`
 exports the catalogue file's value as `catalogue` (equal, as `compactJson`

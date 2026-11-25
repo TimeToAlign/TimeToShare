@@ -86,30 +86,41 @@ function withReferences(node: unknown, rename: (reference: string) => string): u
  * The manifest schema with the provenance schema bundled into it: the
  * provenance schema's root joins `$defs` as `ProvenanceRecord`, its own
  * definitions join under their names, and every reference between the two
- * documents becomes a local `#/$defs/...` reference. Python's
+ * documents becomes a local reference to the same place in the bundle. A
+ * reference into the manifest schema keeps its pointer (the whole manifest
+ * schema is `#`); one into the provenance schema, by its file name or from
+ * inside it, leads to `ProvenanceRecord`, to one of the provenance schema's
+ * definitions, or below either. Python's
  * `timetoshare.validate.bundle_schemas` builds the same bundle.
  *
  * @throws {Error} if a definition of the provenance schema has the name of
- * one of the manifest schema.
+ * one of the manifest schema, or a reference leads to a document that is
+ * neither of the two.
  */
 export function bundleSchemas(
   manifest: Record<string, unknown>,
   provenance: Record<string, unknown>,
 ): Record<string, unknown> {
-  const local = `#/$defs/${PROVENANCE_DEFINITION}`;
-  const split = (reference: string): [string, string] => {
+  const inDefinitions = "/$defs/";
+  const toRecord = `#${inDefinitions}${PROVENANCE_DEFINITION}`;
+  /** `reference`, written in the document `inside`, made local. */
+  const local = (reference: string, inside: string): string => {
     const at = reference.indexOf("#");
-    return at < 0 ? [reference, ""] : [reference.slice(0, at), reference.slice(at + 1)];
+    const pointer = at < 0 ? "" : reference.slice(at + 1);
+    const document = (at < 0 ? reference : reference.slice(0, at)) || inside;
+    if (document === DOCUMENT) return `#${pointer}`;
+    if (document !== PROVENANCE_DOCUMENT) {
+      throw new Error(`reference '${reference}' leads outside the two schemas`);
+    }
+    return pointer.startsWith(inDefinitions) ? `#${pointer}` : `${toRecord}${pointer}`;
   };
-  const bundled = withReferences(manifest, (reference) => {
-    const [document, pointer] = split(reference);
-    if (document !== PROVENANCE_DOCUMENT) return reference;
-    return pointer === "" ? local : `#${pointer}`;
-  }) as Record<string, unknown>;
-  const root = withReferences(provenance, (reference) => {
-    const [document, pointer] = split(reference);
-    return (document === "" || document === DOCUMENT) && pointer !== "" ? `#${pointer}` : local;
-  }) as Record<string, unknown>;
+  const bundled = withReferences(manifest, (reference) => local(reference, DOCUMENT)) as Record<
+    string,
+    unknown
+  >;
+  const root = withReferences(provenance, (reference) =>
+    local(reference, PROVENANCE_DOCUMENT),
+  ) as Record<string, unknown>;
   const { $schema: _schema, $id: _id, $defs: own, title: _title, ...record } = root;
   const definitions = bundled.$defs as Record<string, unknown>;
   for (const [name, definition] of Object.entries({
