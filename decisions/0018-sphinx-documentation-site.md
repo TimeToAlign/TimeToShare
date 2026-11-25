@@ -107,8 +107,8 @@ the Python package's build hook, name them file by file.
   the `dev` group pins its tools; the group is never published. The
   release-age rule is written into `python/pyproject.toml` as
   `[tool.uv] exclude-newer = "2026-11-11T00:00:00Z"`, so `uv lock` resolves
-  no release younger than fourteen days and the lockfile can be reproduced
-  from the project file; the date moves forward when the lockfile is
+  no release younger than fourteen days and keeps the lockfile as it is
+  (`uv lock --check`); the date moves forward when the lockfile is
   refreshed. Under it, babel 2.18.0, certifi 2026.10.23,
   charset-normalizer 3.5.2 and soupsieve 4.1 are locked below their newest
   release. The npm package's development dependencies pin `typedoc`
