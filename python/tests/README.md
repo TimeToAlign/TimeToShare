@@ -36,8 +36,8 @@ and the same lists; so are the cases of several problems
    JavaScript package's `fileForm` and `dumpsFile`.
 6. Schema, fixture, font and catalogue accessors resolve package data
    independently of the working directory; the wheel and the sdist ship the
-   schema document, `docs/drawing.md`, the catalogue with its schema and
-   the licence.
+   schema document, the two specifications `docs/description.md` and
+   `docs/drawing.md`, the catalogue with its schema and the licence.
 7. `timetoshare.statements` reads and writes the property–value pairs of
    the bundle, its timelines and its regions with their provenance, and
    `timetoshare.catalogue` reads them in words through the catalogue of
@@ -2877,7 +2877,7 @@ check cannot become a check that passes everything.
 
 The test builds the sdist and the wheel with `uv build` twice (the wheel
 from the checkout, and from the sdist as the release does) and requires
-`timetoshare/docs/drawing.md`,
+`timetoshare/docs/description.md`, `timetoshare/docs/drawing.md`,
 `timetoshare/schema/0.2.0/timetoshare.schema.json`,
 `timetoshare/schema/0.2.0/provenance.schema.json`,
 `timetoshare/schema/0.2.0/tables.json`,
@@ -2890,7 +2890,10 @@ TrueType files, both licences (`DejaVuSans-LICENSE`, `NotoMusic-LICENSE`;
 the SIL Open Font License requires its licence to travel with the font) and
 the metrics table `dejavu-sans-2.37+noto-music-2.004.metrics.json`, and the
 font directory of each distribution holds exactly these, so a font shipped
-without its licence fails.
+without its licence fails. The `docs/` directory of each distribution holds
+exactly the two specifications: the rest of the repository's `docs/` is the
+documentation site's source and build (`conf.py`, generated pages, the
+build output), which a package must not carry.
 
 ## Hermeticity
 

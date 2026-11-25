@@ -36,7 +36,8 @@
     "schema",
     "fixtures",
     "fonts",
-    "docs",
+    "docs/description.md",
+    "docs/drawing.md",
     "catalogue"
   ],
   "sideEffects": false,

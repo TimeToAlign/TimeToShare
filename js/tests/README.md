@@ -33,7 +33,7 @@ Where the two packages answer differently by design, this README says so.
    file writes its manifest and `dumpsFile` writes a value back in that
    form, the same bytes as Python's `file_form` and `dumps_file`.
 5. The generated files are the generator's output, and the npm package
-   ships the schema document, the drawing specification, the catalogue with
+   ships the schema document, the two specifications, the catalogue with
    its schema and the licence.
 6. The statement functions (`withPair`, `withCandidate`, `withBelief`, `withContext`, …)
    and the catalogue functions (`readCatalogue`, `recognize`,
@@ -938,7 +938,10 @@ the same table:
 ## Packaging
 
 After `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists
-`docs/drawing.md`, exactly the three schema documents
+exactly the two specifications `docs/description.md` and `docs/drawing.md`
+under `docs/` (the rest of `docs/` is the documentation site's source and
+build, which a package must not carry, so `docs/conf.py` shipped fails),
+exactly the three schema documents
 `schema/0.2.0/provenance.schema.json`, `schema/0.2.0/tables.json` and
 `schema/0.2.0/timetoshare.schema.json`,
 `catalogue/catalogue.yaml` and `catalogue/catalogue.schema.json` (and

@@ -35,9 +35,11 @@ describe("the npm package", () => {
     expect(packed).toEqual({ name: "@timetoalign/timetoshare", version: SCHEMA_VERSION });
   });
 
-  it("ships the drawing specification", () => {
-    expect(shipped).toContain("docs/drawing.md");
-    expect(copied("docs/drawing.md")).toBe(true);
+  it("ships the two specifications and nothing else of docs/", () => {
+    const paths = ["docs/description.md", "docs/drawing.md"];
+    expect(shipped.filter((file) => file.startsWith("docs/")).sort()).toEqual(paths);
+    for (const path of paths) expect(copied(path), path).toBe(true);
+    expect(shipped).not.toContain("docs/conf.py");
     const manifest = JSON.parse(readFileSync(resolve(packageDirectory, "package.json"), "utf8"));
     expect(manifest.exports["./docs/*"]).toBe("./docs/*");
   });

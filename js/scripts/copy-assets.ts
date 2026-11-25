@@ -1,19 +1,23 @@
 /**
- * Copy the repository's `schema/`, `fixtures/`, `fonts/`, `docs/` and `catalogue/` directories, its
- * `README.md` and its `LICENSE` into the package directory so that `npm publish`
- * ships them (see the `files` field; npm always includes a README and a LICENSE). The copies are
- * ignored by git; the files at the repository root are the only originals.
+ * Copy the repository's `schema/`, `fixtures/`, `fonts/` and `catalogue/` directories, the two
+ * specifications of its `docs/` directory, its `README.md` and its `LICENSE` into the package
+ * directory so that `npm publish` ships them (see the `files` field; npm always includes a README
+ * and a LICENSE). The copies are ignored by git; the files at the repository root are the only
+ * originals.
  *
  *     node scripts/copy-assets.ts
  */
 
 import { cpSync, existsSync, rmSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repository = resolve(here, "../..");
 const packageDirectory = resolve(here, "..");
+// The two specifications are the documentation the package ships; the rest of `docs/` is the
+// documentation site's source and build.
+const SPECIFICATIONS = new Set(["description.md", "drawing.md"]);
 
 for (const name of ["schema", "fixtures", "fonts", "docs", "catalogue", "README.md", "LICENSE"]) {
   const source = resolve(repository, name);
@@ -23,6 +27,10 @@ for (const name of ["schema", "fixtures", "fonts", "docs", "catalogue", "README.
     console.log(`skipped ${name}: not present at the repository root`);
     continue;
   }
-  cpSync(source, destination, { recursive: true });
+  cpSync(source, destination, {
+    recursive: true,
+    filter: (path) =>
+      name !== "docs" || path === source || SPECIFICATIONS.has(relative(source, path)),
+  });
   console.log(`copied ${name}`);
 }

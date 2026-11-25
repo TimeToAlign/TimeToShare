@@ -1,21 +1,23 @@
 """Bundle the repository-level files into the package.
 
-The schema, fixture, font, documentation and catalogue directories and the
-README live at the repository root, beside ``python/``, so that one copy
-serves the Python package, the npm package and the fixture script. A static
-``force-include`` cannot reach them when the wheel is built from the sdist
-(hatchling raises ``FileNotFoundError`` for a missing source), so two hooks
-resolve them at build time:
+The schema, fixture, font and catalogue directories, the two specifications in
+``docs/`` and the README live at the repository root, beside ``python/``, so
+that one copy serves the Python package, the npm package and the fixture
+script. A static ``force-include`` cannot reach them when the wheel is built
+from the sdist (hatchling raises ``FileNotFoundError`` for a missing source),
+so two hooks resolve them at build time:
 
 * ``AssetsHook`` (build hook): in a repository checkout, the root
-  ``schema/``, ``fixtures/``, ``fonts/``, ``docs/`` and ``catalogue/``
-  directories go into the
-  sdist under ``src/timetoshare/`` and into the wheel under ``timetoshare/``,
-  and the root ``README.md`` goes into the sdist. In an unpacked sdist those copies
-  are ordinary package files and need no forcing. The root ``LICENSE`` goes
-  into the sdist root and into the wheel's ``.dist-info/licenses/``. In an
-  unpacked sdist it is the project's own ``LICENSE``, which hatchling's default
-  licence-file pattern already puts there.
+  ``schema/``, ``fixtures/``, ``fonts/`` and ``catalogue/`` directories and
+  the specifications ``docs/description.md`` and ``docs/drawing.md`` go into
+  the sdist under ``src/timetoshare/`` and into the wheel under
+  ``timetoshare/``, and the root ``README.md`` goes into the sdist. The rest
+  of ``docs/`` is the documentation site's source and build and stays out.
+  In an unpacked sdist those copies are ordinary package files and need no
+  forcing. The root ``LICENSE`` goes into the sdist root and into the
+  wheel's ``.dist-info/licenses/``. In an unpacked sdist it is the project's
+  own ``LICENSE``, which hatchling's default licence-file pattern already
+  puts there.
 * ``ReadmeHook`` (metadata hook): fills the dynamic ``readme`` field from the
   root ``README.md`` in a checkout, or from the sdist's copy.
 
@@ -30,7 +32,8 @@ from typing import Any
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatchling.metadata.plugin.interface import MetadataHookInterface
 
-ASSETS = ("schema", "fixtures", "fonts", "docs", "catalogue")
+ASSETS = ("schema", "fixtures", "fonts", "catalogue")
+SPECIFICATIONS = ("description.md", "drawing.md")
 README = "README.md"
 LICENSE = "LICENSE"
 
@@ -50,7 +53,11 @@ class AssetsHook(BuildHookInterface):
         repository = _repository(project)
         force_include: dict[str, str] = build_data.setdefault("force_include", {})
         if repository is None:
-            missing = [name for name in ASSETS if not (package / name).is_dir()]
+            missing = [name for name in ASSETS if not (package / name).is_dir()] + [
+                f"docs/{name}"
+                for name in SPECIFICATIONS
+                if not (package / "docs" / name).is_file()
+            ]
             if missing:
                 raise FileNotFoundError(
                     f"{', '.join(missing)} missing from both the repository and "
@@ -60,6 +67,8 @@ class AssetsHook(BuildHookInterface):
         prefix = "src/timetoshare" if self.target_name == "sdist" else "timetoshare"
         for name in ASSETS:
             force_include[str(repository / name)] = f"{prefix}/{name}"
+        for name in SPECIFICATIONS:
+            force_include[str(repository / "docs" / name)] = f"{prefix}/docs/{name}"
         if self.target_name == "sdist":
             for name in (README, LICENSE):
                 if (repository / name).is_file():
