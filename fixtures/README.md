@@ -44,8 +44,8 @@ timetoalign's `to_dict()` writes it by default. The two obey one law:
 and the library reads both to equal objects. The manifests are emitted by
 timetoalign through the catalogue and pipeline in `scripts/fixtures/`, with
 `scripts/emit_fixtures.py` as its CLI; that pipeline is their only writer,
-but for the manifests under `flow/`, which are written by hand ([Flow
-fixtures and expected flows](#flow-fixtures-and-expected-flows)).
+the manifests under `flow/` included ([Flow fixtures and expected
+flows](#flow-fixtures-and-expected-flows)).
 Regenerate them after a serialization change and review the diff. The CLI
 refuses to replace the fixtures of a version whose tag
 `v<version>` exists, so a released version's fixtures stay as released.
@@ -196,8 +196,8 @@ fixtures are emitted first:
 | --- | --- |
 | `corpus_audio_audio.yaml` | an audio file, its timeline in samples with a map to seconds |
 | `corpus_midi_score_midi.yaml` | a score MIDI file |
-| `corpus_score_ms3.yaml` | an ms3 score with MeasureMap and flow-control data |
-| `corpus_supra_iiif.yaml` | an IIIF manifest |
+| `corpus_score_ms3.yaml` | an ms3 score with MeasureMap and flow-control data: the loader writes its repeats, volta brackets, breaks and barlines as flow-control elements |
+| `corpus_supra_iiif.yaml` | an IIIF manifest: the display image of its canvas, a locked timeline in pixels that names the canvas in `meta.image` |
 | `corpus_parangonar_parangonada__score_dlt_1.yaml` | the discrete score timeline of a Parangonada alignment |
 
 Every generated manifest is in the complete form, as timetoalign's
@@ -382,8 +382,9 @@ or an application layer displays its band: the drawings
 
 The ten manifests under `flow/`, each with its minimal twin, cover flow
 control, FlowMaps and virtual timelines ([main
-README](../README.md#flow-control)). Unlike every other manifest fixture
-they are written by hand, in canonical YAML with `dumps`, and obey the
+README](../README.md#flow-control)). Like every other manifest fixture
+they are emitted (their builders are in `scripts/fixtures/flow.py`, which
+builds the flow control from timetoalign's element classes) and obey the
 same laws: `minimal(fixture)` equals the twin, `complete(twin)` equals the
 fixture, both validate and neither draws a warning. They are not drawn.
 Each holds one root of quarters, but `loop`, in seconds:

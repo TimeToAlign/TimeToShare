@@ -84,8 +84,8 @@ Every element carries its address (§2.2) as the attributes `data-id`,
 `data-facet` and `data-part`, each only when the address has its member,
 the words of `part` joined by one space (§7.2): the map `tempo` of `map`
 carries `data-id="tempo"`, the region `region_1` of `with_region`
-`data-id="region_1"`, the arc of the jump `jump_from_1` of `flow_control`
-`data-id="jump_from_1"`, the label of the region `intro` of
+`data-id="region_1"`, the arc of the jump `jump_1` of `flow_control`
+`data-id="jump_1"`, the label of the region `intro` of
 `styled__score` `data-id="intro" data-part="label"`, and the break
 `fine` of the child `verse` in `child_flow_control__flow-shown`
 `data-id="fine"`, and the wedge of the named timestamp `timestamp_1` of
@@ -415,12 +415,15 @@ The root `melody` ("Melody", 8 quarters) with the map `tempo` and the child
 ## `flow_control`
 
 The root `flow:quarters` ("Flow control", 16 quarters) with the jump
-targets `jump_to_1` (repeat start) at 2 and `jump_to_2` (segno) at 4, which
-draw nothing, the jump `jump_from_1` ("Repeat") from 8 to `jump_to_1`, the
-break `flow_marker_1` ("Fine") at 12 and the jump `jump_from_2` ("D.S.")
-from 16 to `jump_to_2`. Above the line no band is present; below it lie the
-markers band at level −1 and the flow control band at level −2 (its
-regions band is absent).
+targets `jump_target_1` (repeat start) at 2 and `jump_target_2` (segno) at
+4, which draw nothing, the jump `jump_1` from 8 to `jump_target_1`, the
+break `break_1` ("Fine") at 12 and the jump `jump_2` from 16 to
+`jump_target_2`. Neither jump has a `label`; each has one destination, and
+the destination's `label` labels its arc (§5.3): "Repeat" for `jump_1`'s,
+"D.S." for `jump_2`'s, not their manifestations `repeat_end` and
+`dal_segno`. The break's own `label` "Fine" labels its line. Above the line
+no band is present; below it lie the markers band at level −1 and the flow
+control band at level −2 (its regions band is absent).
 
 - `N` = w(`Flow control`, 11) = 66.9775390625.
 - `x0` = 16 + 66.9775390625 + 8 = 90.9775390625 → 90.9775; the labels of
@@ -429,7 +432,7 @@ regions band is absent).
   give only −92.957763671875 and −224.817626953125.
 - `R` = the label `16 ♩` of `length` at 490.9775390625 + 18.55810546875 / 2 =
   500.256591796875, beyond the arrowhead tip 499.9775390625; the arc of
-  `jump_from_2` reaches no further right than its from `x(16)` = 490.9775390625,
+  `jump_2` reaches no further right than its from `x(16)` = 490.9775390625,
   and the label `Fine` ends at `x(12)` + 3 + 18.91845703125 =
   412.89599609375.
 - Above: no band, so `Ea` = 0 and `y_root` = max(8 + 0, 8 + 6.40234375) =
@@ -438,9 +441,9 @@ regions band is absent).
   control band from 26.9765625 + 4 = 30.9765625. The label `Fine` fills one
   flow-line label tier, `T` = 1, so the flow row lies at `f0` =
   30.9765625 + 10.4765625 = 41.453125. The arcs, sorted by span,
-  are `jump_from_1` (span 6) and `jump_from_2` (span 12). `jump_from_1`'s extent is [50,
+  are `jump_1` (span 6) and `jump_2` (span 12). `jump_1`'s extent is [50,
   200], its label's [107.957763671875, 142.042236328125] inside it: row 1.
-  `jump_from_2`'s is [100, 400] and conflicts with it: row 2. With `pj` = 6 + 4
+  `jump_2`'s is [100, 400] and conflicts with it: row 2. With `pj` = 6 + 4
   + 10.4765625 = 20.4765625 the apexes lie at 41.453125 + 8 = 49.453125
   and 49.453125 + 20.4765625 = 69.9296875. The band is 10.4765625 + 8 +
   20.4765625 + 2 + 10.4765625 = 51.4296875 wide, so `Eb` = 82.40625.
@@ -451,7 +454,7 @@ regions band is absent).
 - The break at `x(12)` = 390.9775390625 → 390.9775, from the flow row
   to `P`, drawn at 16; its label from 393.9775390625 → 393.9775 with its
   baseline at 63.85546875 − 2.12255859375 = 61.73291015625 → 61.7329.
-- `jump_from_1` from `Xf` = `x(8)` = 290.9775390625 to `Xt` = `x(2)` =
+- `jump_1` from `Xf` = `x(8)` = 290.9775390625 to `Xt` = `x(2)` =
   140.9775390625 (§6.6), in item coordinates: `q` = −37.5, `yc` =
   55.85546875 + 4/3 × 8 = 66.52213541666667, `C1` = (253.4775390625,
   `yc`), `C2` = (178.4775390625, `yc`); `ℓ` = 38.98753362009166, `(ux, uy)`
@@ -461,7 +464,7 @@ regions band is absent).
   (145.3721, 63.0261), its label centred on `x(5)` = 215.9775390625 with
   its baseline at 8 + ((14.40234375 + (49.453125 + 2)) + 8.35400390625) =
   82.20947265625 → 82.2095.
-- `jump_from_2` from `Xf` = `x(16)` = 490.9775390625 to `Xt` = `x(4)` =
+- `jump_2` from `Xf` = `x(16)` = 490.9775390625 to `Xt` = `x(4)` =
   190.9775390625: `q` = −75, `ya` = 14.40234375 + 69.9296875 =
   84.33203125, `yc` = 55.85546875 + 4/3 × 28.4765625 = 93.82421875, `C1` =
   (415.9775390625, `yc`), `C2` = (265.9775390625, `yc`); `ℓ` =
@@ -492,8 +495,9 @@ The root `clt_1` (12 quarters) with two children and the region
 ## `styled__score`
 
 The root `score` (8 quarters) with the children `a` (hidden) and `b`, the
-map `ticks`, the region `intro` and the jump `da-capo`, styled by its
-own rules: the root's line is 4 wide and its name, at size 12, reads
+map `ticks`, the region `intro` and the jump `da-capo` from 8 to the
+timeline `score` itself, whose one destination's `label` `D.C.` labels its
+arc (§5.3), styled by its own rules: the root's line is 4 wide and its name, at size 12, reads
 `Styled score`. Its band order `children`, `markers`, `line`,
 `conversion_maps`, `regions`, `flow_control` (§6.4) lays the markers band against the line above
 it and the children band beyond, and below it the conversion maps band, then
@@ -1021,7 +1025,7 @@ coordinates; drawn, each lies 245.69419642857133 further right, and
 ## `unknown_length`
 
 The root `score` (quarters, length `null`) with the region `region_1` (2
-to 8), the jump target `jump_to_1` at 6 and the locked child `coda` (4 at 10).
+to 8), the jump target `jump_target_1` at 6 and the locked child `coda` (4 at 10).
 No timeline has a name.
 
 - The reach is the end of `coda`, 10 + 4 = 14, beyond the region's end 8 and
@@ -1162,8 +1166,9 @@ line `pages` ("Pages", 5262 pixels, the segments `Page 1` to `Page 3` of
 1754 each, none a segment line and none with a map) with the map `cmap_3` to
 points, the root `recording` ("Recording", 441000 samples) with the map
 `cmap_2` to seconds, and the root `score` ("Score", 16 quarters) with the
-map `cmap_1` to ticks, the break `flow_marker_1` ("Fine") at 8 and the jump
-`jump_from_1` ("D.C. al Fine") from 16 to 0. The place of `score` is
+map `cmap_1` to ticks, the break `break_1` ("Fine") at 8 and the jump
+`jump_1` from 16 to the timeline `score` itself, at 0, whose one
+destination's `label` `D.C. al Fine` labels its arc (§5.3). The place of `score` is
 stated as `{x: -60, y: -150, height: 120}`, left of the padding and above
 the title's slot. The three cards share one horizontal layout (§8.2), so
 they are equally wide; every place not stated takes its default (§8.6).
@@ -1668,7 +1673,8 @@ segment in traversal order (§6.4, Segments without a line): `region_1` of
 
 The root `piece` ("Piece", 16 quarters) and its locked child `verse`
 ("Verse", 8 at 4), which holds the break `fine` ("Fine") at 4 and the
-jump `da_capo_al_fine` ("D.C. al Fine") from 8 back to 0, on
+jump `da_capo_al_fine` from 8 back to the timeline `verse` itself, at 0,
+its one destination labelled `D.C. al Fine`, which labels the arc (§5.3), on
 `piece`'s axis at 8 and from 12 to 4. The application layer `[{"select":
 {"addresses": [{"id": "verse", "facet": "flow_control"}]}, "set":
 {"display": "inline"}}]` outranks

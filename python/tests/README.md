@@ -1266,9 +1266,8 @@ flow that does not follow from its manifest.
   inferred}`, and one virtual timeline; read as RDF it says exactly
   that each region is an `AtomicSection` of the format's namespace and that
   the pair was inferred, fifteen quads, while every other fixture outside
-  `statements/` says nothing. Numbered flow-control IDs name their role, an
-  ID minted for the earlier form (`jump_from_1`) the role its element was
-  converted to.
+  `statements/` says nothing. Numbered flow-control IDs name their role,
+  without exception.
 - **The expected flows** (`test_flow.py`). `fixtures/flows/0.2.0/` holds
   one file per flow fixture with flow control, nine in all, in canonical
   YAML, each beside the trace it was derived by hand with (`<name>.md`):
@@ -2236,10 +2235,8 @@ not count. What proves them (`test_files.py`):
 ## The fixture set
 
 The fixtures under `fixtures/0.2.0/` are emitted by timetoalign, never
-written by hand, but for those under `flow/`, which are written by hand
-until the library emits them, and for the flow control of the others, which
-`scripts/convert_flow_control.py` converted (section "Flow";
-`test_fixtures.py`). For every fixture: `validate` accepts
+written by hand, those under `flow/` and the flow control of every other
+included (section "Flow"; `test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
@@ -2337,15 +2334,13 @@ cannot prove that the emitter produces them:
   whose drawing puts an ancestor line on each side of the member.
 - **Flow-control IDs by role.** Across the complete fixtures, every
   flow-control element whose ID has the generated form `<prefix>_<N>`
-  carries its own `role` as the prefix, or the prefix minted for that role
-  in the earlier form of flow control, which a converted element keeps
-  (`flow_marker` for a break, `jump_from` for a jump, `jump_to` for a jump
-  target): exactly `flow_marker_1` (three breaks), `jump_from_1` to
-  `jump_from_4` (six, two, one and one jumps), `jump_to_1` to `jump_to_3`
-  (three, two and one jump targets), `barline_1` (one), `break_1` and
-  `break_2` (five and one), `jump_1` to `jump_3` (nine, six and one),
-  `jump_target_1` and `jump_target_2` (seven and two) and
-  `section_break_1` (one). Every other flow-control ID is one a builder
+  carries its own `role` as the prefix: exactly `barline_1` (two),
+  `barline_2` and `barline_3` (one each), `break_1` to `break_4` (eight,
+  two, one and one), `jump_1` (fifteen), `jump_2` (eight), `jump_3` (two),
+  `jump_4` to `jump_11` (one each), `jump_target_1` (ten),
+  `jump_target_2` (four), `jump_target_3` to `jump_target_8` (one each)
+  and `section_break_1` (one). The IDs of the earlier form of flow control
+  (`jump_from_N`, `jump_to_N`, `flow_marker_N`) occur nowhere. Every other flow-control ID is one a builder
   names (`fine`, `da-capo`, `da_capo_al_fine`, `dal_segno`, `repeat`,
   `segno`). A prefix taken from another role (a jump `break_1`, a jump
   target `jump_1`) fails the test.

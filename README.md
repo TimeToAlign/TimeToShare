@@ -2848,11 +2848,10 @@ form beside its minimal twin (`.minimal.yaml`). The manifests are emitted
 only by timetoalign through the catalogue of builders in
 `scripts/fixtures/`, whose CLI is `scripts/emit_fixtures.py`. Do not edit
 them by hand. The ten manifests of flow control under
-`fixtures/0.2.0/flow/` are the exception: they are written by hand in
-canonical YAML, each with its minimal twin under the same laws, and
+`fixtures/0.2.0/flow/` are emitted the same way, and
 `fixtures/flows/0.2.0/` holds the expected flows of the nine that hold
-flow control, each beside the trace it was derived by hand with ([fixture
-guide](fixtures/README.md#flow-fixtures-and-expected-flows)). The statement fixtures under `fixtures/0.2.0/statements/`
+flow control, each derived by hand beside the trace it was derived with
+([fixture guide](fixtures/README.md#flow-fixtures-and-expected-flows)). The statement fixtures under `fixtures/0.2.0/statements/`
 have their expected RDF under `fixtures/rdf/0.2.0/`, canonical N-Quads
 that `scripts/emit_rdf.py` writes. The table fixture lies apart, under
 `fixtures/tables/0.2.0/`: a manifest (`manifest.yaml`), its MatchClaim

@@ -35,10 +35,9 @@ python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoal
 
 Do not edit a fixture by hand. The script refuses to write into the
 fixtures of a version whose `v<version>` tag exists. The manifests of flow
-control under `fixtures/<version>/flow/` are the exception: they are
-written by hand in canonical YAML with `dumps`, each with its minimal
-twin, and `fixtures/flows/<version>/` holds their expected flows, derived
-by hand, each beside its trace. A manifest whose flow control is written
+control under `fixtures/<version>/flow/` are emitted by the same script
+(`scripts/fixtures/flow.py`); `fixtures/flows/<version>/` holds their
+expected flows, derived by hand, each beside its trace. A manifest whose flow control is written
 in the earlier form (the key `type` with `jump_from`, `jump_to` or
 `flow_marker`, one of those words as its `role`, or `target` without
 `role`) is converted with

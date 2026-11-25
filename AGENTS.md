@@ -28,8 +28,8 @@ These rules apply to every contributor, human or automated.
 - `fixtures/`: generated manifests under `fixtures/<version>/` in
   canonical YAML, each in the complete form beside its minimal twin (the
   subdirectories `groups/`, `bundles/`, `statements/` and `flow/` sort
-  them by content only; the manifests of flow control under `flow/` are
-  hand-authored), the expected flows of those manifests under
+  them by content only), the expected flows of the manifests of flow
+  control under `flow/` under
   `fixtures/flows/<version>/` (hand-authored, each beside the trace it was
   derived with), the expected RDF of the statement fixtures under
   `fixtures/rdf/<version>/` (canonical N-Quads, emitted), the table
@@ -95,10 +95,9 @@ These rules apply to every contributor, human or automated.
   them, and the table fixture under `fixtures/tables/<version>/` only
   through `scripts/emit_tables.py`, whose expected anchors and MatchStamps
   are literal data written in the script; never hand-edit any of them.
-  The one exception is `fixtures/<version>/flow/`: its manifests of flow
-  control are written by hand in canonical YAML with `dumps`, each with
-  its minimal twin under the laws of every fixture, and their expected
-  flows under `fixtures/flows/<version>/` are derived by hand. The
+  The manifests of flow control under `fixtures/<version>/flow/` are
+  emitted like every other; only their expected flows under
+  `fixtures/flows/<version>/` are derived by hand. The
   three scripts refuse to overwrite the files of a version whose
   `v<version>` tag exists. Emit
   the drawings under `fixtures/<version>/drawings/` only through
