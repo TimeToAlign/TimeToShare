@@ -1692,30 +1692,50 @@ children that have a line of their own, every child that is not a segment
 and every segment that is a segment line, in canonical order, by first
 fit. Each is placed **as a whole**: its line together with everything its
 own bands draw, at any depth, laid out from its line by this section.
-Children bands laid out together (below) are **aligned** when every child
-they place has one band order (The band order). The **extent** of a child
-placed by aligned bands is the smallest interval that holds the extent of
-its line and the extents of its own children by this rule: a child keeps
-its row whatever the width of its labels, which the rows keep apart by
-their label tiers instead (Rows of one band order, below). The extent of
-any other child is the smallest interval that holds the extent of its
-line, the extent of every item that a first fit of its own drawing places
-at any depth (its segment labels, the stacks of named timestamps' labels,
-the regions and region labels of its bands, each at its own extent
-whichever tier it lies in, and its own children, each with its extent by
-this rule; a child draws no flow control, section 6.4, Gathering), a stack where its wedge
-carries it, its extent's centre moved by its carry `vx` (section 6.6,
-Labels of named timestamps): `[(L × u + vx) − wi / 2 − 1, (L × u + vx) +
-wi / 2 + 1]`, the extent `[L × u + a, L ×
-u + b]` of every wedge it draws, `u` the proportion of the position it
-marks and `a` and `b` the smallest and the largest of 0, `13 × s − 3 × k`
-and `13 × s + 3 × k`, the offsets of its points from `X` (section 6.6,
-Wedges), so `[L × u − 3, L × u + 3]` for a wedge not rotated. The
-cross-section lines it draws add nothing: each lies at a position of its
-timeline and takes no room (section 6.6).
-The maps it draws, at any depth, add nothing: each spans a timeline that
-lies within the line it is drawn at, so no first fit of this paragraph
-depends on a map's slot. The extent of a line runs
+
+A child has two extents, each found from its own subtree alone, from the
+deepest timelines up, before any first fit of its parent's band:
+
+- its **line extent**, the smallest interval that holds the extent of
+  its line and the line extents of its own children that have a line of
+  their own, at any depth: what its lines alone reach;
+- its **whole extent**, the smallest interval that holds its line extent
+  and the extent of every item that a first fit of its own drawing places
+  at any depth (its segment labels, the stacks of named timestamps'
+  labels, the regions and region labels of its bands, each at its own
+  extent whichever tier it lies in, and the whole extents of its own
+  children; a child draws no flow control, section 6.4, Gathering), a
+  stack where its wedge carries it, its extent's centre moved by its
+  carry `vx` (section 6.6, Labels of named timestamps): `[(L × u + vx) −
+  wi / 2 − 1, (L × u + vx) + wi / 2 + 1]`, and the extent `[L × u + a, L
+  × u + b]` of every wedge it draws, `u` the proportion of the position it
+  marks and `a` and `b` the smallest and the largest of 0, `13 × s − 3 ×
+  k` and `13 × s + 3 × k`, the offsets of its points from `X` (section
+  6.6, Wedges), so `[L × u − 3, L × u + 3]` for a wedge not rotated. These
+  items are those of the child's drawing laid out **alone**, the child
+  the one line of its row and its descendants' bands laid out together
+  only among themselves (Rows of one band order, below), so that a turned
+  wedge carries its stack from the tier that layout gives it (section
+  6.6), whatever tier the drawing as a whole gives it.
+
+The cross-section lines a child draws add nothing to either extent: each
+lies at a position of its timeline and takes no room (section 6.6). Nor
+do the maps it draws, at any depth: each spans a timeline that lies
+within the line it is drawn at, so no first fit of this paragraph
+depends on a map's slot. Neither extent depends on the row, the level or
+the tier of anything outside the child's subtree, so both are known
+before the first fit that places the child. Children bands laid out together (below) are
+**aligned** when every child they place has one band order (The band
+order). The lines of a row are those that the first fits of their
+parents' children bands, laid out together, place in it, and the root's
+row holds the root alone; so which bands are laid out together, and
+whether they are aligned, is known row by row from the root outwards,
+each time from the band orders of children whose parents' rows are
+already known. Aligned bands place each child by its line extent: a
+child keeps its row whatever the width of its labels, which the rows
+keep apart by their label tiers instead (Rows of one band order, below).
+Bands that are not aligned place each child by its whole extent.
+The extent of a line runs
 from its start to its end; when its end is open (section 3.4), it runs on
 to `L × u + 9.5w`, `u` the proportion of its end and `w`
 its stroke width, so that its three chevrons (section 6.6) take room in its
@@ -1810,7 +1830,11 @@ Last the ordinates, from the root's line (section 6.5) down.
 
 No two children's drawings overlap, and no two names of rows (section 6.6)
 do, but that two wedges may overlap where they mark positions closer than
-their widths, as two wedges of one timeline may: in a row of one band
+their widths, as two wedges of one timeline may, and that the stack of a
+turned wedge in a row of one band order, which the row's first fit may
+put in another tier than its line laid out alone, is carried from that
+tier and may then lie elsewhere than the whole extent of an ancestor
+counts it (section 6.6): in a row of one band
 order the extents keep the lines and their children apart, and the first
 fits of the row the regions and the labels. The extents of two lines of
 a row never overlap, and meet at most
@@ -3638,18 +3662,21 @@ Recapitulation, and `page` hangs on nothing, so the row is `page`,
 Every item is 567.39013671875 wide, so with the row gap 48 they lie at
 `x` 8, 623.39013671875, 1238.7802734375 and 1854.17041015625.
 
-- Vertically: `score`'s once card, laid out at `LA` = 1200, has its line
-  at 82.953125 of 97.35546875, `session`'s, at `LA` = 1733.3333333333333,
-  at 48.9765625 of 83.953125. The ancestor line of `score` lies at
+- Vertically: `score`'s once card, laid out at `LA` = 1200, holds the
+  three movements in one row of one band order (section 6.4, Children),
+  their stacks in two tiers, since the end of one movement and the start
+  of the next share a position, so it has its line at 59.453125 of
+  73.85546875; `session`'s, at `LA` = 1733.3333333333333, at 48.9765625
+  of 83.953125. The ancestor line of `score` lies at
   77.18359375 in each frame, that of `session` at 152.5625 in Exposition
   and 209.94140625 in Recapitulation, so `session`'s line lies at the
   largest of 71.37890625, 75.37890625 and 132.7578125, the last set by
   Recapitulation, and Exposition's card of `take_a` is padded by
   57.37890625. The tops are −77.18359375 for the three frames,
-  −82.953125 and 83.78125 for the once cards; `T0` = −82.953125, and
-  everything moves by 28.8046875 + 82.953125 = 111.7578125: the frames
-  lie at 34.57421875, `page` at 28.8046875, `score`'s line at
-  111.7578125 and `session`'s at 244.515625.
+  −59.453125 and 83.78125 for the once cards; `T0` = −77.18359375, and
+  everything moves by 28.8046875 + 77.18359375 = 105.98828125: the frames
+  and `page` lie at 28.8046875, `score`'s line at 105.98828125 and
+  `session`'s at 238.74609375.
 - Along `score`, 25 canvas units per quarter in each frame: between
   Exposition and Development `c` = 1214.7802734375, `s` = 17 and `e` =
   11, so a seam at 16, from 1150.7802734375 to 1366.17041015625;
@@ -3667,10 +3694,11 @@ Every item is 567.39013671875 wide, so with the row gap 48 they lie at
   Development to `take_b`.
 - Both roots start where Exposition's stretch starts, so their names
   lie `s1 × OL` = 127.39013671875 further left, outside Exposition's
-  frame, and the once cards span 463.9765625 to 2398.839599609375
-  (`score`, `s0'` = 159.41357421875) and 525.13720703125 to
+  frame, and the once cards span 451.322265625 to 2398.839599609375
+  (`score`, `s0'` = 172.06787109375, its movements' row name cut to
+  `Exposition, Development, …`) and 525.13720703125 to
   2398.560546875 (`session`, `s0'` = 98.2529296875). The block is 2429.560546875 wide,
-  the right edge of Recapitulation's frame plus `P`, and 289.4921875
+  the right edge of Recapitulation's frame plus `P`, and 283.72265625
   high, the bottom of `session`'s once card with its shadow plus `P`.
 
 ### 8.9 Elisions
@@ -3973,8 +4001,8 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   `E` = 1589 and `r` = 0.016991818753933293, set by (a): the frame of
   `clt_8` is `x0 + L + 8w + K + Q` = 622.8037109375 wide, its right edge the
   outer chevron tip of `clt_1`'s ancestor line, and 171.5625 high as laid
-  out before its rows align (drawn 259.4921875 high once they align on
-  the card, section 8.3), so `zG`
+  out before its rows align (drawn 191.5390625 high once they align on
+  the card, section 8.3, the four movements forming one row there), so `zG`
   = 1.6441777433512452 and `c` = 311.40185546875; `σ` = 175.8974609375,
   `N'` = 159.8974609375 being the width of the movements' row name cut to
   `Prelude, Menuet, Clair de L…` (section 6.6, Names), so `dl` =
@@ -3999,7 +4027,10 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   drawn, so `Clair de Lune` lies in drawn tier 2, one line below the
   labels `Prelude`, `Menuet` and `Passepied` in drawn tier 1, and the
   markers band of Clair de Lune takes its room as an item two lines
-  high; no gap moves and `r` is unchanged (section 6.6).
+  high, and with it the markers band of every movement of that row of one
+  band order (section 6.4, Rows of one band order), so that the frame of
+  `clt_9` is drawn 202.015625 high; no gap moves and `r` is unchanged
+  (section 6.6).
 - The fixture `group_elided_members`: the frame of `group_1` (`L` 400)
   draws two group elisions. `elision_1` on the member `excerpt` (16
   quarters) from 2 to 8 has the stretch `p` = 0.125 to `q` = 0.5, the
