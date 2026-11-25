@@ -689,6 +689,9 @@ describe("the expected flows", () => {
     );
   }
 
+  // Findings are stated for `default` only, and that is the rule of the form:
+  // under `single` and `printed` a file states runs and sections and says
+  // nothing of findings.
   it.each(names)("of %s agree with its manifest", (name) => {
     const text = readFileSync(resolve(FLOWS, `${name}.yaml`), "utf8");
     const flows = loads(text) as JsonObject;

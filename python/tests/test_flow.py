@@ -814,6 +814,12 @@ def _boundaries(root: dict) -> list[Fraction]:
 
 @pytest.mark.parametrize("path", _expected_flows(), ids=lambda path: path.stem)
 def test_an_expected_flow_agrees_with_its_manifest(path: Path) -> None:
+    """An expected flow is consistent with the manifest it names.
+
+    Findings are stated for ``default`` only, and that is the rule of the
+    form: under ``single`` and ``printed`` a file states runs and sections
+    and says nothing of findings.
+    """
     text = path.read_text(encoding="utf-8")
     case = loads(text)
     assert dumps(case) == text
