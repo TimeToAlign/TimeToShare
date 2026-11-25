@@ -1343,7 +1343,7 @@ export const schema = {
         },
         "reset": {
           "type": "boolean",
-          "description": "Whether taking the destination, where it lies before its jump, restores every jump and break lying wholly inside the stretch gone back over (its coordinate and all its places from the destination's place up to, but not at, the jump's coordinate): their passes, the times their destinations were taken and their `after` conditions start again, as a repeat plays an inner repeat again. `false` on a da capo or a dal segno states that the repeats are not played again (senza repetizione).",
+          "description": "Whether taking the destination, where it lies before its jump, restores every jump and break lying wholly inside the stretch gone back over (its coordinate and all its places from the destination's place up to, but not at, the jump's coordinate): their passes, the times their destinations were taken and their `after` conditions start again, as a repeat plays an inner repeat again. `false` on a da capo or a dal segno states that the repeats are not played again (senza repetizione). A repeat sign that closes a volta bracket other than the first is written with `false` too: taken with the default it would restore the jump before the brackets wherever all that jump's places lie before the sign, the passes of that jump would start again, and the later passes would never be reached.",
           "default": true
         },
         "manifestation": {
