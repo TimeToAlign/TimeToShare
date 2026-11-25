@@ -17,6 +17,9 @@ root's `validate` is the function of that name.
 validate
 ```
 
+% The modules are listed by hand: a recursive autosummary of the package would
+% take the root's `validate` function for the module. A new module goes here.
+
 ```{eval-rst}
 .. automodule:: timetoshare
    :no-members:

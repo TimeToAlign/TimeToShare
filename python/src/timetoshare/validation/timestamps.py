@@ -62,7 +62,8 @@ def timestamp_problems(
     A timestamp names a timeline of the manifest, at any depth, and its
     coordinate lies between 0 and that timeline's length, or at or after 0
     where the length is not known. A groupstamp (``groupstamp: true``), a
-    match timestamp included, lies in a group (:func:`_grouped_timelines`).
+    match timestamp included, lies in a group: its timeline or one of that
+    timeline's ancestors is a member of a group.
     """
     timelines = timelines_by_id(manifest)
     grouped = _grouped_timelines(manifest)

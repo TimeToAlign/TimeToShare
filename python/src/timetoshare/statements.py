@@ -161,7 +161,8 @@ def check_belief_filter(beliefs: object) -> frozenset[BeliefState]:
             mapping included), or names a word that is none of
             :data:`BELIEF_STATES`. The first unknown member by code point of
             its spelling is named: a string quoted, any other member spelled
-            as :func:`spell` spells it, without quotes.
+            as :func:`~timetoshare.serialization.spell` spells it, without
+            quotes.
     """
     if isinstance(beliefs, str):
         raise ValueError(

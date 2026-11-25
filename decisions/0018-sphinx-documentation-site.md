@@ -57,12 +57,22 @@ Build the site with Sphinx from `docs/`: `conf.py` and the pages that
 include the files kept elsewhere (the README as the overview, the changelog,
 the contribution guide; one page per decision record, written at build
 time). `autosummary` writes one page per Python module at build time.
-Before Sphinx reads a page, `conf.py` runs TypeDoc with
+When a build starts, before Sphinx reads a page, `conf.py` runs TypeDoc with
 typedoc-plugin-markdown over `js/src/index.ts`, the package's public entry,
-and writes `docs/api-ts/index.md`; the schema-derived declarations of
-`js/src/generated/` are left out, since the schema page and the schema
-documents describe them. Generated pages and the output are ignored by git.
-`docs/building.md` gives the command.
+and writes `docs/api-ts/index.md`; loading `conf.py` alone writes nothing.
+The schema-derived declarations of `js/src/generated/` are left out, since
+the schema page and the schema documents describe them; `typedoc.json`
+names them, and two internal aliases a signature mentions (`Path`, the
+array of `PathSegment`s of `FileIdError.path`, and `JsonObject`, the type
+`isJsonObject` narrows to), as intentionally not exported. Every other
+TypeDoc warning fails the build (`treatWarningsAsErrors`), as Sphinx's
+`-W -n` does for the Python API. Generated pages and the output are ignored
+by git. `docs/building.md` gives the command.
+
+`docs/` is the site's source, and its build output lands in it. The
+packages ship only the two specifications of `docs/` (`description.md` and
+`drawing.md`): the npm package's `files` and `scripts/copy-assets.ts`, and
+the Python package's build hook, name them file by file.
 
 - **Fit.** One tool renders both APIs and every Markdown file; the
   TypeScript API lists exactly what the package's entry exports.
@@ -77,24 +87,33 @@ documents describe them. Generated pages and the output are ignored by git.
   maintainer, whose releases follow TypeDoc's minor versions. The exposure
   is `conf.py`, `typedoc.json`, the module template and the page stubs.
 - **Writing it ourselves.** Out of proportion (see above).
-- **Audited versions.** Sphinx 9.2.0 (2026-10-21, BSD-2-Clause, requires
-  Python 3.13; the lock resolves 9.1.1 for Python 3.12 and 9.0.4 for
-  3.11), pydata-sphinx-theme 0.24.0 (2026-11-02, BSD-3-Clause),
-  myst-parser 5.2.0 (2026-11-10, MIT), TypeDoc 0.28.20 (2026-07-05,
-  Apache-2.0, supports TypeScript 5.0 to 6.0), typedoc-plugin-markdown
-  4.14.1 (2026-10-19, MIT, requires TypeDoc 0.28). OSV lists no advisory
-  for any of them (queried 2026-11-25). The `docs` group adds 28 packages
-  to `python/uv.lock`, every one released at least fourteen days before
-  this record; four of them (babel 2.18.0, certifi 2026.10.23,
-  charset-normalizer 3.5.2, soupsieve 4.1) are locked below their newest
-  release for that reason.
-- **Range.** The Python package's `docs` dependency group declares
-  `sphinx>=8.2.3,<10`, `pydata-sphinx-theme>=0.24.0,<0.25`,
-  `myst-parser>=5.2.0,<6` and `pyarrow>=25.0.0,<26`, so that autodoc
-  imports `timetoshare.tables`; `uv.lock` pins them. The npm package's
-  development dependencies pin `typedoc` 0.28.20 and
-  `typedoc-plugin-markdown` 4.14.1, recorded in `pnpm-lock.yaml`. Neither
-  package's runtime dependencies change.
+- **Audited versions.** Sphinx 9.0.4 (2025-12-04, BSD-2-Clause, Python
+  3.11 and later: the one Sphinx release that runs on every Python the
+  package supports, so the pages do not depend on the interpreter that
+  builds them; 9.1 and 9.2 require Python 3.12 and 3.13),
+  pydata-sphinx-theme 0.24.0 (2026-11-02, BSD-3-Clause, the newest release
+  at least fourteen days old; it requires Sphinx 8.2 to 9), myst-parser
+  5.1.0 (2026-05-13, MIT, requires Sphinx 8 to 9 and docutils below 0.23),
+  TypeDoc 0.28.20 (2026-07-05, Apache-2.0, supports TypeScript 5.0 to 6.0),
+  typedoc-plugin-markdown 4.14.1 (2026-10-19, MIT, requires TypeDoc 0.28).
+  The documentation sites of the other TimeToAlign! repositories use the
+  same Sphinx, theme and MyST, so that they look alike and can share one
+  version menu. OSV lists no advisory for any of them, nor for docutils
+  0.22.4 (queried 2026-11-25). The `docs` group adds 28 packages to
+  `python/uv.lock`.
+- **Pins and release age.** The Python package's `docs` dependency group
+  pins `sphinx==9.0.4`, `pydata-sphinx-theme==0.24.0`, `myst-parser==5.1.0`
+  and `pyarrow==25.0.0` (so that autodoc imports `timetoshare.tables`), as
+  the `dev` group pins its tools; the group is never published. The
+  release-age rule is written into `python/pyproject.toml` as
+  `[tool.uv] exclude-newer = "2026-11-11T00:00:00Z"`, so `uv lock` resolves
+  no release younger than fourteen days and the lockfile can be reproduced
+  from the project file; the date moves forward when the lockfile is
+  refreshed. Under it, babel 2.18.0, certifi 2026.10.23,
+  charset-normalizer 3.5.2 and soupsieve 4.1 are locked below their newest
+  release. The npm package's development dependencies pin `typedoc`
+  0.28.20 and `typedoc-plugin-markdown` 4.14.1, recorded in
+  `pnpm-lock.yaml`. Neither package's runtime dependencies change.
 
 Primary sources: https://www.sphinx-doc.org/,
 https://pydata-sphinx-theme.readthedocs.io/,
@@ -108,9 +127,10 @@ Building the site needs Node and the JavaScript package's development
 dependencies besides the Python environment. The TypeScript API is
 Markdown, not objects of Sphinx's JavaScript domain, so Python pages cannot
 cross-reference TypeScript declarations; a declaration's signature names a
-schema-derived type without a link. The exit cost is `docs/conf.py`,
-`docs/typedoc.json`, the page stubs and the template, the `docs`
-dependency group and two development dependencies.
+schema-derived type without a link. The build fetches the intersphinx
+inventories of Python and pyarrow, so it needs the network. The exit cost
+is `docs/conf.py`, `docs/typedoc.json`, the page stubs and the template,
+the `docs` dependency group and two development dependencies.
 
 ## Review date
 

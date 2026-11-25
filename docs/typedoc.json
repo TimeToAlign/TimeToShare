@@ -15,6 +15,15 @@
     "**/node_modules/**"
   ],
   "excludeExternals": true,
+  "intentionallyNotExported": [
+    "CompleteManifest",
+    "Graphical",
+    "JsonObject",
+    "NumberType",
+    "Path",
+    "TimeUnit"
+  ],
+  "treatWarningsAsErrors": true,
   "outputFileStrategy": "modules",
   "entryFileName": "index.md",
   "hidePageHeader": true,

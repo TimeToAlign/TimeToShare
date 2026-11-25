@@ -1,23 +1,26 @@
 """Sphinx configuration of the TimeToShare! documentation site.
 
-``building.md`` gives the command. Before Sphinx reads a page, this file
-writes the pages generated from other sources, all ignored by git: one page
-per decision record (``decisions/``) and the TypeScript API (``api-ts/``),
-which TypeDoc writes as Markdown from ``js/src/index.ts``.
+``building.md`` gives the command. When a build starts, before Sphinx reads a
+page, this file writes the pages generated from other sources, all ignored by
+git: one page per decision record (``decisions/``) and the TypeScript API
+(``api-ts/``), which TypeDoc writes as Markdown from ``js/src/index.ts``.
 """
 
 from __future__ import annotations
 
+import os
+import re
 import subprocess
+import sys
 from importlib.metadata import metadata
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
-from docutils import nodes
-from sphinx import addnodes
+from docutils.nodes import Element
+from sphinx.addnodes import pending_xref
 from sphinx.application import Sphinx
+from sphinx.environment import BuildEnvironment
 from sphinx.ext.napoleon import Config as NapoleonConfig
 from sphinx.ext.napoleon.docstring import GoogleDocstring
-from sphinx.transforms.post_transforms import SphinxPostTransform
 
 import timetoshare
 
@@ -51,19 +54,10 @@ extensions = [
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 templates_path = ["_templates"]
 nitpicky = True
-nitpick_ignore = [
-    # Type aliases of the validator's diagnostics, written in signatures but
-    # not documented on their own.
-    ("py:class", "InstancePath"),
-    ("py:class", "ValidationCode"),
-    # `check_belief_filter` names `spell` of `timetoshare.serialization`
-    # without its module.
-    ("py:func", "spell"),
-]
 nitpick_ignore_regex = [
-    # Private helpers named in signatures or docstrings are not part of the
-    # documented API.
-    (r"py:.*", r"(.+\.)?_\w+"),
+    # The type variable of `connected_sets`, written in its signature, is not
+    # part of the documented API.
+    ("py:class", r"(.+\.)?_Member"),
 ]
 
 # -- Markdown ----------------------------------------------------------------
@@ -89,16 +83,21 @@ myst_substitutions = {
 
 # -- Design decisions --------------------------------------------------------
 
-# One page per record, each including the record itself, so that a new record
-# needs no page of its own.
-_DECISIONS = _DOCS / "decisions"
-_DECISIONS.mkdir(exist_ok=True)
-for _stale in _DECISIONS.glob("*.md"):
-    _stale.unlink()
-for _record in sorted((_ROOT / "decisions").glob("*.md")):
-    (_DECISIONS / _record.name).write_text(
-        f"```{{include}} ../../decisions/{_record.name}\n```\n", encoding="utf-8"
-    )
+
+def _write_decision_pages() -> None:
+    """One page per decision record, each including the record itself.
+
+    A new record needs no page of its own.
+    """
+    folder = _DOCS / "decisions"
+    folder.mkdir(exist_ok=True)
+    for stale in folder.glob("*.md"):
+        stale.unlink()
+    for record in sorted((_ROOT / "decisions").glob("*.md")):
+        (folder / record.name).write_text(
+            f"```{{include}} ../../decisions/{record.name}\n```\n", encoding="utf-8"
+        )
+
 
 # -- Python API --------------------------------------------------------------
 
@@ -133,68 +132,148 @@ def _skip_tuple_field(app, what, name, obj, skip, options) -> bool | None:
     return None
 
 
-def _package_name(app, env, node, contnode):
-    """Resolve ``timetoshare.X`` to the module that defines the re-exported X."""
+def _resolve_in_module(
+    app: Sphinx, env: BuildEnvironment, node: pending_xref, contnode: Element
+) -> Element | None:
+    """Resolve a Python name the way its module does.
+
+    A docstring or a signature names an object as its module imports it
+    (``InstancePath``), and a page names it as the package re-exports it
+    (``timetoshare.UNITS``); the object is documented in the module
+    that defines it, under its full name, which is looked up here. A type
+    alias names no module of its own, so the documented names are searched for
+    the one that is the same object.
+    """
     if node.get("refdomain") != "py":
         return None
-    domain = env.get_domain("py")
+    module = sys.modules.get(node.get("py:module") or "")
     target = node["reftarget"]
-    for package in ("timetoshare.tables", "timetoshare"):
-        name = target.removeprefix(package + ".")
-        if name == target or "." in name:
-            continue
-        homes = [
-            full
-            for full in domain.objects
-            if full.startswith(package + ".") and full.endswith("." + name)
-        ]
-        if len(homes) == 1:
-            return domain.resolve_xref(
-                env,
-                node["refdoc"],
-                app.builder,
-                node["reftype"],
-                homes[0],
-                node,
-                contnode,
-            )
-    return None
+    parts = target.split(".")
+    for end in range(len(parts) - 1, 0, -1):
+        if ".".join(parts[:end]) in sys.modules:
+            module = sys.modules[".".join(parts[:end])]
+            target = ".".join(parts[end:])
+            break
+    head, _, rest = target.partition(".")
+    if module is None or not hasattr(module, head):
+        return None
+    found = getattr(module, head)
+    domain = env.get_domain("py")
+    homes = []
+    for full in domain.objects:
+        home, _, name = full.rpartition(".")
+        if (
+            name == head
+            and home != module.__name__
+            and home in sys.modules
+            and vars(sys.modules[home]).get(head) is found
+        ):
+            homes.append(full)
+    if len(homes) != 1:
+        return None
+    return domain.resolve_xref(
+        env,
+        node["refdoc"],
+        app.builder,
+        node["reftype"],
+        ".".join(part for part in (homes[0], rest) if part),
+        node,
+        contnode,
+    )
 
 
 # -- TypeScript API ----------------------------------------------------------
 
-_TYPEDOC = _ROOT / "js" / "node_modules" / "typedoc" / "bin" / "typedoc"
-if not _TYPEDOC.is_file():
-    raise RuntimeError(
-        "TypeDoc is missing: run `pnpm install --frozen-lockfile` in js/ first"
-    )
-subprocess.run(
-    ["node", str(_TYPEDOC), "--options", "typedoc.json", "--logLevel", "Error"],
-    cwd=_DOCS,
-    check=True,
-)
 
+def _write_typescript_api() -> None:
+    """Write the TypeScript API as Markdown into ``api-ts/`` with TypeDoc.
 
-class _RepositoryLinks(SphinxPostTransform):
-    """Point a link to a repository file the site does not hold at GitHub.
-
-    The README links to `fixtures/README.md`, which is no page of the site.
+    A warning of TypeDoc fails the build (``treatWarningsAsErrors``).
     """
+    typedoc = _ROOT / "js" / "node_modules" / "typedoc" / "bin" / "typedoc"
+    if not typedoc.is_file():
+        raise RuntimeError(
+            "TypeDoc is missing: run `pnpm install --frozen-lockfile` in js/ first"
+        )
+    subprocess.run(
+        ["node", str(typedoc), "--options", "typedoc.json"], cwd=_DOCS, check=True
+    )
 
-    default_priority = 8  # before MyST resolves its links
 
-    def run(self, **kwargs) -> None:
-        for node in list(self.document.findall(addnodes.pending_xref)):
-            if node["reftype"] != "myst" or node.get("refdomain"):
-                continue
-            target = node["reftarget"]
-            if not (_ROOT / target.split("#", 1)[0]).is_file():
-                continue
-            node.replace_self(
-                nodes.reference(
-                    "", "", *node.children, refuri=f"{_REPOSITORY}/blob/main/{target}"
-                )
-            )
+def _generate(app: Sphinx) -> None:
+    _write_decision_pages()
+    _write_typescript_api()
+
+
+# -- Links of included files -------------------------------------------------
+
+#: Repository files that are pages of this site, by their page name.
+_SITE_PAGES = {
+    "README.md": "overview",
+    "CHANGELOG.md": "changelog",
+    "CONTRIBUTING.md": "contributing",
+}
+
+_LINK = re.compile(r"\]\((?P<target>[^)\s]+)(?P<title>\s+\"[^\"]*\")?\)")
+_SCHEME = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*:")
+
+
+def _page_of(path: PurePosixPath) -> str | None:
+    """The page of this site that shows the repository file ``path``, if any."""
+    if str(path) in _SITE_PAGES:
+        return _SITE_PAGES[str(path)]
+    if path.suffix == ".md" and len(path.parts) == 2:
+        if path.parts[0] == "docs" and (_DOCS / path.name).is_file():
+            return path.stem
+        if path.parts[0] == "decisions":
+            return f"decisions/{path.stem}"
+    return None
+
+
+def _rewrite_links(text: str, source: Path, page_folder: PurePosixPath) -> str:
+    """Point the links of an included repository file at this site or at GitHub.
+
+    A link relative to ``source``, or a link to the repository's own file on
+    GitHub (as the README writes them, for the package registries), goes to
+    the page that shows the file, written relative to ``page_folder``; a link
+    to another file of the repository goes to GitHub. A link out of the
+    repository is left as written, for the strict build to report.
+    """
+    on_github = f"{_REPOSITORY}/blob/main/"
+
+    def replace(match: re.Match[str]) -> str:
+        target = match["target"]
+        path, hash_, anchor = target.partition("#")
+        if path.startswith(on_github):
+            absolute = _ROOT / path.removeprefix(on_github)
+        elif not path or _SCHEME.match(path):
+            return match[0]
+        else:
+            absolute = Path(os.path.normpath(source.parent / path))
+        if not absolute.is_relative_to(_ROOT):
+            return match[0]
+        relative = PurePosixPath(absolute.relative_to(_ROOT).as_posix())
+        page = _page_of(relative)
+        if page is not None:
+            new = PurePosixPath(os.path.relpath(f"{page}.md", page_folder)).as_posix()
+        elif path.startswith(on_github):
+            return match[0]
+        else:
+            kind = "tree" if absolute.is_dir() else "blob"
+            new = f"{_REPOSITORY}/{kind}/main/{relative}"
+        return f"]({new}{hash_}{anchor}{match['title'] or ''})"
+
+    return _LINK.sub(replace, text)
+
+
+def _read_included(
+    app: Sphinx, relative_path: Path, parent_docname: str, content: list[str]
+) -> None:
+    """Point the links of an included repository file at the site."""
+    source = Path(os.path.normpath(_DOCS / relative_path))
+    if source.is_relative_to(_ROOT):
+        folder = PurePosixPath(parent_docname).parent
+        content[0] = _rewrite_links(content[0], source, folder)
 
 
 # -- HTML --------------------------------------------------------------------
@@ -217,7 +296,8 @@ html_show_sourcelink = False
 
 
 def setup(app: Sphinx) -> None:
+    app.connect("builder-inited", _generate, priority=100)
     app.connect("autodoc-process-docstring", _google_docstring)
     app.connect("autodoc-skip-member", _skip_tuple_field)
-    app.connect("missing-reference", _package_name)
-    app.add_post_transform(_RepositoryLinks)
+    app.connect("missing-reference", _resolve_in_module)
+    app.connect("include-read", _read_included)

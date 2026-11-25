@@ -14,7 +14,11 @@ from typing import Any, Literal, TypeAlias, TypedDict, TypeVar
 
 from ..manifest import UNITS
 
+#: The path of a value in a manifest: its member names and array indices from
+#: the root.
 InstancePath = tuple[str | int, ...]
+#: The code of a validation error: the rule of the schema or of the format the
+#: value breaks.
 ValidationCode: TypeAlias = Literal[
     "not_a_manifest",
     "schema",
