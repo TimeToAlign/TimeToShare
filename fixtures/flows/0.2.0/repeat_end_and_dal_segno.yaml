@@ -33,6 +33,7 @@ conventions:
         - [24, 1]
     sections: [A, B, C, B, C, C, D]
   printed:
+    findings: []
     runs:
       -
         - [0, 1]
@@ -48,6 +49,7 @@ conventions:
         - [24, 1]
     sections: [A, B, C, D]
   single:
+    findings: []
     runs:
       -
         - [0, 1]

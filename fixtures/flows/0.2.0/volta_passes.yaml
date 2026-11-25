@@ -35,6 +35,7 @@ conventions:
         - [12, 1]
     sections: [A, B, A, C, A, B]
   printed:
+    findings: []
     runs:
       -
         - [0, 1]
@@ -47,6 +48,12 @@ conventions:
         - [16, 1]
     sections: [A, B, C]
   single:
+    findings:
+      -
+        cause: single_playback
+        coordinate: [8, 1]
+        end: [12, 1]
+        kind: never_played
     runs:
       -
         - [0, 1]

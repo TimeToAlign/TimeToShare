@@ -25,6 +25,8 @@ two destinations holding together on pass 1 are of two kinds.
 Neither destination is taken, both lying before the jump. Runs [0, 16),
 [16, 24): A B C D.
 
+Every stretch is played, and the walk finds nothing: no finding.
+
 ## printed
 
-A B C D.
+A B C D. The whole axis is played: no finding.

@@ -24,6 +24,8 @@ Runs [0, 8), [8, 16), [0, 8): A B A. No finding.
 No `after` holds, so the Fine is passed; the da capo lies before its jump
 and is not taken. Runs [0, 8), [8, 16): A B.
 
+Every stretch is played, and the walk finds nothing: no finding.
+
 ## printed
 
-A B.
+A B. The whole axis is played: no finding.

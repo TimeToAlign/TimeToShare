@@ -57,6 +57,10 @@ destination to `jump_target_1` holds and lies ahead: the flow is at 12,
 where nothing acts. At 16 the destination of `jump_3` lies before its jump
 and is not taken; the flow ends at the length. Runs [0, 8), [12, 16): A C.
 
+The stretch [8, 12), B, lies in no run, and the `default` flow plays it:
+finding `never_played` from 8 to 12, cause `single_playback` (going
+through once takes the second bracket at once and leaves out the first).
+
 ## printed
 
-A B C.
+A B C. The whole axis is played: no finding.

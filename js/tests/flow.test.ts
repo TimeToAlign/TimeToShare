@@ -885,9 +885,9 @@ describe("the expected flows", () => {
     );
   }
 
-  // Findings are stated for `default` only, and that is the rule of the form:
-  // under `single` and `printed` a file states runs and sections and says
-  // nothing of findings.
+  // Findings are stated for every convention: `printed` finds nothing, and a
+  // stretch `single` never plays that the `default` flow plays is
+  // `never_played` with the cause `single_playback`, the only cause.
   it.each(names)("of %s agree with its manifest", (name) => {
     const text = readFileSync(resolve(FLOWS, `${name}.yaml`), "utf8");
     const flows = loads(text) as JsonObject;
@@ -913,15 +913,10 @@ describe("the expected flows", () => {
     );
     const conventions = flows.conventions as Record<string, JsonObject>;
     expect(Object.keys(conventions).sort()).toEqual(["default", "printed", "single"]);
-    expect(Object.keys(conventions.default as JsonObject).sort()).toEqual([
-      "findings",
-      "runs",
-      "sections",
-    ]);
     const onBound = (point: Rational) =>
       bounds.some((bound) => compareRationals(bound, point) === 0);
     for (const [convention, flow] of Object.entries(conventions)) {
-      if (convention !== "default") expect(Object.keys(flow).sort()).toEqual(["runs", "sections"]);
+      expect(Object.keys(flow).sort()).toEqual(["findings", "runs", "sections"]);
       const covered: unknown[] = [];
       for (const [start, end] of flow.runs as [unknown, unknown][]) {
         const from = exact(start);
@@ -942,8 +937,8 @@ describe("the expected flows", () => {
     expect(conventions.printed?.runs).toEqual(
       sections.map((section) => [section.start, section.end]),
     );
-    const played = new Set(conventions.default?.sections as unknown[]);
-    const findings = conventions.default?.findings as JsonObject[];
+    expect(conventions.printed?.findings).toEqual([]);
+    const byDefault = new Set(conventions.default?.sections as unknown[]);
     const kinds = [
       "flow_ends_at_break",
       "never_played",
@@ -951,26 +946,53 @@ describe("the expected flows", () => {
       "ambiguous_targets",
       "undetermined_target",
     ];
-    for (const finding of findings) {
-      expect(Object.keys(finding).sort()).toEqual(["coordinate", "kind"]);
-      expect(kinds).toContain(finding.kind);
-      expect(onBound(exact(finding.coordinate))).toBe(true);
-    }
-    expect(
-      findings
-        .filter((finding) => finding.kind === "never_played")
-        .map((finding) => finding.coordinate),
-    ).toEqual(
+    for (const convention of ["default", "single"]) {
+      const played = new Set(conventions[convention]?.sections as unknown[]);
+      const findings = conventions[convention]?.findings as JsonObject[];
+      for (const finding of findings) {
+        const keys = Object.keys(finding).sort();
+        if ("cause" in finding) {
+          expect(keys).toEqual(["cause", "coordinate", "end", "kind"]);
+          expect([finding.kind, finding.cause]).toEqual(["never_played", "single_playback"]);
+        } else if (finding.kind === "never_played") {
+          expect(keys).toEqual(["coordinate", "end", "kind"]);
+        } else {
+          expect(keys).toEqual(["coordinate", "kind"]);
+        }
+        expect(kinds).toContain(finding.kind);
+        expect(onBound(exact(finding.coordinate))).toBe(true);
+      }
       // One finding per stretch that no run covers: adjacent atomic sections
-      // that are not played are one stretch, reported at its start.
-      sections
-        .filter(
-          (section, index) =>
-            !played.has(section.name) &&
-            (index === 0 || played.has((sections[index - 1] as JsonObject).name)),
-        )
-        .map((section) => section.start),
-    );
+      // that are not played are one stretch, reported at its start. Under
+      // `single` a stretch is divided where the `default` flow begins or ends
+      // playing it, and a piece the `default` flow plays has the cause
+      // `single_playback`.
+      const never: JsonObject[] = [];
+      let piece: { caused: boolean; finding: JsonObject } | undefined;
+      for (const section of sections) {
+        const caused = played.has(section.name)
+          ? undefined
+          : convention === "single" && byDefault.has(section.name);
+        if (piece !== undefined && caused !== piece.caused) {
+          never.push(piece.finding);
+          piece = undefined;
+        }
+        if (caused !== undefined && piece === undefined) {
+          const finding: JsonObject = caused
+            ? { cause: "single_playback", coordinate: section.start }
+            : { coordinate: section.start };
+          piece = { caused, finding };
+        }
+        if (piece !== undefined) piece.finding.end = section.end;
+      }
+      if (piece !== undefined) never.push(piece.finding);
+      expect(
+        findings
+          .filter((finding) => finding.kind === "never_played")
+          .map(({ kind: _kind, ...rest }) => rest),
+        convention,
+      ).toEqual(never);
+    }
   });
 
   it("of the sonata exposition are its FlowMaps and its virtual timeline", () => {

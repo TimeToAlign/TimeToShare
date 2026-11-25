@@ -19,6 +19,7 @@ conventions:
         - [16, 1]
     sections: [A, B, B]
   printed:
+    findings: []
     runs:
       -
         - [0, 1]
@@ -28,6 +29,7 @@ conventions:
         - [16, 1]
     sections: [A, B]
   single:
+    findings: []
     runs:
       -
         - [0, 1]

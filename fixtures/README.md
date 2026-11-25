@@ -412,8 +412,8 @@ atomic_sections:                   # in the order of the axis, lettered from A
   - {name: A, start: [0, 1], end: [12, 1]}
 conventions:
   default: {runs: [...], sections: [...], findings: [...]}
-  single: {runs: [...], sections: [...]}
-  printed: {runs: [...], sections: [...]}
+  single: {runs: [...], sections: [...], findings: [...]}
+  printed: {runs: [...], sections: [...], findings: []}
 ```
 
 A run is a pair `[start, end]`, the end not played, one per stretch up to
@@ -421,33 +421,39 @@ a Jump, a Break or the length, as the main README's "Computing a flow"
 plays them; `sections` lists the atomic sections the runs cover, in
 order, so that an implementation that joins touching runs compares the
 sections. Every value is spelled in the timeline's number type. A finding
-is `{kind, coordinate}`, in the order the findings arise, `never_played`
-last, its kind one of `flow_ends_at_break`, `never_played`,
+is `{kind, coordinate}`, a `never_played` finding also with the `end`
+of its stretch and any finding with its `cause` where it has one, in the
+order the findings arise, `never_played` last, its kind one of `flow_ends_at_break`, `never_played`,
 `endless_loop`, `ambiguous_targets` and `undetermined_target`, as the
 main README's "Computing a flow" states them: `flow_ends_at_break` is not
 stated where a Break with `ends` holds at the coordinate the flow ends at
 (`volta_passes` ends at 12, where the Fine holds, with no finding), and
 `never_played` is stated once for each stretch of the axis that no run
-covers, at its start, however many atomic sections it holds. Findings
-are stated for `default` alone: under `single` and `printed` a file
-states runs and sections and says nothing of findings.
+covers, from its start to its end, however many atomic sections it
+holds. Findings
+are stated for every convention. The only cause is `single_playback`: a
+stretch `single` never plays that the `default` flow plays, divided
+where the `default` flow begins or ends playing it, so that each
+`never_played` of `single` either has that cause or lies where the
+`default` flow does not play either and has none; no other finding has a
+cause. `printed` plays the whole axis and its findings are always empty.
 
-| Case | `default` | `single` | Findings of `default` |
-| --- | --- | --- | --- |
-| `sonata_exposition` | A B A C | A C | none |
-| `dal_segno_al_coda` | A B C B D | A B C D | none |
-| `da_capo_al_fine` | A B A | A B | none |
-| `repeat_end_and_dal_segno` | A B C B C C D | A B C D | none |
-| `volta_passes` | A B A C A B | A C | none |
-| `ossia` | A B C | A B C | `undetermined_target` at 4, `flow_ends_at_break` at 16, `never_played` at 16 |
-| `sections` | A B A C C | A B C | none |
-| `loop` | A, B 128 times, C | A B C | none |
-| `repairs` | A B B | A B | none |
+| Case | `default` | `single` | Findings of `default` | Findings of `single` |
+| --- | --- | --- | --- | --- |
+| `sonata_exposition` | A B A C | A C | none | `never_played` 12 to 16, `single_playback` |
+| `dal_segno_al_coda` | A B C B D | A B C D | none | none |
+| `da_capo_al_fine` | A B A | A B | none | none |
+| `repeat_end_and_dal_segno` | A B C B C C D | A B C D | none | none |
+| `volta_passes` | A B A C A B | A C | none | `never_played` 8 to 12, `single_playback` |
+| `ossia` | A B C | A B C | `undetermined_target` at 4, `flow_ends_at_break` at 16, `never_played` 16 to 24 | the same, without cause |
+| `sections` | A B A C C | A B C | none | none |
+| `loop` | A, B 128 times, C | A B C | none | none |
+| `repairs` | A B B | A B | none | none |
 
 `printed` is the atomic sections in order in every case. The package
 tests compute no flow: they check that each file agrees with its manifest
 (its atomic sections, its runs on their boundaries, its `printed` flow and
-its `never_played` findings), and an implementation that computes flows
+the `never_played` findings of each convention with their causes), and an implementation that computes flows
 is run against the files.
 
 ## Statement fixtures

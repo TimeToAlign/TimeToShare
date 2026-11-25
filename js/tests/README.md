@@ -258,8 +258,11 @@ a manifestation and a convention outside the vocabularies, sorted by path
 and then code; the provenance of a flow-control element and of a FlowMap
 under the entry rules; and the agreement of every expected flow under
 `fixtures/flows/0.2.0/` with its manifest, the boundaries of the atomic
-sections computed in the test, `never_played` once for each stretch the
-default flow leaves out, at its start, and each FlowMap of
+sections computed in the test, under `default` and `single`
+`never_played` once for each stretch the convention's flow leaves out, at
+its start and with its end, a stretch of `single` divided where the `default` flow begins
+or ends playing it and a piece the `default` flow plays carrying the cause
+`single_playback`, the only cause, no finding under `printed`, and each FlowMap of
 `sonata_exposition` with its one provenance entry `{method: inferred}`. The shared rejection and warning cases pin
 every rule's code, path and message for both packages; the canonical order
 of a jump's destinations lies in `manifest.test.ts`, the ID positions in

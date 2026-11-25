@@ -35,6 +35,10 @@ is taken once, and its stretch [0, 16) contains 12. On pass 2 the
 destination to `jump_target_1` holds and lies ahead: runs [0, 12),
 [16, 24), A C.
 
+The stretch [12, 16), B, lies in no run, and the `default` flow plays it:
+finding `never_played` from 12 to 16, cause `single_playback` (going
+through once takes the second bracket at once and leaves out the first).
+
 ## printed
 
-A B C.
+A B C. The whole axis is played: no finding.

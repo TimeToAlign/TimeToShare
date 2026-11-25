@@ -23,6 +23,8 @@ jumps would lie at 16.
 
 Runs [0, 16): A B.
 
+Every stretch is played, and the walk finds nothing: no finding.
+
 ## printed
 
-A B.
+A B. The whole axis is played: no finding.

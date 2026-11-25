@@ -26,6 +26,7 @@ conventions:
         kind: flow_ends_at_break
       -
         coordinate: [16, 1]
+        end: [24, 1]
         kind: never_played
     runs:
       -
@@ -36,6 +37,7 @@ conventions:
         - [16, 1]
     sections: [A, B, C]
   printed:
+    findings: []
     runs:
       -
         - [0, 1]
@@ -51,6 +53,17 @@ conventions:
         - [24, 1]
     sections: [A, B, C, D]
   single:
+    findings:
+      -
+        coordinate: [4, 1]
+        kind: undetermined_target
+      -
+        coordinate: [16, 1]
+        kind: flow_ends_at_break
+      -
+        coordinate: [16, 1]
+        end: [24, 1]
+        kind: never_played
     runs:
       -
         - [0, 1]

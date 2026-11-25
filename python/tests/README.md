@@ -1288,21 +1288,27 @@ flow that does not follow from its manifest.
   YAML, each beside the trace it was derived by hand with (`<name>.md`):
   `manifest` (a path under `fixtures/0.2.0/` without extension),
   `timeline` (a bare ID), `atomic_sections` (`name`, `start`, `end`) and
-  `conventions`, whose `default` holds `runs`, `sections` and `findings`
-  and whose `single` and `printed` hold `runs` and `sections`. A run is a
+  `conventions`, whose `default`, `single` and `printed` each hold
+  `runs`, `sections` and `findings`. A run is a
   pair of start and end, the end not played, in the spelling of the
   timeline's number type; `sections` lists the atomic sections the runs
-  cover; a finding is a `kind` and a `coordinate`. This package computes no
+  cover; a finding is a `kind` and a `coordinate`, a `never_played` one
+  also the `end` of its stretch, and a `cause` where it has one, whose only
+  value is `single_playback`. This package computes no
   flow, so the test proves agreement, not the flows: the atomic sections
   are the intervals between the boundaries the schema states (computed in
   the test from the manifest, a rejected element left out, a barline no
   boundary, a destination without a place at the nearest section break
   before its jump), lettered from A; every run starts and ends on a
   boundary inside the axis and covers the sections listed; `printed` is the
-  sections in order; `never_played` is reported exactly once for each
-  stretch of adjacent sections the default flow leaves out, at its start,
-  never once per section; every kind is one of the five
-  the format names. For `sonata_exposition` the manifest's regions are the
+  sections in order and finds nothing; under `default` and `single`
+  `never_played` is reported exactly once for each stretch of adjacent
+  sections the convention's flow leaves out, at its start and with its
+  end, never once per
+  section, a stretch of `single` divided where the sections the `default`
+  flow plays begin or end: a piece the `default` flow plays has the cause
+  `single_playback`, a piece it leaves out none, and no other finding has
+  a cause; every kind is one of the five the format names. For `sonata_exposition` the manifest's regions are the
   atomic sections, each FlowMap lists the regions of its convention's
   sections, and the virtual timeline's length, 36 quarters, is the sum of
   the default runs.

@@ -1049,9 +1049,9 @@ def _boundaries(root: dict) -> list[Fraction]:
 def test_an_expected_flow_agrees_with_its_manifest(path: Path) -> None:
     """An expected flow is consistent with the manifest it names.
 
-    Findings are stated for ``default`` only, and that is the rule of the
-    form: under ``single`` and ``printed`` a file states runs and sections
-    and says nothing of findings.
+    Findings are stated for every convention: ``printed`` finds nothing,
+    and a stretch ``single`` never plays that the ``default`` flow plays is
+    ``never_played`` with the cause ``single_playback``, the only cause.
     """
     text = path.read_text(encoding="utf-8")
     case = loads(text)
@@ -1073,9 +1073,8 @@ def test_an_expected_flow_agrees_with_its_manifest(path: Path) -> None:
     spelled = {type(root["length"])}
     conventions = case["conventions"]
     assert sorted(conventions) == ["default", "printed", "single"]
-    assert sorted(conventions["default"]) == ["findings", "runs", "sections"]
-    for name in ("single", "printed"):
-        assert sorted(conventions[name]) == ["runs", "sections"]
+    for flow in conventions.values():
+        assert sorted(flow) == ["findings", "runs", "sections"]
     for flow in conventions.values():
         covered = []
         for start, end in flow["runs"]:
@@ -1094,15 +1093,7 @@ def test_an_expected_flow_agrees_with_its_manifest(path: Path) -> None:
     assert [[run[0], run[1]] for run in conventions["printed"]["runs"]] == [
         [section["start"], section["end"]] for section in sections
     ]
-    played = set(conventions["default"]["sections"])
-    # One finding per stretch that no run covers: adjacent atomic sections
-    # that are not played are one stretch, reported at its start.
-    never = [
-        section["start"]
-        for index, section in enumerate(sections)
-        if section["name"] not in played
-        and (index == 0 or sections[index - 1]["name"] in played)
-    ]
+    default = set(conventions["default"]["sections"])
     kinds = {
         "flow_ends_at_break",
         "never_played",
@@ -1110,16 +1101,47 @@ def test_an_expected_flow_agrees_with_its_manifest(path: Path) -> None:
         "ambiguous_targets",
         "undetermined_target",
     }
-    findings = conventions["default"]["findings"]
-    assert {finding["kind"] for finding in findings} <= kinds
-    assert [
-        finding["coordinate"]
-        for finding in findings
-        if finding["kind"] == "never_played"
-    ] == never
-    for finding in findings:
-        assert sorted(finding) == ["coordinate", "kind"]
-        assert exact(finding["coordinate"]) in bounds
+    assert conventions["printed"]["findings"] == []
+    for name in ("default", "single"):
+        played = set(conventions[name]["sections"])
+        # One finding per stretch that no run covers: adjacent atomic sections
+        # that are not played are one stretch, reported at its start. Under
+        # ``single`` a stretch is divided where the ``default`` flow begins or
+        # ends playing it, and a piece the ``default`` flow plays has the
+        # cause ``single_playback``.
+        never: list[dict] = []
+        piece = None
+        for section in sections:
+            key = None
+            if section["name"] not in played:
+                key = name == "single" and section["name"] in default
+            if piece is not None and (key is None or key != piece[0]):
+                never.append(piece[1])
+                piece = None
+            if key is not None and piece is None:
+                cause = {"cause": "single_playback"} if key else {}
+                piece = (key, {"coordinate": section["start"], **cause})
+            if piece is not None:
+                piece[1]["end"] = section["end"]
+        if piece is not None:
+            never.append(piece[1])
+        findings = conventions[name]["findings"]
+        assert {finding["kind"] for finding in findings} <= kinds
+        assert [
+            {key: value for key, value in finding.items() if key != "kind"}
+            for finding in findings
+            if finding["kind"] == "never_played"
+        ] == never
+        for finding in findings:
+            assert sorted(finding) in (
+                ["coordinate", "kind"],
+                ["coordinate", "end", "kind"],
+                ["cause", "coordinate", "end", "kind"],
+            )
+            assert ("end" in finding) == (finding["kind"] == "never_played")
+            assert finding.get("cause", "single_playback") == "single_playback"
+            assert "cause" not in finding or finding["kind"] == "never_played"
+            assert exact(finding["coordinate"]) in bounds
 
 
 def test_the_sonata_expositions_flow_maps_are_its_expected_flows() -> None:

@@ -551,17 +551,22 @@ on pass 1 plus the sum of the `repeat_count`s of the restoring
 destinations of other Jumps whose stretch gone back over contains its
 coordinate, so that a volta Jump inside a repeat taken once enters the
 second bracket. The `printed` flow is the atomic sections in the order of
-the axis. A reader computing the `default` flow reports **findings**, each
-at a coordinate, which refuse nothing: `flow_ends_at_break` where the flow
+the axis. A reader computing a flow reports **findings**, each at a
+coordinate, which refuse nothing: `flow_ends_at_break` where the flow
 ends at a Break that has no `ends`, lies before the length and shares its
 coordinate with no section break, unless a Break with `ends` holds at that
 coordinate; `never_played` once for each stretch of the axis from 0 to
-the length that no run covers, at its start, however many atomic sections
-the stretch holds; `endless_loop` where the flow comes
+the length that no run covers, at its start and with its end, however
+many atomic sections the stretch holds; `endless_loop` where the flow comes
 back to a place with every count and condition as it was there before;
 `ambiguous_targets` where two destinations of one kind hold together;
 and `undetermined_target` where the flow passes a Jump holding a
-destination of `determined: false`. The expected flows of the flow
+destination of `determined: false`. The `single` flow reports what its
+walk finds alike; a stretch it never plays that the `default` flow plays
+is reported `never_played` with the **cause** `single_playback`, since
+going through once left it out, and divided where the `default` flow
+begins or ends playing it; every other finding has no cause. The
+`printed` flow plays the whole axis and finds nothing. The expected flows of the flow
 fixtures ([fixture guide](fixtures/README.md#flow-fixtures-and-expected-flows))
 state the runs, the atomic sections and the findings of each.
 

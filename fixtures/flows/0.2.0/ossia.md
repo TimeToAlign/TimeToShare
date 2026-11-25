@@ -18,7 +18,7 @@ C [12, 16), D [16, 24).
    `ends` and holds; no jump lies at 16; the flow ends there. It is not the
    length, no section break lies at 16 and the break has no `ends`: finding
    `flow_ends_at_break` at 16.
-3. [16, 24) lies in no run: finding `never_played` at 16.
+3. [16, 24) lies in no run: finding `never_played` from 16 to 24.
 
 Runs [0, 4), [4, 16): A B C.
 
@@ -26,6 +26,11 @@ Runs [0, 4), [4, 16): A B C.
 
 The same walk: runs [0, 4), [4, 16), A B C.
 
+The walk finds what the `default` walk finds: `undetermined_target` at 4
+and `flow_ends_at_break` at 16. [16, 24) lies in no run and the `default`
+flow does not play it either: finding `never_played` from 16 to 24,
+without a cause.
+
 ## printed
 
-A B C D.
+A B C D. The whole axis is played: no finding.

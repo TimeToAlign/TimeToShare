@@ -30,6 +30,8 @@ Runs [0, 8), [8, 16), [0, 8), [16, 32), [16, 32): A B A C C. No finding.
 No `after` holds and neither da capo is taken: runs [0, 8), [8, 16),
 [16, 32), A B C.
 
+Every stretch is played, and the walk finds nothing: no finding.
+
 ## printed
 
-A B C.
+A B C. The whole axis is played: no finding.

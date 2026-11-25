@@ -27,6 +27,8 @@ No `after` holds, so `jump_1` is not taken; the destination of `jump_2`
 lies before its jump and is not taken. Runs [0, 12), [12, 24), [24, 32):
 A B C D.
 
+Every stretch is played, and the walk finds nothing: no finding.
+
 ## printed
 
-A B C D.
+A B C D. The whole axis is played: no finding.

@@ -23,6 +23,8 @@ A, B 128 times, C. No finding.
 The destination lies before its jump and is not taken: runs [0.0, 6.0),
 [6.0, 10.0), A B C.
 
+Every stretch is played, and the walk finds nothing: no finding.
+
 ## printed
 
-A B C.
+A B C. The whole axis is played: no finding.

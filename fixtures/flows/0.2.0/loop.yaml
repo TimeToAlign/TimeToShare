@@ -146,12 +146,14 @@ conventions:
       - [6.0, 10.0]
     sections: [A, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, B, C]
   printed:
+    findings: []
     runs:
       - [0.0, 2.0]
       - [2.0, 6.0]
       - [6.0, 10.0]
     sections: [A, B, C]
   single:
+    findings: []
     runs:
       - [0.0, 6.0]
       - [6.0, 10.0]
