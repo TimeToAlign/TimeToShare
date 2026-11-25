@@ -261,10 +261,10 @@ def test_a_manifest_without_statements_says_nothing(path: Path) -> None:
 
 def test_the_atomic_section_fixture_is_found() -> None:
     assert [path.name for path in ATOMIC_SECTIONS] == [
-        "volta_run.minimal.yaml",
-        "volta_run.yaml",
         "sonata_exposition.minimal.yaml",
         "sonata_exposition.yaml",
+        "volta_run.minimal.yaml",
+        "volta_run.yaml",
     ]
 
 
