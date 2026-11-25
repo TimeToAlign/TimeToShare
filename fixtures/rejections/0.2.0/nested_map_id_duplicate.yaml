@@ -12,7 +12,7 @@ manifest:
           id: "#cmap_1"
           maps:
             -
-              id: "#lmap_1"
+              id: "#cmap_2"
               name: null
               offset: 0
               scalar: [1, 2]
@@ -20,7 +20,7 @@ manifest:
               target_unit: seconds
               type: LinearMap
             -
-              id: "#lmap_1"
+              id: "#cmap_2"
               name: null
               offset: 0
               scalar: [1, 60]
@@ -42,6 +42,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
-message: "'lmap_1' is not unique in the manifest, first at #/timelines/0/conversion_maps/0/maps/0/id"
+message: "'cmap_2' is not unique in the manifest, first at #/timelines/0/conversion_maps/0/maps/0/id"
 path: [timelines, 0, conversion_maps, 0, maps, 1, id]
-reason: "IDs are unique across the manifest, the maps a ChainMap, PiecewiseMap or CombinationMap holds included; a ChainMap holds two maps lmap_1, and the second is reported."
+reason: "IDs are unique across the manifest, the maps a ChainMap, PiecewiseMap or CombinationMap holds included; a ChainMap holds two maps cmap_2, and the second is reported."

@@ -105,7 +105,7 @@ measure_maps:
         start_repeat: false
         time_signature: "4/4"
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (d57df1b7)"
 name: null
 resources: []
 timelines:
@@ -120,87 +120,21 @@ timelines:
         target_unit: null
         type: MeasureRecordMap
       -
-        id: "#cmap_2"
-        measure_map: "#measuremap_1"
-        name: null
-        source_unit: quarters
-        target_unit: null
-        type: MeasureNumberMap
-      -
-        id: "#cmap_3"
-        measure_map: "#measuremap_1"
-        name: null
-        source_unit: quarters
-        target_unit: null
-        type: MeasureBeatMap
-      -
-        id: "#cmap_4"
-        maps:
-          -
-            id: "#lmap_1"
-            name: null
-            offset: 0
-            scalar: [1, 2]
-            source_unit: quarters
-            target_unit: seconds
-            type: LinearMap
-          -
-            id: "#lmap_2"
-            name: null
-            offset: 0
-            scalar: [1, 60]
-            source_unit: seconds
-            target_unit: minutes
-            type: LinearMap
-        name: null
-        source_unit: quarters
-        target_unit: minutes
-        type: ChainMap
-      -
-        id: "#cmap_5"
-        maps:
-          measure:
-            id: "#cmap_7"
-            measure_map: "#measuremap_1"
-            name: null
-            source_unit: quarters
-            target_unit: null
-            type: MeasureNumberMap
-          section:
-            id: "#cmap_6"
-            name: null
-            source_unit: quarters
-            target_unit: null
-            type: ConstantMap
-            value: verse
-        name: null
-        source_unit: quarters
-        target_unit: null
-        type: CombinationMap
-      -
-        id: "#cmap_8"
+        id: "#cmap_11"
         name: null
         source_unit: quarters
         target_unit: null
         type: ConstantMap
         value: section-a
       -
-        id: "#lmap_5"
-        name: null
-        offset: [1, 3]
-        scalar: [3, 2]
-        source_unit: quarters
-        target_unit: seconds
-        type: LinearMap
-      -
         breaks:
           - [0, 1]
           - [8, 1]
           - [16, 1]
-        id: "#pmap_1"
+        id: "#cmap_12"
         maps:
           -
-            id: "#lmap_3"
+            id: "#cmap_13"
             name: null
             offset: 1
             scalar: 1
@@ -208,7 +142,7 @@ timelines:
             target_unit: seconds
             type: LinearMap
           -
-            id: "#lmap_4"
+            id: "#cmap_14"
             name: null
             offset: 2
             scalar: 1
@@ -220,15 +154,16 @@ timelines:
         target_unit: seconds
         type: PiecewiseMap
       -
-        id: "#tmap_1"
-        measure_map: "#measuremap_1"
+        id: "#cmap_15"
         name: null
+        offset: [1, 3]
+        scalar: [3, 2]
         source_unit: quarters
-        target_unit: floating_measures
-        type: FloatingMeasureMap
+        target_unit: seconds
+        type: LinearMap
       -
         extrapolate: constant
-        id: "#tmap_2"
+        id: "#cmap_16"
         kind: linear
         name: null
         source_unit: quarters
@@ -240,7 +175,7 @@ timelines:
         y_values: [0.0, 2.5]
       -
         extrapolate: none
-        id: "#tmap_3"
+        id: "#cmap_17"
         kind: previous
         name: null
         source_unit: quarters
@@ -252,7 +187,7 @@ timelines:
         y_values: [60, 72]
       -
         extrapolate: linear
-        id: "#tmap_4"
+        id: "#cmap_18"
         kind: linear
         name: null
         source_unit: quarters
@@ -263,6 +198,71 @@ timelines:
           - [8, 1]
           - [16, 1]
         y_values: [0.0, 4.25, 9.0]
+      -
+        id: "#cmap_2"
+        measure_map: "#measuremap_1"
+        name: null
+        source_unit: quarters
+        target_unit: null
+        type: MeasureNumberMap
+      -
+        id: "#cmap_3"
+        measure_map: "#measuremap_1"
+        name: null
+        source_unit: quarters
+        target_unit: floating_measures
+        type: FloatingMeasureMap
+      -
+        id: "#cmap_4"
+        measure_map: "#measuremap_1"
+        name: null
+        source_unit: quarters
+        target_unit: null
+        type: MeasureBeatMap
+      -
+        id: "#cmap_5"
+        maps:
+          -
+            id: "#cmap_6"
+            name: null
+            offset: 0
+            scalar: [1, 2]
+            source_unit: quarters
+            target_unit: seconds
+            type: LinearMap
+          -
+            id: "#cmap_7"
+            name: null
+            offset: 0
+            scalar: [1, 60]
+            source_unit: seconds
+            target_unit: minutes
+            type: LinearMap
+        name: null
+        source_unit: quarters
+        target_unit: minutes
+        type: ChainMap
+      -
+        id: "#cmap_8"
+        maps:
+          measure:
+            id: "#cmap_10"
+            measure_map: "#measuremap_1"
+            name: null
+            source_unit: quarters
+            target_unit: null
+            type: MeasureNumberMap
+          section:
+            id: "#cmap_9"
+            name: null
+            source_unit: quarters
+            target_unit: null
+            type: ConstantMap
+            value: verse
+        name: null
+        source_unit: quarters
+        target_unit: null
+        type: CombinationMap
     flow_control: []
     id: "#maps:quarters"
     is_segment_line: false

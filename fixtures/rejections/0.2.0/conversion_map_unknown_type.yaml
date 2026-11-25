@@ -136,7 +136,7 @@ manifest:
           type: PiecewiseMap
         -
           extrapolate: constant
-          id: "#tmap_1"
+          id: "#cmap_10"
           kind: linear
           name: quarters_to_seconds
           source_unit: quarters
@@ -148,7 +148,7 @@ manifest:
           y_values: [0.0, 2.5]
         -
           extrapolate: none
-          id: "#tmap_2"
+          id: "#cmap_11"
           kind: previous
           name: tempo
           source_unit: quarters
@@ -159,7 +159,7 @@ manifest:
             - [8, 1]
           y_values: [60, 72]
         -
-          id: "#umap_1"
+          id: "#cmap_12"
           name: null
           source_unit: quarters
           target_unit: null
@@ -176,6 +176,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
-message: "{'id': '#umap_1', 'name': None, 'source_unit': 'quarters', 'target_unit': None, 'type': 'UnknownMap', 'value': 'section-a'} is not valid under any of the given schemas"
+message: "{'id': '#cmap_12', 'name': None, 'source_unit': 'quarters', 'target_unit': None, 'type': 'UnknownMap', 'value': 'section-a'} is not valid under any of the given schemas"
 path: [timelines, 0, conversion_maps, 11]
 reason: "A conversion-map type must name one of the ten map types."

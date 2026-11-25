@@ -105,7 +105,7 @@ measure_maps:
         start_repeat: false
         time_signature: "4/4"
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (d57df1b7)"
 name: null
 resources: []
 timelines:
@@ -116,7 +116,7 @@ timelines:
         id: "#cmap_1"
         maps:
           -
-            id: "#lmap_1"
+            id: "#cmap_2"
             name: null
             offset: 0
             scalar: 4
@@ -124,7 +124,7 @@ timelines:
             target_unit: quarters
             type: LinearMap
           -
-            id: "#cmap_2"
+            id: "#cmap_3"
             measure_map: "#measuremap_1"
             name: null
             source_unit: quarters

@@ -56,7 +56,7 @@
 groups: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (d57df1b7)"
 name: null
 resources: []
 timelines:
@@ -64,7 +64,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: "#lmap_1"
+        id: "#cmap_1"
         name: null
         offset: [-1, 2]
         scalar: [1, 32]

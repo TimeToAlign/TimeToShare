@@ -87,7 +87,7 @@ groups:
     members: ["#perf:2023_Hewitt:cpt_1", "#perf:2023_Hewitt:dpt_1"]
     name: "perf:2023_Hewitt"
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (d57df1b7)"
 name: Beethoven_Eroica_op35-cpjku
 timelines:
   -
@@ -98,7 +98,7 @@ timelines:
   -
     conversion_maps:
       -
-        id: "#cmap_1"
+        id: "#cmap_2"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
@@ -115,7 +115,7 @@ timelines:
   -
     conversion_maps:
       -
-        id: "#cmap_2"
+        id: "#cmap_3"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
@@ -132,7 +132,7 @@ timelines:
   -
     conversion_maps:
       -
-        id: "#cmap_3"
+        id: "#cmap_4"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
@@ -149,7 +149,7 @@ timelines:
   -
     conversion_maps:
       -
-        id: "#cmap_4"
+        id: "#cmap_5"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
@@ -166,7 +166,7 @@ timelines:
   -
     conversion_maps:
       -
-        id: "#cmap_5"
+        id: "#cmap_6"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
@@ -183,7 +183,7 @@ timelines:
   -
     conversion_maps:
       -
-        id: "#lmap_1"
+        id: "#cmap_1"
         offset: [-1, 2]
         scalar: [1, 32]
         source_unit: ticks

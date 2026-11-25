@@ -136,7 +136,7 @@ manifest:
           type: PiecewiseMap
         -
           extrapolate: constant
-          id: "#tmap_1"
+          id: "#cmap_10"
           kind: linear
           name: quarters_to_seconds
           source_unit: quarters
@@ -145,7 +145,7 @@ manifest:
           y_values: [0.0, 2.5]
         -
           extrapolate: none
-          id: "#tmap_2"
+          id: "#cmap_11"
           kind: previous
           name: tempo
           source_unit: quarters

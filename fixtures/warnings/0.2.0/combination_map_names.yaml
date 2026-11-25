@@ -101,6 +101,30 @@ manifest:
           target_unit: minutes
           type: ChainMap
         -
+          extrapolate: constant
+          id: "#cmap_10"
+          kind: linear
+          name: quarters_to_seconds
+          source_unit: quarters
+          target_unit: seconds
+          type: TableMap
+          x_values:
+            - [0, 1]
+            - [4, 1]
+          y_values: [0.0, 2.5]
+        -
+          extrapolate: none
+          id: "#cmap_11"
+          kind: previous
+          name: tempo
+          source_unit: quarters
+          target_unit: null
+          type: TableMap
+          x_values:
+            - [0, 1]
+            - [8, 1]
+          y_values: [60, 72]
+        -
           id: "#cmap_2"
           maps:
             beat:
@@ -192,30 +216,6 @@ manifest:
           source_unit: quarters
           target_unit: seconds
           type: PiecewiseMap
-        -
-          extrapolate: constant
-          id: "#tmap_1"
-          kind: linear
-          name: quarters_to_seconds
-          source_unit: quarters
-          target_unit: seconds
-          type: TableMap
-          x_values:
-            - [0, 1]
-            - [4, 1]
-          y_values: [0.0, 2.5]
-        -
-          extrapolate: none
-          id: "#tmap_2"
-          kind: previous
-          name: tempo
-          source_unit: quarters
-          target_unit: null
-          type: TableMap
-          x_values:
-            - [0, 1]
-            - [8, 1]
-          y_values: [60, 72]
       flow_control: []
       id: "#maps:quarters"
       is_segment_line: false
@@ -230,5 +230,5 @@ manifest:
 unknown_keys:
   -
     key: names
-    path: [timelines, 0, conversion_maps, 1]
+    path: [timelines, 0, conversion_maps, 3]
 warnings: []
