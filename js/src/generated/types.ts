@@ -1542,7 +1542,7 @@ export interface FlowMap {
   canonical?: boolean;
   name?: Name;
   /**
-   * The provenance of this FlowMap: how it was made and who believes it.
+   * The provenance of this FlowMap: how it was made and who believes it. A FlowMap computed from the flow control of its timeline, which states the `convention` it follows, carries an entry of method `inferred`, as the atomic sections it plays do; one written by hand an entry of method `manual`.
    *
    * @minItems 1
    */

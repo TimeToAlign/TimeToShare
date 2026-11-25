@@ -60,16 +60,25 @@ flow_maps:
     chunks: ["#region_1", "#region_2", "#region_1", "#region_3"]
     convention: default
     id: "#flow_map_1"
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
   -
     chunks: ["#region_1", "#region_3"]
     convention: single
     id: "#flow_map_2"
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
   -
     chunks: ["#region_1", "#region_2", "#region_3"]
     convention: printed
     id: "#flow_map_3"
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
 name: "Sonata exposition"
 timelines:

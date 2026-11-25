@@ -62,6 +62,9 @@ flow_maps:
     convention: default
     id: "#flow_map_1"
     name: null
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
   -
     canonical: false
@@ -69,6 +72,9 @@ flow_maps:
     convention: single
     id: "#flow_map_2"
     name: null
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
   -
     canonical: false
@@ -76,6 +82,9 @@ flow_maps:
     convention: printed
     id: "#flow_map_3"
     name: null
+    provenance:
+      -
+        method: inferred
     timeline: "#score"
 groups: []
 measure_maps: []

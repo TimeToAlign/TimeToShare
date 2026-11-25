@@ -993,6 +993,7 @@ describe("the expected flows", () => {
         (flow.sections as string[]).map((section) => byName.get(section)),
       );
       expect(flowMap.timeline).toBe("score");
+      expect(flowMap.provenance).toEqual([{ method: "inferred" }]);
     }
     const [virtual] = value.virtual_timelines as [JsonObject];
     expect(virtual.map).toBe(flowMaps.find((entry) => entry.convention === "default")?.id);

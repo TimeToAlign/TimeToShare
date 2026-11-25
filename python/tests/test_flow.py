@@ -1144,6 +1144,7 @@ def test_the_sonata_expositions_flow_maps_are_its_expected_flows() -> None:
             regions[name]["id"] for name in flow["sections"]
         ], convention
         assert flow_maps[convention]["timeline"] == "score"
+        assert flow_maps[convention]["provenance"] == [{"method": "inferred"}]
     (virtual,) = value["virtual_timelines"]
     assert virtual["map"] == flow_maps["default"]["id"]
     played = sum(
@@ -1218,6 +1219,17 @@ def test_the_flow_fixtures_cover_what_their_names_say() -> None:
     assert flow_map["chunks"] == ["second", {"gap": [4, 1]}, "first"]
     assert "convention" not in flow_map
     assert flow_map["provenance"][0]["method"] == "manual"
+    computed = read("sonata_exposition")
+    assert [
+        (entry["convention"], entry["provenance"]) for entry in computed["flow_maps"]
+    ] == [
+        (convention, [{"method": "inferred"}])
+        for convention in ("default", "single", "printed")
+    ]
+    assert [
+        [(entry["method"], entry["property"]) for entry in region["provenance"]]
+        for region in computed["timelines"][0]["regions"]
+    ] == [[("inferred", "rdf:type")]] * 3
     repairs = flow("repairs")
     assert [
         (identifier, entry["provenance"][0]["method"], rejected(entry))
