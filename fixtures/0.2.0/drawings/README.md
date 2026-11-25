@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Forty-four of the 111 drawings in this directory are derived by hand from
+Forty-one of the 109 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the metrics table
 of its two fonts alone. Their `figure.svg` files are never regenerated:
 the emitting script compares each with its writer's output instead. Every
@@ -49,9 +49,6 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `map_child_band_order` | `map_child_band_order.yaml` | none |
 | `map_root_band_order` | `map_root_band_order.yaml` | none |
 | `joint_rows` | `joint_rows.yaml` | none |
-| `unknown_length_child__regions-shown` | `unknown_length_child.yaml` | the application layer `[{"select": {"addresses": [{"id": "movement", "facet": "regions"}]}, "set": {"display": "inline"}}]` |
-| `unknown_length_segments__regions-shown` | `unknown_length_segments.yaml` | the application layer `[{"select": {"element": "band", "facet": "regions"}, "set": {"display": "inline"}}]` |
-| `child_flow_control__flow-shown` | `child_flow_control.yaml` | the application layer `[{"select": {"addresses": [{"id": "verse", "facet": "flow_control"}]}, "set": {"display": "inline"}}]` |
 | `map_row_siblings` | `map_row_siblings.yaml` | none |
 | `map_row_subslots` | `map_row_subslots.yaml` | none |
 | `map_row_moved` | `map_row_moved.yaml` | none |
@@ -71,14 +68,15 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 
 ## Shared quantities
 
-Every manifest is drawn as one block (§8). Twenty-seven of these drawings show
+Every manifest is drawn as one block (§8). Twenty-four of these drawings show
 one ungrouped root, drawn in its card, twelve one group, drawn as a frame,
 `bundle_ungrouped__places`, `bundle_ungrouped__scale` and
 `bundle_ungrouped__spacing` three ungrouped roots, each in its own card,
-and `bundle__bundle_matchstamp_cards` two groups sharing a member, each
-drawn as a frame. Only the manifests of these four have a `name`, so only
-their block has a title; no other manifest has a `name` or an
-`id`.
+`bundle__bundle_matchstamp_cards` two groups sharing a member, each
+drawn as a frame, and `bundle__bundle_arranged_roots__horizontal` three
+groups and an ungrouped root side by side. Only the manifests of these
+five have a `name`, so only their block has a title; no other manifest
+has a `name` or an `id`.
 
 Every element carries its address (§2.2) as the attributes `data-id`,
 `data-facet` and `data-part`, each only when the address has its member,
@@ -86,9 +84,7 @@ the words of `part` joined by one space (§7.2): the map `tempo` of `map`
 carries `data-id="tempo"`, the region `region_1` of `with_region`
 `data-id="region_1"`, the arc of the jump `jump_1` of `flow_control`
 `data-id="jump_1"`, the label of the region `intro` of
-`styled__score` `data-id="intro" data-part="label"`, and the break
-`fine` of the child `verse` in `child_flow_control__flow-shown`
-`data-id="fine"`, and the wedge of the named timestamp `timestamp_1` of
+`styled__score` `data-id="intro" data-part="label"`, and the wedge of the named timestamp `timestamp_1` of
 `timestamps` `data-id="timestamp_1"`, its name `data-id="timestamp_1"
 data-part="name"`, its cross-section line `data-id="timestamp_1"
 data-part="line"`, and the ID and coordinate labels of `timestamp_3`
@@ -1589,161 +1585,6 @@ Children).
 - `W` = 8 + (10 + 484.282958984375) = 502.282958984375; `H` = 8 + (10 +
   108.4765625) = 126.4765625.
 - Page 534.282958984375 × 158.4765625 → **534.283 × 158.4766**.
-
-## `unknown_length_child__regions-shown`
-
-`unknown_length_child` with the application layer `[{"select":
-{"addresses": [{"id": "movement", "facet": "regions"}]}, "set":
-{"display": "inline"}}]`. It outranks the default that hides that band
-(§2.5, §4), so the region `region_1` is
-drawn in `movement`'s regions band, at `movement`'s line. `movement` has no
-band order of its own and follows `score`'s, the default one
-(§6.4), so its regions band lies below its line, towards `score`'s. Its
-markers band draws nothing, so the regions band is at level −1 and the only
-band `movement` draws.
-
-- Horizontally the drawing is that of `unknown_length_child`: the region
-  has no label and its brace lies inside `movement`'s span, so `x0` =
-  83.490234375 → 83.4902 and `R` = 492.769287109375.
-- The regions band of `movement` (§6.4, Where a band lies): `movement`'s
-  line has no map and no boundary, so it reaches 0 below, less than `w / 2`
-  = 1.5. The band therefore starts at `S` beyond `w / 2`, `c` = 1.5 + 4 =
-  5.5, and its brace keeps the gap `S` from the line's stroke. It has one
-  row, so it is `pr − S` = 18.4765625 wide (Shared quantities), and
-  `movement`'s edge below is 5.5 + 18.4765625 = 23.9765625; its edge above
-  is 0.
-- Above `score`, the children band alone, at level 1. `score`'s line
-  reaches nothing there, so the band's own start is the larger of 1.5 + 4 =
-  5.5 and `p0 / 2` = 7: 7. Its one row holds `movement`: the outer half is
-  `movement`'s above side, max(7, 0) = 7, and the inner half its below
-  side, max(7, 23.9765625) = 23.9765625. So `movement`'s line lies `l1` =
-  7 + 23.9765625 = 30.9765625 above `score`'s, the band is 23.9765625 + 7 =
-  30.9765625 wide, and `Ea` = 7 + 30.9765625 = 37.9765625. Below, the
-  markers band alone: `Eb` = 26.9765625 (Shared quantities).
-- `y_root` = 8 + 37.9765625 = 45.9765625; `Hm` = 45.9765625 + 26.9765625 +
-  8 = 80.953125 → 80.9531.
-- Drawn, each ordinate the card's top 8 plus its item-coordinate value:
-  - `score`'s line at 53.9765625 → 53.9766, and `movement`'s at 53.9765625
-    − 30.9765625 = 23, as in `unknown_length_child`;
-  - the brace's arms at 23 + 5.5 = 28.5, from `x(8)` = 183.490234375 →
-    183.4902 to `x(14)` = 258.490234375 → 258.4902; its tip at 23 + (5.5 +
-    6) = 34.5 on `x(11)` = 220.990234375 → 220.9902, `u` = 11/32, the
-    midpoint of 8 and 14 on `score`'s axis (§3.1); its path's `Ym` = 31.5
-    and `k` = 3 (§7.2);
-  - the wedges from 53.9765625 + 1.5 = 55.4765625 → 55.4766 to 53.9765625
-    + 14.5 = 68.4765625 → 68.4766, and their labels' baseline at
-    (53.9765625 + 16.5) + 8.35400390625 = 78.83056640625 → 78.8306;
-  - the names' baselines at 23 + 3.80810546875 = 26.80810546875 → 26.8081
-    (`movement`) and 53.9765625 + 3.80810546875 = 57.78466796875 → 57.7847
-    (`score`).
-- `W` = 510.769287109375; `H` = 8 + (10 + 80.953125) = 98.953125.
-- Page 542.769287109375 × 130.953125 → **542.7693 × 130.9531**.
-
-## `unknown_length_segments__regions-shown`
-
-`unknown_length_segments` with the application layer `[{"select":
-{"element": "band", "facet": "regions"}, "set": {"display": "inline"}}]`,
-which outranks the defaults (§2.5) and shows every regions band. The
-regions bands of `a` and `c` are displayed, and what they hold joins
-`form`'s regions band, after `form`'s own content (none), segment after
-segment in traversal order (§6.4, Segments without a line): `region_1` of
-`a` and then `region_2` of `c`, laid out by one first fit.
-
-- `λ` = 17, the boundaries, `Ea` = 8, `y_root` = 16, `x0` = 49.8403 and
-  `R` = 478.34033203125 are those of `unknown_length_segments`. Neither
-  region has a label, and both braces end at or before `x(17)` = `x0 + L` =
-  449.84033203125.
-- The regions band lies at level −2, beyond the markers band, and starts
-  at 26.9765625 + 4 = 30.9765625. On `form`'s axis the regions span 0 to
-  4 and 14 to 17, so both lie in row 1. The band is therefore 18.4765625
-  wide and `Eb` = 49.453125 (Shared quantities).
-- The braces have their arms at 24 + 30.9765625 = 54.9765625 → 54.9766
-  and their tips at 24 + 36.9765625 = 60.9765625 → 60.9766, and open
-  towards `form`'s line.
-  - `region_1` runs from `x(0)` = 49.8403 to `x(4)` =
-    143.95797909007354 → 143.958, with its tip at `x(2)` =
-    96.89915556066177 → 96.8992.
-  - `region_2` runs from `x(14)` = 379.2521 to `x(17)` = 449.8403,
-    with its tip at `x(31/2)` = 414.54621438419116 → 414.5462.
-- `Hm` = 16 + 49.453125 + 8 = 73.453125.
-- `W` = 496.34033203125; `H` = 8 + (10 + 73.453125) = 91.453125.
-- Page 528.34033203125 × 123.453125 → **528.3403 × 123.4531**.
-
-## `child_flow_control__flow-shown`
-
-The root `piece` ("Piece", 16 quarters) and its locked child `verse`
-("Verse", 8 at 4), which holds the break `fine` ("Fine") at 4 and the
-jump `da_capo_al_fine` from 8 back to the timeline `verse` itself, at 0,
-its one destination labelled `D.C. al Fine`, which labels the arc (§5.3), on
-`piece`'s axis at 8 and from 12 to 4. The application layer `[{"select":
-{"addresses": [{"id": "verse", "facet": "flow_control"}]}, "set":
-{"display": "inline"}}]` outranks
-the default that hides the flow control band of every timeline held by a
-band (§2.5, §4), so the break and the jump, addressed
-`{"id": "fine"}` and `{"id": "da_capo_al_fine"}` (§2.2), are drawn at `verse`'s own
-line (§6.4). `verse` has no band order of its own and follows `piece`'s
-default one, so its flow control band lies below its line.
-Its markers band and regions band draw nothing, so the flow control band is
-at level −1. `verse` has no map and no boundary, so its line reaches 0
-below, less than `w / 2` = 1.5, and the band starts at `S` beyond `w / 2`:
-`c` = 1.5 + 4 = 5.5.
-
-- `N` = w(`Verse`, 11) = 31.3134765625, above w(`Piece`, 11) =
-  29.2724609375.
-- `x0` = 16 + 31.3134765625 + 8 = 55.3134765625 → 55.3135; the label
-  `0 ♩` of `origin` gives only 22.416015625, and the arc's label, centred on `u` =
-  8/16 = 1/2, 16 + 25.7958984375 − 200 = −158.2041015625. `x(4)` =
-  155.3134765625, `x(8)` = 255.3134765625 and `x(12)` = 355.3134765625.
-- `R` = the label `16 ♩` of `length` at 455.3134765625 + 9.279052734375 =
-  464.592529296875, beyond the arrowhead tip 464.3134765625; the diamond of
-  `verse` reaches 359.8134765625, the arc's label 281.109375 and the
-  flow-line label 258.3134765625 + 18.91845703125 = 277.23193359375.
-- The flow control band of `verse` (§6.4): the label `Fine` fills one
-  flow-line label tier, `T` = 1, so the flow row lies 5.5 + 10.4765625 =
-  15.9765625 below `verse`'s line; the jump fills one jump row, its
-  apex at 15.9765625 + 8 = 23.9765625. The band is 10.4765625 + 8 + 0 + 2 +
-  10.4765625 = 30.953125 wide, so `verse`'s edge below is 5.5 + 30.953125 =
-  36.453125. Its above side has no band, and its line reaches 0 there.
-- The children band of `piece` lies above it at level 1. `piece`'s line
-  reaches nothing there, so the band's own start is the larger of 1.5 + 4
-  = 5.5 and `p0 / 2` = 7, `p0` = `p` = max(10 + 4, `h(11)`) = 14: 7. Its one
-  row holds `verse`, whose below side lies in the row's inner half: the
-  inner half is max(7, 36.453125) = 36.453125, the outer half 7. `verse`'s
-  line lies `l1` = 7 + 36.453125 = 43.453125 above `piece`'s, the band is
-  36.453125 + 7 = 43.453125 wide, and `Ea` = 7 + 43.453125 = 50.453125.
-- Below `piece`, the markers band reaches `Eb` = 26.9765625 (Shared
-  quantities).
-- `y_root` = 8 + 50.453125 = 58.453125; `Hm` = 58.453125 + 26.9765625 + 8 =
-  93.4296875 → 93.4297.
-- Drawn: `piece`'s line at 8 + 58.453125 = 66.453125 → 66.4531, `verse`'s
-  at 66.453125 − 43.453125 = 23, the flow row at 23 + 15.9765625 =
-  38.9765625 → 38.9766 and the apex at 23 + 23.9765625 = 46.9765625 →
-  46.9766.
-- The break (§6.4, Flow lines) at `x(8)`: `E` is the outer edge of
-  `verse`'s above side, 0, and `s` the name size 11 of its row, so `m` =
-  max(0, `h(11) / 2`) = 6.40234375. The break runs from the flow row
-  up across `verse`'s line to 23 − 6.40234375 = 16.59765625 → 16.5977,
-  inside the row's outer half of 7. Its label starts at 258.3134765625 →
-  258.3135, with its baseline at `yf − d(9)` = 38.9765625 − 2.12255859375 =
-  36.85400390625 → 36.854 (tier 1), so the label's ascent ends at 28.5, `S`
-  below the edge of `verse`'s stroke at 24.5.
-- The jump (§6.6), from `Xf` = `x(12)` to `Xt` = `x(4)`, computed in
-  item coordinates and then drawn at the card's place (§8.6): `q` = −50,
-  `yc` = 38.9765625 + 4/3 × 8 = 49.643229166666664 → 49.6432, `C1` =
-  (305.3134765625, `yc`), `C2` = (205.3134765625, `yc`); `ℓ` =
-  51.125118853434245, `(ux, uy)` = (−0.9779928364243076,
-  −0.2086384717705189), `Bh` = (159.22544790819722, 39.81111638708208) →
-  (159.2254, 39.8111) and the head's corners → (158.8082, 41.7671) and
-  (159.6427, 37.8551). Its label is centred on `x(8)`, with its baseline at
-  (23 + (23.9765625 + 2)) + `a(9)` = 57.33056640625 → 57.3306.
-- The names: `Verse` with its baseline at 23 + 3.80810546875 =
-  26.80810546875 → 26.8081, `Piece` at 66.453125 + 3.80810546875 =
-  70.26123046875 → 70.2612. The wedges run from 67.953125 → 67.9531 to
-  80.953125 → 80.9531, and their labels' baseline is 66.453125 + 16.5 +
-  8.35400390625 = 91.30712890625 → 91.3071.
-- `W` = 8 + (10 + 464.592529296875) = 482.592529296875; `H` = 8 + (10 +
-  93.4296875) = 111.4296875.
-- Page 514.592529296875 × 143.4296875 → **514.5925 × 143.4297**.
 
 ## `map_row_siblings`
 
