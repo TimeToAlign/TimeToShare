@@ -1048,7 +1048,11 @@ rules of flow control to the elements not rejected, so a rejected Jump and
 its replacement may share a coordinate, and a <code class="docutils literal notranslate"><span class="pre">to</span></code> or an <code class="docutils literal notranslate"><span class="pre">after</span></code> naming a
 rejected element names nothing: the validators report it as they report a
 <code class="docutils literal notranslate"><span class="pre">to</span></code> or an <code class="docutils literal notranslate"><span class="pre">after</span></code> naming no element (<code class="docutils literal notranslate"><span class="pre">dangling_target</span></code>), and a drawing
-draws no arc to it. Such provenance needs the <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> only
+draws no arc to it. A drawing may take a reading of its own, an actor’s
+beliefs filtered by belief state, and then reads its unread elements as
+rejected (<a class="reference internal" href="drawing.html"><span class="std std-doc">drawing
+specification</span></a>,
+section 1). Such provenance needs the <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> only
 where it uses a prefix; JSON-LD reads none of it, since <code class="docutils literal notranslate"><span class="pre">flow_control</span></code> is
 no term of the context.</p>
 <p><strong>The earlier form.</strong> A flow-control element written with the key <code class="docutils literal notranslate"><span class="pre">type</span></code>
@@ -1196,17 +1200,22 @@ on pass 1 plus the sum of the <code class="docutils literal notranslate"><span c
 destinations of other Jumps whose stretch gone back over contains its
 coordinate, so that a volta Jump inside a repeat taken once enters the
 second bracket. The <code class="docutils literal notranslate"><span class="pre">printed</span></code> flow is the atomic sections in the order of
-the axis. A reader computing the <code class="docutils literal notranslate"><span class="pre">default</span></code> flow reports <strong>findings</strong>, each
-at a coordinate, which refuse nothing: <code class="docutils literal notranslate"><span class="pre">flow_ends_at_break</span></code> where the flow
+the axis. A reader computing a flow reports <strong>findings</strong>, each at a
+coordinate, which refuse nothing: <code class="docutils literal notranslate"><span class="pre">flow_ends_at_break</span></code> where the flow
 ends at a Break that has no <code class="docutils literal notranslate"><span class="pre">ends</span></code>, lies before the length and shares its
 coordinate with no section break, unless a Break with <code class="docutils literal notranslate"><span class="pre">ends</span></code> holds at that
 coordinate; <code class="docutils literal notranslate"><span class="pre">never_played</span></code> once for each stretch of the axis from 0 to
-the length that no run covers, at its start, however many atomic sections
-the stretch holds; <code class="docutils literal notranslate"><span class="pre">endless_loop</span></code> where the flow comes
+the length that no run covers, at its start and with its end, however
+many atomic sections the stretch holds; <code class="docutils literal notranslate"><span class="pre">endless_loop</span></code> where the flow comes
 back to a place with every count and condition as it was there before;
 <code class="docutils literal notranslate"><span class="pre">ambiguous_targets</span></code> where two destinations of one kind hold together;
 and <code class="docutils literal notranslate"><span class="pre">undetermined_target</span></code> where the flow passes a Jump holding a
-destination of <code class="docutils literal notranslate"><span class="pre">determined:</span> <span class="pre">false</span></code>. The expected flows of the flow
+destination of <code class="docutils literal notranslate"><span class="pre">determined:</span> <span class="pre">false</span></code>. The <code class="docutils literal notranslate"><span class="pre">single</span></code> flow reports what its
+walk finds alike; a stretch it never plays that the <code class="docutils literal notranslate"><span class="pre">default</span></code> flow plays
+is reported <code class="docutils literal notranslate"><span class="pre">never_played</span></code> with the <strong>cause</strong> <code class="docutils literal notranslate"><span class="pre">single_playback</span></code>, since
+going through once left it out, and divided where the <code class="docutils literal notranslate"><span class="pre">default</span></code> flow
+begins or ends playing it; every other finding has no cause. The
+<code class="docutils literal notranslate"><span class="pre">printed</span></code> flow plays the whole axis and finds nothing. The expected flows of the flow
 fixtures (<a class="reference external" href="https://github.com/TimeToAlign/TimeToShare/blob/main/fixtures/README.md#flow-fixtures-and-expected-flows">fixture guide</a>)
 state the runs, the atomic sections and the findings of each.</p>
 <p><strong>An example.</strong> The fixture <code class="docutils literal notranslate"><span class="pre">fixtures/0.2.0/flow/sonata_exposition.yaml</span></code>
@@ -2974,11 +2983,13 @@ other timeline draws one), and the content <code class="docutils literal notrans
 <code class="docutils literal notranslate"><span class="pre">class</span></code> naming <code class="docutils literal notranslate"><span class="pre">tts:AtomicSection</span></code>), <code class="docutils literal notranslate"><span class="pre">break</span></code>, <code class="docutils literal notranslate"><span class="pre">section_break</span></code> and
 <code class="docutils literal notranslate"><span class="pre">barline</span></code> (each a vertical line at its coordinate), <code class="docutils literal notranslate"><span class="pre">jump</span></code> (one arc per
 destination whose place is not <code class="docutils literal notranslate"><span class="pre">by</span></code> 0, from the jump’s coordinate to
-that place, labelled with its destination’s <code class="docutils literal notranslate"><span class="pre">label</span></code>, and none to a place
-a <code class="docutils literal notranslate"><span class="pre">to</span></code> names where the element named is rejected; hidden by default;
-a rejected element is drawn faded), <code class="docutils literal notranslate"><span class="pre">symbol</span></code> (the music-font glyph of an
-element’s manifestation, such as 𝄆 for a repeat start), <code class="docutils literal notranslate"><span class="pre">bracket</span></code> (a
-volta bracket with its passes), <code class="docutils literal notranslate"><span class="pre">leader</span></code> (the thin line joining a label
+that place, labelled with its destination’s <code class="docutils literal notranslate"><span class="pre">label</span></code>, none for a
+destination of manifestation <code class="docutils literal notranslate"><span class="pre">volta</span></code>, and none to a place a <code class="docutils literal notranslate"><span class="pre">to</span></code> names
+where the element named is rejected; hidden by default; a rejected
+element, or under a reading an unread one, is drawn faded), <code class="docutils literal notranslate"><span class="pre">symbol</span></code> (the music-font glyph of an
+element’s manifestation, such as 𝄆 for a repeat start), <code class="docutils literal notranslate"><span class="pre">fork</span></code> (a
+jump’s volta destinations as a stem splitting into one arrow per
+destination, each with its passes), <code class="docutils literal notranslate"><span class="pre">leader</span></code> (the thin line joining a label
 moved to a further tier to its element),
 <code class="docutils literal notranslate"><span class="pre">wedge</span></code> (a coordinate marker), <code class="docutils literal notranslate"><span class="pre">cross_section</span></code> (a named timestamp’s
 cross-section line), <code class="docutils literal notranslate"><span class="pre">alignment_anchor</span></code> (the line of an alignment anchor

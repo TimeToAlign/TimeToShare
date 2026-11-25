@@ -485,7 +485,7 @@ root, and a band a facet of a timeline (README, “Containers”); these four
 containers are the <strong>boxes</strong> of a drawing.</p>
 <section id="inputs-and-output">
 <h2>1. Inputs and output<a class="headerlink" href="#inputs-and-output" title="Link to this heading">#</a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">draw(manifest,</span> <span class="pre">placement,</span> <span class="pre">layers,</span> <span class="pre">metrics)</span></code> returns the manifest’s drawing.</p>
+<p><code class="docutils literal notranslate"><span class="pre">draw(manifest,</span> <span class="pre">placement,</span> <span class="pre">layers,</span> <span class="pre">metrics,</span> <span class="pre">reading)</span></code> returns the manifest’s drawing.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">manifest</span></code>: a TimeToShare manifest, read in its complete form, every
 key the manifest leaves out taking its default (README, “Defaults”), and
@@ -542,6 +542,24 @@ then the manifest’s own <code class="docutils literal notranslate"><span class
 manifest: a drawing’s own styling is its manifest’s. Section 2 defines
 them.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">metrics</span></code>: the advance widths of the fonts of section 5.1.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">reading</span></code>: the <strong>reading in force</strong> of flow control, the flow-control
+elements the drawing counts as read (section 6.4, Flow control): <code class="docutils literal notranslate"><span class="pre">null</span></code>
+(the default), or an object <code class="docutils literal notranslate"><span class="pre">{believer,</span> <span class="pre">beliefs}</span></code>, <code class="docutils literal notranslate"><span class="pre">believer</span></code> the IRI
+of an actor and <code class="docutils literal notranslate"><span class="pre">beliefs</span></code> a non-empty list of belief states, a belief
+filter of the README (“Provenance and beliefs”). With an object, an
+element is read where its state for <code class="docutils literal notranslate"><span class="pre">believer</span></code> is one of <code class="docutils literal notranslate"><span class="pre">beliefs</span></code>,
+the state taken and the actors compared as the README’s belief filter
+takes and compares them; with <code class="docutils literal notranslate"><span class="pre">null</span></code>, an element is read where no actor
+believes it <code class="docutils literal notranslate"><span class="pre">false</span></code> (README, “Flow control”). An element the reading
+does not read is <strong>unread</strong>, and the drawing applies to unread elements
+what the README’s flow control says of rejected ones: no destination
+lands on an unread element, a <code class="docutils literal notranslate"><span class="pre">to</span></code> naming one names nothing (section
+3.1), and an unread element is drawn faded (section 6.4, Flow control).
+With <code class="docutils literal notranslate"><span class="pre">null</span></code>, unread and rejected are one. An editor passes its
+user and the belief states it keeps (the user’s own beliefs deciding
+where the user holds one, the workspace’s belief filter elsewhere), a
+script its own or <code class="docutils literal notranslate"><span class="pre">null</span></code>; like <code class="docutils literal notranslate"><span class="pre">placement</span></code>, a reading is never part of
+the manifest.</p></li>
 </ul>
 <p>The drawing is a <strong>block</strong> of width <code class="docutils literal notranslate"><span class="pre">W</span></code> and height <code class="docutils literal notranslate"><span class="pre">H</span></code> and a list of drawn
 <strong>elements</strong> in block-local canvas units, origin at the block’s top-left corner,
@@ -875,13 +893,13 @@ of a timeline, which draws nothing of its own:</p>
 <td><p>a barline, an element of the role <code class="docutils literal notranslate"><span class="pre">barline</span></code>, drawn as a vertical line, a flow line</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">jump</span></code></p></td>
-<td><p>a jump, an element of the role <code class="docutils literal notranslate"><span class="pre">jump</span></code>, drawn as one arc with an arrowhead per destination whose place is not <code class="docutils literal notranslate"><span class="pre">by</span></code> 0, from the jump’s coordinate to that place; hidden by default (section 4); a jump target, an element of the role <code class="docutils literal notranslate"><span class="pre">jump_target</span></code>, draws its symbol alone and has no element type</p></td>
+<td><p>a jump, an element of the role <code class="docutils literal notranslate"><span class="pre">jump</span></code>, drawn as one arc with an arrowhead per destination whose place is not <code class="docutils literal notranslate"><span class="pre">by</span></code> 0 and whose <code class="docutils literal notranslate"><span class="pre">manifestation</span></code> is not <code class="docutils literal notranslate"><span class="pre">volta</span></code> (its fork shows those), from the jump’s coordinate to that place; hidden by default (section 4); a jump target, an element of the role <code class="docutils literal notranslate"><span class="pre">jump_target</span></code>, draws its symbol alone and has no element type</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">symbol</span></code></p></td>
 <td><p>the <strong>symbol</strong> of a flow-control element: the glyphs of its manifestation, or of its destinations’ manifestations, in the music font on the flow row (section 6.4, Symbols)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bracket</span></code></p></td>
-<td><p>a <strong>volta bracket</strong>: a line with hooks and its passes as text, one per destination of a jump whose <code class="docutils literal notranslate"><span class="pre">manifestation</span></code> is <code class="docutils literal notranslate"><span class="pre">volta</span></code> (section 6.4, Brackets)</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fork</span></code></p></td>
+<td><p>a <strong>volta fork</strong>: one per jump with destinations whose <code class="docutils literal notranslate"><span class="pre">manifestation</span></code> is <code class="docutils literal notranslate"><span class="pre">volta</span></code>, a stem splitting into one arrow per such destination, each with its passes as text (section 6.4, Forks)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">leader</span></code></p></td>
 <td><p>a <strong>leader line</strong>: a thin line joining a label moved out of its first tier to its element (section 6.6, Leaders)</p></td>
@@ -976,7 +994,7 @@ by it, the conversion maps band its maps, the children band
 its child timelines, the regions band its regions, and the flow control
 band its flow lines and jumps and the symbols of its jump targets; a
 flow line or a jump holds its symbol and its stack (section 6.4, Flow
-labels), a jump also its arcs’ labels and its brackets, and a label or
+labels), a jump also its arcs’ labels and its fork, and a label or
 stack moved out of its first tier holds its leader (the first label of
 the stack); the flow control band of a timeline holds its timeline’s
 elements in this tree, for the cascade, wherever they are laid out (the
@@ -1008,7 +1026,7 @@ and compared as a whole object. No address is a string composed from IDs.
 <code class="docutils literal notranslate"><span class="pre">conversion_maps</span></code>, <code class="docutils literal notranslate"><span class="pre">children</span></code>, <code class="docutils literal notranslate"><span class="pre">regions</span></code> and <code class="docutils literal notranslate"><span class="pre">flow_control</span></code>, and names a
 band; <code class="docutils literal notranslate"><span class="pre">part</span></code> is a non-empty array of the words <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>,
 <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">coordinate</span></code>, <code class="docutils literal notranslate"><span class="pre">card</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">elision</span></code>, <code class="docutils literal notranslate"><span class="pre">ellipsis</span></code>,
-<code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">bracket</span></code> and <code class="docutils literal notranslate"><span class="pre">leader</span></code>, and names a part of an element; <code class="docutils literal notranslate"><span class="pre">end</span></code> names no element in this version. <code class="docutils literal notranslate"><span class="pre">facet</span></code> stands only with <code class="docutils literal notranslate"><span class="pre">id</span></code>, and never with <code class="docutils literal notranslate"><span class="pre">part</span></code>. The name or
+<code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">fork</span></code> and <code class="docutils literal notranslate"><span class="pre">leader</span></code>, and names a part of an element; <code class="docutils literal notranslate"><span class="pre">end</span></code> names no element in this version. <code class="docutils literal notranslate"><span class="pre">facet</span></code> stands only with <code class="docutils literal notranslate"><span class="pre">id</span></code>, and never with <code class="docutils literal notranslate"><span class="pre">part</span></code>. The name or
 label of an element is addressed by the element’s address with <code class="docutils literal notranslate"><span class="pre">name</span></code> or
 <code class="docutils literal notranslate"><span class="pre">label</span></code> appended to its <code class="docutils literal notranslate"><span class="pre">part</span></code>; a named timestamp has no row and so no
 <code class="docutils literal notranslate"><span class="pre">name</span></code> element, and the part <code class="docutils literal notranslate"><span class="pre">name</span></code> of its address names its first label,
@@ -1051,8 +1069,8 @@ and <code class="docutils literal notranslate"><span class="pre">X</span></code>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">X,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;symbol&quot;]}</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">T</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>the brackets of a jump with ID <code class="docutils literal notranslate"><span class="pre">X</span></code> of <code class="docutils literal notranslate"><span class="pre">T</span></code>, all of them</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">X,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;bracket&quot;]}</span></code></p></td>
+<tr class="row-even"><td><p>the fork of a jump with ID <code class="docutils literal notranslate"><span class="pre">X</span></code> of <code class="docutils literal notranslate"><span class="pre">T</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">X,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;fork&quot;]}</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">T</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>the labels of the stack of that flow-control element, all <code class="docutils literal notranslate"><span class="pre">label</span></code> elements: its name, its ID, its label</p></td>
@@ -1149,7 +1167,7 @@ of its arcs, and the label of each arc, its destination’s <code class="docutil
 (section 5.3), <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;jump_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;label&quot;]}</span></code>, as is the line of
 its stack that shows the jump’s own <code class="docutils literal notranslate"><span class="pre">label</span></code>, since a jump is one element,
 whose every arc and arc label carries its address; its symbol, the
-glyphs of all its destinations, is <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;jump_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;symbol&quot;]}</span></code>, its brackets all <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;jump_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;bracket&quot;]}</span></code>
+glyphs of all its destinations, is <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;jump_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;symbol&quot;]}</span></code>, its fork <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;jump_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;fork&quot;]}</span></code>
 and its leaders all <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;jump_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;leader&quot;]}</span></code>; a
 named timestamp <code class="docutils literal notranslate"><span class="pre">timestamp_1</span></code> draws its wedge <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;timestamp_1&quot;}</span></code>, its
 labels <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;timestamp_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;name&quot;]}</span></code>, <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;timestamp_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;id&quot;]}</span></code> and <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;timestamp_1&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;coordinate&quot;]}</span></code>, and
@@ -1269,7 +1287,7 @@ properties are the format’s own; a turned wedge is written by its points, neve
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stroke</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#RRGGBB</span></code> (upper-case) or <code class="docutils literal notranslate"><span class="pre">none</span></code></p></td>
 <td><p>yes</p></td>
-<td><p>every type but <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">band</span></code>, <code class="docutils literal notranslate"><span class="pre">wedge</span></code>, <code class="docutils literal notranslate"><span class="pre">ellipsis</span></code>, <code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">label</span></code> (an <code class="docutils literal notranslate"><span class="pre">elision</span></code> draws its continuations with it, a <code class="docutils literal notranslate"><span class="pre">bracket</span></code> its line and hooks)</p></td>
+<td><p>every type but <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">band</span></code>, <code class="docutils literal notranslate"><span class="pre">wedge</span></code>, <code class="docutils literal notranslate"><span class="pre">ellipsis</span></code>, <code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">label</span></code> (an <code class="docutils literal notranslate"><span class="pre">elision</span></code> draws its continuations with it, a <code class="docutils literal notranslate"><span class="pre">fork</span></code> its stem and shafts)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">stroke-width</span></code></p></td>
 <td><p>a number ≥ 0</p></td>
@@ -1284,7 +1302,7 @@ properties are the format’s own; a turned wedge is written by its points, neve
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">fill</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">#RRGGBB</span></code> or <code class="docutils literal notranslate"><span class="pre">none</span></code></p></td>
 <td><p>yes</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">frame</span></code>, <code class="docutils literal notranslate"><span class="pre">card</span></code>, <code class="docutils literal notranslate"><span class="pre">ancestor_card</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline</span></code>, <code class="docutils literal notranslate"><span class="pre">child</span></code>, <code class="docutils literal notranslate"><span class="pre">ancestor</span></code> (the circles at their start and end, the arrowhead at their end), <code class="docutils literal notranslate"><span class="pre">jump</span></code> (the arrowheads of its arcs), <code class="docutils literal notranslate"><span class="pre">wedge</span></code>, <code class="docutils literal notranslate"><span class="pre">elision</span></code> (its gap), <code class="docutils literal notranslate"><span class="pre">ellipsis</span></code>, <code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">bracket</span></code> (its text), <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">frame</span></code>, <code class="docutils literal notranslate"><span class="pre">card</span></code>, <code class="docutils literal notranslate"><span class="pre">ancestor_card</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline</span></code>, <code class="docutils literal notranslate"><span class="pre">child</span></code>, <code class="docutils literal notranslate"><span class="pre">ancestor</span></code> (the circles at their start and end, the arrowhead at their end), <code class="docutils literal notranslate"><span class="pre">jump</span></code> (the arrowheads of its arcs), <code class="docutils literal notranslate"><span class="pre">wedge</span></code>, <code class="docutils literal notranslate"><span class="pre">elision</span></code> (its gap), <code class="docutils literal notranslate"><span class="pre">ellipsis</span></code>, <code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">fork</span></code> (its arrowheads and texts), <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">opacity</span></code></p></td>
 <td><p>a number from 0 to 1</p></td>
@@ -1294,7 +1312,7 @@ properties are the format’s own; a turned wedge is written by its points, neve
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">font-size</span></code></p></td>
 <td><p>a number &gt; 0</p></td>
 <td><p>yes</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">bracket</span></code> (its text), <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">fork</span></code> (its texts), <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">rx</span></code></p></td>
 <td><p>a number ≥ 0</p></td>
@@ -1383,9 +1401,9 @@ a flow line’s stack, the label of each arc of a jump, and each ellipsis
 and label of an elision, is displayed
 only when that element, the arc, the elision’s gap, is displayed. A named timestamp’s labels are not its wedge’s
 (section 2.1), and its wedge hides none of them; nor are a jump’s stack,
-symbol and brackets its arcs’, nor a flow line’s symbol its line’s: a
+symbol and fork its arcs’, nor a flow line’s symbol its line’s: a
 jump whose arcs are hidden, as the defaults hide them (section 4),
-still draws its symbol, its brackets and its stack.</p></li>
+still draws its symbol, its fork and its stack.</p></li>
 <li><p><strong>A label hides its leader.</strong> A leader (section 6.6, Leaders) is
 displayed only when the label it joins, or the first label of the stack
 it joins, is displayed.</p></li>
@@ -1500,15 +1518,17 @@ place the README (“Flow control”) states, found on that root’s axis and,
 for a member that is a child timeline, carried to the member’s (section
 8.3):
 A destination without a place lands at the nearest section break, not
-rejected, before its Jump on the axis of the timeline played, among those
+unread (section 1), before its Jump on the axis of the timeline played, among those
 of that timeline and of all its descendants, but never before the start of
 the timeline stating the Jump, which counts as a section boundary for it:
 where no such section break lies from that start up to the Jump, the
 destination lands at that start. A destination with <code class="docutils literal notranslate"><span class="pre">by</span></code> 0 draws no arc,
-nor does one
-of a rejected jump whose <code class="docutils literal notranslate"><span class="pre">to</span></code> names nothing or names a rejected element:
-a <code class="docutils literal notranslate"><span class="pre">to</span></code> naming an element that some actor believes <code class="docutils literal notranslate"><span class="pre">false</span></code> names nothing
-(README, “Flow control”), so no arc is drawn to that element’s place.
+nor does one whose <code class="docutils literal notranslate"><span class="pre">to</span></code> names nothing or names an unread element: as a
+<code class="docutils literal notranslate"><span class="pre">to</span></code> naming a rejected element names nothing (README, “Flow control”),
+a <code class="docutils literal notranslate"><span class="pre">to</span></code> naming an unread element names nothing to the drawing, so no arc
+is drawn to that element’s place. In a valid manifest only a rejected
+jump names a rejected element; under a reading, any jump may name an
+unread one.
 Where a length is <code class="docutils literal notranslate"><span class="pre">null</span></code>,
 section 3.4 says where the timeline ends.</p>
 <p>A coordinate’s value is read as its number type selects: a <code class="docutils literal notranslate"><span class="pre">float</span></code> value is
@@ -1706,7 +1726,7 @@ between them and the manifest’s own <code class="docutils literal notranslate"
 <span class="w">    </span><span class="p">{</span><span class="nt">"select"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"section_break"</span><span class="p">},</span><span class="w"> </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"stroke"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#4B5563"</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-width"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.5</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-dasharray"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4 2"</span><span class="p">}},</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">"select"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"barline"</span><span class="p">},</span><span class="w"> </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"stroke"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#6B7280"</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-width"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-dasharray"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">}},</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">"select"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"symbol"</span><span class="p">},</span><span class="w"> </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"fill"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#000000"</span><span class="p">,</span><span class="w"> </span><span class="nt">"font-size"</span><span class="p">:</span><span class="w"> </span><span class="mi">12</span><span class="p">}},</span>
-<span class="w">    </span><span class="p">{</span><span class="nt">"select"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bracket"</span><span class="p">},</span><span class="w"> </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"stroke"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#000000"</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-width"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-dasharray"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">,</span><span class="w"> </span><span class="nt">"fill"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#000000"</span><span class="p">,</span><span class="w"> </span><span class="nt">"font-size"</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">}},</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"select"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fork"</span><span class="p">},</span><span class="w"> </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"stroke"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#000000"</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-width"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-dasharray"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">,</span><span class="w"> </span><span class="nt">"fill"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#000000"</span><span class="p">,</span><span class="w"> </span><span class="nt">"font-size"</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">}},</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">"select"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"leader"</span><span class="p">},</span><span class="w"> </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"stroke"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#9CA3AF"</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-width"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-dasharray"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">}},</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">"select"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"boundary"</span><span class="p">},</span><span class="w"> </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"stroke"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#000000"</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-width"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-dasharray"</span><span class="p">:</span><span class="w"> </span><span class="s2">"none"</span><span class="p">}},</span>
 <span class="w">    </span><span class="p">{</span><span class="nt">"select"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"element"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cross_section"</span><span class="p">},</span><span class="w"> </span><span class="nt">"set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"stroke"</span><span class="p">:</span><span class="w"> </span><span class="s2">"#1BA1E2"</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-width"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"stroke-dasharray"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3 3"</span><span class="p">}},</span>
@@ -1738,13 +1758,13 @@ wide); a conversion map takes the colour and pattern of the domain and
 modality it converts to; wedges and braces are black and solid, and the
 regions that are atomic sections are hidden (section 2.3 shows the rule
 that shows them); the arcs of jumps are thin, black and dotted, and
-hidden, so that a jump shows its symbol, its brackets and its stack, of
+hidden, so that a jump shows its symbol, its fork and its stack, of
 its name and its label by default (<code class="docutils literal notranslate"><span class="pre">label-display</span></code>, section 2.5),
 alone until a rule shows its arcs (<code class="docutils literal notranslate"><span class="pre">{&quot;select&quot;:</span> <span class="pre">{&quot;element&quot;:</span> <span class="pre">&quot;jump&quot;},</span> <span class="pre">&quot;set&quot;:</span> <span class="pre">{&quot;display&quot;:</span> <span class="pre">&quot;inline&quot;}}</span></code> all of them, with <code class="docutils literal notranslate"><span class="pre">addresses</span></code> one jump’s);
 a break is a dotted red line, a section break a dashed dark blue-grey
 one, a barline a thin solid dark grey one, darker than the light blue of
-a cross-section line; symbols are black, at the font size 12, brackets thin, black
-and solid with labels of size 9, and leaders thin, solid and light grey;
+a cross-section line; symbols are black, at the font size 12, forks thin, black
+and solid with texts of size 9, and leaders thin, solid and light grey;
 a name longer than 160 is
 cut (section 6.6), but the manifest’s title, whose addressed rule
 outranks the rule of every name (section 2.5). Segment
@@ -1967,8 +1987,8 @@ Symbols), nor the jump’s own <code class="docutils literal notranslate"><span 
 <code class="docutils literal notranslate"><span class="pre">label</span></code>, each where it is not null, of which it draws those its
 <code class="docutils literal notranslate"><span class="pre">label-display</span></code> lists (section 6.4, Flow labels), so that the jump’s own
 <code class="docutils literal notranslate"><span class="pre">label</span></code> and <code class="docutils literal notranslate"><span class="pre">name</span></code> label the jump once, never each of its arcs; a jump
-target draws no label; a bracket’s text is its destination’s passes as
-printed (section 6.4, Brackets); a segment’s label is
+target draws no label; the text of a branch of a fork is its
+destination’s passes as printed (section 6.4, Forks); a segment’s label is
 its <code class="docutils literal notranslate"><span class="pre">name</span></code>, and a segment whose <code class="docutils literal notranslate"><span class="pre">name</span></code> is null has none; a named
 timestamp has three labels, its <code class="docutils literal notranslate"><span class="pre">name</span></code>, its whole <code class="docutils literal notranslate"><span class="pre">id</span></code>, and its
 <code class="docutils literal notranslate"><span class="pre">coordinate</span></code>, labelled as section 5.2 labels a coordinate, in its
@@ -2063,14 +2083,20 @@ number it has always had.</p>
 <tr class="row-odd"><td><p>flow label offset (from a flow-control element’s <code class="docutils literal notranslate"><span class="pre">x</span></code> to its stack)</p></td>
 <td><p>3</p></td>
 </tr>
-<tr class="row-even"><td><p>symbol row height <code class="docutils literal notranslate"><span class="pre">Hs</span></code></p></td>
-<td><p>h(zs), <code class="docutils literal notranslate"><span class="pre">zs</span></code> the largest font size of the drawn symbols; 0 when none is drawn</p></td>
+<tr class="row-even"><td><p>symbol gap (between a glyph box and the lines it meets)</p></td>
+<td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p>bracket row height <code class="docutils literal notranslate"><span class="pre">hb</span></code></p></td>
-<td><p>h(zb) + 4, <code class="docutils literal notranslate"><span class="pre">zb</span></code> the largest font size of the drawn brackets</p></td>
+<tr class="row-odd"><td><p>symbol row height <code class="docutils literal notranslate"><span class="pre">Hs</span></code></p></td>
+<td><p>2 + h(zs) + 2, <code class="docutils literal notranslate"><span class="pre">zs</span></code> the largest font size of the drawn symbols; 0 when none is drawn</p></td>
 </tr>
-<tr class="row-even"><td><p>bracket text offset, hook gap</p></td>
-<td><p>2, 2</p></td>
+<tr class="row-even"><td><p>fork: stem length, branch length, largest angle step, largest angle</p></td>
+<td><p>8, 18, 35°, 70°</p></td>
+</tr>
+<tr class="row-odd"><td><p>fork text offset (from a branch’s tip to the start of its text)</p></td>
+<td><p>3</p></td>
+</tr>
+<tr class="row-even"><td><p>fork row height <code class="docutils literal notranslate"><span class="pre">Hf</span></code></p></td>
+<td><p>(h(zf) / 2 + 18 × sM) + h(zf) / 2, <code class="docutils literal notranslate"><span class="pre">zf</span></code> the largest font size of the drawn forks, <code class="docutils literal notranslate"><span class="pre">N</span></code> the most branches a drawn fork has and <code class="docutils literal notranslate"><span class="pre">sM</span></code> the <code class="docutils literal notranslate"><span class="pre">sk</span></code> of the last branch of a fork of <code class="docutils literal notranslate"><span class="pre">N</span></code> branches (section 6.4, Forks); 0 when none is drawn</p></td>
 </tr>
 <tr class="row-odd"><td><p>boundary half-height <code class="docutils literal notranslate"><span class="pre">k</span></code></p></td>
 <td><p>8</p></td>
@@ -2119,8 +2145,8 @@ regions band whose regions have no drawn label still keeps the label room
 9. The labels of a flow
 control band are the drawn labels of its arcs and of its stacks
 together, so its jump rows and flow label tiers share one size; a
-bracket’s text is no label and counts for no <code class="docutils literal notranslate"><span class="pre">h(9)</span></code>, its row taking
-<code class="docutils literal notranslate"><span class="pre">h(zb)</span></code> instead.</p>
+fork’s text is no label and counts for no <code class="docutils literal notranslate"><span class="pre">h(9)</span></code>, its row taking
+<code class="docutils literal notranslate"><span class="pre">h(zf)</span></code> instead.</p>
 </section>
 <section id="first-fit">
 <h3>6.3 First fit<a class="headerlink" href="#first-fit" title="Link to this heading">#</a></h3>
@@ -2185,7 +2211,7 @@ elision draws nothing and is absent (Levels);</p></li>
 <li><p>the <strong>children band</strong> its children (Children);</p></li>
 <li><p>the <strong>regions band</strong> its regions (Regions);</p></li>
 <li><p>the <strong>flow control band</strong> of the root, the flow control of the whole
-tree (Flow control): its symbols, flow lines, brackets and the arcs of
+tree (Flow control): its symbols, flow lines, forks and the arcs of
 its jumps, with their labels and stacks; the flow control band of any
 other timeline draws nothing and is never present.</p></li>
 </ul>
@@ -2612,7 +2638,7 @@ elements of a timeline whose line or flow control band is not displayed
 draw nothing and take no room (section 2.4), and every other draws each
 of its parts that is displayed: a flow line its line and its stack, a
 jump its arcs, which the <code class="docutils literal notranslate"><span class="pre">display</span></code> of the element <code class="docutils literal notranslate"><span class="pre">jump</span></code> governs, its
-stack and its brackets, and each its symbol. From its start <code class="docutils literal notranslate"><span class="pre">c</span></code> outwards
+stack and its fork, and each its symbol. From its start <code class="docutils literal notranslate"><span class="pre">c</span></code> outwards
 it holds:</p>
 <ol class="arabic simple">
 <li><p>the <strong>flow label tiers</strong>, <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">×</span> <span class="pre">h(9)</span></code> wide when the stacks (Flow
@@ -2621,13 +2647,12 @@ labels) fill <code class="docutils literal notranslate"><span class="pre">T</spa
 the arcs of the jumps leave and arrive;</p></li>
 <li><p>the <strong>symbol row</strong>, from <code class="docutils literal notranslate"><span class="pre">f0</span></code> to <code class="docutils literal notranslate"><span class="pre">f0</span> <span class="pre">+</span> <span class="pre">Hs</span></code> (Symbols; <code class="docutils literal notranslate"><span class="pre">Hs</span></code> 0 when the
 band draws no symbol);</p></li>
-<li><p>the <strong>bracket rows</strong>, from <code class="docutils literal notranslate"><span class="pre">f0</span> <span class="pre">+</span> <span class="pre">Hs</span></code> outwards, <code class="docutils literal notranslate"><span class="pre">hb</span></code> wide each, <code class="docutils literal notranslate"><span class="pre">B</span></code>
-of them, <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">×</span> <span class="pre">hb</span></code> together and 0 when the band draws no bracket
-(Brackets);</p></li>
-<li><p>the <strong>jump rows</strong> of the arcs, beyond <code class="docutils literal notranslate"><span class="pre">f1</span> <span class="pre">=</span> <span class="pre">f0</span> <span class="pre">+</span> <span class="pre">Hs</span> <span class="pre">+</span> <span class="pre">B</span> <span class="pre">×</span> <span class="pre">hb</span></code>, each
+<li><p>the <strong>fork row</strong>, from <code class="docutils literal notranslate"><span class="pre">f0</span> <span class="pre">+</span> <span class="pre">Hs</span></code> to <code class="docutils literal notranslate"><span class="pre">f0</span> <span class="pre">+</span> <span class="pre">Hs</span> <span class="pre">+</span> <span class="pre">Hf</span></code> (Forks; <code class="docutils literal notranslate"><span class="pre">Hf</span></code> 0
+when the band draws no fork);</p></li>
+<li><p>the <strong>jump rows</strong> of the arcs, beyond <code class="docutils literal notranslate"><span class="pre">f1</span> <span class="pre">=</span> <span class="pre">f0</span> <span class="pre">+</span> <span class="pre">Hs</span> <span class="pre">+</span> <span class="pre">Hf</span></code>, each
 sum taken left to right.</p></li>
 </ol>
-<p>The band is <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">×</span> <span class="pre">h(9)</span> <span class="pre">+</span> <span class="pre">Hs</span> <span class="pre">+</span> <span class="pre">B</span> <span class="pre">×</span> <span class="pre">hb</span> <span class="pre">+</span> <span class="pre">(4</span> <span class="pre">+</span> <span class="pre">S)</span> <span class="pre">+</span> <span class="pre">(pj1</span> <span class="pre">+</span> <span class="pre">…</span> <span class="pre">+</span> <span class="pre">pj(K</span> <span class="pre">−</span> <span class="pre">1))</span> <span class="pre">+</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">TK</span> <span class="pre">×</span> <span class="pre">h(9)</span></code> wide for <code class="docutils literal notranslate"><span class="pre">K</span> <span class="pre">≥</span> <span class="pre">1</span></code> jump rows, and <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">×</span> <span class="pre">h(9)</span> <span class="pre">+</span> <span class="pre">Hs</span> <span class="pre">+</span> <span class="pre">B</span> <span class="pre">×</span> <span class="pre">hb</span></code>
+<p>The band is <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">×</span> <span class="pre">h(9)</span> <span class="pre">+</span> <span class="pre">Hs</span> <span class="pre">+</span> <span class="pre">Hf</span> <span class="pre">+</span> <span class="pre">(4</span> <span class="pre">+</span> <span class="pre">S)</span> <span class="pre">+</span> <span class="pre">(pj1</span> <span class="pre">+</span> <span class="pre">…</span> <span class="pre">+</span> <span class="pre">pj(K</span> <span class="pre">−</span> <span class="pre">1))</span> <span class="pre">+</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">TK</span> <span class="pre">×</span> <span class="pre">h(9)</span></code> wide for <code class="docutils literal notranslate"><span class="pre">K</span> <span class="pre">≥</span> <span class="pre">1</span></code> jump rows, and <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">×</span> <span class="pre">h(9)</span> <span class="pre">+</span> <span class="pre">Hs</span> <span class="pre">+</span> <span class="pre">Hf</span></code>
 wide for none, summed left to right as written, the pitches <code class="docutils literal notranslate"><span class="pre">pjk</span></code> of
 section 6.2 summed first; so a band drawing nothing but flow lines
 without labels is 0 wide and lies at the flow row of its start.</p>
@@ -2717,7 +2742,7 @@ DejaVu Sans:</p>
 </div>
 <p>A jump’s symbol is the symbols of its destinations, in the canonical
 order of its <code class="docutils literal notranslate"><span class="pre">targets</span></code>, joined without a space into one text, centred as
-one; a destination drawing a bracket (<code class="docutils literal notranslate"><span class="pre">volta</span></code>) or an arc alone adds
+one; a destination drawing a fork’s branch (<code class="docutils literal notranslate"><span class="pre">volta</span></code>) or an arc alone adds
 nothing. Every other manifestation, of the format’s vocabulary
 (<code class="docutils literal notranslate"><span class="pre">volta</span></code>, <code class="docutils literal notranslate"><span class="pre">ossia</span></code>) or not, has no symbol, nor has an element or a
 destination without a manifestation, but for a section break, which
@@ -2725,59 +2750,106 @@ draws 𝄂 whatever its manifestation; an element without a symbol draws
 no <code class="docutils literal notranslate"><span class="pre">symbol</span></code> element. A symbol is no label: it lies on the symbol row
 alone, at its element’s <code class="docutils literal notranslate"><span class="pre">x</span></code> whatever its neighbours, so symbols of
 elements lying close may overlap, and it is never placed by first fit
-and never moved. With <code class="docutils literal notranslate"><span class="pre">z</span></code> its font size, its text line starts at <code class="docutils literal notranslate"><span class="pre">f0</span></code>
-and its baseline lies beyond that start: at <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">+</span> <span class="pre">f0</span> <span class="pre">+</span> <span class="pre">a(z)</span></code> when the
-band lies below the line and at <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">−</span> <span class="pre">f0</span> <span class="pre">−</span> <span class="pre">d(z)</span></code> when it lies above it.
-The symbol row is <code class="docutils literal notranslate"><span class="pre">Hs</span> <span class="pre">=</span> <span class="pre">h(zs)</span></code> wide, <code class="docutils literal notranslate"><span class="pre">zs</span></code> the largest font size of the
-drawn symbols.</p>
-<p><strong>Brackets.</strong> A <strong>run</strong> is the destinations of one jump whose
+and never moved. With <code class="docutils literal notranslate"><span class="pre">z</span></code> its font size, its text line starts at <code class="docutils literal notranslate"><span class="pre">f0</span> <span class="pre">+</span> <span class="pre">2</span></code>, the symbol gap beyond the flow row, and its baseline lies beyond that
+start: at <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">+</span> <span class="pre">(f0</span> <span class="pre">+</span> <span class="pre">2)</span> <span class="pre">+</span> <span class="pre">a(z)</span></code> when the band lies below the line and
+at <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">−</span> <span class="pre">(f0</span> <span class="pre">+</span> <span class="pre">2)</span> <span class="pre">−</span> <span class="pre">d(z)</span></code> when it lies above it. Its <strong>glyph box</strong> is
+its text line, from that start <code class="docutils literal notranslate"><span class="pre">h(z)</span></code> outwards, as wide as its text.
+The symbol row is <code class="docutils literal notranslate"><span class="pre">Hs</span> <span class="pre">=</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">h(zs)</span> <span class="pre">+</span> <span class="pre">2</span></code> wide, summed left to right, <code class="docutils literal notranslate"><span class="pre">zs</span></code>
+the largest font size of the drawn symbols, so that every glyph box
+keeps the symbol gap 2 to every line it meets: to the flow row, where
+the flow lines end, and so, <code class="docutils literal notranslate"><span class="pre">f0</span></code> never being negative, to the
+timeline’s line, and to what lies beyond the symbol row, a fork, an arc
+or the band’s outer edge. A flow line ends at the flow row (Flow lines)
+and never enters the symbol row: it is not cut by a glyph but stops
+short of it, so where a symbol lies at a flow line’s <code class="docutils literal notranslate"><span class="pre">x</span></code>, as the 𝄂 of a
+section break does at its own line, the line ends 2 before the glyph
+box, and no line runs through or touches a glyph.</p>
+<p><strong>Forks.</strong> The <strong>branches</strong> of a jump are its destinations whose
 <code class="docutils literal notranslate"><span class="pre">manifestation</span></code> is <code class="docutils literal notranslate"><span class="pre">volta</span></code> and whose place an arc would have (section
-3.1), a destination with <code class="docutils literal notranslate"><span class="pre">by</span></code> 0 included: the destinations of a rejected
-jump whose <code class="docutils literal notranslate"><span class="pre">to</span></code> names nothing or a rejected element draw no bracket.
-Each destination of a run draws one <strong>bracket</strong>, where the bracket is
-displayed, from its <strong>place</strong>, the
-position of section 3.1 (the jump’s own position for <code class="docutils literal notranslate"><span class="pre">by</span></code> 0, the jump
-target’s for a <code class="docutils literal notranslate"><span class="pre">to</span></code>), to its <strong>end</strong>. The brackets of a run are taken in
-the order of their places, compared exactly: the <strong>first</strong> has the
-smallest place, the <strong>last</strong> the largest. The <strong>cut</strong> of a bracket is the
-first position after its place, compared exactly, of a band element that
-is not rejected and is a jump, a section break or a break whose
-<code class="docutils literal notranslate"><span class="pre">manifestation</span></code> is <code class="docutils literal notranslate"><span class="pre">volta</span></code>, or, where none follows, the end of the
-timeline stating the jump (section 3.4), and never beyond the end of the
-root of the member drawing. Every bracket but the last ends at its cut.
-No element marks where the last bracket ends, so it is drawn as long as
-the bracket before it and ends at its place plus that bracket’s end
-minus that bracket’s place, or at its cut where the cut lies before
-that; the last bracket of a run of one is as long as the distance from
-its jump to its place, the absolute difference of the two positions, so
-it ends at its place plus that distance, or at its cut where the cut lies
-before (one with <code class="docutils literal notranslate"><span class="pre">by</span></code> 0 so has the length 0, its line running from <code class="docutils literal notranslate"><span class="pre">Xs</span></code>
-to <code class="docutils literal notranslate"><span class="pre">Xs</span></code>). Each sum and
-difference is taken as section 3.1 combines values. The runs, in
-the order of the band’s elements, are placed by first fit, each with the
-extent from <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span></code> of its first bracket’s place to <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span></code> of the
-largest end of its brackets, into the <code class="docutils literal notranslate"><span class="pre">B</span></code> <strong>bracket rows</strong>, so the
-brackets of one run
-share one row and one height. With <code class="docutils literal notranslate"><span class="pre">bj</span> <span class="pre">=</span> <span class="pre">f0</span> <span class="pre">+</span> <span class="pre">Hs</span> <span class="pre">+</span> <span class="pre">(j</span> <span class="pre">−</span> <span class="pre">1)</span> <span class="pre">×</span> <span class="pre">hb</span></code> the
-inner edge of row <code class="docutils literal notranslate"><span class="pre">j</span></code> and <code class="docutils literal notranslate"><span class="pre">hb</span> <span class="pre">=</span> <span class="pre">h(zb)</span> <span class="pre">+</span> <span class="pre">4</span></code> (section 6.2), <code class="docutils literal notranslate"><span class="pre">zb</span></code> the
-largest font size of the drawn brackets, a bracket of row <code class="docutils literal notranslate"><span class="pre">j</span></code> from <code class="docutils literal notranslate"><span class="pre">Xs</span></code>
-to <code class="docutils literal notranslate"><span class="pre">Xe</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code> of its place and its end, draws its <strong>line</strong> across at the
-distance <code class="docutils literal notranslate"><span class="pre">bj</span> <span class="pre">+</span> <span class="pre">hb</span></code> from the root’s line, the row’s outer edge, a
-<strong>hook</strong> at <code class="docutils literal notranslate"><span class="pre">Xs</span></code> from that line inwards to the distance <code class="docutils literal notranslate"><span class="pre">bj</span> <span class="pre">+</span> <span class="pre">2</span></code>, and,
-unless it is the last bracket of its run, which is open at its end, a
-hook at <code class="docutils literal notranslate"><span class="pre">Xe</span></code> alike: every bracket opens with a hook, as an engraved volta
-bracket does, and only the last is open. Its <strong>text</strong>, the passes of its
-destination as printed, the numbers of <code class="docutils literal notranslate"><span class="pre">passes</span></code> in ascending order each
-followed by <code class="docutils literal notranslate"><span class="pre">.</span></code> and joined by <code class="docutils literal notranslate"><span class="pre">,</span> </code> (<code class="docutils literal notranslate"><span class="pre">1.</span></code>, <code class="docutils literal notranslate"><span class="pre">1.,</span> <span class="pre">3.</span></code>), or for <code class="docutils literal notranslate"><span class="pre">{from:</span> <span class="pre">n}</span></code>
-<code class="docutils literal notranslate"><span class="pre">n</span></code> followed by <code class="docutils literal notranslate"><span class="pre">.–</span></code> (U+2013, <code class="docutils literal notranslate"><span class="pre">3.–</span></code>), and none for a destination without
-<code class="docutils literal notranslate"><span class="pre">passes</span></code>, starts at <code class="docutils literal notranslate"><span class="pre">Xs</span> <span class="pre">+</span> <span class="pre">2</span></code>, in the bracket’s own font size <code class="docutils literal notranslate"><span class="pre">z</span></code>, on the
-line starting at the distance <code class="docutils literal notranslate"><span class="pre">bj</span> <span class="pre">+</span> <span class="pre">2</span></code>, its baseline beyond that start:
-at <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">+</span> <span class="pre">(bj</span> <span class="pre">+</span> <span class="pre">2)</span> <span class="pre">+</span> <span class="pre">a(z)</span></code> when the band lies below the line and at <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">−</span> <span class="pre">(bj</span> <span class="pre">+</span> <span class="pre">2)</span> <span class="pre">−</span> <span class="pre">d(z)</span></code> when it lies above it. The text lies inside the hook,
-between the bracket’s line and the symbol row, and is never moved.</p>
+3.1), a destination with <code class="docutils literal notranslate"><span class="pre">by</span></code> 0 included: a destination whose <code class="docutils literal notranslate"><span class="pre">to</span></code>
+names nothing or an unread element is no branch. A jump with a branch draws one <strong>fork</strong>, where the fork is
+displayed, and no arc for a branch (Arcs): the fork shows that the flow
+leaves the jump on one of several ways, and its texts on which passes.
+The branches are taken in the order of their places, compared exactly,
+branches of one place in the canonical order of <code class="docutils literal notranslate"><span class="pre">targets</span></code>; of a fork of
+<code class="docutils literal notranslate"><span class="pre">N</span></code> branches, branch <code class="docutils literal notranslate"><span class="pre">k</span></code>, counted from 1, has the <strong>angle</strong> <code class="docutils literal notranslate"><span class="pre">θk</span> <span class="pre">=</span> <span class="pre">min(35,</span> <span class="pre">70</span> <span class="pre">/</span> <span class="pre">(N</span> <span class="pre">−</span> <span class="pre">1))</span> <span class="pre">×</span> <span class="pre">(k</span> <span class="pre">−</span> <span class="pre">1)</span></code> degrees, 0 for <code class="docutils literal notranslate"><span class="pre">N</span> <span class="pre">=</span> <span class="pre">1</span></code>, and the
+<strong>direction</strong> <code class="docutils literal notranslate"><span class="pre">(ck,</span> <span class="pre">sk)</span></code>, the cosine and the sine of <code class="docutils literal notranslate"><span class="pre">(θk</span> <span class="pre">×</span> <span class="pre">π)</span> <span class="pre">/</span> <span class="pre">180</span></code>
+radians, each rounded to ten decimal places, ties to even, and read as
+the double nearest that decimal (as a wedge’s, section 6.6, Wedges), so
+that an engine whose sine errs by a few units in the last place draws
+every fork alike. For instance:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">N</span></code></p></th>
+<th class="head"><p>angles</p></th>
+<th class="head"><p><code class="docutils literal notranslate"><span class="pre">(ck,</span> <span class="pre">sk)</span></code></p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>2</p></td>
+<td><p>0°, 35°</p></td>
+<td><p>(1, 0), (0.8191520443, 0.5735764364)</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>0°, 35°, 70°</p></td>
+<td><p>(1, 0), (0.8191520443, 0.5735764364), (0.3420201433, 0.9396926208)</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>0°, 23.3…°, 46.6…°, 70°</p></td>
+<td><p>(1, 0), (0.9182161069, 0.396079766), (0.6862416379, 0.7273736416), (0.3420201433, 0.9396926208)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ck</span></code> runs along the axis to the right and <code class="docutils literal notranslate"><span class="pre">sk</span></code> away from the root’s
+line: the first branch runs straight on, the second bends away from the
+line, as a motorway exit leaves the road, and every further one by one
+step more; the step is 35° up to three branches, and from the fourth on
+the branches share the 70° of the largest angle evenly, so the last
+always bends by 70° and no two branches share a direction (their texts,
+whose lines are <code class="docutils literal notranslate"><span class="pre">h(z)</span></code> high, may touch where the step is small). A fork has one size on
+the canvas whatever the axis’s scale. With <code class="docutils literal notranslate"><span class="pre">X</span></code> the <code class="docutils literal notranslate"><span class="pre">x</span></code> of its jump’s
+position, <code class="docutils literal notranslate"><span class="pre">w</span></code> its stroke width, <code class="docutils literal notranslate"><span class="pre">z</span></code> its font size, and <code class="docutils literal notranslate"><span class="pre">e</span> <span class="pre">=</span> <span class="pre">(f0</span> <span class="pre">+</span> <span class="pre">Hs)</span> <span class="pre">+</span> <span class="pre">h(zf)</span> <span class="pre">/</span> <span class="pre">2</span></code> the distance of its stem from the root’s line, <code class="docutils literal notranslate"><span class="pre">zf</span></code> the
+largest font size of the drawn forks (section 6.2), a fork draws:</p>
+<ul class="simple">
+<li><p>its <strong>stem</strong>, a straight line at the distance <code class="docutils literal notranslate"><span class="pre">e</span></code> from <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">−</span> <span class="pre">8</span></code> to its
+<strong>branch point</strong> <code class="docutils literal notranslate"><span class="pre">X</span></code>;</p></li>
+<li><p>per branch <code class="docutils literal notranslate"><span class="pre">k</span></code>, an <strong>arrow</strong> from the branch point, 18 long in the
+direction <code class="docutils literal notranslate"><span class="pre">(ck,</span> <span class="pre">sk)</span></code>, ending in an arrowhead like an arc’s (section
+6.6, Jumps): a filled triangle, not stroked, of length <code class="docutils literal notranslate"><span class="pre">4w</span></code> and
+half-width <code class="docutils literal notranslate"><span class="pre">2w</span></code>. With <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">=</span> <span class="pre">18</span> <span class="pre">−</span> <span class="pre">4</span> <span class="pre">×</span> <span class="pre">w</span></code>, its <strong>tip</strong> lies at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">X</span> <span class="pre">+</span> <span class="pre">18</span> <span class="pre">×</span> <span class="pre">ck</span></code> and the distance <code class="docutils literal notranslate"><span class="pre">e</span> <span class="pre">+</span> <span class="pre">18</span> <span class="pre">×</span> <span class="pre">sk</span></code>, the centre of its base at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">X</span> <span class="pre">+</span> <span class="pre">a</span> <span class="pre">×</span> <span class="pre">ck</span></code> and the distance <code class="docutils literal notranslate"><span class="pre">e</span> <span class="pre">+</span> <span class="pre">a</span> <span class="pre">×</span> <span class="pre">sk</span></code>, its first corner at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">(X</span> <span class="pre">+</span> <span class="pre">a</span> <span class="pre">×</span> <span class="pre">ck)</span> <span class="pre">+</span> <span class="pre">(2</span> <span class="pre">×</span> <span class="pre">w)</span> <span class="pre">×</span> <span class="pre">sk</span></code> and the distance <code class="docutils literal notranslate"><span class="pre">(e</span> <span class="pre">+</span> <span class="pre">a</span> <span class="pre">×</span> <span class="pre">sk)</span> <span class="pre">−</span> <span class="pre">(2</span> <span class="pre">×</span> <span class="pre">w)</span> <span class="pre">×</span> <span class="pre">ck</span></code>, and its second corner at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">(X</span> <span class="pre">+</span> <span class="pre">a</span> <span class="pre">×</span> <span class="pre">ck)</span> <span class="pre">−</span> <span class="pre">(2</span> <span class="pre">×</span> <span class="pre">w)</span> <span class="pre">×</span> <span class="pre">sk</span></code> and
+the distance <code class="docutils literal notranslate"><span class="pre">(e</span> <span class="pre">+</span> <span class="pre">a</span> <span class="pre">×</span> <span class="pre">sk)</span> <span class="pre">+</span> <span class="pre">(2</span> <span class="pre">×</span> <span class="pre">w)</span> <span class="pre">×</span> <span class="pre">ck</span></code>; its <strong>shaft</strong> is a straight
+line from the branch point to the centre of the base;</p></li>
+<li><p>per branch whose destination has <code class="docutils literal notranslate"><span class="pre">passes</span></code>, its <strong>text</strong>, the passes as
+printed: the numbers of <code class="docutils literal notranslate"><span class="pre">passes</span></code> in ascending order, each followed by
+<code class="docutils literal notranslate"><span class="pre">.</span></code> and joined by <code class="docutils literal notranslate"><span class="pre">,</span> </code> (<code class="docutils literal notranslate"><span class="pre">1.</span></code>, <code class="docutils literal notranslate"><span class="pre">1.,</span> <span class="pre">3.</span></code>), or for <code class="docutils literal notranslate"><span class="pre">{from:</span> <span class="pre">n}</span></code> <code class="docutils literal notranslate"><span class="pre">n</span></code>
+followed by <code class="docutils literal notranslate"><span class="pre">.–</span></code> (U+2013, <code class="docutils literal notranslate"><span class="pre">3.–</span></code>); a destination without <code class="docutils literal notranslate"><span class="pre">passes</span></code> has
+none. Each text lies at its own branch’s tip: it starts 3 right of the
+tip, at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">(X</span> <span class="pre">+</span> <span class="pre">18</span> <span class="pre">×</span> <span class="pre">ck)</span> <span class="pre">+</span> <span class="pre">3</span></code>, and its text line is centred on the
+tip, starting at the distance <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">(e</span> <span class="pre">+</span> <span class="pre">18</span> <span class="pre">×</span> <span class="pre">sk)</span> <span class="pre">−</span> <span class="pre">h(z)</span> <span class="pre">/</span> <span class="pre">2</span></code>; its
+baseline lies beyond that start: at <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">+</span> <span class="pre">t</span> <span class="pre">+</span> <span class="pre">a(z)</span></code> when the band lies
+below the line and at <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">−</span> <span class="pre">t</span> <span class="pre">−</span> <span class="pre">d(z)</span></code> when it lies above it.</p></li>
+</ul>
+<p>Each product is formed as written, each sum and difference taken left to
+right as written, and each distance summed whole before it becomes an
+ordinate, <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">+</span> <span class="pre">d</span></code> when the band lies below the line and <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">−</span> <span class="pre">d</span></code> when it
+lies above it (section 3.3). So the fork row is as wide as the lowest tip
+of a drawn fork lies beyond its start, plus half a text height: <code class="docutils literal notranslate"><span class="pre">Hf</span> <span class="pre">=</span> <span class="pre">(h(zf)</span> <span class="pre">/</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">18</span> <span class="pre">×</span> <span class="pre">sM)</span> <span class="pre">+</span> <span class="pre">h(zf)</span> <span class="pre">/</span> <span class="pre">2</span></code> (section 6.2), <code class="docutils literal notranslate"><span class="pre">N</span></code> the most
+branches a drawn fork has and <code class="docutils literal notranslate"><span class="pre">sM</span></code> the <code class="docutils literal notranslate"><span class="pre">sk</span></code> of the last branch of a fork
+of <code class="docutils literal notranslate"><span class="pre">N</span></code> branches (0 for one branch, 0.5735764364 for two, 0.9396926208
+for three or more), so <code class="docutils literal notranslate"><span class="pre">Hf</span> <span class="pre">=</span> <span class="pre">h(zf)</span></code> when no drawn fork has more than one
+branch; room for every arrow
+and every text, the first text’s line starting at the row’s start. A
+fork is no label: it lies on the fork row at its jump’s <code class="docutils literal notranslate"><span class="pre">x</span></code> whatever its
+neighbours, so forks of jumps lying close may overlap, as symbols may; it
+is never placed by first fit and never moved, and its extent enters the
+extents of section 6.7 as a symbol’s does.</p>
 <p><strong>Arcs.</strong> Each jump whose arcs are displayed (its element <code class="docutils literal notranslate"><span class="pre">jump</span></code>) draws one <strong>arc</strong> per destination, from
 and to the positions of section 3.1, but none for a destination with
-<code class="docutils literal notranslate"><span class="pre">by</span></code> 0 (going on, no jump) and none for a destination of a rejected jump
-whose <code class="docutils literal notranslate"><span class="pre">to</span></code> names nothing or names a rejected element (section 3.1). The
+<code class="docutils literal notranslate"><span class="pre">by</span></code> 0 (going on, no jump), none for a destination whose <code class="docutils literal notranslate"><span class="pre">to</span></code> names
+nothing or names an unread element (section 3.1), and
+none for a destination whose <code class="docutils literal notranslate"><span class="pre">manifestation</span></code> is <code class="docutils literal notranslate"><span class="pre">volta</span></code>, whatever the
+<code class="docutils literal notranslate"><span class="pre">display</span></code> of the element <code class="docutils literal notranslate"><span class="pre">jump</span></code>, since its jump’s fork shows it (Forks). The
 arcs, jump by jump in the order of the band’s elements and each jump’s
 in the canonical order of its <code class="docutils literal notranslate"><span class="pre">targets</span></code>, are sorted stably by span (the
 absolute exact difference of their to and from positions), smallest
@@ -2793,11 +2865,16 @@ and tier <code class="docutils literal notranslate"><span class="pre">j</span></
 <code class="docutils literal notranslate"><span class="pre">Tk</span></code> tiers, or <code class="docutils literal notranslate"><span class="pre">Tk</span> <span class="pre">=</span> <span class="pre">1</span></code> when it has none, has the pitch <code class="docutils literal notranslate"><span class="pre">pjk</span> <span class="pre">=</span> <span class="pre">6</span> <span class="pre">+</span> <span class="pre">S</span> <span class="pre">+</span> <span class="pre">Tk</span> <span class="pre">×</span> <span class="pre">h(9)</span></code> (section 6.2). A label in tier <code class="docutils literal notranslate"><span class="pre">j</span> <span class="pre">≥</span> <span class="pre">2</span></code> is joined to its arc’s
 apex by a leader (section 6.6, Leaders). The band’s arc descriptors and
 labels follow this order of first fit (section 7.2).</p>
-<p>A rejected flow-control element, one that some actor believes <code class="docutils literal notranslate"><span class="pre">false</span></code>
-(README, “Flow control”), is drawn as any other and takes its room as
-any other, but with its arcs or its line, its symbol, its brackets,
+<p>A flow-control element that the reading in force does not read
+(section 1), a <strong>faded</strong> element, is drawn as any other and takes its
+room as any other, but with its arcs or its line, its symbol, its fork,
 their labels, its stack and their leaders at the opacity 0.35, which
-replaces the cascaded <code class="docutils literal notranslate"><span class="pre">opacity</span></code> and no rule changes.</p>
+replaces the cascaded <code class="docutils literal notranslate"><span class="pre">opacity</span></code> and no rule changes. The reading in
+force also decides which arcs and branches a jump has and where a
+destination lands (section 3.1, Forks, Arcs): an unread section break
+is no section’s start, an unread jump target no place. Without a
+reading, these follow the rejection of the README (“Flow control”), an
+element some actor believes <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
 <p><strong>Flow lines.</strong> A displayed flow line is a vertical line at <code class="docutils literal notranslate"><span class="pre">x</span></code> of its
 position, from the flow row across the root’s line and every band to the
 card margin <code class="docutils literal notranslate"><span class="pre">V</span></code> of the opposite side, inside its padding: from <code class="docutils literal notranslate"><span class="pre">(x,</span> <span class="pre">yf)</span></code>, <code class="docutils literal notranslate"><span class="pre">yf</span> <span class="pre">=</span> <span class="pre">yl</span> <span class="pre">+</span> <span class="pre">f0</span></code> below the root’s line and <code class="docutils literal notranslate"><span class="pre">yl</span> <span class="pre">−</span> <span class="pre">f0</span></code> above it, to
@@ -3116,9 +3193,9 @@ stack starting at <code class="docutils literal notranslate"><span class="pre">x
 jump’s stack alike.</p></li>
 <li><p><strong>Symbols.</strong> A text centred on <code class="docutils literal notranslate"><span class="pre">x</span></code> of its element’s position, on the
 symbol row (section 6.4, Symbols), filled and not stroked.</p></li>
-<li><p><strong>Brackets.</strong> The polyline of its hook at <code class="docutils literal notranslate"><span class="pre">Xs</span></code>, its line and, unless it
-is the last of its run, its hook at <code class="docutils literal notranslate"><span class="pre">Xe</span></code> (section 6.4, Brackets),
-stroked and not filled, and its text, filled in the bracket’s <code class="docutils literal notranslate"><span class="pre">fill</span></code>.</p></li>
+<li><p><strong>Forks.</strong> Its stem and the shafts of its arrows, stroked and not
+filled, its arrowheads and its texts filled in the fork’s <code class="docutils literal notranslate"><span class="pre">fill</span></code> and not
+stroked (section 6.4, Forks).</p></li>
 <li><p><strong>Leaders.</strong> A <strong>leader</strong> joins a label or a stack moved out of its first
 tier to its element: a straight line at <code class="docutils literal notranslate"><span class="pre">X</span></code>, from the element’s point
 to the near edge of the label’s line, in the leader’s cascaded stroke
@@ -3221,16 +3298,15 @@ them; that band takes the room of every line up to the stack’s last
 (section 6.4, Markers). Gaps never move apart for their labels: no gap
 is widened and no proportion changes. Each label is cut to its
 <code class="docutils literal notranslate"><span class="pre">max-width</span></code> as a name is cut (Names), never to the gap. Nothing else that lies on the stretch is
-drawn in a gap, but for the arc and the bracket of a jump. An element that marks
+drawn in a gap, but for the arc of a jump. An element that marks
 a position in a gap is not drawn: a wedge with its labels, a
 cross-section line, a groupstamp’s lines across a frame, a boundary, a
 segment label, a flow line with its stack, the stack of a jump, a
-symbol, a region whose start, end
-or midpoint lies in one with its label, a bracket whose place or end
-does with its text, and an arc of a jump whose
+symbol, a fork whose jump’s position lies in one, a region whose start, end
+or midpoint lies in one with its label, and an arc of a jump whose
 from, to or the midpoint of the two does with its label, each with its
-leader. A bracket whose place and end lie in no gap is drawn whole at
-their elided x, its line across every gap it spans, as an arc is. A region whose start,
+leader. A fork whose jump’s position lies in no gap is drawn whole at
+its elided x, of its one size, whatever gap it reaches. A region whose start,
 end and midpoint lie in no gap is drawn at their elided x, and its brace
 is <strong>cut</strong> at every gap it spans as a row is. Of the brace’s two
 straight parts at <code class="docutils literal notranslate"><span class="pre">Ym</span></code>, from <code class="docutils literal notranslate"><span class="pre">X1</span> <span class="pre">+</span> <span class="pre">k</span></code> to <code class="docutils literal notranslate"><span class="pre">Xm</span> <span class="pre">−</span> <span class="pre">k</span></code> and from <code class="docutils literal notranslate"><span class="pre">Xm</span> <span class="pre">+</span> <span class="pre">k</span></code> to
@@ -3242,7 +3318,7 @@ end, where that stretch has a length, with no tick or other mark at
 either end of the cut; cuts that touch are one cut, and the brace’s
 arms, its tip and its label are drawn whole. An arc whose from,
 to and their midpoint lie in no gap is drawn whole at their elided x,
-its arc across every gap it spans: with a bracket, the one element drawn
+its arc across every gap it spans: the one element drawn
 in a gap that is not the gap’s own. A position at a gap’s edge lies in no gap, so a
 named timestamp there is drawn.</p>
 </li>
@@ -3257,7 +3333,9 @@ where stated.</p>
 are the name texts it draws, its ancestor names included, and every
 centred label <code class="docutils literal notranslate"><span class="pre">i</span></code> it draws (segment and region labels and the labels of arcs, every
 label of a named timestamp’s stack on its own, the labels of its
-elisions, and its symbols, each centred on its element’s position) has width <code class="docutils literal notranslate"><span class="pre">wi</span></code> and the proportion <code class="docutils literal notranslate"><span class="pre">ui</span></code> (section 3.2) of the
+elisions, and its symbols, each centred on its element’s position, and
+its forks, each counted as a centred label of width 16 on its jump’s
+position, so that its stem reaches 8 left of it) has width <code class="docutils literal notranslate"><span class="pre">wi</span></code> and the proportion <code class="docutils literal notranslate"><span class="pre">ui</span></code> (section 3.2) of the
 exact position it is centred on, and its <strong>carry</strong> <code class="docutils literal notranslate"><span class="pre">vi</span></code>: a label of a
 named timestamp is centred at its timestamp’s position, moved by the
 carry its wedge gives it (section 6.6, Labels of named timestamps;
@@ -3268,7 +3346,7 @@ left of it, and <code class="docutils literal notranslate"><span class="pre">r</
 (section 3.2), so that no <code class="docutils literal notranslate"><span class="pre">x0</span></code> enters it, and every other
 centred label has the carry 0.
 A centred label at <code class="docutils literal notranslate"><span class="pre">X</span></code> ends at <code class="docutils literal notranslate"><span class="pre">(X</span> <span class="pre">+</span> <span class="pre">vi)</span> <span class="pre">+</span> <span class="pre">wi</span> <span class="pre">/</span> <span class="pre">2</span></code>. Its <strong>right edge</strong> is the largest right edge of any element it
-draws (lines, markers, wedges, braces, arcs, brackets, leaders, symbols, labels and names). Right
+draws (lines, markers, wedges, braces, arcs, forks, leaders, symbols, labels and names). Right
 edges are geometric, no stroke width counted: a timeline’s start circle
 <code class="docutils literal notranslate"><span class="pre">Xs</span> <span class="pre">+</span> <span class="pre">w</span></code>, its arrowhead’s tip <code class="docutils literal notranslate"><span class="pre">Xe</span> <span class="pre">+</span> <span class="pre">3w</span></code>, its end circle <code class="docutils literal notranslate"><span class="pre">Xe</span> <span class="pre">+</span> <span class="pre">w</span></code> or its
 diamond’s corner <code class="docutils literal notranslate"><span class="pre">Xe</span> <span class="pre">+</span> <span class="pre">1.5w</span></code>, the outer chevron’s tip of an open end’s
@@ -3280,10 +3358,12 @@ on to the right <code class="docutils literal notranslate"><span class="pre">Xr<
 or a cross-section line’s <code class="docutils literal notranslate"><span class="pre">X</span></code>, the largest x of a wedge’s three points
 (section 6.6), <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">+</span> <span class="pre">3</span></code> for a wedge not rotated, the largest x of
 the points written in a brace’s or an arc’s descriptors (control
-points and an arc’s arrowhead corners included), a bracket’s <code class="docutils literal notranslate"><span class="pre">Xe</span></code>, a
+points and an arc’s arrowhead corners included), the largest x of the
+points written in a fork’s descriptors (its arrowheads’ tips and corners
+included), a
 leader’s <code class="docutils literal notranslate"><span class="pre">X</span></code>, a gap’s <code class="docutils literal notranslate"><span class="pre">x(b)</span></code>,
 the right end <code class="docutils literal notranslate"><span class="pre">xm</span> <span class="pre">+</span> <span class="pre">8</span></code> of an ellipsis, and a text’s end from its advance
-widths (a symbol’s and a bracket’s text included). In a card with gaps every x here is the elided one (section
+widths (a symbol’s and a fork’s texts included). In a card with gaps every x here is the elided one (section
 3.2), and a line or map that ends in a gap ends at its left edge
 without its mark (section 6.6, Elisions).</p>
 </section>
@@ -3304,11 +3384,10 @@ matches its unitless <code class="docutils literal notranslate"><span class="pre
 <h3>7.2 Element descriptors<a class="headerlink" href="#element-descriptors" title="Link to this heading">#</a></h3>
 <p>A member drawing becomes a list of SVG <strong>element descriptors</strong>, in this
 order: the flow lines; the maps; the regions; the arcs of the jumps; the
-brackets, each of these five
+forks, each of these five
 band by band in the traversal order of the bands’ timelines, and each
 band’s in the order it places them (section 6.4: the flow lines and the
-brackets in the order of the band’s elements, each jump’s brackets in the
-order of its run’s places); the root and
+forks in the order of the band’s elements); the root and
 then the children in traversal order; the boundaries, in the traversal order
 of their segments (a nested segment line’s boundaries thus follow its own
 boundary, not its siblings’); the wedges, band by band in the traversal
@@ -3400,8 +3479,8 @@ opens like <code class="docutils literal notranslate"><span class="pre">M290.977
 <tr class="row-even"><td><p>flow line: break, section break, barline</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{x}&quot;</span> <span class="pre">y1=&quot;{yf}&quot;</span> <span class="pre">x2=&quot;{x}&quot;</span> <span class="pre">y2=&quot;{y2}&quot;&gt;</span></code> (section 6.4)</p></td>
 </tr>
-<tr class="row-odd"><td><p>bracket</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&lt;polyline</span> <span class="pre">points=&quot;{Xs},{yh}</span> <span class="pre">{Xs},{yb}</span> <span class="pre">{Xe},{yb}</span> <span class="pre">{Xe},{yh}&quot;</span> <span class="pre">fill=&quot;none&quot;&gt;</span></code> stroked, <code class="docutils literal notranslate"><span class="pre">yb</span></code> the ordinate of its line and <code class="docutils literal notranslate"><span class="pre">yh</span></code> that of its hooks’ inner ends (section 6.4, Brackets), the last point left out for the last bracket of a run; then, where it has one, its text, <code class="docutils literal notranslate"><span class="pre">&lt;text</span> <span class="pre">x=&quot;{Xs</span> <span class="pre">+</span> <span class="pre">2}&quot;</span> <span class="pre">y=&quot;{baseline}&quot;</span> <span class="pre">text-anchor=&quot;start&quot;</span> <span class="pre">font-size=&quot;{z}&quot;&gt;</span></code> in its <code class="docutils literal notranslate"><span class="pre">fill</span></code></p></td>
+<tr class="row-odd"><td><p>fork</p></td>
+<td><p>its stem, <code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{X</span> <span class="pre">−</span> <span class="pre">8}&quot;</span> <span class="pre">y1=&quot;{yb}&quot;</span> <span class="pre">x2=&quot;{X}&quot;</span> <span class="pre">y2=&quot;{yb}&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">yb</span></code> the ordinate of the distance <code class="docutils literal notranslate"><span class="pre">e</span></code>; then branch by branch in the order of the branches its shaft, <code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{X}&quot;</span> <span class="pre">y1=&quot;{yb}&quot;</span> <span class="pre">x2=&quot;{xc}&quot;</span> <span class="pre">y2=&quot;{yc}&quot;&gt;</span></code> to the centre <code class="docutils literal notranslate"><span class="pre">(xc,</span> <span class="pre">yc)</span></code> of its arrowhead’s base, and its arrowhead, <code class="docutils literal notranslate"><span class="pre">&lt;polygon</span> <span class="pre">points=&quot;{tip}</span> <span class="pre">{first</span> <span class="pre">corner}</span> <span class="pre">{second</span> <span class="pre">corner}&quot;&gt;</span></code> (section 6.4, Forks); then the texts in the order of the branches, <code class="docutils literal notranslate"><span class="pre">&lt;text</span> <span class="pre">x=&quot;{xt}&quot;</span> <span class="pre">y=&quot;{baseline}&quot;</span> <span class="pre">text-anchor=&quot;start&quot;</span> <span class="pre">font-size=&quot;{z}&quot;&gt;</span></code> each, <code class="docutils literal notranslate"><span class="pre">xt</span> <span class="pre">=</span> <span class="pre">(X</span> <span class="pre">+</span> <span class="pre">18</span> <span class="pre">×</span> <span class="pre">ck)</span> <span class="pre">+</span> <span class="pre">3</span></code> 3 right of its branch’s tip</p></td>
 </tr>
 <tr class="row-even"><td><p>leader</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{X}&quot;</span> <span class="pre">y1=&quot;{y1}&quot;</span> <span class="pre">x2=&quot;{X}&quot;</span> <span class="pre">y2=&quot;{y2}&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">y1</span></code> the ordinate of the element’s end of the leader and <code class="docutils literal notranslate"><span class="pre">y2</span></code> that of the label’s (section 6.6, Leaders)</p></td>
@@ -3435,8 +3514,7 @@ opens like <code class="docutils literal notranslate"><span class="pre">M290.977
 <code class="docutils literal notranslate"><span class="pre">fill</span></code>; both carry the stroke attributes; a circle, a polygon
 and a text carry <code class="docutils literal notranslate"><span class="pre">fill</span></code>, and the open arrowhead, the diamond and the map’s
 outline, the stroked polygons, also the stroke attributes (the map’s dash
-included); a polyline carries <code class="docutils literal notranslate"><span class="pre">fill=&quot;none&quot;</span></code> and the stroke attributes (a bracket’s
-text, a text of its own, carries <code class="docutils literal notranslate"><span class="pre">fill</span></code>); a
+included); a polyline carries <code class="docutils literal notranslate"><span class="pre">fill=&quot;none&quot;</span></code> and the stroke attributes; a
 group frame, a card and an ancestor card carry <code class="docutils literal notranslate"><span class="pre">fill</span></code> and the stroke
 attributes, a card’s shadow and an elision’s gap <code class="docutils literal notranslate"><span class="pre">fill</span></code> alone. A line’s descriptors are, in this order, its <code class="docutils literal notranslate"><span class="pre">&lt;line&gt;</span></code>,
 its start circle or left chevrons, and its end or right chevrons. Every
