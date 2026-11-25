@@ -4,7 +4,11 @@
 The earlier form of flow control wrote three element types under ``type``:
 ``jump_from`` with a ``target``, ``jump_to`` and ``flow_marker``. The format
 writes five roles under ``role``, and a jump holds its destinations
-(``targets``). :func:`convert` rewrites a manifest, timeline by timeline:
+(``targets``). An element is of the earlier form exactly where the
+validators of ``timetoshare`` say so (``flow_control_form``): it states one of
+the three words under ``type`` or under ``role``, or it holds a ``target``
+and no ``role``. :func:`convert` rewrites a manifest, timeline by timeline,
+reading one of the three words under ``role`` as it reads it under ``type``:
 
 * ``jump_to`` becomes the role ``jump_target``, its manifestation kept;
 * a ``flow_marker`` becomes, by its manifestation, a ``break`` (``fine``,
@@ -13,11 +17,14 @@ writes five roles under ``role``, and a jump holds its destinations
   none for a section break) or a ``barline`` (``double_barline``,
   ``final_barline``);
 * a ``jump_from`` becomes a ``jump`` with one destination: ``to`` its
-  ``target`` (no place where it had none), its manifestation, and for a
-  ``repeat_end`` its ``repeat_count`` (1 where it stated none), for every da
-  capo and dal segno form ``repeat_count: 1`` and ``reset: false``, for a
-  ``to_coda`` an ``after`` naming the destination of the timeline's one
-  ``…_al_coda`` jump;
+  ``target``, its manifestation, and for a ``repeat_end`` its
+  ``repeat_count`` (1 where it stated none), for every da capo and dal segno
+  form ``repeat_count: 1`` and ``reset: false``, for a ``to_coda`` an
+  ``after`` naming the destination of the timeline's one ``…_al_coda`` jump.
+  A ``repeat_end`` and every da capo form without a ``target`` went to the
+  timeline's start: their destination names the timeline itself (``to`` the
+  timeline's ID), never no place, which would land at the nearest section
+  break before the jump;
 * two ``jump_from`` at one coordinate of a timeline become one jump holding
   both destinations under the ID that comes first by code point; the other
   element's label moves to its destination, every address naming its ID is
@@ -28,8 +35,12 @@ writes five roles under ``role``, and a jump holds its destinations
 
 The converter never guesses: a ``fine`` or a ``to_coda`` on a timeline with
 no or several jumps of the form it waits for, a merge that would give one
-jump two destinations at one place, and an element it cannot read are
-reported, and the manifest is left unconverted (:class:`ConversionRefused`).
+jump two destinations at one place, a jump without a ``target`` that is
+neither a ``repeat_end`` nor a da capo, an element holding a ``target`` and
+none of the three words, one stating two different words under ``type`` and
+``role``, one mixing the earlier form with ``targets`` or ``ends``, and an
+element it cannot read are reported, and the manifest is left unconverted
+(:class:`ConversionRefused`).
 
 Run it on manifest files, each rewritten in place in the form it was read
 in (serialization, minimal or complete)::
@@ -52,6 +63,9 @@ from pathlib import Path
 from typing import Any
 
 EARLIER_TYPES = ("jump_from", "jump_to", "flow_marker")
+TO_THE_START = ("repeat_end", "da_capo", "da_capo_al_fine", "da_capo_al_coda")
+"""The manifestations of a ``jump_from`` that went to the timeline's start
+where it stated no ``target``."""
 AL_FINE = ("da_capo_al_fine", "dal_segno_al_fine")
 AL_CODA = ("da_capo_al_coda", "dal_segno_al_coda")
 LEAPS = (
@@ -106,8 +120,52 @@ def _timelines(manifest: Any) -> Iterator[dict[str, Any]]:
         yield from visit(root)
 
 
+def _word(element: dict[str, Any], key: str) -> str | None:
+    """The word of the earlier form an element states under ``key``, else None."""
+    word = element.get(key)
+    return word if isinstance(word, str) and word in EARLIER_TYPES else None
+
+
 def _is_earlier(element: Any) -> bool:
-    return isinstance(element, dict) and element.get("type") in EARLIER_TYPES
+    """Whether an element is of the earlier form, as the validators decide it."""
+    if not isinstance(element, dict):
+        return False
+    return (
+        _word(element, "type") is not None
+        or _word(element, "role") is not None
+        or ("target" in element and "role" not in element)
+    )
+
+
+def _kind(element: dict[str, Any], owner: Any, problems: list[str]) -> str | None:
+    """The earlier type of an element of the earlier form, else None and a problem."""
+    named = f"'{element.get('id')}' of '{owner}'"
+    kind, role = _word(element, "type"), _word(element, "role")
+    if kind is None and role is None:
+        stated = (
+            f"the type {element['type']!r}, which is none of the earlier form"
+            if "type" in element
+            else "no type"
+        )
+        problems.append(
+            f"{named} has a target and {stated}: an element of the earlier form "
+            "states jump_from, jump_to or flow_marker; nothing is guessed"
+        )
+        return None
+    if kind is not None and "role" in element and element["role"] != kind:
+        problems.append(
+            f"{named} states the type {kind!r} and the role {element['role']!r}: "
+            "nothing is guessed"
+        )
+        return None
+    mixed = [key for key in ("targets", "ends") if key in element]
+    if mixed:
+        problems.append(
+            f"{named} mixes the earlier form ({kind or role}) with "
+            f"{' and '.join(mixed)}: nothing is guessed"
+        )
+        return None
+    return kind or role
 
 
 def needs_conversion(manifest: Any) -> bool:
@@ -141,7 +199,8 @@ def _kept(element: dict[str, Any], *dropped: str) -> dict[str, Any]:
     return {
         key: copy.deepcopy(value)
         for key, value in element.items()
-        if key not in ("type", "target", "repeat_count", "manifestation", *dropped)
+        if key
+        not in ("type", "role", "target", "repeat_count", "manifestation", *dropped)
     }
 
 
@@ -165,9 +224,14 @@ def _convert_timeline(
     if not isinstance(flow, list) or not any(_is_earlier(entry) for entry in flow):
         return
     owner = timeline.get("id")
-    origins = [
-        entry for entry in flow if _is_earlier(entry) and entry["type"] == "jump_from"
-    ]
+    # The earlier type of each element of the earlier form, by its index;
+    # None where the element is refused.
+    kinds = {
+        index: _kind(entry, owner, problems)
+        for index, entry in enumerate(flow)
+        if _is_earlier(entry)
+    }
+    origins = [flow[index] for index, kind in kinds.items() if kind == "jump_from"]
     # Jumps: one per coordinate, the earlier elements in ID order. ``made``
     # maps an earlier jump's ID to the jump it became, None where it was
     # merged into another's or refused.
@@ -197,6 +261,15 @@ def _convert_timeline(
         destination: dict[str, Any] = {}
         if "target" in entry:
             destination["to"] = entry["target"]
+        elif manifestation in TO_THE_START and isinstance(owner, str):
+            destination["to"] = owner
+        else:
+            problems.append(
+                f"'{entry.get('id')}' of '{owner}' has no target and the "
+                f"manifestation {manifestation!r}: only a repeat_end and a da capo "
+                "of a timeline with an ID went to the timeline's start without one"
+            )
+            continue
         if manifestation is not None:
             destination["manifestation"] = manifestation
         if manifestation == "repeat_end":
@@ -270,11 +343,13 @@ def _convert_timeline(
             destination["after"] = after
 
     converted: list[Any] = []
-    for entry in flow:
-        if not _is_earlier(entry):
+    for index, entry in enumerate(flow):
+        if index not in kinds:
             converted.append(entry)
             continue
-        kind, manifestation = entry["type"], entry.get("manifestation")
+        kind, manifestation = kinds[index], entry.get("manifestation")
+        if kind is None:
+            continue
         if kind == "jump_from":
             jump = made.get(entry.get("id"))
             if jump is not None:

@@ -10,7 +10,9 @@ from typing import Any
 
 import pytest
 
+import timetoshare
 from timetoshare import dumps, loads, minimal
+from timetoshare.validation.flow import earlier_form_problems
 
 from .conftest import manifest, timeline, validate
 
@@ -86,7 +88,9 @@ def test_each_element_type_becomes_its_role() -> None:
             "label": "Repeat",
             "meta": {"k": 1},
             "role": "jump",
-            "targets": [{"manifestation": "repeat_end", "repeat_count": 1}],
+            "targets": [
+                {"to": "score", "manifestation": "repeat_end", "repeat_count": 1}
+            ],
         },
         {
             "id": "fine",
@@ -127,7 +131,103 @@ def test_each_element_type_becomes_its_role() -> None:
             "coordinate": [8, 1],
             "role": "jump",
             "targets": [
-                {"manifestation": "da_capo", "repeat_count": 1, "reset": False}
+                {
+                    "to": "score",
+                    "manifestation": "da_capo",
+                    "repeat_count": 1,
+                    "reset": False,
+                }
+            ],
+        },
+    ]
+
+
+def test_a_jump_without_a_target_names_the_timeline_itself() -> None:
+    """An earlier jump without a target went to the timeline's start.
+
+    A destination without a place would land at the section break at 8; the
+    converted jumps name the timeline, whose start is 0, so no conversion
+    writes a destination without a place.
+    """
+    elements = [
+        earlier("part", "flow_marker", "section_break", 8),
+        earlier("again", "jump_from", "repeat_end", 12, repeat_count=2),
+        earlier("fine", "flow_marker", "fine", 14),
+        earlier("coda", "jump_to", "coda", 15),
+        earlier("leave", "jump_from", "to_coda", 13, target="coda"),
+        earlier("dc", "jump_from", "da_capo", 16),
+        earlier("dc_fine", "jump_from", "da_capo_al_fine", 15),
+        earlier("dc_coda", "jump_from", "da_capo_al_coda", 14),
+    ]
+    value = manifest(timeline("score", length=(16, 1), flow_control=elements))
+    result, report = converter.convert(value)
+    validate(result)
+    flow = result["timelines"][0]["flow_control"]
+    assert report == []
+    assert flow[0] == {"id": "part", "coordinate": [8, 1], "role": "section_break"}
+    assert {entry["id"]: entry["targets"] for entry in flow if "targets" in entry} == {
+        "again": [{"to": "score", "manifestation": "repeat_end", "repeat_count": 2}],
+        "leave": [
+            {"to": "coda", "manifestation": "to_coda", "after": {"jump": "dc_coda"}}
+        ],
+        "dc": [
+            {
+                "to": "score",
+                "manifestation": "da_capo",
+                "repeat_count": 1,
+                "reset": False,
+            }
+        ],
+        "dc_fine": [
+            {
+                "to": "score",
+                "manifestation": "da_capo_al_fine",
+                "repeat_count": 1,
+                "reset": False,
+            }
+        ],
+        "dc_coda": [
+            {
+                "to": "score",
+                "manifestation": "da_capo_al_coda",
+                "repeat_count": 1,
+                "reset": False,
+            }
+        ],
+    }
+    for entry in flow:
+        for destination in entry.get("targets", []):
+            assert "to" in destination
+
+
+def test_the_timeline_is_named_in_the_form_its_id_is_written_in() -> None:
+    value = manifest(
+        timeline(
+            "#score",
+            length=(16, 1),
+            flow_control=[
+                earlier("#part", "flow_marker", "section_break", 8),
+                earlier("#dc", "jump_from", "da_capo", 16),
+            ],
+        )
+    )
+    text, report = converter.convert_text(dumps(value))
+    assert report == []
+    written = loads(text)
+    timetoshare.validate(written)
+    assert written["timelines"][0]["flow_control"] == [
+        {"coordinate": [8, 1], "id": "#part", "role": "section_break"},
+        {
+            "coordinate": [16, 1],
+            "id": "#dc",
+            "role": "jump",
+            "targets": [
+                {
+                    "manifestation": "da_capo",
+                    "repeat_count": 1,
+                    "reset": False,
+                    "to": "#score",
+                }
             ],
         },
     ]
@@ -264,6 +364,78 @@ def test_a_merge_reports_what_it_drops() -> None:
                 "which names no role"
             ],
         ),
+        (
+            [
+                earlier("ds", "jump_from", "dal_segno", 6),
+                earlier("odd", "jump_from", "leap", 7),
+                {"id": "bare", "type": "jump_from", "coordinate": [8, 1]},
+            ],
+            [
+                "'bare' of 'score' has no target and the manifestation None: only a "
+                "repeat_end and a da capo of a timeline with an ID went to the "
+                "timeline's start without one",
+                "'ds' of 'score' has no target and the manifestation 'dal_segno': "
+                "only a repeat_end and a da capo of a timeline with an ID went to "
+                "the timeline's start without one",
+                "'odd' of 'score' has no target and the manifestation 'leap': only "
+                "a repeat_end and a da capo of a timeline with an ID went to the "
+                "timeline's start without one",
+            ],
+        ),
+        (
+            [
+                {"id": "j", "coordinate": [8, 1], "target": "t"},
+                {"id": "k", "coordinate": [9, 1], "target": "t", "type": "leap"},
+                {"id": "t", "coordinate": [2, 1], "role": "jump_target"},
+            ],
+            [
+                "'j' of 'score' has a target and no type: an element of the "
+                "earlier form states jump_from, jump_to or flow_marker; nothing is "
+                "guessed",
+                "'k' of 'score' has a target and the type 'leap', which is none of "
+                "the earlier form: an element of the earlier form states "
+                "jump_from, jump_to or flow_marker; nothing is guessed",
+            ],
+        ),
+        (
+            [
+                {
+                    "id": "j",
+                    "coordinate": [8, 1],
+                    "role": "jump_from",
+                    "targets": [{}],
+                },
+                {
+                    "id": "f",
+                    "coordinate": [9, 1],
+                    "type": "flow_marker",
+                    "manifestation": "fine",
+                    "ends": {"passes": [2]},
+                },
+                {
+                    "id": "b",
+                    "coordinate": [10, 1],
+                    "type": "jump_to",
+                    "role": "barline",
+                },
+                {
+                    "id": "m",
+                    "coordinate": [11, 1],
+                    "type": "jump_to",
+                    "role": "flow_marker",
+                },
+            ],
+            [
+                "'j' of 'score' mixes the earlier form (jump_from) with targets: "
+                "nothing is guessed",
+                "'f' of 'score' mixes the earlier form (flow_marker) with ends: "
+                "nothing is guessed",
+                "'b' of 'score' states the type 'jump_to' and the role 'barline': "
+                "nothing is guessed",
+                "'m' of 'score' states the type 'jump_to' and the role "
+                "'flow_marker': nothing is guessed",
+            ],
+        ),
     ],
 )
 def test_nothing_is_guessed(flow: list[dict], problems: list[str]) -> None:
@@ -272,6 +444,89 @@ def test_nothing_is_guessed(flow: list[dict], problems: list[str]) -> None:
         converter.convert(value)
     assert refused.value.problems == problems
     assert isinstance(refused.value, ValueError)
+
+
+def test_a_word_of_the_earlier_form_under_role_is_read_as_under_type() -> None:
+    def under_role(entry: dict) -> dict:
+        entry = dict(entry)
+        entry["role"] = entry.pop("type")
+        return entry
+
+    elements = [
+        earlier("start", "jump_to", "repeat_start", 1),
+        earlier("again", "jump_from", "repeat_end", 3, target="start"),
+        earlier("dc", "jump_from", "da_capo_al_fine", 8),
+        earlier("fine", "flow_marker", "fine", 5),
+        earlier("thin", "flow_marker", "double_barline", 6),
+    ]
+    expected, _, _ = _converted(*elements)
+    flow, report, _ = _converted(*(under_role(entry) for entry in elements))
+    assert report == []
+    assert flow == expected
+    assert [entry["role"] for entry in flow] == [
+        "jump_target",
+        "jump",
+        "jump",
+        "break",
+        "barline",
+    ]
+    both = [{**entry, "role": entry["type"]} for entry in elements]
+    assert _converted(*both)[0] == expected
+
+
+EARLIER_OR_NOT = [
+    ({"type": "jump_from", "manifestation": "da_capo"}, True),
+    ({"type": "jump_to", "manifestation": "segno"}, True),
+    ({"type": "flow_marker", "manifestation": "fine"}, True),
+    ({"role": "jump_from", "manifestation": "da_capo"}, True),
+    ({"role": "jump_to", "manifestation": "segno"}, True),
+    ({"role": "flow_marker", "manifestation": "fine"}, True),
+    ({"role": "jump_from", "targets": [{}]}, True),
+    ({"manifestation": "dal_segno", "target": "s"}, True),
+    ({"target": "s"}, True),
+    ({"type": "leap", "target": "s"}, True),
+    ({"role": "jump", "type": "jump_from", "targets": [{}]}, True),
+    ({"role": "jump", "targets": [{}]}, False),
+    ({"role": "jump", "targets": [{}], "target": "s"}, False),
+    ({"role": "barline", "type": "thin"}, False),
+    ({"type": "leap"}, False),
+    ({"role": 1, "type": ["jump_from"]}, False),
+]
+
+
+@pytest.mark.parametrize(("members", "is_earlier"), EARLIER_OR_NOT, ids=repr)
+def test_the_converter_reads_what_the_validators_send_to_it(
+    members: dict, is_earlier: bool, tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    """The converter and the validators hold one predicate of the earlier form.
+
+    For a manifest the validators refuse with the converter's name, the
+    converter converts or refuses with a message; it answers "nothing to
+    convert" exactly where the validators find no element of the earlier form.
+    """
+    flow = [
+        {"id": "s", "coordinate": [1, 1], "role": "jump_target"},
+        {"id": "old", "coordinate": [8, 1], **members},
+    ]
+    value = manifest(timeline("score", flow_control=flow))
+    assert bool(list(earlier_form_problems(value))) is is_earlier
+    assert converter.needs_conversion(value) is is_earlier
+    path = tmp_path / "score.yaml"
+    text = dumps(value)
+    path.write_text(text, encoding="utf-8")
+    status = converter.main([str(path)])
+    printed = capsys.readouterr().out
+    written = path.read_text(encoding="utf-8")
+    if not is_earlier:
+        assert (status, printed, written) == (0, f"{path}: nothing to convert\n", text)
+    elif status == 0:
+        assert printed == f"{path}: converted\n"
+        assert not list(earlier_form_problems(loads(written)))
+    else:
+        assert status == 1
+        assert printed.startswith(f"{path}: refused: ")
+        assert "'old' of 'score' " in printed
+        assert written == text
 
 
 def test_drawing_rules_follow_the_element_types() -> None:
