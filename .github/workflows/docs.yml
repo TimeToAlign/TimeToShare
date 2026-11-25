@@ -48,13 +48,13 @@ jobs:
           fetch-depth: 0
           path: src
 
-      # The ref is a branch for now; pinning it to a commit makes a change of
-      # the script a change of this file.
       - name: Check out the publishing script
         uses: actions/checkout@v7
         with:
           repository: TimeToAlign/TimeToAlign
-          ref: main
+          # timetoalign's publishing script at a reviewed commit; moving it is a
+          # change of this file
+          ref: db9817f53136888ad442ca384108bcf41c9ef7d7
           path: tools
           sparse-checkout: |
             docs/publish_site.py
@@ -100,15 +100,16 @@ jobs:
         run: |
           (cd js && pnpm install --frozen-lockfile)
           cd python
-          uv sync --no-dev --group docs
+          uv sync --locked --group docs
           uv run --no-sync sphinx-build -W --keep-going -n -d ../docs/_build/doctrees ../docs ../docs/_build/html
 
-      # The default branch (on a manual run, the branch chosen in the dispatch
-      # form) holds the assembling script; the documents are read from the tag.
+      # The default branch holds the assembling script, which ci.yml keeps
+      # compatible with every tag; the documents are read from the tag.
       - name: Check out the assembling script
         if: steps.target.outputs.tag != ''
         uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.repository.default_branch }}
           fetch-depth: 0
           fetch-tags: true
           path: assemble
