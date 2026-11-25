@@ -144,7 +144,8 @@ def bundle_schemas(
         """A provenance schema reference made local.
 
         A pointer into it or into the manifest schema is kept; any other
-        reference names its root.
+        reference becomes one to the provenance schema's root,
+        ``ProvenanceRecord``.
         """
         document, _, pointer = reference.partition("#")
         if document in ("", "timetoshare.schema.json") and pointer:
