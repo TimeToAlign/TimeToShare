@@ -388,7 +388,7 @@ export type NumberPositive = number | FractionPositive;
  */
 export type FractionPositive = [number, number];
 /**
- * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, one arc per destination whose place is not `by` 0, from the jump's coordinate to that place; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
+ * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, one arc per destination whose place is not `by` 0, from the jump's coordinate to that place; an arc is labelled with its destination's `label`, else with that destination's `manifestation`, and the jump's own `label` and `name` label the jump once, never each of its arcs; no arc is drawn to a place that a `to` names where the element named is rejected, as a destination of a rejected jump may name one; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -1291,7 +1291,7 @@ export interface FlowControlElement {
   ends?: BreakCondition;
   name?: Name;
   /**
-   * The text the element is drawn with, or null.
+   * The text the element is drawn with, or null. On a jump it labels the jump once, never each of its arcs, which take the labels of their destinations.
    */
   label?: string | null;
   meta?: Meta;
@@ -1318,7 +1318,7 @@ export interface JumpDestination {
    */
   by?: Number;
   /**
-   * The passes on which the destination holds, the n-th arrival of the flow at the jump being pass n. Beyond the highest number any destination of the jump names in a list, the destination naming that number holds, as the last volta bracket does after a da capo without repeats.
+   * The passes on which the destination holds, the n-th arrival of the flow at the jump being pass n. Beyond the highest number any destination of the jump names in a list, the destination naming that number holds, as the last volta bracket does after a da capo without repeats; this holds for the destinations of a jump only, never for the `ends` of a break.
    */
   passes?: Passes;
   /**
@@ -1342,7 +1342,7 @@ export interface JumpDestination {
    */
   manifestation?: string;
   /**
-   * The text the destination is drawn with, or null.
+   * The text the destination's arc is drawn with, or null: an arc without one is labelled with the destination's `manifestation`, never with the label of its jump.
    */
   label?: string | null;
 }
@@ -1367,12 +1367,15 @@ export interface DestinationReference {
   by?: Number;
 }
 /**
- * The condition under which a break ends the flow: `passes`, the arrivals of the flow at the break, and `after`, a destination that has been taken; where both are present both must hold. At least one of the two is stated.
+ * The condition under which a break ends the flow: `passes`, the arrivals of the flow at the break, and `after`, a destination that has been taken; where both are present both must hold. At least one of the two is stated. The passes of a break mean exactly the arrivals listed, or with `from` that arrival and every later one: what holds for the destinations of a jump, that the one naming the highest number holds on every later pass too, does not hold for a break.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "BreakCondition".
  */
 export interface BreakCondition {
+  /**
+   * The arrivals of the flow at the break on which the break ends the flow, the n-th arrival being pass n: exactly those listed, or with `from` that arrival and every later one.
+   */
   passes?: Passes;
   after?: DestinationReference;
 }
