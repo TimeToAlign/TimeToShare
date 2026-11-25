@@ -87,7 +87,12 @@ containers are the **boxes** of a drawing.
   element is read where its state for `believer` is one of `beliefs`,
   the state taken and the actors compared as the README's belief filter
   takes and compares them; with `null`, an element is read where no actor
-  believes it `false` (README, "Flow control"). An editor passes its
+  believes it `false` (README, "Flow control"). An element the reading
+  does not read is **unread**, and the drawing applies to unread elements
+  what the README's flow control says of rejected ones: no destination
+  lands on an unread element, a `to` naming one names nothing (section
+  3.1), and an unread element is drawn faded (section 6.4, Flow control).
+  With `null`, unread and rejected are one. An editor passes its
   user and the belief states it keeps (the user's own beliefs deciding
   where the user holds one, the workspace's belief filter elsewhere), a
   script its own or `null`; like `placement`, a reading is never part of
@@ -818,15 +823,17 @@ place the README ("Flow control") states, found on that root's axis and,
 for a member that is a child timeline, carried to the member's (section
 8.3):
 A destination without a place lands at the nearest section break, not
-rejected, before its Jump on the axis of the timeline played, among those
+unread (section 1), before its Jump on the axis of the timeline played, among those
 of that timeline and of all its descendants, but never before the start of
 the timeline stating the Jump, which counts as a section boundary for it:
 where no such section break lies from that start up to the Jump, the
 destination lands at that start. A destination with `by` 0 draws no arc,
-nor does one
-of a rejected jump whose `to` names nothing or names a rejected element:
-a `to` naming an element that some actor believes `false` names nothing
-(README, "Flow control"), so no arc is drawn to that element's place.
+nor does one whose `to` names nothing or names an unread element: as a
+`to` naming a rejected element names nothing (README, "Flow control"),
+a `to` naming an unread element names nothing to the drawing, so no arc
+is drawn to that element's place. In a valid manifest only a rejected
+jump names a rejected element; under a reading, any jump may name an
+unread one.
 Where a length is `null`,
 section 3.4 says where the timeline ends.
 
@@ -1331,9 +1338,9 @@ number it has always had.
 | flow label offset (from a flow-control element's `x` to its stack) | 3 |
 | symbol gap (between a glyph box and the lines it meets) | 2 |
 | symbol row height `Hs` | 2 + h(zs) + 2, `zs` the largest font size of the drawn symbols; 0 when none is drawn |
-| fork: stem length, branch length, angle step, largest angle | 8, 18, 35°, 70° |
+| fork: stem length, branch length, largest angle step, largest angle | 8, 18, 35°, 70° |
 | fork text offset (from a branch's tip to the start of its text) | 3 |
-| fork row height `Hf` | (h(zf) / 2 + 18 × sM) + h(zf) / 2, `zf` the largest font size of the drawn forks, `sM` the `sk` of `min(N − 1, 2)` (section 6.4, Forks) and `N` the most branches a drawn fork has; 0 when none is drawn |
+| fork row height `Hf` | (h(zf) / 2 + 18 × sM) + h(zf) / 2, `zf` the largest font size of the drawn forks, `N` the most branches a drawn fork has and `sM` the `sk` of the last branch of a fork of `N` branches (section 6.4, Forks); 0 when none is drawn |
 | boundary half-height `k` | 8 |
 | group frame padding `Q` | 8 |
 | card padding `K` | 8 |
@@ -1986,28 +1993,33 @@ box, and no line runs through or touches a glyph.
 
 **Forks.** The **branches** of a jump are its destinations whose
 `manifestation` is `volta` and whose place an arc would have (section
-3.1), a destination with `by` 0 included: the destinations of a
-rejected jump whose `to` names nothing or a rejected element are no
-branches. A jump with a branch draws one **fork**, where the fork is
+3.1), a destination with `by` 0 included: a destination whose `to`
+names nothing or an unread element is no branch. A jump with a branch draws one **fork**, where the fork is
 displayed, and no arc for a branch (Arcs): the fork shows that the flow
 leaves the jump on one of several ways, and its texts on which passes.
 The branches are taken in the order of their places, compared exactly,
-branches of one place in the canonical order of `targets`; branch `k`,
-counted from 1, has the **angle** `35° × min(k − 1, 2)` and the
-**direction** `(ck, sk)` of this table, its decimal numbers read as
-doubles and never computed from a sine or a cosine:
+branches of one place in the canonical order of `targets`; of a fork of
+`N` branches, branch `k`, counted from 1, has the **angle** `θk =
+min(35, 70 / (N − 1)) × (k − 1)` degrees, 0 for `N = 1`, and the
+**direction** `(ck, sk)`, the cosine and the sine of `(θk × π) / 180`
+radians, each rounded to ten decimal places, ties to even, and read as
+the double nearest that decimal (as a wedge's, section 6.6, Wedges), so
+that an engine whose sine errs by a few units in the last place draws
+every fork alike. For instance:
 
-| `min(k − 1, 2)` | angle | `ck` | `sk` |
-|---|---|---|---|
-| 0 | 0° | 1 | 0 |
-| 1 | 35° | 0.8191520443 | 0.5735764364 |
-| 2 | 70° | 0.3420201433 | 0.9396926208 |
+| `N` | angles | `(ck, sk)` |
+|---|---|---|
+| 2 | 0°, 35° | (1, 0), (0.8191520443, 0.5735764364) |
+| 3 | 0°, 35°, 70° | (1, 0), (0.8191520443, 0.5735764364), (0.3420201433, 0.9396926208) |
+| 4 | 0°, 23.3…°, 46.6…°, 70° | (1, 0), (0.9182161069, 0.396079766), (0.6862416379, 0.7273736416), (0.3420201433, 0.9396926208) |
 
 `ck` runs along the axis to the right and `sk` away from the root's
 line: the first branch runs straight on, the second bends away from the
-line by 35°, as a motorway exit leaves the road, and every further one
-by 70°, the largest angle, which the third and every later branch share,
-their arrows and texts then lying on one another. A fork has one size on
+line, as a motorway exit leaves the road, and every further one by one
+step more; the step is 35° up to three branches, and from the fourth on
+the branches share the 70° of the largest angle evenly, so the last
+always bends by 70° and no two branches share a direction (their texts,
+whose lines are `h(z)` high, may touch where the step is small). A fork has one size on
 the canvas whatever the axis's scale. With `X` the `x` of its jump's
 position, `w` its stroke width, `z` its font size, and `e = (f0 + Hs) +
 h(zf) / 2` the distance of its stem from the root's line, `zf` the
@@ -2040,9 +2052,11 @@ right as written, and each distance summed whole before it becomes an
 ordinate, `yl + d` when the band lies below the line and `yl − d` when it
 lies above it (section 3.3). So the fork row is as wide as the lowest tip
 of a drawn fork lies beyond its start, plus half a text height: `Hf =
-(h(zf) / 2 + 18 × sM) + h(zf) / 2` (section 6.2), `sM` the `sk` of
-`min(N − 1, 2)` and `N` the most branches a drawn fork has, so `Hf =
-h(zf)` when no drawn fork has more than one branch; room for every arrow
+(h(zf) / 2 + 18 × sM) + h(zf) / 2` (section 6.2), `N` the most
+branches a drawn fork has and `sM` the `sk` of the last branch of a fork
+of `N` branches (0 for one branch, 0.5735764364 for two, 0.9396926208
+for three or more), so `Hf = h(zf)` when no drawn fork has more than one
+branch; room for every arrow
 and every text, the first text's line starting at the row's start. A
 fork is no label: it lies on the fork row at its jump's `x` whatever its
 neighbours, so forks of jumps lying close may overlap, as symbols may; it
@@ -2051,8 +2065,8 @@ extents of section 6.7 as a symbol's does.
 
 **Arcs.** Each jump whose arcs are displayed (its element `jump`) draws one **arc** per destination, from
 and to the positions of section 3.1, but none for a destination with
-`by` 0 (going on, no jump), none for a destination of a rejected jump
-whose `to` names nothing or names a rejected element (section 3.1), and
+`by` 0 (going on, no jump), none for a destination whose `to` names
+nothing or names an unread element (section 3.1), and
 none for a destination whose `manifestation` is `volta`, whatever the
 `display` of the element `jump`, since its jump's fork shows it (Forks). The
 arcs, jump by jump in the order of the band's elements and each jump's
@@ -2077,10 +2091,12 @@ A flow-control element that the reading in force does not read
 (section 1), a **faded** element, is drawn as any other and takes its
 room as any other, but with its arcs or its line, its symbol, its fork,
 their labels, its stack and their leaders at the opacity 0.35, which
-replaces the cascaded `opacity` and no rule changes. The reading fades
-and nothing more: which arcs and branches a jump has and where a
-destination lands follow the rejection of the README ("Flow control"),
-an element some actor believes `false`, whatever the reading.
+replaces the cascaded `opacity` and no rule changes. The reading in
+force also decides which arcs and branches a jump has and where a
+destination lands (section 3.1, Forks, Arcs): an unread section break
+is no section's start, an unread jump target no place. Without a
+reading, these follow the rejection of the README ("Flow control"), an
+element some actor believes `false`.
 
 **Flow lines.** A displayed flow line is a vertical line at `x` of its
 position, from the flow row across the root's line and every band to the

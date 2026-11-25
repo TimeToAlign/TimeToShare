@@ -393,7 +393,11 @@ rules of flow control to the elements not rejected, so a rejected Jump and
 its replacement may share a coordinate, and a `to` or an `after` naming a
 rejected element names nothing: the validators report it as they report a
 `to` or an `after` naming no element (`dangling_target`), and a drawing
-draws no arc to it. Such provenance needs the `@context` only
+draws no arc to it. A drawing may take a reading of its own, an actor's
+beliefs filtered by belief state, and then reads its unread elements as
+rejected ([drawing
+specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/drawing.md),
+section 1). Such provenance needs the `@context` only
 where it uses a prefix; JSON-LD reads none of it, since `flow_control` is
 no term of the context.
 
@@ -1882,11 +1886,13 @@ other timeline draws one), and the content `timeline`, `child`,
 `class` naming `tts:AtomicSection`), `break`, `section_break` and
 `barline` (each a vertical line at its coordinate), `jump` (one arc per
 destination whose place is not `by` 0, from the jump's coordinate to
-that place, labelled with its destination's `label`, and none to a place
-a `to` names where the element named is rejected; hidden by default;
-a rejected element is drawn faded), `symbol` (the music-font glyph of an
-element's manifestation, such as 𝄆 for a repeat start), `bracket` (a
-volta bracket with its passes), `leader` (the thin line joining a label
+that place, labelled with its destination's `label`, none for a
+destination of manifestation `volta`, and none to a place a `to` names
+where the element named is rejected; hidden by default; a rejected
+element, or under a reading an unread one, is drawn faded), `symbol` (the music-font glyph of an
+element's manifestation, such as 𝄆 for a repeat start), `fork` (a
+jump's volta destinations as a stem splitting into one arrow per
+destination, each with its passes), `leader` (the thin line joining a label
 moved to a further tier to its element),
 `wedge` (a coordinate marker), `cross_section` (a named timestamp's
 cross-section line), `alignment_anchor` (the line of an alignment anchor
