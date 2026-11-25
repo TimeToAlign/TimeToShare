@@ -1,0 +1,31 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": [
+    "../js/src/index.ts"
+  ],
+  "tsconfig": "../js/tsconfig.json",
+  "plugin": [
+    "typedoc-plugin-markdown"
+  ],
+  "out": "api-ts",
+  "cleanOutputDir": true,
+  "readme": "none",
+  "externalPattern": [
+    "**/js/src/generated/**",
+    "**/node_modules/**"
+  ],
+  "excludeExternals": true,
+  "outputFileStrategy": "modules",
+  "entryFileName": "index.md",
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "useCodeBlocks": true,
+  "pageTitleTemplates": {
+    "index": "TypeScript API"
+  },
+  "parametersFormat": "table",
+  "interfacePropertiesFormat": "table",
+  "classPropertiesFormat": "table",
+  "typeDeclarationFormat": "table",
+  "enumMembersFormat": "table"
+}

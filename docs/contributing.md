@@ -1,0 +1,8 @@
+```{include} ../CONTRIBUTING.md
+```
+
+```{toctree}
+:maxdepth: 1
+
+building
+```

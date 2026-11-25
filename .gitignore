@@ -24,3 +24,9 @@ js/LICENSE
 .DS_Store
 .idea/
 .vscode/
+
+# Documentation site: the build output and the pages generated at build time
+docs/_build/
+docs/api/generated/
+docs/decisions/
+docs/api-ts/
