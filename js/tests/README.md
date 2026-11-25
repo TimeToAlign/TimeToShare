@@ -937,10 +937,13 @@ the same table:
 
 ## Packaging
 
-After `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists
+After `scripts/copy-assets.ts`, the package directory's `docs/` holds
 exactly the two specifications `docs/description.md` and `docs/drawing.md`
-under `docs/` (the rest of `docs/` is the documentation site's source and
-build, which a package must not carry, so `docs/conf.py` shipped fails),
+(the rest of the repository's `docs/` is the documentation site's source
+and build, which a package must not carry: the copy step leaves it out, and
+`files` alone would not catch a copy step that brought it along), and
+`npm pack --dry-run --json` lists exactly these two under `docs/` (so
+`docs/conf.py` shipped fails),
 exactly the three schema documents
 `schema/0.2.0/provenance.schema.json`, `schema/0.2.0/tables.json` and
 `schema/0.2.0/timetoshare.schema.json`,

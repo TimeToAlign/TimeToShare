@@ -1,5 +1,5 @@
 import { execFileSync, execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
 import { SCHEMA_VERSION } from "../src/validate.js";
@@ -40,6 +40,10 @@ describe("the npm package", () => {
     expect(shipped.filter((file) => file.startsWith("docs/")).sort()).toEqual(paths);
     for (const path of paths) expect(copied(path), path).toBe(true);
     expect(shipped).not.toContain("docs/conf.py");
+    expect(readdirSync(resolve(packageDirectory, "docs")).sort()).toEqual([
+      "description.md",
+      "drawing.md",
+    ]);
     const manifest = JSON.parse(readFileSync(resolve(packageDirectory, "package.json"), "utf8"));
     expect(manifest.exports["./docs/*"]).toBe("./docs/*");
   });
