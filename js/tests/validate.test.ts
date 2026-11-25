@@ -45,6 +45,8 @@ const SMALLEST = {
 const REJECTIONS = [
   "address_facet_with_part",
   "address_facet_without_id",
+  "after_distance_unknown",
+  "after_jump_rejected",
   "after_jump_unknown",
   "after_own_jump",
   "after_place_missing",
@@ -85,6 +87,7 @@ const REJECTIONS = [
   "destination_to_and_by",
   "destination_to_break",
   "destination_to_child_jump_target",
+  "destination_to_rejected_jump_target",
   "element_value_dangling",
   "element_value_with_label",
   "elision_depths_comma",
@@ -275,9 +278,11 @@ const REJECTIONS = [
   "value_node_empty",
   "value_object_language_and_type",
   "version_unknown",
+  "virtual_timeline_id_is_timeline_id",
   "virtual_timeline_length_int_on_fraction_axis",
   "virtual_timeline_map_unknown",
   "virtual_timeline_ticks_fraction",
+  "virtual_timeline_timeline_itself",
   "virtual_timeline_timeline_unknown",
   "virtual_timeline_without_length",
 ];
