@@ -179,6 +179,7 @@ CATALOGUE = (
     _root("child_flow_control", timelines.child_flow_control_timeline),
     _root("conversion_maps", timelines.conversion_maps_whole_notes),
     _root("child_jumps", timelines.child_jumps_timeline),
+    _root("volta_run", timelines.volta_run_timeline),
     _root("map_row_siblings", timelines.map_row_siblings_timeline),
     _root("map_row_subslots", timelines.map_row_subslots_timeline),
     _root("map_row_moved", timelines.map_row_moved_timeline),

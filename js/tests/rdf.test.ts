@@ -230,21 +230,29 @@ describe("the statement fixtures", () => {
 });
 
 /** The flow fixture whose regions state that they are atomic sections, and its twin. */
-const ATOMIC_SECTIONS = ["flow/sonata_exposition", "flow/sonata_exposition.minimal"];
+/** Per fixture whose regions are atomic sections, their numbers; `volta_run`'s `region_1` is none. */
+const SECTION_REGIONS: Record<string, number[]> = {
+  "flow/sonata_exposition": [1, 2, 3],
+  "flow/sonata_exposition.minimal": [1, 2, 3],
+  volta_run: [2, 3, 4, 5, 6],
+  "volta_run.minimal": [2, 3, 4, 5, 6],
+};
+const ATOMIC_SECTIONS = Object.keys(SECTION_REGIONS);
 
 describe("the atomic sections", () => {
   it.each(ATOMIC_SECTIONS)("of %s are typed in the format's namespace", async (path) => {
     const type = `${RDF}type`;
     const rdf = RDF;
-    const regions = [1, 2, 3].map((number) => `<${baseOf(path)}#region_${number}>`);
+    const numbers = SECTION_REGIONS[path] as number[];
+    const regions = numbers.map((number) => `<${baseOf(path)}#region_${number}>`);
     const quads = quadsOf(await canonical(path));
     const named = quads.filter((quad) => (quad[0] as string).startsWith("<"));
     expect(named.map((quad) => quad.join(" ")).sort()).toEqual(
       regions.map((region) => `${region} <${type}> <${ATOMIC_SECTION}>`).sort(),
     );
     const reified = quads.filter((quad) => !(quad[0] as string).startsWith("<"));
-    expect([quads.length, reified.length]).toEqual([15, 12]);
-    expect(new Set(reified.map((quad) => quad[0])).size).toBe(3);
+    expect([quads.length, reified.length]).toEqual([5 * regions.length, 4 * regions.length]);
+    expect(new Set(reified.map((quad) => quad[0])).size).toBe(regions.length);
     expect(reified.map((quad) => `${quad[1]} ${quad[2]}`).sort()).toEqual(
       regions
         .flatMap((region) => [

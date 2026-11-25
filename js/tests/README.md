@@ -412,7 +412,7 @@ new JsonFloat(-0)` are left out as the defaults `1` and `0` are, and the complet
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (102, one per fixture) completes to the canonical YAML of its
+minimal twin (103, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
@@ -581,13 +581,14 @@ so the inline context is all a processor reads. For both, it asserts:
 1. the canonical N-Quads (RDFC-1.0) equal `fixtures/rdf/0.2.0/<name>.nq`
    byte for byte, the bytes Python's PyLD gives;
 2. every other fixture under `fixtures/0.2.0/` (drawings excluded) gives the
-   empty dataset: no element states anything by being written; the one
-   exception is `flow/sonata_exposition` with its twin, whose three regions
-   state that they are atomic sections: its dataset is exactly, per region,
-   the triple typing it `AtomicSection` in the format's namespace and the
-   reified statement of that pair with the method `Inferred`, fifteen quads;
-   its FlowMaps and their provenance add none, `flow_maps` being no term
-   of the context;
+   empty dataset: no element states anything by being written; the two
+   exceptions are `flow/sonata_exposition` and `volta_run` with their
+   twins, whose three and five regions state that they are atomic
+   sections (`volta_run`'s `region_1` is none): the dataset is exactly,
+   per such region, the triple typing it `AtomicSection` in the format's
+   namespace and the reified statement of that pair with the method
+   `Inferred`, five quads; the FlowMaps and their provenance add none,
+   `flow_maps` being no term of the context;
 3. no IRI of the dataset begins with `p:` for a prefix `p` of the fixture's
    context, and every IRI begins with `http:`, `https:`, `urn:`, `tag:`,
    `mailto:` or `info:`: every compact IRI was expanded;
@@ -849,7 +850,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (204 files: bundles, the flow fixtures, groups and statements included), its value and its value
+  minimal twin (206 files: bundles, the flow fixtures, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and

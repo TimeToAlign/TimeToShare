@@ -24,9 +24,9 @@ The directories sort the manifests by content only:
 - under `flow/`, manifests of flow control, FlowMaps and virtual timelines
   ([Flow fixtures and expected flows](#flow-fixtures-and-expected-flows)).
 
-Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 17 under
+Version 0.2.0 has 52 manifests directly under `fixtures/0.2.0/`, 17 under
 `groups/`, 20 under `bundles/`, 4 under `statements/` and 10 under
-`flow/`, 102 in all, each with its minimal twin, so 204 files. Beside them
+`flow/`, 103 in all, each with its minimal twin, so 206 files. Beside them
 lie the expected RDF of the 4 statement fixtures under
 `fixtures/rdf/0.2.0/`, the expected flows of 9 flow fixtures under
 `fixtures/flows/0.2.0/`, the table fixture under `fixtures/tables/0.2.0/`
@@ -249,6 +249,7 @@ specification, section 6.4):
 | `joint_rows.yaml` | a root `piece` of 16 quarters whose children `b` and `d` each hold a child holding one more, so that each depth's two lines share a row and their children bands are laid out together, at two depths; `b` carries one map, `d1` and `d11` two each |
 | `child_flow_control.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the break "Fine" at 4, whose `ends.after` names the da capo, and the jump "D.C. al Fine" at 8 back to 0, while the root holds no flow control |
 | `child_jumps.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds the jump target `segno` at 2, the jump "Repeat" at 4, a repeat end taken twice back to the child's start, and the jump "D.S." at 8, a dal segno to `segno`, while the root holds no flow control |
+| `volta_run.yaml` | a root `score` of 24 quarters with a run of three volta brackets: the jump `jump_1` at 8 with the destinations `by` 0 on pass 1, to `jump_target_1` at 12 on pass 2 and to `jump_target_2` at 16 on pass 3, the volta breaks `break_1` at 12 and `break_2` at 16 each with the repeat end closing the bracket before it (`jump_2`, `jump_3`, the second with `reset` false), and the section break `section_break_1` at 20 closing the third bracket; the atomic sections A to E the library computes, regions typed `tts:AtomicSection`, beside the region "Exposition" (0 to 16), which is none, and the FlowMaps of the three conventions |
 
 Three manifests cover the slots of conversion maps bands (drawing
 specification, section 6.4, Conversion maps), and one the label of a float
@@ -348,6 +349,7 @@ segment line carries a map only in `bundle_shared_parent`.
 | regions on segments without a line of their own, joining their segment line's regions band | `a` and `c` of `unknown_length_segments` |
 | a break and a jump on a child, its root holding none | `verse` of `child_flow_control` |
 | a jump target, a repeat end with a repeat count and a dal segno to a jump target on a child, its root holding none | `verse` of `child_jumps` |
+| a run of three volta brackets, the last closed by a section break, and atomic sections beside another region | `score` of `volta_run` |
 | a MeasureMap shared by two timelines, one reading it through a `ChainMap` from ticks | `score` and `midi` of `group_measure_map` |
 | maps of two keys on two lines of one row, sharing the row's slots | `ante` and `cons` of `map_row_siblings` |
 | maps of one key on a segment line and two of its segments that are not segment lines, in two sub-slots | `form`, `b` and `c` of `map_row_subslots` |

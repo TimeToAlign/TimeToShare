@@ -1278,7 +1278,9 @@ flow that does not follow from its manifest.
   three conventions, each with the one provenance entry `{method:
   inferred}`, and one virtual timeline; read as RDF it says exactly
   that each region is an `AtomicSection` of the format's namespace and that
-  the pair was inferred, fifteen quads, while every other fixture outside
+  the pair was inferred, fifteen quads; `volta_run` says so of its five
+  atomic sections, `region_2` to `region_6`, twenty-five quads, and
+  nothing of its `region_1`, which is none; every other fixture outside
   `statements/` says nothing. Numbered flow-control IDs name their role,
   without exception.
 - **The expected flows** (`test_flow.py`). `fixtures/flows/0.2.0/` holds
@@ -1781,8 +1783,9 @@ each statement fixture and its twin:
 5. the number of distinct subjects of `rdf:subject` equals the number of
    provenance entries in the fixture: each entry is one reified statement.
 
-Every other fixture under `fixtures/0.2.0/` yields the empty dataset, both
-forms: a manifest without statements says nothing in RDF. `rdf_expectation`
+Every other fixture under `fixtures/0.2.0/`, but the two whose regions
+are atomic sections (`sonata_exposition`, `volta_run`), yields the empty
+dataset, both forms: a manifest without statements says nothing in RDF. `rdf_expectation`
 maps a fixture and its twin to the same file.
 
 ## One path rule for both validators
@@ -2253,7 +2256,7 @@ included (section "Flow"; `test_fixtures.py`). For every fixture: `validate` acc
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`flow`, `groups` and `statements`, 204 files (`test_files.py`); the four statement
+`flow`, `groups` and `statements`, 206 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -2348,11 +2351,11 @@ cannot prove that the emitter produces them:
 - **Flow-control IDs by role.** Across the complete fixtures, every
   flow-control element whose ID has the generated form `<prefix>_<N>`
   carries its own `role` as the prefix: exactly `barline_1` (two),
-  `barline_2` and `barline_3` (one each), `break_1` to `break_4` (eight,
-  two, one and one), `jump_1` (fifteen), `jump_2` (eight), `jump_3` (two),
-  `jump_4` to `jump_11` (one each), `jump_target_1` (ten),
-  `jump_target_2` (four), `jump_target_3` to `jump_target_8` (one each)
-  and `section_break_1` (one). The IDs of the earlier form of flow control
+  `barline_2` and `barline_3` (one each), `break_1` to `break_4` (nine,
+  three, one and one), `jump_1` (sixteen), `jump_2` (nine), `jump_3`
+  (three), `jump_4` to `jump_11` (one each), `jump_target_1` (eleven),
+  `jump_target_2` (five), `jump_target_3` to `jump_target_8` (one each)
+  and `section_break_1` (two). The IDs of the earlier form of flow control
   (`jump_from_N`, `jump_to_N`, `flow_marker_N`) occur nowhere. Every other flow-control ID is one a builder
   names (`fine`, `da-capo`, `da_capo_al_fine`, `dal_segno`, `repeat`,
   `segno`). A prefix taken from another role (a jump `break_1`, a jump

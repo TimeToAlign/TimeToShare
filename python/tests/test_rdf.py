@@ -53,12 +53,15 @@ UNSTATED = {
 subject has an IRI: those whose value is a thing or a plain literal, which
 the triple check reads, and those it passes over."""
 STATEMENTS = [path for path in fixture_paths() if path.parent.name == "statements"]
+SECTION_REGIONS = {"sonata_exposition": (1, 2, 3), "volta_run": (2, 3, 4, 5, 6)}
+"""Per fixture whose regions state that they are atomic sections, the
+numbers of those regions; ``volta_run``'s ``region_1`` is no atomic section."""
 ATOMIC_SECTIONS = [
     path
     for path in fixture_paths()
-    if path.parent.name == "flow" and path.name.startswith("sonata_exposition.")
+    if path.name.removesuffix(".yaml").removesuffix(".minimal") in SECTION_REGIONS
 ]
-"""The flow fixture whose regions state that they are atomic sections."""
+"""The fixtures whose regions state that they are atomic sections."""
 OTHERS = [
     path
     for path in fixture_paths()
@@ -258,6 +261,8 @@ def test_a_manifest_without_statements_says_nothing(path: Path) -> None:
 
 def test_the_atomic_section_fixture_is_found() -> None:
     assert [path.name for path in ATOMIC_SECTIONS] == [
+        "volta_run.minimal.yaml",
+        "volta_run.yaml",
         "sonata_exposition.minimal.yaml",
         "sonata_exposition.yaml",
     ]
@@ -266,7 +271,8 @@ def test_the_atomic_section_fixture_is_found() -> None:
 @pytest.mark.parametrize("path", ATOMIC_SECTIONS, ids=lambda path: path.name)
 def test_an_atomic_section_is_typed_in_the_formats_namespace(path: Path) -> None:
     section = NAMESPACE + "AtomicSection"
-    regions = [f"{_base(path)}#region_{number}" for number in (1, 2, 3)]
+    numbers = SECTION_REGIONS[path.name.removesuffix(".yaml").removesuffix(".minimal")]
+    regions = [f"{_base(path)}#region_{number}" for number in numbers]
     quads = _quads(path)
     named = {
         (quad["subject"]["value"], quad["predicate"]["value"], quad["object"]["value"])
@@ -275,8 +281,8 @@ def test_an_atomic_section_is_typed_in_the_formats_namespace(path: Path) -> None
     }
     assert named == {(region, RDF + "type", section) for region in regions}
     reified = [quad for quad in quads if quad["subject"]["type"] != "IRI"]
-    assert len(quads) == 15 and len(reified) == 12
-    assert len({quad["subject"]["value"] for quad in reified}) == 3
+    assert (len(quads), len(reified)) == (5 * len(regions), 4 * len(regions))
+    assert len({quad["subject"]["value"] for quad in reified}) == len(regions)
     assert sorted(
         (quad["predicate"]["value"], quad["object"]["value"]) for quad in reified
     ) == sorted(

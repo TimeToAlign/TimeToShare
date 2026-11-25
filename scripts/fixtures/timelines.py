@@ -46,7 +46,9 @@ from timetoalign.timelines.flowcontrol import (
     DestinationReference,
     FlowCondition,
     Jump,
+    JumpDestination,
     JumpTarget,
+    SectionBreak,
 )
 
 from . import parts
@@ -735,9 +737,8 @@ def child_flow_control_timeline() -> Timeline:
     ("Verse", 8 quarters) at 4, which carries a da capo al fine: the jump
     ``da_capo_al_fine`` at 8, whose destination "D.C. al Fine" names the
     child itself, its start, and the break ``fine`` ("Fine") at 4, which
-    ends the flow after that da capo. The defaults hide the flow control
-    band of a child, so a drawing shows them only under a rule that displays
-    the band ``{"id": "verse", "facet": "flow_control"}``.
+    ends the flow after that da capo. A drawing draws them in the root's
+    flow control band, at their positions on the root's axis.
     """
     piece = parts.named(ContinuousLogicalTimeline, "piece", "Piece", Fraction(16))
     verse = parts.holding(
@@ -762,6 +763,61 @@ def child_flow_control_timeline() -> Timeline:
         )
     )
     return piece
+
+
+def volta_run_timeline() -> Timeline:
+    """Build a run of three volta brackets beside regions of two kinds.
+
+    The root ``score`` ("Score", 24 quarters) holds the region "Exposition"
+    (0 to 16) and the jump ``jump_1`` at 8, before the brackets, with three
+    volta destinations: ``by`` 0 on pass 1, to ``jump_target_1`` at 12 on
+    pass 2 and to ``jump_target_2`` at 16 on pass 3. Between the brackets lie
+    the volta breaks ``break_1`` at 12 and ``break_2`` at 16, each with the
+    repeat sign that closes the bracket before it, ``jump_2`` and ``jump_3``
+    (repeat ends taken once, the second without restoring), and the section
+    break ``section_break_1`` at 20 closes the third bracket. The library
+    computes the atomic sections from them, regions typed
+    ``tts:AtomicSection`` beside the region "Exposition", which is none, and
+    the FlowMaps of its conventions.
+    """
+    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(24))
+    at = score.make_coordinate
+    score.create_region(at(0), at(16), name="Exposition")
+    flow = score.flow_control
+    second = flow.add(JumpTarget(at(12), manifestation="volta", id="jump_target_1"))
+    third = flow.add(JumpTarget(at(16), manifestation="volta", id="jump_target_2"))
+    flow.add(
+        Jump(
+            at(8),
+            [
+                JumpDestination(by=0, passes=[1], manifestation="volta"),
+                JumpDestination(to=second.id, passes=[2], manifestation="volta"),
+                JumpDestination(to=third.id, passes=[3], manifestation="volta"),
+            ],
+            id="jump_1",
+        )
+    )
+    flow.add(Break(at(12), manifestation="volta", id="break_1"))
+    flow.add(
+        Jump(
+            at(12),
+            [JumpDestination(repeat_count=1, manifestation="repeat_end")],
+            id="jump_2",
+        )
+    )
+    flow.add(Break(at(16), manifestation="volta", id="break_2"))
+    flow.add(
+        Jump(
+            at(16),
+            [JumpDestination(repeat_count=1, reset=False, manifestation="repeat_end")],
+            id="jump_3",
+        )
+    )
+    flow.add(SectionBreak(at(20), id="section_break_1"))
+    computed = score.create_flow_maps_from_flow_control()
+    if computed is None or computed.findings:
+        raise SystemExit(f"volta_run: the flows computed are {computed!r}")
+    return score
 
 
 def conversion_maps_whole_notes() -> Timeline:

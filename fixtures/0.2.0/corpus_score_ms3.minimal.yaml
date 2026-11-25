@@ -219,7 +219,7 @@ measure_maps:
         time_signature: "4/4"
         volta: 2
 meta:
-  generator: "timetoalign 1.2.0 (aa91d4d5)"
+  generator: "timetoalign 1.2.0 (2ffcda05)"
 timelines:
   -
     children:
