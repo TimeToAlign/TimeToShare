@@ -460,13 +460,14 @@
 <span class="sd">holds a belief ``false``: a repair rejects an element and adds another, so a</span>
 <span class="sd">rejected jump and its replacement may share a coordinate. In document</span>
 <span class="sd">order: a coordinate lies from 0 to the timeline's known length</span>
-<span class="sd">(``flow_coordinate``); a timeline has one jump at a coordinate</span>
-<span class="sd">(``jump_repeated``); the destinations of a jump are distinct places</span>
-<span class="sd">(``jump_destination``); a ``to`` names a jump target or a region of the</span>
-<span class="sd">timeline, a child of it or the timeline itself (``dangling_target``); a place</span>
-<span class="sd">reached by ``by`` lies from 0 to the known length (``flow_coordinate``); an</span>
-<span class="sd">``after`` names exactly one destination of another jump of the timeline</span>
-<span class="sd">(``dangling_target``).</span>
+<span class="sd">(``flow_coordinate``); a root and its descendants have one jump at a</span>
+<span class="sd">position on the root's axis, each coordinate carried to the root by adding</span>
+<span class="sd">the offsets of its ancestors (``jump_repeated``); the destinations of a</span>
+<span class="sd">jump are distinct places (``jump_destination``); a ``to`` names a jump</span>
+<span class="sd">target or a region of the timeline, a child of it or the timeline itself</span>
+<span class="sd">(``dangling_target``); a place reached by ``by`` lies from 0 to the known</span>
+<span class="sd">length (``flow_coordinate``); an ``after`` names exactly one destination</span>
+<span class="sd">of another jump of the timeline (``dangling_target``).</span>
 
 <span class="sd">Then the FlowMaps: ``timeline`` names a root (``flow_map_timeline``), every</span>
 <span class="sd">chunk ID a region or a child timeline inside that root's tree, or a virtual</span>
@@ -680,15 +681,29 @@
         <span class="p">)</span>
 
 
+<span class="n">JumpPositions</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Fraction</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span>
+<span class="sd">"""The jumps of a root's tree by their exact position on the root's axis:</span>
+<span class="sd">the ID of the first jump there and of the timeline stating it."""</span>
+
+
 <div class="viewcode-block" id="timeline_flow_problems">
 <a class="viewcode-back" href="../../../api/generated/timetoshare.validation.flow.html#timetoshare.validation.flow.timeline_flow_problems">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">timeline_flow_problems</span><span class="p">(</span>
-    <span class="n">timeline</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">InstancePath</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">InstancePath</span><span class="p">,</span>
+    <span class="n">start</span><span class="p">:</span> <span class="n">Fraction</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+    <span class="n">jumps_at</span><span class="p">:</span> <span class="n">JumpPositions</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Yield the problems of one timeline's flow control, in document order.</span>
 
-<span class="sd">    The timeline's own elements only; its children are the caller's.</span>
+<span class="sd">    The timeline's own elements only; its children are the caller's, who</span>
+<span class="sd">    passes ``start``, the timeline's start on its root's axis (the sum of the</span>
+<span class="sd">    offsets from the root down), and one ``jumps_at`` for the whole tree, so</span>
+<span class="sd">    that a jump at the position of an earlier jump of the root or of another</span>
+<span class="sd">    descendant is refused as one at a coordinate of its own timeline is.</span>
 <span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">jumps_at</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">jumps_at</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">flow</span> <span class="o">=</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"flow_control"</span><span class="p">)</span>
     <span class="n">read</span> <span class="o">=</span> <span class="p">[(</span><span class="n">index</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">rejected</span><span class="p">(</span><span class="n">entry</span><span class="p">)]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">read</span><span class="p">:</span>
@@ -701,7 +716,6 @@
     <span class="n">places</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">region</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"regions"</span><span class="p">))</span>
     <span class="n">places</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">child</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">))</span>
     <span class="n">places</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">owner</span><span class="p">)</span>
-    <span class="n">first_jump</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Fraction</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">outside</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Fraction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Whether a coordinate lies before 0 or after the timeline's known length."""</span>
@@ -731,17 +745,23 @@
             <span class="p">)</span>
         <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"role"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"jump"</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="k">if</span> <span class="n">coordinate</span> <span class="ow">in</span> <span class="n">first_jump</span><span class="p">:</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="n">coordinate</span>
+        <span class="k">if</span> <span class="n">position</span> <span class="ow">in</span> <span class="n">jumps_at</span><span class="p">:</span>
+            <span class="n">earlier</span><span class="p">,</span> <span class="n">holder</span> <span class="o">=</span> <span class="n">jumps_at</span><span class="p">[</span><span class="n">position</span><span class="p">]</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">""</span>
+                <span class="k">if</span> <span class="n">holder</span> <span class="o">==</span> <span class="n">owner</span>
+                <span class="k">else</span> <span class="sa">f</span><span class="s2">" of '</span><span class="si">{</span><span class="n">holder</span><span class="si">}</span><span class="s2">' at the same position on their root's axis"</span>
+            <span class="p">)</span>
             <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
                 <span class="s2">"jump_repeated"</span><span class="p">,</span>
                 <span class="n">at</span><span class="p">,</span>
                 <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">' is a second jump at coordinate "</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">'coordinate'</span><span class="p">])</span><span class="si">}</span><span class="s2"> of '</span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">', after "</span>
-                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">first_jump</span><span class="p">[</span><span class="n">coordinate</span><span class="p">]</span><span class="si">}</span><span class="s2">': several signs at one place are "</span>
-                <span class="s2">"destinations of one jump"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">'coordinate'</span><span class="p">])</span><span class="si">}</span><span class="s2"> of '</span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">', after '</span><span class="si">{</span><span class="n">earlier</span><span class="si">}</span><span class="s2">'"</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: several signs at one place are destinations of one jump"</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">first_jump</span><span class="p">[</span><span class="n">coordinate</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+            <span class="n">jumps_at</span><span class="p">[</span><span class="n">position</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">owner</span><span class="p">)</span>
         <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">number</span><span class="p">,</span> <span class="n">destination</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">]):</span>
             <span class="n">here</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">,</span> <span class="n">number</span><span class="p">)</span>

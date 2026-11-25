@@ -522,7 +522,10 @@ candidate. Last, the provenance of the flow-control elements and of the
 FlowMaps, whose entries name no pair: every compact IRI names a declared
 prefix (<code class="docutils literal notranslate"><span class="pre">iri</span></code>), every <code class="docutils literal notranslate"><span class="pre">#</span></code> reference an element (<code class="docutils literal notranslate"><span class="pre">dangling_target</span></code>), a
 date is a calendar day (<code class="docutils literal notranslate"><span class="pre">calendar_date</span></code>), then entry by entry no actor
-holds two beliefs (<code class="docutils literal notranslate"><span class="pre">belief_actor</span></code>). The manifest is read with bare IDs; the IRIs of
+holds two beliefs (<code class="docutils literal notranslate"><span class="pre">belief_actor</span></code>). After them, rule by rule, the <code class="docutils literal notranslate"><span class="pre">class</span></code>
+of each selector of <code class="docutils literal notranslate"><span class="pre">graphical.rules</span></code> written as a compact IRI names a
+declared prefix (<code class="docutils literal notranslate"><span class="pre">iri</span></code>), but for <code class="docutils literal notranslate"><span class="pre">tts</span></code>, which in a selector always
+stands for the format’s namespace. The manifest is read with bare IDs; the IRIs of
 statements are the same in either form. The walks read any value, so a
 reader of part of a manifest can check its statements alone.</p>
 <dl class="py function">
@@ -532,10 +535,10 @@ reader of part of a manifest can check its statements alone.</p>
 <p>The context rule over every subject, then the reserved keys of the
 manifest, the timelines and regions in subject order and the groups,
 each element’s keys in code-point order, then the subject walk, then
-the provenance of the flow-control elements and the FlowMaps. The
-manifest is taken with bare IDs and its statements and provenance as
-schema-checked; everything else is read wherever it has the expected
-type.</p>
+the provenance of the flow-control elements and the FlowMaps, then the
+<code class="docutils literal notranslate"><span class="pre">class</span></code> of each rule’s selector. The manifest is taken with bare IDs
+and its statements and provenance as schema-checked; everything else is
+read wherever it has the expected type.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

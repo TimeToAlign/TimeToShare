@@ -463,7 +463,10 @@
 <span class="sd">FlowMaps, whose entries name no pair: every compact IRI names a declared</span>
 <span class="sd">prefix (``iri``), every ``#`` reference an element (``dangling_target``), a</span>
 <span class="sd">date is a calendar day (``calendar_date``), then entry by entry no actor</span>
-<span class="sd">holds two beliefs (``belief_actor``). The manifest is read with bare IDs; the IRIs of</span>
+<span class="sd">holds two beliefs (``belief_actor``). After them, rule by rule, the ``class``</span>
+<span class="sd">of each selector of ``graphical.rules`` written as a compact IRI names a</span>
+<span class="sd">declared prefix (``iri``), but for ``tts``, which in a selector always</span>
+<span class="sd">stands for the format's namespace. The manifest is read with bare IDs; the IRIs of</span>
 <span class="sd">statements are the same in either form. The walks read any value, so a</span>
 <span class="sd">reader of part of a manifest can check its statements alone.</span>
 <span class="sd">"""</span>
@@ -639,11 +642,31 @@
                 <span class="n">actors</span><span class="p">[</span><span class="n">actor</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">problems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Yield the problems of the statements, then of element provenance."""</span>
+<span class="w">        </span><span class="sd">"""Yield the problems of statements, element provenance, selector classes."""</span>
         <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">(</span><span class="n">statement_positions</span><span class="p">(</span><span class="n">manifest</span><span class="p">))</span>
         <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">positions</span><span class="p">(</span><span class="n">element_provenance_positions</span><span class="p">(</span><span class="n">manifest</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">path</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">element_provenance</span><span class="p">(</span><span class="n">manifest</span><span class="p">):</span>
             <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">beliefs</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">selector_classes</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">selector_classes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Yield a problem for each selector ``class`` whose prefix is not declared.</span>
+
+<span class="sd">        A class written as an IRI is a compact or an absolute IRI; the prefix</span>
+<span class="sd">        ``tts`` always stands for the format's namespace in a selector, of</span>
+<span class="sd">        every layer, so it needs no declaration.</span>
+<span class="sd">        """</span>
+        <span class="n">graphical</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">graphical</span><span class="p">,</span> <span class="s2">"rules"</span><span class="p">)):</span>
+            <span class="n">select</span> <span class="o">=</span> <span class="n">rule</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"select"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">select</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">select</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">":"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">text</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"tts"</span><span class="p">:</span>
+                <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"rules"</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="s2">"select"</span><span class="p">,</span> <span class="s2">"class"</span><span class="p">)</span>
+                <span class="k">yield from</span> <span class="bp">self</span><span class="o">.</span><span class="n">iri</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">positions</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Yield the problems of the positions of a walk, each by its kind."""</span>
@@ -694,10 +717,10 @@
 <span class="sd">    The context rule over every subject, then the reserved keys of the</span>
 <span class="sd">    manifest, the timelines and regions in subject order and the groups,</span>
 <span class="sd">    each element's keys in code-point order, then the subject walk, then</span>
-<span class="sd">    the provenance of the flow-control elements and the FlowMaps. The</span>
-<span class="sd">    manifest is taken with bare IDs and its statements and provenance as</span>
-<span class="sd">    schema-checked; everything else is read wherever it has the expected</span>
-<span class="sd">    type.</span>
+<span class="sd">    the provenance of the flow-control elements and the FlowMaps, then the</span>
+<span class="sd">    ``class`` of each rule's selector. The manifest is taken with bare IDs</span>
+<span class="sd">    and its statements and provenance as schema-checked; everything else is</span>
+<span class="sd">    read wherever it has the expected type.</span>
 <span class="sd">    """</span>
     <span class="k">yield from</span> <span class="n">_context_problems</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
     <span class="k">yield from</span> <span class="n">_reserved_key_problems</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>

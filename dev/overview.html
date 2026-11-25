@@ -922,9 +922,14 @@ admits, and <code class="docutils literal notranslate"><span class="pre">role</s
 </table>
 </div>
 <p>An element acts when the flow plays up to its coordinate, never when a
-destination lands on it. A timeline has at most one Jump at a coordinate:
-several signs at one place, such as a repeat end and a dal segno on one
-barline, are destinations of that one Jump. <code class="docutils literal notranslate"><span class="pre">manifestation</span></code> says how an
+destination lands on it. Flow control holds across descendants: a root
+and all its descendants have at most one Jump at one position on the
+root’s axis, each element’s coordinate carried to the root by adding the
+offsets of its ancestors exactly, a float as its exact binary value, so a
+Jump of a child never shares its place with a Jump of the root or of
+another descendant; several signs at one
+place, such as a repeat end and a dal segno on one barline, are
+destinations of that one Jump. <code class="docutils literal notranslate"><span class="pre">manifestation</span></code> says how an
 element or a destination is notated, a word of an open vocabulary: a word
 the format does not define for its role is valid and kept, and both
 validators report it as the warning <code class="docutils literal notranslate"><span class="pre">manifestation_unknown</span></code>. The
@@ -966,15 +971,19 @@ optional:</p>
 <td><p><code class="docutils literal notranslate"><span class="pre">repeat_end</span></code>, <code class="docutils literal notranslate"><span class="pre">da_capo</span></code>, <code class="docutils literal notranslate"><span class="pre">da_capo_al_fine</span></code>, <code class="docutils literal notranslate"><span class="pre">da_capo_al_coda</span></code>, <code class="docutils literal notranslate"><span class="pre">dal_segno</span></code>, <code class="docutils literal notranslate"><span class="pre">dal_segno_al_fine</span></code>, <code class="docutils literal notranslate"><span class="pre">dal_segno_al_coda</span></code>, <code class="docutils literal notranslate"><span class="pre">to_coda</span></code>, <code class="docutils literal notranslate"><span class="pre">volta</span></code> or <code class="docutils literal notranslate"><span class="pre">ossia</span></code>, an open vocabulary as above</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
-<td><p>the text the destination’s arc is drawn with, or <code class="docutils literal notranslate"><span class="pre">null</span></code>: an arc without one is labelled with the destination’s <code class="docutils literal notranslate"><span class="pre">manifestation</span></code>, never with the Jump’s <code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<td><p>the text the destination’s arc is drawn with, or <code class="docutils literal notranslate"><span class="pre">null</span></code>: an arc without one has no label, never the destination’s <code class="docutils literal notranslate"><span class="pre">manifestation</span></code>, which the drawing shows as a symbol, nor the Jump’s <code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <p>A destination’s place is <code class="docutils literal notranslate"><span class="pre">to</span></code>, <code class="docutils literal notranslate"><span class="pre">by</span></code> or neither, never both, and lies from
 0 to the timeline’s length. A destination without a place lands at the
-start of the section its Jump lies in: the nearest section break before
-the Jump, else the timeline’s start. <code class="docutils literal notranslate"><span class="pre">by</span></code> 0 is going on and no jump: it is
+nearest section break, not rejected, before its Jump on the axis of the
+timeline played, among those of that timeline and of all its descendants,
+but never before the start of the timeline stating the Jump, which counts
+as a section boundary for it: where no such section break lies from that
+start up to the Jump, the destination lands at that start. <code class="docutils literal notranslate"><span class="pre">by</span></code> 0 is going
+on and no jump: it is
 written where the source prints it, as the numbers of a first volta
 bracket, and is never taken. The destinations of one Jump lie at distinct
 places, no two with the same <code class="docutils literal notranslate"><span class="pre">to</span></code>, the same <code class="docutils literal notranslate"><span class="pre">by</span></code> (compared by value) or
@@ -1023,7 +1032,7 @@ first is written with <code class="docutils literal notranslate"><span class="pr
 the Jump before the brackets wherever all that Jump’s places lie before
 the sign, and the later passes would never be reached. A section break
 ends a section, a movement included: no atomic section spans it, a
-destination without a place lands at the nearest one before its Jump, and
+destination without a place may land at it (above), and
 a flow that has ended at a Break begins again at the
 nearest section break at or after that Break, where one lies before the
 timeline’s end.</p>
@@ -1168,9 +1177,13 @@ length is compared where a chunk lies on another axis or has no known
 length. Where <code class="docutils literal notranslate"><span class="pre">through</span></code> is stated, neither
 the tree nor the length is read; a conversion map as <code class="docutils literal notranslate"><span class="pre">map</span></code> is read for
 neither.</p>
-<p><strong>Computing a flow.</strong> Each convention reads a timeline’s elements that are
-not rejected and its length, never a manifestation. The <code class="docutils literal notranslate"><span class="pre">default</span></code> flow
-starts at 0 and plays up to the nearest coordinate ahead that holds a Jump
+<p><strong>Computing a flow.</strong> A timeline is <strong>played</strong> with its own elements and
+those of all its descendants, each at its coordinate plus the offsets of
+the ancestors between it and the timeline played (flow control holds
+across descendants, above); the runs and the findings lie on the axis of
+the timeline played. Each convention reads the elements so gathered that
+are not rejected and the played timeline’s length, never a
+manifestation. The <code class="docutils literal notranslate"><span class="pre">default</span></code> flow starts at 0 and plays up to the nearest coordinate ahead that holds a Jump
 or a Break, or up to the length; each such stretch is one <strong>run</strong>. There
 the Jump counts one more pass, and a destination that holds is taken, by
 the order above, the flow going on from its place. Where none is taken,
@@ -1836,10 +1849,10 @@ stable code:</p>
 <td><p>the <code class="docutils literal notranslate"><span class="pre">after</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">jump</span> <span class="pre">'&lt;id&gt;'</span> <span class="pre">has</span> <span class="pre">&lt;n&gt;</span> <span class="pre">destinations</span> <span class="pre">and</span> <span class="pre">none</span> <span class="pre">without</span> <span class="pre">a</span> <span class="pre">place;</span> <span class="pre">after</span> <span class="pre">names</span> <span class="pre">one</span> <span class="pre">by</span> <span class="pre">its</span> <span class="pre">to</span> <span class="pre">or</span> <span class="pre">by</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>A jump lies at the coordinate of an earlier jump of its timeline, compared by exact value</p></td>
+<tr class="row-odd"><td><p>A jump lies at the position of an earlier jump of its root’s tree on the root’s axis, its coordinate plus the offsets of its ancestors, summed exactly (a float as its exact binary value) and compared by exact value, in document order, a timeline’s elements before its children’s</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">jump_repeated</span></code></p></td>
 <td><p>the later jump</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;id&gt;'</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">second</span> <span class="pre">jump</span> <span class="pre">at</span> <span class="pre">coordinate</span> <span class="pre">&lt;value&gt;</span> <span class="pre">of</span> <span class="pre">'&lt;timeline</span> <span class="pre">id&gt;',</span> <span class="pre">after</span> <span class="pre">'&lt;earlier</span> <span class="pre">id&gt;':</span> <span class="pre">several</span> <span class="pre">signs</span> <span class="pre">at</span> <span class="pre">one</span> <span class="pre">place</span> <span class="pre">are</span> <span class="pre">destinations</span> <span class="pre">of</span> <span class="pre">one</span> <span class="pre">jump</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;id&gt;'</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">second</span> <span class="pre">jump</span> <span class="pre">at</span> <span class="pre">coordinate</span> <span class="pre">&lt;value&gt;</span> <span class="pre">of</span> <span class="pre">'&lt;timeline</span> <span class="pre">id&gt;',</span> <span class="pre">after</span> <span class="pre">'&lt;earlier</span> <span class="pre">id&gt;':</span> <span class="pre">several</span> <span class="pre">signs</span> <span class="pre">at</span> <span class="pre">one</span> <span class="pre">place</span> <span class="pre">are</span> <span class="pre">destinations</span> <span class="pre">of</span> <span class="pre">one</span> <span class="pre">jump</span></code> (<code class="docutils literal notranslate"><span class="pre">…</span> <span class="pre">after</span> <span class="pre">'&lt;earlier</span> <span class="pre">id&gt;'</span> <span class="pre">of</span> <span class="pre">'&lt;earlier</span> <span class="pre">timeline</span> <span class="pre">id&gt;'</span> <span class="pre">at</span> <span class="pre">the</span> <span class="pre">same</span> <span class="pre">position</span> <span class="pre">on</span> <span class="pre">their</span> <span class="pre">root's</span> <span class="pre">axis:</span> <span class="pre">…</span></code> where the two lie on different timelines)</p></td>
 </tr>
 <tr class="row-even"><td><p>A destination has the place of an earlier destination of its jump, <code class="docutils literal notranslate"><span class="pre">by</span></code> compared by exact value</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">jump_destination</span></code></p></td>
@@ -2953,16 +2966,20 @@ at the proportions of its own axis, its line continuing the faded one.
 The element types are the containers <code class="docutils literal notranslate"><span class="pre">block</span></code>, <code class="docutils literal notranslate"><span class="pre">frame</span></code>, <code class="docutils literal notranslate"><span class="pre">card</span></code>,
 <code class="docutils literal notranslate"><span class="pre">ancestor_card</span></code> (shown by default) and <code class="docutils literal notranslate"><span class="pre">band</span></code> (a band draws one of a timeline’s five
 facets and lies above or below its line as the timeline’s band order
-places it; a band that is not displayed hides everything it holds, and by
-default the regions and flow control bands are hidden on every timeline
-but the one a card holds), and the content <code class="docutils literal notranslate"><span class="pre">timeline</span></code>, <code class="docutils literal notranslate"><span class="pre">child</span></code>,
+places it; a band that is not displayed hides everything it holds; a
+root’s flow control band draws the flow control of its whole tree, and no
+other timeline draws one), and the content <code class="docutils literal notranslate"><span class="pre">timeline</span></code>, <code class="docutils literal notranslate"><span class="pre">child</span></code>,
 <code class="docutils literal notranslate"><span class="pre">boundary</span></code> (a segment’s start on its segment line), <code class="docutils literal notranslate"><span class="pre">ancestor</span></code>, <code class="docutils literal notranslate"><span class="pre">map</span></code>,
-<code class="docutils literal notranslate"><span class="pre">region</span></code>, <code class="docutils literal notranslate"><span class="pre">break</span></code>, <code class="docutils literal notranslate"><span class="pre">section_break</span></code> and <code class="docutils literal notranslate"><span class="pre">barline</span></code> (each a vertical line
-at its coordinate), <code class="docutils literal notranslate"><span class="pre">jump</span></code> (one arc per destination whose place is not
-<code class="docutils literal notranslate"><span class="pre">by</span></code> 0, from the jump’s coordinate to that place, labelled with its
-destination’s <code class="docutils literal notranslate"><span class="pre">label</span></code>, else its <code class="docutils literal notranslate"><span class="pre">manifestation</span></code>, and none to a place a
-<code class="docutils literal notranslate"><span class="pre">to</span></code> names where the element named is rejected; a jump target draws
-nothing; a rejected element is drawn faded),
+<code class="docutils literal notranslate"><span class="pre">region</span></code> (the atomic sections hidden by default, through the selector
+<code class="docutils literal notranslate"><span class="pre">class</span></code> naming <code class="docutils literal notranslate"><span class="pre">tts:AtomicSection</span></code>), <code class="docutils literal notranslate"><span class="pre">break</span></code>, <code class="docutils literal notranslate"><span class="pre">section_break</span></code> and
+<code class="docutils literal notranslate"><span class="pre">barline</span></code> (each a vertical line at its coordinate), <code class="docutils literal notranslate"><span class="pre">jump</span></code> (one arc per
+destination whose place is not <code class="docutils literal notranslate"><span class="pre">by</span></code> 0, from the jump’s coordinate to
+that place, labelled with its destination’s <code class="docutils literal notranslate"><span class="pre">label</span></code>, and none to a place
+a <code class="docutils literal notranslate"><span class="pre">to</span></code> names where the element named is rejected; hidden by default;
+a rejected element is drawn faded), <code class="docutils literal notranslate"><span class="pre">symbol</span></code> (the music-font glyph of an
+element’s manifestation, such as 𝄆 for a repeat start), <code class="docutils literal notranslate"><span class="pre">bracket</span></code> (a
+volta bracket with its passes), <code class="docutils literal notranslate"><span class="pre">leader</span></code> (the thin line joining a label
+moved to a further tier to its element),
 <code class="docutils literal notranslate"><span class="pre">wedge</span></code> (a coordinate marker), <code class="docutils literal notranslate"><span class="pre">cross_section</span></code> (a named timestamp’s
 cross-section line), <code class="docutils literal notranslate"><span class="pre">alignment_anchor</span></code> (the line of an alignment anchor
 of a named MatchStamp, drawn last, across the cards between its two
@@ -2973,14 +2990,18 @@ timestamp’s name, a MatchStamp’s name and an elision’s three labels among
 them). Besides <code class="docutils literal notranslate"><span class="pre">element</span></code>, a selector may name <code class="docutils literal notranslate"><span class="pre">addresses</span></code> (address
 objects, each matched as a whole object), <code class="docutils literal notranslate"><span class="pre">domain</span></code>, <code class="docutils literal notranslate"><span class="pre">modality</span></code>, <code class="docutils literal notranslate"><span class="pre">class</span></code>
 (the class a timeline’s unit decides, such as
-<code class="docutils literal notranslate"><span class="pre">ContinuousPhysicalTimeline</span></code> for <code class="docutils literal notranslate"><span class="pre">seconds</span></code>, or a conversion map’s type),
+<code class="docutils literal notranslate"><span class="pre">ContinuousPhysicalTimeline</span></code> for <code class="docutils literal notranslate"><span class="pre">seconds</span></code>, a conversion map’s type, or
+the IRI of a class a region’s <code class="docutils literal notranslate"><span class="pre">type</span></code> statement names),
 <code class="docutils literal notranslate"><span class="pre">facet</span></code> (the bands drawing that facet), <code class="docutils literal notranslate"><span class="pre">within</span></code> (a timeline and its
 descendants), <code class="docutils literal notranslate"><span class="pre">inside</span></code> (an element type that holds the element at any
 depth) and <code class="docutils literal notranslate"><span class="pre">coordinates</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;primary&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;secondary&quot;</span></code>: the wedges and
 labels of the named timestamps’ primary coordinates, or of their secondary
 ones; no other element). The defaults hide the secondary ones, so the rule
-<code class="docutils literal notranslate"><span class="pre">{&quot;select&quot;:</span> <span class="pre">{&quot;element&quot;:</span> <span class="pre">&quot;wedge&quot;,</span> <span class="pre">&quot;coordinates&quot;:</span> <span class="pre">&quot;secondary&quot;},</span> <span class="pre">&quot;set&quot;:</span> <span class="pre">{&quot;display&quot;:</span> <span class="pre">&quot;inline&quot;}}</span></code> shows their wedges. The property <code class="docutils literal notranslate"><span class="pre">shadow</span></code> colours a card’s offset shadow, and
-<code class="docutils literal notranslate"><span class="pre">rotation</span></code> turns a wedge about its tip, in whole degrees from −180 to 180.
+<code class="docutils literal notranslate"><span class="pre">{&quot;select&quot;:</span> <span class="pre">{&quot;element&quot;:</span> <span class="pre">&quot;wedge&quot;,</span> <span class="pre">&quot;coordinates&quot;:</span> <span class="pre">&quot;secondary&quot;},</span> <span class="pre">&quot;set&quot;:</span> <span class="pre">{&quot;display&quot;:</span> <span class="pre">&quot;inline&quot;}}</span></code> shows their wedges. The property <code class="docutils literal notranslate"><span class="pre">shadow</span></code> colours a card’s offset shadow,
+<code class="docutils literal notranslate"><span class="pre">rotation</span></code> turns a wedge about its tip, in whole degrees from −180 to 180,
+and <code class="docutils literal notranslate"><span class="pre">label-display</span></code> chooses the labels of a flow-control element (<code class="docutils literal notranslate"><span class="pre">none</span></code>
+or words from <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code> and <code class="docutils literal notranslate"><span class="pre">label</span></code>; <code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">label</span></code> unless a rule says
+otherwise, so that naming an element shows its name).
 Four properties of a card, an ancestor card and, for the first, a frame
 choose its elisions (the elisions paragraph of <a class="reference internal" href="#groups-and-the-graphical-object">Groups and the <code class="docutils literal notranslate"><span class="pre">graphical</span></code>
 object</a>): <code class="docutils literal notranslate"><span class="pre">elision-mode</span></code> (<code class="docutils literal notranslate"><span class="pre">auto</span></code>,

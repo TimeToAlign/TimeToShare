@@ -517,13 +517,14 @@ not rejected. An element is rejected when an entry of its <code class="docutils 
 holds a belief <code class="docutils literal notranslate"><span class="pre">false</span></code>: a repair rejects an element and adds another, so a
 rejected jump and its replacement may share a coordinate. In document
 order: a coordinate lies from 0 to the timeline’s known length
-(<code class="docutils literal notranslate"><span class="pre">flow_coordinate</span></code>); a timeline has one jump at a coordinate
-(<code class="docutils literal notranslate"><span class="pre">jump_repeated</span></code>); the destinations of a jump are distinct places
-(<code class="docutils literal notranslate"><span class="pre">jump_destination</span></code>); a <code class="docutils literal notranslate"><span class="pre">to</span></code> names a jump target or a region of the
-timeline, a child of it or the timeline itself (<code class="docutils literal notranslate"><span class="pre">dangling_target</span></code>); a place
-reached by <code class="docutils literal notranslate"><span class="pre">by</span></code> lies from 0 to the known length (<code class="docutils literal notranslate"><span class="pre">flow_coordinate</span></code>); an
-<code class="docutils literal notranslate"><span class="pre">after</span></code> names exactly one destination of another jump of the timeline
-(<code class="docutils literal notranslate"><span class="pre">dangling_target</span></code>).</p>
+(<code class="docutils literal notranslate"><span class="pre">flow_coordinate</span></code>); a root and its descendants have one jump at a
+position on the root’s axis, each coordinate carried to the root by adding
+the offsets of its ancestors (<code class="docutils literal notranslate"><span class="pre">jump_repeated</span></code>); the destinations of a
+jump are distinct places (<code class="docutils literal notranslate"><span class="pre">jump_destination</span></code>); a <code class="docutils literal notranslate"><span class="pre">to</span></code> names a jump
+target or a region of the timeline, a child of it or the timeline itself
+(<code class="docutils literal notranslate"><span class="pre">dangling_target</span></code>); a place reached by <code class="docutils literal notranslate"><span class="pre">by</span></code> lies from 0 to the known
+length (<code class="docutils literal notranslate"><span class="pre">flow_coordinate</span></code>); an <code class="docutils literal notranslate"><span class="pre">after</span></code> names exactly one destination
+of another jump of the timeline (<code class="docutils literal notranslate"><span class="pre">dangling_target</span></code>).</p>
 <p>Then the FlowMaps: <code class="docutils literal notranslate"><span class="pre">timeline</span></code> names a root (<code class="docutils literal notranslate"><span class="pre">flow_map_timeline</span></code>), every
 chunk ID a region or a child timeline inside that root’s tree, or a virtual
 timeline of a timeline of it (<code class="docutils literal notranslate"><span class="pre">flow_map_chunk</span></code>), and at most one FlowMap of
@@ -582,11 +583,23 @@ reads any value and either form of an ID.</p>
 </dl>
 </dd></dl>
 
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.validation.flow.JumpPositions">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.validation.flow.</span></span><span class="sig-name descname"><span class="pre">JumpPositions</span></span><a class="headerlink" href="#timetoshare.validation.flow.JumpPositions" title="Link to this definition">#</a></dt>
+<dd><p>The jumps of a root’s tree by their exact position on the root’s axis:
+the ID of the first jump there and of the timeline stating it.</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a>[<a class="reference external" href="https://docs.python.org/3/library/fractions.html#fractions.Fraction" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Fraction</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></a>[<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>, <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>]]</p>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="timetoshare.validation.flow.timeline_flow_problems">
-<span class="sig-prename descclassname"><span class="pre">timetoshare.validation.flow.</span></span><span class="sig-name descname"><span class="pre">timeline_flow_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/flow.html#timeline_flow_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.flow.timeline_flow_problems" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">timetoshare.validation.flow.</span></span><span class="sig-name descname"><span class="pre">timeline_flow_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">timeline</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">Fraction(0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jumps_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/flow.html#timeline_flow_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.flow.timeline_flow_problems" title="Link to this definition">#</a></dt>
 <dd><p>Yield the problems of one timeline’s flow control, in document order.</p>
-<p>The timeline’s own elements only; its children are the caller’s.</p>
+<p>The timeline’s own elements only; its children are the caller’s, who
+passes <code class="docutils literal notranslate"><span class="pre">start</span></code>, the timeline’s start on its root’s axis (the sum of the
+offsets from the root down), and one <code class="docutils literal notranslate"><span class="pre">jumps_at</span></code> for the whole tree, so
+that a jump at the position of an earlier jump of the root or of another
+descendant is refused as one at a coordinate of its own timeline is.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -679,6 +692,7 @@ none of the format’s.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.CONVENTIONS"><code class="docutils literal notranslate"><span class="pre">CONVENTIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.earlier_form_problems"><code class="docutils literal notranslate"><span class="pre">earlier_form_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.rejected"><code class="docutils literal notranslate"><span class="pre">rejected()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.JumpPositions"><code class="docutils literal notranslate"><span class="pre">JumpPositions</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.timeline_flow_problems"><code class="docutils literal notranslate"><span class="pre">timeline_flow_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.Axis"><code class="docutils literal notranslate"><span class="pre">Axis</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.flow_map_problems"><code class="docutils literal notranslate"><span class="pre">flow_map_problems()</span></code></a></li>
