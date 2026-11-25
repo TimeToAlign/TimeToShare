@@ -65,6 +65,8 @@
     "@types/node": "22.20.4",
     "json-schema-to-typescript": "16.0.0",
     "jsonld": "9.0.0",
+    "typedoc": "0.28.20",
+    "typedoc-plugin-markdown": "4.14.1",
     "typescript": "6.0.3",
     "vitest": "5.0.1"
   }

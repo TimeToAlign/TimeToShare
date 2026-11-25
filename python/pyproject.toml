@@ -43,6 +43,15 @@ dev = [
     "pytest==9.1.1",
     "ruff==0.16.9",
 ]
+# The documentation site (`docs/`): Sphinx with the PyData theme and Markdown
+# through MyST. pyarrow is installed so that autodoc can import
+# `timetoshare.tables`.
+docs = [
+    "myst-parser>=5.2.0,<6",
+    "pyarrow>=25.0.0,<26",
+    "pydata-sphinx-theme>=0.24.0,<0.25",
+    "sphinx>=8.2.3,<10",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/timetoshare"]
