@@ -961,7 +961,15 @@ describe("the expected flows", () => {
         .filter((finding) => finding.kind === "never_played")
         .map((finding) => finding.coordinate),
     ).toEqual(
-      sections.filter((section) => !played.has(section.name)).map((section) => section.start),
+      // One finding per stretch that no run covers: adjacent atomic sections
+      // that are not played are one stretch, reported at its start.
+      sections
+        .filter(
+          (section, index) =>
+            !played.has(section.name) &&
+            (index === 0 || played.has((sections[index - 1] as JsonObject).name)),
+        )
+        .map((section) => section.start),
     );
   });
 

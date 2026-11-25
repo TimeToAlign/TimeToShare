@@ -1095,7 +1095,14 @@ def test_an_expected_flow_agrees_with_its_manifest(path: Path) -> None:
         [section["start"], section["end"]] for section in sections
     ]
     played = set(conventions["default"]["sections"])
-    never = [s["start"] for s in sections if s["name"] not in played]
+    # One finding per stretch that no run covers: adjacent atomic sections
+    # that are not played are one stretch, reported at its start.
+    never = [
+        section["start"]
+        for index, section in enumerate(sections)
+        if section["name"] not in played
+        and (index == 0 or sections[index - 1]["name"] in played)
+    ]
     kinds = {
         "flow_ends_at_break",
         "never_played",
