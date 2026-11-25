@@ -44,7 +44,7 @@ _STYLED_SCORE: dict[str, Any] = {
         {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
         {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
         {
-            "select": {"element": "jump_from", "domain": "logical"},
+            "select": {"element": "jump", "domain": "logical"},
             "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
         },
         {
@@ -699,7 +699,7 @@ root line ``score``         #1D4ED8    4, the style ``accent`` (class and elemen
 child line ``b``            #EA580C    13 (element ``child`` within ``b``)
 map ``ticks``               #7C3AED    5 (class ``LinearMap``)
 brace ``intro``             #0F766E    8, which outranks 7 by its position
-jump ``da-capo``            #DB2777    9 (element ``jump_from``, domain ``logical``)
+jump ``da-capo``            #DB2777    9 (element ``jump``, domain ``logical``)
 wedge of ``origin``         #65A30D    10 (element ``wedge`` within ``score``)
 wedge of ``length``         #B45309    11 (``addresses``)
 name of ``score``           #111827    18 (``addresses``; also ``content``)

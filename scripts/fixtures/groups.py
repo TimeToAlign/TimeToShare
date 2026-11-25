@@ -50,7 +50,7 @@ def styled_group() -> TimelineGroup:
     group = number_types_group()
     score = parts.with_maps(group.get_timeline("score"), parts.ticks())
     score.create_region(0, 8, name="Theme")
-    parts.with_repeat(score, 8, 0)
+    parts.with_repeat(score, 8)
     parts.with_maps(group.get_timeline("performance"), parts.to_samples())
     parts.with_maps(group.get_timeline("page"), parts.to_points())
     return group

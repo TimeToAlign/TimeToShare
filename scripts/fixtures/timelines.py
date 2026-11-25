@@ -16,11 +16,11 @@ from timetoalign import (
     Ms3Loader,
     Timeline,
 )
-from timetoalign.core import FlowControlElement
 from timetoalign.loader.alignment import (
     ParangonadaLoader,
 )
 from timetoalign.loader.graphical.iiif import IIIFManifestLoader
+from timetoalign.loader.graphical.paths import VerticalLinePath
 from timetoalign.loader.midi.score import ScoreMidiLoader
 from timetoalign.loader.physical.audio import AudioLoader
 from timetoalign.maps import (
@@ -41,7 +41,13 @@ from timetoalign.maps import (
 )
 from timetoalign.testdata import ensure_data
 from timetoalign.timelines import MeasureMap, SegmentLine
-from timetoalign.timelines.flowcontrol import Break, Jump, Marker
+from timetoalign.timelines.flowcontrol import (
+    Break,
+    DestinationReference,
+    FlowCondition,
+    Jump,
+    JumpTarget,
+)
 
 from . import parts
 
@@ -256,59 +262,51 @@ def conversion_maps_seconds() -> Timeline:
 
 
 def flow_control_timeline() -> Timeline:
-    """Build one timeline with every element type of flow control.
+    """Build one timeline with a jump target, jumps and a break.
 
     The root ``flow:quarters`` ("Flow control", 16 quarters) holds the jump
-    target ``repeat-start`` (a repeat start) at 2, the flow marker ``fine``
-    ("Fine") at 12, the jump origin "Repeat" at 8, a repeat end back to
-    ``repeat-start`` taken twice, the jump target ``segno`` at 4 and the jump
-    origin "D.S." at 16, a dal segno to ``segno``. The elements' ids are
+    target ``repeat-start`` (a repeat start) at 2, the jump at 8 whose
+    destination "Repeat" is a repeat end back to ``repeat-start`` taken
+    twice, the jump target ``segno`` at 4, the jump at 16 whose destination
+    "D.S." is a dal segno to ``segno``, and the break ``fine`` ("Fine") at
+    12, which ends the flow after the dal segno. The elements' ids are
     minted.
     """
     timeline = ContinuousLogicalTimeline(
         length=16, unit="quarters", uid="flow:quarters", name="Flow control"
     )
-    marker = timeline.flow_control.add_marker(
-        Marker(
+    flow = timeline.flow_control
+    start = flow.add(
+        JumpTarget(
             timeline.make_coordinate(2),
+            manifestation="repeat_start",
             name="repeat-start",
-            control_type=FlowControlElement.repeat_start,
         )
     )
-    timeline.flow_control.add_break(
+    flow.add(
+        Jump(
+            timeline.make_coordinate(8),
+            [parts.repeat_end(timeline, to=start.id, count=2)],
+            meta={"source": "synthetic"},
+        )
+    )
+    segno = flow.add(
+        JumpTarget(timeline.make_coordinate(4), manifestation="segno", name="segno")
+    )
+    dal_segno = flow.add(
+        Jump(
+            timeline.make_coordinate(16),
+            [parts.leap(timeline, "dal_segno", to=segno.id, label="D.S.")],
+        )
+    )
+    flow.add(
         Break(
-            coordinate=timeline.make_coordinate(12),
-            control_type=FlowControlElement.fine,
+            timeline.make_coordinate(12),
+            manifestation="fine",
+            ends=FlowCondition(after=DestinationReference(jump=dal_segno.id)),
             label="Fine",
             name="fine",
             meta={"source": "synthetic"},
-        )
-    )
-    timeline.flow_control.add_jump(
-        Jump(
-            from_coordinate=timeline.make_coordinate(8),
-            to_coordinate=timeline.make_coordinate(2),
-            control_type=FlowControlElement.repeat_end,
-            repeat_count=2,
-            target=marker.id,
-            label="Repeat",
-            meta={"source": "synthetic"},
-        )
-    )
-    segno = timeline.flow_control.add_marker(
-        Marker(
-            timeline.make_coordinate(4),
-            name="segno",
-            control_type=FlowControlElement.segno,
-        )
-    )
-    timeline.flow_control.add_jump(
-        Jump(
-            from_coordinate=timeline.make_coordinate(16),
-            to_coordinate=timeline.make_coordinate(4),
-            control_type=FlowControlElement.dal_segno,
-            target=segno.id,
-            label="D.S.",
         )
     )
     return timeline
@@ -361,12 +359,13 @@ def map_timeline() -> Timeline:
 def styled_score_timeline() -> Timeline:
     """Build ``styled__score``, the logical timeline of the styled fixture.
 
-    It holds children, a map, a region and a jump origin.
+    It holds children, a map, a region and a jump.
 
     The root ``score`` ("Score", 8 quarters) holds the children ``a`` and ``b``
     (4 quarters each) at 0 and 4, and carries the map to ticks ``ticks``
-    ("Ticks"), the region ``intro`` from 0 to 2 and the jump origin
-    ``da-capo`` ("D.C."), a da capo from 8 back to the start without a target.
+    ("Ticks"), the region ``intro`` from 0 to 2 and the jump ``da-capo`` at
+    8, whose destination "D.C." is a da capo back to the start, naming the
+    timeline itself.
     """
     score = ContinuousLogicalTimeline(
         length=8, unit="quarters", uid="score", name="Score"
@@ -375,15 +374,11 @@ def styled_score_timeline() -> Timeline:
     score.add_child(ContinuousLogicalTimeline(length=4, unit="quarters", uid="b"), 4)
     score.add_conversion_map(QuartersToTicks(ppq=480, uid="ticks", name="Ticks"))
     score.create_region(0, 2, id="intro", name="intro")
-    score.flow_control.add_jump(
+    score.flow_control.add(
         Jump(
-            from_coordinate=score.make_coordinate(8),
-            to_coordinate=score.make_coordinate(0),
-            control_type=FlowControlElement.da_capo,
-            target=None,
-            label="D.C.",
+            score.make_coordinate(8),
+            [parts.leap(score, "da_capo", label="D.C.")],
             id="da-capo",
-            meta={},
         )
     )
     return score
@@ -579,11 +574,22 @@ def corpus_parangonada_score_timeline() -> Timeline:
 
 
 def corpus_supra_iiif_timeline() -> Timeline:
-    """Load an IIIF manifest through the public graphical loader."""
+    """Load a piano roll of an IIIF manifest through the public graphical loader.
+
+    The roll is read along its height, a vertical line down the middle of
+    its one canvas (4096 by 299400 pixels). The loader states the canvas as
+    the roll's ``dcterms:source``; the fixture leaves that statement out,
+    since only the fixtures of ``statements`` carry statements, and keeps
+    the canvas in ``meta["image"]``.
+    """
     supra = ensure_data("supra")
-    return (
-        IIIFManifestLoader().load(supra / "image/ifff_manifest.json").create_timeline()
+    (roll,) = (
+        IIIFManifestLoader()
+        .load(supra / "image/ifff_manifest.json")
+        .create_timelines(VerticalLinePath(x=2048, y0=0, y1=299400, tolerance=2048))
     )
+    (canvas,) = roll.statements["dcterms:source"]
+    return roll.remove_statement("dcterms:source", canvas)
 
 
 def negative_offset_timeline() -> Timeline:
@@ -618,18 +624,12 @@ def unknown_length_timeline() -> Timeline:
     """Build ``unknown_length``, a root of unknown length with content.
 
     The root ``score`` of unknown length holds the region ``region_1`` from 2
-    to 8, the jump target ``jump_to_1`` (a segno) at 6 and the child ``coda``
-    (4 quarters) at 10; its content reaches 14. Every timeline is of quarters
-    and unnamed.
+    to 8, the jump target ``jump_target_1`` (a segno, its id minted) at 6 and
+    the child ``coda`` (4 quarters) at 10; its content reaches 14. Every
+    timeline is of quarters and unnamed.
     """
     score = parts.with_region(parts.quarters("score", None), 2, 8, "region_1")
-    score.flow_control.add_marker(
-        Marker(
-            score.make_coordinate(6),
-            control_type=FlowControlElement.segno,
-            id="jump_to_1",
-        )
-    )
+    score.flow_control.add(JumpTarget(score.make_coordinate(6), manifestation="segno"))
     score.add_child(parts.quarters("coda", 4), 10)
     return score
 
@@ -732,12 +732,12 @@ def child_flow_control_timeline() -> Timeline:
     """Build a root whose one child holds flow control, the root none.
 
     The root ``piece`` ("Piece", 16 quarters) holds the child ``verse``
-    ("Verse", 8 quarters) at 4, which carries a da capo al fine: the flow
-    marker ``fine`` ("Fine") at 4 and the jump origin ``da_capo_al_fine``
-    ("D.C. al Fine") from 8 back to 0, which names no target. The defaults
-    hide the flow control band of a child, so a drawing shows them only under
-    a rule that displays the band ``{"id": "verse", "facet":
-    "flow_control"}``.
+    ("Verse", 8 quarters) at 4, which carries a da capo al fine: the jump
+    ``da_capo_al_fine`` at 8, whose destination "D.C. al Fine" names the
+    child itself, its start, and the break ``fine`` ("Fine") at 4, which
+    ends the flow after that da capo. The defaults hide the flow control
+    band of a child, so a drawing shows them only under a rule that displays
+    the band ``{"id": "verse", "facet": "flow_control"}``.
     """
     piece = parts.named(ContinuousLogicalTimeline, "piece", "Piece", Fraction(16))
     verse = parts.holding(
@@ -745,21 +745,20 @@ def child_flow_control_timeline() -> Timeline:
         parts.named(ContinuousLogicalTimeline, "verse", "Verse", Fraction(8)),
         Fraction(4),
     )
-    verse.flow_control.add_break(
-        Break(
-            coordinate=verse.make_coordinate(4),
-            control_type=FlowControlElement.fine,
-            label="Fine",
-            id="fine",
+    da_capo = verse.flow_control.add(
+        Jump(
+            verse.make_coordinate(8),
+            [parts.leap(verse, "da_capo_al_fine", label="D.C. al Fine")],
+            id="da_capo_al_fine",
         )
     )
-    verse.flow_control.add_jump(
-        Jump(
-            from_coordinate=verse.make_coordinate(8),
-            to_coordinate=verse.make_coordinate(0),
-            control_type=FlowControlElement.da_capo_al_fine,
-            label="D.C. al Fine",
-            id="da_capo_al_fine",
+    verse.flow_control.add(
+        Break(
+            verse.make_coordinate(4),
+            manifestation="fine",
+            ends=FlowCondition(after=DestinationReference(jump=da_capo.id)),
+            label="Fine",
+            id="fine",
         )
     )
     return piece
@@ -785,10 +784,10 @@ def child_jumps_timeline() -> Timeline:
 
     The root ``piece`` ("Piece", 16 quarters) holds the child ``verse``
     ("Verse", 8 quarters) at 4, which carries the jump target ``segno`` (a
-    segno) at 2, the jump origin ``repeat`` ("Repeat") at 4, a repeat end
-    taken twice back to the child's start without a target, and the jump
-    origin ``dal_segno`` ("D.S.") at 8, a dal segno to ``segno``; the root
-    holds no flow control.
+    segno) at 2, the jump ``repeat`` at 4, whose destination "Repeat" is a
+    repeat end taken twice back to the child's start, naming the child
+    itself, and the jump ``dal_segno`` at 8, whose destination "D.S." is a
+    dal segno to ``segno``; the root holds no flow control.
     """
     piece = parts.named(ContinuousLogicalTimeline, "piece", "Piece", Fraction(16))
     verse = parts.holding(
@@ -796,30 +795,20 @@ def child_jumps_timeline() -> Timeline:
         parts.named(ContinuousLogicalTimeline, "verse", "Verse", Fraction(8)),
         Fraction(4),
     )
-    segno = verse.flow_control.add_marker(
-        Marker(
-            verse.make_coordinate(2),
-            control_type=FlowControlElement.segno,
-            id="segno",
-        )
+    segno = verse.flow_control.add(
+        JumpTarget(verse.make_coordinate(2), manifestation="segno", id="segno")
     )
-    verse.flow_control.add_jump(
+    verse.flow_control.add(
         Jump(
-            from_coordinate=verse.make_coordinate(4),
-            to_coordinate=verse.make_coordinate(0),
-            control_type=FlowControlElement.repeat_end,
-            repeat_count=2,
-            label="Repeat",
+            verse.make_coordinate(4),
+            [parts.repeat_end(verse, count=2)],
             id="repeat",
         )
     )
-    verse.flow_control.add_jump(
+    verse.flow_control.add(
         Jump(
-            from_coordinate=verse.make_coordinate(8),
-            to_coordinate=verse.make_coordinate(2),
-            control_type=FlowControlElement.dal_segno,
-            target=segno.id,
-            label="D.S.",
+            verse.make_coordinate(8),
+            [parts.leap(verse, "dal_segno", to=segno.id, label="D.S.")],
             id="dal_segno",
         )
     )

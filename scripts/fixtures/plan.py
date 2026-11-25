@@ -15,7 +15,7 @@ from timetoalign import AlignmentBundle, Timeline, TimelineGroup
 from timetoshare import load_catalogue, loads, with_bare_ids, with_file_ids
 from timetoshare.statements import subject_path, with_context
 
-from . import bundles, graphical, groups, statements, timelines
+from . import bundles, flow, graphical, groups, statements, timelines
 from .graphical import GRAPHICAL
 
 DESCRIPTIONS = Path(__file__).resolve().parent / "descriptions"
@@ -29,13 +29,15 @@ class FixtureCase:
     The reader is the class that reads the directory's manifests as a whole:
     ``Timeline`` a manifest of one root and no group (the top directory),
     ``TimelineGroup`` an anonymous manifest of one group (``groups``) and
-    ``AlignmentBundle`` any manifest (``bundles``, ``statements``). Cases
+    ``AlignmentBundle`` any manifest (``bundles``, ``statements``); the
+    manifests of ``flow`` hold one root and no group each. Cases
     sharing a name and directory write ``<name>__<slug>.yaml`` each, the slug
     spelled from the built object's id. A fixture drawn under ``drawings/``
     names the origin and length of each root it draws (``origin_and_length``),
     as an editor marks them; a corpus fixture, which is not drawn,
-    ``timestamps``, whose drawing shows its own timestamps alone, and a fixture
-    with statements, which is not drawn, do not. A fixture with statements
+    ``timestamps``, whose drawing shows its own timestamps alone, a fixture
+    with statements and a fixture of ``flow``, neither of which is drawn, do
+    not. A fixture with statements
     (``described``) takes them from ``descriptions/<name>.yaml``.
     """
 
@@ -90,6 +92,11 @@ def _described(name: str, build: Callable[[], Any]) -> FixtureCase:
     return FixtureCase(
         name, "statements", AlignmentBundle, build, None, False, described=True
     )
+
+
+def _flow(name: str, build: Callable[[], Any]) -> FixtureCase:
+    """Return a case of the ``flow`` directory, which is not drawn."""
+    return FixtureCase(name, "flow", Timeline, build, None, False)
 
 
 RESOURCES: dict[str, tuple[Mapping[str, Any], ...]] = {
@@ -243,6 +250,16 @@ CATALOGUE = (
     _described("layerit_recording", statements.layerit_recording),
     _described("djset_segment", statements.djset_segment),
     _described("nielsen_record", statements.nielsen_record),
+    _flow("sonata_exposition", flow.sonata_exposition),
+    _flow("dal_segno_al_coda", flow.dal_segno_al_coda),
+    _flow("da_capo_al_fine", flow.da_capo_al_fine),
+    _flow("repeat_end_and_dal_segno", flow.repeat_end_and_dal_segno),
+    _flow("volta_passes", flow.volta_passes),
+    _flow("ossia", flow.ossia),
+    _flow("sections", flow.sections),
+    _flow("loop", flow.loop),
+    _flow("flow_map_by_hand", flow.flow_map_by_hand),
+    _flow("repairs", flow.repairs),
 )
 """The fixture cases in emission order; append new cases within their directory."""
 

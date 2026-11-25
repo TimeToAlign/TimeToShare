@@ -13,14 +13,13 @@ from timetoalign import (
     DiscretePhysicalTimeline,
     Timeline,
 )
-from timetoalign.core import FlowControlElement
 from timetoalign.maps import (
     QuartersToTicks,
     SamplesToSeconds,
     ScalarMap,
     SecondsToSamples,
 )
-from timetoalign.timelines.flowcontrol import Jump
+from timetoalign.timelines.flowcontrol import Jump, JumpDestination
 
 TILIA = "bruckner5_scherzo/harnoncourt/Bruckner5_Scherzo.json"
 
@@ -65,20 +64,52 @@ def with_maps(timeline: Timeline, *maps: Any) -> Timeline:
     return timeline
 
 
-def with_repeat(timeline: Timeline, source: Any, destination: Any) -> Timeline:
-    """Give ``timeline`` a jump from ``source`` back to ``destination``.
+def leap(
+    timeline: Timeline,
+    manifestation: str,
+    *,
+    to: str | None = None,
+    label: str | None = None,
+) -> JumpDestination:
+    """Return the destination of a da capo or dal segno of ``timeline``.
 
-    The jump is a repeat end taken once (``repeat_count`` 1), labelled
-    "Repeat", its id minted.
+    A leap is taken once and does not restore the repeats it goes back over
+    (``repeat_count`` 1, ``reset`` false). It goes back to the jump target
+    ``to``, or to the start of ``timeline``, which it then names itself.
     """
-    timeline.flow_control.add_jump(
-        Jump(
-            from_coordinate=timeline.make_coordinate(source),
-            to_coordinate=timeline.make_coordinate(destination),
-            control_type=FlowControlElement.repeat_end,
-            repeat_count=1,
-            label="Repeat",
-        )
+    return JumpDestination(
+        to=timeline.id if to is None else to,
+        repeat_count=1,
+        reset=False,
+        manifestation=manifestation,
+        label=label,
+    )
+
+
+def repeat_end(
+    timeline: Timeline, *, to: str | None = None, count: int = 1
+) -> JumpDestination:
+    """Return a repeat end labelled "Repeat", taken ``count`` times.
+
+    It goes back to the jump target ``to``, or to the start of ``timeline``,
+    which it then names itself.
+    """
+    return JumpDestination(
+        to=timeline.id if to is None else to,
+        repeat_count=count,
+        manifestation="repeat_end",
+        label="Repeat",
+    )
+
+
+def with_repeat(timeline: Timeline, source: Any) -> Timeline:
+    """Give ``timeline`` a jump at ``source`` back to its start.
+
+    The jump, its id minted, holds one destination: a repeat end taken once
+    (``repeat_count`` 1), labelled "Repeat", naming the timeline itself.
+    """
+    timeline.flow_control.add(
+        Jump(timeline.make_coordinate(source), [repeat_end(timeline)])
     )
     return timeline
 
