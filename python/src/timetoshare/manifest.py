@@ -7,8 +7,11 @@ order (the README's "Canonical order"):
   every group's ``members`` by code point;
 * in every timeline, ``children`` by offset, then ID; ``conversion_maps`` by
   ID; ``regions`` by start, then end, then ID; ``flow_control`` by
-  coordinate, then ID;
-* ``resources`` by ID;
+  coordinate, then ID, and the ``targets`` of every jump by place: the
+  destination without a place first, then those with ``by``, by value, then
+  those with ``to``, by ID;
+* ``resources``, ``flow_maps`` and ``virtual_timelines`` by ID; a FlowMap's
+  ``chunks`` keep their order, which is the order they are played in;
 * ``graphical.timestamps`` by timeline, then coordinate, then ID, and every
   timestamp's ``display`` in the order of :data:`TIMESTAMP_DISPLAY`, other
   strings after them by code point and other values last in their given
@@ -204,6 +207,15 @@ def _by_id(entry: Any) -> str:
     return _identifier(entry["id"])
 
 
+def _by_place(destination: Any) -> tuple[int, Fraction, str]:
+    """Order a jump's destinations: without a place, then by ``by``, then by ``to``."""
+    if "by" in destination:
+        return (1, exact(destination["by"]), "")
+    if "to" in destination:
+        return (2, Fraction(0), _identifier(destination["to"]))
+    return (0, Fraction(0), "")
+
+
 def _order_timeline(timeline: dict[str, Any]) -> None:
     """Put the arrays of one timeline and its descendants in order, in place."""
     children = timeline.get("children")
@@ -226,6 +238,9 @@ def _order_timeline(timeline: dict[str, Any]) -> None:
             "regions",
         )
     if isinstance(timeline.get("flow_control"), list):
+        for entry in _dicts(timeline["flow_control"]):
+            if isinstance(entry.get("targets"), list):
+                entry["targets"] = _sorted(entry["targets"], _by_place, "targets")
         timeline["flow_control"] = _sorted(
             timeline["flow_control"],
             lambda entry: (exact(entry["coordinate"]), _by_id(entry)),
@@ -287,6 +302,13 @@ def _respell_axis(
             owner[key] = _on_axis(owner[key], number_type)
 
 
+def _respell_condition(holder: Any, number_type: str | None) -> None:
+    """Respell the ``by`` of the ``after`` a destination or an ``ends`` holds."""
+    after = holder.get("after") if isinstance(holder, dict) else None
+    if isinstance(after, dict):
+        _respell_axis(after, ("by",), number_type)
+
+
 def _respell_timeline(timeline: dict[str, Any], offset_type: str | None) -> None:
     """Respell a timeline's own-axis values and its descendants', in place.
 
@@ -300,6 +322,10 @@ def _respell_timeline(timeline: dict[str, Any], offset_type: str | None) -> None
         _respell_axis(region, ("start", "end"), own)
     for entry in _dicts(timeline.get("flow_control")):
         _respell_axis(entry, ("coordinate",), own)
+        _respell_condition(entry.get("ends"), own)
+        for destination in _dicts(entry.get("targets")):
+            _respell_axis(destination, ("by",), own)
+            _respell_condition(destination, own)
     for child in _dicts(timeline.get("children")):
         _respell_timeline(child, own)
 
@@ -344,10 +370,13 @@ def respell(manifest: Any) -> None:
     """Respell every own-axis value of a manifest as its number type selects, in place.
 
     The own-axis values are a timeline's ``length`` and ``offset``, its
-    regions' ``start`` and ``end``, its flow-control coordinates, the
-    coordinate of every named timestamp on it, and the ``start``, ``end`` and
-    width ``span`` of every elision on it. A timestamp or an elision whose
-    ``timeline`` names no timeline, or more than one, keeps its values.
+    regions' ``start`` and ``end``, its flow-control coordinates and the
+    ``by`` of every destination and of every ``after`` on it, the
+    coordinate of every named timestamp on it, the ``start``, ``end`` and
+    width ``span`` of every elision on it, the gaps of every FlowMap of it,
+    and a virtual timeline's ``length`` on the virtual timeline's own axis.
+    A timestamp, an elision or a FlowMap whose ``timeline`` names no
+    timeline, or more than one, keeps its values.
     """
     if not isinstance(manifest, dict):
         return
@@ -366,6 +395,13 @@ def respell(manifest: Any) -> None:
             width = elision.get("width")
             if isinstance(width, dict):
                 _respell_axis(width, ("span",), number_type)
+    for flow_map in _dicts(manifest.get("flow_maps")):
+        timeline = flow_map.get("timeline")
+        if isinstance(timeline, str):
+            for chunk in _dicts(flow_map.get("chunks")):
+                _respell_axis(chunk, ("gap",), axis_types.get(timeline))
+    for virtual in _dicts(manifest.get("virtual_timelines")):
+        _respell_axis(virtual, ("length",), _axis_type(virtual))
 
 
 def is_manifest(value: Any) -> bool:
@@ -414,8 +450,9 @@ def canonical_order(value: Any) -> Any:
             ),
             "timestamps",
         )
-    if isinstance(result.get("resources"), list):
-        result["resources"] = _sorted(result["resources"], _by_id, "resources")
+    for key in ("resources", "flow_maps", "virtual_timelines"):
+        if isinstance(result.get(key), list):
+            result[key] = _sorted(result[key], _by_id, key)
     matchstamps = _matchstamps(result)
     if isinstance(matchstamps, list):
         for matchstamp in _dicts(matchstamps):

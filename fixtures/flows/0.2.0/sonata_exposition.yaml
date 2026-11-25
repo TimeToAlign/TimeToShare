@@ -1,0 +1,53 @@
+atomic_sections:
+  -
+    end: [12, 1]
+    name: A
+    start: [0, 1]
+  -
+    end: [16, 1]
+    name: B
+    start: [12, 1]
+  -
+    end: [24, 1]
+    name: C
+    start: [16, 1]
+conventions:
+  default:
+    findings: []
+    runs:
+      -
+        - [0, 1]
+        - [12, 1]
+      -
+        - [12, 1]
+        - [16, 1]
+      -
+        - [0, 1]
+        - [12, 1]
+      -
+        - [16, 1]
+        - [24, 1]
+    sections: [A, B, A, C]
+  printed:
+    runs:
+      -
+        - [0, 1]
+        - [12, 1]
+      -
+        - [12, 1]
+        - [16, 1]
+      -
+        - [16, 1]
+        - [24, 1]
+    sections: [A, B, C]
+  single:
+    runs:
+      -
+        - [0, 1]
+        - [12, 1]
+      -
+        - [16, 1]
+        - [24, 1]
+    sections: [A, C]
+manifest: flow/sonata_exposition
+timeline: score

@@ -1,0 +1,143 @@
+code: flow_map_timeline
+manifest:
+  flow_maps:
+    -
+      canonical: false
+      chunks: []
+      id: "#flow_map_1"
+      name: null
+      timeline: "#coda"
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  resources: []
+  timelines:
+    -
+      children:
+        -
+          children: []
+          conversion_maps: []
+          flow_control: []
+          id: "#coda"
+          is_segment_line: false
+          length: [4, 1]
+          locked: true
+          meta: {}
+          name: null
+          number_type: fraction
+          offset: [12, 1]
+          regions: []
+          unit: quarters
+      conversion_maps: []
+      flow_control:
+        -
+          coordinate: [2, 1]
+          id: "#jump_target_1"
+          label: null
+          manifestation: repeat_start
+          meta: {}
+          name: null
+          role: jump_target
+        -
+          coordinate: [4, 1]
+          id: "#jump_target_2"
+          label: null
+          manifestation: segno
+          meta: {}
+          name: null
+          role: jump_target
+        -
+          coordinate: [8, 1]
+          id: "#jump_1"
+          label: Repeat
+          meta: {}
+          name: null
+          role: jump
+          targets:
+            -
+              determined: true
+              label: null
+              manifestation: repeat_end
+              repeat_count: 1
+              reset: true
+              to: "#jump_target_1"
+        -
+          coordinate: [12, 1]
+          ends:
+            after:
+              jump: "#jump_2"
+          id: "#break_1"
+          label: Fine
+          manifestation: fine
+          meta: {}
+          name: null
+          role: break
+        -
+          coordinate: [16, 1]
+          id: "#jump_2"
+          label: "D.S. al Fine"
+          meta: {}
+          name: null
+          role: jump
+          targets:
+            -
+              determined: true
+              label: null
+              manifestation: dal_segno_al_fine
+              repeat_count: 1
+              reset: false
+              to: "#jump_target_2"
+      id: "#score"
+      is_segment_line: false
+      length: [16, 1]
+      locked: false
+      meta: {}
+      name: Score
+      number_type: fraction
+      regions:
+        -
+          end: [8, 1]
+          id: "#region_1"
+          meta: {}
+          name: null
+          start: [0, 1]
+        -
+          end: [16, 1]
+          id: "#region_2"
+          meta: {}
+          name: null
+          start: [8, 1]
+      unit: quarters
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#sketch"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: Sketch
+      number_type: fraction
+      regions:
+        -
+          end: [8, 1]
+          id: "#region_3"
+          meta: {}
+          name: null
+          start: [0, 1]
+      unit: quarters
+  timetoshare: "0.2.0"
+  virtual_timelines:
+    -
+      id: "#virtual_1"
+      length: [30, 1]
+      map: "#flow_map_1"
+      name: null
+      number_type: fraction
+      timeline: "#score"
+      unit: quarters
+message: "'coda' is a child timeline; a FlowMap names a root timeline"
+path: [flow_maps, 0, timeline]
+reason: "A FlowMap names a root timeline."

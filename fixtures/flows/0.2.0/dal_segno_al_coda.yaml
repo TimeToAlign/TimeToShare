@@ -1,0 +1,63 @@
+atomic_sections:
+  -
+    end: [4, 1]
+    name: A
+    start: [0, 1]
+  -
+    end: [12, 1]
+    name: B
+    start: [4, 1]
+  -
+    end: [24, 1]
+    name: C
+    start: [12, 1]
+  -
+    end: [32, 1]
+    name: D
+    start: [24, 1]
+conventions:
+  default:
+    findings: []
+    runs:
+      -
+        - [0, 1]
+        - [12, 1]
+      -
+        - [12, 1]
+        - [24, 1]
+      -
+        - [4, 1]
+        - [12, 1]
+      -
+        - [24, 1]
+        - [32, 1]
+    sections: [A, B, C, B, D]
+  printed:
+    runs:
+      -
+        - [0, 1]
+        - [4, 1]
+      -
+        - [4, 1]
+        - [12, 1]
+      -
+        - [12, 1]
+        - [24, 1]
+      -
+        - [24, 1]
+        - [32, 1]
+    sections: [A, B, C, D]
+  single:
+    runs:
+      -
+        - [0, 1]
+        - [12, 1]
+      -
+        - [12, 1]
+        - [24, 1]
+      -
+        - [24, 1]
+        - [32, 1]
+    sections: [A, B, C, D]
+manifest: flow/dal_segno_al_coda
+timeline: score

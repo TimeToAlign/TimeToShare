@@ -203,8 +203,10 @@ def test_the_ten_map_types() -> None:
         "band",
         "map",
         "region",
-        "flow_marker",
-        "jump_from",
+        "break",
+        "section_break",
+        "barline",
+        "jump",
         "wedge",
         "name",
         "label",
@@ -496,7 +498,17 @@ def test_references_are_ids_and_addresses() -> None:
     selector = defs["Selector"]["properties"]
     assert selector["within"]["$ref"] == "#/$defs/Id"
     assert selector["addresses"]["items"] == {"$ref": "#/$defs/Address"}
-    assert defs["FlowControlElement"]["properties"]["target"]["$ref"] == "#/$defs/Id"
+    assert defs["JumpDestination"]["properties"]["to"]["$ref"] == "#/$defs/Id"
+    reference = defs["DestinationReference"]["properties"]
+    assert reference["jump"]["$ref"] == reference["to"]["$ref"] == "#/$defs/Id"
+    flow_map = defs["FlowMap"]["properties"]
+    assert flow_map["timeline"]["$ref"] == "#/$defs/Id"
+    assert flow_map["chunks"]["items"] == {
+        "oneOf": [{"$ref": "#/$defs/Id"}, {"$ref": "#/$defs/Gap"}]
+    }
+    virtual = defs["VirtualTimeline"]["properties"]
+    for member in ("map", "timeline", "through"):
+        assert virtual[member]["$ref"] == "#/$defs/Id", member
     assert defs["MeasureView"]["properties"]["measure_map"]["$ref"] == "#/$defs/Id"
     identifier = Draft202012Validator({"$ref": "#/$defs/Id", "$defs": defs})
     for accepted in (
@@ -659,9 +671,14 @@ def test_the_defaults_are_the_table() -> None:
         "elision": ["Elision"],
     }
     own = {"LinearMap": "linear_map", "TableMap": "table_map"}
-    element = ["flow_control_element", "repeat_end"]
+    kinds |= {
+        "flow_control_element": ["FlowControlElement"],
+        "jump_destination": ["JumpDestination"],
+        "flow_map": ["FlowMap"],
+        "virtual_timeline": ["VirtualTimeline"],
+    }
     assert sorted(
-        [*kinds, "conversion_map", "match_timestamp", *own.values(), *element]
+        [*kinds, "conversion_map", "match_timestamp", *own.values()]
     ) == sorted(DEFAULTS)
     matched = defs["Timestamp"]
     assert matched["if"] == {
@@ -670,12 +687,11 @@ def test_the_defaults_are_the_table() -> None:
     }
     assert _defaults(matched["then"]) == DEFAULTS["match_timestamp"]
     assert matched["else"] == {"required": ["name"]}
-    covered = {"MapBase", "MeasureView", "FlowControlElement"}
-    element_defs = defs["FlowControlElement"]
-    assert _defaults(element_defs) == DEFAULTS["flow_control_element"]
-    repeat_end = element_defs["then"]["else"]
-    assert repeat_end["if"]["properties"]["manifestation"] == {"const": "repeat_end"}
-    assert _defaults(repeat_end["then"]) == DEFAULTS["repeat_end"]
+    covered = {"MapBase", "MeasureView"}
+    destination = defs["JumpDestination"]["properties"]
+    assert "default" not in destination["repeat_count"]
+    for member in ("flow_maps", "virtual_timelines"):
+        assert "default" not in defs["Manifest"]["properties"][member], member
     for kind, names in kinds.items():
         for name in names:
             covered.add(name)
@@ -694,7 +710,14 @@ def test_statements_provenance_and_the_context() -> None:
     defs = _defs()
     expected = {
         "statements": ["Manifest", "Region", "Timeline"],
-        "provenance": ["Manifest", "Region", "Timeline", "ValueNode"],
+        "provenance": [
+            "FlowControlElement",
+            "FlowMap",
+            "Manifest",
+            "Region",
+            "Timeline",
+            "ValueNode",
+        ],
         "@context": ["Manifest"],
     }
     for member, holders in expected.items():

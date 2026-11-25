@@ -83,7 +83,7 @@ def _tied_manifest() -> dict[str, Any]:
             *[
                 {
                     "id": i,
-                    "type": "flow_marker",
+                    "role": "break",
                     "manifestation": "fine",
                     "coordinate": c,
                 }
@@ -91,22 +91,32 @@ def _tied_manifest() -> dict[str, Any]:
             ],
             {
                 "id": "jj",
-                "type": "jump_from",
-                "manifestation": "dal_segno",
+                "role": "jump",
                 "coordinate": [8, 1],
-                "target": "Coda",
+                "targets": [
+                    {"to": "starting", "passes": [4]},
+                    {"to": "Coda", "passes": [3]},
+                    {"by": [-2, 1], "passes": [2]},
+                    {"by": [-6, 2], "passes": [1]},
+                    {"repeat_count": 1, "passes": {"from": 5}},
+                ],
             },
             *[
                 {
                     "id": i,
-                    "type": "jump_from",
-                    "manifestation": "da_capo",
+                    "role": "barline",
+                    "manifestation": "double_barline",
                     "coordinate": c,
                 }
                 for i, c in [("jd", [8, 1]), ("js", [8, 1]), ("je", [5, 8])]
             ],
             *[
-                {"id": i, "type": "jump_to", "manifestation": "segno", "coordinate": c}
+                {
+                    "id": i,
+                    "role": "jump_target",
+                    "manifestation": "segno",
+                    "coordinate": c,
+                }
                 for i, c in [
                     ("\U0001f600!", [2, 1]),
                     ("\ufb00!", [2, 1]),
@@ -154,6 +164,14 @@ def test_every_tie_resolves_to_the_canonical_order() -> None:
         "js",
         "ka",
         "kb",
+    ]
+    jump = next(entry for entry in root["flow_control"] if entry["id"] == "jj")
+    assert [(entry.get("by"), entry.get("to")) for entry in jump["targets"]] == [
+        (None, None),
+        ([-3, 1], None),
+        ([-2, 1], None),
+        (None, "Coda"),
+        (None, "starting"),
     ]
     assert [entry["id"] for entry in result["measure_maps"]] == ["ma", "mb", "m\ufb00"]
 

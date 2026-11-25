@@ -130,7 +130,7 @@ _STYLED_SCORE = {
         {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
         {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
         {
-            "select": {"element": "jump_from", "domain": "logical"},
+            "select": {"element": "jump", "domain": "logical"},
             "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
         },
         {
@@ -234,7 +234,7 @@ _SCORE_ELEMENTS = [
     ("child", {"id": "b"}, "b", *_LOGICAL, _SCORE),
     ("map", {"id": "ticks"}, "score", "LinearMap", "logical", "discrete", _SCORE),
     ("region", _INTRO, "score", *_LOGICAL, _SCORE),
-    ("jump_from", _DA_CAPO, "score", *_LOGICAL, _SCORE),
+    ("jump", _DA_CAPO, "score", *_LOGICAL, _SCORE),
     ("wedge", _ORIGIN, "score", *_LOGICAL, _SCORE),
     ("wedge", _LENGTH, "score", *_LOGICAL, _SCORE),
     ("name", {"id": "score", "part": ["name"]}, "score", *_LOGICAL, _SCORE),
@@ -314,7 +314,7 @@ def test_every_styled_score_item_has_its_own_colour() -> None:
     ]
     assert len(set(colours)) == 13
     for element, colour in zip(_SCORE_ELEMENTS, colours, strict=True):
-        if element[0] in {"timeline", "child", "jump_from", "wedge"}:
+        if element[0] in {"timeline", "child", "jump", "wedge"}:
             assert _resolve(graphical, element, "fill") == colour
 
 
@@ -693,14 +693,23 @@ def test_free_ids_are_written_as_given(name: str) -> None:
 
 def _flow_control(timeline: dict) -> list[tuple[str, str]]:
     elements = [
-        (element["type"], element["id"]) for element in timeline.get("flow_control", [])
+        (element["role"], element["id"]) for element in timeline.get("flow_control", [])
     ]
     for child in timeline.get("children", []):
         elements += _flow_control(child)
     return elements
 
 
-def test_generated_flow_control_ids_carry_their_type() -> None:
+#: The role an ID minted for the earlier form of flow control names now: a
+#: converted element keeps its ID.
+_EARLIER_PREFIXES = {
+    "flow_marker": "break",
+    "jump_from": "jump",
+    "jump_to": "jump_target",
+}
+
+
+def test_numbered_flow_control_ids_name_their_role() -> None:
     elements = [
         element
         for path in fixture_paths()
@@ -708,22 +717,31 @@ def test_generated_flow_control_ids_carry_their_type() -> None:
         for root in _read(path)["timelines"]
         for element in _flow_control(root)
     ]
-    generated = Counter(
-        (kind, element_id)
-        for kind, element_id in elements
+    numbered = Counter(
+        (role, element_id)
+        for role, element_id in elements
         if re.fullmatch(r"[a-z_]+_[1-9][0-9]*", element_id)
     )
-    assert all(element_id.startswith(f"{kind}_") for kind, element_id in generated)
-    assert generated == {
-        ("flow_marker", "flow_marker_1"): 3,
-        ("jump_from", "jump_from_1"): 6,
-        ("jump_from", "jump_from_2"): 2,
-        ("jump_from", "jump_from_3"): 1,
-        ("jump_from", "jump_from_4"): 1,
-        ("jump_to", "jump_to_1"): 3,
-        ("jump_to", "jump_to_2"): 2,
-        ("jump_to", "jump_to_3"): 1,
+    for role, element_id in numbered:
+        prefix = element_id.rsplit("_", 1)[0]
+        assert _EARLIER_PREFIXES.get(prefix, prefix) == role, element_id
+    assert numbered == {
+        ("break", "flow_marker_1"): 3,
+        ("jump", "jump_from_1"): 6,
+        ("jump", "jump_from_2"): 2,
+        ("jump", "jump_from_3"): 1,
+        ("jump", "jump_from_4"): 1,
+        ("jump_target", "jump_to_1"): 3,
+        ("jump_target", "jump_to_2"): 2,
+        ("jump_target", "jump_to_3"): 1,
+        ("barline", "barline_1"): 1,
+        ("break", "break_1"): 5,
+        ("jump", "jump_1"): 9,
+        ("jump", "jump_2"): 6,
+        ("jump_target", "jump_target_1"): 7,
+        ("jump_target", "jump_target_2"): 2,
+        ("section_break", "section_break_1"): 1,
     }
-    assert {element_id for kind, element_id in elements} - {
-        element_id for kind, element_id in generated
+    assert {element_id for role, element_id in elements} - {
+        element_id for role, element_id in numbered
     } == {"fine", "da-capo", "da_capo_al_fine", "dal_segno", "repeat", "segno"}

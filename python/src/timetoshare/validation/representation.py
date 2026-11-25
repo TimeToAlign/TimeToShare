@@ -89,9 +89,22 @@ def _timeline_representation(
                 key, region, (*path, "regions", index), own
             )
     for index, entry in enumerate(entries_of(timeline, "flow_control")):
-        yield from _representation_problem(
-            "coordinate", entry, (*path, "flow_control", index), own
-        )
+        at = (*path, "flow_control", index)
+        yield from _representation_problem("coordinate", entry, at, own)
+        after = entry.get("ends", {}).get("after")
+        if after is not None:
+            yield from _representation_problem(
+                "by", after, (*at, "ends", "after"), own, entry["id"]
+            )
+        for number, destination in enumerate(entries_of(entry, "targets")):
+            here = (*at, "targets", number)
+            yield from _representation_problem(
+                "by", destination, here, own, entry["id"]
+            )
+            if "after" in destination:
+                yield from _representation_problem(
+                    "by", destination["after"], (*here, "after"), own, entry["id"]
+                )
     for index, child in enumerate(entries_of(timeline, "children")):
         yield from _timeline_representation(child, (*path, "children", index), own)
 
@@ -101,9 +114,13 @@ def representation_problems(
 ) -> Iterator[SchemaValidationError]:
     """Yield own-axis representation violations in manifest order.
 
-    The timelines first, then the coordinate of every named timestamp on a
-    timeline of the manifest, then the ``start``, ``end`` and width ``span``
-    of every elision on one, each read as that timeline's number type.
+    The timelines first (a flow-control element's coordinate, then the
+    ``by`` of its ``ends`` and of each destination and its ``after``), then
+    the coordinate of every named timestamp on a timeline of the manifest,
+    then the ``start``, ``end`` and width ``span`` of every elision on one,
+    then the gaps of every FlowMap of one, each read as that timeline's
+    number type, then the ``length`` of every virtual timeline, read as its
+    own.
     """
     for index, root in enumerate(entries_of(manifest, "timelines")):
         yield from _timeline_representation(root, ("timelines", index), None)
@@ -129,6 +146,23 @@ def representation_problems(
             yield from _representation_problem(
                 "span", elision["width"], (*path, "width"), number_type, elision["id"]
             )
+    for index, flow_map in enumerate(entries_of(manifest, "flow_maps")):
+        timeline = timelines.get(flow_map["timeline"])
+        if timeline is None:
+            continue
+        for number, chunk in enumerate(flow_map["chunks"]):
+            if isinstance(chunk, Mapping):
+                yield from _representation_problem(
+                    "gap",
+                    chunk,
+                    ("flow_maps", index, "chunks", number),
+                    number_type_of(timeline),
+                    flow_map["id"],
+                )
+    for index, virtual in enumerate(entries_of(manifest, "virtual_timelines")):
+        yield from _representation_problem(
+            "length", virtual, ("virtual_timelines", index), virtual["number_type"]
+        )
 
 
 _PLAIN = frozenset({str, int, bool, type(None)})

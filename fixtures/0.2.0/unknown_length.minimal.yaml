@@ -77,7 +77,7 @@ timelines:
         coordinate: [6, 1]
         id: "#jump_to_1"
         manifestation: segno
-        type: jump_to
+        role: jump_target
     id: "#score"
     length: null
     regions:

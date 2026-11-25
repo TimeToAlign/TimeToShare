@@ -51,12 +51,14 @@ manifest:
           coordinate: [4, 1]
           id: "#jump_from_1"
           label: null
-          manifestation: repeat_end
           meta: {}
           name: null
-          repeat_count: 1
-          target: "#nowhere"
-          type: jump_from
+          role: jump
+          targets:
+            -
+              manifestation: repeat_end
+              repeat_count: 1
+              to: "#nowhere"
       id: "#recording"
       is_segment_line: false
       length: [8, 1]
@@ -67,6 +69,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
-message: "'nowhere' names no jump_to of this timeline"
-path: [timelines, 1, flow_control, 0, target]
-reason: "A jump_from's target names a jump_to of its own timeline, in a later root too."
+message: "'nowhere' names no jump target, region or child of this timeline, nor the timeline itself"
+path: [timelines, 1, flow_control, 0, targets, 0, to]
+reason: "The `to` of a destination names a jump target, a region or a child of its own timeline, or the timeline itself, in a later root too."

@@ -213,20 +213,29 @@ timelines:
     flow_control:
       -
         coordinate: [8, 1]
+        ends:
+          after:
+            jump: "#jump_from_1"
         id: "#flow_marker_1"
         label: Fine
         manifestation: fine
         meta: {}
         name: null
-        type: flow_marker
+        role: break
       -
         coordinate: [16, 1]
         id: "#jump_from_1"
         label: "D.C. al Fine"
-        manifestation: da_capo_al_fine
         meta: {}
         name: null
-        type: jump_from
+        role: jump
+        targets:
+          -
+            determined: true
+            label: null
+            manifestation: da_capo_al_fine
+            repeat_count: 1
+            reset: false
     id: "#score"
     is_segment_line: false
     length: [16, 1]

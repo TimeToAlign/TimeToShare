@@ -72,9 +72,40 @@ def every_position() -> dict:
                     }
                 ],
                 "flow_control": [
-                    {"id": "jump_to_1", "type": "jump_to"},
-                    {"id": "jump_from_1", "type": "jump_from", "target": "jump_to_1"},
+                    {"id": "jump_target_1", "role": "jump_target"},
+                    {
+                        "id": "jump_1",
+                        "role": "jump",
+                        "targets": [
+                            {"to": "jump_target_1"},
+                            {
+                                "by": [0, 1],
+                                "after": {"jump": "jump_2", "to": "intro"},
+                            },
+                        ],
+                    },
+                    {"id": "jump_2", "role": "jump", "targets": [{"to": "intro"}]},
+                    {
+                        "id": "break_1",
+                        "role": "break",
+                        "ends": {"after": {"jump": "jump_1", "to": "jump_target_1"}},
+                    },
                 ],
+            }
+        ],
+        "flow_maps": [
+            {
+                "id": "flow_map_1",
+                "timeline": "score",
+                "chunks": ["intro", {"gap": [1, 1]}, "verse", "virtual_1"],
+            }
+        ],
+        "virtual_timelines": [
+            {
+                "id": "virtual_1",
+                "map": "flow_map_1",
+                "timeline": "score",
+                "through": "g",
             }
         ],
         "groups": [{"id": "g", "members": ["score"]}],
@@ -116,9 +147,26 @@ def every_position_in_file_form() -> dict:
     combined["maps"]["out"]["id"] = "#constant"
     region = score["regions"][0]
     region["id"] = "#intro"
-    score["flow_control"][0]["id"] = "#jump_to_1"
-    score["flow_control"][1]["id"] = "#jump_from_1"
-    score["flow_control"][1]["target"] = "#jump_to_1"
+    target, jump, other, stop = score["flow_control"]
+    target["id"] = "#jump_target_1"
+    jump["id"] = "#jump_1"
+    jump["targets"][0]["to"] = "#jump_target_1"
+    jump["targets"][1]["after"] = {"jump": "#jump_2", "to": "#intro"}
+    other["id"] = "#jump_2"
+    other["targets"][0]["to"] = "#intro"
+    stop["id"] = "#break_1"
+    stop["ends"]["after"] = {"jump": "#jump_1", "to": "#jump_target_1"}
+    value["flow_maps"][0] = {
+        "id": "#flow_map_1",
+        "timeline": "#score",
+        "chunks": ["#intro", {"gap": [1, 1]}, "#verse", "#virtual_1"],
+    }
+    value["virtual_timelines"][0] = {
+        "id": "#virtual_1",
+        "map": "#flow_map_1",
+        "timeline": "#score",
+        "through": "#g",
+    }
     value["groups"][0] = {"id": "#g", "members": ["#score"]}
     value["measure_maps"][0]["id"] = "#mm"
     graphical = value["graphical"]
@@ -239,12 +287,17 @@ HOW = {"id": "value", "ids": "items", "order": "propertyNames"}
 
 
 def _schema_id_positions(defs: dict[str, Any]) -> Iterator[tuple[str, str, str]]:
-    """Where the schema types a value as ``$defs/Id``, and how."""
+    """Where the schema types a value as ``$defs/Id``, and how.
+
+    The items of a list count where each is an ID or one of several shapes of
+    which one is an ID, as a FlowMap's chunks are an ID or a gap.
+    """
     for definition, node in defs.items():
         for member, declared in node.get("properties", {}).items():
             if declared.get("$ref") == ID:
                 yield definition, member, "value"
-            if declared.get("items", {}).get("$ref") == ID:
+            items = declared.get("items", {})
+            if items.get("$ref") == ID or {"$ref": ID} in items.get("oneOf", ()):
                 yield definition, member, "items"
             if declared.get("propertyNames", {}).get("$ref") == ID:
                 yield definition, member, "propertyNames"

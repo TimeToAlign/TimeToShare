@@ -12,7 +12,11 @@ holds its ID alone (``element_value``), a statement value is no float
 provenance entry repeats no earlier entry's pair (``provenance_duplicate``)
 and no actor holds two beliefs in one entry (``belief_actor``). An entry
 may match a stated pair or none: an entry of a pair not stated is a
-candidate. The manifest is read with bare IDs; the IRIs of
+candidate. Last, the provenance of the flow-control elements and of the
+FlowMaps, whose entries name no pair: every compact IRI names a declared
+prefix (``iri``), every ``#`` reference an element (``dangling_target``), a
+date is a calendar day (``calendar_date``), then entry by entry no actor
+holds two beliefs (``belief_actor``). The manifest is read with bare IDs; the IRIs of
 statements are the same in either form. The walks read any value, so a
 reader of part of a manifest can check its statements alone.
 """
@@ -30,6 +34,8 @@ from ..statements import (
     URI_SCHEMES,
     calendar_date,
     declared_prefixes,
+    element_provenance,
+    element_provenance_positions,
     reference_iri,
     same_pair,
     statement_positions,
@@ -182,7 +188,13 @@ class _Walk:
                 actors[actor] = index
 
     def problems(self, manifest: Mapping[str, Any]) -> Iterator[SchemaValidationError]:
-        for kind, path, value in statement_positions(manifest):
+        yield from self.positions(statement_positions(manifest))
+        yield from self.positions(element_provenance_positions(manifest))
+        for path, entry in element_provenance(manifest):
+            yield from self.beliefs(entry, path)
+
+    def positions(self, positions: Iterator[Any]) -> Iterator[SchemaValidationError]:
+        for kind, path, value in positions:
             if kind == "subject":
                 identifier = value.get("id")
                 if isinstance(identifier, str) and not _is_fragment(identifier):
@@ -226,7 +238,8 @@ def statement_rule_problems(
 
     The context rule over every subject, then the reserved keys of the
     manifest, the timelines and regions in subject order and the groups,
-    each element's keys in code-point order, then the subject walk. The
+    each element's keys in code-point order, then the subject walk, then
+    the provenance of the flow-control elements and the FlowMaps. The
     manifest is taken with bare IDs and its statements and provenance as
     schema-checked; everything else is read wherever it has the expected
     type.

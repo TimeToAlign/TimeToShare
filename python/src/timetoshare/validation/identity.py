@@ -14,6 +14,7 @@ from .diagnostics import (
     listed_ids,
     tree_ids,
 )
+from .flow import flow_map_problems, timeline_flow_problems
 from .maps import MEASURE_VIEWS, timeline_map_problems, timeline_maps
 from .order import order_problems
 from .segments import timeline_segment_problems
@@ -28,15 +29,7 @@ from .timestamps import (
 def _dangling_targets(
     timeline: Mapping[str, Any], path: InstancePath, measure_maps: set[str]
 ) -> Iterator[SchemaValidationError]:
-    flow = entries_of(timeline, "flow_control")
-    targets = {entry["id"] for entry in flow if entry["type"] == "jump_to"}
-    for index, entry in enumerate(flow):
-        if "target" in entry and entry["target"] not in targets:
-            yield SchemaValidationError(
-                "dangling_target",
-                (*path, "flow_control", index, "target"),
-                f"'{entry['target']}' names no jump_to of this timeline",
-            )
+    yield from timeline_flow_problems(timeline, path)
     for conversion_map, at in timeline_maps(timeline, path):
         reference = conversion_map.get("measure_map")
         if conversion_map["type"] in MEASURE_VIEWS and reference not in measure_maps:
@@ -128,13 +121,15 @@ def identity_problems(
 ) -> Iterator[SchemaValidationError]:
     """Yield semantic violations in the established identity order.
 
-    Root by root: duplicates, dangling targets, conversion maps, containment
-    and segment lines; then the IDs unique across the manifest (the roots'
+    Root by root: duplicates, flow control and dangling targets (timeline by
+    timeline, each before its children), conversion maps, containment and
+    segment lines; then the IDs unique across the manifest (the roots'
     trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
     elisions' IDs, the named MatchStamps' IDs each followed by its alignment
-    anchors' IDs, the resources' IDs, and last the manifest ID); then group
-    members, graphical orders, named timestamps, elisions, named MatchStamps
-    and resources.
+    anchors' IDs, the resources', the FlowMaps' and the virtual timelines'
+    IDs, and last the manifest ID); then group members, graphical orders,
+    named timestamps, elisions, named MatchStamps, resources, FlowMaps and
+    virtual timelines.
     """
     roots = entries_of(value, "timelines")
     groups = entries_of(value, "groups")
@@ -174,3 +169,4 @@ def identity_problems(
     yield from elision_problems(value)
     yield from matchstamp_problems(value)
     yield from resource_problems(value)
+    yield from flow_map_problems(value)

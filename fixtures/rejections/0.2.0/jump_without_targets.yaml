@@ -1,0 +1,74 @@
+code: schema
+manifest:
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  resources: []
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control:
+        -
+          coordinate: [2, 1]
+          id: "#jump_target_1"
+          label: null
+          manifestation: repeat_start
+          meta: {}
+          name: null
+          role: jump_target
+        -
+          coordinate: [4, 1]
+          id: "#jump_target_2"
+          label: null
+          manifestation: segno
+          meta: {}
+          name: null
+          role: jump_target
+        -
+          coordinate: [8, 1]
+          id: "#jump_1"
+          label: Repeat
+          meta: {}
+          name: null
+          role: jump
+        -
+          coordinate: [12, 1]
+          ends:
+            after:
+              jump: "#jump_2"
+          id: "#break_1"
+          label: Fine
+          manifestation: fine
+          meta: {}
+          name: null
+          role: break
+        -
+          coordinate: [16, 1]
+          id: "#jump_2"
+          label: "D.S. al Fine"
+          meta: {}
+          name: null
+          role: jump
+          targets:
+            -
+              determined: true
+              label: null
+              manifestation: dal_segno_al_fine
+              repeat_count: 1
+              reset: false
+              to: "#jump_target_2"
+      id: "#score"
+      is_segment_line: false
+      length: [16, 1]
+      locked: false
+      meta: {}
+      name: Score
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "'targets' is a required property"
+path: [timelines, 0, flow_control, 2]
+reason: "A jump holds at least one destination."

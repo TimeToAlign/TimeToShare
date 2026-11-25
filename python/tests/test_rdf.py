@@ -53,7 +53,17 @@ UNSTATED = {
 subject has an IRI: those whose value is a thing or a plain literal, which
 the triple check reads, and those it passes over."""
 STATEMENTS = [path for path in fixture_paths() if path.parent.name == "statements"]
-OTHERS = [path for path in fixture_paths() if path.parent.name != "statements"]
+ATOMIC_SECTIONS = [
+    path
+    for path in fixture_paths()
+    if path.parent.name == "flow" and path.name.startswith("sonata_exposition.")
+]
+"""The flow fixture whose regions state that they are atomic sections."""
+OTHERS = [
+    path
+    for path in fixture_paths()
+    if path.parent.name != "statements" and path not in ATOMIC_SECTIONS
+]
 
 
 def _base(path: Path) -> str:
@@ -244,3 +254,38 @@ def test_each_entry_is_one_reified_statement(path: Path) -> None:
 @pytest.mark.parametrize("path", OTHERS, ids=lambda path: path.name)
 def test_a_manifest_without_statements_says_nothing(path: Path) -> None:
     assert _quads(path) == []
+
+
+def test_the_atomic_section_fixture_is_found() -> None:
+    assert [path.name for path in ATOMIC_SECTIONS] == [
+        "sonata_exposition.minimal.yaml",
+        "sonata_exposition.yaml",
+    ]
+
+
+@pytest.mark.parametrize("path", ATOMIC_SECTIONS, ids=lambda path: path.name)
+def test_an_atomic_section_is_typed_in_the_formats_namespace(path: Path) -> None:
+    section = NAMESPACE + "AtomicSection"
+    regions = [f"{_base(path)}#region_{number}" for number in (1, 2, 3)]
+    quads = _quads(path)
+    named = {
+        (quad["subject"]["value"], quad["predicate"]["value"], quad["object"]["value"])
+        for quad in quads
+        if quad["subject"]["type"] == "IRI"
+    }
+    assert named == {(region, RDF + "type", section) for region in regions}
+    reified = [quad for quad in quads if quad["subject"]["type"] != "IRI"]
+    assert len(quads) == 15 and len(reified) == 12
+    assert len({quad["subject"]["value"] for quad in reified}) == 3
+    assert sorted(
+        (quad["predicate"]["value"], quad["object"]["value"]) for quad in reified
+    ) == sorted(
+        pair
+        for region in regions
+        for pair in (
+            (RDF + "subject", region),
+            (RDF + "predicate", RDF + "type"),
+            (RDF + "object", section),
+            (NAMESPACE + "method", NAMESPACE + "Inferred"),
+        )
+    )

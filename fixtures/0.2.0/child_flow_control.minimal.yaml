@@ -76,16 +76,23 @@ timelines:
         flow_control:
           -
             coordinate: [4, 1]
+            ends:
+              after:
+                jump: "#da_capo_al_fine"
             id: "#fine"
             label: Fine
             manifestation: fine
-            type: flow_marker
+            role: break
           -
             coordinate: [8, 1]
             id: "#da_capo_al_fine"
             label: "D.C. al Fine"
-            manifestation: da_capo_al_fine
-            type: jump_from
+            role: jump
+            targets:
+              -
+                manifestation: da_capo_al_fine
+                repeat_count: 1
+                reset: false
         id: "#verse"
         length: [8, 1]
         locked: true

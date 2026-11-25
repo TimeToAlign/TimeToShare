@@ -6,8 +6,9 @@ given. Every other check reads the manifest with bare IDs (``with_bare_ids``),
 the finite rule, which runs first, included: their messages quote IDs bare
 (``'clt_1'``) and the paths of the checks after the schema name the keys of
 ``graphical.order`` bare too. The rules run in one order: the version
-marker, the finite rule, the schema, the representation of own-axis values,
-the identity rules, then the statement rules
+marker, the finite rule, the earlier form of flow control
+(``timetoshare.validation.flow``), the schema, the representation of
+own-axis values, the identity rules, then the statement rules
 (``timetoshare.validation.statements``).
 """
 
@@ -46,6 +47,7 @@ from .validation.diagnostics import ValidationCode as ValidationCode
 from .validation.diagnostics import WarningCode as WarningCode
 from .validation.diagnostics import json_pointer as json_pointer
 from .validation.diagnostics import number_type_of as number_type_of
+from .validation.flow import earlier_form_problems, flow_warnings
 from .validation.identity import identity_problems as _semantic_problems
 from .validation.representation import (
     finite_number_problems,
@@ -618,6 +620,10 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         if finite is not None:
             raise finite
 
+    earlier = next(earlier_form_problems(value), None)
+    if earlier is not None:
+        raise earlier
+
     errors, found = _manifest_schema().read(value, plain)
     error = select(errors)
     if error is not None:
@@ -638,7 +644,17 @@ def _check(value: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         {"path": list(path), "key": key}
         for path, key in sorted(found, key=lambda entry: (entry[0], entry[1]))
     ]
-    return keys, statement_warnings(bare)
+    warnings = [*statement_warnings(bare), *flow_warnings(bare)]
+    warnings.sort(key=lambda warning: (_path_key(warning["path"]), warning["code"]))
+    return keys, warnings
+
+
+def _path_key(path: Iterable[str | int]) -> list[tuple[int, int, str]]:
+    """Order paths element by element: indices by number, before keys by code point."""
+    return [
+        (0, segment, "") if isinstance(segment, int) else (1, 0, segment)
+        for segment in path
+    ]
 
 
 def _bare_manifest(value: Mapping[str, Any]) -> dict[str, Any]:
@@ -667,10 +683,14 @@ def manifest_warnings(value: Mapping[str, Any]) -> list[ManifestWarning]:
     """Return the warnings of a valid manifest, sorted by path, then code.
 
     Validates ``value`` as :func:`validate` does, then lists
-    ``context_absent`` at the root for a manifest without ``@context`` and
+    ``context_absent`` at the root for a manifest without ``@context``,
     ``bundle_blank`` at ``statements`` (else ``provenance``) for a manifest
     stating pairs or provenance without an ``id``, whose subject is a blank
-    node, each as ``{"code": ..., "path": [...], "message": ...}``.
+    node, ``manifestation_unknown`` at a manifestation the format does not
+    define for its flow-control element or destination, and
+    ``convention_unknown`` at a FlowMap's convention that is none of the
+    format's, each as ``{"code": ..., "path": [...], "message": ...}``. Paths
+    compare element by element, an index before a key.
 
     Raises:
         SchemaValidationError: If the manifest violates a rule.

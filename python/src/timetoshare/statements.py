@@ -48,6 +48,7 @@ from .serialization import spell
 from .validation.diagnostics import InstancePath, json_pointer
 
 __all__ = [
+    "ATOMIC_SECTION",
     "BELIEFS",
     "BELIEF_STATES",
     "BLANK",
@@ -77,6 +78,11 @@ __all__ = [
 
 NAMESPACE = "https://timetoalign.github.io/timetoshare/ns#"
 """The namespace of the format's own provenance properties and their words."""
+
+ATOMIC_SECTION = NAMESPACE + "AtomicSection"
+"""The class of an atomic section of a timeline's flow: the ``type`` a region
+states that is one, written as a compact IRI under a prefix the manifest's
+context declares for :data:`NAMESPACE` (``tts:AtomicSection``)."""
 
 _RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 _RDFS = "http://www.w3.org/2000/01/rdf-schema#"
@@ -466,15 +472,66 @@ def statement_positions(manifest: Any) -> Iterator[Position]:
         )
 
 
+def element_provenance(
+    manifest: Any,
+) -> Iterator[tuple[InstancePath, Mapping[str, Any]]]:
+    """Yield every provenance entry about an element itself, with its path.
+
+    The entries of the flow-control elements, root by root, each timeline's
+    before its children's, then those of the FlowMaps: entries that name no
+    pair. An entry or a holder that is no object is passed over, so the walk
+    reads any value.
+    """
+    if not isinstance(manifest, Mapping):
+        return
+
+    def held(holder: Any, path: InstancePath) -> Iterator[tuple[InstancePath, Mapping]]:
+        if not isinstance(holder, Mapping):
+            return
+        for number, entry in enumerate(_entries_of(holder.get("provenance"))):
+            if isinstance(entry, Mapping):
+                yield (*path, "provenance", number), entry
+
+    def visit(
+        timeline: Any, path: InstancePath
+    ) -> Iterator[tuple[InstancePath, Mapping]]:
+        if not isinstance(timeline, Mapping):
+            return
+        for index, element in enumerate(_entries_of(timeline.get("flow_control"))):
+            yield from held(element, (*path, "flow_control", index))
+        for index, child in enumerate(_entries_of(timeline.get("children"))):
+            yield from visit(child, (*path, "children", index))
+
+    for index, root in enumerate(_entries_of(manifest.get("timelines"))):
+        yield from visit(root, ("timelines", index))
+    for index, flow_map in enumerate(_entries_of(manifest.get("flow_maps"))):
+        yield from held(flow_map, ("flow_maps", index))
+
+
+def element_provenance_positions(manifest: Any) -> Iterator[Position]:
+    """Yield the positions of the provenance about elements themselves.
+
+    Entry by entry (``element_provenance``), each entry's keys in code-point
+    order, as the entries of a subject are visited.
+    """
+    for path, entry in element_provenance(manifest):
+        yield from _visit_entry(entry, path)
+
+
 def used_prefixes(manifest: Mapping[str, Any]) -> list[str]:
     """Return the sorted names of the prefixes the statements of a manifest use.
 
     Every ``p`` of a ``p:rest`` (``rest`` not beginning with ``//``, ``p``
     none of the URI schemes ``info``, ``mailto``, ``tag`` and ``urn``) at
-    every IRI position of every subject's statements and provenance.
+    every IRI position of every subject's statements and provenance and of
+    the provenance of every flow-control element and FlowMap.
     """
     found: set[str] = set()
-    for kind, _, text in statement_positions(manifest):
+    positions = (
+        *statement_positions(manifest),
+        *element_provenance_positions(manifest),
+    )
+    for kind, _, text in positions:
         if kind == "iri" or (kind == "ref" and is_iri(text)):
             prefix = prefix_of(text)
             if prefix is not None:

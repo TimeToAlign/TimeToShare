@@ -41,7 +41,12 @@ def _only(value: dict) -> tuple[tuple[str | int, ...], str]:
 
 def _targets(*identifiers: str) -> list[dict]:
     return [
-        {"id": i, "type": "jump_to", "manifestation": "segno", "coordinate": [k, 1]}
+        {
+            "id": i,
+            "role": "jump_target",
+            "manifestation": "segno",
+            "coordinate": [k, 1],
+        }
         for k, i in enumerate(identifiers)
     ]
 
@@ -161,53 +166,59 @@ def test_a_nested_map_id_shares_its_root_s_scope() -> None:
 
 
 def test_targets_stay_within_their_timeline() -> None:
-    def jump(
-        identifier: str, target: str | None, manifestation: str = "dal_segno"
-    ) -> dict:
-        element = {
+    def jump(identifier: str, at: int, to: str | None) -> dict:
+        destination = {"repeat_count": 1} if to is None else {"to": to}
+        return {
             "id": identifier,
-            "type": "jump_from",
-            "manifestation": manifestation,
-            "coordinate": [4, 1],
+            "role": "jump",
+            "coordinate": [at, 1],
+            "targets": [destination],
         }
-        return element if target is None else {**element, "target": target}
 
     fine = {
         "id": "fine",
-        "type": "flow_marker",
+        "role": "break",
         "manifestation": "fine",
         "coordinate": [6, 1],
     }
+    names = "'{}' names no jump target, region or child of this timeline, nor the "
+    names += "timeline itself"
     child = timeline(
         "c",
         offset=(0, 1),
-        flow_control=[*_targets("there"), jump("cj", "here")],
+        regions=[{"id": "inner", "start": [0, 1], "end": [1, 1]}],
+        flow_control=[*_targets("there"), jump("cj", 1, "here"), jump("ck", 2, "c")],
     )
     root = timeline(
         "bare",
+        regions=[{"id": "part", "start": [2, 1], "end": [3, 1]}],
         flow_control=[
             *_targets("here"),
             fine,
-            jump("j1", "here"),
-            jump("j2", None, "da_capo"),
-            jump("j3", "there"),
-            jump("j4", "fine"),
-            jump("j5", None, "repeat_end"),
+            jump("j1", 1, "here"),
+            jump("j2", 2, None),
+            jump("j3", 3, "there"),
+            jump("j4", 4, "fine"),
+            jump("j5", 5, "part"),
+            jump("j6", 6, "c"),
+            jump("j7", 7, "bare"),
+            jump("j8", 8, "inner"),
         ],
         children=[child],
     )
     assert _problems(manifest(root)) == [
         (
-            ("timelines", 0, "flow_control", 4, "target"),
-            "'there' names no jump_to of this timeline",
+            ("timelines", 0, "flow_control", 4, "targets", 0, "to"),
+            names.format("there"),
+        ),
+        (("timelines", 0, "flow_control", 5, "targets", 0, "to"), names.format("fine")),
+        (
+            ("timelines", 0, "flow_control", 9, "targets", 0, "to"),
+            names.format("inner"),
         ),
         (
-            ("timelines", 0, "flow_control", 5, "target"),
-            "'fine' names no jump_to of this timeline",
-        ),
-        (
-            ("timelines", 0, "children", 0, "flow_control", 1, "target"),
-            "'here' names no jump_to of this timeline",
+            ("timelines", 0, "children", 0, "flow_control", 1, "targets", 0, "to"),
+            names.format("here"),
         ),
     ]
 
@@ -853,17 +864,22 @@ def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
     flow = [
         {
             "id": word,
-            "type": "flow_marker",
+            "role": "break",
             "manifestation": "fine",
             "coordinate": [1, 1],
         },
         {
             "id": word,
-            "type": "jump_from",
-            "manifestation": "da_capo",
+            "role": "jump",
+            "coordinate": [1, 1],
+            "targets": [{"repeat_count": 1, "manifestation": "da_capo"}],
+        },
+        {
+            "id": word,
+            "role": "jump_target",
+            "manifestation": "coda",
             "coordinate": [1, 1],
         },
-        {"id": word, "type": "jump_to", "manifestation": "coda", "coordinate": [1, 1]},
     ]
     holders = [
         (
@@ -1552,10 +1568,9 @@ def test_the_schema_shapes_a_named_timestamp(timestamp: dict, path: tuple) -> No
 def test_every_step_in_order() -> None:
     jump = {
         "id": "j",
-        "type": "jump_from",
-        "manifestation": "dal_segno",
+        "role": "jump",
         "coordinate": [1, 1],
-        "target": "nowhere",
+        "targets": [{"to": "nowhere", "manifestation": "dal_segno"}],
     }
     first = timeline(
         "first",
@@ -1602,8 +1617,9 @@ def test_every_step_in_order() -> None:
     )
     assert _problems(value) == [
         (
-            ("timelines", 0, "flow_control", 0, "target"),
-            "'nowhere' names no jump_to of this timeline",
+            ("timelines", 0, "flow_control", 0, "targets", 0, "to"),
+            "'nowhere' names no jump target, region or child of this timeline, nor "
+            "the timeline itself",
         ),
         (
             ("timelines", 0, "conversion_maps", 0, "measure_map"),

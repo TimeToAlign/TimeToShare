@@ -78,21 +78,27 @@ timelines:
             coordinate: [2, 1]
             id: "#segno"
             manifestation: segno
-            type: jump_to
+            role: jump_target
           -
             coordinate: [4, 1]
             id: "#repeat"
             label: Repeat
-            manifestation: repeat_end
-            repeat_count: 2
-            type: jump_from
+            role: jump
+            targets:
+              -
+                manifestation: repeat_end
+                repeat_count: 2
           -
             coordinate: [8, 1]
             id: "#dal_segno"
             label: D.S.
-            manifestation: dal_segno
-            target: "#segno"
-            type: jump_from
+            role: jump
+            targets:
+              -
+                manifestation: dal_segno
+                repeat_count: 1
+                reset: false
+                to: "#segno"
         id: "#verse"
         length: [8, 1]
         locked: true

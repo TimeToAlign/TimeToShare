@@ -16,18 +16,20 @@ manifest:
           manifestation: repeat_start
           meta: {}
           name: repeat-start
-          type: jump_to
+          role: jump_target
         -
           coordinate: [8, 1]
           id: "#jump_from_1"
           label: Repeat
-          manifestation: repeat_end
           meta:
             source: synthetic
           name: null
-          repeat_count: 0
-          target: "#jump_to_1"
-          type: jump_from
+          role: jump
+          targets:
+            -
+              manifestation: repeat_end
+              repeat_count: 0
+              to: "#jump_to_1"
         -
           coordinate: [12, 1]
           id: "#flow_marker_1"
@@ -36,7 +38,7 @@ manifest:
           meta:
             source: synthetic
           name: fine
-          type: flow_marker
+          role: break
       id: "#flow:quarters"
       is_segment_line: false
       length: [16, 1]
@@ -48,5 +50,5 @@ manifest:
       unit: quarters
   timetoshare: "0.2.0"
 message: "0 is less than the minimum of 1"
-path: [timelines, 0, flow_control, 1, repeat_count]
-reason: "A repeat_end repeats at least once."
+path: [timelines, 0, flow_control, 1, targets, 0, repeat_count]
+reason: "A destination is taken at least once."

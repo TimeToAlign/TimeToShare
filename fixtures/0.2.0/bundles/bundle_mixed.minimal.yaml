@@ -219,8 +219,11 @@ timelines:
         coordinate: [8, 1]
         id: "#jump_from_1"
         label: Repeat
-        manifestation: repeat_end
-        type: jump_from
+        role: jump
+        targets:
+          -
+            manifestation: repeat_end
+            repeat_count: 1
     id: "#score"
     length: [12, 1]
     name: Score

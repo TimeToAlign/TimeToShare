@@ -72,25 +72,23 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         flow_control=[
             {
                 "id": "b",
-                "type": "flow_marker",
+                "role": "break",
                 "manifestation": "fine",
                 "coordinate": [1, 1],
+                "ends": {"after": {"jump": "j"}},
             },
             {
                 "id": "j",
-                "type": "jump_from",
-                "manifestation": "da_capo",
-                "coordinate": [1, 1],
-            },
-            {
-                "id": "again",
-                "type": "jump_from",
-                "manifestation": "repeat_end",
-                "coordinate": [1, 1],
+                "role": "jump",
+                "coordinate": [2, 1],
+                "targets": [
+                    {"repeat_count": 1, "manifestation": "da_capo"},
+                    {"to": "m", "determined": False, "reset": False, "label": "D.S."},
+                ],
             },
             {
                 "id": "m",
-                "type": "jump_to",
+                "role": "jump_target",
                 "manifestation": "segno",
                 "coordinate": [0, 1],
             },
@@ -127,8 +125,30 @@ def test_every_object_gains_exactly_its_defaults() -> None:
             groups=[{"id": "g", "members": ["score"]}],
             measure_maps=[{"id": "bars", "rows": rows}],
             graphical={},
+            flow_maps=[{"id": "f", "timeline": "score", "chunks": ["r"]}],
+            virtual_timelines=[
+                {
+                    "id": "v",
+                    "map": "f",
+                    "timeline": "score",
+                    "unit": "quarters",
+                    "number_type": "fraction",
+                    "length": [1, 1],
+                }
+            ],
         )
     )
+    assert value["flow_maps"] == [
+        {
+            "id": "f",
+            "timeline": "score",
+            "chunks": ["r"],
+            "canonical": False,
+            "name": None,
+        }
+    ]
+    assert value["virtual_timelines"][0]["name"] is None
+    assert len(value["virtual_timelines"][0]) == 7
     done = value["timelines"][0]
     assert done["regions"][0] == {
         "id": "r",
@@ -138,32 +158,34 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         "meta": {},
     }
     defaults = {"name": None, "label": None, "meta": {}}
-    marker, origin, repeat, target = done["flow_control"]
+    marker, origin, target = done["flow_control"]
     assert marker == {
         "id": "b",
-        "type": "flow_marker",
+        "role": "break",
         "manifestation": "fine",
         "coordinate": [1, 1],
+        "ends": {"after": {"jump": "j"}},
         **defaults,
     }
     assert origin == {
         "id": "j",
-        "type": "jump_from",
-        "manifestation": "da_capo",
-        "coordinate": [1, 1],
+        "role": "jump",
+        "coordinate": [2, 1],
+        "targets": [
+            {
+                "repeat_count": 1,
+                "manifestation": "da_capo",
+                "determined": True,
+                "reset": True,
+                "label": None,
+            },
+            {"to": "m", "determined": False, "reset": False, "label": "D.S."},
+        ],
         **defaults,
-    }
-    assert repeat == {
-        "id": "again",
-        "type": "jump_from",
-        "manifestation": "repeat_end",
-        "coordinate": [1, 1],
-        **defaults,
-        "repeat_count": 1,
     }
     assert target == {
         "id": "m",
-        "type": "jump_to",
+        "role": "jump_target",
         "manifestation": "segno",
         "coordinate": [0, 1],
         **defaults,
@@ -382,14 +404,32 @@ def test_values_other_than_the_default_stay() -> None:
             flow_control=[
                 {
                     "id": "b",
-                    "type": "jump_from",
-                    "manifestation": "repeat_end",
+                    "role": "jump",
                     "coordinate": 1.0,
-                    "repeat_count": 2,
+                    "targets": [
+                        {
+                            "repeat_count": 1,
+                            "determined": False,
+                            "reset": False,
+                            "label": "Repeat",
+                        },
+                        {"by": -1, "determined": True, "reset": True, "label": None},
+                    ],
                     "label": None,
                 }
             ],
-        )
+        ),
+        flow_maps=[
+            {
+                "id": "f",
+                "timeline": "score",
+                "chunks": [],
+                "canonical": True,
+                "name": None,
+            },
+            {"id": "g", "timeline": "score", "chunks": [], "canonical": False},
+        ],
+        virtual_timelines=[],
     )
     assert minimal(value) == manifest(
         timeline(
@@ -400,24 +440,26 @@ def test_values_other_than_the_default_stay() -> None:
             flow_control=[
                 {
                     "id": "b",
-                    "type": "jump_from",
-                    "manifestation": "repeat_end",
+                    "role": "jump",
                     "coordinate": 1.0,
-                    "repeat_count": 2,
+                    "targets": [
+                        {
+                            "repeat_count": 1,
+                            "determined": False,
+                            "reset": False,
+                            "label": "Repeat",
+                        },
+                        {"by": -1.0},
+                    ],
                 }
             ],
-        )
+        ),
+        flow_maps=[
+            {"id": "f", "timeline": "score", "chunks": [], "canonical": True},
+            {"id": "g", "timeline": "score", "chunks": []},
+        ],
+        virtual_timelines=[],
     )
-
-
-def _repeat(identifier: str, count: Any) -> dict[str, Any]:
-    return {
-        "id": identifier,
-        "type": "jump_from",
-        "manifestation": "repeat_end",
-        "coordinate": [1, 1],
-        "repeat_count": count,
-    }
 
 
 def _linear(identifier: str, **members: Any) -> dict[str, Any]:
@@ -434,7 +476,6 @@ def test_numbers_equal_to_the_default_in_value_are_the_default() -> None:
     value = manifest(
         timeline(
             "score",
-            flow_control=[_repeat("a", 1.0), _repeat("b", 2.0)],
             conversion_maps=[
                 _linear("l1", scalar=1.0, offset=0.0),
                 _linear("l2", scalar=[1, 1], offset=[0, 3]),
@@ -444,7 +485,6 @@ def test_numbers_equal_to_the_default_in_value_are_the_default() -> None:
         )
     )
     (root,) = minimal(value)["timelines"]
-    assert [entry.get("repeat_count") for entry in root["flow_control"]] == [None, 2.0]
     maps = {entry["id"]: entry for entry in root["conversion_maps"]}
     assert (
         sorted(maps["l1"])
@@ -517,10 +557,9 @@ def _documents() -> list[dict[str, Any]]:
                 flow_control=[
                     {
                         "id": "j",
-                        "type": "jump_from",
-                        "manifestation": "repeat_end",
+                        "role": "jump",
                         "coordinate": [4, 1],
-                        "repeat_count": 1.0,
+                        "targets": [{"repeat_count": 1.0, "reset": True}],
                     }
                 ],
             )

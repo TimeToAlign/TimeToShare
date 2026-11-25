@@ -1,0 +1,60 @@
+atomic_sections:
+  -
+    end: [4, 1]
+    name: A
+    start: [0, 1]
+  -
+    end: [8, 1]
+    name: B
+    start: [4, 1]
+  -
+    end: [16, 1]
+    name: C
+    start: [8, 1]
+  -
+    end: [24, 1]
+    name: D
+    start: [16, 1]
+conventions:
+  default:
+    findings: []
+    runs:
+      -
+        - [0, 1]
+        - [16, 1]
+      -
+        - [4, 1]
+        - [16, 1]
+      -
+        - [8, 1]
+        - [16, 1]
+      -
+        - [16, 1]
+        - [24, 1]
+    sections: [A, B, C, B, C, C, D]
+  printed:
+    runs:
+      -
+        - [0, 1]
+        - [4, 1]
+      -
+        - [4, 1]
+        - [8, 1]
+      -
+        - [8, 1]
+        - [16, 1]
+      -
+        - [16, 1]
+        - [24, 1]
+    sections: [A, B, C, D]
+  single:
+    runs:
+      -
+        - [0, 1]
+        - [16, 1]
+      -
+        - [16, 1]
+        - [24, 1]
+    sections: [A, B, C, D]
+manifest: flow/repeat_end_and_dal_segno
+timeline: score

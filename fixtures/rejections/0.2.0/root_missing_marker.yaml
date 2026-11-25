@@ -16,18 +16,20 @@ manifest:
           manifestation: repeat_start
           meta: {}
           name: repeat-start
-          type: jump_to
+          role: jump_target
         -
           coordinate: [8, 1]
           id: "#jump_from_1"
           label: Repeat
-          manifestation: repeat_end
           meta:
             source: synthetic
           name: null
-          repeat_count: 2
-          target: "#jump_to_1"
-          type: jump_from
+          role: jump
+          targets:
+            -
+              manifestation: repeat_end
+              repeat_count: 2
+              to: "#jump_to_1"
         -
           coordinate: [12, 1]
           id: "#flow_marker_1"
@@ -36,7 +38,7 @@ manifest:
           meta:
             source: synthetic
           name: fine
-          type: flow_marker
+          role: break
       id: "#flow:quarters"
       is_segment_line: false
       length: [16, 1]

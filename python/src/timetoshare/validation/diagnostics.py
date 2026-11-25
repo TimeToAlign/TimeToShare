@@ -21,6 +21,13 @@ ValidationCode: TypeAlias = Literal[
     "representation",
     "duplicate_id",
     "dangling_target",
+    "flow_control_form",
+    "flow_coordinate",
+    "jump_repeated",
+    "jump_destination",
+    "flow_map_timeline",
+    "flow_map_chunk",
+    "flow_map_canonical",
     "conversion_map",
     "child_unit",
     "child_offset",
@@ -51,7 +58,9 @@ ValidationCode: TypeAlias = Literal[
     "belief_actor",
 ]
 
-WarningCode: TypeAlias = Literal["context_absent", "bundle_blank"]
+WarningCode: TypeAlias = Literal[
+    "context_absent", "bundle_blank", "manifestation_unknown", "convention_unknown"
+]
 """The codes of the warnings a valid manifest may draw."""
 
 
@@ -190,8 +199,9 @@ def listed_ids(manifest: Any) -> Iterator[tuple[str, InstancePath]]:
     """Yield the IDs of the elements a manifest lists outside its timelines.
 
     The groups, the MeasureMaps, the named timestamps, the elisions, the
-    named MatchStamps, each followed by its alignment anchors, and the
-    resources, in that order, each with its path. An entry that is no object or holds
+    named MatchStamps, each followed by its alignment anchors, the
+    resources, the FlowMaps and the virtual timelines, in that order, each
+    with its path. An entry that is no object or holds
     no string ``id`` is passed over, so the walk reads any value.
     """
     for key, entries in (
@@ -213,10 +223,11 @@ def listed_ids(manifest: Any) -> Iterator[tuple[str, InstancePath]]:
             identifier = string_id(anchor)
             if identifier is not None:
                 yield identifier, (*at, "alignment_anchors", number, "id")
-    for index, resource in enumerate(entries_of(manifest, "resources")):
-        identifier = string_id(resource)
-        if identifier is not None:
-            yield identifier, ("resources", index, "id")
+    for key in ("resources", "flow_maps", "virtual_timelines"):
+        for index, entry in enumerate(entries_of(manifest, key)):
+            identifier = string_id(entry)
+            if identifier is not None:
+                yield identifier, (key, index, "id")
 
 
 def manifest_ids(manifest: Any) -> Iterator[tuple[str, InstancePath]]:

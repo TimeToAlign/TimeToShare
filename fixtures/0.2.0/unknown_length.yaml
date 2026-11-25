@@ -100,7 +100,7 @@ timelines:
         manifestation: segno
         meta: {}
         name: null
-        type: jump_to
+        role: jump_target
     id: "#score"
     is_segment_line: false
     length: null

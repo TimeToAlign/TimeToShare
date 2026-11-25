@@ -129,7 +129,7 @@ def _respellable(canonical: bool) -> dict:
             flow_control=[
                 {
                     "id": "m",
-                    "type": "jump_to",
+                    "role": "jump_target",
                     "manifestation": "segno",
                     "coordinate": [number(2.0, 2), 1],
                 }

@@ -120,20 +120,22 @@ manifest:
           glyph: segno
           id: "#top"
           manifestation: segno
-          type: jump_to
+          role: jump_target
         -
           coordinate: [8, 1]
           id: "#back"
-          manifestation: repeat_end
-          target: "#top"
-          type: jump_from
+          role: jump
+          targets:
+            -
+              manifestation: repeat_end
+              repeat_count: 1
+              to: "#top"
           via: null
         -
           coordinate: [16, 1]
           id: "#fine"
-          manifestation: section_break
           pause: 1
-          type: flow_marker
+          role: section_break
       id: "#score"
       lenght: [32, 1]
       length: [32, 1]

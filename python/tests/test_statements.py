@@ -854,7 +854,7 @@ def test_a_reference_names_an_id_of_any_kind() -> None:
         flow_control=[
             {
                 "id": "#segno",
-                "type": "jump_to",
+                "role": "jump_target",
                 "manifestation": "segno",
                 "coordinate": [0, 1],
             }

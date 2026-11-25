@@ -1,0 +1,63 @@
+atomic_sections:
+  -
+    end: [4, 1]
+    name: A
+    start: [0, 1]
+  -
+    end: [12, 1]
+    name: B
+    start: [4, 1]
+  -
+    end: [16, 1]
+    name: C
+    start: [12, 1]
+  -
+    end: [24, 1]
+    name: D
+    start: [16, 1]
+conventions:
+  default:
+    findings:
+      -
+        coordinate: [4, 1]
+        kind: undetermined_target
+      -
+        coordinate: [16, 1]
+        kind: flow_ends_at_break
+      -
+        coordinate: [16, 1]
+        kind: never_played
+    runs:
+      -
+        - [0, 1]
+        - [4, 1]
+      -
+        - [4, 1]
+        - [16, 1]
+    sections: [A, B, C]
+  printed:
+    runs:
+      -
+        - [0, 1]
+        - [4, 1]
+      -
+        - [4, 1]
+        - [12, 1]
+      -
+        - [12, 1]
+        - [16, 1]
+      -
+        - [16, 1]
+        - [24, 1]
+    sections: [A, B, C, D]
+  single:
+    runs:
+      -
+        - [0, 1]
+        - [4, 1]
+      -
+        - [4, 1]
+        - [16, 1]
+    sections: [A, B, C]
+manifest: flow/ossia
+timeline: score

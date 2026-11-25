@@ -47,6 +47,7 @@ from .manifest import (
 )
 from .serialization import SERIALIZATIONS, dumps, loads, serialization_of
 from .statements import (
+    ATOMIC_SECTION,
     BELIEF_STATES,
     BELIEFS,
     BLANK,
@@ -96,6 +97,7 @@ from .validate import (
 
 __all__ = [
     "ANCHOR_DISPLAY",
+    "ATOMIC_SECTION",
     "BELIEF_STATES",
     "BELIEFS",
     "BLANK",

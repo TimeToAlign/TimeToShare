@@ -79,9 +79,9 @@ rejection cases that use them (`test_schema.py`):
   `Elision`'s `display` exactly `ELISION_DISPLAY`, `ellipsis`, `name`,
   `id`, `coordinate` and `continuation` in that order, so the canonical
   order the writers apply cannot drift from the words the schema admits.
-  `ElementType` is exactly the twenty types `block`,
-  `timeline`, `child`, `band`, `map`, `region`, `flow_marker`, `jump_from`,
-  `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
+  `ElementType` is exactly the twenty-two types `block`,
+  `timeline`, `child`, `band`, `map`, `region`, `break`, `section_break`,
+  `barline`, `jump`, `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
   `cross_section`, `alignment_anchor`, `ancestor_card`, `elision` and
   `ellipsis`. An `Elision`'s `name` is a non-empty string. Its `width` declares exactly `ratio` (a number, exclusive
   minimum 0, maximum 1), `span` (`NumberPositive`) and `canvas` (a number,
@@ -124,8 +124,11 @@ rejection cases that use them (`test_schema.py`):
   whose `required` lists `type`, as a discriminated union needs, and none
   of the bases' other keys.
 - **References are IDs, addresses are `Address`.** `Selector.within`,
-  `FlowControlElement.target` and the `measure_map` of each of the four measure views
-  refer to `Id`, the items of `Selector.addresses` to `Address`. `Id`, an
+  the `to` of a `JumpDestination`, the `jump` and `to` of a
+  `DestinationReference`, a `FlowMap`'s `timeline`, a `VirtualTimeline`'s
+  `map`, `timeline` and `through` and the `measure_map` of each of the four
+  measure views refer to `Id`, the items of a `FlowMap`'s `chunks` to `Id`
+  or `Gap`, the items of `Selector.addresses` to `Address`. `Id`, an
   ID written `#` followed by the ID, accepts `#score`, `#Bass Kick`,
   `#perf/take 2`, `#https://example.org/piece/score#exposition`, `#start`,
   `#regions_1`, `##x` and `# `, and refuses `""`, `#`, `score`, `score#`,
@@ -204,19 +207,20 @@ rejection cases that use them (`test_schema.py`):
   trailing newline.
 - **Defaults agree with the table.** For every kind of `DEFAULTS` the
   schema's corresponding definitions (`Manifest`, `Timeline`,
-  `Region`, `FlowControlElement`, `MeasureMap`, `Group`, `Graphical`,
+  `Region`, `FlowControlElement`, `JumpDestination`, `FlowMap`,
+  `VirtualTimeline`, `MeasureMap`, `Group`, `Graphical`,
   `Timestamp`, `AlignmentAnchor`, `Elision`, every conversion map) declare `default` on exactly the keys
   of that kind's table, each equal to the table's value, and on no other
   key; a conversion map's kind is `conversion_map`, joined by `linear_map`
   for a `LinearMap` (`scalar` 1, `offset` 0) and by `table_map` for a
   `TableMap` (`kind` `linear`, `extrapolate` `none`); a flow-control
-  element's kind is `flow_control_element`, joined by `repeat_end`
-  (`repeat_count` 1), which `complete` applies to a `repeat_end` only, since
-  no other element may carry a repeat count: the schema states that one
-  default in the `then` arm of the `if` that tests for a `repeat_end`, and
-  not on the shared `repeat_count` property, so a reader that supplies
-  every default it finds on a property never writes `repeat_count` to an
-  element that must not carry it. A key's default is
+  element's kind is `flow_control_element`, a jump's destination's
+  `jump_destination` (`determined` true, `reset` true, `label` null), a
+  FlowMap's `flow_map` (`canonical` false, `name` null) and a virtual
+  timeline's `virtual_timeline` (`name` null). A destination's
+  `repeat_count` has no default, its absence meaning no limit, and the
+  manifest's `flow_maps` and `virtual_timelines` have none either: they are
+  never added. A key's default is
   stated on its property or on the definition the property refers to
   (`Name`, `Meta`), and a conversion map's keys include those of its bases,
   at any depth. `number_type`
@@ -346,7 +350,7 @@ integer it equals, on a float axis an integer as the float that equals it
 exactly, on a fraction axis a pair reduced to lowest terms with integer
 members. `loads` and `validate` change nothing. Every other number (a
 conversion map's Numbers and pairs, a MeasureMap row's values, a
-`repeat_count`, a free value) keeps its spelling, and a value that has no
+destination's `repeat_count`, a free value) keeps its spelling, and a value that has no
 exact respelling (an integer beyond 2^53 on a float axis, which `validate`
 refuses) is left as written. What proves it (`test_manifest.py`): for that
 manifest, `complete`, `minimal` and `canonical_order` each give, compared as
@@ -362,7 +366,7 @@ respelling is left out. A seconds length `9007199254740993` stays that
 integer.
 
 An own-axis value (a timeline's `length` and `offset`, a region's `start` and
-`end`, a flow-control element's `coordinate`) is a bare Number whose representation the axis's number type
+`end`, a flow-control element's `coordinate`, the `by` of a jump's destination and of an `after`, a gap of a FlowMap of the timeline, and a virtual timeline's `length` on its own axis) is a bare Number whose representation the axis's number type
 selects: an int axis an integral JSON number, a float axis any JSON number
 that a float equals exactly (an integer beyond 2^53 may have none), a
 fraction axis a pair. The axis is the timeline's `number_type`, else its
@@ -393,15 +397,20 @@ proves it, one inline document per line, message stated literally:
   seconds with offset `[1, 2]` is reported the same way (the parent's axis),
   while its own length `[4, 1]` is fine; a root's own `offset 3` in quarters
   is `write [3, 1]`;
-- `start`, `end` and the `coordinate` of a flow marker, a jump origin and a
-  jump target each reported at its own path with its holder's ID.
+- `start`, `end` and the `coordinate` of a break, a jump and a jump target
+  each reported at its own path with its holder's ID; the `by` of a
+  destination, a FlowMap's gap and a virtual timeline's `length` likewise,
+  by the shared rejection cases (section "Flow").
 
 Accepted: `8` and `8.0` on an int axis (an integral number is an int),
 `8`, `0.5`, `9007199254740992` (2^53) and `10**20` on a float axis (each
 exactly a float), `[8, 1]` and `[8.0, 1]` on a fraction axis, `length:
 null` anywhere, a root's negative offset in its own number type. The checks
-visit a timeline's offset, length, regions and flow-control elements, then
-its children in array order; the first problem is raised.
+visit a timeline's offset, length, regions and flow-control elements (each
+element's coordinate, then the `by` of its `ends` and of each destination
+and its `after`), then its children in array order; after the timelines
+come the named timestamps, the elisions, the gaps of the FlowMaps and the
+lengths of the virtual timelines; the first problem is raised.
 
 ## Open objects and unknown keys
 
@@ -415,10 +424,11 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   accepts the manifest, `unknown_keys` returns exactly its `unknown_keys`
   list and `manifest_warnings` exactly its `warnings` list (empty in the
   thirteen cases of unknown keys, which state the format's `@context`;
-  empty `unknown_keys` in the three cases of warnings, `context_absent`,
-  `bundle_blank_statements` and `bundle_blank_provenance`); the
+  empty `unknown_keys` in the five cases of warnings, `context_absent`,
+  `bundle_blank_statements`, `bundle_blank_provenance`,
+  `manifestation_unknown` and `convention_unknown`); the
   JavaScript suite asserts the same lists. `several_depths` holds unknown keys on the
-  manifest, a timeline, a child, a region, a flow marker, a jump origin, a
+  manifest, a timeline, a child, a region, a break, a jump, a
   jump target, a conversion map and the map nested in it, a MeasureMap and
   one of its rows, a group, the `graphical` object, a rule, a selector
   and a declaration (sixteen entries). The other cases are keys the format does
@@ -473,8 +483,10 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   back to the smallest file. `@context`, `statements` and `provenance`
   have no default: a manifest stating all three on itself, its root and a
   region keeps each exactly in both forms, and its minimal form is the
-  literal input. A region, a flow-control element (a `repeat_end` gains
-  `repeat_count` 1 besides, no other element does), a group, a MeasureMap, a conversion map (and the maps nested in a
+  literal input. A region, a flow-control element (each destination of a
+  jump gains `determined`, `reset` and `label`, a stated `determined: false`,
+  `reset: false` and label kept, and never a `repeat_count`), a FlowMap, a
+  virtual timeline, a group, a MeasureMap, a conversion map (and the maps nested in a
   `ChainMap`, a `CombinationMap` and a `PiecewiseMap`), a `LinearMap`, a
   `TableMap` and a `graphical` object each gain exactly their table's keys.
   A named timestamp without `display` gains `display: ["wedge", "name",
@@ -503,34 +515,39 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   minimizes to `{}`; a
   child's `offset` stays in the minimal form.
 - **Values that differ from the default stay.** `locked: true`,
-  `number_type` `float` on quarters and a `repeat_end` with `repeat_count` 2
-  survive `minimal`, the element keeping only its own non-default keys.
-- **Numbers compare by value.** `repeat_count: 1.0`, a `LinearMap`'s
+  `number_type` `float` on quarters, a destination with `repeat_count` 1,
+  `determined: false`, `reset: false` and a label, and a FlowMap with
+  `canonical: true` survive `minimal`, each keeping only its own
+  non-default keys; a destination stating the three defaults keeps none of
+  them, an empty `virtual_timelines` stays, and a `by` written `-1` on a
+  float axis is written `-1.0`.
+- **Numbers compare by value.** A `LinearMap`'s
   `scalar` `1.0` and `[1, 1]` and its `offset` `0.0` and `[0, 3]` equal
-  their defaults 1 and 0 and are left out by `minimal`; `repeat_count: 2.0`
-  and `scalar` `[1, 2]` stay; `false` is not the number 0 and `0` is not
+  their defaults 1 and 0 and are left out by `minimal`;
+  `scalar` `[1, 2]` stays; `false` is not the number 0 and `0` is not
   `null`. A named timestamp's `display` given `["name", "wedge",
   "cross_section"]` and a child's `offset` `[4, 8]` on quarters are compared
   after canonical order and respelling, so the `display` is left out and the
   offset written `[1, 2]`.
 - **Unknown keys pass through** both functions, at every depth, untouched.
 - **`length` survives** both, `null` included.
-- **The round trips.** For each of these documents (a `repeat_end` with
-  `repeat_count: 1.0` among them) and for every fixture,
+- **The round trips.** For each of these documents (a destination with
+  `repeat_count: 1.0` and `reset: true` among them) and for every fixture,
   `minimal(complete(x)) == minimal(x)`, `complete(minimal(x)) == complete(x)`
   and both results validate; both functions return new objects and leave
   their input unchanged. The first equality compares the canonical YAML
   texts, which tell `1.0` from `1`; the second compares the RFC 8785 JSON
   texts, which compare numbers by value, since `minimal` leaves out a
-  `repeat_count: 1.0` that `complete` then restores as `1`.
+  `scalar: 1.0` that `complete` then restores as `1`.
 
 ## The rules and their codes
 
 `validate` checks in this order and raises the first violation as a
 `SchemaValidationError` carrying `code`, `path` and `message`: the version
-marker; `finite_number`; the schema, in one walk that also collects the
-unknown keys; `representation`; then the semantic rules in the order of the
-table, the statement rules last, root by root for the first six (a root's duplicates, then its
+marker; `finite_number`; `flow_control_form`; the schema, in one walk that
+also collects the unknown keys; `representation`; then the semantic rules in
+the order of the table, the statement rules last, root by root for the first six (a root's duplicates, then
+timeline by timeline, each before its children, its flow control and its
 targets, then its conversion maps, then child by child, each followed by its
 own children, the containment rules, then its segment lines), the rest over
 the whole manifest. A timeline's maps are read in array order, each before
@@ -549,13 +566,15 @@ package words it as this package does.
 | `schema` | the schema document | the path rule below | the schema library's, but for the three shapes worded below |
 | `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
 | `duplicate_id` | IDs unique within a root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds included after the tree's other IDs | the later ID | `'m' is not unique in the manifest, first at #/…` |
-| `dangling_target` | a jump origin's `target` names a jump target of its timeline; then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the target, the `measure_map` | `'there' names no jump_to of this timeline`, `'ghost' names no MeasureMap of this manifest` |
+| `flow_control_form` | before the schema: no flow-control element is written in the earlier form (`type` with `jump_from`, `jump_to` or `flow_marker`, a `role` that is one of those words, or `target` without `role`) | the element | `flow-control element 'old' is written in the earlier form of flow control (type, target): convert the manifest with scripts/convert_flow_control.py` |
+| `flow_coordinate`, `jump_repeated`, `jump_destination`, `dangling_target` | per timeline, over the elements not rejected, in document order (section "Flow"): a coordinate from 0 to the known length; one jump at a coordinate; distinct places of a jump's destinations; a `to` naming a jump target or region of the timeline, a child of it or the timeline; a place reached by `by` from 0 to the known length; an `after` naming one destination of another jump of the timeline | the `coordinate`, the jump, the destination, the `to`, the `by`, the `after` or its member | `coordinate [17, 1] of 'jump_2' is not on 'score': it lies outside 0 to the length [16, 1]`, `'jump_3' is a second jump at coordinate [16, 1] of 'score', after 'jump_2': several signs at one place are destinations of one jump`, `destination 1 of 'jump_1' has the place of destination 0, to 'jump_target_1'`, `'break_1' names no jump target, region or child of this timeline, nor the timeline itself`, `jump 'jump_2' has no destination to 'jump_target_1'` |
+| `dangling_target` | then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the `measure_map` | `'ghost' names no MeasureMap of this manifest` |
 | `conversion_map` | a non-null `source_unit` of a map attached to a timeline is the timeline's unit, and that of every map a `PiecewiseMap` or `CombinationMap` holds, and of a `ChainMap`'s first map, is its holder's non-null `source_unit`; a `TableMap`'s x and y values of equal length, its x values strictly increasing; a `PiecewiseMap`'s maps one fewer than its breaks, its breaks strictly increasing | the `source_unit`, the `y_values`, the value, the `maps`, the break | `MeasureRecordMap 'bars' has source unit 'quarters', its timeline 'score' has 'ticks'`, `LinearMap 'scale' has source unit 'ticks', its ChainMap 'chain' has 'quarters'`, `TableMap 'tempo' has 3 x values and 2 y values`, `x value [0, 1] of TableMap 'tempo' does not exceed the one before it`, `PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps`, `break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
 | `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
 | `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
-| `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, then each named timestamp's ID, then each elision's ID, against every ID before it | the later ID | as above |
+| `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, then each named timestamp's ID, then each elision's ID, then each MatchStamp's and its anchors', each resource's, each FlowMap's and each virtual timeline's, against every ID before it | the later ID | as above |
 | `manifest_id` | the manifest ID is no other ID of the manifest | `id` | `'g2' is not unique in the manifest, first at #/groups/1/id` |
 | `group_member` | a member names a timeline and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `member 'b' lies inside member 'a' of the same group` |
 | `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
@@ -619,7 +638,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 194 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 232 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
@@ -719,7 +738,7 @@ documents that bound each rule from the other side:
   a slash, a space, a colon or a `#` (`perf/take 2`,
   `https://example.org/piece/score#exposition`) are accepted as the ID of a
   timeline, a map, a map held by a `ChainMap`, by a `PiecewiseMap` and by a
-  `CombinationMap`, a region, a flow marker, a jump origin, a jump target,
+  `CombinationMap`, a region, a break, a jump, a jump target,
   a group, a MeasureMap and the manifest: `identity_problems` finds nothing
   and `validate` accepts each manifest.
 - **Containment.** A child's end is its offset plus its length, or, for a
@@ -815,12 +834,15 @@ documents that bound each rule from the other side:
   at `…/maps/bar/source_unit`, and a `LinearMap` from seconds held by a
   `PiecewiseMap` from quarters one at `…/maps/0/source_unit`. Every
   emitted fixture passes (`test_fixtures.py`).
-- **Flow control.** The schema ties each element type to its
-  manifestations, its `target` and its `repeat_count`: the three `da_capo`
-  manifestations and a `repeat_end` without a target validate
-  (`test_validate.py`), a `dal_segno` without one is refused at the element; a jump origin whose target names a flow marker, or a jump target
-  of its child, is one `dangling_target` at that `target`, naming the target
-  (`'fine' names no jump_to of this timeline`).
+- **Flow control.** The schema ties each role to what it carries
+  (section "Flow"): a destination needs no place and no condition
+  (`test_validate.py`: a da capo, a dal segno and a repeat end without `to`,
+  and a destination `{}`, validate without an unknown key or a flow
+  warning). A destination's `to` naming a jump target, a region, a child
+  of its timeline or the timeline itself passes; one naming a jump target
+  of its child, a break, or a region of its child, and a child's
+  destination naming a jump target of its parent, are each one
+  `dangling_target` at that `to` (`test_identity.py`).
 - **MeasureMaps.** A measure view naming `ghost` while `measure_maps` holds
   only `measures` is one problem at its `measure_map`, also when nested in a
   `CombinationMap`; a MeasureMap in a manifest of a timeline in seconds
@@ -1023,6 +1045,181 @@ never stored, so nothing beyond the flag is checked. What proves it:
   `groupstamp` nor, unless a match timestamp, `matchstamp`. Every one of
   them and its twin passes `validate` and `identity_problems`, and
   `matchstamp_problems` finds nothing in either form.
+
+## Flow
+
+Flow control, FlowMaps and virtual timelines. The schema states the shapes;
+`timetoshare.validation.flow` holds the rules beyond it; the shared cases
+are the oracle of both packages; the flow fixtures and the expected flows
+are data for any implementation that computes a flow, which this package
+does not.
+
+**What would prove it wrong.** A role carrying a member of another role; a
+vocabulary closed by an `enum`, so that a word the format does not define
+is refused; a rule reading a rejected element; a place compared by spelling;
+a reference resolved outside its timeline or its root's tree; an expected
+flow that does not follow from its manifest.
+
+- **The schema** (`test_flow.py`). `FlowControlElement.role` is exactly
+  `jump`, `jump_target`, `break`, `section_break` and `barline`; the element
+  requires `id`, `role` and `coordinate` and declares exactly `id`, `role`,
+  `coordinate`, `targets`, `manifestation`, `ends`, `name`, `label`, `meta`
+  and `provenance`, none of the earlier `type`, `target` and
+  `repeat_count`. `manifestation` and a FlowMap's `convention` are strings
+  without an `enum`. A `JumpDestination` declares exactly `to`, `by`,
+  `passes`, `repeat_count`, `after`, `determined`, `reset`, `manifestation`
+  and `label`, requires none, and refuses `to` beside `by`; `Passes` is a
+  non-empty list of distinct integers from 1, or `{from: n}` with n from 1;
+  a `DestinationReference` requires `jump` and refuses `to` beside `by`; a
+  `BreakCondition` is not empty and holds `passes` or `after`. The manifest
+  declares `flow_maps` and `virtual_timelines`; a `FlowMap` requires `id`,
+  `timeline` and `chunks`, a `Gap` its strictly positive `gap`, a
+  `VirtualTimeline` `id`, `map`, `timeline`, `unit`, `number_type` and
+  `length`, under the very `if`/`then`/`else` that ties a timeline's number
+  type to its unit. `provenance` of a flow-control element and of a FlowMap
+  is a non-empty list of provenance entries without a pair. The
+  descriptions name every word of `MANIFESTATIONS` and `CONVENTIONS`, the
+  tables the warnings read, and the region's description the class
+  `ATOMIC_SECTION`, the format's namespace followed by `AtomicSection`.
+- **The earlier form** (`test_flow.py`). An element with `type` `jump_from`,
+  `jump_to` or `flow_marker` (also beside a `role`), with a `role` that is
+  one of those words, or with `target` and no `role`, on a child, is
+  refused with `flow_control_form` at the element, its message naming the
+  ID and `scripts/convert_flow_control.py`, which exists; the rule comes
+  before the schema (a manifest with an unknown unit too reports it) and
+  names an element without an ID by its JSON pointer. A `type` beside a
+  current `role` is an unknown key and nothing more.
+- **Rejected elements** (`test_flow.py`). An element is rejected when an
+  entry of its `provenance` holds a belief `false`; `unlikely`, another
+  entry's method and no provenance do not reject. A rejected jump and its
+  replacement at one coordinate validate, and without the rejection the
+  second is `jump_repeated`. A rejected jump at a coordinate off the axis
+  with two destinations at one place, both dangling, raises nothing, while a
+  `to` naming a rejected jump target and an `after` naming a rejected jump
+  are each `dangling_target`.
+- **Coordinates and places** (`test_flow.py`, the shared cases). On a
+  timeline of unknown length a coordinate and a place far out are accepted
+  and a place before 0 refused with `it lies before 0`; the coordinates 0
+  and the length and the places they reach are on the axis. On a float
+  axis a place is the double sum of the two numbers: 0.1 and 0.2 reach
+  0.30000000000000004, on a timeline of that length and off one of length
+  0.3. A destination `to` an element and one `by` a distance landing at the
+  same coordinate are two places.
+- **After** (`test_flow.py`, the shared cases). A reference without a place
+  names the one destination of a jump, or its one destination without a
+  place; with `to` or `by` the destination of that place, `by` compared by
+  value (`[-4, 2]` names `[-2, 1]`); a jump with two placed destinations
+  and a reference without a place, a `by` or a `to` no destination has, a
+  jump of a child and the destination's own jump are each
+  `dangling_target`, at the `after` or at the member that fails.
+- **FlowMaps and virtual timelines** (`test_flow.py`, the shared cases). A
+  chunk is a region of the root or of a descendant, a child at any depth,
+  or a virtual timeline that comes, through any number of virtual
+  timelines, from a timeline of the root's tree; a region or a virtual
+  timeline of another root, another root, the root itself, a FlowMap and an
+  unknown ID are each `flow_map_chunk`; two virtual timelines naming each
+  other come from no tree. A virtual timeline's `map` names a FlowMap or a
+  conversion map at any depth, a map another map holds included. One
+  FlowMap per timeline is canonical; a second is `flow_map_canonical`,
+  FlowMaps of two timelines are not. A FlowMap's and a virtual timeline's
+  ID count among the manifest's IDs, after the resources'.
+- **Order and spelling** (`test_flow.py`, `test_manifest.py`,
+  `test_ids.py`). `canonical_order` sorts FlowMaps and virtual timelines by
+  ID, keeps each FlowMap's chunks in their order, repeated ones included,
+  and sorts a jump's destinations given as two `to`, two `by` (one as
+  `[-6, 2]`) and one without a place into: without a place, `[-3, 1]`,
+  `[-2, 1]`, then the `to` by ID. A gap `[4, 2]` on a fraction axis is
+  written `[2, 1]`, a virtual timeline's `length` `[16.0, 2]` on its own
+  fraction axis `[8, 1]`, and on a float axis the `by` of a destination, of
+  its `after` and of a break's `ends.after` written as integers are floats.
+- **Warnings** (`test_flow.py`, `test_unknown_keys.py`). Every word of the
+  tables on the role or destination it belongs to, a section break without
+  a manifestation, the three conventions and a FlowMap without one draw no
+  warning; a word on another role (`fine` on a barline, `segno` on a break,
+  `repeat_end` on a jump target, `segno` on a destination) is
+  `manifestation_unknown` at the `manifestation`, with the role in the
+  message, and any manifestation on a section break is, since none is
+  defined. `convention_unknown` lies at a FlowMap's `convention`. Warnings
+  are sorted by path, an index before a key, then by code. The shared
+  cases `manifestation_unknown` (three warnings) and `convention_unknown`
+  pin the messages for both packages.
+- **Provenance about an element** (`test_flow.py`). An entry of a
+  flow-control element or a FlowMap names no pair. Beyond the schema its
+  date is a calendar day, its compact IRIs name declared prefixes, its `#`
+  references name elements and an actor holds one belief: each of the four
+  is reported once on the element and once on the FlowMap, by
+  `statement_problems` at both and by `validate` at the first. Such an
+  entry needs no `@context` where it uses no prefix, and `used_prefixes`
+  and `with_context` count the prefixes it uses.
+- **The converter** (`test_convert_flow_control.py`), which lives in
+  `scripts/` because the packages read one form only. `convert` leaves its
+  input unchanged and its result validates. Each earlier type becomes its
+  role with the members stated literally: a jump target; a jump with one
+  destination (`to` its target or no place, its manifestation, a repeat
+  end's count or 1, `repeat_count: 1` and `reset: false` on a da capo and a
+  dal segno); a `fine` as a break whose `ends.after` names the timeline's
+  one jump al fine; a section break without a manifestation; the two
+  barlines. A `to_coda` waits for the one jump al coda. Two earlier jumps
+  at one coordinate become one under the ID first by code point, each
+  destination with its element's label, the reference of a Fine naming the
+  place where the jump has two destinations, an address naming the dropped
+  ID rewritten, and the merge reported with the name and meta it drops. A
+  Fine or a To Coda with none or two of the jumps it waits for, a merge of
+  two destinations at one place and a flow marker of an unknown
+  manifestation raise `ConversionRefused`, a `ValueError`, with the
+  sentence stated literally. A rule selecting `jump_from` selects `jump`,
+  one selecting `flow_marker` becomes three in its place. A manifest
+  without the earlier form comes back equal, its text byte for byte. The
+  command line converts a pretty-JSON minimal file in place into pretty
+  JSON in the minimal form, reports `would be converted` under `--check`
+  without writing, `nothing to convert` the second time, and leaves a
+  refused file as it was with exit status 1.
+- **The flow fixtures** (`test_flow.py`, `test_fixtures.py`,
+  `test_rdf.py`). Ten manifests under `fixtures/0.2.0/flow/`, each with its
+  twin, pass every law of the fixture set. Each holds what its name says,
+  stated literally from the minimal twin: two destinations of one jump
+  (`repeat_end_and_dal_segno`), passes `[1, 3]` and `[2]` over a repeat
+  taken twice (`volta_passes`), a destination `determined: false` to a
+  child timeline beside `by` 0 (`ossia`), an `after` on a To Coda and on a
+  Fine, a section break without a manifestation and a destination without
+  a place behind it (`sections`), a loop of 127 on a seconds axis without a
+  manifestation, a FlowMap by hand over two children and a gap with manual
+  provenance and no convention, and an imported barline, a rejected
+  imported jump and two elements added by hand, the two jumps at one
+  coordinate (`repairs`). `sonata_exposition` holds three regions typed
+  `tts:AtomicSection` with an `inferred` entry each, the FlowMaps of the
+  three conventions and one virtual timeline; read as RDF it says exactly
+  that each region is an `AtomicSection` of the format's namespace and that
+  the pair was inferred, fifteen quads, while every other fixture outside
+  `statements/` says nothing. Numbered flow-control IDs name their role, an
+  ID minted for the earlier form (`jump_from_1`) the role its element was
+  converted to.
+- **The expected flows** (`test_flow.py`). `fixtures/flows/0.2.0/` holds
+  one file per flow fixture with flow control, nine in all, in canonical
+  YAML, each beside the trace it was derived by hand with (`<name>.md`):
+  `manifest` (a path under `fixtures/0.2.0/` without extension),
+  `timeline` (a bare ID), `atomic_sections` (`name`, `start`, `end`) and
+  `conventions`, whose `default` holds `runs`, `sections` and `findings`
+  and whose `single` and `printed` hold `runs` and `sections`. A run is a
+  pair of start and end, the end not played, in the spelling of the
+  timeline's number type; `sections` lists the atomic sections the runs
+  cover; a finding is a `kind` and a `coordinate`. This package computes no
+  flow, so the test proves agreement, not the flows: the atomic sections
+  are the intervals between the boundaries the schema states (computed in
+  the test from the manifest, a rejected element left out, a barline no
+  boundary, a destination without a place at the nearest section break
+  before its jump), lettered from A; every run starts and ends on a
+  boundary inside the axis and covers the sections listed; `printed` is the
+  sections in order; `never_played` is reported exactly at the start of
+  each section the default flow leaves out; every kind is one of the five
+  the format names. For `sonata_exposition` the manifest's regions are the
+  atomic sections, each FlowMap lists the regions of its convention's
+  sections, and the virtual timeline's length, 36 quarters, is the sum of
+  the default runs.
+
+Not proven here: that the expected flows are the flows the stated behaviour
+gives. They are derived by hand; an implementation computing flows is run
+against them.
 
 ## Elisions
 
@@ -1518,9 +1715,9 @@ pin it where it matters: a negative fraction length reports its numerator
 (`length/0`), a zero denominator the denominator (`length/1`), a negative
 `actual_length` the row member, a negative `qstamp` pair its numerator, an
 unknown conversion-map type the map, a missing `x_values` the `TableMap`, a
-measure view's `source_unit` other than `quarters` the unit, a `target` on a
-jump target or a `repeat_count` on a `to_coda` the member, a `dal_segno`
-without a `target` the element.
+measure view's `source_unit` other than `quarters` the unit, `targets` on a
+jump target or `ends` on a barline the member, a jump without `targets`
+the element.
 
 The cases of several problems, `fixtures/precedence/0.2.0/cases.yaml`,
 pin the rule where a manifest breaks it twice (`test_validate.py`). Each
@@ -1545,7 +1742,7 @@ what to write; the path and the code stay the path rule's and `schema`.
    schema's order as an `enum`'s does: `'furlongs' is not one of
    ['number', 'floating_measures', …, 'user_units']` at a timeline's `unit`.
 2. A member whose schema admits no value (`not: {}` or `false`) reads
-   `the key 'repeat_count' is not admitted here`.
+   `the key 'targets' is not admitted here`.
 3. A `not` refusing a pattern, or any of several patterns and words, names
    the value, the part of it the refused branch finds (the first branch
    that finds one) and what is not admitted, in the words of the schema's
@@ -1572,8 +1769,8 @@ members included; the JavaScript package spells those messages as
 `jsonschema` 4.26 does, each value as Python's `repr` spells it. `test_validate.py` proves it on every place of the
 schema with one of the three shapes, and a census of the schema fails when
 a place is added without a case: the time unit; the four forbidden members
-of a flow-control element (`repeat_count` on a `dal_segno` and on a
-`da_capo`, `target` and `repeat_count` on a jump target or a flow marker);
+of a flow-control element (`manifestation` and `ends` on a jump, `targets`
+on every other role, `ends` on every role but a break, seven cases);
 and the thirteen `not` places (an ID, an order entry, a paint, a dash array,
 the elision depths and display of a declaration, a resource's media type and its digest, an IRI, an IRI reference with each
 of its three branches, a prefix's IRI, a language tag, a prefix name with
@@ -1584,8 +1781,11 @@ walk reports.
 
 Every array whose order carries no meaning has one order: `timelines` by ID;
 in every timeline `children` by offset then ID, `conversion_maps` by ID,
-`regions` by start, end, ID, `flow_control` by coordinate then ID; `groups`
-by ID and `members` by code point; `measure_maps` by ID;
+`regions` by start, end, ID, `flow_control` by coordinate then ID, a jump's
+`targets` by place (the destination without a place, then `by` by value,
+then `to` by ID); `groups`
+by ID and `members` by code point; `measure_maps`, `flow_maps` and
+`virtual_timelines` by ID, a FlowMap's `chunks` kept (section "Flow");
 `graphical.timestamps` by timeline (code point), then coordinate, then ID;
 `graphical.elisions` by timeline, then start, then ID (section "Elisions").
 The arrays of statements keep their order: the values of a pair, an
@@ -1826,7 +2026,11 @@ definition is held (`CONTAINERS`). What proves them:
   position of the table once (the manifest's own, a root, a child, a
   `ChainMap` with a nested `LinearMap` and a nested measure view naming its
   MeasureMap, a `CombinationMap` holding a map by output name, a region, a
-  jump_to and the jump_from targeting it, a group, a MeasureMap, a
+  jump target, a jump with a destination `to` it and one with an `after`
+  naming a second jump and its `to`, a break whose `ends.after` names the
+  first, a FlowMap with its timeline and three chunk IDs around a gap
+  (kept as it is), a virtual timeline with its `map`, `timeline` and
+  `through`, a group, a MeasureMap, a
   timeline's and a group's `graphical.order` entry, a rule with an address
   and `within`, a named timestamp, an elision), plus the unknown key `extra: score` on
   the root, a `meta` holding `id: untouched`, the bundle's statement
@@ -1904,8 +2108,8 @@ top-level `graphical` unless `form.styling`, writes the minimal form if
 `form.serialization`. They live in `timetoshare.files`. The form is
 minimal when `minimal(value)` and `value` write the same canonical YAML,
 the equality the twin law of the fixtures uses: a key stated at its
-default, recognized by exact value (`repeat_count: 1.0` is the default
-`1`), makes a text not minimal, and the order canonical order sorts does
+default, recognized by exact value (a `LinearMap`'s `scalar: 1.0` is the
+default `1`), makes a text not minimal, and the order canonical order sorts does
 not count. What proves them (`test_files.py`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
@@ -1956,11 +2160,14 @@ not count. What proves them (`test_files.py`):
 ## The fixture set
 
 The fixtures under `fixtures/0.2.0/` are emitted by timetoalign, never
-written by hand (`test_fixtures.py`). For every fixture: `validate` accepts
+written by hand, but for those under `flow/`, which are written by hand
+until the library emits them, and for the flow control of the others, which
+`scripts/convert_flow_control.py` converted (section "Flow";
+`test_fixtures.py`). For every fixture: `validate` accepts
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`groups` and `statements`, 184 files (`test_files.py`); the four statement
+`flow`, `groups` and `statements`, 204 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -2064,8 +2271,12 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 38 rules),
-read from the file, validates as the `graphical` of the smallest file; the
+`docs/drawing.md` section 4's defaults block (three styles, 39 rules),
+read from the file, validates as the `graphical` of the smallest file.
+That test is expected to fail, strictly, while the block still selects the
+element types `flow_marker` and `jump_from`, which the schema replaced by
+`break`, `section_break`, `barline` and `jump`: it fails as soon as the
+block is rewritten, and the mark is then removed. The
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate, and so do `{"element": "ancestor_card"}` and the rule that
 addresses the ancestor cards of one root, `{"element": "ancestor_card", "addresses":

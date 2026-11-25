@@ -41,7 +41,9 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     },
     "region": {"name": None, "meta": {}},
     "flow_control_element": {"name": None, "label": None, "meta": {}},
-    "repeat_end": {"repeat_count": 1},
+    "jump_destination": {"determined": True, "reset": True, "label": None},
+    "flow_map": {"canonical": False, "name": None},
+    "virtual_timeline": {"name": None},
     "conversion_map": {"name": None},
     "linear_map": {"scalar": 1, "offset": 0},
     "table_map": {"kind": "linear", "extrapolate": "none"},
@@ -69,9 +71,12 @@ DEFAULTS: dict[str, dict[str, Any]] = {
 A timeline's ``number_type`` defaults to its unit's default number type.
 Every conversion map has the keys of ``conversion_map``; a ``LinearMap`` adds
 those of ``linear_map`` and a ``TableMap`` those of ``table_map``. Every
-flow-control element has the keys of ``flow_control_element``, and one whose
-manifestation is ``repeat_end`` adds those of ``repeat_end``, as no other
-element carries a repeat count. Every named timestamp of
+flow-control element has the keys of ``flow_control_element``, and every
+destination of a jump those of ``jump_destination``; a destination's
+``repeat_count`` has no default, its absence meaning no limit. Every FlowMap
+has the keys of ``flow_map`` and every virtual timeline those of
+``virtual_timeline``; the manifest's ``flow_maps`` and ``virtual_timelines``
+have no default and are never added. Every named timestamp of
 ``graphical.timestamps`` has the keys of ``timestamp``, a match timestamp
 (``matchstamp: true``) those of ``match_timestamp`` instead, every
 alignment anchor of a named MatchStamp those of ``alignment_anchor``, and
@@ -128,8 +133,8 @@ def _visit_timeline(timeline: dict[str, Any], apply: _Pass) -> None:
         apply(region, "region")
     for entry in _objects(timeline, "flow_control"):
         apply(entry, "flow_control_element")
-        if entry.get("manifestation") == "repeat_end":
-            apply(entry, "repeat_end")
+        for destination in _objects(entry, "targets"):
+            apply(destination, "jump_destination")
 
 
 def _visit_manifest(manifest: Any, apply: _Pass) -> None:
@@ -143,6 +148,10 @@ def _visit_manifest(manifest: Any, apply: _Pass) -> None:
         apply(group, "group")
     for measure_map in _objects(manifest, "measure_maps"):
         apply(measure_map, "measure_map")
+    for flow_map in _objects(manifest, "flow_maps"):
+        apply(flow_map, "flow_map")
+    for virtual in _objects(manifest, "virtual_timelines"):
+        apply(virtual, "virtual_timeline")
     graphical = manifest.get("graphical")
     if isinstance(graphical, dict):
         apply(graphical, "graphical")
@@ -244,10 +253,10 @@ def minimal(value: Any) -> Any:
     """Return a copy of a manifest in the minimal form.
 
     The complete form without every key whose value equals its default in
-    value, numbers compared by exact value (``repeat_count: 1.0`` equals the
-    default ``1`` and is left out, as a ``LinearMap``'s ``scalar`` written
-    ``[1, 1]`` is), after own-axis values are respelled and each ``display``
-    is put in canonical order.
+    value, numbers compared by exact value (a ``LinearMap``'s ``scalar``
+    written ``[1, 1]`` or ``1.0`` equals the default ``1`` and is left out),
+    after own-axis values are respelled and each ``display`` is put in
+    canonical order.
     ``minimal(complete(x))`` equals ``minimal(x)`` and
     ``complete(minimal(x))`` equals ``complete(x)``. The JavaScript package's
     ``minimal`` gives the same value.

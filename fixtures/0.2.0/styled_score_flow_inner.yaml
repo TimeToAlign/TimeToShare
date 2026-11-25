@@ -113,7 +113,7 @@ graphical:
     -
       select:
         domain: logical
-        element: jump_from
+        element: jump
       set:
         fill: "#DB2777"
         stroke: "#DB2777"
@@ -268,10 +268,16 @@ timelines:
         coordinate: [8, 1]
         id: "#da-capo"
         label: D.C.
-        manifestation: da_capo
         meta: {}
         name: null
-        type: jump_from
+        role: jump
+        targets:
+          -
+            determined: true
+            label: null
+            manifestation: da_capo
+            repeat_count: 1
+            reset: false
     id: "#score"
     is_segment_line: false
     length: [8, 1]
