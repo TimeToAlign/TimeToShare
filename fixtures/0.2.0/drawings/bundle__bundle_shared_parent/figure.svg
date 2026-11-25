@@ -9,8 +9,8 @@
 <polygon data-id="cmap_2" points="568.4951,83.2578 968.4951,83.2578 968.4951,85.2578 568.4951,85.2578" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
 <polygon data-id="cmap_3" points="768.4951,78.2578 968.4951,78.2578 968.4951,80.2578 768.4951,80.2578" fill="none" stroke="#0050EF" stroke-width="1"/>
 <polygon data-id="cmap_4" points="1241.8284,50.7812 1408.4951,50.7812 1408.4951,52.7812 1241.8284,52.7812" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
-<path data-id="jump_from_1" d="M968.4951 180.6875C868.4951 191.3542 668.4951 191.3542 572.4725 181.1118" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
-<polygon data-id="jump_from_1" points="568.4951,180.6875 572.2604,183.1005 572.6846,179.123" fill="#000000"/>
+<path data-id="jump_1" d="M968.4951 180.6875C868.4951 191.3542 668.4951 191.3542 572.4725 181.1118" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-id="jump_1" points="568.4951,180.6875 572.2604,183.1005 572.6846,179.123" fill="#000000"/>
 <line data-id="score" x1="568.4951" y1="127.2344" x2="1175.1617" y2="127.2344" stroke="#00CC00" stroke-width="3"/>
 <line data-id="score" x1="1241.8284" y1="127.2344" x2="1408.4951" y2="127.2344" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="score" cx="568.4951" cy="127.2344" r="3" fill="#00CC00"/>
@@ -37,7 +37,7 @@
 <text data-id="recapitulation_second" data-part="label" x="1308.4951" y="77.6353" text-anchor="middle" font-size="9" fill="#000000">Second theme</text>
 <text data-id="recapitulation_second_1" data-part="label" x="1258.4951" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">Phrase 1</text>
 <text data-id="recapitulation_second_2" data-part="label" x="1358.4951" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">Phrase 2</text>
-<text data-id="jump_from_1" data-part="label" x="768.4951" y="199.0415" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
+<text data-id="jump_1" data-part="label" x="768.4951" y="199.0415" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
 <line data-id="timestamp_1" data-part="line" x1="568.4951" y1="28.8047" x2="568.4951" y2="91.2578" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_1" data-part="line" x1="568.4951" y1="116.7344" x2="568.4951" y2="209.1641" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>
 <line data-id="timestamp_2" data-part="line" x1="968.4951" y1="28.8047" x2="968.4951" y2="91.2578" stroke="#1BA1E2" stroke-width="1" stroke-dasharray="3 3"/>

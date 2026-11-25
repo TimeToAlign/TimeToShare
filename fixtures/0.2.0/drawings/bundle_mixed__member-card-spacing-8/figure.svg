@@ -40,8 +40,8 @@
 <rect data-id="score" data-part="card" x="137.7036" y="53.6094" width="545.052" height="86.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-id="cmap_1" points="247.9951,66.6094 647.9951,66.6094 647.9951,68.6094 247.9951,68.6094" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
 <polygon data-id="cmap_2" points="247.9951,61.6094 647.9951,61.6094 647.9951,63.6094 247.9951,63.6094" fill="none" stroke="#0050EF" stroke-width="1"/>
-<path data-id="jump_from_1" d="M514.6618 108.0859C447.9951 124.0859 314.6618 124.0859 251.8847 109.0194" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
-<polygon data-id="jump_from_1" points="247.9951,108.0859 251.4179,110.9642 252.3514,107.0747" fill="#000000"/>
+<path data-id="jump_1" d="M514.6618 108.0859C447.9951 124.0859 314.6618 124.0859 251.8847 109.0194" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-id="jump_1" points="247.9951,108.0859 251.4179,110.9642 252.3514,107.0747" fill="#000000"/>
 <line data-id="score" x1="247.9951" y1="73.1094" x2="647.9951" y2="73.1094" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="score" cx="247.9951" cy="73.1094" r="3" fill="#00CC00"/>
 <polygon data-id="score" points="656.9951,73.1094 647.9951,68.6094 647.9951,77.6094" fill="#00CC00"/>
@@ -50,7 +50,7 @@
 <text data-id="score" data-part="name" x="145.7036" y="76.9175" text-anchor="start" font-size="11" fill="#000000">Score</text>
 <text data-id="timestamp_9" data-part="coordinate" x="247.9951" y="97.9634" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_10" data-part="coordinate" x="647.9951" y="97.9634" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
-<text data-id="jump_from_1" data-part="label" x="381.3285" y="130.4399" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
+<text data-id="jump_1" data-part="label" x="381.3285" y="130.4399" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
 <rect data-id="performance" data-part="card" x="139.7036" y="150.5625" width="545.052" height="49.4766" rx="5" fill="#B8BEC8"/>
 <rect data-id="performance" data-part="card" x="137.7036" y="148.5625" width="545.052" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-id="cmap_3" points="247.9951,156.5625 647.9951,156.5625 647.9951,158.5625 247.9951,158.5625" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>

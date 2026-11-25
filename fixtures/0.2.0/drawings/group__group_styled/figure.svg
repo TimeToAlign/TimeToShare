@@ -7,8 +7,8 @@
 <rect data-id="score" data-part="card" x="16" y="32.8047" width="514.124" height="96.4297" rx="2" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-id="cmap_1" points="102.2915,40.8047 502.2915,40.8047 502.2915,42.8047 102.2915,42.8047" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
 <path data-id="region_1" d="M102.2915 78.2812Q102.2915 81.2812 105.2915 81.2812L232.6248 81.2812Q235.6248 81.2812 235.6248 84.2812Q235.6248 81.2812 238.6248 81.2812L365.9582 81.2812Q368.9582 81.2812 368.9582 78.2812" fill="none" stroke="#000000" stroke-width="1"/>
-<path data-id="jump_from_1" d="M368.9582 100.7578C302.2915 111.4245 168.9582 111.4245 106.2413 101.3898" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
-<polygon data-id="jump_from_1" points="102.2915,100.7578 105.9253,103.3647 106.5572,99.4149" fill="#000000"/>
+<path data-id="jump_1" d="M368.9582 100.7578C302.2915 111.4245 168.9582 111.4245 106.2413 101.3898" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-id="jump_1" points="102.2915,100.7578 105.9253,103.3647 106.5572,99.4149" fill="#000000"/>
 <line data-id="score" x1="102.2915" y1="47.3047" x2="502.2915" y2="47.3047" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="score" cx="102.2915" cy="47.3047" r="3" fill="#00CC00"/>
 <polygon data-id="score" points="511.2915,47.3047 502.2915,42.8047 502.2915,51.8047" fill="#00CC00"/>
@@ -18,7 +18,7 @@
 <text data-id="timestamp_5" data-part="coordinate" x="102.2915" y="72.1587" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_6" data-part="coordinate" x="502.2915" y="72.1587" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
 <text data-id="region_1" data-part="label" x="235.6248" y="94.6353" text-anchor="middle" font-size="9" fill="#000000">Theme</text>
-<text data-id="jump_from_1" data-part="label" x="235.6248" y="119.1118" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
+<text data-id="jump_1" data-part="label" x="235.6248" y="119.1118" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
 <rect data-id="page" data-part="card" x="18" y="139.2344" width="514.124" height="49.4766" rx="2" fill="#C4B5FD"/>
 <rect data-id="page" data-part="card" x="16" y="137.2344" width="514.124" height="49.4766" rx="2" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-id="cmap_3" points="102.2915,145.2344 502.2915,145.2344 502.2915,147.2344 102.2915,147.2344" fill="none" stroke="#FF0000" stroke-width="1"/>
