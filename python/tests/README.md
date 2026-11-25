@@ -75,7 +75,7 @@ rejection cases that use them (`test_schema.py`):
   `conversion_maps`, `children`, `regions` and `flow_control`, and the words
   of an `Address`'s `part` to `Part`, exactly `start`, `end`, `name`,
   `label`, `card`, `line`, `id`, `coordinate`, `elision`, `ellipsis`,
-  `symbol`, `bracket` and `leader`. The words of a
+  `symbol`, `fork` and `leader`. The words of a
   `Timestamp`'s `display` are exactly `TIMESTAMP_DISPLAY`, `wedge`, `name`,
   `id`, `coordinate` and `cross_section` in that order, and those of an
   `Elision`'s `display` exactly `ELISION_DISPLAY`, `ellipsis`, `name`,
@@ -85,7 +85,7 @@ rejection cases that use them (`test_schema.py`):
   `timeline`, `child`, `band`, `map`, `region`, `break`, `section_break`,
   `barline`, `jump`, `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
   `cross_section`, `alignment_anchor`, `ancestor_card`, `elision`,
-  `ellipsis`, `symbol`, `bracket` and `leader`. An `Elision`'s `name` is a non-empty string. Its `width` declares exactly `ratio` (a number, exclusive
+  `ellipsis`, `symbol`, `fork` and `leader`. An `Elision`'s `name` is a non-empty string. Its `width` declares exactly `ratio` (a number, exclusive
   minimum 0, maximum 1), `span` (`NumberPositive`) and `canvas` (a number,
   exclusive minimum 0), and its `oneOf` is exactly the three subschemas
   requiring one of them each, so `{"ratio": 0.5}`, `{"span": [3, 2]}`
@@ -2365,21 +2365,23 @@ cannot prove that the emitter produces them:
 
 `docs/drawing.md` section 4's defaults block (three styles, 43 rules,
 among them one for each of the element types `jump`, `break`,
-`section_break`, `barline`, `symbol`, `bracket` and `leader`, and one
+`section_break`, `barline`, `symbol`, `fork` and `leader`, and one
 selecting the atomic sections by `{"element": "region", "class":
 "tts:AtomicSection"}`), read from the file, validates as the
 `graphical` of the smallest file. The flow drawing's vocabulary
 validates in a rule of the smallest file and leaves `unknown_keys`
-empty: the selectors `{"element": "symbol"}`, `{"element": "bracket"}`
+empty: the selectors `{"element": "symbol"}`, `{"element": "fork"}`
 and `{"element": "leader"}`, the addresses `{"id": "score", "part":
-["symbol"]}`, `["bracket"]` and `["leader"]`, a `class` written as a
+["symbol"]}`, `["fork"]` and `["leader"]`, a `class` written as a
 compact IRI (`tts:AtomicSection`) and as a full IRI
 (`https://timetoalign.github.io/timetoshare/ns#AtomicSection`), and
 `label-display` set to `none`, `label` and `name id label`; a `class`
 that is neither a class word nor an IRI (`tts AtomicSection`) is refused
 at the selector's `class`, and a `label-display` word other than `name`,
 `id` and `label` at the property (the shared case
-`rule_set_label_display_unknown`, the word `names`). The
+`rule_set_label_display_unknown`, the word `names`). The word
+`bracket`, which `fork` replaced, is refused as an element type at the
+selector's `element` and as a part at the address's `part`. The
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate, and so do `{"element": "ancestor_card"}` and the rule that
 addresses the ancestor cards of one root, `{"element": "ancestor_card", "addresses":

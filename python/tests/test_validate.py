@@ -1513,14 +1513,14 @@ def test_the_defaults_are_a_valid_graphical_object() -> None:
 
 FLOW_DRAWING_RULES = [
     {"select": {"element": "symbol"}, "set": {"fill": "#000000", "font-size": 12}},
-    {"select": {"element": "bracket"}, "set": {"stroke": "#000000"}},
+    {"select": {"element": "fork"}, "set": {"stroke": "#000000"}},
     {"select": {"element": "leader"}, "set": {"stroke": "#9CA3AF"}},
     {
         "select": {"addresses": [{"id": "score", "part": ["symbol"]}]},
         "set": {"display": "none"},
     },
     {
-        "select": {"addresses": [{"id": "score", "part": ["bracket"]}]},
+        "select": {"addresses": [{"id": "score", "part": ["fork"]}]},
         "set": {"display": "none"},
     },
     {
@@ -1554,6 +1554,18 @@ def test_a_class_is_a_class_word_or_an_iri() -> None:
     rule = {"select": {"class": "tts AtomicSection"}, "set": {"display": "none"}}
     value = manifest(timeline("score"), graphical={"rules": [rule]})
     assert _problem(value)[0] == ("graphical", "rules", 0, "select", "class")
+
+
+def test_the_element_type_bracket_is_refused() -> None:
+    by_element = {"select": {"element": "bracket"}, "set": {"display": "none"}}
+    by_part = {
+        "select": {"addresses": [{"id": "score", "part": ["bracket"]}]},
+        "set": {"display": "none"},
+    }
+    value = manifest(timeline("score"), graphical={"rules": [by_element]})
+    assert _problem(value)[0] == ("graphical", "rules", 0, "select", "element")
+    value = manifest(timeline("score"), graphical={"rules": [by_part]})
+    assert _problem(value)[0] == ("graphical", "rules", 0, "select", "addresses", 0, "part", 0)
 
 
 def test_names_remain_unrestricted() -> None:

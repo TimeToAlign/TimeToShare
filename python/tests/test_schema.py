@@ -187,7 +187,7 @@ def test_the_ten_map_types() -> None:
         "elision",
         "ellipsis",
         "symbol",
-        "bracket",
+        "fork",
         "leader",
     ]
     display = defs["Timestamp"]["properties"]["display"]
@@ -225,7 +225,7 @@ def test_the_ten_map_types() -> None:
         "elision",
         "ellipsis",
         "symbol",
-        "bracket",
+        "fork",
         "leader",
     ]
     name = defs["Elision"]["properties"]["name"]

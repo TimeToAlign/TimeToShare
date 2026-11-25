@@ -1330,10 +1330,10 @@ describe("the graphical object", () => {
   it("accepts the flow drawing's vocabulary", () => {
     const rules = [
       { select: { element: "symbol" }, set: { fill: "#000000", "font-size": 12 } },
-      { select: { element: "bracket" }, set: { stroke: "#000000" } },
+      { select: { element: "fork" }, set: { stroke: "#000000" } },
       { select: { element: "leader" }, set: { stroke: "#9CA3AF" } },
       { select: { addresses: [{ id: "score", part: ["symbol"] }] }, set: { display: "none" } },
-      { select: { addresses: [{ id: "score", part: ["bracket"] }] }, set: { display: "none" } },
+      { select: { addresses: [{ id: "score", part: ["fork"] }] }, set: { display: "none" } },
       { select: { addresses: [{ id: "score", part: ["leader"] }] }, set: { display: "none" } },
       { select: { element: "region", class: "tts:AtomicSection" }, set: { display: "none" } },
       {
@@ -1356,6 +1356,30 @@ describe("the graphical object", () => {
     const rules = [{ select: { class: "tts AtomicSection" }, set: { display: "none" } }];
     const value = manifest([timeline("score", "quarters", [8, 1])], { graphical: { rules } });
     expect(problem(value)[0]).toEqual(["graphical", "rules", 0, "select", "class"]);
+  });
+
+  it("refuses the element type and the part bracket", () => {
+    const byElement = [{ select: { element: "bracket" }, set: { display: "none" } }];
+    const byPart = [
+      { select: { addresses: [{ id: "score", part: ["bracket"] }] }, set: { display: "none" } },
+    ];
+    const first = manifest([timeline("score", "quarters", [8, 1])], {
+      graphical: { rules: byElement },
+    });
+    expect(problem(first)[0]).toEqual(["graphical", "rules", 0, "select", "element"]);
+    const second = manifest([timeline("score", "quarters", [8, 1])], {
+      graphical: { rules: byPart },
+    });
+    expect(problem(second)[0]).toEqual([
+      "graphical",
+      "rules",
+      0,
+      "select",
+      "addresses",
+      0,
+      "part",
+      0,
+    ]);
   });
 
   it("leaves names unrestricted", () => {

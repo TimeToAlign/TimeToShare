@@ -225,6 +225,6 @@ manifest:
           start: [0, 1]
       unit: quarters
   timetoshare: "0.2.0"
-message: "'segment' is not one of ['block', 'timeline', 'child', 'band', 'map', 'region', 'break', 'section_break', 'barline', 'jump', 'wedge', 'name', 'label', 'boundary', 'ancestor', 'frame', 'card', 'cross_section', 'alignment_anchor', 'ancestor_card', 'elision', 'ellipsis', 'symbol', 'bracket', 'leader']"
+message: "'segment' is not one of ['block', 'timeline', 'child', 'band', 'map', 'region', 'break', 'section_break', 'barline', 'jump', 'wedge', 'name', 'label', 'boundary', 'ancestor', 'frame', 'card', 'cross_section', 'alignment_anchor', 'ancestor_card', 'elision', 'ellipsis', 'symbol', 'fork', 'leader']"
 path: [graphical, rules, 0, select, inside]
 reason: "The type a selector's inside names is an element type of the drawing; segment is none."

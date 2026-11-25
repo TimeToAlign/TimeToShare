@@ -263,7 +263,7 @@ describe("the schema document", () => {
       "elision",
       "ellipsis",
       "symbol",
-      "bracket",
+      "fork",
       "leader",
     ]);
     const display = ((defs.Timestamp as Node).properties as Node).display as Node;
@@ -300,7 +300,7 @@ describe("the schema document", () => {
       "elision",
       "ellipsis",
       "symbol",
-      "bracket",
+      "fork",
       "leader",
     ]);
     const name = properties("Elision").name as Node;

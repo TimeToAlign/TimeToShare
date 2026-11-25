@@ -267,15 +267,17 @@ of a jump's destinations lies in `manifest.test.ts`, the ID positions in
 
 The defaults block of section 4 of `docs/drawing.md`, three styles and 43
 rules, among them one for each of the element types `jump`, `break`,
-`section_break`, `barline`, `symbol`, `bracket` and `leader`, and one
+`section_break`, `barline`, `symbol`, `fork` and `leader`, and one
 selecting the atomic sections by the `class` `tts:AtomicSection`,
 validates as the `graphical` object of the smallest manifest
 (`validate.test.ts`). So do the selectors of the three element types
-`symbol`, `bracket` and `leader`, addresses with the parts `symbol`,
-`bracket` and `leader`, a `class` written as a compact and as a full IRI,
+`symbol`, `fork` and `leader`, addresses with the parts `symbol`,
+`fork` and `leader`, a `class` written as a compact and as a full IRI,
 and `label-display` set to `none`, `label` and `name id label`, while a
 `class` that is neither a class word nor an IRI (`tts AtomicSection`) is
-refused at the selector's `class` (`validate.test.ts`).
+refused at the selector's `class`, and the word `bracket`, which `fork`
+replaced, at the selector's `element` and at an address's `part`
+(`validate.test.ts`).
 
 ## Shared rejection cases
 
