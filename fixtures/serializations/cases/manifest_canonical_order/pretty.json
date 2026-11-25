@@ -132,20 +132,25 @@
           "coordinate": [8, 1],
           "id": "start_1",
           "manifestation": "repeat_start",
-          "type": "jump_to"
+          "role": "jump_target"
         },
         {
           "coordinate": [16, 1],
           "id": "fine_1",
           "manifestation": "fine",
-          "type": "flow_marker"
+          "role": "break"
         },
         {
           "coordinate": [16, 1],
           "id": "jump_1",
-          "manifestation": "repeat_end",
-          "target": "start_1",
-          "type": "jump_from"
+          "role": "jump",
+          "targets": [
+            {
+              "manifestation": "repeat_end",
+              "repeat_count": 1,
+              "to": "start_1"
+            }
+          ]
         }
       ],
       "id": "score",

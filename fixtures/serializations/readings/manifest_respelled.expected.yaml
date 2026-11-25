@@ -25,7 +25,7 @@ timelines:
         coordinate: [4, 1]
         id: f
         manifestation: fine
-        type: flow_marker
+        role: break
     id: score
     length: [33, 2]
     unit: quarters

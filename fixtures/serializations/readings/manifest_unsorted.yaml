@@ -23,16 +23,18 @@ timelines:
     end: [6, 1]
   flow_control:
   - id: jump_1
-    type: jump_from
-    manifestation: repeat_end
+    role: jump
     coordinate: [16, 1]
-    target: start_1
+    targets:
+    - to: start_1
+      repeat_count: 1
+      manifestation: repeat_end
   - id: start_1
-    type: jump_to
+    role: jump_target
     manifestation: repeat_start
     coordinate: [8, 1]
   - id: fine_1
-    type: flow_marker
+    role: break
     manifestation: fine
     coordinate: [16, 1]
   conversion_maps:

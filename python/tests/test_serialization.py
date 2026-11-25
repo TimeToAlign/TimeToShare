@@ -515,7 +515,7 @@ def _axis_values(**members: Any) -> dict[str, Any]:
         "flow_control": [
             {
                 "id": "f",
-                "type": "flow_marker",
+                "role": "break",
                 "manifestation": "fine",
                 "coordinate": 1.0,
             }

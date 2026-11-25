@@ -24,10 +24,10 @@ timelines:
         end: 0.5
     flow_control:
       - id: f_a
-        type: flow_marker
+        role: break
         manifestation: fine
         coordinate: [3.0, 16]
       - id: f_b
-        type: flow_marker
+        role: break
         manifestation: fine
         coordinate: 0.15

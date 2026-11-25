@@ -15,7 +15,7 @@ timelines:
         length: [4.0, 2]
     flow_control:
       - id: f
-        type: flow_marker
+        role: break
         manifestation: fine
         coordinate: [6.0, 4.0]
     regions:

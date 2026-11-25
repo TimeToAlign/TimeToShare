@@ -67,14 +67,14 @@
           "id": "f",
           "manifestation": "fine",
           "name": "Second",
-          "type": "flow_marker"
+          "role": "break"
         },
         {
           "coordinate": 1.0,
           "id": "f",
           "manifestation": "fine",
           "name": "First",
-          "type": "flow_marker"
+          "role": "break"
         }
       ],
       "id": "t",

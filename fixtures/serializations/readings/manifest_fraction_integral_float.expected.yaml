@@ -5,12 +5,12 @@ timelines:
         coordinate: 0.15
         id: f_b
         manifestation: fine
-        type: flow_marker
+        role: break
       -
         coordinate: [3.0, 16]
         id: f_a
         manifestation: fine
-        type: flow_marker
+        role: break
     id: perf
     length: 1.0
     regions:

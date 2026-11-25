@@ -58,12 +58,11 @@ timelines:
         coordinate: 9.5
         id: m_b
         manifestation: fine
-        type: flow_marker
+        role: break
       -
         coordinate: 10.0
         id: m_a
-        manifestation: section_break
-        type: flow_marker
+        role: section_break
     id: sec
     length: 20.0
     regions:
