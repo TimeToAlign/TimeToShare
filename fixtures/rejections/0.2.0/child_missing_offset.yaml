@@ -24,7 +24,7 @@ manifest:
       flow_control:
         -
           coordinate: [2, 1]
-          id: "#jump_to_1"
+          id: "#jump_target_1"
           label: null
           manifestation: repeat_start
           meta: {}
@@ -32,20 +32,21 @@ manifest:
           role: jump_target
         -
           coordinate: [8, 1]
-          id: "#jump_from_1"
-          label: Repeat
+          id: "#jump_1"
+          label: null
           meta:
             source: synthetic
           name: null
           role: jump
           targets:
             -
+              label: Repeat
               manifestation: repeat_end
               repeat_count: 2
-              to: "#jump_to_1"
+              to: "#jump_target_1"
         -
           coordinate: [12, 1]
-          id: "#flow_marker_1"
+          id: "#break_1"
           label: Fine
           manifestation: fine
           meta:

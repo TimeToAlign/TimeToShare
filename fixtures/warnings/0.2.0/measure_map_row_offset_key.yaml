@@ -268,14 +268,16 @@ manifest:
         -
           coordinate: [6, 1]
           id: "#jump_1"
-          label: "MC 3 → MC 1"
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: "MC 3 → MC 1"
               manifestation: repeat_end
               repeat_count: 1
+              to: "#clt_1"
         -
           coordinate: [6, 1]
           id: "#jump_2_target"
@@ -287,12 +289,13 @@ manifest:
         -
           coordinate: [9, 1]
           id: "#jump_2"
-          label: "MC 5 → MC 4"
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: "MC 5 → MC 4"
               manifestation: repeat_end
               repeat_count: 1
               to: "#jump_2_target"
@@ -334,12 +337,13 @@ manifest:
         -
           coordinate: [28, 1]
           id: "#jump_3"
-          label: "MC 11 → MC 9"
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: "MC 11 → MC 9"
               manifestation: repeat_end
               repeat_count: 1
               to: "#jump_3_target"
@@ -354,15 +358,17 @@ manifest:
         -
           coordinate: [37, 1]
           id: "#jump_4"
-          label: "MC 15 → start (MC 1)"
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: "MC 15 → start (MC 1)"
               manifestation: da_capo_al_fine
               repeat_count: 1
               reset: false
+              to: "#clt_1"
       id: "#clt_1"
       is_segment_line: false
       length: [37, 1]

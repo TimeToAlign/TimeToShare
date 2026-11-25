@@ -214,18 +214,20 @@ manifest:
       flow_control:
         -
           coordinate: [6, 1]
-          id: "#jump_from_1"
-          label: "MC 3 → MC 1"
+          id: "#jump_1"
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: "MC 3 → MC 1"
               manifestation: repeat_end
               repeat_count: 1
+              to: "#clt_1"
         -
           coordinate: [6, 1]
-          id: "#jump_to_1"
+          id: "#jump_target_1"
           label: null
           manifestation: repeat_start
           meta: {}
@@ -233,19 +235,20 @@ manifest:
           role: jump_target
         -
           coordinate: [9, 1]
-          id: "#jump_from_2"
-          label: "MC 5 → MC 4"
+          id: "#jump_2"
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: "MC 5 → MC 4"
               manifestation: repeat_end
               repeat_count: 1
-              to: "#jump_to_1"
+              to: "#jump_target_1"
         -
           coordinate: [10, 1]
-          id: "#jump_to_2"
+          id: "#jump_target_2"
           label: null
           manifestation: segno
           meta: {}
@@ -255,8 +258,8 @@ manifest:
           coordinate: [12, 1]
           ends:
             after:
-              jump: "#jump_from_4"
-          id: "#flow_marker_1"
+              jump: "#jump_4"
+          id: "#break_1"
           label: "fine at MC 7"
           manifestation: fine
           meta: {}
@@ -264,7 +267,7 @@ manifest:
           role: break
         -
           coordinate: [16, 1]
-          id: "#jump_to_3"
+          id: "#jump_target_3"
           label: null
           manifestation: repeat_start
           meta: {}
@@ -272,7 +275,7 @@ manifest:
           role: jump_target
         -
           coordinate: [16, 1]
-          id: "#jump_to_4"
+          id: "#jump_target_4"
           label: null
           manifestation: coda
           meta: {}
@@ -280,19 +283,20 @@ manifest:
           role: jump_target
         -
           coordinate: [28, 1]
-          id: "#jump_from_3"
-          label: "MC 11 → MC 9"
+          id: "#jump_3"
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: "MC 11 → MC 9"
               manifestation: repeat_end
               repeat_count: 1
-              to: "#jump_to_3"
+              to: "#jump_target_3"
         -
           coordinate: [30, 1]
-          id: "#jump_to_5"
+          id: "#jump_target_5"
           label: null
           manifestation: coda
           meta: {}
@@ -300,16 +304,18 @@ manifest:
           role: jump_target
         -
           coordinate: [37, 1]
-          id: "#jump_from_4"
-          label: "MC 15 → start (MC 1)"
+          id: "#jump_4"
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: "MC 15 → start (MC 1)"
               manifestation: da_capo_al_fine
               repeat_count: 1
               reset: false
+              to: "#clt_1"
       id: "#clt_1"
       is_segment_line: false
       length: [37, 1]

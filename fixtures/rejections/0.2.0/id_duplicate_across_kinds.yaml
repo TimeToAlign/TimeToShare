@@ -11,7 +11,7 @@ manifest:
       flow_control:
         -
           coordinate: [2, 1]
-          id: "#jump_to_1"
+          id: "#jump_target_1"
           label: null
           manifestation: repeat_start
           meta: {}
@@ -19,20 +19,21 @@ manifest:
           role: jump_target
         -
           coordinate: [8, 1]
-          id: "#flow_marker_1"
-          label: Repeat
+          id: "#break_1"
+          label: null
           meta:
             source: synthetic
           name: null
           role: jump
           targets:
             -
+              label: Repeat
               manifestation: repeat_end
               repeat_count: 2
-              to: "#jump_to_1"
+              to: "#jump_target_1"
         -
           coordinate: [12, 1]
-          id: "#flow_marker_1"
+          id: "#break_1"
           label: Fine
           manifestation: fine
           meta:
@@ -49,6 +50,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
-message: "'flow_marker_1' is not unique in the manifest, first at #/timelines/0/flow_control/1/id"
+message: "'break_1' is not unique in the manifest, first at #/timelines/0/flow_control/1/id"
 path: [timelines, 0, flow_control, 2, id]
 reason: "IDs are unique across the manifest and across all kinds; a jump and a break share an ID, and the second occurrence is reported."

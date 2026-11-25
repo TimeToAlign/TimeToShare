@@ -203,15 +203,17 @@ manifest:
         -
           coordinate: [8, 1]
           id: "#da-capo"
-          label: D.C.
+          label: null
           meta: {}
           name: null
           role: jump
           targets:
             -
+              label: D.C.
               manifestation: da_capo
               repeat_count: 1
               reset: false
+              to: "#score"
       id: "#score"
       is_segment_line: false
       length: [8, 1]
