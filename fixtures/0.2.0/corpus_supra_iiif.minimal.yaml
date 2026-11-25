@@ -54,11 +54,14 @@
   unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 timelines:
   -
     id: "#dgt_1"
     length: 299400
-    name: "Meistersinger von Nürnberg : Vorspiel"
+    locked: true
+    meta:
+      image: "https://purl.stanford.edu/fd660zf8362/iiif/canvas/cocina-fileSet-fd660zf8362-fd660zf8362_1"
+    name: "display image"
     unit: pixels
 timetoshare: "0.2.0"

@@ -92,9 +92,11 @@ def test_every_case_is_written_in_canonical_yaml(path: Path) -> None:
 
 
 def test_non_ascii_text_is_written_unescaped() -> None:
-    text = (FIXTURES / "corpus_score_ms3.yaml").read_text(encoding="utf-8")
-    assert 'label: "MC 15 → start (MC 1)"' in text
-    assert "\\u2192" not in text
+    text = (FIXTURES / "bundles" / "bundle_elided_layerit.yaml").read_text(
+        encoding="utf-8"
+    )
+    assert 'name: "Prelude mm. 1–4"' in text
+    assert "\\u2013" not in text
 
 
 _GREY = {"stroke": "#404040", "fill": "#404040"}
@@ -700,15 +702,6 @@ def _flow_control(timeline: dict) -> list[tuple[str, str]]:
     return elements
 
 
-#: The role an ID minted for the earlier form of flow control names now: a
-#: converted element keeps its ID.
-_EARLIER_PREFIXES = {
-    "flow_marker": "break",
-    "jump_from": "jump",
-    "jump_to": "jump_target",
-}
-
-
 def test_numbered_flow_control_ids_name_their_role() -> None:
     elements = [
         element
@@ -723,25 +716,34 @@ def test_numbered_flow_control_ids_name_their_role() -> None:
         if re.fullmatch(r"[a-z_]+_[1-9][0-9]*", element_id)
     )
     for role, element_id in numbered:
-        prefix = element_id.rsplit("_", 1)[0]
-        assert _EARLIER_PREFIXES.get(prefix, prefix) == role, element_id
+        assert element_id.rsplit("_", 1)[0] == role, element_id
     assert numbered == {
-        ("break", "flow_marker_1"): 3,
-        ("jump", "jump_from_1"): 6,
-        ("jump", "jump_from_2"): 2,
-        ("jump", "jump_from_3"): 1,
-        ("jump", "jump_from_4"): 1,
-        ("jump_target", "jump_to_1"): 3,
-        ("jump_target", "jump_to_2"): 2,
-        ("jump_target", "jump_to_3"): 1,
-        ("barline", "barline_1"): 1,
-        ("break", "break_1"): 5,
-        ("break", "break_2"): 1,
-        ("jump", "jump_1"): 9,
-        ("jump", "jump_2"): 6,
-        ("jump", "jump_3"): 1,
-        ("jump_target", "jump_target_1"): 7,
-        ("jump_target", "jump_target_2"): 2,
+        ("barline", "barline_1"): 2,
+        ("barline", "barline_2"): 1,
+        ("barline", "barline_3"): 1,
+        ("break", "break_1"): 8,
+        ("break", "break_2"): 2,
+        ("break", "break_3"): 1,
+        ("break", "break_4"): 1,
+        ("jump", "jump_1"): 15,
+        ("jump", "jump_2"): 8,
+        ("jump", "jump_3"): 2,
+        ("jump", "jump_4"): 1,
+        ("jump", "jump_5"): 1,
+        ("jump", "jump_6"): 1,
+        ("jump", "jump_7"): 1,
+        ("jump", "jump_8"): 1,
+        ("jump", "jump_9"): 1,
+        ("jump", "jump_10"): 1,
+        ("jump", "jump_11"): 1,
+        ("jump_target", "jump_target_1"): 10,
+        ("jump_target", "jump_target_2"): 4,
+        ("jump_target", "jump_target_3"): 1,
+        ("jump_target", "jump_target_4"): 1,
+        ("jump_target", "jump_target_5"): 1,
+        ("jump_target", "jump_target_6"): 1,
+        ("jump_target", "jump_target_7"): 1,
+        ("jump_target", "jump_target_8"): 1,
         ("section_break", "section_break_1"): 1,
     }
     assert {element_id for role, element_id in elements} - {

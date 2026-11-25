@@ -79,7 +79,7 @@ graphical:
 groups: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: null
 resources: []
 timelines:
@@ -89,7 +89,7 @@ timelines:
     flow_control:
       -
         coordinate: [2, 1]
-        id: "#jump_to_1"
+        id: "#jump_target_1"
         label: null
         manifestation: repeat_start
         meta: {}
@@ -97,7 +97,7 @@ timelines:
         role: jump_target
       -
         coordinate: [4, 1]
-        id: "#jump_to_2"
+        id: "#jump_target_2"
         label: null
         manifestation: segno
         meta: {}
@@ -105,8 +105,8 @@ timelines:
         role: jump_target
       -
         coordinate: [8, 1]
-        id: "#jump_from_1"
-        label: Repeat
+        id: "#jump_1"
+        label: null
         meta:
           source: synthetic
         name: null
@@ -114,17 +114,17 @@ timelines:
         targets:
           -
             determined: true
-            label: null
+            label: Repeat
             manifestation: repeat_end
             repeat_count: 2
             reset: true
-            to: "#jump_to_1"
+            to: "#jump_target_1"
       -
         coordinate: [12, 1]
         ends:
           after:
-            jump: "#jump_from_2"
-        id: "#flow_marker_1"
+            jump: "#jump_2"
+        id: "#break_1"
         label: Fine
         manifestation: fine
         meta:
@@ -133,19 +133,19 @@ timelines:
         role: break
       -
         coordinate: [16, 1]
-        id: "#jump_from_2"
-        label: D.S.
+        id: "#jump_2"
+        label: null
         meta: {}
         name: null
         role: jump
         targets:
           -
             determined: true
-            label: null
+            label: D.S.
             manifestation: dal_segno
             repeat_count: 1
             reset: false
-            to: "#jump_to_2"
+            to: "#jump_target_2"
     id: "#flow:quarters"
     is_segment_line: false
     length: [16, 1]

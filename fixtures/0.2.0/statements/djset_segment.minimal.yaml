@@ -59,7 +59,7 @@
   wdt: "http://www.wikidata.org/prop/direct/"
 id: "#moriero_halloween_xxl_2025"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: "Samuel Moriero, Impact Halloween XXL 2025 (full set)"
 statements:
   "schema:about":

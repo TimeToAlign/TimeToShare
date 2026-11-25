@@ -68,7 +68,7 @@ graphical:
       name: length
       timeline: "#piece"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 timelines:
   -
     children:
@@ -82,19 +82,20 @@ timelines:
           -
             coordinate: [4, 1]
             id: "#repeat"
-            label: Repeat
             role: jump
             targets:
               -
+                label: Repeat
                 manifestation: repeat_end
                 repeat_count: 2
+                to: "#verse"
           -
             coordinate: [8, 1]
             id: "#dal_segno"
-            label: D.S.
             role: jump
             targets:
               -
+                label: D.S.
                 manifestation: dal_segno
                 repeat_count: 1
                 reset: false

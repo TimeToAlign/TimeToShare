@@ -130,7 +130,7 @@ groups:
     members: ["#excerpt", "#page"]
     name: Facsimile
 meta:
-  generator: "timetoalign 1.2.0 (45d76023)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: Mixed
 timelines:
   -
@@ -217,13 +217,14 @@ timelines:
     flow_control:
       -
         coordinate: [8, 1]
-        id: "#jump_from_1"
-        label: Repeat
+        id: "#jump_1"
         role: jump
         targets:
           -
+            label: Repeat
             manifestation: repeat_end
             repeat_count: 1
+            to: "#score"
     id: "#score"
     length: [12, 1]
     name: Score

@@ -79,7 +79,7 @@ graphical:
 groups: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: null
 resources: []
 timelines:
@@ -103,17 +103,18 @@ timelines:
           -
             coordinate: [8, 1]
             id: "#da_capo_al_fine"
-            label: "D.C. al Fine"
+            label: null
             meta: {}
             name: null
             role: jump
             targets:
               -
                 determined: true
-                label: null
+                label: "D.C. al Fine"
                 manifestation: da_capo_al_fine
                 repeat_count: 1
                 reset: false
+                to: "#verse"
         id: "#verse"
         is_segment_line: false
         length: [8, 1]

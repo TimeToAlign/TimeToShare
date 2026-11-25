@@ -92,7 +92,7 @@ graphical:
       name: length
       timeline: "#score"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: Sketches
 timelines:
   -
@@ -152,21 +152,22 @@ timelines:
         coordinate: [8, 1]
         ends:
           after:
-            jump: "#jump_from_1"
-        id: "#flow_marker_1"
+            jump: "#jump_1"
+        id: "#break_1"
         label: Fine
         manifestation: fine
         role: break
       -
         coordinate: [16, 1]
-        id: "#jump_from_1"
-        label: "D.C. al Fine"
+        id: "#jump_1"
         role: jump
         targets:
           -
+            label: "D.C. al Fine"
             manifestation: da_capo_al_fine
             repeat_count: 1
             reset: false
+            to: "#score"
     id: "#score"
     length: [16, 1]
     name: Score

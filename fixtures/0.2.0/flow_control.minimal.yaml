@@ -68,40 +68,40 @@ graphical:
       name: length
       timeline: "#flow:quarters"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 timelines:
   -
     flow_control:
       -
         coordinate: [2, 1]
-        id: "#jump_to_1"
+        id: "#jump_target_1"
         manifestation: repeat_start
         name: repeat-start
         role: jump_target
       -
         coordinate: [4, 1]
-        id: "#jump_to_2"
+        id: "#jump_target_2"
         manifestation: segno
         name: segno
         role: jump_target
       -
         coordinate: [8, 1]
-        id: "#jump_from_1"
-        label: Repeat
+        id: "#jump_1"
         meta:
           source: synthetic
         role: jump
         targets:
           -
+            label: Repeat
             manifestation: repeat_end
             repeat_count: 2
-            to: "#jump_to_1"
+            to: "#jump_target_1"
       -
         coordinate: [12, 1]
         ends:
           after:
-            jump: "#jump_from_2"
-        id: "#flow_marker_1"
+            jump: "#jump_2"
+        id: "#break_1"
         label: Fine
         manifestation: fine
         meta:
@@ -110,15 +110,15 @@ timelines:
         role: break
       -
         coordinate: [16, 1]
-        id: "#jump_from_2"
-        label: D.S.
+        id: "#jump_2"
         role: jump
         targets:
           -
+            label: D.S.
             manifestation: dal_segno
             repeat_count: 1
             reset: false
-            to: "#jump_to_2"
+            to: "#jump_target_2"
     id: "#flow:quarters"
     length: [16, 1]
     name: "Flow control"

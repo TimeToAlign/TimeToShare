@@ -132,7 +132,7 @@ groups:
     members: ["#recapitulation", "#take_2"]
     name: Recapitulation
 meta:
-  generator: "timetoalign 1.2.0 (45d76023)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: Sonata
 timelines:
   -
@@ -245,13 +245,14 @@ timelines:
     flow_control:
       -
         coordinate: [12, 1]
-        id: "#jump_from_1"
-        label: Repeat
+        id: "#jump_1"
         role: jump
         targets:
           -
+            label: Repeat
             manifestation: repeat_end
             repeat_count: 1
+            to: "#score"
     id: "#score"
     length: [32, 1]
     name: Score

@@ -220,7 +220,7 @@ graphical:
 groups: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: null
 resources: []
 timelines:
@@ -267,17 +267,18 @@ timelines:
       -
         coordinate: [8, 1]
         id: "#da-capo"
-        label: D.C.
+        label: null
         meta: {}
         name: null
         role: jump
         targets:
           -
             determined: true
-            label: null
+            label: D.C.
             manifestation: da_capo
             repeat_count: 1
             reset: false
+            to: "#score"
     id: "#score"
     is_segment_line: false
     length: [8, 1]

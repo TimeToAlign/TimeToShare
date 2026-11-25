@@ -62,7 +62,7 @@ graphical:
       name: origin
       timeline: "#score"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 timelines:
   -
     children:
@@ -75,7 +75,7 @@ timelines:
     flow_control:
       -
         coordinate: [6, 1]
-        id: "#jump_to_1"
+        id: "#jump_target_1"
         manifestation: segno
         role: jump_target
     id: "#score"

@@ -68,7 +68,7 @@ graphical:
       name: length
       timeline: "#piece"
 meta:
-  generator: "timetoalign 1.2.0 (40161e42)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 timelines:
   -
     children:
@@ -86,13 +86,14 @@ timelines:
           -
             coordinate: [8, 1]
             id: "#da_capo_al_fine"
-            label: "D.C. al Fine"
             role: jump
             targets:
               -
+                label: "D.C. al Fine"
                 manifestation: da_capo_al_fine
                 repeat_count: 1
                 reset: false
+                to: "#verse"
         id: "#verse"
         length: [8, 1]
         locked: true

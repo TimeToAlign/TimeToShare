@@ -152,13 +152,13 @@ measure_maps:
       -
         actual_length: [4, 1]
         count: 10
-        end_repeat: false
+        end_repeat: true
         name: "6"
         next: ["10", "11"]
         nominal_length: [4, 1]
         number: 6
         qstamp: [20, 1]
-        start_repeat: false
+        start_repeat: true
         time_signature: "4/4"
       -
         actual_length: [4, 1]
@@ -219,7 +219,7 @@ measure_maps:
         time_signature: "4/4"
         volta: 2
 meta:
-  generator: "timetoalign 1.2.0 (aeb4625b)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 timelines:
   -
     children:
@@ -253,8 +253,7 @@ timelines:
     flow_control:
       -
         coordinate: [6, 1]
-        id: "#jump_from_1"
-        label: "MC 3 → MC 1"
+        id: "#jump_1"
         role: jump
         targets:
           -
@@ -262,55 +261,183 @@ timelines:
             repeat_count: 1
       -
         coordinate: [6, 1]
-        id: "#jump_to_3"
+        id: "#jump_target_1"
         manifestation: repeat_start
         role: jump_target
       -
+        coordinate: [7, 1]
+        id: "#jump_2"
+        role: jump
+        targets:
+          -
+            by: [0, 1]
+            manifestation: volta
+            passes: [1]
+          -
+            manifestation: volta
+            passes: [2]
+            to: "#jump_target_2"
+          -
+            manifestation: volta
+            passes: [3]
+            to: "#jump_target_3"
+      -
         coordinate: [9, 1]
-        id: "#jump_from_2"
-        label: "MC 5 → MC 4"
+        id: "#break_1"
+        manifestation: volta
+        role: break
+      -
+        coordinate: [9, 1]
+        id: "#jump_3"
         role: jump
         targets:
           -
             manifestation: repeat_end
             repeat_count: 1
-            to: "#jump_to_3"
+            to: "#jump_target_1"
+      -
+        coordinate: [9, 1]
+        id: "#jump_target_2"
+        manifestation: volta
+        role: jump_target
+      -
+        coordinate: [10, 1]
+        id: "#barline_1"
+        manifestation: double_barline
+        role: barline
+      -
+        coordinate: [10, 1]
+        id: "#break_2"
+        manifestation: volta
+        role: break
+      -
+        coordinate: [10, 1]
+        id: "#jump_target_3"
+        manifestation: volta
+        role: jump_target
+      -
+        coordinate: [12, 1]
+        id: "#barline_2"
+        manifestation: final_barline
+        role: barline
       -
         coordinate: [12, 1]
         ends:
           after:
-            jump: "#jump_from_4"
-        id: "#flow_marker_1"
-        label: "fine at MC 7"
+            jump: "#jump_10"
+        id: "#break_4"
         manifestation: fine
         name: fine
         role: break
       -
         coordinate: [16, 1]
-        id: "#jump_to_1"
-        manifestation: segno
-        name: "segno & coda"
-        role: jump_target
-      -
-        coordinate: [28, 1]
-        id: "#jump_from_3"
-        label: "MC 11 → MC 9"
+        id: "#jump_4"
         role: jump
         targets:
           -
             manifestation: repeat_end
             repeat_count: 1
-            to: "#jump_to_1"
+      -
+        coordinate: [16, 1]
+        id: "#jump_target_4"
+        manifestation: repeat_start
+        role: jump_target
+      -
+        coordinate: [16, 1]
+        id: "#jump_target_7"
+        manifestation: segno
+        name: segno
+        role: jump_target
+      -
+        coordinate: [20, 1]
+        id: "#jump_11"
+        role: jump
+        targets:
+          -
+            after:
+              jump: "#jump_9"
+              to: "#jump_target_7"
+            label: coda
+            manifestation: to_coda
+            to: "#jump_target_8"
+      -
+        coordinate: [20, 1]
+        id: "#jump_target_5"
+        manifestation: repeat_start
+        role: jump_target
+      -
+        coordinate: [24, 1]
+        id: "#jump_5"
+        role: jump
+        targets:
+          -
+            manifestation: repeat_end
+            repeat_count: 1
+            to: "#jump_target_5"
+      -
+        coordinate: [28, 1]
+        id: "#jump_6"
+        role: jump
+        targets:
+          -
+            manifestation: repeat_end
+            repeat_count: 1
+            to: "#jump_target_4"
       -
         coordinate: [30, 1]
-        id: "#jump_to_2"
+        id: "#barline_3"
+        manifestation: final_barline
+        role: barline
+      -
+        coordinate: [30, 1]
+        id: "#jump_9"
+        role: jump
+        targets:
+          -
+            manifestation: dal_segno_al_coda
+            repeat_count: 1
+            reset: false
+            to: "#jump_target_7"
+      -
+        coordinate: [30, 1]
+        id: "#jump_target_8"
         manifestation: coda
         name: codab
         role: jump_target
       -
+        coordinate: [32, 1]
+        id: "#jump_7"
+        role: jump
+        targets:
+          -
+            by: [0, 1]
+            manifestation: volta
+            passes: [1]
+          -
+            manifestation: volta
+            passes: [2]
+            to: "#jump_target_6"
+      -
+        coordinate: [34, 1]
+        id: "#break_3"
+        manifestation: volta
+        role: break
+      -
+        coordinate: [34, 1]
+        id: "#jump_8"
+        role: jump
+        targets:
+          -
+            manifestation: repeat_end
+            repeat_count: 1
+      -
+        coordinate: [34, 1]
+        id: "#jump_target_6"
+        manifestation: volta
+        role: jump_target
+      -
         coordinate: [37, 1]
-        id: "#jump_from_4"
-        label: "MC 15 → start (MC 1)"
+        id: "#jump_10"
         role: jump
         targets:
           -

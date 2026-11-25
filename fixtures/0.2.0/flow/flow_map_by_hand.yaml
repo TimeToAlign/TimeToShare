@@ -76,7 +76,8 @@ flow_maps:
     timeline: "#set"
 groups: []
 measure_maps: []
-meta: {}
+meta:
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: "Set list"
 resources: []
 timelines:

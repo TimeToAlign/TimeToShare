@@ -155,7 +155,7 @@ groups:
     name: Recapitulation
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (45d76023)"
+  generator: "timetoalign 1.2.0 (aa91d4d5)"
 name: Sonata
 resources: []
 timelines:
@@ -350,18 +350,19 @@ timelines:
     flow_control:
       -
         coordinate: [12, 1]
-        id: "#jump_from_1"
-        label: Repeat
+        id: "#jump_1"
+        label: null
         meta: {}
         name: null
         role: jump
         targets:
           -
             determined: true
-            label: null
+            label: Repeat
             manifestation: repeat_end
             repeat_count: 1
             reset: true
+            to: "#score"
     id: "#score"
     is_segment_line: false
     length: [32, 1]
