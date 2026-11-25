@@ -1,4 +1,5 @@
 import type { JsonObject } from "../json/value.js";
+import { type Rational, rational } from "../numbers/exact.js";
 import { timelineContainmentProblems } from "./containment.js";
 import {
   duplicateProblem,
@@ -9,7 +10,7 @@ import {
   text,
   treeIds,
 } from "./diagnostics.js";
-import { flowMapProblems, timelineFlowProblems } from "./flow.js";
+import { childStart, flowMapProblems, type JumpPositions, timelineFlowProblems } from "./flow.js";
 import { MEASURE_VIEWS, timelineMapProblems, timelineMaps } from "./maps.js";
 import { orderProblems } from "./order.js";
 import { timelineSegmentProblems } from "./segments.js";
@@ -24,8 +25,10 @@ function* danglingTargets(
   timeline: JsonObject,
   path: readonly PathSegment[],
   measureMaps: ReadonlySet<string>,
+  start: Rational,
+  jumpsAt: JumpPositions,
 ): Generator<SchemaValidationError> {
-  yield* timelineFlowProblems(timeline, path);
+  yield* timelineFlowProblems(timeline, path, start, jumpsAt);
   for (const [map, at] of timelineMaps(timeline, path)) {
     const reference = map.measure_map;
     if (MEASURE_VIEWS.has(text(map, "type")) && !measureMaps.has(reference as string)) {
@@ -37,7 +40,13 @@ function* danglingTargets(
     }
   }
   for (const [index, child] of entries(timeline, "children").entries()) {
-    yield* danglingTargets(child, [...path, "children", index], measureMaps);
+    yield* danglingTargets(
+      child,
+      [...path, "children", index],
+      measureMaps,
+      childStart(start, child),
+      jumpsAt,
+    );
   }
 }
 
@@ -52,7 +61,7 @@ function* rootProblems(
     if (earlier === undefined) first.set(id, at);
     else yield duplicateProblem(id, at, earlier);
   }
-  yield* danglingTargets(root, path, measureMaps);
+  yield* danglingTargets(root, path, measureMaps, rational(0n, 1n), []);
   yield* timelineMapProblems(root, path);
   yield* timelineContainmentProblems(root, path);
   yield* timelineSegmentProblems(root, path);

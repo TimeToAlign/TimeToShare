@@ -185,7 +185,8 @@ def test_targets_stay_within_their_timeline() -> None:
     names += "timeline itself"
     child = timeline(
         "c",
-        offset=(0, 1),
+        length=(7, 1),
+        offset=(1, 2),
         regions=[{"id": "inner", "start": [0, 1], "end": [1, 1]}],
         flow_control=[*_targets("there"), jump("cj", 1, "here"), jump("ck", 2, "c")],
     )

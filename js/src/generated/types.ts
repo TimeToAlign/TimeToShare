@@ -388,7 +388,7 @@ export type NumberPositive = number | FractionPositive;
  */
 export type FractionPositive = [number, number];
 /**
- * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, one arc per destination whose place is not `by` 0, from the jump's coordinate to that place; an arc is labelled with its destination's `label`, else with that destination's `manifestation`, and the jump's own `label` and `name` label the jump once, never each of its arcs; no arc is drawn to a place that a `to` names where the element named is rejected, as a destination of a rejected jump may name one; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
+ * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own; a root's flow control band lays out the flow control of the root's whole tree. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, its arcs: one arc per destination whose place is not `by` 0, from the jump's coordinate to that place, hidden by default; an arc is labelled with its destination's `label` alone, and the jump's own `name`, ID and `label` label the jump once, never each of its arcs, as its `label-display` lists them; no arc is drawn to a place that a `to` names where the element named is rejected, as a destination of a rejected jump may name one), the symbol of a flow-control element (`symbol`, the music-font glyphs of its manifestation or of its destinations' manifestations on the flow row; a jump target draws its symbol alone), a volta bracket (`bracket`, a line with hooks and its passes as text, one per destination of a jump whose manifestation is `volta`), a leader line (`leader`, the thin line joining a label moved to a further tier to its element), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -415,7 +415,10 @@ export type ElementType =
   | "alignment_anchor"
   | "ancestor_card"
   | "elision"
-  | "ellipsis";
+  | "ellipsis"
+  | "symbol"
+  | "bracket"
+  | "leader";
 /**
  * One of the five facets every timeline has: its coordinate markers (the wedges of the timeline's named timestamps and their labels; a break, a section break or a barline is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet.
  *
@@ -429,7 +432,20 @@ export type Facet = "markers" | "conversion_maps" | "children" | "regions" | "fl
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Part".
  */
-export type Part = "start" | "end" | "name" | "label" | "card" | "line" | "id" | "coordinate" | "elision" | "ellipsis";
+export type Part =
+  | "start"
+  | "end"
+  | "name"
+  | "label"
+  | "card"
+  | "line"
+  | "id"
+  | "coordinate"
+  | "elision"
+  | "ellipsis"
+  | "symbol"
+  | "bracket"
+  | "leader";
 /**
  * A colour as #RRGGBB with upper-case hexadecimal digits, or none.
  *
@@ -1257,7 +1273,7 @@ export interface ValueNode {
   [k: string]: Values | IriReference | Types | Provenance | undefined;
 }
 /**
- * One element of a timeline's flow control, at a coordinate on the timeline's own axis, from 0 to the timeline's length where that is known (checked after the schema). Its `role` names what it is. A `jump` is where the flow may leave for another place: it holds one or more destinations (`targets`), and when the flow plays up to its coordinate, a destination that holds is taken; where none holds, the flow goes on. A timeline has at most one jump at a coordinate (checked after the schema): several signs at one place, such as a repeat end and a dal segno on one barline, are destinations of that one jump. A `jump_target` is a place a destination names; nothing happens there. A `break` is where the flow never goes on: when the flow plays up to it, a destination that holds of the jump at the same coordinate is taken, otherwise the flow ends there. A break with `ends` is a break only while that condition holds, as a Fine ends the flow only after the da capo or dal segno it names; a break without `ends` always is one. A break stands between adjacent volta brackets, and a bracket is left only by a jump at its end whose destination holds. A `section_break` ends a section, a movement included, and the flow goes on across it: no atomic section spans it; a destination without a place lands at the nearest section break before its jump, else at the timeline's start; and a flow that has ended at a break begins again at the nearest section break at or after that break, where there is one before the timeline's end. A `barline` marks a position and has no effect on the flow. An element acts when the flow plays up to its coordinate, never when a destination lands on it. The earlier form of flow control, the key `type` with the values `jump_from`, `jump_to` and `flow_marker` and the key `target`, is refused.
+ * One element of a timeline's flow control, at a coordinate on the timeline's own axis, from 0 to the timeline's length where that is known (checked after the schema). Its `role` names what it is. A `jump` is where the flow may leave for another place: it holds one or more destinations (`targets`), and when the flow plays up to its coordinate, a destination that holds is taken; where none holds, the flow goes on. Flow control holds across descendants: a root and all its descendants have at most one jump at a position on the root's axis, each coordinate carried to the root by adding the offsets of its ancestors (checked after the schema); several signs at one place, such as a repeat end and a dal segno on one barline, are destinations of that one jump. A `jump_target` is a place a destination names; nothing happens there. A `break` is where the flow never goes on: when the flow plays up to it, a destination that holds of the jump at the same coordinate is taken, otherwise the flow ends there. A break with `ends` is a break only while that condition holds, as a Fine ends the flow only after the da capo or dal segno it names; a break without `ends` always is one. A break stands between adjacent volta brackets, and a bracket is left only by a jump at its end whose destination holds. A `section_break` ends a section, a movement included, and the flow goes on across it: no atomic section spans it; a destination without a place lands at the nearest section break before its jump, else at the timeline's start; and a flow that has ended at a break begins again at the nearest section break at or after that break, where there is one before the timeline's end. A `barline` marks a position and has no effect on the flow. An element acts when the flow plays up to its coordinate, never when a destination lands on it. The earlier form of flow control, the key `type` with the values `jump_from`, `jump_to` and `flow_marker` and the key `target`, is refused.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "FlowControlElement".
@@ -1342,7 +1358,7 @@ export interface JumpDestination {
    */
   manifestation?: string;
   /**
-   * The text the destination's arc is drawn with, or null: an arc without one is labelled with the destination's `manifestation`, never with the label of its jump.
+   * The text the destination's arc is drawn with, or null: an arc without one has no label, never the destination's `manifestation`, which the drawing shows as a symbol, nor the label of its jump.
    */
   label?: string | null;
 }
@@ -1663,25 +1679,28 @@ export interface Selector {
    */
   modality?: "continuous" | "discrete";
   /**
-   * The class of the element: the timeline class its unit decides, or a conversion map's type.
+   * The class of the element: the timeline class its unit decides, or a conversion map's type; or the IRI of a class, compact or full, which matches a region whose `type` statement names that class and no other element. The two are compared expanded: in a selector the prefix `tts` stands for the format's namespace `https://timetoalign.github.io/timetoshare/ns#`, another compact IRI is expanded by the manifest's `@context`, a full IRI is itself. So `tts:AtomicSection` selects the atomic sections.
    */
   class?:
-    | "ContinuousLogicalTimeline"
-    | "ContinuousPhysicalTimeline"
-    | "ContinuousGraphicalTimeline"
-    | "DiscreteLogicalTimeline"
-    | "DiscretePhysicalTimeline"
-    | "DiscreteGraphicalTimeline"
-    | "ChainMap"
-    | "CombinationMap"
-    | "ConstantMap"
-    | "FloatingMeasureMap"
-    | "LinearMap"
-    | "MeasureBeatMap"
-    | "MeasureNumberMap"
-    | "MeasureRecordMap"
-    | "PiecewiseMap"
-    | "TableMap";
+    | (
+        | "ContinuousLogicalTimeline"
+        | "ContinuousPhysicalTimeline"
+        | "ContinuousGraphicalTimeline"
+        | "DiscreteLogicalTimeline"
+        | "DiscretePhysicalTimeline"
+        | "DiscreteGraphicalTimeline"
+        | "ChainMap"
+        | "CombinationMap"
+        | "ConstantMap"
+        | "FloatingMeasureMap"
+        | "LinearMap"
+        | "MeasureBeatMap"
+        | "MeasureNumberMap"
+        | "MeasureRecordMap"
+        | "PiecewiseMap"
+        | "TableMap"
+      )
+    | Iri;
   /**
    * A facet: the element must be the band drawing that facet.
    */
@@ -1700,7 +1719,7 @@ export interface Selector {
   coordinates?: "primary" | "secondary";
 }
 /**
- * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element, a named timestamp (its wedge) or an elision (its gap). `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` a segment's boundary, `["name"]` and `["label"]` the element's name or label (a named timestamp's and an elision's name label is `["name"]`), `["id"]` and `["coordinate"]` the ID label and the coordinate label of a named timestamp or an elision, `["line"]` a named timestamp's cross-section line, `["ellipsis"]` an elision's ellipsis, and `["elision"]` the gap of an elision the drawing derives on the timeline X, which has no ID, with its ellipsis `["elision", "ellipsis"]` and its labels `["elision", "name"]` and `["elision", "coordinate"]`. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.
+ * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element, a named timestamp (its wedge) or an elision (its gap). `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` a segment's boundary, `["name"]` and `["label"]` the element's name or label (a named timestamp's and an elision's name label is `["name"]`), `["id"]` and `["coordinate"]` the ID label and the coordinate label of a named timestamp or an elision, `["line"]` a named timestamp's cross-section line, `["ellipsis"]` an elision's ellipsis, `["symbol"]` the symbol of a flow-control element, `["bracket"]` the volta brackets of a jump, `["leader"]` the leader lines of the labels of a region, a segment or a jump, and `["elision"]` the gap of an elision the drawing derives on the timeline X, which has no ID, with its ellipsis `["elision", "ellipsis"]` and its labels `["elision", "name"]` and `["elision", "coordinate"]`. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Address".
@@ -1714,7 +1733,7 @@ export interface Address {
   part?: [Part, ...Part[]];
 }
 /**
- * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation, shadow and the four elision properties are TimeToShare's own. An element reads only the properties its type reads; the others are ignored.
+ * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation, shadow, label-display and the four elision properties are TimeToShare's own. An element reads only the properties its type reads; the others are ignored.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Declaration".
@@ -1754,6 +1773,10 @@ export interface Declaration {
    * What the derived elisions draw besides their gaps: `none`, or the words of an elision's `display` separated by single spaces; the order and a repeated word carry no meaning.
    */
   "elision-display"?: string;
+  /**
+   * Which labels a flow-control element draws (read by a break, a section break, a barline and a jump): `none`, or words from `name` (its name), `id` (its ID) and `label` (its own label, and on a jump also the labels of its arcs, each its destination's label) separated by single spaces; the order and a repeated word carry no meaning.
+   */
+  "label-display"?: string;
 }
 /**
  * A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `["cross_section"]`. Five parts of it may be drawn, as `display` selects: a wedge `{"id": id}`, three labels stacked outward from the wedge (its name `{"id": id, "part": ["name"]}`, its ID `{"id": id, "part": ["id"]}` and its coordinate `{"id": id, "part": ["coordinate"]}`) and a cross-section line `{"id": id, "part": ["line"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, that it lies within the timeline, that a groupstamp lies in a group, and the rules of match timestamps are checked after the schema.

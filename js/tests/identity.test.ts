@@ -494,8 +494,8 @@ describe("identity", () => {
   });
 
   it("keeps targets within their timeline", () => {
-    const child = timeline("c", "quarters", [8, 1], {
-      offset: [0, 1],
+    const child = timeline("c", "quarters", [7, 1], {
+      offset: [1, 2],
       regions: [{ id: "inner", start: [0, 1], end: [1, 1] }],
       flow_control: [...targets("there"), jump("cj", 1, "here"), jump("ck", 2, "c")],
     });

@@ -149,6 +149,7 @@ const REJECTIONS = [
   "jump_destinations_same_distance",
   "jump_destinations_same_place",
   "jump_repeated",
+  "jump_repeated_across_tree",
   "jump_target_with_targets",
   "jump_targets_empty",
   "jump_with_manifestation",
@@ -233,6 +234,7 @@ const REJECTIONS = [
   "rule_select_unknown_element",
   "rule_set_content_not_string",
   "rule_set_dasharray_malformed",
+  "rule_set_label_display_unknown",
   "rule_set_max_width_zero",
   "rule_set_neither_object_nor_string",
   "rule_set_opacity_above_one",
@@ -932,6 +934,13 @@ describe("the worded refusals", () => {
       `'name\\n' holds U+000A: ${CONTROL}`,
     ],
     [
+      STYLED,
+      ["graphical", "rules", 0, "set", "label-display"],
+      "label\n",
+      [],
+      `'label\\n' holds U+000A: ${CONTROL}`,
+    ],
+    [
       RESOURCES,
       ["resources", 0, "media_type"],
       "application/x\n",
@@ -1313,8 +1322,39 @@ describe("the graphical object", () => {
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.rules as unknown[]).length).toBe(41);
+    expect((defaults.rules as unknown[]).length).toBe(43);
     validate({ ...SMALLEST, graphical: defaults });
+  });
+
+  it("accepts the flow drawing's vocabulary", () => {
+    const rules = [
+      { select: { element: "symbol" }, set: { fill: "#000000", "font-size": 12 } },
+      { select: { element: "bracket" }, set: { stroke: "#000000" } },
+      { select: { element: "leader" }, set: { stroke: "#9CA3AF" } },
+      { select: { addresses: [{ id: "score", part: ["symbol"] }] }, set: { display: "none" } },
+      { select: { addresses: [{ id: "score", part: ["bracket"] }] }, set: { display: "none" } },
+      { select: { addresses: [{ id: "score", part: ["leader"] }] }, set: { display: "none" } },
+      { select: { element: "region", class: "tts:AtomicSection" }, set: { display: "none" } },
+      {
+        select: {
+          element: "region",
+          class: "https://timetoalign.github.io/timetoshare/ns#AtomicSection",
+        },
+        set: { display: "inline" },
+      },
+      { select: { element: "jump" }, set: { "label-display": "none" } },
+      { select: { element: "break" }, set: { "label-display": "label" } },
+      { select: { element: "barline" }, set: { "label-display": "name id label" } },
+    ];
+    const value = manifest([timeline("score", "quarters", [8, 1])], { graphical: { rules } });
+    validate(value);
+    expect(unknownKeys(value)).toEqual([]);
+  });
+
+  it("refuses a class that is neither a class word nor an IRI", () => {
+    const rules = [{ select: { class: "tts AtomicSection" }, set: { display: "none" } }];
+    const value = manifest([timeline("score", "quarters", [8, 1])], { graphical: { rules } });
+    expect(problem(value)[0]).toEqual(["graphical", "rules", 0, "select", "class"]);
   });
 
   it("leaves names unrestricted", () => {

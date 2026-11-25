@@ -13,8 +13,9 @@
  * holds a belief `false`: a repair rejects an element and adds another, so a
  * rejected jump and its replacement may share a coordinate. In document
  * order: a coordinate lies from 0 to the timeline's known length
- * (`flow_coordinate`); a timeline has one jump at a coordinate
- * (`jump_repeated`); the destinations of a jump are distinct places
+ * (`flow_coordinate`); a root and its descendants have one jump at a
+ * position on the root's axis, each coordinate carried to the root by
+ * adding the offsets of its ancestors (`jump_repeated`); the destinations of a jump are distinct places
  * (`jump_destination`); a `to` names a jump target or a region of the
  * timeline, a child of it or the timeline itself (`dangling_target`); a place
  * reached by `by` lies from 0 to the known length (`flow_coordinate`); an
@@ -270,12 +271,29 @@ function* afterProblems(
 }
 
 /**
+ * The jumps of a root's tree by their exact position on the root's axis:
+ * the ID of the first jump there and of the timeline stating it.
+ */
+export type JumpPositions = { position: Rational; id: string; timeline: string }[];
+
+/** The start of a child on its root's axis: its parent's start plus its offset. */
+export function childStart(start: Rational, child: JsonObject): Rational {
+  return add(start, exact(child.offset));
+}
+
+/**
  * Yield the problems of one timeline's flow control, in document order: the
- * timeline's own elements only; its children are the caller's.
+ * timeline's own elements only; its children are the caller's, who passes
+ * `start`, the timeline's start on its root's axis (the sum of the offsets
+ * from the root down), and one `jumpsAt` for the whole tree, so that a jump
+ * at the position of an earlier jump of the root or of another descendant
+ * is refused as one at a coordinate of its own timeline is.
  */
 export function* timelineFlowProblems(
   timeline: JsonObject,
   path: Path,
+  start: Rational = ZERO,
+  jumpsAt: JumpPositions = [],
 ): Generator<SchemaValidationError> {
   const flow = entries(timeline, "flow_control");
   const read = [...flow.entries()].filter(([, entry]) => !rejected(entry));
@@ -292,7 +310,6 @@ export function* timelineFlowProblems(
   for (const region of entries(timeline, "regions")) places.add(text(region, "id"));
   for (const child of entries(timeline, "children")) places.add(text(child, "id"));
   places.add(owner);
-  const firstJump: { coordinate: Rational; id: string }[] = [];
   const outside = (value: Rational): boolean =>
     compareRationals(value, ZERO) < 0 || (end !== null && compareRationals(value, end) > 0);
   const beyond = (): string =>
@@ -314,14 +331,19 @@ export function* timelineFlowProblems(
       yield* afterProblems(ends.after, [...at, "ends", "after"], null, jumps);
     }
     if (entry.role !== "jump") continue;
-    const before = firstJump.find((found) => sameRational(found.coordinate, coordinate));
+    const position = add(start, coordinate);
+    const before = jumpsAt.find((found) => sameRational(found.position, position));
     if (before !== undefined) {
+      const where =
+        before.timeline === owner
+          ? ""
+          : ` of '${before.timeline}' at the same position on their root's axis`;
       yield new SchemaValidationError(
         "jump_repeated",
         at,
-        `'${id}' is a second jump at coordinate ${spell(entry.coordinate)} of '${owner}', after '${before.id}': several signs at one place are destinations of one jump`,
+        `'${id}' is a second jump at coordinate ${spell(entry.coordinate)} of '${owner}', after '${before.id}'${where}: several signs at one place are destinations of one jump`,
       );
-    } else firstJump.push({ coordinate, id });
+    } else jumpsAt.push({ position, id, timeline: owner });
     const seen: Place[] = [];
     for (const [number, destination] of entries(entry, "targets").entries()) {
       const here = [...at, "targets", number];

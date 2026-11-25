@@ -13,13 +13,14 @@ not rejected. An element is rejected when an entry of its ``provenance``
 holds a belief ``false``: a repair rejects an element and adds another, so a
 rejected jump and its replacement may share a coordinate. In document
 order: a coordinate lies from 0 to the timeline's known length
-(``flow_coordinate``); a timeline has one jump at a coordinate
-(``jump_repeated``); the destinations of a jump are distinct places
-(``jump_destination``); a ``to`` names a jump target or a region of the
-timeline, a child of it or the timeline itself (``dangling_target``); a place
-reached by ``by`` lies from 0 to the known length (``flow_coordinate``); an
-``after`` names exactly one destination of another jump of the timeline
-(``dangling_target``).
+(``flow_coordinate``); a root and its descendants have one jump at a
+position on the root's axis, each coordinate carried to the root by adding
+the offsets of its ancestors (``jump_repeated``); the destinations of a
+jump are distinct places (``jump_destination``); a ``to`` names a jump
+target or a region of the timeline, a child of it or the timeline itself
+(``dangling_target``); a place reached by ``by`` lies from 0 to the known
+length (``flow_coordinate``); an ``after`` names exactly one destination
+of another jump of the timeline (``dangling_target``).
 
 Then the FlowMaps: ``timeline`` names a root (``flow_map_timeline``), every
 chunk ID a region or a child timeline inside that root's tree, or a virtual
@@ -227,13 +228,27 @@ def _after_problems(
         )
 
 
+JumpPositions = dict[Fraction, tuple[str, str]]
+"""The jumps of a root's tree by their exact position on the root's axis:
+the ID of the first jump there and of the timeline stating it."""
+
+
 def timeline_flow_problems(
-    timeline: Mapping[str, Any], path: InstancePath
+    timeline: Mapping[str, Any],
+    path: InstancePath,
+    start: Fraction = Fraction(0),
+    jumps_at: JumpPositions | None = None,
 ) -> Iterator[SchemaValidationError]:
     """Yield the problems of one timeline's flow control, in document order.
 
-    The timeline's own elements only; its children are the caller's.
+    The timeline's own elements only; its children are the caller's, who
+    passes ``start``, the timeline's start on its root's axis (the sum of the
+    offsets from the root down), and one ``jumps_at`` for the whole tree, so
+    that a jump at the position of an earlier jump of the root or of another
+    descendant is refused as one at a coordinate of its own timeline is.
     """
+    if jumps_at is None:
+        jumps_at = {}
     flow = entries_of(timeline, "flow_control")
     read = [(index, entry) for index, entry in enumerate(flow) if not rejected(entry)]
     if not read:
@@ -246,7 +261,6 @@ def timeline_flow_problems(
     places.update(region["id"] for region in entries_of(timeline, "regions"))
     places.update(child["id"] for child in entries_of(timeline, "children"))
     places.add(owner)
-    first_jump: dict[Fraction, str] = {}
 
     def outside(value: Fraction) -> bool:
         """Whether a coordinate lies before 0 or after the timeline's known length."""
@@ -276,17 +290,23 @@ def timeline_flow_problems(
             )
         if entry["role"] != "jump":
             continue
-        if coordinate in first_jump:
+        position = start + coordinate
+        if position in jumps_at:
+            earlier, holder = jumps_at[position]
+            where = (
+                ""
+                if holder == owner
+                else f" of '{holder}' at the same position on their root's axis"
+            )
             yield SchemaValidationError(
                 "jump_repeated",
                 at,
                 f"'{entry['id']}' is a second jump at coordinate "
-                f"{spell(entry['coordinate'])} of '{owner}', after "
-                f"'{first_jump[coordinate]}': several signs at one place are "
-                "destinations of one jump",
+                f"{spell(entry['coordinate'])} of '{owner}', after '{earlier}'"
+                f"{where}: several signs at one place are destinations of one jump",
             )
         else:
-            first_jump[coordinate] = entry["id"]
+            jumps_at[position] = (entry["id"], owner)
         seen: dict[tuple[str, Any], int] = {}
         for number, destination in enumerate(entry["targets"]):
             here = (*at, "targets", number)

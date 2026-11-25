@@ -1,0 +1,69 @@
+code: jump_repeated
+manifest:
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  resources: []
+  timelines:
+    -
+      children:
+        -
+          children: []
+          conversion_maps: []
+          flow_control:
+            -
+              coordinate: [4, 1]
+              id: "#jump_2"
+              label: null
+              meta: {}
+              name: null
+              role: jump
+              targets:
+                -
+                  determined: true
+                  label: null
+                  manifestation: repeat_end
+                  repeat_count: 1
+                  reset: true
+                  to: "#verse"
+          id: "#verse"
+          is_segment_line: false
+          length: [8, 1]
+          locked: true
+          meta: {}
+          name: Verse
+          number_type: fraction
+          offset: [4, 1]
+          regions: []
+          unit: quarters
+      conversion_maps: []
+      flow_control:
+        -
+          coordinate: [8, 1]
+          id: "#jump_1"
+          label: null
+          meta: {}
+          name: null
+          role: jump
+          targets:
+            -
+              determined: true
+              label: null
+              manifestation: repeat_end
+              repeat_count: 1
+              reset: true
+              to: "#piece"
+      id: "#piece"
+      is_segment_line: false
+      length: [16, 1]
+      locked: false
+      meta: {}
+      name: Piece
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "'jump_2' is a second jump at coordinate [4, 1] of 'verse', after 'jump_1' of 'piece' at the same position on their root's axis: several signs at one place are destinations of one jump"
+path: [timelines, 0, children, 0, flow_control, 0]
+reason: "Flow control holds across descendants: a root and its descendants have one jump at a position on the root's axis, and the child's jump at 4 lies at 8 on the root's axis, where the root's own jump lies."

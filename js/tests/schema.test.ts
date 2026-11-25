@@ -44,6 +44,7 @@ const ANCHORED: [string[], string][] = [
   [["Declaration", "properties", "stroke-dasharray"], "4 2"],
   [["Declaration", "properties", "elision-depths"], "1 2"],
   [["Declaration", "properties", "elision-display"], "ellipsis name"],
+  [["Declaration", "properties", "label-display"], "name id"],
   [["CalendarDate"], "2026-11-17"],
   [["Resource", "properties", "media_type"], "application/vnd.apache.parquet"],
   [["Resource", "properties", "integrity", "properties", "digest"], "00ff"],
@@ -232,7 +233,9 @@ describe("the schema document", () => {
 
   it("chooses between the ten map types", () => {
     expect(mapTypes).toEqual(MAP_TYPES);
-    expect(properties("Selector").class?.enum).toEqual([
+    const [words, iri] = (properties("Selector").class as Node).anyOf as Node[];
+    expect(iri).toEqual({ $ref: "#/$defs/Iri" });
+    expect(words?.enum).toEqual([
       "ContinuousLogicalTimeline",
       "ContinuousPhysicalTimeline",
       "ContinuousGraphicalTimeline",
@@ -259,6 +262,9 @@ describe("the schema document", () => {
       "coordinate",
       "elision",
       "ellipsis",
+      "symbol",
+      "bracket",
+      "leader",
     ]);
     const display = ((defs.Timestamp as Node).properties as Node).display as Node;
     expect((display.items as Node).enum).toEqual([...TIMESTAMP_DISPLAY]);
@@ -293,6 +299,9 @@ describe("the schema document", () => {
       "ancestor_card",
       "elision",
       "ellipsis",
+      "symbol",
+      "bracket",
+      "leader",
     ]);
     const name = properties("Elision").name as Node;
     expect([name.type, name.minLength]).toEqual(["string", 1]);

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Mapping
+from fractions import Fraction
 from typing import Any
 
+from ..manifest import exact
 from .containment import timeline_containment_problems
 from .diagnostics import (
     InstancePath,
@@ -14,7 +16,7 @@ from .diagnostics import (
     listed_ids,
     tree_ids,
 )
-from .flow import flow_map_problems, timeline_flow_problems
+from .flow import JumpPositions, flow_map_problems, timeline_flow_problems
 from .maps import MEASURE_VIEWS, timeline_map_problems, timeline_maps
 from .order import order_problems
 from .segments import timeline_segment_problems
@@ -27,9 +29,13 @@ from .timestamps import (
 
 
 def _dangling_targets(
-    timeline: Mapping[str, Any], path: InstancePath, measure_maps: set[str]
+    timeline: Mapping[str, Any],
+    path: InstancePath,
+    measure_maps: set[str],
+    start: Fraction,
+    jumps_at: JumpPositions,
 ) -> Iterator[SchemaValidationError]:
-    yield from timeline_flow_problems(timeline, path)
+    yield from timeline_flow_problems(timeline, path, start, jumps_at)
     for conversion_map, at in timeline_maps(timeline, path):
         reference = conversion_map.get("measure_map")
         if conversion_map["type"] in MEASURE_VIEWS and reference not in measure_maps:
@@ -39,7 +45,13 @@ def _dangling_targets(
                 f"'{reference}' names no MeasureMap of this manifest",
             )
     for index, child in enumerate(entries_of(timeline, "children")):
-        yield from _dangling_targets(child, (*path, "children", index), measure_maps)
+        yield from _dangling_targets(
+            child,
+            (*path, "children", index),
+            measure_maps,
+            start + exact(child["offset"]),
+            jumps_at,
+        )
 
 
 def _root_problems(
@@ -51,7 +63,7 @@ def _root_problems(
             yield duplicate_problem(identifier, at, first[identifier])
         else:
             first[identifier] = at
-    yield from _dangling_targets(root, path, measure_maps)
+    yield from _dangling_targets(root, path, measure_maps, Fraction(0), {})
     yield from timeline_map_problems(root, path)
     yield from timeline_containment_problems(root, path)
     yield from timeline_segment_problems(root, path)

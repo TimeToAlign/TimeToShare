@@ -161,7 +161,9 @@ def test_the_public_definitions() -> None:
 def test_the_ten_map_types() -> None:
     defs = _defs()
     assert _map_types() == MAP_TYPES
-    classes = defs["Selector"]["properties"]["class"]["enum"]
+    words, iri = defs["Selector"]["properties"]["class"]["anyOf"]
+    assert iri == {"$ref": "#/$defs/Iri"}
+    classes = words["enum"]
     assert classes == [
         "ContinuousLogicalTimeline",
         "ContinuousPhysicalTimeline",
@@ -184,6 +186,9 @@ def test_the_ten_map_types() -> None:
         "coordinate",
         "elision",
         "ellipsis",
+        "symbol",
+        "bracket",
+        "leader",
     ]
     display = defs["Timestamp"]["properties"]["display"]
     assert display["items"]["enum"] == list(TIMESTAMP_DISPLAY)
@@ -219,6 +224,9 @@ def test_the_ten_map_types() -> None:
         "ancestor_card",
         "elision",
         "ellipsis",
+        "symbol",
+        "bracket",
+        "leader",
     ]
     name = defs["Elision"]["properties"]["name"]
     assert (name["type"], name["minLength"]) == ("string", 1)
@@ -556,6 +564,7 @@ ANCHORED = {
     ("Declaration", "properties", "stroke-dasharray"): "4 2",
     ("Declaration", "properties", "elision-depths"): "1 2",
     ("Declaration", "properties", "elision-display"): "ellipsis name",
+    ("Declaration", "properties", "label-display"): "name id",
     ("CalendarDate",): "2026-11-17",
     ("Resource", "properties", "media_type"): "application/vnd.apache.parquet",
     ("Resource", "properties", "integrity", "properties", "digest"): "00ff",

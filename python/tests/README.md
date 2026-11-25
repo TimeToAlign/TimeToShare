@@ -68,22 +68,24 @@ rejection cases that use them (`test_schema.py`):
 - **The map types.** `ConversionMap` chooses between exactly the ten types
   `ChainMap`, `CombinationMap`, `ConstantMap`, `FloatingMeasureMap`,
   `LinearMap`, `MeasureBeatMap`, `MeasureNumberMap`, `MeasureRecordMap`,
-  `PiecewiseMap` and `TableMap`, and `Selector.class` names exactly the six
-  timeline classes and these ten types. `Selector.facet` and an `Address`'s
+  `PiecewiseMap` and `TableMap`, and `Selector.class` admits exactly the six
+  timeline classes and these ten types, its first branch, or an `Iri`, its
+  second. `Selector.facet` and an `Address`'s
   `facet` refer to `Facet`, exactly the five facets `markers`,
   `conversion_maps`, `children`, `regions` and `flow_control`, and the words
   of an `Address`'s `part` to `Part`, exactly `start`, `end`, `name`,
-  `label`, `card`, `line`, `id`, `coordinate`, `elision` and `ellipsis`. The words of a
+  `label`, `card`, `line`, `id`, `coordinate`, `elision`, `ellipsis`,
+  `symbol`, `bracket` and `leader`. The words of a
   `Timestamp`'s `display` are exactly `TIMESTAMP_DISPLAY`, `wedge`, `name`,
   `id`, `coordinate` and `cross_section` in that order, and those of an
   `Elision`'s `display` exactly `ELISION_DISPLAY`, `ellipsis`, `name`,
   `id`, `coordinate` and `continuation` in that order, so the canonical
   order the writers apply cannot drift from the words the schema admits.
-  `ElementType` is exactly the twenty-two types `block`,
+  `ElementType` is exactly the twenty-five types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `break`, `section_break`,
   `barline`, `jump`, `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
-  `cross_section`, `alignment_anchor`, `ancestor_card`, `elision` and
-  `ellipsis`. An `Elision`'s `name` is a non-empty string. Its `width` declares exactly `ratio` (a number, exclusive
+  `cross_section`, `alignment_anchor`, `ancestor_card`, `elision`,
+  `ellipsis`, `symbol`, `bracket` and `leader`. An `Elision`'s `name` is a non-empty string. Its `width` declares exactly `ratio` (a number, exclusive
   minimum 0, maximum 1), `span` (`NumberPositive`) and `canvas` (a number,
   exclusive minimum 0), and its `oneOf` is exactly the three subschemas
   requiring one of them each, so `{"ratio": 0.5}`, `{"span": [3, 2]}`
@@ -193,13 +195,13 @@ rejection cases that use them (`test_schema.py`):
   JavaScript's `RegExp`, so a definition that needs to refuse control
   characters says so with an unanchored `not`, never with an anchored
   class: `Id` is a string of `minLength` 1 whose `not` refuses U+0000 to
-  U+001F, and an entry of an `Order` has the same two keywords. The seven
+  U+001F, and an entry of an `Order` has the same two keywords. The eight
   patterns that still end in `$`, `Paint`, `stroke-dasharray`,
-  `elision-depths`, `elision-display`, a provenance entry's `date`, a
-  resource's `media_type` and its integrity's `digest`, are exactly those
-  the document holds, and each refuses a value it accepts (`none`, `4 2`,
-  `1 2`, `ellipsis name`, `2026-11-17`, `application/vnd.apache.parquet`,
-  `00ff`) once a newline follows it; no
+  `elision-depths`, `elision-display`, `label-display`, a provenance
+  entry's `date`, a resource's `media_type` and its integrity's `digest`,
+  are exactly those the document holds, and each refuses a value it
+  accepts (`none`, `4 2`, `1 2`, `ellipsis name`, `name id`, `2026-11-17`,
+  `application/vnd.apache.parquet`, `00ff`) once a newline follows it; no
   ID has a pattern of its own (a named timestamp's, a resource's, a
   MatchStamp's and an anchor's are any `Id`); an `Order` refuses
   `["line\n"]`. The JavaScript suite
@@ -567,7 +569,7 @@ package words it as this package does.
 | `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
 | `duplicate_id` | IDs unique within a root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds included after the tree's other IDs | the later ID | `'m' is not unique in the manifest, first at #/…` |
 | `flow_control_form` | before the schema: no flow-control element is written in the earlier form (`type` with `jump_from`, `jump_to` or `flow_marker`, a `role` that is one of those words, or `target` without `role`) | the element | `flow-control element 'old' is written in the earlier form of flow control (type, target): convert the manifest with scripts/convert_flow_control.py` |
-| `flow_coordinate`, `jump_repeated`, `jump_destination`, `dangling_target` | per timeline, over the elements not rejected, in document order (section "Flow"): a coordinate from 0 to the known length; one jump at a coordinate; distinct places of a jump's destinations; a `to` naming a jump target or region of the timeline, a child of it or the timeline; a place reached by `by` from 0 to the known length; an `after` naming one destination of another jump of the timeline | the `coordinate`, the jump, the destination, the `to`, the `by`, the `after` or its member | `coordinate [17, 1] of 'jump_2' is not on 'score': it lies outside 0 to the length [16, 1]`, `'jump_3' is a second jump at coordinate [16, 1] of 'score', after 'jump_2': several signs at one place are destinations of one jump`, `destination 1 of 'jump_1' has the place of destination 0, to 'jump_target_1'`, `'break_1' names no jump target, region or child of this timeline, nor the timeline itself`, `jump 'jump_2' has no destination to 'jump_target_1'` |
+| `flow_coordinate`, `jump_repeated`, `jump_destination`, `dangling_target` | per timeline, over the elements not rejected, in document order (section "Flow"): a coordinate from 0 to the known length; one jump at a position on the root's axis, over the root's whole tree; distinct places of a jump's destinations; a `to` naming a jump target or region of the timeline, a child of it or the timeline; a place reached by `by` from 0 to the known length; an `after` naming one destination of another jump of the timeline | the `coordinate`, the jump, the destination, the `to`, the `by`, the `after` or its member | `coordinate [17, 1] of 'jump_2' is not on 'score': it lies outside 0 to the length [16, 1]`, `'jump_3' is a second jump at coordinate [16, 1] of 'score', after 'jump_2': several signs at one place are destinations of one jump`, `destination 1 of 'jump_1' has the place of destination 0, to 'jump_target_1'`, `'break_1' names no jump target, region or child of this timeline, nor the timeline itself`, `jump 'jump_2' has no destination to 'jump_target_1'` |
 | `dangling_target` | then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the `measure_map` | `'ghost' names no MeasureMap of this manifest` |
 | `conversion_map` | a non-null `source_unit` of a map attached to a timeline is the timeline's unit, and that of every map a `PiecewiseMap` or `CombinationMap` holds, and of a `ChainMap`'s first map, is its holder's non-null `source_unit`; a `TableMap`'s x and y values of equal length, its x values strictly increasing; a `PiecewiseMap`'s maps one fewer than its breaks, its breaks strictly increasing | the `source_unit`, the `y_values`, the value, the `maps`, the break | `MeasureRecordMap 'bars' has source unit 'quarters', its timeline 'score' has 'ticks'`, `LinearMap 'scale' has source unit 'ticks', its ChainMap 'chain' has 'quarters'`, `TableMap 'tempo' has 3 x values and 2 y values`, `x value [0, 1] of TableMap 'tempo' does not exceed the one before it`, `PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps`, `break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
@@ -640,7 +642,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 245 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 247 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
@@ -2358,10 +2360,23 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 41 rules,
+`docs/drawing.md` section 4's defaults block (three styles, 43 rules,
 among them one for each of the element types `jump`, `break`,
-`section_break` and `barline`), read from the file, validates as the
-`graphical` of the smallest file. The
+`section_break`, `barline`, `symbol`, `bracket` and `leader`, and one
+selecting the atomic sections by `{"element": "region", "class":
+"tts:AtomicSection"}`), read from the file, validates as the
+`graphical` of the smallest file. The flow drawing's vocabulary
+validates in a rule of the smallest file and leaves `unknown_keys`
+empty: the selectors `{"element": "symbol"}`, `{"element": "bracket"}`
+and `{"element": "leader"}`, the addresses `{"id": "score", "part":
+["symbol"]}`, `["bracket"]` and `["leader"]`, a `class` written as a
+compact IRI (`tts:AtomicSection`) and as a full IRI
+(`https://timetoalign.github.io/timetoshare/ns#AtomicSection`), and
+`label-display` set to `none`, `label` and `name id label`; a `class`
+that is neither a class word nor an IRI (`tts AtomicSection`) is refused
+at the selector's `class`, and a `label-display` word other than `name`,
+`id` and `label` at the property (the shared case
+`rule_set_label_display_unknown`, the word `names`). The
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate, and so do `{"element": "ancestor_card"}` and the rule that
 addresses the ancestor cards of one root, `{"element": "ancestor_card", "addresses":

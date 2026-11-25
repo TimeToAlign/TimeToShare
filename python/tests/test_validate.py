@@ -149,6 +149,7 @@ REJECTIONS = [
     "jump_destinations_same_distance",
     "jump_destinations_same_place",
     "jump_repeated",
+    "jump_repeated_across_tree",
     "jump_target_with_targets",
     "jump_targets_empty",
     "jump_with_manifestation",
@@ -233,6 +234,7 @@ REJECTIONS = [
     "rule_select_unknown_element",
     "rule_set_content_not_string",
     "rule_set_dasharray_malformed",
+    "rule_set_label_display_unknown",
     "rule_set_max_width_zero",
     "rule_set_neither_object_nor_string",
     "rule_set_opacity_above_one",
@@ -1223,6 +1225,7 @@ def test_the_worded_shapes_lie_where_the_cases_below_reach() -> None:
         "#/$defs/Declaration/properties/stroke-dasharray/not",
         "#/$defs/Declaration/properties/elision-depths/not",
         "#/$defs/Declaration/properties/elision-display/not",
+        "#/$defs/Declaration/properties/label-display/not",
         "#/$defs/PrefixName/not",
         "#/$defs/PrefixIri/not",
         "#/$defs/Iri/not",
@@ -1355,6 +1358,13 @@ BANDS = ["children", "markers", "line\t", "conversion_maps", "regions", "flow_co
             "name\n",
             (),
             f"'name\\n' holds U+000A: {CONTROL}",
+        ),
+        (
+            STYLED,
+            ("graphical", "rules", 0, "set", "label-display"),
+            "label\n",
+            (),
+            f"'label\\n' holds U+000A: {CONTROL}",
         ),
         (
             RESOURCES,
@@ -1496,8 +1506,53 @@ def _defaults_block() -> dict:
 def test_the_defaults_are_a_valid_graphical_object() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["rules"]) == 41
+    assert len(defaults["rules"]) == 43
     validate({**SMALLEST, "graphical": defaults})
+
+
+FLOW_DRAWING_RULES = [
+    {"select": {"element": "symbol"}, "set": {"fill": "#000000", "font-size": 12}},
+    {"select": {"element": "bracket"}, "set": {"stroke": "#000000"}},
+    {"select": {"element": "leader"}, "set": {"stroke": "#9CA3AF"}},
+    {
+        "select": {"addresses": [{"id": "score", "part": ["symbol"]}]},
+        "set": {"display": "none"},
+    },
+    {
+        "select": {"addresses": [{"id": "score", "part": ["bracket"]}]},
+        "set": {"display": "none"},
+    },
+    {
+        "select": {"addresses": [{"id": "score", "part": ["leader"]}]},
+        "set": {"display": "none"},
+    },
+    {
+        "select": {"element": "region", "class": "tts:AtomicSection"},
+        "set": {"display": "none"},
+    },
+    {
+        "select": {
+            "element": "region",
+            "class": "https://timetoalign.github.io/timetoshare/ns#AtomicSection",
+        },
+        "set": {"display": "inline"},
+    },
+    {"select": {"element": "jump"}, "set": {"label-display": "none"}},
+    {"select": {"element": "break"}, "set": {"label-display": "label"}},
+    {"select": {"element": "barline"}, "set": {"label-display": "name id label"}},
+]
+
+
+def test_the_flow_drawing_vocabulary_validates() -> None:
+    value = manifest(timeline("score"), graphical={"rules": FLOW_DRAWING_RULES})
+    validate(value)
+    assert unknown_keys(value) == []
+
+
+def test_a_class_is_a_class_word_or_an_iri() -> None:
+    rule = {"select": {"class": "tts AtomicSection"}, "set": {"display": "none"}}
+    value = manifest(timeline("score"), graphical={"rules": [rule]})
+    assert _problem(value)[0] == ("graphical", "rules", 0, "select", "class")
 
 
 def test_names_remain_unrestricted() -> None:

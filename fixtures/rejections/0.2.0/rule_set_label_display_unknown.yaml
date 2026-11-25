@@ -1,0 +1,34 @@
+code: schema
+manifest:
+  graphical:
+    order: {}
+    rules:
+      -
+        select:
+          element: jump
+        set:
+          label-display: names
+    styles: {}
+    timestamps: []
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#bare"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: Bare
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "'names' does not match '^(none|(name|id|label)( (name|id|label))*)$'"
+path: [graphical, rules, 0, set, label-display]
+reason: "label-display is none or words from name, id and label separated by single spaces."
