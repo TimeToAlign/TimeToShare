@@ -30,6 +30,13 @@ import { jsonPointer, entries as listed, type PathSegment } from "../validate/di
 /** The namespace of the format's own terms: `method`, `service`, `match`, the beliefs and their words. */
 export const NAMESPACE = "https://timetoalign.github.io/timetoshare/ns#";
 
+/**
+ * The class of an atomic section of a timeline's flow: the `type` a region
+ * states that is one, written as a compact IRI under a prefix the manifest's
+ * context declares for `NAMESPACE` (`tts:AtomicSection`).
+ */
+export const ATOMIC_SECTION = `${NAMESPACE}AtomicSection`;
+
 const RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 
 /** The IRI of "is a", the property `type` stands for. */
@@ -417,27 +424,68 @@ export function* visitSubject(
     }
   }
   for (const [index, entry] of listed(owner, "provenance").entries()) {
-    if (!isJsonObject(entry)) continue;
-    const at = [...path, "provenance", index];
-    for (const key of Object.keys(entry).sort(compareCodePoints)) {
-      const member = entry[key];
-      if (key === "basis" || key === "stated_by")
-        yield* visitIris(member, [...at, key], "reference");
-      else if (key === "date" && typeof member === "string") {
-        yield { kind: "date", text: member, path: [...at, key] };
-      } else if (key === "method" && typeof member === "string") {
-        if (!(METHODS as readonly string[]).includes(member)) {
-          yield { kind: "iri", text: member, path: [...at, key] };
-        }
-      } else if (key === "property" && typeof member === "string") {
-        yield { kind: "iri", text: member, path: [...at, key] };
-      } else if (key === "service" && typeof member === "string") {
-        yield { kind: "reference", text: member, path: [...at, key] };
-      } else if (key === "value") yield* visitValue(member, [...at, key]);
-      else if (key === "beliefs") yield* visitBeliefs(member, [...at, key]);
-    }
+    if (isJsonObject(entry)) yield* visitEntry(entry, [...path, "provenance", index]);
   }
   yield { kind: "subject", owner, node, path: [...path] };
+}
+
+/** Visit one provenance entry: its keys in code-point order, as `visitSubject` says. */
+export function* visitEntry(entry: JsonObject, at: readonly PathSegment[]): Generator<Visit> {
+  for (const key of Object.keys(entry).sort(compareCodePoints)) {
+    const member = entry[key];
+    if (key === "basis" || key === "stated_by") yield* visitIris(member, [...at, key], "reference");
+    else if (key === "date" && typeof member === "string") {
+      yield { kind: "date", text: member, path: [...at, key] };
+    } else if (key === "method" && typeof member === "string") {
+      if (!(METHODS as readonly string[]).includes(member)) {
+        yield { kind: "iri", text: member, path: [...at, key] };
+      }
+    } else if (key === "property" && typeof member === "string") {
+      yield { kind: "iri", text: member, path: [...at, key] };
+    } else if (key === "service" && typeof member === "string") {
+      yield { kind: "reference", text: member, path: [...at, key] };
+    } else if (key === "value") yield* visitValue(member, [...at, key]);
+    else if (key === "beliefs") yield* visitBeliefs(member, [...at, key]);
+  }
+}
+
+/** A provenance entry about an element itself, with its path. */
+export interface ElementEntry {
+  readonly entry: JsonObject;
+  readonly path: PathSegment[];
+}
+
+function* heldEntries(holder: unknown, path: readonly PathSegment[]): Generator<ElementEntry> {
+  if (!isJsonObject(holder)) return;
+  for (const [index, entry] of listed(holder, "provenance").entries()) {
+    if (isJsonObject(entry)) yield { entry, path: [...path, "provenance", index] };
+  }
+}
+
+function* flowEntries(timeline: unknown, path: readonly PathSegment[]): Generator<ElementEntry> {
+  if (!isJsonObject(timeline)) return;
+  for (const [index, element] of listed(timeline, "flow_control").entries()) {
+    yield* heldEntries(element, [...path, "flow_control", index]);
+  }
+  for (const [index, child] of listed(timeline, "children").entries()) {
+    yield* flowEntries(child, [...path, "children", index]);
+  }
+}
+
+/**
+ * Every provenance entry about an element itself: the entries of the
+ * flow-control elements, root by root, each timeline's before its children's,
+ * then those of the FlowMaps. Such an entry names no pair. Any value is read;
+ * what is no object is passed over.
+ */
+export function* elementProvenance(manifest: unknown): Generator<ElementEntry> {
+  if (!isJsonObject(manifest)) return;
+  for (const [index, root] of listed(manifest, "timelines").entries()) {
+    yield* flowEntries(root, ["timelines", index]);
+  }
+  for (const [index, flowMap] of listed(manifest, "flow_maps").entries()) {
+    yield* heldEntries(flowMap, ["flow_maps", index]);
+  }
 }
 
 /** Visit the beliefs of an entry: each one's `actor` a reference, its `date` a date. */
@@ -454,9 +502,14 @@ function* visitBeliefs(beliefs: unknown, path: readonly PathSegment[]): Generato
   }
 }
 
-/** Every position of every subject's statements and provenance, in subject order. */
+/**
+ * Every position of every subject's statements and provenance, in subject
+ * order, then those of the provenance of the flow-control elements and the
+ * FlowMaps.
+ */
 export function* visitManifest(manifest: unknown): Generator<Visit> {
   for (const { element, path } of subjects(manifest)) yield* visitSubject(element, path, false);
+  for (const { entry, path } of elementProvenance(manifest)) yield* visitEntry(entry, path);
 }
 
 /**

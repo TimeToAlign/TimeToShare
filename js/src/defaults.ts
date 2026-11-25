@@ -23,8 +23,12 @@ import { exactValue, sameRational } from "./numbers/exact.js";
  * which the unit table `UNITS` states. Every conversion map has the keys of
  * `conversion_map`; a `LinearMap` adds those of `linear_map` and a `TableMap`
  * those of `table_map`. Every flow-control element has the keys of
- * `flow_control_element`, and one whose manifestation is `repeat_end` adds
- * those of `repeat_end`, as no other element carries a repeat count. Every named timestamp of
+ * `flow_control_element` and every destination of a jump those of
+ * `jump_destination`; a destination's `repeat_count` has no default, its
+ * absence meaning no limit. Every FlowMap has the keys of `flow_map` and
+ * every virtual timeline those of `virtual_timeline`; the manifest's
+ * `flow_maps` and `virtual_timelines` have no default and are never added.
+ * Every named timestamp of
  * `graphical.timestamps` has the keys of `timestamp`, a match timestamp
  * (`matchstamp: true`) those of `match_timestamp` instead, and every
  * alignment anchor of a named MatchStamp those of `alignment_anchor`, and every
@@ -48,7 +52,9 @@ export const DEFAULTS = {
   },
   region: { name: null, meta: {} },
   flow_control_element: { name: null, label: null, meta: {} },
-  repeat_end: { repeat_count: 1 },
+  jump_destination: { determined: true, reset: true, label: null },
+  flow_map: { canonical: false, name: null },
+  virtual_timeline: { name: null },
   conversion_map: { name: null },
   linear_map: { scalar: 1, offset: 0 },
   table_map: { kind: "linear", extrapolate: "none" },
@@ -104,7 +110,7 @@ function visitTimeline(timeline: JsonObject, pass: Pass): void {
   for (const region of objects(timeline, "regions")) pass(region, "region");
   for (const entry of objects(timeline, "flow_control")) {
     pass(entry, "flow_control_element");
-    if (entry.manifestation === "repeat_end") pass(entry, "repeat_end");
+    for (const destination of objects(entry, "targets")) pass(destination, "jump_destination");
   }
 }
 
@@ -115,6 +121,8 @@ function visitManifest(manifest: unknown, pass: Pass): void {
   for (const timeline of objects(manifest, "timelines")) visitTimeline(timeline, pass);
   for (const group of objects(manifest, "groups")) pass(group, "group");
   for (const measureMap of objects(manifest, "measure_maps")) pass(measureMap, "measure_map");
+  for (const flowMap of objects(manifest, "flow_maps")) pass(flowMap, "flow_map");
+  for (const virtual of objects(manifest, "virtual_timelines")) pass(virtual, "virtual_timeline");
   const { graphical } = manifest;
   if (!isJsonObject(graphical)) return;
   pass(graphical, "graphical");
@@ -204,8 +212,8 @@ export function complete(value: unknown): unknown {
 /**
  * Return a copy of a manifest in the minimal form: the complete form without
  * every key whose value equals its default in value, after own-axis values
- * are respelled and each `display` put in canonical order (`repeat_count:
- * 1.0` and a `LinearMap`'s `scalar: [1, 1]` are left out like `1`).
+ * are respelled and each `display` put in canonical order (a `LinearMap`'s
+ * `scalar: 1.0` and `scalar: [1, 1]` are left out like `1`).
  * `minimal(complete(x))` equals `minimal(x)` and
  * `complete(minimal(x))` equals `complete(x)`. Python's
  * `timetoshare.minimal` gives the same value.

@@ -267,7 +267,7 @@ function respellableManifest(canonical: boolean): JsonObject {
         flow_control: [
           {
             id: "m",
-            type: "jump_to",
+            role: "jump_target",
             manifestation: "segno",
             coordinate: [number(float(2), 2), 1],
           },

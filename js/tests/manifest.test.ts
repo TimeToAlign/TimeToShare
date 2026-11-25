@@ -298,6 +298,16 @@ describe("canonical order", () => {
       "ka",
       "kb",
     ]);
+    const jump = (root.flow_control as JsonObject[]).find(
+      (entry) => entry.id === "jj",
+    ) as JsonObject;
+    expect((jump.targets as JsonObject[]).map((entry) => [entry.by, entry.to])).toEqual([
+      [undefined, undefined],
+      [[-3, 1], undefined],
+      [[-2, 1], undefined],
+      [undefined, "Coda"],
+      [undefined, "starting"],
+    ]);
     expect(ids(result.measure_maps)).toEqual(["ma", "mb", "m\u{FB00}"]);
   });
 
@@ -465,16 +475,21 @@ function tiedManifest(): JsonObject {
             ] as const
           ).map(([id, coordinate]) => ({
             id,
-            type: "flow_marker",
+            role: "break",
             manifestation: "fine",
             coordinate,
           })),
           {
             id: "jj",
-            type: "jump_from",
-            manifestation: "dal_segno",
+            role: "jump",
             coordinate: [8, 1],
-            target: "Coda",
+            targets: [
+              { to: "starting", passes: [4] },
+              { to: "Coda", passes: [3] },
+              { by: [-2, 1], passes: [2] },
+              { by: [-6, 2], passes: [1] },
+              { repeat_count: 1, passes: { from: 5 } },
+            ],
           },
           ...(
             [
@@ -484,8 +499,8 @@ function tiedManifest(): JsonObject {
             ] as const
           ).map(([id, coordinate]) => ({
             id,
-            type: "jump_from",
-            manifestation: "da_capo",
+            role: "barline",
+            manifestation: "double_barline",
             coordinate,
           })),
           ...(
@@ -498,7 +513,7 @@ function tiedManifest(): JsonObject {
             ] as const
           ).map(([id, coordinate]) => ({
             id,
-            type: "jump_to",
+            role: "jump_target",
             manifestation: "segno",
             coordinate,
           })),
@@ -610,7 +625,7 @@ describe("canonical spelling", () => {
       timeline("b_float", "seconds", 2, {
         offset: 9007199254740993n,
         regions: [{ id: "r", start: 0, end: 9007199254740992n }],
-        flow_control: [{ id: "f", type: "flow_marker", manifestation: "fine", coordinate: -0 }],
+        flow_control: [{ id: "f", role: "break", manifestation: "fine", coordinate: -0 }],
       }),
       timeline("c_fraction", "quarters", [new JsonFloat(6), 4], {
         children: [
@@ -640,7 +655,7 @@ describe("canonical spelling", () => {
     expect(spelled(bFloat)).toBe(
       '{"id":"b_float","unit":"seconds","length":2.0,"offset":9007199254740993,' +
         '"regions":[{"id":"r","start":0.0,"end":9007199254740992.0}],' +
-        '"flow_control":[{"id":"f","type":"flow_marker","manifestation":"fine","coordinate":0.0}]}',
+        '"flow_control":[{"id":"f","role":"break","manifestation":"fine","coordinate":0.0}]}',
     );
     expect(spelled(cFraction)).toBe(
       '{"id":"c_fraction","unit":"quarters","length":[3,2],"children":' +

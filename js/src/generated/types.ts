@@ -351,6 +351,17 @@ export type ValueObject = {
  */
 export type LanguageTag = string;
 /**
+ * Passes, counted from 1: a list of distinct positive integers, or `{from: n}` for pass n and every later one.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Passes".
+ */
+export type Passes =
+  | [number, ...number[]]
+  | {
+      from: number;
+    };
+/**
  * The rows of a MeasureMap: compressed rows of the Measure Map standard, in measure order. A row equal to its predecessor's default successor is omitted as a whole.
  *
  * @minItems 1
@@ -377,7 +388,7 @@ export type NumberPositive = number | FractionPositive;
  */
 export type FractionPositive = [number, number];
 /**
- * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
+ * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, one arc per destination whose place is not `by` 0, from the jump's coordinate to that place; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -389,8 +400,10 @@ export type ElementType =
   | "band"
   | "map"
   | "region"
-  | "flow_marker"
-  | "jump_from"
+  | "break"
+  | "section_break"
+  | "barline"
+  | "jump"
   | "wedge"
   | "name"
   | "label"
@@ -404,7 +417,7 @@ export type ElementType =
   | "elision"
   | "ellipsis";
 /**
- * One of the five facets every timeline has: its coordinate markers (the wedges of the timeline's named timestamps and their labels; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet.
+ * One of the five facets every timeline has: its coordinate markers (the wedges of the timeline's named timestamps and their labels; a break, a section break or a barline is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Facet".
@@ -505,6 +518,8 @@ export type CompleteManifest = {
   groups: CompleteGroup[];
   measure_maps: CompleteMeasureMap[];
   resources: Lossless<Resource>[];
+  flow_maps?: CompleteFlowMap[];
+  virtual_timelines?: CompleteVirtualTimeline[];
   statements?: Lossless<Statements>;
   provenance?: Lossless<Provenance>;
   graphical?: CompleteGraphical;
@@ -716,29 +731,38 @@ export type CompleteRegion = {
  */
 export type CompleteFlowControlElement = {
   id: Id;
-  type: "jump_from" | "jump_to" | "flow_marker";
-  manifestation:
-    | "repeat_end"
-    | "da_capo"
-    | "da_capo_al_fine"
-    | "da_capo_al_coda"
-    | "dal_segno"
-    | "dal_segno_al_fine"
-    | "dal_segno_al_coda"
-    | "to_coda"
-    | "repeat_start"
-    | "segno"
-    | "coda"
-    | "fine"
-    | "section_break"
-    | "double_barline"
-    | "final_barline";
+  role: "jump" | "jump_target" | "break" | "section_break" | "barline";
   coordinate: Lossless<Number>;
-  target?: Id;
-  repeat_count?: JsonNumber;
+  /**
+   * @minItems 1
+   */
+  targets?: [CompleteJumpDestination, ...CompleteJumpDestination[]];
+  manifestation?: string;
+  ends?: Lossless<BreakCondition>;
   name: Name;
   label: string | null;
   meta: Meta;
+  /**
+   * @minItems 1
+   */
+  provenance?: [ProvenanceRecord, ...ProvenanceRecord[]];
+};
+/**
+ * `JumpDestination` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompleteJumpDestination".
+ */
+export type CompleteJumpDestination = {
+  to?: Id;
+  by?: Lossless<Number>;
+  passes?: Lossless<Passes>;
+  repeat_count?: JsonNumber;
+  after?: Lossless<DestinationReference>;
+  determined: boolean;
+  reset: boolean;
+  manifestation?: string;
+  label: string | null;
 };
 /**
  * `Group` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -763,6 +787,40 @@ export type CompleteMeasureMap = {
   name: Name;
   meta: Meta;
   rows: Lossless<MeasureMapRows>;
+};
+/**
+ * `FlowMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompleteFlowMap".
+ */
+export type CompleteFlowMap = {
+  id: Id;
+  timeline: Id;
+  chunks: (Id | Lossless<Gap>)[];
+  convention?: string;
+  canonical: boolean;
+  name: Name;
+  /**
+   * @minItems 1
+   */
+  provenance?: [ProvenanceRecord, ...ProvenanceRecord[]];
+};
+/**
+ * `VirtualTimeline` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "CompleteVirtualTimeline".
+ */
+export type CompleteVirtualTimeline = {
+  id: Id;
+  map: Id;
+  timeline: Id;
+  unit: TimeUnit;
+  number_type: NumberType;
+  length: Lossless<NumberNonnegative>;
+  through?: Id;
+  name: Name;
 };
 /**
  * `Graphical` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -848,7 +906,7 @@ export type CompleteElision = {
 };
 
 /**
- * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp, elision, MatchStamp, alignment anchor and resource. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the resources are written sorted by ID, each group's members by code point, the named timestamps by timeline, then coordinate, then ID, and the elisions by timeline, then start, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry `statements` and `provenance`; no other element carries any. A manifest carrying either holds the inline JSON-LD context `@context`, which makes it a YAML-LD document. The values of a pair and the entries of `provenance` keep the order they are given in.
+ * A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp, elision, MatchStamp, alignment anchor, resource, FlowMap and virtual timeline. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps, the resources, the FlowMaps and the virtual timelines are written sorted by ID, each group's members by code point, the named timestamps by timeline, then coordinate, then ID, and the elisions by timeline, then start, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry `statements` and `provenance`; a flow-control element and a FlowMap may carry `provenance` alone, whose entries are about the element itself and name no pair; no other element carries any. A manifest carrying either holds the inline JSON-LD context `@context`, which makes it a YAML-LD document. The values of a pair and the entries of `provenance` keep the order they are given in.
  */
 export interface Manifest {
   /**
@@ -888,6 +946,14 @@ export interface Manifest {
    * The files the manifest names, each one descriptor (`Resource`): the MatchClaim table, the Projections table and event tables. The manifest never names an event or a MatchClaim inside them. The array may be empty.
    */
   resources?: Resource[];
+  /**
+   * The FlowMaps: each one order in which stretches of one root timeline are played. Absent where the manifest states none; a timeline without flow control has none computed for it.
+   */
+  flow_maps?: FlowMap[];
+  /**
+   * The virtual timelines: each the statement that a map was applied to a timeline, giving a timeline of which nothing else is written. Absent where the manifest states none.
+   */
+  virtual_timelines?: VirtualTimeline[];
   /**
    * Property–value pairs about the bundle, which names the work it bundles manifestations of (`schema:about`).
    */
@@ -985,7 +1051,7 @@ export interface Meta {
   [k: string]: unknown;
 }
 /**
- * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, flow-control coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; flow-control elements by coordinate, then ID. Readers accept any order.
+ * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, flow-control coordinates and the distances `by` of a jump's destinations) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; flow-control elements by coordinate, then ID; a jump's `targets`, which carry no order, by place: the destination without a place first, then those with `by`, by value, then those with `to`, by ID. Readers accept any order.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Timeline".
@@ -1036,7 +1102,7 @@ export interface Timeline {
    */
   regions?: Region[];
   /**
-   * The flow control of this timeline: its jump origins, jump targets and flow markers.
+   * The flow control of this timeline: its jumps, jump targets, breaks, section breaks and barlines.
    */
   flow_control?: FlowControlElement[];
   /**
@@ -1074,7 +1140,7 @@ export interface MapBase {
   target_unit: TimeUnit | null;
 }
 /**
- * A region of a timeline, from start to end on the timeline's own axis.
+ * A region of a timeline, from start to end on the timeline's own axis. An atomic section of a timeline's flow is a region stating the class `https://timetoalign.github.io/timetoshare/ns#AtomicSection` in its `type` statement, written as a compact IRI under a prefix the context declares for that namespace (`tts:AtomicSection`), with its letter as `name` and a provenance entry of method `inferred` for that pair. The atomic sections are the intervals between consecutive boundaries of the timeline's flow control: 0, the timeline's length, the coordinates of its jumps, jump targets, breaks and section breaks, and the places of all destinations but those with `by` 0. They are lettered in the order of the axis. A timeline without flow control has none.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Region".
@@ -1191,7 +1257,7 @@ export interface ValueNode {
   [k: string]: Values | IriReference | Types | Provenance | undefined;
 }
 /**
- * One element of a timeline's flow control, at a coordinate on the timeline's own axis. A jump_from is where playback leaves for another position: its target, a jump_to of the same timeline, or, for a da_capo manifestation or a repeat_end without a target, the timeline's start. A jump_to is a position a jump_from names as its target. A flow_marker marks a position without a jump of its own: a fine, where playback ends after a jump al fine, or a section_break, a double_barline or a final_barline, which divide the timeline. When a jump acts follows from its manifestation: a repeat_end on its first repeat_count passes, a to_coda only after a da_capo_al_coda or a dal_segno_al_coda, every other jump_from always.
+ * One element of a timeline's flow control, at a coordinate on the timeline's own axis, from 0 to the timeline's length where that is known (checked after the schema). Its `role` names what it is. A `jump` is where the flow may leave for another place: it holds one or more destinations (`targets`), and when the flow plays up to its coordinate, a destination that holds is taken; where none holds, the flow goes on. A timeline has at most one jump at a coordinate (checked after the schema): several signs at one place, such as a repeat end and a dal segno on one barline, are destinations of that one jump. A `jump_target` is a place a destination names; nothing happens there. A `break` is where the flow never goes on: when the flow plays up to it, a destination that holds of the jump at the same coordinate is taken, otherwise the flow ends there. A break with `ends` is a break only while that condition holds, as a Fine ends the flow only after the da capo or dal segno it names; a break without `ends` always is one. A break stands between adjacent volta brackets, and a bracket is left only by a jump at its end whose destination holds. A `section_break` ends a section, a movement included, and the flow goes on across it: no atomic section spans it; a destination without a place lands at the nearest section break before its jump, else at the timeline's start; and a flow that has ended at a break begins again at the nearest section break at or after that break, where there is one before the timeline's end. A `barline` marks a position and has no effect on the flow. An element acts when the flow plays up to its coordinate, never when a destination lands on it. The earlier form of flow control, the key `type` with the values `jump_from`, `jump_to` and `flow_marker` and the key `target`, is refused.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "FlowControlElement".
@@ -1202,46 +1268,113 @@ export interface FlowControlElement {
    */
   id: Id;
   /**
-   * The element type: a jump origin, a jump target or a flow marker. It decides the manifestations the element may take and whether it may carry a target and a repeat count.
+   * What the element is: a jump, a jump target, a break, a section break or a barline. It decides which of `targets`, `manifestation` and `ends` the element may carry.
    */
-  type: "jump_from" | "jump_to" | "flow_marker";
-  /**
-   * How the element is notated. A jump_from is a repeat_end, a da_capo, da_capo_al_fine or da_capo_al_coda, a dal_segno, dal_segno_al_fine or dal_segno_al_coda, or a to_coda; a jump_to is a repeat_start, a segno or a coda; a flow_marker is a fine, a section_break, a double_barline or a final_barline.
-   */
-  manifestation:
-    | "repeat_end"
-    | "da_capo"
-    | "da_capo_al_fine"
-    | "da_capo_al_coda"
-    | "dal_segno"
-    | "dal_segno_al_fine"
-    | "dal_segno_al_coda"
-    | "to_coda"
-    | "repeat_start"
-    | "segno"
-    | "coda"
-    | "fine"
-    | "section_break"
-    | "double_barline"
-    | "final_barline";
+  role: "jump" | "jump_target" | "break" | "section_break" | "barline";
   /**
    * Where the element lies on the timeline's own axis.
    */
   coordinate: Number;
   /**
-   * The ID of the jump_to of the same timeline a jump_from leads to; checked after the schema. Required on a dal_segno manifestation and a to_coda; optional on a da_capo manifestation and a repeat_end, where its absence means the timeline's start; carried by no other element.
+   * The destinations of a jump, one or more, at distinct places (checked after the schema): no two with the same `to`, the same `by`, or both without a place. They carry no order. Carried by a jump only.
+   *
+   * @minItems 1
    */
-  target?: Id;
+  targets?: [JumpDestination, ...JumpDestination[]];
   /**
-   * How many passes a repeat_end sends back to its target, 1 by default; carried by a repeat_end only.
+   * How the element is notated, a word of an open vocabulary: a jump target is a `repeat_start`, a `segno`, a `coda`, a `volta` or an `ossia`; a break a `fine` or a `volta`; a barline a `double_barline` or a `final_barline`; no word is defined for a section break. Another word is valid and kept, and the TimeToShare validators report it as unknown. The manifestation never decides the flow. A jump carries none: each of its destinations has its own.
    */
-  repeat_count?: number;
+  manifestation?: string;
+  /**
+   * The condition under which a break ends the flow; absent, the break always holds. Carried by a break only.
+   */
+  ends?: BreakCondition;
   name?: Name;
   /**
    * The text the element is drawn with, or null.
    */
   label?: string | null;
   meta?: Meta;
+  /**
+   * The provenance of this element: how it was made (`imported` by a loader, `manual` where a person added it, `inferred`) and who believes it. A repair adds elements and rejects elements, never deletes or changes one: an element some actor believes `false` is rejected, and a reader computing a flow leaves it out.
+   *
+   * @minItems 1
+   */
+  provenance?: [ProvenanceRecord, ...ProvenanceRecord[]];
+}
+/**
+ * One destination of a jump: a place and the conditions under which it is taken. Every key is optional. The place is `to`, `by` or neither, never both: without either, the destination lands at the start of the section its jump lies in, the nearest section break before the jump, else the timeline's start. The conditions are `passes`, `repeat_count`, `after` and `determined`; the destination holds when all that are present hold, and one without any condition is taken every time the flow plays up to its jump, so a repeat end, a da capo and a dal segno state `repeat_count` 1. Where several destinations of a jump hold at once, one with `by` 0 never competes; of the others, one lying before the jump that restores (`reset`) is taken first, then one lying before the jump that does not, then one lying ahead, the nearest of its kind in each case; two of one kind holding together are ambiguous, which a reader computing the flow reports. So a repeat end and a dal segno on one barline play the repeat first and the dal segno after it.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "JumpDestination".
+ */
+export interface JumpDestination {
+  /**
+   * The place as an element: the ID of a jump target of the same timeline, of a region of it (its start), of a child timeline of it (its start on this axis) or of the timeline itself (its start); checked after the schema.
+   */
+  to?: Id;
+  /**
+   * The place as a signed distance from the jump's coordinate on the same axis, in the axis's number type; the place lies from 0 to the timeline's length (checked after the schema). A distance of 0 is going on and no jump: it is written where the source prints it, as the numbers of a first volta bracket, and is never taken.
+   */
+  by?: Number;
+  /**
+   * The passes on which the destination holds, the n-th arrival of the flow at the jump being pass n. Beyond the highest number any destination of the jump names in a list, the destination naming that number holds, as the last volta bracket does after a da capo without repeats.
+   */
+  passes?: Passes;
+  /**
+   * How many times the destination is taken at most.
+   */
+  repeat_count?: number;
+  /**
+   * A destination of another jump: this destination holds once that one has been taken, and the condition is used up when this one is taken, as a To Coda holds after its dal segno al coda.
+   */
+  after?: DestinationReference;
+  /**
+   * Whether the source decides when the destination is taken. `false` marks a choice nobody can check, such as an ossia, whose jump has the main text as its determined destination; a reader computing a flow never takes it.
+   */
+  determined?: boolean;
+  /**
+   * Whether taking the destination, where it lies before its jump, restores every jump and break lying wholly inside the stretch gone back over (its coordinate and all its places from the destination's place up to, but not at, the jump's coordinate): their passes, the times their destinations were taken and their `after` conditions start again, as a repeat plays an inner repeat again. `false` on a da capo or a dal segno states that the repeats are not played again (senza repetizione).
+   */
+  reset?: boolean;
+  /**
+   * How the destination is notated, a word of an open vocabulary: `repeat_end`, `da_capo`, `da_capo_al_fine`, `da_capo_al_coda`, `dal_segno`, `dal_segno_al_fine`, `dal_segno_al_coda`, `to_coda`, `volta` or `ossia`. Another word is valid and kept, and the TimeToShare validators report it as unknown. The manifestation never decides the flow.
+   */
+  manifestation?: string;
+  /**
+   * The text the destination is drawn with, or null.
+   */
+  label?: string | null;
+}
+/**
+ * One destination of a jump of the same timeline, named without an ID of its own: the jump's ID and the destination's place, `to` or `by` as that destination writes it. Neither names the destination without a place, or the one destination of a jump that has no other. That it names exactly one destination of another jump is checked after the schema.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "DestinationReference".
+ */
+export interface DestinationReference {
+  /**
+   * The ID of the jump.
+   */
+  jump: Id;
+  /**
+   * The `to` of the destination meant.
+   */
+  to?: Id;
+  /**
+   * The `by` of the destination meant, compared by value.
+   */
+  by?: Number;
+}
+/**
+ * The condition under which a break ends the flow: `passes`, the arrivals of the flow at the break, and `after`, a destination that has been taken; where both are present both must hold. At least one of the two is stated.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "BreakCondition".
+ */
+export interface BreakCondition {
+  passes?: Passes;
+  after?: DestinationReference;
 }
 /**
  * A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group. A child may belong to a group while its root belongs to another or to none.
@@ -1374,6 +1507,87 @@ export interface Resource {
     algorithm: "MD5" | "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512";
     digest: string;
   };
+}
+/**
+ * A FlowMap: one order in which stretches of one root timeline are played, a concrete flow where flow control states what a source affords. It needs no flow control: a reading, an order of movements or a set list is a FlowMap written by hand. Applying it to its timeline gives a virtual timeline (`VirtualTimeline`) whose axis starts at 0 with the first chunk and is as long as its chunks and gaps together.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "FlowMap".
+ */
+export interface FlowMap {
+  /**
+   * The FlowMap ID.
+   */
+  id: Id;
+  /**
+   * The ID of the one root timeline whose stretches the chunks are; checked after the schema.
+   */
+  timeline: Id;
+  /**
+   * The chunks in the order they are played, never reordered by a writer. Each is the ID of an element giving an interval inside the tree of `timeline` (a region or a child timeline at any depth, or a virtual timeline of a timeline of that tree; checked after the schema) or a gap, `{gap: length}`, a stretch of strictly positive length that nothing of the timeline fills, in the timeline's number type. An element may occur any number of times.
+   */
+  chunks: (Id | Gap)[];
+  /**
+   * Which flow of the timeline's flow control the FlowMap states, a word of an open vocabulary: `default`, every repeat and leap played as written; `single`, each stretch played once, without going back; `printed`, the atomic sections in the order of the axis. Another word is valid and kept, and the TimeToShare validators report it as unknown. Absent on a FlowMap that follows none, such as one written by hand.
+   */
+  convention?: string;
+  /**
+   * Whether this is the canonical FlowMap of its timeline; at most one FlowMap of a timeline is (checked after the schema).
+   */
+  canonical?: boolean;
+  name?: Name;
+  /**
+   * The provenance of this FlowMap: how it was made and who believes it.
+   *
+   * @minItems 1
+   */
+  provenance?: [ProvenanceRecord, ...ProvenanceRecord[]];
+}
+/**
+ * A gap of a FlowMap: a stretch of the given strictly positive length that nothing of the timeline fills.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Gap".
+ */
+export interface Gap {
+  /**
+   * The length of the gap on the timeline's axis.
+   */
+  gap: NumberPositive;
+}
+/**
+ * A virtual timeline: the statement that a map was applied to a timeline, giving a timeline with its own ID. Nothing else of it is written; positions on it and on the timeline it comes from convert through the map in both directions. It holds no children, flow control or offset. Its unit, number type and length are always stated, so that a reader evaluating no map can still use the axis.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "VirtualTimeline".
+ */
+export interface VirtualTimeline {
+  /**
+   * The virtual timeline's ID.
+   */
+  id: Id;
+  /**
+   * The ID of the map applied: a FlowMap or a conversion map of the manifest; checked after the schema.
+   */
+  map: Id;
+  /**
+   * The ID of the timeline the map is applied to: a timeline of the manifest at any depth, or another virtual timeline; checked after the schema.
+   */
+  timeline: Id;
+  unit: TimeUnit;
+  /**
+   * The number type of the virtual timeline's axis, admitted by its unit as a timeline's is.
+   */
+  number_type: NumberType;
+  /**
+   * The end of the virtual timeline on its own axis, in its number type.
+   */
+  length: NumberNonnegative;
+  /**
+   * The ID of the group or conversion map that carries the map to `timeline`, where the map's own elements do not lie on that timeline.
+   */
+  through?: Id;
+  name?: Name;
 }
 /**
  * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of rules, the display order of each group's members, the band order of each timeline, the named timestamps, the named MatchStamps and the elisions. A rule selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the rules or an order. An absent `graphical` object draws every element with the other style layers alone.

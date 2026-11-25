@@ -119,6 +119,7 @@ export {
   verbOf,
 } from "./statements/catalogue.js";
 export {
+  ATOMIC_SECTION,
   BELIEF_STATES,
   BELIEFS,
   type Belief,

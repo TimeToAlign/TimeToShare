@@ -233,8 +233,10 @@ describe("the schema document", () => {
       "band",
       "map",
       "region",
-      "flow_marker",
-      "jump_from",
+      "break",
+      "section_break",
+      "barline",
+      "jump",
       "wedge",
       "name",
       "label",
@@ -482,7 +484,17 @@ describe("the schema document", () => {
     const selector = properties("Selector");
     expect(selector.within?.$ref).toBe("#/$defs/Id");
     expect(selector.addresses?.items).toEqual({ $ref: "#/$defs/Address" });
-    expect(properties("FlowControlElement").target?.$ref).toBe("#/$defs/Id");
+    expect(properties("JumpDestination").to?.$ref).toBe("#/$defs/Id");
+    const reference = properties("DestinationReference");
+    expect([reference.jump?.$ref, reference.to?.$ref]).toEqual(["#/$defs/Id", "#/$defs/Id"]);
+    const flowMap = properties("FlowMap");
+    expect(flowMap.timeline?.$ref).toBe("#/$defs/Id");
+    expect(flowMap.chunks?.items).toEqual({
+      oneOf: [{ $ref: "#/$defs/Id" }, { $ref: "#/$defs/Gap" }],
+    });
+    for (const member of ["map", "timeline", "through"]) {
+      expect(properties("VirtualTimeline")[member]?.$ref, member).toBe("#/$defs/Id");
+    }
     expect(properties("MeasureView").measure_map?.$ref).toBe("#/$defs/Id");
     const ajv = new Ajv2020({ strict: false });
     const identifier = ajv.compile({ $ref: "#/$defs/Id", $defs: defs });
@@ -615,17 +627,14 @@ describe("the schema document", () => {
       timestamp: ["Timestamp"],
       alignment_anchor: ["AlignmentAnchor"],
       elision: ["Elision"],
+      flow_control_element: ["FlowControlElement"],
+      jump_destination: ["JumpDestination"],
+      flow_map: ["FlowMap"],
+      virtual_timeline: ["VirtualTimeline"],
     };
     const own: Readonly<Record<string, Kind>> = { LinearMap: "linear_map", TableMap: "table_map" };
-    const element = ["flow_control_element", "repeat_end"];
     expect(
-      [
-        ...Object.keys(kinds),
-        "conversion_map",
-        "match_timestamp",
-        ...Object.values(own),
-        ...element,
-      ].sort(),
+      [...Object.keys(kinds), "conversion_map", "match_timestamp", ...Object.values(own)].sort(),
     ).toEqual(Object.keys(DEFAULTS).sort());
     const matched = defs.Timestamp as Node;
     expect(matched.if).toEqual({
@@ -634,14 +643,11 @@ describe("the schema document", () => {
     });
     expect(defaultsOf(matched.then as Node)).toEqual(DEFAULTS.match_timestamp);
     expect(matched.else).toEqual({ required: ["name"] });
-    const covered = new Set<string>(["MapBase", "MeasureView", "FlowControlElement"]);
-    const flowControl = defs.FlowControlElement as Node;
-    expect(defaultsOf(flowControl)).toEqual(DEFAULTS.flow_control_element);
-    const repeatEnd = (flowControl.then as Node).else as Node;
-    expect(((repeatEnd.if as Node).properties as Node).manifestation).toEqual({
-      const: "repeat_end",
-    });
-    expect(defaultsOf(repeatEnd.then as Node)).toEqual(DEFAULTS.repeat_end);
+    const covered = new Set<string>(["MapBase", "MeasureView"]);
+    expect(properties("JumpDestination").repeat_count).not.toHaveProperty("default");
+    for (const member of ["flow_maps", "virtual_timelines"]) {
+      expect(properties("Manifest")[member], member).not.toHaveProperty("default");
+    }
     for (const [kind, names] of Object.entries(kinds)) {
       for (const name of names) {
         covered.add(name);

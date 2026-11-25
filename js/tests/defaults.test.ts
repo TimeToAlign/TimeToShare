@@ -23,7 +23,7 @@ const SMALLEST = {
   timelines: [{ id: "piece", unit: "quarters", length: [32, 1] }],
 };
 const REGION = { id: "r", start: [0, 1], end: [1, 1] };
-const REPEAT = { id: "b", type: "jump_from", manifestation: "repeat_end" };
+const JUMP = { id: "b", role: "jump" };
 const root = (value: unknown) => ((value as JsonObject).timelines as JsonObject[])[0] as JsonObject;
 const STATEMENTS = { type: ["schema:MusicRecording"], "schema:position": [1] };
 const PROVENANCE = [
@@ -109,10 +109,23 @@ describe("the complete and the minimal form", () => {
           timeline("score", "quarters", [8, 1], {
             regions: [{ id: "r", start: [0, 1], end: [1, 1] }],
             flow_control: [
-              { id: "b", type: "flow_marker", manifestation: "fine", coordinate: [1, 1] },
-              { id: "j", type: "jump_from", manifestation: "da_capo", coordinate: [1, 1] },
-              { id: "again", type: "jump_from", manifestation: "repeat_end", coordinate: [1, 1] },
-              { id: "m", type: "jump_to", manifestation: "segno", coordinate: [0, 1] },
+              {
+                id: "b",
+                role: "break",
+                manifestation: "fine",
+                coordinate: [1, 1],
+                ends: { after: { jump: "j" } },
+              },
+              {
+                id: "j",
+                role: "jump",
+                coordinate: [2, 1],
+                targets: [
+                  { repeat_count: 1, manifestation: "da_capo" },
+                  { to: "m", determined: false, reset: false, label: "D.S." },
+                ],
+              },
+              { id: "m", role: "jump_target", manifestation: "segno", coordinate: [0, 1] },
             ],
             conversion_maps: [
               {
@@ -147,9 +160,26 @@ describe("the complete and the minimal form", () => {
           groups: [{ id: "g", members: ["score"] }],
           measure_maps: [{ id: "bars", rows }],
           graphical: {},
+          flow_maps: [{ id: "f", timeline: "score", chunks: ["r"] }],
+          virtual_timelines: [
+            {
+              id: "v",
+              map: "f",
+              timeline: "score",
+              unit: "quarters",
+              number_type: "fraction",
+              length: [1, 1],
+            },
+          ],
         },
       ),
     );
+    expect((value as JsonObject).flow_maps).toEqual([
+      { id: "f", timeline: "score", chunks: ["r"], canonical: false, name: null },
+    ]);
+    const virtual = ((value as JsonObject).virtual_timelines as JsonObject[])[0] as JsonObject;
+    expect(virtual.name).toBeNull();
+    expect(Object.keys(virtual).length).toBe(7);
     const done = root(value);
     expect((done.regions as JsonObject[])[0]).toEqual({
       id: "r",
@@ -160,17 +190,31 @@ describe("the complete and the minimal form", () => {
     });
     const defaults = { name: null, label: null, meta: {} };
     expect(done.flow_control).toEqual([
-      { id: "b", type: "flow_marker", manifestation: "fine", coordinate: [1, 1], ...defaults },
-      { id: "j", type: "jump_from", manifestation: "da_capo", coordinate: [1, 1], ...defaults },
       {
-        id: "again",
-        type: "jump_from",
-        manifestation: "repeat_end",
+        id: "b",
+        role: "break",
+        manifestation: "fine",
         coordinate: [1, 1],
+        ends: { after: { jump: "j" } },
         ...defaults,
-        repeat_count: 1,
       },
-      { id: "m", type: "jump_to", manifestation: "segno", coordinate: [0, 1], ...defaults },
+      {
+        id: "j",
+        role: "jump",
+        coordinate: [2, 1],
+        targets: [
+          {
+            repeat_count: 1,
+            manifestation: "da_capo",
+            determined: true,
+            reset: true,
+            label: null,
+          },
+          { to: "m", determined: false, reset: false, label: "D.S." },
+        ],
+        ...defaults,
+      },
+      { id: "m", role: "jump_target", manifestation: "segno", coordinate: [0, 1], ...defaults },
     ]);
     const [chain, combo, pieces] = done.conversion_maps as [JsonObject, JsonObject, JsonObject];
     expect(chain).toEqual({
@@ -339,38 +383,66 @@ describe("the complete and the minimal form", () => {
       timeline("score", "quarters", 8.5, {
         locked: true,
         number_type: "float",
-        flow_control: [{ ...REPEAT, coordinate: 1.5, repeat_count: 2, label: null }],
+        flow_control: [
+          {
+            ...JUMP,
+            coordinate: 1.5,
+            targets: [
+              { repeat_count: 1, determined: false, reset: false, label: "Repeat" },
+              { by: -1, determined: true, reset: true, label: null },
+            ],
+            label: null,
+          },
+        ],
       }),
     ]);
-    expect(minimal(value)).toEqual(
-      manifest([
+    const flowMaps = {
+      flow_maps: [
+        { id: "f", timeline: "score", chunks: [], canonical: true, name: null },
+        { id: "g", timeline: "score", chunks: [], canonical: false },
+      ],
+      virtual_timelines: [],
+    };
+    expect(minimal({ ...value, ...flowMaps })).toEqual({
+      ...manifest([
         timeline("score", "quarters", 8.5, {
           locked: true,
           number_type: "float",
-          flow_control: [{ ...REPEAT, coordinate: 1.5, repeat_count: 2 }],
+          flow_control: [
+            {
+              ...JUMP,
+              coordinate: 1.5,
+              targets: [
+                { repeat_count: 1, determined: false, reset: false, label: "Repeat" },
+                { by: new JsonFloat(-1) },
+              ],
+            },
+          ],
         }),
       ]),
-    );
+      flow_maps: [
+        { id: "f", timeline: "score", chunks: [], canonical: true },
+        { id: "g", timeline: "score", chunks: [] },
+      ],
+      virtual_timelines: [],
+    });
   });
 
   it("omits a value of another kind equal to its default", () => {
     const map = { type: "LinearMap", id: "l", source_unit: "quarters", target_unit: "seconds" };
     const value = manifest([
       timeline("score", "quarters", [8, 1], {
-        flow_control: [{ ...REPEAT, coordinate: [1, 1], repeat_count: new JsonFloat(1) }],
         conversion_maps: [{ ...map, scalar: [1, 1], offset: new JsonFloat(-0) }],
       }),
     ]);
     const stripped = manifest([
       timeline("score", "quarters", [8, 1], {
-        flow_control: [{ ...REPEAT, coordinate: [1, 1] }],
         conversion_maps: [map],
       }),
     ]);
     expect(minimal(value)).toEqual(stripped);
     expect(dumps(complete(minimal(value)))).toBe(dumps(complete(stripped)));
     const completed = root(complete(value));
-    expect((completed.flow_control as JsonObject[])[0]?.repeat_count).toEqual(new JsonFloat(1));
     expect((completed.conversion_maps as JsonObject[])[0]?.scalar).toEqual([1, 1]);
   });
 
@@ -486,13 +558,13 @@ describe("the typed forms", () => {
     // @ts-expect-error a complete flow-control element states its label
     const uncounted: CompleteFlowControlElement = {
       id: "b",
-      type: "flow_marker",
+      role: "break",
       manifestation: "fine",
       coordinate: 1,
       name: null,
       meta: {},
     };
-    // A repeat count is no key of every element, so the complete form keeps it optional.
+    // `ends` and `targets` are no keys of every element, so the complete form keeps them optional.
     const marker: CompleteFlowControlElement = { ...uncounted, label: null };
     // A measure view carries the members of both its bases.
     const view: CompleteMeasureRecordMap = {
@@ -559,7 +631,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(92);
+    expect(twins.length).toBe(102);
     expect(twins.map((twin) => twin.replace(/\.minimal$/, ""))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal")),
     );

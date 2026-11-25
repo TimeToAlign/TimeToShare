@@ -22,6 +22,13 @@ export type ValidationCode =
   | "representation"
   | "duplicate_id"
   | "dangling_target"
+  | "flow_control_form"
+  | "flow_coordinate"
+  | "jump_repeated"
+  | "jump_destination"
+  | "flow_map_timeline"
+  | "flow_map_chunk"
+  | "flow_map_canonical"
   | "conversion_map"
   | "child_unit"
   | "child_offset"
@@ -173,7 +180,8 @@ export type ManifestId = readonly [id: string, path: PathSegment[], root: number
  * Every ID of a manifest with its path, in the order of the identity rules:
  * each root's tree (as `treeIds` walks it), the groups', the MeasureMaps',
  * the named timestamps' IDs, the elisions', the named MatchStamps', each followed by its
- * alignment anchors', the resources', then the manifest's own at `["id"]`.
+ * alignment anchors', the resources', the FlowMaps', the virtual timelines',
+ * then the manifest's own at `["id"]`.
  * What holds no string `id` is passed over.
  */
 export function* manifestIds(manifest: unknown): Generator<ManifestId> {
@@ -201,9 +209,11 @@ export function* manifestIds(manifest: unknown): Generator<ManifestId> {
       if (anchorId !== null) yield [anchorId, [...at, "alignment_anchors", number, "id"], null];
     }
   }
-  for (const [index, resource] of entries(manifest, "resources").entries()) {
-    const id = stringId(resource);
-    if (id !== null) yield [id, ["resources", index, "id"], null];
+  for (const key of ["resources", "flow_maps", "virtual_timelines"]) {
+    for (const [index, entry] of entries(manifest, key).entries()) {
+      const id = stringId(entry);
+      if (id !== null) yield [id, [key, index, "id"], null];
+    }
   }
   const own = stringId(manifest);
   if (own !== null) yield [own, ["id"], null];

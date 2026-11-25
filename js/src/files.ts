@@ -29,7 +29,7 @@ export interface FileForm {
  * when its minimal form writes the same canonical YAML as the value the text
  * holds: a key stated at its default makes a text not minimal, and the order
  * canonical order sorts does not count. Defaults are recognized by exact
- * value (`repeat_count: 1.0` is the default `1`) and own-axis values
+ * value (a `LinearMap`'s `scalar: 1.0` is the default `1`) and own-axis values
  * respelled by the declared number type on both sides, so an RFC 8785 JSON text, which writes
  * an integral float as an integer, reads as the form it was written in. It
  * holds its styling when it has a top-level `graphical` key; the

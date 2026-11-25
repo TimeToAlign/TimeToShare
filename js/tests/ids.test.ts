@@ -45,8 +45,24 @@ timelines:
     statements:
       dcterms:source: [{id: "#verse"}]
   flow_control:
-  - {id: jump_to_1, type: jump_to}
-  - {id: jump_from_1, type: jump_from, target: jump_to_1}
+  - {id: jump_target_1, role: jump_target}
+  - id: jump_1
+    role: jump
+    targets:
+    - {to: jump_target_1}
+    - by: [0, 1]
+      after: {jump: jump_2, to: intro}
+  - {id: jump_2, role: jump, targets: [{to: intro}]}
+  - id: break_1
+    role: break
+    ends:
+      after: {jump: jump_1, to: jump_target_1}
+flow_maps:
+- id: flow_map_1
+  timeline: score
+  chunks: [intro, {gap: [1, 1]}, verse, virtual_1]
+virtual_timelines:
+- {id: virtual_1, map: flow_map_1, timeline: score, through: g}
 groups:
 - {id: g, members: [score]}
 measure_maps:
@@ -92,8 +108,24 @@ timelines:
     statements:
       dcterms:source: [{id: "#verse"}]
   flow_control:
-  - {id: "#jump_to_1", type: jump_to}
-  - {id: "#jump_from_1", type: jump_from, target: "#jump_to_1"}
+  - {id: "#jump_target_1", role: jump_target}
+  - id: "#jump_1"
+    role: jump
+    targets:
+    - {to: "#jump_target_1"}
+    - by: [0, 1]
+      after: {jump: "#jump_2", to: "#intro"}
+  - {id: "#jump_2", role: jump, targets: [{to: "#intro"}]}
+  - id: "#break_1"
+    role: break
+    ends:
+      after: {jump: "#jump_1", to: "#jump_target_1"}
+flow_maps:
+- id: "#flow_map_1"
+  timeline: "#score"
+  chunks: ["#intro", {gap: [1, 1]}, "#verse", "#virtual_1"]
+virtual_timelines:
+- {id: "#virtual_1", map: "#flow_map_1", timeline: "#score", through: "#g"}
 groups:
 - {id: "#g", members: ["#score"]}
 measure_maps:
@@ -270,14 +302,21 @@ const definitions = (schema as unknown as { $defs: Record<string, Node> }).$defs
 const nameOf = (reference: unknown) => String(reference).slice("#/$defs/".length);
 const refOf = (node: unknown) => (isJsonObject(node) ? node.$ref : undefined);
 
-/** Where the schema types a value as `$defs/Id`, and how. */
+/**
+ * Where the schema types a value as `$defs/Id`, and how. The items of a list
+ * count where each is an ID or one of several shapes of which one is an ID,
+ * as a FlowMap's chunks are an ID or a gap.
+ */
 function schemaIdPositions(): string[] {
   const found: string[] = [];
   for (const [definition, node] of Object.entries(definitions)) {
     for (const [member, declared] of Object.entries((node.properties ?? {}) as Node)) {
       const at = declared as Node;
       if (at.$ref === ID) found.push(`${definition}.${member}.value`);
-      if (refOf(at.items) === ID) found.push(`${definition}.${member}.items`);
+      const choices = isJsonObject(at.items) ? ((at.items.oneOf ?? []) as Node[]) : [];
+      if (refOf(at.items) === ID || choices.some((choice) => choice.$ref === ID)) {
+        found.push(`${definition}.${member}.items`);
+      }
       if (refOf(at.propertyNames) === ID) found.push(`${definition}.${member}.propertyNames`);
       if (((at.anyOf ?? []) as Node[]).some((branch) => branch.$ref === ID)) {
         found.push(`${definition}.${member}.anyOf`);

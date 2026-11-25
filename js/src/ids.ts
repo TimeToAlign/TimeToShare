@@ -5,7 +5,9 @@
  * (`"id": "#clt_1"`) as well as every reference to one (a group's members,
  * the keys of `graphical.order`, a named timestamp's timeline, an elision's
  * timeline, an alignment anchor's timestamps, a resource's timelines, an address's `id`, a
- * selector's `within`, a flow-control element's `target`, a measure view's
+ * selector's `within`, the `to` of a jump's destination, the `jump` and `to`
+ * of an `after`, a FlowMap's `timeline` and the IDs among its `chunks`, a
+ * virtual timeline's `map`, `timeline` and `through`, a measure view's
  * `measure_map`). The IDs of MatchClaims a MatchStamp lists name rows of a
  * MatchClaim table, not elements, and are no ID position. In memory an ID
  * is bare: `clt_1`. Exactly one `#`
@@ -33,7 +35,8 @@ import { clone, isJsonObject, type JsonObject, keysOf, objectFrom } from "./json
 export const HASH = "#";
 
 /**
- * How a member holds IDs: `id` the member is one ID; `ids` a list of IDs;
+ * How a member holds IDs: `id` the member is one ID; `ids` a list of IDs, an
+ * item that is no string (a FlowMap's gap) kept as it is;
  * `order` an object keyed by IDs whose value, where the key names a group, is
  * a list of member IDs (a timeline's value holds band words).
  */
@@ -59,7 +62,16 @@ export const ID_POSITIONS: readonly (readonly [string, string, IdShape])[] = [
   ["MeasureMap", "id", "id"],
   ["Region", "id", "id"],
   ["FlowControlElement", "id", "id"],
-  ["FlowControlElement", "target", "id"],
+  ["JumpDestination", "to", "id"],
+  ["DestinationReference", "jump", "id"],
+  ["DestinationReference", "to", "id"],
+  ["FlowMap", "id", "id"],
+  ["FlowMap", "timeline", "id"],
+  ["FlowMap", "chunks", "ids"],
+  ["VirtualTimeline", "id", "id"],
+  ["VirtualTimeline", "map", "id"],
+  ["VirtualTimeline", "timeline", "id"],
+  ["VirtualTimeline", "through", "id"],
   ["Selector", "within", "id"],
   ["MapBase", "id", "id"],
   ["MeasureView", "measure_map", "id"],
@@ -75,10 +87,16 @@ export const CONTAINERS: readonly (readonly [string, string, Holding, string])[]
   ["Manifest", "measure_maps", "list", "MeasureMap"],
   ["Manifest", "resources", "list", "Resource"],
   ["Manifest", "graphical", "one", "Graphical"],
+  ["Manifest", "flow_maps", "list", "FlowMap"],
+  ["Manifest", "virtual_timelines", "list", "VirtualTimeline"],
   ["Timeline", "children", "list", "Timeline"],
   ["Timeline", "conversion_maps", "list", "ConversionMap"],
   ["Timeline", "regions", "list", "Region"],
   ["Timeline", "flow_control", "list", "FlowControlElement"],
+  ["FlowControlElement", "targets", "list", "JumpDestination"],
+  ["FlowControlElement", "ends", "one", "BreakCondition"],
+  ["JumpDestination", "after", "one", "DestinationReference"],
+  ["BreakCondition", "after", "one", "DestinationReference"],
   ["Graphical", "rules", "list", "Rule"],
   ["Graphical", "timestamps", "list", "Timestamp"],
   ["Graphical", "elisions", "list", "Elision"],

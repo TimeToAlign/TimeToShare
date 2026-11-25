@@ -9,6 +9,7 @@ import {
   text,
   treeIds,
 } from "./diagnostics.js";
+import { flowMapProblems, timelineFlowProblems } from "./flow.js";
 import { MEASURE_VIEWS, timelineMapProblems, timelineMaps } from "./maps.js";
 import { orderProblems } from "./order.js";
 import { timelineSegmentProblems } from "./segments.js";
@@ -24,19 +25,7 @@ function* danglingTargets(
   path: readonly PathSegment[],
   measureMaps: ReadonlySet<string>,
 ): Generator<SchemaValidationError> {
-  const flow = entries(timeline, "flow_control");
-  const targets = new Set(
-    flow.filter((entry) => entry.type === "jump_to").map((entry) => entry.id),
-  );
-  for (const [index, entry] of flow.entries()) {
-    if (Object.hasOwn(entry, "target") && !targets.has(entry.target)) {
-      yield new SchemaValidationError(
-        "dangling_target",
-        [...path, "flow_control", index, "target"],
-        `'${entry.target}' names no jump_to of this timeline`,
-      );
-    }
-  }
+  yield* timelineFlowProblems(timeline, path);
   for (const [map, at] of timelineMaps(timeline, path)) {
     const reference = map.measure_map;
     if (MEASURE_VIEWS.has(text(map, "type")) && !measureMaps.has(reference as string)) {
@@ -140,13 +129,15 @@ function* memberProblems(
 /**
  * Yield semantic problems in the public identity order.
  *
- * Root by root: duplicates, dangling targets, conversion maps, containment
- * and segment lines; then the IDs unique across the manifest (the roots'
- * trees, the group IDs, the MeasureMap IDs, the named timestamps' IDs, the
- * elisions' IDs, the named MatchStamps' IDs each followed by its alignment
- * anchors' IDs, the resources' IDs, and last the manifest ID); then group
- * members, graphical orders, named timestamps, elisions, named MatchStamps
- * and resources.
+ * Root by root: duplicates, flow control and dangling targets (timeline by
+ * timeline, each before its children), conversion maps, containment and
+ * segment lines; then the IDs unique across the manifest (the roots' trees,
+ * the group IDs, the MeasureMap IDs, the named timestamps' IDs, the elisions'
+ * IDs, the named MatchStamps' IDs each followed by its alignment anchors'
+ * IDs, the resources', the FlowMaps' and the virtual timelines' IDs, and
+ * last the manifest ID); then group members, graphical orders, named
+ * timestamps, elisions, named MatchStamps, resources, FlowMaps and virtual
+ * timelines.
  */
 export function* identityProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const roots = entries(manifest, "timelines");
@@ -193,4 +184,5 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
   yield* elisionProblems(manifest);
   yield* matchstampProblems(manifest);
   yield* resourceProblems(manifest);
+  yield* flowMapProblems(manifest);
 }

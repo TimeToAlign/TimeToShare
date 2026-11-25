@@ -238,9 +238,8 @@ const NUMBER_TYPES: Readonly<Record<string, string>> = {
  * or when it refers to a
  * definition that has one. In a complete form every property with a
  * default is required, at every depth; a default stated only in an
- * `if`/`then`/`else` arm (a flow-control element's repeat count, on a
- * repeat_end only) leaves its property optional, as the generation view
- * drops the arms; a property whose default is "absent" (it states none, as
+ * `if`/`then`/`else` arm leaves its property optional, as the generation
+ * view drops the arms; a property whose default is "absent" (it states none, as
  * a manifest's `id` and `graphical` and a root's `offset`) stays optional. Numbers are typed as `parseJson` reads
  * them: a number leaf is a `JsonNumber`, a reference to a definition without
  * a complete form is that definition's `Lossless` type (the definition

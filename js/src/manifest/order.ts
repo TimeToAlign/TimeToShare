@@ -4,8 +4,12 @@
  * Every array of a manifest whose order carries no meaning has one canonical
  * order: `timelines` by id; in every timeline, `children` by offset, then id,
  * `conversion_maps` by id, `regions` by start, then end, then id,
- * `flow_control` by coordinate, then id; `groups` by id and every group's `members` by
- * code point; `measure_maps` by id; `resources` by id; `graphical.timestamps`
+ * `flow_control` by coordinate, then id, and the `targets` of every jump by
+ * place (the destination without a place first, then those with `by`, by
+ * value, then those with `to`, by id); `groups` by id and every group's `members` by
+ * code point; `measure_maps` by id; `resources`, `flow_maps` and
+ * `virtual_timelines` by id, a FlowMap's `chunks` keeping their order, which
+ * is the order they are played in; `graphical.timestamps`
  * by timeline, then coordinate, then id, and every timestamp's `display` in
  * the order of `TIMESTAMP_DISPLAY`; `graphical.matchstamps` by id, each one's
  * `alignment_anchors` by id, and every anchor's `display` in the order of
@@ -20,7 +24,7 @@
  */
 
 import { clone, isJsonObject, type JsonObject } from "../json/value.js";
-import { compareRationals, exactValue, type Rational } from "../numbers/exact.js";
+import { compareRationals, exactValue, type Rational, rational } from "../numbers/exact.js";
 import { compareCodePoints, spell } from "../serialization/text.js";
 import { respell } from "./spelling.js";
 
@@ -139,6 +143,15 @@ function sortBy(
 
 const byId = (entry: JsonObject, where: string): SortKey[] => [text(entry, "id", where)];
 
+const ZERO = rational(0n, 1n);
+
+/** Order a jump's destinations: without a place, then by `by`, then by `to`. */
+function byPlace(destination: JsonObject, where: string): SortKey[] {
+  if (Object.hasOwn(destination, "by")) return ["1", coordinate(destination, "by", where), ""];
+  if (Object.hasOwn(destination, "to")) return ["2", ZERO, text(destination, "to", where)];
+  return ["0", ZERO, ""];
+}
+
 /** Order the arrays of one timeline and of its descendants, in place. */
 function orderTimeline(timeline: JsonObject, where: string): void {
   const { children, conversion_maps: maps, regions, flow_control: flow } = timeline;
@@ -160,6 +173,12 @@ function orderTimeline(timeline: JsonObject, where: string): void {
     ]);
   }
   if (Array.isArray(flow)) {
+    for (const [index, entry] of flow.entries()) {
+      const targets = member(entry, "targets");
+      if (Array.isArray(targets)) {
+        sortBy(targets, `${where}.flow_control[${index}].targets`, byPlace);
+      }
+    }
     sortBy(flow, `${where}.flow_control`, (entry, at) => [
       coordinate(entry, "coordinate", at),
       text(entry, "id", at),
@@ -174,7 +193,7 @@ function orderTimeline(timeline: JsonObject, where: string): void {
  * values are respelled as their number type selects (`./spelling.ts`), every
  * timeline in it is ordered at every depth and the array itself by id, its
  * `groups` by id, each with its `members` by code point, its `measure_maps`
- * by id, its `resources` by id, its `graphical.timestamps` by timeline, then
+ * by id, its `resources`, `flow_maps` and `virtual_timelines` by id, its `graphical.timestamps` by timeline, then
  * coordinate, then id, each with its `display` in canonical order, and its
  * `graphical.matchstamps` by id, each with its `alignment_anchors` by id and
  * every anchor's `display` in canonical order, and its `graphical.elisions`
@@ -224,8 +243,10 @@ export function canonicalOrder<T>(value: T): T {
       text(timestamp, "id", at),
     ]);
   }
-  const resources = result.resources;
-  if (Array.isArray(resources)) sortBy(resources, "resources", byId);
+  for (const key of ["resources", "flow_maps", "virtual_timelines"]) {
+    const listed = result[key];
+    if (Array.isArray(listed)) sortBy(listed, key, byId);
+  }
   const matchstamps = member(result.graphical, "matchstamps");
   if (Array.isArray(matchstamps)) {
     sortBy(matchstamps, "graphical.matchstamps", byId);

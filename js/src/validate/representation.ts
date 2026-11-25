@@ -85,7 +85,20 @@ function* timelineRepresentation(
     }
   }
   for (const [index, entry] of entries(timeline, "flow_control").entries()) {
-    yield* representationProblem("coordinate", entry, [...path, "flow_control", index], own);
+    const at = [...path, "flow_control", index];
+    const id = text(entry, "id");
+    yield* representationProblem("coordinate", entry, at, own);
+    const after = isJsonObject(entry.ends) ? entry.ends.after : undefined;
+    if (isJsonObject(after)) {
+      yield* representationProblem("by", after, [...at, "ends", "after"], own, id);
+    }
+    for (const [number, destination] of entries(entry, "targets").entries()) {
+      const here = [...at, "targets", number];
+      yield* representationProblem("by", destination, here, own, id);
+      if (isJsonObject(destination.after)) {
+        yield* representationProblem("by", destination.after, [...here, "after"], own, id);
+      }
+    }
   }
   for (const [index, child] of entries(timeline, "children").entries()) {
     yield* timelineRepresentation(child, [...path, "children", index], own);
@@ -94,9 +107,12 @@ function* timelineRepresentation(
 
 /**
  * Yield own-axis representation violations in manifest order: the timelines
- * first, then the coordinate of every named timestamp on a timeline of the
- * manifest, then the `start`, `end` and width `span` of every elision on one,
- * each read as that timeline's number type.
+ * first (a flow-control element's coordinate, then the `by` of its `ends` and
+ * of each destination and its `after`), then the coordinate of every named
+ * timestamp on a timeline of the manifest, then the `start`, `end` and width
+ * `span` of every elision on one, then the gaps of every FlowMap of one, each
+ * read as that timeline's number type, then the `length` of every virtual
+ * timeline, read as its own.
  */
 export function* representationProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   for (const [index, root] of entries(manifest, "timelines").entries()) {
@@ -131,6 +147,29 @@ export function* representationProblems(manifest: JsonObject): Generator<SchemaV
         text(elision, "id"),
       );
     }
+  }
+  for (const [index, flowMap] of entries(manifest, "flow_maps").entries()) {
+    const timeline = timelines.get(text(flowMap, "timeline"));
+    if (timeline === undefined) continue;
+    const numberType = numberTypeOf(timeline as { unit: TimeUnit; number_type?: NumberType });
+    for (const [number, chunk] of (flowMap.chunks as unknown[]).entries()) {
+      if (!isJsonObject(chunk)) continue;
+      yield* representationProblem(
+        "gap",
+        chunk,
+        ["flow_maps", index, "chunks", number],
+        numberType,
+        text(flowMap, "id"),
+      );
+    }
+  }
+  for (const [index, virtual] of entries(manifest, "virtual_timelines").entries()) {
+    yield* representationProblem(
+      "length",
+      virtual,
+      ["virtual_timelines", index],
+      virtual.number_type as NumberType,
+    );
   }
 }
 

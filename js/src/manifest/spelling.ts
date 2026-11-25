@@ -72,13 +72,26 @@ function respellMembers(owner: JsonObject, keys: readonly string[], axis: Axis):
   }
 }
 
+/** Respell the `by` of the `after` a destination or an `ends` holds. */
+function respellCondition(holder: unknown, axis: Axis): void {
+  const after = isJsonObject(holder) ? holder.after : undefined;
+  if (isJsonObject(after)) respellMembers(after, ["by"], axis);
+}
+
 /** Respell a timeline and its descendants; `offsetAxis` is its parent's axis, `undefined` for a root. */
 function respellTimeline(timeline: JsonObject, offsetAxis: Axis | undefined): void {
   const own = axisOf(timeline);
   respellMembers(timeline, ["offset"], offsetAxis === undefined ? own : offsetAxis);
   respellMembers(timeline, ["length"], own);
   for (const region of objects(timeline.regions)) respellMembers(region, ["start", "end"], own);
-  for (const entry of objects(timeline.flow_control)) respellMembers(entry, ["coordinate"], own);
+  for (const entry of objects(timeline.flow_control)) {
+    respellMembers(entry, ["coordinate"], own);
+    respellCondition(entry.ends, own);
+    for (const destination of objects(entry.targets)) {
+      respellMembers(destination, ["by"], own);
+      respellCondition(destination, own);
+    }
+  }
   for (const child of objects(timeline.children)) respellTimeline(child, own);
 }
 
@@ -86,9 +99,11 @@ function respellTimeline(timeline: JsonObject, offsetAxis: Axis | undefined): vo
  * Respell every own-axis value of a manifest as its number type selects, in
  * place: a timeline's `length`, a root's `offset` on its own axis, a child's
  * `offset` on its parent's, region `start` and `end`, flow-control
- * `coordinate`s, every named timestamp's `coordinate`, and every elision's
- * `start`, `end` and width `span`, on the axis of the one timeline its
- * `timeline` names (as given where it names none or several). Anything else is left as it is, so any value may be given.
+ * `coordinate`s and the `by` of every destination and of every `after`, every
+ * named timestamp's `coordinate`, every elision's `start`, `end` and width
+ * `span` and every gap of a FlowMap, on the axis of the one timeline its
+ * `timeline` names (as given where it names none or several), and a virtual
+ * timeline's `length` on the virtual timeline's own axis. Anything else is left as it is, so any value may be given.
  */
 export function respell(manifest: unknown): void {
   if (!isJsonObject(manifest)) return;
@@ -114,5 +129,13 @@ export function respell(manifest: unknown): void {
     if (axis === undefined) continue;
     respellMembers(elision, ["start", "end"], axis);
     if (isJsonObject(elision.width)) respellMembers(elision.width, ["span"], axis);
+  }
+  for (const flowMap of objects(manifest.flow_maps)) {
+    const axis = axisNamed(flowMap.timeline);
+    if (axis === undefined) continue;
+    for (const chunk of objects(flowMap.chunks)) respellMembers(chunk, ["gap"], axis);
+  }
+  for (const virtual of objects(manifest.virtual_timelines)) {
+    respellMembers(virtual, ["length"], axisOf(virtual));
   }
 }

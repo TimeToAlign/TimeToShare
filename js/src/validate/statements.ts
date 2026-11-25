@@ -30,6 +30,7 @@ import {
   BLANK,
   calendarDateProblem,
   declaredPrefix,
+  elementProvenance,
   FORMAT_CONTEXT,
   isAbsoluteReference,
   type Pair,
@@ -37,6 +38,8 @@ import {
   samePair,
   subjects,
   URI_SCHEMES,
+  type Visit,
+  visitEntry,
   visitSubject,
 } from "../statements/statements.js";
 import {
@@ -236,7 +239,10 @@ function* entryProblems(
  * Yield the problems of the walk of every subject carrying statements or
  * provenance, in subject order: its ID, then every position of its
  * statements and provenance, nested nodes where they stand, each subject's
- * entries matched after its positions.
+ * entries matched after its positions. Last, the provenance of the
+ * flow-control elements and of the FlowMaps, whose entries name no pair:
+ * every position of every entry, then entry by entry an actor holding two
+ * beliefs.
  */
 export function* subjectProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const context = manifest["@context"];
@@ -251,41 +257,56 @@ export function* subjectProblems(manifest: JsonObject): Generator<SchemaValidati
         `the ID '${id}' of an element with statements is no IRI fragment`,
       );
     }
-    for (const visit of visitSubject(element, path, false)) {
-      let problem: SchemaValidationError | null = null;
-      switch (visit.kind) {
-        case "iri":
-          problem = iriProblem(context, visit.text, visit.path);
-          break;
-        case "reference":
-          problem = referenceProblem(context, ids, visit.text, visit.path);
-          break;
-        case "date": {
-          const message = calendarDateProblem(visit.text);
-          if (message !== null)
-            problem = new SchemaValidationError("calendar_date", visit.path, message);
-          break;
-        }
-        case "float":
-          problem = new SchemaValidationError(
-            "representation",
-            visit.path,
-            `a statement value is an integer or a string, never a float: ${spell(visit.value)}`,
-          );
-          break;
-        case "element":
-          problem = new SchemaValidationError(
-            "element_value",
-            visit.path,
-            `'${visit.id}' names an element; a value naming an element holds its id alone`,
-          );
-          break;
-        case "subject":
-          yield* entryProblems(context, visit.owner, visit.path);
-          break;
+    yield* visitProblems(context, ids, visitSubject(element, path, false));
+  }
+  for (const { entry, path } of elementProvenance(manifest)) {
+    yield* visitProblems(context, ids, visitEntry(entry, path));
+  }
+  for (const { entry, path } of elementProvenance(manifest)) {
+    yield* beliefProblems(context, entry, path);
+  }
+}
+
+/** The problems of the positions a walk meets, each where it stands. */
+function* visitProblems(
+  context: unknown,
+  ids: ReadonlySet<string>,
+  visits: Iterable<Visit>,
+): Generator<SchemaValidationError> {
+  for (const visit of visits) {
+    let problem: SchemaValidationError | null = null;
+    switch (visit.kind) {
+      case "iri":
+        problem = iriProblem(context, visit.text, visit.path);
+        break;
+      case "reference":
+        problem = referenceProblem(context, ids, visit.text, visit.path);
+        break;
+      case "date": {
+        const message = calendarDateProblem(visit.text);
+        if (message !== null)
+          problem = new SchemaValidationError("calendar_date", visit.path, message);
+        break;
       }
-      if (problem !== null) yield problem;
+      case "float":
+        problem = new SchemaValidationError(
+          "representation",
+          visit.path,
+          `a statement value is an integer or a string, never a float: ${spell(visit.value)}`,
+        );
+        break;
+      case "element":
+        problem = new SchemaValidationError(
+          "element_value",
+          visit.path,
+          `'${visit.id}' names an element; a value naming an element holds its id alone`,
+        );
+        break;
+      case "subject":
+        yield* entryProblems(context, visit.owner, visit.path);
+        break;
     }
+    if (problem !== null) yield problem;
   }
 }
 
@@ -297,7 +318,11 @@ export function* statementRuleProblems(manifest: JsonObject): Generator<SchemaVa
 }
 
 /** What a manifest is warned of, never refused for. */
-export type WarningCode = "context_absent" | "bundle_blank";
+export type WarningCode =
+  | "context_absent"
+  | "bundle_blank"
+  | "manifestation_unknown"
+  | "convention_unknown";
 
 /** One warning of a valid manifest. */
 export interface ManifestWarning {

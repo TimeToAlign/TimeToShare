@@ -3,12 +3,12 @@ export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json",
   "title": "TimeToShare manifest",
-  "description": "The TimeToShare! 0.2.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and MeasureMaps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of root timelines, possibly empty, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open but `@context`, the `statements` container and the values within it, whose keys JSON-LD reads: elsewhere a key an object does not declare is kept and reported as unknown by the TimeToShare validators, never refused. The `discriminator` annotations follow OpenAPI: they serve validators that understand them and change nothing for the others. Every key with a default may be left out; a reader supplies the default. Provenance entries follow the schema `provenance.schema.json` beside this one, which defines the one provenance entry of statements and MatchClaims. The definitions Manifest, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap, MeasureMapRow, Resource, Timestamp, MatchStamp, AlignmentAnchor, Context, Statements, StatementValue and ProvenanceEntry are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.2.x.",
+  "description": "The TimeToShare! 0.2.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control, MeasureMaps, FlowMaps and virtual timelines. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of root timelines, possibly empty, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open but `@context`, the `statements` container and the values within it, whose keys JSON-LD reads: elsewhere a key an object does not declare is kept and reported as unknown by the TimeToShare validators, never refused. The `discriminator` annotations follow OpenAPI: they serve validators that understand them and change nothing for the others. Every key with a default may be left out; a reader supplies the default. Provenance entries follow the schema `provenance.schema.json` beside this one, which defines the one provenance entry of statements and MatchClaims. The definitions Manifest, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap, MeasureMapRow, Resource, Timestamp, MatchStamp, AlignmentAnchor, Context, Statements, StatementValue and ProvenanceEntry are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.2.x.",
   "$ref": "#/$defs/Manifest",
   "$defs": {
     "Manifest": {
       "type": "object",
-      "description": "A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp, elision, MatchStamp, alignment anchor and resource. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps and the resources are written sorted by ID, each group's members by code point, the named timestamps by timeline, then coordinate, then ID, and the elisions by timeline, then start, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry `statements` and `provenance`; no other element carries any. A manifest carrying either holds the inline JSON-LD context `@context`, which makes it a YAML-LD document. The values of a pair and the entries of `provenance` keep the order they are given in.",
+      "description": "A TimeToShare manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the MeasureMaps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Every ID of a manifest is unique across the manifest: the manifest's own and that of every timeline (root or descendant), group, MeasureMap, conversion map at any nesting depth, region, flow-control element, named timestamp, elision, MatchStamp, alignment anchor, resource, FlowMap and virtual timeline. Every element of the drawing is addressed by an `Address` object, never by a string composed from IDs. An element drawn more than once (a timeline drawn in a card of each group that has it as a member or as the ancestor line of several members, with its descendants, bands, conversion maps, regions and flow-control elements; an ancestor line with its marks; and the parts of each) keeps one address, which every drawing of it carries, so a rule selecting that address styles every drawing of it. Object keys carry no order and are written sorted by code point. The roots, the groups, the MeasureMaps, the resources, the FlowMaps and the virtual timelines are written sorted by ID, each group's members by code point, the named timestamps by timeline, then coordinate, then ID, and the elisions by timeline, then start, then ID; readers accept any order. The manifest, every timeline at any depth and every region may carry `statements` and `provenance`; a flow-control element and a FlowMap may carry `provenance` alone, whose entries are about the element itself and name no pair; no other element carries any. A manifest carrying either holds the inline JSON-LD context `@context`, which makes it a YAML-LD document. The values of a pair and the entries of `provenance` keep the order they are given in.",
       "properties": {
         "$schema": {
           "type": "string",
@@ -64,6 +64,20 @@ export const schema = {
           },
           "default": []
         },
+        "flow_maps": {
+          "type": "array",
+          "description": "The FlowMaps: each one order in which stretches of one root timeline are played. Absent where the manifest states none; a timeline without flow control has none computed for it.",
+          "items": {
+            "$ref": "#/$defs/FlowMap"
+          }
+        },
+        "virtual_timelines": {
+          "type": "array",
+          "description": "The virtual timelines: each the statement that a map was applied to a timeline, giving a timeline of which nothing else is written. Absent where the manifest states none.",
+          "items": {
+            "$ref": "#/$defs/VirtualTimeline"
+          }
+        },
         "statements": {
           "$ref": "#/$defs/Statements",
           "description": "Property–value pairs about the bundle, which names the work it bundles manifestations of (`schema:about`)."
@@ -83,7 +97,7 @@ export const schema = {
     },
     "Timeline": {
       "type": "object",
-      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, flow-control coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; flow-control elements by coordinate, then ID. Readers accept any order.",
+      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, flow-control coordinates and the distances `by` of a jump's destinations) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; flow-control elements by coordinate, then ID; a jump's `targets`, which carry no order, by place: the destination without a place first, then those with `by`, by value, then those with `to`, by ID. Readers accept any order.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -156,7 +170,7 @@ export const schema = {
         },
         "flow_control": {
           "type": "array",
-          "description": "The flow control of this timeline: its jump origins, jump targets and flow markers.",
+          "description": "The flow control of this timeline: its jumps, jump targets, breaks, section breaks and barlines.",
           "items": {
             "$ref": "#/$defs/FlowControlElement"
           },
@@ -903,7 +917,7 @@ export const schema = {
         "regions",
         "flow_control"
       ],
-      "description": "One of the five facets every timeline has: its coordinate markers (the wedges of the timeline's named timestamps and their labels; a flow marker is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet."
+      "description": "One of the five facets every timeline has: its coordinate markers (the wedges of the timeline's named timestamps and their labels; a break, a section break or a barline is not a coordinate marker but an element of flow control), conversion maps, children, regions and flow control. A band draws one facet."
     },
     "Part": {
       "type": "string",
@@ -1149,7 +1163,7 @@ export const schema = {
     },
     "Region": {
       "type": "object",
-      "description": "A region of a timeline, from start to end on the timeline's own axis.",
+      "description": "A region of a timeline, from start to end on the timeline's own axis. An atomic section of a timeline's flow is a region stating the class `https://timetoalign.github.io/timetoshare/ns#AtomicSection` in its `type` statement, written as a compact IRI under a prefix the context declares for that namespace (`tts:AtomicSection`), with its letter as `name` and a provenance entry of method `inferred` for that pair. The atomic sections are the intervals between consecutive boundaries of the timeline's flow control: 0, the timeline's length, the coordinates of its jumps, jump targets, breaks and section breaks, and the places of all destinations but those with `by` 0. They are lettered in the order of the axis. A timeline without flow control has none.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -1184,54 +1198,42 @@ export const schema = {
     },
     "FlowControlElement": {
       "type": "object",
-      "description": "One element of a timeline's flow control, at a coordinate on the timeline's own axis. A jump_from is where playback leaves for another position: its target, a jump_to of the same timeline, or, for a da_capo manifestation or a repeat_end without a target, the timeline's start. A jump_to is a position a jump_from names as its target. A flow_marker marks a position without a jump of its own: a fine, where playback ends after a jump al fine, or a section_break, a double_barline or a final_barline, which divide the timeline. When a jump acts follows from its manifestation: a repeat_end on its first repeat_count passes, a to_coda only after a da_capo_al_coda or a dal_segno_al_coda, every other jump_from always.",
+      "description": "One element of a timeline's flow control, at a coordinate on the timeline's own axis, from 0 to the timeline's length where that is known (checked after the schema). Its `role` names what it is. A `jump` is where the flow may leave for another place: it holds one or more destinations (`targets`), and when the flow plays up to its coordinate, a destination that holds is taken; where none holds, the flow goes on. A timeline has at most one jump at a coordinate (checked after the schema): several signs at one place, such as a repeat end and a dal segno on one barline, are destinations of that one jump. A `jump_target` is a place a destination names; nothing happens there. A `break` is where the flow never goes on: when the flow plays up to it, a destination that holds of the jump at the same coordinate is taken, otherwise the flow ends there. A break with `ends` is a break only while that condition holds, as a Fine ends the flow only after the da capo or dal segno it names; a break without `ends` always is one. A break stands between adjacent volta brackets, and a bracket is left only by a jump at its end whose destination holds. A `section_break` ends a section, a movement included, and the flow goes on across it: no atomic section spans it; a destination without a place lands at the nearest section break before its jump, else at the timeline's start; and a flow that has ended at a break begins again at the nearest section break at or after that break, where there is one before the timeline's end. A `barline` marks a position and has no effect on the flow. An element acts when the flow plays up to its coordinate, never when a destination lands on it. The earlier form of flow control, the key `type` with the values `jump_from`, `jump_to` and `flow_marker` and the key `target`, is refused.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
           "description": "The element ID."
         },
-        "type": {
+        "role": {
           "type": "string",
           "enum": [
-            "jump_from",
-            "jump_to",
-            "flow_marker"
-          ],
-          "description": "The element type: a jump origin, a jump target or a flow marker. It decides the manifestations the element may take and whether it may carry a target and a repeat count."
-        },
-        "manifestation": {
-          "type": "string",
-          "enum": [
-            "repeat_end",
-            "da_capo",
-            "da_capo_al_fine",
-            "da_capo_al_coda",
-            "dal_segno",
-            "dal_segno_al_fine",
-            "dal_segno_al_coda",
-            "to_coda",
-            "repeat_start",
-            "segno",
-            "coda",
-            "fine",
+            "jump",
+            "jump_target",
+            "break",
             "section_break",
-            "double_barline",
-            "final_barline"
+            "barline"
           ],
-          "description": "How the element is notated. A jump_from is a repeat_end, a da_capo, da_capo_al_fine or da_capo_al_coda, a dal_segno, dal_segno_al_fine or dal_segno_al_coda, or a to_coda; a jump_to is a repeat_start, a segno or a coda; a flow_marker is a fine, a section_break, a double_barline or a final_barline."
+          "description": "What the element is: a jump, a jump target, a break, a section break or a barline. It decides which of `targets`, `manifestation` and `ends` the element may carry."
         },
         "coordinate": {
           "$ref": "#/$defs/Number",
           "description": "Where the element lies on the timeline's own axis."
         },
-        "target": {
-          "$ref": "#/$defs/Id",
-          "description": "The ID of the jump_to of the same timeline a jump_from leads to; checked after the schema. Required on a dal_segno manifestation and a to_coda; optional on a da_capo manifestation and a repeat_end, where its absence means the timeline's start; carried by no other element."
+        "targets": {
+          "type": "array",
+          "description": "The destinations of a jump, one or more, at distinct places (checked after the schema): no two with the same `to`, the same `by`, or both without a place. They carry no order. Carried by a jump only.",
+          "items": {
+            "$ref": "#/$defs/JumpDestination"
+          },
+          "minItems": 1
         },
-        "repeat_count": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "How many passes a repeat_end sends back to its target, 1 by default; carried by a repeat_end only."
+        "manifestation": {
+          "type": "string",
+          "description": "How the element is notated, a word of an open vocabulary: a jump target is a `repeat_start`, a `segno`, a `coda`, a `volta` or an `ossia`; a break a `fine` or a `volta`; a barline a `double_barline` or a `final_barline`; no word is defined for a section break. Another word is valid and kept, and the TimeToShare validators report it as unknown. The manifestation never decides the flow. A jump carries none: each of its destinations has its own."
+        },
+        "ends": {
+          "$ref": "#/$defs/BreakCondition",
+          "description": "The condition under which a break ends the flow; absent, the break always holds. Carried by a break only."
         },
         "name": {
           "$ref": "#/$defs/Name"
@@ -1246,129 +1248,350 @@ export const schema = {
         },
         "meta": {
           "$ref": "#/$defs/Meta"
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProvenanceRecord"
+          },
+          "minItems": 1,
+          "description": "The provenance of this element: how it was made (`imported` by a loader, `manual` where a person added it, `inferred`) and who believes it. A repair adds elements and rejects elements, never deletes or changes one: an element some actor believes `false` is rejected, and a reader computing a flow leaves it out."
         }
       },
       "required": [
         "id",
-        "type",
-        "manifestation",
+        "role",
         "coordinate"
       ],
       "if": {
         "properties": {
-          "type": {
-            "const": "jump_from"
+          "role": {
+            "const": "jump"
           }
         },
         "required": [
-          "type"
+          "role"
         ]
       },
       "then": {
+        "required": [
+          "targets"
+        ],
         "properties": {
           "manifestation": {
-            "enum": [
-              "repeat_end",
-              "da_capo",
-              "da_capo_al_fine",
-              "da_capo_al_coda",
-              "dal_segno",
-              "dal_segno_al_fine",
-              "dal_segno_al_coda",
-              "to_coda"
-            ]
-          }
-        },
-        "if": {
-          "properties": {
-            "manifestation": {
-              "enum": [
-                "dal_segno",
-                "dal_segno_al_fine",
-                "dal_segno_al_coda",
-                "to_coda"
-              ]
-            }
+            "not": {}
           },
-          "required": [
-            "manifestation"
-          ]
-        },
-        "then": {
-          "required": [
-            "target"
-          ],
-          "properties": {
-            "repeat_count": {
-              "not": {}
-            }
-          }
-        },
-        "else": {
-          "if": {
-            "properties": {
-              "manifestation": {
-                "const": "repeat_end"
-              }
-            },
-            "required": [
-              "manifestation"
-            ]
-          },
-          "then": {
-            "properties": {
-              "repeat_count": {
-                "default": 1
-              }
-            }
-          },
-          "else": {
-            "properties": {
-              "repeat_count": {
-                "not": {}
-              }
-            }
+          "ends": {
+            "not": {}
           }
         }
       },
       "else": {
         "properties": {
-          "target": {
-            "not": {}
-          },
-          "repeat_count": {
+          "targets": {
             "not": {}
           }
         },
         "if": {
           "properties": {
-            "type": {
-              "const": "jump_to"
+            "role": {
+              "const": "break"
             }
           },
           "required": [
-            "type"
+            "role"
           ]
-        },
-        "then": {
-          "properties": {
-            "manifestation": {
-              "enum": [
-                "repeat_start",
-                "segno",
-                "coda"
-              ]
-            }
-          }
         },
         "else": {
           "properties": {
-            "manifestation": {
+            "ends": {
+              "not": {}
+            }
+          }
+        }
+      }
+    },
+    "JumpDestination": {
+      "type": "object",
+      "description": "One destination of a jump: a place and the conditions under which it is taken. Every key is optional. The place is `to`, `by` or neither, never both: without either, the destination lands at the start of the section its jump lies in, the nearest section break before the jump, else the timeline's start. The conditions are `passes`, `repeat_count`, `after` and `determined`; the destination holds when all that are present hold, and one without any condition is taken every time the flow plays up to its jump, so a repeat end, a da capo and a dal segno state `repeat_count` 1. Where several destinations of a jump hold at once, one with `by` 0 never competes; of the others, one lying before the jump that restores (`reset`) is taken first, then one lying before the jump that does not, then one lying ahead, the nearest of its kind in each case; two of one kind holding together are ambiguous, which a reader computing the flow reports. So a repeat end and a dal segno on one barline play the repeat first and the dal segno after it.",
+      "properties": {
+        "to": {
+          "$ref": "#/$defs/Id",
+          "description": "The place as an element: the ID of a jump target of the same timeline, of a region of it (its start), of a child timeline of it (its start on this axis) or of the timeline itself (its start); checked after the schema."
+        },
+        "by": {
+          "$ref": "#/$defs/Number",
+          "description": "The place as a signed distance from the jump's coordinate on the same axis, in the axis's number type; the place lies from 0 to the timeline's length (checked after the schema). A distance of 0 is going on and no jump: it is written where the source prints it, as the numbers of a first volta bracket, and is never taken."
+        },
+        "passes": {
+          "$ref": "#/$defs/Passes",
+          "description": "The passes on which the destination holds, the n-th arrival of the flow at the jump being pass n. Beyond the highest number any destination of the jump names in a list, the destination naming that number holds, as the last volta bracket does after a da capo without repeats."
+        },
+        "repeat_count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many times the destination is taken at most."
+        },
+        "after": {
+          "$ref": "#/$defs/DestinationReference",
+          "description": "A destination of another jump: this destination holds once that one has been taken, and the condition is used up when this one is taken, as a To Coda holds after its dal segno al coda."
+        },
+        "determined": {
+          "type": "boolean",
+          "description": "Whether the source decides when the destination is taken. `false` marks a choice nobody can check, such as an ossia, whose jump has the main text as its determined destination; a reader computing a flow never takes it.",
+          "default": true
+        },
+        "reset": {
+          "type": "boolean",
+          "description": "Whether taking the destination, where it lies before its jump, restores every jump and break lying wholly inside the stretch gone back over (its coordinate and all its places from the destination's place up to, but not at, the jump's coordinate): their passes, the times their destinations were taken and their `after` conditions start again, as a repeat plays an inner repeat again. `false` on a da capo or a dal segno states that the repeats are not played again (senza repetizione).",
+          "default": true
+        },
+        "manifestation": {
+          "type": "string",
+          "description": "How the destination is notated, a word of an open vocabulary: `repeat_end`, `da_capo`, `da_capo_al_fine`, `da_capo_al_coda`, `dal_segno`, `dal_segno_al_fine`, `dal_segno_al_coda`, `to_coda`, `volta` or `ossia`. Another word is valid and kept, and the TimeToShare validators report it as unknown. The manifestation never decides the flow."
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The text the destination is drawn with, or null.",
+          "default": null
+        }
+      },
+      "not": {
+        "required": [
+          "to",
+          "by"
+        ]
+      }
+    },
+    "Passes": {
+      "description": "Passes, counted from 1: a list of distinct positive integers, or `{from: n}` for pass n and every later one.",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          "required": [
+            "from"
+          ]
+        }
+      ]
+    },
+    "DestinationReference": {
+      "type": "object",
+      "description": "One destination of a jump of the same timeline, named without an ID of its own: the jump's ID and the destination's place, `to` or `by` as that destination writes it. Neither names the destination without a place, or the one destination of a jump that has no other. That it names exactly one destination of another jump is checked after the schema.",
+      "properties": {
+        "jump": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the jump."
+        },
+        "to": {
+          "$ref": "#/$defs/Id",
+          "description": "The `to` of the destination meant."
+        },
+        "by": {
+          "$ref": "#/$defs/Number",
+          "description": "The `by` of the destination meant, compared by value."
+        }
+      },
+      "required": [
+        "jump"
+      ],
+      "not": {
+        "required": [
+          "to",
+          "by"
+        ]
+      }
+    },
+    "BreakCondition": {
+      "type": "object",
+      "description": "The condition under which a break ends the flow: `passes`, the arrivals of the flow at the break, and `after`, a destination that has been taken; where both are present both must hold. At least one of the two is stated.",
+      "properties": {
+        "passes": {
+          "$ref": "#/$defs/Passes"
+        },
+        "after": {
+          "$ref": "#/$defs/DestinationReference"
+        }
+      },
+      "minProperties": 1,
+      "anyOf": [
+        {
+          "required": [
+            "passes"
+          ]
+        },
+        {
+          "required": [
+            "after"
+          ]
+        }
+      ]
+    },
+    "FlowMap": {
+      "type": "object",
+      "description": "A FlowMap: one order in which stretches of one root timeline are played, a concrete flow where flow control states what a source affords. It needs no flow control: a reading, an order of movements or a set list is a FlowMap written by hand. Applying it to its timeline gives a virtual timeline (`VirtualTimeline`) whose axis starts at 0 with the first chunk and is as long as its chunks and gaps together.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The FlowMap ID."
+        },
+        "timeline": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the one root timeline whose stretches the chunks are; checked after the schema."
+        },
+        "chunks": {
+          "type": "array",
+          "description": "The chunks in the order they are played, never reordered by a writer. Each is the ID of an element giving an interval inside the tree of `timeline` (a region or a child timeline at any depth, or a virtual timeline of a timeline of that tree; checked after the schema) or a gap, `{gap: length}`, a stretch of strictly positive length that nothing of the timeline fills, in the timeline's number type. An element may occur any number of times.",
+          "items": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/Id"
+              },
+              {
+                "$ref": "#/$defs/Gap"
+              }
+            ]
+          }
+        },
+        "convention": {
+          "type": "string",
+          "description": "Which flow of the timeline's flow control the FlowMap states, a word of an open vocabulary: `default`, every repeat and leap played as written; `single`, each stretch played once, without going back; `printed`, the atomic sections in the order of the axis. Another word is valid and kept, and the TimeToShare validators report it as unknown. Absent on a FlowMap that follows none, such as one written by hand."
+        },
+        "canonical": {
+          "type": "boolean",
+          "description": "Whether this is the canonical FlowMap of its timeline; at most one FlowMap of a timeline is (checked after the schema).",
+          "default": false
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "provenance": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ProvenanceRecord"
+          },
+          "minItems": 1,
+          "description": "The provenance of this FlowMap: how it was made and who believes it."
+        }
+      },
+      "required": [
+        "id",
+        "timeline",
+        "chunks"
+      ]
+    },
+    "Gap": {
+      "type": "object",
+      "description": "A gap of a FlowMap: a stretch of the given strictly positive length that nothing of the timeline fills.",
+      "properties": {
+        "gap": {
+          "$ref": "#/$defs/NumberPositive",
+          "description": "The length of the gap on the timeline's axis."
+        }
+      },
+      "required": [
+        "gap"
+      ]
+    },
+    "VirtualTimeline": {
+      "type": "object",
+      "description": "A virtual timeline: the statement that a map was applied to a timeline, giving a timeline with its own ID. Nothing else of it is written; positions on it and on the timeline it comes from convert through the map in both directions. It holds no children, flow control or offset. Its unit, number type and length are always stated, so that a reader evaluating no map can still use the axis.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The virtual timeline's ID."
+        },
+        "map": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the map applied: a FlowMap or a conversion map of the manifest; checked after the schema."
+        },
+        "timeline": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the timeline the map is applied to: a timeline of the manifest at any depth, or another virtual timeline; checked after the schema."
+        },
+        "unit": {
+          "$ref": "#/$defs/TimeUnit"
+        },
+        "number_type": {
+          "$ref": "#/$defs/NumberType",
+          "description": "The number type of the virtual timeline's axis, admitted by its unit as a timeline's is."
+        },
+        "length": {
+          "$ref": "#/$defs/NumberNonnegative",
+          "description": "The end of the virtual timeline on its own axis, in its number type."
+        },
+        "through": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the group or conversion map that carries the map to `timeline`, where the map's own elements do not lie on that timeline."
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        }
+      },
+      "required": [
+        "id",
+        "map",
+        "timeline",
+        "unit",
+        "number_type",
+        "length"
+      ],
+      "if": {
+        "properties": {
+          "unit": {
+            "enum": [
+              "ticks",
+              "samples",
+              "frames",
+              "pixels"
+            ]
+          }
+        },
+        "required": [
+          "unit"
+        ]
+      },
+      "then": {
+        "properties": {
+          "number_type": {
+            "const": "int"
+          }
+        }
+      },
+      "else": {
+        "if": {
+          "properties": {
+            "unit": {
+              "const": "number"
+            }
+          },
+          "required": [
+            "unit"
+          ]
+        },
+        "else": {
+          "properties": {
+            "number_type": {
               "enum": [
-                "fine",
-                "section_break",
-                "double_barline",
-                "final_barline"
+                "float",
+                "fraction"
               ]
             }
           }
@@ -1490,7 +1713,7 @@ export const schema = {
     },
     "ElementType": {
       "type": "string",
-      "description": "The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a flow marker (a vertical line at its coordinate), a jump origin (`jump_from`, an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.",
+      "description": "The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, one arc per destination whose place is not `by` 0, from the jump's coordinate to that place; a jump target draws nothing of its own), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.",
       "enum": [
         "block",
         "timeline",
@@ -1498,8 +1721,10 @@ export const schema = {
         "band",
         "map",
         "region",
-        "flow_marker",
-        "jump_from",
+        "break",
+        "section_break",
+        "barline",
+        "jump",
         "wedge",
         "name",
         "label",
@@ -2214,6 +2439,7 @@ export const schema = {
               "conversion_maps",
               "end",
               "flow_control",
+              "flow_maps",
               "graphical",
               "http",
               "https",
@@ -2233,7 +2459,8 @@ export const schema = {
               "tag",
               "timetoshare",
               "unit",
-              "urn"
+              "urn",
+              "virtual_timelines"
             ]
           }
         ]

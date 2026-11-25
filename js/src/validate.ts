@@ -6,7 +6,10 @@
  * given. Every other check reads the manifest with bare IDs (`withBareIds`),
  * the finite rule, which runs first, included: their messages quote IDs bare
  * (`'clt_1'`) and the paths of the checks after the schema name the keys of
- * `graphical.order` bare too.
+ * `graphical.order` bare too. The rules run in one order: the version
+ * marker, the finite rule, the earlier form of flow control
+ * (`./validate/flow.ts`), the schema, the representation of own-axis values,
+ * the identity rules, then the statement rules.
  */
 
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
@@ -27,6 +30,7 @@ import {
   stringId,
   timestampsOf,
 } from "./validate/diagnostics.js";
+import { earlierFormProblems, flowWarnings } from "./validate/flow.js";
 import { identityProblems as semanticProblems } from "./validate/identity.js";
 import { finiteNumberProblems, representationProblems } from "./validate/representation.js";
 import { pythonSearch, schemaRefusal, toPath } from "./validate/schemaMessages.js";
@@ -306,6 +310,9 @@ function run(value: unknown): Warnings {
   const finite = first(finiteNumberProblems(lenientlyBareIds(value)));
   if (finite !== undefined) throw finite;
 
+  const earlier = first(earlierFormProblems(value));
+  if (earlier !== undefined) throw earlier;
+
   const instance = plain(value);
   let found: UnknownKey[] = [];
   if (!marking(instance)) {
@@ -326,7 +333,9 @@ function run(value: unknown): Warnings {
   const keys = [...unique.values()].sort(
     (a, b) => comparePaths(a.path, b.path) || compareCodePoints(a.key, b.key),
   );
-  return { keys, warnings: warningsOf(bare) };
+  const warnings: ManifestWarning[] = [...warningsOf(bare), ...flowWarnings(bare)];
+  warnings.sort((a, b) => comparePaths(a.path, b.path) || compareCodePoints(a.code, b.code));
+  return { keys, warnings };
 }
 
 /**
@@ -361,8 +370,11 @@ export function unknownKeys(value: unknown): UnknownKey[] {
 
 /**
  * Return the warnings of a valid manifest, sorted by path, then code:
- * `context_absent` (no `@context`) and `bundle_blank` (statements or
- * provenance on a manifest without ID, whose subject is a blank node).
+ * `context_absent` (no `@context`), `bundle_blank` (statements or
+ * provenance on a manifest without ID, whose subject is a blank node),
+ * `manifestation_unknown` (a manifestation the format does not define for its
+ * flow-control element or destination) and `convention_unknown` (a FlowMap's
+ * convention that is none of the format's).
  * Validates `value` as `validate` does. Python's `manifest_warnings` returns
  * the same list.
  */

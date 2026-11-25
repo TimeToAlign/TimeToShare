@@ -108,10 +108,9 @@ into the union of its two arms, drops `not` and names the type an
 hold value nodes, is typed once. Statements marked `@ts-expect-error` (a
 misspelt key, a missing `length` or child `offset`, a complete form missing
 a defaulted key, a three-member Fraction) make a looser generation break
-the typecheck gate. A complete flow-control element without `repeat_count`
-compiles: the schema states the repeat count's default in the `then` arm
-for a `repeat_end`, not on the shared property, and the generator removes
-the arms, so the complete form keeps it optional. A complete
+the typecheck gate. A complete flow-control element without `targets` and
+`ends` compiles: neither is a key of every element nor has a default, so
+the complete form keeps both optional. A complete
 `MeasureRecordMap` carries `id`, `name`, `source_unit`, `target_unit` and
 `measure_map`, the members of both its bases.
 
@@ -238,9 +237,36 @@ and the four groupstamp fixtures, `groups/group_groupstamp`,
 two groups), each valid in both forms (`fixtures.test.ts`), the last with
 no problem from `matchstampProblems` either.
 
+## Flow
+
+`flow.test.ts` asserts the Python README's section "Flow" with the same
+documents, paths and messages, the converter aside, which is a Python script
+and is tested there: the schema of the five roles, of a destination and its
+conditions, of FlowMaps and virtual timelines, and the words of the open
+vocabularies in its descriptions; the earlier form refused before the
+schema with the converter named; rejected elements left out of the rules;
+coordinates and places on a timeline of unknown length, at the ends of the
+axis and on a float axis (a place is the double sum); an `after` naming one
+destination by its place; the chunks, the canonical flag and the IDs of
+FlowMaps and virtual timelines, their order and respelling; the warnings of
+a manifestation and a convention outside the vocabularies, sorted by path
+and then code; the provenance of a flow-control element and of a FlowMap
+under the entry rules; and the agreement of every expected flow under
+`fixtures/flows/0.2.0/` with its manifest, the boundaries of the atomic
+sections computed in the test. The shared rejection and warning cases pin
+every rule's code, path and message for both packages; the canonical order
+of a jump's destinations lies in `manifest.test.ts`, the ID positions in
+`ids.test.ts`, the defaults in `defaults.test.ts` and `schema.test.ts`.
+
+The defaults block of section 4 of `docs/drawing.md` is expected to fail
+validation (`validate.test.ts`, `it.fails`) while it still selects the
+element types `flow_marker` and `jump_from`, which the schema replaced by
+`break`, `section_break`, `barline` and `jump`; the test fails as soon as
+the block is rewritten, and the mark is then removed.
+
 ## Shared rejection cases
 
-Each of the 194 cases (`validate.test.ts`), found by its name whatever
+Each of the 232 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -258,7 +284,7 @@ reader's value, since no text carries it, and a test pins the two values in
 place. Two plain readings are exempt: `float_axis_int_not_exact`, since
 `9007199254740993` becomes `9007199254740992`, exactly a float, and
 `statement_value_integral_float`, since the statement value `1.0` becomes
-the integer `1`; the test asserts that these lossy readings validate. The set of names and the twenty-five codes are stated
+the integer `1`; the test asserts that these lossy readings validate. The set of names and the codes of the cases are stated
 literally, and the cases whose messages the Python suite pins carry the same
 messages here (`identity.test.ts`, `statements.test.ts`).
 
@@ -287,8 +313,9 @@ the code, path and message both packages report.
 `manifest`, `unknown_keys` and `warnings`, its text is stored
 as the writers write it, `dumps(unknownKeys(manifest))` equals
 `dumps(case.unknown_keys)` and `dumps(manifestWarnings(manifest))` equals
-`dumps(case.warnings)`; the three cases of warnings (`context_absent`,
-`bundle_blank_statements`, `bundle_blank_provenance`) are among them;
+`dumps(case.warnings)`; the five cases of warnings (`context_absent`,
+`bundle_blank_statements`, `bundle_blank_provenance`,
+`manifestation_unknown`, `convention_unknown`) are among them;
 `several_depths` lists its sixteen entries in the
 stated order; keys inside `meta`, `styles`,
 `graphical.order` and unknown values are not reported; the sort (keys by
@@ -356,9 +383,8 @@ The property bounds of a declaration are the Python README's: a wedge's
 
 `defaults.test.ts` asserts the Python README's section "Defaults: the
 complete and the minimal form" with the same documents and values. A value
-equals its default in value: `repeat_count: new JsonFloat(1)` (read from
-`1.0`), a `LinearMap`'s `scalar: [1, 1]` and `offset: new JsonFloat(-0)` are
-left out as the defaults `1` and `0` are, and the complete form of what
+equals its default in value: a `LinearMap`'s `scalar: [1, 1]` and `offset:
+new JsonFloat(-0)` are left out as the defaults `1` and `0` are, and the complete form of what
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
@@ -531,7 +557,11 @@ so the inline context is all a processor reads. For both, it asserts:
 1. the canonical N-Quads (RDFC-1.0) equal `fixtures/rdf/0.2.0/<name>.nq`
    byte for byte, the bytes Python's PyLD gives;
 2. every other fixture under `fixtures/0.2.0/` (drawings excluded) gives the
-   empty dataset: no element states anything by being written;
+   empty dataset: no element states anything by being written; the one
+   exception is `flow/sonata_exposition` with its twin, whose three regions
+   state that they are atomic sections: its dataset is exactly, per region,
+   the triple typing it `AtomicSection` in the format's namespace and the
+   reified statement of that pair with the method `Inferred`, fifteen quads;
 3. no IRI of the dataset begins with `p:` for a prefix `p` of the fixture's
    context, and every IRI begins with `http:`, `https:`, `urn:`, `tag:`,
    `mailto:` or `info:`: every compact IRI was expanded;
@@ -793,7 +823,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (184 files: bundles, groups and statements included), its value and its value
+  minimal twin (204 files: bundles, the flow fixtures, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and
