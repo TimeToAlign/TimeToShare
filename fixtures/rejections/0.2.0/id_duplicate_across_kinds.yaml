@@ -51,4 +51,4 @@ manifest:
   timetoshare: "0.2.0"
 message: "'flow_marker_1' is not unique in the manifest, first at #/timelines/0/flow_control/1/id"
 path: [timelines, 0, flow_control, 2, id]
-reason: "IDs are unique across the manifest and across all kinds; a jump_from and a flow marker share an ID, and the second occurrence is reported."
+reason: "IDs are unique across the manifest and across all kinds; a jump and a break share an ID, and the second occurrence is reported."
