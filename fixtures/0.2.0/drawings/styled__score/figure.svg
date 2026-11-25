@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="560.0801" height="161.25" viewBox="0 0 560.0801 161.25" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="560.0801" height="165.25" viewBox="0 0 560.0801 165.25" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="528.0801" height="129.25" rx="4" fill="#F3F4F6"/>
-<rect data-id="score" data-part="card" x="10" y="10" width="510.0801" height="111.25" rx="5" fill="#B8BEC8"/>
-<rect data-id="score" data-part="card" x="8" y="8" width="510.0801" height="111.25" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect x="0" y="0" width="528.0801" height="133.25" rx="4" fill="#F3F4F6"/>
+<rect data-id="score" data-part="card" x="10" y="10" width="510.0801" height="115.25" rx="5" fill="#B8BEC8"/>
+<rect data-id="score" data-part="card" x="8" y="8" width="510.0801" height="115.25" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-id="ticks" points="98.0801,67.6406 498.0801,67.6406 498.0801,69.6406 98.0801,69.6406" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 2"/>
 <path data-id="intro" d="M98.0801 73.6406Q98.0801 76.6406 101.0801 76.6406L145.0801 76.6406Q148.0801 76.6406 148.0801 79.6406Q148.0801 76.6406 151.0801 76.6406L195.0801 76.6406Q198.0801 76.6406 198.0801 73.6406" fill="none" stroke="#0F766E" stroke-width="1"/>
 <line data-id="score" x1="98.0801" y1="62.6406" x2="498.0801" y2="62.6406" stroke="#1D4ED8" stroke-width="4" opacity="0.8"/>
@@ -18,6 +18,6 @@
 <text data-id="timestamp_1" data-part="coordinate" x="98.0801" y="43.2822" text-anchor="middle" font-size="10" fill="#4D7C0F">0 ♩</text>
 <text data-id="timestamp_2" data-part="coordinate" x="498.0801" y="43.2822" text-anchor="middle" font-size="10" fill="#A16207">8 ♩</text>
 <text data-id="intro" data-part="label" x="148.0801" y="90.9229" text-anchor="middle" font-size="10" fill="#0E7490">intro</text>
-<text data-id="da-capo" data-part="symbol" x="498.0801" y="108.4199" text-anchor="middle" font-size="12" fill="#000000">𝄊</text>
+<text data-id="da-capo" data-part="symbol" x="498.0801" y="110.4199" text-anchor="middle" font-size="12" fill="#000000">𝄊</text>
 </g>
 </svg>

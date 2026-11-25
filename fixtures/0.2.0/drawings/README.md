@@ -441,10 +441,11 @@ is absent).
   control band from 26.9765625 + 4 = 30.9765625. The break's stack, two
   lines high, fills one flow label tier of two lines, `T` = 2, so the flow
   row lies at `f0` = 30.9765625 + 2 × 10.4765625 = 51.9296875, and the
-  symbol row beyond it is `Hs` = `h(12)` = 13.96875 wide. No bracket and no
-  arc is drawn, so the band is 20.953125 + 13.96875 = 34.921875 wide and
-  `Eb` = 30.9765625 + 34.921875 = 65.8984375.
-- `Hm` = 14.40234375 + 65.8984375 + 8 = 88.30078125 → 88.3008.
+  symbol row beyond it is `Hs` = 2 + `h(12)` + 2 = 17.96875 wide, the symbol gap 2 on
+  both sides of the glyph boxes (§6.2). No fork and no arc is drawn, so the
+  band is 20.953125 + 17.96875 = 38.921875 wide and `Eb` = 30.9765625 +
+  38.921875 = 69.8984375.
+- `Hm` = 14.40234375 + 69.8984375 + 8 = 92.30078125 → 92.3008.
 - Drawn, each ordinate the card's top 8 plus its item-coordinate value: the
   line at 22.40234375 → 22.4023 and the flow row at 74.33203125 → 74.332.
 - The break at `x(12)` = 390.9775390625 → 390.9775, from the flow row
@@ -457,11 +458,12 @@ is absent).
 - The symbols, after the stack and in the order of the band's elements
   (§7.2), are centred on `x(2)` = 140.9775390625, `x(4)` =
   190.9775390625, `x(8)` = 290.9775390625, `x(12)` and `x(16)` =
-  490.9775390625, each with its baseline at the flow row plus `a(12)`,
-  74.33203125 + 11.138671875 = 85.470703125 → 85.4707.
+  490.9775390625, each with its baseline at the flow row plus the symbol
+  gap plus `a(12)`, 8 + 14.40234375 + (51.9296875 + 2) + 11.138671875 =
+  87.470703125 → 87.4707.
 - `W` = 8 + 510.256591796875 = 518.256591796875; `H` = 8 + (10 +
-  88.30078125) = 106.30078125.
-- Page 550.256591796875 × 138.30078125 → **550.2566 × 138.3008**.
+  92.30078125) = 110.30078125.
+- Page 550.256591796875 × 142.30078125 → **550.2566 × 142.3008**.
 
 ## `with_region`
 
@@ -508,18 +510,20 @@ the manifest selects a symbol), and the jump has neither `name` nor
   its label at size 10, has `pr1` = 6 + 2 + `h(10)` + 4 = 23.640625, so it
   is 19.640625 wide and ends at 30.640625. The flow control band at level
   −3 starts at 30.640625 + 4 = 34.640625: no stack (`T` = 0), so the flow
-  row lies at its start, `f0` = 34.640625, and the symbol row is `h(12)` =
-  13.96875 wide; no bracket and no arc, so the band is 13.96875 wide and
-  `Eb` = 48.609375.
+  row lies at its start, `f0` = 34.640625, and the symbol row is `Hs` = 2 + `h(12)` + 2 = 17.96875
+  wide; no fork and no arc, so the band is 17.96875 wide and `Eb` =
+  52.609375.
 - The region `intro` runs from `x(0)` to `x(2)` = 198.080078125, its tip at
   `x(1)` = 148.080078125: its arms at 62.640625 + 11 = 73.640625 →
   73.6406, its tip at 79.640625 → 79.6406, its label's baseline at
   62.640625 + (11 + 6 + 2) + `a(10)` = 90.9228515625 → 90.9229.
 - The symbol 𝄊 is centred on `x(8)` = 498.080078125 → 498.0801, its
-  baseline at 62.640625 + 34.640625 + `a(12)` = 108.419921875 → 108.4199.
-- `Hm` = 54.640625 + 48.609375 + 8 = 111.25.
-- `W` = 8 + 520.080078125 = 528.080078125; `H` = 8 + 121.25 = 129.25.
-- Page 560.080078125 × 161.25 → **560.0801 × 161.25**.
+  baseline at 62.640625 + (34.640625 + 2) + `a(12)` = 110.419921875 →
+  110.4199.
+- `Hm` = 54.640625 + 52.609375 + 8 = 115.25.
+- `W` = 8 + 520.080078125 = 528.080078125; `H` = 8 + (10 + 115.25) =
+  133.25.
+- Page 560.080078125 × 165.25 → **560.0801 × 165.25**.
 
 ## `nested__length-800-card-spacing-8`
 
@@ -1052,15 +1056,16 @@ symbol 𝄋 alone (§6.4, Symbols) in the root's flow control band, at level
 - Above, `coda` in the children band: `Ea` = 21, so `y_root` = 29. Below,
   `origin` in the markers band (26.9765625), the region in the regions
   band from 30.9765625 (18.4765625 wide, to 49.453125), and the flow
-  control band from 49.453125 + 4 = 53.453125: no stack, no bracket and no
-  arc, only the symbol row, `h(12)` = 13.96875 wide, so `Eb` = 67.421875.
-- `Hm` = 29 + 67.421875 + 8 = 104.421875 → 104.4219.
+  control band from 49.453125 + 4 = 53.453125: no stack, no fork and no
+  arc, only the symbol row, `Hs` = 2 + `h(12)` + 2 = 17.96875 wide, so `Eb` =
+  71.421875.
+- `Hm` = 29 + 71.421875 + 8 = 108.421875 → 108.4219.
 - The symbol 𝄋 is centred on `x(6)` → 225.2274, its baseline at 37 +
-  53.453125 + `a(12)` = 101.591796875 → 101.5918, the root's line being
-  drawn at 37.
+  (53.453125 + 2) + `a(12)` = 103.591796875 → 103.5918, the root's line
+  being drawn at 37.
 - `W` = 8 + (10 + 482.298828125) = 500.298828125; `H` = 8 + (10 +
-  104.421875) = 122.421875.
-- Page 532.298828125 × 154.421875 → **532.2988 × 154.4219**.
+  108.421875) = 126.421875.
+- Page 532.298828125 × 158.421875 → **532.2988 × 158.4219**.
 
 ## `unknown_length_empty`
 
@@ -1281,17 +1286,18 @@ and in place coordinates until the place origin is added, last (§8.4).
   markers band of 26.9765625 (its regions band is absent), from 26.9765625 +
   4 = 30.9765625. The break's stack, one line, fills one flow label tier,
   `T` = 1, so the flow row lies at `f0` = 30.9765625 + 10.4765625 =
-  41.453125, and the symbol row beyond it is `h(12)` = 13.96875 wide; no
-  bracket and no arc is drawn. The band is 10.4765625 + 13.96875 =
-  24.4453125 wide, so `Eb` = 55.421875, `Hm` = 14.5 + 55.421875 + 8 =
-  77.921875, and the card of `score` is max(77.921875, 120) = 120 high.
+  41.453125, and the symbol row beyond it is `Hs` = 2 + `h(12)` + 2 = 17.96875 wide;
+  no fork and no arc is drawn. The band is 10.4765625 + 17.96875 =
+  28.4453125 wide, so `Eb` = 59.421875, `Hm` = 14.5 + 59.421875 + 8 =
+  81.921875, and the card of `score` is max(81.921875, 120) = 120 high.
 - The flow of `score`, in item coordinates: the break at `x(8)` =
   71.70361328125 + 400 × 1/2 = 271.70361328125, from the flow row `yf` =
   14.5 + 41.453125 = 55.953125 to `P` = 8, its stack's label from
   274.70361328125 with its baseline at `yf − d(9)` = 53.83056640625 (line
   1). The symbols `Fine` and 𝄊, in the order of the band's elements, are
   centred on `x(8)` and `x(16)` = 471.70361328125, each with its baseline
-  at `yf + a(12)` = 55.953125 + 11.138671875 = 67.091796875.
+  at `y_root + (f0 + 2) + a(12)` = 14.5 + 43.453125 + 11.138671875 =
+  69.091796875, the symbol gap 2 beyond the flow row.
 - Places (§8.6): `pages` at (8, 28.8046875), the first item, `P + h(11) +
   F`; `recording` at (8, 100.2578125), the block's spacing 8 below the
   bottom edge `d` = 28.8046875 + 63.453125 = 92.2578125 of `pages`' card,
@@ -1327,7 +1333,7 @@ and in place coordinates until the place origin is added, last (§8.4).
   36.8047, where the top of its map's outline lies too, dotted red
   (`#D62728`, 1.5 wide, dashed `1.5 1.5`, §4), its label's baseline at
   82.63525390625 → 82.6353, and its symbols at 279.7036 and 479.7036 with
-  their baselines at 95.896484375 → 95.8965. The shadow of
+  their baselines at 97.896484375 → 97.8965. The shadow of
   `score`'s card ends at 150.8046875, 56.8046875 above the card of `pages`,
   and no card overlaps another or the title.
 - Page 627.3271484375 × 370.5390625 → **627.3271 × 370.5391**.
@@ -1344,7 +1350,7 @@ that the items after a scaled one start below its drawn bottom (§8.6).
   `bundle_ungrouped__places`, which no place changes: `n` = 8, `s0` =
   71.70361328125, `Mr` = 29.62353515625, `Ri` = 501.3271484375, every
   card 0 to 509.3271484375 in item coordinates, `Hm` = 63.453125
-  (`pages`), 49.4765625 (`recording`) and 77.921875 (`score`).
+  (`pages`), 49.4765625 (`recording`) and 81.921875 (`score`).
 - Places: `pages` at (8, 28.8046875); `recording` at (8, 100.2578125),
   scale 1.5, its drawn bottom 100.2578125 + 1.5 × 49.4765625 =
   174.47265625; `score` at (8, 182.47265625), the block's spacing 8 below
@@ -1370,14 +1376,15 @@ that the items after a scaled one start below its drawn bottom (§8.6).
   24.73828125 = 0.5 × 49.4765625 lower: its line at 182.47265625 + 14.5 =
   196.97265625 → 196.9727, its flow row at 182.47265625 + 55.953125 =
   238.42578125 → 238.4258, its symbols' baselines at 182.47265625 +
-  67.091796875 = 249.564453125 → 249.5645.
+  69.091796875 = 251.564453125 → 251.5645, its card 81.921875 → 81.9219
+  high.
 - The block: `Xl` = `Yt` = 0 (the first item lies at `Pt` = 28.8046875), so
   the origin is (0, 0) and the title at (8, 18.21044921875 → 18.2104).
   `W` = 8 + (8 + 1.5 × (509.3271484375 + 2)) = 8 + 774.99072265625 =
   782.99072265625, from `recording`'s shadow; `H` = 8 + (182.47265625 +
-  (77.921875 + 2)) = 8 + 262.39453125 = 270.39453125, from `score`'s
+  (81.921875 + 2)) = 8 + 266.39453125 = 274.39453125, from `score`'s
   shadow. No card overlaps another or the title.
-- Page 814.99072265625 × 302.39453125 → **814.9907 × 302.3945**.
+- Page 814.99072265625 × 306.39453125 → **814.9907 × 306.3945**.
 
 ## `bundle_ungrouped__spacing`
 
@@ -1405,16 +1412,16 @@ places, only lower.
   14.5, as at `S` = 4. Its flow control band starts at 26.9765625 + 8 =
   34.9765625, beyond its markers band; the break's stack `Fine` fills one
   flow label tier, `T` = 1, so the flow row lies at `f0` = 34.9765625 +
-  10.4765625 = 45.453125, and the symbol row beyond it is `h(12)` =
-  13.96875 wide. The band is 10.4765625 + 13.96875 = 24.4453125 wide, as
-  at `S` = 4, so `Eb` = 34.9765625 + 24.4453125 = 59.421875 and `Hm` =
-  14.5 + 59.421875 + 8 = 81.921875 → 81.9219.
+  10.4765625 = 45.453125, and the symbol row beyond it is `Hs` = 2 + `h(12)` + 2 = 17.96875
+  wide. The band is 10.4765625 + 17.96875 = 28.4453125 wide, as at `S` =
+  4, so `Eb` = 34.9765625 + 28.4453125 = 63.421875 and `Hm` = 14.5 +
+  63.421875 + 8 = 85.921875 → 85.9219.
 - The flow of `score`, in item coordinates: the break at `x(8)` =
   271.70361328125, from the flow row `yf` = 14.5 + 45.453125 = 59.953125 to
   `P` = 8, its stack's label from 274.70361328125 with its baseline at
   `yf − d(9)` = 57.83056640625; the symbols `Fine` and 𝄊 centred on
-  `x(8)` and `x(16)` = 471.70361328125, each with its baseline at `yf +
-  a(12)` = 59.953125 + 11.138671875 = 71.091796875.
+  `x(8)` and `x(16)` = 471.70361328125, each with its baseline at `y_root
+  + (f0 + 2) + a(12)` = 14.5 + 47.453125 + 11.138671875 = 73.091796875.
 - Places: `pages` at (8, 28.8046875), the first item, `P + h(11) + F`, its
   bottom 28.8046875 + 63.453125 = 92.2578125; `recording` at (8,
   92.2578125 + 24 = 116.2578125 → 116.2578), its bottom 116.2578125 +
@@ -1433,7 +1440,7 @@ places, only lower.
   134.5659; its labels at baseline 116.2578125 + ((14.5 + 16.5) +
   8.35400390625) = 155.61181640625 → 155.6118.
 - `score`, 32 lower than in a block with no places: its card at (8,
-  189.734375), 509.3271 wide and 81.9219 high, its shadow at (10, 191.734375
+  189.734375), 509.3271 wide and 85.9219 high, its shadow at (10, 191.734375
   → 191.7344); its line at 189.734375 + 14.5 = 204.234375 → 204.2344, its
   map's outline from 197.734375 → 197.7344 to 199.734375 → 199.7344, its
   name's baseline at 208.04248046875 → 208.0425, its labels' at
@@ -1441,13 +1448,13 @@ places, only lower.
   + 59.953125 = 249.6875, the break from there to 189.734375 + 8 =
   197.734375 → 197.7344 and its label's baseline at 189.734375 +
   57.83056640625 = 247.56494140625 → 247.5649, and its symbols'
-  baselines at 189.734375 + 71.091796875 = 260.826171875 → 260.8262.
+  baselines at 189.734375 + 73.091796875 = 262.826171875 → 262.8262.
 - The block: `Xl` = `Yt` = 0, so the origin is (0, 0) and the title at (8,
   18.21044921875 → 18.2104). `W` = 8 + (8 + (509.3271484375 + 2)) =
   527.3271484375, from the shadows of all three cards; `H` = 8 +
-  (189.734375 + (81.921875 + 2)) = 8 + 273.65625 = 281.65625, from
+  (189.734375 + (85.921875 + 2)) = 8 + 277.65625 = 285.65625, from
   `score`'s shadow. No card overlaps another or the title.
-- Page 559.3271484375 × 313.65625 → **559.3271 × 313.6562**.
+- Page 559.3271484375 × 317.65625 → **559.3271 × 317.6562**.
 
 ## `styled_score_flow_inner`
 
@@ -1475,23 +1482,23 @@ label are hidden (§4) and the jump draws its symbol 𝄊 alone.
   line, its outline from 67.640625 → 67.6406 to 69.640625 → 69.6406, and the
   band reaches `e` = 2 + 5 = 7. The flow control band lies at level −2 from
   7 + 4 = 11. It has no stack, so the flow row lies at its start, `f0` =
-  11 (73.640625), and the symbol row is `h(12)` = 13.96875 wide; no
-  bracket and no arc, so the band is 13.96875 wide and its outer edge is
-  24.96875. The regions band lies at level −3 from 24.96875 + 4 =
-  28.96875. With `pr1` = 6 + 2 + `h(10)` + 4 = 23.640625 it is 19.640625
-  wide, so `Eb` = 48.609375. The flow control and regions bands swap
+  11 (73.640625), and the symbol row is `Hs` = 2 + `h(12)` + 2 = 17.96875 wide; no
+  fork and no arc, so the band is 17.96875 wide and its outer edge is
+  28.96875. The regions band lies at level −3 from 28.96875 + 4 =
+  32.96875. With `pr1` = 6 + 2 + `h(10)` + 4 = 23.640625 it is 19.640625
+  wide, so `Eb` = 52.609375. The flow control and regions bands swap
   places with those of `styled__score`, so `Eb` and the height stay that
   drawing's.
 - The symbol 𝄊 is centred on `x(8)` = 498.080078125 → 498.0801, its
-  baseline at 62.640625 + 11 + `a(12)` = 84.779296875 → 84.7793.
+  baseline at 62.640625 + (11 + 2) + `a(12)` = 86.779296875 → 86.7793.
 - The region `intro` runs from `x(0)` to `x(2)` = 198.080078125, with its
-  tip at `x(1)` = 148.080078125. Its arms lie at 62.640625 + 28.96875 =
-  91.609375 → 91.6094 and its tip at 97.609375 → 97.6094. Its label's
-  baseline is 62.640625 + 36.96875 + `a(10)` = 108.8916015625 → 108.8916.
+  tip at `x(1)` = 148.080078125. Its arms lie at 62.640625 + 32.96875 =
+  95.609375 → 95.6094 and its tip at 101.609375 → 101.6094. Its label's
+  baseline is 62.640625 + 40.96875 + `a(10)` = 112.8916015625 → 112.8916.
 - As in `styled__score`: `x0` = 98.080078125 → 98.0801, `R` =
-  510.080078125, `Hm` = 54.640625 + 48.609375 + 8 = 111.25, `W` =
-  528.080078125 and `H` = 129.25.
-- Page 560.080078125 × 161.25 → **560.0801 × 161.25**.
+  510.080078125, `Hm` = 54.640625 + 52.609375 + 8 = 115.25, `W` =
+  528.080078125 and `H` = 133.25.
+- Page 560.080078125 × 165.25 → **560.0801 × 165.25**.
 
 ## `map_child_band_order`
 

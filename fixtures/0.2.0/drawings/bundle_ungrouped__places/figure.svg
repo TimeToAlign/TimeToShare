@@ -42,7 +42,7 @@
 <text data-id="timestamp_5" data-part="coordinate" x="79.7036" y="68.1587" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_6" data-part="coordinate" x="479.7036" y="68.1587" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
 <text data-id="break_1" data-part="label" x="282.7036" y="82.6353" text-anchor="start" font-size="9" fill="#000000">Fine</text>
-<text data-id="break_1" data-part="symbol" x="279.7036" y="95.8965" text-anchor="middle" font-size="12" fill="#000000">Fine</text>
-<text data-id="jump_1" data-part="symbol" x="479.7036" y="95.8965" text-anchor="middle" font-size="12" fill="#000000">𝄊</text>
+<text data-id="break_1" data-part="symbol" x="279.7036" y="97.8965" text-anchor="middle" font-size="12" fill="#000000">Fine</text>
+<text data-id="jump_1" data-part="symbol" x="479.7036" y="97.8965" text-anchor="middle" font-size="12" fill="#000000">𝄊</text>
 </g>
 </svg>
