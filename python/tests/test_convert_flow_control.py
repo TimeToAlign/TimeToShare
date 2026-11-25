@@ -85,11 +85,15 @@ def test_each_element_type_becomes_its_role() -> None:
         {
             "id": "once",
             "coordinate": [4, 1],
-            "label": "Repeat",
             "meta": {"k": 1},
             "role": "jump",
             "targets": [
-                {"to": "score", "manifestation": "repeat_end", "repeat_count": 1}
+                {
+                    "to": "score",
+                    "manifestation": "repeat_end",
+                    "repeat_count": 1,
+                    "label": "Repeat",
+                }
             ],
         },
         {
@@ -233,6 +237,72 @@ def test_the_timeline_is_named_in_the_form_its_id_is_written_in() -> None:
     ]
 
 
+def test_an_earlier_jump_s_label_moves_to_its_destination() -> None:
+    flow, report, _ = _converted(
+        earlier("segno", "jump_to", "segno", 1, label="Segno"),
+        earlier(
+            "ds",
+            "jump_from",
+            "dal_segno",
+            6,
+            target="segno",
+            label="D.S.",
+            name="Leap",
+            meta={"k": 1},
+        ),
+        earlier("dc", "jump_from", "da_capo", 8, label=None, name="Back"),
+        earlier("plain", "jump_from", "repeat_end", 4, target="segno"),
+    )
+    assert report == []
+    assert flow == [
+        {
+            "id": "segno",
+            "coordinate": [1, 1],
+            "label": "Segno",
+            "role": "jump_target",
+            "manifestation": "segno",
+        },
+        {
+            "id": "ds",
+            "coordinate": [6, 1],
+            "name": "Leap",
+            "meta": {"k": 1},
+            "role": "jump",
+            "targets": [
+                {
+                    "to": "segno",
+                    "manifestation": "dal_segno",
+                    "label": "D.S.",
+                    "repeat_count": 1,
+                    "reset": False,
+                }
+            ],
+        },
+        {
+            "id": "dc",
+            "coordinate": [8, 1],
+            "name": "Back",
+            "role": "jump",
+            "targets": [
+                {
+                    "to": "score",
+                    "manifestation": "da_capo",
+                    "repeat_count": 1,
+                    "reset": False,
+                }
+            ],
+        },
+        {
+            "id": "plain",
+            "coordinate": [4, 1],
+            "role": "jump",
+            "targets": [
+                {"to": "segno", "manifestation": "repeat_end", "repeat_count": 1}
+            ],
+        },
+    ]
+
+
 def test_a_to_coda_waits_for_the_one_jump_al_coda() -> None:
     flow, report, _ = _converted(
         earlier("segno", "jump_to", "segno", 1),
@@ -274,7 +344,6 @@ def test_two_jumps_at_one_coordinate_become_one() -> None:
     assert flow[2] == {
         "id": "ds",
         "coordinate": [6, 1],
-        "label": "D.S.",
         "name": "Leap",
         "role": "jump",
         "targets": [
@@ -302,6 +371,53 @@ def test_two_jumps_at_one_coordinate_become_one() -> None:
         {"id": "ds", "part": ["label"]},
         {"id": "ds"},
     ]
+
+
+def test_a_merge_keeps_each_label_on_its_own_destination() -> None:
+    labelled_second, _, _ = _converted(
+        earlier("start", "jump_to", "repeat_start", 1),
+        earlier("a", "jump_from", "repeat_end", 6, target="start"),
+        earlier("b", "jump_from", "da_capo", 6, label="D.C."),
+    )
+    assert labelled_second[1] == {
+        "id": "a",
+        "coordinate": [6, 1],
+        "role": "jump",
+        "targets": [
+            {"to": "start", "manifestation": "repeat_end", "repeat_count": 1},
+            {
+                "to": "score",
+                "manifestation": "da_capo",
+                "label": "D.C.",
+                "repeat_count": 1,
+                "reset": False,
+            },
+        ],
+    }
+    labelled_first, _, _ = _converted(
+        earlier("start", "jump_to", "repeat_start", 1),
+        earlier("a", "jump_from", "repeat_end", 6, target="start", label="Repeat"),
+        earlier("b", "jump_from", "da_capo", 6),
+    )
+    assert labelled_first[1] == {
+        "id": "a",
+        "coordinate": [6, 1],
+        "role": "jump",
+        "targets": [
+            {
+                "to": "start",
+                "manifestation": "repeat_end",
+                "repeat_count": 1,
+                "label": "Repeat",
+            },
+            {
+                "to": "score",
+                "manifestation": "da_capo",
+                "repeat_count": 1,
+                "reset": False,
+            },
+        ],
+    }
 
 
 def test_a_merge_reports_what_it_drops() -> None:

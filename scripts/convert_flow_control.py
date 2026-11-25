@@ -21,14 +21,18 @@ reading one of the three words under ``role`` as it reads it under ``type``:
   ``repeat_count`` (1 where it stated none), for every da capo and dal segno
   form ``repeat_count: 1`` and ``reset: false``, for a ``to_coda`` an
   ``after`` naming the destination of the timeline's one ``…_al_coda`` jump.
+  An earlier ``jump_from`` was one sign, which is now one destination: its
+  ``label`` moves to that destination, as its manifestation does, and the
+  jump keeps its ``name`` and ``meta``.
   A ``repeat_end`` and every da capo form without a ``target`` went to the
   timeline's start: their destination names the timeline itself (``to`` the
   timeline's ID), never no place, which would land at the nearest section
   break before the jump;
 * two ``jump_from`` at one coordinate of a timeline become one jump holding
-  both destinations under the ID that comes first by code point; the other
-  element's label moves to its destination, every address naming its ID is
-  rewritten to the kept ID, and its name and meta are dropped;
+  both destinations under the ID that comes first by code point; each
+  element's label lies on its own destination, every address naming the
+  other element's ID is rewritten to the kept ID, and its name and meta are
+  dropped;
 * a drawing rule selecting the element type ``jump_from`` selects ``jump``,
   and one selecting ``flow_marker`` becomes three rules in its place, for
   ``break``, ``section_break`` and ``barline``.
@@ -272,6 +276,8 @@ def _convert_timeline(
             continue
         if manifestation is not None:
             destination["manifestation"] = manifestation
+        if entry.get("label") is not None:
+            destination["label"] = entry["label"]
         if manifestation == "repeat_end":
             destination["repeat_count"] = entry.get("repeat_count", 1)
         elif manifestation in LEAPS:
@@ -282,7 +288,7 @@ def _convert_timeline(
         jump = jumps.get(coordinate)
         made[entry["id"]] = None
         if jump is None:
-            jump = _kept(entry)
+            jump = _kept(entry, "label")
             jump["role"] = "jump"
             jump["targets"] = [destination]
             jumps[coordinate] = jump
@@ -302,11 +308,6 @@ def _convert_timeline(
                     "two destinations at one place"
                 )
                 continue
-            first = jump["targets"][0]
-            if "label" not in first and jump.get("label") is not None:
-                first["label"] = jump["label"]
-            if entry.get("label") is not None:
-                destination["label"] = entry["label"]
             jump["targets"].append(destination)
             renamed[entry["id"]] = jump["id"]
             lost = [key for key in ("name", "meta") if entry.get(key) not in (None, {})]
