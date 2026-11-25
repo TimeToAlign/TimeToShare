@@ -95,6 +95,17 @@ timelines:
         role: break
       -
         coordinate: [12, 1]
+        ends:
+          after:
+            jump: "#jump_3"
+        id: "#break_2"
+        label: null
+        manifestation: fine
+        meta: {}
+        name: null
+        role: break
+      -
+        coordinate: [12, 1]
         id: "#jump_2"
         label: null
         meta: {}
@@ -105,7 +116,7 @@ timelines:
             determined: true
             label: null
             manifestation: repeat_end
-            repeat_count: 2
+            repeat_count: 1
             reset: true
       -
         coordinate: [12, 1]
@@ -115,9 +126,23 @@ timelines:
         meta: {}
         name: null
         role: jump_target
+      -
+        coordinate: [16, 1]
+        id: "#jump_3"
+        label: null
+        meta: {}
+        name: null
+        role: jump
+        targets:
+          -
+            determined: true
+            label: null
+            manifestation: repeat_end
+            repeat_count: 1
+            reset: false
     id: "#score"
     is_segment_line: false
-    length: [24, 1]
+    length: [16, 1]
     locked: false
     meta: {}
     name: Score

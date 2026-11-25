@@ -8,7 +8,7 @@ atomic_sections:
     name: B
     start: [8, 1]
   -
-    end: [24, 1]
+    end: [16, 1]
     name: C
     start: [12, 1]
 conventions:
@@ -26,8 +26,14 @@ conventions:
         - [8, 1]
       -
         - [12, 1]
-        - [24, 1]
-    sections: [A, B, A, C]
+        - [16, 1]
+      -
+        - [0, 1]
+        - [8, 1]
+      -
+        - [8, 1]
+        - [12, 1]
+    sections: [A, B, A, C, A, B]
   printed:
     runs:
       -
@@ -38,7 +44,7 @@ conventions:
         - [12, 1]
       -
         - [12, 1]
-        - [24, 1]
+        - [16, 1]
     sections: [A, B, C]
   single:
     runs:
@@ -46,8 +52,8 @@ conventions:
         - [0, 1]
         - [8, 1]
       -
-        - [8, 1]
         - [12, 1]
-    sections: [A, B]
+        - [16, 1]
+    sections: [A, C]
 manifest: flow/volta_passes
 timeline: score

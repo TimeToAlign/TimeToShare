@@ -1178,9 +1178,11 @@ flow that does not follow from its manifest.
   `test_rdf.py`). Ten manifests under `fixtures/0.2.0/flow/`, each with its
   twin, pass every law of the fixture set. Each holds what its name says,
   stated literally from the minimal twin: two destinations of one jump
-  (`repeat_end_and_dal_segno`), passes `[1, 3]` and `[2]` over a repeat
-  taken twice (`volta_passes`), a destination `determined: false` to a
-  child timeline beside `by` 0 (`ossia`), an `after` on a To Coda and on a
+  (`repeat_end_and_dal_segno`), passes `[1, 3]` and `[2]` before two
+  brackets, the repeat sign closing the second written `reset: false` and
+  a Fine between the brackets ending the flow after it (`volta_passes`), a
+  destination `determined: false` to a child timeline beside `by` 0
+  (`ossia`), an `after` on a To Coda and on a
   Fine, a section break without a manifestation and a destination without
   a place behind it (`sections`), a loop of 127 on a seconds axis without a
   manifestation, a FlowMap by hand over two children and a gap with manual

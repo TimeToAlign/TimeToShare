@@ -931,8 +931,20 @@ def test_the_flow_fixtures_cover_what_their_names_say() -> None:
     volta = flow("volta_passes")
     assert [entry["passes"] for entry in volta["jump_1"]["targets"]] == [[1, 3], [2]]
     assert volta["jump_2"]["targets"] == [
-        {"manifestation": "repeat_end", "repeat_count": 2}
+        {"manifestation": "repeat_end", "repeat_count": 1}
     ]
+    assert volta["jump_3"]["targets"] == [
+        {"manifestation": "repeat_end", "repeat_count": 1, "reset": False}
+    ]
+    assert [
+        (identifier, entry["coordinate"], entry.get("ends"))
+        for identifier, entry in sorted(volta.items())
+        if entry["role"] == "break"
+    ] == [
+        ("break_1", [12, 1], None),
+        ("break_2", [12, 1], {"after": {"jump": "jump_3"}}),
+    ]
+    assert read("volta_passes")["timelines"][0]["length"] == [16, 1]
     ossia = flow("ossia")["jump_1"]["targets"]
     assert ossia == [
         {"by": [0, 1]},

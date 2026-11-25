@@ -77,19 +77,36 @@ timelines:
         role: break
       -
         coordinate: [12, 1]
+        ends:
+          after:
+            jump: "#jump_3"
+        id: "#break_2"
+        manifestation: fine
+        role: break
+      -
+        coordinate: [12, 1]
         id: "#jump_2"
         role: jump
         targets:
           -
             manifestation: repeat_end
-            repeat_count: 2
+            repeat_count: 1
       -
         coordinate: [12, 1]
         id: "#jump_target_1"
         manifestation: volta
         role: jump_target
+      -
+        coordinate: [16, 1]
+        id: "#jump_3"
+        role: jump
+        targets:
+          -
+            manifestation: repeat_end
+            repeat_count: 1
+            reset: false
     id: "#score"
-    length: [24, 1]
+    length: [16, 1]
     name: Score
     unit: quarters
 timetoshare: "0.2.0"
