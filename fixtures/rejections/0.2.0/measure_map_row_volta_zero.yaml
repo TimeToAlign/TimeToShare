@@ -1,0 +1,76 @@
+code: schema
+manifest:
+  groups: []
+  measure_maps:
+    -
+      id: "#measures"
+      meta: {}
+      name: null
+      rows:
+        -
+          actual_length: [4, 1]
+          count: 1
+          end_repeat: false
+          name: "1"
+          next: ["2"]
+          nominal_length: [4, 1]
+          number: 1
+          qstamp: [0, 1]
+          start_repeat: false
+          time_signature: "4/4"
+        -
+          actual_length: [4, 1]
+          count: 2
+          end_repeat: false
+          name: "2"
+          next: ["3", "4"]
+          nominal_length: [4, 1]
+          number: 2
+          qstamp: [4, 1]
+          start_repeat: false
+          time_signature: "4/4"
+        -
+          actual_length: [4, 1]
+          count: 3
+          end_repeat: true
+          name: "3"
+          next: ["1"]
+          nominal_length: [4, 1]
+          number: 3
+          qstamp: [8, 1]
+          start_repeat: false
+          time_signature: "4/4"
+          volta: 0
+        -
+          actual_length: [4, 1]
+          count: 4
+          end_repeat: true
+          name: "4"
+          next: ["1"]
+          nominal_length: [4, 1]
+          number: 4
+          qstamp: [12, 1]
+          start_repeat: false
+          time_signature: "4/4"
+          volta: [2]
+  meta: {}
+  name: null
+  resources: []
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#score"
+      is_segment_line: false
+      length: [16, 1]
+      locked: false
+      meta: {}
+      name: Score
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "0 is less than the minimum of 1"
+path: [measure_maps, 0, rows, 2, volta]
+reason: "Passes are counted from 1."

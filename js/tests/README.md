@@ -265,7 +265,7 @@ smallest manifest (`validate.test.ts`).
 
 ## Shared rejection cases
 
-Each of the 232 cases (`validate.test.ts`), found by its name whatever
+Each of the 237 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -286,6 +286,17 @@ place. Two plain readings are exempt: `float_axis_int_not_exact`, since
 the integer `1`; the test asserts that these lossy readings validate. The set of names and the codes of the cases are stated
 literally, and the cases whose messages the Python suite pins carry the same
 messages here (`identity.test.ts`, `statements.test.ts`).
+
+A MeasureMap row's `volta` is one pass or several, kept as written (the
+Python README's "What proves the rules" describes the five cases
+`measure_map_row_volta_*` and their one manifest). The acceptance
+(`validate.test.ts`) puts `1`, `[1]`, `[1, 3]` and `[3, 1]` in the third
+row of that manifest: each validates, and the row reads back with that
+very value, an integer an integer and a list a list in its order, from
+`minimal`, `complete`, `canonicalOrder` and from `loads` of the text
+`dumps` writes in each of the three serializations. The generated type
+admits both forms (`types.test.ts`): a `MeasureMapRow` takes `volta: 2`
+and `volta: [1, 3]`, and neither an empty list nor a string.
 
 The path rule is the Python README's ("One path rule for both
 validators"): the deepest leaf, then the path that comes first element by

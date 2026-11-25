@@ -638,7 +638,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 232 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 237 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
@@ -714,6 +714,27 @@ moves nothing. Every case is written in the complete form, so a timestamp
 of a case states its `display`. The six cases of elisions are written so
 too, on the same manifest, each with one elision `elision_1` on `verse`
 from `[1, 1]` to `[3, 1]` but for what it breaks (section "Elisions").
+
+**A MeasureMap row's `volta` is one pass or several, kept as written.** The
+schema admits a positive integer or a non-empty list of distinct positive
+integers. What would prove it wrong: a list refused, an integer and the
+list of that one integer told apart nowhere, or a writer that sorts,
+unwraps or wraps the value. The five cases `measure_map_row_volta_*` break
+one rule each of one manifest in the complete form: a MeasureMap of four
+4/4 rows, the third under a bracket for the passes `[1, 3]` and the fourth
+under one for `[2]`, and one root `score` of 16 quarters. Each states
+another `volta` in the third row: `[]` (`schema` at the `volta`, `[] should
+be non-empty`), `[1, 1]` (at the `volta`, `[1, 1] has non-unique
+elements`), `0` (at the `volta`, `0 is less than the minimum of 1`),
+`[1, -3]` (at member 1, `-3 is less than the minimum of 1`) and `[1, 2.5]`
+(at member 1, `2.5 is not of type 'integer'`). The acceptance
+(`test_validate.py`) puts `1`, `[1]`, `[1, 3]` and `[3, 1]` at that place
+of the same manifest: each validates, and the row reads back with that
+very value (an integer stays an integer, a list a list in its order, the
+fourth row's `[2]` beside it) from `minimal`, `complete`,
+`canonical_order` and from `loads` of the text `dumps` writes in each
+of the three serializations. No function of the package expands or
+compresses rows, so these are all the readers and writers a row passes.
 
 **Each semantic rule has the smallest inline document with exactly one
 problem** (`test_identity.py`, `test_segment_lines.py`), whose path and

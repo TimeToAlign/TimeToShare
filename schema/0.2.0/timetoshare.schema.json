@@ -1048,8 +1048,18 @@
           "description": "The 'ID' strings or 'count' integers that correspond to all measures that can follow this one. The corresponding field needs to be present in the MeasureMap."
         },
         "volta": {
-          "type": "integer",
-          "description": "A TimeToShare extension that identifies the volta ending. It carries no structural constraint."
+          "type": [
+            "integer",
+            "array"
+          ],
+          "minimum": 1,
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "description": "A TimeToShare extension: the volta bracket (ending) the measure lies under, as the number of the pass in which it is played, counted from 1, or as a list of distinct such numbers where the bracket stands for several passes (a bracket printed '1, 3' is [1, 3]). The value is kept as written: no reader turns 1 into [1] or [1] into 1. It carries no structural constraint."
         },
         "offset_within_measure": {
           "$ref": "#/$defs/NumberPositive",

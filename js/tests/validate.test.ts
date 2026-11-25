@@ -173,6 +173,11 @@ const REJECTIONS = [
   "measure_map_row_offset_within_measure_zero",
   "measure_map_row_qstamp_negative",
   "measure_map_row_qstamp_string",
+  "measure_map_row_volta_empty",
+  "measure_map_row_volta_member_negative",
+  "measure_map_row_volta_member_not_integer",
+  "measure_map_row_volta_repeated",
+  "measure_map_row_volta_zero",
   "measure_map_row_without_count_or_id",
   "measure_map_rows_empty",
   "measure_map_rows_not_array",
@@ -746,6 +751,34 @@ describe("the shared rejection cases", () => {
       "timestamp_coordinate",
       "timestamp_timeline",
     ]);
+  });
+});
+
+describe("a MeasureMap row's volta", () => {
+  /** The volta of row `index` of the first MeasureMap, as compact JSON spells it. */
+  function voltaOf(value: unknown, index: number): string {
+    const rows = ((value as JsonObject).measure_maps as JsonObject[])[0]?.rows as JsonObject[];
+    return compactJson(rows[index]?.volta as Json);
+  }
+
+  it.each(["1", "[1]", "[1,3]", "[3,1]"])("is one pass or several, kept as written: %s", (text) => {
+    const testCase = rejectionCase("measure_map_row_volta_empty");
+    expect(testCase.path).toEqual(["measure_maps", 0, "rows", 2, "volta"]);
+    const value = loads(compactJson(testCase.manifest)) as JsonObject;
+    const rows = (value.measure_maps as JsonObject[])[0]?.rows as JsonObject[];
+    (rows[2] as JsonObject).volta = parseJson(text);
+    timetoshare.validate(value);
+    const read = [
+      timetoshare.minimal(value),
+      timetoshare.complete(value),
+      timetoshare.canonicalOrder(value),
+      ...timetoshare.SERIALIZATIONS.map((serialization) => loads(dumps(value, { serialization }))),
+    ];
+    expect(read.length).toBe(6);
+    for (const written of read) {
+      expect(voltaOf(written, 2)).toBe(text);
+      expect(voltaOf(written, 3)).toBe("[2]");
+    }
   });
 });
 

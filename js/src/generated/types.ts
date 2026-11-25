@@ -1461,9 +1461,11 @@ export interface MeasureMapRow {
    */
   next?: (string | number)[];
   /**
-   * A TimeToShare extension that identifies the volta ending. It carries no structural constraint.
+   * A TimeToShare extension: the volta bracket (ending) the measure lies under, as the number of the pass in which it is played, counted from 1, or as a list of distinct such numbers where the bracket stands for several passes (a bracket printed '1, 3' is [1, 3]). The value is kept as written: no reader turns 1 into [1] or [1] into 1. It carries no structural constraint.
+   *
+   * @minItems 1
    */
-  volta?: number;
+  volta?: number | [number, ...number[]];
   /**
    * A TimeToShare extension: where this row begins inside its nominal measure, in quarter notes, when the row represents only part of that measure (an anacrusis, or one constituent of a split measure). Absent means 0; a row never states 0.
    */

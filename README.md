@@ -259,8 +259,9 @@ positions are quarters by definition, so it fits every timeline. `rows` is
 the [Measure Map standard](https://github.com/measure-map/specification)'s
 compressed row array, at least one row: an entry equal to the preceding
 entry's default successor is omitted. A row is the standard's Measure plus
-two extensions: the integer `volta`, and `offset_within_measure`, where the
-row begins inside its nominal measure in quarter notes. Lengths are
+two extensions: `volta`, the pass a volta bracket is played in or a list
+of several (`[1, 3]`), kept as written, and `offset_within_measure`, where
+the row begins inside its nominal measure in quarter notes. Lengths are
 strictly positive and `qstamp` is non-negative; exact Fraction pairs are
 permitted wherever the standard uses JSON numbers. A measure view's
 `measure_map` must name an entry of `measure_maps`, which both validators

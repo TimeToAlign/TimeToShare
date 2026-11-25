@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import math
 import os
@@ -15,6 +16,7 @@ from jsonschema import Draft202012Validator
 
 import timetoshare
 from timetoshare import (
+    SERIALIZATIONS,
     SchemaValidationError,
     UnsupportedVersionError,
     dumps,
@@ -171,6 +173,11 @@ REJECTIONS = [
     "measure_map_row_offset_within_measure_zero",
     "measure_map_row_qstamp_negative",
     "measure_map_row_qstamp_string",
+    "measure_map_row_volta_empty",
+    "measure_map_row_volta_member_negative",
+    "measure_map_row_volta_member_not_integer",
+    "measure_map_row_volta_repeated",
+    "measure_map_row_volta_zero",
     "measure_map_row_without_count_or_id",
     "measure_map_rows_empty",
     "measure_map_rows_not_array",
@@ -726,6 +733,30 @@ def test_shared_rejection_is_rejected_at_its_path(path: Path) -> None:
     assert caught.value.path == case.path
     assert caught.value.code == case.code
     assert caught.value.message == message
+
+
+# -- a MeasureMap row's volta: one pass or several, kept as written ----------------
+
+
+@pytest.mark.parametrize("volta", [1, [1], [1, 3], [3, 1]], ids=repr)
+def test_a_volta_is_one_pass_or_several_and_is_kept_as_written(volta: Any) -> None:
+    case = rejection_case(_rejection("measure_map_row_volta_empty"))
+    assert case.path == ("measure_maps", 0, "rows", 2, "volta")
+    value = copy.deepcopy(case.manifest)
+    value["measure_maps"][0]["rows"][2]["volta"] = volta
+    timetoshare.validate(value)
+    read = [
+        timetoshare.minimal(value),
+        timetoshare.complete(value),
+        timetoshare.canonical_order(value),
+        *(loads(dumps(value, serialization)) for serialization in SERIALIZATIONS),
+    ]
+    assert len(read) == 6
+    for written in read:
+        rows = written["measure_maps"][0]["rows"]
+        assert rows[2]["volta"] == volta
+        assert type(rows[2]["volta"]) is type(volta)
+        assert rows[3]["volta"] == [2]
 
 
 # -- several problems: the one path rule ------------------------------------------
