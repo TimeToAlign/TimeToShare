@@ -1876,7 +1876,7 @@
         },
         "label-display": {
           "type": "string",
-          "description": "Which labels a flow-control element draws (read by a break, a section break, a barline and a jump): `none`, or words from `name` (its name), `id` (its ID) and `label` (its own label, and on a jump also the labels of its arcs, each its destination's label) separated by single spaces; the order and a repeated word carry no meaning.",
+          "description": "Which labels a flow-control element draws (read by a break, a section break, a barline and a jump): `none`, or words from `name` (its name), `id` (its ID) and `label` (its own label, and on a jump also the labels of its arcs, each its destination's label) separated by single spaces; the order and a repeated word carry no meaning. Initially `name label`.",
           "pattern": "^(none|(name|id|label)( (name|id|label))*)$",
           "not": {
             "pattern": "[\\u0000-\\u001f]"

@@ -289,8 +289,9 @@ An element acts when the flow plays up to its coordinate, never when a
 destination lands on it. Flow control holds across descendants: a root
 and all its descendants have at most one Jump at one position on the
 root's axis, each element's coordinate carried to the root by adding the
-offsets of its ancestors, so a Jump of a child never shares its place
-with a Jump of the root or of another descendant; several signs at one
+offsets of its ancestors exactly, a float as its exact binary value, so a
+Jump of a child never shares its place with a Jump of the root or of
+another descendant; several signs at one
 place, such as a repeat end and a dal segno on one barline, are
 destinations of that one Jump. `manifestation` says how an
 element or a destination is notated, a word of an open vocabulary: a word
@@ -318,8 +319,12 @@ optional:
 
 A destination's place is `to`, `by` or neither, never both, and lies from
 0 to the timeline's length. A destination without a place lands at the
-start of the section its Jump lies in: the nearest section break before
-the Jump, else the timeline's start. `by` 0 is going on and no jump: it is
+nearest section break, not rejected, before its Jump on the axis of the
+timeline played, among those of that timeline and of all its descendants,
+but never before the start of the timeline stating the Jump, which counts
+as a section boundary for it: where no such section break lies from that
+start up to the Jump, the destination lands at that start. `by` 0 is going
+on and no jump: it is
 written where the source prints it, as the numbers of a first volta
 bracket, and is never taken. The destinations of one Jump lie at distinct
 places, no two with the same `to`, the same `by` (compared by value) or
@@ -371,7 +376,7 @@ first is written with `reset: false`: with the default it would restore
 the Jump before the brackets wherever all that Jump's places lie before
 the sign, and the later passes would never be reached. A section break
 ends a section, a movement included: no atomic section spans it, a
-destination without a place lands at the nearest one before its Jump, and
+destination without a place may land at it (above), and
 a flow that has ended at a Break begins again at the
 nearest section break at or after that Break, where one lies before the
 timeline's end.
@@ -527,9 +532,13 @@ length. Where `through` is stated, neither
 the tree nor the length is read; a conversion map as `map` is read for
 neither.
 
-**Computing a flow.** Each convention reads a timeline's elements that are
-not rejected and its length, never a manifestation. The `default` flow
-starts at 0 and plays up to the nearest coordinate ahead that holds a Jump
+**Computing a flow.** A timeline is **played** with its own elements and
+those of all its descendants, each at its coordinate plus the offsets of
+the ancestors between it and the timeline played (flow control holds
+across descendants, above); the runs and the findings lie on the axis of
+the timeline played. Each convention reads the elements so gathered that
+are not rejected and the played timeline's length, never a
+manifestation. The `default` flow starts at 0 and plays up to the nearest coordinate ahead that holds a Jump
 or a Break, or up to the length; each such stretch is one **run**. There
 the Jump counts one more pass, and a destination that holds is taken, by
 the order above, the flow going on from its place. Where none is taken,
@@ -1154,7 +1163,7 @@ stable code:
 | The `jump` of an `after` names no jump of the timeline, a rejected one, or the jump holding the destination | `dangling_target` | the `jump` | `'<id>' names no jump of this timeline` (`'<id>' is the jump holding this destination; after names a destination of another jump`) |
 | The `to` or `by` of an `after` names no destination of that jump | `dangling_target` | the `to` or the `by` | `jump '<id>' has no destination to '<to>'` (`… by <value>`) |
 | An `after` without `to` and `by` names a jump of several destinations, none without a place | `dangling_target` | the `after` | `jump '<id>' has <n> destinations and none without a place; after names one by its to or by` |
-| A jump lies at the position of an earlier jump of its root's tree on the root's axis, its coordinate plus the offsets of its ancestors, compared by exact value, in document order, a timeline's elements before its children's | `jump_repeated` | the later jump | `'<id>' is a second jump at coordinate <value> of '<timeline id>', after '<earlier id>': several signs at one place are destinations of one jump` (`… after '<earlier id>' of '<earlier timeline id>' at the same position on their root's axis: …` where the two lie on different timelines) |
+| A jump lies at the position of an earlier jump of its root's tree on the root's axis, its coordinate plus the offsets of its ancestors, summed exactly (a float as its exact binary value) and compared by exact value, in document order, a timeline's elements before its children's | `jump_repeated` | the later jump | `'<id>' is a second jump at coordinate <value> of '<timeline id>', after '<earlier id>': several signs at one place are destinations of one jump` (`… after '<earlier id>' of '<earlier timeline id>' at the same position on their root's axis: …` where the two lie on different timelines) |
 | A destination has the place of an earlier destination of its jump, `by` compared by exact value | `jump_destination` | the later destination | `destination <n> of '<id>' has the place of destination <m>, to '<to>'` (`… by <value>`, `… without a place`) |
 | A destination's `to` names no jump target, region or child of its timeline, nor the timeline, or names a rejected jump target | `dangling_target` | the `to` | `'<to>' names no jump target, region or child of this timeline, nor the timeline itself` |
 | The place a destination's `by` reaches lies before 0, or beyond its timeline's known length | `flow_coordinate` | the `by` | `by <value> from coordinate <value> of '<id>' is not on '<timeline id>': it lies outside 0 to the length <length>` (`… it lies before 0`) |
@@ -1895,7 +1904,8 @@ ones; no other element). The defaults hide the secondary ones, so the rule
 {"display": "inline"}}` shows their wedges. The property `shadow` colours a card's offset shadow,
 `rotation` turns a wedge about its tip, in whole degrees from −180 to 180,
 and `label-display` chooses the labels of a flow-control element (`none`
-or words from `name`, `id` and `label`).
+or words from `name`, `id` and `label`; `name label` unless a rule says
+otherwise, so that naming an element shows its name).
 Four properties of a card, an ancestor card and, for the first, a frame
 choose its elisions (the elisions paragraph of [Groups and the `graphical`
 object](#groups-and-the-graphical-object)): `elision-mode` (`auto`,

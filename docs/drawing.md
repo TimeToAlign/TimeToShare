@@ -579,7 +579,8 @@ A selector is an object with any of these members:
   and no other element. The two IRIs are compared expanded: in a
   selector, of every layer, the prefix `tts` stands for the format's
   namespace `https://timetoalign.github.io/timetoshare/ns#`, another
-  compact IRI is expanded by the manifest's `@context`, and a full IRI is
+  compact IRI is expanded by the manifest's `@context`, which must declare
+  its prefix (the validators refuse it otherwise, `iri`), and a full IRI is
   itself; each value of a region's `type` statement is expanded by the
   manifest's `@context` (Python's `expand_iri`, npm's `expandIri`), a
   value it does not expand being itself. So `{"element": "region",
@@ -679,7 +680,9 @@ holds every way in which one element hides another, and the other sections
 refer to it:
 
 - **A band hides everything it holds.** A band that is not displayed hides
-  every element it holds, at any depth of the tree of section 2.1.
+  every element it holds, at any depth of the tree of section 2.1, and a
+  root's flow control band also every element it lays out, the flow
+  control of the root's whole tree in that card (section 6.4, Gathering).
 - **An element hides its label.** The label of a region, the labels of
   a flow line's stack, the label of each arc of a jump, and each ellipsis
   and label of an elision, is displayed
@@ -741,8 +744,9 @@ at the child's own line, only when the child's own regions band is
 displayed. The flow-control elements of a child are held by the child's
 own flow control band (section 2.1) though the root's band lays them out
 (section 6.4): hiding the child's line or its flow control band hides
-them, and hiding the root's flow control band hides the root's own
-elements alone. The defaults hide no band (section 4).
+them, and hiding the root's flow control band hides everything it lays
+out, the flow control of the root's whole tree in that card. The
+defaults hide no band (section 4).
 
 ### 2.5 The cascade
 
@@ -757,7 +761,7 @@ The value of a property on an element is found per property:
    `font-size` 9, `rx` 0, `shadow` `none`, `display` `inline`, `content`
    `none`, `max-width` `none`, `rotation` 0, `elision-mode` `auto`,
    `elision-proportion` `auto`, `elision-depths` `auto`, `elision-display`
-   `ellipsis name`, `label-display` `label`.
+   `ellipsis name`, `label-display` `name label`.
 
 The rank of a rule is, from the most to the least significant:
 
@@ -794,9 +798,19 @@ jump's own position, its **from**, to its **to**, `s` plus the place of
 its destination on the timeline's axis: for a `to`, the coordinate of the
 jump target, the start of the region or the offset of the child timeline
 it names, or 0 for the timeline itself; for a `by`, the jump's coordinate
-plus `by`; for a destination without a place, the coordinate of the
-nearest section break before the jump that is not rejected (README, "Flow
-control"), else 0. A destination with `by` 0 draws no arc, nor does one
+plus `by`. For a destination without a place, the timeline played is the
+root of `timelines` whose tree holds the jump, whose flow control band
+draws that tree's elements (section 6.4, Gathering), and the to is the
+place the README ("Flow control") states, found on that root's axis and,
+for a member that is a child timeline, carried to the member's (section
+8.3):
+A destination without a place lands at the nearest section break, not
+rejected, before its Jump on the axis of the timeline played, among those
+of that timeline and of all its descendants, but never before the start of
+the timeline stating the Jump, which counts as a section boundary for it:
+where no such section break lies from that start up to the Jump, the
+destination lands at that start. A destination with `by` 0 draws no arc,
+nor does one
 of a rejected jump whose `to` names nothing or names a rejected element:
 a `to` naming an element that some actor believes `false` names nothing
 (README, "Flow control"), so no arc is drawn to that element's place.
@@ -1043,7 +1057,8 @@ wide); a conversion map takes the colour and pattern of the domain and
 modality it converts to; wedges and braces are black and solid, and the
 regions that are atomic sections are hidden (section 2.3 shows the rule
 that shows them); the arcs of jumps are thin, black and dotted, and
-hidden, so that a jump shows its symbol, its brackets and its stack
+hidden, so that a jump shows its symbol, its brackets and its stack, of
+its name and its label by default (`label-display`, section 2.5),
 alone until a rule shows its arcs (`{"select": {"element": "jump"},
 "set": {"display": "inline"}}` all of them, with `addresses` one jump's);
 a break is a dotted red line, a section break a dashed dark blue-grey
@@ -1420,8 +1435,10 @@ tree of section 2.1, held by the flow control band of the timeline that
 states it, so that the cascade, `within` and the hiding of section 2.4
 treat it as that timeline's: a child whose line or flow control band is
 not displayed draws none of its elements, and they take no room. The
-root's flow control band is present when it draws an element, of the
-root's or of a descendant's, also when its own `display` is `none`. When
+root's flow control band is present when it is displayed and draws an
+element, of the root's or of a descendant's; when it is not displayed,
+it draws nothing of the whole tree it lays out and is absent (section
+2.4). When
 the root of the member drawing is a member that is a child timeline
 (section 8.1), its flow control band draws, besides the elements of its
 own tree, the elements of every other timeline of the tree of its
@@ -1438,7 +1455,9 @@ An element that is not displayed (section 2.4) is drawn in no band and
 takes no room.
 
 **Levels.** A timeline's line lies at **level** 0. A band is **present**
-when it draws an element; the present bands above the line are the levels
+when it draws an element, and in a row of one band order also when the
+band of its facet of another line of the row is (Children); the present
+bands above the line are the levels
 1, 2, … outwards, level 1 being the present band listed nearest before
 `line` in its band order, and those below it the levels −1, −2, …,
 level −1 being the present band listed nearest after it. An absent band
@@ -1672,8 +1691,14 @@ any band (section 6.6).
 children that have a line of their own, every child that is not a segment
 and every segment that is a segment line, in canonical order, by first
 fit. Each is placed **as a whole**: its line together with everything its
-own bands draw, at any depth, laid out from its line by this section. The
-**extent** of a child is the smallest interval that holds the extent of its
+own bands draw, at any depth, laid out from its line by this section.
+Children bands laid out together (below) are **aligned** when every child
+they place has one band order (The band order). The **extent** of a child
+placed by aligned bands is the smallest interval that holds the extent of
+its line and the extents of its own children by this rule: a child keeps
+its row whatever the width of its labels, which the rows keep apart by
+their label tiers instead (Rows of one band order, below). The extent of
+any other child is the smallest interval that holds the extent of its
 line, the extent of every item that a first fit of its own drawing places
 at any depth (its segment labels, the stacks of named timestamps' labels,
 the regions and region labels of its bands, each at its own extent
@@ -1698,10 +1723,12 @@ row: `9.5w` is the distance from the end to the outer chevron's tip. This
 end of the extent is summed as written, `L × u` plus the constant `9.5w`
 (section 3.3), measured from the root's start like every extent and only
 compared, never computed from `Xr`; the drawn tip, and the right edge of
-section 6.7, is `Xr + 5.5w`. So a child takes the room of its whole
-drawing, also where that reaches beyond its span, as a label wider than the child
-does, or the content of a segment of unknown length that runs on past the
-next segment's start (section 3.4). Since an item that starts where
+section 6.7, is `Xr + 5.5w`. So a child placed by bands that are not
+aligned takes the room of its whole drawing, also where that reaches
+beyond its span, as a label wider than the child does, and every child
+the room of its children, as the content of a segment of unknown length
+that runs on past the next segment's start (section 3.4). Since an item
+that starts where
 another ends shares its row (section 6.3), the segment lines among one
 segment line's segments lie in one row when nothing of theirs reaches
 beyond their spans.
@@ -1736,11 +1763,45 @@ its own bands lie outwards from its line. The lines of a row lay out their
 own children bands together in turn, at every depth, so the sections of a
 row of movements share their rows whichever movement holds them.
 
+**Rows of one band order.** The lines of a row placed by aligned children
+bands have one band order and lay out their bands together, facet by
+facet, so that a label of one line reaching over the span of another
+lies among the labels of its own facet alone, which one first fit over
+the row keeps apart:
+
+- On each side, the band of each of the five facets is present for every
+  line of the row when it is present for one of them (Levels), so that
+  the bands of one facet lie at one level; the band of a line that holds nothing of that facet
+  draws nothing and takes the room of the others.
+- The bands of one facet at one level start at one distance `c0`
+  outwards from their lines, the largest of their own starts (Where a
+  band lies), and each is as wide as the widest of them.
+- The markers bands place the stacks of all of them, line after line in
+  the traversal order of the lines (section 6.1), each line's in the
+  order its own band takes them (Markers), by one first fit into one set
+  of tiers.
+- The regions bands place the regions of all of them, line after line in
+  that order, by one first fit into one set of rows, and the drawn labels
+  of each row by one first fit into that row's label tiers (Regions), so
+  that `Tk`, `prk` and `ak` are the same for all of them; a label in tier
+  `j ≥ 2` is joined to its brace by a leader.
+- The segment labels of the row's segment lines are placed, line after
+  line in that order, by one first fit into one set of segment-label
+  tiers, at one `m`, the largest of their lines' `m` (Segment lines), so
+  that every line of the row reaches as far above; a label in tier `n ≥
+  2` is joined to its segment by a leader (section 6.6, Leaders).
+
+Their children bands and conversion maps bands are laid out together as
+every row's are (above; Conversion maps). The root's row holds the root
+alone, and the lines of a row placed by children bands that are not
+aligned lay out these bands each alone.
+
 The layout takes three passes. First every first fit, which uses extents
 alone (section 6.3), so that which row holds which line, every row's name
 size and pitch (section 6.2), and then every map's slot and the count of
-slots of every conversion maps band (Conversion maps), which need the rows
-alone, are known before any distance is. Then the distances, from the
+slots of every conversion maps band (Conversion maps) and the first fits
+of the rows of one band order (above), which need the rows alone, are
+known before any distance is. Then the distances, from the
 deepest rows up: once every row of the children bands of a row's lines
 has its halves, each of those lines has the starts and widths of its
 bands, in the order of the starts (Where a band lies), and so its edges, and the row its
@@ -1748,7 +1809,11 @@ halves (the root's row the outer edges of the root's sides, section 6.5).
 Last the ordinates, from the root's line (section 6.5) down.
 
 No two children's drawings overlap, and no two names of rows (section 6.6)
-do. The extents of two lines of a row never overlap, and meet at most
+do, but that two wedges may overlap where they mark positions closer than
+their widths, as two wedges of one timeline may: in a row of one band
+order the extents keep the lines and their children apart, and the first
+fits of the row the regions and the labels. The extents of two lines of
+a row never overlap, and meet at most
 where one ends and the other starts: one band places both by one first
 fit, or the bands of two lines of one row place them within those lines'
 extents; and each row takes on each side the room that its children's
@@ -1777,7 +1842,9 @@ as it has always been. Row `k` has its brace's arms at `ak = r0 + (pr1 +
 … + pr(k − 1))` from the timeline's line, the pitches summed first and
 `a1 = r0`, `r0` the start of the band; the band is `(pr1 + … + prR) − S`
 wide, summed left to right. A label in tier `j ≥ 2` is joined to its
-brace by a leader (section 6.6, Leaders).
+brace by a leader (section 6.6, Leaders). In a row of one band order the
+regions bands of the row's lines take these first fits together (Rows of
+one band order).
 
 **Flow control.** The root's flow control band (Gathering) draws the
 **band's elements**: the flow-control elements it draws, taken in the
@@ -1811,7 +1878,8 @@ without labels is 0 wide and lies at the flow row of its start.
 **Flow labels.** A flow line or a jump has a **stack**, the labels its
 cascaded `label-display` lists (section 2.4) of the three it can have
 (section 5.3), in the order name, ID, label, those whose text is null
-left out; the defaults' `label` draws its own `label` alone. A displayed
+left out; the initial `name label` draws its name and its own `label`,
+so that naming an element shows its name. A displayed
 flow line, or a jump, whose stack holds a label draws it, a jump whatever
 its arcs show; a flow line that is not displayed draws none. The stacks, in the
 order of the band's elements, are placed by one first fit into **flow
@@ -1875,15 +1943,27 @@ jump whose `to` names nothing or a rejected element draw no bracket.
 Each destination of a run draws one **bracket**, where the bracket is
 displayed, from its **place**, the
 position of section 3.1 (the jump's own position for `by` 0, the jump
-target's for a `to`), to its **end**: the first position after the
-place, compared exactly, of a band element that is not rejected and is
-a jump, a section break or a break whose `manifestation` is `volta`, or,
-where none follows, the end of the timeline stating the jump (section
-3.4), and never beyond the end of the root of the member drawing. The
-last bracket of a run is the one with the largest place. The runs, in
+target's for a `to`), to its **end**. The brackets of a run are taken in
+the order of their places, compared exactly: the **first** has the
+smallest place, the **last** the largest. The **cut** of a bracket is the
+first position after its place, compared exactly, of a band element that
+is not rejected and is a jump, a section break or a break whose
+`manifestation` is `volta`, or, where none follows, the end of the
+timeline stating the jump (section 3.4), and never beyond the end of the
+root of the member drawing. Every bracket but the last ends at its cut.
+No element marks where the last bracket ends, so it is drawn as long as
+the bracket before it and ends at its place plus that bracket's end
+minus that bracket's place, or at its cut where the cut lies before
+that; the last bracket of a run of one is as long as the distance from
+its jump to its place, the absolute difference of the two positions, so
+it ends at its place plus that distance, or at its cut where the cut lies
+before (one with `by` 0 so has the length 0, its line running from `Xs`
+to `Xs`). Each sum and
+difference is taken as section 3.1 combines values. The runs, in
 the order of the band's elements, are placed by first fit, each with the
-extent from `L × u` of its first bracket's place to `L × u` of its last
-bracket's end, into the `B` **bracket rows**, so the brackets of one run
+extent from `L × u` of its first bracket's place to `L × u` of the
+largest end of its brackets, into the `B` **bracket rows**, so the
+brackets of one run
 share one row and one height. With `bj = f0 + Hs + (j − 1) × hb` the
 inner edge of row `j` and `hb = h(zb) + 4` (section 6.2), `zb` the
 largest font size of the drawn brackets, a bracket of row `j` from `Xs`
@@ -2272,12 +2352,14 @@ one below it.
   name on its segment line, in tier `n ≥ 2` (section 6.4, Segment lines),
   `X` the `x` of the midpoint of the segment's start and end, from the
   distance `m` above its segment line to `m + 2 + (n − 1) × h(9)`, `m` as
-  that section defines it. Each distance is summed whole, left to right,
+  that section defines it (in a row of one band order the row's, section
+  6.4, Children). Each distance is summed whole, left to right,
   before it becomes an ordinate (section 3.3). A leader takes no room and
   crosses whatever lies between its ends. A label in its first tier, or
   a flow line's stack, has none. So one rule holds for the labels of
-  regions, of segments, of arcs and of jumps: the element keeps its row
-  or its place whatever its label's width, and the label moves.
+  regions, of segments, of arcs and of jumps, and for a child's labels
+  in a row of one band order: the element keeps its row or its place
+  whatever its label's width, and the label moves.
 - **Names.** For each **row** of lines (section 6.4, Children: the root's
   row and every row of children bands laid out together, at any depth, so
   that all lines at one ordinate form one row), the names (section 5.3) of

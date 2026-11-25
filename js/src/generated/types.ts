@@ -1774,7 +1774,7 @@ export interface Declaration {
    */
   "elision-display"?: string;
   /**
-   * Which labels a flow-control element draws (read by a break, a section break, a barline and a jump): `none`, or words from `name` (its name), `id` (its ID) and `label` (its own label, and on a jump also the labels of its arcs, each its destination's label) separated by single spaces; the order and a repeated word carry no meaning.
+   * Which labels a flow-control element draws (read by a break, a section break, a barline and a jump): `none`, or words from `name` (its name), `id` (its ID) and `label` (its own label, and on a jump also the labels of its arcs, each its destination's label) separated by single spaces; the order and a repeated word carry no meaning. Initially `name label`.
    */
   "label-display"?: string;
 }

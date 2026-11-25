@@ -371,14 +371,11 @@ of their IDs; the maps of `map`, `map_child_band_order`,
 unnamed, so maps of one type on one line share a key and, spanning one
 timeline, take a sub-slot each, in canonical order.
 
-The defaults hide the regions and flow control bands of every
-timeline held by a band, every timeline of a member drawing but its root
-(drawing specification, section 4). So a child's regions or flow control,
-or a segment's, is drawn in a figure only where a rule of the manifest
-or an application layer displays its band: the drawings
-`unknown_length_child__regions-shown`,
-`unknown_length_segments__regions-shown` and
-`child_flow_control__flow-shown` add such a layer (Drawings, below).
+No default hides a band (drawing specification, section 4): a child's
+regions, or a segment's, are drawn at its own line, and the flow control
+of a root's whole tree, its descendants' included, in the root's flow
+control band (section 6.4, Gathering); no child draws a flow control
+band of its own.
 
 ## Flow fixtures and expected flows
 
@@ -561,14 +558,7 @@ two cards (`bundle_mixed__frame-spacing-16`), and with the card spacing
 (`bundle_ungrouped__places`), with the place `{recording: {scale: 1.5}}`
 (`bundle_ungrouped__scale`) and with the block's spacing 24 and the card
 spacing `{score: {spacing: 8}}`, which deepens `score`'s flow control band
-(`bundle_ungrouped__spacing`); and three manifests with an application
-layer of one rule that sets `display` to `inline` on bands the
-defaults hide: `unknown_length_child` on the band `{"id": "movement",
-"facet": "regions"}` (`unknown_length_child__regions-shown`),
-`unknown_length_segments` on every regions band, `{"element": "band",
-"facet": "regions"}` (`unknown_length_segments__regions-shown`), and
-`child_flow_control` on the band `{"id": "verse", "facet":
-"flow_control"}` (`child_flow_control__flow-shown`); and three groups with
+(`bundle_ungrouped__spacing`); and three groups with
 an application layer of one rule that hides the ancestor cards the
 defaults show, `{"element": "ancestor_card"}` set to `display` `none`:
 `group_parent_both`, `group_parent_right` and `group_parents_mixed`
@@ -637,10 +627,10 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   finds both font files in the directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Forty-four `figure.svg` files are derived by hand from the
+for byte. Forty-one `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, among them every drawing of
 a timeline of unknown length, the three variants of `bundle_ungrouped`, the
-three variants that display a band the defaults hide, the band orders of
+band orders of
 `styled_score_flow_inner`, `map_child_band_order`, `map_root_band_order`
 and `map_band_order_subset`, `joint_rows`, the three drawings of conversion map
 slots (`map_row_siblings`, `map_row_subslots`, `map_row_moved`),
