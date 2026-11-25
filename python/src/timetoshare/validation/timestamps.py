@@ -42,6 +42,7 @@ def _grouped_timelines(manifest: Mapping[str, Any]) -> set[str]:
     grouped: set[str] = set()
 
     def visit(timeline: Mapping[str, Any], inside: bool) -> None:
+        """Add a timeline if it or an ancestor is a member, then its children."""
         inside = inside or timeline["id"] in members
         if inside:
             grouped.add(timeline["id"])

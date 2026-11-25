@@ -61,6 +61,7 @@ def _parents(roots: list[Mapping[str, Any]]) -> dict[str, str | None]:
     found: dict[str, str | None] = {}
 
     def visit(timeline: Mapping[str, Any], parent: str | None) -> None:
+        """Record a timeline's parent unless its ID is taken, then its children's."""
         found.setdefault(timeline["id"], parent)
         for child in entries_of(timeline, "children"):
             visit(child, timeline["id"])

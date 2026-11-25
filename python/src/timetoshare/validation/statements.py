@@ -130,6 +130,7 @@ class _Walk:
         self.ids = {identifier for identifier, _ in manifest_ids(manifest)}
 
     def iri(self, text: str, path: InstancePath) -> Iterator[SchemaValidationError]:
+        """Yield a problem for a prefix neither declared nor a URI scheme."""
         prefix, _, rest = text.partition(":")
         if rest.startswith("//") or prefix in self.prefixes or prefix in URI_SCHEMES:
             return
@@ -140,6 +141,7 @@ class _Walk:
         )
 
     def ref(self, text: str, path: InstancePath) -> Iterator[SchemaValidationError]:
+        """Yield a problem for an undeclared prefix or a ``#`` ID naming nothing."""
         if _SCHEME.match(text) is not None:
             yield from self.iri(text, path)
         elif text.startswith("#") and text[1:] not in self.ids:
@@ -150,6 +152,7 @@ class _Walk:
     def annotations(
         self, pairs: list[tuple[str, Any]], provenance: list[Any], path: InstancePath
     ) -> Iterator[SchemaValidationError]:
+        """Yield the problems of provenance entries: beliefs, repeated pairs."""
         written: list[tuple[str, Any]] = []
         for index, entry in enumerate(provenance):
             pair = (entry["property"], entry["value"])
@@ -174,6 +177,7 @@ class _Walk:
     def beliefs(
         self, entry: Mapping[str, Any], path: InstancePath
     ) -> Iterator[SchemaValidationError]:
+        """Yield a problem for each actor that holds a second belief of one entry."""
         actors: dict[Any, int] = {}
         for index, belief in enumerate(entries_of(entry, "beliefs")):
             actor = reference_iri(self.context, belief["actor"])
@@ -188,12 +192,14 @@ class _Walk:
                 actors[actor] = index
 
     def problems(self, manifest: Mapping[str, Any]) -> Iterator[SchemaValidationError]:
+        """Yield the problems of the statements, then of element provenance."""
         yield from self.positions(statement_positions(manifest))
         yield from self.positions(element_provenance_positions(manifest))
         for path, entry in element_provenance(manifest):
             yield from self.beliefs(entry, path)
 
     def positions(self, positions: Iterator[Any]) -> Iterator[SchemaValidationError]:
+        """Yield the problems of the positions of a walk, each by its kind."""
         for kind, path, value in positions:
             if kind == "subject":
                 identifier = value.get("id")

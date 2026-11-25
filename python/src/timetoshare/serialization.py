@@ -498,6 +498,7 @@ def _read_json(text: str) -> Any:
     """
 
     def fail(index: int, problem: str) -> NoReturn:
+        """Raise ``ValueError`` for a problem at ``index`` of the text."""
         raise ValueError(f"{problem} at {_position(text, index)}")
 
     def string(index: int) -> tuple[str, int]:
@@ -556,6 +557,7 @@ def _read_json(text: str) -> Any:
     stack: list[list[Any]] = []
 
     def key(index: int, container: dict[str, Any]) -> tuple[str, int]:
+        """The key at ``index`` and the index after its colon; a repeat fails."""
         if text[index : index + 1] != '"':
             fail(index, "expected a key")
         name, after = string(index)

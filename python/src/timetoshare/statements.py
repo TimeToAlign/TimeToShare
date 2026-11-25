@@ -330,6 +330,7 @@ def subjects(manifest: Any) -> Iterator[tuple[InstancePath, Mapping[str, Any], s
     def visit(
         timeline: Any, path: InstancePath
     ) -> Iterator[tuple[InstancePath, Mapping, str]]:
+        """Yield a timeline, its regions and, depth first, its children."""
         if not isinstance(timeline, Mapping):
             return
         yield path, timeline, "timeline"
@@ -486,6 +487,7 @@ def element_provenance(
         return
 
     def held(holder: Any, path: InstancePath) -> Iterator[tuple[InstancePath, Mapping]]:
+        """Yield the provenance entries a holder carries, with their paths."""
         if not isinstance(holder, Mapping):
             return
         for number, entry in enumerate(_entries_of(holder.get("provenance"))):
@@ -495,6 +497,7 @@ def element_provenance(
     def visit(
         timeline: Any, path: InstancePath
     ) -> Iterator[tuple[InstancePath, Mapping]]:
+        """Yield a timeline's flow-control entries, then its children's."""
         if not isinstance(timeline, Mapping):
             return
         for index, element in enumerate(_entries_of(timeline.get("flow_control"))):
@@ -625,6 +628,7 @@ class _References:
         }
 
     def dropped(self, text: Any) -> bool:
+        """Whether a value is a reference to an element that is dropped."""
         return (
             isinstance(text, str)
             and text in self.renamed
@@ -1036,6 +1040,7 @@ class _Edit:
         self.pair = (property, copy.deepcopy(value))
 
     def matches(self, pair: tuple[str, Any]) -> bool:
+        """Whether a pair is the edited pair under the manifest's context."""
         return same_pair(self.context, pair, self.pair)
 
     def stated(self) -> tuple[str, int] | None:
@@ -1099,6 +1104,7 @@ class _Edit:
         beliefs.append(held)
 
     def state(self) -> None:
+        """Append the pair's value to its property's list, creating both as needed."""
         if self.element:
             container = self.holder.setdefault("statements", {})
         else:
@@ -1106,6 +1112,7 @@ class _Edit:
         container.setdefault(self.pair[0], []).append(copy.deepcopy(self.pair[1]))
 
     def unstate(self, at: tuple[str, int]) -> None:
+        """Remove the stated value at a key and index, and what it leaves empty."""
         key, index = at
         container = self.holder["statements"] if self.element else self.holder
         del container[key][index]
@@ -1115,11 +1122,13 @@ class _Edit:
             del self.holder["statements"]
 
     def drop_entry(self) -> None:
+        """Remove the pair's provenance entry, if there is one."""
         entry = self.entry()
         if entry is not None:
             self.holder["provenance"].remove(entry)
 
     def done(self) -> dict[str, Any]:
+        """The edited manifest, an emptied ``provenance`` list removed."""
         if self.holder.get("provenance") == []:
             del self.holder["provenance"]
         return self.result

@@ -134,12 +134,18 @@ def bundle_schemas(
     definitions = "#/$defs/"
 
     def from_manifest(reference: str) -> str:
+        """A manifest schema reference, one into the provenance schema made local."""
         document, _, pointer = reference.partition("#")
         if document != PROVENANCE_DOCUMENT:
             return reference
         return pointer and "#" + pointer or definitions + PROVENANCE_DEFINITION
 
     def from_provenance(reference: str) -> str:
+        """A provenance schema reference made local.
+
+        A pointer into it or into the manifest schema is kept; any other
+        reference names its root.
+        """
         document, _, pointer = reference.partition("#")
         if document in ("", "timetoshare.schema.json") and pointer:
             return "#" + pointer
@@ -786,6 +792,7 @@ def _matchstamp_id_problems(
     """
 
     def concerned(*paths: InstancePath) -> bool:
+        """Whether any of the paths lies under the named MatchStamps."""
         return any(path[: len(_MATCHSTAMPS)] == _MATCHSTAMPS for path in paths)
 
     first: dict[str, InstancePath] = {}

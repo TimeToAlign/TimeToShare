@@ -433,12 +433,18 @@ class _Found:
         self._found: list[tuple[int, int, int, TableProblem]] = []
 
     def add(self, row: int, place: int, problem: TableProblem) -> None:
+        """Add a problem read at ``row`` by the rule at ``place``.
+
+        Raises:
+            AssertionError: If the problem has no message.
+        """
         if problem.message is None:
             # A rule's mask flagged a cell its message helper finds sound.
             raise AssertionError(f"no message for '{problem.code}' at row {row}")
         self._found.append((row, place, len(self._found), problem))
 
     def problems(self) -> list[TableProblem]:
+        """The problems added, by row, then place, then the order of adding."""
         return [found[3] for found in sorted(self._found, key=lambda f: f[:3])]
 
 
@@ -1147,6 +1153,7 @@ def _coordinates_differ(old: pa.Array, new: pa.Array) -> pa.Array:
     or exact value; a fraction whose members differ is compared exactly."""
 
     def member(cells: pa.Array, key: str) -> pa.Array:
+        """A member of the coordinate cells, null where the cell is."""
         return _member(cells, key)
 
     unit = _differs(member(old, "unit"), member(new, "unit"))

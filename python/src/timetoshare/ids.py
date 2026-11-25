@@ -240,6 +240,12 @@ class _Converter:
         return frozenset(found)
 
     def id(self, text: Any, path: _Path) -> Any:
+        """One ID converted; a value that is no string is copied as it is.
+
+        Raises:
+            FileIdError: In strict conversion to the bare form, if the text is
+                not written as an ID.
+        """
         if not isinstance(text, str):
             return _copied(text)
         if self.to_file:
@@ -247,11 +253,13 @@ class _Converter:
         return _bare(text, path) if self.strict else _leniently_bare(text)
 
     def ids(self, value: Any, path: _Path) -> Any:
+        """A list of IDs converted item by item; a value that is no list is copied."""
         if not isinstance(value, list):
             return _copied(value)
         return [self.id(item, (*path, index)) for index, item in enumerate(value)]
 
     def order(self, value: Any, path: _Path) -> Any:
+        """An object keyed by IDs converted, and the member IDs a group's key holds."""
         if not isinstance(value, Mapping):
             return _copied(value)
         result: dict[str, Any] = {}
@@ -265,6 +273,7 @@ class _Converter:
         return result
 
     def held(self, value: Any, definition: str, path: _Path) -> Any:
+        """A value held as ``definition`` converted, member by member."""
         if not isinstance(value, Mapping):
             return _copied(value)
         definitions = definitions_of(definition, value)
@@ -285,6 +294,7 @@ class _Converter:
         return result
 
     def holding(self, value: Any, holding: Holding, child: str, path: _Path) -> Any:
+        """A member converted that holds ``child`` as one object, a list or values."""
         if holding == "one":
             return self.held(value, child, path)
         if holding == "list" and isinstance(value, list):

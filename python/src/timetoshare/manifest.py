@@ -164,6 +164,7 @@ def _display_key(words: tuple[str, ...]) -> Callable[[Any], tuple[int, int, str]
     """
 
     def key(word: Any) -> tuple[int, int, str]:
+        """The sort key of one word."""
         if isinstance(word, str) and word in words:
             return (0, words.index(word), "")
         if isinstance(word, str):
@@ -339,6 +340,7 @@ def _axis_types(manifest: dict[str, Any]) -> dict[str, str | None]:
     counts: Counter[str] = Counter()
 
     def visit(timeline: dict[str, Any]) -> None:
+        """Record a timeline's axis type and count its ID, then its children's."""
         identifier = timeline.get("id")
         if isinstance(identifier, str):
             counts[identifier] += 1

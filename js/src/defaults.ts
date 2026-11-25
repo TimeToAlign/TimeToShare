@@ -200,6 +200,7 @@ const stripOne: Pass = (owner, kind) => {
  * Python's `timetoshare.complete` gives the same value.
  */
 export function complete(value: LosslessManifest): CompleteManifest;
+/** Return a copy of any other value, its manifest-shaped parts completed. */
 export function complete<T>(value: T): T;
 export function complete(value: unknown): unknown {
   const result = clone(value);
@@ -219,6 +220,7 @@ export function complete(value: unknown): unknown {
  * `timetoshare.minimal` gives the same value.
  */
 export function minimal(value: LosslessManifest): LosslessManifest;
+/** Return a copy of any other value, its manifest-shaped parts in the minimal form. */
 export function minimal<T>(value: T): T;
 export function minimal(value: unknown): unknown {
   const result = complete(value);

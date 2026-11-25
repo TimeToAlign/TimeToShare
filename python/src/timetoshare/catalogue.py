@@ -420,6 +420,7 @@ class _Reading:
         self.context = context
 
     def aliased(self, iri: str) -> str:
+        """An IRI with the first alias whose namespace starts it applied."""
         for namespace, target in self.catalogue.aliases.items():
             if iri.startswith(namespace):
                 return target + iri[len(namespace) :]
@@ -440,6 +441,7 @@ class _Reading:
         return text
 
     def constant(self, template: Any, value: Any) -> bool:
+        """Whether a constant equals a value: as written, by IRI, or as JSON."""
         if isinstance(template, str) and isinstance(value, str):
             return template == value or (
                 is_iri(template) and self.own(template) == self.held(value)
@@ -498,6 +500,7 @@ class _Reading:
         return best
 
     def verb_of(self, property: str, value: Any) -> tuple[str, bool] | None:
+        """The verb a pair states and whether it reads it backwards, or ``None``."""
         iri = self.held(property)
         best: tuple[int, str, bool] | None = None
         for verb in self.catalogue.verbs:
@@ -512,6 +515,7 @@ class _Reading:
         return None if best is None else (best[1], best[2])
 
     def things(self, property: str, value: Any) -> list[str]:
+        """The things a pair names: a ``type``'s class, a node's own and sameAs IDs."""
         if property == "type" and isinstance(value, str):
             return [self.held(value)]
         if not is_node(value):

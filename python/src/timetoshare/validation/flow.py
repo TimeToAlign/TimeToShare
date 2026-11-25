@@ -249,9 +249,11 @@ def timeline_flow_problems(
     first_jump: dict[Fraction, str] = {}
 
     def outside(value: Fraction) -> bool:
+        """Whether a coordinate lies before 0 or after the timeline's known length."""
         return value < 0 or (end is not None and value > end)
 
     def beyond() -> str:
+        """The reason given for a coordinate that lies outside the timeline."""
         return (
             "it lies before 0"
             if end is None
@@ -333,6 +335,7 @@ def _tree(
     intervals: set[str] = set()
 
     def visit(timeline: Mapping[str, Any], child: bool) -> None:
+        """Add a timeline's IDs and its regions', then its children's."""
         timelines.add(timeline["id"])
         if child:
             intervals.add(timeline["id"])
@@ -358,6 +361,7 @@ def _extents(manifest: Mapping[str, Any]) -> dict[str, tuple[Axis, Fraction | No
     found: dict[str, tuple[Axis, Fraction | None]] = {}
 
     def visit(timeline: Mapping[str, Any], child: bool) -> None:
+        """Record a child timeline's extent and its regions', then its children's."""
         axis = (timeline["unit"], number_type_of(timeline))
         length = timeline.get("length")
         if child:

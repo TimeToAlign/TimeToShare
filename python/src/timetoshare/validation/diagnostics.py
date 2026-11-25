@@ -87,6 +87,7 @@ def connected_sets(pairs: Iterable[tuple[_Member, _Member]]) -> dict[_Member, _M
     parent: dict[_Member, _Member] = {}
 
     def find(member: _Member) -> _Member:
+        """The representative of a member's set, halving the path on the way."""
         parent.setdefault(member, member)
         while parent[member] != member:
             parent[member] = parent[parent[member]]
@@ -254,6 +255,7 @@ def timelines_by_id(manifest: Any) -> dict[str, Mapping[str, Any]]:
     found: dict[str, Mapping[str, Any]] = {}
 
     def visit(timeline: Mapping[str, Any]) -> None:
+        """Keep a timeline under its ID unless the ID is taken, then its children."""
         found.setdefault(timeline["id"], timeline)
         for child in entries_of(timeline, "children"):
             visit(child)
