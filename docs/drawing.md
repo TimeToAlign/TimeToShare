@@ -24,7 +24,7 @@ containers are the **boxes** of a drawing.
 
 ## 1. Inputs and output
 
-`draw(manifest, placement, layers, metrics)` returns the manifest's drawing.
+`draw(manifest, placement, layers, metrics, reading)` returns the manifest's drawing.
 
 - `manifest`: a TimeToShare manifest, read in its complete form, every
   key the manifest leaves out taking its default (README, "Defaults"), and
@@ -79,6 +79,19 @@ containers are the **boxes** of a drawing.
   manifest: a drawing's own styling is its manifest's. Section 2 defines
   them.
 - `metrics`: the advance widths of the fonts of section 5.1.
+- `reading`: the **reading in force** of flow control, the flow-control
+  elements the drawing counts as read (section 6.4, Flow control): `null`
+  (the default), or an object `{believer, beliefs}`, `believer` the IRI
+  of an actor and `beliefs` a non-empty list of belief states, a belief
+  filter of the README ("Provenance and beliefs"). With an object, an
+  element is read where its state for `believer` is one of `beliefs`,
+  the state taken and the actors compared as the README's belief filter
+  takes and compares them; with `null`, an element is read where no actor
+  believes it `false` (README, "Flow control"). An editor passes its
+  user and the belief states it keeps (the user's own beliefs deciding
+  where the user holds one, the workspace's belief filter elsewhere), a
+  script its own or `null`; like `placement`, a reading is never part of
+  the manifest.
 
 The drawing is a **block** of width `W` and height `H` and a list of drawn
 **elements** in block-local canvas units, origin at the block's top-left corner,
@@ -1318,9 +1331,9 @@ number it has always had.
 | flow label offset (from a flow-control element's `x` to its stack) | 3 |
 | symbol gap (between a glyph box and the lines it meets) | 2 |
 | symbol row height `Hs` | 2 + h(zs) + 2, `zs` the largest font size of the drawn symbols; 0 when none is drawn |
-| fork: stem length, branch length, angle step | 6, 10, 25° |
-| fork text offset (from the branch point to the texts' start) | 12 |
-| fork row height `Hf` | max(N × h(zf), h(zf) / 2 + 10), `zf` the largest font size of the drawn forks and `N` the most branches a drawn fork has; 0 when none is drawn |
+| fork: stem length, branch length, angle step, largest angle | 8, 18, 35°, 70° |
+| fork text offset (from a branch's tip to the start of its text) | 3 |
+| fork row height `Hf` | (h(zf) / 2 + 18 × sM) + h(zf) / 2, `zf` the largest font size of the drawn forks, `sM` the `sk` of `min(N − 1, 2)` (section 6.4, Forks) and `N` the most branches a drawn fork has; 0 when none is drawn |
 | boundary half-height `k` | 8 |
 | group frame padding `Q` | 8 |
 | card padding `K` | 8 |
@@ -1980,33 +1993,33 @@ displayed, and no arc for a branch (Arcs): the fork shows that the flow
 leaves the jump on one of several ways, and its texts on which passes.
 The branches are taken in the order of their places, compared exactly,
 branches of one place in the canonical order of `targets`; branch `k`,
-counted from 1, has the **angle** `25° × min(k − 1, 3)` and the
+counted from 1, has the **angle** `35° × min(k − 1, 2)` and the
 **direction** `(ck, sk)` of this table, its decimal numbers read as
 doubles and never computed from a sine or a cosine:
 
-| `min(k − 1, 3)` | angle | `ck` | `sk` |
+| `min(k − 1, 2)` | angle | `ck` | `sk` |
 |---|---|---|---|
 | 0 | 0° | 1 | 0 |
-| 1 | 25° | 0.906307787 | 0.4226182617 |
-| 2 | 50° | 0.6427876097 | 0.7660444431 |
-| 3 | 75° | 0.2588190451 | 0.9659258263 |
+| 1 | 35° | 0.8191520443 | 0.5735764364 |
+| 2 | 70° | 0.3420201433 | 0.9396926208 |
 
 `ck` runs along the axis to the right and `sk` away from the root's
-line: the first branch runs straight on, and every further one bends
-away from the line by 25° more than the one before, as a motorway exit
-leaves the road; from the fourth on they share 75°. A fork has one size
-on the canvas whatever the axis's scale. With `X` the `x` of its jump's
+line: the first branch runs straight on, the second bends away from the
+line by 35°, as a motorway exit leaves the road, and every further one
+by 70°, the largest angle, which the third and every later branch share,
+their arrows and texts then lying on one another. A fork has one size on
+the canvas whatever the axis's scale. With `X` the `x` of its jump's
 position, `w` its stroke width, `z` its font size, and `e = (f0 + Hs) +
 h(zf) / 2` the distance of its stem from the root's line, `zf` the
 largest font size of the drawn forks (section 6.2), a fork draws:
 
-- its **stem**, a straight line at the distance `e` from `X − 6` to its
+- its **stem**, a straight line at the distance `e` from `X − 8` to its
   **branch point** `X`;
-- per branch `k`, an **arrow** from the branch point, 10 long in the
+- per branch `k`, an **arrow** from the branch point, 18 long in the
   direction `(ck, sk)`, ending in an arrowhead like an arc's (section
   6.6, Jumps): a filled triangle, not stroked, of length `4w` and
-  half-width `2w`. With `a = 10 − 4 × w`, its **tip** lies at `x = X +
-  10 × ck` and the distance `e + 10 × sk`, the centre of its base at `x
+  half-width `2w`. With `a = 18 − 4 × w`, its **tip** lies at `x = X +
+  18 × ck` and the distance `e + 18 × sk`, the centre of its base at `x
   = X + a × ck` and the distance `e + a × sk`, its first corner at `x =
   (X + a × ck) + (2 × w) × sk` and the distance `(e + a × sk) − (2 × w)
   × ck`, and its second corner at `x = (X + a × ck) − (2 × w) × sk` and
@@ -2016,25 +2029,25 @@ largest font size of the drawn forks (section 6.2), a fork draws:
   printed: the numbers of `passes` in ascending order, each followed by
   `.` and joined by `, ` (`1.`, `1., 3.`), or for `{from: n}` `n`
   followed by `.–` (U+2013, `3.–`); a destination without `passes` has
-  none. The texts form a column starting at `X + 12`, 2 beyond the tip
-  of the first branch, one line per branch in the order of the branches,
-  a branch without a text leaving its line empty: the line of branch `k`
-  starts at the distance `t = (e − h(z) / 2) + (k − 1) × h(z)`, so that
-  the first line is centred on the stem and each text lies beside its
-  arrow, further out the further its arrow bends, and its baseline lies
-  beyond that start: at `yl + t + a(z)` when the band lies below the line
-  and at `yl − t − d(z)` when it lies above it.
+  none. Each text lies at its own branch's tip: it starts 3 right of the
+  tip, at `x = (X + 18 × ck) + 3`, and its text line is centred on the
+  tip, starting at the distance `t = (e + 18 × sk) − h(z) / 2`; its
+  baseline lies beyond that start: at `yl + t + a(z)` when the band lies
+  below the line and at `yl − t − d(z)` when it lies above it.
 
 Each product is formed as written, each sum and difference taken left to
 right as written, and each distance summed whole before it becomes an
 ordinate, `yl + d` when the band lies below the line and `yl − d` when it
-lies above it (section 3.3). So the fork row is `Hf = max(N × h(zf), h(zf)
-/ 2 + 10)` wide (section 6.2), `N` the most branches a drawn fork has:
-room for every arrow and every line of texts. A fork is no label: it
-lies on the fork row at its jump's `x` whatever its neighbours, so forks
-of jumps lying close may overlap, as symbols may; it is never placed by
-first fit and never moved, and its extent enters the extents of section
-6.7 as a symbol's does.
+lies above it (section 3.3). So the fork row is as wide as the lowest tip
+of a drawn fork lies beyond its start, plus half a text height: `Hf =
+(h(zf) / 2 + 18 × sM) + h(zf) / 2` (section 6.2), `sM` the `sk` of
+`min(N − 1, 2)` and `N` the most branches a drawn fork has, so `Hf =
+h(zf)` when no drawn fork has more than one branch; room for every arrow
+and every text, the first text's line starting at the row's start. A
+fork is no label: it lies on the fork row at its jump's `x` whatever its
+neighbours, so forks of jumps lying close may overlap, as symbols may; it
+is never placed by first fit and never moved, and its extent enters the
+extents of section 6.7 as a symbol's does.
 
 **Arcs.** Each jump whose arcs are displayed (its element `jump`) draws one **arc** per destination, from
 and to the positions of section 3.1, but none for a destination with
@@ -2060,11 +2073,14 @@ and tier `j` `(j − 1) × h(9)` further out. Row `k`, whose labels fill
 apex by a leader (section 6.6, Leaders). The band's arc descriptors and
 labels follow this order of first fit (section 7.2).
 
-A rejected flow-control element, one that some actor believes `false`
-(README, "Flow control"), is drawn as any other and takes its room as
-any other, but with its arcs or its line, its symbol, its fork,
+A flow-control element that the reading in force does not read
+(section 1), a **faded** element, is drawn as any other and takes its
+room as any other, but with its arcs or its line, its symbol, its fork,
 their labels, its stack and their leaders at the opacity 0.35, which
-replaces the cascaded `opacity` and no rule changes.
+replaces the cascaded `opacity` and no rule changes. The reading fades
+and nothing more: which arcs and branches a jump has and where a
+destination lands follow the rejection of the README ("Flow control"),
+an element some actor believes `false`, whatever the reading.
 
 **Flow lines.** A displayed flow line is a vertical line at `x` of its
 position, from the flow row across the root's line and every band to the
@@ -2536,8 +2552,8 @@ are the name texts it draws, its ancestor names included, and every
 centred label `i` it draws (segment and region labels and the labels of arcs, every
 label of a named timestamp's stack on its own, the labels of its
 elisions, and its symbols, each centred on its element's position, and
-its forks, each counted as a centred label of width 12 on its jump's
-position, so that its stem reaches 6 left of it) has width `wi` and the proportion `ui` (section 3.2) of the
+its forks, each counted as a centred label of width 16 on its jump's
+position, so that its stem reaches 8 left of it) has width `wi` and the proportion `ui` (section 3.2) of the
 exact position it is centred on, and its **carry** `vi`: a label of a
 named timestamp is centred at its timestamp's position, moved by the
 carry its wedge gives it (section 6.6, Labels of named timestamps;
@@ -2649,7 +2665,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | region | `<path d="{brace}">` |
 | arc of a jump | `<path d="M{P0}C{C1} {C2} {Bh}">`, the shaft; `<polygon>` arrowhead `{P3} {Bh − 2w × n} {Bh + 2w × n}`, `n = (−uy, ux)` (section 6.6) |
 | flow line: break, section break, barline | `<line x1="{x}" y1="{yf}" x2="{x}" y2="{y2}">` (section 6.4) |
-| fork | its stem, `<line x1="{X − 6}" y1="{yb}" x2="{X}" y2="{yb}">`, `yb` the ordinate of the distance `e`; then branch by branch in the order of the branches its shaft, `<line x1="{X}" y1="{yb}" x2="{xc}" y2="{yc}">` to the centre `(xc, yc)` of its arrowhead's base, and its arrowhead, `<polygon points="{tip} {first corner} {second corner}">` (section 6.4, Forks); then the texts in the order of the branches, `<text x="{X + 12}" y="{baseline}" text-anchor="start" font-size="{z}">` each |
+| fork | its stem, `<line x1="{X − 8}" y1="{yb}" x2="{X}" y2="{yb}">`, `yb` the ordinate of the distance `e`; then branch by branch in the order of the branches its shaft, `<line x1="{X}" y1="{yb}" x2="{xc}" y2="{yc}">` to the centre `(xc, yc)` of its arrowhead's base, and its arrowhead, `<polygon points="{tip} {first corner} {second corner}">` (section 6.4, Forks); then the texts in the order of the branches, `<text x="{xt}" y="{baseline}" text-anchor="start" font-size="{z}">` each, `xt = (X + 18 × ck) + 3` 3 right of its branch's tip |
 | leader | `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, `y1` the ordinate of the element's end of the leader and `y2` that of the label's (section 6.6, Leaders) |
 | symbol | `<text x="{x}" y="{baseline}" text-anchor="middle" font-size="{z}">` (section 6.4, Symbols) |
 | boundary | `<line x1="{X}" y1="{y−k}" x2="{X}" y2="{y+k}">` (section 6.6) |
