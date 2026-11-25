@@ -1,0 +1,2 @@
+```{include} ../../decisions/0009-font-metrics-extraction.md
+```

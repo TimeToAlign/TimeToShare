@@ -1,0 +1,4 @@
+timetoshare.validation.segments
+===============================
+
+.. automodule:: timetoshare.validation.segments

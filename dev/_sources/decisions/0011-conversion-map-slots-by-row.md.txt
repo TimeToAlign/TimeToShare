@@ -1,0 +1,2 @@
+```{include} ../../decisions/0011-conversion-map-slots-by-row.md
+```

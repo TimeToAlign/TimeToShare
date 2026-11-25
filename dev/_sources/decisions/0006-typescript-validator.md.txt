@@ -1,0 +1,2 @@
+```{include} ../../decisions/0006-typescript-validator.md
+```

@@ -1,0 +1,1609 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="./" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Describing what a manifest is about &#8212; timetoshare 0.2.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'description';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Drawing a TimeToShare manifest" href="drawing.html" />
+    <link rel="prev" title="TimeToShare!" href="overview.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.0" />
+  
+    
+    <script src="_static/searchtools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script src="searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">timetoshare 0.2.0</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#" aria-current="page">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#" aria-current="page">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">Describing what a manifest is about</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="describing-what-a-manifest-is-about">
+<h1>Describing what a manifest is about<a class="headerlink" href="#describing-what-a-manifest-is-about" title="Link to this heading">#</a></h1>
+<p>This specification states how a TimeToShare manifest says what its
+elements stand for and how those things relate to others: by
+property–value statements in published vocabularies, optionally annotated
+with their provenance, and read as linked data through the manifest’s
+inline JSON-LD context. It covers the two planes of a manifest (section
+1), the subject of a statement (section 2), the bibliographic classes of
+the things a manifest holds (section 3), pairs and their values (section
+4), “is a” (section 5), vocabularies and patterns (section 6), values that
+name elements (section 7), YAML-LD and the inline context (section 8),
+provenance and beliefs (section 9), the catalogue of identifier systems,
+verbs and types (section 10), the package functions that edit statements
+(section 11) and validation (section 12). Section 13 lists the statement
+fixtures.</p>
+<p>The definitions <code class="docutils literal notranslate"><span class="pre">Context</span></code>, <code class="docutils literal notranslate"><span class="pre">Statements</span></code> and <code class="docutils literal notranslate"><span class="pre">StatementValue</span></code> of the
+manifest’s schema document and the provenance entry of its provenance
+document, <code class="docutils literal notranslate"><span class="pre">provenance.schema.json</span></code>, with the definitions they use
+(<code class="docutils literal notranslate"><span class="pre">PrefixName</span></code>, <code class="docutils literal notranslate"><span class="pre">PrefixIri</span></code>, <code class="docutils literal notranslate"><span class="pre">Iri</span></code>, <code class="docutils literal notranslate"><span class="pre">IriReference</span></code>, <code class="docutils literal notranslate"><span class="pre">LanguageTag</span></code>, <code class="docutils literal notranslate"><span class="pre">Types</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Values</span></code>, <code class="docutils literal notranslate"><span class="pre">SingleValue</span></code>, <code class="docutils literal notranslate"><span class="pre">OrderedValues</span></code>, <code class="docutils literal notranslate"><span class="pre">ValueObject</span></code>, <code class="docutils literal notranslate"><span class="pre">ValueNode</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Provenance</span></code>, <code class="docutils literal notranslate"><span class="pre">ProvenanceEntry</span></code>, <code class="docutils literal notranslate"><span class="pre">EntryValue</span></code> and the belief), state the
+format normatively; <code class="docutils literal notranslate"><span class="pre">Context</span></code>, <code class="docutils literal notranslate"><span class="pre">Statements</span></code>, <code class="docutils literal notranslate"><span class="pre">StatementValue</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ProvenanceEntry</span></code> are public, and so is the provenance document as a whole
+(README, “The schema document”). The same
+provenance entry annotates the rows of the MatchClaim table (README,
+“Provenance and beliefs”); this specification states it for statements. Terms in <code class="docutils literal notranslate"><span class="pre">code</span></code> are JSON
+members. Statements hold no events, and neither the drawing
+(<code class="docutils literal notranslate"><span class="pre">docs/drawing.md</span></code>) nor any rule of the temporal structure reads them.</p>
+<p>The examples are excerpts of the statement fixtures under
+<code class="docutils literal notranslate"><span class="pre">fixtures/0.2.0/statements/</span></code>, written in canonical YAML (README,
+“Serializations”), with the format’s context left out. Their Turtle
+readings take the manifest to lie at
+<code class="docutils literal notranslate"><span class="pre">https://example.org/manifests/&lt;name&gt;.yaml</span></code> and write the empty prefix <code class="docutils literal notranslate"><span class="pre">:</span></code>
+for that address followed by <code class="docutils literal notranslate"><span class="pre">#</span></code>; the other prefixes are those of the
+manifest’s context.</p>
+<section id="two-planes">
+<h2>1. Two planes<a class="headerlink" href="#two-planes" title="Link to this heading">#</a></h2>
+<p>A manifest holds two kinds of information. Its <strong>temporal structure</strong>
+(timelines and their nesting, groups, conversion maps, MeasureMaps,
+regions and flow control) states how coordinates relate: which axis a
+position lies on, where a child lies on its parent, how one unit converts
+into another, and in which order passages are played. Its <strong>statements</strong>
+state what a thing is and how it relates to other things: that a timeline
+is the axis of a video, who performs in it, which work it records, and
+where a statement came from. Each plane does its own work. A statement
+never nests, orders or aligns timelines, and the temporal structure never
+says what an element is: a child timeline is a stretch of its parent’s
+axis and implies no parthood, and a statement that one thing is part of
+another implies nothing about the timelines.</p>
+</section>
+<section id="the-subject">
+<h2>2. The subject<a class="headerlink" href="#the-subject" title="Link to this heading">#</a></h2>
+<p>Three kinds of element may carry statements, each in an object
+<code class="docutils literal notranslate"><span class="pre">statements</span></code>, with their annotations in a list <code class="docutils literal notranslate"><span class="pre">provenance</span></code> (section 9):
+the manifest as a whole, every timeline at any depth (children and
+segments included) and every region. No other element carries
+<code class="docutils literal notranslate"><span class="pre">statements</span></code>: a group, a conversion map, a MeasureMap, a flow-control
+element, a FlowMap and a named timestamp have none, and the validators
+refuse the two keys on a group (section 12). A flow-control element and a
+FlowMap carry <code class="docutils literal notranslate"><span class="pre">provenance</span></code> alone, whose entries are about the element
+itself and name no pair (section 9); they are no subjects of statements.</p>
+<p>As the subject of statements, each of these elements stands for a thing:</p>
+<ul class="simple">
+<li><p>the <strong>bundle</strong>, the manifest itself, for the package it is, which names
+the work it is about, a sonata or a DJ set, by <code class="docutils literal notranslate"><span class="pre">schema:about</span></code> and is
+never that work;</p></li>
+<li><p>a <strong>timeline</strong> for the manifestation it is the time axis of: this
+edition, this encoding, this scan, this recording file, this video;</p></li>
+<li><p>a <strong>region</strong> for the stretch of that manifestation it marks, such as a
+movement of a recording or a track of a set.</p></li>
+</ul>
+<p>The subject’s IRI is the manifest’s address with the element’s ID as its
+fragment, <code class="docutils literal notranslate"><span class="pre">&lt;manifest</span> <span class="pre">address&gt;#&lt;id&gt;</span></code> (README, “Identity”), and an element
+carrying statements must have an ID that is an IRI fragment (section 12).
+A manifest without <code class="docutils literal notranslate"><span class="pre">id</span></code> is a blank node as a subject, which no other
+document can name; the validators warn of it (<code class="docutils literal notranslate"><span class="pre">bundle_blank</span></code>).</p>
+</section>
+<section id="work-expression-manifestation-item">
+<h2>3. Work, expression, manifestation, item<a class="headerlink" href="#work-expression-manifestation-item" title="Link to this heading">#</a></h2>
+<p>The things a manifest holds are classified after the IFLA Library
+Reference Model and its object-oriented form LRMoo. A manifest bundles
+the manifestations of one or more expressions of one work, including the
+expressions that work’s expression aggregates or incorporates.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>The thing</p></th>
+<th class="head"><p>In a manifest</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>work</p></td>
+<td><p>a creation in the abstract, intangible and without fixed bounds</p></td>
+<td><p>never packaged; a value node, named by the bundle’s <code class="docutils literal notranslate"><span class="pre">schema:about</span></code> and by a timeline’s “example of work”</p></td>
+</tr>
+<tr class="row-odd"><td><p>expression</p></td>
+<td><p>one realisation of a work: the notated text of a version, a recorded performance</p></td>
+<td><p>a value node, named by a timeline’s “embodies”; a performance is an event, and its recording an expression of its own</p></td>
+</tr>
+<tr class="row-even"><td><p>manifestation</p></td>
+<td><p>one embodiment of an expression: an edition, an encoding, a scan of a score; a release, an upload, an audio file, a video</p></td>
+<td><p>the thing a timeline is the axis of, each timeline of exactly one</p></td>
+</tr>
+<tr class="row-odd"><td><p>item</p></td>
+<td><p>one exemplar of a manifestation: a copy in a library, a file at an address</p></td>
+<td><p>a value node on its manifestation’s timeline, holding its location and, for a file, its digest</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A work has no time axis, and a manifest never delineates one; an
+expression has none of its own either. Works and expressions therefore
+occur only as values. The bundle names its work by <code class="docutils literal notranslate"><span class="pre">schema:about</span></code> and is
+typed as nothing that is a work; a timeline names what it manifests, an
+expression by <code class="docutils literal notranslate"><span class="pre">lrmoo:R4_embodies</span></code>, a work by Wikidata’s <code class="docutils literal notranslate"><span class="pre">wdt:P629</span></code> or
+schema.org’s <code class="docutils literal notranslate"><span class="pre">schema:exampleOfWork</span></code>. Such a value node states its own
+“is a” and its identity with an authority’s IRI by “same as”. The “is a”
+of a timeline or a region names a manifestation class or a kind of
+manifestation, never a class of work or expression (section 5). Whatever
+has no axis in the manifest stays a value node.</p>
+<p>An edition, an encoding and a scan of the score are manifestations of the
+notated expression; a release, an upload or a file of a recording are
+manifestations of the recorded expression. A copy is an item, a value
+node on its manifestation’s timeline that holds its location and, for a
+file, its digest; for a digital carrier the location is the item
+statement. A compound is itself the one work. A disc is an aggregate
+whose release embodies the compilation’s expression and the pieces’
+expressions with it, so the disc’s timeline and its tracks’ children are
+axes of that one manifestation. A DJ set is a work of its own whose
+recorded expression incorporates the tracks’ expressions in altered form.
+Its timeline is the axis of the set’s recording, which names the set by
+“recording of” (<code class="docutils literal notranslate"><span class="pre">wdt:P2550</span></code>); the tracks’ own timelines, where a manifest
+holds them, are manifestations of those expressions and relate to the
+set by alignment alone.</p>
+<p>The four classes are types of published vocabularies, and the format has
+no key for them: a manifest states them where it wants them, as
+<code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">[&quot;lrmoo:F3_Manifestation&quot;]</span></code> or <code class="docutils literal notranslate"><span class="pre">type:</span> <span class="pre">[&quot;melod:Manifestation&quot;]</span></code>
+(section 5). In <code class="docutils literal notranslate"><span class="pre">nielsen_record</span></code>, a catalogue record of Carl Nielsen’s
+song CNW 133, the bundle is about the catalogue’s work, which is realised
+in one expression. The print and the autograph are manifestations, each a
+timeline; the print embodies the expression, a value node. The one copy
+of the autograph, held by the Royal Danish Library under the shelfmark
+CNS 342e, is a candidate for its exemplar on the autograph’s timeline,
+the library’s siglum awaiting reconciliation (abridged):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"#cnw0133"</span>
+<span class="nt">statements</span><span class="p">:</span>
+<span class="w">  </span><span class="s">"schema:about"</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#work_d1e191187"</span>
+<span class="w">      </span><span class="s">"lrmoo:R3_is_realised_in"</span><span class="p p-Indicator">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1"</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"melod:Work"</span><span class="p p-Indicator">]</span>
+<span class="nt">timelines</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span>
+<span class="w">    </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"#cgt_1"</span>
+<span class="w">    </span><span class="nt">length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Score,</span><span class="nv"> </span><span class="s">print</span><span class="nv"> </span><span class="s">(Wilhelm</span><span class="nv"> </span><span class="s">Hansen,</span><span class="nv"> </span><span class="s">1906)"</span>
+<span class="w">    </span><span class="nt">statements</span><span class="p">:</span>
+<span class="w">      </span><span class="s">"lrmoo:R4_embodies"</span><span class="p p-Indicator">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1"</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"melod:Expression"</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"melod:Manifestation"</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">millimeters</span>
+<span class="w">  </span><span class="p p-Indicator">-</span>
+<span class="w">    </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"#cgt_2"</span>
+<span class="w">    </span><span class="nt">length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+<span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="s">"Score,</span><span class="nv"> </span><span class="s">autograph,</span><span class="nv"> </span><span class="s">printer's</span><span class="nv"> </span><span class="s">manuscript"</span>
+<span class="w">    </span><span class="nt">provenance</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">property</span><span class="p">:</span><span class="w"> </span><span class="s">"lrmoo:R7i_is_exemplified_by"</span>
+<span class="w">        </span><span class="nt">value</span><span class="p">:</span>
+<span class="w">          </span><span class="s">"bf:heldBy"</span><span class="p p-Indicator">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span>
+<span class="w">              </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DK-Kk</span>
+<span class="w">              </span><span class="s">"skos:notation"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">DK-Kk</span><span class="p p-Indicator">]</span>
+<span class="w">          </span><span class="s">"melod:hasShelfmark"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"CNS</span><span class="nv"> </span><span class="s">342e"</span><span class="p p-Indicator">]</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"melod:Item"</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">statements</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"melod:Manifestation"</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">millimeters</span>
+</pre></div>
+</div>
+<p>Read as linked data, the excerpt types no element of the manifest as a
+work or an expression, and the candidate exemplar is reified only
+(section 9):</p>
+<div class="highlight-turtle notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="nt">cnw0133</span> <span class="nn">schema</span><span class="p">:</span><span class="nt">about</span>
+    <span class="nv">&lt;https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#work_d1e191187&gt;</span> <span class="p">.</span>
+
+<span class="nv">&lt;https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#work_d1e191187&gt;</span>
+    <span class="kt">a</span> <span class="nn">melod</span><span class="p">:</span><span class="nt">Work</span> <span class="p">;</span>
+    <span class="nn">lrmoo</span><span class="p">:</span><span class="nt">R3_is_realised_in</span>
+        <span class="nv">&lt;https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1&gt;</span> <span class="p">.</span>
+
+<span class="p">:</span><span class="nt">cgt_1</span> <span class="kt">a</span> <span class="nn">melod</span><span class="p">:</span><span class="nt">Manifestation</span> <span class="p">;</span>
+    <span class="nn">lrmoo</span><span class="p">:</span><span class="nt">R4_embodies</span>
+        <span class="nv">&lt;https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1&gt;</span> <span class="p">.</span>
+
+<span class="nv">&lt;https://www.kb.dk/dcm/cnw/document.xq?doc=cnw0133.xml#expression_1&gt;</span>
+    <span class="kt">a</span> <span class="nn">melod</span><span class="p">:</span><span class="nt">Expression</span> <span class="p">.</span>
+
+<span class="p">:</span><span class="nt">cgt_2</span> <span class="kt">a</span> <span class="nn">melod</span><span class="p">:</span><span class="nt">Manifestation</span> <span class="p">.</span>
+</pre></div>
+</div>
+</section>
+<section id="pairs">
+<h2>4. Pairs<a class="headerlink" href="#pairs" title="Link to this heading">#</a></h2>
+<p>A statement is a <strong>pair</strong> of a property and a value, both technical
+identifiers where they name things. The container <code class="docutils literal notranslate"><span class="pre">statements</span></code> holds an
+element’s pairs: each key is <code class="docutils literal notranslate"><span class="pre">type</span></code> (section 5) or a property IRI, written
+as a compact IRI <code class="docutils literal notranslate"><span class="pre">prefix:suffix</span></code> with a prefix of the manifest’s context
+(section 8) or as an absolute IRI; each value is the non-empty list of
+that property’s values, without repeats and in the order given. Writers
+keep that order, and canonical order (README, “Canonical order”) moves no
+value and no entry of <code class="docutils literal notranslate"><span class="pre">provenance</span></code>. A container is never empty.</p>
+<p>A value is one of four kinds:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Written</p></th>
+<th class="head"><p>Read as</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>a literal</p></td>
+<td><p>a string, an integer or a boolean: <code class="docutils literal notranslate"><span class="pre">&quot;op.</span> <span class="pre">106&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>a plain literal, an <code class="docutils literal notranslate"><span class="pre">xsd:integer</span></code> or an <code class="docutils literal notranslate"><span class="pre">xsd:boolean</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>a value object</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;value</span></code> with <code class="docutils literal notranslate"><span class="pre">&#64;language</span></code> or with <code class="docutils literal notranslate"><span class="pre">&#64;type</span></code>: <code class="docutils literal notranslate"><span class="pre">{&quot;&#64;value&quot;:</span> <span class="pre">&quot;Hr.</span> <span class="pre">Olufs</span> <span class="pre">Sang&quot;,</span> <span class="pre">&quot;&#64;language&quot;:</span> <span class="pre">da}</span></code>, <code class="docutils literal notranslate"><span class="pre">{&quot;&#64;value&quot;:</span> <span class="pre">&quot;2025-12-05&quot;,</span> <span class="pre">&quot;&#64;type&quot;:</span> <span class="pre">&quot;xsd:date&quot;}</span></code></p></td>
+<td><p>a literal with a language or a datatype</p></td>
+</tr>
+<tr class="row-even"><td><p>a node</p></td>
+<td><p>an object with <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">label</span></code>, its own pairs and its own <code class="docutils literal notranslate"><span class="pre">provenance</span></code>, each optional, at least one present</p></td>
+<td><p>a thing: the IRI of its <code class="docutils literal notranslate"><span class="pre">id</span></code>, or a blank node without one</p></td>
+</tr>
+<tr class="row-odd"><td><p>an ordered list</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{list:</span> <span class="pre">[...]}</span></code> of single values</p></td>
+<td><p>an RDF list</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A string is never read as an IRI: a thing is always a node, <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">…}</span></code>.
+A statement value is never a float and never <code class="docutils literal notranslate"><span class="pre">null</span></code>; a number with a
+fractional part is a value object with its datatype, as
+<code class="docutils literal notranslate"><span class="pre">{&quot;&#64;value&quot;:</span> <span class="pre">&quot;33.35&quot;,</span> <span class="pre">&quot;&#64;type&quot;:</span> <span class="pre">&quot;xsd:decimal&quot;}</span></code>. A node’s <code class="docutils literal notranslate"><span class="pre">label</span></code> is a
+cache of the thing’s name, kept for display; the thing’s own source
+remains authoritative for it. A node’s own pairs are written directly
+as its keys, so a node is described as an element is. A node whose <code class="docutils literal notranslate"><span class="pre">id</span></code>
+names an element of the manifest holds that <code class="docutils literal notranslate"><span class="pre">id</span></code> alone (section 7).</p>
+<p>The literals of <code class="docutils literal notranslate"><span class="pre">op106_work</span></code> are pairs of the work the bundle is about, a
+value node: a catalogue number in GND’s ontology and the work’s IMSLP
+page name, Wikidata’s external-identifier property holding a string
+(abridged):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">statements</span><span class="p">:</span>
+<span class="w">  </span><span class="s">"schema:about"</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="s">"gndo:opusNumericDesignationOfMusicalWork"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"op.</span><span class="nv"> </span><span class="s">106"</span><span class="p p-Indicator">]</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"mbw:4a622b0d-b0c0-405e-b49e-05b70c108284"</span>
+<span class="w">      </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">"Piano</span><span class="nv"> </span><span class="s">Sonata</span><span class="nv"> </span><span class="s">No.</span><span class="nv"> </span><span class="s">29,</span><span class="nv"> </span><span class="s">Op.</span><span class="nv"> </span><span class="s">106"</span>
+<span class="w">      </span><span class="s">"wdt:P839"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"Piano_Sonata_No.29,_Op.106_(Beethoven,_Ludwig_van)"</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>and the encoding of <code class="docutils literal notranslate"><span class="pre">layerit_recording</span></code> states its encoding date as a
+typed literal, <code class="docutils literal notranslate"><span class="pre">&quot;dcterms:created&quot;:</span> <span class="pre">[{&quot;&#64;type&quot;:</span> <span class="pre">&quot;xsd:date&quot;,</span> <span class="pre">&quot;&#64;value&quot;:</span> <span class="pre">&quot;2025-12-05&quot;}]</span></code>.</p>
+</section>
+<section id="is-a">
+<h2>5. “Is a”<a class="headerlink" href="#is-a" title="Link to this heading">#</a></h2>
+<p>The first statement about a thing says what kind of thing it is, in as
+many vocabularies as wanted. A vocabulary of classes is stated with
+<code class="docutils literal notranslate"><span class="pre">type</span></code>, JSON-LD’s <code class="docutils literal notranslate"><span class="pre">&#64;type</span></code>, whose values are class IRIs; a system that
+types by property is stated with its property, as Wikidata’s “instance of”
+<code class="docutils literal notranslate"><span class="pre">wdt:P31</span></code>. The video of <code class="docutils literal notranslate"><span class="pre">layerit_recording</span></code> is a video in schema.org’s
+terms, a manifestation in MeLODy’s and of the class “video”
+(<code class="docutils literal notranslate"><span class="pre">wd:Q98069877</span></code>) in Wikidata’s:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">statements</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"schema:VideoObject"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"melod:Manifestation"</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="s">"wdt:P31"</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"wd:Q98069877"</span>
+</pre></div>
+</div>
+<p>On a timeline or a region every “is a” names a manifestation class or a
+kind of manifestation, as each of these three does; a class of work or
+expression is stated on the value node that stands for the work or the
+expression (section 3).</p>
+<p><code class="docutils literal notranslate"><span class="pre">type</span></code> holds one or more distinct IRIs and never a literal. In
+<code class="docutils literal notranslate"><span class="pre">provenance</span></code>, the pair <code class="docutils literal notranslate"><span class="pre">type</span></code> X is written with the property <code class="docutils literal notranslate"><span class="pre">rdf:type</span></code>
+and the value <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">X}</span></code>; an entry giving the class as a literal string
+names no pair (section 9).</p>
+</section>
+<section id="vocabularies-and-patterns">
+<h2>6. Vocabularies and patterns<a class="headerlink" href="#vocabularies-and-patterns" title="Link to this heading">#</a></h2>
+<p>Each identifier system is used with the properties its own knowledge
+graph publishes: a Wikidata item with Wikidata’s properties (<code class="docutils literal notranslate"><span class="pre">wdt:</span></code>), a
+MusicBrainz ID with schema.org as MusicBrainz’s own JSON-LD writes it, a
+GND ID with the GND ontology (<code class="docutils literal notranslate"><span class="pre">gndo:</span></code>), a MeLODy entity with LRMoo and
+MeLODy’s terms, a library authority with the MARC relators (<code class="docutils literal notranslate"><span class="pre">rel:</span></code>). The
+same relation may therefore be stated in several vocabularies side by
+side, each with its own value. The video of <code class="docutils literal notranslate"><span class="pre">layerit_recording</span></code> names its
+performer twice, as Wikidata states performers and as libraries do, and
+ties the two values together by <code class="docutils literal notranslate"><span class="pre">schema:sameAs</span></code> inside the Wikidata node;
+the pairs are those of the fixture’s <code class="docutils literal notranslate"><span class="pre">#cpt_1</span></code>, the video of unknown
+length:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"#cpt_1"</span>
+<span class="nt">length</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+<span class="nt">statements</span><span class="p">:</span>
+<span class="w">  </span><span class="s">"rel:prf"</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"viaf:113931950"</span>
+<span class="w">  </span><span class="s">"schema:sameAs"</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"https://www.youtube.com/watch?v=Ch2mrPm1JnM"</span>
+<span class="w">  </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"schema:VideoObject"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"melod:Manifestation"</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="s">"wdt:P175"</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"wd:Q235650"</span>
+<span class="w">      </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">"Maria</span><span class="nv"> </span><span class="s">João</span><span class="nv"> </span><span class="s">Pires"</span>
+<span class="w">      </span><span class="s">"schema:sameAs"</span><span class="p p-Indicator">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"viaf:113931950"</span>
+<span class="w">        </span><span class="p p-Indicator">-</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"gnd:124927521"</span>
+<span class="w">  </span><span class="s">"wdt:P31"</span><span class="p p-Indicator">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"wd:Q98069877"</span>
+<span class="nt">unit</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">seconds</span>
+</pre></div>
+</div>
+<p>A JSON-LD processor reads it as these triples, the timeline’s unit and
+length yielding none:</p>
+<div class="highlight-turtle notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="nt">cpt_1</span> <span class="kt">a</span> <span class="nn">schema</span><span class="p">:</span><span class="nt">VideoObject</span><span class="p">,</span> <span class="nn">melod</span><span class="p">:</span><span class="nt">Manifestation</span> <span class="p">;</span>
+    <span class="nn">rel</span><span class="p">:</span><span class="nt">prf</span> <span class="nn">viaf</span><span class="p">:</span><span class="nt">113931950</span> <span class="p">;</span>
+    <span class="nn">schema</span><span class="p">:</span><span class="nt">sameAs</span> <span class="nv">&lt;https://www.youtube.com/watch?v=Ch2mrPm1JnM&gt;</span> <span class="p">;</span>
+    <span class="nn">wdt</span><span class="p">:</span><span class="nt">P175</span> <span class="nn">wd</span><span class="p">:</span><span class="nt">Q235650</span> <span class="p">;</span>
+    <span class="nn">wdt</span><span class="p">:</span><span class="nt">P31</span> <span class="nn">wd</span><span class="p">:</span><span class="nt">Q98069877</span> <span class="p">.</span>
+
+<span class="nn">wd</span><span class="p">:</span><span class="nt">Q235650</span> <span class="nn">rdfs</span><span class="p">:</span><span class="nt">label</span> <span class="s">"Maria João Pires"</span> <span class="p">;</span>
+    <span class="nn">schema</span><span class="p">:</span><span class="nt">sameAs</span> <span class="nn">viaf</span><span class="p">:</span><span class="nt">113931950</span><span class="p">,</span> <span class="nn">gnd</span><span class="p">:</span><span class="nt">124927521</span> <span class="p">.</span>
+</pre></div>
+</div>
+<p>The file holds properties only. A relation in words, “performed by” or
+“is a recording of”, is a <strong>verb</strong> of the catalogue (section 10), which
+maps each verb and identifier system to a <strong>pattern</strong>, the properties
+that express the verb in that system’s vocabulary with a slot for the
+value. A plain pair is the simplest pattern (<code class="docutils literal notranslate"><span class="pre">wdt:P175</span></code> with a thing);
+some vocabularies need a small node, as MusicBrainz states a performer by
+a <code class="docutils literal notranslate"><span class="pre">schema:contributor</span></code> node holding the agent and the role, and MeLODy by
+a <code class="docutils literal notranslate"><span class="pre">melod:Contribution</span></code>. Tools use the catalogue to offer the properties
+of a verb and to print a pair in words; a property the catalogue does not
+know is as valid as any other.</p>
+</section>
+<section id="values-that-name-elements">
+<h2>7. Values that name elements<a class="headerlink" href="#values-that-name-elements" title="Link to this heading">#</a></h2>
+<p>A node whose <code class="docutils literal notranslate"><span class="pre">id</span></code> begins with <code class="docutils literal notranslate"><span class="pre">#</span></code> names an element of the same manifest,
+<code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">&quot;#cpt_1&quot;}</span></code>, which reads as <code class="docutils literal notranslate"><span class="pre">&lt;manifest</span> <span class="pre">address&gt;#cpt_1</span></code>, the IRI of
+that element as a subject. An element of another manifest is named by
+that manifest’s address with the ID as fragment, relative
+(<code class="docutils literal notranslate"><span class="pre">other.yaml#clt_1</span></code>) or absolute. Any property may take such a value;
+“derived from”, relating one manifestation to another, is the usual case.
+A work or an expression is never such a value, since no element stands
+for one (section 3). A node naming an
+element of the manifest holds its <code class="docutils literal notranslate"><span class="pre">id</span></code> alone: the element describes
+itself through its own statements, so a label or pair beside the <code class="docutils literal notranslate"><span class="pre">id</span></code>
+would describe it a second time.</p>
+<p>These values are IRI references, written and held alike. A reader that
+strips the <code class="docutils literal notranslate"><span class="pre">#</span></code> from IDs and references of the temporal structure (README,
+“Written in a file”) leaves every IRI inside <code class="docutils literal notranslate"><span class="pre">statements</span></code> and
+<code class="docutils literal notranslate"><span class="pre">provenance</span></code> as written, and the validators resolve each <code class="docutils literal notranslate"><span class="pre">#</span></code> reference
+there against every ID of the manifest, whatever its kind (section 12).</p>
+</section>
+<section id="yaml-ld-and-the-inline-context">
+<h2>8. YAML-LD and the inline context<a class="headerlink" href="#yaml-ld-and-the-inline-context" title="Link to this heading">#</a></h2>
+<p>A manifest is a YAML-LD document (W3C YAML-LD 1.0, media type
+<code class="docutils literal notranslate"><span class="pre">application/ld+yaml</span></code>): every manifest maps to JSON-LD 1.1, and canonical
+YAML is a subset of the YAML it reads. A manifest carrying statements or
+provenance holds the key <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> at its top level and nowhere else:
+one object, the format’s terms each exactly as the schema fixes them and
+the prefixes its statements and provenance use. The context is inline,
+so the manifest is self-contained and a processor reads it without
+fetching anything. Writers write the prefixes used and no others, taking
+their namespaces from the manifest’s own context first and from the
+catalogue otherwise (Python’s <code class="docutils literal notranslate"><span class="pre">with_context</span></code>, npm’s <code class="docutils literal notranslate"><span class="pre">withContext</span></code>,
+section 11); every generated fixture of 0.2.0 holds a context, the 35
+terms alone where it states nothing.</p>
+<p>A <strong>prefix</strong> is a name beginning with a letter, followed by letters,
+digits, <code class="docutils literal notranslate"><span class="pre">_</span></code> or <code class="docutils literal notranslate"><span class="pre">-</span></code>, which is no key of the manifest’s elements and no URI
+scheme the format reads as such (<code class="docutils literal notranslate"><span class="pre">http</span></code>, <code class="docutils literal notranslate"><span class="pre">https</span></code>, <code class="docutils literal notranslate"><span class="pre">info</span></code>, <code class="docutils literal notranslate"><span class="pre">mailto</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tag</span></code>, <code class="docutils literal notranslate"><span class="pre">urn</span></code>); it stands for a namespace, an absolute IRI ending in <code class="docutils literal notranslate"><span class="pre">/</span></code>
+or <code class="docutils literal notranslate"><span class="pre">#</span></code>. A manifest may declare a prefix of its own beside those of the
+catalogue, as <code class="docutils literal notranslate"><span class="pre">op106_work</span></code> declares <code class="docutils literal notranslate"><span class="pre">mbw</span></code> for MusicBrainz works. A compact
+IRI whose prefix the context does not declare is refused (section 12); an
+absolute IRI is always valid, and an IRI of the schemes <code class="docutils literal notranslate"><span class="pre">info</span></code>, <code class="docutils literal notranslate"><span class="pre">mailto</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tag</span></code> and <code class="docutils literal notranslate"><span class="pre">urn</span></code> is read as written.</p>
+<p>The format’s 35 terms:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Term</p></th>
+<th class="head"><p>Maps to</p></th>
+<th class="head"><p>Role</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">&#64;version</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">1.1</span></code></p></td>
+<td><p>JSON-LD 1.1 processing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">type</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;id</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;type</span></code></p></td>
+<td><p>the subject or thing, and its classes</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">statements</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;nest</span></code></p></td>
+<td><p>the container’s keys are read as the element’s own pairs</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">list</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;list</span></code></p></td>
+<td><p>an ordered list</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">timelines</span></code>, <code class="docutils literal notranslate"><span class="pre">children</span></code>, <code class="docutils literal notranslate"><span class="pre">regions</span></code>, <code class="docutils literal notranslate"><span class="pre">groups</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&#64;included</span></code></p></td>
+<td><p>every element is a node of the graph, its pairs on its own IRI</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rdfs:label</span></code></p></td>
+<td><p>a node’s cached name</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">provenance</span></code></p></td>
+<td><p>the reverse of <code class="docutils literal notranslate"><span class="pre">rdf:subject</span></code></p></td>
+<td><p>each entry is a reified statement whose subject is the holder</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">property</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rdf:predicate</span></code>, <code class="docutils literal notranslate"><span class="pre">rdf:object</span></code></p></td>
+<td><p>the pair an entry annotates</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stated_by</span></code>, <code class="docutils literal notranslate"><span class="pre">basis</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">prov:wasAttributedTo</span></code>, <code class="docutils literal notranslate"><span class="pre">prov:hadPrimarySource</span></code></p></td>
+<td><p>IRIs</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">date</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dcterms:date</span></code>, an <code class="docutils literal notranslate"><span class="pre">xsd:date</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">note</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rdfs:comment</span></code></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">method</span></code>, <code class="docutils literal notranslate"><span class="pre">service</span></code>, <code class="docutils literal notranslate"><span class="pre">match</span></code>, <code class="docutils literal notranslate"><span class="pre">beliefs</span></code>, <code class="docutils literal notranslate"><span class="pre">actor</span></code>, <code class="docutils literal notranslate"><span class="pre">belief</span></code></p></td>
+<td><p>the format’s namespace, <code class="docutils literal notranslate"><span class="pre">https://timetoalign.github.io/timetoshare/ns#</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">actor</span></code> an IRI</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">manual</span></code>, <code class="docutils literal notranslate"><span class="pre">reconciled</span></code>, <code class="docutils literal notranslate"><span class="pre">imported</span></code>, <code class="docutils literal notranslate"><span class="pre">inferred</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Manual</span></code>, <code class="docutils literal notranslate"><span class="pre">Reconciled</span></code>, <code class="docutils literal notranslate"><span class="pre">Imported</span></code>, <code class="docutils literal notranslate"><span class="pre">Inferred</span></code> in that namespace</p></td>
+<td><p>the words of <code class="docutils literal notranslate"><span class="pre">method</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">true</span></code>, <code class="docutils literal notranslate"><span class="pre">false</span></code>, <code class="docutils literal notranslate"><span class="pre">unlikely</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code>, <code class="docutils literal notranslate"><span class="pre">False</span></code>, <code class="docutils literal notranslate"><span class="pre">Unlikely</span></code> in that namespace</p></td>
+<td><p>the words of <code class="docutils literal notranslate"><span class="pre">belief</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">exact</span></code>, <code class="docutils literal notranslate"><span class="pre">close</span></code>, <code class="docutils literal notranslate"><span class="pre">broad</span></code>, <code class="docutils literal notranslate"><span class="pre">narrow</span></code>, <code class="docutils literal notranslate"><span class="pre">related</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">skos:exactMatch</span></code>, <code class="docutils literal notranslate"><span class="pre">skos:closeMatch</span></code>, <code class="docutils literal notranslate"><span class="pre">skos:broadMatch</span></code>, <code class="docutils literal notranslate"><span class="pre">skos:narrowMatch</span></code>, <code class="docutils literal notranslate"><span class="pre">skos:relatedMatch</span></code></p></td>
+<td><p>the words of <code class="docutils literal notranslate"><span class="pre">match</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The context writes each term with its full IRI, so the format itself
+needs no prefix. A key the context does not define, such as <code class="docutils literal notranslate"><span class="pre">unit</span></code>,
+<code class="docutils literal notranslate"><span class="pre">length</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code> or <code class="docutils literal notranslate"><span class="pre">graphical</span></code>, yields nothing: a manifest without
+statements and provenance reads as the empty graph, and a manifest with
+them as their triples alone. Every term of a JSON-LD context is read
+wherever it stands, so an element key JSON-LD would read is refused there
+(<code class="docutils literal notranslate"><span class="pre">reserved_key</span></code>): a key beginning with <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> on the manifest
+excepted; a key holding a colon; a term the element does not use, such as
+<code class="docutils literal notranslate"><span class="pre">label</span></code> on a timeline or <code class="docutils literal notranslate"><span class="pre">statements</span></code> on a group; and a prefix of the
+context. A timeline’s displayed <code class="docutils literal notranslate"><span class="pre">name</span></code> is therefore no <code class="docutils literal notranslate"><span class="pre">rdfs:label</span></code> of
+its subject, and a statement <code class="docutils literal notranslate"><span class="pre">rdfs:label</span></code> states one where wanted.</p>
+</section>
+<section id="provenance-and-beliefs">
+<h2>9. Provenance and beliefs<a class="headerlink" href="#provenance-and-beliefs" title="Link to this heading">#</a></h2>
+<p>A pair may be annotated with how it was made, its paradata (who stated
+it, when, how and on what basis), and with who believes it. The
+annotations of an element’s pairs are the entries of its <code class="docutils literal notranslate"><span class="pre">provenance</span></code>, a
+non-empty list beside its <code class="docutils literal notranslate"><span class="pre">statements</span></code>; the pairs of a value node are
+annotated in that node’s own <code class="docutils literal notranslate"><span class="pre">provenance</span></code>. A pair without an entry is
+stated by the manifest’s publisher. Each entry names its pair again, by
+its property and its value:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">property</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>the pair’s property, a compact or absolute IRI; the pair <code class="docutils literal notranslate"><span class="pre">type</span></code> X is written <code class="docutils literal notranslate"><span class="pre">rdf:type</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">value</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>the pair’s value: a literal, a value object, a thing by its <code class="docutils literal notranslate"><span class="pre">id</span></code> alone, or a node without <code class="docutils literal notranslate"><span class="pre">id</span></code>, compared as a whole</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">stated_by</span></code></p></td>
+<td><p>no</p></td>
+<td><p>the agents who stated it, IRIs or references</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">date</span></code></p></td>
+<td><p>no</p></td>
+<td><p>the day it was stated, <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">method</span></code></p></td>
+<td><p>no</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">manual</span></code>, <code class="docutils literal notranslate"><span class="pre">reconciled</span></code> (looked up in a service and matched), <code class="docutils literal notranslate"><span class="pre">imported</span></code> (taken over from a source document) or <code class="docutils literal notranslate"><span class="pre">inferred</span></code> (derived by a tool), or the IRI of another method</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">service</span></code></p></td>
+<td><p>no</p></td>
+<td><p>the lookup service, an IRI</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">basis</span></code></p></td>
+<td><p>no</p></td>
+<td><p>the sources it rests on: IRIs, or references resolved against the manifest’s address, such as <code class="docutils literal notranslate"><span class="pre">#clt_6</span></code> or a file beside the manifest</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">match</span></code></p></td>
+<td><p>no</p></td>
+<td><p>how closely the value matches what was looked up: <code class="docutils literal notranslate"><span class="pre">exact</span></code>, <code class="docutils literal notranslate"><span class="pre">close</span></code>, <code class="docutils literal notranslate"><span class="pre">broad</span></code>, <code class="docutils literal notranslate"><span class="pre">narrow</span></code> or <code class="docutils literal notranslate"><span class="pre">related</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">note</span></code></p></td>
+<td><p>no</p></td>
+<td><p>a note in words</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">beliefs</span></code></p></td>
+<td><p>no</p></td>
+<td><p>who believes the pair, a non-empty list of beliefs (below)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The same entry, without <code class="docutils literal notranslate"><span class="pre">property</span></code> and <code class="docutils literal notranslate"><span class="pre">value</span></code>, annotates a MatchClaim in
+the <code class="docutils literal notranslate"><span class="pre">provenance</span></code> column of the MatchClaim table (README, “Provenance and
+beliefs”), and a flow-control element or a FlowMap in its <code class="docutils literal notranslate"><span class="pre">provenance</span></code>
+(README, “Flow control”); <code class="docutils literal notranslate"><span class="pre">provenance.schema.json</span></code> defines it once for
+all of them. Such an entry is about the element itself: how it was made
+(<code class="docutils literal notranslate"><span class="pre">imported</span></code> by a loader, <code class="docutils literal notranslate"><span class="pre">manual</span></code> where a person added it, <code class="docutils literal notranslate"><span class="pre">inferred</span></code>) and
+who believes it. JSON-LD reads none of it, since <code class="docutils literal notranslate"><span class="pre">flow_control</span></code> and
+<code class="docutils literal notranslate"><span class="pre">flow_maps</span></code> are no terms of the context, so it needs the <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> only
+for the prefixes it uses.</p>
+<p><strong>Stated pairs and candidates.</strong> A pair listed in <code class="docutils literal notranslate"><span class="pre">statements</span></code> is stated
+by the manifest, and its entry, where it has one, annotates it. An entry
+whose pair is not listed holds a <strong>candidate</strong>: a name imported without
+an identifier, a value a lookup suggested. A candidate
+is never stated: it exists only as its entry, and no processor reading
+the manifest asserts it. Stating a candidate lists its pair, and its entry
+then annotates the stated pair. A subject has at most one entry per pair.</p>
+<p><strong>Beliefs.</strong> A belief is <code class="docutils literal notranslate"><span class="pre">{actor,</span> <span class="pre">belief,</span> <span class="pre">date,</span> <span class="pre">note?}</span></code>: <code class="docutils literal notranslate"><span class="pre">actor</span></code> the
+person or organisation who holds it, an IRI, written absolute or as a
+reference resolved against the manifest’s address as in <code class="docutils literal notranslate"><span class="pre">stated_by</span></code>;
+<code class="docutils literal notranslate"><span class="pre">belief</span></code> one of the three strings <code class="docutils literal notranslate"><span class="pre">&quot;true&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;unlikely&quot;</span></code>,
+words like those of <code class="docutils literal notranslate"><span class="pre">method</span></code> and never JSON booleans; <code class="docutils literal notranslate"><span class="pre">date</span></code> the day it
+was stated, <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span></code>; and <code class="docutils literal notranslate"><span class="pre">note</span></code> a note in words. An actor holds at
+most one belief per entry: a later belief of the same actor replaces the
+earlier one, and one actor’s belief leaves every other actor’s standing.
+A belief is its actor’s alone. Nothing in the format derives a truth
+value from the beliefs, and nobody imposes one: a belief changes neither
+whether a pair is stated nor any other actor’s belief, so believing a
+stated pair <code class="docutils literal notranslate"><span class="pre">false</span></code> records the belief and leaves the pair stated;
+removing it is an edit of its own. One reading alone is fixed, outside the
+statements: a flow-control element that some actor believes <code class="docutils literal notranslate"><span class="pre">false</span></code> is
+rejected, and a reader computing a flow leaves it out (README, “Flow
+control”). A person who states a pair through an editor or the functions of
+section 11 is recorded with the belief <code class="docutils literal notranslate"><span class="pre">true</span></code>; a loader or a service
+records how the pair was made and holds no belief. A candidate an actor
+believes <code class="docutils literal notranslate"><span class="pre">false</span></code> is not offered to that actor again.</p>
+<p><strong>The belief filter</strong> selects, for one actor, the items whose state for
+that actor is one of the states it is given. An item has one of four
+<strong>states</strong> for an actor: the actor’s belief, <code class="docutils literal notranslate"><span class="pre">true</span></code>, <code class="docutils literal notranslate"><span class="pre">unlikely</span></code> or
+<code class="docutils literal notranslate"><span class="pre">false</span></code>, or <code class="docutils literal notranslate"><span class="pre">undecided</span></code> where the actor holds no belief on it. The filter
+keeps any set of these four states, by default every state but <code class="docutils literal notranslate"><span class="pre">false</span></code>;
+without an actor, nothing is filtered. Actors compare as the IRIs they
+stand for. Where an item holds beliefs of the actor under two spellings
+of one IRI, which a valid manifest never does and a MatchClaim table
+checked without its manifest may, its state is the most critical of
+them: <code class="docutils literal notranslate"><span class="pre">false</span></code>, then <code class="docutils literal notranslate"><span class="pre">unlikely</span></code>, then <code class="docutils literal notranslate"><span class="pre">true</span></code>. The filter selects the
+candidates an editor offers and the MatchClaims that give anchors (README,
+“From MatchClaims to anchors”) alike.</p>
+<p><strong>Which pair an entry names.</strong> An entry and a pair are the same pair when
+their properties are equal after expansion (<code class="docutils literal notranslate"><span class="pre">type</span></code> equals <code class="docutils literal notranslate"><span class="pre">rdf:type</span></code>) and
+their values are: literals equal with the same JSON type (<code class="docutils literal notranslate"><span class="pre">true</span></code> is not
+<code class="docutils literal notranslate"><span class="pre">1</span></code>); value objects equal after their <code class="docutils literal notranslate"><span class="pre">&#64;type</span></code> is expanded; a node with an
+<code class="docutils literal notranslate"><span class="pre">id</span></code> equal to any node with the same expanded <code class="docutils literal notranslate"><span class="pre">id</span></code>, its other keys
+ignored, a <code class="docutils literal notranslate"><span class="pre">type</span></code> item X counting as <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">X}</span></code>; nodes without <code class="docutils literal notranslate"><span class="pre">id</span></code> equal
+as JSON once their own <code class="docutils literal notranslate"><span class="pre">provenance</span></code> is dropped; lists equal item by item.
+Relative references compare as written. Python’s <code class="docutils literal notranslate"><span class="pre">same_pair</span></code> and npm’s
+<code class="docutils literal notranslate"><span class="pre">samePair</span></code> decide it.</p>
+<p><strong>Reading.</strong> Each entry reads as RDF’s reification of its pair, a node
+with <code class="docutils literal notranslate"><span class="pre">rdf:subject</span></code>, <code class="docutils literal notranslate"><span class="pre">rdf:predicate</span></code> and <code class="docutils literal notranslate"><span class="pre">rdf:object</span></code>, the form RDF 1.2
+turns into an annotation of a triple; JSON-LD 1.1 cannot produce a triple
+and its annotation from one object. Each belief reads as a node of its
+own under <code class="docutils literal notranslate"><span class="pre">tts:beliefs</span></code>. In <code class="docutils literal notranslate"><span class="pre">layerit_recording</span></code> the performer of the
+video was reconciled in Wikidata by an editor, who believes it, and the
+audio file is a candidate for being derived from the video, the value an
+element:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">timelines</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span>
+<span class="w">    </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"#cpt_1"</span>
+<span class="w">    </span><span class="nt">provenance</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">beliefs</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span>
+<span class="w">            </span><span class="nt">actor</span><span class="p">:</span><span class="w"> </span><span class="s">"https://example.org/people/editor"</span>
+<span class="w">            </span><span class="nt">belief</span><span class="p">:</span><span class="w"> </span><span class="s">"true"</span>
+<span class="w">            </span><span class="nt">date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-11-18"</span>
+<span class="w">        </span><span class="nt">date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-11-18"</span>
+<span class="w">        </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reconciled</span>
+<span class="w">        </span><span class="nt">note</span><span class="p">:</span><span class="w"> </span><span class="s">"Portuguese</span><span class="nv"> </span><span class="s">pianist;</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">video's</span><span class="nv"> </span><span class="s">title</span><span class="nv"> </span><span class="s">names</span><span class="nv"> </span><span class="s">her"</span>
+<span class="w">        </span><span class="nt">property</span><span class="p">:</span><span class="w"> </span><span class="s">"wdt:P175"</span>
+<span class="w">        </span><span class="nt">service</span><span class="p">:</span><span class="w"> </span><span class="s">"https://www.wikidata.org/w/api.php"</span>
+<span class="w">        </span><span class="nt">stated_by</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"https://example.org/people/editor"</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">value</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"wd:Q235650"</span>
+<span class="w">    </span><span class="nt">statements</span><span class="p">:</span>
+<span class="w">      </span><span class="s">"wdt:P175"</span><span class="p p-Indicator">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"wd:Q235650"</span>
+<span class="w">          </span><span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">"Maria</span><span class="nv"> </span><span class="s">João</span><span class="nv"> </span><span class="s">Pires"</span>
+<span class="w">  </span><span class="p p-Indicator">-</span>
+<span class="w">    </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"#dpt_1"</span>
+<span class="w">    </span><span class="nt">provenance</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">date</span><span class="p">:</span><span class="w"> </span><span class="s">"2026-11-18"</span>
+<span class="w">        </span><span class="nt">method</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">inferred</span>
+<span class="w">        </span><span class="nt">note</span><span class="p">:</span><span class="w"> </span><span class="s">"assumed</span><span class="nv"> </span><span class="s">ripped</span><span class="nv"> </span><span class="s">from</span><span class="nv"> </span><span class="s">the</span><span class="nv"> </span><span class="s">video's</span><span class="nv"> </span><span class="s">sound</span><span class="nv"> </span><span class="s">and</span><span class="nv"> </span><span class="s">cut"</span>
+<span class="w">        </span><span class="nt">property</span><span class="p">:</span><span class="w"> </span><span class="s">"dcterms:source"</span>
+<span class="w">        </span><span class="nt">stated_by</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"https://example.org/people/editor"</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">value</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"#cpt_1"</span>
+<span class="w">    </span><span class="nt">statements</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"schema:AudioObject"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"melod:Manifestation"</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<div class="highlight-turtle notranslate"><div class="highlight"><pre><span></span><span class="p">:</span><span class="nt">cpt_1</span> <span class="nn">wdt</span><span class="p">:</span><span class="nt">P175</span> <span class="nn">wd</span><span class="p">:</span><span class="nt">Q235650</span> <span class="p">.</span>
+<span class="nn">wd</span><span class="p">:</span><span class="nt">Q235650</span> <span class="nn">rdfs</span><span class="p">:</span><span class="nt">label</span> <span class="s">"Maria João Pires"</span> <span class="p">.</span>
+<span class="p">:</span><span class="nt">dpt_1</span> <span class="kt">a</span> <span class="nn">schema</span><span class="p">:</span><span class="nt">AudioObject</span><span class="p">,</span> <span class="nn">melod</span><span class="p">:</span><span class="nt">Manifestation</span> <span class="p">.</span>
+
+<span class="p">[]</span> <span class="nn">rdf</span><span class="p">:</span><span class="nt">subject</span> <span class="p">:</span><span class="nt">cpt_1</span> <span class="p">;</span> <span class="nn">rdf</span><span class="p">:</span><span class="nt">predicate</span> <span class="nn">wdt</span><span class="p">:</span><span class="nt">P175</span> <span class="p">;</span> <span class="nn">rdf</span><span class="p">:</span><span class="nt">object</span> <span class="nn">wd</span><span class="p">:</span><span class="nt">Q235650</span> <span class="p">;</span>
+    <span class="nn">dcterms</span><span class="p">:</span><span class="nt">date</span> <span class="s">"2026-11-18"</span><span class="p">^^</span><span class="nn">xsd</span><span class="p">:</span><span class="nt">date</span> <span class="p">;</span>
+    <span class="nn">rdfs</span><span class="p">:</span><span class="nt">comment</span> <span class="s">"Portuguese pianist; the video's title names her"</span> <span class="p">;</span>
+    <span class="nn">prov</span><span class="p">:</span><span class="nt">wasAttributedTo</span> <span class="nv">&lt;https://example.org/people/editor&gt;</span> <span class="p">;</span>
+    <span class="nn">tts</span><span class="p">:</span><span class="nt">method</span> <span class="nn">tts</span><span class="p">:</span><span class="nt">Reconciled</span> <span class="p">;</span>
+    <span class="nn">tts</span><span class="p">:</span><span class="nt">service</span> <span class="nv">&lt;https://www.wikidata.org/w/api.php&gt;</span> <span class="p">;</span>
+    <span class="nn">tts</span><span class="p">:</span><span class="nt">beliefs</span> <span class="p">[</span>
+        <span class="nn">tts</span><span class="p">:</span><span class="nt">actor</span> <span class="nv">&lt;https://example.org/people/editor&gt;</span> <span class="p">;</span>
+        <span class="nn">tts</span><span class="p">:</span><span class="nt">belief</span> <span class="nn">tts</span><span class="p">:</span><span class="nt">True</span> <span class="p">;</span>
+        <span class="nn">dcterms</span><span class="p">:</span><span class="nt">date</span> <span class="s">"2026-11-18"</span><span class="p">^^</span><span class="nn">xsd</span><span class="p">:</span><span class="nt">date</span>
+    <span class="p">]</span> <span class="p">.</span>
+
+<span class="p">[]</span> <span class="nn">rdf</span><span class="p">:</span><span class="nt">subject</span> <span class="p">:</span><span class="nt">dpt_1</span> <span class="p">;</span> <span class="nn">rdf</span><span class="p">:</span><span class="nt">predicate</span> <span class="nn">dcterms</span><span class="p">:</span><span class="nt">source</span> <span class="p">;</span> <span class="nn">rdf</span><span class="p">:</span><span class="nt">object</span> <span class="p">:</span><span class="nt">cpt_1</span> <span class="p">;</span>
+    <span class="nn">dcterms</span><span class="p">:</span><span class="nt">date</span> <span class="s">"2026-11-18"</span><span class="p">^^</span><span class="nn">xsd</span><span class="p">:</span><span class="nt">date</span> <span class="p">;</span>
+    <span class="nn">rdfs</span><span class="p">:</span><span class="nt">comment</span> <span class="s">"assumed ripped from the video's sound and cut"</span> <span class="p">;</span>
+    <span class="nn">prov</span><span class="p">:</span><span class="nt">wasAttributedTo</span> <span class="nv">&lt;https://example.org/people/editor&gt;</span> <span class="p">;</span>
+    <span class="nn">tts</span><span class="p">:</span><span class="nt">method</span> <span class="nn">tts</span><span class="p">:</span><span class="nt">Inferred</span> <span class="p">.</span>
+</pre></div>
+</div>
+<p>with <code class="docutils literal notranslate"><span class="pre">tts:</span></code> standing for the format’s namespace. The triple <code class="docutils literal notranslate"><span class="pre">:dpt_1</span> <span class="pre">dcterms:source</span> <span class="pre">:cpt_1</span></code> is absent: the candidate is reified and never
+asserted. In <code class="docutils literal notranslate"><span class="pre">djset_segment</span></code>, the segment’s <code class="docutils literal notranslate"><span class="pre">sameAs</span></code> to the original
+MusicBrainz recording is likewise a candidate, which an actor believes
+<code class="docutils literal notranslate"><span class="pre">false</span></code>, and nowhere asserted, and the
+ISRC of the recording the segment is based on is annotated on the node
+that states it, its reified statement having that thing, <code class="docutils literal notranslate"><span class="pre">wd:Q65658996</span></code>,
+as its subject. A node value without <code class="docutils literal notranslate"><span class="pre">id</span></code> in an entry, such as a name not
+yet reconciled, reads as a blank node of its own: the format identifies
+it with the pair by the comparison above, while RDF holds two distinct
+blank nodes.</p>
+</section>
+<section id="the-catalogue">
+<h2>10. The catalogue<a class="headerlink" href="#the-catalogue" title="Link to this heading">#</a></h2>
+<p>The catalogue is data shipped with both packages,
+<code class="docutils literal notranslate"><span class="pre">catalogue/catalogue.yaml</span></code>, written in canonical YAML with <code class="docutils literal notranslate"><span class="pre">dumps</span></code>, and
+described by its JSON Schema <code class="docutils literal notranslate"><span class="pre">catalogue/catalogue.schema.json</span></code>. Tools
+read it to offer properties and values and to print pairs in words. The
+validators never consult it: it guides a writer, and whether a property
+suits a subject is never refused. It holds five members:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">prefixes</span></code>: the namespaces of the vocabularies its patterns use, 21 in
+all (<code class="docutils literal notranslate"><span class="pre">bf</span></code>, <code class="docutils literal notranslate"><span class="pre">cidoc</span></code>, <code class="docutils literal notranslate"><span class="pre">dcterms</span></code>, <code class="docutils literal notranslate"><span class="pre">gnd</span></code>, <code class="docutils literal notranslate"><span class="pre">gndo</span></code>, <code class="docutils literal notranslate"><span class="pre">lrmoo</span></code>, <code class="docutils literal notranslate"><span class="pre">melod</span></code>,
+<code class="docutils literal notranslate"><span class="pre">melodTerms</span></code>, <code class="docutils literal notranslate"><span class="pre">mus</span></code>, <code class="docutils literal notranslate"><span class="pre">owl</span></code>, <code class="docutils literal notranslate"><span class="pre">prov</span></code>, <code class="docutils literal notranslate"><span class="pre">rdf</span></code>, <code class="docutils literal notranslate"><span class="pre">rdfs</span></code>, <code class="docutils literal notranslate"><span class="pre">rel</span></code>, <code class="docutils literal notranslate"><span class="pre">schema</span></code>,
+<code class="docutils literal notranslate"><span class="pre">skos</span></code>, <code class="docutils literal notranslate"><span class="pre">viaf</span></code>, <code class="docutils literal notranslate"><span class="pre">wd</span></code>, <code class="docutils literal notranslate"><span class="pre">wdt</span></code>, <code class="docutils literal notranslate"><span class="pre">wdtn</span></code>, <code class="docutils literal notranslate"><span class="pre">xsd</span></code>), from which writers take
+the prefixes a manifest’s context declares.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">aliases</span></code>: namespaces read as equal. <code class="docutils literal notranslate"><span class="pre">https://schema.org/</span></code> is read as
+<code class="docutils literal notranslate"><span class="pre">http://schema.org/</span></code>, the form Wikidata, the GND, VIAF and MusicBrainz
+write.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">systems</span></code>: the <strong>identifier systems</strong>, each with its name, the prefixes
+of the vocabulary its linked data uses, how to look its things up
+(<code class="docutils literal notranslate"><span class="pre">lookup</span></code>, whose <code class="docutils literal notranslate"><span class="pre">route</span></code> is <code class="docutils literal notranslate"><span class="pre">browser</span></code>, <code class="docutils literal notranslate"><span class="pre">server</span></code>, <code class="docutils literal notranslate"><span class="pre">cross_reference</span></code>,
+<code class="docutils literal notranslate"><span class="pre">database</span></code> or <code class="docutils literal notranslate"><span class="pre">none</span></code>) and its <strong>things</strong>, the kinds of identifier it
+mints. A thing has an IRI template (<code class="docutils literal notranslate"><span class="pre">http://www.wikidata.org/entity/{value}</span></code>)
+or none, the URL patterns that recognise an address copied from the
+system’s site, each with one capturing group, whether its values are
+written in lower case, the URI of its identifier scheme and the LRMoo
+class of what it identifies, where one applies. The systems are
+Wikidata, MusicBrainz, the GND, VIAF, MeLODy with LRMoo, IMSLP, YouTube,
+ISRC, DOI and the fallback vocabularies (Dublin Core, schema.org, the
+MARC relators, BIBFRAME and others) that state a relation where a
+system has no property of its own.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verbs</span></code>: the relations in words, <code class="docutils literal notranslate"><span class="pre">is_a</span></code> first, then <code class="docutils literal notranslate"><span class="pre">same_as</span></code>,
+<code class="docutils literal notranslate"><span class="pre">recording_of</span></code>, <code class="docutils literal notranslate"><span class="pre">performed_by</span></code>, <code class="docutils literal notranslate"><span class="pre">conducted_by</span></code>, <code class="docutils literal notranslate"><span class="pre">composed_by</span></code>,
+<code class="docutils literal notranslate"><span class="pre">version_or_edition_of</span></code>, <code class="docutils literal notranslate"><span class="pre">exemplar_of</span></code>, <code class="docutils literal notranslate"><span class="pre">part_of</span></code>, <code class="docutils literal notranslate"><span class="pre">derived_from</span></code>,
+<code class="docutils literal notranslate"><span class="pre">released_on</span></code> and <code class="docutils literal notranslate"><span class="pre">recorded_at_on</span></code>. A verb has a <code class="docutils literal notranslate"><span class="pre">label</span></code>, an
+<code class="docutils literal notranslate"><span class="pre">inverse_label</span></code> where it is read in both directions (“is part of”, “has
+part”), and per system a list of alternative patterns
+<code class="docutils literal notranslate"><span class="pre">{pattern,</span> <span class="pre">when?,</span> <span class="pre">inverse?,</span> <span class="pre">note?}</span></code>. A pattern is written as a
+statements container, every value a one-item list: the slot <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">&quot;?&quot;}</span></code>
+takes a thing, <code class="docutils literal notranslate"><span class="pre">&quot;?&quot;</span></code> a literal or class IRI, and <code class="docutils literal notranslate"><span class="pre">&quot;?role&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;?date&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;?value&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;?position&quot;</span></code> named literals; <code class="docutils literal notranslate"><span class="pre">inverse:</span> <span class="pre">true</span></code> marks the
+inverse reading, and <code class="docutils literal notranslate"><span class="pre">when</span></code> limits an alternative to subjects of some
+types or values of some things.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">types</span></code>: the kinds of thing a subject or a value node is, each with a <code class="docutils literal notranslate"><span class="pre">label</span></code>, its “is
+a” patterns per system, the verbs usually stated of it in order and the
+systems to look its values up in: musical work, recorded performance,
+release, video, printed or scanned edition, score encoding and DJ set.</p></li>
+</ul>
+<p>The verb “performed by” reads, in part:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">performed_by</span>
+<span class="nt">label</span><span class="p">:</span><span class="w"> </span><span class="s">"performed</span><span class="nv"> </span><span class="s">by"</span>
+<span class="nt">patterns</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">fallback</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">pattern</span><span class="p">:</span>
+<span class="w">        </span><span class="s">"rel:prf"</span><span class="p p-Indicator">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span>
+<span class="w">            </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"?"</span>
+<span class="w">  </span><span class="nt">musicbrainz</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">pattern</span><span class="p">:</span>
+<span class="w">        </span><span class="s">"schema:contributor"</span><span class="p p-Indicator">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span>
+<span class="w">            </span><span class="s">"schema:contributor"</span><span class="p p-Indicator">:</span>
+<span class="w">              </span><span class="p p-Indicator">-</span>
+<span class="w">                </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"?"</span>
+<span class="w">            </span><span class="s">"schema:roleName"</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"?role"</span><span class="p p-Indicator">]</span>
+<span class="w">            </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"schema:OrganizationRole"</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">wikidata</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span>
+<span class="w">      </span><span class="nt">pattern</span><span class="p">:</span>
+<span class="w">        </span><span class="s">"wdt:P175"</span><span class="p p-Indicator">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span>
+<span class="w">            </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="s">"?"</span>
+</pre></div>
+</div>
+<p>Both packages read it alike. Python’s <code class="docutils literal notranslate"><span class="pre">load_catalogue()</span></code> returns the
+shipped catalogue as a <code class="docutils literal notranslate"><span class="pre">Catalogue</span></code>, and <code class="docutils literal notranslate"><span class="pre">read_catalogue(document)</span></code> reads
+another, checking that no system, thing, verb or type is held twice, that
+every prefix it uses is declared, that every system, thing, verb and type
+it names exists and that every URL pattern has one capturing group; npm’s
+<code class="docutils literal notranslate"><span class="pre">defaultCatalogue()</span></code> and <code class="docutils literal notranslate"><span class="pre">readCatalogue(document)</span></code> do the same. Over a
+catalogue:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">recognize(catalogue,</span> <span class="pre">url)</span></code> returns the system, thing, value and IRI of
+an address copied from a system’s site, or none: <code class="docutils literal notranslate"><span class="pre">https://www.wikidata.org/wiki/Q235650</span></code>
+gives the Wikidata item <code class="docutils literal notranslate"><span class="pre">Q235650</span></code> and its IRI
+<code class="docutils literal notranslate"><span class="pre">http://www.wikidata.org/entity/Q235650</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">instantiate(catalogue,</span> <span class="pre">verb,</span> <span class="pre">system,</span> <span class="pre">value,</span> <span class="pre">…)</span></code> returns the pairs that
+state a verb in a system, its slots filled; <code class="docutils literal notranslate"><span class="pre">performed_by</span></code> in Wikidata
+with <code class="docutils literal notranslate"><span class="pre">wd:Q235650</span></code> gives <code class="docutils literal notranslate"><span class="pre">(&quot;wdt:P175&quot;,</span> <span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;wd:Q235650&quot;})</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">verb_of</span></code> (npm <code class="docutils literal notranslate"><span class="pre">verbOf</span></code>) returns the verb a pair states, and whether it
+states it inversely: <code class="docutils literal notranslate"><span class="pre">rel:prf</span></code> with a VIAF ID gives <code class="docutils literal notranslate"><span class="pre">performed_by</span></code>,
+<code class="docutils literal notranslate"><span class="pre">dcterms:hasPart</span></code> gives <code class="docutils literal notranslate"><span class="pre">part_of</span></code> read inversely;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">rectangles(catalogue,</span> <span class="pre">manifest,</span> <span class="pre">subject)</span></code> groups a subject’s pairs by
+verb and thing, the unit an editor displays: pairs of one verb, read the
+same way, form one group, transitively, when their values are one
+thing, through their <code class="docutils literal notranslate"><span class="pre">id</span></code>s and the IDs under their <code class="docutils literal notranslate"><span class="pre">schema:sameAs</span></code> and
+<code class="docutils literal notranslate"><span class="pre">owl:sameAs</span></code>, or when their value nodes carry the same string <code class="docutils literal notranslate"><span class="pre">label</span></code>,
+compared as written; “is a” comes always first. The two performer pairs
+of the video in section 6 form one group, and so do
+<code class="docutils literal notranslate"><span class="pre">schema:exampleOfWork</span></code> and <code class="docutils literal notranslate"><span class="pre">wdt:P629</span></code> naming one work in two systems
+under one label.</p></li>
+</ul>
+</section>
+<section id="editing-statements">
+<h2>11. Editing statements<a class="headerlink" href="#editing-statements" title="Link to this heading">#</a></h2>
+<p>Both packages edit statements with pure functions that return a changed
+copy of a manifest, Python’s in <code class="docutils literal notranslate"><span class="pre">timetoshare.statements</span></code> and npm’s under
+camel-case names, both exported from the package root. A subject is
+addressed by its path in the manifest: <code class="docutils literal notranslate"><span class="pre">()</span></code> the bundle, a path ending in
+<code class="docutils literal notranslate"><span class="pre">timelines</span></code>, <code class="docutils literal notranslate"><span class="pre">children</span></code> or <code class="docutils literal notranslate"><span class="pre">regions</span></code> and an index an element, and a path
+through a container or a node’s key a value node. <code class="docutils literal notranslate"><span class="pre">subject_path(manifest,</span> <span class="pre">id)</span></code> returns the path of the timeline or region of an ID as written in the
+manifest, <code class="docutils literal notranslate"><span class="pre">#cpt_1</span></code> in the file form, and <code class="docutils literal notranslate"><span class="pre">None</span></code> names the bundle.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Python</p></th>
+<th class="head"><p>Does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pairs(manifest,</span> <span class="pre">subject)</span></code>, <code class="docutils literal notranslate"><span class="pre">entries(manifest,</span> <span class="pre">subject)</span></code></p></td>
+<td><p>the subject’s pairs, keys in code-point order and values in list order, and its provenance entries</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">candidates(manifest,</span> <span class="pre">subject,</span> <span class="pre">actor=None)</span></code></p></td>
+<td><p>the subject’s candidates, the entries of pairs it does not state; with <code class="docutils literal notranslate"><span class="pre">actor</span></code>, those the actor believes <code class="docutils literal notranslate"><span class="pre">false</span></code> left out, so that a candidate is not offered to that actor again</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_pair(manifest,</span> <span class="pre">subject,</span> <span class="pre">property,</span> <span class="pre">value,</span> <span class="pre">*,</span> <span class="pre">provenance=None,</span> <span class="pre">actor=None,</span> <span class="pre">date=None)</span></code></p></td>
+<td><p>states a pair; an entry the pair already has, a candidate’s until now, stays as the stated pair’s entry. With <code class="docutils literal notranslate"><span class="pre">provenance</span></code> (the keys of an entry but <code class="docutils literal notranslate"><span class="pre">property</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code> and <code class="docutils literal notranslate"><span class="pre">beliefs</span></code>) they are set on the pair’s entry, added where there is none; with <code class="docutils literal notranslate"><span class="pre">actor</span></code>, the person stating the pair, the entry records that actor’s belief <code class="docutils literal notranslate"><span class="pre">true</span></code> on <code class="docutils literal notranslate"><span class="pre">date</span></code>, replacing the actor’s earlier belief</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">without_pair(manifest,</span> <span class="pre">subject,</span> <span class="pre">property,</span> <span class="pre">value)</span></code></p></td>
+<td><p>removes a pair and its entry; an emptied list, container or <code class="docutils literal notranslate"><span class="pre">provenance</span></code> is removed</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_candidate(manifest,</span> <span class="pre">subject,</span> <span class="pre">property,</span> <span class="pre">value,</span> <span class="pre">*,</span> <span class="pre">stated_by,</span> <span class="pre">date,</span> <span class="pre">method,</span> <span class="pre">service=None,</span> <span class="pre">basis=(),</span> <span class="pre">match=None,</span> <span class="pre">note=None)</span></code></p></td>
+<td><p>adds the entry of a candidate, replacing in place an earlier entry of the pair and keeping its <code class="docutils literal notranslate"><span class="pre">beliefs</span></code>, and leaves the statements as they are; a loader or a service proposing a pair holds no belief</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">with_belief(manifest,</span> <span class="pre">subject,</span> <span class="pre">property,</span> <span class="pre">value,</span> <span class="pre">*,</span> <span class="pre">actor,</span> <span class="pre">belief,</span> <span class="pre">date,</span> <span class="pre">note=None)</span></code></p></td>
+<td><p>records the actor’s belief, <code class="docutils literal notranslate"><span class="pre">&quot;true&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;unlikely&quot;</span></code>, in the pair’s entry, adding the entry where there is none and replacing in place the actor’s earlier belief; whether the pair is stated is left as it is</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">same_pair(context,</span> <span class="pre">a,</span> <span class="pre">b)</span></code></p></td>
+<td><p>the comparison of section 9</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">expand_iri(context,</span> <span class="pre">text)</span></code>, <code class="docutils literal notranslate"><span class="pre">used_prefixes(manifest)</span></code></p></td>
+<td><p>an IRI expanded through a context, and the prefixes a manifest’s statements use</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">with_context(manifest,</span> <span class="pre">prefixes)</span></code></p></td>
+<td><p>the manifest with its <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code>: the format’s terms and the prefixes used, each namespace from its own context first, else from <code class="docutils literal notranslate"><span class="pre">prefixes</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>npm’s <code class="docutils literal notranslate"><span class="pre">withPair</span></code>, <code class="docutils literal notranslate"><span class="pre">withCandidate</span></code> and <code class="docutils literal notranslate"><span class="pre">withBelief</span></code> take the keyword
+arguments in an options object, <code class="docutils literal notranslate"><span class="pre">withPair(manifest,</span> <span class="pre">subject,</span> <span class="pre">property,</span> <span class="pre">value,</span> <span class="pre">{</span> <span class="pre">provenance,</span> <span class="pre">actor,</span> <span class="pre">date</span> <span class="pre">})</span></code>, and <code class="docutils literal notranslate"><span class="pre">candidates(manifest,</span> <span class="pre">subject,</span> <span class="pre">actor?)</span></code> the actor last. Actors compare as their IRIs. Believing a pair
+<code class="docutils literal notranslate"><span class="pre">false</span></code> never removes it: the belief is recorded and the statement stays;
+<code class="docutils literal notranslate"><span class="pre">without_pair</span></code> removes a pair.</p>
+<p>A function refuses a pair already stated (<code class="docutils literal notranslate"><span class="pre">'&lt;property&gt;'</span> <span class="pre">already</span> <span class="pre">has</span> <span class="pre">this</span> <span class="pre">value</span></code>), the removal of a pair not stated (<code class="docutils literal notranslate"><span class="pre">'&lt;property&gt;'</span> <span class="pre">does</span> <span class="pre">not</span> <span class="pre">have</span> <span class="pre">this</span> <span class="pre">value</span></code>), a candidate of a stated pair (<code class="docutils literal notranslate"><span class="pre">'&lt;property&gt;'</span> <span class="pre">already</span> <span class="pre">has</span> <span class="pre">this</span> <span class="pre">value;</span> <span class="pre">a</span> <span class="pre">stated</span> <span class="pre">pair</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">candidate</span></code>), an actor given without a
+date (<code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">belief</span> <span class="pre">needs</span> <span class="pre">a</span> <span class="pre">date</span></code>), a belief none of the three words, a
+property that is neither <code class="docutils literal notranslate"><span class="pre">type</span></code> nor an IRI (<code class="docutils literal notranslate"><span class="pre">'&lt;property&gt;'</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">property:</span> <span class="pre">write</span> <span class="pre">'type',</span> <span class="pre">a</span> <span class="pre">compact</span> <span class="pre">IRI</span> <span class="pre">or</span> <span class="pre">an</span> <span class="pre">absolute</span> <span class="pre">IRI</span></code>), a path that addresses
+nothing (<code class="docutils literal notranslate"><span class="pre">&lt;pointer&gt;</span> <span class="pre">addresses</span> <span class="pre">no</span> <span class="pre">element</span> <span class="pre">and</span> <span class="pre">no</span> <span class="pre">value</span> <span class="pre">node</span></code>) and a date
+the calendar lacks (<code class="docutils literal notranslate"><span class="pre">'&lt;date&gt;'</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">Gregorian</span> <span class="pre">calendar</span> <span class="pre">date</span> <span class="pre">written</span> <span class="pre">YYYY-MM-DD</span></code>), raising <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> in Python and <code class="docutils literal notranslate"><span class="pre">Error</span></code> in npm with the
+same message. <code class="docutils literal notranslate"><span class="pre">FORMAT_CONTEXT</span></code> holds the 35 terms, <code class="docutils literal notranslate"><span class="pre">NAMESPACE</span></code> the
+format’s namespace, and <code class="docutils literal notranslate"><span class="pre">BELIEFS</span></code>, <code class="docutils literal notranslate"><span class="pre">METHODS</span></code> and <code class="docutils literal notranslate"><span class="pre">MATCHES</span></code> the words of
+the three keys.</p>
+</section>
+<section id="validation">
+<h2>12. Validation<a class="headerlink" href="#validation" title="Link to this heading">#</a></h2>
+<p>The validators read the version marker, then finite numbers, then the
+schema, the representation of own-axis values and the identity rules
+(README, “Identity”), and last the <strong>statement rules</strong>. The schema refuses,
+with the code <code class="docutils literal notranslate"><span class="pre">schema</span></code>:</p>
+<ul class="simple">
+<li><p>a context that lacks one of the 35 terms or alters one, a prefix whose
+name is an element key or a URI scheme the format reads, and a
+namespace that does not end in <code class="docutils literal notranslate"><span class="pre">/</span></code> or <code class="docutils literal notranslate"><span class="pre">#</span></code>;</p></li>
+<li><p>a container that is empty, a key that is neither <code class="docutils literal notranslate"><span class="pre">type</span></code> nor a compact or
+absolute IRI, a <code class="docutils literal notranslate"><span class="pre">type</span></code> that is not a list of IRIs, a value list that is
+empty or repeats a value, and a value that is <code class="docutils literal notranslate"><span class="pre">null</span></code> or a float with a
+fractional part;</p></li>
+<li><p>a value object with both <code class="docutils literal notranslate"><span class="pre">&#64;language</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;type</span></code>, or with neither; an
+empty node; a node whose <code class="docutils literal notranslate"><span class="pre">id</span></code> is a blank-node label (<code class="docutils literal notranslate"><span class="pre">_:b0</span></code>);</p></li>
+<li><p>an empty <code class="docutils literal notranslate"><span class="pre">provenance</span></code>, an entry of a subject without <code class="docutils literal notranslate"><span class="pre">property</span></code> or
+<code class="docutils literal notranslate"><span class="pre">value</span></code> (an entry of a flow-control element or a FlowMap names no
+pair), an empty <code class="docutils literal notranslate"><span class="pre">beliefs</span></code>, a belief without <code class="docutils literal notranslate"><span class="pre">actor</span></code>, <code class="docutils literal notranslate"><span class="pre">belief</span></code> or <code class="docutils literal notranslate"><span class="pre">date</span></code>, a
+belief, method or match outside its words, a <code class="docutils literal notranslate"><span class="pre">property</span></code> that is no IRI,
+and a date not written <code class="docutils literal notranslate"><span class="pre">YYYY-MM-DD</span></code>.</p></li>
+</ul>
+<p>The statement rules run after every other rule and report their first
+problem, in this order: the context rule over every subject; the
+reserved keys of the manifest, the timelines and regions in subject order
+and the groups, each element’s keys in code-point order; then subject by
+subject in subject order, the manifest first, then root by root the
+timeline, its regions in array order and its children, depth first. For
+each subject they read its ID, its container’s keys in code-point order
+with their values, a value node where it stands, then its provenance
+entries, each entry’s keys in code-point order and its beliefs in list
+order, and last, entry by entry, the actors of its beliefs against each
+other and the entry against the earlier ones. After the last subject come
+the provenance entries about elements, those of the flow-control
+elements, root by root and each timeline’s before its children’s, then
+those of the FlowMaps: each entry’s keys in code-point order, and then,
+entry by entry, the actors of its beliefs against each other. Of the
+rules below, <code class="docutils literal notranslate"><span class="pre">iri</span></code> (a compact IRI), <code class="docutils literal notranslate"><span class="pre">dangling_target</span></code>, <code class="docutils literal notranslate"><span class="pre">calendar_date</span></code> and
+<code class="docutils literal notranslate"><span class="pre">belief_actor</span></code> apply to these entries.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Rule</p></th>
+<th class="head"><p>Code</p></th>
+<th class="head"><p>Location</p></th>
+<th class="head"><p>Message</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>A manifest without <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> carries <code class="docutils literal notranslate"><span class="pre">statements</span></code> or <code class="docutils literal notranslate"><span class="pre">provenance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">context</span></code></p></td>
+<td><p>the first such key, <code class="docutils literal notranslate"><span class="pre">provenance</span></code> before <code class="docutils literal notranslate"><span class="pre">statements</span></code> within an element</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">statements</span> <span class="pre">and</span> <span class="pre">provenance</span> <span class="pre">need</span> <span class="pre">the</span> <span class="pre">manifest's</span> <span class="pre">&#64;context</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>An element key that JSON-LD would read (section 8)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">reserved_key</span></code></p></td>
+<td><p>the key</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;key&gt;'</span> <span class="pre">is</span> <span class="pre">reserved</span> <span class="pre">on</span> <span class="pre">the</span> <span class="pre">manifest</span></code> (<code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">timeline</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">region</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">group</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>An element carrying statements or provenance has an ID that is no IRI fragment, such as one holding a space</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">iri</span></code></p></td>
+<td><p>the element’s <code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">ID</span> <span class="pre">'&lt;id&gt;'</span> <span class="pre">of</span> <span class="pre">an</span> <span class="pre">element</span> <span class="pre">with</span> <span class="pre">statements</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">IRI</span> <span class="pre">fragment</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>A compact IRI names a prefix the context does not declare</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">iri</span></code></p></td>
+<td><p>the IRI</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;iri&gt;':</span> <span class="pre">the</span> <span class="pre">prefix</span> <span class="pre">'&lt;prefix&gt;'</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">declared</span> <span class="pre">in</span> <span class="pre">&#64;context</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>A reference beginning with <code class="docutils literal notranslate"><span class="pre">#</span></code> names no element of the manifest</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dangling_target</span></code></p></td>
+<td><p>the reference</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;reference&gt;'</span> <span class="pre">names</span> <span class="pre">no</span> <span class="pre">element</span> <span class="pre">of</span> <span class="pre">this</span> <span class="pre">manifest</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>A node naming an element holds another key</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">element_value</span></code></p></td>
+<td><p>the node</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;id&gt;'</span> <span class="pre">names</span> <span class="pre">an</span> <span class="pre">element;</span> <span class="pre">a</span> <span class="pre">value</span> <span class="pre">naming</span> <span class="pre">an</span> <span class="pre">element</span> <span class="pre">holds</span> <span class="pre">its</span> <span class="pre">id</span> <span class="pre">alone</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>A statement value is an integral float, such as <code class="docutils literal notranslate"><span class="pre">1.0</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">representation</span></code></p></td>
+<td><p>the value</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">statement</span> <span class="pre">value</span> <span class="pre">is</span> <span class="pre">an</span> <span class="pre">integer</span> <span class="pre">or</span> <span class="pre">a</span> <span class="pre">string,</span> <span class="pre">never</span> <span class="pre">a</span> <span class="pre">float:</span> <span class="pre">&lt;value&gt;</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>An entry’s <code class="docutils literal notranslate"><span class="pre">date</span></code> names no day of the Gregorian calendar</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">calendar_date</span></code></p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">date</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;date&gt;'</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">Gregorian</span> <span class="pre">calendar</span> <span class="pre">date</span> <span class="pre">written</span> <span class="pre">YYYY-MM-DD</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>A belief names the actor of an earlier belief of its entry, actors compared as their IRIs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">belief_actor</span></code></p></td>
+<td><p>the later belief’s <code class="docutils literal notranslate"><span class="pre">actor</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;actor&gt;'</span> <span class="pre">already</span> <span class="pre">holds</span> <span class="pre">belief</span> <span class="pre">&lt;index&gt;</span> <span class="pre">of</span> <span class="pre">this</span> <span class="pre">entry;</span> <span class="pre">an</span> <span class="pre">actor</span> <span class="pre">holds</span> <span class="pre">one</span> <span class="pre">belief</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>An entry names the pair of an earlier entry of its subject</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">provenance_duplicate</span></code></p></td>
+<td><p>the entry</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">entry</span> <span class="pre">repeats</span> <span class="pre">the</span> <span class="pre">pair</span> <span class="pre">of</span> <span class="pre">entry</span> <span class="pre">&lt;index&gt;</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>An IRI fragment is a string of the characters <code class="docutils literal notranslate"><span class="pre">A</span></code>–<code class="docutils literal notranslate"><span class="pre">Z</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code>–<code class="docutils literal notranslate"><span class="pre">z</span></code>, <code class="docutils literal notranslate"><span class="pre">0</span></code>–<code class="docutils literal notranslate"><span class="pre">9</span></code>,
+<code class="docutils literal notranslate"><span class="pre">-._~!$&amp;'()*+,;=:&#64;/?</span></code>, code points from U+0080 on (white space excluded)
+and <code class="docutils literal notranslate"><span class="pre">%</span></code> followed by two hexadecimal digits. A reference that does not
+begin with a scheme and a colon and does not begin with <code class="docutils literal notranslate"><span class="pre">#</span></code> is a relative
+reference to another document and is not resolved. The <code class="docutils literal notranslate"><span class="pre">#</span></code> references of
+statements and provenance name any ID of the manifest: the manifest’s
+own, a timeline’s, a group’s, a MeasureMap’s, a conversion map’s at any
+depth, a region’s, a flow-control element’s, a resource’s, a FlowMap’s, a
+virtual timeline’s, a named timestamp’s, an elision’s, a named
+MatchStamp’s or an alignment anchor’s. The
+Gregorian calendar’s years run from 1 to 9999, so <code class="docutils literal notranslate"><span class="pre">2026-02-30</span></code> is refused.
+The messages are the same in both packages, but for a <code class="docutils literal notranslate"><span class="pre">schema</span></code> problem,
+whose message is the package’s own schema validator’s.</p>
+<p><strong>Warnings.</strong> A valid manifest may draw two warnings, which refuse nothing:
+<code class="docutils literal notranslate"><span class="pre">context_absent</span></code> at the root (<code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">manifest</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">&#64;context</span></code>) for any
+manifest without <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code>, and <code class="docutils literal notranslate"><span class="pre">bundle_blank</span></code> at <code class="docutils literal notranslate"><span class="pre">statements</span></code>, else at
+<code class="docutils literal notranslate"><span class="pre">provenance</span></code> (<code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">manifest</span> <span class="pre">has</span> <span class="pre">statements</span> <span class="pre">but</span> <span class="pre">no</span> <span class="pre">ID;</span> <span class="pre">its</span> <span class="pre">subject</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">blank</span> <span class="pre">node</span></code>), for a manifest that states pairs or provenance without an
+<code class="docutils literal notranslate"><span class="pre">id</span></code>. Python’s <code class="docutils literal notranslate"><span class="pre">manifest_warnings(value)</span></code> and npm’s
+<code class="docutils literal notranslate"><span class="pre">manifestWarnings(value)</span></code> validate a manifest and return them as
+<code class="docutils literal notranslate"><span class="pre">{code,</span> <span class="pre">path,</span> <span class="pre">message}</span></code> entries, sorted by path and then by code. An
+unknown key inside a provenance entry is reported as an unknown key
+(README, “Unknown keys”), while the MatchClaim table, whose <code class="docutils literal notranslate"><span class="pre">provenance</span></code>
+column holds the entry’s members alone, refuses one (README, “Checking
+the tables”); <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code>, a container and its values are
+closed, and a key they do not declare is refused.</p>
+<p><strong>The statements alone.</strong> Python’s <code class="docutils literal notranslate"><span class="pre">statement_problems(value)</span></code> and npm’s
+<code class="docutils literal notranslate"><span class="pre">statementProblems(value)</span></code> check the statements of a manifest and nothing
+else, so that a library reading part of a manifest checks them without
+restating which other parts the rules read. They return a list of
+problems, empty where the statements are sound: first, member by member,
+the manifest’s <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> and every <code class="docutils literal notranslate"><span class="pre">statements</span></code> and <code class="docutils literal notranslate"><span class="pre">provenance</span></code> of the
+manifest, a timeline or a region in subject order, each checked for a
+number that is not finite (<code class="docutils literal notranslate"><span class="pre">finite_number</span></code>), else against the schema
+(<code class="docutils literal notranslate"><span class="pre">schema</span></code>), each member’s first problem at its own path; then, only where
+no member has one, all the problems of the statement rules. They refuse
+nothing outside the statements and do not read the version marker.</p>
+</section>
+<section id="the-statement-fixtures">
+<h2>13. The statement fixtures<a class="headerlink" href="#the-statement-fixtures" title="Link to this heading">#</a></h2>
+<p>Four fixtures under <code class="docutils literal notranslate"><span class="pre">fixtures/0.2.0/statements/</span></code>, each with its minimal
+twin, carry statements; besides them, <code class="docutils literal notranslate"><span class="pre">fixtures/0.2.0/flow/sonata_exposition</span></code>
+states its three atomic sections, regions of the type
+<code class="docutils literal notranslate"><span class="pre">tts:AtomicSection</span></code>, each pair with an entry of method <code class="docutils literal notranslate"><span class="pre">inferred</span></code>, and
+three FlowMaps computed from its flow control, each with a provenance
+entry of method <code class="docutils literal notranslate"><span class="pre">inferred</span></code> about the FlowMap itself (README, “FlowMaps and
+virtual timelines”), and every other fixture holds the
+format’s context and no statement. Their structure is built by timetoalign and their
+statements and provenance are attached from
+<code class="docutils literal notranslate"><span class="pre">scripts/fixtures/descriptions/&lt;name&gt;.yaml</span></code> when they are emitted.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Fixture</p></th>
+<th class="head"><p>Holds</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">op106_work</span></code></p></td>
+<td><p>a bundle about Beethoven’s Piano Sonata No. 29, Op. 106, whose five roots side by side are manifestations: the first edition and an encoding of each movement, each naming its work; under <code class="docutils literal notranslate"><span class="pre">schema:about</span></code>, the sonata with its identity in Wikidata, the GND, VIAF and MusicBrainz, the composer, the opus number, the IMSLP page name, and the parts MusicBrainz lists with their positions; the manifest’s own prefix <code class="docutils literal notranslate"><span class="pre">mbw</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">layerit_recording</span></code></p></td>
+<td><p>a bundle about Debussy’s “Clair de lune”: an MEI encoding of its opening, a video of a performance by Maria João Pires and an audio file cut from it, each a manifestation; “is a” in three vocabularies, the encoding’s work in two, the performer in two, a GND candidate believed <code class="docutils literal notranslate"><span class="pre">false</span></code>, provenance on a value node, and a candidate whose value is an element</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">djset_segment</span></code></p></td>
+<td><p>a bundle about a DJ set: the set’s recording, naming the set by “recording of”, and one segment of it, based on a recording stated in Wikidata and MusicBrainz with its ISRC; a performer known only by name, a candidate, and an identity believed <code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">nielsen_record</span></code></p></td>
+<td><p>the catalogue record of Carl Nielsen’s song CNW 133 taken over from its MEI header: the work under <code class="docutils literal notranslate"><span class="pre">schema:about</span></code> with titles in two languages, catalogue numbers and the date; the print and the autograph as manifestation timelines, the print embodying the expression, a value node with the medium of performance; every pair imported with its provenance, and names awaiting reconciliation</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">fixtures/rdf/0.2.0/&lt;name&gt;.nq</span></code> holds the expected reading of each, the
+canonical N-Quads (RDFC-1.0) of its JSON-LD reading with the base
+<code class="docutils literal notranslate"><span class="pre">https://example.org/manifests/&lt;name&gt;.yaml</span></code>, which both packages’ tests
+reproduce byte for byte with a JSON-LD processor that fetches nothing.
+The fixture and its twin read to the same graph. <code class="docutils literal notranslate"><span class="pre">sonata_exposition</span></code>
+reads to the fifteen quads of its three typed regions and their entries,
+which its package tests state without a file; its FlowMaps and their
+provenance add none, since <code class="docutils literal notranslate"><span class="pre">flow_maps</span></code> is no term of the context, and every other fixture
+reads to the empty graph.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="overview.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">TimeToShare!</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="drawing.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Drawing a TimeToShare manifest</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-planes">1. Two planes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-subject">2. The subject</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#work-expression-manifestation-item">3. Work, expression, manifestation, item</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#pairs">4. Pairs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#is-a">5. “Is a”</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#vocabularies-and-patterns">6. Vocabularies and patterns</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#values-that-name-elements">7. Values that name elements</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#yaml-ld-and-the-inline-context">8. YAML-LD and the inline context</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#provenance-and-beliefs">9. Provenance and beliefs</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-catalogue">10. The catalogue</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#editing-statements">11. Editing statements</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#validation">12. Validation</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-statement-fixtures">13. The statement fixtures</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Time to Align!.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  <script src="/TimeToShare/versions.js" defer></script>
+</body>
+</html>

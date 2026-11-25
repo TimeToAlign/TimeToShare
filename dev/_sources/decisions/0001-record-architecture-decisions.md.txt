@@ -1,0 +1,2 @@
+```{include} ../../decisions/0001-record-architecture-decisions.md
+```

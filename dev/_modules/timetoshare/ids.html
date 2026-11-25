@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>timetoshare.ids &#8212; timetoshare 0.2.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/timetoshare/ids';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.0" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">timetoshare 0.2.0</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">timetoshare.ids</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for timetoshare.ids</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""IDs in a manifest file and in memory.</span>
+
+<span class="sd">A manifest file writes every ID with a leading ``#``: an element's own ID</span>
+<span class="sd">(``"id": "#clt_1"``) as well as every reference to one (a group's members,</span>
+<span class="sd">the keys of ``graphical.order``, a named timestamp's timeline, an elision's</span>
+<span class="sd">timeline, an alignment anchor's timestamps, a resource's timelines, an</span>
+<span class="sd">address's ``id``, a selector's ``within``, the ``to`` of a jump's destination,</span>
+<span class="sd">the ``jump`` and ``to`` of an ``after``, a FlowMap's ``timeline`` and the IDs</span>
+<span class="sd">among its ``chunks``, a virtual timeline's ``map``, ``timeline`` and</span>
+<span class="sd">``through``, a measure view's ``measure_map``). The IDs of MatchClaims a</span>
+<span class="sd">MatchStamp lists name rows of a MatchClaim table, not elements, and are no</span>
+<span class="sd">ID position. In memory an ID is bare: ``clt_1``. Exactly one ``#`` is</span>
+<span class="sd">stripped, so the file text ``##x`` is the bare ID ``#x``.</span>
+
+<span class="sd">One position holds an ID or something else: the values of a group's entry</span>
+<span class="sd">in ``graphical.order`` are member IDs, while a timeline's entry holds band</span>
+<span class="sd">words, which stay bare. The IRIs of ``statements`` and ``provenance``, a</span>
+<span class="sd">reference to an element (``{"id": "#clt_1"}``) among them, are no ID</span>
+<span class="sd">position: they are written the same in a file and in memory.</span>
+
+<span class="sd">``with_file_ids`` and ``with_bare_ids`` convert a whole manifest between the</span>
+<span class="sd">two forms. Both are pure: they return a new value, keep unknown keys and</span>
+<span class="sd">the order of every object's keys (an order key renamed in place keeps its</span>
+<span class="sd">position) and leave every number as it is. Both are driven by one table of</span>
+<span class="sd">the positions of IDs, ``ID_POSITIONS``, by schema definition and member, and</span>
+<span class="sd">one table of where each definition occurs, ``CONTAINERS``.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
+
+<span class="n">HASH</span> <span class="o">=</span> <span class="s2">"#"</span>
+<span class="sd">"""The character that marks an ID in a manifest file."""</span>
+
+<span class="n">Shape</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">,</span> <span class="s2">"order"</span><span class="p">]</span>
+<span class="sd">"""How a member holds IDs.</span>
+
+<span class="sd">``id`` the member is one ID; ``ids`` a list of IDs, an item that is no</span>
+<span class="sd">string (a FlowMap's gap) kept as it is; ``order`` an object</span>
+<span class="sd">keyed by IDs whose value, where the key names a group, is a list of member</span>
+<span class="sd">IDs (a timeline's value holds band words).</span>
+<span class="sd">"""</span>
+
+<span class="n">ID_POSITIONS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Shape</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s2">"Manifest"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Timeline"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Group"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Group"</span><span class="p">,</span> <span class="s2">"members"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"order"</span><span class="p">,</span> <span class="s2">"order"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Timestamp"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Timestamp"</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Elision"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Elision"</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"MatchStamp"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"AlignmentAnchor"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"AlignmentAnchor"</span><span class="p">,</span> <span class="s2">"timestamps"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Resource"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Resource"</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Address"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"MeasureMap"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Region"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"FlowControlElement"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"JumpDestination"</span><span class="p">,</span> <span class="s2">"to"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"DestinationReference"</span><span class="p">,</span> <span class="s2">"jump"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"DestinationReference"</span><span class="p">,</span> <span class="s2">"to"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"FlowMap"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"FlowMap"</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"FlowMap"</span><span class="p">,</span> <span class="s2">"chunks"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"VirtualTimeline"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"VirtualTimeline"</span><span class="p">,</span> <span class="s2">"map"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"VirtualTimeline"</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"VirtualTimeline"</span><span class="p">,</span> <span class="s2">"through"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Selector"</span><span class="p">,</span> <span class="s2">"within"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"MapBase"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"MeasureView"</span><span class="p">,</span> <span class="s2">"measure_map"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="sd">"""Every member of a schema definition that holds IDs, and how it holds them."""</span>
+
+<span class="n">Holding</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"one"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"values"</span><span class="p">]</span>
+<span class="sd">"""How a member holds a definition: one object, a list, or an object's values."""</span>
+
+<span class="n">CONTAINERS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">Holding</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s2">"Manifest"</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Timeline"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Manifest"</span><span class="p">,</span> <span class="s2">"groups"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Group"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Manifest"</span><span class="p">,</span> <span class="s2">"measure_maps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"MeasureMap"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Manifest"</span><span class="p">,</span> <span class="s2">"resources"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Resource"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Manifest"</span><span class="p">,</span> <span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"Graphical"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Manifest"</span><span class="p">,</span> <span class="s2">"flow_maps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"FlowMap"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Manifest"</span><span class="p">,</span> <span class="s2">"virtual_timelines"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"VirtualTimeline"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Timeline"</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Timeline"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Timeline"</span><span class="p">,</span> <span class="s2">"conversion_maps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"ConversionMap"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Timeline"</span><span class="p">,</span> <span class="s2">"regions"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Region"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Timeline"</span><span class="p">,</span> <span class="s2">"flow_control"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"FlowControlElement"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"FlowControlElement"</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"JumpDestination"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"FlowControlElement"</span><span class="p">,</span> <span class="s2">"ends"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"BreakCondition"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"JumpDestination"</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"DestinationReference"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"BreakCondition"</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"DestinationReference"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"rules"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Rule"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"timestamps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Timestamp"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"elisions"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Elision"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"matchstamps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"MatchStamp"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"MatchStamp"</span><span class="p">,</span> <span class="s2">"alignment_anchors"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"AlignmentAnchor"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Rule"</span><span class="p">,</span> <span class="s2">"select"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"Selector"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Selector"</span><span class="p">,</span> <span class="s2">"addresses"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Address"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"ChainMap"</span><span class="p">,</span> <span class="s2">"maps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"ConversionMap"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"PiecewiseMap"</span><span class="p">,</span> <span class="s2">"maps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"ConversionMap"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"CombinationMap"</span><span class="p">,</span> <span class="s2">"maps"</span><span class="p">,</span> <span class="s2">"values"</span><span class="p">,</span> <span class="s2">"ConversionMap"</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="sd">"""Every member through which a definition holds another that holds IDs."""</span>
+
+<span class="n">MEASURE_VIEWS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"FloatingMeasureMap"</span><span class="p">,</span>
+    <span class="s2">"MeasureBeatMap"</span><span class="p">,</span>
+    <span class="s2">"MeasureNumberMap"</span><span class="p">,</span>
+    <span class="s2">"MeasureRecordMap"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="sd">"""The conversion-map types built on ``MeasureView``; every other one on ``MapBase``."""</span>
+
+<span class="n">_POSITIONS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Shape</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">_definition</span><span class="p">,</span> <span class="n">_member</span><span class="p">,</span> <span class="n">_shape</span> <span class="ow">in</span> <span class="n">ID_POSITIONS</span><span class="p">:</span>
+    <span class="n">_POSITIONS</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">_definition</span><span class="p">,</span> <span class="p">{})[</span><span class="n">_member</span><span class="p">]</span> <span class="o">=</span> <span class="n">_shape</span>
+<span class="n">_HELD</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Holding</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">_definition</span><span class="p">,</span> <span class="n">_member</span><span class="p">,</span> <span class="n">_holding</span><span class="p">,</span> <span class="n">_child</span> <span class="ow">in</span> <span class="n">CONTAINERS</span><span class="p">:</span>
+    <span class="n">_HELD</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">_definition</span><span class="p">,</span> <span class="p">{})[</span><span class="n">_member</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">_holding</span><span class="p">,</span> <span class="n">_child</span><span class="p">)</span>
+
+<span class="n">_Path</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="FileIdError">
+<a class="viewcode-back" href="../../api/generated/timetoshare.ids.html#timetoshare.ids.FileIdError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileIdError</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Raised for a text that is not an ID in the file form.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        path: Where the text stands in the manifest; empty for a lone text.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">_Path</span> <span class="o">=</span> <span class="p">())</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span></div>
+
+
+
+<div class="viewcode-block" id="to_file_id">
+<a class="viewcode-back" href="../../api/generated/timetoshare.ids.html#timetoshare.ids.to_file_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">to_file_id</span><span class="p">(</span><span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the file form of a bare ID: ``#`` followed by the ID."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"an ID is a string, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">HASH</span> <span class="o">+</span> <span class="nb">id</span></div>
+
+
+
+<div class="viewcode-block" id="from_file_id">
+<a class="viewcode-back" href="../../api/generated/timetoshare.ids.html#timetoshare.ids.from_file_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">from_file_id</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the bare ID that a file's ``#id`` text writes.</span>
+
+<span class="sd">    Exactly one leading ``#`` is stripped: ``#x`` is ``x`` and ``##x`` is</span>
+<span class="sd">    ``#x``.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        FileIdError: A ``ValueError``, if the text does not start with ``#``</span>
+<span class="sd">            or nothing follows it.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_bare</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">())</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_bare</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">_Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"an ID is a string, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">HASH</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">FileIdError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">' is not written as an ID: it does not start with '#'"</span><span class="p">,</span> <span class="n">path</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">FileIdError</span><span class="p">(</span><span class="s2">"'#' is not written as an ID: nothing follows the '#'"</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_leniently_bare</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The bare ID of a text in the file form; any other text as it is."""</span>
+    <span class="k">return</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">HASH</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">text</span>
+
+
+<span class="n">_ATOMS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">({</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)})</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_copied</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A copy of JSON data, quicker than ``copy.deepcopy``.</span>
+
+<span class="sd">    Strings, numbers, booleans and ``None`` are kept (``deepcopy`` keeps them</span>
+<span class="sd">    too); lists and dictionaries of exactly those types are rebuilt member by</span>
+<span class="sd">    member, so one shared by two members is no longer shared in the copy and</span>
+<span class="sd">    a cycle raises ``RecursionError``; any other value goes through</span>
+<span class="sd">    ``copy.deepcopy``.</span>
+<span class="sd">    """</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">_ATOMS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">_copied</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">_copied</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="definitions_of">
+<a class="viewcode-back" href="../../api/generated/timetoshare.ids.html#timetoshare.ids.definitions_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">definitions_of</span><span class="p">(</span><span class="n">definition</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The definitions whose members ``value``, held as ``definition``, carries.</span>
+
+<span class="sd">    A conversion map is its type's definition and that definition's bases;</span>
+<span class="sd">    every other value is its definition alone.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">definition</span> <span class="o">!=</span> <span class="s2">"ConversionMap"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">definition</span><span class="p">,)</span>
+    <span class="n">kind</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"type"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">MEASURE_VIEWS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="s2">"MeasureView"</span><span class="p">,</span> <span class="s2">"MapBase"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">kind</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"MapBase"</span><span class="p">)</span></div>
+
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">_Converter</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""One conversion of a whole manifest, to the file form or to the bare form."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">to_file</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">to_file</span> <span class="o">=</span> <span class="n">to_file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strict</span> <span class="o">=</span> <span class="n">strict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ids</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"groups"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">member</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The bare IDs of a top-level list, read leniently: a check comes later."""</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">frozenset</span><span class="p">()</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"id"</span><span class="p">),</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_file</span><span class="p">:</span>
+                    <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">HASH</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">return</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">_Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""One ID converted; a value that is no string is copied as it is.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            FileIdError: In strict conversion to the bare form, if the text is</span>
+<span class="sd">                not written as an ID.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_copied</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_file</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">to_file_id</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_bare</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict</span> <span class="k">else</span> <span class="n">_leniently_bare</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">_Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""A list of IDs converted item by item; a value that is no list is copied."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_copied</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">)]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">_Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""An object keyed by IDs converted, and the member IDs a group's key holds."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_copied</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">renamed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+            <span class="n">bare</span> <span class="o">=</span> <span class="n">key</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_file</span> <span class="k">else</span> <span class="n">renamed</span>
+            <span class="k">if</span> <span class="n">bare</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">renamed</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ids</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">renamed</span><span class="p">]</span> <span class="o">=</span> <span class="n">_copied</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">held</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">definition</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">_Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""A value held as ``definition`` converted, member by member."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">_copied</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">definitions</span> <span class="o">=</span> <span class="n">definitions_of</span><span class="p">(</span><span class="n">definition</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="n">shapes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Shape</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">holds</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Holding</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">definitions</span><span class="p">:</span>
+            <span class="n">shapes</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_POSITIONS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{}))</span>
+            <span class="n">holds</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_HELD</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="p">{}))</span>
+        <span class="n">result</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shapes</span><span class="p">[</span><span class="n">key</span><span class="p">])(</span><span class="n">member</span><span class="p">,</span> <span class="n">at</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">holds</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">holding</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="o">*</span><span class="n">holds</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">at</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_copied</span><span class="p">(</span><span class="n">member</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">holding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">holding</span><span class="p">:</span> <span class="n">Holding</span><span class="p">,</span> <span class="n">child</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">_Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""A member converted that holds ``child`` as one object, a list or values."""</span>
+        <span class="k">if</span> <span class="n">holding</span> <span class="o">==</span> <span class="s2">"one"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">held</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">holding</span> <span class="o">==</span> <span class="s2">"list"</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">held</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">if</span> <span class="n">holding</span> <span class="o">==</span> <span class="s2">"values"</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="n">key</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">held</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">}</span>
+        <span class="k">return</span> <span class="n">_copied</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="with_file_ids">
+<a class="viewcode-back" href="../../api/generated/timetoshare.ids.html#timetoshare.ids.with_file_ids">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">with_file_ids</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the manifest with every ID in the file form, ``#`` + the bare ID.</span>
+
+<span class="sd">    A value of ``graphical.order`` gains the ``#`` where its key names a</span>
+<span class="sd">    group.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_Converter</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">held</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"Manifest"</span><span class="p">,</span> <span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="with_bare_ids">
+<a class="viewcode-back" href="../../api/generated/timetoshare.ids.html#timetoshare.ids.with_bare_ids">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">with_bare_ids</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Return the manifest with every ID bare, read from its file form ``#id``.</span>
+
+<span class="sd">    A timeline's entry in ``graphical.order`` holds band words, which stay</span>
+<span class="sd">    as they are.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        FileIdError: A ``ValueError``, with the ``path`` of the first text</span>
+<span class="sd">            that is not an ID in the file form.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_Converter</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">held</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"Manifest"</span><span class="p">,</span> <span class="p">())</span></div>
+
+
+
+<div class="viewcode-block" id="leniently_bare_ids">
+<a class="viewcode-back" href="../../api/generated/timetoshare.ids.html#timetoshare.ids.leniently_bare_ids">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">leniently_bare_ids</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""``with_bare_ids`` that keeps every text not in the file form as it is.</span>
+
+<span class="sd">    For a check of one part of a manifest, which must not refuse an ID</span>
+<span class="sd">    outside that part.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">_Converter</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">held</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"Manifest"</span><span class="p">,</span> <span class="p">())</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Time to Align!.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  <script src="/TimeToShare/versions.js" defer></script>
+</body>
+</html>

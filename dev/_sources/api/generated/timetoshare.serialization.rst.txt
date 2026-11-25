@@ -1,0 +1,4 @@
+﻿timetoshare.serialization
+=========================
+
+.. automodule:: timetoshare.serialization

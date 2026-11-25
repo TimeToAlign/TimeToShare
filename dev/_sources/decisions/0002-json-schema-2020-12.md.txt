@@ -1,0 +1,2 @@
+```{include} ../../decisions/0002-json-schema-2020-12.md
+```

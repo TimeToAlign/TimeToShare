@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>timetoshare.manifest &#8212; timetoshare 0.2.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/timetoshare/manifest';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.0" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">timetoshare 0.2.0</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">timetoshare.manifest</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for timetoshare.manifest</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""The canonical order of a TimeToShare manifest and the respelling of its values.</span>
+
+<span class="sd">Readers accept a manifest's arrays in any order; writers emit one canonical</span>
+<span class="sd">order (the README's "Canonical order"):</span>
+
+<span class="sd">* ``timelines``, ``groups`` and ``measure_maps`` by ID, and</span>
+<span class="sd">  every group's ``members`` by code point;</span>
+<span class="sd">* in every timeline, ``children`` by offset, then ID; ``conversion_maps`` by</span>
+<span class="sd">  ID; ``regions`` by start, then end, then ID; ``flow_control`` by</span>
+<span class="sd">  coordinate, then ID, and the ``targets`` of every jump by place: the</span>
+<span class="sd">  destination without a place first, then those with ``by``, by value, then</span>
+<span class="sd">  those with ``to``, by ID;</span>
+<span class="sd">* ``resources``, ``flow_maps`` and ``virtual_timelines`` by ID; a FlowMap's</span>
+<span class="sd">  ``chunks`` keep their order, which is the order they are played in;</span>
+<span class="sd">* ``graphical.timestamps`` by timeline, then coordinate, then ID, and every</span>
+<span class="sd">  timestamp's ``display`` in the order of :data:`TIMESTAMP_DISPLAY`, other</span>
+<span class="sd">  strings after them by code point and other values last in their given</span>
+<span class="sd">  order;</span>
+<span class="sd">* ``graphical.matchstamps`` by ID, the ``alignment_anchors`` of each by ID,</span>
+<span class="sd">  and every anchor's ``display`` in the order of :data:`ANCHOR_DISPLAY`, as</span>
+<span class="sd">  a timestamp's;</span>
+<span class="sd">* ``graphical.elisions`` by timeline, then start, then ID, and every</span>
+<span class="sd">  elision's ``display`` in the order of :data:`ELISION_DISPLAY`, as a</span>
+<span class="sd">  timestamp's.</span>
+
+<span class="sd">Coordinates compare by their exact numeric value, never by their spelling;</span>
+<span class="sd">strings compare by Unicode code point; entries that tie keep their given</span>
+<span class="sd">order. Every other array keeps its order.</span>
+
+<span class="sd">The declared number type decides how an own-axis value is read, never its</span>
+<span class="sd">spelling, and writers respell every own-axis value as its axis's number type</span>
+<span class="sd">selects (the README's "Values on a timeline's own axis"): an integral float on</span>
+<span class="sd">an ``int`` axis as the integer it equals, an integer on a ``float`` axis as the</span>
+<span class="sd">float that equals it exactly, and a Fraction pair on a ``fraction`` axis</span>
+<span class="sd">reduced to lowest terms, its members integers. A value its number type cannot</span>
+<span class="sd">take, and every value on an axis whose ``unit`` or ``number_type`` is unknown,</span>
+<span class="sd">is written as given.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">MappingProxyType</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">NamedTuple</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"ANCHOR_DISPLAY"</span><span class="p">,</span>
+    <span class="s2">"ELISION_DISPLAY"</span><span class="p">,</span>
+    <span class="s2">"TIMESTAMP_DISPLAY"</span><span class="p">,</span>
+    <span class="s2">"UNITS"</span><span class="p">,</span>
+    <span class="s2">"UnitEntry"</span><span class="p">,</span>
+    <span class="s2">"canonical_order"</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="UnitEntry">
+<a class="viewcode-back" href="../../api/generated/timetoshare.manifest.html#timetoshare.manifest.UnitEntry">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">UnitEntry</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""One row of the unit table: a unit's domain, modality and number types.</span>
+
+<span class="sd">    ``number_type`` is the default number type of an axis declaring none, and</span>
+<span class="sd">    ``number_types`` the number types the unit admits, in the order ``int``,</span>
+<span class="sd">    ``float``, ``fraction``.</span>
+<span class="sd">    """</span>
+
+    <span class="n">domain</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">modality</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">number_type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">number_types</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
+
+
+
+<span class="n">_DISCRETE</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"int"</span><span class="p">,)</span>
+<span class="n">_CONTINUOUS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"float"</span><span class="p">,</span> <span class="s2">"fraction"</span><span class="p">)</span>
+
+<span class="n">UNITS</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">UnitEntry</span><span class="p">]</span> <span class="o">=</span> <span class="n">MappingProxyType</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">"number"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"logical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="p">(</span><span class="s2">"int"</span><span class="p">,</span> <span class="o">*</span><span class="n">_CONTINUOUS</span><span class="p">)),</span>
+        <span class="s2">"floating_measures"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"logical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"whole_notes"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"logical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"fraction"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"quarters"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"logical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"fraction"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"ticks"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"logical"</span><span class="p">,</span> <span class="s2">"discrete"</span><span class="p">,</span> <span class="s2">"int"</span><span class="p">,</span> <span class="n">_DISCRETE</span><span class="p">),</span>
+        <span class="s2">"milliseconds"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"physical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"seconds"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"physical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"minutes"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"physical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"samples"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"physical"</span><span class="p">,</span> <span class="s2">"discrete"</span><span class="p">,</span> <span class="s2">"int"</span><span class="p">,</span> <span class="n">_DISCRETE</span><span class="p">),</span>
+        <span class="s2">"frames"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"physical"</span><span class="p">,</span> <span class="s2">"discrete"</span><span class="p">,</span> <span class="s2">"int"</span><span class="p">,</span> <span class="n">_DISCRETE</span><span class="p">),</span>
+        <span class="s2">"pixels"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"discrete"</span><span class="p">,</span> <span class="s2">"int"</span><span class="p">,</span> <span class="n">_DISCRETE</span><span class="p">),</span>
+        <span class="s2">"meters"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"centimeters"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"millimeters"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"inches"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"points"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"css_pixels"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+        <span class="s2">"user_units"</span><span class="p">:</span> <span class="n">UnitEntry</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"continuous"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="n">_CONTINUOUS</span><span class="p">),</span>
+    <span class="p">}</span>
+<span class="p">)</span>
+<span class="sd">"""The unit table, in the schema's order of ``TimeUnit``: every unit's domain,</span>
+<span class="sd">modality, default number type and admitted number types. A discrete unit</span>
+<span class="sd">admits ``int`` only, a continuous unit ``float`` or ``fraction``, and</span>
+<span class="sd">``number`` all three."""</span>
+
+<span class="n">_NUMBER_TYPES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"int"</span><span class="p">,</span> <span class="s2">"float"</span><span class="p">,</span> <span class="s2">"fraction"</span><span class="p">)</span>
+
+<span class="n">TIMESTAMP_DISPLAY</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"wedge"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"coordinate"</span><span class="p">,</span> <span class="s2">"cross_section"</span><span class="p">)</span>
+<span class="sd">"""The words of a named timestamp's ``display``, in canonical order."""</span>
+
+<span class="n">ANCHOR_DISPLAY</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"line"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">)</span>
+<span class="sd">"""The words of an alignment anchor's ``display``, in canonical order."""</span>
+
+<span class="n">ELISION_DISPLAY</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"ellipsis"</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"coordinate"</span><span class="p">,</span> <span class="s2">"continuation"</span><span class="p">)</span>
+<span class="sd">"""The words of an elision's ``display``, in canonical order."""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_integral</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The integer a JSON integer or an integral float equals, else ``None``."""</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">fraction_pair</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fraction</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The value of a Fraction pair, or ``None`` when ``value`` is none.</span>
+
+<span class="sd">    A pair is two integers, an integral float counting as the integer it</span>
+<span class="sd">    equals, whose denominator is at least 1.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">numerator</span><span class="p">,</span> <span class="n">denominator</span> <span class="o">=</span> <span class="n">_integral</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">_integral</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">numerator</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">denominator</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">denominator</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">numerator</span><span class="p">,</span> <span class="n">denominator</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">exact</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fraction</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the exact value of a coordinate: a JSON number or a Fraction pair.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If the value is neither.</span>
+<span class="sd">        ValueError: If it is a NaN.</span>
+<span class="sd">        OverflowError: If it is an infinity.</span>
+<span class="sd">    """</span>
+    <span class="n">pair</span> <span class="o">=</span> <span class="n">fraction_pair</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pair</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pair</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"not a number or a Fraction pair: </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Fraction</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_display_key</span><span class="p">(</span><span class="n">words</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Order the words of a ``display``: the known ``words`` canonically, then others.</span>
+
+<span class="sd">    A string the schema does not know follows them by code point, and any</span>
+<span class="sd">    other value follows last in its given order, so ordering never fails.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">key</span><span class="p">(</span><span class="n">word</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The sort key of one word."""</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">words</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">word</span><span class="p">),</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">word</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">key</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_order_display</span><span class="p">(</span><span class="n">owner</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">words</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">display</span> <span class="o">=</span> <span class="n">owner</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"display"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">display</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">owner</span><span class="p">[</span><span class="s2">"display"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">display</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_display_key</span><span class="p">(</span><span class="n">words</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">order_displays</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Put the ``display`` of every timestamp, anchor and elision in canonical order."""</span>
+    <span class="k">for</span> <span class="n">timestamp</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">_timestamps</span><span class="p">(</span><span class="n">manifest</span><span class="p">)):</span>
+        <span class="n">_order_display</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="n">TIMESTAMP_DISPLAY</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">matchstamp</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">_matchstamps</span><span class="p">(</span><span class="n">manifest</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">anchor</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">matchstamp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"alignment_anchors"</span><span class="p">)):</span>
+            <span class="n">_order_display</span><span class="p">(</span><span class="n">anchor</span><span class="p">,</span> <span class="n">ANCHOR_DISPLAY</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">elision</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">_elisions</span><span class="p">(</span><span class="n">manifest</span><span class="p">)):</span>
+        <span class="n">_order_display</span><span class="p">(</span><span class="n">elision</span><span class="p">,</span> <span class="n">ELISION_DISPLAY</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sorted</span><span class="p">(</span><span class="n">entries</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span> <span class="n">where</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">OverflowError</span><span class="p">)</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"cannot put </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> in canonical order: </span><span class="si">{</span><span class="n">error</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_identifier</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"not a string: </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_by_id</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">_identifier</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_by_place</span><span class="p">(</span><span class="n">destination</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Fraction</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Order a jump's destinations: without a place, then by ``by``, then by ``to``."""</span>
+    <span class="k">if</span> <span class="s2">"by"</span> <span class="ow">in</span> <span class="n">destination</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">exact</span><span class="p">(</span><span class="n">destination</span><span class="p">[</span><span class="s2">"by"</span><span class="p">]),</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">"to"</span> <span class="ow">in</span> <span class="n">destination</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">_identifier</span><span class="p">(</span><span class="n">destination</span><span class="p">[</span><span class="s2">"to"</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="s2">""</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_order_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Put the arrays of one timeline and its descendants in order, in place."""</span>
+    <span class="n">children</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"children"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">children</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">children</span><span class="p">):</span>
+            <span class="n">_order_timeline</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+        <span class="n">timeline</span><span class="p">[</span><span class="s2">"children"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span>
+            <span class="n">children</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">entry</span><span class="p">:</span> <span class="p">(</span><span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"offset"</span><span class="p">]),</span> <span class="n">_by_id</span><span class="p">(</span><span class="n">entry</span><span class="p">)),</span>
+            <span class="s2">"children"</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conversion_maps"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">timeline</span><span class="p">[</span><span class="s2">"conversion_maps"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span>
+            <span class="n">timeline</span><span class="p">[</span><span class="s2">"conversion_maps"</span><span class="p">],</span> <span class="n">_by_id</span><span class="p">,</span> <span class="s2">"conversion_maps"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"regions"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">timeline</span><span class="p">[</span><span class="s2">"regions"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span>
+            <span class="n">timeline</span><span class="p">[</span><span class="s2">"regions"</span><span class="p">],</span>
+            <span class="k">lambda</span> <span class="n">entry</span><span class="p">:</span> <span class="p">(</span><span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]),</span> <span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"end"</span><span class="p">]),</span> <span class="n">_by_id</span><span class="p">(</span><span class="n">entry</span><span class="p">)),</span>
+            <span class="s2">"regions"</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"flow_control"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">timeline</span><span class="p">[</span><span class="s2">"flow_control"</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"targets"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">],</span> <span class="n">_by_place</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">)</span>
+        <span class="n">timeline</span><span class="p">[</span><span class="s2">"flow_control"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span>
+            <span class="n">timeline</span><span class="p">[</span><span class="s2">"flow_control"</span><span class="p">],</span>
+            <span class="k">lambda</span> <span class="n">entry</span><span class="p">:</span> <span class="p">(</span><span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"coordinate"</span><span class="p">]),</span> <span class="n">_by_id</span><span class="p">(</span><span class="n">entry</span><span class="p">)),</span>
+            <span class="s2">"flow_control"</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_on_axis</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">number_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return an own-axis value respelled as its axis's number type selects."""</span>
+    <span class="k">if</span> <span class="n">number_type</span> <span class="o">==</span> <span class="s2">"fraction"</span><span class="p">:</span>
+        <span class="n">pair</span> <span class="o">=</span> <span class="n">fraction_pair</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="k">if</span> <span class="n">pair</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[</span><span class="n">pair</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">pair</span><span class="o">.</span><span class="n">denominator</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">number_type</span> <span class="o">==</span> <span class="s2">"int"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">number_type</span> <span class="o">==</span> <span class="s2">"float"</span>
+        <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">double</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OverflowError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">double</span> <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">double</span><span class="p">)</span> <span class="ow">and</span> <span class="n">double</span> <span class="o">==</span> <span class="n">value</span> <span class="k">else</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_axis_type</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The number type of a timeline's axis, or ``None`` where it is unknown.</span>
+
+<span class="sd">    A ``unit`` that is missing, not a string or not a unit is unknown, and so</span>
+<span class="sd">    is a ``number_type`` that is present but not one of the three types</span>
+<span class="sd">    (``null`` included); a missing ``number_type`` is the unit's default.</span>
+<span class="sd">    """</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"unit"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="n">unit</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">UNITS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s2">"number_type"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">timeline</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">UNITS</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span><span class="o">.</span><span class="n">number_type</span>
+    <span class="n">number_type</span> <span class="o">=</span> <span class="n">timeline</span><span class="p">[</span><span class="s2">"number_type"</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">number_type</span> <span class="k">if</span> <span class="n">number_type</span> <span class="ow">in</span> <span class="n">_NUMBER_TYPES</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_dicts</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">[</span><span class="n">entry</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">value</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="k">else</span> <span class="p">[]</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_respell_axis</span><span class="p">(</span>
+    <span class="n">owner</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">keys</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">number_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">owner</span><span class="p">:</span>
+            <span class="n">owner</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_on_axis</span><span class="p">(</span><span class="n">owner</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">number_type</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_respell_condition</span><span class="p">(</span><span class="n">holder</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">number_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Respell the ``by`` of the ``after`` a destination or an ``ends`` holds."""</span>
+    <span class="n">after</span> <span class="o">=</span> <span class="n">holder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"after"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">holder</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">after</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">_respell_axis</span><span class="p">(</span><span class="n">after</span><span class="p">,</span> <span class="p">(</span><span class="s2">"by"</span><span class="p">,),</span> <span class="n">number_type</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_respell_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">offset_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Respell a timeline's own-axis values and its descendants', in place.</span>
+
+<span class="sd">    ``offset_type`` is the number type of the axis its ``offset`` lies on:</span>
+<span class="sd">    its own for a root, its parent's for a child.</span>
+<span class="sd">    """</span>
+    <span class="n">own</span> <span class="o">=</span> <span class="n">_axis_type</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="n">_respell_axis</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="p">(</span><span class="s2">"offset"</span><span class="p">,),</span> <span class="n">offset_type</span><span class="p">)</span>
+    <span class="n">_respell_axis</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="p">(</span><span class="s2">"length"</span><span class="p">,),</span> <span class="n">own</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"regions"</span><span class="p">)):</span>
+        <span class="n">_respell_axis</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="p">(</span><span class="s2">"start"</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">),</span> <span class="n">own</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"flow_control"</span><span class="p">)):</span>
+        <span class="n">_respell_axis</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="p">(</span><span class="s2">"coordinate"</span><span class="p">,),</span> <span class="n">own</span><span class="p">)</span>
+        <span class="n">_respell_condition</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ends"</span><span class="p">),</span> <span class="n">own</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">destination</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"targets"</span><span class="p">)):</span>
+            <span class="n">_respell_axis</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="p">(</span><span class="s2">"by"</span><span class="p">,),</span> <span class="n">own</span><span class="p">)</span>
+            <span class="n">_respell_condition</span><span class="p">(</span><span class="n">destination</span><span class="p">,</span> <span class="n">own</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"children"</span><span class="p">)):</span>
+        <span class="n">_respell_timeline</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">own</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_axis_types</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The number type of every timeline's axis by ID.</span>
+
+<span class="sd">    An ID that names more than one timeline names no axis (``None``).</span>
+<span class="sd">    """</span>
+    <span class="n">found</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">counts</span><span class="p">:</span> <span class="n">Counter</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">visit</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Record a timeline's axis type and count its ID, then its children's."""</span>
+        <span class="n">identifier</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"id"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">found</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">_axis_type</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"children"</span><span class="p">)):</span>
+            <span class="n">visit</span><span class="p">(</span><span class="n">child</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">timeline</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timelines"</span><span class="p">)):</span>
+        <span class="n">visit</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">if</span> <span class="n">counts</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">found</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_timestamps</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="n">graphical</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">graphical</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timestamps"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">graphical</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_matchstamps</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="n">graphical</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">graphical</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"matchstamps"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">graphical</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_elisions</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+    <span class="n">graphical</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">graphical</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"elisions"</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">graphical</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">respell</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Respell every own-axis value of a manifest as its number type selects, in place.</span>
+
+<span class="sd">    The own-axis values are a timeline's ``length`` and ``offset``, its</span>
+<span class="sd">    regions' ``start`` and ``end``, its flow-control coordinates and the</span>
+<span class="sd">    ``by`` of every destination and of every ``after`` on it, the</span>
+<span class="sd">    coordinate of every named timestamp on it, the ``start``, ``end`` and</span>
+<span class="sd">    width ``span`` of every elision on it, the gaps of every FlowMap of it,</span>
+<span class="sd">    and a virtual timeline's ``length`` on the virtual timeline's own axis.</span>
+<span class="sd">    A timestamp, an elision or a FlowMap whose ``timeline`` names no</span>
+<span class="sd">    timeline, or more than one, keeps its values.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">timeline</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timelines"</span><span class="p">)):</span>
+        <span class="n">_respell_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">_axis_type</span><span class="p">(</span><span class="n">timeline</span><span class="p">))</span>
+    <span class="n">axis_types</span> <span class="o">=</span> <span class="n">_axis_types</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">timestamp</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">_timestamps</span><span class="p">(</span><span class="n">manifest</span><span class="p">)):</span>
+        <span class="n">timeline</span> <span class="o">=</span> <span class="n">timestamp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timeline"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">_respell_axis</span><span class="p">(</span><span class="n">timestamp</span><span class="p">,</span> <span class="p">(</span><span class="s2">"coordinate"</span><span class="p">,),</span> <span class="n">axis_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeline</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">elision</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">_elisions</span><span class="p">(</span><span class="n">manifest</span><span class="p">)):</span>
+        <span class="n">timeline</span> <span class="o">=</span> <span class="n">elision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timeline"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">number_type</span> <span class="o">=</span> <span class="n">axis_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span>
+            <span class="n">_respell_axis</span><span class="p">(</span><span class="n">elision</span><span class="p">,</span> <span class="p">(</span><span class="s2">"start"</span><span class="p">,</span> <span class="s2">"end"</span><span class="p">),</span> <span class="n">number_type</span><span class="p">)</span>
+            <span class="n">width</span> <span class="o">=</span> <span class="n">elision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"width"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">_respell_axis</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="p">(</span><span class="s2">"span"</span><span class="p">,),</span> <span class="n">number_type</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">flow_map</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"flow_maps"</span><span class="p">)):</span>
+        <span class="n">timeline</span> <span class="o">=</span> <span class="n">flow_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timeline"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">flow_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"chunks"</span><span class="p">)):</span>
+                <span class="n">_respell_axis</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="p">(</span><span class="s2">"gap"</span><span class="p">,),</span> <span class="n">axis_types</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timeline</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">virtual</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"virtual_timelines"</span><span class="p">)):</span>
+        <span class="n">_respell_axis</span><span class="p">(</span><span class="n">virtual</span><span class="p">,</span> <span class="p">(</span><span class="s2">"length"</span><span class="p">,),</span> <span class="n">_axis_type</span><span class="p">(</span><span class="n">virtual</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">is_manifest</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a value is a manifest: an object whose ``timelines`` is an array."""</span>
+    <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timelines"</span><span class="p">),</span> <span class="nb">list</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="canonical_order">
+<a class="viewcode-back" href="../../api/generated/timetoshare.manifest.html#timetoshare.manifest.canonical_order">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">canonical_order</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return a deep copy of ``value``, a manifest put in canonical order and spelling.</span>
+
+<span class="sd">    A value is a manifest when it is an object whose ``timelines`` member is</span>
+<span class="sd">    an array: its arrays are put in canonical order (module docstring) and</span>
+<span class="sd">    its own-axis values respelled. Object keys are left as they are (the</span>
+<span class="sd">    writers sort them), and every other value is copied unchanged.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the manifest cannot be put in canonical order: an</span>
+<span class="sd">            entry of an ordered array of objects is not an object, lacks a</span>
+<span class="sd">            member it is ordered by or holds that member in a wrong type, or</span>
+<span class="sd">            a group's ``members`` holds a value that is not a string.</span>
+<span class="sd">    """</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_manifest</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="n">respell</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="n">timelines</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">"timelines"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">timeline</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">timelines</span><span class="p">):</span>
+        <span class="n">_order_timeline</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="n">result</span><span class="p">[</span><span class="s2">"timelines"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span><span class="n">timelines</span><span class="p">,</span> <span class="n">_by_id</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">)</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"groups"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">groups</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"members"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">group</span><span class="p">[</span><span class="s2">"members"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s2">"members"</span><span class="p">],</span> <span class="n">_identifier</span><span class="p">,</span> <span class="s2">"members"</span><span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">"groups"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">_by_id</span><span class="p">,</span> <span class="s2">"groups"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"measure_maps"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">"measure_maps"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s2">"measure_maps"</span><span class="p">],</span> <span class="n">_by_id</span><span class="p">,</span> <span class="s2">"measure_maps"</span><span class="p">)</span>
+    <span class="n">timestamps</span> <span class="o">=</span> <span class="n">_timestamps</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">timestamps</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">"graphical"</span><span class="p">][</span><span class="s2">"timestamps"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span>
+            <span class="n">timestamps</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">entry</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">_identifier</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">]),</span>
+                <span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"coordinate"</span><span class="p">]),</span>
+                <span class="n">_by_id</span><span class="p">(</span><span class="n">entry</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="s2">"timestamps"</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"resources"</span><span class="p">,</span> <span class="s2">"flow_maps"</span><span class="p">,</span> <span class="s2">"virtual_timelines"</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">_by_id</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+    <span class="n">matchstamps</span> <span class="o">=</span> <span class="n">_matchstamps</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">matchstamps</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">matchstamp</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">matchstamps</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">matchstamp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"alignment_anchors"</span><span class="p">),</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">matchstamp</span><span class="p">[</span><span class="s2">"alignment_anchors"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span>
+                    <span class="n">matchstamp</span><span class="p">[</span><span class="s2">"alignment_anchors"</span><span class="p">],</span> <span class="n">_by_id</span><span class="p">,</span> <span class="s2">"alignment_anchors"</span>
+                <span class="p">)</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">"graphical"</span><span class="p">][</span><span class="s2">"matchstamps"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span><span class="n">matchstamps</span><span class="p">,</span> <span class="n">_by_id</span><span class="p">,</span> <span class="s2">"matchstamps"</span><span class="p">)</span>
+    <span class="n">elisions</span> <span class="o">=</span> <span class="n">_elisions</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elisions</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">"graphical"</span><span class="p">][</span><span class="s2">"elisions"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_sorted</span><span class="p">(</span>
+            <span class="n">elisions</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">entry</span><span class="p">:</span> <span class="p">(</span>
+                <span class="n">_identifier</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">]),</span>
+                <span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]),</span>
+                <span class="n">_by_id</span><span class="p">(</span><span class="n">entry</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="s2">"elisions"</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">order_displays</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Time to Align!.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  <script src="/TimeToShare/versions.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,494 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timetoalign.github.io/timetoshare/0.2.0/catalogue.schema.json",
+  "title": "TimeToShare catalogue",
+  "description": "The catalogue of identifier systems, verbs and types that tools read to offer and print statements. It declares the prefixes its patterns use, the namespaces read as equal, the identifier systems with the things each identifies, the verbs with a pattern of properties per system, and the types with their \"is a\" pattern per system, their usual verbs and their lookup systems. Validators of manifests never consult it.",
+  "type": "object",
+  "properties": {
+    "prefixes": {
+      "type": "object",
+      "description": "Every prefix the catalogue uses, by name, with the namespace it stands for.",
+      "propertyNames": {
+        "$ref": "#/$defs/PrefixName"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Namespace"
+      },
+      "minProperties": 1
+    },
+    "aliases": {
+      "type": "object",
+      "description": "Namespaces read as equal to another: each key is read as its value when IRIs are compared.",
+      "propertyNames": {
+        "$ref": "#/$defs/Namespace"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/Namespace"
+      }
+    },
+    "systems": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/System"
+      },
+      "minItems": 1
+    },
+    "verbs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Verb"
+      },
+      "minItems": 1
+    },
+    "types": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Type"
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "prefixes",
+    "aliases",
+    "systems",
+    "verbs",
+    "types"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Name": {
+      "type": "string",
+      "description": "The ID of a system, thing, verb or type, or the kind of a thing: a lower-case letter, then lower-case letters, digits or `_`.",
+      "pattern": "^[a-z]",
+      "not": {
+        "pattern": "[^a-z0-9_]"
+      }
+    },
+    "Names": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Name"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "PrefixName": {
+      "type": "string",
+      "description": "The name of a prefix: a letter, then letters, digits, `_` or `-`; never a key of a manifest's elements and never a URI scheme a manifest reads as such.",
+      "pattern": "^[A-Za-z]",
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "[^A-Za-z0-9_-]"
+          },
+          {
+            "enum": [
+              "conversion_maps",
+              "end",
+              "flow_control",
+              "graphical",
+              "http",
+              "https",
+              "info",
+              "is_segment_line",
+              "length",
+              "locked",
+              "mailto",
+              "measure_maps",
+              "members",
+              "meta",
+              "name",
+              "number_type",
+              "offset",
+              "start",
+              "tag",
+              "timetoshare",
+              "unit",
+              "urn"
+            ]
+          }
+        ]
+      }
+    },
+    "Namespace": {
+      "type": "string",
+      "description": "A namespace: an absolute IRI ending in `/` or `#`.",
+      "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:.*[/#](?!.)",
+      "not": {
+        "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
+      }
+    },
+    "Iri": {
+      "type": "string",
+      "description": "A compact IRI (`prefix:suffix`, the prefix declared in `prefixes`) or an absolute IRI.",
+      "pattern": "^[A-Za-z][A-Za-z0-9_+.-]*:.",
+      "not": {
+        "pattern": "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]"
+      }
+    },
+    "System": {
+      "type": "object",
+      "description": "An identifier system: the prefixes of the vocabulary its own linked data uses, the things it identifies, and how to look things up in it.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Name"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prefixes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PrefixName"
+          },
+          "uniqueItems": true
+        },
+        "things": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Thing"
+          }
+        },
+        "lookup": {
+          "$ref": "#/$defs/Lookup"
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "prefixes",
+        "things",
+        "lookup"
+      ],
+      "additionalProperties": false
+    },
+    "Thing": {
+      "type": "object",
+      "description": "A kind of thing a system identifies, and the URLs that name one: each pattern matches a whole URL and captures the thing's value in its one group. `iri` is the template of the thing's IRI, holding `{value}`, or null where the system mints none; `lowercase` says whether the letters `A` to `Z` of a captured value are lowered.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Name"
+        },
+        "kind": {
+          "$ref": "#/$defs/Name"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "iri": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z][A-Za-z0-9+.-]*:.*\\{value\\}"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "prefix": {
+          "$ref": "#/$defs/PrefixName"
+        },
+        "scheme_uri": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Iri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lrmoo_class": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Iri"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "lowercase": {
+          "type": "boolean"
+        },
+        "patterns": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "name",
+        "iri",
+        "scheme_uri",
+        "lrmoo_class",
+        "lowercase",
+        "patterns"
+      ],
+      "additionalProperties": false
+    },
+    "Lookup": {
+      "type": "object",
+      "description": "How to look things up in a system: `route` names the way, every other member is free.",
+      "properties": {
+        "route": {
+          "enum": [
+            "browser",
+            "server",
+            "cross_reference",
+            "database",
+            "none"
+          ]
+        }
+      },
+      "required": [
+        "route"
+      ]
+    },
+    "Verb": {
+      "type": "object",
+      "description": "A verb: its label, the label of its inverse reading where a pattern reads it, and per system the alternatives that express it there.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Name"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "inverse_label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "patterns": {
+          "$ref": "#/$defs/PatternsBySystem"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "patterns"
+      ],
+      "additionalProperties": false,
+      "if": {
+        "required": [
+          "patterns"
+        ],
+        "properties": {
+          "patterns": {
+            "not": {
+              "type": "object",
+              "additionalProperties": {
+                "not": {
+                  "type": "array",
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "inverse": {
+                        "const": true
+                      }
+                    },
+                    "required": [
+                      "inverse"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "inverse_label"
+        ]
+      }
+    },
+    "Type": {
+      "type": "object",
+      "description": "A type of thing: its label, the alternatives of its \"is a\" pattern per system, the verbs usually stated of it in order, and the systems to look its values up in, preferred first.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Name"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "is_a": {
+          "$ref": "#/$defs/PatternsBySystem"
+        },
+        "verbs": {
+          "$ref": "#/$defs/Names"
+        },
+        "lookup": {
+          "$ref": "#/$defs/Names"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "is_a",
+        "verbs",
+        "lookup"
+      ],
+      "additionalProperties": false
+    },
+    "PatternsBySystem": {
+      "type": "object",
+      "description": "The alternatives per system ID, in order of preference.",
+      "propertyNames": {
+        "$ref": "#/$defs/Name"
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/Alternative"
+        },
+        "minItems": 1
+      },
+      "minProperties": 1
+    },
+    "Alternative": {
+      "type": "object",
+      "description": "One way of stating a verb in a system: a pattern, the subjects and values it is restricted to, whether it reads the verb's inverse, and a note.",
+      "properties": {
+        "pattern": {
+          "$ref": "#/$defs/Fragment"
+        },
+        "when": {
+          "$ref": "#/$defs/When"
+        },
+        "inverse": {
+          "const": true
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "pattern"
+      ],
+      "additionalProperties": false
+    },
+    "When": {
+      "type": "object",
+      "description": "The restriction of an alternative: the types of subject (type IDs) and the things of value (thing IDs) it applies to.",
+      "properties": {
+        "subject": {
+          "$ref": "#/$defs/Names"
+        },
+        "value": {
+          "$ref": "#/$defs/Names"
+        }
+      },
+      "additionalProperties": false,
+      "minProperties": 1
+    },
+    "Fragment": {
+      "type": "object",
+      "description": "A fragment of a statements container: keys `type` or IRIs, each value a one-item list. Slots: `{id: \"?\"}` a thing, `\"?\"` a literal or a type IRI, `\"?role\"`, `\"?date\"`, `\"?value\"`, `\"?position\"` named literals; every other value is a constant.",
+      "properties": {
+        "type": {
+          "$ref": "#/$defs/FragmentTypes"
+        }
+      },
+      "propertyNames": {
+        "anyOf": [
+          {
+            "const": "type"
+          },
+          {
+            "$ref": "#/$defs/Iri"
+          }
+        ]
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/FragmentValues"
+      },
+      "minProperties": 1
+    },
+    "FragmentTypes": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "FragmentValues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FragmentValue"
+      },
+      "minItems": 1,
+      "maxItems": 1
+    },
+    "FragmentValue": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/$defs/FragmentNode"
+        }
+      ]
+    },
+    "FragmentNode": {
+      "type": "object",
+      "description": "A node of a pattern: its `id` (a slot or a constant IRI), its classes, a label, and its own pairs as IRI keys, written as a fragment is.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "$ref": "#/$defs/FragmentTypes"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "propertyNames": {
+        "anyOf": [
+          {
+            "enum": [
+              "id",
+              "type",
+              "label"
+            ]
+          },
+          {
+            "$ref": "#/$defs/Iri"
+          }
+        ]
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/FragmentValues"
+      },
+      "minProperties": 1
+    }
+  }
+}

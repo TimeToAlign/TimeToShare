@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>0014. Read YAML in TypeScript with yaml &#8212; timetoshare 0.2.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'decisions/0014-typescript-yaml-reader';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="0015. Read the statement fixtures to RDF in the Python tests with PyLD" href="0015-pyld-for-rdf-tests.html" />
+    <link rel="prev" title="0013. Read YAML in Python with PyYAML" href="0013-python-yaml-reader.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.0" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">timetoshare 0.2.0</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="0001-record-architecture-decisions.html">0001. Record architecture decisions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0002-json-schema-2020-12.html">0002. Use JSON Schema 2020-12</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0003-python-validator.html">0003. Validate Python documents with jsonschema behind a jsonschema-rs gate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0004-python-packaging-and-lint.html">0004. Package Python with uv, hatchling, and Ruff</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0005-typescript-type-generator.html">0005. Generate TypeScript types with json-schema-to-typescript</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0006-typescript-validator.html">0006. Validate TypeScript documents with Ajv 8</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0007-javascript-tooling.html">0007. Use pnpm, TypeScript, Biome, and Vitest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0008-oidc-dual-package-release.html">0008. Publish both packages and the schema site from one release workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0009-font-metrics-extraction.html">0009. Extract the font metrics with fontTools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0010-one-schema-document.html">0010. One manifest shape in one schema document</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0011-conversion-map-slots-by-row.html">0011. Conversion maps share slots across the lines of a row</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0012-noto-music-and-one-merged-metrics-table.html">0012. Noto Music draws what DejaVu Sans does not map; one merged metrics table</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0013-python-yaml-reader.html">0013. Read YAML in Python with PyYAML</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">0014. Read YAML in TypeScript with yaml</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0015-pyld-for-rdf-tests.html">0015. Read the statement fixtures to RDF in the Python tests with PyLD</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0016-jsonld-js-for-rdf-tests.html">0016. Test the RDF of statements in TypeScript with jsonld.js</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0017-pyarrow-for-the-table-types.html">0017. Read and check the table types with pyarrow, as an optional extra</a></li>
+<li class="toctree-l1"><a class="reference internal" href="0018-sphinx-documentation-site.html">0018. Build the documentation site with Sphinx, the PyData theme, MyST and TypeDoc</a></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../decisions.html" class="nav-link">Design decisions</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">0014. Read YAML in TypeScript with yaml</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="read-yaml-in-typescript-with-yaml">
+<h1>0014. Read YAML in TypeScript with yaml<a class="headerlink" href="#read-yaml-in-typescript-with-yaml" title="Link to this heading">#</a></h1>
+<p>Date: 2026-11-17</p>
+<section id="context">
+<h2>Context<a class="headerlink" href="#context" title="Link to this heading">#</a></h2>
+<p>A manifest may be written in YAML. The package writes its canonical YAML
+itself, because the format fixes that layout character for character, so
+it needs a library for reading only. The reader must:</p>
+<ol class="arabic simple">
+<li><p>resolve plain scalars by the core schema of YAML 1.2.2 (§10.3.2):
+<code class="docutils literal notranslate"><span class="pre">no</span></code> and <code class="docutils literal notranslate"><span class="pre">2026-11-17</span></code> are strings, <code class="docutils literal notranslate"><span class="pre">1e-05</span></code> and <code class="docutils literal notranslate"><span class="pre">2.0</span></code> are floats, <code class="docutils literal notranslate"><span class="pre">2</span></code> is
+an integer;</p></li>
+<li><p>keep integers exact at any size, as <code class="docutils literal notranslate"><span class="pre">bigint</span></code>, the way the package’s
+lossless JSON reader does, and tell integer and float apart as the core
+schema resolves them, which in JavaScript, where <code class="docutils literal notranslate"><span class="pre">2</span></code> and <code class="docutils literal notranslate"><span class="pre">2.0</span></code> are the
+same <code class="docutils literal notranslate"><span class="pre">number</span></code>, needs each scalar’s resolved kind;</p></li>
+<li><p>read a float literal as the nearest double;</p></li>
+<li><p>refuse, with the position of the offending node: malformed text and
+more than one document; a character outside YAML’s printable set;
+duplicate keys; anchors, aliases and tags; a key that is not a string;
+a non-finite float
+(<code class="docutils literal notranslate"><span class="pre">.inf</span></code>, <code class="docutils literal notranslate"><span class="pre">.nan</span></code>, and a literal such as <code class="docutils literal notranslate"><span class="pre">1e309</span></code> that rounds to an
+infinity); a string holding an unpaired surrogate; collections nested
+deeper than 256 levels; of several faults, the first in document order;</p></li>
+<li><p>construct no objects from the text (safe loading only);</p></li>
+<li><p>throw an error with the offset, line and column for every refusal;</p></li>
+<li><p>run on the Node versions of the package’s <code class="docutils literal notranslate"><span class="pre">engines</span></code> (<code class="docutils literal notranslate"><span class="pre">&gt;=22.18.0</span></code>) and
+import into an ES module, under a licence compatible with MIT.</p></li>
+</ol>
+<p>The format guarantees that canonical YAML, and any YAML text using only
+its constructs, is read to the same value by both packages. Beyond those
+constructs a text is read as the package’s parser reads it, after the
+checks of requirement 4.</p>
+</section>
+<section id="considered-options">
+<h2>Considered options<a class="headerlink" href="#considered-options" title="Link to this heading">#</a></h2>
+<p>Each candidate was installed and run against the requirements on Node on
+2026-11-17.</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">yaml</span></code> 2.9.1</strong> (Eemeli Aro). Parses to a document of nodes
+(<code class="docutils literal notranslate"><span class="pre">parseDocument</span></code>), keeps each node’s <code class="docutils literal notranslate"><span class="pre">anchor</span></code>, <code class="docutils literal notranslate"><span class="pre">tag</span></code> and <code class="docutils literal notranslate"><span class="pre">range</span></code>, and
+reports errors and warnings with a <code class="docutils literal notranslate"><span class="pre">code</span></code> and a position. With
+<code class="docutils literal notranslate"><span class="pre">{schema:</span> <span class="pre">&quot;core&quot;,</span> <span class="pre">intAsBigInt:</span> <span class="pre">true}</span></code> it resolves exactly by the core
+schema: <code class="docutils literal notranslate"><span class="pre">no</span></code>, <code class="docutils literal notranslate"><span class="pre">1_000</span></code>, <code class="docutils literal notranslate"><span class="pre">0b101</span></code>, <code class="docutils literal notranslate"><span class="pre">2026-11-17</span></code>, <code class="docutils literal notranslate"><span class="pre">=</span></code> and <code class="docutils literal notranslate"><span class="pre">&lt;&lt;</span></code> are strings;
+<code class="docutils literal notranslate"><span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">0o17</span></code>, <code class="docutils literal notranslate"><span class="pre">017</span></code>, <code class="docutils literal notranslate"><span class="pre">0x1F</span></code> and a 30-digit integer are <code class="docutils literal notranslate"><span class="pre">bigint</span></code>; <code class="docutils literal notranslate"><span class="pre">2.0</span></code>,
+<code class="docutils literal notranslate"><span class="pre">1e-05</span></code> and <code class="docutils literal notranslate"><span class="pre">.5</span></code> are <code class="docutils literal notranslate"><span class="pre">number</span></code>.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">yaml</span></code> 3.0.0-2.</strong> A prerelease of the next major line, ES modules only;
+not a release.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">js-yaml</span></code> 5.5.0</strong> (MIT, 2026-10-15, depends on <code class="docutils literal notranslate"><span class="pre">argparse</span></code>). Parses to
+plain values only: <code class="docutils literal notranslate"><span class="pre">2</span></code> and <code class="docutils literal notranslate"><span class="pre">2.0</span></code> both give the number <code class="docutils literal notranslate"><span class="pre">2</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">123456789012345678901234567890</span></code> gives <code class="docutils literal notranslate"><span class="pre">1.2345678901234568e+29</span></code>, so
+requirement 2 fails; with no node tree, aliases cannot be detected once
+loaded. OSV lists twelve advisories for the package, eight of them
+published in 2026, most about CPU exhaustion in merge keys and <code class="docutils literal notranslate"><span class="pre">!!omap</span></code>;
+none affects 5.5.0.</p></li>
+<li><p><strong>Write the parser here.</strong> The parse and compose stages of <code class="docutils literal notranslate"><span class="pre">yaml</span></code> are
+about 3,900 lines of JavaScript; a reader restricted to the canonical
+layout would refuse the hand-edited YAML the format accepts.</p></li>
+</ul>
+</section>
+<section id="decision">
+<h2>Decision<a class="headerlink" href="#decision" title="Link to this heading">#</a></h2>
+<p>Use <code class="docutils literal notranslate"><span class="pre">yaml</span></code> 2.9.1. The YAML reader first refuses a character outside
+YAML 1.2’s printable set, then calls <code class="docutils literal notranslate"><span class="pre">parseDocument(text,</span> <span class="pre">{schema:</span> <span class="pre">&quot;core&quot;,</span> <span class="pre">intAsBigInt:</span> <span class="pre">true,</span> <span class="pre">uniqueKeys:</span> <span class="pre">true,</span> <span class="pre">keepSourceTokens:</span> <span class="pre">true})</span></code>,
+then builds the value by
+one walk over the node tree in document order (a key before its value, a
+value’s items before the next key), with an explicit stack, so a text
+nested as deeply as <code class="docutils literal notranslate"><span class="pre">yaml</span></code> composes it never exhausts the call stack in
+the walk; it never calls <code class="docutils literal notranslate"><span class="pre">toJS</span></code> and never resolves an alias. At each node
+the walk checks, in this order, an alias, an anchor, a tag, a key being a
+string, the depth, then the value, and it stops at the first fault. Every error and warning of the parser is a fault as well; the
+reader refuses the one of them with the smallest <code class="docutils literal notranslate"><span class="pre">pos[0]</span></code>.</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Refusal</p></th>
+<th class="head"><p>How</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Characters outside the printable set</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yaml</span></code> reads them; YAML 1.2 allows only <code class="docutils literal notranslate"><span class="pre">c-printable</span></code> (tab, line feed, carriage return, U+0020 to U+007E, U+0085, U+00A0 to U+D7FF, U+E000 to U+FFFD, U+10000 to U+10FFFF), as PyYAML does. Before parsing, the reader refuses the first other code point, U+0001, U+007F or a lone surrogate among them, at its offset with PyYAML’s message (<code class="docutils literal notranslate"><span class="pre">special</span> <span class="pre">characters</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">allowed</span> <span class="pre">#x0001</span></code>), whatever fault comes before it, as PyYAML does.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Malformed text, more than one document, duplicate keys</p></td>
+<td><p>Errors of the parser: a second document is <code class="docutils literal notranslate"><span class="pre">MULTIPLE_DOCS</span></code>, two equal keys (<code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;a&quot;</span></code> alike) are <code class="docutils literal notranslate"><span class="pre">DUPLICATE_KEY</span></code> under <code class="docutils literal notranslate"><span class="pre">uniqueKeys</span></code>, a text nested too deeply for the call stack is <code class="docutils literal notranslate"><span class="pre">RESOURCE_EXHAUSTION</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>What the parser only warns about</p></td>
+<td><p>Refused as well, but never before the walk’s own fault at the same offset: an unknown tag (<code class="docutils literal notranslate"><span class="pre">!foo</span></code>) and a core tag on a value it cannot describe (<code class="docutils literal notranslate"><span class="pre">!!float</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">!!str</span> <span class="pre">[1]</span></code>, <code class="docutils literal notranslate"><span class="pre">!!map</span> <span class="pre">[1]</span></code>) are the warning <code class="docutils literal notranslate"><span class="pre">TAG_RESOLVE_FAILED</span></code> at the tag, where the walk refuses them as <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">tag</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Anchors, aliases and tags</p></td>
+<td><p>The walk refuses a node, key or value, for which <code class="docutils literal notranslate"><span class="pre">isAlias(node)</span></code> holds, then one whose <code class="docutils literal notranslate"><span class="pre">anchor</span></code> or <code class="docutils literal notranslate"><span class="pre">tag</span></code> is set, as an anchor or a tag by the property written first, whatever the tag names (<code class="docutils literal notranslate"><span class="pre">!!str</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">!</span></code> included); implicit resolution leaves <code class="docutils literal notranslate"><span class="pre">tag</span></code> unset.</p></td>
+</tr>
+<tr class="row-even"><td><p>Keys that are not strings</p></td>
+<td><p>The walk refuses a pair whose <code class="docutils literal notranslate"><span class="pre">key</span></code> is not a scalar whose <code class="docutils literal notranslate"><span class="pre">value</span></code> is a string (<code class="docutils literal notranslate"><span class="pre">1:</span></code>, <code class="docutils literal notranslate"><span class="pre">null:</span></code>, <code class="docutils literal notranslate"><span class="pre">[1]:</span></code>). The option <code class="docutils literal notranslate"><span class="pre">stringKeys</span></code> stays unset, since it would turn <code class="docutils literal notranslate"><span class="pre">1:</span></code> into the key <code class="docutils literal notranslate"><span class="pre">&quot;1&quot;</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>The data model</p></td>
+<td><p>With every tag refused, a scalar under the core schema is <code class="docutils literal notranslate"><span class="pre">null</span></code>, a boolean, a string, a <code class="docutils literal notranslate"><span class="pre">bigint</span></code> or a <code class="docutils literal notranslate"><span class="pre">number</span></code>, a collection a mapping or a sequence, so nothing else needs a check.</p></td>
+</tr>
+<tr class="row-even"><td><p>Non-finite floats</p></td>
+<td><p>The walk refuses a scalar whose <code class="docutils literal notranslate"><span class="pre">value</span></code> is a <code class="docutils literal notranslate"><span class="pre">number</span></code> that is not <code class="docutils literal notranslate"><span class="pre">Number.isFinite</span></code>: <code class="docutils literal notranslate"><span class="pre">.inf</span></code>, <code class="docutils literal notranslate"><span class="pre">-.Inf</span></code> and <code class="docutils literal notranslate"><span class="pre">.nan</span></code>, which <code class="docutils literal notranslate"><span class="pre">yaml</span></code> resolves to <code class="docutils literal notranslate"><span class="pre">Infinity</span></code> and <code class="docutils literal notranslate"><span class="pre">NaN</span></code> with <code class="docutils literal notranslate"><span class="pre">tag</span></code> unset, and <code class="docutils literal notranslate"><span class="pre">1e309</span></code>, which <code class="docutils literal notranslate"><span class="pre">parseFloat</span></code> rounds to <code class="docutils literal notranslate"><span class="pre">Infinity</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Unpaired surrogates</p></td>
+<td><p>The walk refuses a string, key or value, holding a high surrogate not followed by a low one or a low surrogate not preceded by a high one, by the package’s own test, which the writers share. <code class="docutils literal notranslate"><span class="pre">yaml</span></code> joins a high-surrogate escape followed by a low one into one character (<code class="docutils literal notranslate"><span class="pre">&quot;\ud83d\ude00&quot;</span></code> gives U+1F600) and leaves an unpaired one in the string (<code class="docutils literal notranslate"><span class="pre">&quot;\ud800&quot;</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>Nesting deeper than 256 levels</p></td>
+<td><p>The walk knows the depth of each node from its stack (the root stands at depth 1) and refuses a mapping or a sequence at depth 257 at its first character, before it walks into it: the first collection at depth 257, in document order.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>The first fault.</strong> Of several faults the reader refuses the first in
+document order, once the characters are checked. The walk meets its own
+faults in that order and stops at the first; the parser reports its errors
+and warnings in lists of their own, ordered by kind rather than by place,
+so the reader takes the one with the smallest <code class="docutils literal notranslate"><span class="pre">pos[0]</span></code>. A fault of the
+walk is refused unless that problem of the parser lies strictly before its
+offset, so at an equal offset the walk’s message stands, and a problem of
+the parser alone is refused where the walk finds none. One problem never
+outranks the walk: <code class="docutils literal notranslate"><span class="pre">RESOURCE_EXHAUSTION</span></code>, which <code class="docutils literal notranslate"><span class="pre">yaml</span></code> reports where its
+stack ran out composing collections hundreds of levels deeper than 257 and
+where it stops composing. The tree it leaves still holds the collection at
+depth 257, which the walk reaches first, so a text nested 100,000 deep is
+refused at the same place as one nested 257 deep.</p>
+<p>Numbers stay lossless by the scalar’s resolved kind: a <code class="docutils literal notranslate"><span class="pre">value</span></code> that is a
+<code class="docutils literal notranslate"><span class="pre">bigint</span></code> is an integer, one that is a <code class="docutils literal notranslate"><span class="pre">number</span></code> a float.</p>
+<p>Every refusal throws <code class="docutils literal notranslate"><span class="pre">YamlSyntaxError</span></code>, a subclass of <code class="docutils literal notranslate"><span class="pre">SyntaxError</span></code> with
+the fields of <code class="docutils literal notranslate"><span class="pre">JsonSyntaxError</span></code> (<code class="docutils literal notranslate"><span class="pre">offset</span></code>, in UTF-16 code units from zero;
+<code class="docutils literal notranslate"><span class="pre">line</span></code> and <code class="docutils literal notranslate"><span class="pre">column</span></code> counted from one, the column in code points, so that a
+character above U+FFFF counts once, as in PyYAML’s marks), from an offset:
+for an error or warning of the parser its <code class="docutils literal notranslate"><span class="pre">pos[0]</span></code>, with its <code class="docutils literal notranslate"><span class="pre">code</span></code> in the
+message; for a refusal of the walk the offending token. An alias is
+refused at its <code class="docutils literal notranslate"><span class="pre">*</span></code>, an anchor or a tag at the node’s first property and
+named by it (<code class="docutils literal notranslate"><span class="pre">&amp;</span></code> an anchor, <code class="docutils literal notranslate"><span class="pre">!</span></code> a tag), an empty key right after its <code class="docutils literal notranslate"><span class="pre">?</span></code>
+(<code class="docutils literal notranslate"><span class="pre">yaml</span></code> places it after the white space that follows), every other fault
+of a node at its <code class="docutils literal notranslate"><span class="pre">range[0]</span></code>. A node keeps no position of its properties:
+they are tokens of the concrete syntax tree written before the node (in a
+document’s start for the root, in an item’s start for its key, or its
+value where it has no key, and in an item’s separator for its value).
+Where a node has one, the reader parses the text again with <code class="docutils literal notranslate"><span class="pre">yaml</span></code>’s
+<code class="docutils literal notranslate"><span class="pre">Parser</span></code> and takes the first there, naming the node’s token by its type
+and its <code class="docutils literal notranslate"><span class="pre">offset</span></code> (kept by <code class="docutils literal notranslate"><span class="pre">keepSourceTokens</span></code>), since a block mapping and
+its first key share an offset; an empty node, which has no token, takes
+the last written before its <code class="docutils literal notranslate"><span class="pre">range[0]</span></code>. The package computes the line and
+column from the offset itself, with the same function as for
+<code class="docutils literal notranslate"><span class="pre">JsonSyntaxError</span></code> (a line ends at each line feed), so no <code class="docutils literal notranslate"><span class="pre">LineCounter</span></code> is
+passed. The walk builds plain values only, defining each key as an own
+property in its written order, so <code class="docutils literal notranslate"><span class="pre">__proto__</span></code> is an ordinary own key. An
+empty text, or one of comments only, reads as null; <code class="docutils literal notranslate"><span class="pre">---</span></code> alone too.
+Comments are kept on the nodes and ignored by the walk. The emitter is not
+used.</p>
+<p>Verified on 2026-11-18 with <code class="docutils literal notranslate"><span class="pre">yaml</span></code> 2.9.1 on Node 22.23: <code class="docutils literal notranslate"><span class="pre">!foo</span> <span class="pre">1</span></code> gives the
+warning <code class="docutils literal notranslate"><span class="pre">TAG_RESOLVE_FAILED</span></code>; <code class="docutils literal notranslate"><span class="pre">.inf</span></code> resolves to the <code class="docutils literal notranslate"><span class="pre">number</span></code> <code class="docutils literal notranslate"><span class="pre">Infinity</span></code>
+with <code class="docutils literal notranslate"><span class="pre">tag</span></code> unset; <code class="docutils literal notranslate"><span class="pre">&amp;x</span></code> sets <code class="docutils literal notranslate"><span class="pre">anchor</span></code> and <code class="docutils literal notranslate"><span class="pre">*x</span></code> is a node for which
+<code class="docutils literal notranslate"><span class="pre">isAlias</span></code> holds; the values listed under <code class="docutils literal notranslate"><span class="pre">yaml</span></code> 2.9.1 above, the
+refusals of the table, and <code class="docutils literal notranslate"><span class="pre">%YAML</span> <span class="pre">1.1</span></code> before a document leaving the
+resolution unchanged.</p>
+<ul class="simple">
+<li><p><strong>Fit.</strong> <code class="docutils literal notranslate"><span class="pre">yaml</span></code> is the only candidate that resolves the core schema
+exactly, keeps integers exact and exposes each node’s kind, anchor, tag
+and position. In the YAML test-suite matrix it passes 307 of 308 valid
+and 92 of 94 invalid cases in the event comparison
+(https://matrix.yaml.info/, test data of 2022-01-17, processor versions
+not stated).</p></li>
+<li><p><strong>Maintenance.</strong> Eemeli Aro is the single maintainer on npm; his
+library has been published under the name since 1.0 in 2018 (97 of the
+name’s 105 versions; the earlier 0.x versions of 2011 are another
+author’s unrelated package). The 2.x line had four releases in 2026:
+2.8.3 (2026-03-21), 2.8.4 (2026-05-02), 2.9.0 (2026-05-11) and 2.9.1
+(2026-09-11); a 3.0 line is in prerelease, ES modules only, for Node
+<code class="docutils literal notranslate"><span class="pre">^20.19</span> <span class="pre">||</span> <span class="pre">^22.12</span> <span class="pre">||</span> <span class="pre">&gt;=24</span></code>. The bus factor is one; the 2.x line is
+mature and the package’s exposure is one call and the node predicates.</p></li>
+<li><p><strong>Writing it ourselves.</strong> Owning a YAML grammar and its edge cases is out
+of proportion to reading manifests.</p></li>
+<li><p><strong>Audited version.</strong> <code class="docutils literal notranslate"><span class="pre">yaml</span></code> 2.9.1, published to npm on 2026-09-11, 67
+days before this record, so the 14-day rule holds. Licence ISC. No
+dependencies; 686,297 bytes unpacked; <code class="docutils literal notranslate"><span class="pre">engines</span></code> <code class="docutils literal notranslate"><span class="pre">node</span> <span class="pre">&gt;=</span> <span class="pre">14.6</span></code>. Node
+resolves the package’s CommonJS build (<code class="docutils literal notranslate"><span class="pre">exports[&quot;.&quot;].node</span></code>), whose named
+exports an ES module imports (<code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">{parseDocument}</span> <span class="pre">from</span> <span class="pre">&quot;yaml&quot;</span></code>,
+checked on Node); other environments resolve its ES module build. OSV
+lists two advisories for the package, both fixed before 2.9.1:
+CVE-2023-2251 (fixed in 2.2.2) and CVE-2026-33532, unbounded recursion
+on deeply nested collections (fixed in 2.8.3); 2.9.1 reports 20,000
+nested flow sequences as the error <code class="docutils literal notranslate"><span class="pre">RESOURCE_EXHAUSTION</span></code>.</p></li>
+<li><p><strong>Range.</strong> <code class="docutils literal notranslate"><span class="pre">package.json</span></code> declares <code class="docutils literal notranslate"><span class="pre">yaml</span></code> <code class="docutils literal notranslate"><span class="pre">^2.9.1</span></code>; the lockfile pins
+2.9.1.</p></li>
+</ul>
+<p>Primary sources: https://yaml.org/spec/1.2.2/ (§10.3.2, Core Schema
+tag resolution), https://registry.npmjs.org/yaml,
+https://github.com/eemeli/yaml, https://eemeli.org/yaml/,
+https://github.com/eemeli/yaml/blob/main/LICENSE,
+https://registry.npmjs.org/js-yaml, https://github.com/nodeca/js-yaml,
+https://matrix.yaml.info/,
+https://github.com/advisories/GHSA-48c2-rrv3-qjmp,
+https://github.com/advisories/GHSA-f9xv-q969-pqx4,
+https://osv.dev/ (queried through its API).</p>
+</section>
+<section id="consequences">
+<h2>Consequences<a class="headerlink" href="#consequences" title="Link to this heading">#</a></h2>
+<p>The package adds one runtime dependency with no transitive dependencies.
+The grammar and the core-schema resolution stay in the library; the walk
+owns the format’s refusals, which are its own rules in any case. Beyond
+the constructs of canonical YAML a text is read as <code class="docutils literal notranslate"><span class="pre">yaml</span></code> reads it, which
+follows YAML 1.2 more closely than PyYAML does, so the two packages may
+differ there; such a difference is not a defect of the format. The exit
+cost is the YAML reader module. The release of <code class="docutils literal notranslate"><span class="pre">yaml</span></code> 3.0 needs a review:
+its Node range excludes Node 23, which the package’s <code class="docutils literal notranslate"><span class="pre">engines</span></code> admit.</p>
+</section>
+<section id="review-date">
+<h2>Review date<a class="headerlink" href="#review-date" title="Link to this heading">#</a></h2>
+<p>2027-11-17, or when <code class="docutils literal notranslate"><span class="pre">yaml</span></code> 3.0 is released.</p>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="0013-python-yaml-reader.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">0013. Read YAML in Python with PyYAML</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="0015-pyld-for-rdf-tests.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">0015. Read the statement fixtures to RDF in the Python tests with PyLD</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#context">Context</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#considered-options">Considered options</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#decision">Decision</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#consequences">Consequences</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#review-date">Review date</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Time to Align!.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  <script src="/TimeToShare/versions.js" defer></script>
+</body>
+</html>

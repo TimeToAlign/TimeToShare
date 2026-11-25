@@ -1,0 +1,2 @@
+```{include} ../../decisions/0010-one-schema-document.md
+```

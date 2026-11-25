@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>timetoshare.ids &#8212; timetoshare 0.2.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/generated/timetoshare.ids';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="timetoshare.manifest" href="timetoshare.manifest.html" />
+    <link rel="prev" title="timetoshare.font" href="timetoshare.font.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.0" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">timetoshare 0.2.0</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../validate.html">timetoshare.validate</a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.catalogue.html">timetoshare.catalogue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.defaults.html">timetoshare.defaults</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.files.html">timetoshare.files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.fixtures.html">timetoshare.fixtures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.font.html">timetoshare.font</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">timetoshare.ids</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.manifest.html">timetoshare.manifest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.serialization.html">timetoshare.serialization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.statements.html">timetoshare.statements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.styles.html">timetoshare.styles</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="timetoshare.tables.html">timetoshare.tables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.tables.anchors.html">timetoshare.tables.anchors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.tables.checks.html">timetoshare.tables.checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.tables.columns.html">timetoshare.tables.columns</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="timetoshare.validation.html">timetoshare.validation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.containment.html">timetoshare.validation.containment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.diagnostics.html">timetoshare.validation.diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.flow.html">timetoshare.validation.flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.identity.html">timetoshare.validation.identity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.maps.html">timetoshare.validation.maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.order.html">timetoshare.validation.order</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.representation.html">timetoshare.validation.representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.segments.html">timetoshare.validation.segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.statements.html">timetoshare.validation.statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.timestamps.html">timetoshare.validation.timestamps</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../python.html" class="nav-link">Python API</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">timetoshare.ids</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-timetoshare.ids">
+<span id="timetoshare-ids"></span><h1>timetoshare.ids<a class="headerlink" href="#module-timetoshare.ids" title="Link to this heading">#</a></h1>
+<p>IDs in a manifest file and in memory.</p>
+<p>A manifest file writes every ID with a leading <code class="docutils literal notranslate"><span class="pre">#</span></code>: an element’s own ID
+(<code class="docutils literal notranslate"><span class="pre">&quot;id&quot;:</span> <span class="pre">&quot;#clt_1&quot;</span></code>) as well as every reference to one (a group’s members,
+the keys of <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code>, a named timestamp’s timeline, an elision’s
+timeline, an alignment anchor’s timestamps, a resource’s timelines, an
+address’s <code class="docutils literal notranslate"><span class="pre">id</span></code>, a selector’s <code class="docutils literal notranslate"><span class="pre">within</span></code>, the <code class="docutils literal notranslate"><span class="pre">to</span></code> of a jump’s destination,
+the <code class="docutils literal notranslate"><span class="pre">jump</span></code> and <code class="docutils literal notranslate"><span class="pre">to</span></code> of an <code class="docutils literal notranslate"><span class="pre">after</span></code>, a FlowMap’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code> and the IDs
+among its <code class="docutils literal notranslate"><span class="pre">chunks</span></code>, a virtual timeline’s <code class="docutils literal notranslate"><span class="pre">map</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline</span></code> and
+<code class="docutils literal notranslate"><span class="pre">through</span></code>, a measure view’s <code class="docutils literal notranslate"><span class="pre">measure_map</span></code>). The IDs of MatchClaims a
+MatchStamp lists name rows of a MatchClaim table, not elements, and are no
+ID position. In memory an ID is bare: <code class="docutils literal notranslate"><span class="pre">clt_1</span></code>. Exactly one <code class="docutils literal notranslate"><span class="pre">#</span></code> is
+stripped, so the file text <code class="docutils literal notranslate"><span class="pre">##x</span></code> is the bare ID <code class="docutils literal notranslate"><span class="pre">#x</span></code>.</p>
+<p>One position holds an ID or something else: the values of a group’s entry
+in <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code> are member IDs, while a timeline’s entry holds band
+words, which stay bare. The IRIs of <code class="docutils literal notranslate"><span class="pre">statements</span></code> and <code class="docutils literal notranslate"><span class="pre">provenance</span></code>, a
+reference to an element (<code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;#clt_1&quot;}</span></code>) among them, are no ID
+position: they are written the same in a file and in memory.</p>
+<p><code class="docutils literal notranslate"><span class="pre">with_file_ids</span></code> and <code class="docutils literal notranslate"><span class="pre">with_bare_ids</span></code> convert a whole manifest between the
+two forms. Both are pure: they return a new value, keep unknown keys and
+the order of every object’s keys (an order key renamed in place keeps its
+position) and leave every number as it is. Both are driven by one table of
+the positions of IDs, <code class="docutils literal notranslate"><span class="pre">ID_POSITIONS</span></code>, by schema definition and member, and
+one table of where each definition occurs, <code class="docutils literal notranslate"><span class="pre">CONTAINERS</span></code>.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.HASH">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">HASH</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'#'</span></span><a class="headerlink" href="#timetoshare.ids.HASH" title="Link to this definition">#</a></dt>
+<dd><p>The character that marks an ID in a manifest file.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.Shape">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">Shape</span></span><a class="headerlink" href="#timetoshare.ids.Shape" title="Link to this definition">#</a></dt>
+<dd><p>How a member holds IDs.</p>
+<p><code class="docutils literal notranslate"><span class="pre">id</span></code> the member is one ID; <code class="docutils literal notranslate"><span class="pre">ids</span></code> a list of IDs, an item that is no
+string (a FlowMap’s gap) kept as it is; <code class="docutils literal notranslate"><span class="pre">order</span></code> an object
+keyed by IDs whose value, where the key names a group, is a list of member
+IDs (a timeline’s value holds band words).</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘id’, ‘ids’, ‘order’]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.ID_POSITIONS">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">ID_POSITIONS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'id'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'ids'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'order'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('Manifest',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('Timeline',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('Group',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('Group',</span> <span class="pre">'members',</span> <span class="pre">'ids'),</span> <span class="pre">('Graphical',</span> <span class="pre">'order',</span> <span class="pre">'order'),</span> <span class="pre">('Timestamp',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('Timestamp',</span> <span class="pre">'timeline',</span> <span class="pre">'id'),</span> <span class="pre">('Elision',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('Elision',</span> <span class="pre">'timeline',</span> <span class="pre">'id'),</span> <span class="pre">('MatchStamp',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('AlignmentAnchor',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('AlignmentAnchor',</span> <span class="pre">'timestamps',</span> <span class="pre">'ids'),</span> <span class="pre">('Resource',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('Resource',</span> <span class="pre">'timelines',</span> <span class="pre">'ids'),</span> <span class="pre">('Address',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('MeasureMap',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('Region',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('FlowControlElement',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('JumpDestination',</span> <span class="pre">'to',</span> <span class="pre">'id'),</span> <span class="pre">('DestinationReference',</span> <span class="pre">'jump',</span> <span class="pre">'id'),</span> <span class="pre">('DestinationReference',</span> <span class="pre">'to',</span> <span class="pre">'id'),</span> <span class="pre">('FlowMap',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('FlowMap',</span> <span class="pre">'timeline',</span> <span class="pre">'id'),</span> <span class="pre">('FlowMap',</span> <span class="pre">'chunks',</span> <span class="pre">'ids'),</span> <span class="pre">('VirtualTimeline',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('VirtualTimeline',</span> <span class="pre">'map',</span> <span class="pre">'id'),</span> <span class="pre">('VirtualTimeline',</span> <span class="pre">'timeline',</span> <span class="pre">'id'),</span> <span class="pre">('VirtualTimeline',</span> <span class="pre">'through',</span> <span class="pre">'id'),</span> <span class="pre">('Selector',</span> <span class="pre">'within',</span> <span class="pre">'id'),</span> <span class="pre">('MapBase',</span> <span class="pre">'id',</span> <span class="pre">'id'),</span> <span class="pre">('MeasureView',</span> <span class="pre">'measure_map',</span> <span class="pre">'id'))</span></span><a class="headerlink" href="#timetoshare.ids.ID_POSITIONS" title="Link to this definition">#</a></dt>
+<dd><p>Every member of a schema definition that holds IDs, and how it holds them.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.Holding">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">Holding</span></span><a class="headerlink" href="#timetoshare.ids.Holding" title="Link to this definition">#</a></dt>
+<dd><p>How a member holds a definition: one object, a list, or an object’s values.</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘one’, ‘list’, ‘values’]</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.CONTAINERS">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">CONTAINERS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'one'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'list'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'values'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(('Manifest',</span> <span class="pre">'timelines',</span> <span class="pre">'list',</span> <span class="pre">'Timeline'),</span> <span class="pre">('Manifest',</span> <span class="pre">'groups',</span> <span class="pre">'list',</span> <span class="pre">'Group'),</span> <span class="pre">('Manifest',</span> <span class="pre">'measure_maps',</span> <span class="pre">'list',</span> <span class="pre">'MeasureMap'),</span> <span class="pre">('Manifest',</span> <span class="pre">'resources',</span> <span class="pre">'list',</span> <span class="pre">'Resource'),</span> <span class="pre">('Manifest',</span> <span class="pre">'graphical',</span> <span class="pre">'one',</span> <span class="pre">'Graphical'),</span> <span class="pre">('Manifest',</span> <span class="pre">'flow_maps',</span> <span class="pre">'list',</span> <span class="pre">'FlowMap'),</span> <span class="pre">('Manifest',</span> <span class="pre">'virtual_timelines',</span> <span class="pre">'list',</span> <span class="pre">'VirtualTimeline'),</span> <span class="pre">('Timeline',</span> <span class="pre">'children',</span> <span class="pre">'list',</span> <span class="pre">'Timeline'),</span> <span class="pre">('Timeline',</span> <span class="pre">'conversion_maps',</span> <span class="pre">'list',</span> <span class="pre">'ConversionMap'),</span> <span class="pre">('Timeline',</span> <span class="pre">'regions',</span> <span class="pre">'list',</span> <span class="pre">'Region'),</span> <span class="pre">('Timeline',</span> <span class="pre">'flow_control',</span> <span class="pre">'list',</span> <span class="pre">'FlowControlElement'),</span> <span class="pre">('FlowControlElement',</span> <span class="pre">'targets',</span> <span class="pre">'list',</span> <span class="pre">'JumpDestination'),</span> <span class="pre">('FlowControlElement',</span> <span class="pre">'ends',</span> <span class="pre">'one',</span> <span class="pre">'BreakCondition'),</span> <span class="pre">('JumpDestination',</span> <span class="pre">'after',</span> <span class="pre">'one',</span> <span class="pre">'DestinationReference'),</span> <span class="pre">('BreakCondition',</span> <span class="pre">'after',</span> <span class="pre">'one',</span> <span class="pre">'DestinationReference'),</span> <span class="pre">('Graphical',</span> <span class="pre">'rules',</span> <span class="pre">'list',</span> <span class="pre">'Rule'),</span> <span class="pre">('Graphical',</span> <span class="pre">'timestamps',</span> <span class="pre">'list',</span> <span class="pre">'Timestamp'),</span> <span class="pre">('Graphical',</span> <span class="pre">'elisions',</span> <span class="pre">'list',</span> <span class="pre">'Elision'),</span> <span class="pre">('Graphical',</span> <span class="pre">'matchstamps',</span> <span class="pre">'list',</span> <span class="pre">'MatchStamp'),</span> <span class="pre">('MatchStamp',</span> <span class="pre">'alignment_anchors',</span> <span class="pre">'list',</span> <span class="pre">'AlignmentAnchor'),</span> <span class="pre">('Rule',</span> <span class="pre">'select',</span> <span class="pre">'one',</span> <span class="pre">'Selector'),</span> <span class="pre">('Selector',</span> <span class="pre">'addresses',</span> <span class="pre">'list',</span> <span class="pre">'Address'),</span> <span class="pre">('ChainMap',</span> <span class="pre">'maps',</span> <span class="pre">'list',</span> <span class="pre">'ConversionMap'),</span> <span class="pre">('PiecewiseMap',</span> <span class="pre">'maps',</span> <span class="pre">'list',</span> <span class="pre">'ConversionMap'),</span> <span class="pre">('CombinationMap',</span> <span class="pre">'maps',</span> <span class="pre">'values',</span> <span class="pre">'ConversionMap'))</span></span><a class="headerlink" href="#timetoshare.ids.CONTAINERS" title="Link to this definition">#</a></dt>
+<dd><p>Every member through which a definition holds another that holds IDs.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.MEASURE_VIEWS">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">MEASURE_VIEWS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('FloatingMeasureMap',</span> <span class="pre">'MeasureBeatMap',</span> <span class="pre">'MeasureNumberMap',</span> <span class="pre">'MeasureRecordMap')</span></span><a class="headerlink" href="#timetoshare.ids.MEASURE_VIEWS" title="Link to this definition">#</a></dt>
+<dd><p>The conversion-map types built on <code class="docutils literal notranslate"><span class="pre">MeasureView</span></code>; every other one on <code class="docutils literal notranslate"><span class="pre">MapBase</span></code>.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="timetoshare.ids.FileIdError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">FileIdError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/ids.html#FileIdError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.ids.FileIdError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></p>
+<p>Raised for a text that is not an ID in the file form.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="timetoshare.ids.FileIdError.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#timetoshare.ids.FileIdError.path" title="Link to this definition">#</a></dt>
+<dd><p>Where the text stands in the manifest; empty for a lone text.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.ids.to_file_id">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">to_file_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/ids.html#to_file_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.ids.to_file_id" title="Link to this definition">#</a></dt>
+<dd><p>Return the file form of a bare ID: <code class="docutils literal notranslate"><span class="pre">#</span></code> followed by the ID.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.ids.from_file_id">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">from_file_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/ids.html#from_file_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.ids.from_file_id" title="Link to this definition">#</a></dt>
+<dd><p>Return the bare ID that a file’s <code class="docutils literal notranslate"><span class="pre">#id</span></code> text writes.</p>
+<p>Exactly one leading <code class="docutils literal notranslate"><span class="pre">#</span></code> is stripped: <code class="docutils literal notranslate"><span class="pre">#x</span></code> is <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">##x</span></code> is
+<code class="docutils literal notranslate"><span class="pre">#x</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#timetoshare.ids.FileIdError" title="timetoshare.ids.FileIdError"><strong>FileIdError</strong></a> – A <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>, if the text does not start with <code class="docutils literal notranslate"><span class="pre">#</span></code>
+    or nothing follows it.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.ids.definitions_of">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">definitions_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">definition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/ids.html#definitions_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.ids.definitions_of" title="Link to this definition">#</a></dt>
+<dd><p>The definitions whose members <code class="docutils literal notranslate"><span class="pre">value</span></code>, held as <code class="docutils literal notranslate"><span class="pre">definition</span></code>, carries.</p>
+<p>A conversion map is its type’s definition and that definition’s bases;
+every other value is its definition alone.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.ids.with_file_ids">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">with_file_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/ids.html#with_file_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.ids.with_file_ids" title="Link to this definition">#</a></dt>
+<dd><p>Return the manifest with every ID in the file form, <code class="docutils literal notranslate"><span class="pre">#</span></code> + the bare ID.</p>
+<p>A value of <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code> gains the <code class="docutils literal notranslate"><span class="pre">#</span></code> where its key names a
+group.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.ids.with_bare_ids">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">with_bare_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/ids.html#with_bare_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.ids.with_bare_ids" title="Link to this definition">#</a></dt>
+<dd><p>Return the manifest with every ID bare, read from its file form <code class="docutils literal notranslate"><span class="pre">#id</span></code>.</p>
+<p>A timeline’s entry in <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code> holds band words, which stay
+as they are.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#timetoshare.ids.FileIdError" title="timetoshare.ids.FileIdError"><strong>FileIdError</strong></a> – A <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>, with the <code class="docutils literal notranslate"><span class="pre">path</span></code> of the first text
+    that is not an ID in the file form.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.ids.leniently_bare_ids">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">leniently_bare_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/ids.html#leniently_bare_ids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.ids.leniently_bare_ids" title="Link to this definition">#</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">with_bare_ids</span></code> that keeps every text not in the file form as it is.</p>
+<p>For a check of one part of a manifest, which must not refuse an ID
+outside that part.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="timetoshare.font.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">timetoshare.font</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="timetoshare.manifest.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">timetoshare.manifest</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.HASH"><code class="docutils literal notranslate"><span class="pre">HASH</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.Shape"><code class="docutils literal notranslate"><span class="pre">Shape</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.ID_POSITIONS"><code class="docutils literal notranslate"><span class="pre">ID_POSITIONS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.Holding"><code class="docutils literal notranslate"><span class="pre">Holding</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.CONTAINERS"><code class="docutils literal notranslate"><span class="pre">CONTAINERS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.MEASURE_VIEWS"><code class="docutils literal notranslate"><span class="pre">MEASURE_VIEWS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.FileIdError"><code class="docutils literal notranslate"><span class="pre">FileIdError</span></code></a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.FileIdError.path"><code class="docutils literal notranslate"><span class="pre">FileIdError.path</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.to_file_id"><code class="docutils literal notranslate"><span class="pre">to_file_id()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.from_file_id"><code class="docutils literal notranslate"><span class="pre">from_file_id()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.definitions_of"><code class="docutils literal notranslate"><span class="pre">definitions_of()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.with_file_ids"><code class="docutils literal notranslate"><span class="pre">with_file_ids()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.with_bare_ids"><code class="docutils literal notranslate"><span class="pre">with_bare_ids()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.leniently_bare_ids"><code class="docutils literal notranslate"><span class="pre">leniently_bare_ids()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Time to Align!.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  <script src="/TimeToShare/versions.js" defer></script>
+</body>
+</html>

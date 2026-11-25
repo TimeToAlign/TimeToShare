@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>timetoshare.serialization &#8212; timetoshare 0.2.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/timetoshare/serialization';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.0" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">timetoshare 0.2.0</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">timetoshare.serialization</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for timetoshare.serialization</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""The three serializations of a TimeToShare manifest: writing, reading, naming.</span>
+
+<span class="sd">A manifest is a JSON value, exchanged as text in canonical YAML (``"yaml"``),</span>
+<span class="sd">pretty JSON (``"json"``) or RFC 8785 JSON (``"jcs"``), each specified to the</span>
+<span class="sd">byte by the README's "Serializations". :func:`dumps` writes all three,</span>
+<span class="sd">:func:`loads` reads any text, and :func:`serialization_of` names the</span>
+<span class="sd">serialization of a text without validating it.</span>
+
+<span class="sd">Every writer sorts the keys of every object by Unicode code point (RFC 8785</span>
+<span class="sd">JSON by UTF-16 code units), writes a manifest in canonical order with its</span>
+<span class="sd">own-axis values respelled (:func:`~timetoshare.manifest.canonical_order`),</span>
+<span class="sd">and refuses a value it cannot write: a NaN or an infinity, a string or key</span>
+<span class="sd">holding a lone surrogate, a key whose canonical YAML form is longer than 1024</span>
+<span class="sd">UTF-16 code units, a value nested deeper than 256 levels, and in RFC 8785</span>
+<span class="sd">JSON an integer beyond ±(2^53 − 1) or an integral float of magnitude from</span>
+<span class="sd">2^53 up to but excluding 10^21.</span>
+
+<span class="sd">The depth of a value is 0 for a scalar and, for an object or an array, 1 more</span>
+<span class="sd">than the greatest depth of its members (1 for an empty one). The readers</span>
+<span class="sd">refuse a text whose value would be deeper than 256, at the first character</span>
+<span class="sd">of the first collection at depth 257, so that every value written can be read</span>
+<span class="sd">and the place of the refusal depends on the text alone. A text holding several</span>
+<span class="sd">faults is refused for the first in document order, where its token stands; a</span>
+<span class="sd">YAML text is first searched for a character outside YAML's printable set.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">NoReturn</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.manifest</span><span class="w"> </span><span class="kn">import</span> <span class="n">canonical_order</span><span class="p">,</span> <span class="n">is_manifest</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"SERIALIZATIONS"</span><span class="p">,</span>
+    <span class="s2">"Serialization"</span><span class="p">,</span>
+    <span class="s2">"dumps"</span><span class="p">,</span>
+    <span class="s2">"loads"</span><span class="p">,</span>
+    <span class="s2">"serialization_of"</span><span class="p">,</span>
+    <span class="s2">"spell"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="n">Serialization</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"yaml"</span><span class="p">,</span> <span class="s2">"json"</span><span class="p">,</span> <span class="s2">"jcs"</span><span class="p">]</span>
+<span class="sd">"""The name of a serialization."""</span>
+
+<span class="n">SERIALIZATIONS</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Serialization</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"yaml"</span><span class="p">,</span> <span class="s2">"json"</span><span class="p">,</span> <span class="s2">"jcs"</span><span class="p">)</span>
+<span class="sd">"""Every serialization's name: canonical YAML, pretty JSON, RFC 8785 JSON."""</span>
+
+<span class="n">_KEY_LIMIT</span> <span class="o">=</span> <span class="mi">1024</span>
+<span class="sd">"""The longest canonical YAML form of a key a writer writes, in UTF-16 code units."""</span>
+
+<span class="n">_DEPTH_LIMIT</span> <span class="o">=</span> <span class="mi">256</span>
+<span class="sd">"""The greatest depth of a value a writer writes and a reader reads."""</span>
+
+<span class="n">_TOO_DEEP</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"collections nest deeper than </span><span class="si">{</span><span class="n">_DEPTH_LIMIT</span><span class="si">}</span><span class="s2"> levels"</span>
+<span class="sd">"""The reason the readers give for a text nested deeper than the limit."""</span>
+
+<span class="n">_SAFE_INTEGER</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="mi">53</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="sd">"""The largest magnitude of an integer RFC 8785 JSON writes."""</span>
+
+<span class="n">_JSON_WHITESPACE</span> <span class="o">=</span> <span class="s2">" </span><span class="se">\t\n\r</span><span class="s2">"</span>
+
+<span class="n">_BYTE_ORDER_MARK</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\ufeff</span><span class="s2">"</span>
+
+
+<span class="c1"># Numbers ------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_digits</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The shortest round-trip digits d1 … dn of a positive finite float and k.</span>
+
+<span class="sd">    The decimal d1.d2…dn × 10^k reads back as ``value``; Python's ``repr``</span>
+<span class="sd">    finds these digits (the nearest of the shortest, ties to an even digit).</span>
+<span class="sd">    """</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">mantissa</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">exponent</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"e"</span><span class="p">)</span>
+    <span class="n">whole</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="n">mantissa</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
+    <span class="n">digits</span> <span class="o">=</span> <span class="n">whole</span> <span class="o">+</span> <span class="n">fraction</span>
+    <span class="n">stripped</span> <span class="o">=</span> <span class="n">digits</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">"0"</span><span class="p">)</span>
+    <span class="n">k</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">whole</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">digits</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">stripped</span><span class="p">))</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">exponent</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stripped</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"0"</span><span class="p">),</span> <span class="n">k</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_finite</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> is not a finite number and cannot be written"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_within_depth</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a value nested deeper than the limit, walking no deeper than it.</span>
+
+<span class="sd">    A list or a dict that holds itself is refused the same way.</span>
+<span class="sd">    """</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="p">[(</span><span class="n">value</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
+    <span class="k">while</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="n">item</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">pending</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">depth</span> <span class="o">&gt;</span> <span class="n">_DEPTH_LIMIT</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"a value nested deeper than </span><span class="si">{</span><span class="n">_DEPTH_LIMIT</span><span class="si">}</span><span class="s2"> levels "</span>
+                    <span class="s2">"cannot be written"</span>
+                <span class="p">)</span>
+            <span class="n">members</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="n">item</span>
+            <span class="n">pending</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">member</span><span class="p">,</span> <span class="n">depth</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_all_finite</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a value holding a NaN or an infinity at any depth."""</span>
+    <span class="n">pending</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+    <span class="k">while</span> <span class="n">pending</span><span class="p">:</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="n">pending</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">_finite</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">pending</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">pending</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_float_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Spell a float as canonical YAML and pretty JSON do."""</span>
+    <span class="n">_finite</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"-0.0"</span> <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">copysign</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"0.0"</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"-"</span> <span class="o">+</span> <span class="n">_float_text</span><span class="p">(</span><span class="o">-</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">digits</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">_digits</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="o">-</span><span class="mi">4</span> <span class="o">&lt;=</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="mi">15</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">whole</span> <span class="o">=</span> <span class="n">digits</span><span class="p">[:</span> <span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">ljust</span><span class="p">(</span><span class="n">k</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"0"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">whole</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">digits</span><span class="p">[</span><span class="n">k</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">:]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'0'</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="s2">"0."</span> <span class="o">+</span> <span class="s2">"0"</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">digits</span>
+    <span class="n">sign</span> <span class="o">=</span> <span class="s2">"+"</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"-"</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">digits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">digits</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'0'</span><span class="si">}</span><span class="s2">e</span><span class="si">{</span><span class="n">sign</span><span class="si">}{</span><span class="nb">abs</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ecmascript_float_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Spell a float as ECMAScript's Number::toString does, for RFC 8785 JSON."""</span>
+    <span class="n">_finite</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"0"</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"-"</span> <span class="o">+</span> <span class="n">_ecmascript_float_text</span><span class="p">(</span><span class="o">-</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">is_integer</span><span class="p">()</span> <span class="ow">and</span> <span class="mi">2</span><span class="o">**</span><span class="mi">53</span> <span class="o">&lt;=</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="o">**</span><span class="mi">21</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the integral float </span><span class="si">{</span><span class="n">_float_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be written in RFC 8785 "</span>
+            <span class="s2">"JSON, which spells it as an integer beyond 2^53 - 1"</span>
+        <span class="p">)</span>
+    <span class="n">digits</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="n">_digits</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">digits</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="mi">20</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">digits</span> <span class="o">+</span> <span class="s2">"0"</span> <span class="o">*</span> <span class="p">(</span><span class="n">k</span> <span class="o">-</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">digits</span><span class="p">[:</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">digits</span><span class="p">[</span><span class="n">k</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">:]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="o">-</span><span class="mi">6</span> <span class="o">&lt;=</span> <span class="n">k</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"0."</span> <span class="o">+</span> <span class="s2">"0"</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="n">k</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">digits</span>
+    <span class="n">sign</span> <span class="o">=</span> <span class="s2">"+"</span> <span class="k">if</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"-"</span>
+    <span class="n">mantissa</span> <span class="o">=</span> <span class="n">digits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">digits</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="n">digits</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">mantissa</span><span class="si">}</span><span class="s2">e</span><span class="si">{</span><span class="n">sign</span><span class="si">}{</span><span class="nb">abs</span><span class="p">(</span><span class="n">k</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_integer_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_safe_integer_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">_SAFE_INTEGER</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the integer </span><span class="si">{</span><span class="n">_integer_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> cannot be written in RFC 8785 JSON, "</span>
+            <span class="s2">"whose numbers are doubles"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">_integer_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="c1"># Strings ------------------------------------------------------------------</span>
+
+<span class="n">_SHORT_ESCAPES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nb">ord</span><span class="p">(</span><span class="s1">'"'</span><span class="p">):</span> <span class="s1">'</span><span class="se">\\</span><span class="s1">"'</span><span class="p">,</span>
+    <span class="nb">ord</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">):</span> <span class="s2">"</span><span class="se">\\\\</span><span class="s2">"</span><span class="p">,</span>
+    <span class="mh">0x08</span><span class="p">:</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">b"</span><span class="p">,</span>
+    <span class="mh">0x09</span><span class="p">:</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">t"</span><span class="p">,</span>
+    <span class="mh">0x0A</span><span class="p">:</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">n"</span><span class="p">,</span>
+    <span class="mh">0x0C</span><span class="p">:</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">f"</span><span class="p">,</span>
+    <span class="mh">0x0D</span><span class="p">:</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">r"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_escapes</span><span class="p">(</span><span class="o">*</span><span class="n">code_points</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="p">{</span><span class="n">code_point</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\\</span><span class="s2">u</span><span class="si">{</span><span class="n">code_point</span><span class="si">:</span><span class="s2">04x</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">code_point</span> <span class="ow">in</span> <span class="n">code_points</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">table</span> <span class="o">|</span> <span class="n">_SHORT_ESCAPES</span>
+
+
+<span class="n">_JSON_ESCAPES</span> <span class="o">=</span> <span class="n">_escapes</span><span class="p">(</span><span class="o">*</span><span class="nb">range</span><span class="p">(</span><span class="mh">0x20</span><span class="p">))</span>
+<span class="n">_YAML_ESCAPES</span> <span class="o">=</span> <span class="n">_escapes</span><span class="p">(</span>
+    <span class="o">*</span><span class="nb">range</span><span class="p">(</span><span class="mh">0x20</span><span class="p">),</span> <span class="o">*</span><span class="nb">range</span><span class="p">(</span><span class="mh">0x7F</span><span class="p">,</span> <span class="mh">0xA0</span><span class="p">),</span> <span class="mh">0x2028</span><span class="p">,</span> <span class="mh">0x2029</span><span class="p">,</span> <span class="mh">0xFEFF</span><span class="p">,</span> <span class="mh">0xFFFE</span><span class="p">,</span> <span class="mh">0xFFFF</span>
+<span class="p">)</span>
+
+<span class="n">_PLAIN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[A-Za-z_][A-Za-z0-9_./-]*"</span><span class="p">)</span>
+<span class="n">_YAML_WORDS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">((</span><span class="s2">"null"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">,</span> <span class="s2">"false"</span><span class="p">,</span> <span class="s2">"yes"</span><span class="p">,</span> <span class="s2">"no"</span><span class="p">,</span> <span class="s2">"on"</span><span class="p">,</span> <span class="s2">"off"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"n"</span><span class="p">))</span>
+<span class="sd">"""Strings that match the plain pattern but are quoted, as YAML 1.2 or 1.1 reads</span>
+<span class="sd">them as something else."""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_json_string</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s1">'"'</span> <span class="o">+</span> <span class="n">value</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">_JSON_ESCAPES</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'"'</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_yaml_string</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">_PLAIN</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_YAML_WORDS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">return</span> <span class="s1">'"'</span> <span class="o">+</span> <span class="n">value</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">_YAML_ESCAPES</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'"'</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_yaml_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The canonical YAML form of a key, refused when it is too long.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        TypeError: If the key is not a string.</span>
+<span class="sd">        ValueError: If its form exceeds 1024 UTF-16 code units, in every</span>
+<span class="sd">            serialization, so that every value written can be written in</span>
+<span class="sd">            canonical YAML and read by every YAML parser.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a key must be a string, not </span><span class="si">{</span><span class="n">key</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">form</span> <span class="o">=</span> <span class="n">_yaml_string</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">form</span><span class="p">)</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">character</span> <span class="ow">in</span> <span class="n">form</span> <span class="k">if</span> <span class="nb">ord</span><span class="p">(</span><span class="n">character</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mh">0xFFFF</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">units</span> <span class="o">&gt;</span> <span class="n">_KEY_LIMIT</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"a key whose canonical YAML form is </span><span class="si">{</span><span class="n">units</span><span class="si">}</span><span class="s2"> UTF-16 code units long, "</span>
+            <span class="sa">f</span><span class="s2">"more than </span><span class="si">{</span><span class="n">_KEY_LIMIT</span><span class="si">}</span><span class="s2">, cannot be written"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">form</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_json_key</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">_yaml_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_json_string</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+
+<span class="c1"># Values -------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_scalar</span><span class="p">(</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">number</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">],</span> <span class="n">string</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">str</span><span class="p">]</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Spell a scalar; raise ``TypeError`` for a value that is not a JSON scalar."""</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"null"</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"true"</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"false"</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">string</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">number</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is not a JSON value: </span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_number_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">_float_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">else</span> <span class="n">_integer_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rfc8785_number_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_ecmascript_float_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_safe_integer_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_yaml_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_number_text</span><span class="p">,</span> <span class="n">_yaml_string</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_json_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_number_text</span><span class="p">,</span> <span class="n">_json_string</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">str</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_inline</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">scalar</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The one-line text of a scalar, ``{}``, ``[]`` a scalar sequence, or ``None``."""</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"[]"</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">_is_scalar</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">"["</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scalar</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"]"</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">scalar</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sorted_keys</span><span class="p">(</span>
+    <span class="n">value</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">key</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"a key must be a string, not </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_yaml_block</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Write an object with members or a block sequence at ``column``."""</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="s2">" "</span> <span class="o">*</span> <span class="n">column</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_sorted_keys</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">head</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pad</span><span class="si">}{</span><span class="n">_yaml_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2">:"</span>
+            <span class="n">inline</span> <span class="o">=</span> <span class="n">_inline</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">_yaml_scalar</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">inline</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">head</span><span class="p">)</span>
+                <span class="n">_yaml_block</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">column</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">head</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">inline</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+        <span class="n">inline</span> <span class="o">=</span> <span class="n">_inline</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">_yaml_scalar</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inline</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pad</span><span class="si">}</span><span class="s2">-"</span><span class="p">)</span>
+            <span class="n">_yaml_block</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">column</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pad</span><span class="si">}</span><span class="s2">- </span><span class="si">{</span><span class="n">inline</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_yaml_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">lines</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span> <span class="o">|</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="p">:</span>
+        <span class="n">_yaml_block</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lines</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_inline</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_yaml_scalar</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_json_lines</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">column</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The lines of a value; the first continues the line of its key or item."""</span>
+    <span class="n">inline</span> <span class="o">=</span> <span class="n">_inline</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_json_scalar</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">inline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">inline</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="p">[(</span><span class="n">_json_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">+</span> <span class="s2">": "</span><span class="p">,</span> <span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_sorted_keys</span><span class="p">(</span><span class="n">value</span><span class="p">)]</span>
+        <span class="n">opening</span><span class="p">,</span> <span class="n">closing</span> <span class="o">=</span> <span class="s2">"{"</span><span class="p">,</span> <span class="s2">"}"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="p">[(</span><span class="s2">""</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">]</span>
+        <span class="n">opening</span><span class="p">,</span> <span class="n">closing</span> <span class="o">=</span> <span class="s2">"["</span><span class="p">,</span> <span class="s2">"]"</span>
+    <span class="n">pad</span> <span class="o">=</span> <span class="s2">" "</span> <span class="o">*</span> <span class="p">(</span><span class="n">column</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="n">opening</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries</span><span class="p">):</span>
+        <span class="n">nested</span> <span class="o">=</span> <span class="n">_json_lines</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">column</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">nested</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pad</span> <span class="o">+</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">nested</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">nested</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="s2">","</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">nested</span><span class="p">)</span>
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">" "</span> <span class="o">*</span> <span class="n">column</span> <span class="o">+</span> <span class="n">closing</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lines</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_json_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_json_lines</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_utf16</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">key</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-16-be"</span><span class="p">,</span> <span class="s2">"surrogatepass"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_rfc8785_text</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">members</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_json_key</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">_rfc8785_text</span><span class="p">(</span><span class="n">value</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_sorted_keys</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_utf16</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="s2">"{"</span> <span class="o">+</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">members</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"}"</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"["</span> <span class="o">+</span> <span class="s2">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_rfc8785_text</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"]"</span>
+    <span class="k">return</span> <span class="n">_scalar</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_rfc8785_number_text</span><span class="p">,</span> <span class="n">_json_string</span><span class="p">)</span>
+
+
+<span class="n">_WRITERS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"yaml"</span><span class="p">:</span> <span class="n">_yaml_text</span><span class="p">,</span>
+    <span class="s2">"json"</span><span class="p">:</span> <span class="n">_json_text</span><span class="p">,</span>
+    <span class="s2">"jcs"</span><span class="p">:</span> <span class="n">_rfc8785_text</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="dumps">
+<a class="viewcode-back" href="../../api/generated/timetoshare.serialization.html#timetoshare.serialization.dumps">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">serialization</span><span class="p">:</span> <span class="n">Serialization</span> <span class="o">=</span> <span class="s2">"yaml"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the text of a manifest, or of any JSON value, in one serialization.</span>
+
+<span class="sd">    ``"yaml"`` writes canonical YAML, ``"json"`` pretty JSON and ``"jcs"``</span>
+<span class="sd">    RFC 8785 JSON. A value that is an object whose ``timelines`` member is</span>
+<span class="sd">    an array is a manifest: it is put in canonical order and its own-axis</span>
+<span class="sd">    values respelled first (:func:`~timetoshare.manifest.canonical_order`).</span>
+<span class="sd">    Every other value keeps the order of its arrays and the kind of its</span>
+<span class="sd">    numbers. The form, complete or minimal, is the one given.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the serialization refuses the value (a value nested</span>
+<span class="sd">            deeper than 256 levels, checked first, a NaN or an infinity, a</span>
+<span class="sd">            string or key holding a lone surrogate, a key whose canonical</span>
+<span class="sd">            YAML form is longer than 1024 UTF-16 code units, and in</span>
+<span class="sd">            ``"jcs"`` an integer beyond ±(2^53 − 1) or an integral float of</span>
+<span class="sd">            magnitude from 2^53 up to but excluding 10^21), if a manifest</span>
+<span class="sd">            cannot be put in canonical order, or if ``serialization`` names</span>
+<span class="sd">            no serialization.</span>
+<span class="sd">        TypeError: If the value is not JSON, whose kinds are ``dict`` with</span>
+<span class="sd">            string keys, ``list``, ``str``, ``int``, ``float``, ``bool`` and</span>
+<span class="sd">            ``None``.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">serialization</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SERIALIZATIONS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown serialization </span><span class="si">{</span><span class="n">serialization</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">_within_depth</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">_all_finite</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">is_manifest</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">canonical_order</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_WRITERS</span><span class="p">[</span><span class="n">serialization</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-8"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">UnicodeEncodeError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"a string or key holding a lone surrogate cannot be written in UTF-8"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">error</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+
+
+
+<div class="viewcode-block" id="spell">
+<a class="viewcode-back" href="../../api/generated/timetoshare.serialization.html#timetoshare.serialization.spell">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">spell</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Spell a value as a message quotes it.</span>
+
+<span class="sd">    A finite number is spelled as canonical YAML and pretty JSON spell it, an</span>
+<span class="sd">    array as its items separated by ``, `` within brackets (``[32, 1]``), and</span>
+<span class="sd">    anything else as compact JSON. The JavaScript package spells values the</span>
+<span class="sd">    same way.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"["</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">spell</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"]"</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_float_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">else</span> <span class="nb">repr</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">_integer_text</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">":"</span><span class="p">),</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Reading ------------------------------------------------------------------</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_position</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The line and column of an index, counted from one, the column in code points."""</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">column</span> <span class="o">=</span> <span class="n">index</span> <span class="o">-</span> <span class="p">(</span><span class="n">text</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"line </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">, column </span><span class="si">{</span><span class="n">column</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="n">_NUMBER</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"-?(?:0|[1-9][0-9]*)(\.[0-9]+)?([eE][-+]?[0-9]+)?"</span><span class="p">)</span>
+<span class="n">_LITERALS</span> <span class="o">=</span> <span class="p">((</span><span class="s2">"true"</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="p">(</span><span class="s2">"false"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="p">(</span><span class="s2">"null"</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+<span class="n">_STRING_RUN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s1">'[^"</span><span class="se">\\</span><span class="s1">\x00-\x1f\ud800-\udfff]+'</span><span class="p">)</span>
+<span class="n">_STRING_ESCAPES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'"'</span><span class="p">:</span> <span class="s1">'"'</span><span class="p">,</span>
+    <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">:</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"/"</span><span class="p">:</span> <span class="s2">"/"</span><span class="p">,</span>
+    <span class="s2">"b"</span><span class="p">:</span> <span class="s2">"</span><span class="se">\b</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"f"</span><span class="p">:</span> <span class="s2">"</span><span class="se">\f</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"n"</span><span class="p">:</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"r"</span><span class="p">:</span> <span class="s2">"</span><span class="se">\r</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"t"</span><span class="p">:</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">_HEX4</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[0-9A-Fa-f]</span><span class="si">{4}</span><span class="s2">"</span><span class="p">)</span>
+<span class="n">_JSON_SCALAR</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s1">'[ \t\n\r]*(?:"(?:[^"</span><span class="se">\\</span><span class="s1">\x00-\x1f]|</span><span class="se">\\</span><span class="s1">(?:["</span><span class="se">\\</span><span class="s1">/bfnrt]|u[0-9A-Fa-f]</span><span class="si">{4}</span><span class="s1">))*"'</span>
+    <span class="sa">r</span><span class="s2">"|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][-+]?[0-9]+)?|true|false|null)[ \t\n\r]*"</span>
+<span class="p">)</span>
+<span class="sd">"""One JSON scalar under the grammar of RFC 8259, with white space around it."""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_skip</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">while</span> <span class="n">index</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">and</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_JSON_WHITESPACE</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">index</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Read a JSON text losslessly.</span>
+
+<span class="sd">    Integers stay exact at any size and floats stay floats; a float is the</span>
+<span class="sd">    double nearest to the decimal written. The text is read from its first</span>
+<span class="sd">    character and refused at its first fault, at the token that offends: a</span>
+<span class="sd">    string at the escape or the character that ends it wrongly, a lone</span>
+<span class="sd">    surrogate where it is written, a number that rounds to an infinity, a</span>
+<span class="sd">    repeated key, and a collection opening at depth 257 where they stand.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the text is not one JSON value, repeats a key in an</span>
+<span class="sd">            object, holds a lone surrogate in a string or a key, or a number</span>
+<span class="sd">            that rounds to an infinity, or nests collections deeper than 256</span>
+<span class="sd">            levels.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">fail</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Raise ``ValueError`` for a problem at ``index`` of the text."""</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">_position</span><span class="p">(</span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="n">index</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">string</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The string whose opening quote is at ``index``, and the index after it.</span>
+
+<span class="sd">        A high-surrogate escape pairs only with the low-surrogate escape right</span>
+<span class="sd">        after it; one that does not is lone where it is written, whatever</span>
+<span class="sd">        follows it. A surrogate standing as itself is lone.</span>
+<span class="sd">        """</span>
+        <span class="n">parts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">run</span> <span class="o">=</span> <span class="n">_STRING_RUN</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">run</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">high</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">run</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">run</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+            <span class="n">at</span> <span class="o">=</span> <span class="n">index</span>
+            <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">u"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="ow">and</span> <span class="n">_HEX4</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">2</span><span class="p">):</span>
+                <span class="n">unit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">6</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">6</span>
+                <span class="k">if</span> <span class="n">high</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="mh">0xDC00</span> <span class="o">&lt;=</span> <span class="n">unit</span> <span class="o">&lt;=</span> <span class="mh">0xDFFF</span><span class="p">:</span>
+                        <span class="n">fail</span><span class="p">(</span><span class="n">high</span><span class="p">,</span> <span class="s2">"a string holds a lone surrogate"</span><span class="p">)</span>
+                    <span class="n">first</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="n">high</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">high</span> <span class="o">+</span> <span class="mi">6</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+                    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="nb">chr</span><span class="p">(</span><span class="mh">0x10000</span> <span class="o">+</span> <span class="p">((</span><span class="n">first</span> <span class="o">-</span> <span class="mh">0xD800</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="n">unit</span> <span class="o">-</span> <span class="mh">0xDC00</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">high</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="k">elif</span> <span class="mh">0xD800</span> <span class="o">&lt;=</span> <span class="n">unit</span> <span class="o">&lt;=</span> <span class="mh">0xDBFF</span><span class="p">:</span>
+                    <span class="n">high</span> <span class="o">=</span> <span class="n">at</span>
+                <span class="k">elif</span> <span class="mh">0xDC00</span> <span class="o">&lt;=</span> <span class="n">unit</span> <span class="o">&lt;=</span> <span class="mh">0xDFFF</span><span class="p">:</span>
+                    <span class="n">fail</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="s2">"a string holds a lone surrogate"</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">chr</span><span class="p">(</span><span class="n">unit</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">high</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">fail</span><span class="p">(</span><span class="n">high</span><span class="p">,</span> <span class="s2">"a string holds a lone surrogate"</span><span class="p">)</span>
+            <span class="n">character</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">character</span> <span class="o">==</span> <span class="s1">'"'</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">),</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">character</span> <span class="o">==</span> <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">:</span>
+                <span class="n">escaped</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">escaped</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_STRING_ESCAPES</span><span class="p">:</span>
+                    <span class="n">fail</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="s2">"an invalid escape"</span><span class="p">)</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_STRING_ESCAPES</span><span class="p">[</span><span class="n">escaped</span><span class="p">])</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">2</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">character</span><span class="p">:</span>
+                <span class="n">fail</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="s2">"an unterminated string"</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">character</span> <span class="o">&lt;</span> <span class="s2">" "</span><span class="p">:</span>
+                <span class="n">fail</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="s2">"a control character in a string"</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fail</span><span class="p">(</span><span class="n">at</span><span class="p">,</span> <span class="s2">"a string holds a lone surrogate"</span><span class="p">)</span>
+
+    <span class="c1"># Each open container: [value, closing bracket, pending key].</span>
+    <span class="n">stack</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">key</span><span class="p">(</span><span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">container</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""The key at ``index`` and the index after its colon; a repeat fails."""</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">'"'</span><span class="p">:</span>
+            <span class="n">fail</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="s2">"expected a key"</span><span class="p">)</span>
+        <span class="n">name</span><span class="p">,</span> <span class="n">after</span> <span class="o">=</span> <span class="n">string</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">container</span><span class="p">:</span>
+            <span class="n">fail</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"the key </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="si">}</span><span class="s2"> repeats"</span><span class="p">)</span>
+        <span class="n">after</span> <span class="o">=</span> <span class="n">_skip</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">after</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">after</span> <span class="p">:</span> <span class="n">after</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">":"</span><span class="p">:</span>
+            <span class="n">fail</span><span class="p">(</span><span class="n">after</span><span class="p">,</span> <span class="s2">"expected ':'"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">after</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">_skip</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">character</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">character</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"{"</span><span class="p">,</span> <span class="s2">"["</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span> <span class="o">==</span> <span class="n">_DEPTH_LIMIT</span><span class="p">:</span>
+                <span class="n">fail</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">_TOO_DEEP</span><span class="p">)</span>
+            <span class="n">closing</span> <span class="o">=</span> <span class="s2">"}"</span> <span class="k">if</span> <span class="n">character</span> <span class="o">==</span> <span class="s2">"{"</span> <span class="k">else</span> <span class="s2">"]"</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">_skip</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">closing</span><span class="p">:</span>
+                <span class="n">value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">character</span> <span class="o">==</span> <span class="s2">"{"</span> <span class="k">else</span> <span class="p">[]</span>
+                <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">frame</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[{}</span> <span class="k">if</span> <span class="n">character</span> <span class="o">==</span> <span class="s2">"{"</span> <span class="k">else</span> <span class="p">[],</span> <span class="n">closing</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">character</span> <span class="o">==</span> <span class="s2">"{"</span><span class="p">:</span>
+                    <span class="n">frame</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">frame</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">stack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="k">continue</span>
+        <span class="k">elif</span> <span class="n">character</span> <span class="o">==</span> <span class="s1">'"'</span><span class="p">:</span>
+            <span class="n">value</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">string</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">character</span> <span class="ow">and</span> <span class="n">character</span> <span class="ow">in</span> <span class="s2">"-0123456789"</span><span class="p">:</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">_NUMBER</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fail</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="s2">"invalid number"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">())</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+                    <span class="n">fail</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">()</span><span class="si">}</span><span class="s2"> rounds to an infinity"</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">end</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">literal</span> <span class="ow">in</span> <span class="n">_LITERALS</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+                    <span class="n">value</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">literal</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+                    <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fail</span><span class="p">(</span>
+                    <span class="n">index</span><span class="p">,</span>
+                    <span class="s2">"unexpected end of text"</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">character</span> <span class="k">else</span> <span class="s2">"expected a value"</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stack</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">_skip</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+                    <span class="n">fail</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="s2">"extra data after the value"</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">value</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">container</span><span class="p">,</span> <span class="n">closing</span> <span class="o">=</span> <span class="n">frame</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">frame</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">closing</span> <span class="o">==</span> <span class="s2">"}"</span><span class="p">:</span>
+                <span class="n">container</span><span class="p">[</span><span class="n">frame</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">container</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">_skip</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">character</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">index</span> <span class="p">:</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">character</span> <span class="o">==</span> <span class="s2">","</span><span class="p">:</span>
+                <span class="n">index</span> <span class="o">=</span> <span class="n">_skip</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">closing</span> <span class="o">==</span> <span class="s2">"}"</span><span class="p">:</span>
+                    <span class="n">frame</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">index</span> <span class="o">=</span> <span class="n">key</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">container</span><span class="p">)</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">character</span> <span class="o">!=</span> <span class="n">closing</span><span class="p">:</span>
+                <span class="n">fail</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"expected ',' or '</span><span class="si">{</span><span class="n">closing</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+            <span class="n">stack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">value</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">container</span><span class="p">,</span> <span class="n">index</span> <span class="o">+</span> <span class="mi">1</span>
+
+
+<span class="n">_SPECIAL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">"[^\t\n\r\x20-\x7e\x85\xa0-\ud7ff\ue000-\ufffd\U00010000-\U0010ffff]"</span>
+<span class="p">)</span>
+<span class="sd">"""A character outside YAML 1.2's printable set (``c-printable``), a lone</span>
+<span class="sd">surrogate among them."""</span>
+
+<span class="n">_CORE_NULL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(?:~|null|Null|NULL|)\Z"</span><span class="p">)</span>
+<span class="n">_CORE_BOOL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(?:true|True|TRUE|false|False|FALSE)\Z"</span><span class="p">)</span>
+<span class="n">_CORE_INT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(?:[-+]?[0-9]+|0o[0-7]+|0x[0-9a-fA-F]+)\Z"</span><span class="p">)</span>
+<span class="n">_CORE_FLOAT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">"(?:[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?"</span>
+    <span class="sa">r</span><span class="s2">"|[-+]?\.(?:inf|Inf|INF)|\.(?:nan|NaN|NAN))\Z"</span>
+<span class="p">)</span>
+<span class="n">_CORE_FINITE_FLOAT</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">"[-+]?(?:\.[0-9]+|[0-9]+(?:\.[0-9]*)?)(?:[eE][-+]?[0-9]+)?\Z"</span>
+<span class="p">)</span>
+<span class="n">_NOT_STRING</span> <span class="o">=</span> <span class="p">(</span><span class="n">_CORE_NULL</span><span class="p">,</span> <span class="n">_CORE_BOOL</span><span class="p">,</span> <span class="n">_CORE_INT</span><span class="p">,</span> <span class="n">_CORE_FLOAT</span><span class="p">)</span>
+<span class="sd">"""The core schema's patterns of the plain scalars that are not strings."""</span>
+
+<span class="n">_NO_KEY</span> <span class="o">=</span> <span class="nb">object</span><span class="p">()</span>
+<span class="sd">"""The key of a mapping whose next node is a key."""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_at</span><span class="p">(</span><span class="n">mark</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The line and column of a mark of PyYAML's, counted from one."""</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"line </span><span class="si">{</span><span class="n">mark</span><span class="o">.</span><span class="n">line</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">, column </span><span class="si">{</span><span class="n">mark</span><span class="o">.</span><span class="n">column</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Refuse a node at the start of its event: its first property where it has one."""</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">_at</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">start_mark</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_string</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a scalar is a string: quoted, a block scalar, or plain and no other."""</span>
+    <span class="k">return</span> <span class="n">event</span><span class="o">.</span><span class="n">style</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="n">pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">_NOT_STRING</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolved</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The value of a scalar under the YAML 1.2 core schema."""</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">if</span> <span class="n">_is_string</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Join a high surrogate and a low one, written as two escapes, into</span>
+            <span class="c1"># one character; an unpaired surrogate cannot be decoded.</span>
+            <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">"utf-16-le"</span><span class="p">,</span> <span class="s2">"surrogatepass"</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">"utf-16-le"</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+            <span class="n">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="s2">"a string holds a lone surrogate"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_CORE_NULL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">_CORE_BOOL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">text</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"true"</span><span class="p">,</span> <span class="s2">"True"</span><span class="p">,</span> <span class="s2">"TRUE"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_CORE_INT</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">"0o"</span><span class="p">,</span> <span class="s2">"0x"</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">2</span><span class="p">:],</span> <span class="mi">8</span> <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"o"</span> <span class="k">else</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_CORE_FINITE_FLOAT</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+        <span class="n">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">text</span><span class="si">!r}</span><span class="s2"> is not a finite float"</span><span class="p">)</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+        <span class="n">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> rounds to an infinity"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_yaml</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Read a YAML text under the YAML 1.2 core schema.</span>
+
+<span class="sd">    A character outside YAML's printable set is looked for first. The text is</span>
+<span class="sd">    then read in one pass over the events of PyYAML's parser (the pure-Python</span>
+<span class="sd">    ``SafeLoader``, so the value never depends on libyaml), every open</span>
+<span class="sd">    collection on a stack rather than by recursion. Each node is checked as</span>
+<span class="sd">    its event arrives, a key before its value: an alias, an anchor or a tag</span>
+<span class="sd">    (named by the property written first), a key being a string, a key</span>
+<span class="sd">    repeating, its depth, then its value. The pass stops at the first fault,</span>
+<span class="sd">    so of several faults the first in document order is refused, except that</span>
+<span class="sd">    a syntax error the parser meets reading one token ahead may be refused</span>
+<span class="sd">    before a fault of the token just before it. An empty text, one of</span>
+<span class="sd">    comments only and ``---`` alone read as null.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: With the line and column, both counted from one, the</span>
+<span class="sd">            column in code points: at a character outside YAML's printable</span>
+<span class="sd">            set, at an error of the parser, at the start of a second</span>
+<span class="sd">            document, at the first property of a node with an anchor or a</span>
+<span class="sd">            tag, and at the first character of an alias, a key that is not</span>
+<span class="sd">            a string or repeats, the first collection at depth 257, a float</span>
+<span class="sd">            that is not finite and a string holding a lone surrogate.</span>
+<span class="sd">    """</span>
+    <span class="n">special</span> <span class="o">=</span> <span class="n">_SPECIAL</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">special</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">code</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"#x</span><span class="si">{</span><span class="nb">ord</span><span class="p">(</span><span class="n">special</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">:</span><span class="s2">04x</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="n">_position</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">special</span><span class="o">.</span><span class="n">start</span><span class="p">())</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"special characters are not allowed </span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="c1"># The open collections, the innermost last: [the value being built, the</span>
+    <span class="c1"># key whose value is pending, or _NO_KEY].</span>
+    <span class="n">frames</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">documents</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">yaml</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">SafeLoader</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">event</span><span class="p">,</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">StreamStartEvent</span> <span class="o">|</span> <span class="n">yaml</span><span class="o">.</span><span class="n">DocumentEndEvent</span> <span class="o">|</span> <span class="n">yaml</span><span class="o">.</span><span class="n">StreamEndEvent</span><span class="p">,</span>
+            <span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">DocumentStartEvent</span><span class="p">):</span>
+                <span class="n">documents</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">documents</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">_refuse</span><span class="p">(</span>
+                        <span class="n">event</span><span class="p">,</span>
+                        <span class="s2">"expected a single document in the stream, "</span>
+                        <span class="s2">"but found another document"</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">SequenceEndEvent</span> <span class="o">|</span> <span class="n">yaml</span><span class="o">.</span><span class="n">MappingEndEvent</span><span class="p">):</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">frames</span><span class="o">.</span><span class="n">pop</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">AliasEvent</span><span class="p">):</span>
+                    <span class="n">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="s2">"an alias is not read"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">anchor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">event</span><span class="o">.</span><span class="n">tag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Named by the property written first: &amp; an anchor, ! a tag.</span>
+                    <span class="n">anchor</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">event</span><span class="o">.</span><span class="n">start_mark</span><span class="o">.</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"&amp;"</span>
+                    <span class="n">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'an anchor'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">anchor</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'a tag'</span><span class="si">}</span><span class="s2"> is not read"</span><span class="p">)</span>
+                <span class="n">holder</span> <span class="o">=</span> <span class="n">frames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">frames</span> <span class="k">else</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="n">is_key</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">holder</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">holder</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="n">_NO_KEY</span>
+                <span class="n">scalar</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">ScalarEvent</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">is_key</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">scalar</span> <span class="ow">and</span> <span class="n">_is_string</span><span class="p">(</span><span class="n">event</span><span class="p">)):</span>
+                    <span class="n">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="s2">"a key that is not a string is not read"</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">scalar</span><span class="p">:</span>
+                    <span class="n">node</span> <span class="o">=</span> <span class="n">_resolved</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">is_key</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">holder</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                            <span class="n">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"the key </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">node</span><span class="p">)</span><span class="si">}</span><span class="s2"> repeats"</span><span class="p">)</span>
+                        <span class="n">holder</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">node</span>
+                        <span class="k">continue</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frames</span><span class="p">)</span> <span class="o">==</span> <span class="n">_DEPTH_LIMIT</span><span class="p">:</span>
+                        <span class="n">_refuse</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">_TOO_DEEP</span><span class="p">)</span>
+                    <span class="n">sequence</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">yaml</span><span class="o">.</span><span class="n">SequenceStartEvent</span><span class="p">)</span>
+                    <span class="n">frames</span><span class="o">.</span><span class="n">append</span><span class="p">([[]</span> <span class="k">if</span> <span class="n">sequence</span> <span class="k">else</span> <span class="p">{},</span> <span class="n">_NO_KEY</span><span class="p">])</span>
+                    <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">frames</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">node</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">frames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">frames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">frames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">frames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">node</span>
+                <span class="n">frames</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">_NO_KEY</span>
+    <span class="k">except</span> <span class="n">yaml</span><span class="o">.</span><span class="n">MarkedYAMLError</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
+        <span class="n">mark</span> <span class="o">=</span> <span class="n">error</span><span class="o">.</span><span class="n">problem_mark</span> <span class="ow">or</span> <span class="n">error</span><span class="o">.</span><span class="n">context_mark</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">part</span> <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">context</span><span class="p">,</span> <span class="n">error</span><span class="o">.</span><span class="n">problem</span><span class="p">)</span> <span class="k">if</span> <span class="n">part</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="n">problem</span> <span class="k">if</span> <span class="n">mark</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">_at</span><span class="p">(</span><span class="n">mark</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_without_byte_order_mark</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">_BYTE_ORDER_MARK</span><span class="p">)</span> <span class="k">else</span> <span class="n">text</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_reads_as_json</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether a text is read as JSON: it opens with ``{`` or ``[`` after white</span>
+<span class="sd">    space, or it is one JSON scalar."""</span>
+    <span class="n">opening</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="n">_JSON_WHITESPACE</span><span class="p">)[:</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">opening</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"{"</span><span class="p">,</span> <span class="s2">"["</span><span class="p">)</span> <span class="ow">or</span> <span class="n">_JSON_SCALAR</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="loads">
+<a class="viewcode-back" href="../../api/generated/timetoshare.serialization.html#timetoshare.serialization.loads">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">loads</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Read a text in any serialization, JSON or YAML.</span>
+
+<span class="sd">    One U+FEFF at position 0 is removed first. The text is read as JSON when</span>
+<span class="sd">    its first character other than a space, a tab, a line feed or a carriage</span>
+<span class="sd">    return is ``{`` or ``[``, or when it is a JSON text; every other text is</span>
+<span class="sd">    read as YAML. Integers stay exact at any size and floats stay floats. It</span>
+<span class="sd">    does not validate.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: With the line and column of the first fault in document</span>
+<span class="sd">            order, both counted from one, the column in code points (in the</span>
+<span class="sd">            text after a leading U+FEFF is removed), for a text the reading</span>
+<span class="sd">            rules refuse: a JSON text that is not one JSON value, an error of</span>
+<span class="sd">            the YAML parser, more than one YAML document, a character outside</span>
+<span class="sd">            YAML's printable set (found before any other fault), a key that</span>
+<span class="sd">            repeats in its object, a key that is not a string, an anchor, an</span>
+<span class="sd">            alias or a tag, a non-finite number (``NaN``, ``Infinity``,</span>
+<span class="sd">            ``.inf``, ``.nan`` and a number that rounds to an infinity), a</span>
+<span class="sd">            lone surrogate in a string or a key, written as itself or through</span>
+<span class="sd">            an escape, and collections nested deeper than 256 levels, placed</span>
+<span class="sd">            at the first collection at depth 257.</span>
+<span class="sd">        TypeError: If ``text`` is not a ``str``.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"loads reads a str, not </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">_without_byte_order_mark</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_read_json</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">_reads_as_json</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">else</span> <span class="n">_read_yaml</span><span class="p">(</span><span class="n">text</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="serialization_of">
+<a class="viewcode-back" href="../../api/generated/timetoshare.serialization.html#timetoshare.serialization.serialization_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">serialization_of</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Serialization</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Name the serialization of a text without validating it; never raises.</span>
+
+<span class="sd">    ``"jcs"`` for a text read as JSON that is byte for byte the RFC 8785</span>
+<span class="sd">    JSON of its value; ``"json"`` for every other text read as JSON (one</span>
+<span class="sd">    that cannot be read, one whose value the RFC 8785 writer refuses, and</span>
+<span class="sd">    one that begins with a byte order mark included); ``"yaml"`` for every</span>
+<span class="sd">    other text.</span>
+<span class="sd">    """</span>
+    <span class="n">body</span> <span class="o">=</span> <span class="n">_without_byte_order_mark</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_reads_as_json</span><span class="p">(</span><span class="n">body</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"yaml"</span>
+    <span class="k">if</span> <span class="n">body</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">text</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"json"</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"jcs"</span> <span class="k">if</span> <span class="n">dumps</span><span class="p">(</span><span class="n">_read_json</span><span class="p">(</span><span class="n">body</span><span class="p">),</span> <span class="n">serialization</span><span class="o">=</span><span class="s2">"jcs"</span><span class="p">)</span> <span class="o">==</span> <span class="n">body</span> <span class="k">else</span> <span class="s2">"json"</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"json"</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Time to Align!.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  <script src="/TimeToShare/versions.js" defer></script>
+</body>
+</html>

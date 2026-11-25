@@ -1,0 +1,2 @@
+```{include} ../../decisions/0012-noto-music-and-one-merged-metrics-table.md
+```

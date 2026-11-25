@@ -1,0 +1,75 @@
+{
+  "$id": "https://timetoalign.github.io/timetoshare/0.2.0/tables.json",
+  "description": "The column types of the two tables a TimeToShare package keeps beside its manifest, as Apache Arrow types. Each type of `types` is a struct of named members, in order, or the struct read from the schema it names. Each table of `tables` has a `status` (`stable`: under the version promise of the format; `experimental`: outside it, free to change in any version) and its `columns`, in order, each with its `name`, its `type` (a type name of `string`, `bool`, `int64` or `float64`, Arrow's utf8, bool, int64 and double, or a name of `types`) and whether it is `nullable`. A column that is not nullable holds no null in any row; its Arrow field may still be declared nullable. A table may hold further columns, which a reader keeps and never checks.",
+  "types": {
+    "number": {
+      "description": "A number, filled by its number type and never mirrored: an int is its numerator alone, a fraction its numerator and its denominator (at least 1), a float its finite value alone; every other member is null.",
+      "struct": [
+        { "name": "numerator", "type": "int64" },
+        { "name": "denominator", "type": "int64" },
+        { "name": "value", "type": "float64" }
+      ]
+    },
+    "coordinate": {
+      "description": "A coordinate on one timeline's axis: the members of a number, then its unit and its number type.",
+      "struct": [
+        { "name": "numerator", "type": "int64" },
+        { "name": "denominator", "type": "int64" },
+        { "name": "value", "type": "float64" },
+        { "name": "unit", "type": "string" },
+        { "name": "number_type", "type": "string" }
+      ]
+    },
+    "anchor": {
+      "description": "An AlignmentAnchor: one coordinate on each of the row's two timelines, coordinate_a on its timeline_a_id, coordinate_b on its timeline_b_id.",
+      "struct": [
+        { "name": "coordinate_a", "type": "coordinate" },
+        { "name": "coordinate_b", "type": "coordinate" }
+      ]
+    },
+    "projection_of": {
+      "description": "The event a Projection stands for, by its timeline and its ID.",
+      "struct": [
+        { "name": "timeline_id", "type": "string" },
+        { "name": "event_id", "type": "string" }
+      ]
+    },
+    "provenance": {
+      "description": "A row's provenance: a struct of the provenance schema's properties, in its order; a property of type array is a list (of the struct of the Belief's properties, each a string, for beliefs; of strings otherwise), every other property a string.",
+      "schema": "provenance.schema.json"
+    }
+  },
+  "tables": {
+    "MatchClaim": {
+      "description": "The MatchClaim table: one row per MatchClaim, addressed by its ID alone. A MatchClaim table belongs to one manifest.",
+      "status": "stable",
+      "columns": [
+        { "name": "timeline_a_id", "type": "string", "nullable": false },
+        { "name": "timeline_b_id", "type": "string", "nullable": false },
+        { "name": "start_anchor", "type": "anchor", "nullable": true },
+        { "name": "end_anchor", "type": "anchor", "nullable": true },
+        { "name": "is_synchronous", "type": "bool", "nullable": false },
+        { "name": "provenance", "type": "provenance", "nullable": true },
+        { "name": "certainty", "type": "float64", "nullable": true },
+        { "name": "event_a_id", "type": "string", "nullable": true },
+        { "name": "event_a_name", "type": "string", "nullable": true },
+        { "name": "event_b_id", "type": "string", "nullable": true },
+        { "name": "event_b_name", "type": "string", "nullable": true },
+        { "name": "id", "type": "string", "nullable": false }
+      ]
+    },
+    "Projection": {
+      "description": "The Projections table: one row per Projection, its unit and number type stated once for its start and its duration; duration null for an instant.",
+      "status": "experimental",
+      "columns": [
+        { "name": "id", "type": "string", "nullable": false },
+        { "name": "timeline_id", "type": "string", "nullable": false },
+        { "name": "unit", "type": "string", "nullable": false },
+        { "name": "number_type", "type": "string", "nullable": false },
+        { "name": "start", "type": "number", "nullable": false },
+        { "name": "duration", "type": "number", "nullable": true },
+        { "name": "projection_of", "type": "projection_of", "nullable": true }
+      ]
+    }
+  }
+}

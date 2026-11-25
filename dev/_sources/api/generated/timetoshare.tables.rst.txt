@@ -1,0 +1,13 @@
+﻿timetoshare.tables
+==================
+
+.. automodule:: timetoshare.tables
+   :no-members:
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   anchors
+   checks
+   columns

@@ -1,0 +1,2 @@
+```{include} ../../decisions/0008-oidc-dual-package-release.md
+```

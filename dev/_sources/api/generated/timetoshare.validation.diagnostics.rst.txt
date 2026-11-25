@@ -1,0 +1,4 @@
+timetoshare.validation.diagnostics
+==================================
+
+.. automodule:: timetoshare.validation.diagnostics

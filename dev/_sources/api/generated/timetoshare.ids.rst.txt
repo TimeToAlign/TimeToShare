@@ -1,0 +1,4 @@
+﻿timetoshare.ids
+===============
+
+.. automodule:: timetoshare.ids

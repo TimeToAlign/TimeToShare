@@ -1,0 +1,2 @@
+```{include} ../../decisions/0018-sphinx-documentation-site.md
+```

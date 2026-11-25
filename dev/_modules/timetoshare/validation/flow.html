@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>timetoshare.validation.flow &#8212; timetoshare 0.2.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/timetoshare/validation/flow';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.0" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">timetoshare 0.2.0</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api/python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">timetoshare.validation.flow</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for timetoshare.validation.flow</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Flow rules: flow control, FlowMaps and virtual timelines.</span>
+
+<span class="sd">The schema checks the shape of every flow-control element, FlowMap and</span>
+<span class="sd">virtual timeline; the rules here reach beyond it.</span>
+
+<span class="sd">Before the schema, an element written in the earlier form of flow control</span>
+<span class="sd">(the key ``type`` with ``jump_from``, ``jump_to`` or ``flow_marker``, or the</span>
+<span class="sd">key ``target``) is refused with the name of the converter</span>
+<span class="sd">(``flow_control_form``).</span>
+
+<span class="sd">After the schema, timeline by timeline, the rules read the elements that are</span>
+<span class="sd">not rejected. An element is rejected when an entry of its ``provenance``</span>
+<span class="sd">holds a belief ``false``: a repair rejects an element and adds another, so a</span>
+<span class="sd">rejected jump and its replacement may share a coordinate. In document</span>
+<span class="sd">order: a coordinate lies from 0 to the timeline's known length</span>
+<span class="sd">(``flow_coordinate``); a timeline has one jump at a coordinate</span>
+<span class="sd">(``jump_repeated``); the destinations of a jump are distinct places</span>
+<span class="sd">(``jump_destination``); a ``to`` names a jump target or a region of the</span>
+<span class="sd">timeline, a child of it or the timeline itself (``dangling_target``); a place</span>
+<span class="sd">reached by ``by`` lies from 0 to the known length (``flow_coordinate``); an</span>
+<span class="sd">``after`` names exactly one destination of another jump of the timeline</span>
+<span class="sd">(``dangling_target``).</span>
+
+<span class="sd">Then the FlowMaps: ``timeline`` names a root (``flow_map_timeline``), every</span>
+<span class="sd">chunk ID a region or a child timeline inside that root's tree, or a virtual</span>
+<span class="sd">timeline of a timeline of it (``flow_map_chunk``), and at most one FlowMap of</span>
+<span class="sd">a timeline is canonical (``flow_map_canonical``); and the virtual timelines:</span>
+<span class="sd">``map`` names a FlowMap or a conversion map, ``timeline`` a timeline or</span>
+<span class="sd">another virtual timeline (``dangling_target``). A virtual timeline comes,</span>
+<span class="sd">virtual timeline by virtual timeline, from a timeline: none comes from itself</span>
+<span class="sd">through others. Where its ``map`` is a FlowMap and it states no ``through``,</span>
+<span class="sd">the timeline it comes from lies in the tree of the FlowMap's root, and its</span>
+<span class="sd">``length`` is the sum of the FlowMap's chunks and gaps where all of them lie</span>
+<span class="sd">on its own axis (``virtual_timeline``); with ``through`` neither is read.</span>
+
+<span class="sd">A manifestation or a convention outside the format's vocabulary is valid:</span>
+<span class="sd">:func:`flow_warnings` reports it.</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">..manifest</span><span class="w"> </span><span class="kn">import</span> <span class="n">exact</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">spell</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.diagnostics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">InstancePath</span><span class="p">,</span>
+    <span class="n">SchemaValidationError</span><span class="p">,</span>
+    <span class="n">entries_of</span><span class="p">,</span>
+    <span class="n">json_pointer</span><span class="p">,</span>
+    <span class="n">number_type_of</span><span class="p">,</span>
+    <span class="n">string_id</span><span class="p">,</span>
+    <span class="n">tree_ids</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">CONVERTER</span> <span class="o">=</span> <span class="s2">"scripts/convert_flow_control.py"</span>
+<span class="sd">"""The script that converts the earlier form of flow control, by its path in</span>
+<span class="sd">the TimeToShare repository."""</span>
+
+<span class="n">EARLIER_ROLES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"jump_from"</span><span class="p">,</span> <span class="s2">"jump_to"</span><span class="p">,</span> <span class="s2">"flow_marker"</span><span class="p">)</span>
+<span class="sd">"""The values of ``type`` in the earlier form of flow control."""</span>
+
+<span class="n">MANIFESTATIONS</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"destination"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"repeat_end"</span><span class="p">,</span>
+        <span class="s2">"da_capo"</span><span class="p">,</span>
+        <span class="s2">"da_capo_al_fine"</span><span class="p">,</span>
+        <span class="s2">"da_capo_al_coda"</span><span class="p">,</span>
+        <span class="s2">"dal_segno"</span><span class="p">,</span>
+        <span class="s2">"dal_segno_al_fine"</span><span class="p">,</span>
+        <span class="s2">"dal_segno_al_coda"</span><span class="p">,</span>
+        <span class="s2">"to_coda"</span><span class="p">,</span>
+        <span class="s2">"volta"</span><span class="p">,</span>
+        <span class="s2">"ossia"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"jump_target"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"repeat_start"</span><span class="p">,</span> <span class="s2">"segno"</span><span class="p">,</span> <span class="s2">"coda"</span><span class="p">,</span> <span class="s2">"volta"</span><span class="p">,</span> <span class="s2">"ossia"</span><span class="p">),</span>
+    <span class="s2">"break"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"fine"</span><span class="p">,</span> <span class="s2">"volta"</span><span class="p">),</span>
+    <span class="s2">"section_break"</span><span class="p">:</span> <span class="p">(),</span>
+    <span class="s2">"barline"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"double_barline"</span><span class="p">,</span> <span class="s2">"final_barline"</span><span class="p">),</span>
+<span class="p">}</span>
+<span class="sd">"""The manifestations the format defines: of a jump's destination, and of an</span>
+<span class="sd">element by its role. The vocabulary is open; any other word is reported as</span>
+<span class="sd">unknown and never refused."""</span>
+
+<span class="n">CONVENTIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"default"</span><span class="p">,</span> <span class="s2">"single"</span><span class="p">,</span> <span class="s2">"printed"</span><span class="p">)</span>
+<span class="sd">"""The conventions the format defines for a FlowMap; the vocabulary is open."""</span>
+
+<span class="n">_NAMED</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"destination"</span><span class="p">:</span> <span class="s2">"a destination"</span><span class="p">,</span>
+    <span class="s2">"jump_target"</span><span class="p">:</span> <span class="s2">"a jump target"</span><span class="p">,</span>
+    <span class="s2">"break"</span><span class="p">:</span> <span class="s2">"a break"</span><span class="p">,</span>
+    <span class="s2">"section_break"</span><span class="p">:</span> <span class="s2">"a section break"</span><span class="p">,</span>
+    <span class="s2">"barline"</span><span class="p">:</span> <span class="s2">"a barline"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_bare</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">text</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_earlier</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">kind</span><span class="p">,</span> <span class="n">role</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"type"</span><span class="p">),</span> <span class="n">element</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"role"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">EARLIER_ROLES</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">role</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">role</span> <span class="ow">in</span> <span class="n">EARLIER_ROLES</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="p">(</span><span class="s2">"target"</span> <span class="ow">in</span> <span class="n">element</span> <span class="ow">and</span> <span class="s2">"role"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">element</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_earlier_form</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">InstancePath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"flow_control"</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">_earlier</span><span class="p">(</span><span class="n">element</span><span class="p">):</span>
+            <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"flow_control"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">identifier</span> <span class="o">=</span> <span class="n">string_id</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="n">named</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"flow-control element '</span><span class="si">{</span><span class="n">_bare</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span><span class="si">}</span><span class="s2">'"</span>
+                <span class="k">if</span> <span class="n">identifier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="k">else</span> <span class="sa">f</span><span class="s2">"the flow-control element at </span><span class="si">{</span><span class="n">json_pointer</span><span class="p">(</span><span class="n">at</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"flow_control_form"</span><span class="p">,</span>
+                <span class="n">at</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">named</span><span class="si">}</span><span class="s2"> is written in the earlier form of flow control (type, "</span>
+                <span class="sa">f</span><span class="s2">"target): convert the manifest with </span><span class="si">{</span><span class="n">CONVERTER</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">)):</span>
+        <span class="k">yield from</span> <span class="n">_earlier_form</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="earlier_form_problems">
+<a class="viewcode-back" href="../../../api/generated/timetoshare.validation.flow.html#timetoshare.validation.flow.earlier_form_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">earlier_form_problems</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Yield every flow-control element written in the earlier form.</span>
+
+<span class="sd">    Root by root, each timeline's elements before its children's. The walk</span>
+<span class="sd">    reads any value and either form of an ID.</span>
+<span class="sd">    """</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">)):</span>
+        <span class="k">yield from</span> <span class="n">_earlier_form</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="p">(</span><span class="s2">"timelines"</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="rejected">
+<a class="viewcode-back" href="../../../api/generated/timetoshare.validation.flow.html#timetoshare.validation.flow.rejected">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rejected</span><span class="p">(</span><span class="n">element</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Whether an entry of an element's provenance holds a belief ``false``."""</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="nb">isinstance</span><span class="p">(</span><span class="n">belief</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="n">belief</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"belief"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"false"</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s2">"provenance"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">belief</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="s2">"beliefs"</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_place</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">coordinate</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">by</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fraction</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Where a distance ``by`` from ``coordinate`` lands on the timeline's axis.</span>
+
+<span class="sd">    On a ``float`` axis the two JSON numbers are added as doubles, as a</span>
+<span class="sd">    reader adds them; on every other axis the sum is exact.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">number_type_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"float"</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Fraction</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coordinate</span><span class="p">)</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">by</span><span class="p">))</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">OverflowError</span><span class="p">):</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">exact</span><span class="p">(</span><span class="n">coordinate</span><span class="p">)</span> <span class="o">+</span> <span class="n">exact</span><span class="p">(</span><span class="n">by</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_place_key</span><span class="p">(</span><span class="n">destination</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="s2">"to"</span> <span class="ow">in</span> <span class="n">destination</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">"to"</span><span class="p">,</span> <span class="n">destination</span><span class="p">[</span><span class="s2">"to"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">"by"</span> <span class="ow">in</span> <span class="n">destination</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">"by"</span><span class="p">,</span> <span class="n">exact</span><span class="p">(</span><span class="n">destination</span><span class="p">[</span><span class="s2">"by"</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_place_words</span><span class="p">(</span><span class="n">destination</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">"to"</span> <span class="ow">in</span> <span class="n">destination</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"to '</span><span class="si">{</span><span class="n">destination</span><span class="p">[</span><span class="s1">'to'</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span>
+    <span class="k">if</span> <span class="s2">"by"</span> <span class="ow">in</span> <span class="n">destination</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"by </span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">destination</span><span class="p">[</span><span class="s1">'by'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="s2">"without a place"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_after_problems</span><span class="p">(</span>
+    <span class="n">after</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">InstancePath</span><span class="p">,</span>
+    <span class="n">holder</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">jumps</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The problem of one ``after``: it names one destination of another jump."""</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">after</span><span class="p">[</span><span class="s2">"jump"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">holder</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+            <span class="s2">"dangling_target"</span><span class="p">,</span>
+            <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"jump"</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' is the jump holding this destination; after names a "</span>
+            <span class="s2">"destination of another jump"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">jump</span> <span class="o">=</span> <span class="n">jumps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">jump</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+            <span class="s2">"dangling_target"</span><span class="p">,</span>
+            <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"jump"</span><span class="p">),</span>
+            <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' names no jump of this timeline"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span>
+    <span class="n">destinations</span> <span class="o">=</span> <span class="n">jump</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"to"</span><span class="p">,</span> <span class="s2">"by"</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">after</span><span class="p">:</span>
+            <span class="n">wanted</span> <span class="o">=</span> <span class="n">_place_key</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">after</span><span class="p">[</span><span class="n">key</span><span class="p">]})</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">_place_key</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="o">==</span> <span class="n">wanted</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">destinations</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">found</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                    <span class="s2">"dangling_target"</span><span class="p">,</span>
+                    <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">key</span><span class="p">),</span>
+                    <span class="sa">f</span><span class="s2">"jump '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' has no destination "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_place_words</span><span class="p">({</span><span class="n">key</span><span class="p">:</span><span class="w"> </span><span class="n">after</span><span class="p">[</span><span class="n">key</span><span class="p">]})</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">return</span>
+    <span class="n">placeless</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">_place_key</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span> <span class="o">==</span> <span class="p">(</span><span class="s2">""</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">destinations</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">placeless</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">destinations</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+            <span class="s2">"dangling_target"</span><span class="p">,</span>
+            <span class="n">path</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">"jump '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' has </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">destinations</span><span class="p">)</span><span class="si">}</span><span class="s2"> destinations and none without "</span>
+            <span class="s2">"a place; after names one by its to or by"</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<div class="viewcode-block" id="timeline_flow_problems">
+<a class="viewcode-back" href="../../../api/generated/timetoshare.validation.flow.html#timetoshare.validation.flow.timeline_flow_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">timeline_flow_problems</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">InstancePath</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Yield the problems of one timeline's flow control, in document order.</span>
+
+<span class="sd">    The timeline's own elements only; its children are the caller's.</span>
+<span class="sd">    """</span>
+    <span class="n">flow</span> <span class="o">=</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"flow_control"</span><span class="p">)</span>
+    <span class="n">read</span> <span class="o">=</span> <span class="p">[(</span><span class="n">index</span><span class="p">,</span> <span class="n">entry</span><span class="p">)</span> <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">rejected</span><span class="p">(</span><span class="n">entry</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">read</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"length"</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">exact</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+    <span class="n">owner</span> <span class="o">=</span> <span class="n">timeline</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+    <span class="n">jumps</span> <span class="o">=</span> <span class="p">{</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]:</span> <span class="n">entry</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">read</span> <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"role"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"jump"</span><span class="p">}</span>
+    <span class="n">places</span> <span class="o">=</span> <span class="p">{</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">read</span> <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"role"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"jump_target"</span><span class="p">}</span>
+    <span class="n">places</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">region</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"regions"</span><span class="p">))</span>
+    <span class="n">places</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">child</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">))</span>
+    <span class="n">places</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">owner</span><span class="p">)</span>
+    <span class="n">first_jump</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="n">Fraction</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">outside</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Fraction</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether a coordinate lies before 0 or after the timeline's known length."""</span>
+        <span class="k">return</span> <span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">beyond</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""The reason given for a coordinate that lies outside the timeline."""</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">"it lies before 0"</span>
+            <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">"it lies outside 0 to the length </span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">length</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">read</span><span class="p">:</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"flow_control"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">coordinate</span> <span class="o">=</span> <span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"coordinate"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">outside</span><span class="p">(</span><span class="n">coordinate</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"flow_coordinate"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"coordinate"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"coordinate </span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">'coordinate'</span><span class="p">])</span><span class="si">}</span><span class="s2"> of '</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">' is not "</span>
+                <span class="sa">f</span><span class="s2">"on '</span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">beyond</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"role"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"break"</span> <span class="ow">and</span> <span class="s2">"after"</span> <span class="ow">in</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ends"</span><span class="p">,</span> <span class="p">{}):</span>
+            <span class="k">yield from</span> <span class="n">_after_problems</span><span class="p">(</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">"ends"</span><span class="p">][</span><span class="s2">"after"</span><span class="p">],</span> <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"ends"</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="n">jumps</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"role"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"jump"</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">coordinate</span> <span class="ow">in</span> <span class="n">first_jump</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"jump_repeated"</span><span class="p">,</span>
+                <span class="n">at</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">' is a second jump at coordinate "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">'coordinate'</span><span class="p">])</span><span class="si">}</span><span class="s2"> of '</span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">', after "</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">first_jump</span><span class="p">[</span><span class="n">coordinate</span><span class="p">]</span><span class="si">}</span><span class="s2">': several signs at one place are "</span>
+                <span class="s2">"destinations of one jump"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">first_jump</span><span class="p">[</span><span class="n">coordinate</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+        <span class="n">seen</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">number</span><span class="p">,</span> <span class="n">destination</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"targets"</span><span class="p">]):</span>
+            <span class="n">here</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">,</span> <span class="n">number</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">_place_key</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">seen</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                    <span class="s2">"jump_destination"</span><span class="p">,</span>
+                    <span class="n">here</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"destination </span><span class="si">{</span><span class="n">number</span><span class="si">}</span><span class="s2"> of '</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">' has the place of "</span>
+                    <span class="sa">f</span><span class="s2">"destination </span><span class="si">{</span><span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">_place_words</span><span class="p">(</span><span class="n">destination</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">seen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">number</span>
+            <span class="k">if</span> <span class="s2">"to"</span> <span class="ow">in</span> <span class="n">destination</span> <span class="ow">and</span> <span class="n">destination</span><span class="p">[</span><span class="s2">"to"</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">places</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                    <span class="s2">"dangling_target"</span><span class="p">,</span>
+                    <span class="p">(</span><span class="o">*</span><span class="n">here</span><span class="p">,</span> <span class="s2">"to"</span><span class="p">),</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">destination</span><span class="p">[</span><span class="s1">'to'</span><span class="p">]</span><span class="si">}</span><span class="s2">' names no jump target, region or child "</span>
+                    <span class="s2">"of this timeline, nor the timeline itself"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="s2">"by"</span> <span class="ow">in</span> <span class="n">destination</span><span class="p">:</span>
+                <span class="n">place</span> <span class="o">=</span> <span class="n">_place</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"coordinate"</span><span class="p">],</span> <span class="n">destination</span><span class="p">[</span><span class="s2">"by"</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">outside</span><span class="p">(</span><span class="n">place</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                        <span class="s2">"flow_coordinate"</span><span class="p">,</span>
+                        <span class="p">(</span><span class="o">*</span><span class="n">here</span><span class="p">,</span> <span class="s2">"by"</span><span class="p">),</span>
+                        <span class="sa">f</span><span class="s2">"by </span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">destination</span><span class="p">[</span><span class="s1">'by'</span><span class="p">])</span><span class="si">}</span><span class="s2"> from coordinate "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">'coordinate'</span><span class="p">])</span><span class="si">}</span><span class="s2"> of '</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">' is not on "</span>
+                        <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">owner</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="n">beyond</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                    <span class="p">)</span>
+            <span class="k">if</span> <span class="s2">"after"</span> <span class="ow">in</span> <span class="n">destination</span><span class="p">:</span>
+                <span class="k">yield from</span> <span class="n">_after_problems</span><span class="p">(</span>
+                    <span class="n">destination</span><span class="p">[</span><span class="s2">"after"</span><span class="p">],</span> <span class="p">(</span><span class="o">*</span><span class="n">here</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">),</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">jumps</span>
+                <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_tree</span><span class="p">(</span>
+    <span class="n">root</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The IDs of a root's timelines and of what gives an interval inside its tree.</span>
+
+<span class="sd">    The first set holds the root and every descendant; the second every</span>
+<span class="sd">    descendant and every region of the root or a descendant.</span>
+<span class="sd">    """</span>
+    <span class="n">timelines</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">intervals</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">visit</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">child</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Add a timeline's IDs and its regions', then its children's."""</span>
+        <span class="n">timelines</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">timeline</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">child</span><span class="p">:</span>
+            <span class="n">intervals</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">timeline</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
+        <span class="n">intervals</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">region</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"regions"</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">):</span>
+            <span class="n">visit</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">visit</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">timelines</span><span class="p">,</span> <span class="n">intervals</span>
+
+
+<span class="n">Axis</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
+<span class="sd">"""The unit and the number type of an axis."""</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_extents</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Axis</span><span class="p">,</span> <span class="n">Fraction</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""The axis and the length of everything a chunk may name, by ID.</span>
+
+<span class="sd">    A region (its end less its start, on its timeline's axis), a child</span>
+<span class="sd">    timeline (its length on its own axis, None where unknown) and a virtual</span>
+<span class="sd">    timeline. Of a repeated ID the first in this order is kept.</span>
+<span class="sd">    """</span>
+    <span class="n">found</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Axis</span><span class="p">,</span> <span class="n">Fraction</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">visit</span><span class="p">(</span><span class="n">timeline</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">child</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Record a child timeline's extent and its regions', then its children's."""</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">timeline</span><span class="p">[</span><span class="s2">"unit"</span><span class="p">],</span> <span class="n">number_type_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">))</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="n">timeline</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"length"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">child</span><span class="p">:</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+                <span class="n">timeline</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">length</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">exact</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"regions"</span><span class="p">):</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+                <span class="n">region</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">exact</span><span class="p">(</span><span class="n">region</span><span class="p">[</span><span class="s2">"end"</span><span class="p">])</span> <span class="o">-</span> <span class="n">exact</span><span class="p">(</span><span class="n">region</span><span class="p">[</span><span class="s2">"start"</span><span class="p">]))</span>
+            <span class="p">)</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">):</span>
+            <span class="n">visit</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">):</span>
+        <span class="n">visit</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"virtual_timelines"</span><span class="p">):</span>
+        <span class="n">found</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span>
+            <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+            <span class="p">((</span><span class="n">entry</span><span class="p">[</span><span class="s2">"unit"</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"number_type"</span><span class="p">]),</span> <span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"length"</span><span class="p">])),</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_played</span><span class="p">(</span>
+    <span class="n">flow_map</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="n">axis</span><span class="p">:</span> <span class="n">Axis</span><span class="p">,</span>
+    <span class="n">gaps</span><span class="p">:</span> <span class="n">Axis</span><span class="p">,</span>
+    <span class="n">extents</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Axis</span><span class="p">,</span> <span class="n">Fraction</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Fraction</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The sum of a FlowMap's chunks and gaps on ``axis``, or None.</span>
+
+<span class="sd">    None where the sum is not read: on a ``float`` axis, whose sum depends</span>
+<span class="sd">    on the order of its additions, and where a chunk names nothing, has no</span>
+<span class="sd">    known length or lies on another axis than ``axis`` (a gap lies on the</span>
+<span class="sd">    axis ``gaps`` of the FlowMap's timeline).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"float"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">Fraction</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">flow_map</span><span class="p">[</span><span class="s2">"chunks"</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">on</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="n">extents</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">on</span> <span class="o">!=</span> <span class="n">axis</span> <span class="ow">or</span> <span class="n">length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">length</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gaps</span> <span class="o">!=</span> <span class="n">axis</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">total</span> <span class="o">+=</span> <span class="n">exact</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="s2">"gap"</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">total</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_spelled</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Fraction</span><span class="p">,</span> <span class="n">number_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""An exact value as an axis of ``number_type`` spells it."""</span>
+    <span class="k">if</span> <span class="n">number_type</span> <span class="o">==</span> <span class="s2">"fraction"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">spell</span><span class="p">([</span><span class="n">value</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">value</span><span class="o">.</span><span class="n">denominator</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">spell</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">numerator</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_map_ids</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""The IDs of every conversion map of a manifest, at any depth."""</span>
+    <span class="n">found</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">tree_ids</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="p">(</span><span class="s2">"timelines"</span><span class="p">,</span> <span class="n">index</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="s2">"conversion_maps"</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+                <span class="n">found</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span>
+
+
+<div class="viewcode-block" id="flow_map_problems">
+<a class="viewcode-back" href="../../../api/generated/timetoshare.validation.flow.html#timetoshare.validation.flow.flow_map_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">flow_map_problems</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Yield the problems of the FlowMaps, then of the virtual timelines.</span>
+
+<span class="sd">    FlowMap by FlowMap: its timeline, its chunks in their order (none where</span>
+<span class="sd">    the timeline is no root), then a second canonical FlowMap of its</span>
+<span class="sd">    timeline. Virtual timeline by virtual timeline: its map, then its</span>
+<span class="sd">    timeline, then the virtual timelines it comes from itself through, and,</span>
+<span class="sd">    where it comes from a timeline and applies a FlowMap of a root without</span>
+<span class="sd">    ``through``, the FlowMap of another root, else its length.</span>
+<span class="sd">    """</span>
+    <span class="n">roots</span> <span class="o">=</span> <span class="p">{</span><span class="n">root</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]:</span> <span class="n">root</span> <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">)}</span>
+    <span class="n">trees</span> <span class="o">=</span> <span class="p">{</span><span class="n">identifier</span><span class="p">:</span> <span class="n">_tree</span><span class="p">(</span><span class="n">root</span><span class="p">)</span> <span class="k">for</span> <span class="n">identifier</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">roots</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">every</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">timelines</span> <span class="k">for</span> <span class="n">timelines</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">trees</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+    <span class="n">flow_maps</span> <span class="o">=</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"flow_maps"</span><span class="p">)</span>
+    <span class="n">virtual</span> <span class="o">=</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"virtual_timelines"</span><span class="p">)</span>
+    <span class="n">comes_from</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">virtual</span><span class="p">:</span>
+        <span class="n">comes_from</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">])</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">lies_in</span><span class="p">(</span><span class="n">identifier</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timelines</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Whether a virtual timeline comes, map by map, from one of ``timelines``."""</span>
+        <span class="n">visited</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">identifier</span> <span class="ow">in</span> <span class="n">comes_from</span> <span class="ow">and</span> <span class="n">identifier</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">visited</span><span class="p">:</span>
+            <span class="n">visited</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+            <span class="n">identifier</span> <span class="o">=</span> <span class="n">comes_from</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">identifier</span> <span class="ow">in</span> <span class="n">timelines</span>
+
+    <span class="n">canonical</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">flow_map</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flow_maps</span><span class="p">):</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"flow_maps"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">flow_map</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">roots</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"flow_map_timeline"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' is a child timeline; a FlowMap names a root timeline"</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">every</span>
+                <span class="k">else</span> <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' names no root timeline of this manifest"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">timelines</span><span class="p">,</span> <span class="n">intervals</span> <span class="o">=</span> <span class="n">trees</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">number</span><span class="p">,</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flow_map</span><span class="p">[</span><span class="s2">"chunks"</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">chunk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">intervals</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span>
+                    <span class="n">chunk</span> <span class="ow">in</span> <span class="n">comes_from</span> <span class="ow">and</span> <span class="n">lies_in</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">timelines</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                        <span class="s2">"flow_map_chunk"</span><span class="p">,</span>
+                        <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"chunks"</span><span class="p">,</span> <span class="n">number</span><span class="p">),</span>
+                        <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">chunk</span><span class="si">}</span><span class="s2">' names no region, child timeline or virtual "</span>
+                        <span class="sa">f</span><span class="s2">"timeline in the tree of '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">'"</span><span class="p">,</span>
+                    <span class="p">)</span>
+        <span class="k">if</span> <span class="n">flow_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"canonical"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">canonical</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                    <span class="s2">"flow_map_canonical"</span><span class="p">,</span>
+                    <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"canonical"</span><span class="p">),</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">flow_map</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">' is a second canonical FlowMap of '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">', "</span>
+                    <span class="sa">f</span><span class="s2">"after '</span><span class="si">{</span><span class="n">canonical</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">canonical</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">flow_map</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+
+    <span class="n">maps</span> <span class="o">=</span> <span class="p">{</span><span class="n">flow_map</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">flow_map</span> <span class="ow">in</span> <span class="n">flow_maps</span><span class="p">}</span> <span class="o">|</span> <span class="n">_map_ids</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="n">applied</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">flow_map</span> <span class="ow">in</span> <span class="n">flow_maps</span><span class="p">:</span>
+        <span class="n">applied</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">flow_map</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">flow_map</span><span class="p">)</span>
+    <span class="n">root_of</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">identifier</span><span class="p">,</span> <span class="p">(</span><span class="n">timelines</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">trees</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">timelines</span><span class="p">:</span>
+            <span class="n">root_of</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">identifier</span><span class="p">)</span>
+    <span class="n">extents</span> <span class="o">=</span> <span class="n">_extents</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">virtual</span><span class="p">):</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"virtual_timelines"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"map"</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">maps</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"dangling_target"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"map"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'map'</span><span class="p">]</span><span class="si">}</span><span class="s2">' names no FlowMap or conversion map of this manifest"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="ow">or</span> <span class="p">(</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">every</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">comes_from</span><span class="p">):</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"dangling_target"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' names no timeline and no other virtual timeline of "</span>
+                <span class="s2">"this manifest"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">chain</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]]</span>
+        <span class="k">while</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">comes_from</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">:</span>
+            <span class="n">chain</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">comes_from</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]:</span>
+            <span class="n">through</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">other</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">chain</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"virtual_timeline"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' comes from itself through </span><span class="si">{</span><span class="n">through</span><span class="si">}</span><span class="s2">: a virtual "</span>
+                <span class="s2">"timeline comes, virtual timeline by virtual timeline, from a "</span>
+                <span class="s2">"timeline of this manifest"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">flow_map</span> <span class="o">=</span> <span class="n">applied</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"map"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">root_of</span> <span class="ow">or</span> <span class="n">flow_map</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"through"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">of</span> <span class="o">=</span> <span class="n">flow_map</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">of</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">roots</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">of</span> <span class="o">!=</span> <span class="n">root_of</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"virtual_timeline"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"map"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'map'</span><span class="p">]</span><span class="si">}</span><span class="s2">' is a FlowMap of '</span><span class="si">{</span><span class="n">of</span><span class="si">}</span><span class="s2">', and "</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'timeline'</span><span class="p">]</span><span class="si">}</span><span class="s2">' comes from the tree of '</span><span class="si">{</span><span class="n">root_of</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="si">}</span><span class="s2">': "</span>
+                <span class="s2">"without through, a virtual timeline applies a FlowMap within the "</span>
+                <span class="s2">"tree of the FlowMap's root timeline"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"unit"</span><span class="p">],</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"number_type"</span><span class="p">])</span>
+        <span class="n">gaps</span> <span class="o">=</span> <span class="p">(</span><span class="n">roots</span><span class="p">[</span><span class="n">of</span><span class="p">][</span><span class="s2">"unit"</span><span class="p">],</span> <span class="n">number_type_of</span><span class="p">(</span><span class="n">roots</span><span class="p">[</span><span class="n">of</span><span class="p">]))</span>
+        <span class="n">played</span> <span class="o">=</span> <span class="n">_played</span><span class="p">(</span><span class="n">flow_map</span><span class="p">,</span> <span class="n">axis</span><span class="p">,</span> <span class="n">gaps</span><span class="p">,</span> <span class="n">extents</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">played</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">played</span> <span class="o">!=</span> <span class="n">exact</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"length"</span><span class="p">]):</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"virtual_timeline"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"length"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"length </span><span class="si">{</span><span class="n">spell</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s1">'length'</span><span class="p">])</span><span class="si">}</span><span class="s2"> of '</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">' is not the "</span>
+                <span class="sa">f</span><span class="s2">"sum of the chunks and gaps of '</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'map'</span><span class="p">]</span><span class="si">}</span><span class="s2">', "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_spelled</span><span class="p">(</span><span class="n">played</span><span class="p">,</span><span class="w"> </span><span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_timeline_warnings</span><span class="p">(</span>
+    <span class="n">timeline</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">path</span><span class="p">:</span> <span class="n">InstancePath</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"flow_control"</span><span class="p">)):</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"flow_control"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">checked</span> <span class="o">=</span> <span class="p">[(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"role"</span><span class="p">],</span> <span class="n">entry</span><span class="p">,</span> <span class="n">at</span><span class="p">)]</span>
+        <span class="n">checked</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="s2">"destination"</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">,</span> <span class="n">number</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">number</span><span class="p">,</span> <span class="n">destination</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="s2">"targets"</span><span class="p">))</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">kind</span><span class="p">,</span> <span class="n">holder</span><span class="p">,</span> <span class="n">here</span> <span class="ow">in</span> <span class="n">checked</span><span class="p">:</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="n">holder</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"manifestation"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">word</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">MANIFESTATIONS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">kind</span><span class="p">,</span> <span class="p">()):</span>
+                <span class="k">yield</span> <span class="p">{</span>
+                    <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"manifestation_unknown"</span><span class="p">,</span>
+                    <span class="s2">"path"</span><span class="p">:</span> <span class="p">[</span><span class="o">*</span><span class="n">here</span><span class="p">,</span> <span class="s2">"manifestation"</span><span class="p">],</span>
+                    <span class="s2">"message"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">word</span><span class="si">}</span><span class="s2">' is no manifestation the format defines "</span>
+                    <span class="sa">f</span><span class="s2">"for </span><span class="si">{</span><span class="n">_NAMED</span><span class="p">[</span><span class="n">kind</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="p">}</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">child</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">timeline</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">)):</span>
+        <span class="k">yield from</span> <span class="n">_timeline_warnings</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="flow_warnings">
+<a class="viewcode-back" href="../../../api/generated/timetoshare.validation.flow.html#timetoshare.validation.flow.flow_warnings">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">flow_warnings</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Return the flow warnings of a valid manifest, in document order.</span>
+
+<span class="sd">    ``manifestation_unknown`` at the ``manifestation`` of a flow-control</span>
+<span class="sd">    element or of a jump's destination that the format does not define for</span>
+<span class="sd">    it, and ``convention_unknown`` at the ``convention`` of a FlowMap that is</span>
+<span class="sd">    none of the format's.</span>
+<span class="sd">    """</span>
+    <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">)):</span>
+        <span class="n">found</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">_timeline_warnings</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="p">(</span><span class="s2">"timelines"</span><span class="p">,</span> <span class="n">index</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">flow_map</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"flow_maps"</span><span class="p">)):</span>
+        <span class="n">word</span> <span class="o">=</span> <span class="n">flow_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"convention"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">word</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">CONVENTIONS</span><span class="p">:</span>
+            <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"convention_unknown"</span><span class="p">,</span>
+                    <span class="s2">"path"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"flow_maps"</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="s2">"convention"</span><span class="p">],</span>
+                    <span class="s2">"message"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">word</span><span class="si">}</span><span class="s2">' is no convention the format defines"</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Time to Align!.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  <script src="/TimeToShare/versions.js" defer></script>
+</body>
+</html>

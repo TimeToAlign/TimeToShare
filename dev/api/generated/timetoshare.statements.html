@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>timetoshare.statements &#8212; timetoshare 0.2.0</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=8f2a1f02" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=938c9ccc"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/generated/timetoshare.statements';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="timetoshare.styles" href="timetoshare.styles.html" />
+    <link rel="prev" title="timetoshare.serialization" href="timetoshare.serialization.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="0.2.0" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">timetoshare 0.2.0</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../overview.html">
+    Overview
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../description.html">
+    Describing a manifest
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../drawing.html">
+    Drawing
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../schema.html">
+    Schema
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../python.html">
+    Python API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api-ts/index.html">
+    TypeScript API
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../decisions.html">
+    Design decisions
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../changelog.html">
+    Changelog
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../contributing.html">
+    Contributing
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/TimeToAlign/TimeToShare" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../validate.html">timetoshare.validate</a></li>
+</ul>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.catalogue.html">timetoshare.catalogue</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.defaults.html">timetoshare.defaults</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.files.html">timetoshare.files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.fixtures.html">timetoshare.fixtures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.font.html">timetoshare.font</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.ids.html">timetoshare.ids</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.manifest.html">timetoshare.manifest</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.serialization.html">timetoshare.serialization</a></li>
+<li class="toctree-l1 current active"><a aria-current="page" class="current reference internal" href="#">timetoshare.statements</a></li>
+<li class="toctree-l1"><a class="reference internal" href="timetoshare.styles.html">timetoshare.styles</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="timetoshare.tables.html">timetoshare.tables</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.tables.anchors.html">timetoshare.tables.anchors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.tables.checks.html">timetoshare.tables.checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.tables.columns.html">timetoshare.tables.columns</a></li>
+</ul>
+</details></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="timetoshare.validation.html">timetoshare.validation</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.containment.html">timetoshare.validation.containment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.diagnostics.html">timetoshare.validation.diagnostics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.flow.html">timetoshare.validation.flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.identity.html">timetoshare.validation.identity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.maps.html">timetoshare.validation.maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.order.html">timetoshare.validation.order</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.representation.html">timetoshare.validation.representation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.segments.html">timetoshare.validation.segments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.statements.html">timetoshare.validation.statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timetoshare.validation.timestamps.html">timetoshare.validation.timestamps</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../python.html" class="nav-link">Python API</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">timetoshare.statements</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="module-timetoshare.statements">
+<span id="timetoshare-statements"></span><h1>timetoshare.statements<a class="headerlink" href="#module-timetoshare.statements" title="Link to this heading">#</a></h1>
+<p>Property–value statements about the things a manifest’s elements stand for.</p>
+<p>The bundle (the manifest), every timeline at any depth and every region may
+carry <code class="docutils literal notranslate"><span class="pre">statements</span></code>: an object whose keys are <code class="docutils literal notranslate"><span class="pre">type</span></code> (“is a”) or property
+IRIs, written compactly with a prefix of the manifest’s <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> or in
+full, and whose values are the non-empty lists of that property’s values. A
+value is a literal (a string, an integer or a boolean), a value object
+(<code class="docutils literal notranslate"><span class="pre">&#64;value</span></code> with <code class="docutils literal notranslate"><span class="pre">&#64;language</span></code> or <code class="docutils literal notranslate"><span class="pre">&#64;type</span></code>), a node (a thing: its <code class="docutils literal notranslate"><span class="pre">id</span></code>
+where it has one, <code class="docutils literal notranslate"><span class="pre">type</span></code>, a <code class="docutils literal notranslate"><span class="pre">label</span></code> kept as a cache, its own pairs as
+property-IRI keys and its own <code class="docutils literal notranslate"><span class="pre">provenance</span></code>) or <code class="docutils literal notranslate"><span class="pre">{&quot;list&quot;:</span> <span class="pre">[...]}</span></code> for
+values in order. A string is never read as an IRI: a thing is <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">...}</span></code>.</p>
+<p>Beside the container, <code class="docutils literal notranslate"><span class="pre">provenance</span></code> holds an entry per pair (the entry of
+the provenance schema, <code class="docutils literal notranslate"><span class="pre">provenance.schema.json</span></code>): it repeats a pair’s
+<code class="docutils literal notranslate"><span class="pre">property</span></code> and <code class="docutils literal notranslate"><span class="pre">value</span></code> and says who stated it (<code class="docutils literal notranslate"><span class="pre">stated_by</span></code>), when
+(<code class="docutils literal notranslate"><span class="pre">date</span></code>), how (<code class="docutils literal notranslate"><span class="pre">method</span></code>, <code class="docutils literal notranslate"><span class="pre">service</span></code>, <code class="docutils literal notranslate"><span class="pre">basis</span></code>, <code class="docutils literal notranslate"><span class="pre">match</span></code>), with a
+<code class="docutils literal notranslate"><span class="pre">note</span></code>, and who believes it (<code class="docutils literal notranslate"><span class="pre">beliefs</span></code>: per actor one of the strings
+<code class="docutils literal notranslate"><span class="pre">&quot;true&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;unlikely&quot;</span></code>). An entry whose pair is stated
+annotates it; an entry whose pair is not stated is a candidate, which an
+actor believing it <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code> is not offered again. Nothing derives a
+truth value from the beliefs.
+The manifest’s inline JSON-LD context <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> holds the format’s terms
+(<code class="docutils literal notranslate"><span class="pre">FORMAT_CONTEXT</span></code>) and the prefixes the statements use, which makes the
+manifest a YAML-LD document whose statements read as plain triples and whose
+annotations read as RDF reification of those triples.</p>
+<p>A subject is addressed by its path in the manifest: <code class="docutils literal notranslate"><span class="pre">()</span></code> the bundle, a path
+ending in <code class="docutils literal notranslate"><span class="pre">(&quot;timelines&quot;</span> <span class="pre">|</span> <span class="pre">&quot;children&quot;</span> <span class="pre">|</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">i)</span></code> an element, a path
+passing on through <code class="docutils literal notranslate"><span class="pre">statements</span></code> to an item of a list of values a value
+node. Every function is pure: it
+returns a new value and leaves its argument as it is. IRIs inside
+<code class="docutils literal notranslate"><span class="pre">statements</span></code> and <code class="docutils literal notranslate"><span class="pre">provenance</span></code>, the references to elements (<code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span>
+<span class="pre">&quot;#clt_1&quot;}</span></code>) included, are identical in a manifest file and in memory, so
+every function reads either ID form. The JavaScript package offers the same
+functions (<code class="docutils literal notranslate"><span class="pre">withPair</span></code>, <code class="docutils literal notranslate"><span class="pre">samePair</span></code>, …) with the same values and the
+same messages.</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.ATOMIC_SECTION">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">ATOMIC_SECTION</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'https://timetoalign.github.io/timetoshare/ns#AtomicSection'</span></span><a class="headerlink" href="#timetoshare.statements.ATOMIC_SECTION" title="Link to this definition">#</a></dt>
+<dd><p>The class of an atomic section of a timeline’s flow: the <code class="docutils literal notranslate"><span class="pre">type</span></code> a region
+states that is one, written as a compact IRI under a prefix the manifest’s
+context declares for <a class="reference internal" href="#timetoshare.statements.NAMESPACE" title="timetoshare.statements.NAMESPACE"><code class="xref py py-data docutils literal notranslate"><span class="pre">NAMESPACE</span></code></a> (<code class="docutils literal notranslate"><span class="pre">tts:AtomicSection</span></code>).</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.BELIEFS">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">BELIEFS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('true',</span> <span class="pre">'false',</span> <span class="pre">'unlikely')</span></span><a class="headerlink" href="#timetoshare.statements.BELIEFS" title="Link to this definition">#</a></dt>
+<dd><p>The beliefs an actor may hold in an item, strings in the schema’s order.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.BELIEF_STATES">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">BELIEF_STATES</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'true'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'undecided'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'unlikely'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'false'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('true',</span> <span class="pre">'undecided',</span> <span class="pre">'unlikely',</span> <span class="pre">'false')</span></span><a class="headerlink" href="#timetoshare.statements.BELIEF_STATES" title="Link to this definition">#</a></dt>
+<dd><p>The four states of the belief filter, in that order.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.BLANK">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">BLANK</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]'</span></span><a class="headerlink" href="#timetoshare.statements.BLANK" title="Link to this definition">#</a></dt>
+<dd><p>White space and control characters, which no IRI holds.</p>
+<p>The class the schema’s <code class="docutils literal notranslate"><span class="pre">Iri</span></code>, <code class="docutils literal notranslate"><span class="pre">IriReference</span></code> and <code class="docutils literal notranslate"><span class="pre">PrefixIri</span></code> refuse,
+written out because Python’s <code class="docutils literal notranslate"><span class="pre">\s</span></code> and JavaScript’s <code class="docutils literal notranslate"><span class="pre">\s</span></code> differ.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.DEFAULT_BELIEFS">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">DEFAULT_BELIEFS</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#tuple" title="(in Python v3.15)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><span class="pre">Literal</span></a><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'true'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'undecided'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'unlikely'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'false'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('true',</span> <span class="pre">'undecided',</span> <span class="pre">'unlikely')</span></span><a class="headerlink" href="#timetoshare.statements.DEFAULT_BELIEFS" title="Link to this definition">#</a></dt>
+<dd><p>The states the belief filter keeps by default: every state but <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code>.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.FORMAT_CONTEXT">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">FORMAT_CONTEXT</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#dict" title="(in Python v3.15)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.15)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'&#64;version':</span> <span class="pre">1.1,</span> <span class="pre">'actor':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#actor',</span> <span class="pre">'&#64;type':</span> <span class="pre">'&#64;id'},</span> <span class="pre">'basis':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'http://www.w3.org/ns/prov#hadPrimarySource',</span> <span class="pre">'&#64;type':</span> <span class="pre">'&#64;id'},</span> <span class="pre">'belief':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#belief',</span> <span class="pre">'&#64;type':</span> <span class="pre">'&#64;vocab'},</span> <span class="pre">'beliefs':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#beliefs',</span> <span class="pre">'broad':</span> <span class="pre">'http://www.w3.org/2004/02/skos/core#broadMatch',</span> <span class="pre">'children':</span> <span class="pre">'&#64;included',</span> <span class="pre">'close':</span> <span class="pre">'http://www.w3.org/2004/02/skos/core#closeMatch',</span> <span class="pre">'date':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'http://purl.org/dc/terms/date',</span> <span class="pre">'&#64;type':</span> <span class="pre">'http://www.w3.org/2001/XMLSchema#date'},</span> <span class="pre">'exact':</span> <span class="pre">'http://www.w3.org/2004/02/skos/core#exactMatch',</span> <span class="pre">'false':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#False',</span> <span class="pre">'groups':</span> <span class="pre">'&#64;included',</span> <span class="pre">'id':</span> <span class="pre">'&#64;id',</span> <span class="pre">'imported':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#Imported',</span> <span class="pre">'inferred':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#Inferred',</span> <span class="pre">'label':</span> <span class="pre">'http://www.w3.org/2000/01/rdf-schema#label',</span> <span class="pre">'list':</span> <span class="pre">'&#64;list',</span> <span class="pre">'manual':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#Manual',</span> <span class="pre">'match':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#match',</span> <span class="pre">'&#64;type':</span> <span class="pre">'&#64;vocab'},</span> <span class="pre">'method':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#method',</span> <span class="pre">'&#64;type':</span> <span class="pre">'&#64;vocab'},</span> <span class="pre">'narrow':</span> <span class="pre">'http://www.w3.org/2004/02/skos/core#narrowMatch',</span> <span class="pre">'note':</span> <span class="pre">'http://www.w3.org/2000/01/rdf-schema#comment',</span> <span class="pre">'property':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate',</span> <span class="pre">'&#64;type':</span> <span class="pre">'&#64;vocab'},</span> <span class="pre">'provenance':</span> <span class="pre">{'&#64;reverse':</span> <span class="pre">'http://www.w3.org/1999/02/22-rdf-syntax-ns#subject'},</span> <span class="pre">'reconciled':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#Reconciled',</span> <span class="pre">'regions':</span> <span class="pre">'&#64;included',</span> <span class="pre">'related':</span> <span class="pre">'http://www.w3.org/2004/02/skos/core#relatedMatch',</span> <span class="pre">'service':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#service',</span> <span class="pre">'&#64;type':</span> <span class="pre">'&#64;id'},</span> <span class="pre">'stated_by':</span> <span class="pre">{'&#64;id':</span> <span class="pre">'http://www.w3.org/ns/prov#wasAttributedTo',</span> <span class="pre">'&#64;type':</span> <span class="pre">'&#64;id'},</span> <span class="pre">'statements':</span> <span class="pre">'&#64;nest',</span> <span class="pre">'timelines':</span> <span class="pre">'&#64;included',</span> <span class="pre">'true':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#True',</span> <span class="pre">'type':</span> <span class="pre">'&#64;type',</span> <span class="pre">'unlikely':</span> <span class="pre">'https://timetoalign.github.io/timetoshare/ns#Unlikely',</span> <span class="pre">'value':</span> <span class="pre">'http://www.w3.org/1999/02/22-rdf-syntax-ns#object'}</span></span><a class="headerlink" href="#timetoshare.statements.FORMAT_CONTEXT" title="Link to this definition">#</a></dt>
+<dd><p>The format’s terms of <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code>, each exactly as the schema fixes it.</p>
+<p>The 35 terms and no prefix; treat it as read-only. <code class="docutils literal notranslate"><span class="pre">with_context</span></code> adds the
+prefixes a manifest uses.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.MATCHES">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">MATCHES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('exact',</span> <span class="pre">'close',</span> <span class="pre">'broad',</span> <span class="pre">'narrow',</span> <span class="pre">'related')</span></span><a class="headerlink" href="#timetoshare.statements.MATCHES" title="Link to this definition">#</a></dt>
+<dd><p>The words of a provenance entry’s <code class="docutils literal notranslate"><span class="pre">match</span></code>, the SKOS mapping properties.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.METHODS">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">METHODS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('manual',</span> <span class="pre">'reconciled',</span> <span class="pre">'imported',</span> <span class="pre">'inferred')</span></span><a class="headerlink" href="#timetoshare.statements.METHODS" title="Link to this definition">#</a></dt>
+<dd><p>The words of a provenance entry’s <code class="docutils literal notranslate"><span class="pre">method</span></code>; any other method is an IRI.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.NAMESPACE">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">NAMESPACE</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'https://timetoalign.github.io/timetoshare/ns#'</span></span><a class="headerlink" href="#timetoshare.statements.NAMESPACE" title="Link to this definition">#</a></dt>
+<dd><p>The namespace of the format’s own provenance properties and their words.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.statements.BeliefState">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">BeliefState</span></span><a class="headerlink" href="#timetoshare.statements.BeliefState" title="Link to this definition">#</a></dt>
+<dd><p>An item’s state for one actor: the actor’s belief in it, or <code class="docutils literal notranslate"><span class="pre">&quot;undecided&quot;</span></code>
+where the actor holds none.</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘true’, ‘undecided’, ‘unlikely’, ‘false’]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.candidates">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#candidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.candidates" title="Link to this definition">#</a></dt>
+<dd><p>Return a subject’s candidates: the entries of pairs the subject does not state.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">actor</span></code>, a candidate the actor believes <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code> is left out:
+it is not offered to that actor again. Actors compare as their IRIs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If the path addresses no element and no value node.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.check_belief_filter">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">check_belief_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">beliefs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#check_belief_filter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.check_belief_filter" title="Link to this definition">#</a></dt>
+<dd><p>Return the states a belief filter keeps, checked.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>beliefs</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/functions.html#object" title="(in Python v3.15)"><em>object</em></a>) – A collection of <a class="reference internal" href="#timetoshare.statements.BELIEF_STATES" title="timetoshare.statements.BELIEF_STATES"><code class="xref py py-data docutils literal notranslate"><span class="pre">BELIEF_STATES</span></code></a>, in any order; empty
+keeps none.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">beliefs</span></code> is a single string or no collection (a
+    mapping included), or names a word that is none of
+    <a class="reference internal" href="#timetoshare.statements.BELIEF_STATES" title="timetoshare.statements.BELIEF_STATES"><code class="xref py py-data docutils literal notranslate"><span class="pre">BELIEF_STATES</span></code></a>. The first unknown member by code point of
+    its spelling is named: a string quoted, any other member spelled
+    as <a class="reference internal" href="timetoshare.serialization.html#timetoshare.serialization.spell" title="timetoshare.serialization.spell"><code class="xref py py-func docutils literal notranslate"><span class="pre">spell()</span></code></a> spells it, without
+    quotes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.compact_iri">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">compact_iri</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prefixes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iri</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#compact_iri"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.compact_iri" title="Link to this definition">#</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">iri</span></code> written <code class="docutils literal notranslate"><span class="pre">name:rest</span></code> with one of <code class="docutils literal notranslate"><span class="pre">prefixes</span></code>, or as given.</p>
+<p>Where a namespace of <code class="docutils literal notranslate"><span class="pre">aliases</span></code> (the first in its order) begins <code class="docutils literal notranslate"><span class="pre">iri</span></code>,
+it is first replaced by the namespace it is read as. Among the prefixes
+whose namespace begins the IRI so read and leaves a rest of letters,
+digits, <code class="docutils literal notranslate"><span class="pre">_</span></code>, <code class="docutils literal notranslate"><span class="pre">.</span></code> and <code class="docutils literal notranslate"><span class="pre">-</span></code> that does not begin with <code class="docutils literal notranslate"><span class="pre">.</span></code> or <code class="docutils literal notranslate"><span class="pre">-</span></code>,
+the longest namespace wins, a tie going to the code-point-smaller name.
+Without such a prefix the IRI is returned as given, no alias applied.
+The JavaScript package’s <code class="docutils literal notranslate"><span class="pre">compactIri</span></code> gives the same texts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prefixes</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.15)"><em>Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>]</em>) – Prefix name to namespace, as a catalogue or a context
+declares them.</p></li>
+<li><p><strong>iri</strong> (<a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a>) – An absolute IRI.</p></li>
+<li><p><strong>aliases</strong> (<a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Mapping" title="(in Python v3.15)"><em>Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#str" title="(in Python v3.15)"><em>str</em></a><em>] </em><em>| </em><em>None</em>) – Namespace to the namespace it is read as.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.entries">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">entries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#entries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.entries" title="Link to this definition">#</a></dt>
+<dd><p>Return a subject’s provenance entries, in their order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If the path addresses no element and no value node.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.expand_iri">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">expand_iri</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#expand_iri"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.expand_iri" title="Link to this definition">#</a></dt>
+<dd><p>Return the absolute IRI <code class="docutils literal notranslate"><span class="pre">text</span></code> stands for under <code class="docutils literal notranslate"><span class="pre">context</span></code>, or <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">type</span></code> is <code class="docutils literal notranslate"><span class="pre">rdf:type</span></code>; another format term mapping to an IRI is that
+IRI; <code class="docutils literal notranslate"><span class="pre">p:rest</span></code> is <code class="docutils literal notranslate"><span class="pre">text</span></code> itself when <code class="docutils literal notranslate"><span class="pre">rest</span></code> begins with <code class="docutils literal notranslate"><span class="pre">//</span></code> or
+<code class="docutils literal notranslate"><span class="pre">p</span></code> is one of the URI schemes <code class="docutils literal notranslate"><span class="pre">info</span></code>, <code class="docutils literal notranslate"><span class="pre">mailto</span></code>, <code class="docutils literal notranslate"><span class="pre">tag</span></code> and
+<code class="docutils literal notranslate"><span class="pre">urn</span></code>, and the namespace of <code class="docutils literal notranslate"><span class="pre">p</span></code> followed by <code class="docutils literal notranslate"><span class="pre">rest</span></code> when <code class="docutils literal notranslate"><span class="pre">context</span></code>
+declares the prefix <code class="docutils literal notranslate"><span class="pre">p</span></code>. Anything else expands to nothing.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.pairs">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">pairs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#pairs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.pairs" title="Link to this definition">#</a></dt>
+<dd><p>Return a subject’s pairs <code class="docutils literal notranslate"><span class="pre">(property,</span> <span class="pre">value)</span></code>.</p>
+<p>Keys in code-point order, values in list order; each <code class="docutils literal notranslate"><span class="pre">type</span></code> item is a
+pair <code class="docutils literal notranslate"><span class="pre">(&quot;type&quot;,</span> <span class="pre">iri)</span></code>. A node’s pairs are its property-IRI keys and
+<code class="docutils literal notranslate"><span class="pre">type</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If the path addresses no element and no value node.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.same_pair">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">same_pair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#same_pair"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.same_pair" title="Link to this definition">#</a></dt>
+<dd><p>Whether two pairs <code class="docutils literal notranslate"><span class="pre">(property,</span> <span class="pre">value)</span></code> are the same pair under <code class="docutils literal notranslate"><span class="pre">context</span></code>.</p>
+<p>The properties are equal after expansion (<code class="docutils literal notranslate"><span class="pre">type</span></code> is <code class="docutils literal notranslate"><span class="pre">rdf:type</span></code>, which
+an entry writes <code class="docutils literal notranslate"><span class="pre">rdf:type</span></code> whether or not the context declares <code class="docutils literal notranslate"><span class="pre">rdf</span></code>). Of
+the values, literals are equal with the same JSON type (<code class="docutils literal notranslate"><span class="pre">true</span></code> is not
+<code class="docutils literal notranslate"><span class="pre">1</span></code>); value objects after expanding <code class="docutils literal notranslate"><span class="pre">&#64;type</span></code>; a node with an <code class="docutils literal notranslate"><span class="pre">id</span></code> is
+equal to any node with the same expanded <code class="docutils literal notranslate"><span class="pre">id</span></code>, whatever else either
+holds, a <code class="docutils literal notranslate"><span class="pre">type</span></code> item <code class="docutils literal notranslate"><span class="pre">T</span></code> counting as <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">T}</span></code>; nodes without
+<code class="docutils literal notranslate"><span class="pre">id</span></code> are equal as JSON after dropping their own <code class="docutils literal notranslate"><span class="pre">provenance</span></code>; ordered
+values item by item. A relative reference compares as written.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.subject_path">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">subject_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">element_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#subject_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.subject_path" title="Link to this definition">#</a></dt>
+<dd><p>Return the path of the subject an element ID names.</p>
+<p><code class="docutils literal notranslate"><span class="pre">None</span></code> names the bundle, <code class="docutils literal notranslate"><span class="pre">()</span></code>; an ID names the timeline (at any
+depth) or region whose <code class="docutils literal notranslate"><span class="pre">id</span></code> is <code class="docutils literal notranslate"><span class="pre">element_id</span></code> as written in this
+manifest, the first in document order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If no timeline or region has that ID.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.subjects">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">subjects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#subjects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.subjects" title="Link to this definition">#</a></dt>
+<dd><p>Yield the elements that may carry statements, in subject order.</p>
+<p>The manifest, then root by root the timeline, its regions in array
+order and its children, depth first; each with its path and its kind
+(<code class="docutils literal notranslate"><span class="pre">manifest</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline</span></code>, <code class="docutils literal notranslate"><span class="pre">region</span></code>). An entry that is no object is
+passed over, so the walk reads any value.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.used_prefixes">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">used_prefixes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#used_prefixes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.used_prefixes" title="Link to this definition">#</a></dt>
+<dd><p>Return the sorted names of the prefixes the statements of a manifest use.</p>
+<p>Every <code class="docutils literal notranslate"><span class="pre">p</span></code> of a <code class="docutils literal notranslate"><span class="pre">p:rest</span></code> (<code class="docutils literal notranslate"><span class="pre">rest</span></code> not beginning with <code class="docutils literal notranslate"><span class="pre">//</span></code>, <code class="docutils literal notranslate"><span class="pre">p</span></code>
+none of the URI schemes <code class="docutils literal notranslate"><span class="pre">info</span></code>, <code class="docutils literal notranslate"><span class="pre">mailto</span></code>, <code class="docutils literal notranslate"><span class="pre">tag</span></code> and <code class="docutils literal notranslate"><span class="pre">urn</span></code>) at
+every IRI position of every subject’s statements and provenance and of
+the provenance of every flow-control element and FlowMap.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.with_belief">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">with_belief</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">belief</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#with_belief"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.with_belief" title="Link to this definition">#</a></dt>
+<dd><p>Return the manifest with an actor’s belief in a pair of a subject.</p>
+<p><code class="docutils literal notranslate"><span class="pre">belief</span></code> is one of the strings <code class="docutils literal notranslate"><span class="pre">&quot;true&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code> and
+<code class="docutils literal notranslate"><span class="pre">&quot;unlikely&quot;</span></code> (<a class="reference internal" href="#timetoshare.statements.BELIEFS" title="timetoshare.statements.BELIEFS"><code class="xref py py-data docutils literal notranslate"><span class="pre">BELIEFS</span></code></a>). The pair’s entry,
+appended with the pair alone where it has none, records <code class="docutils literal notranslate"><span class="pre">{&quot;actor&quot;,</span>
+<span class="pre">&quot;belief&quot;,</span> <span class="pre">&quot;date&quot;}</span></code> (and <code class="docutils literal notranslate"><span class="pre">note</span></code> where given), replacing in place the
+actor’s earlier belief; actors compare as their IRIs. Whether the pair
+is stated is left as it is: one actor’s belief leaves the statement and
+every other actor’s belief standing. A candidate an actor believes
+<code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code> is not offered to that actor again (<a class="reference internal" href="#timetoshare.statements.candidates" title="timetoshare.statements.candidates"><code class="xref py py-func docutils literal notranslate"><span class="pre">candidates()</span></code></a>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">property</span></code> is no property, the path addresses no
+    element and no value node, <code class="docutils literal notranslate"><span class="pre">belief</span></code> is none of the three, or
+    <code class="docutils literal notranslate"><span class="pre">date</span></code> is no calendar date.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.with_candidate">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">with_candidate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">stated_by</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">service</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#with_candidate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.with_candidate" title="Link to this definition">#</a></dt>
+<dd><p>Return the manifest with a candidate: an entry of a pair it does not state.</p>
+<p>The entry replaces, in place, another entry of the pair, whose
+<code class="docutils literal notranslate"><span class="pre">beliefs</span></code> it keeps; the statements are left as they are. <code class="docutils literal notranslate"><span class="pre">basis</span></code> is
+written only when it is not empty, <code class="docutils literal notranslate"><span class="pre">service</span></code>, <code class="docutils literal notranslate"><span class="pre">match</span></code> and <code class="docutils literal notranslate"><span class="pre">note</span></code>
+only when given. A service or a loader proposing a pair holds no belief.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">property</span></code> is no property, the path addresses no
+    element and no value node, <code class="docutils literal notranslate"><span class="pre">date</span></code> is no calendar date, or the
+    subject states the pair.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.with_context">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">with_context</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefixes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#with_context"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.with_context" title="Link to this definition">#</a></dt>
+<dd><p>Return the manifest with the format’s terms and its prefixes in <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code>.</p>
+<p>Each prefix of <code class="docutils literal notranslate"><span class="pre">used_prefixes</span></code> takes its namespace from the manifest’s
+own <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> where it declares the prefix, else from <code class="docutils literal notranslate"><span class="pre">prefixes</span></code>; a
+prefix the statements do not use is dropped.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If a prefix the statements use is declared neither in the
+    manifest’s <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code> nor in <code class="docutils literal notranslate"><span class="pre">prefixes</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.with_pair">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">with_pair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">provenance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#with_pair"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.with_pair" title="Link to this definition">#</a></dt>
+<dd><p>Return the manifest with the pair <code class="docutils literal notranslate"><span class="pre">(property,</span> <span class="pre">value)</span></code> stated of a subject.</p>
+<p>The value is appended to the property’s list (<code class="docutils literal notranslate"><span class="pre">type</span></code> takes a class IRI
+string). An entry of the pair, a candidate until now, stays as the
+stated pair’s entry. With <code class="docutils literal notranslate"><span class="pre">provenance</span></code> (the members of an entry but
+<code class="docutils literal notranslate"><span class="pre">property</span></code>, <code class="docutils literal notranslate"><span class="pre">value</span></code> and <code class="docutils literal notranslate"><span class="pre">beliefs</span></code>), they are set on the pair’s
+entry, which is appended where the pair has none: its <code class="docutils literal notranslate"><span class="pre">value</span></code> is
+<code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">...}</span></code> for a node with an <code class="docutils literal notranslate"><span class="pre">id</span></code> and for a <code class="docutils literal notranslate"><span class="pre">type</span></code> pair, else
+the value itself, and a <code class="docutils literal notranslate"><span class="pre">type</span></code> pair’s property is written
+<code class="docutils literal notranslate"><span class="pre">rdf:type</span></code>. With <code class="docutils literal notranslate"><span class="pre">actor</span></code>, the person stating the pair, the entry
+records that actor’s belief <code class="docutils literal notranslate"><span class="pre">&quot;true&quot;</span></code> on <code class="docutils literal notranslate"><span class="pre">date</span></code>, replacing the actor’s
+earlier belief.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">property</span></code> is no property, the path addresses no
+    element and no value node, a date is no calendar date, <code class="docutils literal notranslate"><span class="pre">actor</span></code>
+    is given without <code class="docutils literal notranslate"><span class="pre">date</span></code>, or the subject already has the pair.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.with_references_renamed">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">with_references_renamed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">renamed</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#with_references_renamed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.with_references_renamed" title="Link to this definition">#</a></dt>
+<dd><p>Return the manifest with the references to renamed elements renamed or dropped.</p>
+<p>The keys and values of <code class="docutils literal notranslate"><span class="pre">renamed</span></code> are bare IDs. A reference is the text
+<code class="docutils literal notranslate"><span class="pre">&quot;#&quot;</span> <span class="pre">+</span> <span class="pre">old</span></code> exactly (<code class="docutils literal notranslate"><span class="pre">other.yaml#old</span></code> names an element of another
+manifest and is none) where statements name things: a node’s <code class="docutils literal notranslate"><span class="pre">id</span></code>, a
+provenance entry’s <code class="docutils literal notranslate"><span class="pre">basis</span></code> and <code class="docutils literal notranslate"><span class="pre">stated_by</span></code> items and its <code class="docutils literal notranslate"><span class="pre">service</span></code>,
+and a belief’s <code class="docutils literal notranslate"><span class="pre">actor</span></code>, in the statements and provenance of the
+manifest, of every timeline at any depth and of every region, and of
+every node within them, a node in an entry’s <code class="docutils literal notranslate"><span class="pre">value</span></code> included. Where
+<code class="docutils literal notranslate"><span class="pre">renamed[old]</span></code> is an ID, each reference becomes <code class="docutils literal notranslate"><span class="pre">&quot;#&quot;</span> <span class="pre">+</span> <span class="pre">renamed[old]</span></code>.
+Where it is <code class="docutils literal notranslate"><span class="pre">None</span></code>, a value that is a node naming the element leaves
+its list, an entry whose <code class="docutils literal notranslate"><span class="pre">value</span></code> names it leaves <code class="docutils literal notranslate"><span class="pre">provenance</span></code>, a
+<code class="docutils literal notranslate"><span class="pre">basis</span></code> or <code class="docutils literal notranslate"><span class="pre">stated_by</span></code> item naming it leaves its list, a belief whose
+<code class="docutils literal notranslate"><span class="pre">actor</span></code> it is leaves <code class="docutils literal notranslate"><span class="pre">beliefs</span></code> and a <code class="docutils literal notranslate"><span class="pre">service</span></code> naming it is
+deleted; then every list of values, container, <code class="docutils literal notranslate"><span class="pre">basis</span></code>, <code class="docutils literal notranslate"><span class="pre">stated_by</span></code>,
+<code class="docutils literal notranslate"><span class="pre">beliefs</span></code> and <code class="docutils literal notranslate"><span class="pre">provenance</span></code> left empty is deleted, as are a node
+without <code class="docutils literal notranslate"><span class="pre">id</span></code> and ordered values left without anything. Each reference
+is renamed once: with <code class="docutils literal notranslate"><span class="pre">{&quot;a&quot;:</span> <span class="pre">&quot;b&quot;,</span> <span class="pre">&quot;b&quot;:</span> <span class="pre">&quot;c&quot;}</span></code>, <code class="docutils literal notranslate"><span class="pre">#a</span></code> becomes <code class="docutils literal notranslate"><span class="pre">#b</span></code> and
+<code class="docutils literal notranslate"><span class="pre">#b</span></code> becomes <code class="docutils literal notranslate"><span class="pre">#c</span></code>. The elements’ own IDs are never read, so either ID
+form is taken. The JavaScript package’s <code class="docutils literal notranslate"><span class="pre">withReferencesRenamed</span></code> gives the same
+values.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.statements.without_pair">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.statements.</span></span><span class="sig-name descname"><span class="pre">without_pair</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subject</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/statements.html#without_pair"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.statements.without_pair" title="Link to this definition">#</a></dt>
+<dd><p>Return the manifest without the pair <code class="docutils literal notranslate"><span class="pre">(property,</span> <span class="pre">value)</span></code> of a subject.</p>
+<p>The pair’s entry goes with it; an emptied list, container or
+<code class="docutils literal notranslate"><span class="pre">provenance</span></code> is removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/builtins/exceptions.html#ValueError" title="(in Python v3.15)"><strong>ValueError</strong></a> – If <code class="docutils literal notranslate"><span class="pre">property</span></code> is no property, the path addresses no
+    element and no value node, or the subject does not have the pair.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="timetoshare.serialization.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">timetoshare.serialization</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="timetoshare.styles.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">timetoshare.styles</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.ATOMIC_SECTION"><code class="docutils literal notranslate"><span class="pre">ATOMIC_SECTION</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.BELIEFS"><code class="docutils literal notranslate"><span class="pre">BELIEFS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.BELIEF_STATES"><code class="docutils literal notranslate"><span class="pre">BELIEF_STATES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.BLANK"><code class="docutils literal notranslate"><span class="pre">BLANK</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.DEFAULT_BELIEFS"><code class="docutils literal notranslate"><span class="pre">DEFAULT_BELIEFS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.FORMAT_CONTEXT"><code class="docutils literal notranslate"><span class="pre">FORMAT_CONTEXT</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.MATCHES"><code class="docutils literal notranslate"><span class="pre">MATCHES</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.METHODS"><code class="docutils literal notranslate"><span class="pre">METHODS</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.NAMESPACE"><code class="docutils literal notranslate"><span class="pre">NAMESPACE</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.BeliefState"><code class="docutils literal notranslate"><span class="pre">BeliefState</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.candidates"><code class="docutils literal notranslate"><span class="pre">candidates()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.check_belief_filter"><code class="docutils literal notranslate"><span class="pre">check_belief_filter()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.compact_iri"><code class="docutils literal notranslate"><span class="pre">compact_iri()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.entries"><code class="docutils literal notranslate"><span class="pre">entries()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.expand_iri"><code class="docutils literal notranslate"><span class="pre">expand_iri()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.pairs"><code class="docutils literal notranslate"><span class="pre">pairs()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.same_pair"><code class="docutils literal notranslate"><span class="pre">same_pair()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.subject_path"><code class="docutils literal notranslate"><span class="pre">subject_path()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.subjects"><code class="docutils literal notranslate"><span class="pre">subjects()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.used_prefixes"><code class="docutils literal notranslate"><span class="pre">used_prefixes()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.with_belief"><code class="docutils literal notranslate"><span class="pre">with_belief()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.with_candidate"><code class="docutils literal notranslate"><span class="pre">with_candidate()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.with_context"><code class="docutils literal notranslate"><span class="pre">with_context()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.with_pair"><code class="docutils literal notranslate"><span class="pre">with_pair()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.with_references_renamed"><code class="docutils literal notranslate"><span class="pre">with_references_renamed()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.statements.without_pair"><code class="docutils literal notranslate"><span class="pre">without_pair()</span></code></a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright 2026 Time to Align!.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 9.0.4.
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  <script src="/TimeToShare/versions.js" defer></script>
+</body>
+</html>

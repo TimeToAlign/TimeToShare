@@ -1,0 +1,4 @@
+﻿timetoshare.manifest
+====================
+
+.. automodule:: timetoshare.manifest
