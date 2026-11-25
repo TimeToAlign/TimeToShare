@@ -248,12 +248,19 @@ schema with the converter named; rejected elements left out of the rules;
 coordinates and places on a timeline of unknown length, at the ends of the
 axis and on a float axis (a place is the double sum); an `after` naming one
 destination by its place; the chunks, the canonical flag and the IDs of
-FlowMaps and virtual timelines, their order and respelling; the warnings of
+FlowMaps and virtual timelines, their order and respelling; a virtual
+timeline held to its map under `virtual_timeline`, with the same documents:
+a ring reported at each of its members and nowhere else, a FlowMap applied
+within the tree of its own root unless `through` is stated, the length the
+sum of chunks and gaps compared by value, spelled as an integer on an
+integer axis, and the six cases where no sum is read; the warnings of
 a manifestation and a convention outside the vocabularies, sorted by path
 and then code; the provenance of a flow-control element and of a FlowMap
 under the entry rules; and the agreement of every expected flow under
 `fixtures/flows/0.2.0/` with its manifest, the boundaries of the atomic
-sections computed in the test. The shared rejection and warning cases pin
+sections computed in the test, `never_played` once for each stretch the
+default flow leaves out, at its start, and each FlowMap of
+`sonata_exposition` with its one provenance entry `{method: inferred}`. The shared rejection and warning cases pin
 every rule's code, path and message for both packages; the canonical order
 of a jump's destinations lies in `manifest.test.ts`, the ID positions in
 `ids.test.ts`, the defaults in `defaults.test.ts` and `schema.test.ts`.
@@ -265,7 +272,7 @@ smallest manifest (`validate.test.ts`).
 
 ## Shared rejection cases
 
-Each of the 237 cases (`validate.test.ts`), found by its name whatever
+Each of the 245 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -572,6 +579,8 @@ so the inline context is all a processor reads. For both, it asserts:
    state that they are atomic sections: its dataset is exactly, per region,
    the triple typing it `AtomicSection` in the format's namespace and the
    reified statement of that pair with the method `Inferred`, fifteen quads;
+   its FlowMaps and their provenance add none, `flow_maps` being no term
+   of the context;
 3. no IRI of the dataset begins with `p:` for a prefix `p` of the fixture's
    context, and every IRI begins with `http:`, `https:`, `urn:`, `tag:`,
    `mailto:` or `info:`: every compact IRI was expanded;

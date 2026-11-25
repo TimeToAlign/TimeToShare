@@ -584,6 +584,8 @@ package words it as this package does.
 | `timestamp_coordinate` | its `coordinate` lies from 0 to its timeline's length, from 0 on where the length is null | its `coordinate` | `coordinate [9, 1] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'`, `coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'` |
 | `elision_timeline` | an elision's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
 | `elision_stretch` | its `start` lies at or after 0, its `end` at or before its timeline's length where the length is known, and its `start` before its `end`; each elision checked in that order | its `start`, its `end`, its `end` | `start [-1, 1] of 'elision_1' lies before the start of its timeline 'score'`, `end [5, 1] of 'elision_1' is beyond the length [4, 1] of its timeline 'verse'`, `end [3, 1] of 'elision_1' does not lie after its start [3, 1]` |
+| `flow_map_timeline`, `flow_map_chunk`, `flow_map_canonical` | after the MatchStamps and resources (section "MatchStamps and resources"), FlowMap by FlowMap: its `timeline` names a root; each ID among its chunks a region, a child or a virtual timeline inside that root's tree; at most one FlowMap of a timeline is canonical | its `timeline`, the chunk, its `canonical` | `'coda' is a child timeline; a FlowMap names a root timeline`, `'jump_target_1' names no region, child timeline or virtual timeline in the tree of 'score'`, `'flow_map_2' is a second canonical FlowMap of 'score', after 'flow_map_1'` |
+| `dangling_target`, `virtual_timeline` | then virtual timeline by virtual timeline: its `map` names a FlowMap or a conversion map, its `timeline` a timeline or another virtual timeline, never itself (`dangling_target`); it comes from no ring of virtual timelines, reported at each member of the ring; without `through`, a FlowMap it applies is one of the root its timeline comes from, else its `length` is the sum of the FlowMap's chunks and gaps, compared where every chunk has a known length on its axis and the axis is not `float` (`virtual_timeline`) | its `map`, its `timeline`, its `timeline`, its `map`, its `length` | `'virtual_1' comes from itself through 'virtual_2': a virtual timeline comes, virtual timeline by virtual timeline, from a timeline of this manifest`, `'flow_map_1' is a FlowMap of 'score', and 'sketch' comes from the tree of 'sketch': without through, a virtual timeline applies a FlowMap within the tree of the FlowMap's root timeline`, `length [30, 1] of 'virtual_1' is not the sum of the chunks and gaps of 'flow_map_1', [22, 1]` |
 | `context` | a manifest whose manifest, timeline or region carries `statements` or `provenance` holds `@context` | the first such key in subject order, `provenance` before `statements` | `statements and provenance need the manifest's @context` |
 | `reserved_key` | no key of the manifest, a timeline, a region or a group begins with `@` (but the manifest's `@context`), holds a `:`, is a term of the context the element may not use or names a prefix of `@context` | the key | `'label' is reserved on a timeline` |
 | `iri` | subject by subject: the ID of an element with statements is an IRI fragment; every compact IRI names a prefix of `@context`, unless it is `//`-absolute or of the schemes `info`, `mailto`, `tag`, `urn` | the `id`, the key or value | `the ID 'Bass Kick' of an element with statements is no IRI fragment`, `'wdtt:P175': the prefix 'wdtt' is not declared in @context` |
@@ -638,13 +640,16 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 237 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 245 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
 case at one path with one code and one message. The codes of the cases are
-exactly the thirty-three of the table, so every code is reached by a case both
-suites read. `version_unknown` raises `UnsupportedVersionError` and stores
+exactly the forty-one of `ValidationCode`, the thirty-five of the table and
+the six of the sections "MatchStamps and resources" and "Groupstamps"
+(`groupstamp`, `alignment_anchor`, `matchstamp`, `match_timestamp`,
+`resource_timeline`, `resource_type`), so every code is reached by a case
+both suites read. `version_unknown` raises `UnsupportedVersionError` and stores
 `["timetoshare"]`, the code `null` and the error's message. Three cases
 refuse a conversion map that is no object, which the schema types as an
 object beside its discriminated `oneOf`: `conversion_map_not_object` (`0`),
@@ -1140,10 +1145,41 @@ flow that does not follow from its manifest.
   timeline of another root, another root, the root itself, a FlowMap and an
   unknown ID are each `flow_map_chunk`; two virtual timelines naming each
   other come from no tree. A virtual timeline's `map` names a FlowMap or a
-  conversion map at any depth, a map another map holds included. One
+  conversion map at any depth, a map another map holds included, and its
+  `timeline` never the virtual timeline itself (`dangling_target`). One
   FlowMap per timeline is canonical; a second is `flow_map_canonical`,
   FlowMaps of two timelines are not. A FlowMap's and a virtual timeline's
   ID count among the manifest's IDs, after the resources'.
+- **Virtual timelines held to their map** (`test_flow.py`, the shared cases
+  `virtual_timeline_cycle`, `virtual_timeline_map_other_root`,
+  `virtual_timeline_length_not_the_sum`). What would prove it wrong: a ring
+  reported at a virtual timeline that only leads into it, a FlowMap of
+  another root accepted, a length compared by spelling or on an axis whose
+  sum depends on the order of its additions. A ring of three virtual
+  timelines is `virtual_timeline` at the `timeline` of each of the three,
+  each naming the others in the order of its chain, while a fourth that
+  comes from the ring and a chain from a timeline are not reported, and
+  neither the FlowMap nor the length of a ring is read; once the ring is
+  broken, all six validate. A FlowMap of `score` applied to the root, to
+  its child and to a virtual timeline coming from the child validates;
+  applied to another root, to a virtual timeline coming from it, or a
+  FlowMap of that other root applied to `score`'s child, it is
+  `virtual_timeline` at the `map`, the length (99) not read; with `through`
+  all three validate, and a conversion map as `map` is never read. The
+  length is the sum by exact value: a region of 2, a gap of 3/2, a child of
+  4, the region again and a virtual timeline of 1/2 give 10, written
+  `[10, 1]` or `[20, 2]` for the root, the child and a virtual timeline of
+  the child alike. With the virtual timeline chunk restated as 1 (against
+  its own FlowMap's gap of 1/2, refused with `[1, 2]`), the sum is read
+  from its stated length and becomes `[21, 2]`: the three lengths `[19,
+  2]`, `[20, 2]` and `[0, 1]` are each refused with it, the sum written in
+  lowest terms; an empty FlowMap sums to `[0, 1]`. On a `samples` axis the sum
+  is spelled as an integer (`length 60 of 'v' is not the sum of the chunks
+  and gaps of 'f', 65`). The six cases where no sum is read, each with a
+  length that is none: a `float` axis; a virtual timeline of another unit
+  or number type than a chunk's axis; a gap on a root of another axis; a
+  child of unknown length; a chunk naming nothing (its own
+  `flow_map_chunk`); `through`.
 - **Order and spelling** (`test_flow.py`, `test_manifest.py`,
   `test_ids.py`). `canonical_order` sorts FlowMaps and virtual timelines by
   ID, keeps each FlowMap's chunks in their order, repeated ones included,
@@ -1176,19 +1212,34 @@ flow that does not follow from its manifest.
   `scripts/` because the packages read one form only. `convert` leaves its
   input unchanged and its result validates. Each earlier type becomes its
   role with the members stated literally: a jump target; a jump with one
-  destination (`to` its target or no place, its manifestation, a repeat
-  end's count or 1, `repeat_count: 1` and `reset: false` on a da capo and a
-  dal segno); a `fine` as a break whose `ends.after` names the timeline's
-  one jump al fine; a section break without a manifestation; the two
-  barlines. A `to_coda` waits for the one jump al coda. Two earlier jumps
-  at one coordinate become one under the ID first by code point, each
-  destination with its element's label, the reference of a Fine naming the
-  place where the jump has two destinations, an address naming the dropped
-  ID rewritten, and the merge reported with the name and meta it drops. A
-  Fine or a To Coda with none or two of the jumps it waits for, a merge of
-  two destinations at one place and a `flow_marker` of an unknown
-  manifestation raise `ConversionRefused`, a `ValueError`, with the
-  sentence stated literally. A rule selecting `jump_from` selects `jump`,
+  destination (`to` its target, its manifestation, a repeat end's count or
+  1, `repeat_count: 1` and `reset: false` on a da capo and a dal segno); a
+  `fine` as a break whose `ends.after` names the timeline's one jump al
+  fine; a section break without a manifestation; the two barlines. A
+  `to_coda` waits for the one jump al coda. An earlier jump without a
+  target went to the timeline's start: behind a section break at 8, a
+  repeat end and the three da capo forms each become a destination `to`
+  the timeline (`score`, or `#score` where the file writes its IDs so),
+  the result validates and no destination lacks `to`, since one without a
+  place would land at 8. Two earlier jumps at one coordinate become one
+  under the ID first by code point, each destination with its element's
+  label, the reference of a Fine naming the place where the jump has two
+  destinations, an address naming the dropped ID rewritten, and the merge
+  reported with the name and meta it drops. Raising `ConversionRefused`, a
+  `ValueError`, with each sentence stated literally: a Fine or a To Coda
+  with none or two of the jumps it waits for; a merge of two destinations
+  at one place (a repeat end and a da capo without targets on one
+  barline); a `flow_marker` of an unknown manifestation; a jump without a
+  target that is a dal segno, of an unknown manifestation or of none; an
+  element with a `target` and no type or a type none of the three words; a
+  word of the earlier form beside `targets` or `ends`; two different words
+  under `type` and `role`. A word under `role` converts as under `type`,
+  to the same result. The converter and the validators hold one predicate:
+  for each of sixteen elements, `earlier_form_problems` of the validators
+  and `needs_conversion` agree, the command line prints `nothing to
+  convert` exactly where the validators find nothing, and otherwise
+  converts (the validators then finding no earlier form) or prints
+  `refused: …` and leaves the file unchanged. A rule selecting `jump_from` selects `jump`,
   one selecting `flow_marker` becomes three in its place. A manifest
   without the earlier form comes back equal, its text byte for byte. The
   command line converts a pretty-JSON minimal file in place into pretty
@@ -1211,7 +1262,8 @@ flow that does not follow from its manifest.
   imported jump and two elements added by hand, the two jumps at one
   coordinate (`repairs`). `sonata_exposition` holds three regions typed
   `tts:AtomicSection` with an `inferred` entry each, the FlowMaps of the
-  three conventions and one virtual timeline; read as RDF it says exactly
+  three conventions, each with the one provenance entry `{method:
+  inferred}`, and one virtual timeline; read as RDF it says exactly
   that each region is an `AtomicSection` of the format's namespace and that
   the pair was inferred, fifteen quads, while every other fixture outside
   `statements/` says nothing. Numbered flow-control IDs name their role, an
@@ -1233,8 +1285,9 @@ flow that does not follow from its manifest.
   boundary, a destination without a place at the nearest section break
   before its jump), lettered from A; every run starts and ends on a
   boundary inside the axis and covers the sections listed; `printed` is the
-  sections in order; `never_played` is reported exactly at the start of
-  each section the default flow leaves out; every kind is one of the five
+  sections in order; `never_played` is reported exactly once for each
+  stretch of adjacent sections the default flow leaves out, at its start,
+  never once per section; every kind is one of the five
   the format names. For `sonata_exposition` the manifest's regions are the
   atomic sections, each FlowMap lists the regions of its convention's
   sections, and the virtual timeline's length, 36 quarters, is the sum of
