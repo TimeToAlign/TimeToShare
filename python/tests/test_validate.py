@@ -1453,16 +1453,10 @@ def _defaults_block() -> dict:
     return json.loads(block)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="section 4 of docs/drawing.md still selects the element types "
-    "flow_marker and jump_from, which the schema replaced by break, "
-    "section_break, barline and jump",
-)
 def test_the_defaults_are_a_valid_graphical_object() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["rules"]) == 39
+    assert len(defaults["rules"]) == 41
     validate({**SMALLEST, "graphical": defaults})
 
 

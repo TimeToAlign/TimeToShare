@@ -1165,7 +1165,7 @@ flow that does not follow from its manifest.
   place where the jump has two destinations, an address naming the dropped
   ID rewritten, and the merge reported with the name and meta it drops. A
   Fine or a To Coda with none or two of the jumps it waits for, a merge of
-  two destinations at one place and a flow marker of an unknown
+  two destinations at one place and a `flow_marker` of an unknown
   manifestation raise `ConversionRefused`, a `ValueError`, with the
   sentence stated literally. A rule selecting `jump_from` selects `jump`,
   one selecting `flow_marker` becomes three in its place. A manifest
@@ -2261,24 +2261,27 @@ cannot prove that the emitter produces them:
   for `score`. Both forms pass `validate` and `identity_problems`, so the
   emitter carries a band order on an ancestor of a member, the one case
   whose drawing puts an ancestor line on each side of the member.
-- **Flow-control IDs by type.** Across the complete fixtures, every
+- **Flow-control IDs by role.** Across the complete fixtures, every
   flow-control element whose ID has the generated form `<prefix>_<N>`
-  carries its own `type` as the prefix: exactly `flow_marker_1` (three
-  elements), `jump_from_1` to `jump_from_4` (six, two, one and one) and
-  `jump_to_1` to `jump_to_3` (three, two and one). Every other flow-control
-  ID is one a builder names (`fine`, `da-capo`, `da_capo_al_fine`,
-  `dal_segno`, `repeat`, `segno`). A prefix taken from another type (a flow
-  marker `break_1`, a jump target `marker_1`, a jump origin `jump_1`) fails
-  the test.
+  carries its own `role` as the prefix, or the prefix minted for that role
+  in the earlier form of flow control, which a converted element keeps
+  (`flow_marker` for a break, `jump_from` for a jump, `jump_to` for a jump
+  target): exactly `flow_marker_1` (three breaks), `jump_from_1` to
+  `jump_from_4` (six, two, one and one jumps), `jump_to_1` to `jump_to_3`
+  (three, two and one jump targets), `barline_1` (one), `break_1` and
+  `break_2` (five and one), `jump_1` to `jump_3` (nine, six and one),
+  `jump_target_1` and `jump_target_2` (seven and two) and
+  `section_break_1` (one). Every other flow-control ID is one a builder
+  names (`fine`, `da-capo`, `da_capo_al_fine`, `dal_segno`, `repeat`,
+  `segno`). A prefix taken from another role (a jump `break_1`, a jump
+  target `jump_1`) fails the test.
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 39 rules),
-read from the file, validates as the `graphical` of the smallest file.
-That test is expected to fail, strictly, while the block still selects the
-element types `flow_marker` and `jump_from`, which the schema replaced by
-`break`, `section_break`, `barline` and `jump`: it fails as soon as the
-block is rewritten, and the mark is then removed. The
+`docs/drawing.md` section 4's defaults block (three styles, 41 rules,
+among them one for each of the element types `jump`, `break`,
+`section_break` and `barline`), read from the file, validates as the
+`graphical` of the smallest file. The
 rules naming `card`, `frame`, `inside: ancestor` and `shadow`
 validate, and so do `{"element": "ancestor_card"}` and the rule that
 addresses the ancestor cards of one root, `{"element": "ancestor_card", "addresses":

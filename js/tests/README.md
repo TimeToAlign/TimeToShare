@@ -258,11 +258,10 @@ every rule's code, path and message for both packages; the canonical order
 of a jump's destinations lies in `manifest.test.ts`, the ID positions in
 `ids.test.ts`, the defaults in `defaults.test.ts` and `schema.test.ts`.
 
-The defaults block of section 4 of `docs/drawing.md` is expected to fail
-validation (`validate.test.ts`, `it.fails`) while it still selects the
-element types `flow_marker` and `jump_from`, which the schema replaced by
-`break`, `section_break`, `barline` and `jump`; the test fails as soon as
-the block is rewritten, and the mark is then removed.
+The defaults block of section 4 of `docs/drawing.md`, three styles and 41
+rules, among them one for each of the element types `jump`, `break`,
+`section_break` and `barline`, validates as the `graphical` object of the
+smallest manifest (`validate.test.ts`).
 
 ## Shared rejection cases
 
@@ -388,7 +387,7 @@ new JsonFloat(-0)` are left out as the defaults `1` and `0` are, and the complet
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (92, one per fixture) completes to the canonical YAML of its
+minimal twin (102, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay

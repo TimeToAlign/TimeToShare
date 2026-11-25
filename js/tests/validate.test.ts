@@ -1265,17 +1265,13 @@ describe("the graphical object", () => {
     expect(manifestWarnings(value).map((warning) => warning.code)).toEqual(["context_absent"]);
   });
 
-  // Section 4 of docs/drawing.md still selects the element types flow_marker
-  // and jump_from, which the schema replaced by break, section_break, barline
-  // and jump: the test fails as soon as the block is rewritten, and the mark
-  // is then removed.
-  it.fails("accepts the defaults of the drawing specification", () => {
+  it("accepts the defaults of the drawing specification", () => {
     const text = readFileSync(resolve(repositoryRoot, "docs", "drawing.md"), "utf8");
     const section = text.split("\n## 4. Defaults\n", 2)[1] as string;
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.rules as unknown[]).length).toBe(39);
+    expect((defaults.rules as unknown[]).length).toBe(41);
     validate({ ...SMALLEST, graphical: defaults });
   });
 
