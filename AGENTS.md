@@ -7,9 +7,11 @@ These rules apply to every contributor, human or automated.
 - `schema/`: the JSON Schema of the current version, the document
   `<version>/timetoshare.schema.json` describing the one manifest shape
   `{timetoshare, timelines, id?, name?, meta?, groups?, measure_maps?,
-  resources?, "@context"?, statements?, provenance?, graphical?}`, and
-  beside it `<version>/provenance.schema.json`, the provenance entry that
-  statements and the MatchClaim table share, and `<version>/tables.json`,
+  resources?, flow_maps?, virtual_timelines?, "@context"?, statements?,
+  provenance?, graphical?}`, and beside it
+  `<version>/provenance.schema.json`, the provenance entry that
+  statements, flow-control elements, FlowMaps and the MatchClaim table
+  share, and `<version>/tables.json`,
   the column types of the MatchClaim and Projections tables as data; they
   are the format contract and source of truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
@@ -25,8 +27,11 @@ These rules apply to every contributor, human or automated.
   catalogue and read it alike, and the validators never consult it.
 - `fixtures/`: generated manifests under `fixtures/<version>/` in
   canonical YAML, each in the complete form beside its minimal twin (the
-  subdirectories `groups/`, `bundles/` and `statements/` sort them by
-  content only), the expected RDF of the statement fixtures under
+  subdirectories `groups/`, `bundles/`, `statements/` and `flow/` sort
+  them by content only; the manifests of flow control under `flow/` are
+  hand-authored), the expected flows of those manifests under
+  `fixtures/flows/<version>/` (hand-authored, each beside the trace it was
+  derived with), the expected RDF of the statement fixtures under
   `fixtures/rdf/<version>/` (canonical N-Quads, emitted), the table
   fixture under `fixtures/tables/<version>/` (a manifest naming its
   MatchClaim table and its Projections table, the two Parquet files and
@@ -61,7 +66,8 @@ These rules apply to every contributor, human or automated.
 - `js/`: the npm package, generated TypeScript types, tests, and lockfile.
 - `scripts/`: fixture emission (`emit_fixtures.py`, `emit_rdf.py`
   for the expected RDF of the statement fixtures, and `emit_tables.py` for
-  the table fixture), font-metrics
+  the table fixture), `convert_flow_control.py`, which rewrites manifest
+  files whose flow control is written in the earlier form, font-metrics
   extraction, the check that every version declaration agrees, and
   `check_published.py`, which assembles the documents a release publishes
   and checks their `$id`s and references.
@@ -88,7 +94,11 @@ These rules apply to every contributor, human or automated.
   `fixtures/rdf/<version>/` only through `scripts/emit_rdf.py` after
   them, and the table fixture under `fixtures/tables/<version>/` only
   through `scripts/emit_tables.py`, whose expected anchors and MatchStamps
-  are literal data written in the script; never hand-edit any of them. The
+  are literal data written in the script; never hand-edit any of them.
+  The one exception is `fixtures/<version>/flow/`: its manifests of flow
+  control are written by hand in canonical YAML with `dumps`, each with
+  its minimal twin under the laws of every fixture, and their expected
+  flows under `fixtures/flows/<version>/` are derived by hand. The
   three scripts refuse to overwrite the files of a version whose
   `v<version>` tag exists. Emit
   the drawings under `fixtures/<version>/drawings/` only through
@@ -128,7 +138,10 @@ These rules apply to every contributor, human or automated.
   `scripts/extract_font_metrics.py`; do not calculate or edit its advances by
   hand.
 - Support the current version only. Both packages validate the current
-  schema version and refuse every other; there are no migrations. A version
+  schema version and refuse every other; there are no migrations. The
+  converter of flow control written in the earlier form,
+  `scripts/convert_flow_control.py`, is therefore a script of this
+  repository and no package code. A version
   a later one replaces lives in the git history at its tag and in its
   released packages.
 

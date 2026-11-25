@@ -20,14 +20,18 @@ The directories sort the manifests by content only:
 - under `bundles/`, manifests of several groups, several ungrouped roots,
   or both;
 - under `statements/`, manifests whose elements carry statements and
-  provenance ([Statement fixtures](#statement-fixtures)).
+  provenance ([Statement fixtures](#statement-fixtures));
+- under `flow/`, manifests of flow control, FlowMaps and virtual timelines
+  ([Flow fixtures and expected flows](#flow-fixtures-and-expected-flows)).
 
 Version 0.2.0 has 51 manifests directly under `fixtures/0.2.0/`, 17 under
-`groups/`, 20 under `bundles/` and 4 under `statements/`, 92 in all, each
-with its minimal twin, so 184 files. Beside them lie the expected RDF of
-the 4 statement fixtures under `fixtures/rdf/0.2.0/`, the table fixture
-under `fixtures/tables/0.2.0/` ([The table fixture](#the-table-fixture)),
-194 rejection cases, 16 warning cases, one table of acceptances under
+`groups/`, 20 under `bundles/`, 4 under `statements/` and 10 under
+`flow/`, 102 in all, each with its minimal twin, so 204 files. Beside them
+lie the expected RDF of the 4 statement fixtures under
+`fixtures/rdf/0.2.0/`, the expected flows of 9 flow fixtures under
+`fixtures/flows/0.2.0/`, the table fixture under `fixtures/tables/0.2.0/`
+([The table fixture](#the-table-fixture)), 232 rejection cases, 18 warning
+cases, one table of acceptances under
 `fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)) and
 one list of cases of several problems under `fixtures/precedence/0.2.0/`
 ([Cases of several problems](#cases-of-several-problems)).
@@ -39,14 +43,17 @@ timetoalign's `to_dict()` writes it by default. The two obey one law:
 `minimal(fixture)` equals the twin, `complete(twin)` equals the fixture,
 and the library reads both to equal objects. The manifests are emitted by
 timetoalign through the catalogue and pipeline in `scripts/fixtures/`, with
-`scripts/emit_fixtures.py` as its CLI; that pipeline is their only writer.
+`scripts/emit_fixtures.py` as its CLI; that pipeline is their only writer,
+but for the manifests under `flow/`, which are written by hand ([Flow
+fixtures and expected flows](#flow-fixtures-and-expected-flows)).
 Regenerate them after a serialization change and review the diff. The CLI
 refuses to replace the fixtures of a version whose tag
 `v<version>` exists, so a released version's fixtures stay as released.
 
 The rejection cases under `fixtures/rejections/<version>/`, the warning
-cases under `fixtures/warnings/<version>/` and the cases of several
-problems under `fixtures/precedence/<version>/` are hand-authored. The
+cases under `fixtures/warnings/<version>/`, the cases of several
+problems under `fixtures/precedence/<version>/` and the expected flows
+under `fixtures/flows/<version>/` are hand-authored. The
 emission script does not touch them.
 
 ## Formats
@@ -166,7 +173,7 @@ The structural fixtures add focused examples:
 | --- | --- |
 | `with_region.yaml` | a named region |
 | `nested.yaml` | three levels of timelines |
-| `flow_control.yaml` | the flow marker `fine`, a repeat end taken twice to a named repeat start, and a dal segno to a named segno |
+| `flow_control.yaml` | a repeat end at 8 taken twice to the jump target named "repeat-start" at 2, a Fine at 12 (a break of the manifestation `fine` whose `ends.after` names the dal segno), and a dal segno at 16 to the jump target named "segno" at 4 |
 | `conversion_maps__*.yaml` | the conversion maps of one timeline per unit: `maps_quarters` every map type, a MeasureMap read through its `MeasureRecordMap` and the three other measure views, a `CombinationMap` holding a measure view, and `TableMap`s of both kinds and the three extrapolations; `maps_ticks`, `maps_samples` and `maps_seconds` a `LinearMap` each; `maps_whole_notes` a MeasureMap read through a `ChainMap` from whole notes |
 | `bare.yaml` | one named timeline |
 | `css_pixels.yaml` | 800.0 CSS pixels with children at 16.0 and 400.0: a continuous graphical axis in `css_pixels`, the unit of an SVG's outermost viewport |
@@ -240,8 +247,8 @@ specification, section 6.4):
 | `map_band_order_subset.yaml` | the timelines of `map`, with a band order for the root `melody` listing only `markers` above `line`; the facets it leaves out keep their side of the default order, so `melody` draws `children`, `conversion_maps`, `markers`, `line`, `regions`, `flow_control`, and `phrase`, without an entry, follows that completed order |
 | `styled_score_flow_inner.yaml` | `styled__score` with a band order whose flow control band lies nearer the line than its regions band |
 | `joint_rows.yaml` | a root `piece` of 16 quarters whose children `b` and `d` each hold a child holding one more, so that each depth's two lines share a row and their children bands are laid out together, at two depths; `b` carries one map, `d1` and `d11` two each |
-| `child_flow_control.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the flow marker "Fine" at 4 and the jump origin "D.C. al Fine" at 8 back to 0, while the root holds no flow control |
-| `child_jumps.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds the jump target `segno` at 2, the jump origin "Repeat" at 4, a repeat end taken twice back to the child's start, and the jump origin "D.S." at 8, a dal segno to `segno`, while the root holds no flow control |
+| `child_flow_control.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the break "Fine" at 4, whose `ends.after` names the da capo, and the jump "D.C. al Fine" at 8 back to 0, while the root holds no flow control |
+| `child_jumps.yaml` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds the jump target `segno` at 2, the jump "Repeat" at 4, a repeat end taken twice back to the child's start, and the jump "D.S." at 8, a dal segno to `segno`, while the root holds no flow control |
 
 Three manifests cover the slots of conversion maps bands (drawing
 specification, section 6.4, Conversion maps), and one the label of a float
@@ -264,14 +271,14 @@ each a `LinearMap`, each ID minted and no name given: a map to ticks (480
 per quarter), a tempo map to seconds (half a second per quarter), a map to
 samples (44100 per second), a map to seconds (1/44100 of a second per
 sample) and a map to points (3/4 of a point per pixel). A repeat is a jump
-origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
-`repeat_count` 1).
+labelled "Repeat" whose one destination, a repeat end (`repeat_end`,
+`repeat_count` 1), has no place and goes back to the timeline's start.
 
 | Builder | Construction |
 | --- | --- |
 | `group_number_types` | a group of three timelines whose axes have different number types (quarters as fractions, seconds as floats, pixels as integers), in a display order that differs from their ID order |
 | `group_child_member` | a group of the second half of a score, a child of the score placed at its exact offset, with a whole recording |
-| `group_styled` | the group of `group_number_types` with conversion maps, a region, a jump origin and styling: the score has a map to ticks, the region "Theme" from 0 to 8 and a repeat from 8 back to 0, the performance a map to samples and the page a map to points; its `styles` and `rules` give every group frame the style `frame-highlight` (a violet stroke), fill the group's title `group_1/name` violet, and give every card inside a frame a light violet `shadow` and a corner radius `rx` of 2 |
+| `group_styled` | the group of `group_number_types` with conversion maps, a region, a jump and styling: the score has a map to ticks, the region "Theme" from 0 to 8 and a repeat from 8 back to 0, the performance a map to samples and the page a map to points; its `styles` and `rules` give every group frame the style `frame-highlight` (a violet stroke), fill the group's title `group_1/name` violet, and give every card inside a frame a light violet `shadow` and a corner radius `rx` of 2 |
 | `group_parent_right` | a child `first-half` (8 quarters at 0) of a piece of 16 quarters, with a whole recording; the piece runs on to the right of the member |
 | `group_parent_both` | as above with the child `middle` (8 quarters at 4); the piece runs on to both sides |
 | `group_parent_exact` | as above with the child `whole` (16 quarters at 0); the piece coincides with the member |
@@ -285,7 +292,7 @@ origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 | `group_elided_members` | the group "Theme" of the excerpt `excerpt` ("Excerpt", 16 quarters at 16 in the piece `piece` of 48), the voice `voice` ("Voice", 24 quarters, holding the phrase `phrase`, 8 quarters at 12) and the sketch `sketch` ("Sketch", seconds, of unknown length), in that display order. Two elisions lie on timelines lying in the group, so each is drawn across the frame: `elision_1` "Development" on `excerpt` from 2 to 8 (the frame's proportions 1/8 to 1/2), without `width`, drawing its ellipsis, its name and its coordinates, and `elision_2` on `phrase` from 2 to 6 (14 to 18 of `voice`, the proportions 7/12 to 3/4) with `{"ratio": 0.5}`. The groupstamps `timestamp_1` "Climax" at 15 and `timestamp_2` "Return" at 21 of `voice` lie in the second gap and after it; `piece`'s ancestor card carries the two gaps into the member's span and draws its derived elisions around it |
 | `bundle_mixed` | the bundle "Mixed" of two groups, a score with its performance and a page with an excerpt (a child of a recording); `annotations` is ungrouped, and the recording, which no group names, contains the member `excerpt` and is drawn as its ancestor line and whole in its ancestor card behind the frame. The score has a map to ticks, then a tempo map to seconds, and a repeat from 8 back to 0; the performance a map to samples; the page a map to points; the excerpt a map to seconds; the recording a map to seconds, drawn in its ancestor card only; `annotations` the regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map |
 | `bundle_shared_parent` | the bundle "Sonata" of two groups whose members are two children of one score (an exposition at 0 and a recapitulation at 20, 12 quarters each), each with a take; a page is ungrouped, and the score, which no group names, contains both members and is drawn as an ancestor line of each and whole in an ancestor card behind each frame. Both children are segment lines: the exposition, with a map to ticks, of the segments "First theme" and "Second theme" of 6 quarters, the second with a tempo map to seconds; the recapitulation, with no map, of the segment lines "First theme" and "Second theme" of 6 quarters, each of the segments "Phrase 1" and "Phrase 2" of 3 quarters, and only its "Second theme" has a map to ticks. The take `take_1` is a segment line, with a map to samples, of "First theme" (14.0 seconds) and "Second theme" (16.0 seconds); the take `take_2` and the page carry no map. The score has a map to ticks, the region "Development" from 12 to 20 and a repeat from 12 back to 0, drawn in its ancestor cards only. A segment's ID begins with its segment line's (`exposition_first`, `recapitulation_second_1`) |
-| `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the flow marker "Fine" at 8 (`fine`) and the jump origin "D.C. al Fine" at 16 back to 0 (`da_capo_al_fine`); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
+| `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the break "Fine" at 8 (`fine`, its `ends.after` naming the da capo) and the jump "D.C. al Fine" at 16 back to 0 (a destination `da_capo_al_fine` without a place); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
 | `bundle_shared_member` | the bundle "Shared" of two groups that share a member: the score `t` ("Score", 8 quarters) is a member of the group `g1` ("Performance") beside the performance `u` (4.0 seconds) and of the group `g2` ("Page") beside the page `v` (800 pixels); no timeline carries a map, a region or flow control |
 | `bundle_free_ids` | the bundle "Free IDs" of the group `group_1` ("Piece") of two roots whose IDs are free strings: the score `https://example.org/piece/score` ("Score", 8 quarters) with the region "Exposition" `https://example.org/piece/score#exposition` from 0 to 4, and the take `perf/take 2` ("Take 2", 4.0 seconds) with the region "Intro" `take 2/intro` from 0.0 to 1.0; one rule selects the take's region by its address `{"id": "#take 2/intro"}` and strokes it teal |
 | `bundle_resources` | the bundle "Resources" of the score `score` (8 quarters) and the recording `take_1` (352800 samples), ungrouped, with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, and `resource_2`, the Projections table `projections.parquet` (an experimental type) holding data for `take_1`, with nothing optional; neither file lies beside the fixture, so neither states a size or a digest (the table fixture's manifest states both of its own tables')
@@ -335,12 +342,12 @@ segment line carries a map only in `bundle_shared_parent`.
 | regions on an ungrouped root | `annotations` of `bundle_mixed` |
 | a map, children, a region and flow control on one timeline | `score` of `styled__score` |
 | a map, a region and flow control on a root that contains group members and is drawn as an ancestor line of each, drawn in its ancestor cards only | `score` of `bundle_shared_parent` |
-| a flow marker and a jump origin together | `score` of `bundle_ungrouped` |
+| a break and a jump together | `score` of `bundle_ungrouped` |
 | a map, a region and flow control inside a styled frame | `score` of `group_styled` |
 | a region on a child | `movement` of `unknown_length_child` |
 | regions on segments without a line of their own, joining their segment line's regions band | `a` and `c` of `unknown_length_segments` |
-| a flow marker and a jump origin on a child, its root holding none | `verse` of `child_flow_control` |
-| a jump target, a repeat end with a repeat count and a targeted dal segno on a child, its root holding none | `verse` of `child_jumps` |
+| a break and a jump on a child, its root holding none | `verse` of `child_flow_control` |
+| a jump target, a repeat end with a repeat count and a dal segno to a jump target on a child, its root holding none | `verse` of `child_jumps` |
 | a MeasureMap shared by two timelines, one reading it through a `ChainMap` from ticks | `score` and `midi` of `group_measure_map` |
 | maps of two keys on two lines of one row, sharing the row's slots | `ante` and `cons` of `map_row_siblings` |
 | maps of one key on a segment line and two of its segments that are not segment lines, in two sub-slots | `form`, `b` and `c` of `map_row_subslots` |
@@ -370,6 +377,73 @@ or an application layer displays its band: the drawings
 `unknown_length_child__regions-shown`,
 `unknown_length_segments__regions-shown` and
 `child_flow_control__flow-shown` add such a layer (Drawings, below).
+
+## Flow fixtures and expected flows
+
+The ten manifests under `flow/`, each with its minimal twin, cover flow
+control, FlowMaps and virtual timelines ([main
+README](../README.md#flow-control)). Unlike every other manifest fixture
+they are written by hand, in canonical YAML with `dumps`, and obey the
+same laws: `minimal(fixture)` equals the twin, `complete(twin)` equals the
+fixture, both validate and neither draws a warning. They are not drawn.
+Each holds one root of quarters, but `loop`, in seconds:
+
+| File | Holds |
+| --- | --- |
+| `sonata_exposition.yaml` | "Sonata exposition", 24 quarters: two volta brackets, the Jump `jump_1` at 12 with the destinations `by` 0 on pass 1 and to `jump_target_1` on pass 2, and at 16 the Break `break_1` between the brackets, the first bracket's repeat sign `jump_2` (`repeat_end`, `repeat_count` 1, no place) and `jump_target_1`; its three atomic sections as regions typed `tts:AtomicSection`, the FlowMaps of the three conventions and the virtual timeline `virtual_1` of `flow_map_1`, 36 quarters (the main README's example) |
+| `dal_segno_al_coda.yaml` | 32 quarters: a segno at 4, a To Coda at 12 to the coda at 24, holding `after` the dal segno al coda at 24 back to the segno |
+| `da_capo_al_fine.yaml` | 16 quarters: a Fine at 8, a break whose `ends.after` names the da capo al fine at 16, which has no place |
+| `repeat_end_and_dal_segno.yaml` | 24 quarters: one Jump at 16 with two destinations, a repeat end to the repeat start at 4 and a dal segno to the segno at 8 |
+| `volta_passes.yaml` | 16 quarters: brackets for the passes `[1, 3]` and `[2]` from the Jump at 8; at 12 the Break between the brackets, a Fine whose `ends.after` names the repeat sign at 16, the first bracket's repeat sign and the second bracket's start; the second bracket closed at 16 by a repeat sign with `reset: false` |
+| `ossia.yaml` | 24 quarters with the child `ossia` at 16, laid out after the main text: a Jump at 4 with `by` 0 and a destination `determined: false` to the child, a Break at 16 ending the main text, and at 24 a Jump back to a jump target at 12 |
+| `sections.yaml` | 32 quarters of two sections: a Fine at 8 naming the da capo al fine at 16, a section break without a manifestation at 16, and a da capo without a place at 32, which goes back to the section break |
+| `loop.yaml` | 10.0 seconds: a Jump at 6.0 to a jump target at 2.0, taken 127 times, without a manifestation |
+| `flow_map_by_hand.yaml` | "Set list", 20 quarters with the children `first` (8 at 0) and `second` (12 at 8) and no flow control: the FlowMap "Encore order" of `second`, a gap of 4 quarters and `first`, with no convention and `manual` provenance believed `true` by the editor |
+| `repairs.yaml` | 16 quarters: an imported double barline at 8, an imported repeat end at 16 to the start that the editor believes `false`, and the repeat start at 8 and the repeat end at 16 to it, both added by hand (`manual`): the rejected Jump and its replacement at one coordinate |
+
+`fixtures/flows/<version>/` holds the expected flows of the nine flow
+fixtures that hold flow control, one file `<name>.yaml` in canonical YAML
+each, beside the trace `<name>.md` it was derived by hand with:
+
+```yaml
+manifest: flow/sonata_exposition   # the fixture's path under fixtures/<version>/, no extension
+timeline: score                    # the timeline's ID, bare
+atomic_sections:                   # in the order of the axis, lettered from A
+  - {name: A, start: [0, 1], end: [12, 1]}
+conventions:
+  default: {runs: [...], sections: [...], findings: [...]}
+  single: {runs: [...], sections: [...]}
+  printed: {runs: [...], sections: [...]}
+```
+
+A run is a pair `[start, end]`, the end not played, one per stretch up to
+a Jump, a Break or the length, as the main README's "Computing a flow"
+plays them; `sections` lists the atomic sections the runs cover, in
+order, so that an implementation that joins touching runs compares the
+sections. Every value is spelled in the timeline's number type. A finding
+is `{kind, coordinate}`, in the order the findings arise, `never_played`
+last, its kind one of `flow_ends_at_break`, `never_played`,
+`endless_loop`, `ambiguous_targets` and `undetermined_target`. Findings
+are stated for `default` alone: under `single` and `printed` a file
+states runs and sections and says nothing of findings.
+
+| Case | `default` | `single` | Findings of `default` |
+| --- | --- | --- | --- |
+| `sonata_exposition` | A B A C | A C | none |
+| `dal_segno_al_coda` | A B C B D | A B C D | none |
+| `da_capo_al_fine` | A B A | A B | none |
+| `repeat_end_and_dal_segno` | A B C B C C D | A B C D | none |
+| `volta_passes` | A B A C A B | A C | none |
+| `ossia` | A B C | A B C | `undetermined_target` at 4, `flow_ends_at_break` at 16, `never_played` at 16 |
+| `sections` | A B A C C | A B C | none |
+| `loop` | A, B 128 times, C | A B C | none |
+| `repairs` | A B B | A B | none |
+
+`printed` is the atomic sections in order in every case. The package
+tests compute no flow: they check that each file agrees with its manifest
+(its atomic sections, its runs on their boundaries, its `printed` flow and
+its `never_played` findings), and an implementation that computes flows
+is run against the files.
 
 ## Statement fixtures
 
@@ -474,7 +548,7 @@ cards: {performance: {width: 650, height: 120}}}}` (`bundle_mixed__cards`), with
 the frame spacing `{group_1: {spacing: 16}}`, the gap between the frame's
 two cards (`bundle_mixed__frame-spacing-16`), and with the card spacing
 `{group_1: {cards: {score: {spacing: 8}}}}` of a member card, which deepens the arc of
-`score`'s jump origin (`bundle_mixed__member-card-spacing-8`);
+`score`'s jump (`bundle_mixed__member-card-spacing-8`);
 `bundle_ungrouped` with the place `{score: {x: -60, y: -150, height: 120}}`
 (`bundle_ungrouped__places`), with the place `{recording: {scale: 1.5}}`
 (`bundle_ungrouped__scale`) and with the block's spacing 24 and the card
@@ -599,10 +673,14 @@ code:
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timetoshare` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 95 cases named after the member they break: units and number types (a number type the unit does not admit: `timeline_ticks_float`, `timeline_seconds_int`, `timeline_quarters_int`), lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (an empty ID, `id_empty`, and IDs holding a control character, a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps (a map that is no object: `conversion_map_not_object`, `conversion_map_null`, and an output of a `CombinationMap` that is none, `combination_map_member_not_object`), flow control, MeasureMaps, groups, `graphical` selectors (a word of a selector's `coordinates` other than `primary` and `secondary`, `rule_select_coordinates_unknown`, among them), declarations and `order`, elisions (a `width` given in two forms, `elision_width_two_forms`, and a `ratio` of 0, `elision_ratio_zero`), 23 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an unknown method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`), and a belief that is none of the strings `true`, `false` and `unlikely`, a word or the JSON boolean `true` (`belief_value_unknown`, `belief_value_boolean`); and 3 cases of MatchStamps and resources: a word of an anchor's `display` other than `line` and `name` (`alignment_anchor_display_unknown`), a MatchClaim ID listed twice (`matchstamp_claims_repeated`) and a digest whose hash function the PREMIS vocabulary does not name (`resource_integrity_algorithm_unknown`) |
-| `representation` | an own-axis value is accepted when its axis's number type reads it exactly, in any terms of a fraction, and is written in the form that number type takes (a bare number on an `int` or a `float` axis, a pair of integers on a `fraction` axis; in the tables the cell members that form fills); another form, or a value the number type cannot hold exactly, is refused; a statement value is never a float | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis`, `statement_value_integral_float` |
-| `duplicate_id` | every ID unique across the manifest, that of a map another map holds, of a named timestamp, an elision, a MatchStamp, an alignment anchor and a resource included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `region_id_duplicate_across_roots`, `region_id_is_timeline_id`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id`, `elision_id_is_timeline_id`, `alignment_anchor_id_repeated` |
-| `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps`, and a `#` reference of the statements an element of the manifest | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling`, `element_value_dangling` |
+| `flow_control_form` | before the schema, no flow-control element is written in the earlier form: the key `type` (`jump_from`, `jump_to`, `flow_marker`), one of those words as `role`, or `target` without `role` | `flow_control_earlier_form`, `flow_control_earlier_role` |
+| `schema` | the schema document | 115 cases named after the member they break: units and number types (a number type the unit does not admit: `timeline_ticks_float`, `timeline_seconds_int`, `timeline_quarters_int`), lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs (an empty ID, `id_empty`, and IDs holding a control character, a root ID followed by a newline, `id_control_character_trailing_newline`, among them; an ID written without its `#`, `id_without_hash` and the one-character `id_without_hash_short`, and a reference written without its `#`, `reference_without_hash`), conversion maps (a map that is no object: `conversion_map_not_object`, `conversion_map_null`, and an output of a `CombinationMap` that is none, `combination_map_member_not_object`), flow control (a role none of the five, `flow_control_role_unknown`; a jump without destinations or with an empty list, `jump_without_targets`, `jump_targets_empty`; a member its role does not admit, `jump_with_manifestation`, `jump_target_with_targets`, `barline_with_ends`; a destination or an `after` with both `to` and `by`, `destination_to_and_by`, `after_to_and_by`; an empty `ends`, `ends_empty`; passes empty, repeated, or from 0, `passes_*`; a `repeat_count` of 0, `repeat_count_zero`), FlowMaps and virtual timelines (a gap of 0, `flow_map_gap_zero`; a virtual timeline without `length` or in ticks with fractions, `virtual_timeline_without_length`, `virtual_timeline_ticks_fraction`), MeasureMaps, groups, `graphical` selectors (a word of a selector's `coordinates` other than `primary` and `secondary`, `rule_select_coordinates_unknown`, among them), declarations and `order`, elisions (a `width` given in two forms, `elision_width_two_forms`, and a `ratio` of 0, `elision_ratio_zero`), 23 cases of statements: a context term altered or missing, a prefix that is no namespace or bears a reserved name (`context_*`); a `type` or a key that is a bare word, a key that is a JSON-LD keyword, an empty container, an empty or repeating value list, a value that is a fractional float or `null`, a `null` in an ordered list, a value object with both a language and a datatype, an empty node and a node whose `id` is a blank-node label (`type_bare_word`, `statement_*`, `statements_empty`, `ordered_values_null`, `value_object_language_and_type`, `value_node_*`); an empty `provenance`, an unknown method or match, a property that is a bare word and a date not written `YYYY-MM-DD` (`provenance_*`), and a belief that is none of the strings `true`, `false` and `unlikely`, a word or the JSON boolean `true` (`belief_value_unknown`, `belief_value_boolean`); and 3 cases of MatchStamps and resources: a word of an anchor's `display` other than `line` and `name` (`alignment_anchor_display_unknown`), a MatchClaim ID listed twice (`matchstamp_claims_repeated`) and a digest whose hash function the PREMIS vocabulary does not name (`resource_integrity_algorithm_unknown`) |
+| `representation` | an own-axis value is accepted when its axis's number type reads it exactly, in any terms of a fraction, and is written in the form that number type takes (a bare number on an `int` or a `float` axis, a pair of integers on a `fraction` axis; in the tables the cell members that form fills); another form, or a value the number type cannot hold exactly, is refused; a statement value is never a float | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis`, `destination_by_int_on_fraction_axis`, `flow_map_gap_int_on_fraction_axis`, `virtual_timeline_length_int_on_fraction_axis`, `statement_value_integral_float` |
+| `duplicate_id` | every ID unique across the manifest, that of a map another map holds, of a named timestamp, an elision, a MatchStamp, an alignment anchor, a resource, a FlowMap and a virtual timeline included | `id_duplicate_across_kinds`, `nested_map_id_duplicate`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `region_id_duplicate_across_roots`, `region_id_is_timeline_id`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id`, `timestamp_id_is_timeline_id`, `elision_id_is_timeline_id`, `alignment_anchor_id_repeated`, `flow_map_id_is_region_id` |
+| `dangling_target` | a destination's `to` names a jump target, a region or a child of its own timeline or the timeline itself; an `after` names exactly one destination of another jump of the timeline; a virtual timeline's `map` names a FlowMap or a conversion map and its `timeline` a timeline or another virtual timeline; a measure view's `measure_map` an entry of `measure_maps`; and a `#` reference of the statements an element of the manifest | `destination_to_break`, `destination_to_child_jump_target`, `timelines_root_destination_to_dangling`, `after_jump_unknown`, `after_own_jump`, `after_place_missing`, `after_place_unknown`, `virtual_timeline_map_unknown`, `virtual_timeline_timeline_unknown`, `measure_view_dangling`, `element_value_dangling` |
+| `flow_coordinate` | a flow-control element's coordinate, and the place a destination's `by` reaches, lie from 0 to the timeline's known length | `flow_control_coordinate_beyond_length`, `flow_control_coordinate_negative`, `destination_by_beyond_length`, `destination_by_before_start` |
+| `jump_repeated` | a timeline has one jump at a coordinate | `jump_repeated` |
+| `jump_destination` | the destinations of a jump lie at distinct places | `jump_destinations_same_place`, `jump_destinations_same_distance`, `jump_destinations_both_without_place` |
 | `conversion_map` | a map attached to a timeline converts from the timeline's unit, and a map a `PiecewiseMap` or `CombinationMap` holds, or a `ChainMap`'s first map, from its holder's source unit, wherever both are stated; a `TableMap`'s x and y values agree in length and its x values increase strictly; a `PiecewiseMap` has one map fewer than breaks, and its breaks increase strictly | `map_source_unit_mismatch`, `table_map_lengths_differ`, `table_map_x_not_increasing`, `piecewise_map_maps_count`, `piecewise_map_breaks_not_increasing` |
 | `child_unit` | a child has its parent's unit | `child_unit_differs` |
 | `child_offset` | a child starts within its parent's known length | `child_offset_beyond_parent` |
@@ -630,6 +708,9 @@ code:
 | `match_timestamp` | some MatchStamp names every match timestamp, and no two match timestamps lie on one coordinate | `match_timestamp_in_no_matchstamp`, `match_timestamp_coordinate_repeated` |
 | `resource_timeline` | a resource's `timelines` name timelines of the manifest | `resource_timeline_unknown` |
 | `resource_type` | at most one resource has the type `MatchClaim`, at most one the type `Projection` | `resource_match_claim_twice`, `resource_projection_twice` |
+| `flow_map_timeline` | a FlowMap names a root timeline | `flow_map_timeline_child`, `flow_map_timeline_unknown` |
+| `flow_map_chunk` | every ID among a FlowMap's chunks names a region, a child timeline or a virtual timeline inside the tree of its root | `flow_map_chunk_unknown`, `flow_map_chunk_other_root`, `flow_map_chunk_root` |
+| `flow_map_canonical` | at most one FlowMap of a timeline is canonical | `flow_map_canonical_twice` |
 
 Every case of statements starts from one manifest: the format's context
 with the prefixes `schema`, `wd` and `wdt` (others where a case says so)
@@ -699,7 +780,7 @@ refusal (`length_fraction_member_not_integral`), no row here.
 
 ## Warning cases
 
-A warning is never an error. Each of the 16 warning cases under
+A warning is never an error. Each of the 18 warning cases under
 `fixtures/warnings/<version>/` holds a manifest together with the two lists
 both packages must return for it: `unknown_keys`, the `{path, key}`
 entries `unknown_keys` and `unknownKeys` return, sorted by path and then by
@@ -709,7 +790,10 @@ by code. Three cases hold one warning each and no unknown key:
 `context_absent`, a manifest without `@context` (`context_absent` at the
 root), and `bundle_blank_statements` and `bundle_blank_provenance`, a
 manifest without `id` that carries `statements` or only `provenance`
-(`bundle_blank` at that key). The other thirteen hold the format's context,
+(`bundle_blank` at that key). `manifestation_unknown` holds three
+warnings of that code, at the manifestation of a jump target, of a section
+break and of a destination, and `convention_unknown` one, at a FlowMap's
+`convention`, neither an unknown key. The other thirteen hold the format's context,
 unknown keys and no warning. `several_depths` places unknown keys at every
 depth of a manifest; each of the other twelve holds one or two keys its
 object does not declare, among them keys a writer might plausibly add,

@@ -56,10 +56,12 @@ another implies nothing about the timelines.
 Three kinds of element may carry statements, each in an object
 `statements`, with their annotations in a list `provenance` (section 9):
 the manifest as a whole, every timeline at any depth (children and
-segments included) and every region. No other element carries either: a
-group, a conversion map, a MeasureMap, a flow-control element and a named
-timestamp have none, and the validators refuse the two keys on a group
-(section 12).
+segments included) and every region. No other element carries
+`statements`: a group, a conversion map, a MeasureMap, a flow-control
+element, a FlowMap and a named timestamp have none, and the validators
+refuse the two keys on a group (section 12). A flow-control element and a
+FlowMap carry `provenance` alone, whose entries are about the element
+itself and name no pair (section 9); they are no subjects of statements.
 
 As the subject of statements, each of these elements stands for a thing:
 
@@ -435,7 +437,13 @@ its property and its value:
 
 The same entry, without `property` and `value`, annotates a MatchClaim in
 the `provenance` column of the MatchClaim table (README, "Provenance and
-beliefs"); `provenance.schema.json` defines it once for both.
+beliefs"), and a flow-control element or a FlowMap in its `provenance`
+(README, "Flow control"); `provenance.schema.json` defines it once for
+all of them. Such an entry is about the element itself: how it was made
+(`imported` by a loader, `manual` where a person added it, `inferred`) and
+who believes it. JSON-LD reads none of it, since `flow_control` and
+`flow_maps` are no terms of the context, so it needs the `@context` only
+for the prefixes it uses.
 
 **Stated pairs and candidates.** A pair listed in `statements` is stated
 by the manifest, and its entry, where it has one, annotates it. An entry
@@ -457,7 +465,10 @@ A belief is its actor's alone. Nothing in the format derives a truth
 value from the beliefs, and nobody imposes one: a belief changes neither
 whether a pair is stated nor any other actor's belief, so believing a
 stated pair `false` records the belief and leaves the pair stated;
-removing it is an edit of its own. A person who states a pair through an editor or the functions of
+removing it is an edit of its own. One reading alone is fixed, outside the
+statements: a flow-control element that some actor believes `false` is
+rejected, and a reader computing a flow leaves it out (README, "Flow
+control"). A person who states a pair through an editor or the functions of
 section 11 is recorded with the belief `true`; a loader or a service
 records how the pair was made and holds no belief. A candidate an actor
 believes `false` is not offered to that actor again.
@@ -734,8 +745,9 @@ with the code `schema`:
   fractional part;
 - a value object with both `@language` and `@type`, or with neither; an
   empty node; a node whose `id` is a blank-node label (`_:b0`);
-- an empty `provenance`, an entry without `property` or `value`, an
-  empty `beliefs`, a belief without `actor`, `belief` or `date`, a
+- an empty `provenance`, an entry of a subject without `property` or
+  `value` (an entry of a flow-control element or a FlowMap names no
+  pair), an empty `beliefs`, a belief without `actor`, `belief` or `date`, a
   belief, method or match outside its words, a `property` that is no IRI,
   and a date not written `YYYY-MM-DD`.
 
@@ -749,7 +761,13 @@ each subject they read its ID, its container's keys in code-point order
 with their values, a value node where it stands, then its provenance
 entries, each entry's keys in code-point order and its beliefs in list
 order, and last, entry by entry, the actors of its beliefs against each
-other and the entry against the earlier ones.
+other and the entry against the earlier ones. After the last subject come
+the provenance entries about elements, those of the flow-control
+elements, root by root and each timeline's before its children's, then
+those of the FlowMaps: each entry's keys in code-point order, and then,
+entry by entry, the actors of its beliefs against each other. Of the
+rules below, `iri` (a compact IRI), `dangling_target`, `calendar_date` and
+`belief_actor` apply to these entries.
 
 | Rule | Code | Location | Message |
 | --- | --- | --- | --- |
@@ -771,8 +789,9 @@ begin with a scheme and a colon and does not begin with `#` is a relative
 reference to another document and is not resolved. The `#` references of
 statements and provenance name any ID of the manifest: the manifest's
 own, a timeline's, a group's, a MeasureMap's, a conversion map's at any
-depth, a region's, a flow-control element's, a named timestamp's, a named
-MatchStamp's, an alignment anchor's or a resource's. The
+depth, a region's, a flow-control element's, a resource's, a FlowMap's, a
+virtual timeline's, a named timestamp's, an elision's, a named
+MatchStamp's or an alignment anchor's. The
 Gregorian calendar's years run from 1 to 9999, so `2026-02-30` is refused.
 The messages are the same in both packages, but for a `schema` problem,
 whose message is the package's own schema validator's.
@@ -806,8 +825,11 @@ nothing outside the statements and do not read the version marker.
 ## 13. The statement fixtures
 
 Four fixtures under `fixtures/0.2.0/statements/`, each with its minimal
-twin, carry statements; every other fixture holds the format's context
-and no statement. Their structure is built by timetoalign and their
+twin, carry statements; besides them, `fixtures/0.2.0/flow/sonata_exposition`
+states its three atomic sections, regions of the type
+`tts:AtomicSection`, each pair with an entry of method `inferred` (README,
+"FlowMaps and virtual timelines"), and every other fixture holds the
+format's context and no statement. Their structure is built by timetoalign and their
 statements and provenance are attached from
 `scripts/fixtures/descriptions/<name>.yaml` when they are emitted.
 
@@ -822,5 +844,7 @@ statements and provenance are attached from
 canonical N-Quads (RDFC-1.0) of its JSON-LD reading with the base
 `https://example.org/manifests/<name>.yaml`, which both packages' tests
 reproduce byte for byte with a JSON-LD processor that fetches nothing.
-The fixture and its twin read to the same graph, and every other fixture
+The fixture and its twin read to the same graph. `sonata_exposition`
+reads to the fifteen quads of its three typed regions and their entries,
+which its package tests state without a file, and every other fixture
 reads to the empty graph.

@@ -24,9 +24,9 @@ version declarations in both packages, add shared rejection and warning
 cases, regenerate `js/src/generated/` with `pnpm generate`, and re-emit the
 fixtures through timetoalign.
 
-The manifests under `fixtures/<version>/` and its `groups/` and `bundles/`
-subdirectories are generated artifacts in canonical YAML, each in the
-complete form beside its minimal twin. Use an environment containing the timetoalign revision
+The manifests under `fixtures/<version>/` and its `groups/`, `bundles/`
+and `statements/` subdirectories are generated artifacts in canonical
+YAML, each in the complete form beside its minimal twin. Use an environment containing the timetoalign revision
 represented by the schema:
 
 ```bash
@@ -34,7 +34,15 @@ python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoal
 ```
 
 Do not edit a fixture by hand. The script refuses to write into the
-fixtures of a version whose `v<version>` tag exists. Rejection cases under
+fixtures of a version whose `v<version>` tag exists. The manifests of flow
+control under `fixtures/<version>/flow/` are the exception: they are
+written by hand in canonical YAML with `dumps`, each with its minimal
+twin, and `fixtures/flows/<version>/` holds their expected flows, derived
+by hand, each beside its trace. A manifest whose flow control is written
+in the earlier form (the key `type` with `jump_from`, `jump_to` or
+`flow_marker`, and `target`) is converted with
+`python scripts/convert_flow_control.py <file>…`, which the validators'
+refusal names. Rejection cases under
 `fixtures/rejections/` and warning cases under `fixtures/warnings/` are
 authored by hand and written with `dumps`. The serialization cases under
 `fixtures/serializations/` are derived by hand from the README's
