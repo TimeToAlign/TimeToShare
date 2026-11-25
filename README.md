@@ -286,9 +286,13 @@ admits, and `role` names one of five kinds:
 | `barline` | a Barline, a marked position | nothing | `manifestation` | `double_barline`, `final_barline` |
 
 An element acts when the flow plays up to its coordinate, never when a
-destination lands on it. A timeline has at most one Jump at a coordinate:
-several signs at one place, such as a repeat end and a dal segno on one
-barline, are destinations of that one Jump. `manifestation` says how an
+destination lands on it. Flow control holds across descendants: a root
+and all its descendants have at most one Jump at one position on the
+root's axis, each element's coordinate carried to the root by adding the
+offsets of its ancestors, so a Jump of a child never shares its place
+with a Jump of the root or of another descendant; several signs at one
+place, such as a repeat end and a dal segno on one barline, are
+destinations of that one Jump. `manifestation` says how an
 element or a destination is notated, a word of an open vocabulary: a word
 the format does not define for its role is valid and kept, and both
 validators report it as the warning `manifestation_unknown`. The
@@ -310,7 +314,7 @@ optional:
 | `determined` | `false` for a choice nobody can check, such as an ossia, which a reader computing a flow never takes; default `true` |
 | `reset` | whether taking the destination, where it lies before its Jump, restores what lies in the stretch gone back over (below); default `true` |
 | `manifestation` | `repeat_end`, `da_capo`, `da_capo_al_fine`, `da_capo_al_coda`, `dal_segno`, `dal_segno_al_fine`, `dal_segno_al_coda`, `to_coda`, `volta` or `ossia`, an open vocabulary as above |
-| `label` | the text the destination's arc is drawn with, or `null`: an arc without one is labelled with the destination's `manifestation`, never with the Jump's `label` |
+| `label` | the text the destination's arc is drawn with, or `null`: an arc without one has no label, never the destination's `manifestation`, which the drawing shows as a symbol, nor the Jump's `label` |
 
 A destination's place is `to`, `by` or neither, never both, and lies from
 0 to the timeline's length. A destination without a place lands at the
@@ -1150,7 +1154,7 @@ stable code:
 | The `jump` of an `after` names no jump of the timeline, a rejected one, or the jump holding the destination | `dangling_target` | the `jump` | `'<id>' names no jump of this timeline` (`'<id>' is the jump holding this destination; after names a destination of another jump`) |
 | The `to` or `by` of an `after` names no destination of that jump | `dangling_target` | the `to` or the `by` | `jump '<id>' has no destination to '<to>'` (`… by <value>`) |
 | An `after` without `to` and `by` names a jump of several destinations, none without a place | `dangling_target` | the `after` | `jump '<id>' has <n> destinations and none without a place; after names one by its to or by` |
-| A jump lies at the coordinate of an earlier jump of its timeline, compared by exact value | `jump_repeated` | the later jump | `'<id>' is a second jump at coordinate <value> of '<timeline id>', after '<earlier id>': several signs at one place are destinations of one jump` |
+| A jump lies at the position of an earlier jump of its root's tree on the root's axis, its coordinate plus the offsets of its ancestors, compared by exact value, in document order, a timeline's elements before its children's | `jump_repeated` | the later jump | `'<id>' is a second jump at coordinate <value> of '<timeline id>', after '<earlier id>': several signs at one place are destinations of one jump` (`… after '<earlier id>' of '<earlier timeline id>' at the same position on their root's axis: …` where the two lie on different timelines) |
 | A destination has the place of an earlier destination of its jump, `by` compared by exact value | `jump_destination` | the later destination | `destination <n> of '<id>' has the place of destination <m>, to '<to>'` (`… by <value>`, `… without a place`) |
 | A destination's `to` names no jump target, region or child of its timeline, nor the timeline, or names a rejected jump target | `dangling_target` | the `to` | `'<to>' names no jump target, region or child of this timeline, nor the timeline itself` |
 | The place a destination's `by` reaches lies before 0, or beyond its timeline's known length | `flow_coordinate` | the `by` | `by <value> from coordinate <value> of '<id>' is not on '<timeline id>': it lies outside 0 to the length <length>` (`… it lies before 0`) |
@@ -1856,16 +1860,20 @@ at the proportions of its own axis, its line continuing the faded one.
 The element types are the containers `block`, `frame`, `card`,
 `ancestor_card` (shown by default) and `band` (a band draws one of a timeline's five
 facets and lies above or below its line as the timeline's band order
-places it; a band that is not displayed hides everything it holds, and by
-default the regions and flow control bands are hidden on every timeline
-but the one a card holds), and the content `timeline`, `child`,
+places it; a band that is not displayed hides everything it holds; a
+root's flow control band draws the flow control of its whole tree, and no
+other timeline draws one), and the content `timeline`, `child`,
 `boundary` (a segment's start on its segment line), `ancestor`, `map`,
-`region`, `break`, `section_break` and `barline` (each a vertical line
-at its coordinate), `jump` (one arc per destination whose place is not
-`by` 0, from the jump's coordinate to that place, labelled with its
-destination's `label`, else its `manifestation`, and none to a place a
-`to` names where the element named is rejected; a jump target draws
-nothing; a rejected element is drawn faded),
+`region` (the atomic sections hidden by default, through the selector
+`class` naming `tts:AtomicSection`), `break`, `section_break` and
+`barline` (each a vertical line at its coordinate), `jump` (one arc per
+destination whose place is not `by` 0, from the jump's coordinate to
+that place, labelled with its destination's `label`, and none to a place
+a `to` names where the element named is rejected; hidden by default;
+a rejected element is drawn faded), `symbol` (the music-font glyph of an
+element's manifestation, such as 𝄆 for a repeat start), `bracket` (a
+volta bracket with its passes), `leader` (the thin line joining a label
+moved to a further tier to its element),
 `wedge` (a coordinate marker), `cross_section` (a named timestamp's
 cross-section line), `alignment_anchor` (the line of an alignment anchor
 of a named MatchStamp, drawn last, across the cards between its two
@@ -1876,15 +1884,18 @@ timestamp's name, a MatchStamp's name and an elision's three labels among
 them). Besides `element`, a selector may name `addresses` (address
 objects, each matched as a whole object), `domain`, `modality`, `class`
 (the class a timeline's unit decides, such as
-`ContinuousPhysicalTimeline` for `seconds`, or a conversion map's type),
+`ContinuousPhysicalTimeline` for `seconds`, a conversion map's type, or
+the IRI of a class a region's `type` statement names),
 `facet` (the bands drawing that facet), `within` (a timeline and its
 descendants), `inside` (an element type that holds the element at any
 depth) and `coordinates` (`"primary"` or `"secondary"`: the wedges and
 labels of the named timestamps' primary coordinates, or of their secondary
 ones; no other element). The defaults hide the secondary ones, so the rule
 `{"select": {"element": "wedge", "coordinates": "secondary"}, "set":
-{"display": "inline"}}` shows their wedges. The property `shadow` colours a card's offset shadow, and
-`rotation` turns a wedge about its tip, in whole degrees from −180 to 180.
+{"display": "inline"}}` shows their wedges. The property `shadow` colours a card's offset shadow,
+`rotation` turns a wedge about its tip, in whole degrees from −180 to 180,
+and `label-display` chooses the labels of a flow-control element (`none`
+or words from `name`, `id` and `label`).
 Four properties of a card, an ancestor card and, for the first, a frame
 choose its elisions (the elisions paragraph of [Groups and the `graphical`
 object](#groups-and-the-graphical-object)): `elision-mode` (`auto`,

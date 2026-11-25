@@ -365,14 +365,17 @@ of a timeline, which draws nothing of its own:
 | `break` | a break, an element of `flow_control` of the role `break`, drawn as a vertical line, a flow line (below) |
 | `section_break` | a section break, an element of the role `section_break`, drawn as a vertical line, a flow line |
 | `barline` | a barline, an element of the role `barline`, drawn as a vertical line, a flow line |
-| `jump` | a jump, an element of the role `jump`, drawn as one arc with an arrowhead per destination whose place is not `by` 0, from the jump's coordinate to that place; a jump target, an element of the role `jump_target`, draws nothing of its own |
+| `jump` | a jump, an element of the role `jump`, drawn as one arc with an arrowhead per destination whose place is not `by` 0, from the jump's coordinate to that place; hidden by default (section 4); a jump target, an element of the role `jump_target`, draws its symbol alone and has no element type |
+| `symbol` | the **symbol** of a flow-control element: the glyphs of its manifestation, or of its destinations' manifestations, in the music font on the flow row (section 6.4, Symbols) |
+| `bracket` | a **volta bracket**: a line with hooks and its passes as text, one per destination of a jump whose `manifestation` is `volta` (section 6.4, Brackets) |
+| `leader` | a **leader line**: a thin line joining a label moved out of its first tier to its element (section 6.6, Leaders) |
 | `wedge` | a coordinate marker: of a named timestamp of any timeline, at its primary coordinate or at a secondary one (section 2) |
 | `cross_section` | the cross-section line of a named timestamp, a vertical line across each card its timeline is drawn in, as a line or as an ancestor line, from border to border, with a gap where the wedge and labels of its primary coordinate stand, and for a groupstamp also its lines across the frame of each group its timeline lies in (section 6.6) |
 | `alignment_anchor` | the line of an alignment anchor of a named MatchStamp, the shortest line between the cross-section lines of its two timestamps (section 8.7) |
 | `elision` | the gap of an elision: the narrow rectangle in which a stretch of a timeline is left out, from its card's top border to its bottom border, or for a group elision across the frame's member cards; it draws nothing unless a rule fills it, and its stroke draws the continuations of the rows that cross it (sections 6.6 and 8.9) |
 | `ellipsis` | the ellipsis of an elision, three filled dots, one centred in each drawing of its gap (section 6.6) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
-| `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the name, ID or elided coordinates of an elision, or the label of a region, of an arc of a jump, of a flow line or of a segment |
+| `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the name, ID or elided coordinates of an elision, the label of a region, of an arc of a jump or of a segment, or the name, ID or label of a flow-control element (its **stack**, section 6.4, Flow labels) |
 
 A drawing has two kinds of mark at a position, and they are never
 confused. A **coordinate marker** marks a position of a timeline: it is a
@@ -383,7 +386,9 @@ break, a section break or a barline of a timeline's `flow_control`, held
 by the flow control band and drawn as a vertical line; the markers band
 never holds one. A cross-section line is neither: it
 belongs to its named timestamp's timeline and is held by that timeline's
-line, never by its markers band nor by the timestamp's wedge.
+line, never by its markers band nor by the timestamp's wedge. Nor is a
+symbol: it shows how a flow-control element is notated, and marks no
+position of its own.
 
 An element **belongs** to a timeline (section 2.2); the `block`, a `frame`,
 the titles of a group or of the manifest, and an `alignment_anchor`, which
@@ -426,7 +431,14 @@ named timestamps' coordinates on its timeline, primary and secondary
 (section 2), and their labels, each label beside its wedge and not held
 by it, the conversion maps band its maps, the children band
 its child timelines, the regions band its regions, and the flow control
-band its flow lines and jumps; a `timeline` or `child` also holds
+band its flow lines and jumps and the symbols of its jump targets; a
+flow line or a jump holds its symbol and its stack (section 6.4, Flow
+labels), a jump also its arcs' labels and its brackets, and a label or
+stack moved out of its first tier holds its leader (the first label of
+the stack); the flow control band of a timeline holds its timeline's
+elements in this tree, for the cascade, wherever they are laid out (the
+root's band lays out the flow control of its whole tree, section 6.4); a
+`timeline` or `child` also holds
 the cross-section lines of its timeline's named timestamps and the gaps
 of the card elisions and derived elisions lying on its timeline (section
 8.9), each gap holding its ellipsis and its labels, directly and in no
@@ -453,8 +465,8 @@ and compared as a whole object. No address is a string composed from IDs.
 `id` is an element's ID; `facet` is one of the five facets `markers`,
 `conversion_maps`, `children`, `regions` and `flow_control`, and names a
 band; `part` is a non-empty array of the words `start`, `end`, `name`,
-`label`, `id`, `coordinate`, `card`, `line`, `elision` and `ellipsis`, and
-names a part of an element; `end` names no element in this version. `facet` stands only with `id`, and never with `part`. The name or
+`label`, `id`, `coordinate`, `card`, `line`, `elision`, `ellipsis`,
+`symbol`, `bracket` and `leader`, and names a part of an element; `end` names no element in this version. `facet` stands only with `id`, and never with `part`. The name or
 label of an element is addressed by the element's address with `name` or
 `label` appended to its `part`; a named timestamp has no row and so no
 `name` element, and the part `name` of its address names its first label,
@@ -473,6 +485,10 @@ and `X` an element's ID:
 | the root, or a child timeline with ID `T` | `{"id": T}` | `T` |
 | the band drawing the facet `F` of a timeline with ID `T` | `{"id": T, "facet": F}` | `T` |
 | a conversion map, region or flow-control element with ID `X` of `T` | `{"id": X}` | `T` |
+| the symbol of that flow-control element | `{"id": X, "part": ["symbol"]}` | `T` |
+| the brackets of a jump with ID `X` of `T`, all of them | `{"id": X, "part": ["bracket"]}` | `T` |
+| the labels of the stack of that flow-control element, all `label` elements: its name, its ID, its label | `{"id": X, "part": ["name"]}`, `{"id": X, "part": ["id"]}`, `{"id": X, "part": ["label"]}` | `T` |
+| the leaders of the labels and stacks of an element with ID `X` (a region, a segment, a jump), all of them | `{"id": X, "part": ["leader"]}` | that element's timeline |
 | the wedge of a named timestamp with ID `X` of `T` | `{"id": X}` | `T` |
 | the labels of that timestamp, all `label` elements: its name, its ID, its coordinate | `{"id": X, "part": ["name"]}`, `{"id": X, "part": ["id"]}`, `{"id": X, "part": ["coordinate"]}` | `T` |
 | the wedge and the labels of that timestamp at a secondary coordinate on a timeline `U` (section 2) | the same addresses as at its primary coordinate | `U` |
@@ -497,10 +513,13 @@ So a region `region_1` is `{"id": "region_1"}` and its label `{"id":
 "region_1", "part": ["label"]}`, whether the manifest holds its root alone
 or many roots, and also when a member below its root is drawn as the root
 of its own member drawing; a jump `jump_1` is `{"id": "jump_1"}` on each
-of its arcs, and the label of each arc, its destination's `label` or
-`manifestation` (section 5.3), `{"id": "jump_1", "part": ["label"]}`,
-since a jump is one element, whose every arc and arc label carries its
-address; a
+of its arcs, and the label of each arc, its destination's `label`
+(section 5.3), `{"id": "jump_1", "part": ["label"]}`, as is the line of
+its stack that shows the jump's own `label`, since a jump is one element,
+whose every arc and arc label carries its address; its symbol, the
+glyphs of all its destinations, is `{"id": "jump_1", "part":
+["symbol"]}`, its brackets all `{"id": "jump_1", "part": ["bracket"]}`
+and its leaders all `{"id": "jump_1", "part": ["leader"]}`; a
 named timestamp `timestamp_1` draws its wedge `{"id": "timestamp_1"}`, its
 labels `{"id": "timestamp_1", "part": ["name"]}`, `{"id": "timestamp_1",
 "part": ["id"]}` and `{"id": "timestamp_1", "part": ["coordinate"]}`, and
@@ -516,7 +535,8 @@ addressed `{"id": "perf", "part": ["card"]}`, and an ungrouped root
 title is addressed `{"part": ["name"]}` whether or not the manifest has an
 `id`: the manifest's own `id` addresses nothing, so giving a manifest an ID,
 changing it or naming the manifest changes no address. A jump target is
-addressed like a region but draws nothing. A MeasureMap belongs to no
+addressed like a region and draws its symbol alone, `{"id": X, "part":
+["symbol"]}`. A MeasureMap belongs to no
 timeline and is not drawn; `{"id": X}` with its ID `X` addresses it. A
 derived elision has no ID: the elisions a card derives on `T`, one on
 each of its pieces (section 8.9: none, one or several, on either side of
@@ -553,7 +573,26 @@ A selector is an object with any of these members:
   a member other than `id`, `facet` and `part` is an unknown key (README,
   "Unknown keys"), and the address holding it matches no element;
 - `domain`, `modality`: a domain, a modality;
-- `class`: a timeline class (section 2.1) or a conversion-map type;
+- `class`: a timeline class (section 2.1) or a conversion-map type, or
+  the IRI of a class, compact or full, which matches every region whose
+  `type` statement (README, "Describing a manifest") names that class
+  and no other element. The two IRIs are compared expanded: in a
+  selector, of every layer, the prefix `tts` stands for the format's
+  namespace `https://timetoalign.github.io/timetoshare/ns#`, another
+  compact IRI is expanded by the manifest's `@context`, and a full IRI is
+  itself; each value of a region's `type` statement is expanded by the
+  manifest's `@context` (Python's `expand_iri`, npm's `expandIri`), a
+  value it does not expand being itself. So `{"element": "region",
+  "class": "tts:AtomicSection"}` matches the atomic sections (README,
+  "Atomic sections"), which the defaults hide (section 4), and the rule
+
+  ```json
+  {"select": {"element": "region", "class": "tts:AtomicSection"}, "set": {"display": "inline"}}
+  ```
+
+  in a manifest's `graphical` shows them, as an editor's toggle "Atomic
+  sections", in the properties of a regions band and of a flow control
+  band, writes it and removes it;
 - `facet`: a facet (section 2.1); it matches the bands drawing that facet;
 - `within`: a timeline ID; it matches the elements belonging to that
   timeline or to any of its descendants;
@@ -595,24 +634,25 @@ labels too, and one selecting `{"element": "wedge", "coordinates":
 
 Presentation properties carry SVG's names and values where SVG has the
 property; the writers map them to TikZ (section 7.4). `content`,
-`max-width`, `shadow`, `rotation` and the four elision properties are the
-format's own; a turned wedge is written by its points, never with a
+`max-width`, `shadow`, `rotation`, `label-display` and the four elision
+properties are the format's own; a turned wedge is written by its points, never with a
 `transform` (section 7.2).
 
 | Property | Values | Inherited | Read by |
 |---|---|---|---|
-| `stroke` | `#RRGGBB` (upper-case) or `none` | yes | every type but `block`, `band`, `wedge`, `ellipsis`, `name` and `label` (an `elision` draws its continuations with it) |
+| `stroke` | `#RRGGBB` (upper-case) or `none` | yes | every type but `block`, `band`, `wedge`, `ellipsis`, `symbol`, `name` and `label` (an `elision` draws its continuations with it, a `bracket` its line and hooks) |
 | `stroke-width` | a number ≥ 0 | yes | as `stroke` |
 | `stroke-dasharray` | `none`, or numbers separated by single spaces | yes | as `stroke` |
-| `fill` | `#RRGGBB` or `none` | yes | `block`, `frame`, `card`, `ancestor_card`, `timeline`, `child`, `ancestor` (the circles at their start and end, the arrowhead at their end), `jump` (the arrowheads of its arcs), `wedge`, `elision` (its gap), `ellipsis`, `name`, `label` |
+| `fill` | `#RRGGBB` or `none` | yes | `block`, `frame`, `card`, `ancestor_card`, `timeline`, `child`, `ancestor` (the circles at their start and end, the arrowhead at their end), `jump` (the arrowheads of its arcs), `wedge`, `elision` (its gap), `ellipsis`, `symbol`, `bracket` (its text), `name`, `label` |
 | `opacity` | a number from 0 to 1 | no | every type but `band` |
-| `font-size` | a number > 0 | yes | `name`, `label` |
+| `font-size` | a number > 0 | yes | `symbol`, `bracket` (its text), `name`, `label` |
 | `rx` | a number ≥ 0 | no | `block`, `frame`, `card`, `ancestor_card` (the corner radius) |
 | `shadow` | `#RRGGBB` or `none` | no | `card`, `ancestor_card` (the colour of its offset shadow, section 8.4) |
 | `display` | `inline` or `none` | no | every type but `block` |
 | `content` | a text, or `none` | no | `name` (a row's own name, section 6.6) |
 | `max-width` | a number > 0, or `none` | no | `name`, and the `label`s of an elision (section 6.6) |
 | `rotation` | an integer from −180 to 180 | no | `wedge` (section 6.6) |
+| `label-display` | `none`, or words from `name`, `id` and `label` separated by single spaces | no | `break`, `section_break`, `barline`, `jump` (which labels it draws, section 6.4, Flow labels) |
 | `elision-mode` | `auto`, `full`, `proportional` or `custom` | no | `card`, `ancestor_card`, `frame` (section 8.9) |
 | `elision-proportion` | `auto`, or a number greater than 0 and at most 1 | no | `card`, `ancestor_card` (section 8.9) |
 | `elision-depths` | `auto`, or positive integers separated by single spaces | no | `card`, `ancestor_card` (section 8.9) |
@@ -626,7 +666,10 @@ it, and, for an element of a named timestamp, of an alignment anchor or
 of an elision, the timestamp's, the anchor's or the elision's own
 `display` lists its word (section 2; for an elision's ellipsis
 `ellipsis`, for its labels `name`, `id` or `coordinate`, and for its
-continuations `continuation`, while its gap has no word). The two are independent filters,
+continuations `continuation`, while its gap has no word), and, for a
+label of a flow-control element's stack or of an arc of a jump, the
+element's cascaded `label-display` lists its word (section 6.4, Flow
+labels). The two are independent filters,
 both of which an element of a named timestamp must pass: its `display`
 array chooses what the timestamp draws at all, and the cascade's `display`
 property may still hide any one element of it, its wedge, any of its
@@ -637,10 +680,17 @@ refer to it:
 
 - **A band hides everything it holds.** A band that is not displayed hides
   every element it holds, at any depth of the tree of section 2.1.
-- **An element hides its label.** The label of a region, of a flow line
-  or of each arc of a jump, and each ellipsis and label of an elision, is displayed
-  only when that element, the elision's gap, is displayed. A named timestamp's labels are not its wedge's
-  (section 2.1), and its wedge hides none of them.
+- **An element hides its label.** The label of a region, the labels of
+  a flow line's stack, the label of each arc of a jump, and each ellipsis
+  and label of an elision, is displayed
+  only when that element, the arc, the elision's gap, is displayed. A named timestamp's labels are not its wedge's
+  (section 2.1), and its wedge hides none of them; nor are a jump's stack,
+  symbol and brackets its arcs', nor a flow line's symbol its line's: a
+  jump whose arcs are hidden, as the defaults hide them (section 4),
+  still draws its symbol, its brackets and its stack.
+- **A label hides its leader.** A leader (section 6.6, Leaders) is
+  displayed only when the label it joins, or the first label of the stack
+  it joins, is displayed.
 - **A line hides its timeline's whole drawing.** A line that is not
   displayed, the root's and a child's alike, hides its name, the maps,
   boundaries and segment labels on it (section 6.4), the cross-section
@@ -688,7 +738,11 @@ though a timeline line that is not drawn gives an anchor no end there
 takes its `display` from another: hiding the band `{"id": "score",
 "facet": "regions"}` hides the regions of `score` alone, and the regions of a child of `score` are drawn,
 at the child's own line, only when the child's own regions band is
-displayed. The defaults hide some bands (section 4).
+displayed. The flow-control elements of a child are held by the child's
+own flow control band (section 2.1) though the root's band lays them out
+(section 6.4): hiding the child's line or its flow control band hides
+them, and hiding the root's flow control band hides the root's own
+elements alone. The defaults hide no band (section 4).
 
 ### 2.5 The cascade
 
@@ -703,7 +757,7 @@ The value of a property on an element is found per property:
    `font-size` 9, `rx` 0, `shadow` `none`, `display` `inline`, `content`
    `none`, `max-width` `none`, `rotation` 0, `elision-mode` `auto`,
    `elision-proportion` `auto`, `elision-depths` `auto`, `elision-display`
-   `ellipsis name`.
+   `ellipsis name`, `label-display` `label`.
 
 The rank of a rule is, from the most to the least significant:
 
@@ -860,8 +914,8 @@ before it becomes an ordinate `yl − o` or `yl + o`, `yl` the ordinate of
 the line of the timeline whose band it lies in (section 6.4); the
 boundaries and segment labels of a line are offset from that line (section
 6.4), the wedges and labels of the named timestamps on an ancestor line
-from that line (section 8.3), and a flow-line label from the flow row
-(section 6.4). A label's baseline is then that ordinate plus
+from that line (section 8.3), and the label of a flow-control element's
+stack from the flow row (section 6.4). A label's baseline is then that ordinate plus
 `a(9)` or minus `d(9)`. `max` and `min` compare exactly.
 
 ### 3.4 Timelines of unknown length
@@ -951,10 +1005,14 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"element": "map", "modality": "discrete"}, "set": {"stroke-dasharray": "1 1"}},
     {"select": {"element": "wedge"}, "set": {"fill": "#000000"}},
     {"select": {"element": "region"}, "set": {"stroke": "#000000", "stroke-width": 1, "stroke-dasharray": "none"}},
-    {"select": {"element": "jump"}, "set": {"stroke": "#000000", "fill": "#000000", "stroke-width": 1, "stroke-dasharray": "1 1"}},
-    {"select": {"element": "break"}, "set": {"stroke": "#FF0000", "stroke-width": 1.5, "stroke-dasharray": "2 2"}},
-    {"select": {"element": "section_break"}, "set": {"stroke": "#FF0000", "stroke-width": 1.5, "stroke-dasharray": "2 2"}},
-    {"select": {"element": "barline"}, "set": {"stroke": "#FF0000", "stroke-width": 1.5, "stroke-dasharray": "2 2"}},
+    {"select": {"element": "region", "class": "tts:AtomicSection"}, "set": {"display": "none"}},
+    {"select": {"element": "jump"}, "set": {"stroke": "#000000", "fill": "#000000", "stroke-width": 1, "stroke-dasharray": "1 1", "display": "none"}},
+    {"select": {"element": "break"}, "set": {"stroke": "#D62728", "stroke-width": 1.5, "stroke-dasharray": "1.5 1.5"}},
+    {"select": {"element": "section_break"}, "set": {"stroke": "#4B5563", "stroke-width": 1.5, "stroke-dasharray": "4 2"}},
+    {"select": {"element": "barline"}, "set": {"stroke": "#6B7280", "stroke-width": 1, "stroke-dasharray": "none"}},
+    {"select": {"element": "symbol"}, "set": {"fill": "#000000", "font-size": 12}},
+    {"select": {"element": "bracket"}, "set": {"stroke": "#000000", "stroke-width": 1, "stroke-dasharray": "none", "fill": "#000000", "font-size": 9}},
+    {"select": {"element": "leader"}, "set": {"stroke": "#9CA3AF", "stroke-width": 0.5, "stroke-dasharray": "none"}},
     {"select": {"element": "boundary"}, "set": {"stroke": "#000000", "stroke-width": 1, "stroke-dasharray": "none"}},
     {"select": {"element": "cross_section"}, "set": {"stroke": "#1BA1E2", "stroke-width": 1, "stroke-dasharray": "3 3"}},
     {"select": {"element": "alignment_anchor"}, "set": {"stroke": "#1BA1E2", "stroke-width": 1, "stroke-dasharray": "3 3"}},
@@ -974,8 +1032,6 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"addresses": [{"part": ["name"]}]}, "set": {"max-width": "none"}},
     {"select": {"element": "name", "inside": "ancestor"}, "set": {"fill": "#6B7280", "font-size": 9, "opacity": 1}},
     {"select": {"element": "label", "inside": "elision"}, "set": {"fill": "#6B7280"}},
-    {"select": {"element": "band", "facet": "regions", "inside": "band"}, "set": {"display": "none"}},
-    {"select": {"element": "band", "facet": "flow_control", "inside": "band"}, "set": {"display": "none"}},
     {"select": {"coordinates": "secondary"}, "set": {"display": "none", "rotation": -45}}
   ]
 }
@@ -984,8 +1040,17 @@ between them and the manifest's own `graphical` object (section 1).
 So a timeline takes the colour of its domain, dotted when discrete and
 solid when continuous (dotted: dashes and gaps as long as the stroke is
 wide); a conversion map takes the colour and pattern of the domain and
-modality it converts to; wedges and braces are black and solid; the arcs
-of jumps are thin, black and dotted, and flow lines dotted red; a name longer than 160 is
+modality it converts to; wedges and braces are black and solid, and the
+regions that are atomic sections are hidden (section 2.3 shows the rule
+that shows them); the arcs of jumps are thin, black and dotted, and
+hidden, so that a jump shows its symbol, its brackets and its stack
+alone until a rule shows its arcs (`{"select": {"element": "jump"},
+"set": {"display": "inline"}}` all of them, with `addresses` one jump's);
+a break is a dotted red line, a section break a dashed dark blue-grey
+one, a barline a thin solid dark grey one, darker than the light blue of
+a cross-section line; symbols are black, at the font size 12, brackets thin, black
+and solid with labels of size 9, and leaders thin, solid and light grey;
+a name longer than 160 is
 cut (section 6.6), but the manifest's title, whose addressed rule
 outranks the rule of every name (section 2.5). Segment
 boundaries are thin black rules; a named timestamp's cross-section line is
@@ -1015,13 +1080,9 @@ is. The rules selecting a gap and an ellipsis name `element` and so
 outrank the domain rules (section 2.5): a gap is unfilled and an ellipsis
 black on every timeline. A rule of a later layer setting a gap's `fill`
 draws it as a filled rectangle under its ellipsis.
-The two rules selecting `band`
-hide the regions and flow control bands of every timeline that is
-held by a band, which is every timeline of a member drawing but its root
-(a child is held by its parent's children band, a segment without a line
-of its own too); every markers band, conversion maps band and children band
-is shown, so the nesting of a member drawing, every timeline's maps and
-every named timestamp stay visible. The last rule hides every wedge and
+No rule hides a band: every band of every timeline is shown, a child's
+regions band included, and a child's flow control is drawn in its root's
+flow control band (section 6.4). The last rule hides every wedge and
 label of a secondary coordinate (section 2) and turns such a wedge −45, so that a wedge shown by a later
 rule points at its coordinate from beside the cross-section line; only
 the primary coordinate of each timestamp is drawn by default (section
@@ -1168,13 +1229,16 @@ The name of a timeline is its `name`, or, when `name` is null, its whole
 `id`, which is never parsed (`original_score:dgt_1` is named
 `original_score:dgt_1`). A
 conversion map has no name or label in the drawing. A region's label is its `name`, and a region whose `name` is null has none; the label of
-each arc of a jump is its destination's `label`, else that destination's
-`manifestation`, never the jump's own `label`, and an arc for which both
-are null or absent has none; the jump's own `label` and `name` label the
-jump once, never each of its arcs, and this version of the drawing draws
-neither; a flow line's label is its `label`, and a
-flow line whose `label` is null has none; a jump target draws no label;
-a segment's label is
+each arc of a jump is its destination's `label`, never that
+destination's `manifestation`, which its symbol shows (section 6.4,
+Symbols), nor the jump's own `label`, and an arc whose destination's
+`label` is null or absent has none; a flow line or a jump has a
+**stack** of up to three labels, its `name`, its whole `id` and its own
+`label`, each where it is not null, of which it draws those its
+`label-display` lists (section 6.4, Flow labels), so that the jump's own
+`label` and `name` label the jump once, never each of its arcs; a jump
+target draws no label; a bracket's text is its destination's passes as
+printed (section 6.4, Brackets); a segment's label is
 its `name`, and a segment whose `name` is null has none; a named
 timestamp has three labels, its `name`, its whole `id`, and its
 `coordinate`, labelled as section 5.2 labels a coordinate, in its
@@ -1233,10 +1297,13 @@ number it has always had.
 | label gap (marker to label) | 2 |
 | label separation (horizontal, between labels) | 2 |
 | brace height | 6 |
-| region row pitch `pr` | 6 + 2 + h(9) + S |
+| region row pitch `prk` of row `k`, its labels filling `Tk ≥ 1` label tiers | 6 + 2 + Tk × h(9) + S |
 | first jump depth | 4 + S |
-| jump row pitch `pj` | 6 + S + h(9) |
-| flow-line label offset | 3 |
+| jump row pitch `pjk` of row `k`, its labels filling `Tk ≥ 1` label tiers | 6 + S + Tk × h(9) |
+| flow label offset (from a flow-control element's `x` to its stack) | 3 |
+| symbol row height `Hs` | h(zs), `zs` the largest font size of the drawn symbols; 0 when none is drawn |
+| bracket row height `hb` | h(zb) + 4, `zb` the largest font size of the drawn brackets |
+| bracket text offset, hook gap | 2, 2 |
 | boundary half-height `k` | 8 |
 | group frame padding `Q` | 8 |
 | card padding `K` | 8 |
@@ -1262,10 +1329,12 @@ for the largest font size of the drawn labels of the band in question, and
 is 9 when the band draws no label; every line at level 0 (section 6.4)
 counts as a band of its own, whose labels are its segment labels. So a
 regions band whose regions have no drawn label still keeps the label room
-`2 + h(9)` in its row pitch `pr`, and is as wide as one with labels of size
+`2 + h(9)` in each row pitch `prk`, and is as wide as one with labels of size
 9. The labels of a flow
-control band are the drawn labels of its arcs and of its flow lines
-together, so its jump rows and flow-line label tiers share one size.
+control band are the drawn labels of its arcs and of its stacks
+together, so its jump rows and flow label tiers share one size; a
+bracket's text is no label and counts for no `h(9)`, its row taking
+`h(zb)` instead.
 
 ### 6.3 First fit
 
@@ -1281,8 +1350,9 @@ positions below runs from `L × u` of the one to `L × u` of the other.
 two items starting at the same point never do. The extent of a label is
 `[left − 1, right + 1]`, so labels keep the label separation apart: for a
 label of width `wi` centred on a position of proportion `u`, `[L × u − wi /
-2 − 1, L × u + wi / 2 + 1]`, and for a flow-line label, `[L × u + 3 − 1, L × u
-+ 3 + wi + 1]`, each end computed left to right. Every band fills its own
+2 − 1, L × u + wi / 2 + 1]`, and for the stack of a flow-control
+element, `wi` the width of its widest label, `[L × u + 3 − 1, L × u + 3 +
+wi + 1]`, each end computed left to right. Every band fills its own
 rows.
 
 ### 6.4 Levels and bands
@@ -1322,7 +1392,8 @@ parent's line it lies on.
 
 **What a band holds.** A band draws what its own timeline holds of its
 facet (section 2.1), and what another timeline holds only where a segment
-without a line of its own joins its segment line's bands (below):
+without a line of its own joins its segment line's bands (below), and in
+the flow control band of the root (below):
 
 - the **markers band** its coordinate markers (Markers): the wedges and
   labels of its named timestamps (section 2), and the label stacks of the
@@ -1335,9 +1406,33 @@ without a line of its own joins its segment line's bands (below):
 - the **conversion maps band** its maps (Conversion maps);
 - the **children band** its children (Children);
 - the **regions band** its regions (Regions);
-- the **flow control band** the arcs of its jumps and its flow lines,
-  with their labels (Flow control, Flow lines); its jump targets draw
-  nothing.
+- the **flow control band** of the root, the flow control of the whole
+  tree (Flow control): its symbols, flow lines, brackets and the arcs of
+  its jumps, with their labels and stacks; the flow control band of any
+  other timeline draws nothing and is never present.
+
+**Gathering.** Flow control holds across descendants, so the root's flow
+control band draws the flow-control elements of the root and of every
+descendant, at any depth, segments included, each at its position on the
+root's axis (section 3.1), whichever timeline states it; no other
+timeline draws a flow control band. Each element keeps its place in the
+tree of section 2.1, held by the flow control band of the timeline that
+states it, so that the cascade, `within` and the hiding of section 2.4
+treat it as that timeline's: a child whose line or flow control band is
+not displayed draws none of its elements, and they take no room. The
+root's flow control band is present when it draws an element, of the
+root's or of a descendant's, also when its own `display` is `none`. When
+the root of the member drawing is a member that is a child timeline
+(section 8.1), its flow control band draws, besides the elements of its
+own tree, the elements of every other timeline of the tree of its
+top-level root, the root of `timelines` above it, whose position on the
+member's axis (section 8.3: an ancestor's coordinate plus `ts`, compared
+exactly) lies from 0 to `λ`, both included, `λ` the member's length or
+reach (section 3.4); those of the elements that lie outside the member's
+own tree are held by the member's flow control band. So a section of a
+movement drawn as a member shows the repeats, the voltas and the jumps
+of the movement and of the work that lie in its stretch. An arc is drawn
+in such a band only where its to lies in that stretch too.
 
 An element that is not displayed (section 2.4) is drawn in no band and
 takes no room.
@@ -1487,8 +1582,7 @@ each spanning the segment and taking a slot by its key and extent as every
 map of that band does (Conversion maps), not after the segment line's own
 maps, so that the maps of one key on two segments may share a slot; its
 children in the children band, its regions
-in the regions band, its flow-control elements in the flow control band,
-and its named timestamps' wedges and labels in the markers band, each at
+in the regions band, and its named timestamps' wedges and labels in the markers band, each at
 the segment's start plus its coordinate (section 3.1); its own band order
 places nothing. Its named timestamps' cross-section lines, which it holds
 itself (section 2.1), are drawn as every cross-section line, across the
@@ -1582,16 +1676,16 @@ own bands draw, at any depth, laid out from its line by this section. The
 **extent** of a child is the smallest interval that holds the extent of its
 line, the extent of every item that a first fit of its own drawing places
 at any depth (its segment labels, the stacks of named timestamps' labels,
-regions, arcs of jumps and flow-line labels of its bands, and its own
-children, each with its extent by this rule), a stack where its wedge
+the regions and region labels of its bands, each at its own extent
+whichever tier it lies in, and its own children, each with its extent by
+this rule; a child draws no flow control, section 6.4, Gathering), a stack where its wedge
 carries it, its extent's centre moved by its carry `vx` (section 6.6,
 Labels of named timestamps): `[(L × u + vx) − wi / 2 − 1, (L × u + vx) +
 wi / 2 + 1]`, the extent `[L × u + a, L ×
 u + b]` of every wedge it draws, `u` the proportion of the position it
 marks and `a` and `b` the smallest and the largest of 0, `13 × s − 3 × k`
 and `13 × s + 3 × k`, the offsets of its points from `X` (section 6.6,
-Wedges), so `[L × u − 3, L × u + 3]` for a wedge not rotated, and the
-position `L × u` of every flow line it draws. The
+Wedges), so `[L × u − 3, L × u + 3]` for a wedge not rotated. The
 cross-section lines it draws add nothing: each lies at a position of its
 timeline and takes no room (section 6.6).
 The maps it draws, at any depth, add nothing: each spans a timeline that
@@ -1670,58 +1764,180 @@ hides.
 
 **Regions.** The regions band of a timeline places its displayed regions,
 in canonical order, by first fit with the extent from the smaller to the
-larger of their start and end, widened to the extent of their label when
-it is drawn. Row `k` has its brace's arms at `r0 + (k − 1) × pr` from the
-timeline's line, `r0` the start of the band; the band is `R × pr − S`
-wide.
+larger of their start and end, never widened by their labels, into `R`
+rows: a region keeps its row whatever its label's width. Then the drawn
+labels of each row, in the order of their regions, are placed by one
+first fit of that row, each with the extent of a label centred on `Xm`
+(section 6.6, Regions), into the row's **label tiers**: tier 1 is where
+the label lies beside its brace, and tier `j` lies `(j − 1) × h(9)`
+further out. Row `k`, whose labels fill `Tk` tiers, or `Tk = 1` when it
+has no drawn label, has the pitch `prk = 6 + 2 + Tk × h(9) + S` (section
+6.2), so that a row without a label that needs a second tier is as high
+as it has always been. Row `k` has its brace's arms at `ak = r0 + (pr1 +
+… + pr(k − 1))` from the timeline's line, the pitches summed first and
+`a1 = r0`, `r0` the start of the band; the band is `(pr1 + … + prR) − S`
+wide, summed left to right. A label in tier `j ≥ 2` is joined to its
+brace by a leader (section 6.6, Leaders).
 
-**Flow control.** The flow control band of a timeline holds first the
-**flow-line label tiers**, `T × h(9)` wide for `T` tiers (0 when it has
-no drawn flow-line label), and then the **flow row**, where the arcs of
-jumps leave and arrive and flow lines end: the flow row lies `T × h(9)`
-beyond the start of the band. Each displayed jump draws one **arc** per
-destination, from and to the positions of section 3.1, but none for a
-destination with `by` 0 (going on, no jump) and none for a destination of
-a rejected jump whose `to` names nothing or names a rejected element
-(section 3.1); a jump with no such arc draws nothing. The arcs, jump by jump in canonical order and each jump's in the
-canonical order of its `targets`, are sorted stably by span (the absolute
-exact difference of their to and from positions), smallest first, and
-placed by first fit with the extent from the smaller to the larger of
-their from and to, widened to the extent of their label, into **jump
-rows**. Row `k` reaches its **apex** at the distance `f0 + (4 + S) + (k −
-1) × pj` from the timeline's line, `f0` that of the flow row and `4 + S`
-the first jump depth, so an arc that encloses another lies further out.
-The band is `T × h(9) + (4 + S) + (K − 1) × pj +
-2 + h(9)` wide for `K ≥ 1` jump rows,
-and `T × h(9)` wide for none. Its arc descriptors and labels follow this
-order of first fit (section 7.2). A rejected flow-control element, one
-that some actor believes `false` (README, "Flow control"), is drawn as any
-other and takes its room as any other, but with its arcs or its line and
-their labels at the opacity 0.35, which replaces the cascaded `opacity`
-and no rule changes.
+**Flow control.** The root's flow control band (Gathering) draws the
+**band's elements**: the flow-control elements it draws, taken in the
+traversal order (section 6.1) of the tree they lie in, the tree of the
+top-level root, each timeline's elements in canonical order; the
+elements of a timeline whose line or flow control band is not displayed
+draw nothing and take no room (section 2.4), and every other draws each
+of its parts that is displayed: a flow line its line and its stack, a
+jump its arcs, which the `display` of the element `jump` governs, its
+stack and its brackets, and each its symbol. From its start `c` outwards
+it holds:
 
-**Flow lines.** A displayed flow line is a vertical line at `x` of its coordinate, from
-the flow row across the line of the band's timeline to the far side of
-that timeline's own drawing. For the root it runs across every band to the
-card margin `V` of the opposite side, inside its padding: from `(x, yf)`
-to `(x, P + V)` when the flow control band lies below the root's line and
-to `(x, Hc − P − V)` when it lies above it (section 6.5), ordinates of the
-member drawing counted from its top (section 8.4). For every other timeline it runs from `(x, yf)` to
-`(x, yl − mb)` when the band lies below the timeline's line and to `(x, yl +
-mb)` when it lies above it, `mb = max(E, h(s) / 2)`, `E` the outer edge of
-the timeline's opposite side and `s` the name size of the row its line
-lies in (section 6.2): the distance at which the root's
-margin begins beyond the root's line, `s` there the root's name size
-(section 6.5). So a flow line crosses its own timeline's drawing from its flow
-row to the far side, as the root's crosses the member drawing, and stays
-inside the room the timeline's row takes (Children): of other timelines'
-drawings it crosses only those of its own descendants that lie in its way. Its label sits at the line's end on the flow row, alongside the
-line on the timeline's side of the flow row: the flow-line labels are
-placed by first fit, in canonical order, into the flow-line label tiers. Tier 1
-touches the flow row: its baseline is at `yf − d(9)` when the band lies
-below the line and at `yf + a(9)` when it lies above it, `yf` the flow
-row's ordinate, and tier `k` lies `(k − 1) × h(9)` further in, towards the
-timeline's line.
+1. the **flow label tiers**, `T × h(9)` wide when the stacks (Flow
+   labels) fill `T` lines, and 0 wide when the band draws no stack;
+2. the **flow row** at `f0 = c + T × h(9)`, where the flow lines end and
+   the arcs of the jumps leave and arrive;
+3. the **symbol row**, from `f0` to `f0 + Hs` (Symbols; `Hs` 0 when the
+   band draws no symbol);
+4. the **bracket rows**, from `f0 + Hs` outwards, `hb` wide each, `B`
+   of them, `B × hb` together and 0 when the band draws no bracket
+   (Brackets);
+5. the **jump rows** of the arcs, beyond `f1 = f0 + Hs + B × hb`, each
+   sum taken left to right.
+
+The band is `T × h(9) + Hs + B × hb + (4 + S) + (pj1 + … + pj(K − 1)) +
+2 + TK × h(9)` wide for `K ≥ 1` jump rows, and `T × h(9) + Hs + B × hb`
+wide for none, summed left to right as written, the pitches `pjk` of
+section 6.2 summed first; so a band drawing nothing but flow lines
+without labels is 0 wide and lies at the flow row of its start.
+
+**Flow labels.** A flow line or a jump has a **stack**, the labels its
+cascaded `label-display` lists (section 2.4) of the three it can have
+(section 5.3), in the order name, ID, label, those whose text is null
+left out; the defaults' `label` draws its own `label` alone. A displayed
+flow line, or a jump, whose stack holds a label draws it, a jump whatever
+its arcs show; a flow line that is not displayed draws none. The stacks, in the
+order of the band's elements, are placed by one first fit into **flow
+label tiers**, each stack one item as many lines high as it has labels,
+with the extent of section 6.3, starting at `x + 3`, `x` that of its
+element's position. A tier is as many lines high as its highest stack,
+and each of its stacks starts on its first line. Counting lines inwards
+from the flow row, from 1, the label `j` of a stack in tier `k` lies on
+line `n = m1 + … + m(k − 1) + j`, `mi` the height of tier `i` in lines,
+so the first label of a stack lies nearest the flow row: line `n` lies
+at the distance `fn = f0 − (n − 1) × h(9)` from the timeline's line, and
+its label's baseline at `yl + fn − d(9)` when the band lies below the
+line and at `yl − fn + a(9)` when it lies above it, `yl` the root's
+line. `T` is the line count of the tiers together. The stack of a jump
+in tier `k ≥ 2` is joined to the flow row by a leader (section 6.6,
+Leaders); a flow line needs none, since its line runs alongside its
+stack. Each displayed arc of a jump whose `label-display` lists `label`
+is labelled with its destination's `label` (section 5.3).
+
+**Symbols.** Each band element whose manifestation has a symbol draws
+its **symbol** where the symbol is displayed, one `symbol` element, centred on `x` of its
+position on the symbol row, in this table's text, measured and written
+as every text (section 5): the glyphs of Noto Music, in which section 5.1
+draws every code point of the Musical Symbols block, and "Fine" in
+DejaVu Sans:
+
+| Element | `manifestation` | Symbol |
+|---|---|---|
+| jump target | `repeat_start` | 𝄆 U+1D106 |
+| jump target | `segno` | 𝄋 U+1D10B |
+| jump target | `coda` | 𝄌 U+1D10C |
+| destination of a jump | `repeat_end` | 𝄇 U+1D107 |
+| destination of a jump | `dal_segno`, `dal_segno_al_fine`, `dal_segno_al_coda` | 𝄉 U+1D109 |
+| destination of a jump | `da_capo`, `da_capo_al_fine`, `da_capo_al_coda` | 𝄊 U+1D10A |
+| destination of a jump | `to_coda` | 𝄌 U+1D10C |
+| barline | `double_barline` | 𝄁 U+1D101 |
+| barline | `final_barline` | 𝄂 U+1D102 |
+| section break | any, or none | 𝄂 U+1D102 |
+| break | `fine` | the text `Fine` |
+
+A jump's symbol is the symbols of its destinations, in the canonical
+order of its `targets`, joined without a space into one text, centred as
+one; a destination drawing a bracket (`volta`) or an arc alone adds
+nothing. Every other manifestation, of the format's vocabulary
+(`volta`, `ossia`) or not, has no symbol, nor has an element or a
+destination without a manifestation, but for a section break, which
+draws 𝄂 whatever its manifestation; an element without a symbol draws
+no `symbol` element. A symbol is no label: it lies on the symbol row
+alone, at its element's `x` whatever its neighbours, so symbols of
+elements lying close may overlap, and it is never placed by first fit
+and never moved. With `z` its font size, its text line starts at `f0`
+and its baseline lies beyond that start: at `yl + f0 + a(z)` when the
+band lies below the line and at `yl − f0 − d(z)` when it lies above it.
+The symbol row is `Hs = h(zs)` wide, `zs` the largest font size of the
+drawn symbols.
+
+**Brackets.** A **run** is the destinations of one jump whose
+`manifestation` is `volta` and whose place an arc would have (section
+3.1), a destination with `by` 0 included: the destinations of a rejected
+jump whose `to` names nothing or a rejected element draw no bracket.
+Each destination of a run draws one **bracket**, where the bracket is
+displayed, from its **place**, the
+position of section 3.1 (the jump's own position for `by` 0, the jump
+target's for a `to`), to its **end**: the first position after the
+place, compared exactly, of a band element that is not rejected and is
+a jump, a section break or a break whose `manifestation` is `volta`, or,
+where none follows, the end of the timeline stating the jump (section
+3.4), and never beyond the end of the root of the member drawing. The
+last bracket of a run is the one with the largest place. The runs, in
+the order of the band's elements, are placed by first fit, each with the
+extent from `L × u` of its first bracket's place to `L × u` of its last
+bracket's end, into the `B` **bracket rows**, so the brackets of one run
+share one row and one height. With `bj = f0 + Hs + (j − 1) × hb` the
+inner edge of row `j` and `hb = h(zb) + 4` (section 6.2), `zb` the
+largest font size of the drawn brackets, a bracket of row `j` from `Xs`
+to `Xe`, `x` of its place and its end, draws its **line** across at the
+distance `bj + hb` from the root's line, the row's outer edge, a
+**hook** at `Xs` from that line inwards to the distance `bj + 2`, and,
+unless it is the last bracket of its run, which is open at its end, a
+hook at `Xe` alike: every bracket opens with a hook, as an engraved volta
+bracket does, and only the last is open. Its **text**, the passes of its
+destination as printed, the numbers of `passes` in ascending order each
+followed by `.` and joined by `, ` (`1.`, `1., 3.`), or for `{from: n}`
+`n` followed by `.–` (U+2013, `3.–`), and none for a destination without
+`passes`, starts at `Xs + 2`, in the bracket's own font size `z`, on the
+line starting at the distance `bj + 2`, its baseline beyond that start:
+at `yl + (bj + 2) + a(z)` when the band lies below the line and at `yl −
+(bj + 2) − d(z)` when it lies above it. The text lies inside the hook,
+between the bracket's line and the symbol row, and is never moved.
+
+**Arcs.** Each jump whose arcs are displayed (its element `jump`) draws one **arc** per destination, from
+and to the positions of section 3.1, but none for a destination with
+`by` 0 (going on, no jump) and none for a destination of a rejected jump
+whose `to` names nothing or names a rejected element (section 3.1). The
+arcs, jump by jump in the order of the band's elements and each jump's
+in the canonical order of its `targets`, are sorted stably by span (the
+absolute exact difference of their to and from positions), smallest
+first, and placed by first fit with the extent from the smaller to the
+larger of their from and to, never widened by their labels, into `K`
+**jump rows**. Row `k` reaches its **apex** at the distance `fk' = f1 +
+(4 + S) + (pj1 + … + pj(k − 1))` from the root's line, the pitches
+summed first, `4 + S` the first jump depth, so an arc that encloses
+another lies further out. Then the drawn labels of each row's arcs, in
+the order of those arcs, are placed by one first fit of that row, each
+with the extent of a label centred on `x` of the midpoint of its from
+and to, into the row's **label tiers**: tier 1 starts 2 beyond the apex,
+and tier `j` `(j − 1) × h(9)` further out. Row `k`, whose labels fill
+`Tk` tiers, or `Tk = 1` when it has none, has the pitch `pjk = 6 + S + Tk
+× h(9)` (section 6.2). A label in tier `j ≥ 2` is joined to its arc's
+apex by a leader (section 6.6, Leaders). The band's arc descriptors and
+labels follow this order of first fit (section 7.2).
+
+A rejected flow-control element, one that some actor believes `false`
+(README, "Flow control"), is drawn as any other and takes its room as
+any other, but with its arcs or its line, its symbol, its brackets,
+their labels, its stack and their leaders at the opacity 0.35, which
+replaces the cascaded `opacity` and no rule changes.
+
+**Flow lines.** A displayed flow line is a vertical line at `x` of its
+position, from the flow row across the root's line and every band to the
+card margin `V` of the opposite side, inside its padding: from `(x,
+yf)`, `yf = yl + f0` below the root's line and `yl − f0` above it, to
+`(x, P + V)` when the flow control band lies below the root's line and to
+`(x, Hc − P − V)` when it lies above it (section 6.5), ordinates of the
+member drawing counted from its top (section 8.4). A flow line of a
+descendant crosses every line and band in its way, as the root's does.
 
 ### 6.5 Heights
 
@@ -2008,9 +2224,10 @@ one below it.
 - **Regions.** A brace from `Xs` to `Xe`, arms at `yb`, tip 6 further out
   at `Xm`, `x` of the midpoint (section 3.1) of the region's start and end, so it
   opens towards its timeline's line; its label centred on `Xm` beyond the
-  tip, 2 further out. The arms lie at the distance `r0 + (k − 1) × pr` of their
-  row (section 6.4), the tip at that distance plus 6, and the label's
-  ordinate at that distance plus 6 plus 2, each distance summed whole
+  tip, 2 further out, in its label tier. The arms lie at the distance `ak`
+  of their row (section 6.4), the tip at `ak + 6`, and the line of the
+  label's tier `j` starts at `ak + 6 + 2 + (j − 1) × h(9)`, the label's
+  baseline beyond that start, each distance summed whole, left to right,
   before it becomes an ordinate (section 3.3), never computed from `yb`.
 - **Jumps.** Each arc of a jump (section 6.4, Flow control) is an arrow
   from `(Xf, yf)` to `(Xt, yf)`, `Xf = x(from)`, `Xt = x(to)` (section
@@ -2029,9 +2246,38 @@ one below it.
   ux, yf − 4w × uy)`, its corners `Bh − 2w × n` and `Bh + 2w × n`, `n = (−uy, ux)`; the **shaft** is
   the curve with its end moved from `P3` to `Bh` and its controls kept, so
   it meets the head's base at a right angle. The arc's label is centred on
-  `x` of the midpoint of its from and to, beyond the apex, 2 further out.
-- **Flow lines.** The line of section 6.4 at `x` of the flow line; its label
-  starting at `x + 3`, in its tier (section 6.4).
+  `x` of the midpoint of its from and to, beyond the apex, 2 further out,
+  in its label tier: the line of tier `j` of row `k` starts at `fk' + 2 +
+  (j − 1) × h(9)` (section 6.4, Arcs), the label's baseline beyond that
+  start.
+- **Flow lines.** The line of section 6.4 at `x` of the flow line; its
+  stack starting at `x + 3`, in its tier (section 6.4, Flow labels); a
+  jump's stack alike.
+- **Symbols.** A text centred on `x` of its element's position, on the
+  symbol row (section 6.4, Symbols), filled and not stroked.
+- **Brackets.** The polyline of its hook at `Xs`, its line and, unless it
+  is the last of its run, its hook at `Xe` (section 6.4, Brackets),
+  stroked and not filled, and its text, filled in the bracket's `fill`.
+- **Leaders.** A **leader** joins a label or a stack moved out of its first
+  tier to its element: a straight line at `X`, from the element's point
+  to the near edge of the label's line, in the leader's cascaded stroke
+  (by default thin and light grey, section 4). For the label of a region
+  in tier `j ≥ 2` of row `k`, `X = Xm`, from the distance `ak + 6` of the
+  brace's tip to `ak + 6 + 2 + (j − 1) × h(9)`; for the label of an arc
+  in tier `j ≥ 2` of row `k`, `X` the `x` of the midpoint of its from and
+  to, from the apex `fk'` to `fk' + 2 + (j − 1) × h(9)`; for the stack of a
+  jump in tier `k ≥ 2`, `X` the `x` of the jump's position, from the flow
+  row `f0` to `fn1 = f0 − (n1 − 1) × h(9)`, `n1` the stack's first line
+  (section 6.4, Flow labels); and for the label of a segment, a child's
+  name on its segment line, in tier `n ≥ 2` (section 6.4, Segment lines),
+  `X` the `x` of the midpoint of the segment's start and end, from the
+  distance `m` above its segment line to `m + 2 + (n − 1) × h(9)`, `m` as
+  that section defines it. Each distance is summed whole, left to right,
+  before it becomes an ordinate (section 3.3). A leader takes no room and
+  crosses whatever lies between its ends. A label in its first tier, or
+  a flow line's stack, has none. So one rule holds for the labels of
+  regions, of segments, of arcs and of jumps: the element keeps its row
+  or its place whatever its label's width, and the label moves.
 - **Names.** For each **row** of lines (section 6.4, Children: the root's
   row and every row of children bands laid out together, at any depth, so
   that all lines at one ordinate form one row), the names (section 5.3) of
@@ -2117,12 +2363,16 @@ one below it.
   (section 6.4, Markers). Gaps never move apart for their labels: no gap
   is widened and no proportion changes. Each label is cut to its
   `max-width` as a name is cut (Names), never to the gap. Nothing else that lies on the stretch is
-  drawn in a gap, but for the arc of a jump. An element that marks
+  drawn in a gap, but for the arc and the bracket of a jump. An element that marks
   a position in a gap is not drawn: a wedge with its labels, a
   cross-section line, a groupstamp's lines across a frame, a boundary, a
-  segment label, a flow line with its label, a region whose start, end
-  or midpoint lies in one with its label, and an arc of a jump whose
-  from, to or the midpoint of the two does with its label. A region whose start,
+  segment label, a flow line with its stack, the stack of a jump, a
+  symbol, a region whose start, end
+  or midpoint lies in one with its label, a bracket whose place or end
+  does with its text, and an arc of a jump whose
+  from, to or the midpoint of the two does with its label, each with its
+  leader. A bracket whose place and end lie in no gap is drawn whole at
+  their elided x, its line across every gap it spans, as an arc is. A region whose start,
   end and midpoint lie in no gap is drawn at their elided x, and its brace
   is **cut** at every gap it spans as a row is. Of the brace's two
   straight parts at `Ym`, from `X1 + k` to `Xm − k` and from `Xm + k` to
@@ -2134,8 +2384,8 @@ one below it.
   either end of the cut; cuts that touch are one cut, and the brace's
   arms, its tip and its label are drawn whole. An arc whose from,
   to and their midpoint lie in no gap is drawn whole at their elided x,
-  its arc across every gap it spans: the one element drawn in a gap that
-  is not the gap's own. A position at a gap's edge lies in no gap, so a
+  its arc across every gap it spans: with a bracket, the one element drawn
+  in a gap that is not the gap's own. A position at a gap's edge lies in no gap, so a
   named timestamp there is drawn.
 
 A label "beyond" a point at ordinate `y` lies outwards from it: below, its
@@ -2147,8 +2397,8 @@ where stated.
 Section 8 places a member drawing in its card. Its **names**
 are the name texts it draws, its ancestor names included, and every
 centred label `i` it draws (segment and region labels and the labels of arcs, every
-label of a named timestamp's stack on its own, and the labels of its
-elisions) has width `wi` and the proportion `ui` (section 3.2) of the
+label of a named timestamp's stack on its own, the labels of its
+elisions, and its symbols, each centred on its element's position) has width `wi` and the proportion `ui` (section 3.2) of the
 exact position it is centred on, and its **carry** `vi`: a label of a
 named timestamp is centred at its timestamp's position, moved by the
 carry its wedge gives it (section 6.6, Labels of named timestamps;
@@ -2159,7 +2409,7 @@ left of it, and `r = L × ub − D'` with `D'` those and its own shrink
 (section 3.2), so that no `x0` enters it, and every other
 centred label has the carry 0.
 A centred label at `X` ends at `(X + vi) + wi / 2`. Its **right edge** is the largest right edge of any element it
-draws (lines, markers, wedges, braces, arcs, labels and names). Right
+draws (lines, markers, wedges, braces, arcs, brackets, leaders, symbols, labels and names). Right
 edges are geometric, no stroke width counted: a timeline's start circle
 `Xs + w`, its arrowhead's tip `Xe + 3w`, its end circle `Xe + w` or its
 diamond's corner `Xe + 1.5w`, the outer chevron's tip of an open end's
@@ -2171,9 +2421,10 @@ on to the right `Xr + 4w`, with `Xr = x0 + L + 4w` computed first (section
 or a cross-section line's `X`, the largest x of a wedge's three points
 (section 6.6), `X + 3` for a wedge not rotated, the largest x of
 the points written in a brace's or an arc's descriptors (control
-points and an arc's arrowhead corners included), a gap's `x(b)`,
+points and an arc's arrowhead corners included), a bracket's `Xe`, a
+leader's `X`, a gap's `x(b)`,
 the right end `xm + 8` of an ellipsis, and a text's end from its advance
-widths. In a card with gaps every x here is the elided one (section
+widths (a symbol's and a bracket's text included). In a card with gaps every x here is the elided one (section
 3.2), and a line or map that ends in a gap ends at its left edge
 without its mark (section 6.6, Elisions).
 
@@ -2194,9 +2445,12 @@ matches its unitless `width` and `height`, and points in TikZ.
 ### 7.2 Element descriptors
 
 A member drawing becomes a list of SVG **element descriptors**, in this
-order: the flow lines; the maps; the regions; the arcs of the jumps, each of these four
+order: the flow lines; the maps; the regions; the arcs of the jumps; the
+brackets, each of these five
 band by band in the traversal order of the bands' timelines, and each
-band's in the order it places them (section 6.4); the root and
+band's in the order it places them (section 6.4: the flow lines and the
+brackets in the order of the band's elements, each jump's brackets in the
+order of its run's places); the root and
 then the children in traversal order; the boundaries, in the traversal order
 of their segments (a nested segment line's boundaries thus follow its own
 boundary, not its siblings'); the wedges, band by band in the traversal
@@ -2205,9 +2459,12 @@ timestamps and then the secondary coordinates on it (section 6.4,
 Markers); the names; the **marker labels**, the labels of the named
 timestamps' coordinates in the same order, coordinate by coordinate,
 each one's in the order of its stack, its name, its ID and its
-coordinate, whether or not its wedge is displayed; the segment labels, in
+coordinate, whether or not its wedge is displayed; the leaders, in the
+order of the labels they join below; the segment labels, in
 the traversal order of their segments, the region labels, the labels of
-the arcs and the flow-line labels; and last the cross-section lines, in
+the arcs and the labels of the stacks, each stack's in its order, name,
+ID, label, the stacks in the order of the band's elements; the
+symbols, in the order of the band's elements; and last the cross-section lines, in
 the order in which the markers bands place their timestamps, whether or not
 a wedge, a label or its band is displayed, so that they lie over
 everything else of the member drawing. Section
@@ -2252,19 +2509,23 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | region | `<path d="{brace}">` |
 | arc of a jump | `<path d="M{P0}C{C1} {C2} {Bh}">`, the shaft; `<polygon>` arrowhead `{P3} {Bh − 2w × n} {Bh + 2w × n}`, `n = (−uy, ux)` (section 6.6) |
 | flow line: break, section break, barline | `<line x1="{x}" y1="{yf}" x2="{x}" y2="{y2}">` (section 6.4) |
+| bracket | `<polyline points="{Xs},{yh} {Xs},{yb} {Xe},{yb} {Xe},{yh}" fill="none">` stroked, `yb` the ordinate of its line and `yh` that of its hooks' inner ends (section 6.4, Brackets), the last point left out for the last bracket of a run; then, where it has one, its text, `<text x="{Xs + 2}" y="{baseline}" text-anchor="start" font-size="{z}">` in its `fill` |
+| leader | `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, `y1` the ordinate of the element's end of the leader and `y2` that of the label's (section 6.6, Leaders) |
+| symbol | `<text x="{x}" y="{baseline}" text-anchor="middle" font-size="{z}">` (section 6.4, Symbols) |
 | boundary | `<line x1="{X}" y1="{y−k}" x2="{X}" y2="{y+k}">` (section 6.6) |
 | cross-section line | for each of its lines (section 6.6: up to two in a card, one on each side of its gap, and a groupstamp's up to two in a frame), `<line x1="{X}" y1="{y1}" x2="{X}" y2="{y2}">`, from `(X, y1)` to `(X, y2)`, `y1` the smaller ordinate, the upper line first |
 | alignment anchor | `<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}">`, from the point on the first timestamp's line to the point on the second's (section 8.7) |
 | elision | its gap, `<rect x="{x(a)}" y="{yt}" width="{x(b) − x(a)}" height="{yb − yt}">`, filled and not stroked, written only when its `fill` is not `none`; then its continuations, `<line x1="{x(a)}" y1="{y}" x2="{x(b)}" y2="{y}">` each, in the order of its rows (section 8.5) |
 | ellipsis | `<circle cx="{xm − 6}" cy="{ym}" r="2">`, `<circle cx="{xm}" cy="{ym}" r="2">`, `<circle cx="{xm + 6}" cy="{ym}" r="2">`, filled and not stroked (section 6.6) |
-| name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and flow-line labels, `middle` for the centred labels |
+| name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and the labels of stacks of flow-control elements, `middle` for the centred labels |
 
 The **stroke attributes** are `stroke`, `stroke-width` and, unless it is
 `none`, `stroke-dasharray`. A path carries `fill="none"` and a line no
 `fill`; both carry the stroke attributes; a circle, a polygon
 and a text carry `fill`, and the open arrowhead, the diamond and the map's
 outline, the stroked polygons, also the stroke attributes (the map's dash
-included); a polyline carries `fill="none"` and the stroke attributes; a
+included); a polyline carries `fill="none"` and the stroke attributes (a bracket's
+text, a text of its own, carries `fill`); a
 group frame, a card and an ancestor card carry `fill` and the stroke
 attributes, a card's shadow and an elision's gap `fill` alone. A line's descriptors are, in this order, its `<line>`,
 its start circle or left chevrons, and its end or right chevrons. Every
@@ -2578,8 +2839,10 @@ the line's stroke width and `y` its ordinate:
   it, and fade it with the line where a rule shows it, section 4). A timestamp of `Aj` at a position outside `M`'s span is
   not drawn in `M`'s card; it is drawn where `Aj` is drawn whole, in an
   ancestor card (section 8.8) or a card of its own.
-- **Nothing else** of `Aj` is drawn: no maps, regions, flow control,
-  boundaries or other descendants, no mark of `M`'s start or end, and no
+- **Nothing else** of `Aj` is drawn on the ancestor line: no maps,
+  regions, flow control, boundaries or other descendants (the flow
+  control of `Aj` and of its descendants that lies in `M`'s span is drawn
+  in `M`'s own flow control band, section 6.4, Gathering), no mark of `M`'s start or end, and no
   named timestamp of another timeline but by the coordinates its lines
   cross on `Aj`. `M`'s start and end on `Aj` are the secondary
   coordinates there of `M`'s `origin` and `length` where `M` names them
