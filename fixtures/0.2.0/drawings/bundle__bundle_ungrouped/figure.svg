@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="559.3271" height="277.6562" viewBox="0 0 559.3271 277.6562" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="559.3271" height="281.6562" viewBox="0 0 559.3271 281.6562" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="527.3271" height="245.6562" rx="10" fill="#F3F4F6"/>
+<rect x="0" y="0" width="527.3271" height="249.6562" rx="10" fill="#F3F4F6"/>
 <text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sketches</text>
 <rect data-id="pages" data-part="card" x="10" y="30.8047" width="509.3271" height="63.4531" rx="5" fill="#B8BEC8"/>
 <rect data-id="pages" data-part="card" x="8" y="28.8047" width="509.3271" height="63.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
@@ -29,8 +29,8 @@
 <text data-id="recording" data-part="name" x="16" y="118.5659" text-anchor="start" font-size="11" fill="#000000">Recording</text>
 <text data-id="timestamp_3" data-part="coordinate" x="79.7036" y="139.6118" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
 <text data-id="timestamp_4" data-part="coordinate" x="479.7036" y="139.6118" text-anchor="middle" font-size="9" fill="#000000">441 000 smp</text>
-<rect data-id="score" data-part="card" x="10" y="159.7344" width="509.3271" height="77.9219" rx="5" fill="#B8BEC8"/>
-<rect data-id="score" data-part="card" x="8" y="157.7344" width="509.3271" height="77.9219" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-id="score" data-part="card" x="10" y="159.7344" width="509.3271" height="81.9219" rx="5" fill="#B8BEC8"/>
+<rect data-id="score" data-part="card" x="8" y="157.7344" width="509.3271" height="81.9219" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="break_1" x1="279.7036" y1="213.6875" x2="279.7036" y2="165.7344" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
 <polygon data-id="cmap_1" points="79.7036,165.7344 479.7036,165.7344 479.7036,167.7344 79.7036,167.7344" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
 <line data-id="score" x1="79.7036" y1="172.2344" x2="479.7036" y2="172.2344" stroke="#00CC00" stroke-width="3"/>
@@ -42,7 +42,7 @@
 <text data-id="timestamp_5" data-part="coordinate" x="79.7036" y="197.0884" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_6" data-part="coordinate" x="479.7036" y="197.0884" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
 <text data-id="break_1" data-part="label" x="282.7036" y="211.5649" text-anchor="start" font-size="9" fill="#000000">Fine</text>
-<text data-id="break_1" data-part="symbol" x="279.7036" y="224.8262" text-anchor="middle" font-size="12" fill="#000000">Fine</text>
-<text data-id="jump_1" data-part="symbol" x="479.7036" y="224.8262" text-anchor="middle" font-size="12" fill="#000000">𝄊</text>
+<text data-id="break_1" data-part="symbol" x="279.7036" y="226.8262" text-anchor="middle" font-size="12" fill="#000000">Fine</text>
+<text data-id="jump_1" data-part="symbol" x="479.7036" y="226.8262" text-anchor="middle" font-size="12" fill="#000000">𝄊</text>
 </g>
 </svg>

@@ -1,18 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="514.3293" height="154.3008" viewBox="0 0 514.3293 154.3008" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="514.3293" height="171.2152" viewBox="0 0 514.3293 171.2152" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="482.3293" height="122.3008" rx="10" fill="#F3F4F6"/>
-<rect data-id="score" data-part="card" x="10" y="10" width="464.3293" height="104.3008" rx="5" fill="#B8BEC8"/>
-<rect data-id="score" data-part="card" x="8" y="8" width="464.3293" height="104.3008" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect x="0" y="0" width="482.3293" height="139.2152" rx="10" fill="#F3F4F6"/>
+<rect data-id="score" data-part="card" x="10" y="10" width="464.3293" height="121.2152" rx="5" fill="#B8BEC8"/>
+<rect data-id="score" data-part="card" x="8" y="8" width="464.3293" height="121.2152" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-id="break_1" x1="255.0503" y1="75.8555" x2="255.0503" y2="16" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
 <line data-id="break_2" x1="321.717" y1="75.8555" x2="321.717" y2="16" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
 <line data-id="section_break_1" x1="388.3836" y1="75.8555" x2="388.3836" y2="16" stroke="#4B5563" stroke-width="1.5" stroke-dasharray="4 2"/>
 <path data-id="region_1" d="M55.0503 53.3789Q55.0503 56.3789 58.0503 56.3789L185.3836 56.3789Q188.3836 56.3789 188.3836 59.3789Q188.3836 56.3789 191.3836 56.3789L318.717 56.3789Q321.717 56.3789 321.717 53.3789" fill="none" stroke="#000000" stroke-width="1"/>
-<polyline data-id="jump_1" data-part="bracket" points="188.3836,91.8242 188.3836,104.3008 255.0503,104.3008 255.0503,91.8242" fill="none" stroke="#000000" stroke-width="1"/>
-<text data-id="jump_1" data-part="bracket" x="190.3836" y="100.1782" text-anchor="start" font-size="9" fill="#000000">1.</text>
-<polyline data-id="jump_1" data-part="bracket" points="255.0503,91.8242 255.0503,104.3008 321.717,104.3008 321.717,91.8242" fill="none" stroke="#000000" stroke-width="1"/>
-<text data-id="jump_1" data-part="bracket" x="257.0503" y="100.1782" text-anchor="start" font-size="9" fill="#000000">2.</text>
-<polyline data-id="jump_1" data-part="bracket" points="321.717,91.8242 321.717,104.3008 388.3836,104.3008" fill="none" stroke="#000000" stroke-width="1"/>
-<text data-id="jump_1" data-part="bracket" x="323.717" y="100.1782" text-anchor="start" font-size="9" fill="#000000">3.</text>
+<line data-id="jump_1" data-part="fork" x1="180.3836" y1="99.0625" x2="188.3836" y2="99.0625" stroke="#000000" stroke-width="1"/>
+<line data-id="jump_1" data-part="fork" x1="188.3836" y1="99.0625" x2="202.3836" y2="99.0625" stroke="#000000" stroke-width="1"/>
+<polygon data-id="jump_1" data-part="fork" points="206.3836,99.0625 202.3836,97.0625 202.3836,101.0625" fill="#000000"/>
+<line data-id="jump_1" data-part="fork" x1="188.3836" y1="99.0625" x2="199.8518" y2="107.0926" stroke="#000000" stroke-width="1"/>
+<polygon data-id="jump_1" data-part="fork" points="203.1284,109.3869 200.9989,105.4543 198.7046,108.7309" fill="#000000"/>
+<line data-id="jump_1" data-part="fork" x1="188.3836" y1="99.0625" x2="193.1719" y2="112.2182" stroke="#000000" stroke-width="1"/>
+<polygon data-id="jump_1" data-part="fork" points="194.54,115.977 195.0513,111.5342 191.2925,112.9022" fill="#000000"/>
+<text data-id="jump_1" data-part="fork" x="209.3836" y="102.1782" text-anchor="start" font-size="9" fill="#000000">1.</text>
+<text data-id="jump_1" data-part="fork" x="206.1284" y="112.5026" text-anchor="start" font-size="9" fill="#000000">2.</text>
+<text data-id="jump_1" data-part="fork" x="197.54" y="119.0927" text-anchor="start" font-size="9" fill="#000000">3.</text>
 <line data-id="score" x1="55.0503" y1="22.4023" x2="455.0503" y2="22.4023" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="score" cx="55.0503" cy="22.4023" r="3" fill="#00CC00"/>
 <polygon data-id="score" points="464.0503,22.4023 455.0503,17.9023 455.0503,26.9023" fill="#00CC00"/>
@@ -22,8 +26,8 @@
 <text data-id="timestamp_1" data-part="coordinate" x="55.0503" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-id="timestamp_2" data-part="coordinate" x="455.0503" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">24 ♩</text>
 <text data-id="region_1" data-part="label" x="188.3836" y="69.7329" text-anchor="middle" font-size="9" fill="#000000">Exposition</text>
-<text data-id="jump_2" data-part="symbol" x="255.0503" y="86.9941" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
-<text data-id="jump_3" data-part="symbol" x="321.717" y="86.9941" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
-<text data-id="section_break_1" data-part="symbol" x="388.3836" y="86.9941" text-anchor="middle" font-size="12" fill="#000000">𝄂</text>
+<text data-id="jump_2" data-part="symbol" x="255.0503" y="88.9941" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
+<text data-id="jump_3" data-part="symbol" x="321.717" y="88.9941" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
+<text data-id="section_break_1" data-part="symbol" x="388.3836" y="88.9941" text-anchor="middle" font-size="12" fill="#000000">𝄂</text>
 </g>
 </svg>
