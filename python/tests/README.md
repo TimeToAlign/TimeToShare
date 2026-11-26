@@ -2836,8 +2836,9 @@ extraction's are without fontTools. What proves them:
   meet its parent's; and the two kinds of CHUNK: `claim_11`, a synchronous
   MatchClaim with `CHUNK_SENTINEL` on both sides, its side A named
   `downbeat 3` (the fixture table is accepted, so a named CHUNK side is
-  read; the test of the sentinels pins each sentinel side's name), whose anchor between the
-  samples and the seconds timelines closes the set of `claim_13` as the
+  read; the test of the sentinels pins each sentinel side's name), whose
+  anchor between the samples and the seconds timelines closes the set of
+  `claim_13` as the
   two Projections without a source it replaced did, so its expected
   values are unchanged,
   and `claim_16`, an instant MatchClaim between `CHUNK_SENTINEL` on the

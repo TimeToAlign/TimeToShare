@@ -1454,7 +1454,7 @@ column whose Null is "never" holds a value in every row:
 | `provenance` | provenance | allowed | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)); null where the row states none |
 | `certainty` | float64 | allowed | how certain the MatchClaim is, from 0 to 1, both included; null where none is stated |
 | `event_a_id`, `event_b_id` | string | never | each side's event, one on each timeline: an event's ID, a Projection's where the timeline holds no event of its own ([The Projections table](#the-projections-table)), or a sentinel's reserved string, never an event: `CHUNK_SENTINEL`, the side of a synchronous MatchClaim whose coordinate the anchors state, or `NOMATCH_SENTINEL`, the side without a counterpart of a NOMATCH |
-| `event_a_name`, `event_b_name` | string | allowed | the name of each event, where it is known; null on a sentinel side, which has no name |
+| `event_a_name`, `event_b_name` | string | allowed | the name of each event, where it is known; on a CHUNK side the name of the position it states, where it is known; null on a NOMATCH side, which has no name |
 | `id` | string | never | the MatchClaim's ID, never changed once given (below) |
 
 The columns may stand in any order, and a table may hold further
@@ -1524,8 +1524,8 @@ gives their codes and messages):
   Every other row is refused: CHUNK stands only on a synchronous
   MatchClaim, NOMATCH only on one that is not synchronous, and never on
   both sides.
-- A sentinel side has no name: its `event_a_name` or `event_b_name` is
-  null.
+- A NOMATCH side has no name: its `event_a_name` or `event_b_name` is
+  null. A CHUNK side may carry one, the name of the position it states.
 - An `end_anchor` comes only with a `start_anchor`.
 - Both coordinates of an anchor are cells, never null.
 - A stated `certainty` lies in [0, 1].
@@ -1715,7 +1715,7 @@ The MatchClaim table:
 | `CHUNK_SENTINEL` on a row that is not synchronous | `claim_events` | the side's `event_a_id` or `event_b_id`, A before B | `CHUNK_SENTINEL stands only on a synchronous MatchClaim` |
 | `NOMATCH_SENTINEL` on a synchronous row | `claim_events` | the side's `event_a_id` or `event_b_id`, A before B | `NOMATCH_SENTINEL stands only on a MatchClaim that is not synchronous` |
 | `NOMATCH_SENTINEL` on both sides | `claim_events` | `event_b_id` | `a NOMATCH MatchClaim names an event on its other side` |
-| A sentinel side has a name | `claim_events` | the side's `event_a_name` or `event_b_name` | `a sentinel side has no name` |
+| A NOMATCH side has a name | `claim_events` | the side's `event_a_name` or `event_b_name` | `a NOMATCH side has no name` |
 | A NOMATCH has an anchor | `claim_anchors` | `start_anchor`, else `end_anchor` | `a NOMATCH MatchClaim has no anchors` |
 | A synchronous row has no start anchor | `claim_anchors` | `start_anchor` | `a synchronous MatchClaim has a start anchor` |
 | A conceptual row has an anchor | `claim_anchors` | `start_anchor`, else `end_anchor` | `a conceptual MatchClaim has no anchors` |
