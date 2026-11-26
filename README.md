@@ -3007,8 +3007,10 @@ two directories, between two git references of the repository `--repo`
 commit, when the second argument is left out; OLD `-` is the empty tree,
 the state before a first release. From git it reads only the
 manifests (the files ending `.yaml`, `.yml` or `.json`) and the table files
-their resources name, never the rest of the tree. It exits 2 when a change
-is refused. Comparing the rows of a MatchClaim or Projections table needs
+their resources name, never the rest of the tree; a table file is read
+through the filters git's attributes name for its path, so a table kept by
+Git LFS is compared as the table where git-lfs is installed. It exits 2
+when a change is refused. Comparing the rows of a MatchClaim or Projections table needs
 the `tables` extra; without it, and for tables of any other type, a changed
 table is reported as undetermined.
 
@@ -3017,9 +3019,8 @@ removed its element. `--history` (git references only) also reads every tag
 reachable from NEW (or `HEAD`) and from OLD, and OLD itself, in the order
 of the history, and refuses (`reused_id`) every ID of NEW that one of them
 held for an element of another type, or for an element that a later one of
-them no longer holds. This is the check the release check below runs,
-`timetoshare step --history <last tag> HEAD`; the hooks below compare two
-states only. `--require-version FROM TO` also exits 2 when a release from
+them no longer holds. The release check below runs it from the last tag
+to `HEAD`; the hooks below compare two states only. `--require-version FROM TO` also exits 2 when a release from
 version FROM to TO carries a lower step than the change requires, printing
 `release: FROM to TO carries <step>` after the scope: from 1.0.0 on, the
 first number that rises names the step it carries; below 1.0.0 the middle
@@ -3038,8 +3039,11 @@ In Python, `manifest_step(old, new)` compares two manifests,
 new_ref, repo, history=False)` two references (`new_ref=None`: the staged
 changes); the last two return a `StepReport` with the `step`, the
 `findings` (each a `Finding` with `kind`, `step`, `path`, `id` and
-`detail`), the flags `refused` and `undetermined`, and the `scope`, the
-manifest or directory every finding lies in.
+`detail`), the flags `refused` and `undetermined`, and the `scope`, where
+every finding lies: the manifest file's name without extension, or for a
+file named `manifest.<ext>` its folder's name (`bpsd/op106/manifest.yaml`
+gives `op106`); where the findings lie in several manifest files, the top
+folder that holds them all (`bpsd`), or none.
 
 The release tool [release-please](https://github.com/googleapis/release-please)
 computes the version from Conventional Commits: a `feat` commit makes a
@@ -3118,11 +3122,14 @@ at <JSON pointer>: <message>`, a warning's code preceded by `warning: `. A
 file is a manifest when `loads` reads it as an object holding
 `timetoshare`; other files are skipped. A manifest is refused for its first
 violation, with the code `validate` raises it with, or
-`unsupported_version` at `#/timetoshare` for another version, and a file
-`loads` cannot read is refused as `unreadable` unless PyYAML reads it as an
-object without `timetoshare` (a workflow file using YAML anchors, for
-example). The command exits 1 when a file is refused, else 0, warnings
-included.
+`unsupported_version` at `#/timetoshare` for another version. A file
+`loads` cannot read is refused as `unreadable` only when its text names the
+format at the top: a YAML line starting with the key `timetoshare:`, or,
+in a text starting with `{`, the key of the JSON object; every other such
+file is skipped (a workflow file using YAML anchors, a YAML file of several
+documents, an `mkdocs.yml` with `!!python/name:` tags). The command exits 1
+when a file is refused, else 0, warnings included; the hook is `verbose`,
+so pre-commit shows the warnings of an accepted manifest too.
 
 ```console
 $ timetoshare validate op106.yaml notes.yaml
@@ -3134,7 +3141,11 @@ sections and makes a dataset's drafts `0.y.z` releases:
 `bump-minor-pre-major` turns a removal into a minor step and
 `bump-patch-for-minor-pre-major` an addition into a patch below 1.0.0, so
 a removal raises `y`; `1.0.0` is set by a person with a `Release-As: 1.0.0`
-footer.
+footer. `initial-version` with a `.release-please-manifest.json` holding
+`{".": "0.0.0"}` makes the first release `0.1.0`, a draft like every
+`0.y.z`, and tells the release check below that nothing is released yet;
+`include-component-in-tag` keeps the tags `v<version>`, the tags the
+release check reads.
 
 ```json
 {
@@ -3142,6 +3153,8 @@ footer.
     ".": {
       "release-type": "simple",
       "changelog-path": "CHANGELOG.md",
+      "initial-version": "0.1.0",
+      "include-component-in-tag": false,
       "bump-minor-pre-major": true,
       "bump-patch-for-minor-pre-major": true,
       "changelog-sections": [
@@ -3169,17 +3182,37 @@ footer.
 The hooks are the gate where people commit to the default branch without
 pull requests; a commit made without them is caught by the reusable
 workflow `.github/workflows/dataset-release-check.yml` of this repository,
-which a dataset's release workflow runs before release-please. On the push
-that merges a release pull request (the push that changes the version in
-`.release-please-manifest.json`), it compares the tag of the old version
-(`v<old>`, or the empty tree where that tag does not exist) with `HEAD`,
-running `timetoshare step --history --require-version <old> <new>`, and
-fails when an ID is given again or when the new version carries a lower
-step than the data requires; the remedy is a commit whose type says what
-the data does, or a `Release-As:` footer. On every other push it writes the
-step since the last tag, with its findings, to the job summary and never
-fails. Its input `timetoshare-ref` names the TimeToShare tag or commit
-whose package runs the check, the one the workflow is taken from:
+which a dataset's release workflow runs before release-please. It checks
+the repository out with its history, its tags and its Git LFS files and
+runs `timetoshare release-check`. A push is a release when the version in
+`.release-please-manifest.json` is not `0.0.0` and has no tag `v<version>`
+yet: the push that merges a release pull request, before release-please
+tags it. The check then compares the latest version tag reachable from
+`HEAD` (`git describe --tags --abbrev=0 --match 'v[0-9]*'`; the empty tree
+where there is none) with `HEAD`, with `--history`, and fails when an ID is
+given again, when a change is undetermined (a table that cannot be
+compared, a manifest that no longer reads), or when the release from the
+tag's version (`0.0.0` without a tag) to the new one carries a lower step
+than the data requires; the remedy is a commit whose type says what the
+data does, or a `Release-As:` footer. On every other push it reports the
+same comparison, undetermined changes included, and never fails. Either
+way the findings and the verdict also go to the job summary (`--summary
+"$GITHUB_STEP_SUMMARY"`):
+
+```console
+$ timetoshare release-check
+the data from v0.1.0 to HEAD
+step: major
+scope: op106
+release: 0.1.0 to 0.1.1 carries minor
+major	removed	bpsd/op106/manifest.yaml	#clt_3	Timeline #clt_3 removed
+fails: a release from 0.1.0 to 0.1.1 carries at most a minor step; the change requires a major step
+```
+
+It exits 2 when a release fails, 1 when the version cannot be read (or, at
+a release, is lower than the last tag's), else 0. The workflow's input
+`timetoshare-ref` names the TimeToShare tag or commit whose package runs
+the check, the one the workflow is taken from:
 
 ```yaml
 name: Release
@@ -3206,6 +3239,12 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 ```
+
+Until a TimeToShare release carries these hooks, the release check and
+schema 0.2.0, a dataset pins one commit of `main` in three places, all
+the same commit: the pre-commit `rev:`, the workflow's `@<ref>` and its
+`timetoshare-ref`. `pre-commit autoupdate` must not be used until then: it
+moves `rev:` to the latest tag, which has none of them.
 
 ## Fixtures
 
