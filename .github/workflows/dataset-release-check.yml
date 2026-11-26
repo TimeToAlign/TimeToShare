@@ -1,0 +1,92 @@
+# A reusable workflow for the release workflow of a dataset repository: a git
+# repository of TimeToShare manifests and the tables they name, released by
+# release-please (README, "Versions of a dataset"). The dataset's release job
+# runs after this one (`needs:`), so a release is tagged only when the check
+# passes.
+#
+# - A push that changes .release-please-manifest.json is a merged release pull
+#   request. The job compares the release tag of the old version (v<old>; the
+#   empty tree where that tag does not exist) with HEAD, with the history of every
+#   tag, and fails when a finding is refused (an ID given again) or when the
+#   release from the old to the new version carries a lower step than the data
+#   requires (below 1.0.0 a removal raises the middle number, an addition the
+#   last). The remedy is a commit whose type says what the data does, or a
+#   `Release-As:` footer.
+# - Any other push writes the step from the last tag (or the empty tree) to
+#   HEAD, with its findings, to the job summary and never fails.
+#
+# The caller names the TimeToShare tag or commit whose package runs the check:
+#
+#   jobs:
+#     check:
+#       uses: TimeToAlign/TimeToShare/.github/workflows/dataset-release-check.yml@<tag>
+#       with:
+#         timetoshare-ref: <the same tag>
+name: Dataset release check
+
+on:
+  workflow_call:
+    inputs:
+      timetoshare-ref:
+        description: "The TimeToShare tag or commit whose Python package runs the check"
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Version step of the data
+    runs-on: ubuntu-latest
+    steps:
+      # The caller's repository, with its whole history and every tag.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install the timetoshare package
+        env:
+          TIMETOSHARE_REF: ${{ inputs.timetoshare-ref }}
+        run: >-
+          python -m pip install
+          "timetoshare[tables] @ git+https://github.com/TimeToAlign/TimeToShare@${TIMETOSHARE_REF}#subdirectory=python"
+
+      # A merged release pull request is the push that changes the version of the
+      # root package in an existing .release-please-manifest.json, as in
+      # TimeToShare's own release workflow.
+      - name: The release carries the step the data requires
+        run: |
+          version_of() { python -c 'import json, sys; print(json.load(sys.stdin).get(".", ""))'; }
+          before=$(git show HEAD^:.release-please-manifest.json 2> /dev/null | version_of 2> /dev/null || true)
+          after=$(version_of < .release-please-manifest.json 2> /dev/null || true)
+          if [ -n "$before" ] && [ -n "$after" ] && [ "$before" != "$after" ]; then
+            if git rev-parse --quiet --verify "refs/tags/v$before" > /dev/null; then
+              since="v$before"
+              named="v$before"
+            else
+              since=-
+              named="the empty tree"
+            fi
+            echo "The release from $before to $after; the data from $named to HEAD:"
+            timetoshare step "$since" HEAD --history --require-version "$before" "$after"
+          else
+            if last=$(git describe --tags --abbrev=0 2> /dev/null); then
+              named="$last"
+            else
+              last=-
+              named="the empty tree"
+            fi
+            {
+              echo "### The data from $named to HEAD"
+              echo
+              echo '```text'
+              timetoshare step "$last" HEAD --history 2>&1 || true
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
