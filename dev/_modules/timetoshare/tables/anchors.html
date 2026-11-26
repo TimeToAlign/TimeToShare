@@ -464,9 +464,11 @@
 <span class="sd">  state is the most critical of them: ``"false"``, then ``"unlikely"``, then</span>
 <span class="sd">  ``"true"``.</span>
 <span class="sd">- A synchronous MatchClaim gives the anchor of its ``start_anchor`` and, if</span>
-<span class="sd">  it has one, of its ``end_anchor``; NOMATCH and conceptual MatchClaims give</span>
-<span class="sd">  none. Two anchors are the same when both coordinates are equal, compared</span>
-<span class="sd">  exactly on the two timelines' axes, whichever side each stands on.</span>
+<span class="sd">  it has one, of its ``end_anchor``, whatever its sides: two events, an</span>
+<span class="sd">  event and CHUNK, or CHUNK on both (a CHUNK side gives its coordinate and</span>
+<span class="sd">  no event); NOMATCH and conceptual MatchClaims give none. Two anchors are</span>
+<span class="sd">  the same when both coordinates are equal, compared exactly on the two</span>
+<span class="sd">  timelines' axes, whichever side each stands on.</span>
 <span class="sd">- A potential MatchStamp is one connected set of coordinates under the</span>
 <span class="sd">  unique anchors.</span>
 <span class="sd">"""</span>

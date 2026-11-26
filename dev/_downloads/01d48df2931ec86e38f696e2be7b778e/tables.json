@@ -41,7 +41,7 @@
   },
   "tables": {
     "MatchClaim": {
-      "description": "The MatchClaim table: one row per MatchClaim, addressed by its ID alone. A MatchClaim table belongs to one manifest.",
+      "description": "The MatchClaim table: one row per MatchClaim, addressed by its ID alone. A MatchClaim table belongs to one manifest. Each side's `event_a_id` or `event_b_id` holds the ID of an event or the reserved string of a sentinel, never a null: `CHUNK_SENTINEL` on a side of a synchronous MatchClaim, whose timeline holds no event for the coordinate its anchors state there; `NOMATCH_SENTINEL` on one side of a MatchClaim that is not synchronous, which has no anchors. A sentinel side has no name, and no element has a reserved string as its ID.",
       "status": "stable",
       "columns": [
         { "name": "timeline_a_id", "type": "string", "nullable": false },
@@ -51,9 +51,9 @@
         { "name": "is_synchronous", "type": "bool", "nullable": false },
         { "name": "provenance", "type": "provenance", "nullable": true },
         { "name": "certainty", "type": "float64", "nullable": true },
-        { "name": "event_a_id", "type": "string", "nullable": true },
+        { "name": "event_a_id", "type": "string", "nullable": false },
         { "name": "event_a_name", "type": "string", "nullable": true },
-        { "name": "event_b_id", "type": "string", "nullable": true },
+        { "name": "event_b_id", "type": "string", "nullable": false },
         { "name": "event_b_name", "type": "string", "nullable": true },
         { "name": "id", "type": "string", "nullable": false }
       ]

@@ -533,6 +533,31 @@ one table of where each definition occurs, <code class="docutils literal notrans
 </dd></dl>
 
 <dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.NOMATCH_SENTINEL">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">NOMATCH_SENTINEL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'NOMATCH_SENTINEL'</span></span><a class="headerlink" href="#timetoshare.ids.NOMATCH_SENTINEL" title="Link to this definition">#</a></dt>
+<dd><p>The event ID of a NOMATCH side in a MatchClaim table: a MatchClaim that is
+not synchronous states that the event of its other side has no counterpart
+on this timeline. It is no event, holds no anchor and is never an element’s
+ID.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.CHUNK_SENTINEL">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">CHUNK_SENTINEL</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'CHUNK_SENTINEL'</span></span><a class="headerlink" href="#timetoshare.ids.CHUNK_SENTINEL" title="Link to this definition">#</a></dt>
+<dd><p>The event ID of a CHUNK side in a MatchClaim table: a synchronous
+MatchClaim states a coordinate on this timeline, which holds no event for
+it; the coordinate is the anchor’s on this side. It is no event and never an
+element’s ID.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="timetoshare.ids.SENTINELS">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">SENTINELS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('NOMATCH_SENTINEL',</span> <span class="pre">'CHUNK_SENTINEL')</span></span><a class="headerlink" href="#timetoshare.ids.SENTINELS" title="Link to this definition">#</a></dt>
+<dd><p>The two reserved strings: an event ID column holds them besides event
+IDs, and no element, event or Projection takes either as its ID.</p>
+</dd></dl>
+
+<dl class="py data">
 <dt class="sig sig-object py" id="timetoshare.ids.Shape">
 <span class="sig-prename descclassname"><span class="pre">timetoshare.ids.</span></span><span class="sig-name descname"><span class="pre">Shape</span></span><a class="headerlink" href="#timetoshare.ids.Shape" title="Link to this definition">#</a></dt>
 <dd><p>How a member holds IDs.</p>
@@ -699,6 +724,9 @@ outside that part.</p>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.HASH"><code class="docutils literal notranslate"><span class="pre">HASH</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.NOMATCH_SENTINEL"><code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.CHUNK_SENTINEL"><code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.SENTINELS"><code class="docutils literal notranslate"><span class="pre">SENTINELS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.Shape"><code class="docutils literal notranslate"><span class="pre">Shape</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.ID_POSITIONS"><code class="docutils literal notranslate"><span class="pre">ID_POSITIONS</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.ids.Holding"><code class="docutils literal notranslate"><span class="pre">Holding</span></code></a></li>

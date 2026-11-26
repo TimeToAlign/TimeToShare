@@ -483,6 +483,22 @@
 <span class="n">HASH</span> <span class="o">=</span> <span class="s2">"#"</span>
 <span class="sd">"""The character that marks an ID in a manifest file."""</span>
 
+<span class="n">NOMATCH_SENTINEL</span> <span class="o">=</span> <span class="s2">"NOMATCH_SENTINEL"</span>
+<span class="sd">"""The event ID of a NOMATCH side in a MatchClaim table: a MatchClaim that is</span>
+<span class="sd">not synchronous states that the event of its other side has no counterpart</span>
+<span class="sd">on this timeline. It is no event, holds no anchor and is never an element's</span>
+<span class="sd">ID."""</span>
+
+<span class="n">CHUNK_SENTINEL</span> <span class="o">=</span> <span class="s2">"CHUNK_SENTINEL"</span>
+<span class="sd">"""The event ID of a CHUNK side in a MatchClaim table: a synchronous</span>
+<span class="sd">MatchClaim states a coordinate on this timeline, which holds no event for</span>
+<span class="sd">it; the coordinate is the anchor's on this side. It is no event and never an</span>
+<span class="sd">element's ID."""</span>
+
+<span class="n">SENTINELS</span> <span class="o">=</span> <span class="p">(</span><span class="n">NOMATCH_SENTINEL</span><span class="p">,</span> <span class="n">CHUNK_SENTINEL</span><span class="p">)</span>
+<span class="sd">"""The two reserved strings: an event ID column holds them besides event</span>
+<span class="sd">IDs, and no element, event or Projection takes either as its ID."""</span>
+
 <span class="n">Shape</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">,</span> <span class="s2">"order"</span><span class="p">]</span>
 <span class="sd">"""How a member holds IDs.</span>
 

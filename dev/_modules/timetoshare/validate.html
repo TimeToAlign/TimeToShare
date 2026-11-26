@@ -475,7 +475,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">jsonschema</span><span class="w"> </span><span class="kn">import</span> <span class="n">Draft202012Validator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">jsonschema.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.ids</span><span class="w"> </span><span class="kn">import</span> <span class="n">FileIdError</span><span class="p">,</span> <span class="n">leniently_bare_ids</span><span class="p">,</span> <span class="n">with_bare_ids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.ids</span><span class="w"> </span><span class="kn">import</span> <span class="n">HASH</span><span class="p">,</span> <span class="n">SENTINELS</span><span class="p">,</span> <span class="n">FileIdError</span><span class="p">,</span> <span class="n">leniently_bare_ids</span><span class="p">,</span> <span class="n">with_bare_ids</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">spell</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.statements</span><span class="w"> </span><span class="kn">import</span> <span class="n">subjects</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.validation.containment</span><span class="w"> </span><span class="kn">import</span> <span class="n">child_ends</span> <span class="k">as</span> <span class="n">child_ends</span>
@@ -973,11 +973,15 @@
     <span class="s2">"[^A-Za-z0-9_-]"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"holds"</span><span class="p">,</span> <span class="s2">"only A-Z, a-z, 0-9, '_' and '-' are admitted here"</span><span class="p">),</span>
 <span class="p">}</span>
 
-<span class="c1">#: Why a word a ``not`` lists is refused: the one such list is the prefix</span>
-<span class="c1">#: names'.</span>
+<span class="c1">#: Why a word a ``not`` lists is refused, where it is no reserved ID: the</span>
+<span class="c1">#: one other such list is the prefix names'.</span>
 <span class="n">_REFUSED_WORDS</span> <span class="o">=</span> <span class="p">(</span>
     <span class="s2">"it names a key of the manifest's elements or a URI scheme the format reads as such"</span>
 <span class="p">)</span>
+
+<span class="c1">#: The IDs no element takes, as a file writes them: the sentinels' strings,</span>
+<span class="c1">#: the words of the ``not`` of ``Id``.</span>
+<span class="n">_RESERVED_IDS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">HASH</span> <span class="o">+</span> <span class="nb">sentinel</span> <span class="k">for</span> <span class="nb">sentinel</span> <span class="ow">in</span> <span class="n">SENTINELS</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_character</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -1005,6 +1009,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">branch</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">branch</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span><span class="s2">"enum"</span><span class="p">}:</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">branch</span><span class="p">[</span><span class="s2">"enum"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">_RESERVED_IDS</span><span class="p">:</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">value</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">HASH</span><span class="p">)</span><span class="w"> </span><span class="p">:]</span><span class="si">!r}</span><span class="s2"> is reserved for a sentinel"</span>
             <span class="k">if</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">branch</span><span class="p">[</span><span class="s2">"enum"</span><span class="p">]:</span>
                 <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">value</span><span class="si">!r}</span><span class="s2"> is not admitted here: </span><span class="si">{</span><span class="n">_REFUSED_WORDS</span><span class="si">}</span><span class="s2">"</span>
             <span class="k">continue</span>

@@ -1763,7 +1763,13 @@ unique across the whole manifest: the manifest’s own, and the IDs of every
 timeline (root or descendant), group, MeasureMap, conversion map at any
 depth of nesting, region, flow-control element, resource, FlowMap,
 virtual timeline, named timestamp, named MatchStamp, alignment anchor and
-elision. An ID is never parsed
+elision. Two strings are reserved for the sentinels of the MatchClaim
+table, <code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code> and <code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code> (<a class="reference internal" href="#the-matchclaim-table">The MatchClaim
+table</a>): no element, event or Projection takes
+either as its ID. The manifest validators refuse either as an element’s
+ID (code <code class="docutils literal notranslate"><span class="pre">schema</span></code>, at that <code class="docutils literal notranslate"><span class="pre">id</span></code>: <code class="docutils literal notranslate"><span class="pre">'CHUNK_SENTINEL'</span> <span class="pre">is</span> <span class="pre">reserved</span> <span class="pre">for</span> <span class="pre">a</span> <span class="pre">sentinel</span></code>), and the checks of the tables refuse them as a MatchClaim’s
+or a Projection’s <code class="docutils literal notranslate"><span class="pre">id</span></code> and as the event a Projection stands for
+(<a class="reference internal" href="#checking-the-tables">Checking the tables</a>). An ID is never parsed
 and never composed with another. A reference is an ID, written in a file
 as an ID is (<a class="reference internal" href="#written-in-a-file">Written in a file</a>): a destination’s
 <code class="docutils literal notranslate"><span class="pre">to</span></code> names a jump target, a region or a child of the same timeline or the
@@ -2343,10 +2349,18 @@ Projections table, like every event type a resource names, is
 </section>
 <section id="the-matchclaim-table">
 <h3>The MatchClaim table<a class="headerlink" href="#the-matchclaim-table" title="Link to this heading">#</a></h3>
-<p>A <strong>MatchClaim</strong> connects two events of two timelines: a synchronous
-MatchClaim states that they happen at the same time, a conceptual one
-relates them without stating a time, and a NOMATCH states that an event
-has no counterpart on the other timeline. MatchClaims are data, not
+<p>A <strong>MatchClaim</strong> connects two timelines. A synchronous MatchClaim states
+that two sides happen at the same time, each side an event or the sentinel
+<strong>CHUNK</strong>: a coordinate on a timeline that holds no event for it, stated
+by the MatchClaim’s anchors alone. A conceptual MatchClaim relates two
+events without stating a time, and a NOMATCH states that an event has no
+counterpart on the other timeline, the side without one being the
+sentinel <strong>NOMATCH</strong>. CHUNK, like NOMATCH, is a sentinel and never an
+event; each is written in the side’s event ID column as its reserved
+string, <code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code> and <code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code>, and an event ID column
+is never null. The sentinel CHUNK of a MatchClaim side is unrelated to
+the chunks of a FlowMap, the stretches in the order they are played
+(<a class="reference internal" href="#flowmaps-and-virtual-timelines">FlowMaps and virtual timelines</a>). MatchClaims are data, not
 structure, and a manifest holds none. They live in one table per package,
 the <strong>MatchClaim table</strong>, named by the resource of type <code class="docutils literal notranslate"><span class="pre">MatchClaim</span></code>, and
 it is the one place they live. A MatchClaim table belongs to one
@@ -2370,7 +2384,7 @@ column whose Null is “never” holds a value in every row:</p>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">start_anchor</span></code>, <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code></p></td>
 <td><p>anchor</p></td>
 <td><p>allowed</p></td>
-<td><p>the alignment anchors the two events give, of their starts and, for intervals, of their ends; null where the MatchClaim gives none</p></td>
+<td><p>the alignment anchors the two sides give, of their starts and, for intervals, of their ends; null where the MatchClaim gives none</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">is_synchronous</span></code></p></td>
 <td><p>bool</p></td>
@@ -2389,13 +2403,13 @@ column whose Null is “never” holds a value in every row:</p>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">event_a_id</span></code>, <code class="docutils literal notranslate"><span class="pre">event_b_id</span></code></p></td>
 <td><p>string</p></td>
-<td><p>allowed</p></td>
-<td><p>the IDs of its two events, one on each timeline. A synchronous or a conceptual MatchClaim names an event on each side, a Projection where the timeline holds no event of its own (<a class="reference internal" href="#the-projections-table">The Projections table</a>); null is the NOMATCH sentinel alone, on the side without a counterpart, and is never an event</p></td>
+<td><p>never</p></td>
+<td><p>each side’s event, one on each timeline: an event’s ID, a Projection’s where the timeline holds no event of its own (<a class="reference internal" href="#the-projections-table">The Projections table</a>), or a sentinel’s reserved string, never an event: <code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code>, the side of a synchronous MatchClaim whose coordinate the anchors state, or <code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code>, the side without a counterpart of a NOMATCH</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">event_a_name</span></code>, <code class="docutils literal notranslate"><span class="pre">event_b_name</span></code></p></td>
 <td><p>string</p></td>
 <td><p>allowed</p></td>
-<td><p>the name of each event, where it is known</p></td>
+<td><p>the name of each event, where it is known; null on a sentinel side, which has no name</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
 <td><p>string</p></td>
@@ -2449,18 +2463,61 @@ refused. A table checked alone knows no timeline’s axis and refuses only
 the coordinates of one timeline in two units or number types.</p>
 <p>Each row obeys these rules (<a class="reference internal" href="#checking-the-tables">Checking the tables</a>
 gives their codes and messages):</p>
-<ul class="simple">
-<li><p>Its two timelines differ, and it names at least one event.</p></li>
-<li><p>A row with one event is a NOMATCH, which is not synchronous and has no
-anchors.</p></li>
-<li><p>A synchronous row with an event on each side has a <code class="docutils literal notranslate"><span class="pre">start_anchor</span></code>; a
-conceptual row, not synchronous with an event on each side, has no
-anchors. An <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code> comes only with a <code class="docutils literal notranslate"><span class="pre">start_anchor</span></code>.</p></li>
+<ul>
+<li><p>Its two timelines differ.</p></li>
+<li><p>Its kind follows from <code class="docutils literal notranslate"><span class="pre">is_synchronous</span></code> and its two sides, each an
+event or a sentinel:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p><code class="docutils literal notranslate"><span class="pre">is_synchronous</span></code></p></th>
+<th class="head"><p>Side A / side B</p></th>
+<th class="head"><p>Kind</p></th>
+<th class="head"><p>Anchors</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>event / event</p></td>
+<td><p>synchronous MatchClaim between two events</p></td>
+<td><p>a <code class="docutils literal notranslate"><span class="pre">start_anchor</span></code>, an <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code> optional</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>event / CHUNK, CHUNK / event</p></td>
+<td><p>synchronous, CHUNK on one side</p></td>
+<td><p>the same</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td><p>CHUNK / CHUNK</p></td>
+<td><p>synchronous, CHUNK on both sides</p></td>
+<td><p>the same</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>event / event</p></td>
+<td><p>conceptual</p></td>
+<td><p>none</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">false</span></code></p></td>
+<td><p>event / NOMATCH, NOMATCH / event</p></td>
+<td><p>NOMATCH</p></td>
+<td><p>none</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Every other row is refused: CHUNK stands only on a synchronous
+MatchClaim, NOMATCH only on one that is not synchronous, and never on
+both sides.</p>
+</li>
+<li><p>A sentinel side has no name: its <code class="docutils literal notranslate"><span class="pre">event_a_name</span></code> or <code class="docutils literal notranslate"><span class="pre">event_b_name</span></code> is
+null.</p></li>
+<li><p>An <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code> comes only with a <code class="docutils literal notranslate"><span class="pre">start_anchor</span></code>.</p></li>
 <li><p>Both coordinates of an anchor are cells, never null.</p></li>
 <li><p>A stated <code class="docutils literal notranslate"><span class="pre">certainty</span></code> lies in [0, 1].</p></li>
 <li><p>The ID and an event ID are non-empty strings without control
 characters (U+0000 to U+001F), as every ID of the format
-(<a class="reference internal" href="#identity">Identity</a>); an ID is given once in the table.</p></li>
+(<a class="reference internal" href="#identity">Identity</a>); an ID is given once in the table. The ID is
+no reserved string: <code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code> and <code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code> stand in an
+event ID column for the sentinels alone.</p></li>
 <li><p>The provenance is a provenance entry (<a class="reference internal" href="#provenance-and-beliefs">Provenance and
 beliefs</a>): valid against
 <code class="docutils literal notranslate"><span class="pre">provenance.schema.json</span></code>, without a key the entry or a belief does not
@@ -2469,7 +2526,9 @@ one belief, actors compared as the IRIs they stand for under the
 manifest’s <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code>.</p></li>
 </ul>
 <p>A NOMATCH or a conceptual MatchClaim has no anchors and is a row like any
-other.</p>
+other. A CHUNK side’s coordinate is the anchors’ coordinate on that side:
+its start in <code class="docutils literal notranslate"><span class="pre">start_anchor</span></code> and, for an interval, its end in
+<code class="docutils literal notranslate"><span class="pre">end_anchor</span></code>.</p>
 <p><strong>IDs and succession.</strong> A MatchClaim is never deleted, and its ID never
 changes. A MatchClaim found wrong is invalidated by a belief <code class="docutils literal notranslate"><span class="pre">false</span></code>
 (<a class="reference internal" href="#provenance-and-beliefs">Provenance and beliefs</a>); a correction is
@@ -2504,7 +2563,7 @@ of them, the <strong>Projections table</strong>, named by the resource of type
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
 <td><p>string</p></td>
 <td><p>never</p></td>
-<td><p>the event’s ID: an ID its source gives is kept, and one is minted otherwise, <code class="docutils literal notranslate"><span class="pre">projection_</span></code> and 13 random base-36 characters (<a class="reference internal" href="#identity">Identity</a>). An event’s ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on</p></td>
+<td><p>the event’s ID: an ID its source gives is kept, and one is minted otherwise, <code class="docutils literal notranslate"><span class="pre">projection_</span></code> and 13 random base-36 characters (<a class="reference internal" href="#identity">Identity</a>), never a sentinel’s reserved string. An event’s ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">timeline_id</span></code></p></td>
 <td><p>string</p></td>
@@ -2529,7 +2588,7 @@ of them, the <strong>Projections table</strong>, named by the resource of type
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">projection_of</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">struct&lt;timeline_id:</span> <span class="pre">string,</span> <span class="pre">event_id:</span> <span class="pre">string&gt;</span></code></p></td>
 <td><p>allowed</p></td>
-<td><p>the event it stands for, an object and never a joined string: both members given, the timeline another than the Projection’s own; null where no such event is known</p></td>
+<td><p>the event it stands for, an object and never a joined string: both members given, the timeline another than the Projection’s own, the event never a sentinel’s reserved string; null where no such event is known</p></td>
 </tr>
 </tbody>
 </table>
@@ -2540,19 +2599,27 @@ cell’s are. As in the MatchClaim table, the columns may stand in any
 order, further columns are kept and never checked, and the rows of one
 timeline lie in one unit and one number type, its own where a manifest
 is given.</p>
-<p>A Projection repeats nothing else of its source. One mechanism serves
-every side of a MatchClaim that has no event of its own:</p>
+<p>A Projection repeats nothing else of its source. A side of a MatchClaim
+that has no event of its own is a Projection or the sentinel CHUNK:</p>
 <ul class="simple">
 <li><p><strong>The other side has an event.</strong> The Projection names it in
 <code class="docutils literal notranslate"><span class="pre">projection_of</span></code>: score notes aligned to a recording whose alignment
 gives onsets only are projected onto the recording’s axis as instants.</p></li>
-<li><p><strong>Both sides are stated as coordinates</strong>, as a beat grid or the spine
-of IEEE 1599 states them: a Projection on each side, <code class="docutils literal notranslate"><span class="pre">projection_of</span></code>
-null. The source states positions, and nothing beyond them is invented.</p></li>
 <li><p><strong>The source names an event the package does not hold</strong>, such as a
 note a performance inserts: a Projection under the source’s ID,
-<code class="docutils literal notranslate"><span class="pre">projection_of</span></code> null. In a NOMATCH the other side stays the sentinel,
-which is never an event.</p></li>
+<code class="docutils literal notranslate"><span class="pre">projection_of</span></code> null. In a NOMATCH the other side stays the sentinel
+<code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code>, which is never an event.</p></li>
+<li><p><strong>A NOMATCH is stated from a position</strong>: a Projection, <code class="docutils literal notranslate"><span class="pre">projection_of</span></code>
+null, since a NOMATCH has no anchor that could hold the coordinate.</p></li>
+<li><p><strong>A conceptual MatchClaim relates two positions</strong>: a Projection on
+each side, since a conceptual MatchClaim has no anchors either.</p></li>
+<li><p><strong>A synchronous MatchClaim states a position on both sides</strong>, naming no
+event: it is CHUNK on both sides, <code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code> in both event ID
+columns, and adds no Projection. A Listen Here!
+export, a grid of positions aligning recordings of one piece to each
+other, states its alignment so, and so does a beat grid aligned to a
+recording. The anchors hold the positions, and nothing beyond them is
+invented.</p></li>
 </ul>
 </section>
 <section id="provenance-and-beliefs">
@@ -2655,7 +2722,7 @@ only. <code class="docutils literal notranslate"><span class="pre">check_match_c
 <td><p>the column, row <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">table</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">column</span> <span class="pre">'&lt;name&gt;'</span></code>, <code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">column</span> <span class="pre">'&lt;name&gt;'</span> <span class="pre">is</span> <span class="pre">&lt;type&gt;,</span> <span class="pre">not</span> <span class="pre">&lt;type&gt;</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">timeline_a_id</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline_b_id</span></code>, <code class="docutils literal notranslate"><span class="pre">is_synchronous</span></code> or <code class="docutils literal notranslate"><span class="pre">id</span></code> is null</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">timeline_a_id</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline_b_id</span></code>, <code class="docutils literal notranslate"><span class="pre">is_synchronous</span></code>, <code class="docutils literal notranslate"><span class="pre">event_a_id</span></code>, <code class="docutils literal notranslate"><span class="pre">event_b_id</span></code> or <code class="docutils literal notranslate"><span class="pre">id</span></code> is null</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">schema_violation</span></code></p></td>
 <td><p>the column</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">'&lt;name&gt;'</span> <span class="pre">is</span> <span class="pre">null</span></code></p></td>
@@ -2665,82 +2732,97 @@ only. <code class="docutils literal notranslate"><span class="pre">check_match_c
 <td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">ID</span> <span class="pre">is</span> <span class="pre">empty</span></code>, <code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">ID</span> <span class="pre">'&lt;id&gt;'</span> <span class="pre">holds</span> <span class="pre">a</span> <span class="pre">control</span> <span class="pre">character</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>An ID repeats the ID of an earlier row</p></td>
+<tr class="row-odd"><td><p>An ID is a reserved string, <code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code> or <code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code> (in an event ID column such a string is its sentinel)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">invalid_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;string&gt;'</span> <span class="pre">is</span> <span class="pre">reserved</span> <span class="pre">for</span> <span class="pre">a</span> <span class="pre">sentinel</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>An ID repeats the ID of an earlier row</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">duplicate_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">ID</span> <span class="pre">'&lt;id&gt;'</span> <span class="pre">is</span> <span class="pre">given</span> <span class="pre">twice</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>The file’s provenance is no JSON text, no object or no provenance entry</p></td>
+<tr class="row-odd"><td><p>The file’s provenance is no JSON text, no object or no provenance entry</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_provenance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">provenance</span></code>, row <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">file's</span> <span class="pre">provenance</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">JSON</span> <span class="pre">text</span></code>, <code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">file's</span> <span class="pre">provenance</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">object</span></code>, <code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">file's</span> <span class="pre">provenance</span> <span class="pre">&lt;pointer&gt;:</span> <span class="pre">&lt;problem&gt;</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>A timeline names no timeline and no virtual timeline of the manifest</p></td>
+<tr class="row-even"><td><p>A timeline names no timeline and no virtual timeline of the manifest</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">unknown_timeline</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">timeline_a_id</span></code>, <code class="docutils literal notranslate"><span class="pre">timeline_b_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">manifest</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">timeline</span> <span class="pre">'&lt;id&gt;'</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>Both timelines are one</p></td>
+<tr class="row-odd"><td><p>Both timelines are one</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">claim_timelines</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">timeline_b_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">both</span> <span class="pre">sides</span> <span class="pre">are</span> <span class="pre">'&lt;id&gt;'</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>An event ID is empty or holds a control character</p></td>
+<tr class="row-even"><td><p>An event ID that is not a reserved string is empty or holds a control character</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">event_a_id</span></code>, <code class="docutils literal notranslate"><span class="pre">event_b_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">event</span> <span class="pre">ID</span> <span class="pre">is</span> <span class="pre">empty</span></code>, <code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">event</span> <span class="pre">ID</span> <span class="pre">'&lt;id&gt;'</span> <span class="pre">holds</span> <span class="pre">a</span> <span class="pre">control</span> <span class="pre">character</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>The row names no event</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code> on a row that is not synchronous</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">claim_events</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">event_a_id</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">MatchClaim</span> <span class="pre">names</span> <span class="pre">no</span> <span class="pre">event</span></code></p></td>
+<td><p>the side’s <code class="docutils literal notranslate"><span class="pre">event_a_id</span></code> or <code class="docutils literal notranslate"><span class="pre">event_b_id</span></code>, A before B</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span> <span class="pre">stands</span> <span class="pre">only</span> <span class="pre">on</span> <span class="pre">a</span> <span class="pre">synchronous</span> <span class="pre">MatchClaim</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>A NOMATCH is synchronous</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">claim_anchors</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">is_synchronous</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">NOMATCH</span> <span class="pre">MatchClaim</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">synchronous</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code> on a synchronous row</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">claim_events</span></code></p></td>
+<td><p>the side’s <code class="docutils literal notranslate"><span class="pre">event_a_id</span></code> or <code class="docutils literal notranslate"><span class="pre">event_b_id</span></code>, A before B</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span> <span class="pre">stands</span> <span class="pre">only</span> <span class="pre">on</span> <span class="pre">a</span> <span class="pre">MatchClaim</span> <span class="pre">that</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">synchronous</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>A NOMATCH that is not synchronous has an anchor</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code> on both sides</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">claim_events</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">event_b_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">NOMATCH</span> <span class="pre">MatchClaim</span> <span class="pre">names</span> <span class="pre">an</span> <span class="pre">event</span> <span class="pre">on</span> <span class="pre">its</span> <span class="pre">other</span> <span class="pre">side</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>A sentinel side has a name</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">claim_events</span></code></p></td>
+<td><p>the side’s <code class="docutils literal notranslate"><span class="pre">event_a_name</span></code> or <code class="docutils literal notranslate"><span class="pre">event_b_name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">sentinel</span> <span class="pre">side</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">name</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>A NOMATCH has an anchor</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">claim_anchors</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">start_anchor</span></code>, else <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">NOMATCH</span> <span class="pre">MatchClaim</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">anchors</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>A synchronous row with an event on each side has no start anchor</p></td>
+<tr class="row-even"><td><p>A synchronous row has no start anchor</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">claim_anchors</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">start_anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">synchronous</span> <span class="pre">MatchClaim</span> <span class="pre">has</span> <span class="pre">a</span> <span class="pre">start</span> <span class="pre">anchor</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>A conceptual row has an anchor</p></td>
+<tr class="row-odd"><td><p>A conceptual row has an anchor</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">claim_anchors</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">start_anchor</span></code>, else <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">conceptual</span> <span class="pre">MatchClaim</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">anchors</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>An end anchor has no start anchor</p></td>
+<tr class="row-even"><td><p>An end anchor has no start anchor</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">claim_anchors</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">end_anchor</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">an</span> <span class="pre">end</span> <span class="pre">anchor</span> <span class="pre">needs</span> <span class="pre">a</span> <span class="pre">start</span> <span class="pre">anchor</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>A coordinate of an anchor (the start anchor’s before the end anchor’s, <code class="docutils literal notranslate"><span class="pre">coordinate_a</span></code> before <code class="docutils literal notranslate"><span class="pre">coordinate_b</span></code>) is null or malformed</p></td>
+<tr class="row-odd"><td><p>A coordinate of an anchor (the start anchor’s before the end anchor’s, <code class="docutils literal notranslate"><span class="pre">coordinate_a</span></code> before <code class="docutils literal notranslate"><span class="pre">coordinate_b</span></code>) is null or malformed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_coordinate</span></code></p></td>
 <td><p>the cell, such as <code class="docutils literal notranslate"><span class="pre">start_anchor.coordinate_b</span></code></p></td>
 <td><p>a cell’s message (below)</p></td>
 </tr>
-<tr class="row-odd"><td><p>Such a coordinate lies off its timeline’s axis</p></td>
+<tr class="row-even"><td><p>Such a coordinate lies off its timeline’s axis</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">axis_mismatch</span></code></p></td>
 <td><p>the cell</p></td>
 <td><p>an axis message (below)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">certainty</span></code> lies outside [0, 1]</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">certainty</span></code> lies outside [0, 1]</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_certainty</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">certainty</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">certainty</span> <span class="pre">&lt;value&gt;</span> <span class="pre">lies</span> <span class="pre">outside</span> <span class="pre">[0,</span> <span class="pre">1]</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>A row states a provenance where the file states one</p></td>
+<tr class="row-even"><td><p>A row states a provenance where the file states one</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_provenance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">provenance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">provenance</span> <span class="pre">is</span> <span class="pre">stated</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">file's</span> <span class="pre">metadata</span> <span class="pre">and</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">row</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>A row’s provenance is no provenance entry</p></td>
+<tr class="row-odd"><td><p>A row’s provenance is no provenance entry</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_provenance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">provenance</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">provenance</span> <span class="pre">&lt;pointer&gt;:</span> <span class="pre">&lt;problem&gt;</span></code></p></td>
@@ -2773,40 +2855,50 @@ only. <code class="docutils literal notranslate"><span class="pre">check_match_c
 <td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
 <td><p>as in the MatchClaim table</p></td>
 </tr>
-<tr class="row-odd"><td><p>An ID repeats the ID of an earlier row</p></td>
+<tr class="row-odd"><td><p>An ID is a reserved string</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">invalid_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
+<td><p>as in the MatchClaim table</p></td>
+</tr>
+<tr class="row-even"><td><p>An ID repeats the ID of an earlier row</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">duplicate_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
 <td><p>as in the MatchClaim table</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">timeline_id</span></code> names no timeline and no virtual timeline of the manifest</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">timeline_id</span></code> names no timeline and no virtual timeline of the manifest</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">unknown_timeline</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">timeline_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">manifest</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">timeline</span> <span class="pre">'&lt;id&gt;'</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">unit</span></code> is none of the format’s units, or <code class="docutils literal notranslate"><span class="pre">number_type</span></code> none of <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code> and <code class="docutils literal notranslate"><span class="pre">fraction</span></code> or one the unit does not admit</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">unit</span></code> is none of the format’s units, or <code class="docutils literal notranslate"><span class="pre">number_type</span></code> none of <code class="docutils literal notranslate"><span class="pre">int</span></code>, <code class="docutils literal notranslate"><span class="pre">float</span></code> and <code class="docutils literal notranslate"><span class="pre">fraction</span></code> or one the unit does not admit</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_coordinate</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">unit</span></code>, else <code class="docutils literal notranslate"><span class="pre">number_type</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">'&lt;unit&gt;'</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">unit</span></code>, <code class="docutils literal notranslate"><span class="pre">'&lt;number</span> <span class="pre">type&gt;'</span> <span class="pre">is</span> <span class="pre">no</span> <span class="pre">number</span> <span class="pre">type</span></code>, <code class="docutils literal notranslate"><span class="pre">'&lt;unit&gt;'</span> <span class="pre">admits</span> <span class="pre">no</span> <span class="pre">number</span> <span class="pre">type</span> <span class="pre">'&lt;number</span> <span class="pre">type&gt;'</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>The row’s unit and number type are not those of its timeline in the manifest, or of an earlier row on its timeline</p></td>
+<tr class="row-odd"><td><p>The row’s unit and number type are not those of its timeline in the manifest, or of an earlier row on its timeline</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">axis_mismatch</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">unit</span></code> where the units differ, else <code class="docutils literal notranslate"><span class="pre">number_type</span></code></p></td>
 <td><p>an axis message (below)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">start</span></code>, then <code class="docutils literal notranslate"><span class="pre">duration</span></code>, is malformed</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">start</span></code>, then <code class="docutils literal notranslate"><span class="pre">duration</span></code>, is malformed</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_coordinate</span></code></p></td>
 <td><p>the number</p></td>
 <td><p>a number’s message (below)</p></td>
 </tr>
-<tr class="row-even"><td><p>A well-formed <code class="docutils literal notranslate"><span class="pre">duration</span></code> is negative</p></td>
+<tr class="row-odd"><td><p>A well-formed <code class="docutils literal notranslate"><span class="pre">duration</span></code> is negative</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_duration</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">duration</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">duration</span> <span class="pre">is</span> <span class="pre">negative</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>A member of <code class="docutils literal notranslate"><span class="pre">projection_of</span></code> is null or empty</p></td>
+<tr class="row-even"><td><p>A member of <code class="docutils literal notranslate"><span class="pre">projection_of</span></code> is null or empty</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_projection_of</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">projection_of.timeline_id</span></code>, <code class="docutils literal notranslate"><span class="pre">projection_of.event_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">projected</span> <span class="pre">event</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">timeline_id</span></code>, <code class="docutils literal notranslate"><span class="pre">the</span> <span class="pre">projected</span> <span class="pre">event</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">event_id</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">projection_of.event_id</span></code> is a reserved string, <code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code> or <code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">invalid_projection_of</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">projection_of.event_id</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;string&gt;'</span> <span class="pre">is</span> <span class="pre">reserved</span> <span class="pre">for</span> <span class="pre">a</span> <span class="pre">sentinel</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">projection_of</span></code> names the Projection’s own timeline</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">invalid_projection_of</span></code></p></td>
@@ -2887,7 +2979,9 @@ columns in the type’s order; <code class="docutils literal notranslate"><span 
 on its timeline’s own axis.</p>
 <ul class="simple">
 <li><p>A synchronous MatchClaim gives the anchor of its <code class="docutils literal notranslate"><span class="pre">start_anchor</span></code> and, if
-it has one, of its <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code>. A MatchClaim with both is an <strong>interval
+it has one, of its <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code>, whatever its sides are: a side naming
+an event gives that event’s coordinate, a CHUNK side its coordinate and
+no event. A MatchClaim with both anchors is an <strong>interval
 MatchClaim</strong>, and its two anchors bound a <strong>matched span</strong> on each timeline.
 A NOMATCH or a conceptual MatchClaim gives none, and so does one the
 belief filter leaves out.</p></li>
@@ -3814,7 +3908,9 @@ the two tables as Arrow tables (<a class="reference internal" href="#resources-a
 tables</a>). <code class="docutils literal notranslate"><span class="pre">tables_path()</span></code> returns the path of
 <code class="docutils literal notranslate"><span class="pre">tables.json</span></code> (<code class="docutils literal notranslate"><span class="pre">TABLES_DOCUMENT</span></code>), from which <code class="docutils literal notranslate"><span class="pre">MATCH_CLAIM_SCHEMA</span></code> and
 <code class="docutils literal notranslate"><span class="pre">PROJECTION_SCHEMA</span></code> declare their columns, <code class="docutils literal notranslate"><span class="pre">MATCH_CLAIM_REQUIRED</span></code> and
-<code class="docutils literal notranslate"><span class="pre">PROJECTION_REQUIRED</span></code> name the columns that hold no null, and
+<code class="docutils literal notranslate"><span class="pre">PROJECTION_REQUIRED</span></code> name the columns that hold no null,
+<code class="docutils literal notranslate"><span class="pre">NOMATCH_SENTINEL</span></code> and <code class="docutils literal notranslate"><span class="pre">CHUNK_SENTINEL</span></code> hold the reserved strings of
+the two sentinels (<a class="reference internal" href="#the-matchclaim-table">The MatchClaim table</a>), and
 <code class="docutils literal notranslate"><span class="pre">NUMBER_TYPE</span></code>, <code class="docutils literal notranslate"><span class="pre">COORDINATE_TYPE</span></code>, <code class="docutils literal notranslate"><span class="pre">ANCHOR_TYPE</span></code>, <code class="docutils literal notranslate"><span class="pre">PROJECTION_OF_TYPE</span></code>
 and <code class="docutils literal notranslate"><span class="pre">PROVENANCE_TYPE</span></code> declare the struct types; <code class="docutils literal notranslate"><span class="pre">NUMBER_KEYS</span></code> holds a
 number’s members and <code class="docutils literal notranslate"><span class="pre">NUMBER_MEMBERS</span></code> the members each number type

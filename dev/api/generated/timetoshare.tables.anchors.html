@@ -523,9 +523,11 @@ written. Where a row holds beliefs of one believer under two spellings
 state is the most critical of them: <code class="docutils literal notranslate"><span class="pre">&quot;false&quot;</span></code>, then <code class="docutils literal notranslate"><span class="pre">&quot;unlikely&quot;</span></code>, then
 <code class="docutils literal notranslate"><span class="pre">&quot;true&quot;</span></code>.</p></li>
 <li><p>A synchronous MatchClaim gives the anchor of its <code class="docutils literal notranslate"><span class="pre">start_anchor</span></code> and, if
-it has one, of its <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code>; NOMATCH and conceptual MatchClaims give
-none. Two anchors are the same when both coordinates are equal, compared
-exactly on the two timelines’ axes, whichever side each stands on.</p></li>
+it has one, of its <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code>, whatever its sides: two events, an
+event and CHUNK, or CHUNK on both (a CHUNK side gives its coordinate and
+no event); NOMATCH and conceptual MatchClaims give none. Two anchors are
+the same when both coordinates are equal, compared exactly on the two
+timelines’ axes, whichever side each stands on.</p></li>
 <li><p>A potential MatchStamp is one connected set of coordinates under the
 unique anchors.</p></li>
 </ul>
