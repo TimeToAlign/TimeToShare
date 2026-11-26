@@ -1762,9 +1762,14 @@ MatchStamps</a>).
 An IRI reference of the statements or their provenance that begins with
 <code class="docutils literal notranslate"><span class="pre">#</span></code>, such as the <code class="docutils literal notranslate"><span class="pre">id</span></code> of a value, names an element of any kind
 (<a class="reference internal" href="#describing-a-manifest">Describing a manifest</a>).</p>
-<p>timetoalign and TimeLineEditor mint a speaking default <code class="docutils literal notranslate"><span class="pre">{prefix}_{N}</span></code> for
-an element created without an ID, such as <code class="docutils literal notranslate"><span class="pre">clt_1</span></code> or <code class="docutils literal notranslate"><span class="pre">region_1</span></code>, never one
-the manifest holds; an ID that is given is kept verbatim. An ID that is an
+<p>An ID that is given is kept verbatim. A tool that mints an ID for an
+element created without one writes the element’s type prefix, <code class="docutils literal notranslate"><span class="pre">_</span></code> and 13
+random base-36 characters (<code class="docutils literal notranslate"><span class="pre">0</span></code> to <code class="docutils literal notranslate"><span class="pre">9</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code> to <code class="docutils literal notranslate"><span class="pre">z</span></code>), such as
+<code class="docutils literal notranslate"><span class="pre">region_3kq9x0m2ztb7a</span></code>, seeded so that it can mint the same IDs again
+(<a class="reference external" href="https://github.com/TimeToAlign/TimeToShare/blob/main/fixtures/README.md#minted-id-vectors">fixture guide</a>). A minted ID is
+opaque like any other: the format requires nothing of it beyond the
+character rule above, and no reader parses its prefix or its characters.
+An ID that is an
 absolute URI identifies its element globally. A manifest published at a
 stable location gives every local ID a global identity too: the
 manifest’s URI with the ID as its fragment, <code class="docutils literal notranslate"><span class="pre">&lt;manifest</span> <span class="pre">location&gt;#&lt;id&gt;</span></code>,
@@ -2447,7 +2452,7 @@ of them, the <strong>Projections table</strong>, named by the resource of type
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
 <td><p>string</p></td>
 <td><p>never</p></td>
-<td><p>the event’s ID: an ID its source gives is kept, and one is minted as <code class="docutils literal notranslate"><span class="pre">projection_N</span></code> otherwise. An event’s ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on</p></td>
+<td><p>the event’s ID: an ID its source gives is kept, and one is minted otherwise, <code class="docutils literal notranslate"><span class="pre">projection_</span></code> and 13 random base-36 characters (<a class="reference internal" href="#identity">Identity</a>). An event’s ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">timeline_id</span></code></p></td>
 <td><p>string</p></td>
