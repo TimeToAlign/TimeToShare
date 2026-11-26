@@ -3853,9 +3853,10 @@ Every item is 567.39013671875 wide, so with the row gap 48 they lie at
 **Where.** Elisions (section 2) are drawn where their timeline is drawn
 whole. A **card elision**, one on a timeline that lies in no group, is
 drawn in the cards that draw its root whole: the ungrouped root's card
-and every ancestor card of that root (section 8.8); never in a member's
-card, whose members convert linearly between their shared start and end
-(README, "Groups and the `graphical` object"). A **group elision**, one
+and every ancestor card of that root (section 8.8), and for a virtual
+timeline, its own root, its placed card (section 8.10); never in a
+member's card, whose members convert linearly between their shared start
+and end (README, "Groups and the `graphical` object"). A **group elision**, one
 on a timeline that lies in a group, is drawn across the frame of each
 group its timeline lies in, at one place in every member card of that
 frame, and carried into the ancestor cards behind that frame (below); an
@@ -4495,10 +4496,11 @@ there too: its symbol, fork and stack are drawn at the played positions
 `second_ending` and `volta_break`, end piece 1, which a stretch starting
 at 0 follows, and start piece 3: each is drawn at 953/2 + (500 − 953/2) =
 500 and at 1953/2. A rule showing the arcs draws none on this card: the
-one arc, of `repeat_end`, runs from 500 back to 0 (its destination has no
-place, and no section break lies before it, section 3.1), and no piece
-holds both ends. The atomic sections, which the defaults hide, are drawn
-under the rule of section 2.3 after the chunk braces in the regions band:
+one arc, of `repeat_end`, runs from 500 back to 0 (its destination states
+no place, neither `to` nor `by`, so it leads back to 0, no section break
+lying before it, section 3.1), and no piece holds both ends. The atomic
+sections, which the defaults hide, are drawn under the rule of section
+2.3 after the chunk braces in the regions band:
 `A` over `[0, 953/2]` and `[500, 1953/2]`, `B` over `[953/2, 500]` and
 `C` over `[1953/2, 4241/2]`, each with its whole label. A child of
 `allegro` over `[450, 520]`, were one added, crosses the ends 953/2 and
