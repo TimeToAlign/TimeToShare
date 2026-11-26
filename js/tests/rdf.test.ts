@@ -229,13 +229,23 @@ describe("the statement fixtures", () => {
   );
 });
 
-/** The flow fixture whose regions state that they are atomic sections, and its twin. */
-/** Per fixture whose regions are atomic sections, their numbers; `volta_run`'s `region_1` is none. */
-const SECTION_REGIONS: Record<string, number[]> = {
-  "flow/sonata_exposition": [1, 2, 3],
-  "flow/sonata_exposition.minimal": [1, 2, 3],
-  volta_run: [2, 3, 4, 5, 6],
-  "volta_run.minimal": [2, 3, 4, 5, 6],
+/** Per fixture whose regions are atomic sections, their IDs; `volta_run`'s `region_1` is none. */
+const SONATA = ["region_1", "region_2", "region_3"];
+const VOLTA_RUN = ["region_2", "region_3", "region_4", "region_5", "region_6"];
+const ALLEGRO = ["section_a", "section_b", "section_c"];
+const SECTION_REGIONS: Record<string, string[]> = {
+  "flow/sonata_exposition": SONATA,
+  "flow/sonata_exposition.minimal": SONATA,
+  volta_run: VOLTA_RUN,
+  "volta_run.minimal": VOLTA_RUN,
+  "flow/virtual_cards": ALLEGRO,
+  "flow/virtual_cards.minimal": ALLEGRO,
+  "flow/switched_card": ALLEGRO,
+  "flow/switched_card.minimal": ALLEGRO,
+  "groups/virtual_member": ALLEGRO,
+  "groups/virtual_member.minimal": ALLEGRO,
+  "groups/switched_frame": ALLEGRO,
+  "groups/switched_frame.minimal": ALLEGRO,
 };
 const ATOMIC_SECTIONS = Object.keys(SECTION_REGIONS);
 
@@ -243,8 +253,8 @@ describe("the atomic sections", () => {
   it.each(ATOMIC_SECTIONS)("of %s are typed in the format's namespace", async (path) => {
     const type = `${RDF}type`;
     const rdf = RDF;
-    const numbers = SECTION_REGIONS[path] as number[];
-    const regions = numbers.map((number) => `<${baseOf(path)}#region_${number}>`);
+    const ids = SECTION_REGIONS[path] as string[];
+    const regions = ids.map((id) => `<${baseOf(path)}#${id}>`);
     const quads = quadsOf(await canonical(path));
     const named = quads.filter((quad) => (quad[0] as string).startsWith("<"));
     expect(named.map((quad) => quad.join(" ")).sort()).toEqual(

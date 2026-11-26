@@ -21,6 +21,7 @@ from timetoshare import (
 )
 from timetoshare.statements import NODE_MEMBERS, container_pairs
 
+FIXTURES = Path(__file__).resolve().parents[2] / "fixtures" / "0.2.0"
 RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 RDFS = "http://www.w3.org/2000/01/rdf-schema#"
 PROV = "http://www.w3.org/ns/prov#"
@@ -53,9 +54,17 @@ UNSTATED = {
 subject has an IRI: those whose value is a thing or a plain literal, which
 the triple check reads, and those it passes over."""
 STATEMENTS = [path for path in fixture_paths() if path.parent.name == "statements"]
-SECTION_REGIONS = {"sonata_exposition": (1, 2, 3), "volta_run": (2, 3, 4, 5, 6)}
-"""Per fixture whose regions state that they are atomic sections, the
-numbers of those regions; ``volta_run``'s ``region_1`` is no atomic section."""
+_ALLEGRO = ("section_a", "section_b", "section_c")
+SECTION_REGIONS = {
+    "sonata_exposition": tuple(f"region_{number}" for number in (1, 2, 3)),
+    "volta_run": tuple(f"region_{number}" for number in (2, 3, 4, 5, 6)),
+    "virtual_cards": _ALLEGRO,
+    "switched_card": _ALLEGRO,
+    "virtual_member": _ALLEGRO,
+    "switched_frame": _ALLEGRO,
+}
+"""Per fixture whose regions state that they are atomic sections, the IDs
+of those regions; ``volta_run``'s ``region_1`` is no atomic section."""
 ATOMIC_SECTIONS = [
     path
     for path in fixture_paths()
@@ -260,9 +269,19 @@ def test_a_manifest_without_statements_says_nothing(path: Path) -> None:
 
 
 def test_the_atomic_section_fixture_is_found() -> None:
-    assert [path.name for path in ATOMIC_SECTIONS] == [
-        "sonata_exposition.minimal.yaml",
-        "sonata_exposition.yaml",
+    assert sorted(
+        path.relative_to(FIXTURES).as_posix() for path in ATOMIC_SECTIONS
+    ) == [
+        "flow/sonata_exposition.minimal.yaml",
+        "flow/sonata_exposition.yaml",
+        "flow/switched_card.minimal.yaml",
+        "flow/switched_card.yaml",
+        "flow/virtual_cards.minimal.yaml",
+        "flow/virtual_cards.yaml",
+        "groups/switched_frame.minimal.yaml",
+        "groups/switched_frame.yaml",
+        "groups/virtual_member.minimal.yaml",
+        "groups/virtual_member.yaml",
         "volta_run.minimal.yaml",
         "volta_run.yaml",
     ]
@@ -271,8 +290,8 @@ def test_the_atomic_section_fixture_is_found() -> None:
 @pytest.mark.parametrize("path", ATOMIC_SECTIONS, ids=lambda path: path.name)
 def test_an_atomic_section_is_typed_in_the_formats_namespace(path: Path) -> None:
     section = NAMESPACE + "AtomicSection"
-    numbers = SECTION_REGIONS[path.name.removesuffix(".yaml").removesuffix(".minimal")]
-    regions = [f"{_base(path)}#region_{number}" for number in numbers]
+    ids = SECTION_REGIONS[path.name.removesuffix(".yaml").removesuffix(".minimal")]
+    regions = [f"{_base(path)}#{region}" for region in ids]
     quads = _quads(path)
     named = {
         (quad["subject"]["value"], quad["predicate"]["value"], quad["object"]["value"])

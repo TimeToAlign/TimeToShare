@@ -1,0 +1,60 @@
+atomic_sections:
+  -
+    end: [953, 2]
+    name: A
+    start: [0, 1]
+  -
+    end: [500, 1]
+    name: B
+    start: [953, 2]
+  -
+    end: [1644, 1]
+    name: C
+    start: [500, 1]
+conventions:
+  default:
+    findings: []
+    runs:
+      -
+        - [0, 1]
+        - [953, 2]
+      -
+        - [953, 2]
+        - [500, 1]
+      -
+        - [0, 1]
+        - [953, 2]
+      -
+        - [500, 1]
+        - [1644, 1]
+    sections: [A, B, A, C]
+  printed:
+    findings: []
+    runs:
+      -
+        - [0, 1]
+        - [953, 2]
+      -
+        - [953, 2]
+        - [500, 1]
+      -
+        - [500, 1]
+        - [1644, 1]
+    sections: [A, B, C]
+  single:
+    findings:
+      -
+        cause: single_playback
+        coordinate: [953, 2]
+        end: [500, 1]
+        kind: never_played
+    runs:
+      -
+        - [0, 1]
+        - [953, 2]
+      -
+        - [500, 1]
+        - [1644, 1]
+    sections: [A, C]
+manifest: flow/virtual_cards
+timeline: allegro

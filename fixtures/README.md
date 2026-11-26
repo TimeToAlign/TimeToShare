@@ -24,11 +24,11 @@ The directories sort the manifests by content only:
 - under `flow/`, manifests of flow control, FlowMaps and virtual timelines
   ([Flow fixtures and expected flows](#flow-fixtures-and-expected-flows)).
 
-Version 0.2.0 has 52 manifests directly under `fixtures/0.2.0/`, 17 under
-`groups/`, 20 under `bundles/`, 4 under `statements/` and 10 under
-`flow/`, 103 in all, each with its minimal twin, so 206 files. Beside them
+Version 0.2.0 has 52 manifests directly under `fixtures/0.2.0/`, 19 under
+`groups/`, 20 under `bundles/`, 4 under `statements/` and 12 under
+`flow/`, 107 in all, each with its minimal twin, so 214 files. Beside them
 lie the expected RDF of the 4 statement fixtures under
-`fixtures/rdf/0.2.0/`, the expected flows of 9 flow fixtures under
+`fixtures/rdf/0.2.0/`, the expected flows of 10 flow fixtures under
 `fixtures/flows/0.2.0/`, the table fixture under `fixtures/tables/0.2.0/`
 ([The table fixture](#the-table-fixture)), the vectors of minted IDs under
 `fixtures/ids/` ([Minted ID vectors](#minted-id-vectors)), 255 rejection
@@ -129,8 +129,9 @@ rules and band orders, is read back by the library, which keeps it as
 written, and takes part in the round trip too: the library must write the
 composed manifest back unchanged. Every fixture but the corpus fixtures
 and `timestamps` also names the origin and length of each root it draws,
-every group member and every root that is neither a member nor holds one,
-as an editor marks a new root: the named timestamp `origin` at 0 and, where
+every group member, a virtual timeline a group names among them, and
+every root that is neither a member nor holds one, as an editor marks a
+new root: the named timestamp `origin` at 0 and, where
 the length is known, `length` at the root's length, each with the `display`
 `["wedge", "coordinate"]` and the smallest `timestamp_N` the manifest
 leaves free, minted by timeline ID and then coordinate
@@ -307,6 +308,8 @@ labelled "Repeat" whose one destination, a repeat end (`repeat_end`,
 | `bundle_arranged_roots` | the bundle "Arranged" for the arrangement side by side (drawing specification, section 8.8, Drawn once): the score `score` (48 quarters) holds three touching movements, `exposition`, `development` and `recapitulation` (16 quarters at 0, 16 and 32), the session `session` (130.0 seconds) the takes `take_a` and `take_b` (30.0 seconds at 0.0 and 100.0); the group "Exposition" lists `exposition` and `take_a`, "Development" `development` and the root `notes` (800 pixels), "Recapitulation" `recapitulation`, the root `annotations` (600 pixels) and `take_b`, and the page `page` (1754 pixels) is ungrouped. Side by side the three groups follow one another along the score, touching (seams), Exposition and Recapitulation hang on the session too with Development between them (a gap, the session passing behind Development), the annotations make Recapitulation's two anchors lie further apart than Exposition's (padding), and the page hangs on nothing |
 | `bundle_arranged_conflict` | the bundle "Conflict" of the score `score` (32 quarters) holding the themes `theme_a` (16 quarters at 0) and `theme_b` (16 quarters at 8), each alone in a group named as it, "Theme A" and "Theme B": their stretches on the score overlap from 8 to 16, so the two groups cannot stand side by side |
 | `group_measure_map` | the group "Edition" of a score of 16 quarters and its MIDI rendering of 7680 ticks, both reading one entry of `measure_maps`, four bars of 4/4: the score through its `MeasureRecordMap`, the rendering through a `ChainMap` of the `LinearMap` `ppq` to quarters (480 ticks per quarter) and its `MeasureRecordMap` |
+| `virtual_member` | the group "Performance" `performance` of the virtual timeline `allegro_default` ("Allegro, default", 4241/2 quarters), which applies the FlowMap `default` to the root `allegro` of `flow/virtual_cards`, and the recording `recording` ("Recording", 702.5 seconds), in that display order. The root is no member and contains none, a virtual timeline lying in no tree, so it is an ungrouped root; it is written whole, its flow control, atomic sections, FlowMaps and three virtual timelines with it. The virtual member's `origin` and `length` are named as every member's |
+| `switched_frame` | the group "Performance" `performance` of the root `allegro` of `flow/virtual_cards`, written whole, and the recording `recording` ("Recording", 702.5 seconds), with one rule of `graphical` setting the property `flow` of the card of `allegro` to the FlowMap `default`, so that the frame is drawn on that FlowMap's virtual axis |
 
 The corpus builders, prefixed `corpus_`, write the groups and bundles that
 public timetoalign loaders create from corpus specimens: the group of a
@@ -380,13 +383,14 @@ band of its own.
 
 ## Flow fixtures and expected flows
 
-The ten manifests under `flow/`, each with its minimal twin, cover flow
+The twelve manifests under `flow/`, each with its minimal twin, cover flow
 control, FlowMaps and virtual timelines ([main
 README](../README.md#flow-control)). Like every other manifest fixture
 they are emitted (their builders are in `scripts/fixtures/flow.py`, which
 builds the flow control from timetoalign's element classes) and obey the
 same laws: `minimal(fixture)` equals the twin, `complete(twin)` equals the
-fixture, both validate and neither draws a warning. They are not drawn.
+fixture, both validate and neither draws a warning. None names the origin
+and length of its root.
 Each holds one root of quarters, but `loop`, in seconds:
 
 | File | Holds |
@@ -401,10 +405,14 @@ Each holds one root of quarters, but `loop`, in seconds:
 | `loop.yaml` | 10.0 seconds: a Jump at 6.0 to a jump target at 2.0, taken 127 times, without a manifestation |
 | `flow_map_by_hand.yaml` | "Set list", 20 quarters with the children `first` (8 at 0) and `second` (12 at 8) and no flow control: the FlowMap "Encore order" of `second`, a gap of 4 quarters and `first`, with no convention and `manual` provenance believed `true` by the editor |
 | `repairs.yaml` | 16 quarters: an imported double barline at 8, an imported repeat end at 16 to the start that the editor believes `false`, and the repeat start at 8 and the repeat end at 16 to it, both added by hand (`manual`): the rejected Jump and its replacement at one coordinate |
+| `virtual_cards.yaml` | "Allegro" `allegro`, 1644 quarters, the first movement of a sonata whose exposition is repeated through two volta brackets: the Jump `volta_jump` at 953/2 with the destinations `by` 0 on pass 1 and to the jump target `second_ending` at 500 on pass 2, and at 500 the Break `volta_break` and the repeat sign `repeat_end` (`repeat_end`, `repeat_count` 1, no place); its atomic sections, the regions `section_a` "A" [0, 953/2), `section_b` "B" [953/2, 500) and `section_c` "C" [500, 1644) typed `tts:AtomicSection` with the method `inferred`; the computed FlowMaps `default` (A B A C, 4241/2 quarters), `single` (A C, 3241/2) and `printed` (A B C), each naming its convention with the method `inferred`; the FlowMap `by_hand` ("Practice"), written by the editor, of a run of four `section_a`, a gap of 4 quarters and `section_c` (3054 quarters); and the virtual timelines `allegro_default` ("Allegro, default"), `allegro_single` ("Allegro, single") and `allegro_by_hand` ("Allegro, practice") applying `default`, `single` and `by_hand`. B is 47/2 of 1644 quarters, under 1.5 % of the written axis. Every ID is given; the library computes the sections and the three FlowMaps from the flow control under them |
+| `switched_card.yaml` | the timelines, FlowMaps and virtual timelines of `virtual_cards`, and one rule of `graphical` setting the property `flow` of the card of `allegro`, `{"id": "allegro", "part": ["card"]}`, to the FlowMap `default` |
 
-`fixtures/flows/<version>/` holds the expected flows of the nine flow
-fixtures that hold flow control, one file `<name>.yaml` in canonical YAML
-each, beside the trace `<name>.md` it was derived by hand with:
+`fixtures/flows/<version>/` holds the expected flows of the flow fixtures
+that hold flow control, ten files, one file `<name>.yaml` in canonical YAML
+each, beside the trace `<name>.md` it was derived by hand with;
+`switched_card`, whose timelines are those of `virtual_cards`, has the
+flows of `virtual_cards.yaml`:
 
 ```yaml
 manifest: flow/sonata_exposition   # the fixture's path under fixtures/<version>/, no extension
@@ -450,6 +458,7 @@ cause. `printed` plays the whole axis and its findings are always empty.
 | `sections` | A B A C C | A B C | none | none |
 | `loop` | A, B 128 times, C | A B C | none | none |
 | `repairs` | A B B | A B | none | none |
+| `virtual_cards` | A B A C | A C | none | `never_played` 953/2 to 500, `single_playback` |
 
 `printed` is the atomic sections in order in every case. The package
 tests compute no flow: they check that each file agrees with its manifest

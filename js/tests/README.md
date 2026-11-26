@@ -283,7 +283,9 @@ sections computed in the test, under `default` and `single`
 its start and with its end, a stretch of `single` divided where the `default` flow begins
 or ends playing it and a piece the `default` flow plays carrying the cause
 `single_playback`, the only cause, no finding under `printed`, and each FlowMap of
-`sonata_exposition` with its one provenance entry `{method: inferred}`. The shared rejection and warning cases pin
+`sonata_exposition` with its one provenance entry `{method: inferred}`;
+`switched_card` holds the `timelines` of `virtual_cards` and stands on its
+expected flow. The shared rejection and warning cases pin
 every rule's code, path and message for both packages; the canonical order
 of a jump's destinations lies in `manifest.test.ts`, the ID positions in
 `ids.test.ts`, the defaults in `defaults.test.ts` and `schema.test.ts`.
@@ -438,7 +440,7 @@ new JsonFloat(-0)` are left out as the defaults `1` and `0` are, and the complet
 remains states the defaults; the round trips compare `dumps` texts, which
 tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin (103, one per fixture) completes to the canonical YAML of its
+minimal twin (107, one per fixture) completes to the canonical YAML of its
 fixture, keeps it in canonical order,
 and strips back to its own; a literal `CompleteManifest` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
@@ -608,9 +610,11 @@ so the inline context is all a processor reads. For both, it asserts:
    byte for byte, the bytes Python's PyLD gives;
 2. every other fixture under `fixtures/0.2.0/` (drawings excluded) gives the
    empty dataset: no element states anything by being written; the two
-   exceptions are `flow/sonata_exposition` and `volta_run` with their
-   twins, whose three and five regions state that they are atomic
-   sections (`volta_run`'s `region_1` is none): the dataset is exactly,
+   exceptions are `flow/sonata_exposition`, `volta_run`,
+   `flow/virtual_cards`, `flow/switched_card`, `groups/virtual_member` and
+   `groups/switched_frame` with their twins, whose regions state that
+   they are atomic sections, three in `sonata_exposition`, five in
+   `volta_run` (its `region_1` is none) and three in each of the others: the dataset is exactly,
    per such region, the triple typing it `AtomicSection` in the format's
    namespace and the reified statement of that pair with the method
    `Inferred`, five quads; the FlowMaps and their provenance add none,
@@ -876,7 +880,7 @@ exact value, makes a text not minimal, and the order canonical order sorts
 does not count. What proves them (`files.test.ts`):
 
 - **Every fixture comes back byte for byte.** For every fixture and every
-  minimal twin (206 files: bundles, the flow fixtures, groups and statements included), its value and its value
+  minimal twin (214 files: bundles, the flow fixtures, groups and statements included), its value and its value
   without `graphical` are each written in all three serializations; every
   such text reads as `{ minimal: <is a twin>, styling: <holds graphical>,
   serialization: <the one it was written in> }`, and

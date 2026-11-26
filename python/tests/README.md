@@ -1318,12 +1318,21 @@ flow that does not follow from its manifest.
   that each region is an `AtomicSection` of the format's namespace and that
   the pair was inferred, fifteen quads; `volta_run` says so of its five
   atomic sections, `region_2` to `region_6`, twenty-five quads, and
-  nothing of its `region_1`, which is none; every other fixture outside
-  `statements/` says nothing. Numbered flow-control IDs name their role,
+  nothing of its `region_1`, which is none; `virtual_cards`,
+  `switched_card` and the groups `virtual_member` and `switched_frame`,
+  which hold one root `allegro` built alike, say so of its three sections
+  `section_a`, `section_b` and `section_c`, fifteen quads each; every
+  other fixture outside `statements/` says nothing. `virtual_cards` holds
+  the three computed FlowMaps under the IDs `default`, `single` and
+  `printed`, the FlowMap `by_hand` with a run of four entries and a gap,
+  and three virtual timelines; `switched_card` holds the same `timelines`,
+  FlowMaps and virtual timelines and a rule setting the property `flow` of
+  `allegro`'s card to `default`. Numbered flow-control IDs name their role,
   without exception.
 - **The expected flows** (`test_flow.py`). `fixtures/flows/0.2.0/` holds
-  one file per flow fixture with flow control, nine in all, in canonical
-  YAML, each beside the trace it was derived by hand with (`<name>.md`):
+  one file per flow fixture with flow control, ten in all, in canonical
+  YAML (`switched_card`, whose `timelines` are those of `virtual_cards`
+  (`test_flow.py` compares them), stands on the file of `virtual_cards`), each beside the trace it was derived by hand with (`<name>.md`):
   `manifest` (a path under `fixtures/0.2.0/` without extension),
   `timeline` (a bare ID), `atomic_sections` (`name`, `start`, `end`) and
   `conventions`, whose `default`, `single` and `printed` each hold
@@ -1349,7 +1358,9 @@ flow that does not follow from its manifest.
   a cause; every kind is one of the five the format names. For `sonata_exposition` the manifest's regions are the
   atomic sections, each FlowMap lists the regions of its convention's
   sections, and the virtual timeline's length, 36 quarters, is the sum of
-  the default runs.
+  the default runs; for `virtual_cards` likewise, the default and single
+  virtual timelines being 4241/2 and 3241/2 quarters long, the sums of
+  their runs.
 
 Not proven here: that the expected flows are the flows the stated behaviour
 gives. They are derived by hand; an implementation computing flows is run
@@ -1827,8 +1838,9 @@ each statement fixture and its twin:
 5. the number of distinct subjects of `rdf:subject` equals the number of
    provenance entries in the fixture: each entry is one reified statement.
 
-Every other fixture under `fixtures/0.2.0/`, but the two whose regions
-are atomic sections (`sonata_exposition`, `volta_run`), yields the empty
+Every other fixture under `fixtures/0.2.0/`, but the six whose regions
+are atomic sections (`sonata_exposition`, `volta_run`, `virtual_cards`,
+`switched_card`, `virtual_member`, `switched_frame`), yields the empty
 dataset, both forms: a manifest without statements says nothing in RDF. `rdf_expectation`
 maps a fixture and its twin to the same file.
 
@@ -2348,7 +2360,7 @@ included (section "Flow"; `test_fixtures.py`). For every fixture: `validate` acc
 it, `unknown_keys` and `manifest_warnings` list nothing (every fixture
 states the format's `@context`), `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. The folders are `.`, `bundles`,
-`flow`, `groups` and `statements`, 206 files (`test_files.py`); the four statement
+`flow`, `groups` and `statements`, 214 files (`test_files.py`); the four statement
 fixtures `op106_work`, `layerit_recording`, `djset_segment` and
 `nielsen_record` with their twins are read to RDF as the section "The RDF
 of the statements" says. `fixture_paths()` lists every
@@ -2450,7 +2462,8 @@ cannot prove that the emitter produces them:
   and `section_break_1` (two). The IDs of the earlier form of flow control
   (`jump_from_N`, `jump_to_N`, `flow_marker_N`) occur nowhere. Every other flow-control ID is one a builder
   names (`fine`, `da-capo`, `da_capo_al_fine`, `dal_segno`, `repeat`,
-  `segno`). A prefix taken from another role (a jump `break_1`, a jump
+  `segno`, and `volta_jump`, `volta_break`, `repeat_end` and
+  `second_ending` of `allegro`). A prefix taken from another role (a jump `break_1`, a jump
   target `jump_1`) fails the test.
 
 ## The graphical object

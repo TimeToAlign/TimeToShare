@@ -953,6 +953,7 @@ describe("the expected flows", () => {
       "repeat_end_and_dal_segno",
       "sections",
       "sonata_exposition",
+      "virtual_cards",
       "volta_passes",
     ]);
     for (const name of names) {
@@ -1148,6 +1149,67 @@ describe("the expected flows", () => {
       [36, 1],
       "quarters",
       "fraction",
+    ]);
+  });
+
+  it("of the virtual cards are its FlowMaps and virtual timelines, and the switched card's", () => {
+    const flows = loads(readFileSync(resolve(FLOWS, "virtual_cards.yaml"), "utf8")) as JsonObject;
+    const value = withBareIds(loads(fixtureText("flow/virtual_cards"))) as JsonObject;
+    const [root] = value.timelines as [JsonObject];
+    expect([root.id, flows.timeline]).toEqual(["allegro", "allegro"]);
+    const sectionId = (name: string) => `section_${name.toLowerCase()}`;
+    expect(
+      (root.regions as JsonObject[]).map((region) => [
+        region.id,
+        region.name,
+        region.start,
+        region.end,
+      ]),
+    ).toEqual(
+      (flows.atomic_sections as JsonObject[]).map((s) => [
+        sectionId(s.name as string),
+        s.name,
+        s.start,
+        s.end,
+      ]),
+    );
+    const flowMaps = new Map(
+      (value.flow_maps as JsonObject[]).map((entry) => [entry.id as string, entry]),
+    );
+    for (const [convention, flow] of Object.entries(
+      flows.conventions as Record<string, JsonObject>,
+    )) {
+      const flowMap = flowMaps.get(convention) as JsonObject;
+      expect(flowMap.convention).toBe(convention);
+      expect(flowMap.chunks, convention).toEqual((flow.sections as string[]).map(sectionId));
+      expect(flowMap.provenance).toEqual([{ method: "inferred" }]);
+    }
+    const byHand = flowMaps.get("by_hand") as JsonObject;
+    expect(byHand.chunks).toEqual([
+      "section_a",
+      "section_a",
+      "section_a",
+      "section_a",
+      { gap: [4, 1] },
+      "section_c",
+    ]);
+    expect("convention" in byHand).toBe(false);
+    expect(
+      (value.virtual_timelines as JsonObject[]).map((entry) => [entry.id, entry.map, entry.length]),
+    ).toEqual([
+      ["allegro_by_hand", "by_hand", [3054, 1]],
+      ["allegro_default", "default", [4241, 2]],
+      ["allegro_single", "single", [3241, 2]],
+    ]);
+    const switched = withBareIds(loads(fixtureText("flow/switched_card"))) as JsonObject;
+    for (const key of ["timelines", "flow_maps", "virtual_timelines"]) {
+      expect(switched[key], key).toEqual(value[key]);
+    }
+    expect((switched.graphical as JsonObject).rules).toEqual([
+      {
+        select: { addresses: [{ id: "allegro", part: ["card"] }] },
+        set: { flow: "default" },
+      },
     ]);
   });
 });

@@ -1000,6 +1000,7 @@ def test_the_expected_flows_are_stated() -> None:
         "repeat_end_and_dal_segno",
         "sections",
         "sonata_exposition",
+        "virtual_cards",
         "volta_passes",
     ]
     for path in _expected_flows():
@@ -1009,7 +1010,7 @@ def test_the_expected_flows_are_stated() -> None:
     fixtures = {
         path.name.split(".")[0] for path in (FIXTURES / "flow").glob("*.minimal.yaml")
     }
-    assert fixtures - flows == {"flow_map_by_hand"}
+    assert fixtures - flows == {"flow_map_by_hand", "switched_card"}
 
 
 def _boundaries(root: dict) -> list[Fraction]:
@@ -1182,6 +1183,67 @@ def test_the_sonata_expositions_flow_maps_are_its_expected_flows() -> None:
     )
     assert exact(virtual["length"]) == played == 36
     assert (virtual["unit"], virtual["number_type"]) == ("quarters", "fraction")
+
+
+def test_the_virtual_cards_flow_maps_are_its_expected_flows() -> None:
+    """``virtual_cards``: its regions are its atomic sections, its computed
+    FlowMaps list them as the expected flows play them, its virtual timelines
+    are as long as the runs they play, and ``switched_card`` holds the same
+    root, FlowMaps and virtual timelines, so that it stands on this file."""
+    case = loads((FLOWS / "virtual_cards.yaml").read_text("utf-8"))
+    value = with_bare_ids(
+        loads((FIXTURES / "flow/virtual_cards.yaml").read_text("utf-8"))
+    )
+    (root,) = value["timelines"]
+    assert root["id"] == case["timeline"] == "allegro"
+    assert [
+        (region["id"], region["name"], region["start"], region["end"])
+        for region in root["regions"]
+    ] == [
+        (f"section_{s['name'].lower()}", s["name"], s["start"], s["end"])
+        for s in case["atomic_sections"]
+    ]
+    for region in root["regions"]:
+        assert region["statements"] == {"type": ["tts:AtomicSection"]}
+    flow_maps = {flow_map["id"]: flow_map for flow_map in value["flow_maps"]}
+    for convention, flow in case["conventions"].items():
+        flow_map = flow_maps[convention]
+        assert flow_map["convention"] == convention
+        assert flow_map["chunks"] == [
+            f"section_{name.lower()}" for name in flow["sections"]
+        ]
+        assert flow_map["provenance"] == [{"method": "inferred"}]
+    by_hand = flow_maps["by_hand"]
+    assert by_hand["chunks"] == [
+        *["section_a"] * 4,
+        {"gap": [4, 1]},
+        "section_c",
+    ]
+    assert "convention" not in by_hand
+    assert by_hand["provenance"][0]["method"] == "manual"
+    virtual = {entry["id"]: entry for entry in value["virtual_timelines"]}
+    assert {key: (entry["map"], entry["length"]) for key, entry in virtual.items()} == {
+        "allegro_default": ("default", [4241, 2]),
+        "allegro_single": ("single", [3241, 2]),
+        "allegro_by_hand": ("by_hand", [3054, 1]),
+    }
+    for convention in ("default", "single"):
+        played = sum(
+            exact(end) - exact(start)
+            for start, end in case["conventions"][convention]["runs"]
+        )
+        assert exact(virtual[f"allegro_{convention}"]["length"]) == played
+    switched = with_bare_ids(
+        loads((FIXTURES / "flow/switched_card.yaml").read_text("utf-8"))
+    )
+    for key in ("timelines", "flow_maps", "virtual_timelines"):
+        assert switched[key] == value[key], key
+    assert switched["graphical"]["rules"] == [
+        {
+            "select": {"addresses": [{"id": "allegro", "part": ["card"]}]},
+            "set": {"flow": "default"},
+        }
+    ]
 
 
 def test_the_flow_fixtures_cover_what_their_names_say() -> None:

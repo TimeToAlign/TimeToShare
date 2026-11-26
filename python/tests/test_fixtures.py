@@ -748,4 +748,15 @@ def test_numbered_flow_control_ids_name_their_role() -> None:
     }
     assert {element_id for role, element_id in elements} - {
         element_id for role, element_id in numbered
-    } == {"fine", "da-capo", "da_capo_al_fine", "dal_segno", "repeat", "segno"}
+    } == {
+        "fine",
+        "da-capo",
+        "da_capo_al_fine",
+        "dal_segno",
+        "repeat",
+        "repeat_end",
+        "second_ending",
+        "segno",
+        "volta_break",
+        "volta_jump",
+    }

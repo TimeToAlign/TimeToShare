@@ -89,7 +89,7 @@ describe("manifest files", () => {
   const fixtures = fixtureFiles();
 
   it("cover every fixture and twin, bundles and groups included", () => {
-    expect(fixtures).toHaveLength(206);
+    expect(fixtures).toHaveLength(214);
     expect(new Set(fixtures.map((name) => name.split("/").slice(0, -1).join("/")))).toEqual(
       new Set(["", "bundles", "flow", "groups", "statements"]),
     );
