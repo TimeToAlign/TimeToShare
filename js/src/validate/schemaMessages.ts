@@ -16,6 +16,7 @@
  */
 
 import type { ErrorObject } from "ajv/dist/2020.js";
+import { CHUNK_SENTINEL, HASH, NOMATCH_SENTINEL } from "../ids.js";
 import { isJsonFloat, isJsonObject, keysOf } from "../json/value.js";
 import { floatText } from "../serialization/text.js";
 import { comparePaths, type PathSegment } from "./diagnostics.js";
@@ -280,9 +281,17 @@ const REFUSED_PATTERNS: ReadonlyMap<string, readonly [string, string]> = new Map
   ["[^A-Za-z0-9_-]", ["holds", "only A-Z, a-z, 0-9, '_' and '-' are admitted here"]],
 ]);
 
-/** Why a word a `not` lists is refused: the one such list is the prefix names'. */
+/**
+ * Why a word a `not` lists is refused, where it is no reserved ID: the one
+ * other such list is the prefix names'.
+ */
 const REFUSED_WORDS =
   "it names a key of the manifest's elements or a URI scheme the format reads as such";
+
+/** The IDs no element takes, as a file writes them: the words of the `not` of `Id`. */
+const RESERVED_IDS: ReadonlySet<string> = new Set(
+  [NOMATCH_SENTINEL, CHUNK_SENTINEL].map((sentinel) => HASH + sentinel),
+);
 
 /** The first character of `text`: itself where printable, else its code point. */
 function character(text: string): string {
@@ -301,6 +310,9 @@ function notAdmitted(error: ErrorObject, value: unknown): string | null {
     const keys = Object.keys(branch);
     if (keys.length === 1 && keys[0] === "enum") {
       if ((branch.enum as unknown[]).includes(value)) {
+        if (RESERVED_IDS.has(value)) {
+          return `${stringRepr(value.slice(HASH.length))} is reserved for a sentinel`;
+        }
         return `${stringRepr(value)} is not admitted here: ${REFUSED_WORDS}`;
       }
       continue;

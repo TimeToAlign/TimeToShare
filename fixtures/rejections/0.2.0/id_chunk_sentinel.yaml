@@ -1,0 +1,24 @@
+code: schema
+manifest:
+  groups: []
+  measure_maps: []
+  meta: {}
+  name: null
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#CHUNK_SENTINEL"
+      is_segment_line: false
+      length: [8, 1]
+      locked: false
+      meta: {}
+      name: Chunk
+      number_type: fraction
+      regions: []
+      unit: quarters
+  timetoshare: "0.2.0"
+message: "'CHUNK_SENTINEL' is reserved for a sentinel"
+path: [timelines, 0, id]
+reason: "An id is none of the two strings a MatchClaim table writes for a sentinel."

@@ -14,6 +14,7 @@ from timetoshare import (
     rejection_paths,
     with_bare_ids,
 )
+from timetoshare.ids import CHUNK_SENTINEL, NOMATCH_SENTINEL
 
 from .conftest import (
     bundle,
@@ -954,12 +955,29 @@ def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
         "flow_control_907",
         "perf/take 2",
         "https://example.org/piece/score#exposition",
+        "#NOMATCH_SENTINEL",
+        "chunk_sentinel",
     ],
 )
 def test_no_id_is_reserved(word: str) -> None:
     for document, _ in _id_documents(word):
         assert _problems(document) == []
         validate(document)
+
+
+@pytest.mark.parametrize("word", [NOMATCH_SENTINEL, CHUNK_SENTINEL])
+def test_a_sentinel_string_is_no_id(word: str) -> None:
+    documents = _id_documents(word)
+    assert len(documents) == 12
+    for document, path in documents:
+        assert _problems(document) == []
+        with pytest.raises(SchemaValidationError) as caught:
+            validate(document)
+        assert (caught.value.code, caught.value.path, caught.value.message) == (
+            "schema",
+            path,
+            f"'{word}' is reserved for a sentinel",
+        )
 
 
 def test_timeline_ids_are_unique_across_roots() -> None:

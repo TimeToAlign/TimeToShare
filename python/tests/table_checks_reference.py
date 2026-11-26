@@ -6,8 +6,9 @@ kept so that ``test_table_checks.py`` can compare the two on every table it
 builds. It changes where the format's rules change, and only there: its
 rules of a MatchClaim's sides and anchors read the sentinels' reserved
 strings in the event ID columns (``CHUNK_SENTINEL`` on a synchronous row,
-``NOMATCH_SENTINEL`` on one that is not), and an ID that is a sentinel's
-string is refused by the package's message of an ID. The helpers the change left as
+``NOMATCH_SENTINEL`` on one that is not), an ID that is a sentinel's
+string is refused by the package's message of an ID, and so is a projected
+event's ID, by a message written here. The helpers the change left as
 they were (the shape check, the messages, the check of a provenance entry)
 are the package's own, imported; the row loops are this module's. It is no
 part of the package.
@@ -368,6 +369,15 @@ def projection_problems(
                         f"the projected event has no {key}",
                     )
                 )
+        if source["event_id"] in (CHUNK_SENTINEL, NOMATCH_SENTINEL):
+            problems.append(
+                TableProblem(
+                    "invalid_projection_of",
+                    index,
+                    ("projection_of", "event_id"),
+                    f"'{source['event_id']}' is reserved for a sentinel",
+                )
+            )
         if source["timeline_id"] == timeline_id:
             problems.append(
                 TableProblem(

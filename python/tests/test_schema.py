@@ -528,9 +528,21 @@ def test_references_are_ids_and_addresses() -> None:
         "#regions_1",
         "##x",
         "# ",
+        "##NOMATCH_SENTINEL",
+        "#chunk_sentinel",
     ):
         assert identifier.is_valid(accepted), accepted
-    for refused in ("", "#", "score", "score#", "#score\t", "#score\n", "#\u001f"):
+    for refused in (
+        "",
+        "#",
+        "score",
+        "score#",
+        "#score\t",
+        "#score\n",
+        "#\u001f",
+        "#NOMATCH_SENTINEL",
+        "#CHUNK_SENTINEL",
+    ):
         assert not identifier.is_valid(refused), refused
     address = Draft202012Validator({"$ref": "#/$defs/Address", "$defs": defs})
     for accepted in (

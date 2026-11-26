@@ -20,7 +20,7 @@ import pyarrow as pa
 import pyarrow.compute as pc
 from jsonschema import Draft202012Validator
 
-from ..ids import with_bare_ids
+from ..ids import SENTINELS, with_bare_ids
 from ..manifest import UNITS
 from ..statements import calendar_date, expand_iri
 from ..validate import PROVENANCE_DEFINITION, load_schema, select, worded
@@ -36,7 +36,6 @@ from .columns import (
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
-    SENTINELS,
     coordinate_value,
 )
 from .columns import CHUNK_SENTINEL as CHUNK
@@ -1124,7 +1123,8 @@ def _projected_events(
     found: _Found, table: pa.Table, timelines: pa.Array, manifest: _Manifest | None
 ) -> None:
     """The event a Projection stands for: both members given (places 5 and
-    6), on another timeline than the Projection's, one the manifest has (7)."""
+    6), the event no sentinel (6), on another timeline than the
+    Projection's, one the manifest has (7)."""
     source = _array(table, "projection_of")
     present = pc.is_valid(source)
     members = {key: _member(source, key) for key in ("timeline_id", "event_id")}
@@ -1141,6 +1141,21 @@ def _projected_events(
                     f"the projected event has no {key}",
                 ),
             )
+    # A Projection stands for an event, never for a sentinel.
+    events = members["event_id"]
+    reserved = _all(present, _held(pc.is_in(events, value_set=_SENTINELS)))
+    rows = _rows(reserved)
+    for row, value in zip(rows, _at(events, rows), strict=True):
+        found.add(
+            row,
+            6,
+            TableProblem(
+                "invalid_projection_of",
+                row,
+                ("projection_of", "event_id"),
+                f"'{value}' is reserved for a sentinel",
+            ),
+        )
     source_timeline = members["timeline_id"]
     same = _all(present, _held(pc.equal(source_timeline, timelines)))
     rows = _rows(same)

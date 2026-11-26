@@ -560,10 +560,22 @@ describe("the schema document", () => {
       "#regions_1",
       "##x",
       "# ",
+      "##NOMATCH_SENTINEL",
+      "#chunk_sentinel",
     ]) {
       expect(identifier(accepted), accepted).toBe(true);
     }
-    for (const refused of ["", "#", "score", "score#", "#score\t", "#score\n", "#\u001f"]) {
+    for (const refused of [
+      "",
+      "#",
+      "score",
+      "score#",
+      "#score\t",
+      "#score\n",
+      "#\u001f",
+      "#NOMATCH_SENTINEL",
+      "#CHUNK_SENTINEL",
+    ]) {
       expect(identifier(refused), refused).toBe(false);
     }
     const address = ajv.compile({ $ref: "#/$defs/Address", $defs: defs });

@@ -142,6 +142,7 @@ REJECTIONS = [
     "groupstamp_match_without_group",
     "groupstamp_member_parent",
     "groupstamp_without_group",
+    "id_chunk_sentinel",
     "id_control_character_tab",
     "id_control_character_trailing_newline",
     "id_duplicate_across_kinds",
@@ -1332,6 +1333,20 @@ BANDS = ["children", "markers", "line\t", "conversion_maps", "regions", "flow_co
             "#a\tb",
             (),
             f"'#a\\tb' holds U+0009: {CONTROL}",
+        ),
+        (
+            STYLED,
+            ("timelines", 0, "id"),
+            "#NOMATCH_SENTINEL",
+            (),
+            "'NOMATCH_SENTINEL' is reserved for a sentinel",
+        ),
+        (
+            STYLED,
+            ("timelines", 0, "id"),
+            "#CHUNK_SENTINEL",
+            (),
+            "'CHUNK_SENTINEL' is reserved for a sentinel",
         ),
         (
             STYLED,

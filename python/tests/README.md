@@ -133,9 +133,10 @@ rejection cases that use them (`test_schema.py`):
   or `Gap`, the items of `Selector.addresses` to `Address`. `Id`, an
   ID written `#` followed by the ID, accepts `#score`, `#Bass Kick`,
   `#perf/take 2`, `#https://example.org/piece/score#exposition`, `#start`,
-  `#regions_1`, `##x` and `# `, and refuses `""`, `#`, `score`, `score#`,
-  `#score` followed by a tab, `#score` followed by a newline and `#`
-  followed by U+001F; every address below writes its ID so. `Address` accepts `{}`,
+  `#regions_1`, `##x`, `# `, `##NOMATCH_SENTINEL` and `#chunk_sentinel`,
+  and refuses `""`, `#`, `score`, `score#`, `#score` followed by a tab,
+  `#score` followed by a newline, `#` followed by U+001F,
+  `#NOMATCH_SENTINEL` and `#CHUNK_SENTINEL`; every address below writes its ID so. `Address` accepts `{}`,
   `{"part": ["name"]}`, `{"id": "#score"}`, `{"id": "#perf/take 2"}`,
   `{"id": "#score", "facet": "regions"}`, `{"id": "#score", "part":
   ["card"]}`, `{"id": "#score", "part": ["end", "label"]}`, `{"id":
@@ -643,7 +644,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 248 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 256 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
@@ -761,7 +762,7 @@ documents that bound each rule from the other side:
   included) and a MeasureMap ID equal to a group ID are one `duplicate_id`
   at the group's or MeasureMap's `id`, and a manifest ID equal to a
   region's one `manifest_id`.
-- **No reserved IDs.** The part words of an address (`start`, `end`,
+- **No reserved word.** The part words of an address (`start`, `end`,
   `name`, `label`, `card`), names shaped like a band (`regions_1`,
   `flow_control_907`) and IDs holding
   a slash, a space, a colon or a `#` (`perf/take 2`,
@@ -769,7 +770,18 @@ documents that bound each rule from the other side:
   timeline, a map, a map held by a `ChainMap`, by a `PiecewiseMap` and by a
   `CombinationMap`, a region, a break, a jump, a jump target,
   a group, a MeasureMap and the manifest: `identity_problems` finds nothing
-  and `validate` accepts each manifest.
+  and `validate` accepts each manifest. So are `#NOMATCH_SENTINEL` (written
+  `##NOMATCH_SENTINEL`) and `chunk_sentinel`, which only resemble the two
+  strings below.
+- **The sentinels' strings are no ID.** `NOMATCH_SENTINEL` and
+  `CHUNK_SENTINEL`, the two strings a MatchClaim table writes for a
+  sentinel in its event ID columns (`timetoshare.ids` names them), are
+  refused as the ID of each element of the list above, written
+  `#NOMATCH_SENTINEL` and `#CHUNK_SENTINEL`: `validate` raises the code
+  `schema` at that element's `id`, `'NOMATCH_SENTINEL' is reserved for a
+  sentinel` (the ID without its `#`), and `identity_problems` finds
+  nothing, the rule being the schema's `Id`. The rejection case
+  `id_chunk_sentinel` holds it for a timeline in both packages.
 - **Containment.** A child's end is its offset plus its length, or, for a
   segment of unknown length, its successor's offset. Where the parent's
   axis and the child's are both `float`, the offset and the length are
@@ -1906,7 +1918,9 @@ what to write; the path and the code stay the path rule's and `schema`.
    U+0009: no control character (U+0000 to U+001F) is admitted here` for an
    ID (and for every other string the schema closes against control
    characters: an order entry, a paint, a dash array, a media type, a
-   digest); `'match claims.parquet' holds U+0020: no whitespace and no
+   digest); an ID that is one of the two words of its `not`, the
+   sentinels' strings, reads `'NOMATCH_SENTINEL' is reserved for a
+   sentinel` for `#NOMATCH_SENTINEL`; `'match claims.parquet' holds U+0020: no whitespace and no
    control character is admitted here` for an IRI or IRI reference, a
    prefix's IRI included; `'_:b0' begins with '_:': no blank node
    identifier is admitted here` and `'@id' begins with '@': no keyword is
@@ -1926,7 +1940,7 @@ schema with one of the three shapes, and a census of the schema fails when
 a place is added without a case: the time unit; the four forbidden members
 of a flow-control element (`manifestation` and `ends` on a jump, `targets`
 on every other role, `ends` on every role but a break, seven cases);
-and the thirteen `not` places (an ID, an order entry, a paint, a dash array,
+and the thirteen `not` places (an ID with each of its two branches, an order entry, a paint, a dash array,
 the elision depths and display of a declaration, a resource's media type and its digest, an IRI, an IRI reference with each
 of its three branches, a prefix's IRI, a language tag, a prefix name with
 each of its two branches), each message stated literally, at the path the
@@ -2711,8 +2725,12 @@ extraction's are without fontTools. What proves them:
   reported, never raised; provenance stated both in the file's
   metadata (`timetoshare:provenance`) and in a row (`invalid_provenance`);
   one timeline's cells in two units or number types within a table
-  (`axis_mismatch`); a Projection whose `projection_of` lacks a member or
-  names its own timeline (`invalid_projection_of`), whose row's `unit` or
+  (`axis_mismatch`); a Projection whose `projection_of` lacks a member,
+  names a sentinel's string as its `event_id` (a Projection stands for an
+  event, never for a sentinel: `'NOMATCH_SENTINEL' is reserved for a
+  sentinel` at `projection_of.event_id`, after the missing members and
+  before the own timeline) or names its own timeline
+  (`invalid_projection_of`), whose row's `unit` or
   `number_type` is null (`schema_violation`) or unknown
   (`invalid_coordinate` at that column), whose row's number type its unit
   does not admit (`'samples' admits no number type 'fraction'`,
@@ -2825,11 +2843,15 @@ extraction's are without fontTools. What proves them:
   and the MatchClaims `claim_16` and `claim_2` wherever the filter keeps
   both (no actor, the actor's default, the actor's `undecided`), so a
   reader that drops a CHUNK row's anchor, or reads a CHUNK side as an
-  event, fails the literal values. Its Projections table holds each
-  number type of the cell form: int instants and an int interval on the
-  samples timeline, a float interval on the seconds timeline, and a
-  fraction interval (start 7/2, duration 1/2) on the child timeline in
-  quarters, so every reader of the shared tables meets a fraction and a
+  event, fails the literal values. `claim_17`, an instant MatchClaim
+  between the note at the quarter 45/4 and its Projection `projection_12`
+  at the second 11.25, gives one anchor and one potential MatchStamp of
+  its own, kept wherever the filter keeps undecided rows. Its Projections
+  table holds each number type of the cell form: int instants and an int
+  interval on the samples timeline, a float instant (`projection_12`) and
+  a float interval on the seconds timeline, and a fraction interval
+  (start 7/2, duration 1/2) on the child timeline in quarters, so every
+  reader of the shared tables meets a fraction, a float instant and a
   float duration. Without an actor the row believed false still gives
   its anchor.
 - **The belief filter takes the four states.** The states and the check of
@@ -2841,7 +2863,7 @@ extraction's are without fontTools. What proves them:
   without provenance included); the row is kept when that state is one
   the filter names. `believed_rows` keeps, per believer and collection of
   states, the rows listed in `test_tables_anchors.py`: every state alone
-  for one actor, which partitions the sixteen rows, the default, and
+  for one actor, which partitions the seventeen rows, the default, and
   without a believer every row whatever the states. A single string
   raises `the belief filter takes a collection of states, not the string
   'true': write ['true']`; an unknown word raises `'not_false' is no
@@ -2871,14 +2893,14 @@ extraction's are without fontTools. What proves them:
   manifest's order, exactly the timelines its table names. Each
   Projection a MatchClaim names stands on that side's timeline at the
   anchor's coordinate, its duration spanning to the end anchor; the
-  fixture's nine Projections are all named but the last two, the
-  fraction interval and the float interval, and no Projection stands
+  fixture's ten Projections are all named but two, the fraction
+  interval and the float interval, and no Projection stands
   where a MatchClaim's side is `CHUNK_SENTINEL` (a CHUNK is no
   Projection). The Projections keep their numbers, `projection_6` and
   `projection_7` being no longer held. The Projections table's rows
   lie sorted stably by `timeline_id`, each timeline's in the order the
-  script lists them: `projection_10` on `clt_2`, `projection_11` on
-  `cpt_1`, then `projection_1` to `projection_5`, `projection_8` and
+  script lists them: `projection_10` on `clt_2`, `projection_11` and
+  `projection_12` on `cpt_1`, then `projection_1` to `projection_5`, `projection_8` and
   `projection_9` on `dpt_1`, the order in which a
   writer holding the Projections per timeline writes them, so that such a
   writer's file can equal the fixture's byte for byte.
@@ -2901,14 +2923,19 @@ with the same message. What proves it (`test_table_checks.py`):
   holds the row-by-row checks as they were before the change, unchanged but
   for their imports and for the rules the format changed since, which it
   follows as the package must (the sentinels' reserved strings in the event
-  ID columns, read by `is_synchronous`, and a reserved string refused as an
-  `id`, the package's message of an ID): the row loops (the axes of the timelines, the IDs, the
+  ID columns, read by `is_synchronous`, a reserved string refused as an
+  `id`, the package's message of an ID, and as a projected event's
+  `event_id`, its message written in the reference): the row loops (the axes of the timelines, the IDs, the
   nulls, each MatchClaim's and each Projection's rules, the succession
   rule) are its own, and the helpers the change left as they were (the
   schema shape check, the message of an ID, an axis or a number, the check
   of a provenance entry and of the file's) are imported from the package,
   so the comparison is of the rules, their order and the cells they read,
   while the wording is pinned by the exact messages of `test_tables.py`.
+  The reserved-ID rule of an `id` takes its message from the package's
+  ID function, so the comparison cannot fail on it alone: the inline exact
+  cases of `test_tables.py` (`id_*_sentinel`, in both tables) are what
+  test it.
   It is no part of the package and nothing else reads it. Each comparison
   asserts that both implementations return equal lists of `TableProblem`
   (code, row, column and message, in order), or raise the same exception
@@ -2970,7 +2997,7 @@ with the same message. What proves it (`test_table_checks.py`):
   declared column dictionary-encoded (a `schema_violation`). Every kind is
   asserted to have yielded tables with problems and tables without, so no
   kind compares only the empty list.
-- **The succession rule on pairs.** 600 pairs (60 per kind) of a table
+- **The succession rule on pairs.** 700 pairs (70 per kind) of a table
   and a successor made by the row kinds above plus a row removed, a fraction
   respelled in other terms (`(1, 2)` as `(2, 4)`, the same coordinate), a
   float moved to the next double, an integer moved by one, a

@@ -142,6 +142,7 @@ const REJECTIONS = [
   "groupstamp_match_without_group",
   "groupstamp_member_parent",
   "groupstamp_without_group",
+  "id_chunk_sentinel",
   "id_control_character_tab",
   "id_control_character_trailing_newline",
   "id_duplicate_across_kinds",
@@ -913,6 +914,20 @@ describe("the worded refusals", () => {
 
   it.each([
     [STYLED, ["timelines", 0, "id"], "#a\tb", [], `'#a\\tb' holds U+0009: ${CONTROL}`],
+    [
+      STYLED,
+      ["timelines", 0, "id"],
+      "#NOMATCH_SENTINEL",
+      [],
+      "'NOMATCH_SENTINEL' is reserved for a sentinel",
+    ],
+    [
+      STYLED,
+      ["timelines", 0, "id"],
+      "#CHUNK_SENTINEL",
+      [],
+      "'CHUNK_SENTINEL' is reserved for a sentinel",
+    ],
     [STYLED, ["graphical", "order", "#score"], BANDS, [2], `'line\\t' holds U+0009: ${CONTROL}`],
     [
       STYLED,

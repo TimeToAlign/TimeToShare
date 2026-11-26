@@ -33,16 +33,17 @@ quarter lasts one second, 44100 samples) and one child of the first:
 - ``claim_16``: an instant MatchClaim between CHUNK on the seconds timeline
   and the note ``claim_2`` states at the quarter 1; its anchor joins
   ``claim_2``'s start into one potential MatchStamp.
+- ``claim_17``: an instant claim, its seconds side a Projection of the note.
 
 A sentinel is written in the event ID column as its reserved string
 (``NOMATCH_SENTINEL``, ``CHUNK_SENTINEL``), its name null.
 
 The Projections table holds a Projection of each number type: ints on the
-samples timeline (instants and one interval), a float interval on the
-seconds timeline, and a fraction interval on the child, the Projection of
-an audio onset; the last two name no MatchClaim. A CHUNK
-side is no Projection, and the Projections keep their numbers, so
-``projection_6`` and ``projection_7`` are not held. Its rows
+samples timeline (instants and one interval), a float instant and a float
+interval on the seconds timeline, and a fraction interval on the child, the
+Projection of an audio onset; the float interval and the fraction interval
+name no MatchClaim. A CHUNK side is no Projection, and the Projections keep
+their numbers, so ``projection_6`` and ``projection_7`` are not held. Its rows
 are written sorted stably by ``timeline_id``, each timeline's rows in the
 order listed here: the order in which timetoalign writes a bundle's
 Projections table, so that the two files are equal byte for byte.
@@ -372,6 +373,12 @@ MATCH_CLAIMS: list[dict[str, Any]] = [
         note("clt_1", 2, "D4"),
         (seconds(1.0), quarters(1)),
     ),
+    claim(
+        "claim_17",
+        note("clt_1", 14, "C6"),
+        projection("cpt_1", 12),
+        (quarters(45, 4), seconds(11.25)),
+    ),
 ]
 """The MatchClaim table, row by row."""
 
@@ -414,6 +421,7 @@ PROJECTIONS: list[dict[str, Any]] = [
     _projection(9, "dpt_1", samples(396900), ("clt_2", "note_13")),
     _projection(10, "clt_2", quarters(7, 2), ("dpt_1", "onset_1"), quarters(1, 2)),
     _projection(11, "cpt_1", seconds(12.5), ("clt_1", "note_16"), seconds(0.75)),
+    _projection(12, "cpt_1", seconds(11.25), ("clt_1", "note_14")),
 ]
 """The Projections, numbered in the order listed; the table writes them
 sorted stably by ``timeline_id``."""
@@ -448,6 +456,7 @@ A_8 = a(c("clt_1", [6, 1]), c("cpt_1", 6.0), "claim_9")
 A_9 = a(c("clt_1", [15, 2]), c("cpt_1", 7.5), "claim_10")
 A_10 = a(c("clt_1", [8, 1]), c("cpt_1", 8.0), "claim_9")
 A_11 = a(c("clt_1", [10, 1]), c("dpt_1", 441000), "claim_13")
+A_15 = a(c("clt_1", [45, 4]), c("cpt_1", 11.25), "claim_17")
 A_12 = a(c("clt_2", [1, 1]), c("dpt_1", 396900), "claim_15")
 A_13 = a(c("cpt_1", 4.0), c("dpt_1", 176400), "claim_6")
 A_14 = a(c("cpt_1", 10.0), c("dpt_1", 441000), "claim_11")
@@ -467,6 +476,7 @@ S_10 = s(
     "claim_13",
 )
 S_11 = s([c("clt_2", [1, 1]), c("dpt_1", 396900)], "claim_15")
+S_12 = s([c("clt_1", [45, 4]), c("cpt_1", 11.25)], "claim_17")
 S_10_WITHOUT_13 = s([c("cpt_1", 10.0), c("dpt_1", 441000)], "claim_11")
 S_13_ALONE = s([c("clt_1", [10, 1]), c("dpt_1", 441000)], "claim_13")
 S_5_WITHOUT_6 = s([c("clt_1", [4, 1]), c("dpt_1", 176400)], "claim_5")
@@ -488,6 +498,7 @@ EVERY_ANCHOR = [
     A_9,
     A_10,
     A_11,
+    A_15,
     A_12,
     A_13,
     A_14,
@@ -510,6 +521,7 @@ EXPECTED: dict[str, Any] = {
                 S_8,
                 S_9,
                 S_10,
+                S_12,
                 S_11,
             ],
         },
@@ -529,6 +541,7 @@ EXPECTED: dict[str, Any] = {
                 S_7,
                 S_8,
                 S_9,
+                S_12,
                 S_11,
                 S_10_WITHOUT_13,
             ],
@@ -559,6 +572,7 @@ EXPECTED: dict[str, Any] = {
                 A_8,
                 A_9,
                 A_10,
+                A_15,
                 A_12,
             ],
             "potential_matchstamps": [
@@ -570,6 +584,7 @@ EXPECTED: dict[str, Any] = {
                 S_7,
                 S_8,
                 S_9,
+                S_12,
                 S_11,
             ],
         },

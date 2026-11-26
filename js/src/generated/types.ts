@@ -3,7 +3,7 @@
 import type {JsonNumber, Lossless} from "../json/value.js";
 
 /**
- * An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
+ * An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI, but the two strings a MatchClaim table writes for a sentinel in its event ID columns, `NOMATCH_SENTINEL` and `CHUNK_SENTINEL`, which no element takes as its ID; no other word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Id".

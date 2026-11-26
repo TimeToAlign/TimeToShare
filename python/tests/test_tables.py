@@ -1447,6 +1447,30 @@ PROJECTION_CASES = [
         "the projected event has no event_id",
     ),
     (
+        "source_event_sentinel",
+        put(0, "projection_of", "event_id", value=NOMATCH),
+        [("invalid_projection_of", 0, ("projection_of", "event_id"))],
+        "'NOMATCH_SENTINEL' is reserved for a sentinel",
+    ),
+    (
+        "source_without_timeline_of_a_sentinel",
+        put(0, "projection_of", value={"timeline_id": "", "event_id": CHUNK}),
+        [
+            ("invalid_projection_of", 0, ("projection_of", "timeline_id")),
+            ("invalid_projection_of", 0, ("projection_of", "event_id")),
+        ],
+        "the projected event has no timeline_id",
+    ),
+    (
+        "source_event_sentinel_on_own_timeline",
+        put(0, "projection_of", value={"timeline_id": "dpt_1", "event_id": CHUNK}),
+        [
+            ("invalid_projection_of", 0, ("projection_of", "event_id")),
+            ("invalid_projection_of", 0, ("projection_of", "timeline_id")),
+        ],
+        "'CHUNK_SENTINEL' is reserved for a sentinel",
+    ),
+    (
         "source_on_own_timeline",
         put(0, "projection_of", "timeline_id", value="dpt_1"),
         [("invalid_projection_of", 0, ("projection_of", "timeline_id"))],
@@ -1793,8 +1817,8 @@ def test_the_fixture_tables_pass_every_check_against_their_manifest() -> None:
     manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
     claims = pq.read_table(fixture_path("match_claims.parquet"))
     projections = pq.read_table(fixture_path("projections.parquet"))
-    assert claims.num_rows == 16
-    assert projections.num_rows == 9
+    assert claims.num_rows == 17
+    assert projections.num_rows == 10
     assert match_claim_problems(claims, manifest) == []
     assert projection_problems(projections, manifest) == []
 
@@ -1842,6 +1866,7 @@ def test_the_projections_lie_sorted_by_timeline() -> None:
     assert [(row["timeline_id"], row["id"]) for row in rows] == [
         ("clt_2", "projection_10"),
         ("cpt_1", "projection_11"),
+        ("cpt_1", "projection_12"),
         ("dpt_1", "projection_1"),
         ("dpt_1", "projection_2"),
         ("dpt_1", "projection_3"),

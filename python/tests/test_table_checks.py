@@ -666,7 +666,7 @@ def _one_sided(rng: random.Random, old_rows: list[dict], new_rows: list[dict]) -
 def test_the_succession_rule_on_pairs() -> None:
     outcomes = Counter()
     for kind in (*_SUCCESSIONS, "one_sided"):
-        for n in range(60):
+        for n in range(70):
             rng = random.Random(f"20261122-succession-{kind}-{n}")
             base, _ = rng.choice(_CLAIM_BASES)
             old_rows = copy.deepcopy(base)

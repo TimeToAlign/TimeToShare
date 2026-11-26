@@ -306,7 +306,7 @@ replaced, at the selector's `element` and at an address's `part`
 
 ## Shared rejection cases
 
-Each of the 248 cases (`validate.test.ts`), found by its name whatever
+Each of the 256 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -876,7 +876,13 @@ MatchClaim table's event ID columns hold beside event IDs, so that a writer
 in JavaScript spells them as the Python package does: `NOMATCH_SENTINEL`
 and `CHUNK_SENTINEL` are exported from the root entry and equal the strings
 `"NOMATCH_SENTINEL"` and `"CHUNK_SENTINEL"`, the values of
-`timetoshare.tables` (the Python suite pins the same strings).
+`timetoshare.tables` (the Python suite pins the same strings). No element
+of a manifest takes either as its ID: the schema's `Id` refuses
+`#NOMATCH_SENTINEL` and `#CHUNK_SENTINEL` and accepts `##NOMATCH_SENTINEL`
+(`schema.test.ts`), and `validate` words the refusal as Python's does, at
+the element's `id`, code `schema`, `'NOMATCH_SENTINEL' is reserved for a
+sentinel` for a timeline ID of each string (`validate.test.ts`, beside the
+other refused patterns, and the rejection case `id_chunk_sentinel`).
 
 ## Manifest files
 

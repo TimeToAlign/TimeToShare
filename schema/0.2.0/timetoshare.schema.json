@@ -903,9 +903,19 @@
       "type": "string",
       "pattern": "^#[\\s\\S]",
       "not": {
-        "pattern": "[\\u0000-\\u001f]"
+        "anyOf": [
+          {
+            "pattern": "[\\u0000-\\u001f]"
+          },
+          {
+            "enum": [
+              "#NOMATCH_SENTINEL",
+              "#CHUNK_SENTINEL"
+            ]
+          }
+        ]
       },
-      "description": "An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI; no word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed."
+      "description": "An identifier, written `#` followed by the ID, both where an element states its own ID and where a member refers to one: `#score`, `#Bass Kick`, `#perf/take 2`. The ID is the text after the first `#`, so `##x` writes the ID `#x`: any non-empty string without control characters (U+0000 to U+001F), such as `score`, `Bass Kick`, `perf/take 2` or a URI, but the two strings a MatchClaim table writes for a sentinel in its event ID columns, `NOMATCH_SENTINEL` and `CHUNK_SENTINEL`, which no element takes as its ID; no other word is reserved. An ID is never parsed and never composed with another; the manifest states where it is unique (`Manifest`). An ID identifies; a name, where an element has one, is what is displayed."
     },
     "Facet": {
       "type": "string",

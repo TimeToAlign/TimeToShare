@@ -36,6 +36,22 @@ from typing import Any, Literal
 HASH = "#"
 """The character that marks an ID in a manifest file."""
 
+NOMATCH_SENTINEL = "NOMATCH_SENTINEL"
+"""The event ID of a NOMATCH side in a MatchClaim table: a MatchClaim that is
+not synchronous states that the event of its other side has no counterpart
+on this timeline. It is no event, holds no anchor and is never an element's
+ID."""
+
+CHUNK_SENTINEL = "CHUNK_SENTINEL"
+"""The event ID of a CHUNK side in a MatchClaim table: a synchronous
+MatchClaim states a coordinate on this timeline, which holds no event for
+it; the coordinate is the anchor's on this side. It is no event and never an
+element's ID."""
+
+SENTINELS = (NOMATCH_SENTINEL, CHUNK_SENTINEL)
+"""The two reserved strings: an event ID column holds them besides event
+IDs, and no element, event or Projection takes either as its ID."""
+
 Shape = Literal["id", "ids", "order"]
 """How a member holds IDs.
 

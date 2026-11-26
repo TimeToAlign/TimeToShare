@@ -26,6 +26,7 @@ from typing import Any
 
 import pyarrow as pa
 
+from ..ids import CHUNK_SENTINEL, NOMATCH_SENTINEL
 from ..validate import (
     PROVENANCE_DEFINITION,
     PROVENANCE_DOCUMENT,
@@ -61,19 +62,6 @@ __all__ = [
     "number_cell",
     "tables_path",
 ]
-
-NOMATCH_SENTINEL = "NOMATCH_SENTINEL"
-"""The event ID of a NOMATCH side: a MatchClaim that is not synchronous
-states that the event of its other side has no counterpart on this
-timeline. It is no event, holds no anchor and is never an element's ID."""
-
-CHUNK_SENTINEL = "CHUNK_SENTINEL"
-"""The event ID of a CHUNK side: a synchronous MatchClaim states a
-coordinate on this timeline, which holds no event for it; the coordinate is
-the anchor's on this side. It is no event and never an element's ID."""
-
-SENTINELS = (NOMATCH_SENTINEL, CHUNK_SENTINEL)
-"""The two reserved strings an event ID column holds besides event IDs."""
 
 TABLES_DOCUMENT = "tables.json"
 """The file name of the column types beside the manifest schema."""

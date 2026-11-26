@@ -28,7 +28,7 @@ import jsonschema_rs
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-from .ids import FileIdError, leniently_bare_ids, with_bare_ids
+from .ids import HASH, SENTINELS, FileIdError, leniently_bare_ids, with_bare_ids
 from .serialization import spell
 from .statements import subjects
 from .validation.containment import child_ends as child_ends
@@ -505,11 +505,15 @@ _REFUSED_PATTERNS: dict[str, tuple[str, str]] = {
     "[^A-Za-z0-9_-]": ("holds", "only A-Z, a-z, 0-9, '_' and '-' are admitted here"),
 }
 
-#: Why a word a ``not`` lists is refused: the one such list is the prefix
-#: names'.
+#: Why a word a ``not`` lists is refused, where it is no reserved ID: the
+#: one other such list is the prefix names'.
 _REFUSED_WORDS = (
     "it names a key of the manifest's elements or a URI scheme the format reads as such"
 )
+
+#: The IDs no element takes, as a file writes them: the sentinels' strings,
+#: the words of the ``not`` of ``Id``.
+_RESERVED_IDS = frozenset(HASH + sentinel for sentinel in SENTINELS)
 
 
 def _character(text: str) -> str:
@@ -537,6 +541,8 @@ def _not_admitted(error: ValidationError) -> str | None:
         if not isinstance(branch, Mapping):
             return None
         if branch.keys() == {"enum"}:
+            if value in branch["enum"] and value in _RESERVED_IDS:
+                return f"{value[len(HASH) :]!r} is reserved for a sentinel"
             if value in branch["enum"]:
                 return f"{value!r} is not admitted here: {_REFUSED_WORDS}"
             continue

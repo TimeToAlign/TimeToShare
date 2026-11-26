@@ -112,6 +112,15 @@ cases:
       -
         coordinates:
           -
+            timeline_id: clt_1
+            value: [45, 4]
+          -
+            timeline_id: cpt_1
+            value: 11.25
+        match_claims: [claim_17]
+      -
+        coordinates:
+          -
             timeline_id: clt_2
             value: [1, 1]
           -
@@ -244,6 +253,15 @@ cases:
       -
         coordinates:
           -
+            timeline_id: clt_1
+            value: [45, 4]
+          -
+            timeline_id: cpt_1
+            value: 11.25
+        match_claims: [claim_17]
+      -
+        coordinates:
+          -
             timeline_id: clt_2
             value: [1, 1]
           -
@@ -351,6 +369,15 @@ cases:
             timeline_id: cpt_1
             value: 8.0
         match_claims: [claim_9]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [45, 4]
+          -
+            timeline_id: cpt_1
+            value: 11.25
+        match_claims: [claim_17]
       -
         coordinates:
           -
@@ -471,6 +498,15 @@ cases:
             timeline_id: cpt_1
             value: 8.0
         match_claims: [claim_9]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [45, 4]
+          -
+            timeline_id: cpt_1
+            value: 11.25
+        match_claims: [claim_17]
       -
         coordinates:
           -
@@ -648,6 +684,15 @@ cases:
       -
         coordinates:
           -
+            timeline_id: clt_1
+            value: [45, 4]
+          -
+            timeline_id: cpt_1
+            value: 11.25
+        match_claims: [claim_17]
+      -
+        coordinates:
+          -
             timeline_id: clt_2
             value: [1, 1]
           -
@@ -735,6 +780,15 @@ cases:
             timeline_id: cpt_1
             value: 8.0
         match_claims: [claim_9]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [45, 4]
+          -
+            timeline_id: cpt_1
+            value: 11.25
+        match_claims: [claim_17]
       -
         coordinates:
           -
