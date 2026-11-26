@@ -517,6 +517,13 @@ both packages then reproduce them byte for byte. Their bytes, carriage
 returns included, are significant: <code class="docutils literal notranslate"><span class="pre">.gitattributes</span></code> marks
 <code class="docutils literal notranslate"><span class="pre">fixtures/serializations/**</span> <span class="pre">-text</span></code>, so git never converts their line
 ends.</p>
+<p>The test vectors of minted IDs, <code class="docutils literal notranslate"><span class="pre">fixtures/ids/minted_ids.json</span></code>, are
+written only by <code class="docutils literal notranslate"><span class="pre">python3</span> <span class="pre">scripts/emit_id_vectors.py</span></code> (standard library
+only), the reference implementation of the minter described in the
+README’s “Identity”: a minted ID is the element’s type prefix, <code class="docutils literal notranslate"><span class="pre">_</span></code> and 13
+random base-36 characters, computed from a seed. Every tool that mints IDs
+checks its minter against these vectors, so a change to the algorithm
+changes the script, the vectors and those tools together.</p>
 </section>
 <section id="the-drawing-specification">
 <h2>The drawing specification<a class="headerlink" href="#the-drawing-specification" title="Link to this heading">#</a></h2>
