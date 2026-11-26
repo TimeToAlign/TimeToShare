@@ -57,31 +57,31 @@
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 flow_maps:
   -
-    chunks: ["#region_1", "#region_2", "#region_1", "#region_3"]
-    convention: default
-    id: "#flow_map_1"
-    provenance:
-      -
-        method: inferred
-    timeline: "#score"
-  -
-    chunks: ["#region_1", "#region_3"]
+    chunks: ["#region_3gr351kj2rne4", "#region_1sds8frdr4gcb"]
     convention: single
-    id: "#flow_map_2"
+    id: "#flow_1a6b8chz5jxvf"
     provenance:
       -
         method: inferred
     timeline: "#score"
   -
-    chunks: ["#region_1", "#region_2", "#region_3"]
+    chunks: ["#region_3gr351kj2rne4", "#region_34nspphwkjsxm", "#region_3gr351kj2rne4", "#region_1sds8frdr4gcb"]
+    convention: default
+    id: "#flow_1ehd6m4iqaqeb"
+    provenance:
+      -
+        method: inferred
+    timeline: "#score"
+  -
+    chunks: ["#region_3gr351kj2rne4", "#region_34nspphwkjsxm", "#region_1sds8frdr4gcb"]
     convention: printed
-    id: "#flow_map_3"
+    id: "#flow_2dbu5af0gros4"
     provenance:
       -
         method: inferred
     timeline: "#score"
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: "Sonata exposition"
 timelines:
   -
@@ -123,7 +123,7 @@ timelines:
     regions:
       -
         end: [12, 1]
-        id: "#region_1"
+        id: "#region_3gr351kj2rne4"
         name: A
         provenance:
           -
@@ -136,7 +136,7 @@ timelines:
           type: ["tts:AtomicSection"]
       -
         end: [16, 1]
-        id: "#region_2"
+        id: "#region_34nspphwkjsxm"
         name: B
         provenance:
           -
@@ -149,7 +149,7 @@ timelines:
           type: ["tts:AtomicSection"]
       -
         end: [24, 1]
-        id: "#region_3"
+        id: "#region_1sds8frdr4gcb"
         name: C
         provenance:
           -
@@ -166,7 +166,7 @@ virtual_timelines:
   -
     id: "#virtual_1"
     length: [36, 1]
-    map: "#flow_map_1"
+    map: "#flow_1ehd6m4iqaqeb"
     name: "Score, as played"
     number_type: fraction
     timeline: "#score"

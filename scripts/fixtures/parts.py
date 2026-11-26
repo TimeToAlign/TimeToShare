@@ -26,35 +26,35 @@ TILIA = "bruckner5_scherzo/harnoncourt/Bruckner5_Scherzo.json"
 """The TiLiA export, in the ``score`` corpus, whose group and bundle are emitted."""
 
 
-def ticks(uid: str | None = None) -> QuartersToTicks:
-    """Return a map of quarters to ticks, 480 per quarter, its id ``uid`` or
-    minted.
-    """
+def ticks(uid: str) -> QuartersToTicks:
+    """Return the map ``uid`` of quarters to ticks, 480 per quarter."""
     return QuartersToTicks(ppq=480, uid=uid)
 
 
-def tempo(uid: str | None = None) -> ScalarMap:
-    """Return a tempo map of quarters to seconds, half a second per quarter, its
-    id ``uid`` or minted.
+def tempo(uid: str) -> ScalarMap:
+    """Return the tempo map ``uid`` of quarters to seconds, half a second per
+    quarter.
     """
     return ScalarMap(
         Fraction(1, 2), source_unit="quarters", target_unit="seconds", uid=uid
     )
 
 
-def to_samples() -> SecondsToSamples:
-    """Return a map of seconds to samples, 44100 per second, its id minted."""
-    return SecondsToSamples(sample_rate=44100)
+def to_samples(uid: str) -> SecondsToSamples:
+    """Return the map ``uid`` of seconds to samples, 44100 per second."""
+    return SecondsToSamples(sample_rate=44100, uid=uid)
 
 
-def to_seconds() -> SamplesToSeconds:
-    """Return a map of samples to seconds, 44100 per second, its id minted."""
-    return SamplesToSeconds(sample_rate=44100)
+def to_seconds(uid: str) -> SamplesToSeconds:
+    """Return the map ``uid`` of samples to seconds, 44100 per second."""
+    return SamplesToSeconds(sample_rate=44100, uid=uid)
 
 
-def to_points() -> ScalarMap:
-    """Return a map of pixels to points, 3/4 of a point each, its id minted."""
-    return ScalarMap(Fraction(3, 4), source_unit="pixels", target_unit="points")
+def to_points(uid: str) -> ScalarMap:
+    """Return the map ``uid`` of pixels to points, 3/4 of a point each."""
+    return ScalarMap(
+        Fraction(3, 4), source_unit="pixels", target_unit="points", uid=uid
+    )
 
 
 def with_maps(timeline: Timeline, *maps: Any) -> Timeline:
@@ -102,14 +102,14 @@ def repeat_end(
     )
 
 
-def with_repeat(timeline: Timeline, source: Any) -> Timeline:
-    """Give ``timeline`` a jump at ``source`` back to its start.
+def with_repeat(timeline: Timeline, source: Any, uid: str) -> Timeline:
+    """Give ``timeline`` the jump ``uid`` at ``source`` back to its start.
 
-    The jump, its id minted, holds one destination: a repeat end taken once
+    The jump holds one destination: a repeat end taken once
     (``repeat_count`` 1), labelled "Repeat", naming the timeline itself.
     """
     timeline.flow_control.add(
-        Jump(timeline.make_coordinate(source), [repeat_end(timeline)])
+        Jump(timeline.make_coordinate(source), [repeat_end(timeline)], id=uid)
     )
     return timeline
 

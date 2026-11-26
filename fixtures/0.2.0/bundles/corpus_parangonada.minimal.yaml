@@ -55,141 +55,141 @@
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
   order:
-    "#group_1": ["#score:clt_1", "#score:dlt_1"]
-    "#group_2": ["#perf:1966_Szegedi:cpt_1", "#perf:1966_Szegedi:dpt_1"]
-    "#group_3": ["#perf:1970_Gould:cpt_1", "#perf:1970_Gould:dpt_1"]
-    "#group_4": ["#perf:1971_Curzon:cpt_1", "#perf:1971_Curzon:dpt_1"]
-    "#group_5": ["#perf:1985_Brendel:cpt_1", "#perf:1985_Brendel:dpt_1"]
-    "#group_6": ["#perf:2023_Hewitt:cpt_1", "#perf:2023_Hewitt:dpt_1"]
+    "#group_0e5so0wm3mj0i": ["#perf:cpt_3djtlr0boww79", "#perf:dpt_351yfzzgebwy0"]
+    "#group_147upxo20gti9": ["#perf:cpt_3h9peanfy5q0w", "#perf:dpt_3lmci5ykrc8v9"]
+    "#group_1aj0haoy2c2v6": ["#perf:cpt_0h3vv2t63w2z7", "#perf:dpt_1qzwtmb841nn0"]
+    "#group_27uzxcvx2i5xi": ["#perf:cpt_0w5pjhp7nve40", "#perf:dpt_35zyecpt3aawt"]
+    "#group_2ruktqoeqgw5o": ["#perf:cpt_366u652u8lquu", "#perf:dpt_2ii3iicuf5y6g"]
+    "#group_2wrgcwr7p01zs": ["#score:clt_1nja666w5qk37", "#score:dlt_2aq31ztdm4t6x"]
 groups:
   -
-    id: "#group_1"
-    members: ["#score:clt_1", "#score:dlt_1"]
-    name: score
+    id: "#group_0e5so0wm3mj0i"
+    members: ["#perf:cpt_3djtlr0boww79", "#perf:dpt_351yfzzgebwy0"]
+    name: "perf:2023_Hewitt"
   -
-    id: "#group_2"
-    members: ["#perf:1966_Szegedi:cpt_1", "#perf:1966_Szegedi:dpt_1"]
-    name: "perf:1966_Szegedi"
-  -
-    id: "#group_3"
-    members: ["#perf:1970_Gould:cpt_1", "#perf:1970_Gould:dpt_1"]
-    name: "perf:1970_Gould"
-  -
-    id: "#group_4"
-    members: ["#perf:1971_Curzon:cpt_1", "#perf:1971_Curzon:dpt_1"]
-    name: "perf:1971_Curzon"
-  -
-    id: "#group_5"
-    members: ["#perf:1985_Brendel:cpt_1", "#perf:1985_Brendel:dpt_1"]
+    id: "#group_147upxo20gti9"
+    members: ["#perf:cpt_3h9peanfy5q0w", "#perf:dpt_3lmci5ykrc8v9"]
     name: "perf:1985_Brendel"
   -
-    id: "#group_6"
-    members: ["#perf:2023_Hewitt:cpt_1", "#perf:2023_Hewitt:dpt_1"]
-    name: "perf:2023_Hewitt"
+    id: "#group_1aj0haoy2c2v6"
+    members: ["#perf:cpt_0h3vv2t63w2z7", "#perf:dpt_1qzwtmb841nn0"]
+    name: "perf:1966_Szegedi"
+  -
+    id: "#group_27uzxcvx2i5xi"
+    members: ["#perf:cpt_0w5pjhp7nve40", "#perf:dpt_35zyecpt3aawt"]
+    name: "perf:1970_Gould"
+  -
+    id: "#group_2ruktqoeqgw5o"
+    members: ["#perf:cpt_366u652u8lquu", "#perf:dpt_2ii3iicuf5y6g"]
+    name: "perf:1971_Curzon"
+  -
+    id: "#group_2wrgcwr7p01zs"
+    members: ["#score:clt_1nja666w5qk37", "#score:dlt_2aq31ztdm4t6x"]
+    name: score
 meta:
-  generator: "timetoalign 1.2.0 (d57df1b7)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: Beethoven_Eroica_op35-cpjku
 timelines:
   -
-    id: "#perf:1966_Szegedi:cpt_1"
+    id: "#perf:cpt_0h3vv2t63w2z7"
     length: 73.06201814058957
     name: "1966_Szegedi"
     unit: seconds
   -
-    conversion_maps:
-      -
-        id: "#cmap_2"
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
-    id: "#perf:1966_Szegedi:dpt_1"
-    length: 3222035
-    name: "1966_Szegedi"
-    unit: samples
-  -
-    id: "#perf:1970_Gould:cpt_1"
+    id: "#perf:cpt_0w5pjhp7nve40"
     length: 122.89201814058957
     name: "1970_Gould"
     unit: seconds
   -
-    conversion_maps:
-      -
-        id: "#cmap_3"
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
-    id: "#perf:1970_Gould:dpt_1"
-    length: 5419538
-    name: "1970_Gould"
-    unit: samples
-  -
-    id: "#perf:1971_Curzon:cpt_1"
+    id: "#perf:cpt_366u652u8lquu"
     length: 77.78290249433107
     name: "1971_Curzon"
     unit: seconds
   -
-    conversion_maps:
-      -
-        id: "#cmap_4"
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
-    id: "#perf:1971_Curzon:dpt_1"
-    length: 3430226
-    name: "1971_Curzon"
-    unit: samples
+    id: "#perf:cpt_3djtlr0boww79"
+    length: 89.94301587301587
+    name: "2023_Hewitt"
+    unit: seconds
   -
-    id: "#perf:1985_Brendel:cpt_1"
+    id: "#perf:cpt_3h9peanfy5q0w"
     length: 74.88201814058957
     name: "1985_Brendel"
     unit: seconds
   -
     conversion_maps:
       -
-        id: "#cmap_5"
+        id: "#cmap_3v2226wtu7tuh"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
         type: LinearMap
-    id: "#perf:1985_Brendel:dpt_1"
-    length: 3302297
-    name: "1985_Brendel"
+    id: "#perf:dpt_1qzwtmb841nn0"
+    length: 3222035
+    name: "1966_Szegedi"
     unit: samples
-  -
-    id: "#perf:2023_Hewitt:cpt_1"
-    length: 89.94301587301587
-    name: "2023_Hewitt"
-    unit: seconds
   -
     conversion_maps:
       -
-        id: "#cmap_6"
+        id: "#cmap_1jum558mcfzbz"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
         type: LinearMap
-    id: "#perf:2023_Hewitt:dpt_1"
+    id: "#perf:dpt_2ii3iicuf5y6g"
+    length: 3430226
+    name: "1971_Curzon"
+    unit: samples
+  -
+    conversion_maps:
+      -
+        id: "#cmap_3peuynea15425"
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    id: "#perf:dpt_351yfzzgebwy0"
     length: 3966487
     name: "2023_Hewitt"
     unit: samples
   -
-    id: "#score:clt_1"
+    conversion_maps:
+      -
+        id: "#cmap_11y9d835axil2"
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    id: "#perf:dpt_35zyecpt3aawt"
+    length: 5419538
+    name: "1970_Gould"
+    unit: samples
+  -
+    conversion_maps:
+      -
+        id: "#cmap_1l9lpr2mehcdt"
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    id: "#perf:dpt_3lmci5ykrc8v9"
+    length: 3302297
+    name: "1985_Brendel"
+    unit: samples
+  -
+    id: "#score:clt_1nja666w5qk37"
     length: [64, 1]
     name: Beethoven_Eroica_op35-cpjku
     unit: quarters
   -
     conversion_maps:
       -
-        id: "#cmap_1"
+        id: "#cmap_07uwa0vlk8d4b"
         offset: [-1, 2]
         scalar: [1, 32]
         source_unit: ticks
         target_unit: quarters
         type: LinearMap
-    id: "#score:dlt_1"
+    id: "#score:dlt_2aq31ztdm4t6x"
     length: 2064
     name: Beethoven_Eroica_op35-cpjku
     unit: ticks

@@ -36,24 +36,26 @@ def number_types_group() -> TimelineGroup:
     page = DiscreteGraphicalTimeline(
         length=Fraction(1920), unit="pixels", uid="page", name="Page"
     )
-    return TimelineGroup(name="Edition", timelines=[score, page, performance])
+    return TimelineGroup(
+        id="group_1", name="Edition", timelines=[score, page, performance]
+    )
 
 
 def styled_group() -> TimelineGroup:
     """Build the group of ``number_types_group`` with maps, a region and a jump.
 
-    The score ``score`` carries a map to ticks, the region "Theme" from 0 to 8
-    and a repeat jump from 8 back to 0; the performance ``performance`` a map
-    to samples; the page ``page`` a map to points. Every id of a map, region or
-    jump is minted. ``group_styled`` holds it with the styles and rules
-    of ``GRAPHICAL``.
+    The score ``score`` carries the map to ticks ``cmap_1``, the region
+    ``region_1`` ("Theme") from 0 to 8 and the repeat jump ``jump_1`` from 8
+    back to 0; the performance ``performance`` the map to samples ``cmap_2``;
+    the page ``page`` the map to points ``cmap_3``. ``group_styled`` holds it
+    with the styles and rules of ``GRAPHICAL``.
     """
     group = number_types_group()
-    score = parts.with_maps(group.get_timeline("score"), parts.ticks())
-    score.create_region(0, 8, name="Theme")
-    parts.with_repeat(score, 8)
-    parts.with_maps(group.get_timeline("performance"), parts.to_samples())
-    parts.with_maps(group.get_timeline("page"), parts.to_points())
+    score = parts.with_maps(group.get_timeline("score"), parts.ticks("cmap_1"))
+    score.create_region(0, 8, id="region_1", name="Theme")
+    parts.with_repeat(score, 8, "jump_1")
+    parts.with_maps(group.get_timeline("performance"), parts.to_samples("cmap_2"))
+    parts.with_maps(group.get_timeline("page"), parts.to_points("cmap_3"))
     return group
 
 
@@ -75,7 +77,9 @@ def group_child_member() -> TimelineGroup:
     recording = ContinuousPhysicalTimeline(
         length=10.0, unit="seconds", uid="recording", name="Recording"
     )
-    return TimelineGroup(name="Second half", timelines=[second_half, recording])
+    return TimelineGroup(
+        id="group_1", name="Second half", timelines=[second_half, recording]
+    )
 
 
 def _piece_member_group(uid: str, name: str, length: int, offset: int) -> TimelineGroup:
@@ -93,7 +97,7 @@ def _piece_member_group(uid: str, name: str, length: int, offset: int) -> Timeli
         Fraction(offset),
     )
     recording = parts.named(ContinuousPhysicalTimeline, "recording", "Recording", 10.0)
-    return TimelineGroup(name=name, timelines=[child, recording])
+    return TimelineGroup(id="group_1", name=name, timelines=[child, recording])
 
 
 def group_parent_right() -> TimelineGroup:
@@ -130,7 +134,7 @@ def group_parents_mixed() -> TimelineGroup:
     ("Page", 1754 pixels) holds the system ``system`` ("System", 600 pixels)
     at 0. The group "Exposition" lists ``exposition``, ``take``, ``system``
     and the root ``audio`` ("Audio", 1323000 samples), which carries a map to
-    seconds. Both map ids are minted.
+    seconds. The take's map is ``cmap_1``, the audio's ``cmap_2``.
     """
     sonata = ContinuousLogicalTimeline(
         length=Fraction(48), unit="quarters", uid="sonata", name="Sonata", locked=True
@@ -147,7 +151,7 @@ def group_parents_mixed() -> TimelineGroup:
         session,
         parts.with_maps(
             parts.named(ContinuousPhysicalTimeline, "take", "Take", 25.5),
-            parts.to_samples(),
+            parts.to_samples("cmap_1"),
         ),
         30.0,
     )
@@ -159,9 +163,11 @@ def group_parents_mixed() -> TimelineGroup:
     )
     audio = parts.with_maps(
         parts.named(DiscretePhysicalTimeline, "audio", "Audio", Fraction(1323000)),
-        parts.to_seconds(),
+        parts.to_seconds("cmap_2"),
     )
-    return TimelineGroup(name="Exposition", timelines=[exposition, take, system, audio])
+    return TimelineGroup(
+        id="group_1", name="Exposition", timelines=[exposition, take, system, audio]
+    )
 
 
 def group_grandchild() -> TimelineGroup:
@@ -184,7 +190,7 @@ def group_grandchild() -> TimelineGroup:
         Fraction(8),
     )
     recording = parts.named(ContinuousPhysicalTimeline, "recording", "Recording", 12.0)
-    return TimelineGroup(name="Theme", timelines=[theme, recording])
+    return TimelineGroup(id="group_1", name="Theme", timelines=[theme, recording])
 
 
 def group_elided_inside() -> TimelineGroup:
@@ -214,7 +220,7 @@ def group_elided_inside() -> TimelineGroup:
         Fraction(8),
     )
     recording = parts.named(ContinuousPhysicalTimeline, "recording", "Recording", 10.0)
-    return TimelineGroup(name="Excerpt", timelines=[excerpt, recording])
+    return TimelineGroup(id="group_1", name="Excerpt", timelines=[excerpt, recording])
 
 
 def group_elided_members() -> TimelineGroup:
@@ -243,7 +249,7 @@ def group_elided_members() -> TimelineGroup:
     sketch = ContinuousPhysicalTimeline(
         length=None, unit="seconds", uid="sketch", name="Sketch"
     )
-    return TimelineGroup(name="Theme", timelines=[excerpt, voice, sketch])
+    return TimelineGroup(id="group_1", name="Theme", timelines=[excerpt, voice, sketch])
 
 
 def corpus_tilia_group() -> TimelineGroup:
@@ -264,7 +270,9 @@ def group_unknown_length() -> TimelineGroup:
     )
     parts.with_region(performance, 0.0, 9.5, "region_1")
     return TimelineGroup(
-        name="Edition", timelines=[performance, parts.quarters("score", Fraction(12))]
+        id="group_1",
+        name="Edition",
+        timelines=[performance, parts.quarters("score", Fraction(12))],
     )
 
 
@@ -276,8 +284,8 @@ def group_measure_map() -> TimelineGroup:
     ``four_bars``, so the manifest writes one entry of ``measure_maps`` that
     both name: ``score`` through its ``MeasureRecordMap``, ``midi`` through a
     ``ChainMap`` of the ``LinearMap`` ``ppq`` of ticks to quarters (480 per
-    quarter) and its ``MeasureRecordMap``. Every other id of a map or of the
-    MeasureMap is minted.
+    quarter) and its ``MeasureRecordMap``. The MeasureMap is ``measure_map_1``;
+    the ids of the maps the timelines build are minted.
     """
     bars = four_bars()
     score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(16))
@@ -294,7 +302,7 @@ def group_measure_map() -> TimelineGroup:
             uid="ppq",
         ),
     )
-    return TimelineGroup(name="Edition", timelines=[score, midi])
+    return TimelineGroup(id="group_1", name="Edition", timelines=[score, midi])
 
 
 def group_groupstamp() -> TimelineGroup:
@@ -303,7 +311,8 @@ def group_groupstamp() -> TimelineGroup:
     The group "Performance" lists the score ``score`` ("Score", 8 quarters,
     with a map to ticks) and the performance ``performance`` ("Performance",
     4.0 seconds, with a map to samples), so each member has a conversion
-    maps band. ``group_groupstamp`` holds it with the ``graphical`` entry of
+    maps band; the score's map is ``cmap_1``, the performance's ``cmap_2``.
+    ``group_groupstamp`` holds it with the ``graphical`` entry of
     ``GRAPHICAL``: the timestamp "Bar 2" at quarter 4 of the score, a
     groupstamp, whose line extends across both members.
     """
@@ -311,9 +320,11 @@ def group_groupstamp() -> TimelineGroup:
     performance = parts.named(
         ContinuousPhysicalTimeline, "performance", "Performance", 4.0
     )
-    parts.with_maps(score, parts.ticks())
-    parts.with_maps(performance, parts.to_samples())
-    return TimelineGroup(name="Performance", timelines=[score, performance])
+    parts.with_maps(score, parts.ticks("cmap_1"))
+    parts.with_maps(performance, parts.to_samples("cmap_2"))
+    return TimelineGroup(
+        id="group_1", name="Performance", timelines=[score, performance]
+    )
 
 
 def group_groupstamp_child_member() -> TimelineGroup:
@@ -330,7 +341,9 @@ def group_groupstamp_child_member() -> TimelineGroup:
     performance = parts.named(
         ContinuousPhysicalTimeline, "performance", "Performance", 4.0
     )
-    return TimelineGroup(name="Performance", timelines=[score, performance])
+    return TimelineGroup(
+        id="group_1", name="Performance", timelines=[score, performance]
+    )
 
 
 RECORDING_SECONDS = 702.5

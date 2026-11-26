@@ -16,6 +16,7 @@ from timetoalign import (
     ContinuousLogicalTimeline,
     ContinuousPhysicalTimeline,
     DiscretePhysicalTimeline,
+    TimelineGroup,
 )
 from timetoalign.maps import SamplesToSeconds
 
@@ -97,8 +98,9 @@ def layerit_recording() -> AlignmentBundle:
         id="layerit_clair_de_lune", name="LayerIt, Clair de lune mm. 1–6 (Pires)"
     )
     bundle.add_timeline(encoding)
-    bundle.add_timeline(stretch, as_group="recording")
-    bundle.add_timeline(audio, grouped_with=stretch.id)
+    bundle.add_group(
+        TimelineGroup(id="group_1", name="recording", timelines=[stretch, audio])
+    )
     return bundle
 
 

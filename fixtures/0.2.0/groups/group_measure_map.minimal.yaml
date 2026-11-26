@@ -88,7 +88,7 @@ groups:
     name: Edition
 measure_maps:
   -
-    id: "#measuremap_1"
+    id: "#measure_map_1"
     rows:
       -
         actual_length: [4, 1]
@@ -112,12 +112,12 @@ measure_maps:
         start_repeat: false
         time_signature: "4/4"
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 timelines:
   -
     conversion_maps:
       -
-        id: "#cmap_3"
+        id: "#cmap_0353n1vg1kvzl"
         maps:
           -
             id: "#ppq"
@@ -126,8 +126,8 @@ timelines:
             target_unit: quarters
             type: LinearMap
           -
-            id: "#cmap_2"
-            measure_map: "#measuremap_1"
+            id: "#cmap_12fyp7xyaoyg5"
+            measure_map: "#measure_map_1"
             source_unit: quarters
             target_unit: null
             type: MeasureRecordMap
@@ -141,8 +141,8 @@ timelines:
   -
     conversion_maps:
       -
-        id: "#cmap_1"
-        measure_map: "#measuremap_1"
+        id: "#cmap_27hy1ol0sfw8v"
+        measure_map: "#measure_map_1"
         source_unit: quarters
         target_unit: null
         type: MeasureRecordMap

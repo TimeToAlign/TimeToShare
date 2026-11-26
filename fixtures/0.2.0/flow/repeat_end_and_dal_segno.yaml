@@ -56,7 +56,7 @@
 groups: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: "Repeat end and dal segno on one barline"
 resources: []
 timelines:

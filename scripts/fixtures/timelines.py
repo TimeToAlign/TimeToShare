@@ -59,18 +59,29 @@ def _with_children(
     unit: str,
     length: Any,
     children: list[tuple[Any, Any]],
+    prefix: str,
 ) -> Timeline:
-    """Build a timeline of ``cls`` with one child per length/offset pair."""
-    parent = cls(length=length, unit=unit)
-    for child_length, offset in children:
-        parent.add_child(cls(length=child_length, unit=unit), offset)
+    """Build a timeline of ``cls`` with one child per length/offset pair.
+
+    The parent's id is ``<prefix>_1`` and its children's ``<prefix>_2``,
+    ``<prefix>_3`` and so on, in the order of ``children``.
+    """
+    parent = cls(length=length, unit=unit, uid=f"{prefix}_1")
+    for number, (child_length, offset) in enumerate(children, start=2):
+        parent.add_child(
+            cls(length=child_length, unit=unit, uid=f"{prefix}_{number}"), offset
+        )
     return parent
 
 
 def continuous_logical_timeline() -> Timeline:
     """Build 12 quarters with children at one third and two quarters."""
     return _with_children(
-        ContinuousLogicalTimeline, "quarters", 12, [(4, Fraction(1, 3)), (3, 2)]
+        ContinuousLogicalTimeline,
+        "quarters",
+        12,
+        [(4, Fraction(1, 3)), (3, 2)],
+        "clt",
     )
 
 
@@ -81,13 +92,18 @@ def discrete_logical_timeline() -> Timeline:
         "ticks",
         Fraction(480),
         [(Fraction(120), Fraction(3)), (Fraction(96), Fraction(7))],
+        "dlt",
     )
 
 
 def continuous_physical_timeline() -> Timeline:
     """Build 12.5 seconds with two children at float physical coordinates."""
     return _with_children(
-        ContinuousPhysicalTimeline, "seconds", 12.5, [(4.25, 0.5), (3.0, 6.0)]
+        ContinuousPhysicalTimeline,
+        "seconds",
+        12.5,
+        [(4.25, 0.5), (3.0, 6.0)],
+        "cpt",
     )
 
 
@@ -98,6 +114,7 @@ def discrete_physical_timeline() -> Timeline:
         "samples",
         Fraction(44100),
         [(Fraction(11025), Fraction(100)), (Fraction(2205), Fraction(20000))],
+        "dpt",
     )
 
 
@@ -108,6 +125,7 @@ def continuous_graphical_timeline() -> Timeline:
         "points",
         600.0,
         [(200.0, 10.0), (150.0, 300.0)],
+        "cgt",
     )
 
 
@@ -118,6 +136,7 @@ def discrete_graphical_timeline() -> Timeline:
         "pixels",
         Fraction(1920),
         [(Fraction(640), Fraction(16)), (Fraction(480), Fraction(1000))],
+        "dgt",
     )
 
 
@@ -128,29 +147,37 @@ def css_pixels_timeline() -> Timeline:
         "css_pixels",
         800.0,
         [(320.0, 16.0), (240.5, 400.0)],
+        "cgt",
     )
 
 
 def with_region_timeline() -> Timeline:
-    """Build the continuous logical axis with a named region from 2 to 6."""
+    """Build the continuous logical axis with the region ``region_1`` ("theme")
+    from 2 to 6."""
     timeline = continuous_logical_timeline()
-    timeline.create_region(2, 6, name="theme")
+    timeline.create_region(2, 6, id="region_1", name="theme")
     return timeline
 
 
 def nested_timeline() -> Timeline:
-    """Build three levels of continuous logical timelines."""
-    grandchild = ContinuousLogicalTimeline(length=2, unit="quarters")
-    child = ContinuousLogicalTimeline(length=8, unit="quarters")
+    """Build three levels of continuous logical timelines.
+
+    The root ``clt_1`` (16 quarters) holds ``clt_3`` (8 quarters) at 4, which
+    holds ``clt_2`` (2 quarters) at 3/2.
+    """
+    grandchild = ContinuousLogicalTimeline(length=2, unit="quarters", uid="clt_2")
+    child = ContinuousLogicalTimeline(length=8, unit="quarters", uid="clt_3")
     child.add_child(grandchild, Fraction(3, 2))
-    nested = ContinuousLogicalTimeline(length=16, unit="quarters")
+    nested = ContinuousLogicalTimeline(length=16, unit="quarters", uid="clt_1")
     nested.add_child(child, 4)
     return nested
 
 
 def four_bars() -> MeasureMap:
-    """Return a MeasureMap of four bars of 4/4, 16 quarters, its id minted."""
-    return MeasureMap.from_rows([{"count": 1, "time_signature": "4/4"}, {"count": 4}])
+    """Return the MeasureMap ``measure_map_1`` of four bars of 4/4, 16 quarters."""
+    return MeasureMap.from_rows(
+        [{"count": 1, "time_signature": "4/4"}, {"count": 4}], id="measure_map_1"
+    )
 
 
 def conversion_maps_quarters() -> Timeline:
@@ -164,7 +191,10 @@ def conversion_maps_quarters() -> Timeline:
     ``MeasureNumberMap``), a ``ConstantMap``, a ``PiecewiseMap`` of two
     ``LinearMap``s, a ``LinearMap``, and three ``TableMap``s: linear and
     constant beyond its anchors, previous and undefined beyond them, linear
-    and linear beyond them. Every map id is minted.
+    and linear beyond them. The maps are ``cmap_2`` to ``cmap_18`` in that
+    order, the parts of a ``ChainMap``, ``CombinationMap`` or ``PiecewiseMap``
+    numbered after it; the ``MeasureRecordMap`` the timeline builds is
+    minted.
     """
     quarters = ContinuousLogicalTimeline(
         length=16, unit="quarters", uid="maps:quarters", name="Quarter-note maps"
@@ -172,40 +202,62 @@ def conversion_maps_quarters() -> Timeline:
     quarters.add_measure_map(four_bars())
     bars = quarters.measure_map
     quarter_maps = [
-        MeasureNumberMap(bars),
-        FloatingMeasureMap(bars),
-        MeasureBeatMap(bars),
+        MeasureNumberMap(bars, uid="cmap_2"),
+        FloatingMeasureMap(bars, uid="cmap_3"),
+        MeasureBeatMap(bars, uid="cmap_4"),
         ChainMap(
             [
                 LinearMap(
-                    scalar=Fraction(1, 2), source_unit="quarters", target_unit="seconds"
+                    scalar=Fraction(1, 2),
+                    source_unit="quarters",
+                    target_unit="seconds",
+                    uid="cmap_6",
                 ),
                 LinearMap(
-                    scalar=Fraction(1, 60), source_unit="seconds", target_unit="minutes"
+                    scalar=Fraction(1, 60),
+                    source_unit="seconds",
+                    target_unit="minutes",
+                    uid="cmap_7",
                 ),
-            ]
+            ],
+            uid="cmap_5",
         ),
         CombinationMap(
             {
-                "section": ConstantMap(value="verse", source_unit="quarters"),
-                "measure": MeasureNumberMap(bars),
-            }
+                "section": ConstantMap(
+                    value="verse", source_unit="quarters", uid="cmap_9"
+                ),
+                "measure": MeasureNumberMap(bars, uid="cmap_10"),
+            },
+            uid="cmap_8",
         ),
-        ConstantMap(value="section-a", source_unit="quarters"),
+        ConstantMap(value="section-a", source_unit="quarters", uid="cmap_11"),
         PiecewiseMap(
             breaks=[Fraction(0), Fraction(8), Fraction(16)],
             maps=[
-                LinearMap(offset=1, source_unit="quarters", target_unit="seconds"),
-                LinearMap(offset=2, source_unit="quarters", target_unit="seconds"),
+                LinearMap(
+                    offset=1,
+                    source_unit="quarters",
+                    target_unit="seconds",
+                    uid="cmap_13",
+                ),
+                LinearMap(
+                    offset=2,
+                    source_unit="quarters",
+                    target_unit="seconds",
+                    uid="cmap_14",
+                ),
             ],
             source_unit="quarters",
             target_unit="seconds",
+            uid="cmap_12",
         ),
         LinearMap(
             scalar=Fraction(3, 2),
             offset=Fraction(1, 3),
             source_unit="quarters",
             target_unit="seconds",
+            uid="cmap_15",
         ),
         TableMap(
             x_values=[Fraction(0), Fraction(4)],
@@ -214,6 +266,7 @@ def conversion_maps_quarters() -> Timeline:
             extrapolate="constant",
             source_unit="quarters",
             target_unit="seconds",
+            uid="cmap_16",
         ),
         TableMap(
             x_values=[Fraction(0), Fraction(8)],
@@ -221,6 +274,7 @@ def conversion_maps_quarters() -> Timeline:
             kind="previous",
             extrapolate="error",
             source_unit="quarters",
+            uid="cmap_17",
         ),
         TableMap(
             x_values=[Fraction(0), Fraction(8), Fraction(16)],
@@ -229,6 +283,7 @@ def conversion_maps_quarters() -> Timeline:
             extrapolate="extrapolate",
             source_unit="quarters",
             target_unit="seconds",
+            uid="cmap_18",
         ),
     ]
     for conversion_map in quarter_maps:
@@ -241,7 +296,7 @@ def conversion_maps_ticks() -> Timeline:
     ticks = DiscreteLogicalTimeline(
         length=960, unit="ticks", uid="maps:ticks", name="Tick maps"
     )
-    ticks.add_conversion_map(TicksToQuarters(ppq=480))
+    ticks.add_conversion_map(TicksToQuarters(ppq=480, uid="cmap_1"))
     return ticks
 
 
@@ -250,7 +305,7 @@ def conversion_maps_samples() -> Timeline:
     samples = DiscretePhysicalTimeline(
         length=96000, unit="samples", uid="maps:samples", name="Sample maps"
     )
-    samples.add_conversion_map(SamplesToSeconds(sample_rate=48000))
+    samples.add_conversion_map(SamplesToSeconds(sample_rate=48000, uid="cmap_1"))
     return samples
 
 
@@ -259,7 +314,7 @@ def conversion_maps_seconds() -> Timeline:
     seconds = ContinuousPhysicalTimeline(
         length=2.0, unit="seconds", uid="maps:seconds", name="Second maps"
     )
-    seconds.add_conversion_map(SecondsToSamples(sample_rate=48000))
+    seconds.add_conversion_map(SecondsToSamples(sample_rate=48000, uid="cmap_1"))
     return seconds
 
 
@@ -267,12 +322,12 @@ def flow_control_timeline() -> Timeline:
     """Build one timeline with a jump target, jumps and a break.
 
     The root ``flow:quarters`` ("Flow control", 16 quarters) holds the jump
-    target ``repeat-start`` (a repeat start) at 2, the jump at 8 whose
-    destination "Repeat" is a repeat end back to ``repeat-start`` taken
-    twice, the jump target ``segno`` at 4, the jump at 16 whose destination
-    "D.S." is a dal segno to ``segno``, and the break ``fine`` ("Fine") at
-    12, which ends the flow after the dal segno. The elements' ids are
-    minted.
+    target ``jump_target_1`` ("repeat-start", a repeat start) at 2, the jump
+    ``jump_1`` at 8 whose destination "Repeat" is a repeat end back to
+    ``jump_target_1`` taken twice, the jump target ``jump_target_2``
+    ("segno") at 4, the jump ``jump_2`` at 16 whose destination "D.S." is a
+    dal segno to ``jump_target_2``, and the break ``break_1`` ("fine",
+    labelled "Fine") at 12, which ends the flow after the dal segno.
     """
     timeline = ContinuousLogicalTimeline(
         length=16, unit="quarters", uid="flow:quarters", name="Flow control"
@@ -283,6 +338,7 @@ def flow_control_timeline() -> Timeline:
             timeline.make_coordinate(2),
             manifestation="repeat_start",
             name="repeat-start",
+            id="jump_target_1",
         )
     )
     flow.add(
@@ -290,15 +346,22 @@ def flow_control_timeline() -> Timeline:
             timeline.make_coordinate(8),
             [parts.repeat_end(timeline, to=start.id, count=2)],
             meta={"source": "synthetic"},
+            id="jump_1",
         )
     )
     segno = flow.add(
-        JumpTarget(timeline.make_coordinate(4), manifestation="segno", name="segno")
+        JumpTarget(
+            timeline.make_coordinate(4),
+            manifestation="segno",
+            name="segno",
+            id="jump_target_2",
+        )
     )
     dal_segno = flow.add(
         Jump(
             timeline.make_coordinate(16),
             [parts.leap(timeline, "dal_segno", to=segno.id, label="D.S.")],
+            id="jump_2",
         )
     )
     flow.add(
@@ -309,6 +372,7 @@ def flow_control_timeline() -> Timeline:
             label="Fine",
             name="fine",
             meta={"source": "synthetic"},
+            id="break_1",
         )
     )
     return timeline
@@ -563,14 +627,14 @@ def corpus_audio_timeline() -> Timeline:
 
 
 def corpus_parangonada_score_timeline() -> Timeline:
-    """Load only the discrete score ``score:dlt_1`` of a Parangonada alignment."""
+    """Load only the discrete score, in ticks, of a Parangonada alignment."""
     parangonar = ensure_data("parangonar")
     (score,) = [
         timeline
         for timeline in ParangonadaLoader()
         .load(parangonar / "Beethoven_Eroica_op35-cpjku")
         .create_timelines()
-        if timeline.id == "score:dlt_1"
+        if isinstance(timeline, DiscreteLogicalTimeline)
     ]
     return score
 
@@ -626,12 +690,14 @@ def unknown_length_timeline() -> Timeline:
     """Build ``unknown_length``, a root of unknown length with content.
 
     The root ``score`` of unknown length holds the region ``region_1`` from 2
-    to 8, the jump target ``jump_target_1`` (a segno, its id minted) at 6 and
+    to 8, the jump target ``jump_target_1`` (a segno) at 6 and
     the child ``coda`` (4 quarters) at 10; its content reaches 14. Every
     timeline is of quarters and unnamed.
     """
     score = parts.with_region(parts.quarters("score", None), 2, 8, "region_1")
-    score.flow_control.add(JumpTarget(score.make_coordinate(6), manifestation="segno"))
+    score.flow_control.add(
+        JumpTarget(score.make_coordinate(6), manifestation="segno", id="jump_target_1")
+    )
     score.add_child(parts.quarters("coda", 4), 10)
     return score
 
@@ -768,21 +834,22 @@ def child_flow_control_timeline() -> Timeline:
 def volta_run_timeline() -> Timeline:
     """Build a run of three volta brackets beside regions of two kinds.
 
-    The root ``score`` ("Score", 24 quarters) holds the region "Exposition"
-    (0 to 16) and the jump ``jump_1`` at 8, before the brackets, with three
-    volta destinations: ``by`` 0 on pass 1, to ``jump_target_1`` at 12 on
-    pass 2 and to ``jump_target_2`` at 16 on pass 3. Between the brackets lie
+    The root ``score`` ("Score", 24 quarters) holds the region ``region_1``
+    ("Exposition", 0 to 16) and the jump ``jump_1`` at 8, before the
+    brackets, with three volta destinations: ``by`` 0 on pass 1, to
+    ``jump_target_1`` at 12 on pass 2 and to ``jump_target_2`` at 16 on
+    pass 3. Between the brackets lie
     the volta breaks ``break_1`` at 12 and ``break_2`` at 16, each with the
     repeat sign that closes the bracket before it, ``jump_2`` and ``jump_3``
     (repeat ends taken once, the second without restoring), and the section
     break ``section_break_1`` at 20 closes the third bracket. The library
     computes the atomic sections from them, regions typed
     ``tts:AtomicSection`` beside the region "Exposition", which is none, and
-    the FlowMaps of its conventions.
+    the FlowMaps of its conventions, their ids minted.
     """
     score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(24))
     at = score.make_coordinate
-    score.create_region(at(0), at(16), name="Exposition")
+    score.create_region(at(0), at(16), id="region_1", name="Exposition")
     flow = score.flow_control
     second = flow.add(JumpTarget(at(12), manifestation="volta", id="jump_target_1"))
     third = flow.add(JumpTarget(at(16), manifestation="volta", id="jump_target_2"))
@@ -982,6 +1049,6 @@ def timestamps_timeline() -> Timeline:
     The root ``clt_1`` holds the child ``clt_2`` of 4 quarters at 2; the
     named timestamps lie on both (``GRAPHICAL["timestamps"]``).
     """
-    root = ContinuousLogicalTimeline(length=8, unit="quarters")
-    root.add_child(ContinuousLogicalTimeline(length=4, unit="quarters"), 2)
+    root = ContinuousLogicalTimeline(length=8, unit="quarters", uid="clt_1")
+    root.add_child(ContinuousLogicalTimeline(length=4, unit="quarters", uid="clt_2"), 2)
     return root

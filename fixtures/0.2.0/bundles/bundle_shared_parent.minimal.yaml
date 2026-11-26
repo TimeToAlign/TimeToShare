@@ -132,7 +132,7 @@ groups:
     members: ["#recapitulation", "#take_2"]
     name: Recapitulation
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: Sonata
 timelines:
   -

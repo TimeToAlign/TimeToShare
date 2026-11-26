@@ -57,19 +57,19 @@ graphical:
   elisions: []
   matchstamps: []
   order:
-    "#tilia:Bruckner5_Scherzo": ["#cpt_1", "#cpt_2", "#cpt_3", "#cpt_4", "#cpt_5", "#cpt_6", "#cpt_7"]
+    "#group_1nzkheefpprq1": ["#cpt_2hygiikvjca99", "#cpt_0rzdkw0b3u89g", "#cpt_039470m6nvrsj", "#cpt_3ad3dapt9xwt8", "#cpt_2mzr720vpk0v0", "#cpt_14hwvq4kx7jat", "#cpt_12kb3xeaieoj6"]
   rules: []
   styles: {}
   timestamps: []
 groups:
   -
-    id: "#tilia:Bruckner5_Scherzo"
-    members: ["#cpt_1", "#cpt_2", "#cpt_3", "#cpt_4", "#cpt_5", "#cpt_6", "#cpt_7"]
+    id: "#group_1nzkheefpprq1"
+    members: ["#cpt_039470m6nvrsj", "#cpt_0rzdkw0b3u89g", "#cpt_12kb3xeaieoj6", "#cpt_14hwvq4kx7jat", "#cpt_2hygiikvjca99", "#cpt_2mzr720vpk0v0", "#cpt_3ad3dapt9xwt8"]
     meta: {}
     name: Bruckner5_Scherzo
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: null
 resources: []
 timelines:
@@ -77,33 +77,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#cpt_1"
-    is_segment_line: false
-    length: 788.0
-    locked: false
-    meta: {}
-    name: "Form (Harnoncourt)"
-    number_type: float
-    regions: []
-    unit: seconds
-  -
-    children: []
-    conversion_maps: []
-    flow_control: []
-    id: "#cpt_2"
-    is_segment_line: false
-    length: 788.0
-    locked: false
-    meta: {}
-    name: Themen
-    number_type: float
-    regions: []
-    unit: seconds
-  -
-    children: []
-    conversion_maps: []
-    flow_control: []
-    id: "#cpt_3"
+    id: "#cpt_039470m6nvrsj"
     is_segment_line: false
     length: 788.0
     locked: false
@@ -116,12 +90,12 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#cpt_4"
+    id: "#cpt_0rzdkw0b3u89g"
     is_segment_line: false
     length: 788.0
     locked: false
     meta: {}
-    name: Takte
+    name: Themen
     number_type: float
     regions: []
     unit: seconds
@@ -129,12 +103,12 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#cpt_5"
+    id: "#cpt_12kb3xeaieoj6"
     is_segment_line: false
     length: 788.0
     locked: false
     meta: {}
-    name: Tempo
+    name: "Partitur (PDF)"
     number_type: float
     regions: []
     unit: seconds
@@ -142,7 +116,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#cpt_6"
+    id: "#cpt_14hwvq4kx7jat"
     is_segment_line: false
     length: 788.0
     locked: false
@@ -155,12 +129,38 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#cpt_7"
+    id: "#cpt_2hygiikvjca99"
     is_segment_line: false
     length: 788.0
     locked: false
     meta: {}
-    name: "Partitur (PDF)"
+    name: "Form (Harnoncourt)"
+    number_type: float
+    regions: []
+    unit: seconds
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#cpt_2mzr720vpk0v0"
+    is_segment_line: false
+    length: 788.0
+    locked: false
+    meta: {}
+    name: Tempo
+    number_type: float
+    regions: []
+    unit: seconds
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#cpt_3ad3dapt9xwt8"
+    is_segment_line: false
+    length: 788.0
+    locked: false
+    meta: {}
+    name: Takte
     number_type: float
     regions: []
     unit: seconds

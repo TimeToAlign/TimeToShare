@@ -69,7 +69,7 @@ graphical:
       timeline: "#maps:whole_notes"
 measure_maps:
   -
-    id: "#measuremap_1"
+    id: "#measure_map_1"
     rows:
       -
         actual_length: [4, 1]
@@ -93,22 +93,22 @@ measure_maps:
         start_repeat: false
         time_signature: "4/4"
 meta:
-  generator: "timetoalign 1.2.0 (d57df1b7)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 timelines:
   -
     conversion_maps:
       -
-        id: "#cmap_1"
+        id: "#cmap_1768e77g41x2h"
         maps:
           -
-            id: "#cmap_2"
+            id: "#cmap_3d81qvwevknv3"
             scalar: 4
             source_unit: whole_notes
             target_unit: quarters
             type: LinearMap
           -
-            id: "#cmap_3"
-            measure_map: "#measuremap_1"
+            id: "#cmap_2ylu13j89473e"
+            measure_map: "#measure_map_1"
             source_unit: quarters
             target_unit: null
             type: MeasureRecordMap

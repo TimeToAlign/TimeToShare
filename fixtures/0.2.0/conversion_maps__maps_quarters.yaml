@@ -79,7 +79,7 @@ graphical:
 groups: []
 measure_maps:
   -
-    id: "#measuremap_1"
+    id: "#measure_map_1"
     meta: {}
     name: null
     rows:
@@ -105,7 +105,7 @@ measure_maps:
         start_repeat: false
         time_signature: "4/4"
 meta:
-  generator: "timetoalign 1.2.0 (d57df1b7)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: null
 resources: []
 timelines:
@@ -113,8 +113,8 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: "#cmap_1"
-        measure_map: "#measuremap_1"
+        id: "#cmap_0o8ge98nzohyz"
+        measure_map: "#measure_map_1"
         name: null
         source_unit: quarters
         target_unit: null
@@ -200,21 +200,21 @@ timelines:
         y_values: [0.0, 4.25, 9.0]
       -
         id: "#cmap_2"
-        measure_map: "#measuremap_1"
+        measure_map: "#measure_map_1"
         name: null
         source_unit: quarters
         target_unit: null
         type: MeasureNumberMap
       -
         id: "#cmap_3"
-        measure_map: "#measuremap_1"
+        measure_map: "#measure_map_1"
         name: null
         source_unit: quarters
         target_unit: floating_measures
         type: FloatingMeasureMap
       -
         id: "#cmap_4"
-        measure_map: "#measuremap_1"
+        measure_map: "#measure_map_1"
         name: null
         source_unit: quarters
         target_unit: null
@@ -247,7 +247,7 @@ timelines:
         maps:
           measure:
             id: "#cmap_10"
-            measure_map: "#measuremap_1"
+            measure_map: "#measure_map_1"
             name: null
             source_unit: quarters
             target_unit: null

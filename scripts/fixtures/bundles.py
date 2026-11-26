@@ -75,52 +75,56 @@ def bundle_mixed() -> AlignmentBundle:
     regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map. No
     group names ``recording``, but it contains the member ``excerpt`` and so
     is drawn as its ancestor line and, whole with its map, in an ancestor
-    card behind the frame of ``excerpt``. Every id of a map, region or jump
-    is minted.
+    card behind the frame of ``excerpt``. The maps are ``cmap_1`` to
+    ``cmap_6`` in that order, the repeat is ``jump_1``, the regions are
+    ``region_1`` and ``region_2`` and the groups ``group_1`` ("Performance")
+    and ``group_2`` ("Facsimile").
     """
     score = parts.with_maps(
         ContinuousLogicalTimeline(
             length=Fraction(12), unit="quarters", uid="score", name="Score"
         ),
-        parts.ticks(),
-        parts.tempo(),
+        parts.ticks("cmap_1"),
+        parts.tempo("cmap_2"),
     )
-    parts.with_repeat(score, 8)
+    parts.with_repeat(score, 8, "jump_1")
     performance = parts.with_maps(
         ContinuousPhysicalTimeline(
             length=12.5, unit="seconds", uid="performance", name="Performance"
         ),
-        parts.to_samples(),
+        parts.to_samples("cmap_3"),
     )
     page = parts.with_maps(
         DiscreteGraphicalTimeline(
             length=Fraction(1920), unit="pixels", uid="page", name="Page"
         ),
-        parts.to_points(),
+        parts.to_points("cmap_4"),
     )
     recording = parts.with_maps(
         DiscretePhysicalTimeline(
             length=Fraction(441000), unit="samples", uid="recording", name="Recording"
         ),
-        parts.to_seconds(),
+        parts.to_seconds("cmap_5"),
     )
     excerpt = parts.with_maps(
         DiscretePhysicalTimeline(
             length=Fraction(88200), unit="samples", uid="excerpt", name="Excerpt"
         ),
-        parts.to_seconds(),
+        parts.to_seconds("cmap_6"),
     )
     recording.add_child(excerpt, Fraction(44100))
     annotations = ContinuousLogicalTimeline(
         length=Fraction(12), unit="quarters", uid="annotations", name="Annotations"
     )
-    annotations.create_region(0, 4, name="Verse")
-    annotations.create_region(4, 12, name="Chorus")
+    annotations.create_region(0, 4, id="region_1", name="Verse")
+    annotations.create_region(4, 12, id="region_2", name="Chorus")
     bundle = AlignmentBundle(name="Mixed")
-    bundle.add_timeline(score, as_group="Performance")
-    bundle.add_timeline(performance, grouped_with=score.id)
-    bundle.add_timeline(page, as_group="Facsimile")
-    bundle.add_timeline(excerpt, grouped_with=page.id)
+    bundle.add_group(
+        TimelineGroup(id="group_1", name="Performance", timelines=[score, performance])
+    )
+    bundle.add_group(
+        TimelineGroup(id="group_2", name="Facsimile", timelines=[page, excerpt])
+    )
     bundle.add_timeline(annotations)
     return bundle
 
@@ -150,7 +154,10 @@ def bundle_shared_parent() -> AlignmentBundle:
     ``page`` ("Page", 1754 pixels) is ungrouped. No group names ``score``, but
     it contains both members and so is drawn as their ancestor line and,
     whole with its map, region and repeat, in an ancestor card behind each of
-    the two frames. Every id of a map, region or jump is minted.
+    the two frames. The maps are ``cmap_1`` (the score's) to ``cmap_5`` (the
+    take's) in the order above, the region is ``region_1``, the repeat
+    ``jump_1`` and the groups ``group_1`` ("Exposition") and ``group_2``
+    ("Recapitulation").
     """
 
     def quarters(uid: str, name: str, length: int) -> Timeline:
@@ -166,10 +173,10 @@ def bundle_shared_parent() -> AlignmentBundle:
 
     score = parts.with_maps(
         parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(32)),
-        parts.ticks(),
+        parts.ticks("cmap_1"),
     )
-    score.create_region(12, 20, name="Development")
-    parts.with_repeat(score, 12)
+    score.create_region(12, 20, id="region_1", name="Development")
+    parts.with_repeat(score, 12, "jump_1")
     exposition = parts.holding(
         score,
         parts.with_maps(
@@ -178,10 +185,11 @@ def bundle_shared_parent() -> AlignmentBundle:
                 "Exposition",
                 quarters("exposition_first", "First theme", 6),
                 parts.with_maps(
-                    quarters("exposition_second", "Second theme", 6), parts.tempo()
+                    quarters("exposition_second", "Second theme", 6),
+                    parts.tempo("cmap_3"),
                 ),
             ),
-            parts.ticks(),
+            parts.ticks("cmap_2"),
         ),
         Fraction(0),
     )
@@ -198,7 +206,7 @@ def bundle_shared_parent() -> AlignmentBundle:
             quarters("recapitulation_second_1", "Phrase 1", 3),
             quarters("recapitulation_second_2", "Phrase 2", 3),
         ),
-        parts.ticks(),
+        parts.ticks("cmap_4"),
     )
     recapitulation = parts.holding(
         score,
@@ -222,15 +230,19 @@ def bundle_shared_parent() -> AlignmentBundle:
                 ContinuousPhysicalTimeline, "take_1_second", "Second theme", 16.0
             ),
         ),
-        parts.to_samples(),
+        parts.to_samples("cmap_5"),
     )
     take_2 = parts.named(ContinuousPhysicalTimeline, "take_2", "Take 2", 28.5)
     page = parts.named(DiscreteGraphicalTimeline, "page", "Page", Fraction(1754))
     bundle = AlignmentBundle(name="Sonata")
-    bundle.add_timeline(exposition, as_group="Exposition")
-    bundle.add_timeline(take_1, grouped_with="exposition")
-    bundle.add_timeline(recapitulation, as_group="Recapitulation")
-    bundle.add_timeline(take_2, grouped_with="recapitulation")
+    bundle.add_group(
+        TimelineGroup(id="group_1", name="Exposition", timelines=[exposition, take_1])
+    )
+    bundle.add_group(
+        TimelineGroup(
+            id="group_2", name="Recapitulation", timelines=[recapitulation, take_2]
+        )
+    )
     bundle.add_timeline(page)
     return bundle
 
@@ -248,16 +260,19 @@ def bundle_ungrouped() -> AlignmentBundle:
     (manifestation ``fine``), which ends the flow after that da capo. The
     recording carries a map to
     seconds, the segment line ``pages`` a map to points; its pages carry
-    none. Every id of a map or flow-control element is minted.
+    none. The maps are ``cmap_1`` (the score's), ``cmap_2`` (the
+    recording's) and ``cmap_3`` (the pages'), the jump is ``jump_1`` and the
+    break ``break_1``.
     """
     score = parts.with_maps(
         parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(16)),
-        parts.ticks(),
+        parts.ticks("cmap_1"),
     )
     da_capo = score.flow_control.add(
         Jump(
             score.make_coordinate(16),
             [parts.leap(score, "da_capo_al_fine", label="D.C. al Fine")],
+            id="jump_1",
         )
     )
     score.flow_control.add(
@@ -266,6 +281,7 @@ def bundle_ungrouped() -> AlignmentBundle:
             manifestation="fine",
             ends=FlowCondition(after=DestinationReference(jump=da_capo.id)),
             label="Fine",
+            id="break_1",
         )
     )
     bundle = AlignmentBundle(name="Sketches")
@@ -275,10 +291,10 @@ def bundle_ungrouped() -> AlignmentBundle:
             parts.named(
                 DiscretePhysicalTimeline, "recording", "Recording", Fraction(441000)
             ),
-            parts.to_seconds(),
+            parts.to_seconds("cmap_2"),
         )
     )
-    bundle.add_timeline(parts.with_maps(pages_timeline(3), parts.to_points()))
+    bundle.add_timeline(parts.with_maps(pages_timeline(3), parts.to_points("cmap_3")))
     return bundle
 
 
@@ -309,7 +325,7 @@ def bundle_free_ids() -> AlignmentBundle:
     the region ``https://example.org/piece/score#exposition`` ("Exposition")
     from 0 to 4; the performance ``perf/take 2`` ("Take 2", 4.0 seconds) holds
     the region ``take 2/intro`` ("Intro") from 0.0 to 1.0. The bundle "Free
-    IDs" holds both roots in one group "Piece", whose id is minted.
+    IDs" holds both roots in the group ``group_1`` ("Piece").
     """
     score = parts.named(
         ContinuousLogicalTimeline,
@@ -323,7 +339,7 @@ def bundle_free_ids() -> AlignmentBundle:
     take = parts.named(ContinuousPhysicalTimeline, "perf/take 2", "Take 2", 4.0)
     take.create_region(0.0, 1.0, id="take 2/intro", name="Intro")
     bundle = AlignmentBundle(name="Free IDs")
-    bundle.add_group(TimelineGroup(name="Piece", timelines=[score, take]))
+    bundle.add_group(TimelineGroup(id="group_1", name="Piece", timelines=[score, take]))
     return bundle
 
 
@@ -451,7 +467,7 @@ def bundle_elisions_stored() -> AlignmentBundle:
     at 56; the session ``session`` ("Session", 90.0 seconds) holds the take
     ``take`` ("Take", 25.5 seconds) at 30.0. The bundle "Elisions" groups
     ``theme``, ``take`` and the recording ``recording`` ("Recording", 10.0
-    seconds) as "Theme", whose id is minted, and holds the page ``page``
+    seconds) as the group ``group_1`` ("Theme") and holds the page ``page``
     ("Page", 1754 pixels) ungrouped. Its ``graphical`` entry
     (``GRAPHICAL``) stores the elisions and the three rules.
     """
@@ -474,7 +490,9 @@ def bundle_elisions_stored() -> AlignmentBundle:
     )
     recording = parts.named(ContinuousPhysicalTimeline, "recording", "Recording", 10.0)
     bundle = AlignmentBundle(name="Elisions")
-    bundle.add_group(TimelineGroup(name="Theme", timelines=[theme, take, recording]))
+    bundle.add_group(
+        TimelineGroup(id="group_1", name="Theme", timelines=[theme, take, recording])
+    )
     bundle.add_timeline(
         parts.named(DiscreteGraphicalTimeline, "page", "Page", Fraction(1754))
     )
@@ -528,13 +546,13 @@ def bundle_elided_layerit() -> AlignmentBundle:
     and listing the excerpt and a short recording in seconds, so the suite
     is drawn in an ancestor card behind each frame: the opening of the work,
     an excerpt inside a movement, the opening of a later movement and the
-    ending. Every group id is minted.
+    ending. The groups are ``group_1`` to ``group_4``, in that order.
     """
     suite = parts.named(
         ContinuousLogicalTimeline, "clt_1", "Suite bergamasque", Fraction(1616)
     )
     bundle = AlignmentBundle(name="Suite bergamasque")
-    for (
+    for number, (
         movement_id,
         movement_name,
         offset,
@@ -545,7 +563,7 @@ def bundle_elided_layerit() -> AlignmentBundle:
         excerpt_length,
         recording_id,
         recording_length,
-    ) in LAYERIT_EXCERPTS:
+    ) in enumerate(LAYERIT_EXCERPTS, start=1):
         movement = parts.holding(
             suite,
             parts.named(
@@ -570,7 +588,9 @@ def bundle_elided_layerit() -> AlignmentBundle:
             recording_length,
         )
         bundle.add_group(
-            TimelineGroup(name=excerpt_name, timelines=[excerpt, recording])
+            TimelineGroup(
+                id=f"group_{number}", name=excerpt_name, timelines=[excerpt, recording]
+            )
         )
     return bundle
 
@@ -593,7 +613,8 @@ def bundle_arranged_roots() -> AlignmentBundle:
     score, touching, and "Exposition" and "Recapitulation" hang on the
     session too, with "Development" between them; the annotations lie
     between the score's and the session's members in "Recapitulation", so
-    "Exposition" is padded above ``take_a``. Every group id is minted.
+    "Exposition" is padded above ``take_a``. The groups are ``group_1`` to
+    ``group_3``, in that order.
     """
 
     def quarters(parent: Timeline, uid: str, name: str, offset: int) -> Timeline:
@@ -615,14 +636,19 @@ def bundle_arranged_roots() -> AlignmentBundle:
     take_a = seconds("take_a", "Take A", 0.0)
     take_b = seconds("take_b", "Take B", 100.0)
     bundle = AlignmentBundle(name="Arranged")
-    bundle.add_group(TimelineGroup(name="Exposition", timelines=[exposition, take_a]))
+    bundle.add_group(
+        TimelineGroup(id="group_1", name="Exposition", timelines=[exposition, take_a])
+    )
     bundle.add_group(
         TimelineGroup(
-            name="Development", timelines=[development, pixels("notes", "Notes", 800)]
+            id="group_2",
+            name="Development",
+            timelines=[development, pixels("notes", "Notes", 800)],
         )
     )
     bundle.add_group(
         TimelineGroup(
+            id="group_3",
             name="Recapitulation",
             timelines=[
                 recapitulation,
@@ -642,15 +668,20 @@ def bundle_arranged_conflict() -> AlignmentBundle:
     ("Theme A", 16 quarters) at 0 and ``theme_b`` ("Theme B", 16 quarters) at
     8. The bundle "Conflict" groups each theme alone, as "Theme A" and
     "Theme B": their stretches on the score overlap from 8 to 16, so the two
-    groups cannot stand side by side. Every group id is minted.
+    groups cannot stand side by side. The groups are ``group_1`` ("Theme A")
+    and ``group_2`` ("Theme B").
     """
     score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(32))
     bundle = AlignmentBundle(name="Conflict")
-    for uid, name, offset in (("theme_a", "Theme A", 0), ("theme_b", "Theme B", 8)):
+    for number, (uid, name, offset) in enumerate(
+        (("theme_a", "Theme A", 0), ("theme_b", "Theme B", 8)), start=1
+    ):
         theme = parts.holding(
             score,
             parts.named(ContinuousLogicalTimeline, uid, name, Fraction(16)),
             Fraction(offset),
         )
-        bundle.add_group(TimelineGroup(name=name, timelines=[theme]))
+        bundle.add_group(
+            TimelineGroup(id=f"group_{number}", name=name, timelines=[theme])
+        )
     return bundle

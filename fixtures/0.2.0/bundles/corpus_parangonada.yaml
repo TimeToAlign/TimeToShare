@@ -57,49 +57,49 @@ graphical:
   elisions: []
   matchstamps: []
   order:
-    "#group_1": ["#score:clt_1", "#score:dlt_1"]
-    "#group_2": ["#perf:1966_Szegedi:cpt_1", "#perf:1966_Szegedi:dpt_1"]
-    "#group_3": ["#perf:1970_Gould:cpt_1", "#perf:1970_Gould:dpt_1"]
-    "#group_4": ["#perf:1971_Curzon:cpt_1", "#perf:1971_Curzon:dpt_1"]
-    "#group_5": ["#perf:1985_Brendel:cpt_1", "#perf:1985_Brendel:dpt_1"]
-    "#group_6": ["#perf:2023_Hewitt:cpt_1", "#perf:2023_Hewitt:dpt_1"]
+    "#group_0e5so0wm3mj0i": ["#perf:cpt_3djtlr0boww79", "#perf:dpt_351yfzzgebwy0"]
+    "#group_147upxo20gti9": ["#perf:cpt_3h9peanfy5q0w", "#perf:dpt_3lmci5ykrc8v9"]
+    "#group_1aj0haoy2c2v6": ["#perf:cpt_0h3vv2t63w2z7", "#perf:dpt_1qzwtmb841nn0"]
+    "#group_27uzxcvx2i5xi": ["#perf:cpt_0w5pjhp7nve40", "#perf:dpt_35zyecpt3aawt"]
+    "#group_2ruktqoeqgw5o": ["#perf:cpt_366u652u8lquu", "#perf:dpt_2ii3iicuf5y6g"]
+    "#group_2wrgcwr7p01zs": ["#score:clt_1nja666w5qk37", "#score:dlt_2aq31ztdm4t6x"]
   rules: []
   styles: {}
   timestamps: []
 groups:
   -
-    id: "#group_1"
-    members: ["#score:clt_1", "#score:dlt_1"]
+    id: "#group_0e5so0wm3mj0i"
+    members: ["#perf:cpt_3djtlr0boww79", "#perf:dpt_351yfzzgebwy0"]
     meta: {}
-    name: score
+    name: "perf:2023_Hewitt"
   -
-    id: "#group_2"
-    members: ["#perf:1966_Szegedi:cpt_1", "#perf:1966_Szegedi:dpt_1"]
-    meta: {}
-    name: "perf:1966_Szegedi"
-  -
-    id: "#group_3"
-    members: ["#perf:1970_Gould:cpt_1", "#perf:1970_Gould:dpt_1"]
-    meta: {}
-    name: "perf:1970_Gould"
-  -
-    id: "#group_4"
-    members: ["#perf:1971_Curzon:cpt_1", "#perf:1971_Curzon:dpt_1"]
-    meta: {}
-    name: "perf:1971_Curzon"
-  -
-    id: "#group_5"
-    members: ["#perf:1985_Brendel:cpt_1", "#perf:1985_Brendel:dpt_1"]
+    id: "#group_147upxo20gti9"
+    members: ["#perf:cpt_3h9peanfy5q0w", "#perf:dpt_3lmci5ykrc8v9"]
     meta: {}
     name: "perf:1985_Brendel"
   -
-    id: "#group_6"
-    members: ["#perf:2023_Hewitt:cpt_1", "#perf:2023_Hewitt:dpt_1"]
+    id: "#group_1aj0haoy2c2v6"
+    members: ["#perf:cpt_0h3vv2t63w2z7", "#perf:dpt_1qzwtmb841nn0"]
     meta: {}
-    name: "perf:2023_Hewitt"
+    name: "perf:1966_Szegedi"
+  -
+    id: "#group_27uzxcvx2i5xi"
+    members: ["#perf:cpt_0w5pjhp7nve40", "#perf:dpt_35zyecpt3aawt"]
+    meta: {}
+    name: "perf:1970_Gould"
+  -
+    id: "#group_2ruktqoeqgw5o"
+    members: ["#perf:cpt_366u652u8lquu", "#perf:dpt_2ii3iicuf5y6g"]
+    meta: {}
+    name: "perf:1971_Curzon"
+  -
+    id: "#group_2wrgcwr7p01zs"
+    members: ["#score:clt_1nja666w5qk37", "#score:dlt_2aq31ztdm4t6x"]
+    meta: {}
+    name: score
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (d57df1b7)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: Beethoven_Eroica_op35-cpjku
 resources: []
 timelines:
@@ -107,7 +107,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#perf:1966_Szegedi:cpt_1"
+    id: "#perf:cpt_0h3vv2t63w2z7"
     is_segment_line: false
     length: 73.06201814058957
     locked: false
@@ -118,30 +118,9 @@ timelines:
     unit: seconds
   -
     children: []
-    conversion_maps:
-      -
-        id: "#cmap_2"
-        name: null
-        offset: 0
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
-    flow_control: []
-    id: "#perf:1966_Szegedi:dpt_1"
-    is_segment_line: false
-    length: 3222035
-    locked: false
-    meta: {}
-    name: "1966_Szegedi"
-    number_type: int
-    regions: []
-    unit: samples
-  -
-    children: []
     conversion_maps: []
     flow_control: []
-    id: "#perf:1970_Gould:cpt_1"
+    id: "#perf:cpt_0w5pjhp7nve40"
     is_segment_line: false
     length: 122.89201814058957
     locked: false
@@ -152,30 +131,9 @@ timelines:
     unit: seconds
   -
     children: []
-    conversion_maps:
-      -
-        id: "#cmap_3"
-        name: null
-        offset: 0
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
-    flow_control: []
-    id: "#perf:1970_Gould:dpt_1"
-    is_segment_line: false
-    length: 5419538
-    locked: false
-    meta: {}
-    name: "1970_Gould"
-    number_type: int
-    regions: []
-    unit: samples
-  -
-    children: []
     conversion_maps: []
     flow_control: []
-    id: "#perf:1971_Curzon:cpt_1"
+    id: "#perf:cpt_366u652u8lquu"
     is_segment_line: false
     length: 77.78290249433107
     locked: false
@@ -186,30 +144,22 @@ timelines:
     unit: seconds
   -
     children: []
-    conversion_maps:
-      -
-        id: "#cmap_4"
-        name: null
-        offset: 0
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
+    conversion_maps: []
     flow_control: []
-    id: "#perf:1971_Curzon:dpt_1"
+    id: "#perf:cpt_3djtlr0boww79"
     is_segment_line: false
-    length: 3430226
+    length: 89.94301587301587
     locked: false
     meta: {}
-    name: "1971_Curzon"
-    number_type: int
+    name: "2023_Hewitt"
+    number_type: float
     regions: []
-    unit: samples
+    unit: seconds
   -
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#perf:1985_Brendel:cpt_1"
+    id: "#perf:cpt_3h9peanfy5q0w"
     is_segment_line: false
     length: 74.88201814058957
     locked: false
@@ -222,7 +172,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: "#cmap_5"
+        id: "#cmap_3v2226wtu7tuh"
         name: null
         offset: 0
         scalar: [1, 44100]
@@ -230,7 +180,91 @@ timelines:
         target_unit: seconds
         type: LinearMap
     flow_control: []
-    id: "#perf:1985_Brendel:dpt_1"
+    id: "#perf:dpt_1qzwtmb841nn0"
+    is_segment_line: false
+    length: 3222035
+    locked: false
+    meta: {}
+    name: "1966_Szegedi"
+    number_type: int
+    regions: []
+    unit: samples
+  -
+    children: []
+    conversion_maps:
+      -
+        id: "#cmap_1jum558mcfzbz"
+        name: null
+        offset: 0
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    flow_control: []
+    id: "#perf:dpt_2ii3iicuf5y6g"
+    is_segment_line: false
+    length: 3430226
+    locked: false
+    meta: {}
+    name: "1971_Curzon"
+    number_type: int
+    regions: []
+    unit: samples
+  -
+    children: []
+    conversion_maps:
+      -
+        id: "#cmap_3peuynea15425"
+        name: null
+        offset: 0
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    flow_control: []
+    id: "#perf:dpt_351yfzzgebwy0"
+    is_segment_line: false
+    length: 3966487
+    locked: false
+    meta: {}
+    name: "2023_Hewitt"
+    number_type: int
+    regions: []
+    unit: samples
+  -
+    children: []
+    conversion_maps:
+      -
+        id: "#cmap_11y9d835axil2"
+        name: null
+        offset: 0
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    flow_control: []
+    id: "#perf:dpt_35zyecpt3aawt"
+    is_segment_line: false
+    length: 5419538
+    locked: false
+    meta: {}
+    name: "1970_Gould"
+    number_type: int
+    regions: []
+    unit: samples
+  -
+    children: []
+    conversion_maps:
+      -
+        id: "#cmap_1l9lpr2mehcdt"
+        name: null
+        offset: 0
+        scalar: [1, 44100]
+        source_unit: samples
+        target_unit: seconds
+        type: LinearMap
+    flow_control: []
+    id: "#perf:dpt_3lmci5ykrc8v9"
     is_segment_line: false
     length: 3302297
     locked: false
@@ -243,41 +277,7 @@ timelines:
     children: []
     conversion_maps: []
     flow_control: []
-    id: "#perf:2023_Hewitt:cpt_1"
-    is_segment_line: false
-    length: 89.94301587301587
-    locked: false
-    meta: {}
-    name: "2023_Hewitt"
-    number_type: float
-    regions: []
-    unit: seconds
-  -
-    children: []
-    conversion_maps:
-      -
-        id: "#cmap_6"
-        name: null
-        offset: 0
-        scalar: [1, 44100]
-        source_unit: samples
-        target_unit: seconds
-        type: LinearMap
-    flow_control: []
-    id: "#perf:2023_Hewitt:dpt_1"
-    is_segment_line: false
-    length: 3966487
-    locked: false
-    meta: {}
-    name: "2023_Hewitt"
-    number_type: int
-    regions: []
-    unit: samples
-  -
-    children: []
-    conversion_maps: []
-    flow_control: []
-    id: "#score:clt_1"
+    id: "#score:clt_1nja666w5qk37"
     is_segment_line: false
     length: [64, 1]
     locked: false
@@ -290,7 +290,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: "#cmap_1"
+        id: "#cmap_07uwa0vlk8d4b"
         name: null
         offset: [-1, 2]
         scalar: [1, 32]
@@ -298,7 +298,7 @@ timelines:
         target_unit: quarters
         type: LinearMap
     flow_control: []
-    id: "#score:dlt_1"
+    id: "#score:dlt_2aq31ztdm4t6x"
     is_segment_line: false
     length: 2064
     locked: false

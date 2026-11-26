@@ -55,47 +55,47 @@
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
   order:
-    "#group_1": ["#score:clt_1", "#score:dlt_1"]
-    "#group_2": ["#perf:cpt_1", "#perf:dpt_1", "#perf:dgt_1"]
+    "#group_22lp1tcfy2eif": ["#perf:cpt_2aru6cd86we5t", "#perf:dpt_1mca7m9yj2hth", "#perf:dgt_0j7uozpbs4288"]
+    "#group_2xlwyld5fnblq": ["#score:clt_2kp3ykr72exzz", "#score:dlt_07d0ljffegg8o"]
 groups:
   -
-    id: "#group_1"
-    members: ["#score:clt_1", "#score:dlt_1"]
-    name: score
-  -
-    id: "#group_2"
-    members: ["#perf:cpt_1", "#perf:dgt_1", "#perf:dpt_1"]
+    id: "#group_22lp1tcfy2eif"
+    members: ["#perf:cpt_2aru6cd86we5t", "#perf:dgt_0j7uozpbs4288", "#perf:dpt_1mca7m9yj2hth"]
     name: perf
+  -
+    id: "#group_2xlwyld5fnblq"
+    members: ["#score:clt_2kp3ykr72exzz", "#score:dlt_07d0ljffegg8o"]
+    name: score
 meta:
-  generator: "timetoalign 1.2.0 (d57df1b7)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: Beethoven_op35_1971Curzon_Var14only
 timelines:
   -
-    id: "#perf:cpt_1"
+    id: "#perf:cpt_2aru6cd86we5t"
     length: 75.37598985608956
     name: Beethoven_op35_1971Curzon_Var14only
     unit: seconds
   -
     conversion_maps:
       -
-        id: "#cmap_4"
+        id: "#cmap_3g6b7g99kd03d"
         scalar: [32, 11025]
         source_unit: pixels
         target_unit: seconds
         type: LinearMap
-    id: "#perf:dgt_1"
+    id: "#perf:dgt_0j7uozpbs4288"
     length: 26469
     name: Beethoven_op35_1971Curzon_Var14only
     unit: pixels
   -
     conversion_maps:
       -
-        id: "#cmap_3"
+        id: "#cmap_1q0zr9ywpcnri"
         scalar: [1, 44100]
         source_unit: samples
         target_unit: seconds
         type: LinearMap
-    id: "#perf:dpt_1"
+    id: "#perf:dpt_1mca7m9yj2hth"
     length: 3324081
     name: Beethoven_op35_1971Curzon_Var14only
     unit: samples
@@ -103,7 +103,7 @@ timelines:
     conversion_maps:
       -
         extrapolate: linear
-        id: "#cmap_1"
+        id: "#cmap_3oim6nrltup3b"
         source_unit: quarters
         target_unit: seconds
         type: TableMap
@@ -117,19 +117,19 @@ timelines:
           - [64, 1]
           - [46439, 720]
         y_values: [0.0, 23.7, 24.9, 34.199999999999996, 35.4, 39.3, 42.9, 43.278691983122364]
-    id: "#score:clt_1"
+    id: "#score:clt_2kp3ykr72exzz"
     length: [46439, 720]
     name: Beethoven_op35_1971Curzon_Var14only
     unit: quarters
   -
     conversion_maps:
       -
-        id: "#cmap_2"
+        id: "#cmap_3w56zvban15o8"
         scalar: [1, 720]
         source_unit: ticks
         target_unit: quarters
         type: LinearMap
-    id: "#score:dlt_1"
+    id: "#score:dlt_07d0ljffegg8o"
     length: 46440
     name: Beethoven_op35_1971Curzon_Var14only
     unit: ticks

@@ -55,45 +55,45 @@
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
   order:
-    "#group_1": ["#score:clt_1"]
+    "#group_0krj03qdr0enh": ["#score:clt_0tin7dvuaknsw"]
 groups:
   -
-    id: "#group_1"
-    members: ["#score:clt_1"]
+    id: "#group_0krj03qdr0enh"
+    members: ["#score:clt_0tin7dvuaknsw"]
     name: score
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 timelines:
   -
     conversion_maps:
       -
-        id: "#ticks_to_seconds:Chopin_op10_no3_p01"
+        id: "#cmap_25tao1k48zd2l"
         name: ticks_to_seconds
         scalar: [1, 960]
         source_unit: ticks
         target_unit: seconds
         type: LinearMap
-    id: "#perf:Chopin_op10_no3_p01:dlt_1"
+    id: "#perf:dlt_0qwpgh1s014ap"
     length: 79900
     name: Chopin_op10_no3_p01
     unit: ticks
   -
     conversion_maps:
       -
-        id: "#quarters_to_divs"
-        name: quarters_to_divs
-        scalar: 480
-        source_unit: quarters
-        target_unit: ticks
-        type: LinearMap
-      -
-        id: "#raw_quarters"
+        id: "#cmap_0qsl0uo3xqbz4"
         name: raw_quarters
         offset: [-1, 2]
         source_unit: quarters
         target_unit: quarters
         type: LinearMap
-    id: "#score:clt_1"
+      -
+        id: "#cmap_0vyr6dqtwr8o8"
+        name: quarters_to_divs
+        scalar: 480
+        source_unit: quarters
+        target_unit: ticks
+        type: LinearMap
+    id: "#score:clt_0tin7dvuaknsw"
     length: [83, 2]
     name: Chopin_op10_no3
     unit: quarters

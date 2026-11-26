@@ -56,7 +56,7 @@
 groups: []
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (d57df1b7)"
+  generator: "timetoalign 1.2.0 (0117c0f1)"
 name: null
 resources: []
 timelines:
@@ -64,7 +64,7 @@ timelines:
     children: []
     conversion_maps:
       -
-        id: "#cmap_1"
+        id: "#cmap_07uwa0vlk8d4b"
         name: null
         offset: [-1, 2]
         scalar: [1, 32]
@@ -72,7 +72,7 @@ timelines:
         target_unit: quarters
         type: LinearMap
     flow_control: []
-    id: "#score:dlt_1"
+    id: "#score:dlt_2aq31ztdm4t6x"
     is_segment_line: false
     length: 2064
     locked: false
