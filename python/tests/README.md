@@ -2625,8 +2625,9 @@ extraction's are without fontTools. What proves them:
   double, …, `id` string), and `PROJECTION_SCHEMA` its seven; every Arrow
   field is nullable, so a writer need declare nothing, and the columns the
   file marks `nullable: false` are exactly those a null is refused in
-  (`timeline_a_id`, `timeline_b_id`, `is_synchronous`, `id`; `id`,
-  `timeline_id`, `unit`, `number_type`, `start`), each proved below, and
+  (`timeline_a_id`, `timeline_b_id`, `is_synchronous`, `event_a_id`,
+  `event_b_id`, `id`; `id`, `timeline_id`, `unit`, `number_type`,
+  `start`), each proved below, and
   `MATCH_CLAIM_REQUIRED` and `PROJECTION_REQUIRED` are these tuples. Every
   column and member type is one of the four names or a name of `types`,
   and the four are `pa.string()`, `pa.bool_()`, `pa.int64()` and
@@ -2661,9 +2662,12 @@ extraction's are without fontTools. What proves them:
   without its manifest. The rules: a missing column or a column of
   another type (`schema_violation`; a Parquet round trip, which renames
   list items, changes nothing; a column the type does not declare is
-  kept, as an unknown key is); a null in `id`, a timeline or
-  `is_synchronous` (`schema_violation`); an empty ID or one with a control character
-  (`invalid_id`); an ID twice in a table (`duplicate_id`, at its second
+  kept, as an unknown key is); a null in `id`, a timeline,
+  `is_synchronous` or an event ID (`schema_violation`, `'event_b_id' is
+  null`: a sentinel is a string, never a null); an empty ID or one with a
+  control character, and an `id` that is one of the two reserved strings
+  (`invalid_id`, `'NOMATCH_SENTINEL' is reserved for a sentinel`, in both
+  tables); an ID twice in a table (`duplicate_id`, at its second
   row: `the ID 'claim_1' is given twice`, `the ID 'projection_1' is given
   twice`), a Projection's ID as much on two timelines as on one, since a
   Projection's ID is unique in the package as every event's; a `scope`
@@ -2680,9 +2684,9 @@ extraction's are without fontTools. What proves them:
   refused), a fraction's denominator below 1, a
   non-finite float, a cell without `unit` or `number_type` (`the
   coordinate has no unit`) (`invalid_coordinate`, with the message naming
-  the member); a row naming no event
-  (`claim_events`); both timelines the same (`claim_timelines`); NOMATCH (one event null) that is
-  synchronous or has an anchor, a conceptual row (two events, not
+  the member); both timelines the same (`claim_timelines`); a sentinel
+  where it cannot stand (`claim_events`, see the sentinels below); a
+  NOMATCH row with an anchor, a conceptual row (two events, not
   synchronous) with an anchor, a synchronous row without `start_anchor`,
   an `end_anchor` without a start (`claim_anchors`); a certainty outside
   [0, 1] (`invalid_certainty`); a provenance entry, a row's cell (a null
@@ -2720,6 +2724,33 @@ extraction's are without fontTools. What proves them:
   (seconds as float and as fraction, at `number_type`),
   and a `projection_of` column holding a joined string
   (`schema_violation`).
+- **The sentinels are reserved strings, read by `is_synchronous`.** An
+  event ID column holds an event's ID or one of the two strings
+  `timetoshare.tables` exports, `NOMATCH_SENTINEL` and `CHUNK_SENTINEL`
+  (the test pins both values). The rows the format admits are accepted,
+  each built from the inline table by one change and checked with and
+  without the manifest, with no problem: a synchronous instant and a
+  synchronous interval with `CHUNK_SENTINEL` on side A, on side B, and on
+  both sides; a NOMATCH with `NOMATCH_SENTINEL` on side A as well as on
+  side B. A CHUNK side's event ID is no ID to check (a sentinel never
+  meets the ID rules), and an event ID that is no sentinel still does. Each
+  refused row is the smallest counterexample, with its exact problems and
+  first message, in the order of the rules: `CHUNK_SENTINEL` on a row that
+  is not synchronous (`claim_events` at that side's `event_X_id`, side A
+  before side B: `CHUNK_SENTINEL stands only on a synchronous MatchClaim`,
+  once per side when both sides hold it); `NOMATCH_SENTINEL` on a
+  synchronous row (`claim_events` at that side's event ID: `NOMATCH_SENTINEL
+  stands only on a MatchClaim that is not synchronous`); `NOMATCH_SENTINEL`
+  on both sides (`claim_events` at `event_b_id`: `a NOMATCH MatchClaim
+  names an event on its other side`); a name on a sentinel side, NOMATCH
+  or CHUNK (`claim_events` at that side's `event_X_name`: `a sentinel side
+  has no name`); then the anchor rules: a synchronous row with one or no
+  event and no start anchor gives `a synchronous MatchClaim has a start
+  anchor`, at `start_anchor`, as a row of two events does. The messages of
+  the former null reading, `the MatchClaim names no event` and `a NOMATCH
+  MatchClaim is not synchronous`, are never given: no case and no table
+  the suites compare (fixtures, inline cases, seeded mutations, the larger
+  table) yields either.
 - **A fraction in any terms is its value.** No check asks a fraction
   cell for lowest terms: an unreduced fraction is read, and it is the
   same value as its reduced form wherever cells are compared. The
@@ -2777,14 +2808,26 @@ extraction's are without fontTools. What proves them:
   claim (two anchors), two MatchClaims stating one anchor in opposite
   orientations, a chain over three timelines, one coordinate in two
   anchors, an interval claim with an anchor inside its span, a Projection
-  of an event, two Projections without a source joined by one claim, a
-  NOMATCH row, a conceptual row, a row one actor believes false and another
+  of an event, a
+  NOMATCH row (`NOMATCH_SENTINEL` on its sample side), a conceptual row, a row one actor believes false and another
   true, a row believed `unlikely` (kept by the default filter, dropped by
   the believed-true one, kept again by the unlikely-and-false one, which
   splits the chain it closes) and a child timeline whose coordinates never
-  meet its parent's. Its Projections table holds each number type of the
-  cell form: int instants and an int interval on the samples timeline, a
-  float instant and a float interval on the seconds timeline, and a
+  meet its parent's; and the two kinds of CHUNK: `claim_11`, a synchronous
+  MatchClaim with `CHUNK_SENTINEL` on both sides, whose anchor between the
+  samples and the seconds timelines closes the set of `claim_13` as the
+  two Projections without a source it replaced did, so its expected
+  values are unchanged,
+  and `claim_16`, an instant MatchClaim between `CHUNK_SENTINEL` on the
+  seconds timeline and the note `claim_2` states at the quarter 1, whose
+  anchor (quarter 1, second 1.0) sorts before `claim_2`'s and joins its
+  set: the potential MatchStamp at the quarter 1 holds three coordinates
+  and the MatchClaims `claim_16` and `claim_2` wherever the filter keeps
+  both (no actor, the actor's default, the actor's `undecided`), so a
+  reader that drops a CHUNK row's anchor, or reads a CHUNK side as an
+  event, fails the literal values. Its Projections table holds each
+  number type of the cell form: int instants and an int interval on the
+  samples timeline, a float interval on the seconds timeline, and a
   fraction interval (start 7/2, duration 1/2) on the child timeline in
   quarters, so every reader of the shared tables meets a fraction and a
   float duration. Without an actor the row believed false still gives
@@ -2798,7 +2841,7 @@ extraction's are without fontTools. What proves them:
   without provenance included); the row is kept when that state is one
   the filter names. `believed_rows` keeps, per believer and collection of
   states, the rows listed in `test_tables_anchors.py`: every state alone
-  for one actor, which partitions the fifteen rows, the default, and
+  for one actor, which partitions the sixteen rows, the default, and
   without a believer every row whatever the states. A single string
   raises `the belief filter takes a collection of states, not the string
   'true': write ['true']`; an unknown word raises `'not_false' is no
@@ -2828,12 +2871,15 @@ extraction's are without fontTools. What proves them:
   manifest's order, exactly the timelines its table names. Each
   Projection a MatchClaim names stands on that side's timeline at the
   anchor's coordinate, its duration spanning to the end anchor; the
-  fixture's eleven Projections are all named but the last two, the
-  fraction interval and the float interval. The Projections table's rows
+  fixture's nine Projections are all named but the last two, the
+  fraction interval and the float interval, and no Projection stands
+  where a MatchClaim's side is `CHUNK_SENTINEL` (a CHUNK is no
+  Projection). The Projections keep their numbers, `projection_6` and
+  `projection_7` being no longer held. The Projections table's rows
   lie sorted stably by `timeline_id`, each timeline's in the order the
-  script lists them: `projection_10` on `clt_2`, `projection_7` and
-  `projection_11` on `cpt_1`, then `projection_1` to `projection_6`,
-  `projection_8` and `projection_9` on `dpt_1`, the order in which a
+  script lists them: `projection_10` on `clt_2`, `projection_11` on
+  `cpt_1`, then `projection_1` to `projection_5`, `projection_8` and
+  `projection_9` on `dpt_1`, the order in which a
   writer holding the Projections per timeline writes them, so that such a
   writer's file can equal the fixture's byte for byte.
 
@@ -2853,7 +2899,10 @@ with the same message. What proves it (`test_table_checks.py`):
 
 - **The reference is the former implementation.** `table_checks_reference.py`
   holds the row-by-row checks as they were before the change, unchanged but
-  for their imports: the row loops (the axes of the timelines, the IDs, the
+  for their imports and for the rules the format changed since, which it
+  follows as the package must (the sentinels' reserved strings in the event
+  ID columns, read by `is_synchronous`, and a reserved string refused as an
+  `id`, the package's message of an ID): the row loops (the axes of the timelines, the IDs, the
   nulls, each MatchClaim's and each Projection's rules, the succession
   rule) are its own, and the helpers the change left as they were (the
   schema shape check, the message of an ID, an axis or a number, the check
@@ -2901,7 +2950,8 @@ with the same message. What proves it (`test_table_checks.py`):
   null put in any column or any member of a cell (a coordinate's member, an
   anchor's coordinate, a provenance member, a belief, a projected event's
   member); any member set to a value of a pool written for its key (IDs
-  empty or holding a control character, certainties outside [0, 1] or not a
+  empty, holding a control character or a sentinel's string (in an `id`
+  as well as in an event ID or a projected event's), certainties outside [0, 1] or not a
   number, anchors added or taken away, a flag flipped); an ID given again (a second row with another row's ID); a
   timeline ID replaced by an unknown one, by the other side's, or a cell's
   unit or number type replaced by another one, one that is no unit or
@@ -2958,7 +3008,9 @@ with the same message. What proves it (`test_table_checks.py`):
   0`) instead, which a test proves by replacing the ID's message helper
   with one that finds every ID sound.
 - **A larger table.** The 2,000-row MatchClaim table of `large_tables.py`
-  (synchronous, interval, NOMATCH and conceptual rows over two timelines),
+  (synchronous, interval, NOMATCH and conceptual rows over two timelines,
+  and synchronous rows with `CHUNK_SENTINEL` on one side, instants and
+  intervals, and on both sides),
   without and with a provenance in every row (84 distinct cells), has no
   problem by either implementation, and the same table changed thirty
   times by the row kinds, cut into chunks, has the same problems by both,

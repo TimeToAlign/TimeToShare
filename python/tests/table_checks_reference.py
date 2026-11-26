@@ -2,8 +2,12 @@
 
 The package's checks (``timetoshare.tables``) find their problems column by
 column; this module is the implementation they replaced, one row at a time,
-kept unchanged but for its imports so that ``test_table_checks.py`` can
-compare the two on every table it builds. The helpers the change left as
+kept so that ``test_table_checks.py`` can compare the two on every table it
+builds. It changes where the format's rules change, and only there: its
+rules of a MatchClaim's sides and anchors read the sentinels' reserved
+strings in the event ID columns (``CHUNK_SENTINEL`` on a synchronous row,
+``NOMATCH_SENTINEL`` on one that is not), and an ID that is a sentinel's
+string is refused by the package's message of an ID. The helpers the change left as
 they were (the shape check, the messages, the check of a provenance entry)
 are the package's own, imported; the row loops are this module's. It is no
 part of the package.
@@ -18,7 +22,7 @@ import pyarrow as pa
 
 from timetoshare.ids import with_bare_ids
 from timetoshare.manifest import UNITS
-from timetoshare.tables import TableProblem
+from timetoshare.tables import CHUNK_SENTINEL, NOMATCH_SENTINEL, TableProblem
 from timetoshare.tables.checks import (
     _axis_problem,
     _id_problem,
@@ -171,32 +175,47 @@ def _claim_problems(
             "claim_timelines", index, ("timeline_b_id",), f"both sides are '{a}'"
         )
     for key in ("event_a_id", "event_b_id"):
-        if row[key] is not None:
+        if row[key] not in (CHUNK_SENTINEL, NOMATCH_SENTINEL):
             problem = _id_problem(row[key], "the event ID")
             if problem:
                 yield TableProblem("invalid_id", index, (key,), problem)
-    event_a, event_b = row["event_a_id"], row["event_b_id"]
+    synchronous = row["is_synchronous"]
     start, end = row["start_anchor"], row["end_anchor"]
-    if event_a is None and event_b is None:
+    sides = ("a", "b")
+    for side in sides:
+        if not synchronous and row[f"event_{side}_id"] == CHUNK_SENTINEL:
+            yield TableProblem(
+                "claim_events",
+                index,
+                (f"event_{side}_id",),
+                "CHUNK_SENTINEL stands only on a synchronous MatchClaim",
+            )
+    for side in sides:
+        if synchronous and row[f"event_{side}_id"] == NOMATCH_SENTINEL:
+            yield TableProblem(
+                "claim_events",
+                index,
+                (f"event_{side}_id",),
+                "NOMATCH_SENTINEL stands only on a MatchClaim that is not synchronous",
+            )
+    nomatch = [row[f"event_{side}_id"] == NOMATCH_SENTINEL for side in sides]
+    if all(nomatch):
         yield TableProblem(
-            "claim_events", index, ("event_a_id",), "the MatchClaim names no event"
+            "claim_events",
+            index,
+            ("event_b_id",),
+            "a NOMATCH MatchClaim names an event on its other side",
         )
-    elif event_a is None or event_b is None:
-        if row["is_synchronous"]:
+    for side in sides:
+        sentinel = row[f"event_{side}_id"] in (CHUNK_SENTINEL, NOMATCH_SENTINEL)
+        if sentinel and row[f"event_{side}_name"] is not None:
             yield TableProblem(
-                "claim_anchors",
+                "claim_events",
                 index,
-                ("is_synchronous",),
-                "a NOMATCH MatchClaim is not synchronous",
+                (f"event_{side}_name",),
+                "a sentinel side has no name",
             )
-        elif start is not None or end is not None:
-            yield TableProblem(
-                "claim_anchors",
-                index,
-                ("start_anchor" if start is not None else "end_anchor",),
-                "a NOMATCH MatchClaim has no anchors",
-            )
-    elif row["is_synchronous"]:
+    if synchronous:
         if start is None:
             yield TableProblem(
                 "claim_anchors",
@@ -209,7 +228,9 @@ def _claim_problems(
             "claim_anchors",
             index,
             ("start_anchor" if start is not None else "end_anchor",),
-            "a conceptual MatchClaim has no anchors",
+            "a NOMATCH MatchClaim has no anchors"
+            if any(nomatch)
+            else "a conceptual MatchClaim has no anchors",
         )
     if end is not None and start is None:
         yield TableProblem(

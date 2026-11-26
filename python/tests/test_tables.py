@@ -30,11 +30,13 @@ from timetoshare import (  # noqa: E402
 from timetoshare.tables import (  # noqa: E402
     BELIEF_KEYS,
     BELIEF_TYPE,
+    CHUNK_SENTINEL,
     COORDINATE_KEYS,
     COORDINATE_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
+    NOMATCH_SENTINEL,
     NUMBER_KEYS,
     NUMBER_MEMBERS,
     NUMBER_TYPE,
@@ -124,10 +126,14 @@ PROVENANCE = {
 }
 
 
+CHUNK = CHUNK_SENTINEL
+NOMATCH = NOMATCH_SENTINEL
+
+
 def claim(
     identifier: str,
-    event_a: str | None,
-    event_b: str | None,
+    event_a: str,
+    event_b: str,
     start: tuple[dict, dict] | None = None,
     end: tuple[dict, dict] | None = None,
     **members: Any,
@@ -153,7 +159,7 @@ def claim(
 CLAIMS = [
     claim("claim_1", "note_1", "projection_1", (q(0), smp(0)), provenance=PROVENANCE),
     claim("claim_2", "note_2", "projection_2", (q(1), smp(44100)), (q(2), smp(88200))),
-    claim("claim_3", "note_3", None),
+    claim("claim_3", "note_3", NOMATCH),
     claim("claim_4", "note_4", "projection_3"),
 ]
 """An instant claim, an interval claim, a NOMATCH and a conceptual claim."""
@@ -401,13 +407,22 @@ def test_the_column_types_are_published_as_data() -> None:
         for name, table in tables.items()
     }
     assert required == {
-        "MatchClaim": ["timeline_a_id", "timeline_b_id", "is_synchronous", "id"],
+        "MatchClaim": [
+            "timeline_a_id",
+            "timeline_b_id",
+            "is_synchronous",
+            "event_a_id",
+            "event_b_id",
+            "id",
+        ],
         "Projection": ["id", "timeline_id", "unit", "number_type", "start"],
     }
     assert MATCH_CLAIM_REQUIRED == (
         "timeline_a_id",
         "timeline_b_id",
         "is_synchronous",
+        "event_a_id",
+        "event_b_id",
         "id",
     )
     assert PROJECTION_REQUIRED == ("id", "timeline_id", "unit", "number_type", "start")
@@ -679,6 +694,33 @@ CLAIM_CASES = [
         "the ID 'claim_1' is given twice",
     ),
     (
+        "id_nomatch_sentinel",
+        put(1, "id", value=NOMATCH),
+        [("invalid_id", 1, ("id",))],
+        "'NOMATCH_SENTINEL' is reserved for a sentinel",
+    ),
+    (
+        "id_chunk_sentinel",
+        put(0, "id", value=CHUNK),
+        [("invalid_id", 0, ("id",))],
+        "'CHUNK_SENTINEL' is reserved for a sentinel",
+    ),
+    (
+        "event_id_null",
+        put(2, "event_b_id", value=None),
+        [("schema_violation", 2, ("event_b_id",))],
+        "'event_b_id' is null",
+    ),
+    (
+        "event_ids_null",
+        lambda rows: rows[3].update(event_a_id=None, event_b_id=None),
+        [
+            ("schema_violation", 3, ("event_a_id",)),
+            ("schema_violation", 3, ("event_b_id",)),
+        ],
+        "'event_a_id' is null",
+    ),
+    (
         "unit_unknown",
         put(0, "start_anchor", "coordinate_a", "unit", value="parsecs"),
         [("invalid_coordinate", 0, ("start_anchor", "coordinate_a"))],
@@ -769,27 +811,83 @@ CLAIM_CASES = [
         "the coordinate's value inf is not finite",
     ),
     (
-        "no_event",
-        lambda rows: rows[3].update(event_a_id=None, event_b_id=None),
-        [("claim_events", 3, ("event_a_id",))],
-        "the MatchClaim names no event",
-    ),
-    (
         "same_timeline",
         put(3, "timeline_b_id", value="clt_1"),
         [("claim_timelines", 3, ("timeline_b_id",))],
         "both sides are 'clt_1'",
     ),
     (
+        "chunk_not_synchronous",
+        put(3, "event_a_id", value=CHUNK),
+        [("claim_events", 3, ("event_a_id",))],
+        "CHUNK_SENTINEL stands only on a synchronous MatchClaim",
+    ),
+    (
+        "chunk_both_not_synchronous",
+        lambda rows: rows[3].update(event_a_id=CHUNK, event_b_id=CHUNK),
+        [("claim_events", 3, ("event_a_id",)), ("claim_events", 3, ("event_b_id",))],
+        "CHUNK_SENTINEL stands only on a synchronous MatchClaim",
+    ),
+    (
+        "chunk_beside_nomatch",
+        put(2, "event_a_id", value=CHUNK),
+        [("claim_events", 2, ("event_a_id",))],
+        "CHUNK_SENTINEL stands only on a synchronous MatchClaim",
+    ),
+    (
         "nomatch_synchronous",
         put(2, "is_synchronous", value=True),
-        [("claim_anchors", 2, ("is_synchronous",))],
-        "a NOMATCH MatchClaim is not synchronous",
+        [("claim_events", 2, ("event_b_id",)), ("claim_anchors", 2, ("start_anchor",))],
+        "NOMATCH_SENTINEL stands only on a MatchClaim that is not synchronous",
+    ),
+    (
+        "nomatch_synchronous_anchored",
+        put(0, "event_a_id", value=NOMATCH),
+        [("claim_events", 0, ("event_a_id",))],
+        "NOMATCH_SENTINEL stands only on a MatchClaim that is not synchronous",
+    ),
+    (
+        "nomatch_both",
+        put(2, "event_a_id", value=NOMATCH),
+        [("claim_events", 2, ("event_b_id",))],
+        "a NOMATCH MatchClaim names an event on its other side",
+    ),
+    (
+        "nomatch_both_synchronous",
+        lambda rows: rows[0].update(event_a_id=NOMATCH, event_b_id=NOMATCH),
+        [
+            ("claim_events", 0, ("event_a_id",)),
+            ("claim_events", 0, ("event_b_id",)),
+            ("claim_events", 0, ("event_b_id",)),
+        ],
+        "NOMATCH_SENTINEL stands only on a MatchClaim that is not synchronous",
+    ),
+    (
+        "nomatch_side_named",
+        put(2, "event_b_name", value="E4"),
+        [("claim_events", 2, ("event_b_name",))],
+        "a sentinel side has no name",
+    ),
+    (
+        "chunk_side_named",
+        lambda rows: rows[0].update(event_a_id=CHUNK, event_a_name=""),
+        [("claim_events", 0, ("event_a_name",))],
+        "a sentinel side has no name",
     ),
     (
         "nomatch_anchor",
         put(2, "start_anchor", value=anchor(q(3), smp(132300))),
         [("claim_anchors", 2, ("start_anchor",))],
+        "a NOMATCH MatchClaim has no anchors",
+    ),
+    (
+        "nomatch_end_anchor",
+        lambda rows: rows[2].update(
+            event_a_id=NOMATCH,
+            event_b_id="projection_3",
+            end_anchor=rows[1]["end_anchor"],
+        ),
+        [("claim_anchors", 2, ("end_anchor",)), ("claim_anchors", 2, ("end_anchor",))],
         "a NOMATCH MatchClaim has no anchors",
     ),
     (
@@ -805,8 +903,31 @@ CLAIM_CASES = [
         "a synchronous MatchClaim has a start anchor",
     ),
     (
+        "chunk_without_start",
+        lambda rows: rows[0].update(event_b_id=CHUNK, start_anchor=None),
+        [("claim_anchors", 0, ("start_anchor",))],
+        "a synchronous MatchClaim has a start anchor",
+    ),
+    (
+        "chunk_chunk_without_start",
+        lambda rows: rows[0].update(
+            event_a_id=CHUNK, event_b_id=CHUNK, start_anchor=None
+        ),
+        [("claim_anchors", 0, ("start_anchor",))],
+        "a synchronous MatchClaim has a start anchor",
+    ),
+    (
         "end_without_start",
         put(1, "start_anchor", value=None),
+        [
+            ("claim_anchors", 1, ("start_anchor",)),
+            ("claim_anchors", 1, ("end_anchor",)),
+        ],
+        "a synchronous MatchClaim has a start anchor",
+    ),
+    (
+        "chunk_end_without_start",
+        lambda rows: rows[1].update(event_a_id=CHUNK, start_anchor=None),
         [
             ("claim_anchors", 1, ("start_anchor",)),
             ("claim_anchors", 1, ("end_anchor",)),
@@ -916,6 +1037,46 @@ PROVENANCE_CASES = [
         "this entry; an actor holds one belief",
     ),
 ]
+
+
+ADMITTED_CASES = [
+    ("chunk_a_instant", put(0, "event_a_id", value=CHUNK)),
+    ("chunk_b_instant", put(0, "event_b_id", value=CHUNK)),
+    (
+        "chunk_both_instant",
+        lambda rows: rows[0].update(
+            event_a_id=CHUNK, event_a_name=None, event_b_id=CHUNK
+        ),
+    ),
+    ("chunk_a_interval", put(1, "event_a_id", value=CHUNK)),
+    ("chunk_b_interval", put(1, "event_b_id", value=CHUNK)),
+    (
+        "chunk_both_interval",
+        lambda rows: rows[1].update(event_a_id=CHUNK, event_b_id=CHUNK),
+    ),
+    (
+        "nomatch_a",
+        lambda rows: rows[2].update(event_a_id=NOMATCH, event_b_id="projection_3"),
+    ),
+]
+"""Rows the format admits, each one change of the inline table: CHUNK on
+either side and on both of a synchronous instant and interval, and a
+NOMATCH on side A (the inline table's NOMATCH stands on side B)."""
+
+
+def test_the_sentinels() -> None:
+    assert NOMATCH_SENTINEL == "NOMATCH_SENTINEL"
+    assert CHUNK_SENTINEL == "CHUNK_SENTINEL"
+
+
+@pytest.mark.parametrize(
+    "change", [case[1] for case in ADMITTED_CASES], ids=[c[0] for c in ADMITTED_CASES]
+)
+@pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
+def test_each_admitted_row(change: Callable[[list[dict]], None], manifest: Any) -> None:
+    table = claims_table(changed(CLAIMS, change))
+    assert match_claim_problems(table, manifest) == []
+    check_match_claims(table, manifest)
 
 
 @pytest.mark.parametrize(
@@ -1274,6 +1435,12 @@ PROJECTION_CASES = [
         "the ID 'projection_1' is given twice",
     ),
     (
+        "id_chunk_sentinel",
+        put(2, "id", value=CHUNK),
+        [("invalid_id", 2, ("id",))],
+        "'CHUNK_SENTINEL' is reserved for a sentinel",
+    ),
+    (
         "source_without_event",
         put(0, "projection_of", "event_id", value=None),
         [("invalid_projection_of", 0, ("projection_of", "event_id"))],
@@ -1626,8 +1793,8 @@ def test_the_fixture_tables_pass_every_check_against_their_manifest() -> None:
     manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
     claims = pq.read_table(fixture_path("match_claims.parquet"))
     projections = pq.read_table(fixture_path("projections.parquet"))
-    assert claims.num_rows == 15
-    assert projections.num_rows == 11
+    assert claims.num_rows == 16
+    assert projections.num_rows == 9
     assert match_claim_problems(claims, manifest) == []
     assert projection_problems(projections, manifest) == []
 
@@ -1642,7 +1809,7 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
     for row in claims:
         for side in ("a", "b"):
             event = row[f"event_{side}_id"]
-            if event is None or not event.startswith("projection_"):
+            if not event.startswith("projection_"):
                 continue
             named.add(event)
             standing = projections[event]
@@ -1656,20 +1823,30 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
                 end = coordinate_value(row["end_anchor"][f"coordinate_{side}"])
                 assert start + coordinate_value(standing["duration"], kind) == end
     assert set(projections) - named == {"projection_10", "projection_11"}
+    sentinels = [
+        (row["id"], side, row[f"event_{side}_id"])
+        for row in claims
+        for side in ("a", "b")
+        if row[f"event_{side}_id"] in (NOMATCH, CHUNK)
+    ]
+    assert sentinels == [
+        ("claim_11", "a", CHUNK),
+        ("claim_11", "b", CHUNK),
+        ("claim_12", "b", NOMATCH),
+        ("claim_16", "a", CHUNK),
+    ]
 
 
 def test_the_projections_lie_sorted_by_timeline() -> None:
     rows = pq.read_table(fixture_path("projections.parquet")).to_pylist()
     assert [(row["timeline_id"], row["id"]) for row in rows] == [
         ("clt_2", "projection_10"),
-        ("cpt_1", "projection_7"),
         ("cpt_1", "projection_11"),
         ("dpt_1", "projection_1"),
         ("dpt_1", "projection_2"),
         ("dpt_1", "projection_3"),
         ("dpt_1", "projection_4"),
         ("dpt_1", "projection_5"),
-        ("dpt_1", "projection_6"),
         ("dpt_1", "projection_8"),
         ("dpt_1", "projection_9"),
     ]

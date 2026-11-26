@@ -71,7 +71,15 @@ export type {
   ValueNode,
   ValueObject,
 } from "./generated/types.js";
-export { FileIdError, fromFileId, toFileId, withBareIds, withFileIds } from "./ids.js";
+export {
+  CHUNK_SENTINEL,
+  FileIdError,
+  fromFileId,
+  NOMATCH_SENTINEL,
+  toFileId,
+  withBareIds,
+  withFileIds,
+} from "./ids.js";
 export {
   isJsonFloat,
   isJsonObject,

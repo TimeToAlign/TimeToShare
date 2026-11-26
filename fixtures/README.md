@@ -530,11 +530,20 @@ seconds) and names both tables in its `resources`, each with its media
 type, its size, its SHA-256 digest and the timelines its table holds data
 for: `resource_1`, the MatchClaim table, names `clt_1`, `clt_2`, `dpt_1`
 and `cpt_1`; `resource_2`, the Projections table, names `clt_2`, `dpt_1`
-and `cpt_1`. The MatchClaim table holds 15 rows. The Projections table
-holds 11 Projections and each number type of a cell: ints on `dpt_1`
-(instants and one interval), a float instant and a float interval on
-`cpt_1`, and a fraction interval (start 7/2, duration 1/2) on `clt_2`;
-the float interval and the fraction interval are named by no MatchClaim.
+and `cpt_1`. The MatchClaim table holds 16 rows; an event ID column holds
+an event's ID or a sentinel's reserved string, never a null: `claim_12` is
+a NOMATCH (`NOMATCH_SENTINEL` on its `dpt_1` side), `claim_11` a
+synchronous MatchClaim with `CHUNK_SENTINEL` on both sides (`dpt_1` and
+`cpt_1`, whose anchor joins the set of `claim_13`), and `claim_16` an
+instant MatchClaim between `CHUNK_SENTINEL` on `cpt_1` (side A) and the
+note at the quarter 1 of `clt_1`, whose anchor joins `claim_2`'s start into
+one potential MatchStamp. The Projections table holds 9 Projections, none
+where a side is CHUNK (a CHUNK is no Projection; the Projections keep their
+numbers, so `projection_6` and `projection_7` are not held), and each
+number type of a cell: ints on `dpt_1` (instants and one interval), a
+float interval on `cpt_1`, and a fraction interval (start 7/2, duration
+1/2) on `clt_2`; the float interval and the fraction interval are named by
+no MatchClaim.
 Its rows lie sorted stably by `timeline_id` (`clt_2`, then `cpt_1`, then
 `dpt_1`), each timeline's in the order the script lists them: the order in
 which timetoalign writes a bundle's Projections table, so that the two

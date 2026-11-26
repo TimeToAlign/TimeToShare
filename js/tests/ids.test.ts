@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CONTAINERS, definitionsOf, ID_POSITIONS, MEASURE_VIEWS } from "../src/ids.js";
 import {
+  CHUNK_SENTINEL,
   compactJson,
   FileIdError,
   FORMAT_CONTEXT,
@@ -8,6 +9,7 @@ import {
   isJsonObject,
   JsonFloat,
   loads,
+  NOMATCH_SENTINEL,
   SchemaValidationError,
   schema,
   statementProblems,
@@ -157,6 +159,13 @@ function at(value: unknown, ...path: (string | number)[]): unknown {
   }
   return cursor;
 }
+
+describe("the sentinels of a MatchClaim table", () => {
+  it("are the reserved strings the Python package names", () => {
+    expect(NOMATCH_SENTINEL).toBe("NOMATCH_SENTINEL");
+    expect(CHUNK_SENTINEL).toBe("CHUNK_SENTINEL");
+  });
+});
 
 describe("one ID", () => {
   it("gains one #", () => {

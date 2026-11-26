@@ -118,40 +118,88 @@ def test_the_potential_matchstamps(case: dict[str, Any]) -> None:
 
 def test_the_counts_of_the_fixture() -> None:
     table = _table()
-    assert len(alignment_anchors(table)) == 14
+    assert len(alignment_anchors(table)) == 15
     assert len(potential_matchstamps(table)) == 11
     coordinates = {
         coordinate
         for stamp in potential_matchstamps(table)
         for coordinate in stamp.coordinates
     }
-    assert len(coordinates) == 25
+    assert len(coordinates) == 26
+
+
+def test_a_chunk_row_gives_its_anchor_like_any_other() -> None:
+    table = _table()
+    anchors = alignment_anchors(table)
+    assert [
+        (anchor.coordinates, claims)
+        for anchor, claims in anchors.items()
+        if {"claim_11", "claim_16"} & set(claims)
+    ] == [
+        (
+            (
+                TimelineCoordinate("clt_1", Fraction(1)),
+                TimelineCoordinate("cpt_1", Fraction(1)),
+            ),
+            ("claim_16",),
+        ),
+        (
+            (
+                TimelineCoordinate("cpt_1", Fraction(10)),
+                TimelineCoordinate("dpt_1", Fraction(441000)),
+            ),
+            ("claim_11",),
+        ),
+    ]
+    joined = [
+        (stamp.coordinates, stamp.match_claims)
+        for stamp in potential_matchstamps(table)
+        if {"claim_11", "claim_16"} & set(stamp.match_claims)
+    ]
+    assert joined == [
+        (
+            (
+                TimelineCoordinate("clt_1", Fraction(1)),
+                TimelineCoordinate("cpt_1", Fraction(1)),
+                TimelineCoordinate("dpt_1", Fraction(44100)),
+            ),
+            ("claim_16", "claim_2"),
+        ),
+        (
+            (
+                TimelineCoordinate("clt_1", Fraction(10)),
+                TimelineCoordinate("cpt_1", Fraction(10)),
+                TimelineCoordinate("dpt_1", Fraction(441000)),
+            ),
+            ("claim_11", "claim_13"),
+        ),
+    ]
 
 
 NOBODY = "https://orcid.org/0000-0000-0000-0000"
-UNDECIDED_FOR_ACTOR = [1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14]
+UNDECIDED_FOR_ACTOR = [1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14, 15]
 
 
 @pytest.mark.parametrize(
     ("believer", "beliefs", "rows"),
     [
-        (None, EVERY_STATE_BUT_FALSE, list(range(15))),
-        (None, ["true"], list(range(15))),
-        (None, [], list(range(15))),
-        (ACTOR, EVERY_STATE_BUT_FALSE, [index for index in range(15) if index != 12]),
+        (None, EVERY_STATE_BUT_FALSE, list(range(16))),
+        (None, ["true"], list(range(16))),
+        (None, [], list(range(16))),
+        (ACTOR, EVERY_STATE_BUT_FALSE, [index for index in range(16) if index != 12]),
         (ACTOR, ["true"], [0, 10]),
         (ACTOR, ["undecided"], UNDECIDED_FOR_ACTOR),
         (ACTOR, ["unlikely"], [5]),
         (ACTOR, ["false"], [12]),
         (ACTOR, ["unlikely", "false"], [5, 12]),
         (ACTOR, [], []),
-        (ACTOR, list(BELIEF_STATES), list(range(15))),
-        (OTHER_ACTOR, EVERY_STATE_BUT_FALSE, list(range(15))),
+        (ACTOR, list(BELIEF_STATES), list(range(16))),
+        (OTHER_ACTOR, EVERY_STATE_BUT_FALSE, list(range(16))),
         (OTHER_ACTOR, ["true"], [12, 13]),
         (OTHER_ACTOR, ["false"], []),
-        (NOBODY, EVERY_STATE_BUT_FALSE, list(range(15))),
+        (NOBODY, EVERY_STATE_BUT_FALSE, list(range(16))),
         (NOBODY, ["true"], []),
-        (NOBODY, ["undecided"], list(range(15))),
+        (NOBODY, ["undecided"], list(range(16))),
     ],
 )
 def test_the_belief_filter(
@@ -168,7 +216,7 @@ def test_the_belief_filter_keeps_every_state_but_false_by_default() -> None:
         table, ACTOR, EVERY_STATE_BUT_FALSE
     )
     assert believed_rows(table, ACTOR, {"undecided", "true", "unlikely"}) == [
-        index for index in range(15) if index != 12
+        index for index in range(16) if index != 12
     ]
 
 
@@ -203,7 +251,7 @@ def test_the_belief_filter_compares_actors_as_iris() -> None:
     assert believed_rows(table, compact, ["true"], context=context) == [0, 10]
     assert believed_rows(table, compact, ["false"], context=context) == [12]
     assert believed_rows(table, compact, ["true"]) == []
-    assert believed_rows(table, compact, ["undecided"]) == list(range(15))
+    assert believed_rows(table, compact, ["undecided"]) == list(range(16))
     assert [
         anchor.coordinates
         for anchor in alignment_anchors(table, compact, ["true"], context=context)

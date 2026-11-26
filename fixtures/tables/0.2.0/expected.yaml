@@ -16,6 +16,15 @@ cases:
             timeline_id: clt_1
             value: [1, 1]
           -
+            timeline_id: cpt_1
+            value: 1.0
+        match_claims: [claim_16]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [1, 1]
+          -
             timeline_id: dpt_1
             value: 44100
         match_claims: [claim_2]
@@ -145,9 +154,12 @@ cases:
             timeline_id: clt_1
             value: [1, 1]
           -
+            timeline_id: cpt_1
+            value: 1.0
+          -
             timeline_id: dpt_1
             value: 44100
-        match_claims: [claim_2]
+        match_claims: [claim_16, claim_2]
       -
         coordinates:
           -
@@ -249,6 +261,15 @@ cases:
             timeline_id: dpt_1
             value: 0
         match_claims: [claim_1]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [1, 1]
+          -
+            timeline_id: cpt_1
+            value: 1.0
+        match_claims: [claim_16]
       -
         coordinates:
           -
@@ -375,9 +396,12 @@ cases:
             timeline_id: clt_1
             value: [1, 1]
           -
+            timeline_id: cpt_1
+            value: 1.0
+          -
             timeline_id: dpt_1
             value: 44100
-        match_claims: [claim_2]
+        match_claims: [claim_16, claim_2]
       -
         coordinates:
           -
@@ -537,6 +561,15 @@ cases:
             timeline_id: clt_1
             value: [1, 1]
           -
+            timeline_id: cpt_1
+            value: 1.0
+        match_claims: [claim_16]
+      -
+        coordinates:
+          -
+            timeline_id: clt_1
+            value: [1, 1]
+          -
             timeline_id: dpt_1
             value: 44100
         match_claims: [claim_2]
@@ -630,9 +663,12 @@ cases:
             timeline_id: clt_1
             value: [1, 1]
           -
+            timeline_id: cpt_1
+            value: 1.0
+          -
             timeline_id: dpt_1
             value: 44100
-        match_claims: [claim_2]
+        match_claims: [claim_16, claim_2]
       -
         coordinates:
           -

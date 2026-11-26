@@ -36,8 +36,11 @@ from .columns import (
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
+    SENTINELS,
     coordinate_value,
 )
+from .columns import CHUNK_SENTINEL as CHUNK
+from .columns import NOMATCH_SENTINEL as NOMATCH
 
 __all__ = [
     "TableCode",
@@ -131,10 +134,14 @@ def _schema_problems(table: pa.Table, schema: pa.Schema) -> list[TableProblem]:
 
 
 def _id_problem(value: Any, what: str) -> str | None:
+    """Why a string is no ID, or ``None``: empty, holding a control
+    character, or one of the reserved strings of the sentinels."""
     if value == "":
         return f"{what} is empty"
     if _CONTROL.search(value):
         return f"{what} {value!r} holds a control character"
+    if value in SENTINELS:
+        return f"'{value}' is reserved for a sentinel"
     return None
 
 
@@ -299,6 +306,7 @@ _ZERO = pa.scalar(0, pa.int64())
 _ONE = pa.scalar(1, pa.int64())
 _ZERO32 = pa.scalar(0, pa.int32())
 _EMPTY = pa.scalar("")
+_SENTINELS = pa.array(SENTINELS, pa.string())
 _COMMA = pa.scalar(",")
 _NO_ROW = pa.scalar(None, pa.int64())
 _ENCODE = pc.DictionaryEncodeOptions(null_encoding="encode")
@@ -460,15 +468,16 @@ def _null_problems(table: pa.Table, required: tuple[str, ...]) -> list[TableProb
     return found.problems()
 
 
-def _malformed(values: pa.Array) -> pa.Array:
-    """Where a string is an ID :func:`_id_problem` refuses: empty, or holding
-    a control character."""
-    return _held(
-        pc.or_(
-            pc.equal(values, _EMPTY),
-            pc.match_substring_regex(values, _CONTROL.pattern),
-        )
+def _malformed(values: pa.Array, *, reserved: bool = True) -> pa.Array:
+    """Where a string is an ID :func:`_id_problem` refuses: empty, holding
+    a control character or, where ``reserved``, a sentinel's string."""
+    mask = pc.or_(
+        pc.equal(values, _EMPTY),
+        pc.match_substring_regex(values, _CONTROL.pattern),
     )
+    if reserved:
+        mask = pc.or_(mask, pc.is_in(values, value_set=_SENTINELS))
+    return _held(mask)
 
 
 def _id_problems(found: _Found, ids: pa.Array) -> None:
@@ -712,7 +721,7 @@ def _claim_problems(found: _Found, table: pa.Table, manifest: _Manifest | None) 
         )
     for place, key in ((4, "event_a_id"), (5, "event_b_id")):
         events = _array(table, key)
-        rows = _rows(_malformed(events))
+        rows = _rows(_malformed(events, reserved=False))
         for row, value in zip(rows, _at(events, rows), strict=True):
             found.add(
                 row,
@@ -743,62 +752,97 @@ def _claim_problems(found: _Found, table: pa.Table, manifest: _Manifest | None) 
 
 
 def _anchor_problems(found: _Found, table: pa.Table) -> None:
-    """Which anchors a MatchClaim has, by its events and whether it is
-    synchronous: one problem at most at place 6, and an end anchor without
-    a start at place 7."""
-    without_a = pc.is_null(_array(table, "event_a_id"))
-    without_b = pc.is_null(_array(table, "event_b_id"))
+    """The sides and the anchors of a MatchClaim, by its event IDs and
+    whether it is synchronous: the sentinels and their sides at place 6,
+    then which anchors the row has, at most one problem, also at place 6,
+    and an end anchor without a start at place 7.
+
+    An event ID column holds an event's ID or a sentinel's reserved string,
+    never a null: ``CHUNK_SENTINEL`` on a side of a synchronous MatchClaim
+    (the anchor states that side's coordinate), ``NOMATCH_SENTINEL`` on one
+    side of a MatchClaim that is not synchronous (no anchor). A sentinel
+    side has no name."""
+    events = {side: _array(table, f"event_{side}_id") for side in ("a", "b")}
+    chunk = {side: _held(pc.equal(ids, CHUNK)) for side, ids in events.items()}
+    nomatch = {side: _held(pc.equal(ids, NOMATCH)) for side, ids in events.items()}
     synchronous = _array(table, "is_synchronous")
+    not_synchronous = _not(synchronous)
     start = pc.is_valid(_array(table, "start_anchor"))
     end = pc.is_valid(_array(table, "end_anchor"))
     anchored = _any(start, end)
-    nomatch = pc.xor(without_a, without_b)
-    both = _all(_not(without_a), _not(without_b))
-    rules: tuple[tuple[TableCode, pa.Array, str | None, str], ...] = (
+    any_nomatch = _any(nomatch["a"], nomatch["b"])
+    rules: list[tuple[TableCode, pa.Array, str | None, str]] = [
+        *(
+            (
+                "claim_events",
+                _all(not_synchronous, chunk[side]),
+                f"event_{side}_id",
+                "CHUNK_SENTINEL stands only on a synchronous MatchClaim",
+            )
+            for side in ("a", "b")
+        ),
+        *(
+            (
+                "claim_events",
+                _all(synchronous, nomatch[side]),
+                f"event_{side}_id",
+                "NOMATCH_SENTINEL stands only on a MatchClaim that is not synchronous",
+            )
+            for side in ("a", "b")
+        ),
         (
             "claim_events",
-            _all(without_a, without_b),
-            "event_a_id",
-            "the MatchClaim names no event",
+            _all(nomatch["a"], nomatch["b"]),
+            "event_b_id",
+            "a NOMATCH MatchClaim names an event on its other side",
+        ),
+        *(
+            (
+                "claim_events",
+                _all(
+                    _any(chunk[side], nomatch[side]),
+                    pc.is_valid(_array(table, f"event_{side}_name")),
+                ),
+                f"event_{side}_name",
+                "a sentinel side has no name",
+            )
+            for side in ("a", "b")
         ),
         (
             "claim_anchors",
-            _all(nomatch, synchronous),
-            "is_synchronous",
-            "a NOMATCH MatchClaim is not synchronous",
-        ),
-        (
-            "claim_anchors",
-            _all(nomatch, _not(synchronous), anchored),
+            _all(not_synchronous, any_nomatch, anchored),
             None,
             "a NOMATCH MatchClaim has no anchors",
         ),
         (
             "claim_anchors",
-            _all(both, synchronous, _not(start)),
+            _all(synchronous, _not(start)),
             "start_anchor",
             "a synchronous MatchClaim has a start anchor",
         ),
         (
             "claim_anchors",
-            _all(both, _not(synchronous), anchored),
+            _all(not_synchronous, _not(any_nomatch), anchored),
             None,
             "a conceptual MatchClaim has no anchors",
         ),
-        (
-            "claim_anchors",
-            _all(end, _not(start)),
-            "end_anchor",
-            "an end anchor needs a start anchor",
-        ),
-    )
-    for place, (code, mask, key, message) in enumerate(rules):
+    ]
+    for code, mask, key, message in rules:
         rows = _rows(mask)
         for row, starts in zip(rows, _at(start, rows), strict=True):
             column = key or ("start_anchor" if starts else "end_anchor")
-            found.add(
-                row, 6 if place < 5 else 7, TableProblem(code, row, (column,), message)
-            )
+            found.add(row, 6, TableProblem(code, row, (column,), message))
+    for row in _rows(_all(end, _not(start))):
+        found.add(
+            row,
+            7,
+            TableProblem(
+                "claim_anchors",
+                row,
+                ("end_anchor",),
+                "an end anchor needs a start anchor",
+            ),
+        )
 
 
 def _cell_problems(

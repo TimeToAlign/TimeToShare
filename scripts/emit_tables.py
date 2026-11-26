@@ -24,16 +24,25 @@ quarter lasts one second, 44100 samples) and one child of the first:
 - ``claim_7``, ``claim_8``: one coordinate in two anchors.
 - ``claim_9``, ``claim_10``: an interval claim with another anchor inside
   its span.
-- ``claim_11``: two Projections without a source joined by one claim.
+- ``claim_11``: a synchronous MatchClaim with CHUNK on both sides: its two
+  timelines hold no event at the coordinates its anchor states.
 - ``claim_12``: a NOMATCH row; ``claim_14``: a conceptual row.
 - ``claim_13``: a row one actor believes false and another true; ``claim_6``
   is believed unlikely, ``claim_1`` and ``claim_11`` true.
 - ``claim_15``: a child timeline, whose coordinates never meet its parent's.
+- ``claim_16``: an instant MatchClaim between CHUNK on the seconds timeline
+  and the note ``claim_2`` states at the quarter 1; its anchor joins
+  ``claim_2``'s start into one potential MatchStamp.
+
+A sentinel is written in the event ID column as its reserved string
+(``NOMATCH_SENTINEL``, ``CHUNK_SENTINEL``), its name null.
 
 The Projections table holds a Projection of each number type: ints on the
-samples timeline (instants and one interval), a float instant and a float
-interval on the seconds timeline, and a fraction interval on the child,
-the Projection of an audio onset; the last two name no MatchClaim. Its rows
+samples timeline (instants and one interval), a float interval on the
+seconds timeline, and a fraction interval on the child, the Projection of
+an audio onset; the last two name no MatchClaim. A CHUNK
+side is no Projection, and the Projections keep their numbers, so
+``projection_6`` and ``projection_7`` are not held. Its rows
 are written sorted stably by ``timeline_id``, each timeline's rows in the
 order listed here: the order in which timetoalign writes a bundle's
 Projections table, so that the two files are equal byte for byte.
@@ -59,7 +68,9 @@ import pyarrow.parquet as pq
 
 from timetoshare import FORMAT_CONTEXT, SCHEMA_VERSION, dumps, validate, with_file_ids
 from timetoshare.tables import (
+    CHUNK_SENTINEL,
     MATCH_CLAIM_SCHEMA,
+    NOMATCH_SENTINEL,
     PROJECTION_SCHEMA,
     check_match_claims,
     check_projections,
@@ -189,15 +200,16 @@ def stated() -> dict[str, Any]:
 
 def claim(
     identifier: str,
-    a: tuple[str, str | None, str | None],
-    b: tuple[str, str | None, str | None],
+    a: tuple[str, str, str | None],
+    b: tuple[str, str, str | None],
     start: tuple[dict[str, Any], dict[str, Any]] | None = None,
     end: tuple[dict[str, Any], dict[str, Any]] | None = None,
     *,
     synchronous: bool = True,
     provenance: dict[str, Any] | None = IMPORTED,
 ) -> dict[str, Any]:
-    """One MatchClaim row; a side is ``(timeline, event ID, event name)``."""
+    """One MatchClaim row; a side is ``(timeline, event ID, event name)``, the
+    event ID a sentinel's string on a sentinel side."""
 
     def anchor(pair: tuple[dict[str, Any], dict[str, Any]] | None) -> Any:
         if pair is None:
@@ -230,6 +242,14 @@ def projection(timeline: str, number: int) -> tuple[str, str, None]:
 
 def onset(number: int) -> tuple[str, str, None]:
     return ("cpt_1", f"onset_{number}", None)
+
+
+def chunk(timeline: str) -> tuple[str, str, None]:
+    return (timeline, CHUNK_SENTINEL, None)
+
+
+def nomatch(timeline: str) -> tuple[str, str, None]:
+    return (timeline, NOMATCH_SENTINEL, None)
 
 
 MATCH_CLAIMS: list[dict[str, Any]] = [
@@ -302,15 +322,15 @@ MATCH_CLAIMS: list[dict[str, Any]] = [
     ),
     claim(
         "claim_11",
-        projection("dpt_1", 6),
-        projection("cpt_1", 7),
+        chunk("dpt_1"),
+        chunk("cpt_1"),
         (samples(441000), seconds(10.0)),
         provenance=stated(),
     ),
     claim(
         "claim_12",
         note("clt_1", 10, "E5"),
-        ("dpt_1", None, None),
+        nomatch("dpt_1"),
         synchronous=False,
     ),
     claim(
@@ -345,6 +365,12 @@ MATCH_CLAIMS: list[dict[str, Any]] = [
         projection("dpt_1", 9),
         (quarters(1), samples(396900)),
         provenance=None,
+    ),
+    claim(
+        "claim_16",
+        chunk("cpt_1"),
+        note("clt_1", 2, "D4"),
+        (seconds(1.0), quarters(1)),
     ),
 ]
 """The MatchClaim table, row by row."""
@@ -384,8 +410,6 @@ PROJECTIONS: list[dict[str, Any]] = [
     _projection(3, "dpt_1", samples(132300), ("clt_1", "note_3")),
     _projection(4, "dpt_1", samples(132300), ("clt_1", "note_4")),
     _projection(5, "dpt_1", samples(176400), ("clt_1", "note_5")),
-    _projection(6, "dpt_1", samples(441000), None),
-    _projection(7, "cpt_1", seconds(10.0), None),
     _projection(8, "dpt_1", samples(441000), ("clt_1", "note_11")),
     _projection(9, "dpt_1", samples(396900), ("clt_2", "note_13")),
     _projection(10, "clt_2", quarters(7, 2), ("dpt_1", "onset_1"), quarters(1, 2)),
@@ -413,6 +437,7 @@ def s(coordinates: list[dict[str, Any]], *claims: str) -> dict[str, Any]:
 
 
 A_1 = a(c("clt_1", [0, 1]), c("dpt_1", 0), "claim_1")
+A_CHUNK = a(c("clt_1", [1, 1]), c("cpt_1", 1.0), "claim_16")
 A_2 = a(c("clt_1", [1, 1]), c("dpt_1", 44100), "claim_2")
 A_3 = a(c("clt_1", [2, 1]), c("dpt_1", 88200), "claim_2")
 A_4 = a(c("clt_1", [3, 1]), c("dpt_1", 132300), "claim_3", "claim_4")
@@ -428,7 +453,7 @@ A_13 = a(c("cpt_1", 4.0), c("dpt_1", 176400), "claim_6")
 A_14 = a(c("cpt_1", 10.0), c("dpt_1", 441000), "claim_11")
 
 S_1 = s([c("clt_1", [0, 1]), c("dpt_1", 0)], "claim_1")
-S_2 = s([c("clt_1", [1, 1]), c("dpt_1", 44100)], "claim_2")
+S_2 = s([c("clt_1", [1, 1]), c("cpt_1", 1.0), c("dpt_1", 44100)], "claim_16", "claim_2")
 S_3 = s([c("clt_1", [2, 1]), c("dpt_1", 88200)], "claim_2")
 S_4 = s([c("clt_1", [3, 1]), c("dpt_1", 132300)], "claim_3", "claim_4")
 S_5 = s([c("clt_1", [4, 1]), c("cpt_1", 4.0), c("dpt_1", 176400)], "claim_5", "claim_6")
@@ -452,6 +477,7 @@ EVERY_STATE_BUT_FALSE = ["true", "undecided", "unlikely"]
 
 EVERY_ANCHOR = [
     A_1,
+    A_CHUNK,
     A_2,
     A_3,
     A_4,
@@ -522,7 +548,19 @@ EXPECTED: dict[str, Any] = {
         {
             "believer": ACTOR,
             "beliefs": ["undecided"],
-            "alignment_anchors": [A_2, A_3, A_4, A_5, A_6, A_7, A_8, A_9, A_10, A_12],
+            "alignment_anchors": [
+                A_CHUNK,
+                A_2,
+                A_3,
+                A_4,
+                A_5,
+                A_6,
+                A_7,
+                A_8,
+                A_9,
+                A_10,
+                A_12,
+            ],
             "potential_matchstamps": [
                 S_2,
                 S_3,

@@ -17,9 +17,11 @@ not for speed. It reads a MatchClaim table the checks accept.
   state is the most critical of them: ``"false"``, then ``"unlikely"``, then
   ``"true"``.
 - A synchronous MatchClaim gives the anchor of its ``start_anchor`` and, if
-  it has one, of its ``end_anchor``; NOMATCH and conceptual MatchClaims give
-  none. Two anchors are the same when both coordinates are equal, compared
-  exactly on the two timelines' axes, whichever side each stands on.
+  it has one, of its ``end_anchor``, whatever its sides: two events, an
+  event and CHUNK, or CHUNK on both (a CHUNK side gives its coordinate and
+  no event); NOMATCH and conceptual MatchClaims give none. Two anchors are
+  the same when both coordinates are equal, compared exactly on the two
+  timelines' axes, whichever side each stands on.
 - A potential MatchStamp is one connected set of coordinates under the
   unique anchors.
 """

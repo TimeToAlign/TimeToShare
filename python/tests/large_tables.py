@@ -8,7 +8,12 @@ from typing import Any
 import pyarrow as pa
 
 from timetoshare import with_file_ids
-from timetoshare.tables import MATCH_CLAIM_SCHEMA, PROJECTION_SCHEMA
+from timetoshare.tables import (
+    CHUNK_SENTINEL,
+    MATCH_CLAIM_SCHEMA,
+    NOMATCH_SENTINEL,
+    PROJECTION_SCHEMA,
+)
 
 ACTOR = "https://orcid.org/0000-0002-1825-0097"
 BELIEF_WORDS = ("true", "unlikely", "false")
@@ -97,7 +102,10 @@ def many_claims(rows: int = 250_000, provenance: bool = False) -> pa.Table:
     50th row (``k % 50 == 49``) is a NOMATCH, every 100th (``k % 100 == 98``)
     a conceptual MatchClaim, every other row synchronous with its start
     anchor at the quarter ``k/2`` and the sample ``22050 k``, and every tenth
-    (``k % 10 == 0``) an interval ending one step later. With
+    (``k % 10 == 0``) an interval ending one step later. Among the
+    synchronous rows, every 50th (``k % 50 == 20``, an interval) is CHUNK on
+    its sample side, every 100th (``k % 100 == 37``) CHUNK on its quarter
+    side and every 100th (``k % 100 == 73``) CHUNK on both sides. With
     ``provenance``, every row holds one of 84 provenance entries.
     """
     data: dict[str, list[Any]] = {name: [] for name in MATCH_CLAIM_SCHEMA.names}
@@ -114,9 +122,17 @@ def many_claims(rows: int = 250_000, provenance: bool = False) -> pa.Table:
         data["is_synchronous"].append(synchronous)
         data["provenance"].append(_provenance(k) if provenance else None)
         data["certainty"].append(1.0)
-        data["event_a_id"].append(f"note_{k + 1}")
+        chunk_a = k % 100 in (37, 73)
+        chunk_b = k % 50 == 20 or k % 100 == 73
+        data["event_a_id"].append(CHUNK_SENTINEL if chunk_a else f"note_{k + 1}")
         data["event_a_name"].append(None)
-        data["event_b_id"].append(None if nomatch else f"projection_{k + 1}")
+        data["event_b_id"].append(
+            NOMATCH_SENTINEL
+            if nomatch
+            else CHUNK_SENTINEL
+            if chunk_b
+            else f"projection_{k + 1}"
+        )
         data["event_b_name"].append(None)
         data["id"].append(f"claim_{k + 1}")
     return pa.table(

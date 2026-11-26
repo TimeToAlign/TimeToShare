@@ -35,6 +35,23 @@ import { clone, isJsonObject, type JsonObject, keysOf, objectFrom } from "./json
 export const HASH = "#";
 
 /**
+ * The event ID of a NOMATCH side in a MatchClaim table: a MatchClaim that is
+ * not synchronous states that the event of its other side has no counterpart
+ * on this timeline. It is no event, holds no anchor, and no element has it as
+ * its ID. Python's `timetoshare.tables.NOMATCH_SENTINEL` is the same string.
+ */
+export const NOMATCH_SENTINEL = "NOMATCH_SENTINEL";
+
+/**
+ * The event ID of a CHUNK side in a MatchClaim table: a synchronous MatchClaim
+ * states a coordinate on this timeline, which holds no event for it; the
+ * coordinate is the anchor's on this side. It is no event, and no element has
+ * it as its ID. Python's `timetoshare.tables.CHUNK_SENTINEL` is the same
+ * string.
+ */
+export const CHUNK_SENTINEL = "CHUNK_SENTINEL";
+
+/**
  * How a member holds IDs: `id` the member is one ID; `ids` a list of IDs, an
  * item that is no string (a FlowMap's gap) kept as it is;
  * `order` an object keyed by IDs whose value, where the key names a group, is

@@ -871,6 +871,13 @@ bare and reach the checks through the file-form helpers of
 `identityProblems`, `statementProblems`), while the shared cases and the
 fixtures, which are files, reach the package's functions as they are.
 
+The package reads no tables, but it names the two reserved strings a
+MatchClaim table's event ID columns hold beside event IDs, so that a writer
+in JavaScript spells them as the Python package does: `NOMATCH_SENTINEL`
+and `CHUNK_SENTINEL` are exported from the root entry and equal the strings
+`"NOMATCH_SENTINEL"` and `"CHUNK_SENTINEL"`, the values of
+`timetoshare.tables` (the Python suite pins the same strings).
+
 ## Manifest files
 
 `fileForm(text)` gives a `FileForm`, `{ minimal, styling, serialization }`,

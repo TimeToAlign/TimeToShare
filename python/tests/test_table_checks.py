@@ -18,7 +18,9 @@ pq = pytest.importorskip("pyarrow.parquet")
 
 from timetoshare import loads  # noqa: E402
 from timetoshare.tables import (  # noqa: E402
+    CHUNK_SENTINEL,
     MATCH_CLAIM_SCHEMA,
+    NOMATCH_SENTINEL,
     PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
     checks,
@@ -32,6 +34,7 @@ from . import table_checks_reference as reference  # noqa: E402
 from .large_tables import BAD_TIMELINES, large_manifest, many_claims  # noqa: E402
 from .test_tables import (  # noqa: E402
     ACTOR,
+    ADMITTED_CASES,
     CLAIM_CASES,
     CLAIMS,
     MANIFEST,
@@ -67,9 +70,19 @@ def _outcome(check: Callable[..., Any], *arguments: Any) -> Any:
         return ("raises", type(error).__name__, str(error))
 
 
+FORMER_MESSAGES = {
+    "the MatchClaim names no event",
+    "a NOMATCH MatchClaim is not synchronous",
+}
+"""The messages of the reading that took a null event ID for NOMATCH: no
+table yields them any more."""
+
+
 def assert_same_claim_problems(table: Any, manifest: Any) -> list:
     expected = _outcome(reference.match_claim_problems, table, manifest)
     assert _outcome(match_claim_problems, table, manifest) == expected
+    if expected[0] == "problems":
+        assert not FORMER_MESSAGES & {problem.message for problem in expected[1]}
     return expected[1] if expected[0] == "problems" else ["raised"]
 
 
@@ -100,6 +113,13 @@ def test_the_fixture_tables(manifest: Any) -> None:
 def test_each_claim_case(case: tuple, manifest: Any) -> None:
     table = claims_table(changed(CLAIMS, case[1]))
     assert assert_same_claim_problems(table, manifest) != []
+
+
+@pytest.mark.parametrize("case", ADMITTED_CASES, ids=lambda case: case[0])
+@pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
+def test_each_admitted_row(case: tuple, manifest: Any) -> None:
+    table = claims_table(changed(CLAIMS, case[1]))
+    assert assert_same_claim_problems(table, manifest) == []
 
 
 @pytest.mark.parametrize("case", PROJECTION_CASES, ids=lambda case: case[0])
@@ -193,8 +213,17 @@ _PROVENANCE_POOL = [
 ]
 
 _POOLS: dict[str, list[Any]] = {
-    "id": ["", "x\x01y", "claim_1", "projection_1", "note_1", None],
-    "event": ["", "x\x1fy", "note_1", "note_2", "é", None],
+    "id": ["", "x\x01y", "claim_1", "projection_1", "note_1", CHUNK_SENTINEL, None],
+    "event": [
+        "",
+        "x\x1fy",
+        "note_1",
+        "note_2",
+        "é",
+        NOMATCH_SENTINEL,
+        CHUNK_SENTINEL,
+        None,
+    ],
     "name": ["C4", "", None],
     "timeline": ["clt_1", "dpt_1", "cpt_1", "clt_2", "tl_unknown", "", None],
     "unit": ["quarters", "samples", "seconds", "ticks", "whole_notes", "parsecs", None],
