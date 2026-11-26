@@ -4,7 +4,7 @@
 
 ### FileIdError
 
-Defined in: [ids.ts:156](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L156)
+Defined in: [ids.ts:156](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L156)
 
 Thrown for a text that is not an ID in the file form; `path` says where it stands.
 
@@ -20,7 +20,7 @@ Thrown for a text that is not an ID in the file form; `path` says where it stand
 new FileIdError(message, path?): FileIdError;
 ```
 
-Defined in: [ids.ts:159](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L159)
+Defined in: [ids.ts:159](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L159)
 
 ###### Parameters
 
@@ -41,13 +41,13 @@ Defined in: [ids.ts:159](https://github.com/TimeToAlign/TimeToShare/blob/0116c5c
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-path"></a> `path` | `readonly` | `Path` | [ids.ts:157](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L157) |
+| <a id="property-path"></a> `path` | `readonly` | `Path` | [ids.ts:157](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L157) |
 
 ***
 
 ### JsonFloat
 
-Defined in: [json/value.ts:18](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/json/value.ts#L18)
+Defined in: [json/value.ts:18](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/json/value.ts#L18)
 
 A float whose value is an integer, such as `2.0`, `1e+16` or `-0.0`.
 
@@ -63,7 +63,7 @@ plain number, which is never an integer.
 new JsonFloat(value): JsonFloat;
 ```
 
-Defined in: [json/value.ts:21](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/json/value.ts#L21)
+Defined in: [json/value.ts:21](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/json/value.ts#L21)
 
 ###### Parameters
 
@@ -79,13 +79,13 @@ Defined in: [json/value.ts:21](https://github.com/TimeToAlign/TimeToShare/blob/0
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-value"></a> `value` | `readonly` | `number` | [json/value.ts:19](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/json/value.ts#L19) |
+| <a id="property-value"></a> `value` | `readonly` | `number` | [json/value.ts:19](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/json/value.ts#L19) |
 
 ***
 
 ### JsonSyntaxError
 
-Defined in: [serialization/errors.ts:46](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L46)
+Defined in: [serialization/errors.ts:46](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L46)
 
 A text read as JSON that the reading rules refuse.
 
@@ -105,7 +105,7 @@ new JsonSyntaxError(
 ): JsonSyntaxError;
 ```
 
-Defined in: [serialization/errors.ts:47](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L47)
+Defined in: [serialization/errors.ts:47](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L47)
 
 ###### Parameters
 
@@ -127,15 +127,15 @@ Defined in: [serialization/errors.ts:47](https://github.com/TimeToAlign/TimeToSh
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-column"></a> `column` | `readonly` | `number` | `TextSyntaxError.column` | [serialization/errors.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L34) |
-| <a id="property-line"></a> `line` | `readonly` | `number` | `TextSyntaxError.line` | [serialization/errors.ts:33](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L33) |
-| <a id="property-offset"></a> `offset` | `readonly` | `number` | `TextSyntaxError.offset` | [serialization/errors.ts:32](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L32) |
+| <a id="property-column"></a> `column` | `readonly` | `number` | `TextSyntaxError.column` | [serialization/errors.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L34) |
+| <a id="property-line"></a> `line` | `readonly` | `number` | `TextSyntaxError.line` | [serialization/errors.ts:33](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L33) |
+| <a id="property-offset"></a> `offset` | `readonly` | `number` | `TextSyntaxError.offset` | [serialization/errors.ts:32](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L32) |
 
 ***
 
 ### SchemaValidationError
 
-Defined in: [validate/diagnostics.ts:82](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L82)
+Defined in: [validate/diagnostics.ts:82](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L82)
 
 Thrown when a value violates the schema or a semantic rule.
 
@@ -155,7 +155,7 @@ new SchemaValidationError(
 ): SchemaValidationError;
 ```
 
-Defined in: [validate/diagnostics.ts:87](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L87)
+Defined in: [validate/diagnostics.ts:87](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L87)
 
 ###### Parameters
 
@@ -177,15 +177,15 @@ Defined in: [validate/diagnostics.ts:87](https://github.com/TimeToAlign/TimeToSh
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-code"></a> `code` | `readonly` | [`ValidationCode`](#validationcode) | [validate/diagnostics.ts:83](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L83) |
-| <a id="property-detail"></a> `detail` | `readonly` | `string` | [validate/diagnostics.ts:85](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L85) |
-| <a id="property-path-1"></a> `path` | `readonly` | readonly [`PathSegment`](#pathsegment)[] | [validate/diagnostics.ts:84](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L84) |
+| <a id="property-code"></a> `code` | `readonly` | [`ValidationCode`](#validationcode) | [validate/diagnostics.ts:83](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L83) |
+| <a id="property-detail"></a> `detail` | `readonly` | `string` | [validate/diagnostics.ts:85](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L85) |
+| <a id="property-path-1"></a> `path` | `readonly` | readonly [`PathSegment`](#pathsegment)[] | [validate/diagnostics.ts:84](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L84) |
 
 ***
 
 ### UnsupportedVersionError
 
-Defined in: [validate.ts:58](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L58)
+Defined in: [validate.ts:58](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L58)
 
 Thrown when a manifest's version marker names a version other than `SCHEMA_VERSION`.
 
@@ -201,7 +201,7 @@ Thrown when a manifest's version marker names a version other than `SCHEMA_VERSI
 new UnsupportedVersionError(version): UnsupportedVersionError;
 ```
 
-Defined in: [validate.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L61)
+Defined in: [validate.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L61)
 
 ###### Parameters
 
@@ -221,13 +221,13 @@ Defined in: [validate.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/011
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-version"></a> `version` | `readonly` | `unknown` | [validate.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L59) |
+| <a id="property-version"></a> `version` | `readonly` | `unknown` | [validate.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L59) |
 
 ***
 
 ### YamlSyntaxError
 
-Defined in: [serialization/errors.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L54)
+Defined in: [serialization/errors.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L54)
 
 A text read as YAML that the reading rules refuse.
 
@@ -247,7 +247,7 @@ new YamlSyntaxError(
 ): YamlSyntaxError;
 ```
 
-Defined in: [serialization/errors.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L55)
+Defined in: [serialization/errors.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L55)
 
 ###### Parameters
 
@@ -269,15 +269,15 @@ Defined in: [serialization/errors.ts:55](https://github.com/TimeToAlign/TimeToSh
 
 | Property | Modifier | Type | Inherited from | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-column-1"></a> `column` | `readonly` | `number` | `TextSyntaxError.column` | [serialization/errors.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L34) |
-| <a id="property-line-1"></a> `line` | `readonly` | `number` | `TextSyntaxError.line` | [serialization/errors.ts:33](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L33) |
-| <a id="property-offset-1"></a> `offset` | `readonly` | `number` | `TextSyntaxError.offset` | [serialization/errors.ts:32](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/errors.ts#L32) |
+| <a id="property-column-1"></a> `column` | `readonly` | `number` | `TextSyntaxError.column` | [serialization/errors.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L34) |
+| <a id="property-line-1"></a> `line` | `readonly` | `number` | `TextSyntaxError.line` | [serialization/errors.ts:33](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L33) |
+| <a id="property-offset-1"></a> `offset` | `readonly` | `number` | `TextSyntaxError.offset` | [serialization/errors.ts:32](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/errors.ts#L32) |
 
 ## Interfaces
 
 ### Alternative
 
-Defined in: [statements/catalogue.ts:47](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L47)
+Defined in: [statements/catalogue.ts:47](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L47)
 
 One alternative of a verb's or a type's pattern in a system.
 
@@ -285,18 +285,18 @@ One alternative of a verb's or a type's pattern in a system.
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-inverse"></a> `inverse?` | `readonly` | `boolean` | Whether the pattern is the verb's inverse reading. | [statements/catalogue.ts:53](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L53) |
-| <a id="property-note"></a> `note?` | `readonly` | `string` | - | [statements/catalogue.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L54) |
-| <a id="property-pattern"></a> `pattern` | `readonly` | `JsonObject` | A statements fragment: keys `type` or IRIs, every value a one-item list, slots for the value. | [statements/catalogue.ts:49](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L49) |
-| <a id="property-when"></a> `when?` | `readonly` | `object` | Where the alternative applies: subjects of these types, values of these things. | [statements/catalogue.ts:51](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L51) |
-| `when.subject?` | `readonly` | readonly `string`[] | - | [statements/catalogue.ts:51](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L51) |
-| `when.value?` | `readonly` | readonly `string`[] | - | [statements/catalogue.ts:51](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L51) |
+| <a id="property-inverse"></a> `inverse?` | `readonly` | `boolean` | Whether the pattern is the verb's inverse reading. | [statements/catalogue.ts:53](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L53) |
+| <a id="property-note"></a> `note?` | `readonly` | `string` | - | [statements/catalogue.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L54) |
+| <a id="property-pattern"></a> `pattern` | `readonly` | `JsonObject` | A statements fragment: keys `type` or IRIs, every value a one-item list, slots for the value. | [statements/catalogue.ts:49](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L49) |
+| <a id="property-when"></a> `when?` | `readonly` | `object` | Where the alternative applies: subjects of these types, values of these things. | [statements/catalogue.ts:51](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L51) |
+| `when.subject?` | `readonly` | readonly `string`[] | - | [statements/catalogue.ts:51](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L51) |
+| `when.value?` | `readonly` | readonly `string`[] | - | [statements/catalogue.ts:51](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L51) |
 
 ***
 
 ### BeliefOptions
 
-Defined in: [statements/statements.ts:1005](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1005)
+Defined in: [statements/statements.ts:1005](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1005)
 
 What `withBelief` takes besides the pair.
 
@@ -304,16 +304,16 @@ What `withBelief` takes besides the pair.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-actor"></a> `actor` | `readonly` | `string` | [statements/statements.ts:1006](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1006) |
-| <a id="property-belief"></a> `belief` | `readonly` | `"true"` \| `"false"` \| `"unlikely"` | [statements/statements.ts:1007](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1007) |
-| <a id="property-date"></a> `date` | `readonly` | `string` | [statements/statements.ts:1008](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1008) |
-| <a id="property-note-1"></a> `note?` | `readonly` | `string` | [statements/statements.ts:1009](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1009) |
+| <a id="property-actor"></a> `actor` | `readonly` | `string` | [statements/statements.ts:1006](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1006) |
+| <a id="property-belief"></a> `belief` | `readonly` | `"true"` \| `"false"` \| `"unlikely"` | [statements/statements.ts:1007](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1007) |
+| <a id="property-date"></a> `date` | `readonly` | `string` | [statements/statements.ts:1008](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1008) |
+| <a id="property-note-1"></a> `note?` | `readonly` | `string` | [statements/statements.ts:1009](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1009) |
 
 ***
 
 ### CandidateOptions
 
-Defined in: [statements/statements.ts:994](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L994)
+Defined in: [statements/statements.ts:994](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L994)
 
 What `withCandidate` takes besides the pair.
 
@@ -321,19 +321,19 @@ What `withCandidate` takes besides the pair.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-basis"></a> `basis?` | `readonly` | readonly `string`[] | [statements/statements.ts:999](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L999) |
-| <a id="property-date-1"></a> `date` | `readonly` | `string` | [statements/statements.ts:996](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L996) |
-| <a id="property-match"></a> `match?` | `readonly` | `"exact"` \| `"close"` \| `"broad"` \| `"narrow"` \| `"related"` | [statements/statements.ts:1000](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1000) |
-| <a id="property-method"></a> `method` | `readonly` | `string` | [statements/statements.ts:997](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L997) |
-| <a id="property-note-2"></a> `note?` | `readonly` | `string` | [statements/statements.ts:1001](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1001) |
-| <a id="property-service"></a> `service?` | `readonly` | `string` | [statements/statements.ts:998](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L998) |
-| <a id="property-stated_by"></a> `stated_by` | `readonly` | readonly `string`[] | [statements/statements.ts:995](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L995) |
+| <a id="property-basis"></a> `basis?` | `readonly` | readonly `string`[] | [statements/statements.ts:999](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L999) |
+| <a id="property-date-1"></a> `date` | `readonly` | `string` | [statements/statements.ts:996](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L996) |
+| <a id="property-match"></a> `match?` | `readonly` | `"exact"` \| `"close"` \| `"broad"` \| `"narrow"` \| `"related"` | [statements/statements.ts:1000](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1000) |
+| <a id="property-method"></a> `method` | `readonly` | `string` | [statements/statements.ts:997](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L997) |
+| <a id="property-note-2"></a> `note?` | `readonly` | `string` | [statements/statements.ts:1001](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1001) |
+| <a id="property-service"></a> `service?` | `readonly` | `string` | [statements/statements.ts:998](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L998) |
+| <a id="property-stated_by"></a> `stated_by` | `readonly` | readonly `string`[] | [statements/statements.ts:995](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L995) |
 
 ***
 
 ### Catalogue
 
-Defined in: [statements/catalogue.ts:110](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L110)
+Defined in: [statements/catalogue.ts:110](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L110)
 
 The catalogue as read.
 
@@ -341,17 +341,17 @@ The catalogue as read.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-aliases"></a> `aliases` | `readonly` | `Readonly`\<`Record`\<`string`, `string`\>\> | [statements/catalogue.ts:112](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L112) |
-| <a id="property-prefixes"></a> `prefixes` | `readonly` | `Readonly`\<`Record`\<`string`, `string`\>\> | [statements/catalogue.ts:111](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L111) |
-| <a id="property-systems"></a> `systems` | `readonly` | readonly [`CatalogueSystem`](#cataloguesystem)[] | [statements/catalogue.ts:113](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L113) |
-| <a id="property-types"></a> `types` | `readonly` | readonly [`CatalogueType`](#cataloguetype)[] | [statements/catalogue.ts:115](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L115) |
-| <a id="property-verbs"></a> `verbs` | `readonly` | readonly [`CatalogueVerb`](#catalogueverb)[] | [statements/catalogue.ts:114](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L114) |
+| <a id="property-aliases"></a> `aliases` | `readonly` | `Readonly`\<`Record`\<`string`, `string`\>\> | [statements/catalogue.ts:112](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L112) |
+| <a id="property-prefixes"></a> `prefixes` | `readonly` | `Readonly`\<`Record`\<`string`, `string`\>\> | [statements/catalogue.ts:111](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L111) |
+| <a id="property-systems"></a> `systems` | `readonly` | readonly [`CatalogueSystem`](#cataloguesystem)[] | [statements/catalogue.ts:113](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L113) |
+| <a id="property-types"></a> `types` | `readonly` | readonly [`CatalogueType`](#cataloguetype)[] | [statements/catalogue.ts:115](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L115) |
+| <a id="property-verbs"></a> `verbs` | `readonly` | readonly [`CatalogueVerb`](#catalogueverb)[] | [statements/catalogue.ts:114](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L114) |
 
 ***
 
 ### CatalogueSystem
 
-Defined in: [statements/catalogue.ts:83](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L83)
+Defined in: [statements/catalogue.ts:83](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L83)
 
 An identifier system: its things, the prefixes of its vocabulary and its lookup.
 
@@ -359,18 +359,18 @@ An identifier system: its things, the prefixes of its vocabulary and its lookup.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-id"></a> `id` | `readonly` | `string` | [statements/catalogue.ts:84](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L84) |
-| <a id="property-lookup"></a> `lookup` | `readonly` | [`Lookup`](#lookup) | [statements/catalogue.ts:88](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L88) |
-| <a id="property-name"></a> `name` | `readonly` | `string` | [statements/catalogue.ts:85](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L85) |
-| <a id="property-note-3"></a> `note?` | `readonly` | `string` | [statements/catalogue.ts:89](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L89) |
-| <a id="property-prefixes-1"></a> `prefixes` | `readonly` | readonly `string`[] | [statements/catalogue.ts:86](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L86) |
-| <a id="property-things"></a> `things` | `readonly` | readonly [`CatalogueThing`](#cataloguething)[] | [statements/catalogue.ts:87](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L87) |
+| <a id="property-id"></a> `id` | `readonly` | `string` | [statements/catalogue.ts:84](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L84) |
+| <a id="property-lookup"></a> `lookup` | `readonly` | [`Lookup`](#lookup) | [statements/catalogue.ts:88](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L88) |
+| <a id="property-name"></a> `name` | `readonly` | `string` | [statements/catalogue.ts:85](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L85) |
+| <a id="property-note-3"></a> `note?` | `readonly` | `string` | [statements/catalogue.ts:89](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L89) |
+| <a id="property-prefixes-1"></a> `prefixes` | `readonly` | readonly `string`[] | [statements/catalogue.ts:86](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L86) |
+| <a id="property-things"></a> `things` | `readonly` | readonly [`CatalogueThing`](#cataloguething)[] | [statements/catalogue.ts:87](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L87) |
 
 ***
 
 ### CatalogueThing
 
-Defined in: [statements/catalogue.ts:58](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L58)
+Defined in: [statements/catalogue.ts:58](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L58)
 
 A kind of thing an identifier system names, and the URLs that address one.
 
@@ -378,22 +378,22 @@ A kind of thing an identifier system names, and the URLs that address one.
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-id-1"></a> `id` | `readonly` | `string` | - | [statements/catalogue.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L59) |
-| <a id="property-iri"></a> `iri` | `readonly` | `string` \| `null` | The template of the thing's IRIs, holding `{value}`, or null where it mints none. | [statements/catalogue.ts:63](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L63) |
-| <a id="property-kind"></a> `kind` | `readonly` | `string` | - | [statements/catalogue.ts:60](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L60) |
-| <a id="property-lowercase"></a> `lowercase` | `readonly` | `boolean` | Whether values are written in lower case: the letters `A` to `Z` are lowered. | [statements/catalogue.ts:70](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L70) |
-| <a id="property-lrmoo_class"></a> `lrmoo_class` | `readonly` | `string` \| `null` | The LRMoo class of every such thing, or null where the address does not tell. | [statements/catalogue.ts:68](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L68) |
-| <a id="property-name-1"></a> `name` | `readonly` | `string` | - | [statements/catalogue.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L61) |
-| <a id="property-note-4"></a> `note?` | `readonly` | `string` | - | [statements/catalogue.ts:73](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L73) |
-| <a id="property-patterns"></a> `patterns` | `readonly` | readonly `string`[] | Regular expressions, each matching a whole URL and capturing the value in its one group. | [statements/catalogue.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L72) |
-| <a id="property-prefix"></a> `prefix?` | `readonly` | `string` | The prefix the thing's IRIs are written with. | [statements/catalogue.ts:65](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L65) |
-| <a id="property-scheme_uri"></a> `scheme_uri` | `readonly` | `string` \| `null` | - | [statements/catalogue.ts:66](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L66) |
+| <a id="property-id-1"></a> `id` | `readonly` | `string` | - | [statements/catalogue.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L59) |
+| <a id="property-iri"></a> `iri` | `readonly` | `string` \| `null` | The template of the thing's IRIs, holding `{value}`, or null where it mints none. | [statements/catalogue.ts:63](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L63) |
+| <a id="property-kind"></a> `kind` | `readonly` | `string` | - | [statements/catalogue.ts:60](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L60) |
+| <a id="property-lowercase"></a> `lowercase` | `readonly` | `boolean` | Whether values are written in lower case: the letters `A` to `Z` are lowered. | [statements/catalogue.ts:70](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L70) |
+| <a id="property-lrmoo_class"></a> `lrmoo_class` | `readonly` | `string` \| `null` | The LRMoo class of every such thing, or null where the address does not tell. | [statements/catalogue.ts:68](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L68) |
+| <a id="property-name-1"></a> `name` | `readonly` | `string` | - | [statements/catalogue.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L61) |
+| <a id="property-note-4"></a> `note?` | `readonly` | `string` | - | [statements/catalogue.ts:73](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L73) |
+| <a id="property-patterns"></a> `patterns` | `readonly` | readonly `string`[] | Regular expressions, each matching a whole URL and capturing the value in its one group. | [statements/catalogue.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L72) |
+| <a id="property-prefix"></a> `prefix?` | `readonly` | `string` | The prefix the thing's IRIs are written with. | [statements/catalogue.ts:65](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L65) |
+| <a id="property-scheme_uri"></a> `scheme_uri` | `readonly` | `string` \| `null` | - | [statements/catalogue.ts:66](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L66) |
 
 ***
 
 ### CatalogueType
 
-Defined in: [statements/catalogue.ts:101](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L101)
+Defined in: [statements/catalogue.ts:101](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L101)
 
 A type of thing: its "is a" alternatives per system, its usual verbs, its lookup systems.
 
@@ -401,17 +401,17 @@ A type of thing: its "is a" alternatives per system, its usual verbs, its lookup
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-id-2"></a> `id` | `readonly` | `string` | [statements/catalogue.ts:102](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L102) |
-| <a id="property-is_a"></a> `is_a` | `readonly` | `Readonly`\<`Record`\<`string`, readonly [`Alternative`](#alternative)[]\>\> | [statements/catalogue.ts:104](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L104) |
-| <a id="property-label"></a> `label` | `readonly` | `string` | [statements/catalogue.ts:103](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L103) |
-| <a id="property-lookup-1"></a> `lookup` | `readonly` | readonly `string`[] | [statements/catalogue.ts:106](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L106) |
-| <a id="property-verbs-1"></a> `verbs` | `readonly` | readonly `string`[] | [statements/catalogue.ts:105](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L105) |
+| <a id="property-id-2"></a> `id` | `readonly` | `string` | [statements/catalogue.ts:102](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L102) |
+| <a id="property-is_a"></a> `is_a` | `readonly` | `Readonly`\<`Record`\<`string`, readonly [`Alternative`](#alternative)[]\>\> | [statements/catalogue.ts:104](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L104) |
+| <a id="property-label"></a> `label` | `readonly` | `string` | [statements/catalogue.ts:103](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L103) |
+| <a id="property-lookup-1"></a> `lookup` | `readonly` | readonly `string`[] | [statements/catalogue.ts:106](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L106) |
+| <a id="property-verbs-1"></a> `verbs` | `readonly` | readonly `string`[] | [statements/catalogue.ts:105](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L105) |
 
 ***
 
 ### CatalogueVerb
 
-Defined in: [statements/catalogue.ts:93](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L93)
+Defined in: [statements/catalogue.ts:93](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L93)
 
 A verb: its label, and its pattern alternatives per system.
 
@@ -419,16 +419,16 @@ A verb: its label, and its pattern alternatives per system.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-id-3"></a> `id` | `readonly` | `string` | [statements/catalogue.ts:94](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L94) |
-| <a id="property-inverse_label"></a> `inverse_label?` | `readonly` | `string` | [statements/catalogue.ts:96](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L96) |
-| <a id="property-label-1"></a> `label` | `readonly` | `string` | [statements/catalogue.ts:95](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L95) |
-| <a id="property-patterns-1"></a> `patterns` | `readonly` | `Readonly`\<`Record`\<`string`, readonly [`Alternative`](#alternative)[]\>\> | [statements/catalogue.ts:97](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L97) |
+| <a id="property-id-3"></a> `id` | `readonly` | `string` | [statements/catalogue.ts:94](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L94) |
+| <a id="property-inverse_label"></a> `inverse_label?` | `readonly` | `string` | [statements/catalogue.ts:96](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L96) |
+| <a id="property-label-1"></a> `label` | `readonly` | `string` | [statements/catalogue.ts:95](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L95) |
+| <a id="property-patterns-1"></a> `patterns` | `readonly` | `Readonly`\<`Record`\<`string`, readonly [`Alternative`](#alternative)[]\>\> | [statements/catalogue.ts:97](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L97) |
 
 ***
 
 ### DumpsOptions
 
-Defined in: [serialization/write.ts:178](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/write.ts#L178)
+Defined in: [serialization/write.ts:178](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/write.ts#L178)
 
 Options of `dumps`.
 
@@ -436,13 +436,13 @@ Options of `dumps`.
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-serialization"></a> `serialization?` | `readonly` | [`Serialization`](#serialization) | The serialization to write: `"yaml"` (the default), `"json"` or `"jcs"`. | [serialization/write.ts:180](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/write.ts#L180) |
+| <a id="property-serialization"></a> `serialization?` | `readonly` | [`Serialization`](#serialization) | The serialization to write: `"yaml"` (the default), `"json"` or `"jcs"`. | [serialization/write.ts:180](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/write.ts#L180) |
 
 ***
 
 ### FileForm
 
-Defined in: [files.ts:18](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/files.ts#L18)
+Defined in: [files.ts:18](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/files.ts#L18)
 
 How a manifest file writes its manifest.
 
@@ -450,15 +450,15 @@ How a manifest file writes its manifest.
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-minimal"></a> `minimal` | `readonly` | `boolean` | Whether the manifest is in the minimal form rather than the complete form. | [files.ts:20](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/files.ts#L20) |
-| <a id="property-serialization-1"></a> `serialization` | `readonly` | [`Serialization`](#serialization) | `"yaml"` (canonical YAML), `"json"` (pretty JSON) or `"jcs"` (RFC 8785 JSON). | [files.ts:24](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/files.ts#L24) |
-| <a id="property-styling"></a> `styling` | `readonly` | `boolean` | Whether the manifest's `graphical` object is written. | [files.ts:22](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/files.ts#L22) |
+| <a id="property-minimal"></a> `minimal` | `readonly` | `boolean` | Whether the manifest is in the minimal form rather than the complete form. | [files.ts:20](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/files.ts#L20) |
+| <a id="property-serialization-1"></a> `serialization` | `readonly` | [`Serialization`](#serialization) | `"yaml"` (canonical YAML), `"json"` (pretty JSON) or `"jcs"` (RFC 8785 JSON). | [files.ts:24](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/files.ts#L24) |
+| <a id="property-styling"></a> `styling` | `readonly` | `boolean` | Whether the manifest's `graphical` object is written. | [files.ts:22](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/files.ts#L22) |
 
 ***
 
 ### FontMetrics
 
-Defined in: [font.ts:30](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/font.ts#L30)
+Defined in: [font.ts:30](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/font.ts#L30)
 
 The advance-width metrics that measure a drawing's text, in DejaVu Sans's
 font units.
@@ -467,17 +467,17 @@ font units.
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-advances"></a> `advances` | `readonly` | `Readonly`\<`Record`\<`string`, `number`\>\> | The advance of every measured code point, keyed by the code point in decimal: every code point DejaVu Sans maps, and every code point Noto Music maps and DejaVu Sans does not, scaled to DejaVu Sans's units per em and rounded to the nearest integer, ties to even. | [font.ts:43](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/font.ts#L43) |
-| <a id="property-ascender"></a> `ascender` | `readonly` | `number` | - | [font.ts:32](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/font.ts#L32) |
-| <a id="property-descender"></a> `descender` | `readonly` | `number` | The descender as a positive depth. | [font.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/font.ts#L34) |
-| <a id="property-fallback"></a> `fallback` | `readonly` | `number` | The advance of glyph 0, counted for a code point the table does not hold. | [font.ts:36](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/font.ts#L36) |
-| <a id="property-units_per_em"></a> `units_per_em` | `readonly` | `number` | - | [font.ts:31](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/font.ts#L31) |
+| <a id="property-advances"></a> `advances` | `readonly` | `Readonly`\<`Record`\<`string`, `number`\>\> | The advance of every measured code point, keyed by the code point in decimal: every code point DejaVu Sans maps, and every code point Noto Music maps and DejaVu Sans does not, scaled to DejaVu Sans's units per em and rounded to the nearest integer, ties to even. | [font.ts:43](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/font.ts#L43) |
+| <a id="property-ascender"></a> `ascender` | `readonly` | `number` | - | [font.ts:32](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/font.ts#L32) |
+| <a id="property-descender"></a> `descender` | `readonly` | `number` | The descender as a positive depth. | [font.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/font.ts#L34) |
+| <a id="property-fallback"></a> `fallback` | `readonly` | `number` | The advance of glyph 0, counted for a code point the table does not hold. | [font.ts:36](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/font.ts#L36) |
+| <a id="property-units_per_em"></a> `units_per_em` | `readonly` | `number` | - | [font.ts:31](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/font.ts#L31) |
 
 ***
 
 ### InstantiateOptions
 
-Defined in: [statements/catalogue.ts:385](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L385)
+Defined in: [statements/catalogue.ts:385](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L385)
 
 What `instantiate` takes besides the verb, the system and the value.
 
@@ -485,15 +485,15 @@ What `instantiate` takes besides the verb, the system and the value.
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-alternative"></a> `alternative?` | `readonly` | `number` | The index of the alternative in the system, 0 by default. | [statements/catalogue.ts:387](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L387) |
-| <a id="property-label-2"></a> `label?` | `readonly` | `string` | The label every thing slot is given. | [statements/catalogue.ts:389](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L389) |
-| <a id="property-slots"></a> `slots?` | `readonly` | `Readonly`\<`Record`\<`string`, `unknown`\>\> | The values of the named slots, by name without `?`. | [statements/catalogue.ts:391](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L391) |
+| <a id="property-alternative"></a> `alternative?` | `readonly` | `number` | The index of the alternative in the system, 0 by default. | [statements/catalogue.ts:387](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L387) |
+| <a id="property-label-2"></a> `label?` | `readonly` | `string` | The label every thing slot is given. | [statements/catalogue.ts:389](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L389) |
+| <a id="property-slots"></a> `slots?` | `readonly` | `Readonly`\<`Record`\<`string`, `unknown`\>\> | The values of the named slots, by name without `?`. | [statements/catalogue.ts:391](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L391) |
 
 ***
 
 ### Lookup
 
-Defined in: [statements/catalogue.ts:77](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L77)
+Defined in: [statements/catalogue.ts:77](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L77)
 
 How a system's things are looked up.
 
@@ -507,13 +507,13 @@ How a system's things are looked up.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-route"></a> `route` | `readonly` | `"none"` \| `"browser"` \| `"server"` \| `"cross_reference"` \| `"database"` | [statements/catalogue.ts:78](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L78) |
+| <a id="property-route"></a> `route` | `readonly` | `"none"` \| `"browser"` \| `"server"` \| `"cross_reference"` \| `"database"` | [statements/catalogue.ts:78](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L78) |
 
 ***
 
 ### ManifestWarning
 
-Defined in: [validate/statements.ts:352](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/statements.ts#L352)
+Defined in: [validate/statements.ts:352](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/statements.ts#L352)
 
 One warning of a valid manifest.
 
@@ -521,15 +521,15 @@ One warning of a valid manifest.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-code-1"></a> `code` | `readonly` | [`WarningCode`](#warningcode) | [validate/statements.ts:353](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/statements.ts#L353) |
-| <a id="property-message"></a> `message` | `readonly` | `string` | [validate/statements.ts:355](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/statements.ts#L355) |
-| <a id="property-path-2"></a> `path` | `readonly` | readonly [`PathSegment`](#pathsegment)[] | [validate/statements.ts:354](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/statements.ts#L354) |
+| <a id="property-code-1"></a> `code` | `readonly` | [`WarningCode`](#warningcode) | [validate/statements.ts:353](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/statements.ts#L353) |
+| <a id="property-message"></a> `message` | `readonly` | `string` | [validate/statements.ts:355](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/statements.ts#L355) |
+| <a id="property-path-2"></a> `path` | `readonly` | readonly [`PathSegment`](#pathsegment)[] | [validate/statements.ts:354](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/statements.ts#L354) |
 
 ***
 
 ### PairOptions
 
-Defined in: [statements/statements.ts:986](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L986)
+Defined in: [statements/statements.ts:986](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L986)
 
 What `withPair` takes besides the pair.
 
@@ -537,15 +537,15 @@ What `withPair` takes besides the pair.
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-actor-1"></a> `actor?` | `readonly` | `string` | The person stating the pair, recorded as believing it `true` on `date`. | [statements/statements.ts:989](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L989) |
-| <a id="property-date-2"></a> `date?` | `readonly` | `string` | - | [statements/statements.ts:990](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L990) |
-| <a id="property-provenance"></a> `provenance?` | `readonly` | [`PairProvenance`](#pairprovenance) | - | [statements/statements.ts:987](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L987) |
+| <a id="property-actor-1"></a> `actor?` | `readonly` | `string` | The person stating the pair, recorded as believing it `true` on `date`. | [statements/statements.ts:989](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L989) |
+| <a id="property-date-2"></a> `date?` | `readonly` | `string` | - | [statements/statements.ts:990](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L990) |
+| <a id="property-provenance"></a> `provenance?` | `readonly` | [`PairProvenance`](#pairprovenance) | - | [statements/statements.ts:987](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L987) |
 
 ***
 
 ### PairProvenance
 
-Defined in: [statements/statements.ts:975](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L975)
+Defined in: [statements/statements.ts:975](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L975)
 
 What `withPair` sets on the pair's entry: an entry's keys but its pair and its beliefs.
 
@@ -553,19 +553,19 @@ What `withPair` sets on the pair's entry: an entry's keys but its pair and its b
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-basis-1"></a> `basis?` | `readonly` | readonly `string`[] | [statements/statements.ts:980](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L980) |
-| <a id="property-date-3"></a> `date?` | `readonly` | `string` | [statements/statements.ts:977](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L977) |
-| <a id="property-match-1"></a> `match?` | `readonly` | `"exact"` \| `"close"` \| `"broad"` \| `"narrow"` \| `"related"` | [statements/statements.ts:981](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L981) |
-| <a id="property-method-1"></a> `method?` | `readonly` | `string` | [statements/statements.ts:978](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L978) |
-| <a id="property-note-5"></a> `note?` | `readonly` | `string` | [statements/statements.ts:982](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L982) |
-| <a id="property-service-1"></a> `service?` | `readonly` | `string` | [statements/statements.ts:979](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L979) |
-| <a id="property-stated_by-1"></a> `stated_by?` | `readonly` | readonly `string`[] | [statements/statements.ts:976](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L976) |
+| <a id="property-basis-1"></a> `basis?` | `readonly` | readonly `string`[] | [statements/statements.ts:980](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L980) |
+| <a id="property-date-3"></a> `date?` | `readonly` | `string` | [statements/statements.ts:977](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L977) |
+| <a id="property-match-1"></a> `match?` | `readonly` | `"exact"` \| `"close"` \| `"broad"` \| `"narrow"` \| `"related"` | [statements/statements.ts:981](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L981) |
+| <a id="property-method-1"></a> `method?` | `readonly` | `string` | [statements/statements.ts:978](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L978) |
+| <a id="property-note-5"></a> `note?` | `readonly` | `string` | [statements/statements.ts:982](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L982) |
+| <a id="property-service-1"></a> `service?` | `readonly` | `string` | [statements/statements.ts:979](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L979) |
+| <a id="property-stated_by-1"></a> `stated_by?` | `readonly` | readonly `string`[] | [statements/statements.ts:976](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L976) |
 
 ***
 
 ### Rational
 
-Defined in: [numbers/exact.ts:14](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/numbers/exact.ts#L14)
+Defined in: [numbers/exact.ts:14](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/numbers/exact.ts#L14)
 
 An exact rational number in lowest terms with a positive denominator.
 
@@ -573,14 +573,14 @@ An exact rational number in lowest terms with a positive denominator.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-denominator"></a> `denominator` | `readonly` | `bigint` | [numbers/exact.ts:16](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/numbers/exact.ts#L16) |
-| <a id="property-numerator"></a> `numerator` | `readonly` | `bigint` | [numbers/exact.ts:15](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/numbers/exact.ts#L15) |
+| <a id="property-denominator"></a> `denominator` | `readonly` | `bigint` | [numbers/exact.ts:16](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/numbers/exact.ts#L16) |
+| <a id="property-numerator"></a> `numerator` | `readonly` | `bigint` | [numbers/exact.ts:15](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/numbers/exact.ts#L15) |
 
 ***
 
 ### Recognition
 
-Defined in: [statements/catalogue.ts:119](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L119)
+Defined in: [statements/catalogue.ts:119](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L119)
 
 What a URL addresses: the system, the thing, the value and the thing's IRI or null.
 
@@ -588,16 +588,16 @@ What a URL addresses: the system, the thing, the value and the thing's IRI or nu
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-iri-1"></a> `iri` | `readonly` | `string` \| `null` | [statements/catalogue.ts:123](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L123) |
-| <a id="property-system"></a> `system` | `readonly` | `string` | [statements/catalogue.ts:120](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L120) |
-| <a id="property-thing"></a> `thing` | `readonly` | `string` | [statements/catalogue.ts:121](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L121) |
-| <a id="property-value-1"></a> `value` | `readonly` | `string` | [statements/catalogue.ts:122](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L122) |
+| <a id="property-iri-1"></a> `iri` | `readonly` | `string` \| `null` | [statements/catalogue.ts:123](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L123) |
+| <a id="property-system"></a> `system` | `readonly` | `string` | [statements/catalogue.ts:120](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L120) |
+| <a id="property-thing"></a> `thing` | `readonly` | `string` | [statements/catalogue.ts:121](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L121) |
+| <a id="property-value-1"></a> `value` | `readonly` | `string` | [statements/catalogue.ts:122](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L122) |
 
 ***
 
 ### Rectangle
 
-Defined in: [statements/catalogue.ts:132](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L132)
+Defined in: [statements/catalogue.ts:132](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L132)
 
 One verb about one thing: the pairs of a subject that state it, in file
 order, in as many vocabularies as they use; the expanded IRIs of the
@@ -608,17 +608,17 @@ A pair no verb reads stands alone with `verb` null.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-inverse-1"></a> `inverse` | `readonly` | `boolean` | [statements/catalogue.ts:134](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L134) |
-| <a id="property-label-3"></a> `label` | `readonly` | `string` \| `null` | [statements/catalogue.ts:137](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L137) |
-| <a id="property-pairs"></a> `pairs` | `readonly` | readonly [`Pair`](#pair)[] | [statements/catalogue.ts:135](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L135) |
-| <a id="property-things-1"></a> `things` | `readonly` | readonly `string`[] | [statements/catalogue.ts:136](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L136) |
-| <a id="property-verb"></a> `verb` | `readonly` | `string` \| `null` | [statements/catalogue.ts:133](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L133) |
+| <a id="property-inverse-1"></a> `inverse` | `readonly` | `boolean` | [statements/catalogue.ts:134](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L134) |
+| <a id="property-label-3"></a> `label` | `readonly` | `string` \| `null` | [statements/catalogue.ts:137](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L137) |
+| <a id="property-pairs"></a> `pairs` | `readonly` | readonly [`Pair`](#pair)[] | [statements/catalogue.ts:135](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L135) |
+| <a id="property-things-1"></a> `things` | `readonly` | readonly `string`[] | [statements/catalogue.ts:136](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L136) |
+| <a id="property-verb"></a> `verb` | `readonly` | `string` \| `null` | [statements/catalogue.ts:133](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L133) |
 
 ***
 
 ### SubjectElement
 
-Defined in: [statements/statements.ts:264](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L264)
+Defined in: [statements/statements.ts:264](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L264)
 
 An element that may carry statements, with its path and what it is.
 
@@ -626,15 +626,15 @@ An element that may carry statements, with its path and what it is.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-element"></a> `element` | `readonly` | `JsonObject` | [statements/statements.ts:265](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L265) |
-| <a id="property-kind-1"></a> `kind` | `readonly` | `"timeline"` \| `"region"` \| `"manifest"` | [statements/statements.ts:267](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L267) |
-| <a id="property-path-3"></a> `path` | `readonly` | readonly [`PathSegment`](#pathsegment)[] | [statements/statements.ts:266](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L266) |
+| <a id="property-element"></a> `element` | `readonly` | `JsonObject` | [statements/statements.ts:265](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L265) |
+| <a id="property-kind-1"></a> `kind` | `readonly` | `"timeline"` \| `"region"` \| `"manifest"` | [statements/statements.ts:267](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L267) |
+| <a id="property-path-3"></a> `path` | `readonly` | readonly [`PathSegment`](#pathsegment)[] | [statements/statements.ts:266](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L266) |
 
 ***
 
 ### UnitEntry
 
-Defined in: [manifest/units.ts:11](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/units.ts#L11)
+Defined in: [manifest/units.ts:11](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/units.ts#L11)
 
 One row of the unit table.
 
@@ -642,16 +642,16 @@ One row of the unit table.
 
 | Property | Modifier | Type | Description | Defined in |
 | ------ | ------ | ------ | ------ | ------ |
-| <a id="property-domain"></a> `domain` | `readonly` | `"graphical"` \| `"logical"` \| `"physical"` | `logical` (musical time), `physical` (real time) or `graphical` (space). | [manifest/units.ts:13](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/units.ts#L13) |
-| <a id="property-modality"></a> `modality` | `readonly` | `"continuous"` \| `"discrete"` | - | [manifest/units.ts:14](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/units.ts#L14) |
-| <a id="property-numbertype"></a> `numberType` | `readonly` | `NumberType` | The default number type of an axis declaring none. | [manifest/units.ts:16](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/units.ts#L16) |
-| <a id="property-numbertypes"></a> `numberTypes` | `readonly` | readonly `NumberType`[] | The number types the unit admits, in the order `int`, `float`, `fraction`. | [manifest/units.ts:18](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/units.ts#L18) |
+| <a id="property-domain"></a> `domain` | `readonly` | `"graphical"` \| `"logical"` \| `"physical"` | `logical` (musical time), `physical` (real time) or `graphical` (space). | [manifest/units.ts:13](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/units.ts#L13) |
+| <a id="property-modality"></a> `modality` | `readonly` | `"continuous"` \| `"discrete"` | - | [manifest/units.ts:14](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/units.ts#L14) |
+| <a id="property-numbertype"></a> `numberType` | `readonly` | `NumberType` | The default number type of an axis declaring none. | [manifest/units.ts:16](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/units.ts#L16) |
+| <a id="property-numbertypes"></a> `numberTypes` | `readonly` | readonly `NumberType`[] | The number types the unit admits, in the order `int`, `float`, `fraction`. | [manifest/units.ts:18](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/units.ts#L18) |
 
 ***
 
 ### UnknownKey
 
-Defined in: [validate.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L71)
+Defined in: [validate.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L71)
 
 A key the schema does not declare on the object at `path`.
 
@@ -659,8 +659,8 @@ A key the schema does not declare on the object at `path`.
 
 | Property | Modifier | Type | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-key"></a> `key` | `readonly` | `string` | [validate.ts:73](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L73) |
-| <a id="property-path-4"></a> `path` | `readonly` | readonly [`PathSegment`](#pathsegment)[] | [validate.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L72) |
+| <a id="property-key"></a> `key` | `readonly` | `string` | [validate.ts:73](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L73) |
+| <a id="property-path-4"></a> `path` | `readonly` | readonly [`PathSegment`](#pathsegment)[] | [validate.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L72) |
 
 ## Type Aliases
 
@@ -670,7 +670,7 @@ A key the schema does not declare on the object at `path`.
 type Belief = typeof BELIEFS[number];
 ```
 
-Defined in: [statements/statements.ts:165](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L165)
+Defined in: [statements/statements.ts:165](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L165)
 
 An actor's belief in an item.
 
@@ -682,7 +682,7 @@ An actor's belief in an item.
 type BeliefState = "true" | "undecided" | "unlikely" | "false";
 ```
 
-Defined in: [statements/statements.ts:98](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L98)
+Defined in: [statements/statements.ts:98](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L98)
 
 An item's state for one actor: the actor's belief in it, or `"undecided"`
 where the actor holds none.
@@ -703,7 +703,7 @@ type Json =
 };
 ```
 
-Defined in: [json/value.ts:36](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/json/value.ts#L36)
+Defined in: [json/value.ts:36](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/json/value.ts#L36)
 
 Any JSON value, as `JSON.parse` returns it.
 
@@ -715,7 +715,7 @@ Any JSON value, as `JSON.parse` returns it.
 type JsonNumber = number | bigint | JsonFloat;
 ```
 
-Defined in: [json/value.ts:33](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/json/value.ts#L33)
+Defined in: [json/value.ts:33](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/json/value.ts#L33)
 
 A number as `loads` reads it: a `number` (a safe integer, or a
 float with a fractional part), a `bigint` (an integer beyond
@@ -729,7 +729,7 @@ float with a fractional part), a `bigint` (an integer beyond
 type Lossless<T> = T extends number ? JsonNumber : T extends readonly unknown[] ? number extends T["length"] ? T extends unknown[] ? Lossless<T[number]>[] : readonly Lossless<T[number]>[] : { [Index in keyof T]: Lossless<T[Index]> } : T extends object ? { [Key in keyof T]: Lossless<T[Key]> } : T;
 ```
 
-Defined in: [json/value.ts:43](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/json/value.ts#L43)
+Defined in: [json/value.ts:43](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/json/value.ts#L43)
 
 The type `T` with every number as `loads` reads it. Arrays map element
 by element and tuples stay tuples, so a `[numerator, denominator]` Fraction
@@ -749,7 +749,7 @@ is a pair of `JsonNumber`s.
 type Pair = readonly [property: string, value: unknown];
 ```
 
-Defined in: [statements/statements.ts:186](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L186)
+Defined in: [statements/statements.ts:186](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L186)
 
 One pair of a subject: its property as written and one value.
 
@@ -761,7 +761,7 @@ One pair of a subject: its property as written and one value.
 type PathSegment = string | number;
 ```
 
-Defined in: [validate/diagnostics.ts:16](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L16)
+Defined in: [validate/diagnostics.ts:16](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L16)
 
 One step of a path into a value: an object key or an array index.
 
@@ -773,7 +773,7 @@ One step of a path into a value: an object key or an array index.
 type Serialization = "yaml" | "json" | "jcs";
 ```
 
-Defined in: [serialization/write.ts:28](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/write.ts#L28)
+Defined in: [serialization/write.ts:28](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/write.ts#L28)
 
 The name of a serialization: canonical YAML, pretty JSON or RFC 8785 JSON.
 
@@ -785,7 +785,7 @@ The name of a serialization: canonical YAML, pretty JSON or RFC 8785 JSON.
 type Subject = readonly PathSegment[];
 ```
 
-Defined in: [statements/statements.ts:183](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L183)
+Defined in: [statements/statements.ts:183](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L183)
 
 A subject's path in the manifest: `[]` the manifest, else an element or a value node.
 
@@ -839,7 +839,7 @@ type ValidationCode =
   | "belief_actor";
 ```
 
-Defined in: [validate/diagnostics.ts:19](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L19)
+Defined in: [validate/diagnostics.ts:19](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L19)
 
 A stable machine-readable schema or semantic rule identifier.
 
@@ -856,7 +856,7 @@ type WarningCode =
   | "flow_conflict";
 ```
 
-Defined in: [validate/statements.ts:344](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/statements.ts#L344)
+Defined in: [validate/statements.ts:344](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/statements.ts#L344)
 
 What a manifest is warned of, never refused for.
 
@@ -868,7 +868,7 @@ What a manifest is warned of, never refused for.
 const ANCHOR_DISPLAY: readonly ["line", "name"];
 ```
 
-Defined in: [manifest/order.ts:39](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/order.ts#L39)
+Defined in: [manifest/order.ts:39](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/order.ts#L39)
 
 The words of an alignment anchor's `display`, in canonical order.
 
@@ -880,7 +880,7 @@ The words of an alignment anchor's `display`, in canonical order.
 const ATOMIC_SECTION: "https://timetoalign.github.io/timetoshare/ns#AtomicSection";
 ```
 
-Defined in: [statements/statements.ts:38](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L38)
+Defined in: [statements/statements.ts:38](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L38)
 
 The class of an atomic section of a timeline's flow: the `type` a region
 states that is one, written as a compact IRI under a prefix the manifest's
@@ -894,7 +894,7 @@ context declares for `NAMESPACE` (`tts:AtomicSection`).
 const BELIEF_STATES: readonly BeliefState[];
 ```
 
-Defined in: [statements/statements.ts:101](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L101)
+Defined in: [statements/statements.ts:101](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L101)
 
 The four states of the belief filter, in that order.
 
@@ -906,7 +906,7 @@ The four states of the belief filter, in that order.
 const BELIEFS: readonly ["true", "false", "unlikely"];
 ```
 
-Defined in: [statements/statements.ts:92](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L92)
+Defined in: [statements/statements.ts:92](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L92)
 
 The beliefs an actor may hold in an item, strings in the schema's order.
 
@@ -918,7 +918,7 @@ The beliefs an actor may hold in an item, strings in the schema's order.
 const BLANK: "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]" = "[\\u0000-\\u0020\\u007f-\\u00a0\\u1680\\u2000-\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff]";
 ```
 
-Defined in: [statements/statements.ts:172](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L172)
+Defined in: [statements/statements.ts:172](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L172)
 
 White space and control characters, which no IRI holds: the class the
 schema's `Iri`, `IriReference` and `PrefixIri` refuse, written out because
@@ -932,7 +932,7 @@ Python's `\s` and JavaScript's `\s` differ.
 const CHUNK_SENTINEL: "CHUNK_SENTINEL" = "CHUNK_SENTINEL";
 ```
 
-Defined in: [ids.ts:52](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L52)
+Defined in: [ids.ts:52](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L52)
 
 The event ID of a CHUNK side in a MatchClaim table: a synchronous MatchClaim
 states a coordinate on this timeline, which holds no event for it; the
@@ -948,7 +948,7 @@ string.
 const DEFAULT_BELIEFS: readonly BeliefState[];
 ```
 
-Defined in: [statements/statements.ts:109](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L109)
+Defined in: [statements/statements.ts:109](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L109)
 
 The states the belief filter keeps by default: every state but `"false"`.
 
@@ -960,7 +960,7 @@ The states the belief filter keeps by default: every state but `"false"`.
 const DEFAULTS: object;
 ```
 
-Defined in: [defaults.ts:41](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L41)
+Defined in: [defaults.ts:41](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L41)
 
 The default of every key that has one, by the kind of object holding it.
 A timeline's `number_type` defaults to its unit's default number type,
@@ -986,69 +986,69 @@ removed. Python's
 
 | Name | Type | Default value | Defined in |
 | ------ | ------ | ------ | ------ |
-| <a id="property-alignment_anchor"></a> `alignment_anchor` | `object` | - | [defaults.ts:73](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L73) |
-| `alignment_anchor.display` | readonly \[`"line"`\] | - | [defaults.ts:73](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L73) |
-| <a id="property-conversion_map"></a> `conversion_map` | `object` | - | [defaults.ts:58](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L58) |
-| `conversion_map.name` | `null` | `null` | [defaults.ts:58](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L58) |
-| <a id="property-elision"></a> `elision` | `object` | - | [defaults.ts:74](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L74) |
-| `elision.display` | readonly \[`"ellipsis"`, `"name"`\] | - | [defaults.ts:74](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L74) |
-| <a id="property-flow_control_element"></a> `flow_control_element` | `object` | - | [defaults.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L54) |
-| `flow_control_element.label` | `null` | `null` | [defaults.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L54) |
-| `flow_control_element.meta` | `object` | `{}` | [defaults.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L54) |
-| `flow_control_element.name` | `null` | `null` | [defaults.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L54) |
-| <a id="property-flow_map"></a> `flow_map` | `object` | - | [defaults.ts:56](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L56) |
-| `flow_map.canonical` | `false` | `false` | [defaults.ts:56](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L56) |
-| `flow_map.name` | `null` | `null` | [defaults.ts:56](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L56) |
-| <a id="property-graphical"></a> `graphical` | `object` | - | [defaults.ts:63](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L63) |
-| `graphical.elisions` | readonly \[\] | `[]` | [defaults.ts:69](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L69) |
-| `graphical.matchstamps` | readonly \[\] | `[]` | [defaults.ts:68](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L68) |
-| `graphical.order` | `object` | `{}` | [defaults.ts:66](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L66) |
-| `graphical.rules` | readonly \[\] | `[]` | [defaults.ts:65](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L65) |
-| `graphical.styles` | `object` | `{}` | [defaults.ts:64](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L64) |
-| `graphical.timestamps` | readonly \[\] | `[]` | [defaults.ts:67](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L67) |
-| <a id="property-group"></a> `group` | `object` | - | [defaults.ts:62](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L62) |
-| `group.meta` | `object` | `{}` | [defaults.ts:62](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L62) |
-| `group.name` | `null` | `null` | [defaults.ts:62](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L62) |
-| <a id="property-jump_destination"></a> `jump_destination` | `object` | - | [defaults.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L55) |
-| `jump_destination.determined` | `true` | `true` | [defaults.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L55) |
-| `jump_destination.label` | `null` | `null` | [defaults.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L55) |
-| `jump_destination.reset` | `true` | `true` | [defaults.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L55) |
-| <a id="property-linear_map"></a> `linear_map` | `object` | - | [defaults.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L59) |
-| `linear_map.offset` | `0` | `0` | [defaults.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L59) |
-| `linear_map.scalar` | `1` | `1` | [defaults.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L59) |
-| <a id="property-manifest"></a> `manifest` | `object` | - | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L42) |
-| `manifest.groups` | readonly \[\] | `[]` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L42) |
-| `manifest.measure_maps` | readonly \[\] | `[]` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L42) |
-| `manifest.meta` | `object` | `{}` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L42) |
-| `manifest.name` | `null` | `null` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L42) |
-| `manifest.resources` | readonly \[\] | `[]` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L42) |
-| <a id="property-match_timestamp"></a> `match_timestamp` | `object` | - | [defaults.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L72) |
-| `match_timestamp.display` | readonly \[`"cross_section"`\] | - | [defaults.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L72) |
-| `match_timestamp.groupstamp` | `false` | `false` | [defaults.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L72) |
-| <a id="property-measure_map"></a> `measure_map` | `object` | - | [defaults.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L61) |
-| `measure_map.meta` | `object` | `{}` | [defaults.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L61) |
-| `measure_map.name` | `null` | `null` | [defaults.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L61) |
-| <a id="property-region"></a> `region` | `object` | - | [defaults.ts:53](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L53) |
-| `region.meta` | `object` | `{}` | [defaults.ts:53](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L53) |
-| `region.name` | `null` | `null` | [defaults.ts:53](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L53) |
-| <a id="property-table_map"></a> `table_map` | `object` | - | [defaults.ts:60](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L60) |
-| `table_map.extrapolate` | `"none"` | `"none"` | [defaults.ts:60](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L60) |
-| `table_map.kind` | `"linear"` | `"linear"` | [defaults.ts:60](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L60) |
-| <a id="property-timeline"></a> `timeline` | `object` | - | [defaults.ts:43](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L43) |
-| `timeline.children` | readonly \[\] | `[]` | [defaults.ts:48](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L48) |
-| `timeline.conversion_maps` | readonly \[\] | `[]` | [defaults.ts:49](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L49) |
-| `timeline.flow_control` | readonly \[\] | `[]` | [defaults.ts:51](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L51) |
-| `timeline.is_segment_line` | `false` | `false` | [defaults.ts:46](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L46) |
-| `timeline.locked` | `false` | `false` | [defaults.ts:45](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L45) |
-| `timeline.meta` | `object` | `{}` | [defaults.ts:47](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L47) |
-| `timeline.name` | `null` | `null` | [defaults.ts:44](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L44) |
-| `timeline.regions` | readonly \[\] | `[]` | [defaults.ts:50](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L50) |
-| <a id="property-timestamp"></a> `timestamp` | `object` | - | [defaults.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L71) |
-| `timestamp.display` | readonly \[`"wedge"`, `"name"`, `"cross_section"`\] | - | [defaults.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L71) |
-| `timestamp.groupstamp` | `false` | `false` | [defaults.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L71) |
-| `timestamp.matchstamp` | `false` | `false` | [defaults.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L71) |
-| <a id="property-virtual_timeline"></a> `virtual_timeline` | `object` | - | [defaults.ts:57](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L57) |
-| `virtual_timeline.name` | `null` | `null` | [defaults.ts:57](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L57) |
+| <a id="property-alignment_anchor"></a> `alignment_anchor` | `object` | - | [defaults.ts:73](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L73) |
+| `alignment_anchor.display` | readonly \[`"line"`\] | - | [defaults.ts:73](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L73) |
+| <a id="property-conversion_map"></a> `conversion_map` | `object` | - | [defaults.ts:58](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L58) |
+| `conversion_map.name` | `null` | `null` | [defaults.ts:58](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L58) |
+| <a id="property-elision"></a> `elision` | `object` | - | [defaults.ts:74](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L74) |
+| `elision.display` | readonly \[`"ellipsis"`, `"name"`\] | - | [defaults.ts:74](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L74) |
+| <a id="property-flow_control_element"></a> `flow_control_element` | `object` | - | [defaults.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L54) |
+| `flow_control_element.label` | `null` | `null` | [defaults.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L54) |
+| `flow_control_element.meta` | `object` | `{}` | [defaults.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L54) |
+| `flow_control_element.name` | `null` | `null` | [defaults.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L54) |
+| <a id="property-flow_map"></a> `flow_map` | `object` | - | [defaults.ts:56](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L56) |
+| `flow_map.canonical` | `false` | `false` | [defaults.ts:56](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L56) |
+| `flow_map.name` | `null` | `null` | [defaults.ts:56](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L56) |
+| <a id="property-graphical"></a> `graphical` | `object` | - | [defaults.ts:63](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L63) |
+| `graphical.elisions` | readonly \[\] | `[]` | [defaults.ts:69](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L69) |
+| `graphical.matchstamps` | readonly \[\] | `[]` | [defaults.ts:68](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L68) |
+| `graphical.order` | `object` | `{}` | [defaults.ts:66](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L66) |
+| `graphical.rules` | readonly \[\] | `[]` | [defaults.ts:65](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L65) |
+| `graphical.styles` | `object` | `{}` | [defaults.ts:64](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L64) |
+| `graphical.timestamps` | readonly \[\] | `[]` | [defaults.ts:67](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L67) |
+| <a id="property-group"></a> `group` | `object` | - | [defaults.ts:62](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L62) |
+| `group.meta` | `object` | `{}` | [defaults.ts:62](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L62) |
+| `group.name` | `null` | `null` | [defaults.ts:62](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L62) |
+| <a id="property-jump_destination"></a> `jump_destination` | `object` | - | [defaults.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L55) |
+| `jump_destination.determined` | `true` | `true` | [defaults.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L55) |
+| `jump_destination.label` | `null` | `null` | [defaults.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L55) |
+| `jump_destination.reset` | `true` | `true` | [defaults.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L55) |
+| <a id="property-linear_map"></a> `linear_map` | `object` | - | [defaults.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L59) |
+| `linear_map.offset` | `0` | `0` | [defaults.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L59) |
+| `linear_map.scalar` | `1` | `1` | [defaults.ts:59](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L59) |
+| <a id="property-manifest"></a> `manifest` | `object` | - | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L42) |
+| `manifest.groups` | readonly \[\] | `[]` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L42) |
+| `manifest.measure_maps` | readonly \[\] | `[]` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L42) |
+| `manifest.meta` | `object` | `{}` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L42) |
+| `manifest.name` | `null` | `null` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L42) |
+| `manifest.resources` | readonly \[\] | `[]` | [defaults.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L42) |
+| <a id="property-match_timestamp"></a> `match_timestamp` | `object` | - | [defaults.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L72) |
+| `match_timestamp.display` | readonly \[`"cross_section"`\] | - | [defaults.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L72) |
+| `match_timestamp.groupstamp` | `false` | `false` | [defaults.ts:72](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L72) |
+| <a id="property-measure_map"></a> `measure_map` | `object` | - | [defaults.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L61) |
+| `measure_map.meta` | `object` | `{}` | [defaults.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L61) |
+| `measure_map.name` | `null` | `null` | [defaults.ts:61](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L61) |
+| <a id="property-region"></a> `region` | `object` | - | [defaults.ts:53](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L53) |
+| `region.meta` | `object` | `{}` | [defaults.ts:53](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L53) |
+| `region.name` | `null` | `null` | [defaults.ts:53](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L53) |
+| <a id="property-table_map"></a> `table_map` | `object` | - | [defaults.ts:60](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L60) |
+| `table_map.extrapolate` | `"none"` | `"none"` | [defaults.ts:60](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L60) |
+| `table_map.kind` | `"linear"` | `"linear"` | [defaults.ts:60](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L60) |
+| <a id="property-timeline"></a> `timeline` | `object` | - | [defaults.ts:43](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L43) |
+| `timeline.children` | readonly \[\] | `[]` | [defaults.ts:48](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L48) |
+| `timeline.conversion_maps` | readonly \[\] | `[]` | [defaults.ts:49](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L49) |
+| `timeline.flow_control` | readonly \[\] | `[]` | [defaults.ts:51](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L51) |
+| `timeline.is_segment_line` | `false` | `false` | [defaults.ts:46](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L46) |
+| `timeline.locked` | `false` | `false` | [defaults.ts:45](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L45) |
+| `timeline.meta` | `object` | `{}` | [defaults.ts:47](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L47) |
+| `timeline.name` | `null` | `null` | [defaults.ts:44](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L44) |
+| `timeline.regions` | readonly \[\] | `[]` | [defaults.ts:50](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L50) |
+| <a id="property-timestamp"></a> `timestamp` | `object` | - | [defaults.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L71) |
+| `timestamp.display` | readonly \[`"wedge"`, `"name"`, `"cross_section"`\] | - | [defaults.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L71) |
+| `timestamp.groupstamp` | `false` | `false` | [defaults.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L71) |
+| `timestamp.matchstamp` | `false` | `false` | [defaults.ts:71](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L71) |
+| <a id="property-virtual_timeline"></a> `virtual_timeline` | `object` | - | [defaults.ts:57](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L57) |
+| `virtual_timeline.name` | `null` | `null` | [defaults.ts:57](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L57) |
 
 ***
 
@@ -1058,7 +1058,7 @@ removed. Python's
 const ELISION_DISPLAY: readonly ["ellipsis", "name", "id", "coordinate", "continuation"];
 ```
 
-Defined in: [manifest/order.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/order.ts#L42)
+Defined in: [manifest/order.ts:42](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/order.ts#L42)
 
 The words of an elision's `display`, in canonical order.
 
@@ -1070,7 +1070,7 @@ The words of an elision's `display`, in canonical order.
 const FONT_FILES: readonly ["DejaVuSans.ttf", "NotoMusic-Regular.ttf"];
 ```
 
-Defined in: [font.ts:24](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/font.ts#L24)
+Defined in: [font.ts:24](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/font.ts#L24)
 
 The bundled TrueType files in fallback order: the text font, DejaVu Sans
 2.37, then the music font, Noto Music 2.004, which draws what DejaVu Sans
@@ -1149,7 +1149,7 @@ const FORMAT_CONTEXT: Readonly<{
 }>;
 ```
 
-Defined in: [statements/statements.ts:50](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L50)
+Defined in: [statements/statements.ts:50](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L50)
 
 The format's terms of the inline JSON-LD context, each as the schema's
 `Context` fixes it. A manifest's `@context` holds exactly these and the
@@ -1163,7 +1163,7 @@ prefixes its statements and provenance use.
 const MATCHES: readonly ["exact", "close", "broad", "narrow", "related"];
 ```
 
-Defined in: [statements/statements.ts:162](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L162)
+Defined in: [statements/statements.ts:162](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L162)
 
 The words of a provenance entry's `match`, in the schema's order.
 
@@ -1175,7 +1175,7 @@ The words of a provenance entry's `match`, in the schema's order.
 const METHODS: readonly ["manual", "reconciled", "imported", "inferred"];
 ```
 
-Defined in: [statements/statements.ts:159](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L159)
+Defined in: [statements/statements.ts:159](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L159)
 
 The words of a provenance entry's `method`, in the schema's order; any other method is an IRI.
 
@@ -1187,7 +1187,7 @@ The words of a provenance entry's `method`, in the schema's order; any other met
 const NAMESPACE: "https://timetoalign.github.io/timetoshare/ns#" = "https://timetoalign.github.io/timetoshare/ns#";
 ```
 
-Defined in: [statements/statements.ts:31](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L31)
+Defined in: [statements/statements.ts:31](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L31)
 
 The namespace of the format's own terms: `method`, `service`, `match`, the beliefs and their words.
 
@@ -1199,7 +1199,7 @@ The namespace of the format's own terms: `method`, `service`, `match`, the belie
 const NOMATCH_SENTINEL: "NOMATCH_SENTINEL" = "NOMATCH_SENTINEL";
 ```
 
-Defined in: [ids.ts:43](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L43)
+Defined in: [ids.ts:43](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L43)
 
 The event ID of a NOMATCH side in a MatchClaim table: a MatchClaim that is
 not synchronous states that the event of its other side has no counterpart
@@ -1214,7 +1214,7 @@ its ID. Python's `timetoshare.tables.NOMATCH_SENTINEL` is the same string.
 const SCHEMA_VERSION: "0.2.0" = "0.2.0";
 ```
 
-Defined in: [validate.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L55)
+Defined in: [validate.ts:55](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L55)
 
 The schema version this package reads and writes, the only one it supports.
 
@@ -1226,7 +1226,7 @@ The schema version this package reads and writes, the only one it supports.
 const SERIALIZATIONS: readonly Serialization[];
 ```
 
-Defined in: [serialization/write.ts:31](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/write.ts#L31)
+Defined in: [serialization/write.ts:31](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/write.ts#L31)
 
 Every serialization's name: canonical YAML, pretty JSON and RFC 8785 JSON.
 
@@ -1238,7 +1238,7 @@ Every serialization's name: canonical YAML, pretty JSON and RFC 8785 JSON.
 const TIMESTAMP_DISPLAY: readonly ["wedge", "name", "id", "coordinate", "cross_section"];
 ```
 
-Defined in: [manifest/order.ts:36](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/order.ts#L36)
+Defined in: [manifest/order.ts:36](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/order.ts#L36)
 
 The words of a named timestamp's `display`, in canonical order.
 
@@ -1250,7 +1250,7 @@ The words of a named timestamp's `display`, in canonical order.
 const UNITS: Readonly<Record<TimeUnit, UnitEntry>>;
 ```
 
-Defined in: [manifest/units.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/units.ts#L34)
+Defined in: [manifest/units.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/units.ts#L34)
 
 The unit table, keyed by unit in the schema's order of `TimeUnit`.
 
@@ -1266,7 +1266,7 @@ function candidates(
 ): JsonObject[];
 ```
 
-Defined in: [statements/statements.ts:962](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L962)
+Defined in: [statements/statements.ts:962](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L962)
 
 The candidates of a subject: the entries of pairs the subject does not
 state. Given `actor`, a candidate the actor believes `false` is left out:
@@ -1296,7 +1296,7 @@ if the path addresses no element and no value node.
 function canonicalManifest<T>(value): T;
 ```
 
-Defined in: [forms.ts:26](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/forms.ts#L26)
+Defined in: [forms.ts:26](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/forms.ts#L26)
 
 A manifest with every array whose order carries no meaning in canonical order.
 
@@ -1324,7 +1324,7 @@ A manifest with every array whose order carries no meaning in canonical order.
 function canonicalOrder<T>(value): T;
 ```
 
-Defined in: [manifest/order.ts:211](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/manifest/order.ts#L211)
+Defined in: [manifest/order.ts:211](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/manifest/order.ts#L211)
 
 Return a deep copy of `value`, its manifest in canonical order and spelling.
 
@@ -1373,7 +1373,7 @@ entry of a group's `members` is not a string.
 function checkBeliefFilter(beliefs): ReadonlySet<BeliefState>;
 ```
 
-Defined in: [statements/statements.ts:125](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L125)
+Defined in: [statements/statements.ts:125](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L125)
 
 The states a belief filter keeps, checked: a collection of `BELIEF_STATES`
 in any order; empty keeps none.
@@ -1404,7 +1404,7 @@ without quotes. The messages are Python's.
 function childEnds(timeline): (Rational | null)[];
 ```
 
-Defined in: [validate/containment.ts:79](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/containment.ts#L79)
+Defined in: [validate/containment.ts:79](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/containment.ts#L79)
 
 Where each child ends on its parent's axis, as an exact rational.
 
@@ -1440,7 +1440,7 @@ function compactIri(
 ): string;
 ```
 
-Defined in: [statements/statements.ts:579](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L579)
+Defined in: [statements/statements.ts:579](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L579)
 
 `iri` written `name:rest` with one of `prefixes`, or as given. Where a
 namespace of `aliases` (the first in its order) begins `iri`, it is first
@@ -1471,7 +1471,7 @@ applied. Python's `compact_iri` gives the same texts.
 function compactJson(value): string;
 ```
 
-Defined in: [serialization/text.ts:259](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/text.ts#L259)
+Defined in: [serialization/text.ts:259](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/text.ts#L259)
 
 The compact JSON text of a value: no whitespace, every object's keys in
 their own order (the written order for a value read by `loads`), numbers
@@ -1505,7 +1505,7 @@ for a value that is not JSON.
 function compactSortedJson(value): string;
 ```
 
-Defined in: [serialization/text.ts:275](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/text.ts#L275)
+Defined in: [serialization/text.ts:275](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/text.ts#L275)
 
 The compact JSON text of a value with every object's keys sorted by code
 point at every depth: no whitespace, numbers spelled as canonical YAML and
@@ -1560,7 +1560,7 @@ about where or how often it is placed.
 function complete(value): CompleteManifest;
 ```
 
-Defined in: [defaults.ts:202](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L202)
+Defined in: [defaults.ts:202](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L202)
 
 Return a copy of a manifest in the complete form: every key with a default
 that is absent is added with its default, at every depth (a timeline's
@@ -1588,7 +1588,7 @@ Python's `timetoshare.complete` gives the same value.
 function complete<T>(value): T;
 ```
 
-Defined in: [defaults.ts:204](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L204)
+Defined in: [defaults.ts:204](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L204)
 
 Return a copy of any other value, its manifest-shaped parts completed.
 
@@ -1616,7 +1616,7 @@ Return a copy of any other value, its manifest-shaped parts completed.
 function completeManifest(value): CompleteManifest;
 ```
 
-Defined in: [forms.ts:16](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/forms.ts#L16)
+Defined in: [forms.ts:16](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/forms.ts#L16)
 
 The complete form of a manifest: every key with a default present, at every depth.
 
@@ -1638,7 +1638,7 @@ The complete form of a manifest: every key with a default present, at every dept
 function completeStyles(graphical): object;
 ```
 
-Defined in: [styles.ts:22](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/styles.ts#L22)
+Defined in: [styles.ts:22](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/styles.ts#L22)
 
 Return a copied `graphical` object with empty declarations for every missing style.
 
@@ -1656,8 +1656,8 @@ The copy keeps every number as `loads` read it: an integral float stays a `JsonF
 
 | Name | Type | Defined in |
 | ------ | ------ | ------ |
-| `graphical` | `Graphical` | [styles.ts:23](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/styles.ts#L23) |
-| `missing` | `string`[] | [styles.ts:24](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/styles.ts#L24) |
+| `graphical` | `Graphical` | [styles.ts:23](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/styles.ts#L23) |
+| `missing` | `string`[] | [styles.ts:24](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/styles.ts#L24) |
 
 ***
 
@@ -1667,7 +1667,7 @@ The copy keeps every number as `loads` read it: an integral float stays a `JsonF
 function defaultCatalogue(): Catalogue;
 ```
 
-Defined in: [statements/catalogue.ts:294](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L294)
+Defined in: [statements/catalogue.ts:294](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L294)
 
 The catalogue of the shipped file `catalogue/catalogue.yaml`.
 
@@ -1683,7 +1683,7 @@ The catalogue of the shipped file `catalogue/catalogue.yaml`.
 function dumps(value, options?): string;
 ```
 
-Defined in: [serialization/write.ts:204](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/write.ts#L204)
+Defined in: [serialization/write.ts:204](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/write.ts#L204)
 
 Return the text of a manifest, or of any JSON value, in canonical YAML
 (`"yaml"`, the default), pretty JSON (`"json"`) or RFC 8785 JSON
@@ -1729,7 +1729,7 @@ and for a value that is not JSON.
 function dumpsFile(value, form): string;
 ```
 
-Defined in: [files.ts:63](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/files.ts#L63)
+Defined in: [files.ts:63](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/files.ts#L63)
 
 The text of a manifest as a file of the given form writes it: a top-level
 `graphical` left out unless `form.styling`, the rest in the minimal form
@@ -1763,7 +1763,7 @@ for a value that is not JSON.
 function entries(manifest, subject): JsonObject[];
 ```
 
-Defined in: [statements/statements.ts:939](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L939)
+Defined in: [statements/statements.ts:939](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L939)
 
 The provenance entries of a subject, in their order.
 
@@ -1790,7 +1790,7 @@ if the path addresses no element and no value node.
 function exactValue(value): Rational | null;
 ```
 
-Defined in: [numbers/exact.ts:74](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/numbers/exact.ts#L74)
+Defined in: [numbers/exact.ts:74](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/numbers/exact.ts#L74)
 
 The exact value of a bare Number, or `null` if the value is none: a JSON
 number, or a `[numerator, denominator]` pair of integers whose denominator
@@ -1815,7 +1815,7 @@ equals, as in Python).
 function expandIri(context, text): string | null;
 ```
 
-Defined in: [statements/statements.ts:233](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L233)
+Defined in: [statements/statements.ts:233](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L233)
 
 The IRI `text` stands for under `context` (a manifest's `@context`, or any
 object of prefixes), or null. `type` is `rdf:type`; another format term is
@@ -1843,7 +1843,7 @@ null.
 function fileForm(text): FileForm;
 ```
 
-Defined in: [files.ts:45](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/files.ts#L45)
+Defined in: [files.ts:45](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/files.ts#L45)
 
 Read the form of a manifest file off its text. The manifest is minimal
 when its minimal form writes the same canonical YAML as the value the text
@@ -1891,7 +1891,7 @@ for a manifest that cannot be put in canonical order.
 function fromFileId(text): string;
 ```
 
-Defined in: [ids.ts:190](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L190)
+Defined in: [ids.ts:190](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L190)
 
 The bare ID that a file's `#id` text writes. Exactly one leading `#` is
 stripped: `#x` is `x` and `##x` is `#x`.
@@ -1919,7 +1919,7 @@ or nothing follows it.
 function identityProblems(value): SchemaValidationError[];
 ```
 
-Defined in: [validate.ts:488](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L488)
+Defined in: [validate.ts:488](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L488)
 
 Return every semantic violation in the long-established identity order.
 `value` is in the file form; the rules read its IDs bare.
@@ -1952,7 +1952,7 @@ function instantiate(
 ): Pair[];
 ```
 
-Defined in: [statements/catalogue.ts:403](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L403)
+Defined in: [statements/catalogue.ts:403](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L403)
 
 The pairs that state `verb` in `system` with `value`: the alternative's
 pattern with `{id: "?"}` as `{id: value}` (and `label` after it where
@@ -1986,7 +1986,7 @@ alternatives in the system, or a named slot has no value.
 function isJsonFloat(value): value is JsonFloat;
 ```
 
-Defined in: [json/value.ts:75](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/json/value.ts#L75)
+Defined in: [json/value.ts:75](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/json/value.ts#L75)
 
 Whether a value is a `JsonFloat`, an integral float read by `loads`.
 
@@ -2008,7 +2008,7 @@ Whether a value is a `JsonFloat`, an integral float read by `loads`.
 function isJsonObject(value): value is JsonObject;
 ```
 
-Defined in: [json/value.ts:80](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/json/value.ts#L80)
+Defined in: [json/value.ts:80](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/json/value.ts#L80)
 
 Whether a value is a JSON object (not an array, not a `JsonFloat`).
 
@@ -2030,7 +2030,7 @@ Whether a value is a JSON object (not an array, not a `JsonFloat`).
 function isSerialization(value): value is Serialization;
 ```
 
-Defined in: [serialization/write.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/write.ts#L34)
+Defined in: [serialization/write.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/write.ts#L34)
 
 Whether a value names a serialization, one of `SERIALIZATIONS`.
 
@@ -2052,7 +2052,7 @@ Whether a value names a serialization, one of `SERIALIZATIONS`.
 function jsonInteger(value): bigint | null;
 ```
 
-Defined in: [numbers/exact.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/numbers/exact.ts#L54)
+Defined in: [numbers/exact.ts:54](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/numbers/exact.ts#L54)
 
 The integer a JSON number states, or `null` if it is none.
 
@@ -2076,7 +2076,7 @@ An integral float counts as the integer it equals, as in Python.
 function jsonPointer(path): string;
 ```
 
-Defined in: [validate/diagnostics.ts:76](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L76)
+Defined in: [validate/diagnostics.ts:76](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L76)
 
 Render a path as a JSON pointer in URI fragment form (`#` for the root).
 
@@ -2098,7 +2098,7 @@ Render a path as a JSON pointer in URI fragment form (`#` for the root).
 function loads(text): Lossless<Json>;
 ```
 
-Defined in: [serialization/read.ts:22](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/read.ts#L22)
+Defined in: [serialization/read.ts:22](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/read.ts#L22)
 
 Read a text in any serialization, JSON or YAML, after removing one U+FEFF
 at position 0, without losing a number or key order and without
@@ -2134,7 +2134,7 @@ for a finite float literal that rounds to an infinity.
 function manifestWarnings(value): ManifestWarning[];
 ```
 
-Defined in: [validate.ts:381](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L381)
+Defined in: [validate.ts:381](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L381)
 
 Return the warnings of a valid manifest, sorted by path, then code:
 `context_absent` (no `@context`), `bundle_blank` (statements or
@@ -2163,7 +2163,7 @@ the same list.
 function matchstampProblems(value): SchemaValidationError[];
 ```
 
-Defined in: [validate.ts:548](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L548)
+Defined in: [validate.ts:548](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L548)
 
 Return the problems of the named MatchStamps and their match timestamps
 alone, as Python's `matchstamp_problems` does. First, each match
@@ -2222,7 +2222,7 @@ about where or how often it is placed.
 function minimal(value): object;
 ```
 
-Defined in: [defaults.ts:222](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L222)
+Defined in: [defaults.ts:222](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L222)
 
 Return a copy of a manifest in the minimal form: the complete form without
 every key whose value equals its default in value, after own-axis values
@@ -2248,7 +2248,7 @@ are respelled and each `display` put in canonical order (a `LinearMap`'s
 function minimal<T>(value): T;
 ```
 
-Defined in: [defaults.ts:224](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/defaults.ts#L224)
+Defined in: [defaults.ts:224](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/defaults.ts#L224)
 
 Return a copy of any other value, its manifest-shaped parts in the minimal form.
 
@@ -2276,7 +2276,7 @@ Return a copy of any other value, its manifest-shaped parts in the minimal form.
 function minimalManifest(value): object;
 ```
 
-Defined in: [forms.ts:21](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/forms.ts#L21)
+Defined in: [forms.ts:21](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/forms.ts#L21)
 
 The minimal form of a manifest: every key whose value is its default left out.
 
@@ -2298,7 +2298,7 @@ The minimal form of a manifest: every key whose value is its default left out.
 function numberTypeOf(timeline): NumberType;
 ```
 
-Defined in: [validate/diagnostics.ts:280](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate/diagnostics.ts#L280)
+Defined in: [validate/diagnostics.ts:280](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate/diagnostics.ts#L280)
 
 The number type of a timeline's axis: its own, or its unit's default.
 
@@ -2322,7 +2322,7 @@ The number type of a timeline's axis: its own, or its unit's default.
 function pairs(manifest, subject): Pair[];
 ```
 
-Defined in: [statements/statements.ts:929](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L929)
+Defined in: [statements/statements.ts:929](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L929)
 
 The pairs of a subject: its container's keys in code-point order, each key's
 values in list order, each `type` item a pair `["type", iri]`; a node's
@@ -2351,7 +2351,7 @@ if the path addresses no element and no value node.
 function parse(text): object;
 ```
 
-Defined in: [validate.ts:397](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L397)
+Defined in: [validate.ts:397](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L397)
 
 Read a manifest in any serialization with `loads` and validate it: a
 manifest read without losing a number or key order.
@@ -2374,7 +2374,7 @@ manifest read without losing a number or key order.
 function parseJson(text): Lossless<Json>;
 ```
 
-Defined in: [serialization/json.ts:246](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/json.ts#L246)
+Defined in: [serialization/json.ts:246](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/json.ts#L246)
 
 Read a text as JSON, whatever its first character, after removing one
 U+FEFF at position 0, without losing a number or the order of a key.
@@ -2412,7 +2412,7 @@ if a float rounds to an infinity.
 function parseYaml(text): Lossless<Json>;
 ```
 
-Defined in: [serialization/yaml.ts:292](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/yaml.ts#L292)
+Defined in: [serialization/yaml.ts:292](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/yaml.ts#L292)
 
 Read a text as YAML, whatever its first character, after removing one
 U+FEFF at position 0, without losing a number or the order of a key.
@@ -2439,7 +2439,7 @@ for a text the reading rules refuse.
 function readCatalogue(document): Catalogue;
 ```
 
-Defined in: [statements/catalogue.ts:209](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L209)
+Defined in: [statements/catalogue.ts:209](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L209)
 
 Read a catalogue document and check its cross-references, in this order:
 no system, thing, verb or type twice; every prefix used declared (the
@@ -2471,7 +2471,7 @@ at the first problem.
 function recognize(catalogue, url): Recognition | null;
 ```
 
-Defined in: [statements/catalogue.ts:352](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L352)
+Defined in: [statements/catalogue.ts:352](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L352)
 
 Return what `url` addresses, or null: the first thing, system by system in
 catalogue order, one of whose patterns matches the whole URL. The captured
@@ -2505,7 +2505,7 @@ function rectangles(
 ): Rectangle[];
 ```
 
-Defined in: [statements/catalogue.ts:641](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L641)
+Defined in: [statements/catalogue.ts:641](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L641)
 
 The rectangles of a subject: its pairs, each read by `verbOf`, joined
 where they state the same verb the same way and are both "is a", share a
@@ -2543,7 +2543,7 @@ function samePair(
 ): boolean;
 ```
 
-Defined in: [statements/statements.ts:904](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L904)
+Defined in: [statements/statements.ts:904](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L904)
 
 Whether two pairs are the same pair under `context`: their properties
 expand to the same IRI (`type` is `rdf:type`) and their values are equal.
@@ -2574,7 +2574,7 @@ as written.
 function serializationOf(text): Serialization;
 ```
 
-Defined in: [serialization/read.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/serialization/read.ts#L34)
+Defined in: [serialization/read.ts:34](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/serialization/read.ts#L34)
 
 Name a text's serialization without validating it: `"jcs"` when it is
 read as JSON and is byte for byte the RFC 8785 JSON of its value, `"json"`
@@ -2600,7 +2600,7 @@ the RFC 8785 writer refuses, and one after a byte order mark included), and
 function statementProblems(value): SchemaValidationError[];
 ```
 
-Defined in: [validate.ts:465](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L465)
+Defined in: [validate.ts:465](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L465)
 
 Return the problems of the statements of `value` alone, as Python's
 `statement_problems` does. First, member by member, the manifest's
@@ -2639,7 +2639,7 @@ ID written without `#` as it stands.
 function subjectPath(manifest, elementId): PathSegment[];
 ```
 
-Defined in: [statements/statements.ts:740](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L740)
+Defined in: [statements/statements.ts:740](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L740)
 
 The path of the subject an element ID names: `[]` for `null`, the bundle;
 else the timeline (at any depth) or region whose `id` equals `elementId`
@@ -2668,7 +2668,7 @@ if no timeline or region has the ID.
 function subjects(manifest): Generator<SubjectElement>;
 ```
 
-Defined in: [statements/statements.ts:290](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L290)
+Defined in: [statements/statements.ts:290](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L290)
 
 Every element that may carry statements, in subject order: the manifest,
 then root by root the timeline, its regions in array order and its
@@ -2692,7 +2692,7 @@ children, depth first. Any value is read; what is no object is passed over.
 function toFileId(id): string;
 ```
 
-Defined in: [ids.ts:167](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L167)
+Defined in: [ids.ts:167](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L167)
 
 The file form of a bare ID: `#` followed by the ID.
 
@@ -2714,7 +2714,7 @@ The file form of a bare ID: `#` followed by the ID.
 function unknownKeys(value): UnknownKey[];
 ```
 
-Defined in: [validate.ts:367](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L367)
+Defined in: [validate.ts:367](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L367)
 
 Return the sorted unknown keys of a valid manifest.
 
@@ -2736,7 +2736,7 @@ Return the sorted unknown keys of a valid manifest.
 function usedPrefixes(manifest): string[];
 ```
 
-Defined in: [statements/statements.ts:522](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L522)
+Defined in: [statements/statements.ts:522](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L522)
 
 The names of the prefixes a manifest's statements and provenance use,
 sorted: the `p` of every `p:rest` at an IRI position of every subject
@@ -2762,7 +2762,7 @@ sorted: the `p` of every `p:rest` at an IRI position of every subject
 function validate(value): asserts value is {};
 ```
 
-Defined in: [validate.ts:362](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/validate.ts#L362)
+Defined in: [validate.ts:362](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/validate.ts#L362)
 
 Check that `value` is a TimeToShare manifest. A checked value is typed as
 the lossless form `loads` returns: its numbers may be `bigint`s and
@@ -2791,7 +2791,7 @@ function verbOf(
 ): [verb: string, inverse: boolean] | null;
 ```
 
-Defined in: [statements/catalogue.ts:621](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/catalogue.ts#L621)
+Defined in: [statements/catalogue.ts:621](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/catalogue.ts#L621)
 
 The verb a pair states and whether it is the verb's inverse reading, or
 null: among the alternatives whose key expands (aliases applied) to the
@@ -2820,7 +2820,7 @@ catalogue order. `context` is the manifest's `@context`.
 function withBareIds<T>(manifest): T;
 ```
 
-Defined in: [ids.ts:316](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L316)
+Defined in: [ids.ts:316](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L316)
 
 The manifest with every ID bare, read from its file form `#id`. A
 timeline's entry in `graphical.order` holds band words, which stay as they
@@ -2861,7 +2861,7 @@ function withBelief<T>(
 ): T;
 ```
 
-Defined in: [statements/statements.ts:1273](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1273)
+Defined in: [statements/statements.ts:1273](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1273)
 
 Return the manifest with an actor's belief in a pair of the subject:
 one of the strings `"true"`, `"false"` and `"unlikely"` (`BELIEFS`). The pair's entry, appended with the pair
@@ -2911,7 +2911,7 @@ function withCandidate<T>(
 ): T;
 ```
 
-Defined in: [statements/statements.ts:1223](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1223)
+Defined in: [statements/statements.ts:1223](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1223)
 
 Return the manifest with a candidate for the subject: an entry of a pair
 it does not state, replacing in place another entry of the pair, whose
@@ -2951,7 +2951,7 @@ date is no calendar date, or the path addresses no subject.
 function withContext<T>(manifest, prefixes): T;
 ```
 
-Defined in: [statements/statements.ts:542](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L542)
+Defined in: [statements/statements.ts:542](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L542)
 
 The manifest with its `@context` made from the format's terms and the
 prefixes its statements and provenance use, each prefix's namespace taken
@@ -2988,7 +2988,7 @@ if a prefix is declared in neither.
 function withFileIds<T>(manifest): T;
 ```
 
-Defined in: [ids.ts:303](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/ids.ts#L303)
+Defined in: [ids.ts:303](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/ids.ts#L303)
 
 The manifest with every ID in the file form, `#` + the bare ID; a value of
 `graphical.order` gains the `#` where its key names a group.
@@ -3022,7 +3022,7 @@ function withoutPair<T>(
 ): T;
 ```
 
-Defined in: [statements/statements.ts:1195](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1195)
+Defined in: [statements/statements.ts:1195](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1195)
 
 Return the manifest without the pair on the subject: the value and its
 entry removed; a list, a container or a `provenance` left empty is
@@ -3066,7 +3066,7 @@ function withPair<T>(
 ): T;
 ```
 
-Defined in: [statements/statements.ts:1159](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L1159)
+Defined in: [statements/statements.ts:1159](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L1159)
 
 Return the manifest with the pair stated on the subject: the value appended
 to the property's list (`type` takes a class IRI). An entry of the pair, a
@@ -3112,7 +3112,7 @@ addresses no subject.
 function withReferencesRenamed<T>(manifest, renamed): T;
 ```
 
-Defined in: [statements/statements.ts:721](https://github.com/TimeToAlign/TimeToShare/blob/0116c5cae951c38c4ebf95e55ce7562df65da2d8/js/src/statements/statements.ts#L721)
+Defined in: [statements/statements.ts:721](https://github.com/TimeToAlign/TimeToShare/blob/e60232db3cdf8e4913b015719264570ae877b193/js/src/statements/statements.ts#L721)
 
 The manifest with the references to renamed elements renamed or dropped.
 The keys and values of `renamed` are bare IDs. A reference is the text
