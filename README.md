@@ -536,6 +536,26 @@ length. Where `through` is stated, neither
 the tree nor the length is read; a conversion map as `map` is read for
 neither.
 
+A virtual timeline takes part in alignment as a timeline does: a group may
+name it as a member, so that it shares the frame with the recordings that
+follow its flow ([Groups and the `graphical`
+object](#groups-and-the-graphical-object)); a named timestamp, a
+groupstamp where it is a member, may lie on it; a resource and the
+MatchClaim table may name it; and `graphical.order` may hold its band
+order. No elision lies on it. A FlowMap is drawn as the axis it plays,
+its chunks laid end to end, each a brace named by its source, a run of
+one chunk repeated drawn once with `× n`, a gap as a dashed stretch of the
+line labelled with its length: on the card of a virtual timeline, which
+the drawing places where its placement holds the virtual timeline's ID,
+and on the card of a root switched to it by the property `flow`, which a
+rule addressed to the root's cards sets to the ID of one of its FlowMaps
+or of a virtual timeline applying one to it. A switched card draws every
+element of its tree at each position where it is played and no flow
+control; in a frame, the switch of one member carries every member
+through the group, and the switches of two members, which both
+validators warn of as `flow_conflict` at the group's `members`, leave the
+frame as written (the drawing specification, section 8.10).
+
 **Computing a flow.** A timeline is **played** with its own elements and
 those of all its descendants, each at its coordinate plus the offsets of
 the ancestors between it and the timeline played (flow control holds
@@ -864,8 +884,10 @@ its content reaches, and ends its line in three chevrons.
 ### Groups and the `graphical` object
 
 A group is `{id, name?, meta?, members}`. `members` are the distinct IDs of
-the member timelines, each naming a timeline of the manifest: a root or any
-descendant. Members share the same graphical start and end: every
+the member timelines, each naming a timeline of the manifest, a root or any
+descendant, or a virtual timeline ([FlowMaps and virtual
+timelines](#flowmaps-and-virtual-timelines)), which lies inside no other
+member and contains none. Members share the same graphical start and end: every
 member's 0 coincides with every other member's 0 and every member's end
 with every other member's end, and positions in between convert linearly.
 When only part of a timeline takes part, the member is a child of that
@@ -890,7 +912,7 @@ MatchStamps](#named-matchstamps)); `elisions` lists the elisions (below).
 `timestamps` lists the **named timestamps**, each `{id, timeline,
 coordinate, name, display?, matchstamp?, groupstamp?}`: a
 position `coordinate` on the own axis of the timeline `timeline`, a root or
-a descendant at any depth, a segment included, written as that timeline's
+a descendant at any depth, a segment included, or a virtual timeline, written as that timeline's
 number type selects and respelled by writers as every own-axis value is
 ([Values on a timeline's own axis](#values-on-a-timelines-own-axis)),
 from its zero to its `length` (only from its zero when the length is
@@ -920,7 +942,8 @@ an application listing the coordinates lists them all and highlights the
 primary one. A **groupstamp**, a timestamp
 with `groupstamp: true` (default `false`), lies on a timeline that lies in
 a group: the timeline or one of its ancestors is listed in the group's
-`members` (an ancestor of a member lies in no group through it). In the
+`members` (an ancestor of a member lies in no group through it), or the
+virtual timeline is. In the
 frame of each group its timeline lies in, its cross-section line extends
 across the frame, from the upper border of the topmost member card to the
 lower border of the bottommost, as one vertical line at the timestamp's
@@ -948,7 +971,7 @@ writers never reorder it:
 - a group's ID to the **display order** of its members, a permutation of
   their IDs; a group without an entry is displayed in the order of
   `members`;
-- a timeline's ID, of a root or a descendant, to its **band order**:
+- a timeline's ID, of a root, a descendant or a virtual timeline, to its **band order**:
   `line`, the timeline's own line, and any of its five facets `markers`,
   `conversion_maps`, `children`, `regions` and `flow_control`, each drawn
   as a band, each at most once: the bands before `line` lie above the
@@ -985,8 +1008,9 @@ of the drawing. Every row drawn across the stretch stops where the
 stretch starts and resumes where it ends, at full scale on either side,
 and a narrow **gap** lies between, holding one **ellipsis** (`•••`),
 centred in it, and below it the elision's name. The elision **lies on** its timeline, a root or a
-descendant at any depth, a segment included: `timeline` has the meaning
-and the validation of a named timestamp's `timeline`, and `start < end`,
+descendant at any depth, a segment included, never a virtual timeline:
+`timeline` has the meaning and the validation of a named timestamp's
+`timeline` otherwise, and `start < end`,
 its **elided coordinates**, are values on that timeline's own axis, from
 its zero to its `length` (and only from its zero when the length is
 `null`), written as its number type selects and respelled by writers as
@@ -1155,17 +1179,18 @@ drawing specification, section 2.2, gives every form.
 
 The JSON Schema cannot express that IDs are unique, nor that a reference
 names an element, nor that a map converts from its timeline's unit or its
-holder's, nor that a map's arrays agree, nor that a member names a timeline
+holder's, nor that a map's arrays agree, nor that a member names a timeline or a virtual timeline
 of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor that a named timestamp lies
-on a timeline of the manifest and within it, nor that a groupstamp lies
+on a timeline or a virtual timeline of the manifest and within it, nor that a groupstamp lies
 in a group, nor that an elision lies on a timeline of the manifest and
 within it, nor that a resource's
-timelines are timelines of the manifest, nor the rules of named
+timelines are timelines or virtual timelines of the manifest, nor the rules of named
 MatchStamps ([Named MatchStamps](#named-matchstamps)), nor the rules of
 flow control, FlowMaps and virtual timelines ([Flow
-control](#flow-control)), nor the representation of
+control](#flow-control)), nor the use of the property `flow` ([Drawing a
+manifest](#drawing-a-manifest)), nor the representation of
 own-axis values, so both validators check them after the schema. Each
 finding is one problem, located by a path into the manifest and named by a
 stable code:
@@ -1195,17 +1220,17 @@ stable code:
 | An ID of a root's tree repeats an ID of an earlier root's tree | `duplicate_id` | the later occurrence | `'<id>' is not unique in the manifest, first at <pointer>` |
 | A group ID, a MeasureMap ID, a named timestamp's ID, an elision's ID, a named MatchStamp's ID, an alignment anchor's ID, a resource's ID, a FlowMap's ID or a virtual timeline's ID repeats an earlier ID of the manifest | `duplicate_id` | that element's `id` | `'<id>' is not unique in the manifest, first at <pointer>` |
 | The manifest's ID repeats another ID of the manifest | `manifest_id` | `id` | `'<id>' is not unique in the manifest, first at <pointer>`, the pointer naming the first occurrence of that ID |
-| A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
+| A member names no timeline and no virtual timeline of the manifest | `group_member` | the member | `'<id>' names no timeline or virtual timeline of this manifest` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
-| A key of `graphical.order` names no group and no timeline | `order_key` | the key | `'<key>' names no group or timeline of this manifest` |
+| A key of `graphical.order` names no group, no timeline and no virtual timeline | `order_key` | the key | `'<key>' names no group, timeline or virtual timeline of this manifest` |
 | An entry of a display order is not a member of its group | `display_order` | the entry | `'<id>' is not a member of group '<group id>'` |
 | A member of a group is missing from its display order | `display_order` | the order | `member '<id>' of group '<group id>' is missing` |
 | An entry of a band order is neither `line` nor a facet | `band_order` | the entry | `'<entry>' is not 'line' or a facet, in the band order of '<id>'` |
 | `line` is missing from a band order | `band_order` | the order | `'line' is missing from the band order of '<id>'` |
-| A named timestamp's `timeline` names no timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
+| A named timestamp's `timeline` names no timeline and no virtual timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline or virtual timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
-| A groupstamp lies on a timeline that lies in no group (neither it nor any of its ancestors is a member) | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group and lies in none` |
-| An elision's `timeline` names no timeline of the manifest | `elision_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
+| A groupstamp lies on a timeline that lies in no group (neither it nor any of its ancestors is a member), or on a virtual timeline that is no member | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group and lies in none` |
+| An elision's `timeline` names no timeline of the manifest (a virtual timeline is none) | `elision_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
 | An elision's `start` lies before 0 | `elision_stretch` | the `start` | `start <value> of '<id>' lies before the start of its timeline '<timeline id>'` |
 | An elision's `end` lies beyond its timeline's known length | `elision_stretch` | the `end` | `end <value> of '<id>' is beyond the length <length> of its timeline '<timeline id>'` |
 | An elision's `end` does not lie after its `start` | `elision_stretch` | the `end` | `end <value> of '<id>' does not lie after its start <value>` |
@@ -1215,7 +1240,7 @@ stable code:
 | The alignment anchors of a named MatchStamp are not one connected set of timestamps | `matchstamp` | its `alignment_anchors` | `the alignment anchors of '<id>' are not one connected set` |
 | A match timestamp lies on the coordinate of an earlier match timestamp of its timeline, compared by exact value | `match_timestamp` | the later timestamp | `'<id>' lies on the coordinate of the match timestamp '<earlier id>'` |
 | No named MatchStamp's anchor names a match timestamp | `match_timestamp` | the timestamp | `the match timestamp '<id>' belongs to no MatchStamp` |
-| An entry of a resource's `timelines` names no timeline of the manifest | `resource_timeline` | the entry | `'<id>' names no timeline of this manifest` |
+| An entry of a resource's `timelines` names no timeline and no virtual timeline of the manifest | `resource_timeline` | the entry | `'<id>' names no timeline or virtual timeline of this manifest` |
 | A resource has the type `MatchClaim` or `Projection` of an earlier resource | `resource_type` | the later resource's `type` | `a manifest names at most one resource of the type <type>; '<earlier id>' is one` |
 | A FlowMap's `timeline` names a child timeline, or no timeline | `flow_map_timeline` | the `timeline` | `'<id>' is a child timeline; a FlowMap names a root timeline` (`'<id>' names no root timeline of this manifest`) |
 | An ID among a FlowMap's `chunks` names no region, child timeline or virtual timeline inside the tree of its root | `flow_map_chunk` | the chunk | `'<id>' names no region, child timeline or virtual timeline in the tree of '<timeline id>'` |
@@ -1225,6 +1250,11 @@ stable code:
 | A virtual timeline comes from itself through other virtual timelines, reported at each virtual timeline of the ring | `virtual_timeline` | the `timeline` | `'<id>' comes from itself through '<id>', '<id>': a virtual timeline comes, virtual timeline by virtual timeline, from a timeline of this manifest` |
 | A virtual timeline without `through` applies a FlowMap of another root than the one its `timeline` comes from | `virtual_timeline` | the `map` | `'<map id>' is a FlowMap of '<root id>', and '<timeline>' comes from the tree of '<root id>': without through, a virtual timeline applies a FlowMap within the tree of the FlowMap's root timeline` |
 | A virtual timeline without `through` applies a FlowMap of its own root, and its `length` is not the sum of the FlowMap's chunks and gaps, every chunk of a known length on its axis, the axis not `float` | `virtual_timeline` | the `length` | `length <value> of '<id>' is not the sum of the chunks and gaps of '<map id>', <sum>` |
+| A style of `graphical.styles` sets `flow` | `flow_rule` | the style's `flow` | `style '<name>' sets flow; only a rule addressed to the cards of a timeline sets it` |
+| A rule setting `flow` selects by anything but `addresses`, or by an address that is not `{id, part: ["card"]}` | `flow_rule` | the rule's `select` | `a rule setting flow selects the cards of timelines by their addresses alone, each {id, part: [card]}` |
+| A rule's `flow` names no FlowMap and no virtual timeline | `flow_rule` | the rule's `set.flow` | `'<id>' names no FlowMap or virtual timeline of this manifest` |
+| A rule's `flow` names a FlowMap of another timeline than one whose cards it selects, reported once per such address | `flow_rule` | the rule's `set.flow` | `'<id>' is a FlowMap of '<its timeline>', not of '<timeline id>'` |
+| A rule's `flow` names a virtual timeline that does not apply a FlowMap of a timeline whose cards it selects to that timeline without `through`, reported once per such address | `flow_rule` | the rule's `set.flow` | `'<id>' does not apply a FlowMap of '<timeline id>' to '<timeline id>' without through` |
 
 Within one root's tree, IDs are visited in identity order (a timeline,
 then its conversion maps, regions and flow-control elements, then its
@@ -1266,9 +1296,11 @@ coordinate shared with an earlier one, then belonging to no MatchStamp; then the
 `timelines` in order before its `type`; then the FlowMaps, in array
 order, each its `timeline`, then its chunks in order (none where the
 `timeline` names no root), then whether it is a second canonical FlowMap;
-and last the virtual timelines, in array order, each its `map`, then its
+then the virtual timelines, in array order, each its `map`, then its
 `timeline`, then the ring it lies in, then the FlowMap of another root,
-else its length. Before the schema, both validators refuse flow control written
+else its length; and last the property `flow`: the styles setting it, in
+code-point order of their names, then rule by rule in array order the
+rule's `select`, then its value, address by address. Before the schema, both validators refuse flow control written
 in the earlier form (`flow_control_form`, [Flow control](#flow-control)),
 root by root, each timeline's elements before its children's. A repeated anchor ID is a
 `duplicate_id` wherever the earlier ID stands, and a repeated ID within
@@ -1369,7 +1401,7 @@ resources:
 | --- | --- | --- |
 | `id` | yes | the resource's ID ([Identity](#identity)) |
 | `type` | yes | what its rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events it holds |
-| `timelines` | yes | the IDs of the timelines it holds data for, each a timeline of the manifest |
+| `timelines` | yes | the IDs of the timelines it holds data for, each a timeline or a virtual timeline of the manifest |
 | `url` | yes | its location, relative to the manifest's own, so that a bare file name lies beside the manifest |
 | `media_type` | no | its media type |
 | `size` | no | its size in bytes |
@@ -1636,7 +1668,7 @@ The MatchClaim table:
 | An ID is empty or holds a control character | `invalid_id` | `id` | `the ID is empty`, `the ID '<id>' holds a control character` |
 | An ID repeats the ID of an earlier row | `duplicate_id` | `id` | `the ID '<id>' is given twice` |
 | The file's provenance is no JSON text, no object or no provenance entry | `invalid_provenance` | `provenance`, row `None` | `the file's provenance is no JSON text`, `the file's provenance is no object`, `the file's provenance <pointer>: <problem>` |
-| A timeline names no timeline of the manifest | `unknown_timeline` | `timeline_a_id`, `timeline_b_id` | `the manifest has no timeline '<id>'` |
+| A timeline names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `timeline_a_id`, `timeline_b_id` | `the manifest has no timeline '<id>'` |
 | Both timelines are one | `claim_timelines` | `timeline_b_id` | `both sides are '<id>'` |
 | An event ID is empty or holds a control character | `invalid_id` | `event_a_id`, `event_b_id` | `the event ID is empty`, `the event ID '<id>' holds a control character` |
 | The row names no event | `claim_events` | `event_a_id` | `the MatchClaim names no event` |
@@ -1659,14 +1691,14 @@ The Projections table:
 | `id`, `timeline_id`, `unit`, `number_type` or `start` is null | `schema_violation` | the column | `'<name>' is null` |
 | An ID is empty or holds a control character | `invalid_id` | `id` | as in the MatchClaim table |
 | An ID repeats the ID of an earlier row | `duplicate_id` | `id` | as in the MatchClaim table |
-| `timeline_id` names no timeline of the manifest | `unknown_timeline` | `timeline_id` | `the manifest has no timeline '<id>'` |
+| `timeline_id` names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `timeline_id` | `the manifest has no timeline '<id>'` |
 | `unit` is none of the format's units, or `number_type` none of `int`, `float` and `fraction` or one the unit does not admit | `invalid_coordinate` | `unit`, else `number_type` | `'<unit>' is no unit`, `'<number type>' is no number type`, `'<unit>' admits no number type '<number type>'` |
 | The row's unit and number type are not those of its timeline in the manifest, or of an earlier row on its timeline | `axis_mismatch` | `unit` where the units differ, else `number_type` | an axis message (below) |
 | `start`, then `duration`, is malformed | `invalid_coordinate` | the number | a number's message (below) |
 | A well-formed `duration` is negative | `invalid_duration` | `duration` | `the duration is negative` |
 | A member of `projection_of` is null or empty | `invalid_projection_of` | `projection_of.timeline_id`, `projection_of.event_id` | `the projected event has no timeline_id`, `the projected event has no event_id` |
 | `projection_of` names the Projection's own timeline | `invalid_projection_of` | `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
-| `projection_of` names no timeline of the manifest | `unknown_timeline` | `projection_of.timeline_id` | `the manifest has no timeline '<id>'` |
+| `projection_of` names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `projection_of.timeline_id` | `the manifest has no timeline '<id>'` |
 
 A cell's message names the first of: an anchor's coordinate that is null
 (`the coordinate is null`); a null `unit`, then a null `number_type`
@@ -1919,9 +1951,18 @@ ones; no other element). The defaults hide the secondary ones, so the rule
 `{"select": {"element": "wedge", "coordinates": "secondary"}, "set":
 {"display": "inline"}}` shows their wedges. The property `shadow` colours a card's offset shadow,
 `rotation` turns a wedge about its tip, in whole degrees from −180 to 180,
-and `label-display` chooses the labels of a flow-control element (`none`
+`label-display` chooses the labels of a flow-control element (`none`
 or words from `name`, `id` and `label`; `name label` unless a rule says
-otherwise, so that naming an element shows its name).
+otherwise, so that naming an element shows its name), and `flow` draws a
+card in one of its timeline's FlowMaps (`{"select": {"addresses":
+[{"id": "#score", "part": ["card"]}]}, "set": {"flow": "#flow_map_1"}}`;
+only a rule of the manifest's own `rules` selecting cards by their
+addresses sets it, never a style, and both validators refuse any other use
+as `flow_rule`). A placed virtual timeline is drawn in a card of its own,
+its chunks as braces in its regions band, each addressed `{"id": "#V",
+"facet": "regions", "part": [k]}` with its index `k` in `chunks`, and the
+tick at a chunk's start as a `boundary` (the drawing specification,
+section 8.10).
 Four properties of a card, an ancestor card and, for the first, a frame
 choose its elisions (the elisions paragraph of [Groups and the `graphical`
 object](#groups-and-the-graphical-object)): `elision-mode` (`auto`,
@@ -2560,8 +2601,8 @@ else:
 - `unknown_keys(value)` returns the unknown keys of a manifest as a list of
   `{path, key}` entries, sorted by path and then by key.
 - `manifest_warnings(value)` validates a manifest and returns its
-  warnings, `context_absent`, `bundle_blank`, `manifestation_unknown`
-  and `convention_unknown`, as `{code, path, message}` entries sorted by
+  warnings, `context_absent`, `bundle_blank`, `manifestation_unknown`,
+  `convention_unknown` and `flow_conflict`, as `{code, path, message}` entries sorted by
   path, compared element by element with an index before a key, and then
   by code.
 - `statement_problems(value)` returns the problems of a manifest's

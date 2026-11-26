@@ -31,8 +31,8 @@ lie the expected RDF of the 4 statement fixtures under
 `fixtures/rdf/0.2.0/`, the expected flows of 9 flow fixtures under
 `fixtures/flows/0.2.0/`, the table fixture under `fixtures/tables/0.2.0/`
 ([The table fixture](#the-table-fixture)), the vectors of minted IDs under
-`fixtures/ids/` ([Minted ID vectors](#minted-id-vectors)), 248 rejection
-cases, 18 warning cases, one table of acceptances under
+`fixtures/ids/` ([Minted ID vectors](#minted-id-vectors)), 255 rejection
+cases, 19 warning cases, one table of acceptances under
 `fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)) and
 one list of cases of several problems under `fixtures/precedence/0.2.0/`
 ([Cases of several problems](#cases-of-several-problems)).
@@ -729,11 +729,11 @@ code:
 | `child_end` | a child ends within its parent's known length | `child_end_beyond_parent` |
 | `segment_line` | segments run contiguously from 0 to the line's length, with one `is_segment_line` value | `segment_line_not_from_zero`, `segment_line_gap`, `segment_line_gap_in_later_root`, `segment_line_short_of_length`, `segment_line_segment_flag` |
 | `manifest_id` | the manifest's ID is no other ID of the manifest | `manifest_id_is_group_id`, `manifest_id_is_descendant_id`, `manifest_id_is_measure_map_id` |
-| `group_member` | a member names a timeline of the manifest, and neither contains nor lies inside another member of its group | `member_dangling`, `members_contain_member`, `members_inside_member` |
-| `order_key` | a key of `graphical.order` names a group or a timeline | `order_unknown_group` |
+| `group_member` | a member names a timeline or a virtual timeline of the manifest, and neither contains nor lies inside another member of its group | `member_dangling`, `group_member_flow_map` (a FlowMap's ID), `group_member_virtual_unknown` (beside a virtual timeline), `members_contain_member`, `members_inside_member` |
+| `order_key` | a key of `graphical.order` names a group, a timeline or a virtual timeline | `order_unknown_group` |
 | `display_order` | a group's display order is a permutation of its members | `group_order_not_member`, `order_missing_member` |
 | `band_order` | a band order lists `line` and any of the five facets, each once | `band_order_unknown_entry`, `band_order_missing_line`, `band_order_old_form` |
-| `timestamp_timeline` | a named timestamp names a timeline of the manifest | `timestamp_timeline_unknown` |
+| `timestamp_timeline` | a named timestamp names a timeline or a virtual timeline of the manifest | `timestamp_timeline_unknown` |
 | `timestamp_coordinate` | a named timestamp's coordinate lies from 0 to its timeline's own length, from 0 on where the length is unknown | `timestamp_coordinate_beyond_length`, `timestamp_coordinate_negative` |
 | `groupstamp` | a groupstamp, a match timestamp included, lies in a group, its timeline or one of its ancestors being a member (an ancestor of a member lies in none through it) | `groupstamp_without_group`, `groupstamp_child_without_group`, `groupstamp_member_parent`, `groupstamp_match_without_group` |
 | `elision_timeline` | an elision names a timeline of the manifest | `elision_timeline_unknown` |
@@ -748,12 +748,13 @@ code:
 | `alignment_anchor` | an alignment anchor names two match timestamps of the manifest, on two timelines | `alignment_anchor_timestamp_unknown`, `alignment_anchor_timestamp_not_match`, `alignment_anchor_one_timeline` |
 | `matchstamp` | the alignment anchors of a MatchStamp are one connected set | `matchstamp_not_connected` |
 | `match_timestamp` | some MatchStamp names every match timestamp, and no two match timestamps lie on one coordinate | `match_timestamp_in_no_matchstamp`, `match_timestamp_coordinate_repeated` |
-| `resource_timeline` | a resource's `timelines` name timelines of the manifest | `resource_timeline_unknown` |
+| `resource_timeline` | a resource's `timelines` name timelines or virtual timelines of the manifest | `resource_timeline_unknown` |
 | `resource_type` | at most one resource has the type `MatchClaim`, at most one the type `Projection` | `resource_match_claim_twice`, `resource_projection_twice` |
 | `flow_map_timeline` | a FlowMap names a root timeline | `flow_map_timeline_child`, `flow_map_timeline_unknown` |
 | `flow_map_chunk` | every ID among a FlowMap's chunks names a region, a child timeline or a virtual timeline inside the tree of its root | `flow_map_chunk_unknown`, `flow_map_chunk_other_root`, `flow_map_chunk_root` |
 | `flow_map_canonical` | at most one FlowMap of a timeline is canonical | `flow_map_canonical_twice` |
 | `virtual_timeline` | a virtual timeline comes, virtual timeline by virtual timeline, from a timeline of the manifest; without `through`, a FlowMap it applies is one of the root of the tree its timeline comes from, and its `length` is the sum of that FlowMap's chunks and gaps where every chunk has a known length on its axis and the axis is not `float` | `virtual_timeline_cycle`, `virtual_timeline_map_other_root`, `virtual_timeline_length_not_the_sum` |
+| `flow_rule` | no style sets `flow`; a rule setting it selects the cards of timelines by their addresses alone, and its value names, for each, a FlowMap of that timeline or a virtual timeline applying one to it without `through` | `flow_rule_in_style`, `flow_rule_selector_not_addresses`, `flow_rule_value_region`, `flow_rule_flow_map_of_other_timeline`, `flow_rule_virtual_of_other_timeline` |
 
 Every case of statements starts from one manifest: the format's context
 with the prefixes `schema`, `wd` and `wdt` (others where a case says so)
@@ -823,7 +824,7 @@ refusal (`length_fraction_member_not_integral`), no row here.
 
 ## Warning cases
 
-A warning is never an error. Each of the 18 warning cases under
+A warning is never an error. Each of the 19 warning cases under
 `fixtures/warnings/<version>/` holds a manifest together with the two lists
 both packages must return for it: `unknown_keys`, the `{path, key}`
 entries `unknown_keys` and `unknownKeys` return, sorted by path and then by
@@ -835,8 +836,10 @@ root), and `bundle_blank_statements` and `bundle_blank_provenance`, a
 manifest without `id` that carries `statements` or only `provenance`
 (`bundle_blank` at that key). `manifestation_unknown` holds three
 warnings of that code, at the manifestation of a jump target, of a section
-break and of a destination, and `convention_unknown` one, at a FlowMap's
-`convention`, neither an unknown key. The other thirteen hold the format's context,
+break and of a destination, `convention_unknown` one, at a FlowMap's
+`convention`, and `flow_conflict` one, at the `members` of a group two of
+whose members' cards rules switch to a FlowMap of each, neither an
+unknown key. The other thirteen hold the format's context,
 unknown keys and no warning. `several_depths` places unknown keys at every
 depth of a manifest; each of the other twelve holds one or two keys its
 object does not declare, among them keys a writer might plausibly add,
