@@ -57,25 +57,25 @@ graphical:
   elisions: []
   matchstamps: []
   order:
-    "#group_26yv612cgdoew": ["#dpt_0ig2a624g4mfr"]
-    "#group_2ktdxr5t524u5": ["#dpt_36c2wnc3esuh3"]
+    "#group_0i5w3bp2zadi2": ["#dpt_36c2wnc3esuh3"]
+    "#group_2jq8lmvzmih8c": ["#dpt_0ig2a624g4mfr"]
   rules: []
   styles: {}
   timestamps: []
 groups:
   -
-    id: "#group_26yv612cgdoew"
-    members: ["#dpt_0ig2a624g4mfr"]
-    meta: {}
-    name: rec-ref
-  -
-    id: "#group_2ktdxr5t524u5"
+    id: "#group_0i5w3bp2zadi2"
     members: ["#dpt_36c2wnc3esuh3"]
     meta: {}
     name: rec-a
+  -
+    id: "#group_2jq8lmvzmih8c"
+    members: ["#dpt_0ig2a624g4mfr"]
+    meta: {}
+    name: rec-ref
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (0117c0f1)"
+  generator: "timetoalign 1.2.0 (b76ec413)"
 name: alignment
 resources: []
 timelines:

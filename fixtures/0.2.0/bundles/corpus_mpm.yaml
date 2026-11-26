@@ -57,25 +57,25 @@ graphical:
   elisions: []
   matchstamps: []
   order:
-    "#group_22lp1tcfy2eif": ["#perf:cpt_2aru6cd86we5t", "#perf:dpt_1mca7m9yj2hth", "#perf:dgt_0j7uozpbs4288"]
-    "#group_2xlwyld5fnblq": ["#score:clt_2kp3ykr72exzz", "#score:dlt_07d0ljffegg8o"]
+    "#group_0nny3nwjgod7x": ["#perf:cpt_2aru6cd86we5t", "#perf:dpt_1mca7m9yj2hth", "#perf:dgt_0j7uozpbs4288"]
+    "#group_2y6k5e4iios01": ["#score:clt_2kp3ykr72exzz", "#score:dlt_07d0ljffegg8o"]
   rules: []
   styles: {}
   timestamps: []
 groups:
   -
-    id: "#group_22lp1tcfy2eif"
+    id: "#group_0nny3nwjgod7x"
     members: ["#perf:cpt_2aru6cd86we5t", "#perf:dgt_0j7uozpbs4288", "#perf:dpt_1mca7m9yj2hth"]
     meta: {}
     name: perf
   -
-    id: "#group_2xlwyld5fnblq"
+    id: "#group_2y6k5e4iios01"
     members: ["#score:clt_2kp3ykr72exzz", "#score:dlt_07d0ljffegg8o"]
     meta: {}
     name: score
 measure_maps: []
 meta:
-  generator: "timetoalign 1.2.0 (0117c0f1)"
+  generator: "timetoalign 1.2.0 (b76ec413)"
 name: Beethoven_op35_1971Curzon_Var14only
 resources: []
 timelines:

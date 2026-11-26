@@ -715,39 +715,26 @@ def test_numbered_flow_control_ids_name_their_role() -> None:
         for role, element_id in elements
         if re.fullmatch(r"[a-z_]+_[1-9][0-9]*", element_id)
     )
-    for role, element_id in numbered:
+    minted = {
+        (role, element_id)
+        for role, element_id in elements
+        if re.fullmatch(r"[a-z_]+_[0-9a-z]{13}", element_id)
+    }
+    for role, element_id in [*numbered, *minted]:
         assert element_id.rsplit("_", 1)[0] == role, element_id
     assert numbered == {
-        ("barline", "barline_1"): 2,
-        ("barline", "barline_2"): 1,
-        ("barline", "barline_3"): 1,
-        ("break", "break_1"): 9,
-        ("break", "break_2"): 3,
-        ("break", "break_3"): 1,
-        ("break", "break_4"): 1,
-        ("jump", "jump_1"): 16,
-        ("jump", "jump_2"): 9,
-        ("jump", "jump_3"): 3,
-        ("jump", "jump_4"): 1,
-        ("jump", "jump_5"): 1,
-        ("jump", "jump_6"): 1,
-        ("jump", "jump_7"): 1,
-        ("jump", "jump_8"): 1,
-        ("jump", "jump_9"): 1,
-        ("jump", "jump_10"): 1,
-        ("jump", "jump_11"): 1,
-        ("jump_target", "jump_target_1"): 11,
-        ("jump_target", "jump_target_2"): 5,
-        ("jump_target", "jump_target_3"): 1,
-        ("jump_target", "jump_target_4"): 1,
-        ("jump_target", "jump_target_5"): 1,
-        ("jump_target", "jump_target_6"): 1,
-        ("jump_target", "jump_target_7"): 1,
-        ("jump_target", "jump_target_8"): 1,
+        ("barline", "barline_1"): 1,
+        ("break", "break_1"): 8,
+        ("break", "break_2"): 2,
+        ("jump", "jump_1"): 15,
+        ("jump", "jump_2"): 8,
+        ("jump", "jump_3"): 2,
+        ("jump_target", "jump_target_1"): 10,
+        ("jump_target", "jump_target_2"): 4,
         ("section_break", "section_break_1"): 2,
     }
     assert {element_id for role, element_id in elements} - {
-        element_id for role, element_id in numbered
+        element_id for role, element_id in [*numbered, *minted]
     } == {
         "fine",
         "da-capo",

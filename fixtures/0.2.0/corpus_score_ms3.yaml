@@ -56,7 +56,7 @@
 groups: []
 measure_maps:
   -
-    id: "#measuremap_1"
+    id: "#measure_map_0jukxnda4fyye"
     meta: {}
     name: null
     rows:
@@ -222,7 +222,7 @@ measure_maps:
         time_signature: "4/4"
         volta: 2
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (b76ec413)"
 name: null
 resources: []
 timelines:
@@ -232,21 +232,7 @@ timelines:
         children: []
         conversion_maps: []
         flow_control: []
-        id: "#clt_2"
-        is_segment_line: false
-        length: [37, 1]
-        locked: true
-        meta: {}
-        name: notes
-        number_type: fraction
-        offset: [0, 1]
-        regions: []
-        unit: quarters
-      -
-        children: []
-        conversion_maps: []
-        flow_control: []
-        id: "#clt_3"
+        id: "#clt_00oqrf4ovf6v6"
         is_segment_line: false
         length: [37, 1]
         locked: true
@@ -256,18 +242,31 @@ timelines:
         offset: [0, 1]
         regions: []
         unit: quarters
+      -
+        children: []
+        conversion_maps: []
+        flow_control: []
+        id: "#clt_3rs82j7d6xf82"
+        is_segment_line: false
+        length: [37, 1]
+        locked: true
+        meta: {}
+        name: notes
+        number_type: fraction
+        offset: [0, 1]
+        regions: []
+        unit: quarters
     conversion_maps:
       -
-        id: "#cmap_1"
+        id: "#cmap_11f4osjdait6f"
+        measure_map: "#measure_map_0jukxnda4fyye"
         name: null
-        offset: 0
-        scalar: 480
         source_unit: quarters
-        target_unit: ticks
-        type: LinearMap
+        target_unit: floating_measures
+        type: FloatingMeasureMap
       -
-        id: "#cmap_2"
-        measure_map: "#measuremap_1"
+        id: "#cmap_2er2l5iipemyw"
+        measure_map: "#measure_map_0jukxnda4fyye"
         name: null
         source_unit: quarters
         target_unit: null
@@ -275,7 +274,7 @@ timelines:
     flow_control:
       -
         coordinate: [6, 1]
-        id: "#jump_1"
+        id: "#jump_210g5ykglgulp"
         label: null
         meta: {}
         name: null
@@ -289,7 +288,7 @@ timelines:
             reset: true
       -
         coordinate: [6, 1]
-        id: "#jump_target_1"
+        id: "#jump_target_39qc0o70au8m2"
         label: null
         manifestation: repeat_start
         meta: {}
@@ -297,7 +296,7 @@ timelines:
         role: jump_target
       -
         coordinate: [7, 1]
-        id: "#jump_2"
+        id: "#jump_0vlokvmsr243t"
         label: null
         meta: {}
         name: null
@@ -314,19 +313,19 @@ timelines:
             determined: true
             label: null
             manifestation: volta
-            passes: [2]
+            passes: [3]
             reset: true
-            to: "#jump_target_2"
+            to: "#jump_target_2uqes84ht5hwf"
           -
             determined: true
             label: null
             manifestation: volta
-            passes: [3]
+            passes: [2]
             reset: true
-            to: "#jump_target_3"
+            to: "#jump_target_2y6qo33s6s1tk"
       -
         coordinate: [9, 1]
-        id: "#break_1"
+        id: "#break_31nssqj7ze61p"
         label: null
         manifestation: volta
         meta: {}
@@ -334,7 +333,7 @@ timelines:
         role: break
       -
         coordinate: [9, 1]
-        id: "#jump_3"
+        id: "#jump_3gpqr910h4yt6"
         label: null
         meta: {}
         name: null
@@ -346,10 +345,10 @@ timelines:
             manifestation: repeat_end
             repeat_count: 1
             reset: true
-            to: "#jump_target_1"
+            to: "#jump_target_39qc0o70au8m2"
       -
         coordinate: [9, 1]
-        id: "#jump_target_2"
+        id: "#jump_target_2y6qo33s6s1tk"
         label: null
         manifestation: volta
         meta: {}
@@ -357,7 +356,7 @@ timelines:
         role: jump_target
       -
         coordinate: [10, 1]
-        id: "#barline_1"
+        id: "#barline_3ve1ymgabcnpj"
         label: null
         manifestation: double_barline
         meta: {}
@@ -365,7 +364,7 @@ timelines:
         role: barline
       -
         coordinate: [10, 1]
-        id: "#break_2"
+        id: "#break_0fskbbsdlhc26"
         label: null
         manifestation: volta
         meta: {}
@@ -373,7 +372,7 @@ timelines:
         role: break
       -
         coordinate: [10, 1]
-        id: "#jump_target_3"
+        id: "#jump_target_2uqes84ht5hwf"
         label: null
         manifestation: volta
         meta: {}
@@ -381,7 +380,7 @@ timelines:
         role: jump_target
       -
         coordinate: [12, 1]
-        id: "#barline_2"
+        id: "#barline_1gk28bd0hd53k"
         label: null
         manifestation: final_barline
         meta: {}
@@ -391,8 +390,8 @@ timelines:
         coordinate: [12, 1]
         ends:
           after:
-            jump: "#jump_10"
-        id: "#break_4"
+            jump: "#jump_2saq8y5boe04x"
+        id: "#break_2k81mu885hzg8"
         label: null
         manifestation: fine
         meta: {}
@@ -400,7 +399,7 @@ timelines:
         role: break
       -
         coordinate: [16, 1]
-        id: "#jump_4"
+        id: "#jump_11a8b09qz4mam"
         label: null
         meta: {}
         name: null
@@ -414,23 +413,23 @@ timelines:
             reset: true
       -
         coordinate: [16, 1]
-        id: "#jump_target_4"
-        label: null
-        manifestation: repeat_start
-        meta: {}
-        name: null
-        role: jump_target
-      -
-        coordinate: [16, 1]
-        id: "#jump_target_7"
+        id: "#jump_target_1wbb0g58sv1fa"
         label: null
         manifestation: segno
         meta: {}
         name: segno
         role: jump_target
       -
+        coordinate: [16, 1]
+        id: "#jump_target_3nwxict9rc6k0"
+        label: null
+        manifestation: repeat_start
+        meta: {}
+        name: null
+        role: jump_target
+      -
         coordinate: [20, 1]
-        id: "#jump_11"
+        id: "#jump_0py8q6nrovvfe"
         label: null
         meta: {}
         name: null
@@ -438,16 +437,16 @@ timelines:
         targets:
           -
             after:
-              jump: "#jump_9"
-              to: "#jump_target_7"
+              jump: "#jump_1kzf7xnq2v7to"
+              to: "#jump_target_1wbb0g58sv1fa"
             determined: true
             label: coda
             manifestation: to_coda
             reset: true
-            to: "#jump_target_8"
+            to: "#jump_target_0lnffur6sqkru"
       -
         coordinate: [20, 1]
-        id: "#jump_target_5"
+        id: "#jump_target_2qa0u86neklke"
         label: null
         manifestation: repeat_start
         meta: {}
@@ -455,7 +454,7 @@ timelines:
         role: jump_target
       -
         coordinate: [24, 1]
-        id: "#jump_5"
+        id: "#jump_1190yq1fxoq8y"
         label: null
         meta: {}
         name: null
@@ -467,10 +466,10 @@ timelines:
             manifestation: repeat_end
             repeat_count: 1
             reset: true
-            to: "#jump_target_5"
+            to: "#jump_target_2qa0u86neklke"
       -
         coordinate: [28, 1]
-        id: "#jump_6"
+        id: "#jump_2c74dk74feysp"
         label: null
         meta: {}
         name: null
@@ -482,10 +481,10 @@ timelines:
             manifestation: repeat_end
             repeat_count: 1
             reset: true
-            to: "#jump_target_4"
+            to: "#jump_target_3nwxict9rc6k0"
       -
         coordinate: [30, 1]
-        id: "#barline_3"
+        id: "#barline_3myfm9owtae8r"
         label: null
         manifestation: final_barline
         meta: {}
@@ -493,7 +492,7 @@ timelines:
         role: barline
       -
         coordinate: [30, 1]
-        id: "#jump_9"
+        id: "#jump_1kzf7xnq2v7to"
         label: null
         meta: {}
         name: null
@@ -505,10 +504,10 @@ timelines:
             manifestation: dal_segno_al_coda
             repeat_count: 1
             reset: false
-            to: "#jump_target_7"
+            to: "#jump_target_1wbb0g58sv1fa"
       -
         coordinate: [30, 1]
-        id: "#jump_target_8"
+        id: "#jump_target_0lnffur6sqkru"
         label: null
         manifestation: coda
         meta: {}
@@ -516,7 +515,7 @@ timelines:
         role: jump_target
       -
         coordinate: [32, 1]
-        id: "#jump_7"
+        id: "#jump_3gy4lq7vd04um"
         label: null
         meta: {}
         name: null
@@ -535,10 +534,10 @@ timelines:
             manifestation: volta
             passes: [2]
             reset: true
-            to: "#jump_target_6"
+            to: "#jump_target_295pogxi6kjkb"
       -
         coordinate: [34, 1]
-        id: "#break_3"
+        id: "#break_12vv6wabk2yik"
         label: null
         manifestation: volta
         meta: {}
@@ -546,7 +545,7 @@ timelines:
         role: break
       -
         coordinate: [34, 1]
-        id: "#jump_8"
+        id: "#jump_1yz7zrjd9q2g8"
         label: null
         meta: {}
         name: null
@@ -560,7 +559,7 @@ timelines:
             reset: true
       -
         coordinate: [34, 1]
-        id: "#jump_target_6"
+        id: "#jump_target_295pogxi6kjkb"
         label: null
         manifestation: volta
         meta: {}
@@ -568,7 +567,7 @@ timelines:
         role: jump_target
       -
         coordinate: [37, 1]
-        id: "#jump_10"
+        id: "#jump_2saq8y5boe04x"
         label: null
         meta: {}
         name: null
@@ -580,7 +579,7 @@ timelines:
             manifestation: da_capo_al_fine
             repeat_count: 1
             reset: false
-    id: "#clt_1"
+    id: "#clt_2uf7s0x7z4czh"
     is_segment_line: false
     length: [37, 1]
     locked: true

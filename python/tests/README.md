@@ -1333,7 +1333,10 @@ flow that does not follow from its manifest.
   and three virtual timelines; `switched_card` holds the same `timelines`,
   FlowMaps and virtual timelines and a rule setting the property `flow` of
   `allegro`'s card to `default`. Numbered flow-control IDs name their role,
-  without exception.
+  without exception, and so do the IDs a loader mints (the role, `_` and
+  13 base-36 characters, in `corpus_score_ms3`); the numbered ones are
+  counted exactly, the minted ones are random and left out of the count,
+  and every other ID is one of the given names listed.
 - **The expected flows** (`test_flow.py`). `fixtures/flows/0.2.0/` holds
   one file per flow fixture with flow control, ten in all, in canonical
   YAML (`switched_card`, whose `timelines` are those of `virtual_cards`

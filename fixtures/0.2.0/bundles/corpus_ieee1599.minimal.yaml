@@ -55,39 +55,39 @@
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
 graphical:
   order:
-    "#group_1": ["#spine:dlt_1"]
-    "#group_2": ["#los:dlt_2"]
-    "#group_3": ["#original_score:dgt_1"]
-    "#group_4": ["#finale_transcription:dgt_2"]
-    "#group_5": ["#khomus_audio:cpt_1"]
-    "#group_6": ["#khomus_video:cpt_2"]
+    "#group_06r1ccwg87dxx": ["#khomus_video:cpt_0piuzp2mn3vyk"]
+    "#group_14ek423qp16ey": ["#los:dlt_3d6v0daclchev"]
+    "#group_1jbiwykq29kik": ["#spine:dlt_04vs370dqtpy3"]
+    "#group_23z2da3l7613k": ["#khomus_audio:cpt_3u7ezhmtlatnp"]
+    "#group_3r6oz86ny5nqu": ["#original_score:dgt_3d47qw9zs5no9"]
+    "#group_3usta8k5xt07w": ["#finale_transcription:dgt_1e2vz04c9a42z"]
 groups:
   -
-    id: "#group_1"
-    members: ["#spine:dlt_1"]
-    name: "spine:dlt_1"
+    id: "#group_06r1ccwg87dxx"
+    members: ["#khomus_video:cpt_0piuzp2mn3vyk"]
+    name: khomus_video
   -
-    id: "#group_2"
-    members: ["#los:dlt_2"]
-    name: "los:dlt_2"
+    id: "#group_14ek423qp16ey"
+    members: ["#los:dlt_3d6v0daclchev"]
+    name: los
   -
-    id: "#group_3"
-    members: ["#original_score:dgt_1"]
-    name: "original_score:dgt_1"
+    id: "#group_1jbiwykq29kik"
+    members: ["#spine:dlt_04vs370dqtpy3"]
+    name: spine
   -
-    id: "#group_4"
-    members: ["#finale_transcription:dgt_2"]
-    name: "finale_transcription:dgt_2"
+    id: "#group_23z2da3l7613k"
+    members: ["#khomus_audio:cpt_3u7ezhmtlatnp"]
+    name: khomus_audio
   -
-    id: "#group_5"
-    members: ["#khomus_audio:cpt_1"]
-    name: "khomus_audio:cpt_1"
+    id: "#group_3r6oz86ny5nqu"
+    members: ["#original_score:dgt_3d47qw9zs5no9"]
+    name: original_score
   -
-    id: "#group_6"
-    members: ["#khomus_video:cpt_2"]
-    name: "khomus_video:cpt_2"
+    id: "#group_3usta8k5xt07w"
+    members: ["#finale_transcription:dgt_1e2vz04c9a42z"]
+    name: finale_transcription
 meta:
-  generator: "timetoalign 1.2.0 (2ffcda05)"
+  generator: "timetoalign 1.2.0 (b76ec413)"
 name: khomus
 timelines:
   -
@@ -95,30 +95,30 @@ timelines:
       -
         children:
           -
-            id: "#dgt_7"
+            id: "#dgt_14uznofrnid9s"
             length: 4264
             name: accolade_1
             offset: 0
             unit: pixels
           -
-            id: "#dgt_8"
+            id: "#dgt_2fgu13585q8bl"
             length: 4372
             name: accolade_2
             offset: 4264
             unit: pixels
           -
-            id: "#dgt_9"
+            id: "#dgt_2b2021j4eqzv0"
             length: 4180
             name: accolade_3
             offset: 8636
             unit: pixels
           -
-            id: "#dgt_10"
+            id: "#dgt_04zuitvl4d6yb"
             length: 4110
             name: accolade_4
             offset: 12816
             unit: pixels
-        id: "#dgt_6"
+        id: "#dgt_1r8zszzhgy638"
         is_segment_line: true
         length: 16926
         locked: true
@@ -135,10 +135,10 @@ timelines:
     conversion_maps:
       -
         breaks: [0, 16926]
-        id: "#cmap_3"
+        id: "#cmap_1iuw4kzctxeoc"
         maps:
           -
-            id: "#cmap_4"
+            id: "#cmap_18kzxrrkqcfk7"
             source_unit: pixels
             target_unit: null
             type: ConstantMap
@@ -147,7 +147,7 @@ timelines:
         source_unit: pixels
         target_unit: null
         type: PiecewiseMap
-    id: "#finale_transcription:dgt_2"
+    id: "#finale_transcription:dgt_1e2vz04c9a42z"
     is_segment_line: true
     length: 16926
     locked: true
@@ -163,7 +163,7 @@ timelines:
     name: "Finale transcription"
     unit: pixels
   -
-    id: "#khomus_audio:cpt_1"
+    id: "#khomus_audio:cpt_3u7ezhmtlatnp"
     length: 46.98
     meta:
       encoding_format: audio_wav
@@ -177,7 +177,7 @@ timelines:
     name: khomus_audio
     unit: seconds
   -
-    id: "#khomus_video:cpt_2"
+    id: "#khomus_video:cpt_0piuzp2mn3vyk"
     length: 45.88
     meta:
       encoding_format: video_avi
@@ -191,7 +191,7 @@ timelines:
     name: khomus_video
     unit: seconds
   -
-    id: "#los:dlt_2"
+    id: "#los:dlt_3d6v0daclchev"
     length: 48128
     name: "Logically organised symbols"
     unit: ticks
@@ -200,30 +200,30 @@ timelines:
       -
         children:
           -
-            id: "#dgt_2"
+            id: "#dgt_0s9hdrwtegpwd"
             length: 1843
             name: accolade_1
             offset: 0
             unit: pixels
           -
-            id: "#dgt_3"
+            id: "#dgt_0f7q99qdzb6h2"
             length: 1943
             name: accolade_2
             offset: 1843
             unit: pixels
           -
-            id: "#dgt_4"
+            id: "#dgt_2v8l0rtnlm6cu"
             length: 1804
             name: accolade_3
             offset: 3786
             unit: pixels
           -
-            id: "#dgt_5"
+            id: "#dgt_1c76ry64aih6d"
             length: 1828
             name: accolade_4
             offset: 5590
             unit: pixels
-        id: "#dgt_1"
+        id: "#dgt_0av3d9hgp7ylq"
         is_segment_line: true
         length: 7418
         locked: true
@@ -240,10 +240,10 @@ timelines:
     conversion_maps:
       -
         breaks: [0, 7418]
-        id: "#cmap_1"
+        id: "#cmap_1hc3xkdxztfh5"
         maps:
           -
-            id: "#cmap_2"
+            id: "#cmap_0cp7pyy2bntps"
             source_unit: pixels
             target_unit: null
             type: ConstantMap
@@ -252,7 +252,7 @@ timelines:
         source_unit: pixels
         target_unit: null
         type: PiecewiseMap
-    id: "#original_score:dgt_1"
+    id: "#original_score:dgt_3d47qw9zs5no9"
     is_segment_line: true
     length: 7418
     locked: true
@@ -268,7 +268,7 @@ timelines:
     name: "Original score"
     unit: pixels
   -
-    id: "#spine:dlt_1"
+    id: "#spine:dlt_04vs370dqtpy3"
     length: 48128
     name: Spine
     unit: ticks
