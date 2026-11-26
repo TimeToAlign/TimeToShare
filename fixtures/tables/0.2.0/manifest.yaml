@@ -59,9 +59,9 @@ resources:
     id: "#resource_1"
     integrity:
       algorithm: SHA-256
-      digest: "5672a61cc45e5ed9c7e7464b857279fe1999c5586403a12b4d26eb210b119bca"
+      digest: "8113263725bee78556ce29940f10bb0b265ca618730ac8e2d7c399c2bb8785ab"
     media_type: application/vnd.apache.parquet
-    size: 13958
+    size: 13973
     timelines: ["#clt_1", "#clt_2", "#dpt_1", "#cpt_1"]
     type: MatchClaim
     url: match_claims.parquet
@@ -69,9 +69,9 @@ resources:
     id: "#resource_2"
     integrity:
       algorithm: SHA-256
-      digest: "642f490960102023e37d21cfcfb9336f508a57a84e7c50f5df5a0c29167d56c0"
+      digest: ee54cb3dc23ad69e25b1cd4a0c0853423d99ee05632359c859966313ea6b64e8
     media_type: application/vnd.apache.parquet
-    size: 4102
+    size: 4127
     timelines: ["#clt_2", "#dpt_1", "#cpt_1"]
     type: Projection
     url: projections.parquet

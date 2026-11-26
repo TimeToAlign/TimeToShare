@@ -177,29 +177,29 @@ def test_a_chunk_row_gives_its_anchor_like_any_other() -> None:
 
 
 NOBODY = "https://orcid.org/0000-0000-0000-0000"
-UNDECIDED_FOR_ACTOR = [1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14, 15, 16]
+UNDECIDED_FOR_ACTOR = [1, 2, 3, 4, 6, 7, 8, 9, 11, 13, 14, 15, 16, 17]
 
 
 @pytest.mark.parametrize(
     ("believer", "beliefs", "rows"),
     [
-        (None, EVERY_STATE_BUT_FALSE, list(range(17))),
-        (None, ["true"], list(range(17))),
-        (None, [], list(range(17))),
-        (ACTOR, EVERY_STATE_BUT_FALSE, [index for index in range(17) if index != 12]),
+        (None, EVERY_STATE_BUT_FALSE, list(range(18))),
+        (None, ["true"], list(range(18))),
+        (None, [], list(range(18))),
+        (ACTOR, EVERY_STATE_BUT_FALSE, [index for index in range(18) if index != 12]),
         (ACTOR, ["true"], [0, 10]),
         (ACTOR, ["undecided"], UNDECIDED_FOR_ACTOR),
         (ACTOR, ["unlikely"], [5]),
         (ACTOR, ["false"], [12]),
         (ACTOR, ["unlikely", "false"], [5, 12]),
         (ACTOR, [], []),
-        (ACTOR, list(BELIEF_STATES), list(range(17))),
-        (OTHER_ACTOR, EVERY_STATE_BUT_FALSE, list(range(17))),
+        (ACTOR, list(BELIEF_STATES), list(range(18))),
+        (OTHER_ACTOR, EVERY_STATE_BUT_FALSE, list(range(18))),
         (OTHER_ACTOR, ["true"], [12, 13]),
         (OTHER_ACTOR, ["false"], []),
-        (NOBODY, EVERY_STATE_BUT_FALSE, list(range(17))),
+        (NOBODY, EVERY_STATE_BUT_FALSE, list(range(18))),
         (NOBODY, ["true"], []),
-        (NOBODY, ["undecided"], list(range(17))),
+        (NOBODY, ["undecided"], list(range(18))),
     ],
 )
 def test_the_belief_filter(
@@ -216,7 +216,7 @@ def test_the_belief_filter_keeps_every_state_but_false_by_default() -> None:
         table, ACTOR, EVERY_STATE_BUT_FALSE
     )
     assert believed_rows(table, ACTOR, {"undecided", "true", "unlikely"}) == [
-        index for index in range(17) if index != 12
+        index for index in range(18) if index != 12
     ]
 
 
@@ -251,7 +251,7 @@ def test_the_belief_filter_compares_actors_as_iris() -> None:
     assert believed_rows(table, compact, ["true"], context=context) == [0, 10]
     assert believed_rows(table, compact, ["false"], context=context) == [12]
     assert believed_rows(table, compact, ["true"]) == []
-    assert believed_rows(table, compact, ["undecided"]) == list(range(17))
+    assert believed_rows(table, compact, ["undecided"]) == list(range(18))
     assert [
         anchor.coordinates
         for anchor in alignment_anchors(table, compact, ["true"], context=context)

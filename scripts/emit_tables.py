@@ -34,6 +34,9 @@ quarter lasts one second, 44100 samples) and one child of the first:
   and the note ``claim_2`` states at the quarter 1; its anchor joins
   ``claim_2``'s start into one potential MatchStamp.
 - ``claim_17``: an instant claim, its seconds side a Projection of the note.
+- ``claim_18``: a NOMATCH stated from ``inserted_1``, a Projection on the
+  samples timeline under the source's ID for a note the package does not
+  hold; the NOMATCH sentinel stands on the quarters side.
 
 A sentinel is written in the event ID column as its reserved string
 (``NOMATCH_SENTINEL``, ``CHUNK_SENTINEL``), its name null.
@@ -42,8 +45,10 @@ The Projections table holds a Projection of each number type: ints on the
 samples timeline (instants and one interval), a float instant and a float
 interval on the seconds timeline, and a fraction interval on the child, the
 Projection of an audio onset; the float interval and the fraction interval
-name no MatchClaim. A CHUNK side is no Projection, and the Projections keep
-their numbers, so ``projection_6`` and ``projection_7`` are not held. Its rows
+name no MatchClaim. ``inserted_1``, an int instant on the samples timeline,
+is the one Projection of no event the package holds (``projection_of``
+null). A CHUNK side is no Projection, and the Projections keep their
+numbers, so ``projection_6`` and ``projection_7`` are not held. Its rows
 are written sorted stably by ``timeline_id``, each timeline's rows in the
 order listed here: the order in which timetoalign writes a bundle's
 Projections table, so that the two files are equal byte for byte.
@@ -245,6 +250,11 @@ def onset(number: int) -> tuple[str, str, None]:
     return ("cpt_1", f"onset_{number}", None)
 
 
+INSERTED = "inserted_1"
+"""The source's ID of a note played but not written, which the package holds
+no event for: its Projection's ``projection_of`` is null."""
+
+
 def chunk(timeline: str) -> tuple[str, str, None]:
     return (timeline, CHUNK_SENTINEL, None)
 
@@ -379,19 +389,26 @@ MATCH_CLAIMS: list[dict[str, Any]] = [
         projection("cpt_1", 12),
         (quarters(45, 4), seconds(11.25)),
     ),
+    claim(
+        "claim_18",
+        ("dpt_1", INSERTED, None),
+        nomatch("clt_1"),
+        synchronous=False,
+    ),
 ]
 """The MatchClaim table, row by row."""
 
 
 def _projection(
-    number: int,
+    identifier: int | str,
     timeline: str,
     start: dict[str, Any],
     of: tuple[str, str] | None,
     duration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """A Projection row from coordinate cells: the row states their unit and
-    number type once, and ``start`` and ``duration`` hold the numbers."""
+    number type once, and ``start`` and ``duration`` hold the numbers. An int
+    ``identifier`` numbers a ``projection_<n>``; a string is the ID itself."""
 
     def members(cell: dict[str, Any] | None) -> dict[str, Any] | None:
         if cell is None:
@@ -399,7 +416,7 @@ def _projection(
         return {key: cell[key] for key in ("numerator", "denominator", "value")}
 
     return {
-        "id": f"projection_{number}",
+        "id": identifier if isinstance(identifier, str) else f"projection_{identifier}",
         "timeline_id": timeline,
         "unit": start["unit"],
         "number_type": start["number_type"],
@@ -422,9 +439,10 @@ PROJECTIONS: list[dict[str, Any]] = [
     _projection(10, "clt_2", quarters(7, 2), ("dpt_1", "onset_1"), quarters(1, 2)),
     _projection(11, "cpt_1", seconds(12.5), ("clt_1", "note_16"), seconds(0.75)),
     _projection(12, "cpt_1", seconds(11.25), ("clt_1", "note_14")),
+    _projection(INSERTED, "dpt_1", samples(573300), None),
 ]
-"""The Projections, numbered in the order listed; the table writes them
-sorted stably by ``timeline_id``."""
+"""The Projections, numbered in the order listed but for ``inserted_1``; the
+table writes them sorted stably by ``timeline_id``."""
 
 
 # The expected values, written by hand. A coordinate is its timeline and its

@@ -530,7 +530,7 @@ seconds) and names both tables in its `resources`, each with its media
 type, its size, its SHA-256 digest and the timelines its table holds data
 for: `resource_1`, the MatchClaim table, names `clt_1`, `clt_2`, `dpt_1`
 and `cpt_1`; `resource_2`, the Projections table, names `clt_2`, `dpt_1`
-and `cpt_1`. The MatchClaim table holds 17 rows; an event ID column holds
+and `cpt_1`. The MatchClaim table holds 18 rows; an event ID column holds
 an event's ID or a sentinel's reserved string, never a null: `claim_12` is
 a NOMATCH (`NOMATCH_SENTINEL` on its `dpt_1` side), `claim_11` a
 synchronous MatchClaim with `CHUNK_SENTINEL` on both sides (`dpt_1` and
@@ -538,14 +538,19 @@ synchronous MatchClaim with `CHUNK_SENTINEL` on both sides (`dpt_1` and
 instant MatchClaim between `CHUNK_SENTINEL` on `cpt_1` (side A) and the
 note at the quarter 1 of `clt_1`, whose anchor joins `claim_2`'s start into
 one potential MatchStamp; `claim_17` joins the note at the quarter 45/4 of
-`clt_1` and its Projection `projection_12` at the second 11.25 of `cpt_1`.
-The Projections table holds 10 Projections, none
+`clt_1` and its Projection `projection_12` at the second 11.25 of `cpt_1`;
+`claim_18` is a NOMATCH stated from `inserted_1`, a Projection on `dpt_1`
+under the source's ID for a note the package does not hold
+(`NOMATCH_SENTINEL` on its `clt_1` side), which states no anchor.
+The Projections table holds 11 Projections, none
 where a side is CHUNK (a CHUNK is no Projection; the Projections keep their
 numbers, so `projection_6` and `projection_7` are not held), and each
 number type of a cell: ints on `dpt_1` (instants and one interval), a
 float instant and a float interval on `cpt_1`, and a fraction interval (start 7/2, duration
 1/2) on `clt_2`; the float interval and the fraction interval are named by
-no MatchClaim.
+no MatchClaim. Every Projection but one names the event it stands for in
+`projection_of`; `inserted_1`, an int instant at the sample 573300, names
+none (`projection_of` null).
 Its rows lie sorted stably by `timeline_id` (`clt_2`, then `cpt_1`, then
 `dpt_1`), each timeline's in the order the script lists them: the order in
 which timetoalign writes a bundle's Projections table, so that the two

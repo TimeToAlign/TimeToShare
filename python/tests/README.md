@@ -2846,7 +2846,13 @@ extraction's are without fontTools. What proves them:
   event, fails the literal values. `claim_17`, an instant MatchClaim
   between the note at the quarter 45/4 and its Projection `projection_12`
   at the second 11.25, gives one anchor and one potential MatchStamp of
-  its own, kept wherever the filter keeps undecided rows. Its Projections
+  its own, kept wherever the filter keeps undecided rows. `claim_18` is a
+  NOMATCH stated from `inserted_1`, a Projection on the samples timeline
+  under the source's ID for a note the package does not hold
+  (`projection_of` null), `NOMATCH_SENTINEL` on its quarters side; as a
+  NOMATCH it states no anchor and leaves every expected value unchanged,
+  so a reader that takes a Projection without a source for an anchor's
+  coordinate fails the literal values. Its Projections
   table holds each number type of the cell form: int instants and an int
   interval on the samples timeline, a float instant (`projection_12`) and
   a float interval on the seconds timeline, and a fraction interval
@@ -2863,7 +2869,7 @@ extraction's are without fontTools. What proves them:
   without provenance included); the row is kept when that state is one
   the filter names. `believed_rows` keeps, per believer and collection of
   states, the rows listed in `test_tables_anchors.py`: every state alone
-  for one actor, which partitions the seventeen rows, the default, and
+  for one actor, which partitions the eighteen rows, the default, and
   without a believer every row whatever the states. A single string
   raises `the belief filter takes a collection of states, not the string
   'true': write ['true']`; an unknown word raises `'not_false' is no
@@ -2893,15 +2899,17 @@ extraction's are without fontTools. What proves them:
   manifest's order, exactly the timelines its table names. Each
   Projection a MatchClaim names stands on that side's timeline at the
   anchor's coordinate, its duration spanning to the end anchor; the
-  fixture's ten Projections are all named but two, the fraction
-  interval and the float interval, and no Projection stands
+  fixture's eleven Projections are all named but two, the fraction
+  interval and the float interval; one, `inserted_1`, names no event
+  (`projection_of` null) and is named by the NOMATCH `claim_18`, the only
+  MatchClaim side naming a Projection without an anchor; and no Projection stands
   where a MatchClaim's side is `CHUNK_SENTINEL` (a CHUNK is no
   Projection). The Projections keep their numbers, `projection_6` and
   `projection_7` being no longer held. The Projections table's rows
   lie sorted stably by `timeline_id`, each timeline's in the order the
   script lists them: `projection_10` on `clt_2`, `projection_11` and
-  `projection_12` on `cpt_1`, then `projection_1` to `projection_5`, `projection_8` and
-  `projection_9` on `dpt_1`, the order in which a
+  `projection_12` on `cpt_1`, then `projection_1` to `projection_5`, `projection_8`,
+  `projection_9` and `inserted_1` on `dpt_1`, the order in which a
   writer holding the Projections per timeline writes them, so that such a
   writer's file can equal the fixture's byte for byte.
 

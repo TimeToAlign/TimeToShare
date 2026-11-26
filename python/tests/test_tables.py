@@ -1817,8 +1817,8 @@ def test_the_fixture_tables_pass_every_check_against_their_manifest() -> None:
     manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
     claims = pq.read_table(fixture_path("match_claims.parquet"))
     projections = pq.read_table(fixture_path("projections.parquet"))
-    assert claims.num_rows == 17
-    assert projections.num_rows == 10
+    assert claims.num_rows == 18
+    assert projections.num_rows == 11
     assert match_claim_problems(claims, manifest) == []
     assert projection_problems(projections, manifest) == []
 
@@ -1830,14 +1830,18 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
         for row in pq.read_table(fixture_path("projections.parquet")).to_pylist()
     }
     named = set()
+    unanchored = []
     for row in claims:
         for side in ("a", "b"):
             event = row[f"event_{side}_id"]
-            if not event.startswith("projection_"):
+            if event not in projections:
                 continue
             named.add(event)
             standing = projections[event]
             assert standing["timeline_id"] == row[f"timeline_{side}_id"]
+            if row["start_anchor"] is None:
+                unanchored.append((row["id"], side, event, standing["projection_of"]))
+                continue
             kind = standing["number_type"]
             start = coordinate_value(standing["start"], kind)
             assert start == coordinate_value(row["start_anchor"][f"coordinate_{side}"])
@@ -1847,6 +1851,10 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
                 end = coordinate_value(row["end_anchor"][f"coordinate_{side}"])
                 assert start + coordinate_value(standing["duration"], kind) == end
     assert set(projections) - named == {"projection_10", "projection_11"}
+    assert unanchored == [("claim_18", "a", "inserted_1", None)]
+    assert [
+        row["id"] for row in projections.values() if row["projection_of"] is None
+    ] == ["inserted_1"]
     sentinels = [
         (row["id"], side, row[f"event_{side}_id"])
         for row in claims
@@ -1858,6 +1866,7 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
         ("claim_11", "b", CHUNK),
         ("claim_12", "b", NOMATCH),
         ("claim_16", "a", CHUNK),
+        ("claim_18", "b", NOMATCH),
     ]
 
 
@@ -1874,4 +1883,5 @@ def test_the_projections_lie_sorted_by_timeline() -> None:
         ("dpt_1", "projection_5"),
         ("dpt_1", "projection_8"),
         ("dpt_1", "projection_9"),
+        ("dpt_1", "inserted_1"),
     ]
