@@ -314,8 +314,8 @@ either side,
 and a narrow **gap** lies between, holding one **ellipsis**, centred in
 it, with the elision's labels below it (sections 6.6 and 8.9). `id` is its ID (README,
 "Identity"); `timeline` names the timeline the elision **lies on**, at
-any depth, a segment included, with the meaning and the validation of a
-named timestamp's `timeline`, but never a virtual timeline; `start` and `end`, `start < end`, are its
+any depth, a segment included, or a virtual timeline (section 8.10),
+with the meaning and the validation of a named timestamp's `timeline`; `start` and `end`, `start < end`, are its
 **elided coordinates**, positions on that timeline's own axis, from its
 zero to its `length` (and only from its zero when the length is `null`),
 each a number as the timeline's number type selects (README, "Values on a
@@ -357,7 +357,8 @@ across the group's frame, at one place in every member card, and carried
 into the ancestor cards behind the frame (section 8.9). Every other
 elision is a **card elision**, drawn in the cards of its timeline's root
 that draw that root whole: an ungrouped root's card and the ancestor
-cards behind frames (section 8.8). Which card elisions a root's cards
+cards behind frames (section 8.8), and for a virtual timeline, its own
+root, its placed card (section 8.10). Which card elisions a root's cards
 draw, and whether they derive elisions of their own, the four elision
 properties of section 2.4 decide, in a rule addressed to the root's cards
 (section 8.9). Whether an elision is a group elision is read from its
@@ -628,7 +629,10 @@ A selector is an object with any of these members:
 
   in a manifest's `graphical` shows them, as an editor's toggle "Atomic
   sections", in the properties of a regions band and of a flow control
-  band, writes it and removes it;
+  band, writes it and removes it. It is one rule, whichever band's
+  properties show the toggle: it shows every atomic section of the
+  manifest, each held by the regions band of the timeline that holds it
+  and drawn only where that band is displayed (section 2.4);
 - `facet`: a facet (section 2.1); it matches the bands drawing that facet;
 - `within`: a timeline ID; it matches the elements belonging to that
   timeline or to any of its descendants;
@@ -785,7 +789,13 @@ though a timeline line that is not drawn gives an anchor no end there
 takes its `display` from another: hiding the band `{"id": "score",
 "facet": "regions"}` hides the regions of `score` alone, and the regions of a child of `score` are drawn,
 at the child's own line, only when the child's own regions band is
-displayed. The flow-control elements of a child are held by the child's
+displayed. An atomic section is a region (README, "Atomic sections")
+and so is held by the regions band of the timeline that holds it, never
+by a flow control band, which neither holds nor lays out a region: hiding
+a root's flow control band hides no atomic section, hiding the root's
+regions band hides the root's own atomic sections alone, and the atomic
+sections of a child, such as the movements of a work hold, are drawn
+only when the child's own regions band, and its line, are displayed. The flow-control elements of a child are held by the child's
 own flow control band (section 2.1) though the root's band lays them out
 (section 6.4): hiding the child's line or its flow control band hides
 them, and hiding the root's flow control band hides everything it lays
@@ -1151,8 +1161,10 @@ flow control band (section 6.4). A chunk's brace is a `region` and the
 tick at its start a `boundary` (section 8.10), so chunks take the black
 brace of a region and the thin black rule of a segment's start, and
 neither the rule hiding atomic sections, which selects by `class`, nor
-any other default hides them; a gap of a FlowMap is drawn by its line's
-own stroke, thinner and dashed (section 6.6, Gap lines). The last rule hides every wedge and
+any other default hides them; a gap of a FlowMap is drawn in the grey
+`#9CA3AF` of an elision's continuations, keeping its line's own stroke
+width and dash pattern, solid on a solid line and dotted on a dotted one,
+never dashed in a pattern of its own (section 6.6, Gap lines). The last rule hides every wedge and
 label of a secondary coordinate (section 2) and turns such a wedge −45, so that a wedge shown by a later
 rule points at its coordinate from beside the cross-section line; only
 the primary coordinate of each timestamp is drawn by default (section
@@ -1377,7 +1389,7 @@ number it has always had.
 | fork text offset (from a branch's tip to the start of its text) | 3 |
 | fork row height `Hf` | (h(zf) / 2 + 18 × sM) + h(zf) / 2, `zf` the largest font size of the drawn forks, `N` the most branches a drawn fork has and `sM` the `sk` of the last branch of a fork of `N` branches (section 6.4, Forks); 0 when none is drawn |
 | boundary half-height `k`, of a segment's start and of a chunk's alike | 8 |
-| gap line of a FlowMap's gap (section 6.6): stroke width, dash, space | `w / 2`, `w / 2`, `w`, `w` the stroke width of its line |
+| gap line of a FlowMap's gap (section 6.6): stroke colour, stroke width, dash pattern | `#9CA3AF`, `w` and the `stroke-dasharray` of its line, `w` the stroke width of its line |
 | group frame padding `Q` | 8 |
 | card padding `K` | 8 |
 | gap after the manifest's title `F` | 8 |
@@ -2437,10 +2449,14 @@ one below it.
 - **Gap lines.** Over the span of a gap of a FlowMap drawn on a line
   (section 8.10), from `Xa` to `Xb`, the line itself is not drawn; a **gap
   line** stands in for it, from `(Xa, y)` to `(Xb, y)`, stroked in the
-  line's `stroke` and `opacity` with the width `w / 2` and the dash
-  pattern `w / 2` on, `w` off, `w` the line's stroke width (1.5 and 3 with
-  the default width 3), with no mark at either end. It is part of its
-  line, carries its address and has no element of its own.
+  grey `#9CA3AF` with the line's `opacity`, its stroke width `w` and its
+  `stroke-dasharray`, so that it keeps the line's own stroke, solid on a
+  continuous line and dotted (`3 3` with the default width 3) on a
+  discrete one, and differs from the line in colour alone; it has no
+  mark at either end. Its colour is fixed: the line's `stroke` does not
+  reach it, and a rule restyling the line changes its width, pattern and
+  opacity alone. It is part of its line, carries its address and has no
+  element of its own.
 - **Regions.** A brace from `Xs` to `Xe`, arms at `yb`, tip 6 further out
   at `Xm`, `x` of the midpoint (section 3.1) of the region's start and end, so it
   opens towards its timeline's line; a chunk's brace alike over its drawn
@@ -2724,7 +2740,7 @@ opens like `M290.9775 63.8555C253.4775 74.5221`.
 | frame | `<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}">` filled and stroked (section 8) |
 | card, ancestor card | when its `shadow` is not `none`, `<rect x="{x+2}" y="{y+2}" width="{w}" height="{h}" rx="{rx}" fill="{shadow}">`, not stroked; then `<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}">` filled and stroked (section 8.4) |
 | a line's start | `<line x1="{Xs}" y1="{y}" x2="{Xl}" y2="{y}">`, `Xl` where the line stops; `<circle cx="{Xs}" cy="{y}" r="{w}">`, except where an ancestor line runs on |
-| gap line | `<line x1="{Xa}" y1="{y}" x2="{Xb}" y2="{y}">` stroked in the line's `stroke`, with `stroke-width` `w/2` and `stroke-dasharray` `{w/2} {w}` (section 6.6) |
+| gap line | `<line x1="{Xa}" y1="{y}" x2="{Xb}" y2="{y}">` with `stroke` `#9CA3AF` and the line's `stroke-width` and `stroke-dasharray` (section 6.6) |
 | arrowhead | the line stops at `Xe`; `<polygon points="{Xe+3w},{y} {Xe},{y−1.5w} {Xe},{y+1.5w}">` |
 | open arrowhead | the line stops at `Xe`; the same `<polygon>` with `fill="none"`, stroked in the line's `stroke` with width `w/2` and no dash |
 | end circle | the line stops at `Xe`; `<circle cx="{Xe}" cy="{y}" r="{w}">` |
@@ -4276,12 +4292,17 @@ shrink further left, as after an elision. The shrink is not subtracted,
 though: a position `t` at or after the end `b` of a run gap, compared
 exactly, and before the start of the next one has the x
 
-    x(t) = x(a) + (L × u − L × ub)
+    x(t) = x(a) + (L × u − L × ub − D)
 
 `x(a)` the x of the gap's start, by this same rule where an earlier run
-gap lies before it, and `ub` the proportion of `b`, the two products
-formed first; the end of the line, at `u = 1`, so lies at `x(a) + (L − L ×
-ub)` for the last run gap. So `x(b) = x(a)` exactly, and the entry after a
+gap lies before it, `ub` the proportion of `b`, the two products formed
+first, and `D` the sum of the shrinks of the gaps of elisions lying on the
+card's virtual timeline (Elisions of a virtual timeline, below) from `b`
+up to `t`, those with `b ≤ a'` and `b' ≤ t` for a gap over `[a', b']`,
+compared exactly and summed from the left as section 3.2 sums them, 0
+where there is none; the end of the line, at `u = 1`, so lies at `x(a) +
+(L − L × ub − D)` for the last run gap, `D` the shrinks of every gap of an
+elision after it. So `x(b) = x(a)` exactly, and the entry after a
 run starts where the run's drawn entry ends, which `L × u − D` would miss
 by the rounding of `D`. A run gap is no elision: it has
 no address, draws nothing, neither rectangle, ellipsis, continuation nor
@@ -4346,9 +4367,52 @@ A virtual timeline has no children, conversion maps or flow control, so
 its children, conversion maps and flow control bands are never present;
 its band order is its entry of `graphical.order`, else the default of
 section 4. It lies in no tree: it has no ancestor line and no ancestor
-card, and no elision lies on it (section 2). An unresolved virtual
-timeline draws its line whole, its named timestamps and its name, and no
-chunk, boundary or gap line.
+card. A new virtual timeline is so drawn stripped down: it lends nothing
+of the bands of the timeline it comes from, unlike a switched card
+(below). An unresolved virtual timeline draws its line whole, its named
+timestamps, its elisions and its name, and no chunk, boundary or gap
+line.
+
+**Elisions of a virtual timeline.** An elision may lie on a virtual
+timeline `V` (section 2). Its `start` and `end` are positions on `V`'s own
+axis, the played axis from 0 to `V`'s length, never on the axis of the
+timeline `V` comes from: it leaves out a stretch of the playing, and
+nothing of the written timeline, so a stretch played twice is left out
+only where the elision lies, and no other card of that timeline draws it.
+`V` is the root of its member drawing and lies in no tree, so an elision
+on it is a group elision of each group `V` is a member of, drawn across
+that group's frame (section 8.9, Group elisions), and otherwise a card
+elision of `V`'s placed card, drawn as that card's `elision-mode` selects
+(section 8.9, Modes): a placed virtual card, like an ungrouped root's
+card, has no protected span and derives nothing, so `proportional` draws
+no gap there, and `auto` and `custom` draw the stored ones. A card
+elision of `V` is taken as section 8.9 takes one (Pieces, Widths), on
+`V`'s axis with `λ` `V`'s length, except that its pieces are what of its
+stretch lies outside every run gap of the card as well: a run gap is
+drawn 0 wide already, and an elision leaves nothing out there. Each piece
+is a gap of section 3.2 and cuts what crosses it as every gap does
+(section 6.6, Elisions): the line and its gap lines are drawn in pieces,
+a chunk's brace is cut as a region's is, and is not drawn, with its
+label, where its start, end or midpoint lies in the gap, and a boundary
+or a named timestamp marking a position in the gap is not drawn. A
+card switched to `V` (below) draws none of `V`'s elisions: it draws its
+own timeline, and no elision at all.
+
+So, in the worked example below, an elision of `virtual_1` from `[10, 1]`
+to `[14, 1]` on its placed card (`L` = 400) lies wholly in the run gap
+`[8, 16]` of entries 0 and 1: it has no piece and draws no gap. One from
+`[17, 1]` to `[19, 1]` with the width `{"canvas": 8}` lies in entry 2: its
+one piece has the natural width `400 × u(19) − 400 × u(17)` =
+316.66666666666663 − 283.33333333333337 = 33.33333333333326, the drawn
+width 8 and the shrink 25.333333333333258; it lies after the run gap, so
+`x(17) = x0 + (133.33333333333331 + (283.33333333333337 −
+266.66666666666663 − 0)) = x0 + 150.00000000000006` and `x(19) = x0 +
+(133.33333333333331 + (316.66666666666663 − 266.66666666666663 −
+25.333333333333258)) = x0 + 158.00000000000006`; the brace of `B`, whose
+midpoint 20 lies in no gap, is cut there, the gap draws no ellipsis (it is
+narrower than 20), and the line ends at `x(24) = x0 + (133.33333333333331
++ (400 − 266.66666666666663 − 25.333333333333258)) = x0 +
+241.33333333333343` in its end circle.
 
 **Switched cards.** A card of a timeline `T` that reads `flow` (section
 2.4), a member's card or the card of an ungrouped root, is **switched**
@@ -4361,39 +4425,87 @@ otherwise. A switched card is laid out by section 6 on `F`'s virtual axis,
   its gap lines, its chunks and their labels in its regions band before
   `T`'s regions, and their boundaries, each carrying `T`'s ID in place of
   `V`'s (`{"id": T, "facet": "regions", "part": [k]}`);
-- every other element of `T`'s tree is **unfolded**, drawn at each of its
-  **played positions**. A position `t` on `T`'s axis (section 3.1) lies in
-  a stretch piece `[a, b]` starting at `P` where `a ≤ t < b`, or where `t
-  = b` and that piece is the last or is followed by a gap or by a stretch
-  that does not start at `b`, and is played there at `P + (t − a)`,
-  combined as section 3.1 combines values; a position in no stretch is
-  not drawn. An element over `[s, e]`, a child's line or a region, is
-  drawn once in every stretch piece where `max(s, a) < min(e, b)`, over
-  the played positions of those two ends, keeping its start mark only
-  where `max(s, a) = s` and its end mark only where `min(e, b) = e`, as a
-  row cut at an elision (section 6.6, Elisions); a region so cut is drawn
-  as a whole brace over its played stretch, with its label. Within one
-  piece the drawings keep the tree of section 2.1, a child's drawing
-  holding the drawings in that piece of what the child holds, and section
-  6 lays each drawing out as one item, the drawings taken piece by piece,
-  in the order of the pieces, and within a piece as section 6 takes the
-  elements. Every drawing keeps its element's address (section 2.2), and a
-  label of a coordinate shows the written coordinate, never the played
-  one. A row of the name column holding several drawings of one timeline
-  names it once (section 6.6, Names). A named timestamp so draws its wedge, labels and cross-section line
-  at every played position, and an alignment anchor joins the nearest pair
+- it keeps the **band configuration** of the card drawn as written: every
+  band of `T` and of every timeline of its tree, the children, markers,
+  regions, conversion maps and flow control bands alike, is laid out by
+  section 6.4, displayed or hidden, in its band order and in its cascaded
+  style as it is there, so that a band hidden on the card drawn as written is hidden
+  on the switched card, and hides what it holds (section 2.4);
+- every element those bands hold, and every segment's boundary and label
+  on a line of `T`'s tree, is **unfolded**: drawn in every stretch piece
+  whose written stretch holds it, at its **played positions**. A position
+  `t` on `T`'s axis (section 3.1) lies in a stretch piece `[a, b]` starting
+  at `P` where `a ≤ t < b`, or where `t = b` and that piece is the last or
+  is followed by a gap or by a stretch that does not start at `b`, and is
+  played there at `P + (t − a)`, combined as section 3.1 combines values;
+  a position in no stretch is not drawn. An element at a position, a
+  flow-control element with its flow line, symbol, fork and stack, a
+  named timestamp's wedge with its labels and cross-section line, a
+  segment's boundary, is drawn at every played position of its position,
+  each drawing with its labels. An element over `[s, e]`, a child's line, a
+  region, a map over the extent of its timeline (sections 3.1 and 3.4),
+  is drawn once in every stretch piece where `max(s, a) < min(e, b)`,
+  over the played positions of those two ends, so clipped to the piece,
+  keeping its start mark only where `max(s, a) = s` and its end mark
+  only where `min(e, b) = e`, as a row cut at an elision (section 6.6,
+  Elisions); an element over a stretch that no piece reaches into is not
+  drawn. A region so clipped is drawn as a whole brace over its played
+  stretch, with its whole label centred on that brace's played midpoint
+  in every drawing (section 6.6, Regions), never a part of its name; a
+  child's line so clipped keeps its one name in the name column (below);
+  a map so clipped is a closed double line over its played stretch; a
+  segment's label is placed over each drawing of its segment as a
+  clipped region's label is over its brace. An
+  arc of a jump is drawn in a piece only where its from and its to both
+  lie in that piece, from the played x of the one to that of the other,
+  with its label, as the flow control band of a member that is a child
+  timeline draws no arc whose to lies outside its stretch (section 6.4,
+  Gathering): a jump played in a piece that does not hold its to draws
+  its symbol, its fork and its stack there and no arc. Within one piece
+  the drawings keep the tree of section 2.1, a child's drawing holding
+  the drawings in that piece of what the child holds, and section 6 lays
+  each drawing out as one item, the conversion maps' slots and the flow
+  rows included, the drawings taken piece by piece, in the order of the
+  pieces, and within a piece as section 6 takes the elements. Every
+  drawing keeps its element's address (section 2.2), and a label of a
+  coordinate shows the written coordinate, never the played one. A row
+  of the name column holding several drawings of one timeline names it
+  once (section 6.6, Names). An alignment anchor joins the nearest pair
   of its timestamps' cross-section segments (section 8.7);
-- no flow control band and no conversion maps band, on `T` or any
-  timeline of its tree, each absent and laying out nothing (section 6.4):
-  a conversion map relates whole axes and has no form per piece, and the
-  card drawn as written draws it again; and no gap of a stored, derived or
-  group elision (section 8.9);
+- no gap of a stored, derived or group elision (section 8.9), and none of
+  an elision lying on the virtual timeline `flow` may name;
 - its name is the row name of `T` followed by ` · ` and the name of the
   FlowMap or virtual timeline `flow` names, its `name` or, where that is
   null, its whole ID.
 
 Runs are drawn once on the switched card of an ungrouped root and on no
 card in a frame (Runs, above).
+
+So switching keeps what the card shows, where a new virtual timeline's
+card starts stripped down (The virtual card, above). In `flow/switched_card`
+the card of `allegro` (1644 quarters) is switched to `default`, playing
+`section_a`, `section_b`, `section_a`, `section_c`: the pieces `[0,
+953/2]` at 0, `[953/2, 500]` at 953/2, `[0, 953/2]` at 500 and `[500,
+1644]` at 1953/2, `Λ` = 4241/2. Its bands are those of the card drawn as
+written, in the default band order. The jump `volta_jump` at 953/2 ends
+piece 0, which a stretch starting at 953/2 follows, so it lies in piece 1,
+and it ends piece 2, which a stretch starting at 500 follows, so it lies
+there too: its symbol, fork and stack are drawn at the played positions
+953/2 and 500 + 953/2 = 1953/2. The three elements at 500, `repeat_end`,
+`second_ending` and `volta_break`, end piece 1, which a stretch starting
+at 0 follows, and start piece 3: each is drawn at 953/2 + (500 − 953/2) =
+500 and at 1953/2. A rule showing the arcs draws none on this card: the
+one arc, of `repeat_end`, runs from 500 back to 0 (its destination has no
+place, and no section break lies before it, section 3.1), and no piece
+holds both ends. The atomic sections, which the defaults hide, are drawn
+under the rule of section 2.3 after the chunk braces in the regions band:
+`A` over `[0, 953/2]` and `[500, 1953/2]`, `B` over `[953/2, 500]` and
+`C` over `[1953/2, 4241/2]`, each with its whole label. A child of
+`allegro` over `[450, 520]`, were one added, crosses the ends 953/2 and
+500 of the stretches: it is drawn over `[450, 953/2]` in piece 0 with its
+start circle, over `[953/2, 500]` in piece 1 with no mark, over `[950,
+1953/2]` in piece 2 with its start circle and over `[1953/2, 1993/2]` in
+piece 3 with its end mark, and named once in its row.
 
 **Switched frames.** A frame is **switched** where exactly one of its
 members `T` has a switched card in it: every member card of the frame is
@@ -4409,7 +4521,19 @@ drawn as a child's line is, once in every stretch piece it reaches into,
 its start circle and its end mark kept only where they lie in that piece.
 Every member drawing of the frame then lies
 on `F`'s virtual axis from `x0` to `x0 + L` (section 8.2) and draws its
-own tree unfolded, its ancestor lines included; only `T`'s card draws the
+own tree unfolded, its ancestor lines included, keeping the band
+configuration of its card drawn as written as a switched card does
+(above): every band of its tree as written, flow control and conversion
+maps included, every element they hold carried to `T`'s axis and then
+unfolded, an arc drawn in a piece only where its from and its to, both
+carried, lie in that piece. In `groups/switched_frame` the card of
+`allegro` switches the frame of `performance` to `default`: `allegro`'s
+card in the frame draws its flow control, and its atomic sections where
+a rule shows them, at the played positions of the worked case above, and `recording` (702.5 seconds)
+draws its line once in each of the four pieces, a position `m` of it
+carried to `t = (m × 1644) / 702.5` in binary64, so that a timestamp at
+351.25 would lie at 822.0 and be played in piece 3 at 976.5 + (822.0 −
+500) = 1298.5. Only `T`'s card draws the
 chunks of `F`, their boundaries and its gap lines, a virtual member's own
 chunks unfolding as every other element of its drawing, and over a gap of
 `F` every other member draws nothing. An ancestor line of a member `M`
