@@ -459,6 +459,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.diagnostics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">InstancePath</span><span class="p">,</span>
     <span class="n">SchemaValidationError</span><span class="p">,</span>
+    <span class="n">axes_by_id</span><span class="p">,</span>
     <span class="n">elisions_of</span><span class="p">,</span>
     <span class="n">entries_of</span><span class="p">,</span>
     <span class="n">json_pointer</span><span class="p">,</span>
@@ -568,17 +569,18 @@
 
 <span class="sd">    The timelines first (a flow-control element's coordinate, then the</span>
 <span class="sd">    ``by`` of its ``ends`` and of each destination and its ``after``), then</span>
-<span class="sd">    the coordinate of every named timestamp on a timeline of the manifest,</span>
-<span class="sd">    then the ``start``, ``end`` and width ``span`` of every elision on one,</span>
-<span class="sd">    then the gaps of every FlowMap of one, each read as that timeline's</span>
-<span class="sd">    number type, then the ``length`` of every virtual timeline, read as its</span>
-<span class="sd">    own.</span>
+<span class="sd">    the coordinate of every named timestamp on a timeline of the manifest</span>
+<span class="sd">    or a virtual timeline, then the ``start``, ``end`` and width ``span`` of</span>
+<span class="sd">    every elision on a timeline of the manifest, then the gaps of every</span>
+<span class="sd">    FlowMap of one, each read as that timeline's number type, then the</span>
+<span class="sd">    ``length`` of every virtual timeline, read as its own.</span>
 <span class="sd">    """</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">)):</span>
         <span class="k">yield from</span> <span class="n">_timeline_representation</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="p">(</span><span class="s2">"timelines"</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">timelines</span> <span class="o">=</span> <span class="n">timelines_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="n">axes</span> <span class="o">=</span> <span class="n">axes_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">timestamp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timestamps_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">)):</span>
-        <span class="n">timeline</span> <span class="o">=</span> <span class="n">timelines</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timestamp</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">])</span>
+        <span class="n">timeline</span> <span class="o">=</span> <span class="n">axes</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">timestamp</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">timeline</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">yield from</span> <span class="n">_representation_problem</span><span class="p">(</span>
                 <span class="s2">"coordinate"</span><span class="p">,</span>

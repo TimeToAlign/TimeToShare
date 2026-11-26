@@ -479,7 +479,8 @@ JSON form of a drawing is exchanged. This specification pins the drawing.</p>
 with all its descendants: a <strong>member drawing</strong>. Section 8 specifies the
 block that holds member drawings. Every manifest is drawn as one block,
 whether it holds one timeline or many, groups or none: its groups as
-frames and its ungrouped roots as cards. Terms in <code class="docutils literal notranslate"><span class="pre">code</span></code> are JSON members.</p>
+frames and its ungrouped roots as cards, and the virtual timelines it
+places as cards too (section 8.10). Terms in <code class="docutils literal notranslate"><span class="pre">code</span></code> are JSON members.</p>
 <p>The block draws the bundle, a frame a group, a card a timeline drawn as a
 root, and a band a facet of a timeline (README, “Containers”); these four
 containers are the <strong>boxes</strong> of a drawing.</p>
@@ -510,7 +511,9 @@ entries of <code class="docutils literal notranslate"><span class="pre">places</
 <code class="docutils literal notranslate"><span class="pre">null</span></code> (the default) for the content’s own size;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">places</span></code>, the <strong>places</strong> of the block’s items and the sizes of its
 members’ cards (section 8.6): an object keyed by the ID of a group
-(its frame) and by the ID of an ungrouped root (its card), each value
+(its frame), by the ID of an ungrouped root (its card) and by the ID
+of a virtual timeline that is a member of no group (its card, which
+is drawn only where <code class="docutils literal notranslate"><span class="pre">places</span></code> holds its ID, section 8.10), each value
 an object with any of the members <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">length</span></code>, <code class="docutils literal notranslate"><span class="pre">scale</span></code>,
 <code class="docutils literal notranslate"><span class="pre">spacing</span></code>, <code class="docutils literal notranslate"><span class="pre">margin</span></code>, <code class="docutils literal notranslate"><span class="pre">width</span></code> and <code class="docutils literal notranslate"><span class="pre">height</span></code>; a group’s value may also hold
 <code class="docutils literal notranslate"><span class="pre">cards</span></code>, an object keyed by the ID of a member <code class="docutils literal notranslate"><span class="pre">T</span></code>, whose value states
@@ -522,7 +525,8 @@ default), each item lying at its place, or an object <code class="docutils liter
 <code class="docutils literal notranslate"><span class="pre">&quot;vertical&quot;</span></code>, the items one under another, or <code class="docutils literal notranslate"><span class="pre">&quot;horizontal&quot;</span></code>, the
 items side by side in one row, every root that groups hang on drawn
 once behind the row (section 8.8, Drawn once); <code class="docutils literal notranslate"><span class="pre">order</span></code> is a list of
-the IDs of groups and ungrouped roots, the order to take the items in.
+the IDs of groups, ungrouped roots and placed virtual timelines, the
+order to take the items in.
 Like every input here, an arrangement says where the drawing places
 things and is never part of the manifest;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">view</span></code>, the <strong>view</strong> <code class="docutils literal notranslate"><span class="pre">{width,</span> <span class="pre">height}</span></code>, the screen area the drawing
@@ -666,12 +670,13 @@ of a style in the same layer’s <code class="docutils literal notranslate"><spa
 rules matters, so writers never reorder them. Every layer of section 1
 has this shape. The manifest’s own <code class="docutils literal notranslate"><span class="pre">graphical</span></code> also holds <code class="docutils literal notranslate"><span class="pre">order</span></code>,
 <code class="docutils literal notranslate"><span class="pre">timestamps</span></code>, <code class="docutils literal notranslate"><span class="pre">matchstamps</span></code> and <code class="docutils literal notranslate"><span class="pre">elisions</span></code>, which no other layer holds. <code class="docutils literal notranslate"><span class="pre">order</span></code> maps a group’s ID to the
-display order of the group’s members (section 8.1) and a timeline’s ID to
-the timeline’s band order (section 6.4).</p>
+display order of the group’s members (section 8.1) and the ID of a
+timeline or of a virtual timeline to its band order (section 6.4).</p>
 <p><code class="docutils literal notranslate"><span class="pre">timestamps</span></code> is a list of <strong>named timestamps</strong> (default <code class="docutils literal notranslate"><span class="pre">[]</span></code>), each an
 object <code class="docutils literal notranslate"><span class="pre">{id,</span> <span class="pre">timeline,</span> <span class="pre">coordinate,</span> <span class="pre">name,</span> <span class="pre">display?,</span> <span class="pre">matchstamp?,</span> <span class="pre">groupstamp?}</span></code> naming one position of
 one timeline: <code class="docutils literal notranslate"><span class="pre">id</span></code> is its ID (README, “Identity”), <code class="docutils literal notranslate"><span class="pre">timeline</span></code> the ID of a
-timeline of the manifest at any depth, a segment included, <code class="docutils literal notranslate"><span class="pre">coordinate</span></code> the
+timeline of the manifest at any depth, a segment included, or of a virtual
+timeline (section 8.10), <code class="docutils literal notranslate"><span class="pre">coordinate</span></code> the
 position on that timeline’s own axis, a number as the timeline’s number
 type selects (README, “Values on a timeline’s own axis”), at least the zero
 of that number type and at most the timeline’s <code class="docutils literal notranslate"><span class="pre">length</span></code> when the length is
@@ -680,7 +685,8 @@ a value, and <code class="docutils literal notranslate"><span class="pre">name</
 <strong>groupstamp</strong>, one with <code class="docutils literal notranslate"><span class="pre">groupstamp:</span> <span class="pre">true</span></code> (default <code class="docutils literal notranslate"><span class="pre">false</span></code>), lies on a
 timeline that <strong>lies in a group</strong>: the timeline or one of its ancestors
 is listed in the group’s <code class="docutils literal notranslate"><span class="pre">members</span></code>, so that it is drawn in the group’s
-frame, as a member or inside a member’s card. An ancestor of a member
+frame, as a member or inside a member’s card; a virtual timeline lies in
+the groups it is a member of. An ancestor of a member
 lies in no group through it. The groupstamp’s line extends across the
 frame of each group its timeline lies in, from the upper border of the
 topmost member card drawn there to the lower border of the bottommost
@@ -775,7 +781,7 @@ and a narrow <strong>gap</strong> lies between, holding one <strong>ellipsis</st
 it, with the elision’s labels below it (sections 6.6 and 8.9). <code class="docutils literal notranslate"><span class="pre">id</span></code> is its ID (README,
 “Identity”); <code class="docutils literal notranslate"><span class="pre">timeline</span></code> names the timeline the elision <strong>lies on</strong>, at
 any depth, a segment included, with the meaning and the validation of a
-named timestamp’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code>; <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;</span> <span class="pre">end</span></code>, are its
+named timestamp’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code>, but never a virtual timeline; <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;</span> <span class="pre">end</span></code>, are its
 <strong>elided coordinates</strong>, positions on that timeline’s own axis, from its
 zero to its <code class="docutils literal notranslate"><span class="pre">length</span></code> (and only from its zero when the length is <code class="docutils literal notranslate"><span class="pre">null</span></code>),
 each a number as the timeline’s number type selects (README, “Values on a
@@ -857,13 +863,13 @@ of a timeline, which draws nothing of its own:</p>
 <td><p>a group’s frame (section 8)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">card</span></code></p></td>
-<td><p>the raised container of a member drawing: one in the frame of each group that has the timeline as a member, or one for an ungrouped root (section 8)</p></td>
+<td><p>the raised container of a member drawing: one in the frame of each group that has the timeline as a member, or one for an ungrouped root or a placed virtual timeline in no group (sections 8 and 8.10)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ancestor_card</span></code></p></td>
 <td><p>the card of a root that contains a member, behind the frame of that member’s group, at the proportions of the root’s axis; shown by default, hidden by a rule (section 8.8)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">timeline</span></code></p></td>
-<td><p>the line of a timeline drawn in a card (section 8)</p></td>
+<td><p>the line of a timeline drawn in a card (section 8), a virtual timeline’s included (section 8.10)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">child</span></code></p></td>
 <td><p>a child timeline’s line, at any depth</p></td>
@@ -872,7 +878,7 @@ of a timeline, which draws nothing of its own:</p>
 <td><p>one of the five bands of a timeline, each drawing one of its facets: its markers, conversion maps, children, regions or flow control (below; section 6.4)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">boundary</span></code></p></td>
-<td><p>the start of a segment on its segment line, drawn as a thin vertical rule (section 6.4)</p></td>
+<td><p>the start of a segment on its segment line, or of a chunk on the line of a virtual timeline or of a switched card (section 8.10), drawn as a thin vertical rule (section 6.4)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">ancestor</span></code></p></td>
 <td><p>the faded line of an ancestor of a member that is a child timeline, clipped to the member (section 8.3)</p></td>
@@ -881,7 +887,7 @@ of a timeline, which draws nothing of its own:</p>
 <td><p>a conversion map, drawn as a closed double line</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">region</span></code></p></td>
-<td><p>a region, drawn as a brace</p></td>
+<td><p>a region, drawn as a brace, and the brace of a chunk (section 8.10)</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">break</span></code></p></td>
 <td><p>a break, an element of <code class="docutils literal notranslate"><span class="pre">flow_control</span></code> of the role <code class="docutils literal notranslate"><span class="pre">break</span></code>, drawn as a vertical line, a flow line (below)</p></td>
@@ -923,7 +929,7 @@ of a timeline, which draws nothing of its own:</p>
 <td><p>the name of a row, in the name column, or the title of a group or of the manifest (section 8)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
-<td><p>any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the name, ID or elided coordinates of an elision, the label of a region, of an arc of a jump or of a segment, or the name, ID or label of a flow-control element (its <strong>stack</strong>, section 6.4, Flow labels)</p></td>
+<td><p>any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the name, ID or elided coordinates of an elision, the label of a region, of a chunk, of an arc of a jump or of a segment, or the name, ID or label of a flow-control element (its <strong>stack</strong>, section 6.4, Flow labels)</p></td>
 </tr>
 </tbody>
 </table>
@@ -951,7 +957,10 @@ matches the band itself (section 2.5). An element has the <strong>domain</strong
 (<code class="docutils literal notranslate"><span class="pre">graphical</span></code>, <code class="docutils literal notranslate"><span class="pre">logical</span></code> or <code class="docutils literal notranslate"><span class="pre">physical</span></code>) and the <strong>modality</strong> (<code class="docutils literal notranslate"><span class="pre">continuous</span></code>
 or <code class="docutils literal notranslate"><span class="pre">discrete</span></code>) of its timeline’s <code class="docutils literal notranslate"><span class="pre">unit</span></code>. A map instead has the domain and
 modality of the map’s <code class="docutils literal notranslate"><span class="pre">target_unit</span></code>, so a map is drawn in the style of the
-timelines it converts to:</p>
+timelines it converts to. A virtual timeline’s elements, a chunk’s brace
+and boundary included, take the domain, modality and class of the virtual
+timeline’s own <code class="docutils literal notranslate"><span class="pre">unit</span></code>, and those a switched card draws on its root line
+those of its timeline (section 8.10):</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
 <tr class="row-odd"><th class="head"><p>Domain</p></th>
@@ -1012,7 +1021,11 @@ line is a node of the tree although no line of its own is drawn, holding
 its five bands, its named timestamps’ cross-section lines and the gaps
 of the card and derived elisions lying on it as a line does, whose content is drawn at its segment line’s line (section 6.4), and
 has no element type, so <code class="docutils literal notranslate"><span class="pre">inside</span></code> never names it; one that is a segment
-line is drawn as a <code class="docutils literal notranslate"><span class="pre">child</span></code> (section 6.1).
+line is drawn as a <code class="docutils literal notranslate"><span class="pre">child</span></code> (section 6.1). The line of a virtual timeline,
+and the root line of a switched card, holds what a root’s line holds;
+its regions band holds the braces of its chunks with their labels, before
+any region, and the line holds the chunks’ boundaries directly, in no
+band, as a segment line holds its segments’ (section 8.10).
 Section 8 states the top of the tree: the block, frames, cards, ancestor
 cards and ancestor lines; a frame also holds the gaps of its group
 elisions; the block also holds every <code class="docutils literal notranslate"><span class="pre">alignment_anchor</span></code>, and an
@@ -1026,7 +1039,9 @@ and compared as a whole object. No address is a string composed from IDs.
 <code class="docutils literal notranslate"><span class="pre">conversion_maps</span></code>, <code class="docutils literal notranslate"><span class="pre">children</span></code>, <code class="docutils literal notranslate"><span class="pre">regions</span></code> and <code class="docutils literal notranslate"><span class="pre">flow_control</span></code>, and names a
 band; <code class="docutils literal notranslate"><span class="pre">part</span></code> is a non-empty array of the words <code class="docutils literal notranslate"><span class="pre">start</span></code>, <code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">name</span></code>,
 <code class="docutils literal notranslate"><span class="pre">label</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code>, <code class="docutils literal notranslate"><span class="pre">coordinate</span></code>, <code class="docutils literal notranslate"><span class="pre">card</span></code>, <code class="docutils literal notranslate"><span class="pre">line</span></code>, <code class="docutils literal notranslate"><span class="pre">elision</span></code>, <code class="docutils literal notranslate"><span class="pre">ellipsis</span></code>,
-<code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">fork</span></code> and <code class="docutils literal notranslate"><span class="pre">leader</span></code>, and names a part of an element; <code class="docutils literal notranslate"><span class="pre">end</span></code> names no element in this version. <code class="docutils literal notranslate"><span class="pre">facet</span></code> stands only with <code class="docutils literal notranslate"><span class="pre">id</span></code>, and never with <code class="docutils literal notranslate"><span class="pre">part</span></code>. The name or
+<code class="docutils literal notranslate"><span class="pre">symbol</span></code>, <code class="docutils literal notranslate"><span class="pre">fork</span></code> and <code class="docutils literal notranslate"><span class="pre">leader</span></code>, and names a part of an element, or begins
+with a <strong>chunk index</strong>, an integer from 0, and names a chunk drawn in a
+regions band (section 8.10); <code class="docutils literal notranslate"><span class="pre">end</span></code> names no element in this version. <code class="docutils literal notranslate"><span class="pre">facet</span></code> stands only with <code class="docutils literal notranslate"><span class="pre">id</span></code>, and with <code class="docutils literal notranslate"><span class="pre">part</span></code> only where the part begins with a chunk index. The name or
 label of an element is addressed by the element’s address with <code class="docutils literal notranslate"><span class="pre">name</span></code> or
 <code class="docutils literal notranslate"><span class="pre">label</span></code> appended to its <code class="docutils literal notranslate"><span class="pre">part</span></code>; a named timestamp has no row and so no
 <code class="docutils literal notranslate"><span class="pre">name</span></code> element, and the part <code class="docutils literal notranslate"><span class="pre">name</span></code> of its address names its first label,
@@ -1133,7 +1148,7 @@ and <code class="docutils literal notranslate"><span class="pre">X</span></code>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">X,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;label&quot;]}</span></code></p></td>
 <td><p>that element’s timeline</p></td>
 </tr>
-<tr class="row-even"><td><p>every card of a timeline with ID <code class="docutils literal notranslate"><span class="pre">T</span></code>: an ungrouped root’s, one in the frame of each group that has <code class="docutils literal notranslate"><span class="pre">T</span></code> as a member, or an ancestor card behind the frame of each group having a member below <code class="docutils literal notranslate"><span class="pre">T</span></code></p></td>
+<tr class="row-even"><td><p>every card of a timeline with ID <code class="docutils literal notranslate"><span class="pre">T</span></code>: an ungrouped root’s or a placed virtual timeline’s, one in the frame of each group that has <code class="docutils literal notranslate"><span class="pre">T</span></code> as a member, or an ancestor card behind the frame of each group having a member below <code class="docutils literal notranslate"><span class="pre">T</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">T,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;card&quot;]}</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">T</span></code></p></td>
 </tr>
@@ -1148,6 +1163,14 @@ and <code class="docutils literal notranslate"><span class="pre">X</span></code>
 <tr class="row-odd"><td><p>the ancestor line of a timeline with ID <code class="docutils literal notranslate"><span class="pre">A</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">A}</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">A</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>the brace of the chunk at index <code class="docutils literal notranslate"><span class="pre">k</span></code> of the FlowMap drawn on the line of <code class="docutils literal notranslate"><span class="pre">V</span></code>, a virtual timeline or a timeline whose card is switched (section 8.10)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k]}</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">V</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>its label, its leader and the boundary at its start, a <code class="docutils literal notranslate"><span class="pre">label</span></code>, a <code class="docutils literal notranslate"><span class="pre">leader</span></code> and a <code class="docutils literal notranslate"><span class="pre">boundary</span></code> element</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k,</span> <span class="pre">&quot;label&quot;]}</span></code>, <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k,</span> <span class="pre">&quot;leader&quot;]}</span></code>, <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k,</span> <span class="pre">&quot;start&quot;]}</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">V</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>the frame of a group with ID <code class="docutils literal notranslate"><span class="pre">G</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">G}</span></code></p></td>
@@ -1272,8 +1295,8 @@ labels too, and one selecting <code class="docutils literal notranslate"><span c
 <h3>2.4 Properties<a class="headerlink" href="#properties" title="Link to this heading">#</a></h3>
 <p>Presentation properties carry SVG’s names and values where SVG has the
 property; the writers map them to TikZ (section 7.4). <code class="docutils literal notranslate"><span class="pre">content</span></code>,
-<code class="docutils literal notranslate"><span class="pre">max-width</span></code>, <code class="docutils literal notranslate"><span class="pre">shadow</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation</span></code>, <code class="docutils literal notranslate"><span class="pre">label-display</span></code> and the four elision
-properties are the format’s own; a turned wedge is written by its points, never with a
+<code class="docutils literal notranslate"><span class="pre">max-width</span></code>, <code class="docutils literal notranslate"><span class="pre">shadow</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation</span></code>, <code class="docutils literal notranslate"><span class="pre">label-display</span></code>, <code class="docutils literal notranslate"><span class="pre">flow</span></code> and the four
+elision properties are the format’s own; a turned wedge is written by its points, never with a
 <code class="docutils literal notranslate"><span class="pre">transform</span></code> (section 7.2).</p>
 <div class="pst-scrollable-table-container"><table class="table">
 <thead>
@@ -1369,9 +1392,20 @@ properties are the format’s own; a turned wedge is written by its points, neve
 <td><p>no</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">card</span></code>, <code class="docutils literal notranslate"><span class="pre">ancestor_card</span></code> (section 8.9)</p></td>
 </tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">flow</span></code></p></td>
+<td><p>the ID of a FlowMap of the card’s timeline, or of a virtual timeline applying such a FlowMap to that timeline without <code class="docutils literal notranslate"><span class="pre">through</span></code> (in a manifest file <code class="docutils literal notranslate"><span class="pre">#</span></code> followed by the ID)</p></td>
+<td><p>no</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">card</span></code> (section 8.10)</p></td>
+</tr>
 </tbody>
 </table>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">flow</span></code> is read from the manifest’s own <code class="docutils literal notranslate"><span class="pre">graphical</span></code> alone: a rule of
+another layer setting it sets nothing. Only a rule of its <code class="docutils literal notranslate"><span class="pre">rules</span></code> whose
+selector names <code class="docutils literal notranslate"><span class="pre">addresses</span></code> alone, each the address <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">T,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;card&quot;]}</span></code> of the cards of a timeline <code class="docutils literal notranslate"><span class="pre">T</span></code>, sets it, and a style never
+does; both validators refuse any other use (README, “Identity”). An
+ancestor card shares its root’s card address (section 2.2) but reads no
+<code class="docutils literal notranslate"><span class="pre">flow</span></code>: it is always drawn as written.</p>
 <p>A rule may set any property on any element; an element ignores the
 properties its type does not read. <code class="docutils literal notranslate"><span class="pre">display:</span> <span class="pre">none</span></code> is the filter: an element
 that is not displayed is not drawn and takes no room. An element is
@@ -1473,7 +1507,8 @@ parent’s value in the tree of section 2.1.</p></li>
 <code class="docutils literal notranslate"><span class="pre">font-size</span></code> 9, <code class="docutils literal notranslate"><span class="pre">rx</span></code> 0, <code class="docutils literal notranslate"><span class="pre">shadow</span></code> <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">display</span></code> <code class="docutils literal notranslate"><span class="pre">inline</span></code>, <code class="docutils literal notranslate"><span class="pre">content</span></code>
 <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">max-width</span></code> <code class="docutils literal notranslate"><span class="pre">none</span></code>, <code class="docutils literal notranslate"><span class="pre">rotation</span></code> 0, <code class="docutils literal notranslate"><span class="pre">elision-mode</span></code> <code class="docutils literal notranslate"><span class="pre">auto</span></code>,
 <code class="docutils literal notranslate"><span class="pre">elision-proportion</span></code> <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">elision-depths</span></code> <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">elision-display</span></code>
-<code class="docutils literal notranslate"><span class="pre">ellipsis</span> <span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">label-display</span></code> <code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">label</span></code>.</p></li>
+<code class="docutils literal notranslate"><span class="pre">ellipsis</span> <span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">label-display</span></code> <code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">label</span></code>, and <code class="docutils literal notranslate"><span class="pre">flow</span></code> none, which
+no declaration writes: the card is drawn as written.</p></li>
 </ol>
 <p>The rank of a rule is, from the most to the least significant:</p>
 <ol class="arabic simple">
@@ -1530,7 +1565,10 @@ is drawn to that element’s place. In a valid manifest only a rejected
 jump names a rejected element; under a reading, any jump may name an
 unread one.
 Where a length is <code class="docutils literal notranslate"><span class="pre">null</span></code>,
-section 3.4 says where the timeline ends.</p>
+section 3.4 says where the timeline ends. A virtual timeline drawn as a
+root is an axis of its own, its positions its own coordinates; where its
+chunks lie on it, and where a switched card draws its timeline’s
+elements, section 8.10 states, by this same arithmetic.</p>
 <p>A coordinate’s value is read as its number type selects: a <code class="docutils literal notranslate"><span class="pre">float</span></code> value is
 a float, an <code class="docutils literal notranslate"><span class="pre">int</span></code> or <code class="docutils literal notranslate"><span class="pre">fraction</span></code> value is exact. Values combine as Python’s
 numeric tower combines them: the sum of two exact values is exact; a sum
@@ -1797,13 +1835,18 @@ black on every timeline. A rule of a later layer setting a gap’s <code class="
 draws it as a filled rectangle under its ellipsis.
 No rule hides a band: every band of every timeline is shown, a child’s
 regions band included, and a child’s flow control is drawn in its root’s
-flow control band (section 6.4). The last rule hides every wedge and
+flow control band (section 6.4). A chunk’s brace is a <code class="docutils literal notranslate"><span class="pre">region</span></code> and the
+tick at its start a <code class="docutils literal notranslate"><span class="pre">boundary</span></code> (section 8.10), so chunks take the black
+brace of a region and the thin black rule of a segment’s start, and
+neither the rule hiding atomic sections, which selects by <code class="docutils literal notranslate"><span class="pre">class</span></code>, nor
+any other default hides them; a gap of a FlowMap is drawn by its line’s
+own stroke, thinner and dashed (section 6.6, Gap lines). The last rule hides every wedge and
 label of a secondary coordinate (section 2) and turns such a wedge −45, so that a wedge shown by a later
 rule points at its coordinate from beside the cross-section line; only
 the primary coordinate of each timestamp is drawn by default (section
 2.3 shows the rule that shows the others).</p>
-<p>The <strong>default band order</strong> of a root of <code class="docutils literal notranslate"><span class="pre">timelines</span></code>, when
-<code class="docutils literal notranslate"><span class="pre">graphical.order</span></code> has no entry for it (section 6.4), is</p>
+<p>The <strong>default band order</strong> of a root of <code class="docutils literal notranslate"><span class="pre">timelines</span></code>, and of a virtual
+timeline, when <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code> has no entry for it (section 6.4), is</p>
 <div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s2">"children"</span><span class="p">,</span><span class="w"> </span><span class="s2">"conversion_maps"</span><span class="p">,</span><span class="w"> </span><span class="s2">"line"</span><span class="p">,</span><span class="w"> </span><span class="s2">"markers"</span><span class="p">,</span><span class="w"> </span><span class="s2">"regions"</span><span class="p">,</span><span class="w"> </span><span class="s2">"flow_control"</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -2098,28 +2141,31 @@ number it has always had.</p>
 <tr class="row-even"><td><p>fork row height <code class="docutils literal notranslate"><span class="pre">Hf</span></code></p></td>
 <td><p>(h(zf) / 2 + 18 × sM) + h(zf) / 2, <code class="docutils literal notranslate"><span class="pre">zf</span></code> the largest font size of the drawn forks, <code class="docutils literal notranslate"><span class="pre">N</span></code> the most branches a drawn fork has and <code class="docutils literal notranslate"><span class="pre">sM</span></code> the <code class="docutils literal notranslate"><span class="pre">sk</span></code> of the last branch of a fork of <code class="docutils literal notranslate"><span class="pre">N</span></code> branches (section 6.4, Forks); 0 when none is drawn</p></td>
 </tr>
-<tr class="row-odd"><td><p>boundary half-height <code class="docutils literal notranslate"><span class="pre">k</span></code></p></td>
+<tr class="row-odd"><td><p>boundary half-height <code class="docutils literal notranslate"><span class="pre">k</span></code>, of a segment’s start and of a chunk’s alike</p></td>
 <td><p>8</p></td>
 </tr>
-<tr class="row-even"><td><p>group frame padding <code class="docutils literal notranslate"><span class="pre">Q</span></code></p></td>
+<tr class="row-even"><td><p>gap line of a FlowMap’s gap (section 6.6): stroke width, dash, space</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">/</span> <span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">/</span> <span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code> the stroke width of its line</p></td>
+</tr>
+<tr class="row-odd"><td><p>group frame padding <code class="docutils literal notranslate"><span class="pre">Q</span></code></p></td>
 <td><p>8</p></td>
 </tr>
-<tr class="row-odd"><td><p>card padding <code class="docutils literal notranslate"><span class="pre">K</span></code></p></td>
+<tr class="row-even"><td><p>card padding <code class="docutils literal notranslate"><span class="pre">K</span></code></p></td>
 <td><p>8</p></td>
 </tr>
-<tr class="row-even"><td><p>gap after the manifest’s title <code class="docutils literal notranslate"><span class="pre">F</span></code></p></td>
+<tr class="row-odd"><td><p>gap after the manifest’s title <code class="docutils literal notranslate"><span class="pre">F</span></code></p></td>
 <td><p>8</p></td>
 </tr>
-<tr class="row-odd"><td><p>gap after a frame’s title</p></td>
+<tr class="row-even"><td><p>gap after a frame’s title</p></td>
 <td><p>4</p></td>
 </tr>
-<tr class="row-even"><td><p>card shadow offset</p></td>
+<tr class="row-odd"><td><p>card shadow offset</p></td>
 <td><p>2</p></td>
 </tr>
-<tr class="row-odd"><td><p>standard gap of an elision</p></td>
+<tr class="row-even"><td><p>standard gap of an elision</p></td>
 <td><p>32</p></td>
 </tr>
-<tr class="row-even"><td><p>ellipsis: dot radius, dot spacing, narrowest gap drawing one</p></td>
+<tr class="row-odd"><td><p>ellipsis: dot radius, dot spacing, narrowest gap drawing one</p></td>
 <td><p>2, 6, 20</p></td>
 </tr>
 </tbody>
@@ -2209,7 +2255,10 @@ timeline that draws no wedge and no label of a named timestamp or an
 elision draws nothing and is absent (Levels);</p></li>
 <li><p>the <strong>conversion maps band</strong> its maps (Conversion maps);</p></li>
 <li><p>the <strong>children band</strong> its children (Children);</p></li>
-<li><p>the <strong>regions band</strong> its regions (Regions);</p></li>
+<li><p>the <strong>regions band</strong> its regions (Regions), and, on the line of a
+virtual timeline or the root line of a switched card, before them the
+braces of the chunks of its FlowMap and the labels of its gaps (section
+8.10);</p></li>
 <li><p>the <strong>flow control band</strong> of the root, the flow control of the whole
 tree (Flow control): its symbols, flow lines, forks and the arcs of
 its jumps, with their labels and stacks; the flow control band of any
@@ -2292,7 +2341,8 @@ laid out. Every
 order of the steps gives the same starts.</p>
 <p><strong>Level 0.</strong> A timeline’s line reaches out on each side as every line does
 (Segment lines, below): by its map stack (Conversion maps) and, when it is
-a segment line, by its boundaries, <code class="docutils literal notranslate"><span class="pre">k</span></code> both ways, and above by its segment
+a segment line or draws the boundaries of chunks (section 8.10), by its
+boundaries, <code class="docutils literal notranslate"><span class="pre">k</span></code> both ways, and above by its segment
 labels, which belong to the line and to no band, so its segment labels lie
 beyond the maps against it. A drawn boundary spans <code class="docutils literal notranslate"><span class="pre">k</span></code> to either side of
 the line, so a line with a drawn boundary reaches at least <code class="docutils literal notranslate"><span class="pre">k</span></code> on both
@@ -2616,7 +2666,11 @@ hides.</p>
 <p><strong>Regions.</strong> The regions band of a timeline places its displayed regions,
 in canonical order, by first fit with the extent from the smaller to the
 larger of their start and end, never widened by their labels, into <code class="docutils literal notranslate"><span class="pre">R</span></code>
-rows: a region keeps its row whatever its label’s width. Then the drawn
+rows: a region keeps its row whatever its label’s width. On the line of a
+virtual timeline or the root line of a switched card, the chunks of its
+FlowMap come first, in the order of <code class="docutils literal notranslate"><span class="pre">chunks</span></code>, each an item whose extent is
+its drawn span, a gap among them (section 8.10), and then the regions.
+Then the drawn
 labels of each row, in the order of their regions, are placed by one
 first fit of that row, each with the extent of a label centred on <code class="docutils literal notranslate"><span class="pre">Xm</span></code>
 (section 6.6, Regions), into the row’s <strong>label tiers</strong>: tier 1 is where
@@ -2982,8 +3036,9 @@ its shaft ends at its head’s base, and the head continues the shaft’s
 direction at that point.</p>
 </li>
 <li><p><strong>Boundaries.</strong> A line from <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">y</span> <span class="pre">−</span> <span class="pre">k)</span></code> to <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">y</span> <span class="pre">+</span> <span class="pre">k)</span></code>, <code class="docutils literal notranslate"><span class="pre">X</span></code> the
-segment’s start and <code class="docutils literal notranslate"><span class="pre">y</span></code> its segment line’s ordinate (section 6.4), drawn
-over the line.</p></li>
+segment’s start and <code class="docutils literal notranslate"><span class="pre">y</span></code> its segment line’s ordinate (section 6.4), or <code class="docutils literal notranslate"><span class="pre">X</span></code>
+the drawn start of a chunk and <code class="docutils literal notranslate"><span class="pre">y</span></code> the ordinate of the line that draws
+it (section 8.10), drawn over the line.</p></li>
 <li><p><strong>Segment labels.</strong> Centred on <code class="docutils literal notranslate"><span class="pre">x</span></code> of the midpoint of the segment’s start and end,
 in its tier (section 6.4).</p></li>
 <li><p><strong>Wedges.</strong> A filled triangle, not stroked, its tip at <code class="docutils literal notranslate"><span class="pre">X</span></code>, at the
@@ -3162,9 +3217,18 @@ to <code class="docutils literal notranslate"><span class="pre">Xe</span></code>
 <li><p>d / 2<code class="docutils literal notranslate"><span class="pre">,</span> </code>yc` the map’s centre (section 6.4), stroked and not filled.</p></li>
 </ul>
 </li>
+<li><p><strong>Gap lines.</strong> Over the span of a gap of a FlowMap drawn on a line
+(section 8.10), from <code class="docutils literal notranslate"><span class="pre">Xa</span></code> to <code class="docutils literal notranslate"><span class="pre">Xb</span></code>, the line itself is not drawn; a <strong>gap
+line</strong> stands in for it, from <code class="docutils literal notranslate"><span class="pre">(Xa,</span> <span class="pre">y)</span></code> to <code class="docutils literal notranslate"><span class="pre">(Xb,</span> <span class="pre">y)</span></code>, stroked in the
+line’s <code class="docutils literal notranslate"><span class="pre">stroke</span></code> and <code class="docutils literal notranslate"><span class="pre">opacity</span></code> with the width <code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">/</span> <span class="pre">2</span></code> and the dash
+pattern <code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">/</span> <span class="pre">2</span></code> on, <code class="docutils literal notranslate"><span class="pre">w</span></code> off, <code class="docutils literal notranslate"><span class="pre">w</span></code> the line’s stroke width (1.5 and 3 with
+the default width 3), with no mark at either end. It is part of its
+line, carries its address and has no element of its own.</p></li>
 <li><p><strong>Regions.</strong> A brace from <code class="docutils literal notranslate"><span class="pre">Xs</span></code> to <code class="docutils literal notranslate"><span class="pre">Xe</span></code>, arms at <code class="docutils literal notranslate"><span class="pre">yb</span></code>, tip 6 further out
 at <code class="docutils literal notranslate"><span class="pre">Xm</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code> of the midpoint (section 3.1) of the region’s start and end, so it
-opens towards its timeline’s line; its label centred on <code class="docutils literal notranslate"><span class="pre">Xm</span></code> beyond the
+opens towards its timeline’s line; a chunk’s brace alike over its drawn
+span, and a gap of a FlowMap no brace, its label alone, placed as a
+brace’s label is; its label centred on <code class="docutils literal notranslate"><span class="pre">Xm</span></code> beyond the
 tip, 2 further out, in its label tier. The arms lie at the distance <code class="docutils literal notranslate"><span class="pre">ak</span></code>
 of their row (section 6.4), the tip at <code class="docutils literal notranslate"><span class="pre">ak</span> <span class="pre">+</span> <span class="pre">6</span></code>, and the line of the
 label’s tier <code class="docutils literal notranslate"><span class="pre">j</span></code> starts at <code class="docutils literal notranslate"><span class="pre">ak</span> <span class="pre">+</span> <span class="pre">6</span> <span class="pre">+</span> <span class="pre">2</span> <span class="pre">+</span> <span class="pre">(j</span> <span class="pre">−</span> <span class="pre">1)</span> <span class="pre">×</span> <span class="pre">h(9)</span></code>, the label’s
@@ -3446,64 +3510,67 @@ opens like <code class="docutils literal notranslate"><span class="pre">M290.977
 <tr class="row-odd"><td><p>a line’s start</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{Xs}&quot;</span> <span class="pre">y1=&quot;{y}&quot;</span> <span class="pre">x2=&quot;{Xl}&quot;</span> <span class="pre">y2=&quot;{y}&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Xl</span></code> where the line stops; <code class="docutils literal notranslate"><span class="pre">&lt;circle</span> <span class="pre">cx=&quot;{Xs}&quot;</span> <span class="pre">cy=&quot;{y}&quot;</span> <span class="pre">r=&quot;{w}&quot;&gt;</span></code>, except where an ancestor line runs on</p></td>
 </tr>
-<tr class="row-even"><td><p>arrowhead</p></td>
+<tr class="row-even"><td><p>gap line</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{Xa}&quot;</span> <span class="pre">y1=&quot;{y}&quot;</span> <span class="pre">x2=&quot;{Xb}&quot;</span> <span class="pre">y2=&quot;{y}&quot;&gt;</span></code> stroked in the line’s <code class="docutils literal notranslate"><span class="pre">stroke</span></code>, with <code class="docutils literal notranslate"><span class="pre">stroke-width</span></code> <code class="docutils literal notranslate"><span class="pre">w/2</span></code> and <code class="docutils literal notranslate"><span class="pre">stroke-dasharray</span></code> <code class="docutils literal notranslate"><span class="pre">{w/2}</span> <span class="pre">{w}</span></code> (section 6.6)</p></td>
+</tr>
+<tr class="row-odd"><td><p>arrowhead</p></td>
 <td><p>the line stops at <code class="docutils literal notranslate"><span class="pre">Xe</span></code>; <code class="docutils literal notranslate"><span class="pre">&lt;polygon</span> <span class="pre">points=&quot;{Xe+3w},{y}</span> <span class="pre">{Xe},{y−1.5w}</span> <span class="pre">{Xe},{y+1.5w}&quot;&gt;</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>open arrowhead</p></td>
+<tr class="row-even"><td><p>open arrowhead</p></td>
 <td><p>the line stops at <code class="docutils literal notranslate"><span class="pre">Xe</span></code>; the same <code class="docutils literal notranslate"><span class="pre">&lt;polygon&gt;</span></code> with <code class="docutils literal notranslate"><span class="pre">fill=&quot;none&quot;</span></code>, stroked in the line’s <code class="docutils literal notranslate"><span class="pre">stroke</span></code> with width <code class="docutils literal notranslate"><span class="pre">w/2</span></code> and no dash</p></td>
 </tr>
-<tr class="row-even"><td><p>end circle</p></td>
+<tr class="row-odd"><td><p>end circle</p></td>
 <td><p>the line stops at <code class="docutils literal notranslate"><span class="pre">Xe</span></code>; <code class="docutils literal notranslate"><span class="pre">&lt;circle</span> <span class="pre">cx=&quot;{Xe}&quot;</span> <span class="pre">cy=&quot;{y}&quot;</span> <span class="pre">r=&quot;{w}&quot;&gt;</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>diamond</p></td>
+<tr class="row-even"><td><p>diamond</p></td>
 <td><p>the line stops at <code class="docutils literal notranslate"><span class="pre">Xe</span> <span class="pre">−</span> <span class="pre">1.5w</span></code>; <code class="docutils literal notranslate"><span class="pre">&lt;polygon</span> <span class="pre">points=&quot;{Xe−1.5w},{y}</span> <span class="pre">{Xe},{y−1.2w}</span> <span class="pre">{Xe+1.5w},{y}</span> <span class="pre">{Xe},{y+1.2w}&quot;</span> <span class="pre">fill=&quot;none&quot;&gt;</span></code> stroked in the line’s <code class="docutils literal notranslate"><span class="pre">stroke</span></code> with width <code class="docutils literal notranslate"><span class="pre">w/2</span></code> and no dash</p></td>
 </tr>
-<tr class="row-even"><td><p>three chevrons</p></td>
+<tr class="row-odd"><td><p>three chevrons</p></td>
 <td><p>an open end (section 6.6): the line stops at <code class="docutils literal notranslate"><span class="pre">Xr</span></code>; three <code class="docutils literal notranslate"><span class="pre">&lt;polyline</span> <span class="pre">points=&quot;{p1}</span> <span class="pre">{p2}</span> <span class="pre">{p3}&quot;</span> <span class="pre">fill=&quot;none&quot;&gt;</span></code>, the inner one, the middle one, then the outer one, each through its three points in the order section 6.6 lists them, stroked in the line’s <code class="docutils literal notranslate"><span class="pre">stroke</span></code> with width <code class="docutils literal notranslate"><span class="pre">w/2</span></code> and no dash</p></td>
 </tr>
-<tr class="row-odd"><td><p>two chevrons</p></td>
+<tr class="row-even"><td><p>two chevrons</p></td>
 <td><p>an ancestor line running on (section 8.3): the line stops at <code class="docutils literal notranslate"><span class="pre">Xr</span></code> (to the right) or starts at <code class="docutils literal notranslate"><span class="pre">Xa</span></code> (to the left); two <code class="docutils literal notranslate"><span class="pre">&lt;polyline</span> <span class="pre">points=&quot;{p1}</span> <span class="pre">{p2}</span> <span class="pre">{p3}&quot;</span> <span class="pre">fill=&quot;none&quot;&gt;</span></code>, inner one first, each through its three points in the order section 8.3 lists them, stroked as three chevrons are</p></td>
 </tr>
-<tr class="row-even"><td><p>wedge</p></td>
+<tr class="row-odd"><td><p>wedge</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;polygon</span> <span class="pre">points=&quot;{X},{yt}</span> <span class="pre">{x1},{y1}</span> <span class="pre">{x2},{y2}&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">yt)</span></code> its tip and <code class="docutils literal notranslate"><span class="pre">(x1,</span> <span class="pre">y1)</span></code>, <code class="docutils literal notranslate"><span class="pre">(x2,</span> <span class="pre">y2)</span></code> the corners of its base in the order section 6.6 gives them</p></td>
 </tr>
-<tr class="row-odd"><td><p>map</p></td>
+<tr class="row-even"><td><p>map</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;polygon</span> <span class="pre">points=&quot;{Xs},{yc−d/2}</span> <span class="pre">{Xe},{yc−d/2}</span> <span class="pre">{Xe},{yc+d/2}</span> <span class="pre">{Xs},{yc+d/2}&quot;</span> <span class="pre">fill=&quot;none&quot;&gt;</span></code> stroked</p></td>
 </tr>
-<tr class="row-even"><td><p>region</p></td>
+<tr class="row-odd"><td><p>region</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;path</span> <span class="pre">d=&quot;{brace}&quot;&gt;</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>arc of a jump</p></td>
+<tr class="row-even"><td><p>arc of a jump</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;path</span> <span class="pre">d=&quot;M{P0}C{C1}</span> <span class="pre">{C2}</span> <span class="pre">{Bh}&quot;&gt;</span></code>, the shaft; <code class="docutils literal notranslate"><span class="pre">&lt;polygon&gt;</span></code> arrowhead <code class="docutils literal notranslate"><span class="pre">{P3}</span> <span class="pre">{Bh</span> <span class="pre">−</span> <span class="pre">2w</span> <span class="pre">×</span> <span class="pre">n}</span> <span class="pre">{Bh</span> <span class="pre">+</span> <span class="pre">2w</span> <span class="pre">×</span> <span class="pre">n}</span></code>, <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">=</span> <span class="pre">(−uy,</span> <span class="pre">ux)</span></code> (section 6.6)</p></td>
 </tr>
-<tr class="row-even"><td><p>flow line: break, section break, barline</p></td>
+<tr class="row-odd"><td><p>flow line: break, section break, barline</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{x}&quot;</span> <span class="pre">y1=&quot;{yf}&quot;</span> <span class="pre">x2=&quot;{x}&quot;</span> <span class="pre">y2=&quot;{y2}&quot;&gt;</span></code> (section 6.4)</p></td>
 </tr>
-<tr class="row-odd"><td><p>fork</p></td>
+<tr class="row-even"><td><p>fork</p></td>
 <td><p>its stem, <code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{X</span> <span class="pre">−</span> <span class="pre">8}&quot;</span> <span class="pre">y1=&quot;{yb}&quot;</span> <span class="pre">x2=&quot;{X}&quot;</span> <span class="pre">y2=&quot;{yb}&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">yb</span></code> the ordinate of the distance <code class="docutils literal notranslate"><span class="pre">e</span></code>; then branch by branch in the order of the branches its shaft, <code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{X}&quot;</span> <span class="pre">y1=&quot;{yb}&quot;</span> <span class="pre">x2=&quot;{xc}&quot;</span> <span class="pre">y2=&quot;{yc}&quot;&gt;</span></code> to the centre <code class="docutils literal notranslate"><span class="pre">(xc,</span> <span class="pre">yc)</span></code> of its arrowhead’s base, and its arrowhead, <code class="docutils literal notranslate"><span class="pre">&lt;polygon</span> <span class="pre">points=&quot;{tip}</span> <span class="pre">{first</span> <span class="pre">corner}</span> <span class="pre">{second</span> <span class="pre">corner}&quot;&gt;</span></code> (section 6.4, Forks); then the texts in the order of the branches, <code class="docutils literal notranslate"><span class="pre">&lt;text</span> <span class="pre">x=&quot;{xt}&quot;</span> <span class="pre">y=&quot;{baseline}&quot;</span> <span class="pre">text-anchor=&quot;start&quot;</span> <span class="pre">font-size=&quot;{z}&quot;&gt;</span></code> each, <code class="docutils literal notranslate"><span class="pre">xt</span> <span class="pre">=</span> <span class="pre">(X</span> <span class="pre">+</span> <span class="pre">18</span> <span class="pre">×</span> <span class="pre">ck)</span> <span class="pre">+</span> <span class="pre">3</span></code> 3 right of its branch’s tip</p></td>
 </tr>
-<tr class="row-even"><td><p>leader</p></td>
+<tr class="row-odd"><td><p>leader</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{X}&quot;</span> <span class="pre">y1=&quot;{y1}&quot;</span> <span class="pre">x2=&quot;{X}&quot;</span> <span class="pre">y2=&quot;{y2}&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">y1</span></code> the ordinate of the element’s end of the leader and <code class="docutils literal notranslate"><span class="pre">y2</span></code> that of the label’s (section 6.6, Leaders)</p></td>
 </tr>
-<tr class="row-odd"><td><p>symbol</p></td>
+<tr class="row-even"><td><p>symbol</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;text</span> <span class="pre">x=&quot;{x}&quot;</span> <span class="pre">y=&quot;{baseline}&quot;</span> <span class="pre">text-anchor=&quot;middle&quot;</span> <span class="pre">font-size=&quot;{z}&quot;&gt;</span></code> (section 6.4, Symbols)</p></td>
 </tr>
-<tr class="row-even"><td><p>boundary</p></td>
+<tr class="row-odd"><td><p>boundary</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{X}&quot;</span> <span class="pre">y1=&quot;{y−k}&quot;</span> <span class="pre">x2=&quot;{X}&quot;</span> <span class="pre">y2=&quot;{y+k}&quot;&gt;</span></code> (section 6.6)</p></td>
 </tr>
-<tr class="row-odd"><td><p>cross-section line</p></td>
+<tr class="row-even"><td><p>cross-section line</p></td>
 <td><p>for each of its lines (section 6.6: up to two in a card, one on each side of its gap, and a groupstamp’s up to two in a frame), <code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{X}&quot;</span> <span class="pre">y1=&quot;{y1}&quot;</span> <span class="pre">x2=&quot;{X}&quot;</span> <span class="pre">y2=&quot;{y2}&quot;&gt;</span></code>, from <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">y1)</span></code> to <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">y2)</span></code>, <code class="docutils literal notranslate"><span class="pre">y1</span></code> the smaller ordinate, the upper line first</p></td>
 </tr>
-<tr class="row-even"><td><p>alignment anchor</p></td>
+<tr class="row-odd"><td><p>alignment anchor</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{x1}&quot;</span> <span class="pre">y1=&quot;{y1}&quot;</span> <span class="pre">x2=&quot;{x2}&quot;</span> <span class="pre">y2=&quot;{y2}&quot;&gt;</span></code>, from the point on the first timestamp’s line to the point on the second’s (section 8.7)</p></td>
 </tr>
-<tr class="row-odd"><td><p>elision</p></td>
+<tr class="row-even"><td><p>elision</p></td>
 <td><p>its gap, <code class="docutils literal notranslate"><span class="pre">&lt;rect</span> <span class="pre">x=&quot;{x(a)}&quot;</span> <span class="pre">y=&quot;{yt}&quot;</span> <span class="pre">width=&quot;{x(b)</span> <span class="pre">−</span> <span class="pre">x(a)}&quot;</span> <span class="pre">height=&quot;{yb</span> <span class="pre">−</span> <span class="pre">yt}&quot;&gt;</span></code>, filled and not stroked, written only when its <code class="docutils literal notranslate"><span class="pre">fill</span></code> is not <code class="docutils literal notranslate"><span class="pre">none</span></code>; then its continuations, <code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{x(a)}&quot;</span> <span class="pre">y1=&quot;{y}&quot;</span> <span class="pre">x2=&quot;{x(b)}&quot;</span> <span class="pre">y2=&quot;{y}&quot;&gt;</span></code> each, in the order of its rows (section 8.5)</p></td>
 </tr>
-<tr class="row-even"><td><p>ellipsis</p></td>
+<tr class="row-odd"><td><p>ellipsis</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;circle</span> <span class="pre">cx=&quot;{xm</span> <span class="pre">−</span> <span class="pre">6}&quot;</span> <span class="pre">cy=&quot;{ym}&quot;</span> <span class="pre">r=&quot;2&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;circle</span> <span class="pre">cx=&quot;{xm}&quot;</span> <span class="pre">cy=&quot;{ym}&quot;</span> <span class="pre">r=&quot;2&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;circle</span> <span class="pre">cx=&quot;{xm</span> <span class="pre">+</span> <span class="pre">6}&quot;</span> <span class="pre">cy=&quot;{ym}&quot;</span> <span class="pre">r=&quot;2&quot;&gt;</span></code>, filled and not stroked (section 6.6)</p></td>
 </tr>
-<tr class="row-odd"><td><p>name, label</p></td>
+<tr class="row-even"><td><p>name, label</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;text</span> <span class="pre">x=&quot;{x}&quot;</span> <span class="pre">y=&quot;{baseline}&quot;</span> <span class="pre">text-anchor=&quot;{a}&quot;</span> <span class="pre">font-size=&quot;{s}&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">a</span></code> <code class="docutils literal notranslate"><span class="pre">start</span></code> for names and the labels of stacks of flow-control elements, <code class="docutils literal notranslate"><span class="pre">middle</span></code> for the centred labels</p></td>
 </tr>
 </tbody>
@@ -3517,6 +3584,8 @@ outline, the stroked polygons, also the stroke attributes (the map’s dash
 included); a polyline carries <code class="docutils literal notranslate"><span class="pre">fill=&quot;none&quot;</span></code> and the stroke attributes; a
 group frame, a card and an ancestor card carry <code class="docutils literal notranslate"><span class="pre">fill</span></code> and the stroke
 attributes, a card’s shadow and an elision’s gap <code class="docutils literal notranslate"><span class="pre">fill</span></code> alone. A line’s descriptors are, in this order, its <code class="docutils literal notranslate"><span class="pre">&lt;line&gt;</span></code>,
+or, where gaps of a FlowMap interrupt it, its pieces from the left, each a
+<code class="docutils literal notranslate"><span class="pre">&lt;line&gt;</span></code>, and then its gap lines from the left (section 8.10), then
 its start circle or left chevrons, and its end or right chevrons. Every
 descriptor of an element, a card’s shadow included, carries the element’s
 <code class="docutils literal notranslate"><span class="pre">opacity</span></code>, written when it is not 1. An
@@ -3676,11 +3745,14 @@ an ungrouped root, a manifest of one group as a block holding that group’s
 frame, and every other manifest alike. The block opens with the
 manifest’s title (section 5.3), which an anonymous bundle, with neither a
 <code class="docutils literal notranslate"><span class="pre">name</span></code> nor an <code class="docutils literal notranslate"><span class="pre">id</span></code>, does not have.
-Every timeline drawn as a root (a member or an ungrouped root) is drawn as
-sections 3 to 6 draw a root, in a <strong>card</strong>: an ungrouped root in one card
+Every timeline drawn as a root (a member or an ungrouped root, a virtual
+timeline included, section 8.10) is drawn as
+sections 3 to 6 draw a root, in a <strong>card</strong>: an ungrouped root and a placed
+virtual timeline that is a member of no group in one card
 of its own, a member in one card in the frame of each group that has it as
 a member. The block’s <strong>items</strong> are
-its frames and its ungrouped roots’ cards; each lies at its own place
+its frames and the cards of its ungrouped roots and placed virtual
+timelines; each lies at its own place
 (section 8.6) and has its own graphical length <code class="docutils literal notranslate"><span class="pre">L</span></code>. The member drawings of
 one item share its <code class="docutils literal notranslate"><span class="pre">L</span></code> and one start <code class="docutils literal notranslate"><span class="pre">x0</span></code>, so that the members of a group
 by definition start and end at the same points. The <strong>shared end</strong> is
@@ -3696,17 +3768,22 @@ then every <strong>ungrouped root</strong>, a root of <code class="docutils lite
 as a member and that contains no member, in canonical order (by ID). A
 root that contains a member is no ungrouped root: it is drawn as an
 ancestor line of that member and, unless a rule hides it, whole in an
-ancestor card behind the member’s frame (section 8.8). This is the
-block’s <strong>drawing order</strong>; an arrangement takes the items in its own
+ancestor card behind the member’s frame (section 8.8). Then come the
+<strong>placed virtual timelines</strong>, those that no group names and whose ID
+<code class="docutils literal notranslate"><span class="pre">places</span></code> holds, in canonical order (by ID); a virtual timeline that no
+group names and <code class="docutils literal notranslate"><span class="pre">places</span></code> does not hold is not drawn (section 8.10).
+This is the block’s <strong>drawing order</strong>; an arrangement takes the items in its own
 order instead (section 8.6).</p></li>
 <li><p><strong>Frames.</strong> Each group is a <strong>frame</strong>, a <code class="docutils literal notranslate"><span class="pre">frame</span></code> element: a rounded
-rectangle holding the group’s title and then its members’ cards, one
-under the other, in the group’s display order: the entry of
+rectangle holding the group’s title and then its members’ cards, a
+virtual timeline’s among them, one under the other, in the group’s
+display order: the entry of
 <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code> under the group’s ID, or <code class="docutils literal notranslate"><span class="pre">members</span></code> when <code class="docutils literal notranslate"><span class="pre">order</span></code> has no
 entry for it. An ungrouped root has no frame.</p></li>
 <li><p><strong>Cards.</strong> A <strong>card</strong> is a <code class="docutils literal notranslate"><span class="pre">card</span></code> element, a raised rounded rectangle
 around one member drawing of a timeline <code class="docutils literal notranslate"><span class="pre">M</span></code> (in the tree below, a card
-holds nothing). An ungrouped root <code class="docutils literal notranslate"><span class="pre">M</span></code> lies in one card; a member <code class="docutils literal notranslate"><span class="pre">M</span></code>
+holds nothing). An ungrouped root <code class="docutils literal notranslate"><span class="pre">M</span></code>, and a placed virtual timeline
+<code class="docutils literal notranslate"><span class="pre">M</span></code>, lies in one card; a member <code class="docutils literal notranslate"><span class="pre">M</span></code>
 lies in one card in the frame of each group that has it as a member,
 every card of <code class="docutils literal notranslate"><span class="pre">M</span></code> addressed <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">M,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[&quot;card&quot;]}</span></code> (section 2.2).
 A timeline that several groups have
@@ -3993,8 +4070,9 @@ manifest’s title; then each displayed ancestor card in the order of
 section 8.8, the descriptors of its member drawing and its gaps; then,
 for each frame in drawing order, the frame, its
 title, and for each of its members in display order, the member’s card and
-the descriptors of its member drawing; then, for each ungrouped root, its
-card, the descriptors of its member drawing and its gaps. A card’s gaps
+the descriptors of its member drawing; then, for each ungrouped root and
+each placed virtual timeline in drawing order, its card, the descriptors
+of its member drawing and its gaps. A card’s gaps
 (section 8.9), its own and those carried into it, follow its member
 drawing, gap by gap from the left, each gap’s descriptors in this order:
 its rectangle where it is filled, its continuations, its ellipsis, then
@@ -4037,8 +4115,8 @@ name.</p>
 </section>
 <section id="places">
 <h3>8.6 Places<a class="headerlink" href="#places" title="Link to this heading">#</a></h3>
-<p>Every item of the block, a group’s frame or an ungrouped root’s card, lies at
-a <strong>place</strong>: its left edge <code class="docutils literal notranslate"><span class="pre">x</span></code> and its top <code class="docutils literal notranslate"><span class="pre">y</span></code>, measured from the place
+<p>Every item of the block, a group’s frame or the card of an ungrouped root
+or of a placed virtual timeline, lies at a <strong>place</strong>: its left edge <code class="docutils literal notranslate"><span class="pre">x</span></code> and its top <code class="docutils literal notranslate"><span class="pre">y</span></code>, measured from the place
 origin in canvas units, its graphical length <code class="docutils literal notranslate"><span class="pre">length</span></code>, its <strong>scale</strong>
 <code class="docutils literal notranslate"><span class="pre">scale</span></code> (positive), its <code class="docutils literal notranslate"><span class="pre">spacing</span></code> (finite, ≥ 0), its <code class="docutils literal notranslate"><span class="pre">margin</span></code> (finite,
 ≥ 0), and its requested size <code class="docutils literal notranslate"><span class="pre">width</span></code> and <code class="docutils literal notranslate"><span class="pre">height</span></code> (positive, or left out for its
@@ -4948,6 +5026,191 @@ rule and left out by <code class="docutils literal notranslate"><span class="pre
 stand under its ellipsis.</p></li>
 </ul>
 </section>
+<section id="virtual-timelines-and-switched-cards">
+<h3>8.10 Virtual timelines and switched cards<a class="headerlink" href="#virtual-timelines-and-switched-cards" title="Link to this heading">#</a></h3>
+<p>A FlowMap (README, “FlowMaps and virtual timelines”) is drawn as the axis
+it plays, its <strong>virtual axis</strong>: by the card of a virtual timeline that
+applies it, a <strong>virtual card</strong>, and by the card of its own timeline where
+the card’s <code class="docutils literal notranslate"><span class="pre">flow</span></code> names it, a <strong>switched card</strong>. Both draw the chunks of
+the FlowMap alike. Nothing here reads flow control or computes a flow:
+every position comes from the FlowMap’s <code class="docutils literal notranslate"><span class="pre">chunks</span></code> by the arithmetic of
+section 3.1.</p>
+<p><strong>Resolution.</strong> A FlowMap <code class="docutils literal notranslate"><span class="pre">F</span></code> whose <code class="docutils literal notranslate"><span class="pre">timeline</span></code> names a root <code class="docutils literal notranslate"><span class="pre">R</span></code> is
+<strong>resolved</strong> into a list of <strong>pieces</strong> on <code class="docutils literal notranslate"><span class="pre">R</span></code>’s axis, taking the entries
+of its <code class="docutils literal notranslate"><span class="pre">chunks</span></code> in their order; the entry at index <code class="docutils literal notranslate"><span class="pre">k</span></code>, from 0, gives</p>
+<ol class="arabic simple">
+<li><p>for a gap <code class="docutils literal notranslate"><span class="pre">{gap:</span> <span class="pre">g}</span></code>: one gap piece, of the length <code class="docutils literal notranslate"><span class="pre">g</span></code>;</p></li>
+<li><p>for the ID of a region <code class="docutils literal notranslate"><span class="pre">X</span></code> of a timeline <code class="docutils literal notranslate"><span class="pre">T</span></code> of <code class="docutils literal notranslate"><span class="pre">R</span></code>’s tree, <code class="docutils literal notranslate"><span class="pre">R</span></code> itself
+included: one stretch <code class="docutils literal notranslate"><span class="pre">[s</span> <span class="pre">+</span> <span class="pre">X.start,</span> <span class="pre">s</span> <span class="pre">+</span> <span class="pre">X.end]</span></code>, <code class="docutils literal notranslate"><span class="pre">s</span></code> the start of <code class="docutils literal notranslate"><span class="pre">T</span></code>
+on <code class="docutils literal notranslate"><span class="pre">R</span></code>’s axis (section 3.1);</p></li>
+<li><p>for the ID of a child timeline <code class="docutils literal notranslate"><span class="pre">C</span></code> at any depth: one stretch <code class="docutils literal notranslate"><span class="pre">[s,</span> <span class="pre">s</span> <span class="pre">+</span> <span class="pre">C.length]</span></code>, <code class="docutils literal notranslate"><span class="pre">s</span></code> the start of <code class="docutils literal notranslate"><span class="pre">C</span></code> on <code class="docutils literal notranslate"><span class="pre">R</span></code>’s axis;</p></li>
+<li><p>for the ID of a virtual timeline <code class="docutils literal notranslate"><span class="pre">W</span></code>: the pieces <code class="docutils literal notranslate"><span class="pre">W</span></code> resolves to,
+below, in their order.</p></li>
+</ol>
+<p>Every piece belongs to the entry that gave it, so the pieces of a virtual
+timeline named as a chunk are one entry. <code class="docutils literal notranslate"><span class="pre">F</span></code> is <strong>unresolved</strong> where its
+<code class="docutils literal notranslate"><span class="pre">timeline</span></code> names no root, where an entry names a child of unknown length
+or a virtual timeline that does not resolve, and where it is reached again
+while it is resolved, through the virtual timelines its entries name. A
+virtual timeline <code class="docutils literal notranslate"><span class="pre">V</span></code> <strong>resolves</strong> where its <code class="docutils literal notranslate"><span class="pre">map</span></code> is a FlowMap that
+resolves, its <code class="docutils literal notranslate"><span class="pre">timeline</span></code> is that FlowMap’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code> and it states no
+<code class="docutils literal notranslate"><span class="pre">through</span></code>, to that FlowMap’s pieces; every other virtual timeline, one
+applying a conversion map, one stating <code class="docutils literal notranslate"><span class="pre">through</span></code>, one applied to another
+timeline, is <strong>unresolved</strong>.</p>
+<p>The pieces lie end to end on the virtual axis from 0: the first starts at
+<code class="docutils literal notranslate"><span class="pre">P0</span> <span class="pre">=</span> <span class="pre">0</span></code>, and each further one where the one before it ends, <code class="docutils literal notranslate"><span class="pre">P(i</span> <span class="pre">+</span> <span class="pre">1)</span> <span class="pre">=</span> <span class="pre">Pi</span> <span class="pre">+</span> <span class="pre">ℓi</span></code>, <code class="docutils literal notranslate"><span class="pre">ℓi</span></code> the length of piece <code class="docutils literal notranslate"><span class="pre">i</span></code>, <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">−</span> <span class="pre">a</span></code> for a stretch <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">g</span></code> for a gap, each sum combined as section 3.1 combines values; the
+<strong>played length</strong> <code class="docutils literal notranslate"><span class="pre">Λ</span></code> of <code class="docutils literal notranslate"><span class="pre">F</span></code> is the end of the last piece, 0 where there
+is none. An entry’s <strong>span</strong> runs from the start of its first piece to the
+end of its last.</p>
+<p><strong>Runs.</strong> A <strong>run</strong> is a longest sequence of <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">≥</span> <span class="pre">2</span></code> consecutive entries
+naming one ID; gaps form none. In a card that is an item of the block,
+never in a frame, a run is <strong>drawn once</strong>: its first entry is drawn, and
+the rest of its span, from the end of its first entry <code class="docutils literal notranslate"><span class="pre">a</span></code> to the end of
+its last <code class="docutils literal notranslate"><span class="pre">b</span></code>, is a <strong>run gap</strong>, a gap of section 3.2 over <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> whose
+drawn width is 0, so that its whole natural width is its shrink: the run
+takes the drawn width of one entry and every position after it lies that
+shrink further left, as after an elision. A run gap is no elision: it has
+no address, draws nothing, neither rectangle, ellipsis, continuation nor
+label, and cuts no row, a row that crosses it being drawn across it whole
+as across a seam (section 3.2); a position in it, <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">&lt;</span> <span class="pre">t</span> <span class="pre">&lt;</span> <span class="pre">b</span></code> compared
+exactly, is not drawn and takes no room. A card with run gaps lays out
+every first fit (section 6.3) by the drawn x less <code class="docutils literal notranslate"><span class="pre">x0</span></code>, <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span> <span class="pre">−</span> <span class="pre">D</span></code>, not
+by <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span></code>, so that the rows follow the drawn widths. In a frame every
+entry is drawn: the members of a group share one linear axis (section
+8.2), which a gap of one member’s runs would break.</p>
+<p><strong>The virtual card.</strong> A virtual timeline <code class="docutils literal notranslate"><span class="pre">V</span></code> is drawn as the root of its
+member drawing (section 8.1): in a card of its own where it is a placed
+virtual timeline, an item of the block at the place <code class="docutils literal notranslate"><span class="pre">places</span></code> states under
+its ID, and in the frame of each group that has it as a member. Removing
+the ID from <code class="docutils literal notranslate"><span class="pre">places</span></code> hides the card and keeps the virtual timeline. Its
+axis is its own, from 0 to its <code class="docutils literal notranslate"><span class="pre">length</span></code>, its <code class="docutils literal notranslate"><span class="pre">λ</span></code> of section 3.2 that
+length, and the positions of its named timestamps their coordinates. Where
+<code class="docutils literal notranslate"><span class="pre">V</span></code> resolves, the entries of its FlowMap lie on that axis at their spans,
+whatever <code class="docutils literal notranslate"><span class="pre">V</span></code>’s <code class="docutils literal notranslate"><span class="pre">length</span></code> states (a valid manifest states their sum where
+the axis is exact). Its card draws</p>
+<ul class="simple">
+<li><p>its <strong>line</strong>, a <code class="docutils literal notranslate"><span class="pre">timeline</span></code> element with the address <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V}</span></code> in the
+style of <code class="docutils literal notranslate"><span class="pre">V</span></code>’s unit, from <code class="docutils literal notranslate"><span class="pre">x(0)</span></code> to <code class="docutils literal notranslate"><span class="pre">x(λ)</span></code>, with the start circle and,
+its end fixed by its map, the end circle of a locked root (section 6.6),
+never an arrowhead or chevrons; over the span of every gap entry the
+line is not drawn and a gap line stands in for it (section 6.6, Gap
+lines), the line written as its pieces from the left;</p></li>
+<li><p>its <strong>chunks</strong>, in its regions band (section 6.4, Regions): each drawn
+entry <code class="docutils literal notranslate"><span class="pre">k</span></code> a brace over its drawn span, for a run drawn once over its
+first entry’s span, a <code class="docutils literal notranslate"><span class="pre">region</span></code> element with the address <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k]}</span></code>, and a gap entry no brace; each entry
+its <strong>label</strong>, a <code class="docutils literal notranslate"><span class="pre">label</span></code> element <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k,</span> <span class="pre">&quot;label&quot;]}</span></code> placed as a region’s label (section 6.6, Regions) with its
+leader <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k,</span> <span class="pre">&quot;leader&quot;]}</span></code> where it
+moves to a further tier. The label is the name of the entry’s source: a
+region’s <code class="docutils literal notranslate"><span class="pre">name</span></code>, or its whole ID where the name is null, so that every
+chunk is labelled; a child timeline’s or a virtual timeline’s name
+(section 5.3); and for a gap the pretty text of its length on <code class="docutils literal notranslate"><span class="pre">R</span></code>’s axis
+(section 5.2: <code class="docutils literal notranslate"><span class="pre">2</span> <span class="pre">♩</span></code>, <code class="docutils literal notranslate"><span class="pre">5.764″</span></code>). The label of a run drawn once is its
+first entry’s followed by a space, <code class="docutils literal notranslate"><span class="pre">×</span></code> (U+00D7), a space and <code class="docutils literal notranslate"><span class="pre">n</span></code> in
+decimal digits, in the label’s own font size and place, so that a loop
+of four bars played eight times is labelled <code class="docutils literal notranslate"><span class="pre">Loop</span> <span class="pre">×</span> <span class="pre">8</span></code>. A chunk’s brace
+matches <code class="docutils literal notranslate"><span class="pre">{&quot;element&quot;:</span> <span class="pre">&quot;region&quot;}</span></code> and the rules selecting its address,
+never a <code class="docutils literal notranslate"><span class="pre">class</span></code> (it has no <code class="docutils literal notranslate"><span class="pre">type</span></code> statement), so the default hiding
+atomic sections hides no chunk whose source is one;</p></li>
+<li><p>its <strong>boundaries</strong>: at the drawn start of every entry <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">≥</span> <span class="pre">1</span></code> that is
+not the second or a later entry of a run drawn once, a <code class="docutils literal notranslate"><span class="pre">boundary</span></code>
+element <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">V,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k,</span> <span class="pre">&quot;start&quot;]}</span></code> drawn as a
+segment’s (section 6.6, Boundaries), held by the line and hidden with
+it, not with the regions band, and reaching the boundary half-height 8
+on both sides of the line (section 6.4, Level 0);</p></li>
+<li><p>its <strong>named timestamps</strong>, in its markers band, with their cross-section
+lines, and in a frame its groupstamps across the frame, as every root’s;</p></li>
+<li><p>its <strong>name</strong> (section 6.6, Names): the name of <code class="docutils literal notranslate"><span class="pre">V</span></code> (section 5.3)
+followed by <code class="docutils literal notranslate"><span class="pre">·</span> <span class="pre">unfolded</span> <span class="pre">from</span></code> and the name of its <code class="docutils literal notranslate"><span class="pre">timeline</span></code> where its
+<code class="docutils literal notranslate"><span class="pre">map</span></code> is a FlowMap, and by <code class="docutils literal notranslate"><span class="pre">·</span> <span class="pre">converted</span> <span class="pre">from</span></code> and that name where it
+is a conversion map, <code class="docutils literal notranslate"><span class="pre">·</span></code> being U+00B7: <code class="docutils literal notranslate"><span class="pre">Allegro,</span> <span class="pre">default</span> <span class="pre">·</span> <span class="pre">unfolded</span> <span class="pre">from</span> <span class="pre">Allegro</span></code>. A rule setting the name’s <code class="docutils literal notranslate"><span class="pre">content</span></code> replaces the whole text.</p></li>
+</ul>
+<p>A virtual timeline has no children, conversion maps or flow control, so
+its children, conversion maps and flow control bands are never present;
+its band order is its entry of <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code>, else the default of
+section 4. It lies in no tree: it has no ancestor line and no ancestor
+card, and no elision lies on it (section 2). An unresolved virtual
+timeline draws its line whole, its named timestamps and its name, and no
+chunk, boundary or gap line.</p>
+<p><strong>Switched cards.</strong> A card of a timeline <code class="docutils literal notranslate"><span class="pre">T</span></code> that reads <code class="docutils literal notranslate"><span class="pre">flow</span></code> (section
+2.4), a member’s card or the card of an ungrouped root, is <strong>switched</strong>
+where its cascaded <code class="docutils literal notranslate"><span class="pre">flow</span></code> names a FlowMap <code class="docutils literal notranslate"><span class="pre">F</span></code> of <code class="docutils literal notranslate"><span class="pre">T</span></code> that resolves, or a
+virtual timeline that resolves to such a FlowMap; it is drawn as written
+otherwise. A switched card is laid out by section 6 on <code class="docutils literal notranslate"><span class="pre">F</span></code>’s virtual axis,
+<code class="docutils literal notranslate"><span class="pre">λ</span></code> being <code class="docutils literal notranslate"><span class="pre">Λ</span></code>:</p>
+<ul class="simple">
+<li><p>its root line is drawn as a virtual card’s line, from 0 to <code class="docutils literal notranslate"><span class="pre">Λ</span></code>, with
+its gap lines, its chunks and their labels in its regions band before
+<code class="docutils literal notranslate"><span class="pre">T</span></code>’s regions, and their boundaries, each carrying <code class="docutils literal notranslate"><span class="pre">T</span></code>’s ID in place of
+<code class="docutils literal notranslate"><span class="pre">V</span></code>’s (<code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">T,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k]}</span></code>);</p></li>
+<li><p>every other element of <code class="docutils literal notranslate"><span class="pre">T</span></code>’s tree is <strong>unfolded</strong>, drawn at each of its
+<strong>played positions</strong>. A position <code class="docutils literal notranslate"><span class="pre">t</span></code> on <code class="docutils literal notranslate"><span class="pre">T</span></code>’s axis (section 3.1) lies in
+a stretch piece <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> starting at <code class="docutils literal notranslate"><span class="pre">P</span></code> where <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">≤</span> <span class="pre">t</span> <span class="pre">&lt;</span> <span class="pre">b</span></code>, or where <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">b</span></code> and that piece is the last or is followed by a gap or by a stretch
+that does not start at <code class="docutils literal notranslate"><span class="pre">b</span></code>, and is played there at <code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">+</span> <span class="pre">(t</span> <span class="pre">−</span> <span class="pre">a)</span></code>,
+combined as section 3.1 combines values; a position in no stretch is
+not drawn. An element over <code class="docutils literal notranslate"><span class="pre">[s,</span> <span class="pre">e]</span></code>, a child’s line, a map or a region,
+is drawn once in every stretch piece where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">&lt;</span> <span class="pre">min(e,</span> <span class="pre">b)</span></code>, over
+the played positions of those two ends, keeping its start mark only
+where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">=</span> <span class="pre">s</span></code> and its end mark only where <code class="docutils literal notranslate"><span class="pre">min(e,</span> <span class="pre">b)</span> <span class="pre">=</span> <span class="pre">e</span></code>, as a
+row cut at an elision (section 6.6, Elisions); a region so cut is drawn
+as a whole brace over its played stretch, with its label. Within one
+piece the drawings keep the tree of section 2.1, a child’s drawing
+holding the drawings in that piece of what the child holds, and section
+6 lays each drawing out as one item, the drawings taken piece by piece,
+in the order of the pieces, and within a piece as section 6 takes the
+elements. Every drawing keeps its element’s address (section 2.2), and a
+label of a coordinate shows the written coordinate, never the played
+one. A named timestamp so draws its wedge, labels and cross-section line
+at every played position, and an alignment anchor joins the nearest pair
+of its timestamps’ cross-section segments (section 8.7);</p></li>
+<li><p>no flow control band, which is absent and lays out nothing (section
+6.4), and no gap of a stored, derived or group elision (section 8.9);</p></li>
+<li><p>its name is the row name of <code class="docutils literal notranslate"><span class="pre">T</span></code> followed by <code class="docutils literal notranslate"><span class="pre">·</span></code> and the name of the
+FlowMap or virtual timeline <code class="docutils literal notranslate"><span class="pre">flow</span></code> names, its <code class="docutils literal notranslate"><span class="pre">name</span></code> or, where that is
+null, its whole ID.</p></li>
+</ul>
+<p>Runs are drawn once on the switched card of an ungrouped root and on no
+card in a frame (Runs, above).</p>
+<p><strong>Switched frames.</strong> A frame is <strong>switched</strong> where exactly one of its
+members <code class="docutils literal notranslate"><span class="pre">T</span></code> has a switched card in it: every member card of the frame is
+drawn on <code class="docutils literal notranslate"><span class="pre">T</span></code>’s FlowMap <code class="docutils literal notranslate"><span class="pre">F</span></code>, every member carried through the group. A
+position <code class="docutils literal notranslate"><span class="pre">m</span></code> on the own axis of a member <code class="docutils literal notranslate"><span class="pre">M</span></code> goes to <code class="docutils literal notranslate"><span class="pre">T</span></code>’s axis at <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">(m</span> <span class="pre">×</span> <span class="pre">λT)</span> <span class="pre">/</span> <span class="pre">λM</span></code>, <code class="docutils literal notranslate"><span class="pre">λM</span></code> and <code class="docutils literal notranslate"><span class="pre">λT</span></code> the lengths of <code class="docutils literal notranslate"><span class="pre">M</span></code> and <code class="docutils literal notranslate"><span class="pre">T</span></code> or their reaches
+where unknown (section 3.4): exact where all three are exact, and
+otherwise in binary64, each exact operand taken as the nearest double and
+the product formed first. It is the position a groupstamp’s line marks on
+<code class="docutils literal notranslate"><span class="pre">T</span></code> (section 6.6, Cross-section lines), and unfolds there as above; an extent
+of <code class="docutils literal notranslate"><span class="pre">M</span></code> goes so at both ends. Every member drawing of the frame then lies
+on <code class="docutils literal notranslate"><span class="pre">F</span></code>’s virtual axis from <code class="docutils literal notranslate"><span class="pre">x0</span></code> to <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">L</span></code> (section 8.2) and draws its
+own tree unfolded, its ancestor lines included; only <code class="docutils literal notranslate"><span class="pre">T</span></code>’s card draws the
+chunks of <code class="docutils literal notranslate"><span class="pre">F</span></code>, their boundaries and its gap lines, a virtual member’s own
+chunks unfolding as every other element of its drawing, and over a gap of
+<code class="docutils literal notranslate"><span class="pre">F</span></code> every other member draws nothing. A groupstamp’s lines cross the frame
+at every played x of its position. A switched frame draws no group elision and
+carries none into the ancestor cards behind it, which are drawn as
+written. Where two or more members of a group have switched cards, which
+both validators warn of (<code class="docutils literal notranslate"><span class="pre">flow_conflict</span></code>), its frame and all its cards are
+drawn as written: a frame has one axis, and no member’s flow outranks
+another’s.</p>
+<p><strong>Overlays.</strong> The flow subeditor’s pane, which an editor folds out under
+the card it edits, is an overlay of the editor and no element of a
+drawing; SVG and TikZ never write it. The translucent twin a drag lifts
+out of that pane is such an overlay too. The ribbons that join a chunk to
+its stretch on its source’s card are such overlays as well, like the
+coordinate flag.</p>
+<p><strong>Worked example.</strong> The FlowMap <code class="docutils literal notranslate"><span class="pre">flow_map_1</span></code> of <code class="docutils literal notranslate"><span class="pre">score</span></code> (16 quarters,
+the regions <code class="docutils literal notranslate"><span class="pre">region_1</span></code> “A” from 0 to 8 and <code class="docutils literal notranslate"><span class="pre">region_2</span></code> “B” from 8 to 16)
+plays <code class="docutils literal notranslate"><span class="pre">region_1</span></code>, <code class="docutils literal notranslate"><span class="pre">region_1</span></code>, <code class="docutils literal notranslate"><span class="pre">region_2</span></code>; the virtual timeline
+<code class="docutils literal notranslate"><span class="pre">virtual_1</span></code> (24 quarters) applies it to <code class="docutils literal notranslate"><span class="pre">score</span></code>. Its pieces are <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">8]</span></code>
+at 0, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">8]</span></code> at 8 and <code class="docutils literal notranslate"><span class="pre">[8,</span> <span class="pre">16]</span></code> at 16, <code class="docutils literal notranslate"><span class="pre">Λ</span></code> = 24. In a card of its own
+at the length 400, entries 0 and 1 are a run drawn once: the run gap over
+<code class="docutils literal notranslate"><span class="pre">[8,</span> <span class="pre">16]</span></code> has the natural width 266.66666666666663 − 133.33333333333331
+= 133.33333333333331, its shrink; entry 0 is drawn from <code class="docutils literal notranslate"><span class="pre">x0</span></code> to <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">133.33333333333331</span></code> labelled <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">×</span> <span class="pre">2</span></code>, entry 2 from <code class="docutils literal notranslate"><span class="pre">x(16)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">(266.66666666666663</span> <span class="pre">−</span> <span class="pre">133.33333333333331)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">133.33333333333331</span></code> to
+<code class="docutils literal notranslate"><span class="pre">x(24)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">(400</span> <span class="pre">−</span> <span class="pre">133.33333333333331)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">266.6666666666667</span></code>
+labelled <code class="docutils literal notranslate"><span class="pre">B</span></code>, with one boundary at <code class="docutils literal notranslate"><span class="pre">x(16)</span></code>, addressed <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;virtual_1&quot;,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[2,</span> <span class="pre">&quot;start&quot;]}</span></code>, and the line
+ends at <code class="docutils literal notranslate"><span class="pre">x(24)</span></code> in an end circle. In a frame with <code class="docutils literal notranslate"><span class="pre">recording</span></code> (10.0
+seconds) the run is not drawn once: the entries are drawn at <code class="docutils literal notranslate"><span class="pre">x0</span></code>, <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">133.33333333333331</span></code> and <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">266.66666666666663</span></code> to <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">400</span></code>,
+labelled <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code>, with boundaries at entries 1 and 2.</p>
+</section>
 </section>
 </section>
 
@@ -5048,6 +5311,7 @@ stand under its ellipsis.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#alignment-anchors">8.7 Alignment anchors</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ancestor-cards">8.8 Ancestor cards</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#elisions">8.9 Elisions</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#virtual-timelines-and-switched-cards">8.10 Virtual timelines and switched cards</a></li>
 </ul>
 </li>
 </ul>

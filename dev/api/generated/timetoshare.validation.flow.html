@@ -536,8 +536,14 @@ through others. Where its <code class="docutils literal notranslate"><span class
 the timeline it comes from lies in the tree of the FlowMap’s root, and its
 <code class="docutils literal notranslate"><span class="pre">length</span></code> is the sum of the FlowMap’s chunks and gaps where all of them lie
 on its own axis (<code class="docutils literal notranslate"><span class="pre">virtual_timeline</span></code>); with <code class="docutils literal notranslate"><span class="pre">through</span></code> neither is read.</p>
-<p>A manifestation or a convention outside the format’s vocabulary is valid:
-<a class="reference internal" href="#timetoshare.validation.flow.flow_warnings" title="timetoshare.validation.flow.flow_warnings"><code class="xref py py-func docutils literal notranslate"><span class="pre">flow_warnings()</span></code></a> reports it.</p>
+<p>Last the property <code class="docutils literal notranslate"><span class="pre">flow</span></code> of the manifest’s own <code class="docutils literal notranslate"><span class="pre">graphical</span></code> layer
+(<code class="docutils literal notranslate"><span class="pre">flow_rule</span></code>): no style sets it, a rule setting it selects by
+<code class="docutils literal notranslate"><span class="pre">addresses</span></code> alone, each the address of a timeline’s cards, and its value
+names a FlowMap of each such timeline, or a virtual timeline applying one to
+it without <code class="docutils literal notranslate"><span class="pre">through</span></code>.</p>
+<p>A manifestation or a convention outside the format’s vocabulary, and members
+of one group that each state a flow, are valid: <a class="reference internal" href="#timetoshare.validation.flow.flow_warnings" title="timetoshare.validation.flow.flow_warnings"><code class="xref py py-func docutils literal notranslate"><span class="pre">flow_warnings()</span></code></a>
+reports them.</p>
 <dl class="py data">
 <dt class="sig sig-object py" id="timetoshare.validation.flow.CONVERTER">
 <span class="sig-prename descclassname"><span class="pre">timetoshare.validation.flow.</span></span><span class="sig-name descname"><span class="pre">CONVERTER</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'scripts/convert_flow_control.py'</span></span><a class="headerlink" href="#timetoshare.validation.flow.CONVERTER" title="Link to this definition">#</a></dt>
@@ -626,13 +632,29 @@ where it comes from a timeline and applies a FlowMap of a root without
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.validation.flow.flow_rule_problems">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.validation.flow.</span></span><span class="sig-name descname"><span class="pre">flow_rule_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/flow.html#flow_rule_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.flow.flow_rule_problems" title="Link to this definition">#</a></dt>
+<dd><p>Yield the problems of the property <code class="docutils literal notranslate"><span class="pre">flow</span></code>.</p>
+<p>Each style setting it, in code-point order of the style names; then,
+rule by rule in array order, a selector that does not name the cards of
+timelines by their addresses alone, then a value naming no FlowMap and
+no virtual timeline, or else, address by address, a value that is no
+FlowMap of that timeline and no virtual timeline applying one to it
+without <code class="docutils literal notranslate"><span class="pre">through</span></code>.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="timetoshare.validation.flow.flow_warnings">
 <span class="sig-prename descclassname"><span class="pre">timetoshare.validation.flow.</span></span><span class="sig-name descname"><span class="pre">flow_warnings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/flow.html#flow_warnings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.flow.flow_warnings" title="Link to this definition">#</a></dt>
 <dd><p>Return the flow warnings of a valid manifest, in document order.</p>
 <p><code class="docutils literal notranslate"><span class="pre">manifestation_unknown</span></code> at the <code class="docutils literal notranslate"><span class="pre">manifestation</span></code> of a flow-control
 element or of a jump’s destination that the format does not define for
-it, and <code class="docutils literal notranslate"><span class="pre">convention_unknown</span></code> at the <code class="docutils literal notranslate"><span class="pre">convention</span></code> of a FlowMap that is
-none of the format’s.</p>
+it, <code class="docutils literal notranslate"><span class="pre">convention_unknown</span></code> at the <code class="docutils literal notranslate"><span class="pre">convention</span></code> of a FlowMap that is
+none of the format’s, and <code class="docutils literal notranslate"><span class="pre">flow_conflict</span></code> at the <code class="docutils literal notranslate"><span class="pre">members</span></code> of a group
+of which more than one member’s cards a rule sets <code class="docutils literal notranslate"><span class="pre">flow</span></code> on: the
+group’s frame is then drawn as written.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -696,6 +718,7 @@ none of the format’s.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.timeline_flow_problems"><code class="docutils literal notranslate"><span class="pre">timeline_flow_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.Axis"><code class="docutils literal notranslate"><span class="pre">Axis</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.flow_map_problems"><code class="docutils literal notranslate"><span class="pre">flow_map_problems()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.flow_rule_problems"><code class="docutils literal notranslate"><span class="pre">flow_rule_problems()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.flow.flow_warnings"><code class="docutils literal notranslate"><span class="pre">flow_warnings()</span></code></a></li>
 </ul>
   </nav></div>

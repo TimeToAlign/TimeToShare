@@ -480,6 +480,7 @@
     <span class="s2">"flow_map_chunk"</span><span class="p">,</span>
     <span class="s2">"flow_map_canonical"</span><span class="p">,</span>
     <span class="s2">"virtual_timeline"</span><span class="p">,</span>
+    <span class="s2">"flow_rule"</span><span class="p">,</span>
     <span class="s2">"conversion_map"</span><span class="p">,</span>
     <span class="s2">"child_unit"</span><span class="p">,</span>
     <span class="s2">"child_offset"</span><span class="p">,</span>
@@ -511,7 +512,11 @@
 <span class="p">]</span>
 
 <span class="n">WarningCode</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span>
-    <span class="s2">"context_absent"</span><span class="p">,</span> <span class="s2">"bundle_blank"</span><span class="p">,</span> <span class="s2">"manifestation_unknown"</span><span class="p">,</span> <span class="s2">"convention_unknown"</span>
+    <span class="s2">"context_absent"</span><span class="p">,</span>
+    <span class="s2">"bundle_blank"</span><span class="p">,</span>
+    <span class="s2">"manifestation_unknown"</span><span class="p">,</span>
+    <span class="s2">"convention_unknown"</span><span class="p">,</span>
+    <span class="s2">"flow_conflict"</span><span class="p">,</span>
 <span class="p">]</span>
 <span class="sd">"""The codes of the warnings a valid manifest may draw."""</span>
 
@@ -745,6 +750,23 @@
 
     <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">):</span>
         <span class="n">visit</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span></div>
+
+
+
+<div class="viewcode-block" id="axes_by_id">
+<a class="viewcode-back" href="../../../api/generated/timetoshare.validation.diagnostics.html#timetoshare.validation.diagnostics.axes_by_id">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">axes_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">"""Return every timeline of a manifest, at any depth, and every virtual</span>
+<span class="sd">    timeline, by ID: what a named timestamp, a group member or a resource</span>
+<span class="sd">    may name.</span>
+
+<span class="sd">    Of a repeated ID the first in this order is kept, the timelines in</span>
+<span class="sd">    document order before the virtual timelines.</span>
+<span class="sd">    """</span>
+    <span class="n">found</span> <span class="o">=</span> <span class="n">timelines_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"virtual_timelines"</span><span class="p">):</span>
+        <span class="n">found</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">entry</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">found</span></div>
 
 

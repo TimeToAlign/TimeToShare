@@ -514,11 +514,11 @@ and types of the resources.</p>
 <dt class="sig sig-object py" id="timetoshare.validation.timestamps.timestamp_problems">
 <span class="sig-prename descclassname"><span class="pre">timetoshare.validation.timestamps.</span></span><span class="sig-name descname"><span class="pre">timestamp_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/timestamps.html#timestamp_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.timestamps.timestamp_problems" title="Link to this definition">#</a></dt>
 <dd><p>Yield timestamps off the manifest’s timelines, outside their extent or groupless.</p>
-<p>A timestamp names a timeline of the manifest, at any depth, and its
-coordinate lies between 0 and that timeline’s length, or at or after 0
-where the length is not known. A groupstamp (<code class="docutils literal notranslate"><span class="pre">groupstamp:</span> <span class="pre">true</span></code>), a
-match timestamp included, lies in a group: its timeline or one of that
-timeline’s ancestors is a member of a group.</p>
+<p>A timestamp names a timeline of the manifest, at any depth, or a virtual
+timeline, and its coordinate lies between 0 and that timeline’s length,
+or at or after 0 where the length is not known. A groupstamp
+(<code class="docutils literal notranslate"><span class="pre">groupstamp:</span> <span class="pre">true</span></code>), a match timestamp included, lies in a group: its
+timeline or one of that timeline’s ancestors is a member of a group.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
@@ -559,8 +559,9 @@ some MatchStamp names it.</p>
 <span class="sig-prename descclassname"><span class="pre">timetoshare.validation.timestamps.</span></span><span class="sig-name descname"><span class="pre">resource_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/timestamps.html#resource_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.timestamps.resource_problems" title="Link to this definition">#</a></dt>
 <dd><p>Yield the problems of the resources.</p>
 <p>Resource by resource, each ID of its <code class="docutils literal notranslate"><span class="pre">timelines</span></code> names a timeline of
-the manifest, at any depth, and no earlier resource has its type where
-that type is <code class="docutils literal notranslate"><span class="pre">MatchClaim</span></code> or <code class="docutils literal notranslate"><span class="pre">Projection</span></code>.</p>
+the manifest, at any depth, or a virtual timeline, and no earlier
+resource has its type where that type is <code class="docutils literal notranslate"><span class="pre">MatchClaim</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Projection</span></code>.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

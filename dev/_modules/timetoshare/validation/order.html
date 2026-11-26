@@ -501,6 +501,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">order_problems</span><span class="p">(</span>
     <span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">timelines</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">virtual</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">first_group</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Yield unknown order keys and invalid display and band orders.</span>
@@ -509,8 +510,10 @@
 <span class="sd">    lists ``line`` and any of the five facets, each once; a facet it leaves</span>
 <span class="sd">    out takes its place from the order the timeline follows without an entry.</span>
 
-<span class="sd">    ``timelines`` holds every timeline ID and ``first_group`` the index of the</span>
-<span class="sd">    first group of each group ID, as the identity rules collected them.</span>
+<span class="sd">    ``timelines`` holds every timeline ID, ``virtual`` every virtual timeline</span>
+<span class="sd">    ID and ``first_group`` the index of the first group of each group ID, as</span>
+<span class="sd">    the identity rules collected them. A virtual timeline's entry is a band</span>
+<span class="sd">    order.</span>
 <span class="sd">    """</span>
     <span class="n">groups</span> <span class="o">=</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"groups"</span><span class="p">)</span>
     <span class="n">orders</span> <span class="o">=</span> <span class="p">(</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"order"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
@@ -529,7 +532,7 @@
                     <span class="s2">"member </span><span class="si">{entry}</span><span class="s2"> of group </span><span class="si">{owner}</span><span class="s2"> is missing"</span><span class="p">,</span>
                 <span class="p">),</span>
             <span class="p">)</span>
-        <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">timelines</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">timelines</span> <span class="ow">or</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">virtual</span><span class="p">:</span>
             <span class="k">yield from</span> <span class="n">_listing_problems</span><span class="p">(</span>
                 <span class="s2">"band_order"</span><span class="p">,</span>
                 <span class="n">key</span><span class="p">,</span>
@@ -546,7 +549,8 @@
             <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
                 <span class="s2">"order_key"</span><span class="p">,</span>
                 <span class="n">path</span><span class="p">,</span>
-                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">' names no group or timeline of this manifest"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">' names no group, timeline or virtual timeline of this "</span>
+                <span class="s2">"manifest"</span><span class="p">,</span>
             <span class="p">)</span></div>
 
 </pre></div>

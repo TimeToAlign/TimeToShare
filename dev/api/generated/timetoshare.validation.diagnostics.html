@@ -524,14 +524,14 @@ the root.</p>
 <span class="sig-prename descclassname"><span class="pre">timetoshare.validation.diagnostics.</span></span><span class="sig-name descname"><span class="pre">ValidationCode</span></span><a class="headerlink" href="#timetoshare.validation.diagnostics.ValidationCode" title="Link to this definition">#</a></dt>
 <dd><p>The code of a validation error: the rule of the schema or of the format the
 value breaks.</p>
-<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘not_a_manifest’, ‘schema’, ‘representation’, ‘duplicate_id’, ‘dangling_target’, ‘flow_control_form’, ‘flow_coordinate’, ‘jump_repeated’, ‘jump_destination’, ‘flow_map_timeline’, ‘flow_map_chunk’, ‘flow_map_canonical’, ‘virtual_timeline’, ‘conversion_map’, ‘child_unit’, ‘child_offset’, ‘child_end’, ‘segment_line’, ‘group_member’, ‘manifest_id’, ‘order_key’, ‘display_order’, ‘band_order’, ‘timestamp_timeline’, ‘timestamp_coordinate’, ‘groupstamp’, ‘elision_timeline’, ‘elision_stretch’, ‘match_timestamp’, ‘alignment_anchor’, ‘matchstamp’, ‘resource_timeline’, ‘resource_type’, ‘calendar_date’, ‘finite_number’, ‘context’, ‘reserved_key’, ‘iri’, ‘element_value’, ‘provenance_duplicate’, ‘belief_actor’]</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘not_a_manifest’, ‘schema’, ‘representation’, ‘duplicate_id’, ‘dangling_target’, ‘flow_control_form’, ‘flow_coordinate’, ‘jump_repeated’, ‘jump_destination’, ‘flow_map_timeline’, ‘flow_map_chunk’, ‘flow_map_canonical’, ‘virtual_timeline’, ‘flow_rule’, ‘conversion_map’, ‘child_unit’, ‘child_offset’, ‘child_end’, ‘segment_line’, ‘group_member’, ‘manifest_id’, ‘order_key’, ‘display_order’, ‘band_order’, ‘timestamp_timeline’, ‘timestamp_coordinate’, ‘groupstamp’, ‘elision_timeline’, ‘elision_stretch’, ‘match_timestamp’, ‘alignment_anchor’, ‘matchstamp’, ‘resource_timeline’, ‘resource_type’, ‘calendar_date’, ‘finite_number’, ‘context’, ‘reserved_key’, ‘iri’, ‘element_value’, ‘provenance_duplicate’, ‘belief_actor’]</p>
 </dd></dl>
 
 <dl class="py data">
 <dt class="sig sig-object py" id="timetoshare.validation.diagnostics.WarningCode">
 <span class="sig-prename descclassname"><span class="pre">timetoshare.validation.diagnostics.</span></span><span class="sig-name descname"><span class="pre">WarningCode</span></span><a class="headerlink" href="#timetoshare.validation.diagnostics.WarningCode" title="Link to this definition">#</a></dt>
 <dd><p>The codes of the warnings a valid manifest may draw.</p>
-<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘context_absent’, ‘bundle_blank’, ‘manifestation_unknown’, ‘convention_unknown’]</p>
+<p>alias of <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.15)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Literal</span></code></a>[‘context_absent’, ‘bundle_blank’, ‘manifestation_unknown’, ‘convention_unknown’, ‘flow_conflict’]</p>
 </dd></dl>
 
 <dl class="py class">
@@ -642,6 +642,18 @@ value.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="timetoshare.validation.diagnostics.axes_by_id">
+<span class="sig-prename descclassname"><span class="pre">timetoshare.validation.diagnostics.</span></span><span class="sig-name descname"><span class="pre">axes_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/diagnostics.html#axes_by_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.diagnostics.axes_by_id" title="Link to this definition">#</a></dt>
+<dd><p>Return every timeline of a manifest, at any depth, and every virtual
+timeline, by ID: what a named timestamp, a group member or a resource
+may name.</p>
+<p>Of a repeated ID the first in this order is kept, the timelines in
+document order before the virtual timelines.</p>
+<dl class="field-list simple">
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="timetoshare.validation.diagnostics.timestamps_of">
 <span class="sig-prename descclassname"><span class="pre">timetoshare.validation.diagnostics.</span></span><span class="sig-name descname"><span class="pre">timestamps_of</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/diagnostics.html#timestamps_of"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.diagnostics.timestamps_of" title="Link to this definition">#</a></dt>
 <dd><p>Return the named timestamps of a manifest’s <code class="docutils literal notranslate"><span class="pre">graphical</span></code> object, or none.</p>
@@ -736,6 +748,7 @@ value.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.diagnostics.listed_ids"><code class="docutils literal notranslate"><span class="pre">listed_ids()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.diagnostics.manifest_ids"><code class="docutils literal notranslate"><span class="pre">manifest_ids()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.diagnostics.timelines_by_id"><code class="docutils literal notranslate"><span class="pre">timelines_by_id()</span></code></a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.diagnostics.axes_by_id"><code class="docutils literal notranslate"><span class="pre">axes_by_id()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.diagnostics.timestamps_of"><code class="docutils literal notranslate"><span class="pre">timestamps_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.diagnostics.elisions_of"><code class="docutils literal notranslate"><span class="pre">elisions_of()</span></code></a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#timetoshare.validation.diagnostics.matchstamps_of"><code class="docutils literal notranslate"><span class="pre">matchstamps_of()</span></code></a></li>

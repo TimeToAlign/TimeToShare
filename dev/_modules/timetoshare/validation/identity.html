@@ -449,7 +449,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Collection</span><span class="p">,</span> <span class="n">Iterator</span><span class="p">,</span> <span class="n">Mapping</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">fractions</span><span class="w"> </span><span class="kn">import</span> <span class="n">Fraction</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -463,7 +463,12 @@
     <span class="n">listed_ids</span><span class="p">,</span>
     <span class="n">tree_ids</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.flow</span><span class="w"> </span><span class="kn">import</span> <span class="n">JumpPositions</span><span class="p">,</span> <span class="n">flow_map_problems</span><span class="p">,</span> <span class="n">timeline_flow_problems</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.flow</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">JumpPositions</span><span class="p">,</span>
+    <span class="n">flow_map_problems</span><span class="p">,</span>
+    <span class="n">flow_rule_problems</span><span class="p">,</span>
+    <span class="n">timeline_flow_problems</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.maps</span><span class="w"> </span><span class="kn">import</span> <span class="n">MEASURE_VIEWS</span><span class="p">,</span> <span class="n">timeline_map_problems</span><span class="p">,</span> <span class="n">timeline_maps</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.order</span><span class="w"> </span><span class="kn">import</span> <span class="n">order_problems</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.segments</span><span class="w"> </span><span class="kn">import</span> <span class="n">timeline_segment_problems</span>
@@ -543,14 +548,22 @@
     <span class="n">group</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">path</span><span class="p">:</span> <span class="n">InstancePath</span><span class="p">,</span>
     <span class="n">parents</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">],</span>
+    <span class="n">virtual</span><span class="p">:</span> <span class="n">Collection</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Yield a group's members that name nothing, then those inside or around</span>
+<span class="sd">    an earlier member. A virtual timeline lies inside no timeline and</span>
+<span class="sd">    contains none."""</span>
     <span class="n">selected</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">earliest_descendant</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">member</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s2">"members"</span><span class="p">]):</span>
         <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">member</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">parents</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">virtual</span><span class="p">:</span>
+                <span class="k">continue</span>
             <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
-                <span class="s2">"group_member"</span><span class="p">,</span> <span class="n">at</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">member</span><span class="si">}</span><span class="s2">' names no timeline of this manifest"</span>
+                <span class="s2">"group_member"</span><span class="p">,</span>
+                <span class="n">at</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">member</span><span class="si">}</span><span class="s2">' names no timeline or virtual timeline of this manifest"</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">ancestors</span> <span class="o">=</span> <span class="n">_ancestors</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="n">parents</span><span class="p">)</span>
@@ -590,8 +603,8 @@
 <span class="sd">    elisions' IDs, the named MatchStamps' IDs each followed by its alignment</span>
 <span class="sd">    anchors' IDs, the resources', the FlowMaps' and the virtual timelines'</span>
 <span class="sd">    IDs, and last the manifest ID); then group members, graphical orders,</span>
-<span class="sd">    named timestamps, elisions, named MatchStamps, resources, FlowMaps and</span>
-<span class="sd">    virtual timelines.</span>
+<span class="sd">    named timestamps, elisions, named MatchStamps, resources, FlowMaps,</span>
+<span class="sd">    virtual timelines and the property ``flow``.</span>
 <span class="sd">    """</span>
     <span class="n">roots</span> <span class="o">=</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">)</span>
     <span class="n">groups</span> <span class="o">=</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">"groups"</span><span class="p">)</span>
@@ -621,17 +634,21 @@
         <span class="k">yield</span> <span class="n">duplicate_problem</span><span class="p">(</span><span class="n">manifest_id</span><span class="p">,</span> <span class="p">(</span><span class="s2">"id"</span><span class="p">,),</span> <span class="n">first</span><span class="p">[</span><span class="n">manifest_id</span><span class="p">],</span> <span class="s2">"manifest_id"</span><span class="p">)</span>
 
     <span class="n">parents</span> <span class="o">=</span> <span class="n">_parents</span><span class="p">(</span><span class="n">roots</span><span class="p">)</span>
+    <span class="n">virtual</span> <span class="o">=</span> <span class="p">{</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">"virtual_timelines"</span><span class="p">)}</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">):</span>
-        <span class="k">yield from</span> <span class="n">_member_problems</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="p">(</span><span class="s2">"groups"</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="s2">"members"</span><span class="p">),</span> <span class="n">parents</span><span class="p">)</span>
+        <span class="k">yield from</span> <span class="n">_member_problems</span><span class="p">(</span>
+            <span class="n">group</span><span class="p">,</span> <span class="p">(</span><span class="s2">"groups"</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="s2">"members"</span><span class="p">),</span> <span class="n">parents</span><span class="p">,</span> <span class="n">virtual</span>
+        <span class="p">)</span>
     <span class="n">first_group</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">):</span>
         <span class="n">first_group</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">index</span><span class="p">)</span>
-    <span class="k">yield from</span> <span class="n">order_problems</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">first_group</span><span class="p">)</span>
+    <span class="k">yield from</span> <span class="n">order_problems</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">parents</span><span class="p">,</span> <span class="n">virtual</span><span class="p">,</span> <span class="n">first_group</span><span class="p">)</span>
     <span class="k">yield from</span> <span class="n">timestamp_problems</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">yield from</span> <span class="n">elision_problems</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">yield from</span> <span class="n">matchstamp_problems</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">yield from</span> <span class="n">resource_problems</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-    <span class="k">yield from</span> <span class="n">flow_map_problems</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+    <span class="k">yield from</span> <span class="n">flow_map_problems</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">yield from</span> <span class="n">flow_rule_problems</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
 
 </pre></div>
 

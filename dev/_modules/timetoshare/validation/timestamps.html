@@ -463,6 +463,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">..serialization</span><span class="w"> </span><span class="kn">import</span> <span class="n">spell</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.diagnostics</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">SchemaValidationError</span><span class="p">,</span>
+    <span class="n">axes_by_id</span><span class="p">,</span>
     <span class="n">connected_sets</span><span class="p">,</span>
     <span class="n">elisions_of</span><span class="p">,</span>
     <span class="n">entries_of</span><span class="p">,</span>
@@ -479,7 +480,8 @@
 <span class="sd">    A timeline lies in a group when it or one of its ancestors is listed in</span>
 <span class="sd">    the group's ``members``: a member's descendants are drawn inside the</span>
 <span class="sd">    member's card in the group's frame. An ancestor of a member lies in no</span>
-<span class="sd">    group through it.</span>
+<span class="sd">    group through it. A virtual timeline lies in the groups it is a member</span>
+<span class="sd">    of.</span>
 <span class="sd">    """</span>
     <span class="n">members</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">member</span>
@@ -498,6 +500,11 @@
 
     <span class="k">for</span> <span class="n">root</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">):</span>
         <span class="n">visit</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">grouped</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"virtual_timelines"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="ow">in</span> <span class="n">members</span>
+    <span class="p">)</span>
     <span class="k">return</span> <span class="n">grouped</span>
 
 
@@ -508,13 +515,13 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Yield timestamps off the manifest's timelines, outside their extent or groupless.</span>
 
-<span class="sd">    A timestamp names a timeline of the manifest, at any depth, and its</span>
-<span class="sd">    coordinate lies between 0 and that timeline's length, or at or after 0</span>
-<span class="sd">    where the length is not known. A groupstamp (``groupstamp: true``), a</span>
-<span class="sd">    match timestamp included, lies in a group: its timeline or one of that</span>
-<span class="sd">    timeline's ancestors is a member of a group.</span>
+<span class="sd">    A timestamp names a timeline of the manifest, at any depth, or a virtual</span>
+<span class="sd">    timeline, and its coordinate lies between 0 and that timeline's length,</span>
+<span class="sd">    or at or after 0 where the length is not known. A groupstamp</span>
+<span class="sd">    (``groupstamp: true``), a match timestamp included, lies in a group: its</span>
+<span class="sd">    timeline or one of that timeline's ancestors is a member of a group.</span>
 <span class="sd">    """</span>
-    <span class="n">timelines</span> <span class="o">=</span> <span class="n">timelines_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="n">timelines</span> <span class="o">=</span> <span class="n">axes_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
     <span class="n">grouped</span> <span class="o">=</span> <span class="n">_grouped_timelines</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
     <span class="n">ends</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Fraction</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">timestamp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">timestamps_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">)):</span>
@@ -525,7 +532,8 @@
             <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
                 <span class="s2">"timestamp_timeline"</span><span class="p">,</span>
                 <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">),</span>
-                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2">' names no timeline of this manifest"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2">' names no timeline or virtual timeline of this "</span>
+                <span class="s2">"manifest"</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">coordinate</span> <span class="o">=</span> <span class="n">timestamp</span><span class="p">[</span><span class="s2">"coordinate"</span><span class="p">]</span>
@@ -713,10 +721,11 @@
 <span class="w">    </span><span class="sd">"""Yield the problems of the resources.</span>
 
 <span class="sd">    Resource by resource, each ID of its ``timelines`` names a timeline of</span>
-<span class="sd">    the manifest, at any depth, and no earlier resource has its type where</span>
-<span class="sd">    that type is ``MatchClaim`` or ``Projection``.</span>
+<span class="sd">    the manifest, at any depth, or a virtual timeline, and no earlier</span>
+<span class="sd">    resource has its type where that type is ``MatchClaim`` or</span>
+<span class="sd">    ``Projection``.</span>
 <span class="sd">    """</span>
-    <span class="n">timelines</span> <span class="o">=</span> <span class="n">timelines_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="n">timelines</span> <span class="o">=</span> <span class="n">axes_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
     <span class="n">first</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">resource</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"resources"</span><span class="p">)):</span>
         <span class="n">path</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"resources"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
@@ -725,7 +734,8 @@
                 <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
                     <span class="s2">"resource_timeline"</span><span class="p">,</span>
                     <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">,</span> <span class="n">number</span><span class="p">),</span>
-                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2">' names no timeline of this manifest"</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2">' names no timeline or virtual timeline of "</span>
+                    <span class="s2">"this manifest"</span><span class="p">,</span>
                 <span class="p">)</span>
         <span class="n">kind</span> <span class="o">=</span> <span class="n">resource</span><span class="p">[</span><span class="s2">"type"</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">ONE_RESOURCE_TYPES</span><span class="p">:</span>

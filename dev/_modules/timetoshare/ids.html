@@ -451,7 +451,8 @@
 <span class="sd">(``"id": "#clt_1"``) as well as every reference to one (a group's members,</span>
 <span class="sd">the keys of ``graphical.order``, a named timestamp's timeline, an elision's</span>
 <span class="sd">timeline, an alignment anchor's timestamps, a resource's timelines, an</span>
-<span class="sd">address's ``id``, a selector's ``within``, the ``to`` of a jump's destination,</span>
+<span class="sd">address's ``id``, a selector's ``within``, a declaration's ``flow``, the ``to``</span>
+<span class="sd">of a jump's destination,</span>
 <span class="sd">the ``jump`` and ``to`` of an ``after``, a FlowMap's ``timeline`` and the IDs</span>
 <span class="sd">among its ``chunks``, a virtual timeline's ``map``, ``timeline`` and</span>
 <span class="sd">``through``, a measure view's ``measure_map``). The IDs of MatchClaims a</span>
@@ -521,6 +522,7 @@
     <span class="p">(</span><span class="s2">"VirtualTimeline"</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"VirtualTimeline"</span><span class="p">,</span> <span class="s2">"through"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Selector"</span><span class="p">,</span> <span class="s2">"within"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Declaration"</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"MapBase"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"MeasureView"</span><span class="p">,</span> <span class="s2">"measure_map"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
 <span class="p">)</span>
@@ -545,12 +547,14 @@
     <span class="p">(</span><span class="s2">"FlowControlElement"</span><span class="p">,</span> <span class="s2">"ends"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"BreakCondition"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"JumpDestination"</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"DestinationReference"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"BreakCondition"</span><span class="p">,</span> <span class="s2">"after"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"DestinationReference"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"styles"</span><span class="p">,</span> <span class="s2">"values"</span><span class="p">,</span> <span class="s2">"Declaration"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"rules"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Rule"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"timestamps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Timestamp"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"elisions"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Elision"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Graphical"</span><span class="p">,</span> <span class="s2">"matchstamps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"MatchStamp"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"MatchStamp"</span><span class="p">,</span> <span class="s2">"alignment_anchors"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"AlignmentAnchor"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Rule"</span><span class="p">,</span> <span class="s2">"select"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"Selector"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Rule"</span><span class="p">,</span> <span class="s2">"set"</span><span class="p">,</span> <span class="s2">"one"</span><span class="p">,</span> <span class="s2">"Declaration"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Selector"</span><span class="p">,</span> <span class="s2">"addresses"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"Address"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"ChainMap"</span><span class="p">,</span> <span class="s2">"maps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"ConversionMap"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"PiecewiseMap"</span><span class="p">,</span> <span class="s2">"maps"</span><span class="p">,</span> <span class="s2">"list"</span><span class="p">,</span> <span class="s2">"ConversionMap"</span><span class="p">),</span>

@@ -481,8 +481,15 @@
 <span class="sd">``length`` is the sum of the FlowMap's chunks and gaps where all of them lie</span>
 <span class="sd">on its own axis (``virtual_timeline``); with ``through`` neither is read.</span>
 
-<span class="sd">A manifestation or a convention outside the format's vocabulary is valid:</span>
-<span class="sd">:func:`flow_warnings` reports it.</span>
+<span class="sd">Last the property ``flow`` of the manifest's own ``graphical`` layer</span>
+<span class="sd">(``flow_rule``): no style sets it, a rule setting it selects by</span>
+<span class="sd">``addresses`` alone, each the address of a timeline's cards, and its value</span>
+<span class="sd">names a FlowMap of each such timeline, or a virtual timeline applying one to</span>
+<span class="sd">it without ``through``.</span>
+
+<span class="sd">A manifestation or a convention outside the format's vocabulary, and members</span>
+<span class="sd">of one group that each state a flow, are valid: :func:`flow_warnings`</span>
+<span class="sd">reports them.</span>
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
@@ -1065,6 +1072,133 @@
         <span class="k">yield from</span> <span class="n">_timeline_warnings</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"children"</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_cards_of</span><span class="p">(</span><span class="n">address</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The timeline whose cards an address ``{id, part: ["card"]}`` names, or</span>
+<span class="sd">    None for any other value."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">address</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">identifier</span><span class="p">,</span> <span class="n">part</span> <span class="o">=</span> <span class="n">address</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"id"</span><span class="p">),</span> <span class="n">address</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"part"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">part</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">identifier</span> <span class="k">if</span> <span class="n">part</span> <span class="o">==</span> <span class="p">[</span><span class="s2">"card"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_selected_cards</span><span class="p">(</span><span class="n">selector</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The timelines whose cards a selector names, where it names</span>
+<span class="sd">    ``addresses`` alone and each is the address of a timeline's cards; else</span>
+<span class="sd">    None."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selector</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">selector</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">addresses</span> <span class="o">=</span> <span class="n">selector</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"addresses"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">addresses</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">address</span> <span class="ow">in</span> <span class="n">addresses</span><span class="p">:</span>
+        <span class="n">identifier</span> <span class="o">=</span> <span class="n">_cards_of</span><span class="p">(</span><span class="n">address</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">identifier</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">identifier</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">found</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flow_rules</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]:</span>
+<span class="w">    </span><span class="sd">"""The rules of the manifest's own ``graphical`` layer that set ``flow``,</span>
+<span class="sd">    with their indices."""</span>
+    <span class="n">graphical</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">rule</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">graphical</span><span class="p">,</span> <span class="s2">"rules"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"set"</span><span class="p">),</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"flow"</span> <span class="ow">in</span> <span class="n">rule</span><span class="p">[</span><span class="s2">"set"</span><span class="p">]</span>
+    <span class="p">]</span>
+
+
+<div class="viewcode-block" id="flow_rule_problems">
+<a class="viewcode-back" href="../../../api/generated/timetoshare.validation.flow.html#timetoshare.validation.flow.flow_rule_problems">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">flow_rule_problems</span><span class="p">(</span>
+    <span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Yield the problems of the property ``flow``.</span>
+
+<span class="sd">    Each style setting it, in code-point order of the style names; then,</span>
+<span class="sd">    rule by rule in array order, a selector that does not name the cards of</span>
+<span class="sd">    timelines by their addresses alone, then a value naming no FlowMap and</span>
+<span class="sd">    no virtual timeline, or else, address by address, a value that is no</span>
+<span class="sd">    FlowMap of that timeline and no virtual timeline applying one to it</span>
+<span class="sd">    without ``through``.</span>
+<span class="sd">    """</span>
+    <span class="n">graphical</span> <span class="o">=</span> <span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"graphical"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="n">styles</span> <span class="o">=</span> <span class="n">graphical</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"styles"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">styles</span><span class="p">):</span>
+        <span class="n">style</span> <span class="o">=</span> <span class="n">styles</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">style</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"flow"</span> <span class="ow">in</span> <span class="n">style</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"flow_rule"</span><span class="p">,</span>
+                <span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"styles"</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"style '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' sets flow; only a rule addressed to the cards of "</span>
+                <span class="s2">"a timeline sets it"</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="n">flow_maps</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">flow_map</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"flow_maps"</span><span class="p">):</span>
+        <span class="n">flow_maps</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">flow_map</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">flow_map</span><span class="p">)</span>
+    <span class="n">virtual</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"virtual_timelines"</span><span class="p">):</span>
+        <span class="n">virtual</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">entry</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">_flow_rules</span><span class="p">(</span><span class="n">manifest</span><span class="p">):</span>
+        <span class="n">at</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"rules"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">cards</span> <span class="o">=</span> <span class="n">_selected_cards</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"select"</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">cards</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"flow_rule"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"select"</span><span class="p">),</span>
+                <span class="s2">"a rule setting flow selects the cards of timelines by their "</span>
+                <span class="s2">"addresses alone, each {id, part: [card]}"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="s2">"set"</span><span class="p">][</span><span class="s2">"flow"</span><span class="p">]</span>
+        <span class="n">flow_map</span> <span class="o">=</span> <span class="n">flow_maps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">entry</span> <span class="o">=</span> <span class="n">virtual</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">flow_map</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">entry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                <span class="s2">"flow_rule"</span><span class="p">,</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"set"</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">' names no FlowMap or virtual timeline of this manifest"</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">timeline</span> <span class="ow">in</span> <span class="n">cards</span> <span class="ow">or</span> <span class="p">[]:</span>
+            <span class="k">if</span> <span class="n">flow_map</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">flow_map</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">]</span> <span class="o">==</span> <span class="n">timeline</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                    <span class="s2">"flow_rule"</span><span class="p">,</span>
+                    <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"set"</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">),</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">' is a FlowMap of '</span><span class="si">{</span><span class="n">flow_map</span><span class="p">[</span><span class="s1">'timeline'</span><span class="p">]</span><span class="si">}</span><span class="s2">', not of "</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">timeline</span><span class="si">}</span><span class="s2">'"</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">entry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="n">applied</span> <span class="o">=</span> <span class="n">flow_maps</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"map"</span><span class="p">])</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">applied</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="ow">and</span> <span class="n">applied</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">]</span> <span class="o">==</span> <span class="n">timeline</span>
+                    <span class="ow">and</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"timeline"</span><span class="p">]</span> <span class="o">==</span> <span class="n">timeline</span>
+                    <span class="ow">and</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"through"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
+                    <span class="s2">"flow_rule"</span><span class="p">,</span>
+                    <span class="p">(</span><span class="o">*</span><span class="n">at</span><span class="p">,</span> <span class="s2">"set"</span><span class="p">,</span> <span class="s2">"flow"</span><span class="p">),</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">' does not apply a FlowMap of '</span><span class="si">{</span><span class="n">timeline</span><span class="si">}</span><span class="s2">' to "</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">timeline</span><span class="si">}</span><span class="s2">' without through"</span><span class="p">,</span>
+                <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sentence</span><span class="p">(</span><span class="n">items</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Items joined as a sentence lists them: ``a``, ``a and b``, ``a, b and c``."""</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">items</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">items</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">items</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+
+
 <div class="viewcode-block" id="flow_warnings">
 <a class="viewcode-back" href="../../../api/generated/timetoshare.validation.flow.html#timetoshare.validation.flow.flow_warnings">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">flow_warnings</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -1072,8 +1206,10 @@
 
 <span class="sd">    ``manifestation_unknown`` at the ``manifestation`` of a flow-control</span>
 <span class="sd">    element or of a jump's destination that the format does not define for</span>
-<span class="sd">    it, and ``convention_unknown`` at the ``convention`` of a FlowMap that is</span>
-<span class="sd">    none of the format's.</span>
+<span class="sd">    it, ``convention_unknown`` at the ``convention`` of a FlowMap that is</span>
+<span class="sd">    none of the format's, and ``flow_conflict`` at the ``members`` of a group</span>
+<span class="sd">    of which more than one member's cards a rule sets ``flow`` on: the</span>
+<span class="sd">    group's frame is then drawn as written.</span>
 <span class="sd">    """</span>
     <span class="n">found</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">root</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">)):</span>
@@ -1088,6 +1224,28 @@
                     <span class="s2">"message"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">word</span><span class="si">}</span><span class="s2">' is no convention the format defines"</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
+    <span class="n">flow_of</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">rule</span> <span class="ow">in</span> <span class="n">_flow_rules</span><span class="p">(</span><span class="n">manifest</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">timeline</span> <span class="ow">in</span> <span class="n">_selected_cards</span><span class="p">(</span><span class="n">rule</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"select"</span><span class="p">))</span> <span class="ow">or</span> <span class="p">[]:</span>
+            <span class="n">flow_of</span><span class="p">[</span><span class="n">timeline</span><span class="p">]</span> <span class="o">=</span> <span class="n">rule</span><span class="p">[</span><span class="s2">"set"</span><span class="p">][</span><span class="s2">"flow"</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">,</span> <span class="s2">"groups"</span><span class="p">)):</span>
+        <span class="n">members</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">member</span>
+            <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">group</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"members"</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">member</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">flow_of</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">members</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">named</span> <span class="o">=</span> <span class="n">_sentence</span><span class="p">([</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">member</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="p">])</span>
+        <span class="n">flows</span> <span class="o">=</span> <span class="n">_sentence</span><span class="p">([</span><span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">flow_of</span><span class="p">[</span><span class="n">member</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span> <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">members</span><span class="p">])</span>
+        <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">"code"</span><span class="p">:</span> <span class="s2">"flow_conflict"</span><span class="p">,</span>
+                <span class="s2">"path"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"groups"</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="s2">"members"</span><span class="p">],</span>
+                <span class="s2">"message"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"members </span><span class="si">{</span><span class="n">named</span><span class="si">}</span><span class="s2"> of '</span><span class="si">{</span><span class="n">group</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">' state the flows "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">flows</span><span class="si">}</span><span class="s2">: the frame is drawn as written"</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
     <span class="k">return</span> <span class="n">found</span></div>
 
 </pre></div>

@@ -508,13 +508,15 @@
 <p>Graphical display-order and band-order rules.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="timetoshare.validation.order.order_problems">
-<span class="sig-prename descclassname"><span class="pre">timetoshare.validation.order.</span></span><span class="sig-name descname"><span class="pre">order_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timelines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_group</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/order.html#order_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.order.order_problems" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">timetoshare.validation.order.</span></span><span class="sig-name descname"><span class="pre">order_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timelines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">virtual</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_group</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/order.html#order_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.order.order_problems" title="Link to this definition">#</a></dt>
 <dd><p>Yield unknown order keys and invalid display and band orders.</p>
 <p>A display order is a permutation of its group’s members. A band order
 lists <code class="docutils literal notranslate"><span class="pre">line</span></code> and any of the five facets, each once; a facet it leaves
 out takes its place from the order the timeline follows without an entry.</p>
-<p><code class="docutils literal notranslate"><span class="pre">timelines</span></code> holds every timeline ID and <code class="docutils literal notranslate"><span class="pre">first_group</span></code> the index of the
-first group of each group ID, as the identity rules collected them.</p>
+<p><code class="docutils literal notranslate"><span class="pre">timelines</span></code> holds every timeline ID, <code class="docutils literal notranslate"><span class="pre">virtual</span></code> every virtual timeline
+ID and <code class="docutils literal notranslate"><span class="pre">first_group</span></code> the index of the first group of each group ID, as
+the identity rules collected them. A virtual timeline’s entry is a band
+order.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>
