@@ -5070,13 +5070,23 @@ the rest of its span, from the end of its first entry <code class="docutils lite
 its last <code class="docutils literal notranslate"><span class="pre">b</span></code>, is a <strong>run gap</strong>, a gap of section 3.2 over <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> whose
 drawn width is 0, so that its whole natural width is its shrink: the run
 takes the drawn width of one entry and every position after it lies that
-shrink further left, as after an elision. A run gap is no elision: it has
+shrink further left, as after an elision. The shrink is not subtracted,
+though: a position <code class="docutils literal notranslate"><span class="pre">t</span></code> at or after the end <code class="docutils literal notranslate"><span class="pre">b</span></code> of a run gap, compared
+exactly, and before the start of the next one has the x</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x(t) = x(a) + (L × u − L × ub)
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">x(a)</span></code> the x of the gap’s start, by this same rule where an earlier run
+gap lies before it, and <code class="docutils literal notranslate"><span class="pre">ub</span></code> the proportion of <code class="docutils literal notranslate"><span class="pre">b</span></code>, the two products
+formed first; the end of the line, at <code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">1</span></code>, so lies at <code class="docutils literal notranslate"><span class="pre">x(a)</span> <span class="pre">+</span> <span class="pre">(L</span> <span class="pre">−</span> <span class="pre">L</span> <span class="pre">×</span> <span class="pre">ub)</span></code> for the last run gap. So <code class="docutils literal notranslate"><span class="pre">x(b)</span> <span class="pre">=</span> <span class="pre">x(a)</span></code> exactly, and the entry after a
+run starts where the run’s drawn entry ends, which <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span> <span class="pre">−</span> <span class="pre">D</span></code> would miss
+by the rounding of <code class="docutils literal notranslate"><span class="pre">D</span></code>. A run gap is no elision: it has
 no address, draws nothing, neither rectangle, ellipsis, continuation nor
 label, and cuts no row, a row that crosses it being drawn across it whole
 as across a seam (section 3.2); a position in it, <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">&lt;</span> <span class="pre">t</span> <span class="pre">&lt;</span> <span class="pre">b</span></code> compared
 exactly, is not drawn and takes no room. A card with run gaps lays out
-every first fit (section 6.3) by the drawn x less <code class="docutils literal notranslate"><span class="pre">x0</span></code>, <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span> <span class="pre">−</span> <span class="pre">D</span></code>, not
-by <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span></code>, so that the rows follow the drawn widths. In a frame every
+every first fit (section 6.3) by the drawn x less <code class="docutils literal notranslate"><span class="pre">x0</span></code>, not by <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span></code>, so
+that the rows follow the drawn widths. In a frame every
 entry is drawn: the members of a group share one linear axis (section
 8.2), which a gap of one member’s runs would break.</p>
 <p><strong>The virtual card.</strong> A virtual timeline <code class="docutils literal notranslate"><span class="pre">V</span></code> is drawn as the root of its
@@ -5148,8 +5158,8 @@ its gap lines, its chunks and their labels in its regions band before
 a stretch piece <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> starting at <code class="docutils literal notranslate"><span class="pre">P</span></code> where <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">≤</span> <span class="pre">t</span> <span class="pre">&lt;</span> <span class="pre">b</span></code>, or where <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">b</span></code> and that piece is the last or is followed by a gap or by a stretch
 that does not start at <code class="docutils literal notranslate"><span class="pre">b</span></code>, and is played there at <code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">+</span> <span class="pre">(t</span> <span class="pre">−</span> <span class="pre">a)</span></code>,
 combined as section 3.1 combines values; a position in no stretch is
-not drawn. An element over <code class="docutils literal notranslate"><span class="pre">[s,</span> <span class="pre">e]</span></code>, a child’s line, a map or a region,
-is drawn once in every stretch piece where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">&lt;</span> <span class="pre">min(e,</span> <span class="pre">b)</span></code>, over
+not drawn. An element over <code class="docutils literal notranslate"><span class="pre">[s,</span> <span class="pre">e]</span></code>, a child’s line or a region, is
+drawn once in every stretch piece where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">&lt;</span> <span class="pre">min(e,</span> <span class="pre">b)</span></code>, over
 the played positions of those two ends, keeping its start mark only
 where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">=</span> <span class="pre">s</span></code> and its end mark only where <code class="docutils literal notranslate"><span class="pre">min(e,</span> <span class="pre">b)</span> <span class="pre">=</span> <span class="pre">e</span></code>, as a
 row cut at an elision (section 6.6, Elisions); a region so cut is drawn
@@ -5160,11 +5170,15 @@ holding the drawings in that piece of what the child holds, and section
 in the order of the pieces, and within a piece as section 6 takes the
 elements. Every drawing keeps its element’s address (section 2.2), and a
 label of a coordinate shows the written coordinate, never the played
-one. A named timestamp so draws its wedge, labels and cross-section line
+one. A row of the name column holding several drawings of one timeline
+names it once (section 6.6, Names). A named timestamp so draws its wedge, labels and cross-section line
 at every played position, and an alignment anchor joins the nearest pair
 of its timestamps’ cross-section segments (section 8.7);</p></li>
-<li><p>no flow control band, which is absent and lays out nothing (section
-6.4), and no gap of a stored, derived or group elision (section 8.9);</p></li>
+<li><p>no flow control band and no conversion maps band, on <code class="docutils literal notranslate"><span class="pre">T</span></code> or any
+timeline of its tree, each absent and laying out nothing (section 6.4):
+a conversion map relates whole axes and has no form per piece, and the
+card drawn as written draws it again; and no gap of a stored, derived or
+group elision (section 8.9);</p></li>
 <li><p>its name is the row name of <code class="docutils literal notranslate"><span class="pre">T</span></code> followed by <code class="docutils literal notranslate"><span class="pre">·</span></code> and the name of the
 FlowMap or virtual timeline <code class="docutils literal notranslate"><span class="pre">flow</span></code> names, its <code class="docutils literal notranslate"><span class="pre">name</span></code> or, where that is
 null, its whole ID.</p></li>
@@ -5179,7 +5193,10 @@ where unknown (section 3.4): exact where all three are exact, and
 otherwise in binary64, each exact operand taken as the nearest double and
 the product formed first. It is the position a groupstamp’s line marks on
 <code class="docutils literal notranslate"><span class="pre">T</span></code> (section 6.6, Cross-section lines), and unfolds there as above; an extent
-of <code class="docutils literal notranslate"><span class="pre">M</span></code> goes so at both ends. Every member drawing of the frame then lies
+of <code class="docutils literal notranslate"><span class="pre">M</span></code> goes so at both ends, and <code class="docutils literal notranslate"><span class="pre">M</span></code>’s own line, from 0 to its end, is
+drawn as a child’s line is, once in every stretch piece it reaches into,
+its start circle and its end mark kept only where they lie in that piece.
+Every member drawing of the frame then lies
 on <code class="docutils literal notranslate"><span class="pre">F</span></code>’s virtual axis from <code class="docutils literal notranslate"><span class="pre">x0</span></code> to <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">L</span></code> (section 8.2) and draws its
 own tree unfolded, its ancestor lines included; only <code class="docutils literal notranslate"><span class="pre">T</span></code>’s card draws the
 chunks of <code class="docutils literal notranslate"><span class="pre">F</span></code>, their boundaries and its gap lines, a virtual member’s own
@@ -5204,9 +5221,7 @@ plays <code class="docutils literal notranslate"><span class="pre">region_1</spa
 at 0, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">8]</span></code> at 8 and <code class="docutils literal notranslate"><span class="pre">[8,</span> <span class="pre">16]</span></code> at 16, <code class="docutils literal notranslate"><span class="pre">Λ</span></code> = 24. In a card of its own
 at the length 400, entries 0 and 1 are a run drawn once: the run gap over
 <code class="docutils literal notranslate"><span class="pre">[8,</span> <span class="pre">16]</span></code> has the natural width 266.66666666666663 − 133.33333333333331
-= 133.33333333333331, its shrink; entry 0 is drawn from <code class="docutils literal notranslate"><span class="pre">x0</span></code> to <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">133.33333333333331</span></code> labelled <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">×</span> <span class="pre">2</span></code>, entry 2 from <code class="docutils literal notranslate"><span class="pre">x(16)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">(266.66666666666663</span> <span class="pre">−</span> <span class="pre">133.33333333333331)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">133.33333333333331</span></code> to
-<code class="docutils literal notranslate"><span class="pre">x(24)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">(400</span> <span class="pre">−</span> <span class="pre">133.33333333333331)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">266.6666666666667</span></code>
-labelled <code class="docutils literal notranslate"><span class="pre">B</span></code>, with one boundary at <code class="docutils literal notranslate"><span class="pre">x(16)</span></code>, addressed <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;virtual_1&quot;,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[2,</span> <span class="pre">&quot;start&quot;]}</span></code>, and the line
+= 133.33333333333331, its shrink; entry 0 is drawn from <code class="docutils literal notranslate"><span class="pre">x0</span></code> to <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">133.33333333333331</span></code> labelled <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">×</span> <span class="pre">2</span></code>, entry 2 from <code class="docutils literal notranslate"><span class="pre">x(16)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">(133.33333333333331</span> <span class="pre">+</span> <span class="pre">(266.66666666666663</span> <span class="pre">−</span> <span class="pre">266.66666666666663))</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">133.33333333333331</span></code> to <code class="docutils literal notranslate"><span class="pre">x(24)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">(133.33333333333331</span> <span class="pre">+</span> <span class="pre">(400</span> <span class="pre">−</span> <span class="pre">266.66666666666663))</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">266.6666666666667</span></code> labelled <code class="docutils literal notranslate"><span class="pre">B</span></code>, with one boundary at <code class="docutils literal notranslate"><span class="pre">x(16)</span></code>, addressed <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;virtual_1&quot;,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[2,</span> <span class="pre">&quot;start&quot;]}</span></code>, and the line
 ends at <code class="docutils literal notranslate"><span class="pre">x(24)</span></code> in an end circle. In a frame with <code class="docutils literal notranslate"><span class="pre">recording</span></code> (10.0
 seconds) the run is not drawn once: the entries are drawn at <code class="docutils literal notranslate"><span class="pre">x0</span></code>, <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">133.33333333333331</span></code> and <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">266.66666666666663</span></code> to <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">400</span></code>,
 labelled <code class="docutils literal notranslate"><span class="pre">A</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code>, with boundaries at entries 1 and 2.</p>
