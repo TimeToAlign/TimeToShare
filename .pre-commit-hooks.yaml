@@ -21,6 +21,8 @@
   stages: [commit-msg]
   pass_filenames: true
   always_run: true
+  # Shows the warnings of an accepted message, which pre-commit hides otherwise.
+  verbose: true
   minimum_pre_commit_version: "3.2.0"
 - id: timetoshare-validate
   name: validate the manifests

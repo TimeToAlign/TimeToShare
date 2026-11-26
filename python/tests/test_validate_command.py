@@ -241,7 +241,7 @@ def test_the_hooks_of_the_repository() -> None:
             "stages": ["commit-msg"],
             "always_run": True,
             "files": None,
-            "verbose": None,
+            "verbose": True,
         },
         {
             "id": "timetoshare-validate",

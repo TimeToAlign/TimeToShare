@@ -3078,7 +3078,8 @@ removal written with any type but `remove` with `!` (`feat!` included),
 written `feat(op106): `) and an ID given to an element of another type, and
 warns where a data type or a `!` gives a higher step, where a `BREAKING
 CHANGE` footer stands on a commit that removes nothing, and where the
-footer misses a removed ID. Both read comment lines by git's
+footer misses a removed ID; the check hook is `verbose`, so pre-commit
+shows these warnings when the message is accepted. Both read comment lines by git's
 `core.commentChar` (`#` where it is `auto`). For `git commit --amend` with
 the editor or `--no-edit`, the first hook records the amended commit in
 `timetoshare-amend-base` in the git directory, and the second compares the
