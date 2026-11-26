@@ -591,7 +591,7 @@ released version follow the specification tagged with it.
 
 The drawings of 0.2.0 are every fixture in the complete form but the corpus
 ones (`corpus_*`) and the statement fixtures, at the default placement, and
-thirty-one variants. The
+thirty-four variants. The
 drawing of a manifest directly under `fixtures/0.2.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -642,8 +642,17 @@ the second at the scale 1.5
 `bundle_arranged_roots` arranged side by side in the order
 `page`, `group_3`, `group_1`, `group_2`
 (`bundle__bundle_arranged_roots__horizontal`), whose row the rules of the
-arrangement repair to `page`, `group_1`, `group_2`, `group_3`. 107
-drawings lie here.
+arrangement repair to `page`, `group_1`, `group_2`, `group_3`; and
+`flow/virtual_cards` with the places `{allegro_by_hand: {}, allegro_default:
+{}, allegro_single: {}}`, its three virtual timelines placed as cards of
+their own, one with a run drawn once and a gap line
+(`flow__virtual_cards`); and `flow/switched_card`, whose card of `allegro`
+its own rule switches to the FlowMap `default` (`flow__switched_card`).
+Among the drawings at the default placement, `group__virtual_member`
+draws a virtual timeline as a group member and `group__switched_frame` a
+frame switched by its member's card, the other member carried through
+the group onto the FlowMap's axis (drawing specification, section 8.10).
+113 drawings lie here.
 `bundle__bundle_shared_member` draws the timeline `t`, a member of both
 `g1` and `g2`, once in each frame, in two cards that both carry the
 address `{"id": "t", "part": ["card"]}`, every element of its two drawings

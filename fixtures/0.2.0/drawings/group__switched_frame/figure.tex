@@ -1,0 +1,61 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\directlua{luaotfload.add_fallback("music", {"[./NotoMusic-Regular.ttf]:mode=node;"})}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon},RawFeature={fallback=music}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts0050EF}{HTML}{0050EF}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{tsB8BEC8}{HTML}{B8BEC8}
+\definecolor{tsC4C9D1}{HTML}{C4C9D1}
+\definecolor{tsD1D5DB}{HTML}{D1D5DB}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFFFFFF}{HTML}{FFFFFF}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (562.2817,179.6367);
+\path[rounded corners=6pt,fill=tsFFFFFF,draw=tsD1D5DB,line width=1pt] (8,8) rectangle (554.2817,171.6367);
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,153.4263) {Performance};
+\path[rounded corners=5pt,fill=tsB8BEC8] (18,71.3789) rectangle (548.2817,144.832);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (16,73.3789) rectangle (546.2817,146.832);
+\path[draw=ts000000,line width=1pt] (119.8335,99.8555) .. controls (119.8335,97.8555) and (120.8335,96.8555) .. (122.8335,96.8555) -- (161.7757,96.8555) .. controls (163.7757,96.8555) and (164.7757,95.8555) .. (164.7757,93.8555) .. controls (164.7757,95.8555) and (165.7757,96.8555) .. (167.7757,96.8555) -- (206.718,96.8555) .. controls (208.718,96.8555) and (209.718,97.8555) .. (209.718,99.8555);
+\path[draw=ts000000,line width=1pt] (209.718,99.8555) .. controls (209.718,97.8555) and (210.718,96.8555) .. (212.718,96.8555) -- (208.9344,96.8555) .. controls (210.9344,96.8555) and (211.9344,95.8555) .. (211.9344,93.8555) .. controls (211.9344,95.8555) and (212.9344,96.8555) .. (214.9344,96.8555) -- (211.1509,96.8555) .. controls (213.1509,96.8555) and (214.1509,97.8555) .. (214.1509,99.8555);
+\path[draw=ts000000,line width=1pt] (214.1509,99.8555) .. controls (214.1509,97.8555) and (215.1509,96.8555) .. (217.1509,96.8555) -- (256.0931,96.8555) .. controls (258.0931,96.8555) and (259.0931,95.8555) .. (259.0931,93.8555) .. controls (259.0931,95.8555) and (260.0931,96.8555) .. (262.0931,96.8555) -- (301.0353,96.8555) .. controls (303.0353,96.8555) and (304.0353,97.8555) .. (304.0353,99.8555);
+\path[draw=ts000000,line width=1pt] (304.0353,99.8555) .. controls (304.0353,97.8555) and (305.0353,96.8555) .. (307.0353,96.8555) -- (408.9344,96.8555) .. controls (410.9344,96.8555) and (411.9344,95.8555) .. (411.9344,93.8555) .. controls (411.9344,95.8555) and (412.9344,96.8555) .. (414.9344,96.8555) -- (516.8335,96.8555) .. controls (518.8335,96.8555) and (519.8335,97.8555) .. (519.8335,99.8555);
+\path[draw=ts00CC00,line width=3pt] (119.8335,130.832) -- (519.8335,130.832);
+\path[fill=ts00CC00] (119.8335,130.832) circle[radius=3];
+\path[fill=ts00CC00] (519.8335,130.832) circle[radius=3];
+\path[draw=ts000000,line width=1pt] (209.718,138.832) -- (209.718,122.832);
+\path[draw=ts000000,line width=1pt] (214.1509,138.832) -- (214.1509,122.832);
+\path[draw=ts000000,line width=1pt] (304.0353,138.832) -- (304.0353,122.832);
+\path[fill=ts000000] (119.8335,129.332) -- (116.8335,116.332) -- (122.8335,116.332) -- cycle;
+\path[fill=ts000000] (214.1509,129.332) -- (211.1509,116.332) -- (217.1509,116.332) -- cycle;
+\path[fill=ts000000] (519.8335,129.332) -- (516.8335,116.332) -- (522.8335,116.332) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (24,127.0239) {Allegro · default};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (119.8335,105.978) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (214.1509,105.978) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (519.8335,105.978) {1644 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (164.7757,83.5015) {A};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (211.9344,83.5015) {B};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (259.0931,83.5015) {A};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (411.9344,83.5015) {C};
+\path[rounded corners=5pt,fill=tsB8BEC8] (18,14) rectangle (548.2817,63.3789);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (16,16) rectangle (546.2817,65.3789);
+\path[draw=ts0050EF,line width=3pt] (119.8335,50.9766) -- (209.718,50.9766);
+\path[fill=ts0050EF] (119.8335,50.9766) circle[radius=3];
+\path[draw=ts0050EF,line width=3pt] (209.718,50.9766) -- (214.1509,50.9766);
+\path[draw=ts0050EF,line width=3pt] (214.1509,50.9766) -- (304.0353,50.9766);
+\path[fill=ts0050EF] (214.1509,50.9766) circle[radius=3];
+\path[draw=ts0050EF,line width=3pt] (304.0353,50.9766) -- (519.8335,50.9766);
+\path[fill=ts0050EF] (528.8335,50.9766) -- (519.8335,55.4766) -- (519.8335,46.4766) -- cycle;
+\path[fill=ts000000] (119.8335,49.4766) -- (116.8335,36.4766) -- (122.8335,36.4766) -- cycle;
+\path[fill=ts000000] (214.1509,49.4766) -- (211.1509,36.4766) -- (217.1509,36.4766) -- cycle;
+\path[fill=ts000000] (519.8335,49.4766) -- (516.8335,36.4766) -- (522.8335,36.4766) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (24,47.1685) {Recording};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (119.8335,26.1226) {0″};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (214.1509,26.1226) {0″};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (519.8335,26.1226) {11′42.5″};
+\end{scope}
+\end{tikzpicture}
+\end{document}

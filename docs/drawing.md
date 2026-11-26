@@ -4272,13 +4272,24 @@ the rest of its span, from the end of its first entry `a` to the end of
 its last `b`, is a **run gap**, a gap of section 3.2 over `[a, b]` whose
 drawn width is 0, so that its whole natural width is its shrink: the run
 takes the drawn width of one entry and every position after it lies that
-shrink further left, as after an elision. A run gap is no elision: it has
+shrink further left, as after an elision. The shrink is not subtracted,
+though: a position `t` at or after the end `b` of a run gap, compared
+exactly, and before the start of the next one has the x
+
+    x(t) = x(a) + (L × u − L × ub)
+
+`x(a)` the x of the gap's start, by this same rule where an earlier run
+gap lies before it, and `ub` the proportion of `b`, the two products
+formed first; the end of the line, at `u = 1`, so lies at `x(a) + (L − L ×
+ub)` for the last run gap. So `x(b) = x(a)` exactly, and the entry after a
+run starts where the run's drawn entry ends, which `L × u − D` would miss
+by the rounding of `D`. A run gap is no elision: it has
 no address, draws nothing, neither rectangle, ellipsis, continuation nor
 label, and cuts no row, a row that crosses it being drawn across it whole
 as across a seam (section 3.2); a position in it, `a < t < b` compared
 exactly, is not drawn and takes no room. A card with run gaps lays out
-every first fit (section 6.3) by the drawn x less `x0`, `L × u − D`, not
-by `L × u`, so that the rows follow the drawn widths. In a frame every
+every first fit (section 6.3) by the drawn x less `x0`, not by `L × u`, so
+that the rows follow the drawn widths. In a frame every
 entry is drawn: the members of a group share one linear axis (section
 8.2), which a gap of one member's runs would break.
 
@@ -4356,8 +4367,8 @@ otherwise. A switched card is laid out by section 6 on `F`'s virtual axis,
   = b` and that piece is the last or is followed by a gap or by a stretch
   that does not start at `b`, and is played there at `P + (t − a)`,
   combined as section 3.1 combines values; a position in no stretch is
-  not drawn. An element over `[s, e]`, a child's line, a map or a region,
-  is drawn once in every stretch piece where `max(s, a) < min(e, b)`, over
+  not drawn. An element over `[s, e]`, a child's line or a region, is
+  drawn once in every stretch piece where `max(s, a) < min(e, b)`, over
   the played positions of those two ends, keeping its start mark only
   where `max(s, a) = s` and its end mark only where `min(e, b) = e`, as a
   row cut at an elision (section 6.6, Elisions); a region so cut is drawn
@@ -4368,11 +4379,15 @@ otherwise. A switched card is laid out by section 6 on `F`'s virtual axis,
   in the order of the pieces, and within a piece as section 6 takes the
   elements. Every drawing keeps its element's address (section 2.2), and a
   label of a coordinate shows the written coordinate, never the played
-  one. A named timestamp so draws its wedge, labels and cross-section line
+  one. A row of the name column holding several drawings of one timeline
+  names it once (section 6.6, Names). A named timestamp so draws its wedge, labels and cross-section line
   at every played position, and an alignment anchor joins the nearest pair
   of its timestamps' cross-section segments (section 8.7);
-- no flow control band, which is absent and lays out nothing (section
-  6.4), and no gap of a stored, derived or group elision (section 8.9);
+- no flow control band and no conversion maps band, on `T` or any
+  timeline of its tree, each absent and laying out nothing (section 6.4):
+  a conversion map relates whole axes and has no form per piece, and the
+  card drawn as written draws it again; and no gap of a stored, derived or
+  group elision (section 8.9);
 - its name is the row name of `T` followed by ` · ` and the name of the
   FlowMap or virtual timeline `flow` names, its `name` or, where that is
   null, its whole ID.
@@ -4389,7 +4404,10 @@ where unknown (section 3.4): exact where all three are exact, and
 otherwise in binary64, each exact operand taken as the nearest double and
 the product formed first. It is the position a groupstamp's line marks on
 `T` (section 6.6, Cross-section lines), and unfolds there as above; an extent
-of `M` goes so at both ends. Every member drawing of the frame then lies
+of `M` goes so at both ends, and `M`'s own line, from 0 to its end, is
+drawn as a child's line is, once in every stretch piece it reaches into,
+its start circle and its end mark kept only where they lie in that piece.
+Every member drawing of the frame then lies
 on `F`'s virtual axis from `x0` to `x0 + L` (section 8.2) and draws its
 own tree unfolded, its ancestor lines included; only `T`'s card draws the
 chunks of `F`, their boundaries and its gap lines, a virtual member's own
@@ -4418,9 +4436,9 @@ at the length 400, entries 0 and 1 are a run drawn once: the run gap over
 `[8, 16]` has the natural width 266.66666666666663 − 133.33333333333331
 = 133.33333333333331, its shrink; entry 0 is drawn from `x0` to `x0 +
 133.33333333333331` labelled `A × 2`, entry 2 from `x(16) = x0 +
-(266.66666666666663 − 133.33333333333331) = x0 + 133.33333333333331` to
-`x(24) = x0 + (400 − 133.33333333333331) = x0 + 266.6666666666667`
-labelled `B`, with one boundary at `x(16)`, addressed `{"id":
+(133.33333333333331 + (266.66666666666663 − 266.66666666666663)) = x0 +
+133.33333333333331` to `x(24) = x0 + (133.33333333333331 + (400 −
+266.66666666666663)) = x0 + 266.6666666666667` labelled `B`, with one boundary at `x(16)`, addressed `{"id":
 "virtual_1", "facet": "regions", "part": [2, "start"]}`, and the line
 ends at `x(24)` in an end circle. In a frame with `recording` (10.0
 seconds) the run is not drawn once: the entries are drawn at `x0`, `x0 +
