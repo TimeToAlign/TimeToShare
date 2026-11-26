@@ -759,8 +759,8 @@ def _anchor_problems(found: _Found, table: pa.Table) -> None:
     An event ID column holds an event's ID or a sentinel's reserved string,
     never a null: ``CHUNK_SENTINEL`` on a side of a synchronous MatchClaim
     (the anchor states that side's coordinate), ``NOMATCH_SENTINEL`` on one
-    side of a MatchClaim that is not synchronous (no anchor). A sentinel
-    side has no name."""
+    side of a MatchClaim that is not synchronous (no anchor). A NOMATCH
+    side has no name; a CHUNK side may name the position it states."""
     events = {side: _array(table, f"event_{side}_id") for side in ("a", "b")}
     chunk = {side: _held(pc.equal(ids, CHUNK)) for side, ids in events.items()}
     nomatch = {side: _held(pc.equal(ids, NOMATCH)) for side, ids in events.items()}
@@ -798,12 +798,9 @@ def _anchor_problems(found: _Found, table: pa.Table) -> None:
         *(
             (
                 "claim_events",
-                _all(
-                    _any(chunk[side], nomatch[side]),
-                    pc.is_valid(_array(table, f"event_{side}_name")),
-                ),
+                _all(nomatch[side], pc.is_valid(_array(table, f"event_{side}_name"))),
                 f"event_{side}_name",
-                "a sentinel side has no name",
+                "a NOMATCH side has no name",
             )
             for side in ("a", "b")
         ),

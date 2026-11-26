@@ -59,9 +59,9 @@ resources:
     id: "#resource_1"
     integrity:
       algorithm: SHA-256
-      digest: "8113263725bee78556ce29940f10bb0b265ca618730ac8e2d7c399c2bb8785ab"
+      digest: e9f866307f6acda0f63769cc83cc4ab24025496da68e3592abb9152f46c68016
     media_type: application/vnd.apache.parquet
-    size: 13973
+    size: 14002
     timelines: ["#clt_1", "#clt_2", "#dpt_1", "#cpt_1"]
     type: MatchClaim
     url: match_claims.parquet

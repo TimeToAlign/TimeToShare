@@ -534,7 +534,8 @@ and `cpt_1`. The MatchClaim table holds 18 rows; an event ID column holds
 an event's ID or a sentinel's reserved string, never a null: `claim_12` is
 a NOMATCH (`NOMATCH_SENTINEL` on its `dpt_1` side), `claim_11` a
 synchronous MatchClaim with `CHUNK_SENTINEL` on both sides (`dpt_1` and
-`cpt_1`, whose anchor joins the set of `claim_13`), and `claim_16` an
+`cpt_1`, whose anchor joins the set of `claim_13`), its `dpt_1` side named
+`downbeat 3` (a CHUNK side may name the position it states), and `claim_16` an
 instant MatchClaim between `CHUNK_SENTINEL` on `cpt_1` (side A) and the
 note at the quarter 1 of `clt_1`, whose anchor joins `claim_2`'s start into
 one potential MatchStamp; `claim_17` joins the note at the quarter 45/4 of

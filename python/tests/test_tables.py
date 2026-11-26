@@ -866,13 +866,15 @@ CLAIM_CASES = [
         "nomatch_side_named",
         put(2, "event_b_name", value="E4"),
         [("claim_events", 2, ("event_b_name",))],
-        "a sentinel side has no name",
+        "a NOMATCH side has no name",
     ),
     (
-        "chunk_side_named",
-        lambda rows: rows[0].update(event_a_id=CHUNK, event_a_name=""),
-        [("claim_events", 0, ("event_a_name",))],
-        "a sentinel side has no name",
+        "nomatch_a_named",
+        lambda rows: rows[2].update(
+            event_a_id=NOMATCH, event_a_name="", event_b_id="projection_3"
+        ),
+        [("claim_events", 2, ("event_a_name",))],
+        "a NOMATCH side has no name",
     ),
     (
         "nomatch_anchor",
@@ -1055,13 +1057,24 @@ ADMITTED_CASES = [
         lambda rows: rows[1].update(event_a_id=CHUNK, event_b_id=CHUNK),
     ),
     (
+        "chunk_a_named",
+        lambda rows: rows[0].update(event_a_id=CHUNK, event_a_name="downbeat 3"),
+    ),
+    (
+        "chunk_both_named_interval",
+        lambda rows: rows[1].update(
+            event_a_id=CHUNK, event_a_name="", event_b_id=CHUNK, event_b_name="bar 2"
+        ),
+    ),
+    (
         "nomatch_a",
         lambda rows: rows[2].update(event_a_id=NOMATCH, event_b_id="projection_3"),
     ),
 ]
 """Rows the format admits, each one change of the inline table: CHUNK on
-either side and on both of a synchronous instant and interval, and a
-NOMATCH on side A (the inline table's NOMATCH stands on side B)."""
+either side and on both of a synchronous instant and interval, a CHUNK side
+with a name (the empty name too), and a NOMATCH on side A (the inline
+table's NOMATCH stands on side B)."""
 
 
 def test_the_sentinels() -> None:
@@ -1856,17 +1869,17 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
         row["id"] for row in projections.values() if row["projection_of"] is None
     ] == ["inserted_1"]
     sentinels = [
-        (row["id"], side, row[f"event_{side}_id"])
+        (row["id"], side, row[f"event_{side}_id"], row[f"event_{side}_name"])
         for row in claims
         for side in ("a", "b")
         if row[f"event_{side}_id"] in (NOMATCH, CHUNK)
     ]
     assert sentinels == [
-        ("claim_11", "a", CHUNK),
-        ("claim_11", "b", CHUNK),
-        ("claim_12", "b", NOMATCH),
-        ("claim_16", "a", CHUNK),
-        ("claim_18", "b", NOMATCH),
+        ("claim_11", "a", CHUNK, "downbeat 3"),
+        ("claim_11", "b", CHUNK, None),
+        ("claim_12", "b", NOMATCH, None),
+        ("claim_16", "a", CHUNK, None),
+        ("claim_18", "b", NOMATCH, None),
     ]
 
 

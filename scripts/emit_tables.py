@@ -25,7 +25,8 @@ quarter lasts one second, 44100 samples) and one child of the first:
 - ``claim_9``, ``claim_10``: an interval claim with another anchor inside
   its span.
 - ``claim_11``: a synchronous MatchClaim with CHUNK on both sides: its two
-  timelines hold no event at the coordinates its anchor states.
+  timelines hold no event at the coordinates its anchor states; side A
+  names the position it states, ``downbeat 3``.
 - ``claim_12``: a NOMATCH row; ``claim_14``: a conceptual row.
 - ``claim_13``: a row one actor believes false and another true; ``claim_6``
   is believed unlikely, ``claim_1`` and ``claim_11`` true.
@@ -215,7 +216,8 @@ def claim(
     provenance: dict[str, Any] | None = IMPORTED,
 ) -> dict[str, Any]:
     """One MatchClaim row; a side is ``(timeline, event ID, event name)``, the
-    event ID a sentinel's string on a sentinel side."""
+    event ID a sentinel's string on a sentinel side, the name null on a
+    NOMATCH side."""
 
     def anchor(pair: tuple[dict[str, Any], dict[str, Any]] | None) -> Any:
         if pair is None:
@@ -255,8 +257,8 @@ INSERTED = "inserted_1"
 no event for: its Projection's ``projection_of`` is null."""
 
 
-def chunk(timeline: str) -> tuple[str, str, None]:
-    return (timeline, CHUNK_SENTINEL, None)
+def chunk(timeline: str, name: str | None = None) -> tuple[str, str, str | None]:
+    return (timeline, CHUNK_SENTINEL, name)
 
 
 def nomatch(timeline: str) -> tuple[str, str, None]:
@@ -333,7 +335,7 @@ MATCH_CLAIMS: list[dict[str, Any]] = [
     ),
     claim(
         "claim_11",
-        chunk("dpt_1"),
+        chunk("dpt_1", "downbeat 3"),
         chunk("cpt_1"),
         (samples(441000), seconds(10.0)),
         provenance=stated(),

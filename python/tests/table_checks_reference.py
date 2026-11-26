@@ -207,14 +207,13 @@ def _claim_problems(
             ("event_b_id",),
             "a NOMATCH MatchClaim names an event on its other side",
         )
-    for side in sides:
-        sentinel = row[f"event_{side}_id"] in (CHUNK_SENTINEL, NOMATCH_SENTINEL)
-        if sentinel and row[f"event_{side}_name"] is not None:
+    for side, is_nomatch in zip(sides, nomatch, strict=True):
+        if is_nomatch and row[f"event_{side}_name"] is not None:
             yield TableProblem(
                 "claim_events",
                 index,
                 (f"event_{side}_name",),
-                "a sentinel side has no name",
+                "a NOMATCH side has no name",
             )
     if synchronous:
         if start is None:

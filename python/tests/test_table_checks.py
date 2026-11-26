@@ -73,9 +73,11 @@ def _outcome(check: Callable[..., Any], *arguments: Any) -> Any:
 FORMER_MESSAGES = {
     "the MatchClaim names no event",
     "a NOMATCH MatchClaim is not synchronous",
+    "a sentinel side has no name",
 }
-"""The messages of the reading that took a null event ID for NOMATCH: no
-table yields them any more."""
+"""The messages of the reading that took a null event ID for NOMATCH, and
+of the rule that refused a name on a CHUNK side: no table yields them any
+more."""
 
 
 def assert_same_claim_problems(table: Any, manifest: Any) -> list:

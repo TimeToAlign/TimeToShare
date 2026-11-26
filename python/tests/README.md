@@ -2749,8 +2749,9 @@ extraction's are without fontTools. What proves them:
   each built from the inline table by one change and checked with and
   without the manifest, with no problem: a synchronous instant and a
   synchronous interval with `CHUNK_SENTINEL` on side A, on side B, and on
-  both sides; a NOMATCH with `NOMATCH_SENTINEL` on side A as well as on
-  side B. A CHUNK side's event ID is no ID to check (a sentinel never
+  both sides; a CHUNK side with a name (the name of the stated position),
+  on side A, and on both sides of an interval; a NOMATCH with
+  `NOMATCH_SENTINEL` on side A as well as on side B. A CHUNK side's event ID is no ID to check (a sentinel never
   meets the ID rules), and an event ID that is no sentinel still does. Each
   refused row is the smallest counterexample, with its exact problems and
   first message, in the order of the rules: `CHUNK_SENTINEL` on a row that
@@ -2760,15 +2761,16 @@ extraction's are without fontTools. What proves them:
   synchronous row (`claim_events` at that side's event ID: `NOMATCH_SENTINEL
   stands only on a MatchClaim that is not synchronous`); `NOMATCH_SENTINEL`
   on both sides (`claim_events` at `event_b_id`: `a NOMATCH MatchClaim
-  names an event on its other side`); a name on a sentinel side, NOMATCH
-  or CHUNK (`claim_events` at that side's `event_X_name`: `a sentinel side
-  has no name`); then the anchor rules: a synchronous row with one or no
+  names an event on its other side`); a name on a NOMATCH side
+  (`claim_events` at that side's `event_X_name`: `a NOMATCH side has no
+  name`); then the anchor rules: a synchronous row with one or no
   event and no start anchor gives `a synchronous MatchClaim has a start
   anchor`, at `start_anchor`, as a row of two events does. The messages of
   the former null reading, `the MatchClaim names no event` and `a NOMATCH
-  MatchClaim is not synchronous`, are never given: no case and no table
+  MatchClaim is not synchronous`, and of the former name rule, `a sentinel
+  side has no name`, are never given: no case and no table
   the suites compare (fixtures, inline cases, seeded mutations, the larger
-  table) yields either.
+  table) yields any of them.
 - **A fraction in any terms is its value.** No check asks a fraction
   cell for lowest terms: an unreduced fraction is read, and it is the
   same value as its reduced form wherever cells are compared. The
@@ -2832,7 +2834,9 @@ extraction's are without fontTools. What proves them:
   the believed-true one, kept again by the unlikely-and-false one, which
   splits the chain it closes) and a child timeline whose coordinates never
   meet its parent's; and the two kinds of CHUNK: `claim_11`, a synchronous
-  MatchClaim with `CHUNK_SENTINEL` on both sides, whose anchor between the
+  MatchClaim with `CHUNK_SENTINEL` on both sides, its side A named
+  `downbeat 3` (the fixture table is accepted, so a named CHUNK side is
+  read; the test of the sentinels pins each sentinel side's name), whose anchor between the
   samples and the seconds timelines closes the set of `claim_13` as the
   two Projections without a source it replaced did, so its expected
   values are unchanged,
