@@ -2,27 +2,38 @@
 
 ``timetoshare step OLD [NEW]`` prints the step a change of a repository of
 manifests requires: OLD and NEW are two directories, or two git references
-of the repository ``--repo`` (NEW left out: the staged changes).
+of the repository ``--repo`` (NEW left out: the staged changes). With
+``--history`` (git references only) it also reports every ID of NEW that a
+tag reachable from NEW or OLD held for an element that is gone since or of
+another type: the check a release pull request's job runs.
 
 ``timetoshare hook prepare-commit-msg MSGFILE [SOURCE [SHA]]`` writes the
 commit type the staged change requires in front of the message, and
 ``timetoshare hook commit-msg MSGFILE`` checks the final message against
 the staged change. Both run as git hooks directly or through pre-commit,
-which hands over the message file as the one file name and the source of
-the message in ``PRE_COMMIT_COMMIT_MSG_SOURCE``.
+which hands over the message file as the one file name, the source of the
+message in ``PRE_COMMIT_COMMIT_MSG_SOURCE`` and its commit in
+``PRE_COMMIT_COMMIT_OBJECT_NAME``. When the source is ``commit`` and the
+commit names ``HEAD`` (``git commit --amend`` with the editor or
+``--no-edit``, for which git hands over ``commit HEAD``), the first hook
+records it in the file ``timetoshare-amend-base`` of the git directory, and
+the second compares the amended commit's parent, not ``HEAD``, with the
+index. ``git commit --amend -m`` hands over the source ``message`` and is
+compared with ``HEAD``; ``git commit -c HEAD`` and ``-C HEAD`` hand over
+what an amend does and are taken for one.
 """
 
 from __future__ import annotations
 
 import argparse
 import os
+import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
 
 from .commit_types import (
     _SKIPPED,
-    COMMIT_TYPES,
     check_message,
     message_text,
     parse_header,
@@ -37,18 +48,25 @@ __all__ = ["main"]
 _UNTOUCHED_SOURCES = ("merge", "squash", "commit")
 """Sources of a message the first hook leaves alone: merges, squashes, amends."""
 
+AMEND_BASE = "timetoshare-amend-base"
+"""The file in the git directory naming the commit an amend replaces."""
 
-def _report(old: str, new: str | None, repo: Path) -> StepReport:
+
+def _report(old: str, new: str | None, repo: Path, history: bool) -> StepReport:
     if Path(old).is_dir() and new is not None and Path(new).is_dir():
+        if history:
+            raise ValueError("--history compares git references, not directories")
         return tree_step(Path(old), Path(new))
     if Path(old).is_dir() or (new is not None and Path(new).is_dir()):
         raise ValueError("OLD and NEW are both directories or both git references")
-    return git_step(old, new, repo)
+    return git_step(old, new, repo, history=history)
 
 
 def _step(arguments: argparse.Namespace) -> int:
     try:
-        report = _report(arguments.old, arguments.new, Path(arguments.repo))
+        report = _report(
+            arguments.old, arguments.new, Path(arguments.repo), arguments.history
+        )
     except ValueError as error:
         print(f"timetoshare step: {error}", file=sys.stderr)
         return 1
@@ -63,15 +81,38 @@ def _step(arguments: argparse.Namespace) -> int:
     return 2 if report.refused else 0
 
 
-def prepared_message(text: str, header: str, trailer: str) -> str:
+def _git(*args: str) -> str | None:
+    """The output of a git command in the current directory; ``None`` on failure."""
+    done = subprocess.run(["git", *args], capture_output=True, text=True)
+    return done.stdout.strip() if done.returncode == 0 else None
+
+
+def _comment() -> str:
+    """git's comment character: ``core.commentString`` or ``core.commentChar``,
+    the one set last; ``#`` when neither is set or the value is ``auto``."""
+    found = _git("config", "--get-regexp", r"^core\.comment(char|string)$")
+    values = [
+        line.split(" ", 1)[1] for line in (found or "").splitlines() if " " in line
+    ]
+    if values and values[-1] and values[-1] != "auto":
+        return values[-1]
+    return "#"
+
+
+def _amend_base_file() -> Path | None:
+    directory = _git("rev-parse", "--absolute-git-dir")
+    return Path(directory) / AMEND_BASE if directory else None
+
+
+def prepared_message(text: str, header: str, trailer: str, comment: str = "#") -> str:
     """A message with ``header`` in front of its first line and ``trailer`` below.
 
-    Comment lines from the first one on stay where they are, after the
-    message.
+    Comment lines (starting with ``comment``) from the first one on stay
+    where they are, after the message.
     """
     lines = text.split("\n")
     comments = next(
-        (index for index, line in enumerate(lines) if line.startswith("#")),
+        (index for index, line in enumerate(lines) if line.startswith(comment)),
         len(lines),
     )
     message, rest = lines[:comments], lines[comments:]
@@ -89,15 +130,21 @@ def prepared_message(text: str, header: str, trailer: str) -> str:
 
 def _prepare(arguments: argparse.Namespace) -> int:
     source = arguments.source or os.environ.get("PRE_COMMIT_COMMIT_MSG_SOURCE")
+    commit = arguments.sha or os.environ.get("PRE_COMMIT_COMMIT_OBJECT_NAME")
+    base = _amend_base_file()
+    if base is not None:
+        base.unlink(missing_ok=True)
+        head = _git("rev-parse", "--verify", "--quiet", "HEAD")
+        if source == "commit" and commit and head:
+            if _git("rev-parse", "--verify", "--quiet", commit) == head:
+                base.write_text(head + "\n", encoding="utf-8")
     if source in _UNTOUCHED_SOURCES:
         return 0
     path = Path(arguments.msgfile)
     text = path.read_text(encoding="utf-8")
-    first = message_text(text).split("\n", 1)[0]
-    header = parse_header(first)
-    if first.startswith(_SKIPPED) or (
-        header is not None and header.type in COMMIT_TYPES
-    ):
+    comment = _comment()
+    first = message_text(text, comment).split("\n", 1)[0]
+    if first.startswith(_SKIPPED) or parse_header(first) is not None:
         return 0
     try:
         report = git_step("HEAD", None, Path.cwd())
@@ -108,20 +155,37 @@ def _prepare(arguments: argparse.Namespace) -> int:
     if suggested is None:
         return 0
     path.write_text(
-        prepared_message(text, suggested, suggest_trailer(report)), encoding="utf-8"
+        prepared_message(text, suggested, suggest_trailer(report), comment),
+        encoding="utf-8",
     )
     return 0
+
+
+def _amended_parent() -> str:
+    """What the staged change is compared with: ``HEAD``, or for an amend the
+    parent of the amended commit (the empty tree for a root commit)."""
+    base = _amend_base_file()
+    if base is None or not base.is_file():
+        return "HEAD"
+    commit = base.read_text(encoding="utf-8").strip()
+    base.unlink()
+    if commit != _git("rev-parse", "HEAD"):
+        return "HEAD"
+    parent = _git("rev-parse", "--verify", "--quiet", f"{commit}^")
+    if parent:
+        return parent
+    return _git("hash-object", "-t", "tree", os.devnull) or "HEAD"
 
 
 def _check(arguments: argparse.Namespace) -> int:
     text = Path(arguments.msgfile).read_text(encoding="utf-8")
     try:
-        report = git_step("HEAD", None, Path.cwd())
+        report = git_step(_amended_parent(), None, Path.cwd())
     except ValueError as error:
         message = f"timetoshare: the staged change cannot be read: {error}"
         print(message, file=sys.stderr)
         return 1
-    errors, warnings = check_message(text, report)
+    errors, warnings = check_message(text, report, _comment())
     for warning in warnings:
         print(f"timetoshare: warning: {warning}", file=sys.stderr)
     for error in errors:
@@ -145,6 +209,12 @@ def _parser() -> argparse.ArgumentParser:
     )
     step.add_argument("--repo", default=".", help="the git repository (default: .)")
     step.add_argument("--json", action="store_true", help="print the report as JSON")
+    step.add_argument(
+        "--history",
+        action="store_true",
+        help="also refuse an ID that a reachable tag held for an element gone "
+        "since or of another type (git references only)",
+    )
     step.set_defaults(run=_step)
     hook = commands.add_parser("hook", help="run as a git hook")
     hooks = hook.add_subparsers(dest="hook", required=True)

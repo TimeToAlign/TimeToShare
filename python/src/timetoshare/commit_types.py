@@ -6,9 +6,12 @@ that release-please computes from Conventional Commits 1.0.0 headers,
 step, any commit with ``!`` a major one and every other commit a patch, so
 the types of a dataset repository say which change a commit makes:
 
-- ``feat``: minor; adding, editing or correcting data;
-- ``remove`` with ``!`` (any type with ``!``): major; removing anything with
-  an ID, a member, a pair, a row or a manifest, or changing an ID;
+- ``feat`` (or ``feature``, which release-please reads alike): minor;
+  adding, editing or correcting data;
+- ``remove`` with ``!``: major; removing anything with an ID, a member, a
+  pair, a row or a manifest, or changing an ID. Any type with ``!``, and a
+  ``BREAKING CHANGE`` footer, make a major release; a removal is written
+  ``remove`` with ``!`` and nothing else;
 - ``belief`` (a belief), ``label`` (a ``name``), ``graphic``
   (``graphical``), ``meta`` (``meta``), ``move`` (a resource's ``url`` for
   the same bytes), ``docs`` (prose) and ``fix`` (the repository's
@@ -41,6 +44,7 @@ __all__ = [
 
 COMMIT_TYPES: dict[str, str | None] = {
     "feat": "minor",
+    "feature": "minor",
     "remove": "major",
     "belief": "patch",
     "label": "patch",
@@ -59,7 +63,7 @@ COMMIT_TYPES: dict[str, str | None] = {
 }
 """The step of each commit type; ``remove`` requires ``!``, ``revert`` none."""
 
-DATA_TYPES = ("feat", "remove", "belief", "label", "graphic", "meta", "move")
+DATA_TYPES = ("feat", "feature", "remove", "belief", "label", "graphic", "meta", "move")
 """The types that name a change of the data."""
 
 _PATCH_TYPES = (
@@ -74,13 +78,14 @@ _PATCH_TYPES = (
 _RANK = {step: rank for rank, step in enumerate(STEPS)}
 
 _HEADER = re.compile(
-    r"(?P<type>[A-Za-z][A-Za-z0-9-]*)(?:\((?P<scope>[^()\r\n]*)\))?(?P<bang>!)?: "
+    r"(?P<type>[A-Za-z][A-Za-z0-9-]*)(?:\((?P<scope>[^()\r\n]*)\))?(?P<bang>!)?:(?: |$)"
 )
 
 _SKIPPED = ("Merge ", "fixup!", "squash!", "amend!", 'Revert "')
 """Beginnings of messages that git writes and that are not checked."""
 
-_SCISSORS = "# ------------------------ >8 ------------------------"
+_SCISSORS = " ------------------------ >8 ------------------------"
+"""git's scissors line after the comment character."""
 
 _BREAKING = re.compile(r"^BREAKING[ -]CHANGE: ", re.MULTILINE)
 
@@ -93,7 +98,7 @@ class Header:
         type: The type, lower case.
         scope: The scope, or ``None``.
         breaking: Whether the header carries ``!``.
-        subject: The text after ``: ``.
+        subject: The text after ``: ``; empty for a header ending ``:``.
     """
 
     type: str
@@ -103,7 +108,11 @@ class Header:
 
 
 def parse_header(line: str) -> Header | None:
-    """The header a line writes, or ``None`` for a line that is no header."""
+    """The header a line writes, or ``None`` for a line that is no header.
+
+    ``type(scope)!: subject``; the subject may be empty, and the line may end
+    at the colon, as an editor that strips trailing spaces leaves it.
+    """
     match = _HEADER.match(line)
     if match is None:
         return None
@@ -115,13 +124,18 @@ def parse_header(line: str) -> Header | None:
     )
 
 
-def message_text(message: str) -> str:
-    """A message without its comment lines and everything below git's scissors."""
+def message_text(message: str, comment: str = "#") -> str:
+    """A message without its comment lines and everything below git's scissors.
+
+    Args:
+        message: The message file's text.
+        comment: What starts a comment line, git's ``core.commentChar``.
+    """
     lines: list[str] = []
     for line in message.splitlines():
-        if line == _SCISSORS:
+        if line == comment + _SCISSORS:
             break
-        if not line.startswith("#"):
+        if not line.startswith(comment):
             lines.append(line)
     return "\n".join(lines).strip("\n")
 
@@ -223,23 +237,28 @@ def _with_dots(header: str) -> str:
     return f"{match['type']}(...){match['bang'] or ''}:"
 
 
-def check_message(message: str, report: StepReport) -> tuple[list[str], list[str]]:
+def check_message(
+    message: str, report: StepReport, comment: str = "#"
+) -> tuple[list[str], list[str]]:
     """Check a commit message against the change it commits.
 
-    Comment lines and everything below git's scissors line are ignored.
-    Messages git writes for merges, fixups, squashes, amends and reverts, and
-    the type ``revert``, are not checked.
+    Comment lines (starting with ``comment``) and everything below git's
+    scissors line are ignored. Messages git writes for merges, fixups,
+    squashes, amends and reverts, and the type ``revert``, are not checked.
 
     Returns:
         The errors and the warnings. An error where the declared step is
-        lower than the change requires, for ``remove`` without ``!``, for a
-        message without a header when the change requires a step, and for
-        every refused finding (an ID given to another element type). A
-        warning where a data type declares a higher step than the change
-        requires, where a major commit's ``BREAKING CHANGE`` footer misses a
-        removed ID, and where a change could not be judged.
+        lower than the change requires, for a removal written with any type
+        but ``remove`` with ``!`` (``feat!`` included), for ``remove``
+        without ``!``, for a header with an empty subject, for a message
+        without a header when the change requires a step, and for every
+        refused finding (an ID given again). A warning where a data type or
+        a ``!`` declares a higher step than the change requires, where a
+        ``BREAKING CHANGE`` footer stands on a commit that removes nothing,
+        where a major commit's footer misses a removed ID, and where a change
+        could not be judged.
     """
-    text = message_text(message)
+    text = message_text(message, comment)
     if text.startswith(_SKIPPED):
         return [], []
     errors: list[str] = []
@@ -260,20 +279,31 @@ def check_message(message: str, report: StepReport) -> tuple[list[str], list[str
                 f"{_requirement(report)}"
             )
         return errors, warnings
+    if not header.subject.strip():
+        written = first[: len(first) - len(header.subject)].rstrip()
+        errors.append(f'write what the commit does after "{written} "')
     if header.type == "remove" and not header.breaking:
         errors.append("remove requires '!': write remove(...)!:")
     if header.type not in COMMIT_TYPES:
         warnings.append(f"'{header.type}' is no type of a dataset repository")
     declared = _declared(header)
-    if _RANK[declared] < _RANK[report.step]:
+    footer = _BREAKING.search(text)
+    removal = report.step == "major"
+    if _RANK[declared] < _RANK[report.step] or (removal and header.type != "remove"):
         errors.append(_requirement(report))
-    elif header.type in DATA_TYPES and _RANK[declared] > _RANK[report.step]:
+    elif (header.type in DATA_TYPES or header.breaking) and _RANK[declared] > _RANK[
+        report.step
+    ]:
         warnings.append(
             f"{header.type}{'!' if header.breaking else ''} declares a {declared} "
             f"step; the staged change requires {report.step}"
         )
-    if declared == "major" and report.step == "major":
-        footer = _BREAKING.search(text)
+    if footer is not None and not removal:
+        warnings.append(
+            "the BREAKING CHANGE footer makes a major release; this commit "
+            "removes nothing"
+        )
+    if declared == "major" and removal:
         cited = text[footer.end() :] if footer else ""
         missing = [
             f"#{f.id}"
