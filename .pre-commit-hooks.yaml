@@ -1,0 +1,34 @@
+# The hooks a dataset repository installs from this repository (README,
+# "Versions of a dataset"). pre-commit runs `pip install . ./python[tables]` in
+# its clone of this repository: the root is an empty distribution (setup.py),
+# and ./python, resolved in the clone, is the timetoshare package.
+- id: timetoshare-commit-type
+  name: write the commit type of the staged manifests
+  description: Writes the Conventional Commits type the staged change of the manifests and tables requires.
+  entry: timetoshare hook prepare-commit-msg
+  language: python
+  additional_dependencies: ["./python[tables]"]
+  stages: [prepare-commit-msg]
+  pass_filenames: true
+  always_run: true
+  minimum_pre_commit_version: "3.2.0"
+- id: timetoshare-commit-check
+  name: check the commit type against the staged manifests
+  description: Refuses a commit message whose type gives a lower version step than the staged change requires.
+  entry: timetoshare hook commit-msg
+  language: python
+  additional_dependencies: ["./python[tables]"]
+  stages: [commit-msg]
+  pass_filenames: true
+  always_run: true
+  minimum_pre_commit_version: "3.2.0"
+- id: timetoshare-validate
+  name: validate the manifests
+  description: Validates every staged YAML or JSON file that is a TimeToShare manifest.
+  entry: timetoshare validate
+  language: python
+  additional_dependencies: ["./python[tables]"]
+  stages: [pre-commit]
+  files: \.(ya?ml|json)$
+  pass_filenames: true
+  minimum_pre_commit_version: "3.2.0"

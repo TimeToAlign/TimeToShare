@@ -22,6 +22,9 @@ the types of a dataset repository say which change a commit makes:
 :func:`suggest_header` writes the header a staged change requires,
 :func:`suggest_trailer` the lines that go below it, and
 :func:`check_message` checks a message against a change.
+:func:`release_step` names the largest step a release from one version to
+the next carries, and :func:`release_problem` says where it is lower than a
+change requires.
 """
 
 from __future__ import annotations
@@ -38,6 +41,8 @@ __all__ = [
     "Header",
     "check_message",
     "parse_header",
+    "release_problem",
+    "release_step",
     "suggest_header",
     "suggest_trailer",
 ]
@@ -88,6 +93,9 @@ _SCISSORS = " ------------------------ >8 ------------------------"
 """git's scissors line after the comment character."""
 
 _BREAKING = re.compile(r"^BREAKING[ -]CHANGE: ", re.MULTILINE)
+
+_VERSION = re.compile(r"(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)")
+"""A release version, ``MAJOR.MINOR.PATCH``, without a pre-release or build."""
 
 
 @dataclass(frozen=True)
@@ -317,3 +325,57 @@ def check_message(
                 "the BREAKING CHANGE footer does not name " + ", ".join(missing)
             )
     return errors, warnings
+
+
+def _version(text: str) -> tuple[int, int, int]:
+    match = _VERSION.fullmatch(text)
+    if match is None:
+        raise ValueError(f"'{text}' is no version MAJOR.MINOR.PATCH")
+    major, minor, patch = (int(number) for number in match.groups())
+    return major, minor, patch
+
+
+def release_step(old: str, new: str) -> str:
+    """The largest step of the data a release from ``old`` to ``new`` carries.
+
+    A dataset repository's release-please configuration sets
+    ``bump-minor-pre-major`` and ``bump-patch-for-minor-pre-major``. From
+    1.0.0 on, the first number that rises names the step: the major number
+    ``major``, the minor number ``minor``, the patch number ``patch``. Below
+    1.0.0 a removal raises the middle number and an addition the last, so a
+    release from a ``0.y.z`` version carries ``major`` where the middle
+    number rises (or the major number, to 1.0.0 or above) and ``minor``
+    where only the last one does. Two equal versions carry ``none``.
+
+    Raises:
+        ValueError: If a version is not ``MAJOR.MINOR.PATCH`` (no ``v``, no
+            pre-release), or if ``new`` is lower than ``old``.
+    """
+    before, after = _version(old), _version(new)
+    if after < before:
+        raise ValueError(f"the version {new} is lower than {old}")
+    if after == before:
+        return "none"
+    if after[0] > before[0]:
+        return "major"
+    if before[0] == 0:
+        return "major" if after[1] > before[1] else "minor"
+    return "minor" if after[1] > before[1] else "patch"
+
+
+def release_problem(report: StepReport, old: str, new: str) -> str | None:
+    """Why a release from ``old`` to ``new`` cannot carry a change; ``None``
+    where it can, its step (:func:`release_step`) being at least the
+    change's.
+
+    Raises:
+        ValueError: As :func:`release_step` does.
+    """
+    carried = release_step(old, new)
+    if _RANK[carried] >= _RANK[report.step]:
+        return None
+    most = "no step" if carried == "none" else f"at most a {carried} step"
+    return (
+        f"a release from {old} to {new} carries {most}; the change requires a "
+        f"{report.step} step"
+    )

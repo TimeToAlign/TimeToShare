@@ -1,11 +1,18 @@
-"""The ``timetoshare`` command: the version step of a change, and two git hooks.
+"""The ``timetoshare`` command: validation, the version step of a change, two hooks.
+
+``timetoshare validate [PATH ...]`` validates manifest files: the files
+named, or every ``.yaml``, ``.yml`` and ``.json`` file under the current
+directory outside ``.git``. A file that is no manifest is skipped.
 
 ``timetoshare step OLD [NEW]`` prints the step a change of a repository of
 manifests requires: OLD and NEW are two directories, or two git references
-of the repository ``--repo`` (NEW left out: the staged changes). With
-``--history`` (git references only) it also reports every ID of NEW that a
-tag reachable from NEW or OLD held for an element that is gone since or of
-another type: the check a release pull request's job runs.
+of the repository ``--repo`` (NEW left out: the staged changes; OLD ``-``:
+the empty tree, for a repository without a release). With ``--history``
+(git references only) it also reports every ID of NEW that a tag reachable
+from NEW or OLD held for an element that is gone since or of another type:
+the check a release pull request's job runs. ``--require-version FROM TO``
+also refuses the change where a release from version FROM to TO carries a
+lower step than it requires.
 
 ``timetoshare hook prepare-commit-msg MSGFILE [SOURCE [SHA]]`` writes the
 commit type the staged change requires in front of the message, and
@@ -32,15 +39,25 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
+import yaml
+
 from .commit_types import (
     _SKIPPED,
     check_message,
     message_text,
     parse_header,
+    release_problem,
+    release_step,
     suggest_header,
     suggest_trailer,
 )
-from .serialization import dumps
+from .serialization import dumps, loads
+from .validate import (
+    SchemaValidationError,
+    UnsupportedVersionError,
+    json_pointer,
+    manifest_warnings,
+)
 from .version_step import StepReport, git_step, tree_step
 
 __all__ = ["main"]
@@ -51,8 +68,28 @@ _UNTOUCHED_SOURCES = ("merge", "squash", "commit")
 AMEND_BASE = "timetoshare-amend-base"
 """The file in the git directory naming the commit an amend replaces."""
 
+EMPTY_TREE = "-"
+"""The OLD argument of ``timetoshare step`` that names the empty tree."""
+
+_SERIALIZED = (".yaml", ".yml", ".json")
+"""The file extensions ``timetoshare validate`` reads without arguments."""
+
+
+def _empty_tree(repo: Path) -> str:
+    """The name of the empty tree in the object format of ``repo``."""
+    done = subprocess.run(
+        ["git", "-C", str(repo), "hash-object", "-t", "tree", "--stdin"],
+        capture_output=True,
+        input=b"",
+    )
+    if done.returncode:
+        raise ValueError(done.stderr.decode(errors="replace").strip())
+    return done.stdout.decode().strip()
+
 
 def _report(old: str, new: str | None, repo: Path, history: bool) -> StepReport:
+    if old == EMPTY_TREE and not (new is not None and Path(new).is_dir()):
+        return git_step(_empty_tree(repo), new, repo, history=history)
     if Path(old).is_dir() and new is not None and Path(new).is_dir():
         if history:
             raise ValueError("--history compares git references, not directories")
@@ -63,22 +100,107 @@ def _report(old: str, new: str | None, repo: Path, history: bool) -> StepReport:
 
 
 def _step(arguments: argparse.Namespace) -> int:
+    release = arguments.require_version
     try:
+        carried = release_step(*release) if release else None
         report = _report(
             arguments.old, arguments.new, Path(arguments.repo), arguments.history
         )
     except ValueError as error:
         print(f"timetoshare step: {error}", file=sys.stderr)
         return 1
+    problem = release_problem(report, *release) if release else None
     if arguments.json:
-        sys.stdout.write(dumps(report.to_dict(), "json"))
+        written = report.to_dict()
+        if release:
+            written["release"] = {
+                "from": release[0],
+                "to": release[1],
+                "carries": carried,
+            }
+        sys.stdout.write(dumps(written, "json"))
     else:
         print(f"step: {report.step}")
         print(f"scope: {report.scope or '-'}")
+        if release:
+            print(f"release: {release[0]} to {release[1]} carries {carried}")
         for f in report.findings:
             cited = f"#{f.id}" if f.id is not None else "-"
             print(f"{f.step}\t{f.kind}\t{f.path}\t{cited}\t{f.detail}")
-    return 2 if report.refused else 0
+    if problem is not None:
+        print(f"timetoshare step: {problem}", file=sys.stderr)
+    return 2 if report.refused or problem is not None else 0
+
+
+def _readable_elsewhere(text: str) -> bool | None:
+    """Whether a text ``loads`` refuses reads, as PyYAML reads it, as an object
+    holding ``timetoshare``; ``None`` where PyYAML cannot read it either."""
+    try:
+        value = yaml.safe_load(text)
+    except yaml.YAMLError:
+        return None
+    return isinstance(value, dict) and "timetoshare" in value
+
+
+def file_problems(path: Path) -> tuple[list[str], list[str]] | None:
+    """The refusals and the warnings of a manifest file; ``None`` for a file
+    that is no manifest.
+
+    A file is a manifest when ``loads`` reads it as an object holding
+    ``timetoshare``. A file ``loads`` refuses is refused (``unreadable``) when
+    PyYAML reads it as such an object or cannot read it at all, and is no
+    manifest otherwise. Each refusal and warning is one line, ``<code> at
+    <JSON pointer>: <message>``, a warning's prefixed ``warning: ``; a file is
+    refused for its first violation, as ``validate`` raises it.
+    """
+    try:
+        text = path.read_bytes().decode("utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        return [f"unreadable at #: {error}"], []
+    try:
+        value = loads(text)
+    except ValueError as error:
+        if _readable_elsewhere(text) is False:
+            return None
+        return [f"unreadable at #: {error}"], []
+    if not isinstance(value, dict) or "timetoshare" not in value:
+        return None
+    try:
+        warnings = manifest_warnings(value)
+    except SchemaValidationError as error:
+        return [f"{error.code} at {json_pointer(error.path)}: {error.message}"], []
+    except UnsupportedVersionError as error:
+        return [f"unsupported_version at #/timetoshare: {error}"], []
+    return [], [
+        f"warning: {w['code']} at {json_pointer(w['path'])}: {w['message']}"
+        for w in warnings
+    ]
+
+
+def _found_files(root: Path) -> list[Path]:
+    """The ``.yaml``, ``.yml`` and ``.json`` files under ``root`` outside
+    ``.git``, sorted."""
+    return sorted(
+        file
+        for file in root.rglob("*")
+        if file.suffix in _SERIALIZED
+        and ".git" not in file.relative_to(root).parts
+        and file.is_file()
+    )
+
+
+def _validate(arguments: argparse.Namespace) -> int:
+    paths = [Path(p) for p in arguments.paths] or _found_files(Path("."))
+    refused = False
+    for path in paths:
+        found = file_problems(path)
+        if found is None:
+            continue
+        errors, warnings = found
+        refused = refused or bool(errors)
+        for line in (*errors, *warnings):
+            print(f"{path.as_posix()}: {line}")
+    return 1 if refused else 0
 
 
 def _git(*args: str) -> str | None:
@@ -196,11 +318,25 @@ def _check(arguments: argparse.Namespace) -> int:
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="timetoshare",
-        description="The version step of a change to a repository of manifests.",
+        description="Validate manifests and name the version step of a change to "
+        "a repository of manifests.",
     )
     commands = parser.add_subparsers(dest="command", required=True)
+    validate = commands.add_parser("validate", help="validate manifest files")
+    validate.add_argument(
+        "paths",
+        metavar="PATH",
+        nargs="*",
+        help="a file; none: every .yaml, .yml and .json file under the current "
+        "directory outside .git",
+    )
+    validate.set_defaults(run=_validate)
     step = commands.add_parser("step", help="print the version step a change requires")
-    step.add_argument("old", metavar="OLD", help="a directory or a git reference")
+    step.add_argument(
+        "old",
+        metavar="OLD",
+        help="a directory or a git reference; '-': the empty tree",
+    )
     step.add_argument(
         "new",
         metavar="NEW",
@@ -214,6 +350,13 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="also refuse an ID that a reachable tag held for an element gone "
         "since or of another type (git references only)",
+    )
+    step.add_argument(
+        "--require-version",
+        nargs=2,
+        metavar=("FROM", "TO"),
+        help="also refuse the change where a release from version FROM to TO "
+        "carries a lower step than it requires",
     )
     step.set_defaults(run=_step)
     hook = commands.add_parser("hook", help="run as a git hook")

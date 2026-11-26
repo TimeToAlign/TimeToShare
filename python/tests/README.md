@@ -47,7 +47,12 @@ and the same lists; so are the cases of several problems
 8. `manifest_step`, `tree_step` and `git_step` name the version step a
    change of a repository of manifests requires, with one finding per
    change, and the `timetoshare` command's two hooks write and check the
-   commit type of a staged change (`commit_types`).
+   commit type of a staged change (`commit_types`); `release_step` names the
+   step a release from one version to the next carries, and `timetoshare
+   step --require-version` refuses a release that carries less than the
+   change requires; `timetoshare validate` validates manifest files, and
+   the repository's `.pre-commit-hooks.yaml` offers the three as
+   pre-commit hooks.
 
 ## The schema document
 
@@ -3390,3 +3395,63 @@ the manifest. pre-commit's `PRE_COMMIT_COMMIT_MSG_SOURCE=commit` and
 `timetoshare-amend-base`; `commit-msg` then refuses `label` for the
 removal and deletes the file, so the next check compares with `HEAD`
 again.
+
+**The release check.** `release_step(old, new)` is held to a table of
+exact values: from 1.0.0 on the first number that rises names the step
+(`1.2.3` to `2.0.0` major, to `1.3.0` minor, to `1.2.4` patch, `1.9.0` to
+`1.10.0` minor, numbers compared as numbers); below 1.0.0, as release-please
+reads a dataset repository's two pre-major settings, the middle number
+carries a major step and the last a minor one (`0.3.0` to `0.4.0` major,
+to `0.3.1` minor, `0.3.4` to `1.0.0` major); equal versions carry none. A
+lower version (`1.2.3` to `1.2.2`) and anything but three numbers without a
+leading zero (`v1.0.0`, `1.0.0-rc.1`, `01.0.0`, `1.0`) are refused with
+their exact messages. `release_problem` returns `None` where the release
+carries at least the change's step (a major change in `0.3.0` to `0.4.0`,
+no change in equal versions, a patch in `1.0.0` to `1.0.1`) and otherwise
+the exact sentence naming both versions and both steps ("carries at most
+a minor step" for `0.3.0` to `0.3.1` under a removal, "carries no step"
+for `1.0.0` to `1.0.0` under an addition). On the command line, over the
+tags of a repository whose later tag removes the sketch: `--require-version
+0.1.0 0.1.1` prints `release: 0.1.0 to 0.1.1 carries minor` after the
+scope, exits 2 and writes the sentence on standard error; `0.1.0 0.2.0`
+exits 0; `1.0.0 1.1.0` exits 2; with `--json` the report gains `release`,
+`{from, to, carries}`; a version that is none (`v0.2.0`) exits 1 with its
+message before any comparison, printing nothing on standard output. OLD
+`-` is the empty tree: against a repository's one commit holding the base
+manifest it gives the one finding `added_manifest`, minor, with and
+without `--history`, and with a directory as NEW it is refused like any
+mix of a directory and a reference.
+
+**`timetoshare validate`.** Every case is a file written in the test's
+temporary directory, and each expected line is the exact text the command
+prints, `<path>: <code> at <JSON pointer>: <message>`; the codes and
+messages of the rules are the validator's, held by the rejection cases, so
+these tests prove the command's choice of files and its reports, not the
+rules. The base manifest of the version cases is accepted silently; a
+manifest without `@context` prints its one warning (`warning:
+context_absent at #: the manifest has no @context`) and exits 0. Each
+refusal exits 1: a manifest without `timelines` (`schema at #`), one whose
+second timeline repeats the first's ID (`duplicate_id at #/timelines/1/id`,
+the validator's first violation only), one of the version 0.1.0
+(`unsupported_version at #/timetoshare`), a manifest written with a YAML
+anchor that `loads` refuses and PyYAML reads (`unreadable at #`, `loads`'s
+message), a text no reader reads, and bytes that are not UTF-8. Files that
+are no manifests are skipped without a line: an object without
+`timetoshare`, a JSON array, and a YAML file with an anchor that PyYAML
+reads as an object without `timetoshare`. Without arguments the command
+reads every `.yaml`, `.yml` and `.json` file under the current directory,
+sorted, subdirectories included, skipping `.git` (a refused manifest there
+prints nothing) and files of other extensions, and prints each path
+relative to that directory.
+
+**The hooks of the repository.** `.pre-commit-hooks.yaml` at the
+repository root is read and compared, hook by hook, with the three hooks
+the README's configuration names: `timetoshare-commit-type`
+(`prepare-commit-msg`), `timetoshare-commit-check` (`commit-msg`) and
+`timetoshare-validate` (`pre-commit`, files `\.(ya?ml|json)$`), each
+`language: python` with the one additional dependency `./python[tables]`;
+every entry, with a file name appended, parses as a subcommand of the
+command. pre-commit itself installing them from a clone needs the package
+index and is checked by hand: `pre-commit try-repo <checkout> <hook id>
+--hook-stage <stage>` in a git repository holding a manifest.
+

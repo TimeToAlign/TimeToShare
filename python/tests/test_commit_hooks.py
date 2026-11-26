@@ -15,6 +15,8 @@ from timetoshare.cli import AMEND_BASE, main
 from timetoshare.commit_types import (
     check_message,
     message_text,
+    release_problem,
+    release_step,
     suggest_header,
     suggest_trailer,
 )
@@ -234,6 +236,57 @@ def test_an_undetermined_change_warns() -> None:
 
 
 # The hooks -----------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "step"),
+    [
+        ("1.2.3", "2.0.0", "major"),
+        ("1.2.3", "1.3.0", "minor"),
+        ("1.2.3", "1.2.4", "patch"),
+        ("1.9.0", "1.10.0", "minor"),
+        ("1.2.3", "1.2.3", "none"),
+        ("0.3.0", "0.4.0", "major"),
+        ("0.3.0", "0.3.1", "minor"),
+        ("0.3.4", "1.0.0", "major"),
+        ("0.3.0", "0.3.0", "none"),
+    ],
+)
+def test_the_step_a_release_carries(old: str, new: str, step: str) -> None:
+    assert release_step(old, new) == step
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "message"),
+    [
+        ("1.2.3", "1.2.2", "the version 1.2.2 is lower than 1.2.3"),
+        ("v1.0.0", "1.0.1", "'v1.0.0' is no version MAJOR.MINOR.PATCH"),
+        ("1.0.0", "1.0.0-rc.1", "'1.0.0-rc.1' is no version MAJOR.MINOR.PATCH"),
+        ("01.0.0", "1.0.1", "'01.0.0' is no version MAJOR.MINOR.PATCH"),
+        ("1.0", "1.0.1", "'1.0' is no version MAJOR.MINOR.PATCH"),
+    ],
+)
+def test_a_release_step_refuses(old: str, new: str, message: str) -> None:
+    with pytest.raises(ValueError) as raised:
+        release_step(old, new)
+    assert str(raised.value) == message
+
+
+def test_the_problem_of_a_release() -> None:
+    removal = report_of("timeline_removed")
+    addition = report_of("region_added")
+    assert removal.step == "major" and addition.step == "minor"
+    assert release_problem(removal, "0.3.0", "0.4.0") is None
+    assert release_problem(removal, "0.3.0", "0.3.1") == (
+        "a release from 0.3.0 to 0.3.1 carries at most a minor step; the change "
+        "requires a major step"
+    )
+    assert release_problem(addition, "1.0.0", "1.0.0") == (
+        "a release from 1.0.0 to 1.0.0 carries no step; the change requires a "
+        "minor step"
+    )
+    assert release_problem(report_of("minimal_to_complete"), "1.0.0", "1.0.0") is None
+    assert release_problem(report_of("name_changed"), "1.0.0", "1.0.1") is None
 
 
 def environment(home: Path) -> dict[str, str]:
