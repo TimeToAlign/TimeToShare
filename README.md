@@ -1101,9 +1101,11 @@ virtual timeline, named timestamp, named MatchStamp, alignment anchor and
 elision. Two strings are reserved for the sentinels of the MatchClaim
 table, `NOMATCH_SENTINEL` and `CHUNK_SENTINEL` ([The MatchClaim
 table](#the-matchclaim-table)): no element, event or Projection takes
-either as its ID, and the checks of the tables refuse them as a
-MatchClaim's, a Projection's or an event's ID ([Checking the
-tables](#checking-the-tables)). An ID is never parsed
+either as its ID. The manifest validators refuse either as an element's
+ID (code `schema`, at that `id`: `'CHUNK_SENTINEL' is reserved for a
+sentinel`), and the checks of the tables refuse them as a MatchClaim's
+or a Projection's `id` and as the event a Projection stands for
+([Checking the tables](#checking-the-tables)). An ID is never parsed
 and never composed with another. A reference is an ID, written in a file
 as an ID is ([Written in a file](#written-in-a-file)): a destination's
 `to` names a jump target, a region or a child of the same timeline or the
@@ -1434,7 +1436,9 @@ counterpart on the other timeline, the side without one being the
 sentinel **NOMATCH**. CHUNK, like NOMATCH, is a sentinel and never an
 event; each is written in the side's event ID column as its reserved
 string, `CHUNK_SENTINEL` and `NOMATCH_SENTINEL`, and an event ID column
-is never null. MatchClaims are data, not
+is never null. The sentinel CHUNK of a MatchClaim side is unrelated to
+the chunks of a FlowMap, the stretches in the order they are played
+([FlowMaps and virtual timelines](#flowmaps-and-virtual-timelines)). MatchClaims are data, not
 structure, and a manifest holds none. They live in one table per package,
 the **MatchClaim table**, named by the resource of type `MatchClaim`, and
 it is the one place they live. A MatchClaim table belongs to one
@@ -1527,9 +1531,9 @@ gives their codes and messages):
 - A stated `certainty` lies in [0, 1].
 - The ID and an event ID are non-empty strings without control
   characters (U+0000 to U+001F), as every ID of the format
-  ([Identity](#identity)); an ID is given once in the table. Neither
-  the ID nor an event's ID is a reserved string: `NOMATCH_SENTINEL` and
-  `CHUNK_SENTINEL` stand in an event ID column for the sentinels alone.
+  ([Identity](#identity)); an ID is given once in the table. The ID is
+  no reserved string: `NOMATCH_SENTINEL` and `CHUNK_SENTINEL` stand in an
+  event ID column for the sentinels alone.
 - The provenance is a provenance entry ([Provenance and
   beliefs](#provenance-and-beliefs)): valid against
   `provenance.schema.json`, without a key the entry or a belief does not
@@ -1572,7 +1576,7 @@ of them, the **Projections table**, named by the resource of type
 | `unit`, `number_type` | string | never | the unit and the number type of its `start` and `duration`, stated once for both: those of the timeline's own axis |
 | `start` | number | never | its position on that timeline's own axis |
 | `duration` | number | allowed | its duration on the same axis, never negative; null for an instant |
-| `projection_of` | `struct<timeline_id: string, event_id: string>` | allowed | the event it stands for, an object and never a joined string: both members given, the timeline another than the Projection's own; null where no such event is known |
+| `projection_of` | `struct<timeline_id: string, event_id: string>` | allowed | the event it stands for, an object and never a joined string: both members given, the timeline another than the Projection's own, the event never a sentinel's reserved string; null where no such event is known |
 
 A **number** is `struct<numerator: int64, denominator: int64, value:
 double>`, a coordinate cell without its `unit` and `number_type`: its
@@ -1737,6 +1741,7 @@ The Projections table:
 | `start`, then `duration`, is malformed | `invalid_coordinate` | the number | a number's message (below) |
 | A well-formed `duration` is negative | `invalid_duration` | `duration` | `the duration is negative` |
 | A member of `projection_of` is null or empty | `invalid_projection_of` | `projection_of.timeline_id`, `projection_of.event_id` | `the projected event has no timeline_id`, `the projected event has no event_id` |
+| `projection_of.event_id` is a reserved string, `NOMATCH_SENTINEL` or `CHUNK_SENTINEL` | `invalid_projection_of` | `projection_of.event_id` | `'<string>' is reserved for a sentinel` |
 | `projection_of` names the Projection's own timeline | `invalid_projection_of` | `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
 | `projection_of` names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `projection_of.timeline_id` | `the manifest has no timeline '<id>'` |
 
