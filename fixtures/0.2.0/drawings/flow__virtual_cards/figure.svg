@@ -23,7 +23,7 @@
 <path data-id="allegro_by_hand" data-facet="regions" data-part="5" d="M246.8689 131.4767Q246.8689 134.4767 249.8689 134.4767L318.7871 134.4767Q321.7871 134.4767 321.7871 137.4767Q321.7871 134.4767 324.7871 134.4767L393.7052 134.4767Q396.7052 134.4767 396.7052 131.4767" fill="none" stroke="#000000" stroke-width="1"/>
 <line data-id="allegro_by_hand" x1="183.9351" y1="119.4767" x2="246.345" y2="119.4767" stroke="#00CC00" stroke-width="3"/>
 <line data-id="allegro_by_hand" x1="246.8689" y1="119.4767" x2="396.7052" y2="119.4767" stroke="#00CC00" stroke-width="3"/>
-<line data-id="allegro_by_hand" x1="246.345" y1="119.4767" x2="246.8689" y2="119.4767" stroke="#00CC00" stroke-width="1.5" stroke-dasharray="1.5 3"/>
+<line data-id="allegro_by_hand" x1="246.345" y1="119.4767" x2="246.8689" y2="119.4767" stroke="#9CA3AF" stroke-width="3"/>
 <circle data-id="allegro_by_hand" cx="183.9351" cy="119.4767" r="3" fill="#00CC00"/>
 <circle data-id="allegro_by_hand" cx="396.7052" cy="119.4767" r="3" fill="#00CC00"/>
 <line data-id="allegro_by_hand" data-facet="regions" data-part="4 start" x1="246.345" y1="111.4767" x2="246.345" y2="127.4767" stroke="#000000" stroke-width="1"/>
