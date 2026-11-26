@@ -4,13 +4,16 @@
 # and ./python, resolved in the clone, is the timetoshare package.
 - id: timetoshare-commit-type
   name: write the commit type of the staged manifests
-  description: Writes the Conventional Commits type the staged change of the manifests and tables requires.
+  description: Writes feat or remove! where the staged change of the manifests and tables adds, edits or removes, and suggests the type of any other change.
   entry: timetoshare hook prepare-commit-msg
   language: python
   additional_dependencies: ["./python[tables]"]
   stages: [prepare-commit-msg]
   pass_filenames: true
   always_run: true
+  # Shows the suggested type and the hint to split a mixed commit, which
+  # pre-commit hides otherwise.
+  verbose: true
   minimum_pre_commit_version: "3.2.0"
 - id: timetoshare-commit-check
   name: check the commit type against the staged manifests
