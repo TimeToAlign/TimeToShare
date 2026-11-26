@@ -1,0 +1,7 @@
+findings:
+  -
+    id: score
+    kind: edited_pair
+    step: minor
+scope: base
+step: minor

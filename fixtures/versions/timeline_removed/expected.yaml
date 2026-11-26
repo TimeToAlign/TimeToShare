@@ -1,0 +1,7 @@
+findings:
+  -
+    id: sketch
+    kind: removed
+    step: major
+scope: base
+step: major

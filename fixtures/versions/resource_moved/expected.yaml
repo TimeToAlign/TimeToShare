@@ -1,0 +1,7 @@
+findings:
+  -
+    id: recording
+    kind: moved
+    step: patch
+scope: base
+step: patch

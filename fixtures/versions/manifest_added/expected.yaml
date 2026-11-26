@@ -1,0 +1,7 @@
+findings:
+  -
+    id: null
+    kind: added_manifest
+    step: minor
+scope: sketches
+step: minor

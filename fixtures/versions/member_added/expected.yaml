@@ -1,0 +1,7 @@
+findings:
+  -
+    id: pair
+    kind: added_member
+    step: minor
+scope: base
+step: minor

@@ -1,0 +1,7 @@
+findings:
+  -
+    id: ts_start
+    kind: removed
+    step: major
+scope: base
+step: major

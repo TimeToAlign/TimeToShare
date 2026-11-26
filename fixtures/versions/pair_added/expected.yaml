@@ -1,0 +1,7 @@
+findings:
+  -
+    id: score
+    kind: added_pair
+    step: minor
+scope: base
+step: minor

@@ -1,0 +1,7 @@
+findings:
+  -
+    id: region_2
+    kind: added
+    step: minor
+scope: base
+step: minor

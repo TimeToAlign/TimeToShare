@@ -1,0 +1,7 @@
+findings:
+  -
+    id: null
+    kind: graphic
+    step: patch
+scope: base
+step: patch

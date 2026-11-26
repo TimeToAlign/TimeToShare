@@ -44,6 +44,10 @@ and the same lists; so are the cases of several problems
    identifier systems, verbs and types, with the same values, the same
    errors and the same messages as the JavaScript package; an independent
    JSON-LD processor reads the statement fixtures to the expected RDF.
+8. `manifest_step`, `tree_step` and `git_step` name the version step a
+   change of a repository of manifests requires, with one finding per
+   change, and the `timetoshare` command's two hooks write and check the
+   commit type of a staged change (`commit_types`).
 
 ## The schema document
 
@@ -3253,3 +3257,86 @@ reported outside the suite, never asserted.
 
 The gate's dependency is pinned to one minor version; a bump of it reruns
 this file before the lockfile moves.
+
+## Version steps and commit types
+
+A dataset repository versions its manifests and tables by release tags; the
+step a change requires (none, patch, minor, major, or refused) is the
+format's rule table in the main README ("Versions of a dataset").
+`test_version_step.py` and `test_commit_hooks.py` prove it.
+
+**The rule table, one case per rule.** `fixtures/versions/<case>/` holds
+an `old/` and a `new/` tree of manifests and `expected.yaml` with the step,
+the scope and the findings as `{kind, step, id}` in report order (path,
+kind, ID), all written by hand: each `new/` is one literal edit of the one
+base manifest in `old/` (a quarters score with a child, a region, a
+statement and its provenance with a belief, a seconds take, a sketch, a
+group, an audio resource with its digest, a rule, a named timestamp and an
+elision), so a finding the case does not name, or a missing one, fails the
+case. `tree_step(old, new)` must give exactly `expected.yaml`. The cases
+cover every row of the table: a root removed, a child removed, a group
+member removed and added, a statement pair removed, replaced and added, an
+offset and a unit edited, a region added, a belief added and one changed by
+its actor, a `name`, a `graphical` rule, an elision removed, a named
+timestamp removed, `meta`, a resource moved with equal integrity, an ID
+changed (a removal and an addition), a manifest file removed and added, and
+an ID given to an element of another type (refused). Two cases prove that
+nothing is a change of the data: the minimal and the complete form of one
+manifest, and its YAML rewritten as JSON (`base.yaml` to `base.json`).
+Every manifest of the cases validates. Beyond the table, the fixture
+manifests of `fixtures/0.2.0/` against their minimal twins, and each
+against itself, give no finding, which proves that comparison happens in
+the complete form and in canonical order on every element type the format
+has.
+
+**What the cases cannot hold.** Inline in the tests: a manifest declaring
+another format version gives the one finding `unsupported_version`,
+undetermined, and no other; the scope is the first directory when the
+findings lie in two manifests of one directory and none when they lie in
+two top-level manifests; and the findings are sorted by path, kind and ID
+whatever order the changes were made in.
+
+**Tables.** The table cases need Parquet files, which the fixture rules
+let only `scripts/emit_tables.py` write into `fixtures/`, so the tests
+write them into their temporary directory from the table fixture's
+MatchClaim table (`fixtures/tables/0.2.0/match_claims.parquet`) beside a
+manifest naming it: dropping the row `claim_18` gives `removed_row`, major,
+ID `claim_18`; the reverse gives `added_row`, minor; a belief of
+`claim_6` changed (its provenance otherwise unchanged) gives `belief`,
+patch; its `event_a_name` changed gives `edited_row`, minor. Without
+pyarrow (its import made to fail) and for a resource of another type whose
+bytes differ, the change is `changed_table`, undetermined, and the step
+does not rise.
+
+**Git.** `git_step` against a temporary repository: the step between two
+commits equals the step between their trees, the staged change is read
+from the index (a change left unstaged is not seen), and `HEAD` in a
+repository without commits is the empty tree, so a staged manifest is
+`added_manifest`.
+
+**Commit types.** The suggested header of every case's report is fixed
+(`remove(base)!: `, `feat(base): `, `belief(base): `, `label(base): `,
+`graphic(base): `, `meta(base): `, `move(base): `, none for no step), the
+patch type of a mixed report follows the count and then the order belief,
+label, graphic, meta, move, and the trailer of a removal with an addition
+is `also: 1 added` and `BREAKING CHANGE: removes #sketch`. `check_message`
+is held to its exact errors and warnings: an understated type (`label` for
+an added region, `feat` for a removal), `remove` without `!`, a reused ID
+and a missing header are errors; an overstated data type, a footer missing
+a removed ID and an undetermined change are warnings; a correct message
+gives neither, and merges, fixups, squashes, amends and reverts are not
+checked.
+
+**The hooks.** Each runs in a temporary git repository with git's global
+and system configuration switched off, once called as the command line
+does and once installed as git hooks in `.git/hooks` and run by `git
+commit`, which proves that the staged tree reaches the hook as git hands
+it over. `prepare-commit-msg` turns `-m "add the second region"` into
+`feat(base): add the second region`, writes `remove(base)!: ` and the
+footer for a removal, puts the header before git's comment lines in an
+editor template, and leaves the message untouched for an amend (source
+`commit`, given as an argument or by pre-commit's
+`PRE_COMMIT_COMMIT_MSG_SOURCE`), a merge, a message that already has a
+type, and a commit with no change of the data. `commit-msg` exits 0 for a
+message it accepts and 1 with the error on standard error for an
+understated one, and `git commit` then makes no commit.

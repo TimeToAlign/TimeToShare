@@ -1,0 +1,7 @@
+findings:
+  -
+    id: pair
+    kind: removed_member
+    step: major
+scope: base
+step: major

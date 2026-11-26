@@ -1,0 +1,11 @@
+findings:
+  -
+    id: sketch
+    kind: removed
+    step: major
+  -
+    id: region_1
+    kind: reused_id
+    step: refused
+scope: base
+step: major

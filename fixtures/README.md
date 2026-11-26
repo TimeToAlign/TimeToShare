@@ -891,5 +891,52 @@ such as `support_policy`, a timeline's `class`, a selector's former `ids`
 or an address's `root`. Python's `warning_paths()` lists the cases. Both
 packages read the same files and compare their lists with them.
 
+## Version cases
+
+`fixtures/versions/<case>/` holds the hand-authored cases of the version
+step a change of a repository of manifests requires ([main
+README](../README.md#versions-of-a-dataset)): an `old/` and a `new/` tree
+of manifests and `expected.yaml`, the `step`, the `scope` and the
+`findings` as `{kind, step, id}` in the order the report lists them (by
+path, kind and ID). They are not versioned by schema version: a case
+compares two states of data, not two formats. Every manifest is written
+in canonical YAML with `dumps` and validates; every `new/` but four is one
+edit of the one base manifest `old/base.yaml`, a quarters score with a
+child, a region, a statement and its provenance with a belief, a seconds
+take, a sketch, a group, an audio resource with its digest, a styling
+rule, a named timestamp and an elision. There is one case per rule:
+
+| Case | Change | Step |
+| --- | --- | --- |
+| `timeline_removed` | the root `sketch` removed | major |
+| `child_removed` | the child `movement_2` removed | major |
+| `member_removed` | `take_1` taken out of the group `pair` | major |
+| `member_added` | `sketch` put into the group `pair` | minor |
+| `pair_removed` | the statement pair `wdt:P31` of `score` removed | major |
+| `pair_replaced` | its value replaced | minor |
+| `pair_added` | a pair `wdt:P86` added | minor |
+| `offset_edited` | the offset of `movement_2` | minor |
+| `unit_edited` | the unit of `sketch` | minor |
+| `region_added` | a region `region_2` added | minor |
+| `belief_added` | a second actor's belief on the provenance of `score` | patch |
+| `belief_changed` | the editor's belief changed from `true` to `false` | patch |
+| `name_changed` | the `name` of `score` | patch |
+| `graphical_rule_changed` | a styling rule's `fill` | patch |
+| `elision_removed` | the elision `elision_1` removed | patch |
+| `timestamp_removed` | the named timestamp `ts_start` removed | major |
+| `meta_changed` | the manifest's `meta` | patch |
+| `resource_moved` | the resource's `url`, its `integrity` equal | patch |
+| `id_changed` | `sketch` renamed `sketch_a`: a removal and an addition | major |
+| `id_reused` | `region_1` removed and its ID given to the timeline `sketch` | refused (and major) |
+| `minimal_to_complete` | the minimal form rewritten in the complete form | none |
+| `yaml_to_json` | `base.yaml` rewritten as pretty JSON, `base.json` | none |
+| `manifest_removed` | a second manifest file `sketches.yaml` removed | major |
+| `manifest_added` | that file added | minor |
+
+The cases of tables need Parquet files, which only
+`scripts/emit_tables.py` writes into `fixtures/`; the package tests write
+them into a temporary directory from the table fixture's MatchClaim table
+instead.
+
 See the [main README](../README.md) for the manifest shape, the schema API
 and the serializations.

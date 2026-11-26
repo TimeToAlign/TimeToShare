@@ -1,0 +1,7 @@
+findings:
+  -
+    id: movement_2
+    kind: removed
+    step: major
+scope: base
+step: major

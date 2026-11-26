@@ -1,0 +1,7 @@
+findings:
+  -
+    id: null
+    kind: removed_manifest
+    step: major
+scope: sketches
+step: major

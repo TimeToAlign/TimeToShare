@@ -1,0 +1,7 @@
+findings:
+  -
+    id: elision_1
+    kind: graphic
+    step: patch
+scope: base
+step: patch

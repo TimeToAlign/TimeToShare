@@ -1,0 +1,11 @@
+findings:
+  -
+    id: sketch_a
+    kind: added
+    step: minor
+  -
+    id: sketch
+    kind: removed
+    step: major
+scope: base
+step: major
