@@ -70,7 +70,8 @@ manifest:
   graphical:
     elisions: []
     matchstamps: []
-    order: {}
+    order:
+      "#group_1": ["#score", "#sketch"]
     rules:
       -
         select:
