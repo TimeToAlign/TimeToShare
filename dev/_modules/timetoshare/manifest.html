@@ -782,9 +782,9 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_axis_types</span><span class="p">(</span><span class="n">manifest</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">"""The number type of every timeline's axis by ID.</span>
+<span class="w">    </span><span class="sd">"""The number type of every timeline's and virtual timeline's axis by ID.</span>
 
-<span class="sd">    An ID that names more than one timeline names no axis (``None``).</span>
+<span class="sd">    An ID that names more than one of them names no axis (``None``).</span>
 <span class="sd">    """</span>
     <span class="n">found</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">counts</span><span class="p">:</span> <span class="n">Counter</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
@@ -800,6 +800,11 @@
 
     <span class="k">for</span> <span class="n">timeline</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"timelines"</span><span class="p">)):</span>
         <span class="n">visit</span><span class="p">(</span><span class="n">timeline</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">virtual</span> <span class="ow">in</span> <span class="n">_dicts</span><span class="p">(</span><span class="n">manifest</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"virtual_timelines"</span><span class="p">)):</span>
+        <span class="n">identifier</span> <span class="o">=</span> <span class="n">virtual</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"id"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">identifier</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">found</span><span class="p">[</span><span class="n">identifier</span><span class="p">]</span> <span class="o">=</span> <span class="n">_axis_type</span><span class="p">(</span><span class="n">virtual</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">if</span> <span class="n">counts</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">found</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
 
@@ -826,7 +831,9 @@
 <span class="sd">    ``by`` of every destination and of every ``after`` on it, the</span>
 <span class="sd">    coordinate of every named timestamp on it, the ``start``, ``end`` and</span>
 <span class="sd">    width ``span`` of every elision on it, the gaps of every FlowMap of it,</span>
-<span class="sd">    and a virtual timeline's ``length`` on the virtual timeline's own axis.</span>
+<span class="sd">    and a virtual timeline's ``length``, the coordinates of the named</span>
+<span class="sd">    timestamps and the values of the elisions on it, on the virtual</span>
+<span class="sd">    timeline's own axis.</span>
 <span class="sd">    A timestamp, an elision or a FlowMap whose ``timeline`` names no</span>
 <span class="sd">    timeline, or more than one, keeps its values.</span>
 <span class="sd">    """</span>

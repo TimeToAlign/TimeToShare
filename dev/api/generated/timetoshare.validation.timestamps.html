@@ -527,10 +527,10 @@ timeline or one of that timeline’s ancestors is a member of a group.</p>
 <dt class="sig sig-object py" id="timetoshare.validation.timestamps.elision_problems">
 <span class="sig-prename descclassname"><span class="pre">timetoshare.validation.timestamps.</span></span><span class="sig-name descname"><span class="pre">elision_problems</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">manifest</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/timetoshare/validation/timestamps.html#elision_problems"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#timetoshare.validation.timestamps.elision_problems" title="Link to this definition">#</a></dt>
 <dd><p>Yield elisions off the manifest’s timelines or outside their extent.</p>
-<p>An elision names a timeline of the manifest, at any depth, and its
-<code class="docutils literal notranslate"><span class="pre">start</span></code> lies before its <code class="docutils literal notranslate"><span class="pre">end</span></code>, both between 0 and that timeline’s
-length, or at or after 0 where the length is not known. Elisions may
-overlap; no overlap is a problem.</p>
+<p>An elision names a timeline of the manifest, at any depth, or a virtual
+timeline, and its <code class="docutils literal notranslate"><span class="pre">start</span></code> lies before its <code class="docutils literal notranslate"><span class="pre">end</span></code>, both between 0 and
+that timeline’s length, or at or after 0 where the length is not known.
+Elisions may overlap; no overlap is a problem.</p>
 <dl class="field-list simple">
 </dl>
 </dd></dl>

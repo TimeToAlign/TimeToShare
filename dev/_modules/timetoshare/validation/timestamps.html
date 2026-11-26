@@ -469,7 +469,6 @@
     <span class="n">entries_of</span><span class="p">,</span>
     <span class="n">matchstamps_of</span><span class="p">,</span>
     <span class="n">string_id</span><span class="p">,</span>
-    <span class="n">timelines_by_id</span><span class="p">,</span>
     <span class="n">timestamps_of</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -575,12 +574,12 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">SchemaValidationError</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">"""Yield elisions off the manifest's timelines or outside their extent.</span>
 
-<span class="sd">    An elision names a timeline of the manifest, at any depth, and its</span>
-<span class="sd">    ``start`` lies before its ``end``, both between 0 and that timeline's</span>
-<span class="sd">    length, or at or after 0 where the length is not known. Elisions may</span>
-<span class="sd">    overlap; no overlap is a problem.</span>
+<span class="sd">    An elision names a timeline of the manifest, at any depth, or a virtual</span>
+<span class="sd">    timeline, and its ``start`` lies before its ``end``, both between 0 and</span>
+<span class="sd">    that timeline's length, or at or after 0 where the length is not known.</span>
+<span class="sd">    Elisions may overlap; no overlap is a problem.</span>
 <span class="sd">    """</span>
-    <span class="n">timelines</span> <span class="o">=</span> <span class="n">timelines_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
+    <span class="n">timelines</span> <span class="o">=</span> <span class="n">axes_by_id</span><span class="p">(</span><span class="n">manifest</span><span class="p">)</span>
     <span class="n">ends</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Fraction</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">elision</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">elisions_of</span><span class="p">(</span><span class="n">manifest</span><span class="p">)):</span>
         <span class="n">path</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"graphical"</span><span class="p">,</span> <span class="s2">"elisions"</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
@@ -590,7 +589,8 @@
             <span class="k">yield</span> <span class="n">SchemaValidationError</span><span class="p">(</span>
                 <span class="s2">"elision_timeline"</span><span class="p">,</span>
                 <span class="p">(</span><span class="o">*</span><span class="n">path</span><span class="p">,</span> <span class="s2">"timeline"</span><span class="p">),</span>
-                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2">' names no timeline of this manifest"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">identifier</span><span class="si">}</span><span class="s2">' names no timeline or virtual timeline of this "</span>
+                <span class="s2">"manifest"</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">elision</span><span class="p">[</span><span class="s2">"start"</span><span class="p">],</span> <span class="n">elision</span><span class="p">[</span><span class="s2">"end"</span><span class="p">]</span>

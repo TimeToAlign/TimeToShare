@@ -780,8 +780,8 @@ either side,
 and a narrow <strong>gap</strong> lies between, holding one <strong>ellipsis</strong>, centred in
 it, with the elision’s labels below it (sections 6.6 and 8.9). <code class="docutils literal notranslate"><span class="pre">id</span></code> is its ID (README,
 “Identity”); <code class="docutils literal notranslate"><span class="pre">timeline</span></code> names the timeline the elision <strong>lies on</strong>, at
-any depth, a segment included, with the meaning and the validation of a
-named timestamp’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code>, but never a virtual timeline; <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;</span> <span class="pre">end</span></code>, are its
+any depth, a segment included, or a virtual timeline (section 8.10),
+with the meaning and the validation of a named timestamp’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code>; <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code>, <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;</span> <span class="pre">end</span></code>, are its
 <strong>elided coordinates</strong>, positions on that timeline’s own axis, from its
 zero to its <code class="docutils literal notranslate"><span class="pre">length</span></code> (and only from its zero when the length is <code class="docutils literal notranslate"><span class="pre">null</span></code>),
 each a number as the timeline’s number type selects (README, “Values on a
@@ -836,7 +836,8 @@ across the group’s frame, at one place in every member card, and carried
 into the ancestor cards behind the frame (section 8.9). Every other
 elision is a <strong>card elision</strong>, drawn in the cards of its timeline’s root
 that draw that root whole: an ungrouped root’s card and the ancestor
-cards behind frames (section 8.8). Which card elisions a root’s cards
+cards behind frames (section 8.8), and for a virtual timeline, its own
+root, its placed card (section 8.10). Which card elisions a root’s cards
 draw, and whether they derive elisions of their own, the four elision
 properties of section 2.4 decide, in a rule addressed to the root’s cards
 (section 8.9). Whether an elision is a group elision is read from its
@@ -1258,7 +1259,10 @@ value it does not expand being itself. So <code class="docutils literal notransl
 </div>
 <p>in a manifest’s <code class="docutils literal notranslate"><span class="pre">graphical</span></code> shows them, as an editor’s toggle “Atomic
 sections”, in the properties of a regions band and of a flow control
-band, writes it and removes it;</p>
+band, writes it and removes it. It is one rule, whichever band’s
+properties show the toggle: it shows every atomic section of the
+manifest, each held by the regions band of the timeline that holds it
+and drawn only where that band is displayed (section 2.4);</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">facet</span></code>: a facet (section 2.1); it matches the bands drawing that facet;</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">within</span></code>: a timeline ID; it matches the elements belonging to that
@@ -1487,7 +1491,13 @@ though a timeline line that is not drawn gives an anchor no end there
 (section 8.7); and no band
 takes its <code class="docutils literal notranslate"><span class="pre">display</span></code> from another: hiding the band <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">&quot;score&quot;,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;}</span></code> hides the regions of <code class="docutils literal notranslate"><span class="pre">score</span></code> alone, and the regions of a child of <code class="docutils literal notranslate"><span class="pre">score</span></code> are drawn,
 at the child’s own line, only when the child’s own regions band is
-displayed. The flow-control elements of a child are held by the child’s
+displayed. An atomic section is a region (README, “Atomic sections”)
+and so is held by the regions band of the timeline that holds it, never
+by a flow control band, which neither holds nor lays out a region: hiding
+a root’s flow control band hides no atomic section, hiding the root’s
+regions band hides the root’s own atomic sections alone, and the atomic
+sections of a child, such as the movements of a work hold, are drawn
+only when the child’s own regions band, and its line, are displayed. The flow-control elements of a child are held by the child’s
 own flow control band (section 2.1) though the root’s band lays them out
 (section 6.4): hiding the child’s line or its flow control band hides
 them, and hiding the root’s flow control band hides everything it lays
@@ -1839,8 +1849,10 @@ flow control band (section 6.4). A chunk’s brace is a <code class="docutils li
 tick at its start a <code class="docutils literal notranslate"><span class="pre">boundary</span></code> (section 8.10), so chunks take the black
 brace of a region and the thin black rule of a segment’s start, and
 neither the rule hiding atomic sections, which selects by <code class="docutils literal notranslate"><span class="pre">class</span></code>, nor
-any other default hides them; a gap of a FlowMap is drawn by its line’s
-own stroke, thinner and dashed (section 6.6, Gap lines). The last rule hides every wedge and
+any other default hides them; a gap of a FlowMap is drawn in the grey
+<code class="docutils literal notranslate"><span class="pre">#9CA3AF</span></code> of an elision’s continuations, keeping its line’s own stroke
+width and dash pattern, solid on a solid line and dotted on a dotted one,
+never dashed in a pattern of its own (section 6.6, Gap lines). The last rule hides every wedge and
 label of a secondary coordinate (section 2) and turns such a wedge −45, so that a wedge shown by a later
 rule points at its coordinate from beside the cross-section line; only
 the primary coordinate of each timestamp is drawn by default (section
@@ -2144,8 +2156,8 @@ number it has always had.</p>
 <tr class="row-odd"><td><p>boundary half-height <code class="docutils literal notranslate"><span class="pre">k</span></code>, of a segment’s start and of a chunk’s alike</p></td>
 <td><p>8</p></td>
 </tr>
-<tr class="row-even"><td><p>gap line of a FlowMap’s gap (section 6.6): stroke width, dash, space</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">/</span> <span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">/</span> <span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code> the stroke width of its line</p></td>
+<tr class="row-even"><td><p>gap line of a FlowMap’s gap (section 6.6): stroke colour, stroke width, dash pattern</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">#9CA3AF</span></code>, <code class="docutils literal notranslate"><span class="pre">w</span></code> and the <code class="docutils literal notranslate"><span class="pre">stroke-dasharray</span></code> of its line, <code class="docutils literal notranslate"><span class="pre">w</span></code> the stroke width of its line</p></td>
 </tr>
 <tr class="row-odd"><td><p>group frame padding <code class="docutils literal notranslate"><span class="pre">Q</span></code></p></td>
 <td><p>8</p></td>
@@ -3220,10 +3232,14 @@ to <code class="docutils literal notranslate"><span class="pre">Xe</span></code>
 <li><p><strong>Gap lines.</strong> Over the span of a gap of a FlowMap drawn on a line
 (section 8.10), from <code class="docutils literal notranslate"><span class="pre">Xa</span></code> to <code class="docutils literal notranslate"><span class="pre">Xb</span></code>, the line itself is not drawn; a <strong>gap
 line</strong> stands in for it, from <code class="docutils literal notranslate"><span class="pre">(Xa,</span> <span class="pre">y)</span></code> to <code class="docutils literal notranslate"><span class="pre">(Xb,</span> <span class="pre">y)</span></code>, stroked in the
-line’s <code class="docutils literal notranslate"><span class="pre">stroke</span></code> and <code class="docutils literal notranslate"><span class="pre">opacity</span></code> with the width <code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">/</span> <span class="pre">2</span></code> and the dash
-pattern <code class="docutils literal notranslate"><span class="pre">w</span> <span class="pre">/</span> <span class="pre">2</span></code> on, <code class="docutils literal notranslate"><span class="pre">w</span></code> off, <code class="docutils literal notranslate"><span class="pre">w</span></code> the line’s stroke width (1.5 and 3 with
-the default width 3), with no mark at either end. It is part of its
-line, carries its address and has no element of its own.</p></li>
+grey <code class="docutils literal notranslate"><span class="pre">#9CA3AF</span></code> with the line’s <code class="docutils literal notranslate"><span class="pre">opacity</span></code>, its stroke width <code class="docutils literal notranslate"><span class="pre">w</span></code> and its
+<code class="docutils literal notranslate"><span class="pre">stroke-dasharray</span></code>, so that it keeps the line’s own stroke, solid on a
+continuous line and dotted (<code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">3</span></code> with the default width 3) on a
+discrete one, and differs from the line in colour alone; it has no
+mark at either end. Its colour is fixed: the line’s <code class="docutils literal notranslate"><span class="pre">stroke</span></code> does not
+reach it, and a rule restyling the line changes its width, pattern and
+opacity alone. It is part of its line, carries its address and has no
+element of its own.</p></li>
 <li><p><strong>Regions.</strong> A brace from <code class="docutils literal notranslate"><span class="pre">Xs</span></code> to <code class="docutils literal notranslate"><span class="pre">Xe</span></code>, arms at <code class="docutils literal notranslate"><span class="pre">yb</span></code>, tip 6 further out
 at <code class="docutils literal notranslate"><span class="pre">Xm</span></code>, <code class="docutils literal notranslate"><span class="pre">x</span></code> of the midpoint (section 3.1) of the region’s start and end, so it
 opens towards its timeline’s line; a chunk’s brace alike over its drawn
@@ -3511,7 +3527,7 @@ opens like <code class="docutils literal notranslate"><span class="pre">M290.977
 <td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{Xs}&quot;</span> <span class="pre">y1=&quot;{y}&quot;</span> <span class="pre">x2=&quot;{Xl}&quot;</span> <span class="pre">y2=&quot;{y}&quot;&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">Xl</span></code> where the line stops; <code class="docutils literal notranslate"><span class="pre">&lt;circle</span> <span class="pre">cx=&quot;{Xs}&quot;</span> <span class="pre">cy=&quot;{y}&quot;</span> <span class="pre">r=&quot;{w}&quot;&gt;</span></code>, except where an ancestor line runs on</p></td>
 </tr>
 <tr class="row-even"><td><p>gap line</p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{Xa}&quot;</span> <span class="pre">y1=&quot;{y}&quot;</span> <span class="pre">x2=&quot;{Xb}&quot;</span> <span class="pre">y2=&quot;{y}&quot;&gt;</span></code> stroked in the line’s <code class="docutils literal notranslate"><span class="pre">stroke</span></code>, with <code class="docutils literal notranslate"><span class="pre">stroke-width</span></code> <code class="docutils literal notranslate"><span class="pre">w/2</span></code> and <code class="docutils literal notranslate"><span class="pre">stroke-dasharray</span></code> <code class="docutils literal notranslate"><span class="pre">{w/2}</span> <span class="pre">{w}</span></code> (section 6.6)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">&lt;line</span> <span class="pre">x1=&quot;{Xa}&quot;</span> <span class="pre">y1=&quot;{y}&quot;</span> <span class="pre">x2=&quot;{Xb}&quot;</span> <span class="pre">y2=&quot;{y}&quot;&gt;</span></code> with <code class="docutils literal notranslate"><span class="pre">stroke</span></code> <code class="docutils literal notranslate"><span class="pre">#9CA3AF</span></code> and the line’s <code class="docutils literal notranslate"><span class="pre">stroke-width</span></code> and <code class="docutils literal notranslate"><span class="pre">stroke-dasharray</span></code> (section 6.6)</p></td>
 </tr>
 <tr class="row-odd"><td><p>arrowhead</p></td>
 <td><p>the line stops at <code class="docutils literal notranslate"><span class="pre">Xe</span></code>; <code class="docutils literal notranslate"><span class="pre">&lt;polygon</span> <span class="pre">points=&quot;{Xe+3w},{y}</span> <span class="pre">{Xe},{y−1.5w}</span> <span class="pre">{Xe},{y+1.5w}&quot;&gt;</span></code></p></td>
@@ -4633,9 +4649,10 @@ high, the bottom of <code class="docutils literal notranslate"><span class="pre"
 <p><strong>Where.</strong> Elisions (section 2) are drawn where their timeline is drawn
 whole. A <strong>card elision</strong>, one on a timeline that lies in no group, is
 drawn in the cards that draw its root whole: the ungrouped root’s card
-and every ancestor card of that root (section 8.8); never in a member’s
-card, whose members convert linearly between their shared start and end
-(README, “Groups and the <code class="docutils literal notranslate"><span class="pre">graphical</span></code> object”). A <strong>group elision</strong>, one
+and every ancestor card of that root (section 8.8), and for a virtual
+timeline, its own root, its placed card (section 8.10); never in a
+member’s card, whose members convert linearly between their shared start
+and end (README, “Groups and the <code class="docutils literal notranslate"><span class="pre">graphical</span></code> object”). A <strong>group elision</strong>, one
 on a timeline that lies in a group, is drawn across the frame of each
 group its timeline lies in, at one place in every member card of that
 frame, and carried into the ancestor cards behind that frame (below); an
@@ -5073,12 +5090,17 @@ takes the drawn width of one entry and every position after it lies that
 shrink further left, as after an elision. The shrink is not subtracted,
 though: a position <code class="docutils literal notranslate"><span class="pre">t</span></code> at or after the end <code class="docutils literal notranslate"><span class="pre">b</span></code> of a run gap, compared
 exactly, and before the start of the next one has the x</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x(t) = x(a) + (L × u − L × ub)
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>x(t) = x(a) + (L × u − L × ub − D)
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">x(a)</span></code> the x of the gap’s start, by this same rule where an earlier run
-gap lies before it, and <code class="docutils literal notranslate"><span class="pre">ub</span></code> the proportion of <code class="docutils literal notranslate"><span class="pre">b</span></code>, the two products
-formed first; the end of the line, at <code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">1</span></code>, so lies at <code class="docutils literal notranslate"><span class="pre">x(a)</span> <span class="pre">+</span> <span class="pre">(L</span> <span class="pre">−</span> <span class="pre">L</span> <span class="pre">×</span> <span class="pre">ub)</span></code> for the last run gap. So <code class="docutils literal notranslate"><span class="pre">x(b)</span> <span class="pre">=</span> <span class="pre">x(a)</span></code> exactly, and the entry after a
+gap lies before it, <code class="docutils literal notranslate"><span class="pre">ub</span></code> the proportion of <code class="docutils literal notranslate"><span class="pre">b</span></code>, the two products formed
+first, and <code class="docutils literal notranslate"><span class="pre">D</span></code> the sum of the shrinks of the gaps of elisions lying on the
+card’s virtual timeline (Elisions of a virtual timeline, below) from <code class="docutils literal notranslate"><span class="pre">b</span></code>
+up to <code class="docutils literal notranslate"><span class="pre">t</span></code>, those with <code class="docutils literal notranslate"><span class="pre">b</span> <span class="pre">≤</span> <span class="pre">a'</span></code> and <code class="docutils literal notranslate"><span class="pre">b'</span> <span class="pre">≤</span> <span class="pre">t</span></code> for a gap over <code class="docutils literal notranslate"><span class="pre">[a',</span> <span class="pre">b']</span></code>,
+compared exactly and summed from the left as section 3.2 sums them, 0
+where there is none; the end of the line, at <code class="docutils literal notranslate"><span class="pre">u</span> <span class="pre">=</span> <span class="pre">1</span></code>, so lies at <code class="docutils literal notranslate"><span class="pre">x(a)</span> <span class="pre">+</span> <span class="pre">(L</span> <span class="pre">−</span> <span class="pre">L</span> <span class="pre">×</span> <span class="pre">ub</span> <span class="pre">−</span> <span class="pre">D)</span></code> for the last run gap, <code class="docutils literal notranslate"><span class="pre">D</span></code> the shrinks of every gap of an
+elision after it. So <code class="docutils literal notranslate"><span class="pre">x(b)</span> <span class="pre">=</span> <span class="pre">x(a)</span></code> exactly, and the entry after a
 run starts where the run’s drawn entry ends, which <code class="docutils literal notranslate"><span class="pre">L</span> <span class="pre">×</span> <span class="pre">u</span> <span class="pre">−</span> <span class="pre">D</span></code> would miss
 by the rounding of <code class="docutils literal notranslate"><span class="pre">D</span></code>. A run gap is no elision: it has
 no address, draws nothing, neither rectangle, ellipsis, continuation nor
@@ -5139,9 +5161,49 @@ is a conversion map, <code class="docutils literal notranslate"><span class="pre
 its children, conversion maps and flow control bands are never present;
 its band order is its entry of <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code>, else the default of
 section 4. It lies in no tree: it has no ancestor line and no ancestor
-card, and no elision lies on it (section 2). An unresolved virtual
-timeline draws its line whole, its named timestamps and its name, and no
-chunk, boundary or gap line.</p>
+card. A new virtual timeline is so drawn stripped down: it lends nothing
+of the bands of the timeline it comes from, unlike a switched card
+(below). An unresolved virtual timeline draws its line whole, its named
+timestamps, its elisions and its name, and no chunk, boundary or gap
+line.</p>
+<p><strong>Elisions of a virtual timeline.</strong> An elision may lie on a virtual
+timeline <code class="docutils literal notranslate"><span class="pre">V</span></code> (section 2). Its <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> are positions on <code class="docutils literal notranslate"><span class="pre">V</span></code>’s own
+axis, the played axis from 0 to <code class="docutils literal notranslate"><span class="pre">V</span></code>’s length, never on the axis of the
+timeline <code class="docutils literal notranslate"><span class="pre">V</span></code> comes from: it leaves out a stretch of the playing, and
+nothing of the written timeline, so a stretch played twice is left out
+only where the elision lies, and no other card of that timeline draws it.
+<code class="docutils literal notranslate"><span class="pre">V</span></code> is the root of its member drawing and lies in no tree, so an elision
+on it is a group elision of each group <code class="docutils literal notranslate"><span class="pre">V</span></code> is a member of, drawn across
+that group’s frame (section 8.9, Group elisions), and otherwise a card
+elision of <code class="docutils literal notranslate"><span class="pre">V</span></code>’s placed card, drawn as that card’s <code class="docutils literal notranslate"><span class="pre">elision-mode</span></code> selects
+(section 8.9, Modes): a placed virtual card, like an ungrouped root’s
+card, has no protected span and derives nothing, so <code class="docutils literal notranslate"><span class="pre">proportional</span></code> draws
+no gap there, and <code class="docutils literal notranslate"><span class="pre">auto</span></code> and <code class="docutils literal notranslate"><span class="pre">custom</span></code> draw the stored ones. A card
+elision of <code class="docutils literal notranslate"><span class="pre">V</span></code> is taken as section 8.9 takes one (Pieces, Widths), on
+<code class="docutils literal notranslate"><span class="pre">V</span></code>’s axis with <code class="docutils literal notranslate"><span class="pre">λ</span></code> <code class="docutils literal notranslate"><span class="pre">V</span></code>’s length, except that its pieces are what of its
+stretch lies outside every run gap of the card as well: a run gap is
+drawn 0 wide already, and an elision leaves nothing out there. Each piece
+is a gap of section 3.2 and cuts what crosses it as every gap does
+(section 6.6, Elisions): the line and its gap lines are drawn in pieces,
+a chunk’s brace is cut as a region’s is, and is not drawn, with its
+label, where its start, end or midpoint lies in the gap, and a boundary
+or a named timestamp marking a position in the gap is not drawn. A
+card switched to <code class="docutils literal notranslate"><span class="pre">V</span></code> (below) draws none of <code class="docutils literal notranslate"><span class="pre">V</span></code>’s elisions: it draws its
+own timeline, and no elision at all.</p>
+<p>So, in the worked example below, an elision of <code class="docutils literal notranslate"><span class="pre">virtual_1</span></code> from <code class="docutils literal notranslate"><span class="pre">[10,</span> <span class="pre">1]</span></code>
+to <code class="docutils literal notranslate"><span class="pre">[14,</span> <span class="pre">1]</span></code> on its placed card (<code class="docutils literal notranslate"><span class="pre">L</span></code> = 400) lies wholly in the run gap
+<code class="docutils literal notranslate"><span class="pre">[8,</span> <span class="pre">16]</span></code> of entries 0 and 1: it has no piece and draws no gap. One from
+<code class="docutils literal notranslate"><span class="pre">[17,</span> <span class="pre">1]</span></code> to <code class="docutils literal notranslate"><span class="pre">[19,</span> <span class="pre">1]</span></code> with the width <code class="docutils literal notranslate"><span class="pre">{&quot;canvas&quot;:</span> <span class="pre">8}</span></code> lies in entry 2: its
+one piece has the natural width <code class="docutils literal notranslate"><span class="pre">400</span> <span class="pre">×</span> <span class="pre">u(19)</span> <span class="pre">−</span> <span class="pre">400</span> <span class="pre">×</span> <span class="pre">u(17)</span></code> =
+316.66666666666663 − 283.33333333333337 = 33.33333333333326, the drawn
+width 8 and the shrink 25.333333333333258; it lies after the run gap, so
+<code class="docutils literal notranslate"><span class="pre">x(17)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">(133.33333333333331</span> <span class="pre">+</span> <span class="pre">(283.33333333333337</span> <span class="pre">−</span> <span class="pre">266.66666666666663</span> <span class="pre">−</span> <span class="pre">0))</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">150.00000000000006</span></code> and <code class="docutils literal notranslate"><span class="pre">x(19)</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">(133.33333333333331</span> <span class="pre">+</span> <span class="pre">(316.66666666666663</span> <span class="pre">−</span> <span class="pre">266.66666666666663</span> <span class="pre">−</span> <span class="pre">25.333333333333258))</span> <span class="pre">=</span> <span class="pre">x0</span> <span class="pre">+</span> <span class="pre">158.00000000000006</span></code>; the brace of <code class="docutils literal notranslate"><span class="pre">B</span></code>, whose
+midpoint 20 lies in no gap, is cut there, the gap draws no ellipsis (it is
+narrower than 20), and the line ends at `x(24) = x0 + (133.33333333333331</p>
+<ul class="simple">
+<li><p>(400 − 266.66666666666663 − 25.333333333333258)) = x0 +
+241.33333333333343` in its end circle.</p></li>
+</ul>
 <p><strong>Switched cards.</strong> A card of a timeline <code class="docutils literal notranslate"><span class="pre">T</span></code> that reads <code class="docutils literal notranslate"><span class="pre">flow</span></code> (section
 2.4), a member’s card or the card of an ungrouped root, is <strong>switched</strong>
 where its cascaded <code class="docutils literal notranslate"><span class="pre">flow</span></code> names a FlowMap <code class="docutils literal notranslate"><span class="pre">F</span></code> of <code class="docutils literal notranslate"><span class="pre">T</span></code> that resolves, or a
@@ -5153,38 +5215,84 @@ otherwise. A switched card is laid out by section 6 on <code class="docutils lit
 its gap lines, its chunks and their labels in its regions band before
 <code class="docutils literal notranslate"><span class="pre">T</span></code>’s regions, and their boundaries, each carrying <code class="docutils literal notranslate"><span class="pre">T</span></code>’s ID in place of
 <code class="docutils literal notranslate"><span class="pre">V</span></code>’s (<code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">T,</span> <span class="pre">&quot;facet&quot;:</span> <span class="pre">&quot;regions&quot;,</span> <span class="pre">&quot;part&quot;:</span> <span class="pre">[k]}</span></code>);</p></li>
-<li><p>every other element of <code class="docutils literal notranslate"><span class="pre">T</span></code>’s tree is <strong>unfolded</strong>, drawn at each of its
-<strong>played positions</strong>. A position <code class="docutils literal notranslate"><span class="pre">t</span></code> on <code class="docutils literal notranslate"><span class="pre">T</span></code>’s axis (section 3.1) lies in
-a stretch piece <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> starting at <code class="docutils literal notranslate"><span class="pre">P</span></code> where <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">≤</span> <span class="pre">t</span> <span class="pre">&lt;</span> <span class="pre">b</span></code>, or where <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">b</span></code> and that piece is the last or is followed by a gap or by a stretch
-that does not start at <code class="docutils literal notranslate"><span class="pre">b</span></code>, and is played there at <code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">+</span> <span class="pre">(t</span> <span class="pre">−</span> <span class="pre">a)</span></code>,
-combined as section 3.1 combines values; a position in no stretch is
-not drawn. An element over <code class="docutils literal notranslate"><span class="pre">[s,</span> <span class="pre">e]</span></code>, a child’s line or a region, is
-drawn once in every stretch piece where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">&lt;</span> <span class="pre">min(e,</span> <span class="pre">b)</span></code>, over
-the played positions of those two ends, keeping its start mark only
-where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">=</span> <span class="pre">s</span></code> and its end mark only where <code class="docutils literal notranslate"><span class="pre">min(e,</span> <span class="pre">b)</span> <span class="pre">=</span> <span class="pre">e</span></code>, as a
-row cut at an elision (section 6.6, Elisions); a region so cut is drawn
-as a whole brace over its played stretch, with its label. Within one
-piece the drawings keep the tree of section 2.1, a child’s drawing
-holding the drawings in that piece of what the child holds, and section
-6 lays each drawing out as one item, the drawings taken piece by piece,
-in the order of the pieces, and within a piece as section 6 takes the
-elements. Every drawing keeps its element’s address (section 2.2), and a
-label of a coordinate shows the written coordinate, never the played
-one. A row of the name column holding several drawings of one timeline
-names it once (section 6.6, Names). A named timestamp so draws its wedge, labels and cross-section line
-at every played position, and an alignment anchor joins the nearest pair
+<li><p>it keeps the <strong>band configuration</strong> of the card drawn as written: every
+band of <code class="docutils literal notranslate"><span class="pre">T</span></code> and of every timeline of its tree, the children, markers,
+regions, conversion maps and flow control bands alike, is laid out by
+section 6.4, displayed or hidden, in its band order and in its cascaded
+style as it is there, so that a band hidden on the card drawn as written is hidden
+on the switched card, and hides what it holds (section 2.4);</p></li>
+<li><p>every element those bands hold, and every segment’s boundary and label
+on a line of <code class="docutils literal notranslate"><span class="pre">T</span></code>’s tree, is <strong>unfolded</strong>: drawn in every stretch piece
+whose written stretch holds it, at its <strong>played positions</strong>. A position
+<code class="docutils literal notranslate"><span class="pre">t</span></code> on <code class="docutils literal notranslate"><span class="pre">T</span></code>’s axis (section 3.1) lies in a stretch piece <code class="docutils literal notranslate"><span class="pre">[a,</span> <span class="pre">b]</span></code> starting
+at <code class="docutils literal notranslate"><span class="pre">P</span></code> where <code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">≤</span> <span class="pre">t</span> <span class="pre">&lt;</span> <span class="pre">b</span></code>, or where <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">b</span></code> and that piece is the last or
+is followed by a gap or by a stretch that does not start at <code class="docutils literal notranslate"><span class="pre">b</span></code>, and is
+played there at <code class="docutils literal notranslate"><span class="pre">P</span> <span class="pre">+</span> <span class="pre">(t</span> <span class="pre">−</span> <span class="pre">a)</span></code>, combined as section 3.1 combines values;
+a position in no stretch is not drawn. An element at a position, a
+flow-control element with its flow line, symbol, fork and stack, a
+named timestamp’s wedge with its labels and cross-section line, a
+segment’s boundary, is drawn at every played position of its position,
+each drawing with its labels. An element over <code class="docutils literal notranslate"><span class="pre">[s,</span> <span class="pre">e]</span></code>, a child’s line, a
+region, a map over the extent of its timeline (sections 3.1 and 3.4),
+is drawn once in every stretch piece where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">&lt;</span> <span class="pre">min(e,</span> <span class="pre">b)</span></code>,
+over the played positions of those two ends, so clipped to the piece,
+keeping its start mark only where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">=</span> <span class="pre">s</span></code> and its end mark
+only where <code class="docutils literal notranslate"><span class="pre">min(e,</span> <span class="pre">b)</span> <span class="pre">=</span> <span class="pre">e</span></code>, as a row cut at an elision (section 6.6,
+Elisions); an element over a stretch that no piece reaches into is not
+drawn. A region so clipped is drawn as a whole brace over its played
+stretch, with its whole label centred on that brace’s played midpoint
+in every drawing (section 6.6, Regions), never a part of its name; a
+child’s line so clipped keeps its one name in the name column (below);
+a map so clipped is a closed double line over its played stretch; a
+segment’s label is placed over each drawing of its segment as a
+clipped region’s label is over its brace. An
+arc of a jump is drawn in a piece only where its from and its to both
+lie in that piece, from the played x of the one to that of the other,
+with its label, as the flow control band of a member that is a child
+timeline draws no arc whose to lies outside its stretch (section 6.4,
+Gathering): a jump played in a piece that does not hold its to draws
+its symbol, its fork and its stack there and no arc. Within one piece
+the drawings keep the tree of section 2.1, a child’s drawing holding
+the drawings in that piece of what the child holds, and section 6 lays
+each drawing out as one item, the conversion maps’ slots and the flow
+rows included, the drawings taken piece by piece, in the order of the
+pieces, and within a piece as section 6 takes the elements. Every
+drawing keeps its element’s address (section 2.2), and a label of a
+coordinate shows the written coordinate, never the played one. A row
+of the name column holding several drawings of one timeline names it
+once (section 6.6, Names). An alignment anchor joins the nearest pair
 of its timestamps’ cross-section segments (section 8.7);</p></li>
-<li><p>no flow control band and no conversion maps band, on <code class="docutils literal notranslate"><span class="pre">T</span></code> or any
-timeline of its tree, each absent and laying out nothing (section 6.4):
-a conversion map relates whole axes and has no form per piece, and the
-card drawn as written draws it again; and no gap of a stored, derived or
-group elision (section 8.9);</p></li>
+<li><p>no gap of a stored, derived or group elision (section 8.9), and none of
+an elision lying on the virtual timeline <code class="docutils literal notranslate"><span class="pre">flow</span></code> may name;</p></li>
 <li><p>its name is the row name of <code class="docutils literal notranslate"><span class="pre">T</span></code> followed by <code class="docutils literal notranslate"><span class="pre">·</span></code> and the name of the
 FlowMap or virtual timeline <code class="docutils literal notranslate"><span class="pre">flow</span></code> names, its <code class="docutils literal notranslate"><span class="pre">name</span></code> or, where that is
 null, its whole ID.</p></li>
 </ul>
 <p>Runs are drawn once on the switched card of an ungrouped root and on no
 card in a frame (Runs, above).</p>
+<p>So switching keeps what the card shows, where a new virtual timeline’s
+card starts stripped down (The virtual card, above). In <code class="docutils literal notranslate"><span class="pre">flow/switched_card</span></code>
+the card of <code class="docutils literal notranslate"><span class="pre">allegro</span></code> (1644 quarters) is switched to <code class="docutils literal notranslate"><span class="pre">default</span></code>, playing
+<code class="docutils literal notranslate"><span class="pre">section_a</span></code>, <code class="docutils literal notranslate"><span class="pre">section_b</span></code>, <code class="docutils literal notranslate"><span class="pre">section_a</span></code>, <code class="docutils literal notranslate"><span class="pre">section_c</span></code>: the pieces <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">953/2]</span></code> at 0, <code class="docutils literal notranslate"><span class="pre">[953/2,</span> <span class="pre">500]</span></code> at 953/2, <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">953/2]</span></code> at 500 and <code class="docutils literal notranslate"><span class="pre">[500,</span> <span class="pre">1644]</span></code> at 1953/2, <code class="docutils literal notranslate"><span class="pre">Λ</span></code> = 4241/2. Its bands are those of the card drawn as
+written, in the default band order. The jump <code class="docutils literal notranslate"><span class="pre">volta_jump</span></code> at 953/2 ends
+piece 0, which a stretch starting at 953/2 follows, so it lies in piece 1,
+and it ends piece 2, which a stretch starting at 500 follows, so it lies
+there too: its symbol, fork and stack are drawn at the played positions
+953/2 and 500 + 953/2 = 1953/2. The three elements at 500, <code class="docutils literal notranslate"><span class="pre">repeat_end</span></code>,
+<code class="docutils literal notranslate"><span class="pre">second_ending</span></code> and <code class="docutils literal notranslate"><span class="pre">volta_break</span></code>, end piece 1, which a stretch starting
+at 0 follows, and start piece 3: each is drawn at 953/2 + (500 − 953/2) =
+500 and at 1953/2. A rule showing the arcs draws none on this card: the
+one arc, of <code class="docutils literal notranslate"><span class="pre">repeat_end</span></code>, runs from 500 back to 0 (its destination states
+no place, neither <code class="docutils literal notranslate"><span class="pre">to</span></code> nor <code class="docutils literal notranslate"><span class="pre">by</span></code>, so it leads back to 0, no section break
+lying before it, section 3.1), and no piece holds both ends. The atomic
+sections, which the defaults hide, are drawn under the rule of section
+2.3 after the chunk braces in the regions band:
+<code class="docutils literal notranslate"><span class="pre">A</span></code> over <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">953/2]</span></code> and <code class="docutils literal notranslate"><span class="pre">[500,</span> <span class="pre">1953/2]</span></code>, <code class="docutils literal notranslate"><span class="pre">B</span></code> over <code class="docutils literal notranslate"><span class="pre">[953/2,</span> <span class="pre">500]</span></code> and
+<code class="docutils literal notranslate"><span class="pre">C</span></code> over <code class="docutils literal notranslate"><span class="pre">[1953/2,</span> <span class="pre">4241/2]</span></code>, each with its whole label. A child of
+<code class="docutils literal notranslate"><span class="pre">allegro</span></code> over <code class="docutils literal notranslate"><span class="pre">[450,</span> <span class="pre">520]</span></code>, were one added, crosses the ends 953/2 and
+500 of the stretches: it is drawn over <code class="docutils literal notranslate"><span class="pre">[450,</span> <span class="pre">953/2]</span></code> in piece 0 with its
+start circle, over <code class="docutils literal notranslate"><span class="pre">[953/2,</span> <span class="pre">500]</span></code> in piece 1 with no mark, over <code class="docutils literal notranslate"><span class="pre">[950,</span> <span class="pre">1953/2]</span></code> in piece 2 with its start circle and over <code class="docutils literal notranslate"><span class="pre">[1953/2,</span> <span class="pre">1993/2]</span></code> in
+piece 3 with its end mark, and named once in its row.</p>
 <p><strong>Switched frames.</strong> A frame is <strong>switched</strong> where exactly one of its
 members <code class="docutils literal notranslate"><span class="pre">T</span></code> has a switched card in it: every member card of the frame is
 drawn on <code class="docutils literal notranslate"><span class="pre">T</span></code>’s FlowMap <code class="docutils literal notranslate"><span class="pre">F</span></code>, every member carried through the group. A
@@ -5198,7 +5306,19 @@ drawn as a child’s line is, once in every stretch piece it reaches into,
 its start circle and its end mark kept only where they lie in that piece.
 Every member drawing of the frame then lies
 on <code class="docutils literal notranslate"><span class="pre">F</span></code>’s virtual axis from <code class="docutils literal notranslate"><span class="pre">x0</span></code> to <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">L</span></code> (section 8.2) and draws its
-own tree unfolded, its ancestor lines included; only <code class="docutils literal notranslate"><span class="pre">T</span></code>’s card draws the
+own tree unfolded, its ancestor lines included, keeping the band
+configuration of its card drawn as written as a switched card does
+(above): every band of its tree as written, flow control and conversion
+maps included, every element they hold carried to <code class="docutils literal notranslate"><span class="pre">T</span></code>’s axis and then
+unfolded, an arc drawn in a piece only where its from and its to, both
+carried, lie in that piece. In <code class="docutils literal notranslate"><span class="pre">groups/switched_frame</span></code> the card of
+<code class="docutils literal notranslate"><span class="pre">allegro</span></code> switches the frame of <code class="docutils literal notranslate"><span class="pre">performance</span></code> to <code class="docutils literal notranslate"><span class="pre">default</span></code>: <code class="docutils literal notranslate"><span class="pre">allegro</span></code>’s
+card in the frame draws its flow control, and its atomic sections where
+a rule shows them, at the played positions of the worked case above, and <code class="docutils literal notranslate"><span class="pre">recording</span></code> (702.5 seconds)
+draws its line once in each of the four pieces, a position <code class="docutils literal notranslate"><span class="pre">m</span></code> of it
+carried to <code class="docutils literal notranslate"><span class="pre">t</span> <span class="pre">=</span> <span class="pre">(m</span> <span class="pre">×</span> <span class="pre">1644)</span> <span class="pre">/</span> <span class="pre">702.5</span></code> in binary64, so that a timestamp at
+351.25 would lie at 822.0 and be played in piece 3 at 976.5 + (822.0 −
+500) = 1298.5. Only <code class="docutils literal notranslate"><span class="pre">T</span></code>’s card draws the
 chunks of <code class="docutils literal notranslate"><span class="pre">F</span></code>, their boundaries and its gap lines, a virtual member’s own
 chunks unfolding as every other element of its drawing, and over a gap of
 <code class="docutils literal notranslate"><span class="pre">F</span></code> every other member draws nothing. An ancestor line of a member <code class="docutils literal notranslate"><span class="pre">M</span></code>

@@ -1186,17 +1186,19 @@ name it as a member, so that it shares the frame with the recordings that
 follow its flow (<a class="reference internal" href="#groups-and-the-graphical-object">Groups and the <code class="docutils literal notranslate"><span class="pre">graphical</span></code>
 object</a>); a named timestamp, a
 groupstamp where it is a member, may lie on it; a resource and the
-MatchClaim table may name it; and <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code> may hold its band
-order. No elision lies on it. A FlowMap is drawn as the axis it plays,
-its chunks laid end to end, each a brace named by its source, a run of
-one chunk repeated drawn once with <code class="docutils literal notranslate"><span class="pre">×</span> <span class="pre">n</span></code>, a gap as a dashed stretch of the
-line labelled with its length: on the card of a virtual timeline, which
+MatchClaim table may name it; <code class="docutils literal notranslate"><span class="pre">graphical.order</span></code> may hold its band
+order; and an elision may lie on it, on its own axis. A FlowMap is drawn
+as the axis it plays, its chunks laid end to end, each a brace named by
+its source, a run of one chunk repeated drawn once with <code class="docutils literal notranslate"><span class="pre">×</span> <span class="pre">n</span></code>, a gap as a
+grey stretch of the line in the line’s own stroke, labelled with its
+length: on the card of a virtual timeline, which
 the drawing places where its placement holds the virtual timeline’s ID,
 and on the card of a root switched to it by the property <code class="docutils literal notranslate"><span class="pre">flow</span></code>, which a
 rule addressed to the root’s cards sets to the ID of one of its FlowMaps
-or of a virtual timeline applying one to it. A switched card draws every
-element of its tree at each position where it is played and no flow
-control; in a frame, the switch of one member carries every member
+or of a virtual timeline applying one to it. A switched card keeps the
+bands it displays: it draws every element of its tree, its flow control
+and conversion maps included, at each position where it is played; in a
+frame, the switch of one member carries every member
 through the group, and the switches of two members, which both
 validators warn of as <code class="docutils literal notranslate"><span class="pre">flow_conflict</span></code> at the group’s <code class="docutils literal notranslate"><span class="pre">members</span></code>, leave the
 frame as written (the drawing specification, section 8.10).</p>
@@ -1679,9 +1681,9 @@ of the drawing. Every row drawn across the stretch stops where the
 stretch starts and resumes where it ends, at full scale on either side,
 and a narrow <strong>gap</strong> lies between, holding one <strong>ellipsis</strong> (<code class="docutils literal notranslate"><span class="pre">•••</span></code>),
 centred in it, and below it the elision’s name. The elision <strong>lies on</strong> its timeline, a root or a
-descendant at any depth, a segment included, never a virtual timeline:
+descendant at any depth, a segment included, or a virtual timeline:
 <code class="docutils literal notranslate"><span class="pre">timeline</span></code> has the meaning and the validation of a named timestamp’s
-<code class="docutils literal notranslate"><span class="pre">timeline</span></code> otherwise, and <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;</span> <span class="pre">end</span></code>,
+<code class="docutils literal notranslate"><span class="pre">timeline</span></code>, and <code class="docutils literal notranslate"><span class="pre">start</span> <span class="pre">&lt;</span> <span class="pre">end</span></code>,
 its <strong>elided coordinates</strong>, are values on that timeline’s own axis, from
 its zero to its <code class="docutils literal notranslate"><span class="pre">length</span></code> (and only from its zero when the length is
 <code class="docutils literal notranslate"><span class="pre">null</span></code>), written as its number type selects and respelled by writers as
@@ -1850,8 +1852,8 @@ of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent’s known length, nor that a segment
 line’s segments are contiguous and alike, nor that a named timestamp lies
 on a timeline or a virtual timeline of the manifest and within it, nor that a groupstamp lies
-in a group, nor that an elision lies on a timeline of the manifest and
-within it, nor that a resource’s
+in a group, nor that an elision lies on a timeline or a virtual timeline
+of the manifest and within it, nor that a resource’s
 timelines are timelines or virtual timelines of the manifest, nor the rules of named
 MatchStamps (<a class="reference internal" href="#named-matchstamps">Named MatchStamps</a>), nor the rules of
 flow control, FlowMaps and virtual timelines (<a class="reference internal" href="#flow-control">Flow
@@ -2034,10 +2036,10 @@ stable code:</p>
 <td><p>its <code class="docutils literal notranslate"><span class="pre">groupstamp</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">'&lt;id&gt;'</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">groupstamp,</span> <span class="pre">but</span> <span class="pre">its</span> <span class="pre">timeline</span> <span class="pre">'&lt;timeline</span> <span class="pre">id&gt;'</span> <span class="pre">is</span> <span class="pre">a</span> <span class="pre">member</span> <span class="pre">of</span> <span class="pre">no</span> <span class="pre">group</span> <span class="pre">and</span> <span class="pre">lies</span> <span class="pre">in</span> <span class="pre">none</span></code></p></td>
 </tr>
-<tr class="row-odd"><td><p>An elision’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code> names no timeline of the manifest (a virtual timeline is none)</p></td>
+<tr class="row-odd"><td><p>An elision’s <code class="docutils literal notranslate"><span class="pre">timeline</span></code> names no timeline and no virtual timeline of the manifest</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">elision_timeline</span></code></p></td>
 <td><p>the <code class="docutils literal notranslate"><span class="pre">timeline</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;id&gt;'</span> <span class="pre">names</span> <span class="pre">no</span> <span class="pre">timeline</span> <span class="pre">of</span> <span class="pre">this</span> <span class="pre">manifest</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">'&lt;id&gt;'</span> <span class="pre">names</span> <span class="pre">no</span> <span class="pre">timeline</span> <span class="pre">or</span> <span class="pre">virtual</span> <span class="pre">timeline</span> <span class="pre">of</span> <span class="pre">this</span> <span class="pre">manifest</span></code></p></td>
 </tr>
 <tr class="row-even"><td><p>An elision’s <code class="docutils literal notranslate"><span class="pre">start</span></code> lies before 0</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">elision_stretch</span></code></p></td>
