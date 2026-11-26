@@ -3,6 +3,7 @@ import { isJsonObject, JsonFloat, type JsonObject } from "../json/value.js";
 import { exact, exactNumber, jsonInteger, type Rational } from "../numbers/exact.js";
 import { spell } from "../serialization/text.js";
 import {
+  axesById,
   elisionsOf,
   entries,
   jsonPointer,
@@ -109,7 +110,7 @@ function* timelineRepresentation(
  * Yield own-axis representation violations in manifest order: the timelines
  * first (a flow-control element's coordinate, then the `by` of its `ends` and
  * of each destination and its `after`), then the coordinate of every named
- * timestamp on a timeline of the manifest, then the `start`, `end` and width
+ * timestamp on a timeline of the manifest or a virtual timeline, then the `start`, `end` and width
  * `span` of every elision on one, then the gaps of every FlowMap of one, each
  * read as that timeline's number type, then the `length` of every virtual
  * timeline, read as its own.
@@ -119,8 +120,9 @@ export function* representationProblems(manifest: JsonObject): Generator<SchemaV
     yield* timelineRepresentation(root, ["timelines", index], null);
   }
   const timelines = timelinesById(manifest);
+  const axes = axesById(manifest);
   for (const [index, timestamp] of timestampsOf(manifest).entries()) {
-    const timeline = timelines.get(text(timestamp, "timeline"));
+    const timeline = axes.get(text(timestamp, "timeline"));
     if (timeline === undefined) continue;
     yield* representationProblem(
       "coordinate",

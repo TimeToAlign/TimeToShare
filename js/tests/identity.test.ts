@@ -674,7 +674,7 @@ describe("identity", () => {
   it("checks members", () => {
     expect(only(manifest([timeline("score")], { groups: [group("g", ["tempo"])] }))).toEqual([
       ["groups", 0, "members", 0],
-      "'tempo' names no timeline of this manifest",
+      "'tempo' names no timeline or virtual timeline of this manifest",
     ]);
     const piece = () =>
       timeline("piece", "quarters", [8, 1], {
@@ -718,7 +718,7 @@ describe("identity", () => {
     order(value).g9 = [];
     expect(only(value)).toEqual([
       ["graphical", "order", "g9"],
-      "'g9' names no group or timeline of this manifest",
+      "'g9' names no group, timeline or virtual timeline of this manifest",
     ]);
     value = bundle();
     order(value).group_1 = ["score", "page", "performance"];
@@ -810,11 +810,11 @@ describe("identity", () => {
   it("checks band orders", () => {
     expect(only(banded({ intro: DEFAULT_BANDS }))).toEqual([
       ["graphical", "order", "intro"],
-      "'intro' names no group or timeline of this manifest",
+      "'intro' names no group, timeline or virtual timeline of this manifest",
     ]);
     expect(only(banded({ nothing: [] }))).toEqual([
       ["graphical", "order", "nothing"],
-      "'nothing' names no group or timeline of this manifest",
+      "'nothing' names no group, timeline or virtual timeline of this manifest",
     ]);
   });
 
@@ -1060,7 +1060,10 @@ describe("identity", () => {
       "band_order_old_form",
       "'score/regions_1' is not 'line' or a facet, in the band order of 'score'",
     ],
-    ["order_unknown_group", "'group_9' names no group or timeline of this manifest"],
+    [
+      "order_unknown_group",
+      "'group_9' names no group, timeline or virtual timeline of this manifest",
+    ],
     ["child_unit_differs", "child 'take' has unit 'seconds', its parent 'score' has 'quarters'"],
     [
       "child_offset_beyond_parent",
@@ -1070,7 +1073,10 @@ describe("identity", () => {
       "child_end_beyond_parent",
       "child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'",
     ],
-    ["timestamp_timeline_unknown", "'ghost' names no timeline of this manifest"],
+    [
+      "timestamp_timeline_unknown",
+      "'ghost' names no timeline or virtual timeline of this manifest",
+    ],
     [
       "timestamp_coordinate_beyond_length",
       "coordinate [5, 1] of 'timestamp_1' is beyond the length [4, 1] of its timeline 'verse'",
@@ -1192,14 +1198,14 @@ describe("identity", () => {
   it("holds a named timestamp to name a timeline", () => {
     expect(only(stamped([stamp("timestamp_1", "ghost", [1, 1])]))).toEqual([
       ["graphical", "timestamps", 0, "timeline"],
-      "'ghost' names no timeline of this manifest",
+      "'ghost' names no timeline or virtual timeline of this manifest",
     ]);
     const value = stamped([stamp("timestamp_1", "g", [1, 1])], {
       groups: [group("g", ["score"])],
     });
     expect(only(value)).toEqual([
       ["graphical", "timestamps", 0, "timeline"],
-      "'g' names no timeline of this manifest",
+      "'g' names no timeline or virtual timeline of this manifest",
     ]);
   });
 
@@ -1380,7 +1386,10 @@ describe("identity", () => {
         "'timestamp_2' is not unique in the manifest, first at #/graphical/timestamps/1/id",
       ],
       [["id"], "'g2' is not unique in the manifest, first at #/groups/1/id"],
-      [["groups", 0, "members", 0], "'ghost' names no timeline of this manifest"],
+      [
+        ["groups", 0, "members", 0],
+        "'ghost' names no timeline or virtual timeline of this manifest",
+      ],
       [["graphical", "order", "g2", 0], "'stranger' is not a member of group 'g2'"],
       [["graphical", "order", "g2"], "member 'second' of group 'g2' is missing"],
       [
@@ -1388,8 +1397,14 @@ describe("identity", () => {
         "'regions_2' is not 'line' or a facet, in the band order of 'kid'",
       ],
       [["graphical", "order", "kid"], "'line' is missing from the band order of 'kid'"],
-      [["graphical", "order", "zz"], "'zz' names no group or timeline of this manifest"],
-      [["graphical", "timestamps", 0, "timeline"], "'nowhere' names no timeline of this manifest"],
+      [
+        ["graphical", "order", "zz"],
+        "'zz' names no group, timeline or virtual timeline of this manifest",
+      ],
+      [
+        ["graphical", "timestamps", 0, "timeline"],
+        "'nowhere' names no timeline or virtual timeline of this manifest",
+      ],
       [
         ["graphical", "timestamps", 1, "coordinate"],
         "coordinate [9, 1] of 'timestamp_2' is beyond the length [8, 1] of its timeline 'first'",
@@ -1560,5 +1575,93 @@ describe("elisions", () => {
       return;
     }
     throw new Error("value was accepted");
+  });
+});
+
+describe("virtual timelines named where timelines are", () => {
+  /**
+   * `score` (8 quarters, regions `a` 0 to 4 and `b` 4 to 8), `recording`
+   * (10.0 seconds), the FlowMap `flow_map_1` playing `a a b` and the virtual
+   * timeline `virtual_1` (12 quarters) it gives `score`.
+   */
+  const virtually = (members: JsonObject = {}): JsonObject =>
+    manifest(
+      [
+        timeline("score", "quarters", [8, 1], {
+          regions: [
+            { id: "a", start: [0, 1], end: [4, 1] },
+            { id: "b", start: [4, 1], end: [8, 1] },
+          ],
+        }),
+        timeline("recording", "seconds", new JsonFloat(10)),
+      ],
+      {
+        flow_maps: [{ id: "flow_map_1", timeline: "score", chunks: ["a", "a", "b"] }],
+        virtual_timelines: [
+          {
+            id: "virtual_1",
+            map: "flow_map_1",
+            timeline: "score",
+            unit: "quarters",
+            number_type: "fraction",
+            length: [12, 1],
+          },
+        ],
+        ...members,
+      },
+    );
+
+  it("take a virtual timeline as a group member", () => {
+    const value = virtually({
+      groups: [group("g1", ["recording", "virtual_1"]), group("g2", ["score", "virtual_1"])],
+      graphical: { order: { virtual_1: ["markers", "line"] } },
+    });
+    expect(problems(value)).toEqual([]);
+    validate(value);
+    expect(only(virtually({ groups: [group("g", ["flow_map_1", "recording"])] }))).toEqual([
+      ["groups", 0, "members", 0],
+      "'flow_map_1' names no timeline or virtual timeline of this manifest",
+    ]);
+    expect(only(virtually({ groups: [group("g", ["recording", "virtual_2"])] }))).toEqual([
+      ["groups", 0, "members", 1],
+      "'virtual_2' names no timeline or virtual timeline of this manifest",
+    ]);
+  });
+
+  it("let a named timestamp and a resource name a virtual timeline", () => {
+    const ends = [
+      stamp("timestamp_1", "virtual_1", [0, 1]),
+      stamp("timestamp_2", "virtual_1", [12, 1]),
+    ];
+    const grouped = { ...stamp("timestamp_3", "virtual_1", [6, 1]), groupstamp: true };
+    const claims = {
+      id: "resource_1",
+      type: "MatchClaim",
+      timelines: ["recording", "virtual_1"],
+      url: "claims.parquet",
+    };
+    const value = virtually({
+      groups: [group("g", ["recording", "virtual_1"])],
+      graphical: { timestamps: [...ends, grouped] },
+      resources: [claims],
+    });
+    expect(problems(value)).toEqual([]);
+    validate(value);
+    const beyond = virtually({
+      graphical: { timestamps: [stamp("timestamp_1", "virtual_1", [25, 2])] },
+    });
+    expect(only(beyond)).toEqual([
+      ["graphical", "timestamps", 0, "coordinate"],
+      "coordinate [25, 2] of 'timestamp_1' is beyond the length [12, 1] of its timeline 'virtual_1'",
+    ]);
+    expect(only(virtually({ graphical: { timestamps: [grouped] } }))).toEqual([
+      ["graphical", "timestamps", 0, "groupstamp"],
+      "'timestamp_3' is a groupstamp, but its timeline 'virtual_1' is a member of no group and lies in none",
+    ]);
+    const elision = { id: "elision_1", timeline: "virtual_1", start: [1, 1], end: [2, 1] };
+    expect(only(virtually({ graphical: { elisions: [elision] } }))).toEqual([
+      ["graphical", "elisions", 0, "timeline"],
+      "'virtual_1' names no timeline of this manifest",
+    ]);
   });
 });

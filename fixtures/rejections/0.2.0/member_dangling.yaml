@@ -102,6 +102,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
-message: "'tempo' names no timeline of this manifest"
+message: "'tempo' names no timeline or virtual timeline of this manifest"
 path: [groups, 0, members, 2]
-reason: "Every member names a timeline of the manifest."
+reason: "Every member names a timeline or a virtual timeline of the manifest."

@@ -52,6 +52,7 @@ def _listing_problems(
 def order_problems(
     manifest: Mapping[str, Any],
     timelines: Collection[str],
+    virtual: Collection[str],
     first_group: Mapping[str, int],
 ) -> Iterator[SchemaValidationError]:
     """Yield unknown order keys and invalid display and band orders.
@@ -60,8 +61,10 @@ def order_problems(
     lists ``line`` and any of the five facets, each once; a facet it leaves
     out takes its place from the order the timeline follows without an entry.
 
-    ``timelines`` holds every timeline ID and ``first_group`` the index of the
-    first group of each group ID, as the identity rules collected them.
+    ``timelines`` holds every timeline ID, ``virtual`` every virtual timeline
+    ID and ``first_group`` the index of the first group of each group ID, as
+    the identity rules collected them. A virtual timeline's entry is a band
+    order.
     """
     groups = entries_of(manifest, "groups")
     orders = (manifest.get("graphical") or {}).get("order") or {}
@@ -80,7 +83,7 @@ def order_problems(
                     "member {entry} of group {owner} is missing",
                 ),
             )
-        elif key in timelines:
+        elif key in timelines or key in virtual:
             yield from _listing_problems(
                 "band_order",
                 key,
@@ -97,5 +100,6 @@ def order_problems(
             yield SchemaValidationError(
                 "order_key",
                 path,
-                f"'{key}' names no group or timeline of this manifest",
+                f"'{key}' names no group, timeline or virtual timeline of this "
+                "manifest",
             )

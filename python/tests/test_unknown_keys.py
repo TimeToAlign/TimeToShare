@@ -29,6 +29,7 @@ WARNINGS = [
     "convention_unknown",
     "declaration_show_projections",
     "declaration_unknown_key",
+    "flow_conflict",
     "graphical_unknown_key",
     "group_unknown_key",
     "manifestation_unknown",

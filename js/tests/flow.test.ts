@@ -645,6 +645,123 @@ describe("FlowMaps and virtual timelines", () => {
     ]);
   });
 
+  const card = (id: string): JsonObject => ({ id, part: ["card"] });
+  /**
+   * `mapped`'s roots with the FlowMaps `f` (of `score`) and `g` (of
+   * `sketch`), the conversion map `tempo` of `score`, the virtual timelines
+   * `v` (`f` applied to `score`), `w` (`f` applied to `verse`), `x` (`f`
+   * applied to `score` through `grp`) and `y` (`tempo` applied to `score`),
+   * and `rules`.
+   */
+  const switched = (rules: JsonObject[], graphical: JsonObject = {}): JsonObject => {
+    const value = mapped({
+      flow_maps: [
+        { id: "f", timeline: "score", chunks: ["intro", "intro"] },
+        { id: "g", timeline: "sketch", chunks: ["idea"] },
+      ],
+      virtual_timelines: [
+        virtual("v", "f", "score", [4, 1]),
+        virtual("w", "f", "verse", [4, 1]),
+        virtual("x", "f", "score", [4, 1], { through: "grp" }),
+        virtual("y", "tempo", "score", new JsonFloat(4), { unit: "seconds", number_type: "float" }),
+      ],
+      groups: [{ id: "grp", members: ["score", "sketch"] }],
+      graphical: { rules, ...graphical },
+    });
+    const [root] = value.timelines as JsonObject[];
+    (root as JsonObject).conversion_maps = [
+      { type: "LinearMap", id: "tempo", source_unit: "quarters", target_unit: "seconds" },
+    ];
+    return value;
+  };
+
+  it("switch a card to a FlowMap of its timeline", () => {
+    const value = switched([
+      { select: { addresses: [card("score")] }, set: { flow: "f" } },
+      { select: { addresses: [card("score")] }, set: { flow: "v", stroke: "#000000" } },
+      { select: { addresses: [card("sketch")] }, set: { stroke: "#000000" } },
+    ]);
+    expect(problems(value)).toEqual([]);
+    validate(value);
+  });
+
+  it("refuse a flow naming anything else", () => {
+    const rule = (flow: string, select: JsonObject = { addresses: [card("score")] }) => ({
+      select,
+      set: { flow },
+    });
+    const rules = [
+      rule("intro"),
+      rule("score"),
+      rule("nowhere"),
+      rule("f", { addresses: [card("sketch")] }),
+      rule("w"),
+      rule("x"),
+      rule("y"),
+      rule("f", { element: "card" }),
+      rule("f", { addresses: [card("score")], within: "score" }),
+      rule("f", { addresses: [{ id: "score" }] }),
+      rule("f", { addresses: [{ id: "score", facet: "regions" }] }),
+      rule("f", { addresses: [{ id: "score", part: ["name"] }] }),
+      rule("f", { addresses: [card("score"), card("sketch")] }),
+      { select: { addresses: [card("score")] }, set: "switched" },
+    ];
+    const styles = { plain: { stroke: "#000000" }, switched: { flow: "f" } };
+    const at = (index: number, ...rest: string[]) => ["graphical", "rules", index, ...rest];
+    const unknown = (id: string) => `'${id}' names no FlowMap or virtual timeline of this manifest`;
+    const applies = (id: string) =>
+      `'${id}' does not apply a FlowMap of 'score' to 'score' without through`;
+    const select =
+      "a rule setting flow selects the cards of timelines by their addresses alone, each {id, part: [card]}";
+    const other = "'f' is a FlowMap of 'score', not of 'sketch'";
+    expect(problems(switched(rules, { styles }))).toEqual([
+      [
+        "flow_rule",
+        ["graphical", "styles", "switched", "flow"],
+        "style 'switched' sets flow; only a rule addressed to the cards of a timeline sets it",
+      ],
+      ["flow_rule", at(0, "set", "flow"), unknown("intro")],
+      ["flow_rule", at(1, "set", "flow"), unknown("score")],
+      ["flow_rule", at(2, "set", "flow"), unknown("nowhere")],
+      ["flow_rule", at(3, "set", "flow"), other],
+      ["flow_rule", at(4, "set", "flow"), applies("w")],
+      ["flow_rule", at(5, "set", "flow"), applies("x")],
+      ["flow_rule", at(6, "set", "flow"), applies("y")],
+      ["flow_rule", at(7, "select"), select],
+      ["flow_rule", at(8, "select"), select],
+      ["flow_rule", at(9, "select"), select],
+      ["flow_rule", at(10, "select"), select],
+      ["flow_rule", at(11, "select"), select],
+      ["flow_rule", at(12, "set", "flow"), other],
+    ]);
+  });
+
+  it("warn of members of one group each switched", () => {
+    const conflicts = (rules: JsonObject[], groups: JsonObject[]) => {
+      const value = switched(rules);
+      value.groups = groups;
+      return manifestWarnings(value).filter((warning) => warning.code === "flow_conflict");
+    };
+    const scoreF = { select: { addresses: [card("score")] }, set: { flow: "f" } };
+    const scoreV = { select: { addresses: [card("score")] }, set: { flow: "v" } };
+    const sketchG = { select: { addresses: [card("sketch")] }, set: { flow: "g" } };
+    const one = [{ id: "grp", members: ["score", "sketch"] }];
+    const two = [
+      { id: "g1", members: ["score"] },
+      { id: "g2", members: ["sketch"] },
+    ];
+    expect(conflicts([scoreF], one)).toEqual([]);
+    expect(conflicts([scoreF, sketchG], two)).toEqual([]);
+    expect(conflicts([scoreF, scoreV, sketchG], one)).toEqual([
+      {
+        code: "flow_conflict",
+        path: ["groups", 0, "members"],
+        message:
+          "members 'score' and 'sketch' of 'grp' state the flows 'v' and 'g': the frame is drawn as written",
+      },
+    ]);
+  });
+
   it("count their IDs among the manifest's", () => {
     const value = mapped({
       flow_maps: [{ id: "intro", timeline: "score", chunks: [] }],

@@ -24,7 +24,7 @@ from ..ids import with_bare_ids
 from ..manifest import UNITS
 from ..statements import calendar_date, expand_iri
 from ..validate import PROVENANCE_DEFINITION, load_schema, select, worded
-from ..validation.diagnostics import json_pointer, number_type_of, timelines_by_id
+from ..validation.diagnostics import axes_by_id, json_pointer, number_type_of
 from .columns import (
     BELIEF_KEYS,
     COORDINATE_KEYS,
@@ -499,12 +499,12 @@ def _id_problems(found: _Found, ids: pa.Array) -> None:
 
 
 class _Manifest:
-    """A manifest's timelines by ID. A timeline's axis is read only where a
-    sound cell or an admitted row lies on it, so a timeline no checked cell
-    names is never read."""
+    """A manifest's timelines and virtual timelines by ID. A timeline's axis
+    is read only where a sound cell or an admitted row lies on it, so a
+    timeline no checked cell names is never read."""
 
     def __init__(self, manifest: Mapping[str, Any]) -> None:
-        self.timelines = timelines_by_id(with_bare_ids(manifest))
+        self.timelines = axes_by_id(with_bare_ids(manifest))
         self.ids = pa.array(
             [key for key in self.timelines if isinstance(key, str)], pa.string()
         )

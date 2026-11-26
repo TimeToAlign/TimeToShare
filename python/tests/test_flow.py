@@ -1271,3 +1271,143 @@ def test_the_flow_fixtures_cover_what_their_names_say() -> None:
     ]
     assert repairs["jump_1"]["coordinate"] == repairs["jump_2"]["coordinate"]
     assert minimal(read("repairs")) == read("repairs")
+
+
+# -- the property flow -----------------------------------------------------------
+
+
+def _card(identifier: str) -> dict:
+    return {"id": identifier, "part": ["card"]}
+
+
+def _switched(rules: list[dict], **graphical: Any) -> dict:
+    """``_mapped``'s roots with the FlowMaps ``f`` (of ``score``) and ``g`` (of
+    ``sketch``), the conversion map ``tempo`` of ``score``, the virtual
+    timelines ``v`` (``f`` applied to ``score``), ``w`` (``f`` applied to
+    ``verse``), ``x`` (``f`` applied to ``score`` through ``grp``) and ``y``
+    (``tempo`` applied to ``score``), and ``rules``."""
+    flow_maps = [
+        {"id": "f", "timeline": "score", "chunks": ["intro", "intro"]},
+        {"id": "g", "timeline": "sketch", "chunks": ["idea"]},
+    ]
+    virtual = [
+        _virtual("v", "f", "score", (4, 1)),
+        _virtual("w", "f", "verse", (4, 1)),
+        _virtual("x", "f", "score", (4, 1), through="grp"),
+        _virtual("y", "tempo", "score", 4.0, unit="seconds", number_type="float"),
+    ]
+    value = _mapped(
+        flow_maps=flow_maps,
+        virtual_timelines=virtual,
+        groups=[{"id": "grp", "members": ["score", "sketch"]}],
+        graphical={"rules": rules, **graphical},
+    )
+    linear = {"type": "LinearMap", "id": "tempo"}
+    value["timelines"][0]["conversion_maps"] = [
+        linear | {"source_unit": "quarters", "target_unit": "seconds"}
+    ]
+    return value
+
+
+def test_a_card_is_switched_to_a_flowmap_of_its_timeline() -> None:
+    rules = [
+        {"select": {"addresses": [_card("score")]}, "set": {"flow": "f"}},
+        {
+            "select": {"addresses": [_card("score")]},
+            "set": {"flow": "v", "stroke": "#000000"},
+        },
+        {"select": {"addresses": [_card("sketch")]}, "set": {"stroke": "#000000"}},
+    ]
+    value = _switched(rules)
+    assert _problems(value) == []
+    validate(value)
+
+
+def test_a_flow_naming_anything_else_is_refused() -> None:
+    def rule(flow: str, *cards: str, **select: Any) -> dict:
+        addresses = [_card(card) for card in cards] or [_card("score")]
+        return {"select": select or {"addresses": addresses}, "set": {"flow": flow}}
+
+    rules = [
+        rule("intro"),
+        rule("score"),
+        rule("nowhere"),
+        rule("f", "sketch"),
+        rule("w"),
+        rule("x"),
+        rule("y"),
+        rule("f", element="card"),
+        rule("f", addresses=[_card("score")], within="score"),
+        rule("f", addresses=[{"id": "score"}]),
+        rule("f", addresses=[{"id": "score", "facet": "regions"}]),
+        rule("f", addresses=[{"id": "score", "part": ["name"]}]),
+        rule("f", "score", "sketch"),
+        {"select": {"addresses": [_card("score")]}, "set": "switched"},
+    ]
+    styles = {"plain": {"stroke": "#000000"}, "switched": {"flow": "f"}}
+    select = (
+        "a rule setting flow selects the cards of timelines by their addresses alone, "
+    )
+    select += "each {id, part: [card]}"
+
+    def at(index: int, *rest: str) -> tuple:
+        return ("graphical", "rules", index, *rest)
+
+    unknown = "'{}' names no FlowMap or virtual timeline of this manifest"
+    applies = "'{}' does not apply a FlowMap of 'score' to 'score' without through"
+    assert _problems(_switched(rules, styles=styles)) == [
+        (
+            "flow_rule",
+            ("graphical", "styles", "switched", "flow"),
+            "style 'switched' sets flow; only a rule addressed to the cards of a "
+            "timeline sets it",
+        ),
+        ("flow_rule", at(0, "set", "flow"), unknown.format("intro")),
+        ("flow_rule", at(1, "set", "flow"), unknown.format("score")),
+        ("flow_rule", at(2, "set", "flow"), unknown.format("nowhere")),
+        (
+            "flow_rule",
+            at(3, "set", "flow"),
+            "'f' is a FlowMap of 'score', not of 'sketch'",
+        ),
+        ("flow_rule", at(4, "set", "flow"), applies.format("w")),
+        ("flow_rule", at(5, "set", "flow"), applies.format("x")),
+        ("flow_rule", at(6, "set", "flow"), applies.format("y")),
+        ("flow_rule", at(7, "select"), select),
+        ("flow_rule", at(8, "select"), select),
+        ("flow_rule", at(9, "select"), select),
+        ("flow_rule", at(10, "select"), select),
+        ("flow_rule", at(11, "select"), select),
+        (
+            "flow_rule",
+            at(12, "set", "flow"),
+            "'f' is a FlowMap of 'score', not of 'sketch'",
+        ),
+    ]
+
+
+def test_members_of_one_group_each_switched_are_warned_of() -> None:
+    def warnings(*rules: dict, groups: list[dict]) -> list[tuple]:
+        value = _switched(list(rules))
+        value["groups"] = groups
+        return [
+            (warning["code"], warning["path"], warning["message"])
+            for warning in manifest_warnings(value)
+            if warning["code"] == "flow_conflict"
+        ]
+
+    score_f = {"select": {"addresses": [_card("score")]}, "set": {"flow": "f"}}
+    score_v = {"select": {"addresses": [_card("score")]}, "set": {"flow": "v"}}
+    sketch_g = {"select": {"addresses": [_card("sketch")]}, "set": {"flow": "g"}}
+    one = [{"id": "grp", "members": ["score", "sketch"]}]
+    two = [{"id": "g1", "members": ["score"]}, {"id": "g2", "members": ["sketch"]}]
+    assert warnings(score_f, groups=one) == []
+    assert warnings(score_f, sketch_g, groups=two) == []
+    assert warnings(score_f, score_v, sketch_g, groups=one) == [
+        (
+            "flow_conflict",
+            ["groups", 0, "members"],
+            "members 'score' and 'sketch' of 'grp' state the flows 'v' and 'g': "
+            "the frame is drawn as written",
+        )
+    ]

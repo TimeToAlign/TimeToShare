@@ -16,6 +16,7 @@ from ..manifest import exact
 from ..serialization import spell
 from .diagnostics import (
     SchemaValidationError,
+    axes_by_id,
     connected_sets,
     elisions_of,
     entries_of,
@@ -32,7 +33,8 @@ def _grouped_timelines(manifest: Mapping[str, Any]) -> set[str]:
     A timeline lies in a group when it or one of its ancestors is listed in
     the group's ``members``: a member's descendants are drawn inside the
     member's card in the group's frame. An ancestor of a member lies in no
-    group through it.
+    group through it. A virtual timeline lies in the groups it is a member
+    of.
     """
     members = {
         member
@@ -51,6 +53,11 @@ def _grouped_timelines(manifest: Mapping[str, Any]) -> set[str]:
 
     for root in entries_of(manifest, "timelines"):
         visit(root, False)
+    grouped.update(
+        entry["id"]
+        for entry in entries_of(manifest, "virtual_timelines")
+        if entry["id"] in members
+    )
     return grouped
 
 
@@ -59,13 +66,13 @@ def timestamp_problems(
 ) -> Iterator[SchemaValidationError]:
     """Yield timestamps off the manifest's timelines, outside their extent or groupless.
 
-    A timestamp names a timeline of the manifest, at any depth, and its
-    coordinate lies between 0 and that timeline's length, or at or after 0
-    where the length is not known. A groupstamp (``groupstamp: true``), a
-    match timestamp included, lies in a group: its timeline or one of that
-    timeline's ancestors is a member of a group.
+    A timestamp names a timeline of the manifest, at any depth, or a virtual
+    timeline, and its coordinate lies between 0 and that timeline's length,
+    or at or after 0 where the length is not known. A groupstamp
+    (``groupstamp: true``), a match timestamp included, lies in a group: its
+    timeline or one of that timeline's ancestors is a member of a group.
     """
-    timelines = timelines_by_id(manifest)
+    timelines = axes_by_id(manifest)
     grouped = _grouped_timelines(manifest)
     ends: dict[str, Fraction] = {}
     for index, timestamp in enumerate(timestamps_of(manifest)):
@@ -76,7 +83,8 @@ def timestamp_problems(
             yield SchemaValidationError(
                 "timestamp_timeline",
                 (*path, "timeline"),
-                f"'{identifier}' names no timeline of this manifest",
+                f"'{identifier}' names no timeline or virtual timeline of this "
+                "manifest",
             )
             continue
         coordinate = timestamp["coordinate"]
@@ -255,10 +263,11 @@ def resource_problems(
     """Yield the problems of the resources.
 
     Resource by resource, each ID of its ``timelines`` names a timeline of
-    the manifest, at any depth, and no earlier resource has its type where
-    that type is ``MatchClaim`` or ``Projection``.
+    the manifest, at any depth, or a virtual timeline, and no earlier
+    resource has its type where that type is ``MatchClaim`` or
+    ``Projection``.
     """
-    timelines = timelines_by_id(manifest)
+    timelines = axes_by_id(manifest)
     first: dict[str, str] = {}
     for index, resource in enumerate(entries_of(manifest, "resources")):
         path = ("resources", index)
@@ -267,7 +276,8 @@ def resource_problems(
                 yield SchemaValidationError(
                     "resource_timeline",
                     (*path, "timelines", number),
-                    f"'{identifier}' names no timeline of this manifest",
+                    f"'{identifier}' names no timeline or virtual timeline of "
+                    "this manifest",
                 )
         kind = resource["type"]
         if kind in ONE_RESOURCE_TYPES:

@@ -311,6 +311,9 @@ def _held(declared: dict[str, Any]) -> Iterator[tuple[str, str]]:
     """The definitions a member refers to, and how it holds them."""
     if "$ref" in declared:
         yield "one", _name(declared["$ref"])
+    for entry in declared.get("oneOf", ()):
+        if "$ref" in entry:
+            yield "one", _name(entry["$ref"])
     if "$ref" in declared.get("items", {}):
         yield "list", _name(declared["items"]["$ref"])
     if "$ref" in declared.get("additionalProperties", {}):

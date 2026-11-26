@@ -388,7 +388,7 @@ export type NumberPositive = number | FractionPositive;
  */
 export type FractionPositive = [number, number];
 /**
- * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own; a root's flow control band lays out the flow control of the root's whole tree. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's), a child timeline's line at any depth (`child`), a conversion map (`map`), a region, a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, its arcs: one arc per destination whose place is not `by` 0, from the jump's coordinate to that place, hidden by default, and none for a destination whose manifestation is `volta`, which its fork shows; an arc is labelled with its destination's `label` alone, and the jump's own `name`, ID and `label` label the jump once, never each of its arcs, as its `label-display` lists them; no arc is drawn to a place that a `to` names where the element named is rejected, as a destination of a rejected jump may name one), the symbol of a flow-control element (`symbol`, the music-font glyphs of its manifestation or of its destinations' manifestations on the flow row; a jump target draws its symbol alone), a volta fork (`fork`, one per jump with destinations whose manifestation is `volta`, a stem splitting into one arrow per such destination, the first straight on and each further one bent further away from the line, each with its passes as text), a leader line (`leader`, the thin line joining a label moved to a further tier to its element), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
+ * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root or a placed virtual timeline that is a member of no group, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own; a root's flow control band lays out the flow control of the root's whole tree. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's, a virtual timeline's included), a child timeline's line at any depth (`child`), a conversion map (`map`), a region (`region`, also the brace of a chunk of a virtual timeline or of a switched card), a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, its arcs: one arc per destination whose place is not `by` 0, from the jump's coordinate to that place, hidden by default, and none for a destination whose manifestation is `volta`, which its fork shows; an arc is labelled with its destination's `label` alone, and the jump's own `name`, ID and `label` label the jump once, never each of its arcs, as its `label-display` lists them; no arc is drawn to a place that a `to` names where the element named is rejected, as a destination of a rejected jump may name one), the symbol of a flow-control element (`symbol`, the music-font glyphs of its manifestation or of its destinations' manifestations on the flow row; a jump target draws its symbol alone), a volta fork (`fork`, one per jump with destinations whose manifestation is `volta`, a stem splitting into one arrow per such destination, the first straight on and each further one bent further away from the line, each with its passes as text), a leader line (`leader`, the thin line joining a label moved to a further tier to its element), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, or the tick where a chunk of a virtual timeline or of a switched card starts (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -1396,7 +1396,7 @@ export interface BreakCondition {
   after?: DestinationReference;
 }
 /**
- * A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group. A child may belong to a group while its root belongs to another or to none.
+ * A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth, and virtual timelines of the manifest; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group (a virtual timeline lies inside none and contains none). A child may belong to a group while its root belongs to another or to none.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Group".
@@ -1409,7 +1409,7 @@ export interface Group {
   name?: Name;
   meta?: Meta;
   /**
-   * The IDs of the member timelines, sorted by code point. The array may be empty.
+   * The IDs of the member timelines, each a timeline of the manifest at any depth or a virtual timeline (checked after the schema), sorted by code point. The array may be empty.
    */
   members: Id[];
 }
@@ -1491,7 +1491,7 @@ export interface MeasureMapRow {
   offset_within_measure?: NumberPositive;
 }
 /**
- * A file the manifest names, one descriptor: its ID, the type of its rows, the timelines it holds data for and its location, with the optional media type, size and digest of the file. At most one resource of a manifest has the type `MatchClaim` and at most one the type `Projection`; every ID of `timelines` names a timeline of the manifest, at any depth. Both are checked after the schema.
+ * A file the manifest names, one descriptor: its ID, the type of its rows, the timelines it holds data for and its location, with the optional media type, size and digest of the file. At most one resource of a manifest has the type `MatchClaim` and at most one the type `Projection`; every ID of `timelines` names a timeline of the manifest, at any depth, or a virtual timeline. Both are checked after the schema.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Resource".
@@ -1506,7 +1506,7 @@ export interface Resource {
    */
   type: string;
   /**
-   * The IDs of the timelines the file holds data for, each once.
+   * The IDs of the timelines the file holds data for, each once: timelines of the manifest at any depth and virtual timelines.
    */
   timelines: Id[];
   /**
@@ -1628,7 +1628,7 @@ export interface Graphical {
    */
   rules?: Rule[];
   /**
-   * The order of what a group or a timeline stacks, top to bottom, keyed by a group's ID (the display order of its members) or by a timeline's ID, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, and a root without one the default band order of the drawing specification. A band order may list a subset of the facets (`Order`).
+   * The order of what a group or a timeline stacks, top to bottom, keyed by a group's ID (the display order of its members) or by the ID of a timeline, of a root or a descendant, or of a virtual timeline (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, and a root or a virtual timeline without one the default band order of the drawing specification. A band order may list a subset of the facets (`Order`).
    */
   order?: {
     [k: string]: Order;
@@ -1719,7 +1719,7 @@ export interface Selector {
   coordinates?: "primary" | "secondary";
 }
 /**
- * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element, a named timestamp (its wedge) or an elision (its gap). `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` a segment's boundary, `["name"]` and `["label"]` the element's name or label (a named timestamp's and an elision's name label is `["name"]`), `["id"]` and `["coordinate"]` the ID label and the coordinate label of a named timestamp or an elision, `["line"]` a named timestamp's cross-section line, `["ellipsis"]` an elision's ellipsis, `["symbol"]` the symbol of a flow-control element, `["fork"]` the volta fork of a jump, `["leader"]` the leader lines of the labels of a region, a segment or a jump, and `["elision"]` the gap of an elision the drawing derives on the timeline X, which has no ID, with its ellipsis `["elision", "ellipsis"]` and its labels `["elision", "name"]` and `["elision", "coordinate"]`. A `facet` needs an `id` and never stands with a `part`. An address with a member it does not declare equals no element's address and matches nothing.
+ * The address of an element, as the drawing specification (`docs/drawing.md`) uses it: an object compared as a whole, never a string. `{}` addresses the bundle and `{"part": ["name"]}` the manifest's title. `{"id": X}` addresses the element whose ID is X: a timeline (its line and every ancestor line of it), a group (its frame), a MeasureMap, a conversion map, a region, a flow-control element, a named timestamp (its wedge) or an elision (its gap). `{"id": T, "facet": F}` addresses the band drawing the facet F of the timeline T, and `{"id": T, "part": ["card"]}` every card of T. Any other `part` addresses a part of the element X: `["start"]` a segment's boundary, `["name"]` and `["label"]` the element's name or label (a named timestamp's and an elision's name label is `["name"]`), `["id"]` and `["coordinate"]` the ID label and the coordinate label of a named timestamp or an elision, `["line"]` a named timestamp's cross-section line, `["ellipsis"]` an elision's ellipsis, `["symbol"]` the symbol of a flow-control element, `["fork"]` the volta fork of a jump, `["leader"]` the leader lines of the labels of a region, a segment or a jump, and `["elision"]` the gap of an elision the drawing derives on the timeline X, which has no ID, with its ellipsis `["elision", "ellipsis"]` and its labels `["elision", "name"]` and `["elision", "coordinate"]`. `{"id": V, "facet": "regions", "part": [k]}` addresses the brace of the chunk at index k, from 0, of the FlowMap a virtual timeline V applies, or that a card of the timeline V is switched to, with its label `[k, "label"]`, its leader `[k, "leader"]` and the boundary at its start `[k, "start"]`. A `facet` needs an `id`, and stands with a `part` only where the part holds a chunk index. An address with a member it does not declare equals no element's address and matches nothing.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Address".
@@ -1730,10 +1730,10 @@ export interface Address {
   /**
    * @minItems 1
    */
-  part?: [Part, ...Part[]];
+  part?: [Part | number, ...(Part | number)[]];
 }
 /**
- * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation, shadow, label-display and the four elision properties are TimeToShare's own. An element reads only the properties its type reads; the others are ignored.
+ * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width, rotation, shadow, label-display, flow and the four elision properties are TimeToShare's own. An element reads only the properties its type reads; the others are ignored.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Declaration".
@@ -1774,12 +1774,16 @@ export interface Declaration {
    */
   "elision-display"?: string;
   /**
+   * The flow a card of a timeline is drawn in: the ID of a FlowMap of that timeline, or of a virtual timeline applying such a FlowMap to that timeline without `through`; the card is then drawn on the FlowMap's played axis, and a frame holding it with every member carried through the group. Absent, the card is drawn as written. Read by a card alone, and only from a rule of the manifest's own `rules` whose selector names `addresses` alone, each the address of a timeline's cards; a style never sets it. Checked after the schema.
+   */
+  flow?: Id;
+  /**
    * Which labels a flow-control element draws (read by a break, a section break, a barline and a jump): `none`, or words from `name` (its name), `id` (its ID) and `label` (its own label, and on a jump also the labels of its arcs, each its destination's label) separated by single spaces; the order and a repeated word carry no meaning. Initially `name label`.
    */
   "label-display"?: string;
 }
 /**
- * A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `["cross_section"]`. Five parts of it may be drawn, as `display` selects: a wedge `{"id": id}`, three labels stacked outward from the wedge (its name `{"id": id, "part": ["name"]}`, its ID `{"id": id, "part": ["id"]}` and its coordinate `{"id": id, "part": ["coordinate"]}`) and a cross-section line `{"id": id, "part": ["line"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's, that the coordinate reads as its number type, that it lies within the timeline, that a groupstamp lies in a group, and the rules of match timestamps are checked after the schema.
+ * A named timestamp: a position `coordinate` on the own axis of the timeline `timeline` (any depth, a segment included, or a virtual timeline), a number as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), named `name`. A match timestamp (`matchstamp: true`) is a timestamp of the named MatchStamps: at most one lies on a coordinate, some MatchStamp names it, its `name` is optional and its `display` defaults to `["cross_section"]`. Five parts of it may be drawn, as `display` selects: a wedge `{"id": id}`, three labels stacked outward from the wedge (its name `{"id": id, "part": ["name"]}`, its ID `{"id": id, "part": ["id"]}` and its coordinate `{"id": id, "part": ["coordinate"]}`) and a cross-section line `{"id": id, "part": ["line"]}`. Only the coordinate on the timeline's own axis is stored. That the timeline is one of the manifest's or a virtual timeline, that the coordinate reads as its number type, that it lies within the timeline, that a groupstamp lies in a group, and the rules of match timestamps are checked after the schema.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Timestamp".
@@ -1790,7 +1794,7 @@ export interface Timestamp {
    */
   id: Id;
   /**
-   * The ID of the timeline the timestamp lies on: a root or a descendant at any depth, a segment included.
+   * The ID of the timeline the timestamp lies on: a root or a descendant at any depth, a segment included, or a virtual timeline.
    */
   timeline: Id;
   /**
@@ -1810,7 +1814,7 @@ export interface Timestamp {
    */
   matchstamp?: boolean;
   /**
-   * Whether the timestamp is a groupstamp: its timeline lies in a group (it or one of its ancestors is a member of the group), and its line extends across the frame of each group it lies in, over every member drawn there. The members' coordinates are derived from the group and never stored. False, the default, draws the line on the timestamp's own timeline alone.
+   * Whether the timestamp is a groupstamp: its timeline lies in a group (it or one of its ancestors is a member of the group; a virtual timeline lies in the groups it is a member of), and its line extends across the frame of each group it lies in, over every member drawn there. The members' coordinates are derived from the group and never stored. False, the default, draws the line on the timestamp's own timeline alone.
    */
   groupstamp?: boolean;
 }

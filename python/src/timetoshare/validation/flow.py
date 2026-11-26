@@ -34,8 +34,15 @@ the timeline it comes from lies in the tree of the FlowMap's root, and its
 ``length`` is the sum of the FlowMap's chunks and gaps where all of them lie
 on its own axis (``virtual_timeline``); with ``through`` neither is read.
 
-A manifestation or a convention outside the format's vocabulary is valid:
-:func:`flow_warnings` reports it.
+Last the property ``flow`` of the manifest's own ``graphical`` layer
+(``flow_rule``): no style sets it, a rule setting it selects by
+``addresses`` alone, each the address of a timeline's cards, and its value
+names a FlowMap of each such timeline, or a virtual timeline applying one to
+it without ``through``.
+
+A manifestation or a convention outside the format's vocabulary, and members
+of one group that each state a flow, are valid: :func:`flow_warnings`
+reports them.
 """
 
 from __future__ import annotations
@@ -606,13 +613,139 @@ def _timeline_warnings(
         yield from _timeline_warnings(child, (*path, "children", index))
 
 
+def _cards_of(address: Any) -> str | None:
+    """The timeline whose cards an address ``{id, part: ["card"]}`` names, or
+    None for any other value."""
+    if not isinstance(address, Mapping) or len(address) != 2:
+        return None
+    identifier, part = address.get("id"), address.get("part")
+    if not isinstance(identifier, str) or not isinstance(part, list):
+        return None
+    return identifier if part == ["card"] else None
+
+
+def _selected_cards(selector: Any) -> list[str] | None:
+    """The timelines whose cards a selector names, where it names
+    ``addresses`` alone and each is the address of a timeline's cards; else
+    None."""
+    if not isinstance(selector, Mapping) or len(selector) != 1:
+        return None
+    addresses = selector.get("addresses")
+    if not isinstance(addresses, list):
+        return None
+    found: list[str] = []
+    for address in addresses:
+        identifier = _cards_of(address)
+        if identifier is None:
+            return None
+        found.append(identifier)
+    return found
+
+
+def _flow_rules(manifest: Mapping[str, Any]) -> list[tuple[int, Mapping[str, Any]]]:
+    """The rules of the manifest's own ``graphical`` layer that set ``flow``,
+    with their indices."""
+    graphical = manifest.get("graphical") or {}
+    return [
+        (index, rule)
+        for index, rule in enumerate(entries_of(graphical, "rules"))
+        if isinstance(rule.get("set"), Mapping) and "flow" in rule["set"]
+    ]
+
+
+def flow_rule_problems(
+    manifest: Mapping[str, Any],
+) -> Iterator[SchemaValidationError]:
+    """Yield the problems of the property ``flow``.
+
+    Each style setting it, in code-point order of the style names; then,
+    rule by rule in array order, a selector that does not name the cards of
+    timelines by their addresses alone, then a value naming no FlowMap and
+    no virtual timeline, or else, address by address, a value that is no
+    FlowMap of that timeline and no virtual timeline applying one to it
+    without ``through``.
+    """
+    graphical = manifest.get("graphical") or {}
+    styles = graphical.get("styles") or {}
+    for name in sorted(styles):
+        style = styles[name]
+        if isinstance(style, Mapping) and "flow" in style:
+            yield SchemaValidationError(
+                "flow_rule",
+                ("graphical", "styles", name, "flow"),
+                f"style '{name}' sets flow; only a rule addressed to the cards of "
+                "a timeline sets it",
+            )
+    flow_maps: dict[str, Mapping[str, Any]] = {}
+    for flow_map in entries_of(manifest, "flow_maps"):
+        flow_maps.setdefault(flow_map["id"], flow_map)
+    virtual: dict[str, Mapping[str, Any]] = {}
+    for entry in entries_of(manifest, "virtual_timelines"):
+        virtual.setdefault(entry["id"], entry)
+    for index, rule in _flow_rules(manifest):
+        at = ("graphical", "rules", index)
+        cards = _selected_cards(rule.get("select"))
+        if cards is None:
+            yield SchemaValidationError(
+                "flow_rule",
+                (*at, "select"),
+                "a rule setting flow selects the cards of timelines by their "
+                "addresses alone, each {id, part: [card]}",
+            )
+        value = rule["set"]["flow"]
+        flow_map = flow_maps.get(value)
+        entry = virtual.get(value)
+        if flow_map is None and entry is None:
+            yield SchemaValidationError(
+                "flow_rule",
+                (*at, "set", "flow"),
+                f"'{value}' names no FlowMap or virtual timeline of this manifest",
+            )
+            continue
+        for timeline in cards or []:
+            if flow_map is not None:
+                if flow_map["timeline"] == timeline:
+                    continue
+                yield SchemaValidationError(
+                    "flow_rule",
+                    (*at, "set", "flow"),
+                    f"'{value}' is a FlowMap of '{flow_map['timeline']}', not of "
+                    f"'{timeline}'",
+                )
+            else:
+                assert entry is not None
+                applied = flow_maps.get(entry["map"])
+                if (
+                    applied is not None
+                    and applied["timeline"] == timeline
+                    and entry["timeline"] == timeline
+                    and entry.get("through") is None
+                ):
+                    continue
+                yield SchemaValidationError(
+                    "flow_rule",
+                    (*at, "set", "flow"),
+                    f"'{value}' does not apply a FlowMap of '{timeline}' to "
+                    f"'{timeline}' without through",
+                )
+
+
+def _sentence(items: list[str]) -> str:
+    """Items joined as a sentence lists them: ``a``, ``a and b``, ``a, b and c``."""
+    if len(items) < 2:
+        return "".join(items)
+    return f"{', '.join(items[:-1])} and {items[-1]}"
+
+
 def flow_warnings(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
     """Return the flow warnings of a valid manifest, in document order.
 
     ``manifestation_unknown`` at the ``manifestation`` of a flow-control
     element or of a jump's destination that the format does not define for
-    it, and ``convention_unknown`` at the ``convention`` of a FlowMap that is
-    none of the format's.
+    it, ``convention_unknown`` at the ``convention`` of a FlowMap that is
+    none of the format's, and ``flow_conflict`` at the ``members`` of a group
+    of which more than one member's cards a rule sets ``flow`` on: the
+    group's frame is then drawn as written.
     """
     found: list[dict[str, Any]] = []
     for index, root in enumerate(entries_of(manifest, "timelines")):
@@ -627,4 +760,26 @@ def flow_warnings(manifest: Mapping[str, Any]) -> list[dict[str, Any]]:
                     "message": f"'{word}' is no convention the format defines",
                 }
             )
+    flow_of: dict[str, str] = {}
+    for _, rule in _flow_rules(manifest):
+        for timeline in _selected_cards(rule.get("select")) or []:
+            flow_of[timeline] = rule["set"]["flow"]
+    for index, group in enumerate(entries_of(manifest, "groups")):
+        members = [
+            member
+            for member in group.get("members", [])
+            if isinstance(member, str) and member in flow_of
+        ]
+        if len(members) < 2:
+            continue
+        named = _sentence([f"'{member}'" for member in members])
+        flows = _sentence([f"'{flow_of[member]}'" for member in members])
+        found.append(
+            {
+                "code": "flow_conflict",
+                "path": ["groups", index, "members"],
+                "message": f"members {named} of '{group['id']}' state the flows "
+                f"{flows}: the frame is drawn as written",
+            }
+        )
     return found

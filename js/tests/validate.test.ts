@@ -123,9 +123,16 @@ const REJECTIONS = [
   "flow_map_id_is_region_id",
   "flow_map_timeline_child",
   "flow_map_timeline_unknown",
+  "flow_rule_flow_map_of_other_timeline",
+  "flow_rule_in_style",
+  "flow_rule_selector_not_addresses",
+  "flow_rule_value_region",
+  "flow_rule_virtual_of_other_timeline",
   "group_id_duplicate",
   "group_id_is_descendant_id",
   "group_id_is_timeline_id",
+  "group_member_flow_map",
+  "group_member_virtual_unknown",
   "group_members_repeated",
   "group_missing_id",
   "group_missing_members",
@@ -742,6 +749,7 @@ describe("the shared rejection cases", () => {
       "flow_map_canonical",
       "flow_map_chunk",
       "flow_map_timeline",
+      "flow_rule",
       "group_member",
       "groupstamp",
       "iri",
@@ -1032,7 +1040,8 @@ describe("the worded refusals", () => {
       "schema",
       ["graphical", "rules", 2, "select", "addresses", 0],
       "{'id': '#a', 'facet': 'markers', 'part': ['name']} should not be valid " +
-        "under {'required': ['facet', 'part']}",
+        "under {'required': ['facet', 'part'], " +
+        "'properties': {'part': {'items': {'type': 'string'}}}}",
     ]);
   });
 });
@@ -1466,7 +1475,7 @@ describe("the MatchStamp and resource rules", () => {
     matchstamp_not_connected: "the alignment anchors of 'matchstamp_1' are not one connected set",
     alignment_anchor_id_repeated:
       "'anchor_1' is not unique in the manifest, first at #/graphical/matchstamps/0/alignment_anchors/0/id",
-    resource_timeline_unknown: "'take_3' names no timeline of this manifest",
+    resource_timeline_unknown: "'take_3' names no timeline or virtual timeline of this manifest",
     resource_match_claim_twice:
       "a manifest names at most one resource of the type MatchClaim; 'resource_1' is one",
     resource_projection_twice:

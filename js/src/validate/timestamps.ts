@@ -12,6 +12,7 @@ import { isJsonObject, type JsonObject } from "../json/value.js";
 import { compareExact, exact } from "../numbers/exact.js";
 import { spell } from "../serialization/text.js";
 import {
+  axesById,
   elisionsOf,
   entries,
   lengthOf,
@@ -29,7 +30,7 @@ import {
  * in a group when it or one of its ancestors is listed in the group's
  * `members`, since a member's descendants are drawn inside the member's
  * card in the group's frame. An ancestor of a member lies in no group
- * through it.
+ * through it. A virtual timeline lies in the groups it is a member of.
  */
 function groupedTimelines(manifest: JsonObject): Set<string> {
   const members = new Set(
@@ -47,19 +48,22 @@ function groupedTimelines(manifest: JsonObject): Set<string> {
     for (const child of entries(timeline, "children")) visit(child, within);
   };
   for (const root of entries(manifest, "timelines")) visit(root, false);
+  for (const entry of entries(manifest, "virtual_timelines")) {
+    if (members.has(text(entry, "id"))) grouped.add(text(entry, "id"));
+  }
   return grouped;
 }
 
 /**
  * Yield timestamps off the manifest's timelines, outside their extent or groupless.
  *
- * A timestamp names a timeline of the manifest, at any depth, and its
- * coordinate lies between 0 and that timeline's length, or at or after 0
- * where the length is not known. A groupstamp (`groupstamp: true`), a match
+ * A timestamp names a timeline of the manifest, at any depth, or a virtual
+ * timeline, and its coordinate lies between 0 and that timeline's length,
+ * or at or after 0 where the length is not known. A groupstamp (`groupstamp: true`), a match
  * timestamp included, lies in a group (`groupedTimelines`).
  */
 export function* timestampProblems(manifest: JsonObject): Generator<SchemaValidationError> {
-  const timelines = timelinesById(manifest);
+  const timelines = axesById(manifest);
   const grouped = groupedTimelines(manifest);
   for (const [index, timestamp] of timestampsOf(manifest).entries()) {
     const path = ["graphical", "timestamps", index];
@@ -69,7 +73,7 @@ export function* timestampProblems(manifest: JsonObject): Generator<SchemaValida
       yield new SchemaValidationError(
         "timestamp_timeline",
         [...path, "timeline"],
-        `'${id}' names no timeline of this manifest`,
+        `'${id}' names no timeline or virtual timeline of this manifest`,
       );
       continue;
     }
@@ -258,11 +262,11 @@ export const ONE_RESOURCE_TYPES = ["MatchClaim", "Projection"] as const;
  * Yield the problems of the resources.
  *
  * Resource by resource, each ID of its `timelines` names a timeline of the
- * manifest, at any depth, and no earlier resource has its type where that
- * type is `MatchClaim` or `Projection`.
+ * manifest, at any depth, or a virtual timeline, and no earlier resource has
+ * its type where that type is `MatchClaim` or `Projection`.
  */
 export function* resourceProblems(manifest: JsonObject): Generator<SchemaValidationError> {
-  const timelines = timelinesById(manifest);
+  const timelines = axesById(manifest);
   const first = new Map<string, string>();
   for (const [index, resource] of entries(manifest, "resources").entries()) {
     const path = ["resources", index];
@@ -271,7 +275,7 @@ export function* resourceProblems(manifest: JsonObject): Generator<SchemaValidat
         yield new SchemaValidationError(
           "resource_timeline",
           [...path, "timelines", number],
-          `'${id}' names no timeline of this manifest`,
+          `'${id}' names no timeline or virtual timeline of this manifest`,
         );
       }
     }

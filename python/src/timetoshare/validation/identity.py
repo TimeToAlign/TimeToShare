@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Collection, Iterator, Mapping
 from fractions import Fraction
 from typing import Any
 
@@ -16,7 +16,12 @@ from .diagnostics import (
     listed_ids,
     tree_ids,
 )
-from .flow import JumpPositions, flow_map_problems, timeline_flow_problems
+from .flow import (
+    JumpPositions,
+    flow_map_problems,
+    flow_rule_problems,
+    timeline_flow_problems,
+)
 from .maps import MEASURE_VIEWS, timeline_map_problems, timeline_maps
 from .order import order_problems
 from .segments import timeline_segment_problems
@@ -96,14 +101,22 @@ def _member_problems(
     group: Mapping[str, Any],
     path: InstancePath,
     parents: Mapping[str, str | None],
+    virtual: Collection[str],
 ) -> Iterator[SchemaValidationError]:
+    """Yield a group's members that name nothing, then those inside or around
+    an earlier member. A virtual timeline lies inside no timeline and
+    contains none."""
     selected: dict[str, int] = {}
     earliest_descendant: dict[str, tuple[int, str]] = {}
     for index, member in enumerate(group["members"]):
         at = (*path, index)
         if member not in parents:
+            if member in virtual:
+                continue
             yield SchemaValidationError(
-                "group_member", at, f"'{member}' names no timeline of this manifest"
+                "group_member",
+                at,
+                f"'{member}' names no timeline or virtual timeline of this manifest",
             )
             continue
         ancestors = _ancestors(member, parents)
@@ -141,8 +154,8 @@ def identity_problems(
     elisions' IDs, the named MatchStamps' IDs each followed by its alignment
     anchors' IDs, the resources', the FlowMaps' and the virtual timelines'
     IDs, and last the manifest ID); then group members, graphical orders,
-    named timestamps, elisions, named MatchStamps, resources, FlowMaps and
-    virtual timelines.
+    named timestamps, elisions, named MatchStamps, resources, FlowMaps,
+    virtual timelines and the property ``flow``.
     """
     roots = entries_of(value, "timelines")
     groups = entries_of(value, "groups")
@@ -172,14 +185,18 @@ def identity_problems(
         yield duplicate_problem(manifest_id, ("id",), first[manifest_id], "manifest_id")
 
     parents = _parents(roots)
+    virtual = {entry["id"] for entry in entries_of(value, "virtual_timelines")}
     for index, group in enumerate(groups):
-        yield from _member_problems(group, ("groups", index, "members"), parents)
+        yield from _member_problems(
+            group, ("groups", index, "members"), parents, virtual
+        )
     first_group: dict[str, int] = {}
     for index, group in enumerate(groups):
         first_group.setdefault(group["id"], index)
-    yield from order_problems(value, parents, first_group)
+    yield from order_problems(value, parents, virtual, first_group)
     yield from timestamp_problems(value)
     yield from elision_problems(value)
     yield from matchstamp_problems(value)
     yield from resource_problems(value)
     yield from flow_map_problems(value)
+    yield from flow_rule_problems(value)

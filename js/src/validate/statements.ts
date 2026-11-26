@@ -345,7 +345,8 @@ export type WarningCode =
   | "context_absent"
   | "bundle_blank"
   | "manifestation_unknown"
-  | "convention_unknown";
+  | "convention_unknown"
+  | "flow_conflict";
 
 /** One warning of a valid manifest. */
 export interface ManifestWarning {

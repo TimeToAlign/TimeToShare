@@ -33,6 +33,7 @@ ValidationCode: TypeAlias = Literal[
     "flow_map_chunk",
     "flow_map_canonical",
     "virtual_timeline",
+    "flow_rule",
     "conversion_map",
     "child_unit",
     "child_offset",
@@ -64,7 +65,11 @@ ValidationCode: TypeAlias = Literal[
 ]
 
 WarningCode: TypeAlias = Literal[
-    "context_absent", "bundle_blank", "manifestation_unknown", "convention_unknown"
+    "context_absent",
+    "bundle_blank",
+    "manifestation_unknown",
+    "convention_unknown",
+    "flow_conflict",
 ]
 """The codes of the warnings a valid manifest may draw."""
 
@@ -266,6 +271,20 @@ def timelines_by_id(manifest: Any) -> dict[str, Mapping[str, Any]]:
 
     for root in entries_of(manifest, "timelines"):
         visit(root)
+    return found
+
+
+def axes_by_id(manifest: Any) -> dict[str, Mapping[str, Any]]:
+    """Return every timeline of a manifest, at any depth, and every virtual
+    timeline, by ID: what a named timestamp, a group member or a resource
+    may name.
+
+    Of a repeated ID the first in this order is kept, the timelines in
+    document order before the virtual timelines.
+    """
+    found = timelines_by_id(manifest)
+    for entry in entries_of(manifest, "virtual_timelines"):
+        found.setdefault(entry["id"], entry)
     return found
 
 

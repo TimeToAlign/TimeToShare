@@ -426,9 +426,9 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   accepts the manifest, `unknown_keys` returns exactly its `unknown_keys`
   list and `manifest_warnings` exactly its `warnings` list (empty in the
   thirteen cases of unknown keys, which state the format's `@context`;
-  empty `unknown_keys` in the five cases of warnings, `context_absent`,
+  empty `unknown_keys` in the six cases of warnings, `context_absent`,
   `bundle_blank_statements`, `bundle_blank_provenance`,
-  `manifestation_unknown` and `convention_unknown`); the
+  `manifestation_unknown`, `convention_unknown` and `flow_conflict`); the
   JavaScript suite asserts the same lists. `several_depths` holds unknown keys on the
   manifest, a timeline, a child, a region, a break, a jump, a
   jump target, a conversion map and the map nested in it, a MeasureMap and
@@ -578,16 +578,17 @@ package words it as this package does.
 | `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
 | `duplicate_id` | every ID unique across the manifest: each root's tree, in the order above, against the earlier roots' (an ID repeated inside one root counts once), then each group ID, then each MeasureMap ID, then each named timestamp's ID, then each elision's ID, then each MatchStamp's and its anchors', each resource's, each FlowMap's and each virtual timeline's, against every ID before it | the later ID | as above |
 | `manifest_id` | the manifest ID is no other ID of the manifest | `id` | `'g2' is not unique in the manifest, first at #/groups/1/id` |
-| `group_member` | a member names a timeline and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `member 'b' lies inside member 'a' of the same group` |
-| `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
+| `group_member` | a member names a timeline or a virtual timeline, and neither contains nor lies inside another member of its group (a virtual timeline does neither) | the member | `'ghost' names no timeline or virtual timeline of this manifest`, `member 'b' lies inside member 'a' of the same group` |
+| `order_key` | a `graphical.order` key names a group, a timeline or a virtual timeline | the key | `'g9' names no group, timeline or virtual timeline of this manifest` |
 | `display_order` | a group's order permutes its members | the entry, then the order | `'x' is not a member of group 'g'`, `member 'b' of group 'g' is missing` |
 | `band_order` | a timeline's order lists `line` and any of the five facets | the entry, then the order | `'annotations' is not 'line' or a facet, in the band order of 'score'`, `'line' is missing from the band order of 'score'` |
-| `timestamp_timeline` | a named timestamp's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
+| `timestamp_timeline` | a named timestamp's `timeline` names a timeline of the manifest, at any depth, or a virtual timeline | its `timeline` | `'ghost' names no timeline or virtual timeline of this manifest` |
 | `timestamp_coordinate` | its `coordinate` lies from 0 to its timeline's length, from 0 on where the length is null | its `coordinate` | `coordinate [9, 1] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'`, `coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'` |
 | `elision_timeline` | an elision's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
 | `elision_stretch` | its `start` lies at or after 0, its `end` at or before its timeline's length where the length is known, and its `start` before its `end`; each elision checked in that order | its `start`, its `end`, its `end` | `start [-1, 1] of 'elision_1' lies before the start of its timeline 'score'`, `end [5, 1] of 'elision_1' is beyond the length [4, 1] of its timeline 'verse'`, `end [3, 1] of 'elision_1' does not lie after its start [3, 1]` |
 | `flow_map_timeline`, `flow_map_chunk`, `flow_map_canonical` | after the MatchStamps and resources (section "MatchStamps and resources"), FlowMap by FlowMap: its `timeline` names a root; each ID among its chunks a region, a child or a virtual timeline inside that root's tree; at most one FlowMap of a timeline is canonical | its `timeline`, the chunk, its `canonical` | `'coda' is a child timeline; a FlowMap names a root timeline`, `'jump_target_1' names no region, child timeline or virtual timeline in the tree of 'score'`, `'flow_map_2' is a second canonical FlowMap of 'score', after 'flow_map_1'` |
 | `dangling_target`, `virtual_timeline` | then virtual timeline by virtual timeline: its `map` names a FlowMap or a conversion map, its `timeline` a timeline or another virtual timeline, never itself (`dangling_target`); it comes from no ring of virtual timelines, reported at each member of the ring; without `through`, a FlowMap it applies is one of the root its timeline comes from, else its `length` is the sum of the FlowMap's chunks and gaps, compared where every chunk has a known length on its axis and the axis is not `float` (`virtual_timeline`) | its `map`, its `timeline`, its `timeline`, its `map`, its `length` | `'virtual_1' comes from itself through 'virtual_2': a virtual timeline comes, virtual timeline by virtual timeline, from a timeline of this manifest`, `'flow_map_1' is a FlowMap of 'score', and 'sketch' comes from the tree of 'sketch': without through, a virtual timeline applies a FlowMap within the tree of the FlowMap's root timeline`, `length [30, 1] of 'virtual_1' is not the sum of the chunks and gaps of 'flow_map_1', [22, 1]` |
+| `flow_rule` | last, the property `flow`: no style of `graphical.styles` sets it (style by style, in code-point order of their names); then rule by rule a rule setting it selects by `addresses` alone, each `{id, part: [card]}`, and its value names a FlowMap or a virtual timeline, and, address by address, a FlowMap of that timeline or a virtual timeline applying one to that timeline without `through` | the style's `flow`, the rule's `select`, its `set.flow` | `style 'switched' sets flow; only a rule addressed to the cards of a timeline sets it`, `a rule setting flow selects the cards of timelines by their addresses alone, each {id, part: [card]}`, `'region_1' names no FlowMap or virtual timeline of this manifest`, `'flow_map_1' is a FlowMap of 'score', not of 'recording'`, `'virtual_2' does not apply a FlowMap of 'score' to 'score' without through` |
 | `context` | a manifest whose manifest, timeline or region carries `statements` or `provenance` holds `@context` | the first such key in subject order, `provenance` before `statements` | `statements and provenance need the manifest's @context` |
 | `reserved_key` | no key of the manifest, a timeline, a region or a group begins with `@` (but the manifest's `@context`), holds a `:`, is a term of the context the element may not use or names a prefix of `@context` | the key | `'label' is reserved on a timeline` |
 | `iri` | subject by subject: the ID of an element with statements is an IRI fragment; every compact IRI names a prefix of `@context`, unless it is `//`-absolute or of the schemes `info`, `mailto`, `tag`, `urn`; last, after the provenance of the elements, rule by rule, a selector's `class` written as a compact IRI does too, its prefix `tts` excepted (`iri_prefix_undeclared_selector_class`) | the `id`, the key or value, the `class` | `the ID 'Bass Kick' of an element with statements is no IRI fragment`, `'wdtt:P175': the prefix 'wdtt' is not declared in @context` |
@@ -892,7 +893,15 @@ documents that bound each rule from the other side:
   `score/regions_1`, `Regions`) is one problem at its entry, a missing
   `line` one at the order (`["markers", "regions"]`, and the empty order,
   `'line' is missing from the band order of 'score'`), and a missing facet
-  none. An order keyed by a region's ID is one `order_key`.
+  none. An order keyed by a region's ID is one `order_key`. A virtual
+  timeline is a member like a timeline: a group of `recording` and the
+  virtual timeline `virtual_1` that applies a FlowMap of `score`, and one
+  of `score` beside `virtual_1`, validate, and so does a band order keyed
+  by `virtual_1`; a member naming the FlowMap `flow_map_1` or the unknown
+  `virtual_2` is one `group_member` each (the shared cases
+  `group_member_flow_map`, `group_member_virtual_unknown`). What would prove
+  it wrong: a virtual member refused, a FlowMap's ID taken for a member, or
+  a virtual member reported as lying inside the timeline it comes from.
 - **Named timestamps.** Timestamps on a root, on a child and on a segment,
   at 0 and at the length, and at any coordinate from 0 on a timeline of
   unknown length pass, as do a timestamp on the second of two roots and two
@@ -903,6 +912,12 @@ documents that bound each rule from the other side:
   float axis is compared exactly (`60.5` beyond `60.0`), as is a fraction
   (`[17, 2]` beyond `[8, 1]`, `[16, 2]` not). A timestamp's ID is any
   ID: `timestamp_3kq9x0m2ztb7a`, `Bar 2` and `timestamp_01` are accepted.
+  A timestamp on a virtual timeline lies on its own axis: at 0 and at its
+  length (`[24, 1]`) it passes, at `[25, 1]` it is `timestamp_coordinate`
+  against that length; a groupstamp on a virtual timeline that is a member
+  passes, on one that is none it is `groupstamp`; a resource naming a
+  virtual timeline passes. An elision on a virtual timeline is still
+  `elision_timeline`: elisions lie on the manifest's timelines alone.
   So is the ID of a resource, a MatchStamp and an alignment anchor: the
   MatchStamp fixture with its MatchStamps renamed `matchstamp_3kq9x0m2ztb7a`
   and `Take 2, downbeat`, its anchors `anchor_00000000000zz` and `Bar 2`,
@@ -968,7 +983,7 @@ named timestamps, in `validation/timestamps.py`. What proves them:
 | `match_timestamp` | `match_timestamp_coordinate_repeated` | `'timestamp_11' lies on the coordinate of the match timestamp 'timestamp_1'` |
 | `matchstamp` | `matchstamp_not_connected` | `the alignment anchors of 'matchstamp_1' are not one connected set` |
 | `duplicate_id` | `alignment_anchor_id_repeated` | `'anchor_1' is not unique in the manifest, first at #/graphical/matchstamps/0/alignment_anchors/0/id` |
-| `resource_timeline` | `resource_timeline_unknown` | `'take_3' names no timeline of this manifest` |
+| `resource_timeline` | `resource_timeline_unknown` | `'take_3' names no timeline or virtual timeline of this manifest` |
 | `resource_type` | `resource_match_claim_twice` | `a manifest names at most one resource of the type MatchClaim; 'resource_1' is one` |
 | `resource_type` | `resource_projection_twice` | `a manifest names at most one resource of the type Projection; 'resource_2' is one` |
 
@@ -1202,6 +1217,24 @@ flow that does not follow from its manifest.
   written `[2, 1]`, a virtual timeline's `length` `[16.0, 2]` on its own
   fraction axis `[8, 1]`, and on a float axis the `by` of a destination, of
   its `after` and of a break's `ends.after` written as integers are floats.
+- **The property `flow`** (`test_flow.py`, the shared cases
+  `flow_rule_*`). What proves it: the value a card is drawn in names an
+  element the drawing can resolve for that card. A rule addressed to the
+  cards of `score` setting `flow` to its FlowMap `flow_map_1`, or to the
+  virtual timeline `virtual_1` that applies it to `score`, validates, the
+  later of two such rules included. Each of these
+  is one `flow_rule`: a style setting `flow` (at the style's `flow`,
+  whatever rule names the style); a selector naming anything beside
+  `addresses` (`element`, `within`), an address that is no card address
+  (`{id}`, `{id, facet}`, `{id, part: [name]}`), each at the rule's
+  `select`; a value naming a region, a timeline or nothing; a FlowMap of
+  another timeline; a virtual timeline applying a FlowMap of another
+  timeline, applying the right FlowMap to another timeline, applying it
+  `through` a group, or applying a conversion map, each at the rule's
+  `set.flow`, one problem per address that does not fit. A rule whose
+  `set` names a style or sets other properties is not read. What would
+  prove it wrong: a flow accepted on a card of a timeline its FlowMap does
+  not play, or a problem reported for a rule that sets no `flow`.
 - **Warnings** (`test_flow.py`, `test_unknown_keys.py`). Every word of the
   tables on the role or destination it belongs to, a section break without
   a manifestation, the three conventions and a FlowMap without one draw no
@@ -1212,7 +1245,12 @@ flow that does not follow from its manifest.
   defined. `convention_unknown` lies at a FlowMap's `convention`. Warnings
   are sorted by path, an index before a key, then by code. The shared
   cases `manifestation_unknown` (three warnings) and `convention_unknown`
-  pin the messages for both packages.
+  pin the messages for both packages. `flow_conflict` lies at a group's
+  `members` where rules set `flow` on the cards of two or more of its
+  members, naming them in the order of `members` with the flows the
+  cascade gives them (the later rule for a card wins); one member switched,
+  or two switched members in two groups, draw none; the shared case
+  `flow_conflict` pins its message.
 - **Provenance about an element** (`test_flow.py`). An entry of a
   flow-control element or a FlowMap names no pair. Beyond the schema its
   date is a calendar day, its compact IRIs name declared prefixes, its `#`
@@ -2674,7 +2712,10 @@ extraction's are without fontTools. What proves them:
   anchors and MatchClaim IDs of the table with `(1, 1, null)`. A test
   that refuses one of these cells, or reads it as another value, fails.
 - **Against a manifest.** Given a manifest (as read from its file), every
-  timeline a cell or a row names exists (`unknown_timeline`) and every
+  timeline a cell or a row names exists, a virtual timeline of the
+  manifest included (a claim on `virtual_1` passes against the manifest
+  stating it and is `unknown_timeline` against one without it)
+  (`unknown_timeline`), and every
   cell, every Projection's row, is in its timeline's own unit and number
   type (`axis_mismatch`): seconds on a samples timeline and a float on a
   fraction axis are refused, the same cells and rows without a manifest

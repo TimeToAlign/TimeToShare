@@ -4,7 +4,8 @@ A manifest file writes every ID with a leading ``#``: an element's own ID
 (``"id": "#clt_1"``) as well as every reference to one (a group's members,
 the keys of ``graphical.order``, a named timestamp's timeline, an elision's
 timeline, an alignment anchor's timestamps, a resource's timelines, an
-address's ``id``, a selector's ``within``, the ``to`` of a jump's destination,
+address's ``id``, a selector's ``within``, a declaration's ``flow``, the ``to``
+of a jump's destination,
 the ``jump`` and ``to`` of an ``after``, a FlowMap's ``timeline`` and the IDs
 among its ``chunks``, a virtual timeline's ``map``, ``timeline`` and
 ``through``, a measure view's ``measure_map``). The IDs of MatchClaims a
@@ -74,6 +75,7 @@ ID_POSITIONS: tuple[tuple[str, str, Shape], ...] = (
     ("VirtualTimeline", "timeline", "id"),
     ("VirtualTimeline", "through", "id"),
     ("Selector", "within", "id"),
+    ("Declaration", "flow", "id"),
     ("MapBase", "id", "id"),
     ("MeasureView", "measure_map", "id"),
 )
@@ -98,12 +100,14 @@ CONTAINERS: tuple[tuple[str, str, Holding, str], ...] = (
     ("FlowControlElement", "ends", "one", "BreakCondition"),
     ("JumpDestination", "after", "one", "DestinationReference"),
     ("BreakCondition", "after", "one", "DestinationReference"),
+    ("Graphical", "styles", "values", "Declaration"),
     ("Graphical", "rules", "list", "Rule"),
     ("Graphical", "timestamps", "list", "Timestamp"),
     ("Graphical", "elisions", "list", "Elision"),
     ("Graphical", "matchstamps", "list", "MatchStamp"),
     ("MatchStamp", "alignment_anchors", "list", "AlignmentAnchor"),
     ("Rule", "select", "one", "Selector"),
+    ("Rule", "set", "one", "Declaration"),
     ("Selector", "addresses", "list", "Address"),
     ("ChainMap", "maps", "list", "ConversionMap"),
     ("PiecewiseMap", "maps", "list", "ConversionMap"),

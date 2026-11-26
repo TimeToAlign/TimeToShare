@@ -1,0 +1,87 @@
+code: flow_rule
+manifest:
+  flow_maps:
+    -
+      canonical: false
+      chunks: ["#region_1", "#region_1", "#region_2"]
+      id: "#flow_map_1"
+      name: Repeated
+      timeline: "#score"
+  graphical:
+    elisions: []
+    matchstamps: []
+    order: {}
+    rules:
+      -
+        select:
+          addresses:
+            -
+              id: "#score"
+              part: [card]
+        set: switched
+    styles:
+      switched:
+        flow: "#flow_map_1"
+    timestamps: []
+  groups:
+    -
+      id: "#group_1"
+      members: ["#recording", "#virtual_1"]
+      meta: {}
+      name: null
+  measure_maps: []
+  meta: {}
+  name: null
+  resources: []
+  timelines:
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#recording"
+      is_segment_line: false
+      length: 10.0
+      locked: false
+      meta: {}
+      name: Recording
+      number_type: float
+      regions: []
+      unit: seconds
+    -
+      children: []
+      conversion_maps: []
+      flow_control: []
+      id: "#score"
+      is_segment_line: false
+      length: [16, 1]
+      locked: false
+      meta: {}
+      name: Score
+      number_type: fraction
+      regions:
+        -
+          end: [8, 1]
+          id: "#region_1"
+          meta: {}
+          name: A
+          start: [0, 1]
+        -
+          end: [16, 1]
+          id: "#region_2"
+          meta: {}
+          name: B
+          start: [8, 1]
+      unit: quarters
+  timetoshare: "0.2.0"
+  virtual_timelines:
+    -
+      id: "#virtual_1"
+      length: [24, 1]
+      map: "#flow_map_1"
+      name: "Score, repeated"
+      number_type: fraction
+      timeline: "#score"
+      unit: quarters
+message: "style 'switched' sets flow; only a rule addressed to the cards of a timeline sets it"
+path: [graphical, styles, switched, flow]
+reason: "A style never sets flow; a rule addressed to the cards of a timeline sets it."

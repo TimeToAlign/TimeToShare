@@ -186,6 +186,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
-message: "'take_3' names no timeline of this manifest"
+message: "'take_3' names no timeline or virtual timeline of this manifest"
 path: [resources, 0, timelines, 1]
-reason: "A resource holds data for timelines of the manifest; take_3 names none."
+reason: "A resource holds data for timelines and virtual timelines of the manifest; take_3 names none."

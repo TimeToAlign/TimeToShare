@@ -82,12 +82,14 @@ function* bandOrderProblems(
 /**
  * Yield unknown order keys, display-order problems and band-order problems.
  *
- * `timelines` holds every timeline ID and `firstGroup` the index of the
- * first group of each group ID, as the identity rules collected them.
+ * `timelines` holds every timeline ID, `virtual` every virtual timeline ID
+ * and `firstGroup` the index of the first group of each group ID, as the
+ * identity rules collected them. A virtual timeline's entry is a band order.
  */
 export function* orderProblems(
   manifest: JsonObject,
   timelines: ReadonlyMap<string, unknown>,
+  virtual: ReadonlySet<string>,
   firstGroup: ReadonlyMap<string, number>,
 ): Generator<SchemaValidationError> {
   const groups = entries(manifest, "groups");
@@ -99,13 +101,13 @@ export function* orderProblems(
     const index = firstGroup.get(key);
     if (index !== undefined) {
       yield* displayOrderProblems(groups[index] as JsonObject, order, path);
-    } else if (timelines.has(key)) {
+    } else if (timelines.has(key) || virtual.has(key)) {
       yield* bandOrderProblems(key, order, path);
     } else {
       yield new SchemaValidationError(
         "order_key",
         path,
-        `'${key}' names no group or timeline of this manifest`,
+        `'${key}' names no group, timeline or virtual timeline of this manifest`,
       );
     }
   }

@@ -24,6 +24,7 @@ from timetoshare import (  # noqa: E402
     dumps,
     loads,
     provenance_schema_path,
+    with_bare_ids,
     with_file_ids,
 )
 from timetoshare.tables import (  # noqa: E402
@@ -1121,6 +1122,23 @@ def test_an_unknown_timeline_is_refused_only_against_the_manifest() -> None:
     ]
     with pytest.raises(TableError, match="^the manifest has no timeline 'dpt_9'$"):
         check_match_claims(table, MANIFEST)
+
+
+def test_a_virtual_timeline_of_the_manifest_is_known() -> None:
+    virtual = {
+        "id": "virtual_1",
+        "map": "flow_map_1",
+        "timeline": "dpt_1",
+        "unit": "samples",
+        "number_type": "int",
+        "length": 705600,
+    }
+    manifest = with_file_ids(with_bare_ids(MANIFEST) | {"virtual_timelines": [virtual]})
+    table = claims_table(changed(CLAIMS, put(1, "timeline_b_id", value="virtual_1")))
+    assert match_claim_problems(table, manifest) == []
+    assert found(match_claim_problems(table, MANIFEST)) == [
+        ("unknown_timeline", 1, ("timeline_b_id",))
+    ]
 
 
 SHARED = {

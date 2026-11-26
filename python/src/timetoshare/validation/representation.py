@@ -12,6 +12,7 @@ from ..serialization import spell
 from .diagnostics import (
     InstancePath,
     SchemaValidationError,
+    axes_by_id,
     elisions_of,
     entries_of,
     json_pointer,
@@ -116,17 +117,18 @@ def representation_problems(
 
     The timelines first (a flow-control element's coordinate, then the
     ``by`` of its ``ends`` and of each destination and its ``after``), then
-    the coordinate of every named timestamp on a timeline of the manifest,
-    then the ``start``, ``end`` and width ``span`` of every elision on one,
-    then the gaps of every FlowMap of one, each read as that timeline's
-    number type, then the ``length`` of every virtual timeline, read as its
-    own.
+    the coordinate of every named timestamp on a timeline of the manifest
+    or a virtual timeline, then the ``start``, ``end`` and width ``span`` of
+    every elision on a timeline of the manifest, then the gaps of every
+    FlowMap of one, each read as that timeline's number type, then the
+    ``length`` of every virtual timeline, read as its own.
     """
     for index, root in enumerate(entries_of(manifest, "timelines")):
         yield from _timeline_representation(root, ("timelines", index), None)
     timelines = timelines_by_id(manifest)
+    axes = axes_by_id(manifest)
     for index, timestamp in enumerate(timestamps_of(manifest)):
-        timeline = timelines.get(timestamp["timeline"])
+        timeline = axes.get(timestamp["timeline"])
         if timeline is not None:
             yield from _representation_problem(
                 "coordinate",

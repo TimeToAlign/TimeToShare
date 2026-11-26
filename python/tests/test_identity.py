@@ -807,11 +807,11 @@ def test_a_child_without_a_double_sum_ends_at_the_exact_sum() -> None:
         ),
         (
             "order_unknown_group",
-            "'group_9' names no group or timeline of this manifest",
+            "'group_9' names no group, timeline or virtual timeline of this manifest",
         ),
         (
             "timestamp_timeline_unknown",
-            "'ghost' names no timeline of this manifest",
+            "'ghost' names no timeline or virtual timeline of this manifest",
         ),
         (
             "timestamp_coordinate_beyond_length",
@@ -1026,7 +1026,7 @@ def test_members() -> None:
     value = manifest(timeline("score"), groups=[group("g", "tempo")])
     assert _only(value) == (
         ("groups", 0, "members", 0),
-        "'tempo' names no timeline of this manifest",
+        "'tempo' names no timeline or virtual timeline of this manifest",
     )
     piece = timeline("piece", children=[timeline("half", offset=(4, 1), length=(4, 1))])
     value = manifest(piece, groups=[group("g", "piece", "half")])
@@ -1069,7 +1069,7 @@ def test_display_orders() -> None:
     value["graphical"]["order"]["g9"] = []
     assert _only(value) == (
         ("graphical", "order", "g9"),
-        "'g9' names no group or timeline of this manifest",
+        "'g9' names no group, timeline or virtual timeline of this manifest",
     )
     value = bundle()
     value["graphical"]["order"]["group_1"] = ["score", "page", "performance"]
@@ -1181,7 +1181,7 @@ def test_a_band_order_missing_its_line(order: list[str]) -> None:
 def test_an_order_keyed_by_a_region() -> None:
     assert _only(_band_orders(intro=DEFAULT_BANDS)) == (
         ("graphical", "order", "intro"),
-        "'intro' names no group or timeline of this manifest",
+        "'intro' names no group, timeline or virtual timeline of this manifest",
     )
 
 
@@ -1247,13 +1247,13 @@ def test_a_named_timestamp_displays_any_set_of_its_parts() -> None:
 def test_a_named_timestamp_names_a_timeline() -> None:
     assert _only(_stamped(_stamp("timestamp_1", "ghost", [1, 1]))) == (
         ("graphical", "timestamps", 0, "timeline"),
-        "'ghost' names no timeline of this manifest",
+        "'ghost' names no timeline or virtual timeline of this manifest",
     )
     # A group ID is no timeline.
     value = _stamped(_stamp("timestamp_1", "g", [1, 1]), groups=[group("g", "score")])
     assert _only(value) == (
         ("graphical", "timestamps", 0, "timeline"),
-        "'g' names no timeline of this manifest",
+        "'g' names no timeline or virtual timeline of this manifest",
     )
 
 
@@ -1665,7 +1665,10 @@ def test_every_step_in_order() -> None:
             "first at #/graphical/timestamps/1/id",
         ),
         (("id",), "'g2' is not unique in the manifest, first at #/groups/1/id"),
-        (("groups", 0, "members", 0), "'ghost' names no timeline of this manifest"),
+        (
+            ("groups", 0, "members", 0),
+            "'ghost' names no timeline or virtual timeline of this manifest",
+        ),
         (("graphical", "order", "g2", 0), "'stranger' is not a member of group 'g2'"),
         (("graphical", "order", "g2"), "member 'second' of group 'g2' is missing"),
         (
@@ -1678,11 +1681,11 @@ def test_every_step_in_order() -> None:
         ),
         (
             ("graphical", "order", "zz"),
-            "'zz' names no group or timeline of this manifest",
+            "'zz' names no group, timeline or virtual timeline of this manifest",
         ),
         (
             ("graphical", "timestamps", 0, "timeline"),
-            "'nowhere' names no timeline of this manifest",
+            "'nowhere' names no timeline or virtual timeline of this manifest",
         ),
         (
             ("graphical", "timestamps", 1, "coordinate"),
@@ -1713,3 +1716,100 @@ def test_every_step_in_order() -> None:
     with pytest.raises(SchemaValidationError) as caught:
         validate(value)
     assert (caught.value.path, caught.value.message) == _problems(value)[0]
+
+
+# -- virtual timelines named where timelines are -----------------------------------
+
+
+def _virtually(**members: Any) -> dict:
+    """``score`` (8 quarters, regions ``a`` 0 to 4 and ``b`` 4 to 8),
+    ``recording`` (10.0 seconds), the FlowMap ``flow_map_1`` playing ``a a b``
+    and the virtual timeline ``virtual_1`` (12 quarters) it gives ``score``."""
+    score = timeline(
+        "score",
+        regions=[
+            {"id": "a", "start": [0, 1], "end": [4, 1]},
+            {"id": "b", "start": [4, 1], "end": [8, 1]},
+        ],
+    )
+    flow_map = {"id": "flow_map_1", "timeline": "score", "chunks": ["a", "a", "b"]}
+    virtual = {
+        "id": "virtual_1",
+        "map": "flow_map_1",
+        "timeline": "score",
+        "unit": "quarters",
+        "number_type": "fraction",
+        "length": [12, 1],
+    }
+    return manifest(
+        score,
+        timeline("recording", "seconds", 10.0),
+        flow_maps=[flow_map],
+        virtual_timelines=[virtual],
+        **members,
+    )
+
+
+def test_a_virtual_timeline_is_a_group_member() -> None:
+    groups = [group("g1", "recording", "virtual_1"), group("g2", "score", "virtual_1")]
+    value = _virtually(
+        groups=groups, graphical={"order": {"virtual_1": ["markers", "line"]}}
+    )
+    assert _problems(value) == []
+    validate(value)
+    value = _virtually(groups=[group("g", "flow_map_1", "recording")])
+    assert _only(value) == (
+        ("groups", 0, "members", 0),
+        "'flow_map_1' names no timeline or virtual timeline of this manifest",
+    )
+    value = _virtually(groups=[group("g", "recording", "virtual_2")])
+    assert _only(value) == (
+        ("groups", 0, "members", 1),
+        "'virtual_2' names no timeline or virtual timeline of this manifest",
+    )
+
+
+def test_a_named_timestamp_and_a_resource_may_name_a_virtual_timeline() -> None:
+    ends = [
+        _stamp("timestamp_1", "virtual_1", [0, 1]),
+        _stamp("timestamp_2", "virtual_1", [12, 1]),
+    ]
+    grouped = {**_stamp("timestamp_3", "virtual_1", [6, 1]), "groupstamp": True}
+    claims = {
+        "id": "resource_1",
+        "type": "MatchClaim",
+        "timelines": ["recording", "virtual_1"],
+        "url": "claims.parquet",
+    }
+    value = _virtually(
+        groups=[group("g", "recording", "virtual_1")],
+        graphical={"timestamps": [*ends, grouped]},
+        resources=[claims],
+    )
+    assert _problems(value) == []
+    validate(value)
+    value = _virtually(
+        graphical={"timestamps": [_stamp("timestamp_1", "virtual_1", [25, 2])]}
+    )
+    assert _only(value) == (
+        ("graphical", "timestamps", 0, "coordinate"),
+        "coordinate [25, 2] of 'timestamp_1' is beyond the length [12, 1] of its "
+        "timeline 'virtual_1'",
+    )
+    value = _virtually(graphical={"timestamps": [grouped]})
+    assert _only(value) == (
+        ("graphical", "timestamps", 0, "groupstamp"),
+        "'timestamp_3' is a groupstamp, but its timeline 'virtual_1' is a member of no "
+        "group and lies in none",
+    )
+    elision = {
+        "id": "elision_1",
+        "timeline": "virtual_1",
+        "start": [1, 1],
+        "end": [2, 1],
+    }
+    value = _virtually(graphical={"elisions": [elision]})
+    assert _only(value) == (
+        ("graphical", "elisions", 0, "timeline"),
+        "'virtual_1' names no timeline of this manifest",
+    )

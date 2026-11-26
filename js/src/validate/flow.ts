@@ -34,8 +34,15 @@
  * `length` is the sum of the FlowMap's chunks and gaps where all of them lie
  * on its own axis (`virtual_timeline`); with `through` neither is read.
  *
- * A manifestation or a convention outside the format's vocabulary is valid:
- * `flowWarnings` reports it. Python's `timetoshare.validation.flow` holds the
+ * Last the property `flow` of the manifest's own `graphical` layer
+ * (`flow_rule`): no style sets it, a rule setting it selects by `addresses`
+ * alone, each the address of a timeline's cards, and its value names a
+ * FlowMap of each such timeline, or a virtual timeline applying one to it
+ * without `through`.
+ *
+ * A manifestation or a convention outside the format's vocabulary, and
+ * members of one group that each state a flow, are valid: `flowWarnings`
+ * reports them. Python's `timetoshare.validation.flow` holds the
  * same rules, tables and messages.
  */
 
@@ -49,7 +56,7 @@ import {
   rational,
   sameRational,
 } from "../numbers/exact.js";
-import { spell } from "../serialization/text.js";
+import { compareCodePoints, spell } from "../serialization/text.js";
 import {
   entries,
   jsonPointer,
@@ -638,8 +645,127 @@ export function* flowMapProblems(manifest: JsonObject): Generator<SchemaValidati
   }
 }
 
+/** The timeline whose cards an address `{id, part: ["card"]}` names, or `null` for any other value. */
+function cardsOf(address: unknown): string | null {
+  if (!isJsonObject(address) || Object.keys(address).length !== 2) return null;
+  const { id, part } = address;
+  if (typeof id !== "string" || !Array.isArray(part)) return null;
+  return part.length === 1 && part[0] === "card" ? id : null;
+}
+
+/**
+ * The timelines whose cards a selector names, where it names `addresses`
+ * alone and each is the address of a timeline's cards; else `null`.
+ */
+function selectedCards(selector: unknown): string[] | null {
+  if (!isJsonObject(selector) || Object.keys(selector).length !== 1) return null;
+  const { addresses } = selector;
+  if (!Array.isArray(addresses)) return null;
+  const found: string[] = [];
+  for (const address of addresses) {
+    const id = cardsOf(address);
+    if (id === null) return null;
+    found.push(id);
+  }
+  return found;
+}
+
+/** The rules of the manifest's own `graphical` layer that set `flow`, with their indices. */
+function flowRules(manifest: JsonObject): [number, JsonObject][] {
+  const graphical = isJsonObject(manifest.graphical) ? manifest.graphical : {};
+  const found: [number, JsonObject][] = [];
+  for (const [index, rule] of entries(graphical, "rules").entries()) {
+    if (isJsonObject(rule.set) && Object.hasOwn(rule.set, "flow")) found.push([index, rule]);
+  }
+  return found;
+}
+
+/**
+ * Yield the problems of the property `flow`: each style setting it, in
+ * code-point order of the style names; then, rule by rule in array order,
+ * a selector that does not name the cards of timelines by their addresses
+ * alone, then a value naming no FlowMap and no virtual timeline, or else,
+ * address by address, a value that is no FlowMap of that timeline and no
+ * virtual timeline applying one to it without `through`.
+ */
+export function* flowRuleProblems(manifest: JsonObject): Generator<SchemaValidationError> {
+  const graphical = isJsonObject(manifest.graphical) ? manifest.graphical : {};
+  const styles = isJsonObject(graphical.styles) ? graphical.styles : {};
+  for (const name of Object.keys(styles).sort(compareCodePoints)) {
+    const style = styles[name];
+    if (isJsonObject(style) && Object.hasOwn(style, "flow")) {
+      yield new SchemaValidationError(
+        "flow_rule",
+        ["graphical", "styles", name, "flow"],
+        `style '${name}' sets flow; only a rule addressed to the cards of a timeline sets it`,
+      );
+    }
+  }
+  const flowMaps = new Map<string, JsonObject>();
+  for (const flowMap of entries(manifest, "flow_maps")) {
+    const id = text(flowMap, "id");
+    if (!flowMaps.has(id)) flowMaps.set(id, flowMap);
+  }
+  const virtual = new Map<string, JsonObject>();
+  for (const entry of entries(manifest, "virtual_timelines")) {
+    const id = text(entry, "id");
+    if (!virtual.has(id)) virtual.set(id, entry);
+  }
+  for (const [index, rule] of flowRules(manifest)) {
+    const at = ["graphical", "rules", index];
+    const cards = selectedCards(rule.select);
+    if (cards === null) {
+      yield new SchemaValidationError(
+        "flow_rule",
+        [...at, "select"],
+        "a rule setting flow selects the cards of timelines by their addresses alone, each {id, part: [card]}",
+      );
+    }
+    const value = text(rule.set as JsonObject, "flow");
+    const flowMap = flowMaps.get(value);
+    const entry = virtual.get(value);
+    if (flowMap === undefined && entry === undefined) {
+      yield new SchemaValidationError(
+        "flow_rule",
+        [...at, "set", "flow"],
+        `'${value}' names no FlowMap or virtual timeline of this manifest`,
+      );
+      continue;
+    }
+    for (const timeline of cards ?? []) {
+      if (flowMap !== undefined) {
+        if (text(flowMap, "timeline") === timeline) continue;
+        yield new SchemaValidationError(
+          "flow_rule",
+          [...at, "set", "flow"],
+          `'${value}' is a FlowMap of '${text(flowMap, "timeline")}', not of '${timeline}'`,
+        );
+      } else {
+        const applied = flowMaps.get(text(entry as JsonObject, "map"));
+        const fits =
+          applied !== undefined &&
+          text(applied, "timeline") === timeline &&
+          text(entry as JsonObject, "timeline") === timeline &&
+          ((entry as JsonObject).through ?? null) === null;
+        if (fits) continue;
+        yield new SchemaValidationError(
+          "flow_rule",
+          [...at, "set", "flow"],
+          `'${value}' does not apply a FlowMap of '${timeline}' to '${timeline}' without through`,
+        );
+      }
+    }
+  }
+}
+
+/** Items joined as a sentence lists them: `a`, `a and b`, `a, b and c`. */
+function sentence(items: readonly string[]): string {
+  if (items.length < 2) return items.join("");
+  return `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`;
+}
+
 /** What a valid manifest's flow is warned of, never refused for. */
-export type FlowWarningCode = "manifestation_unknown" | "convention_unknown";
+export type FlowWarningCode = "manifestation_unknown" | "convention_unknown" | "flow_conflict";
 
 /** One flow warning of a valid manifest. */
 export interface FlowWarning {
@@ -674,9 +800,11 @@ function* timelineWarnings(timeline: JsonObject, path: Path): Generator<FlowWarn
 /**
  * The flow warnings of a valid manifest, in document order:
  * `manifestation_unknown` at the `manifestation` of a flow-control element or
- * of a jump's destination that the format does not define for it, and
+ * of a jump's destination that the format does not define for it,
  * `convention_unknown` at the `convention` of a FlowMap that is none of the
- * format's.
+ * format's, and `flow_conflict` at the `members` of a group of which more
+ * than one member's cards a rule sets `flow` on: the group's frame is then
+ * drawn as written.
  */
 export function flowWarnings(manifest: JsonObject): FlowWarning[] {
   const found: FlowWarning[] = [];
@@ -692,6 +820,23 @@ export function flowWarnings(manifest: JsonObject): FlowWarning[] {
         message: `'${word}' is no convention the format defines`,
       });
     }
+  }
+  const flowOf = new Map<string, string>();
+  for (const [, rule] of flowRules(manifest)) {
+    for (const timeline of selectedCards(rule.select) ?? []) {
+      flowOf.set(timeline, text(rule.set as JsonObject, "flow"));
+    }
+  }
+  for (const [index, group] of entries(manifest, "groups").entries()) {
+    const members = (Array.isArray(group.members) ? group.members : []).filter(
+      (member): member is string => typeof member === "string" && flowOf.has(member),
+    );
+    if (members.length < 2) continue;
+    found.push({
+      code: "flow_conflict",
+      path: ["groups", index, "members"],
+      message: `members ${sentence(members.map((member) => `'${member}'`))} of '${text(group, "id")}' state the flows ${sentence(members.map((member) => `'${flowOf.get(member)}'`))}: the frame is drawn as written`,
+    });
   }
   return found;
 }

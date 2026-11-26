@@ -30,6 +30,7 @@ export type ValidationCode =
   | "flow_map_chunk"
   | "flow_map_canonical"
   | "virtual_timeline"
+  | "flow_rule"
   | "conversion_map"
   | "child_unit"
   | "child_offset"
@@ -237,6 +238,21 @@ export function timelinesById(manifest: unknown): Map<string, JsonObject> {
     for (const child of entries(timeline, "children")) visit(child);
   };
   for (const root of entries(manifest, "timelines")) visit(root);
+  return found;
+}
+
+/**
+ * Every timeline of a manifest, at any depth, and every virtual timeline, by
+ * ID: what a named timestamp, a group member or a resource may name. Of a
+ * repeated ID the first in this order is kept, the timelines in document
+ * order before the virtual timelines.
+ */
+export function axesById(manifest: unknown): Map<string, JsonObject> {
+  const found = timelinesById(manifest);
+  for (const entry of entries(manifest, "virtual_timelines")) {
+    const id = text(entry, "id");
+    if (!found.has(id)) found.set(id, entry);
+  }
   return found;
 }
 

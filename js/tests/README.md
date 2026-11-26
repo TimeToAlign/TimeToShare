@@ -219,6 +219,19 @@ elisions accepted without a warning, the number-type readings and the
 shared ID scope (`identity.test.ts`), each with the Python suite's code,
 path and message.
 
+## Virtual timelines named where timelines are
+
+The Python README's bullets "Groups and orders" and "Named timestamps" on
+virtual timelines are proved here with the same documents, paths and
+messages (`identity.test.ts`): a virtual timeline as a member of two
+groups and keying a band order validates, a member naming a FlowMap or an
+unknown ID is `group_member`; a named timestamp at either end of a virtual
+timeline, a groupstamp on a virtual member and a resource naming one
+validate, a coordinate beyond its length is `timestamp_coordinate`, a
+groupstamp on a virtual timeline in no group `groupstamp`, and an elision
+on one `elision_timeline`; the shared cases `group_member_flow_map` and
+`group_member_virtual_unknown` (`validate.test.ts`).
+
 ## Groupstamps
 
 The Python README's section "Groupstamps" is proved here with the same
@@ -253,9 +266,16 @@ timeline held to its map under `virtual_timeline`, with the same documents:
 a ring reported at each of its members and nowhere else, a FlowMap applied
 within the tree of its own root unless `through` is stated, the length the
 sum of chunks and gaps compared by value, spelled as an integer on an
-integer axis, and the six cases where no sum is read; the warnings of
-a manifestation and a convention outside the vocabularies, sorted by path
-and then code; the provenance of a flow-control element and of a FlowMap
+integer axis, and the six cases where no sum is read; the property `flow`
+under `flow_rule`, with the same documents: a card switched to a FlowMap
+of its timeline or to a virtual timeline applying it, the later rule
+included, validates; a style setting it, a selector naming anything but
+card addresses, a value naming no FlowMap or virtual timeline, a FlowMap
+of another timeline and a virtual timeline applying a FlowMap otherwise
+are refused, one problem per address that does not fit; the warnings of
+a manifestation and a convention outside the vocabularies, and
+`flow_conflict` at a group two of whose members are switched (the
+cascade's later rule naming the flow), sorted by path and then code; the provenance of a flow-control element and of a FlowMap
 under the entry rules; and the agreement of every expected flow under
 `fixtures/flows/0.2.0/` with its manifest, the boundaries of the atomic
 sections computed in the test, under `default` and `single`
@@ -342,9 +362,10 @@ the code, path and message both packages report.
 `manifest`, `unknown_keys` and `warnings`, its text is stored
 as the writers write it, `dumps(unknownKeys(manifest))` equals
 `dumps(case.unknown_keys)` and `dumps(manifestWarnings(manifest))` equals
-`dumps(case.warnings)`; the five cases of warnings (`context_absent`,
+`dumps(case.warnings)`; the six cases of warnings (`context_absent`,
 `bundle_blank_statements`, `bundle_blank_provenance`,
-`manifestation_unknown`, `convention_unknown`) are among them;
+`manifestation_unknown`, `convention_unknown`, `flow_conflict`) are
+among them;
 `several_depths` lists its sixteen entries in the
 stated order; keys inside `meta`, `styles`,
 `graphical.order` and unknown values are not reported; the sort (keys by

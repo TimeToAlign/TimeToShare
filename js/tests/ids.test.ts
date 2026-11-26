@@ -330,6 +330,9 @@ function schemaIdPositions(): string[] {
 function held(declared: Node): [string, string][] {
   const found: [string, string][] = [];
   if (declared.$ref !== undefined) found.push(["one", nameOf(declared.$ref)]);
+  for (const entry of (declared.oneOf ?? []) as Node[]) {
+    if (entry.$ref !== undefined) found.push(["one", nameOf(entry.$ref)]);
+  }
   if (refOf(declared.items) !== undefined) found.push(["list", nameOf(refOf(declared.items))]);
   if (refOf(declared.additionalProperties) !== undefined) {
     found.push(["values", nameOf(refOf(declared.additionalProperties))]);

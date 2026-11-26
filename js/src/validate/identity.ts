@@ -10,7 +10,13 @@ import {
   text,
   treeIds,
 } from "./diagnostics.js";
-import { childStart, flowMapProblems, type JumpPositions, timelineFlowProblems } from "./flow.js";
+import {
+  childStart,
+  flowMapProblems,
+  flowRuleProblems,
+  type JumpPositions,
+  timelineFlowProblems,
+} from "./flow.js";
 import { MEASURE_VIEWS, timelineMapProblems, timelineMaps } from "./maps.js";
 import { orderProblems } from "./order.js";
 import { timelineSegmentProblems } from "./segments.js";
@@ -89,20 +95,27 @@ function ancestorsOf(id: string, parents: ReadonlyMap<string, string | null>): s
   return ancestors;
 }
 
+/**
+ * Yield a group's members that name nothing, then those inside or around an
+ * earlier member. A virtual timeline lies inside no timeline and contains
+ * none.
+ */
 function* memberProblems(
   group: JsonObject,
   path: readonly PathSegment[],
   parents: ReadonlyMap<string, string | null>,
+  virtual: ReadonlySet<string>,
 ): Generator<SchemaValidationError> {
   const selected = new Map<string, number>();
   const earliestDescendant = new Map<string, { index: number; member: string }>();
   for (const [index, member] of (group.members as string[]).entries()) {
     const at = [...path, index];
     if (!parents.has(member)) {
+      if (virtual.has(member)) continue;
       yield new SchemaValidationError(
         "group_member",
         at,
-        `'${member}' names no timeline of this manifest`,
+        `'${member}' names no timeline or virtual timeline of this manifest`,
       );
       continue;
     }
@@ -145,8 +158,8 @@ function* memberProblems(
  * IDs, the named MatchStamps' IDs each followed by its alignment anchors'
  * IDs, the resources', the FlowMaps' and the virtual timelines' IDs, and
  * last the manifest ID); then group members, graphical orders, named
- * timestamps, elisions, named MatchStamps, resources, FlowMaps and virtual
- * timelines.
+ * timestamps, elisions, named MatchStamps, resources, FlowMaps, virtual
+ * timelines and the property `flow`.
  */
 export function* identityProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const roots = entries(manifest, "timelines");
@@ -180,18 +193,20 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
   }
 
   const parents = parentsOf(roots);
+  const virtual = new Set(entries(manifest, "virtual_timelines").map((entry) => text(entry, "id")));
   for (const [index, group] of groups.entries()) {
-    yield* memberProblems(group, ["groups", index, "members"], parents);
+    yield* memberProblems(group, ["groups", index, "members"], parents, virtual);
   }
   const firstGroup = new Map<string, number>();
   for (const [index, group] of groups.entries()) {
     const id = text(group, "id");
     if (!firstGroup.has(id)) firstGroup.set(id, index);
   }
-  yield* orderProblems(manifest, parents, firstGroup);
+  yield* orderProblems(manifest, parents, virtual, firstGroup);
   yield* timestampProblems(manifest);
   yield* elisionProblems(manifest);
   yield* matchstampProblems(manifest);
   yield* resourceProblems(manifest);
   yield* flowMapProblems(manifest);
+  yield* flowRuleProblems(manifest);
 }
