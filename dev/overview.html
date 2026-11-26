@@ -4309,26 +4309,44 @@ scope naming the manifest or the part of the dataset (<code class="docutils lite
 <p>A commit touching data and code takes the type of its data. Moving a
 manifest file changes its address and is a removal.</p>
 <p>Two git hooks keep the types honest. <code class="docutils literal notranslate"><span class="pre">timetoshare</span> <span class="pre">hook</span> <span class="pre">prepare-commit-msg</span></code>
-writes the header the staged change requires (the type of the highest
-step, the scope where every change lies in one manifest or directory, <code class="docutils literal notranslate"><span class="pre">!</span></code>
-and the <code class="docutils literal notranslate"><span class="pre">BREAKING</span> <span class="pre">CHANGE</span></code> footer for a removal, and a line <code class="docutils literal notranslate"><span class="pre">also:</span> <span class="pre">…</span></code>
-counting the smaller changes by kind, <code class="docutils literal notranslate"><span class="pre">also:</span> <span class="pre">2</span> <span class="pre">belief,</span> <span class="pre">1</span> <span class="pre">label</span></code>) before
-the subject given with <code class="docutils literal notranslate"><span class="pre">-m</span></code> or before the editor opens, so that <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">-m</span> <span class="pre">&quot;add</span> <span class="pre">the</span> <span class="pre">BPSD</span> <span class="pre">recordings&quot;</span></code> commits <code class="docutils literal notranslate"><span class="pre">feat(op106):</span> <span class="pre">add</span> <span class="pre">the</span> <span class="pre">BPSD</span> <span class="pre">recordings</span></code>; it leaves merges, amends, squashes, every message whose first
-line already reads as a header (<code class="docutils literal notranslate"><span class="pre">type(scope):</span> </code>, whatever the type) and
-commits without a change of the data alone. <code class="docutils literal notranslate"><span class="pre">timetoshare</span> <span class="pre">hook</span> <span class="pre">commit-msg</span></code>
-refuses a message whose type gives a lower step than the staged change, a
-removal written with any type but <code class="docutils literal notranslate"><span class="pre">remove</span></code> with <code class="docutils literal notranslate"><span class="pre">!</span></code> (<code class="docutils literal notranslate"><span class="pre">feat!</span></code> included),
-<code class="docutils literal notranslate"><span class="pre">remove</span></code> without <code class="docutils literal notranslate"><span class="pre">!</span></code>, a header without a subject (closing the editor on the
-written <code class="docutils literal notranslate"><span class="pre">feat(op106):</span> </code>) and an ID given to an element of another type, and
-warns where a data type or a <code class="docutils literal notranslate"><span class="pre">!</span></code> gives a higher step, where a <code class="docutils literal notranslate"><span class="pre">BREAKING</span> <span class="pre">CHANGE</span></code> footer stands on a commit that removes nothing, and where the
-footer misses a removed ID; the check hook is <code class="docutils literal notranslate"><span class="pre">verbose</span></code>, so pre-commit
-shows these warnings when the message is accepted. Both read comment lines by git’s
-<code class="docutils literal notranslate"><span class="pre">core.commentChar</span></code> (<code class="docutils literal notranslate"><span class="pre">#</span></code> where it is <code class="docutils literal notranslate"><span class="pre">auto</span></code>). For <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span></code> with
-the editor or <code class="docutils literal notranslate"><span class="pre">--no-edit</span></code>, the first hook records the amended commit in
-<code class="docutils literal notranslate"><span class="pre">timetoshare-amend-base</span></code> in the git directory, and the second compares the
-amended commit’s parent (the empty tree for a first commit) with the index;
-<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span> <span class="pre">-m</span></code> tells the hooks no amend and is compared with
-<code class="docutils literal notranslate"><span class="pre">HEAD</span></code>.</p>
+writes the type only for the two large steps: <code class="docutils literal notranslate"><span class="pre">feat</span></code> for an addition or an
+edit, and <code class="docutils literal notranslate"><span class="pre">remove</span></code> with <code class="docutils literal notranslate"><span class="pre">!</span></code> and the <code class="docutils literal notranslate"><span class="pre">BREAKING</span> <span class="pre">CHANGE</span></code> footer for a removal,
+with the scope where every change lies in one manifest or directory. It
+writes them before the subject given with <code class="docutils literal notranslate"><span class="pre">-m</span></code> or before the editor opens,
+so that <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">-m</span> <span class="pre">&quot;add</span> <span class="pre">the</span> <span class="pre">BPSD</span> <span class="pre">recordings&quot;</span></code> commits <code class="docutils literal notranslate"><span class="pre">feat(op106):</span> <span class="pre">add</span> <span class="pre">the</span> <span class="pre">BPSD</span> <span class="pre">recordings</span></code>. For a patch (a belief, a <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">graphical</span></code>, <code class="docutils literal notranslate"><span class="pre">meta</span></code>,
+a moved resource) it writes no type and only suggests one, <code class="docutils literal notranslate"><span class="pre">Suggested</span> <span class="pre">type</span> <span class="pre">&quot;belief(op106):&quot;,</span> <span class="pre">since</span> <span class="pre">this</span> <span class="pre">commit</span> <span class="pre">records</span> <span class="pre">beliefs</span> <span class="pre">only</span></code>, because
+the choice between <code class="docutils literal notranslate"><span class="pre">belief</span></code>, <code class="docutils literal notranslate"><span class="pre">docs</span></code> or <code class="docutils literal notranslate"><span class="pre">fix</span></code> is the author’s. A commit mixing
+kinds of change (additions, edits, removals, beliefs, names, drawing,
+application data, moves) gets a hint, <code class="docutils literal notranslate"><span class="pre">This</span> <span class="pre">commit</span> <span class="pre">mixes</span> <span class="pre">2</span> <span class="pre">kinds</span> <span class="pre">of</span> <span class="pre">change</span> <span class="pre">(1</span> <span class="pre">added,</span> <span class="pre">1</span> <span class="pre">belief);</span> <span class="pre">one</span> <span class="pre">kind</span> <span class="pre">of</span> <span class="pre">change</span> <span class="pre">per</span> <span class="pre">commit</span> <span class="pre">keeps</span> <span class="pre">the</span> <span class="pre">history</span> <span class="pre">and</span> <span class="pre">the</span> <span class="pre">changelog</span> <span class="pre">clear.</span></code>, also when the message already has a type; nothing
+counting the smaller changes is written into the message. A message whose
+first line already reads as a header (<code class="docutils literal notranslate"><span class="pre">type(scope):</span> </code>, whatever the type)
+keeps it and gets no suggestion. Where the message is edited, the
+suggestion and the hint are comment lines, which git removes; where it
+comes from <code class="docutils literal notranslate"><span class="pre">-m</span></code> or <code class="docutils literal notranslate"><span class="pre">-F</span></code> (<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">-m</span> <span class="pre">x</span> <span class="pre">-e</span></code> included, where they are
+printed before the editor opens), or where <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">config</span> <span class="pre">commit.cleanup</span></code> is
+<code class="docutils literal notranslate"><span class="pre">whitespace</span></code>, <code class="docutils literal notranslate"><span class="pre">verbatim</span></code> or <code class="docutils literal notranslate"><span class="pre">scissors</span></code>, with which git keeps comment
+lines, they are printed on standard error and the message stays as given
+(a <code class="docutils literal notranslate"><span class="pre">--cleanup=</span></code> option on the command line does not reach the hook). The
+hook leaves merges, amends, squashes and commits without a change of the
+data alone. <code class="docutils literal notranslate"><span class="pre">timetoshare</span> <span class="pre">hook</span> <span class="pre">commit-msg</span></code> refuses a message whose type
+gives a lower step than an addition, an edit or a removal requires, or
+that has no type at all for such a change (the first hook was skipped), a
+removal written with any type but <code class="docutils literal notranslate"><span class="pre">remove</span></code> with <code class="docutils literal notranslate"><span class="pre">!</span></code> (<code class="docutils literal notranslate"><span class="pre">feat!</span></code> and <code class="docutils literal notranslate"><span class="pre">remove</span></code>
+without <code class="docutils literal notranslate"><span class="pre">!</span></code> included), a header without a subject
+(closing the editor on the written <code class="docutils literal notranslate"><span class="pre">feat(op106):</span> </code>) and an ID given to an
+element of another type. For a patch, a missing type or a type without a
+step (<code class="docutils literal notranslate"><span class="pre">chore</span></code>) is only a warning naming the suggested type, and the commit
+goes through. It also warns where a data type or a <code class="docutils literal notranslate"><span class="pre">!</span></code> gives a higher step,
+where <code class="docutils literal notranslate"><span class="pre">remove</span></code> without <code class="docutils literal notranslate"><span class="pre">!</span></code> or a <code class="docutils literal notranslate"><span class="pre">BREAKING</span> <span class="pre">CHANGE</span></code> footer stands on a
+commit that removes nothing,
+and where the footer misses a removed ID; the check hook is <code class="docutils literal notranslate"><span class="pre">verbose</span></code>, so
+pre-commit shows these warnings when the message is accepted. Both read
+comment lines by git’s <code class="docutils literal notranslate"><span class="pre">core.commentChar</span></code> (<code class="docutils literal notranslate"><span class="pre">#</span></code> where it is <code class="docutils literal notranslate"><span class="pre">auto</span></code>). For
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span></code> with the editor or <code class="docutils literal notranslate"><span class="pre">--no-edit</span></code>, the first hook records
+the amended commit in <code class="docutils literal notranslate"><span class="pre">timetoshare-amend-base</span></code> in the git directory, and
+the second compares the amended commit’s parent (the empty tree for a first
+commit) with the index; <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span> <span class="pre">-m</span></code> tells the hooks no amend
+and is compared with <code class="docutils literal notranslate"><span class="pre">HEAD</span></code>.</p>
 <p>This repository is a pre-commit hook repository: its
 <code class="docutils literal notranslate"><span class="pre">.pre-commit-hooks.yaml</span></code> offers both hooks and a third,
 <code class="docutils literal notranslate"><span class="pre">timetoshare-validate</span></code>, which runs <code class="docutils literal notranslate"><span class="pre">timetoshare</span> <span class="pre">validate</span></code> on every staged
