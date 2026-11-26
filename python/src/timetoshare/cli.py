@@ -14,6 +14,16 @@ the check a release pull request's job runs. ``--require-version FROM TO``
 also refuses the change where a release from version FROM to TO carries a
 lower step than it requires.
 
+``timetoshare release-check`` is the check of a dataset repository's
+release workflow. Its ``HEAD`` is a release when the version in
+``.release-please-manifest.json`` is not ``0.0.0`` and has no tag
+``v<version>`` yet; the check then compares the last version tag reachable
+from ``HEAD`` (the empty tree without one) with ``HEAD``, with the history of
+the tags, and fails when a change is refused or undetermined or when the
+release carries a lower step than the change requires. On any other
+``HEAD`` it reports the same comparison and passes. ``--summary FILE``
+appends the report to FILE as Markdown, the job summary of a workflow.
+
 ``timetoshare hook prepare-commit-msg MSGFILE [SOURCE [SHA]]`` writes the
 commit type the staged change requires in front of the message, and
 ``timetoshare hook commit-msg MSGFILE`` checks the final message against
@@ -33,13 +43,13 @@ what an amend does and are taken for one.
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import re
 import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-
-import yaml
 
 from .commit_types import (
     _SKIPPED,
@@ -70,6 +80,12 @@ AMEND_BASE = "timetoshare-amend-base"
 
 EMPTY_TREE = "-"
 """The OLD argument of ``timetoshare step`` that names the empty tree."""
+
+RELEASE_MANIFEST = ".release-please-manifest.json"
+"""The file of a dataset repository holding its version, release-please's."""
+
+NO_RELEASE = "0.0.0"
+"""The version of a dataset repository before its first release."""
 
 _SERIALIZED = (".yaml", ".yml", ".json")
 """The file extensions ``timetoshare validate`` reads without arguments."""
@@ -120,25 +136,157 @@ def _step(arguments: argparse.Namespace) -> int:
             }
         sys.stdout.write(dumps(written, "json"))
     else:
-        print(f"step: {report.step}")
-        print(f"scope: {report.scope or '-'}")
-        if release:
-            print(f"release: {release[0]} to {release[1]} carries {carried}")
-        for f in report.findings:
-            cited = f"#{f.id}" if f.id is not None else "-"
-            print(f"{f.step}\t{f.kind}\t{f.path}\t{cited}\t{f.detail}")
+        carries = f"{release[0]} to {release[1]} carries {carried}" if release else None
+        print("\n".join(_report_lines(report, carries)))
     if problem is not None:
         print(f"timetoshare step: {problem}", file=sys.stderr)
     return 2 if report.refused or problem is not None else 0
 
 
-def _readable_elsewhere(text: str) -> bool | None:
-    """Whether a text ``loads`` refuses reads, as PyYAML reads it, as an object
-    holding ``timetoshare``; ``None`` where PyYAML cannot read it either."""
+def _report_lines(report: StepReport, carries: str | None = None) -> list[str]:
+    """The lines ``timetoshare step`` prints: the step, the scope, the release
+    (``carries``, where one is checked) and one line per finding."""
+    lines = [f"step: {report.step}", f"scope: {report.scope or '-'}"]
+    if carries is not None:
+        lines.append(f"release: {carries}")
+    for f in report.findings:
+        cited = f"#{f.id}" if f.id is not None else "-"
+        lines.append(f"{f.step}\t{f.kind}\t{f.path}\t{cited}\t{f.detail}")
+    return lines
+
+
+def _git_in(repo: Path, *args: str) -> str | None:
+    """The output of a git command in ``repo``; ``None`` on failure."""
+    done = subprocess.run(
+        ["git", "-C", str(repo), *args], capture_output=True, text=True
+    )
+    return done.stdout.strip() if done.returncode == 0 else None
+
+
+def _release_state(repo: Path) -> tuple[str, str | None, bool]:
+    """The version of a dataset repository, its last version tag, and whether
+    its ``HEAD`` is a release.
+
+    The version is the root package's (``"."``) in
+    ``.release-please-manifest.json`` of the work tree. The last version tag
+    is the nearest tag matching ``v[0-9]*`` reachable from ``HEAD`` (``git
+    describe``), ``None`` where there is none. ``HEAD`` is a release when the
+    version is not ``0.0.0`` and no tag ``v<version>`` exists yet: the push
+    that merges a release pull request, before release-please tags it.
+
+    Raises:
+        ValueError: If the file cannot be read or names no version of ``"."``.
+    """
     try:
-        value = yaml.safe_load(text)
-    except yaml.YAMLError:
-        return None
+        value = json.loads((repo / RELEASE_MANIFEST).read_text(encoding="utf-8"))
+    except (OSError, ValueError) as error:
+        raise ValueError(f"{RELEASE_MANIFEST} cannot be read: {error}") from None
+    version = value.get(".") if isinstance(value, dict) else None
+    if not isinstance(version, str):
+        raise ValueError(f'{RELEASE_MANIFEST} names no version of "."')
+    last = _git_in(repo, "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*")
+    tagged = _git_in(repo, "rev-parse", "--verify", "--quiet", f"refs/tags/v{version}")
+    return version, last or None, version != NO_RELEASE and tagged is None
+
+
+def _since(since: str, repo: Path) -> StepReport:
+    """The report from ``since`` (a reference or ``-``) to ``HEAD``, with the
+    history of the tags."""
+    return _report(since, "HEAD", repo, history=True)
+
+
+def _release_lines(repo: Path) -> tuple[str, list[str], bool]:
+    """The heading, the lines and the failure of the release check of ``repo``.
+
+    The check compares the last version tag (:func:`_release_state`; the empty
+    tree without one) with ``HEAD``, with the history of the tags. Outside a
+    release it only reports, and an error comparing is one more line. At a
+    release (the version ``v<new>`` untagged) it fails when a change is
+    refused, when a change is undetermined, or when the release from the last
+    tag's version (``0.0.0`` without one) to the new carries a lower step
+    than the change requires (:func:`release_problem`).
+
+    Raises:
+        ValueError: If the version cannot be read, or, at a release, if a
+            version is none, is lower than the last tag's, or the change
+            cannot be compared.
+    """
+    version, last, release = _release_state(repo)
+    since = last or EMPTY_TREE
+    data = f"the data from {last or 'the empty tree'} to HEAD"
+    if not release:
+        why = f"is tagged v{version}" if version != NO_RELEASE else "is no release"
+        try:
+            lines = _report_lines(_since(since, repo))
+        except ValueError as error:
+            lines = [f"error: {error}"]
+        return (
+            "No release",
+            [f"no release: the version {version} {why}", data, *lines],
+            False,
+        )
+    previous = last.removeprefix("v") if last else NO_RELEASE
+    carried = release_step(previous, version)
+    report = _since(since, repo)
+    problem = release_problem(report, previous, version)
+    reasons = [
+        *(["a change is refused"] if report.refused else []),
+        *(["a change is undetermined"] if report.undetermined else []),
+        *([problem] if problem is not None else []),
+    ]
+    named = f"{version}, the first," if last is None else f"{previous} to {version}"
+    lines = [
+        data,
+        *_report_lines(report, f"{named} carries {carried}"),
+        *([f"fails: {reason}" for reason in reasons] or ["passes"]),
+    ]
+    verdict = "fails" if reasons else "passes"
+    return f"Release {version}: {verdict}", lines, bool(reasons)
+
+
+def _release_check(arguments: argparse.Namespace) -> int:
+    repo = Path(arguments.repo)
+    try:
+        heading, lines, failed = _release_lines(repo)
+        status = 2 if failed else 0
+    except ValueError as error:
+        heading, lines, status = "Release check: error", [f"error: {error}"], 1
+        print(f"timetoshare release-check: {error}", file=sys.stderr)
+    if status != 1:
+        print("\n".join(lines))
+    if arguments.summary:
+        block = "\n".join(["", "```text", *lines, "```", ""])
+        with open(arguments.summary, "a", encoding="utf-8") as summary:
+            summary.write(f"### {heading}\n{block}")
+    return status
+
+
+_YAML_MARKER = re.compile(
+    r"""^(timetoshare|"timetoshare"|'timetoshare')[ \t]*:""", re.M
+)
+"""A line of YAML text starting with the top-level key ``timetoshare``."""
+
+_BRACED_MARKER = re.compile(r"""\btimetoshare["']?\s*:""")
+"""The key ``timetoshare`` in a text in braces, quoted or not."""
+
+
+def _names_the_format(text: str) -> bool:
+    """Whether a text ``loads`` refuses holds a top-level key ``timetoshare``.
+
+    In YAML that is a line starting with the key (``timetoshare: 0.2.0``). A
+    text starting with ``{`` is read as JSON: it names the format when it is
+    an object holding the key or, where it cannot be read as JSON, when the
+    key stands anywhere in it, quoted or not.
+    """
+    if _YAML_MARKER.search(text):
+        return True
+    stripped = text.lstrip("\ufeff \t\r\n")
+    if not stripped.startswith("{"):
+        return False
+    try:
+        value = json.loads(stripped)
+    except ValueError:
+        return _BRACED_MARKER.search(stripped) is not None
     return isinstance(value, dict) and "timetoshare" in value
 
 
@@ -147,22 +295,31 @@ def file_problems(path: Path) -> tuple[list[str], list[str]] | None:
     that is no manifest.
 
     A file is a manifest when ``loads`` reads it as an object holding
-    ``timetoshare``. A file ``loads`` refuses is refused (``unreadable``) when
-    PyYAML reads it as such an object or cannot read it at all, and is no
-    manifest otherwise. Each refusal and warning is one line, ``<code> at
-    <JSON pointer>: <message>``, a warning's prefixed ``warning: ``; a file is
-    refused for its first violation, as ``validate`` raises it.
+    ``timetoshare``. A file ``loads`` refuses (or whose bytes are no UTF-8) is
+    refused (``unreadable``) when its text holds a top-level key
+    ``timetoshare`` (:func:`_names_the_format`), and is no manifest
+    otherwise: a YAML file with several documents or with tags such as
+    ``!!python/name:`` is skipped. Each refusal and warning is one line,
+    ``<code> at <JSON pointer>: <message>``, a warning's prefixed
+    ``warning: ``; a file is refused for its first violation, as ``validate``
+    raises it.
     """
     try:
-        text = path.read_bytes().decode("utf-8")
-    except (OSError, UnicodeDecodeError) as error:
+        data = path.read_bytes()
+    except OSError as error:
         return [f"unreadable at #: {error}"], []
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        if _names_the_format(data.decode("utf-8", errors="replace")):
+            return [f"unreadable at #: {error}"], []
+        return None
     try:
         value = loads(text)
     except ValueError as error:
-        if _readable_elsewhere(text) is False:
-            return None
-        return [f"unreadable at #: {error}"], []
+        if _names_the_format(text):
+            return [f"unreadable at #: {error}"], []
+        return None
     if not isinstance(value, dict) or "timetoshare" not in value:
         return None
     try:
@@ -205,8 +362,7 @@ def _validate(arguments: argparse.Namespace) -> int:
 
 def _git(*args: str) -> str | None:
     """The output of a git command in the current directory; ``None`` on failure."""
-    done = subprocess.run(["git", *args], capture_output=True, text=True)
-    return done.stdout.strip() if done.returncode == 0 else None
+    return _git_in(Path.cwd(), *args)
 
 
 def _comment() -> str:
@@ -359,6 +515,20 @@ def _parser() -> argparse.ArgumentParser:
         "carries a lower step than it requires",
     )
     step.set_defaults(run=_step)
+    check_release = commands.add_parser(
+        "release-check",
+        help="check the release a dataset repository's HEAD makes, or report the "
+        "step since its last tag",
+    )
+    check_release.add_argument(
+        "--repo", default=".", help="the git repository (default: .)"
+    )
+    check_release.add_argument(
+        "--summary",
+        metavar="FILE",
+        help="also append the report as Markdown to FILE (a job summary)",
+    )
+    check_release.set_defaults(run=_release_check)
     hook = commands.add_parser("hook", help="run as a git hook")
     hooks = hook.add_subparsers(dest="hook", required=True)
     prepare = hooks.add_parser(

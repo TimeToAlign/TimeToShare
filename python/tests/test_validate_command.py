@@ -125,14 +125,78 @@ def test_an_unreadable_file_is_refused(
     assert validated(capsys, str(path)) == (1, [f"{path.as_posix()}: {line}"], "")
 
 
+NO_MANIFESTS = {
+    "settings.yaml": "name: x\n",
+    "list.json": "[1, 2]\n",
+    "workflow.yml": "a: &x 1\nb: *x\n",
+    "multi.yaml": "name: first\n---\nname: second\n",
+    "mkdocs.yml": (
+        "site_name: x\n"
+        "markdown_extensions:\n"
+        "  - pymdownx.emoji:\n"
+        "      emoji_index: !!python/name:material.extensions.emoji.twemoji\n"
+    ),
+    "nested.yaml": "build: [\nconfig:\n  timetoshare: 0.2.0\n",
+    "broken.json": '{"build": {"timetoshare_version": 1,\n',
+}
+
+
 def test_files_that_are_no_manifests_are_skipped(
     tmp_path: Path, capsys: pytest.CaptureFixture
 ) -> None:
-    (tmp_path / "settings.yaml").write_text("name: x\n", encoding="utf-8")
-    (tmp_path / "list.json").write_text("[1, 2]\n", encoding="utf-8")
-    (tmp_path / "workflow.yml").write_text("a: &x 1\nb: *x\n", encoding="utf-8")
-    paths = [str(tmp_path / n) for n in ("settings.yaml", "list.json", "workflow.yml")]
+    for name, text in NO_MANIFESTS.items():
+        (tmp_path / name).write_text(text, encoding="utf-8")
+    (tmp_path / "latin.yaml").write_bytes(b'name: "\xe9"\n')
+    paths = [str(tmp_path / n) for n in [*NO_MANIFESTS, "latin.yaml"]]
     assert validated(capsys, *paths) == (0, [], "")
+
+
+@pytest.mark.parametrize(
+    ("name", "content", "message"),
+    [
+        (
+            "quoted.yaml",
+            b'"timetoshare": "0.2.0"\ntimelines: [\n',
+            "while parsing a flow node, expected the node content, but found "
+            "'<stream end>' at line 3, column 1",
+        ),
+        (
+            "broken.json",
+            b'{"timelines": [], "timetoshare": "0.2.0"\n',
+            "expected ',' or '}' at line 2, column 1",
+        ),
+        (
+            "broken_flow.yaml",
+            b"{timetoshare: 0.2.0, timelines: [\n",
+            "expected a key at line 1, column 2",
+        ),
+        (
+            "doubled.json",
+            b'{"timetoshare": "0.2.0", "timetoshare": "0.2.0"}\n',
+            'the key "timetoshare" repeats at line 1, column 26',
+        ),
+        (
+            "documents.yaml",
+            b'timetoshare: "0.2.0"\ntimelines: []\n---\nname: x\n',
+            "expected a single document in the stream, but found another "
+            "document at line 3, column 1",
+        ),
+    ],
+)
+def test_a_text_naming_the_format_is_refused_when_unreadable(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture,
+    name: str,
+    content: bytes,
+    message: str,
+) -> None:
+    path = tmp_path / name
+    path.write_bytes(content)
+    assert validated(capsys, str(path)) == (
+        1,
+        [f"{path.as_posix()}: unreadable at #: {message}"],
+        "",
+    )
 
 
 def test_without_arguments_every_file_under_the_directory(
@@ -154,21 +218,22 @@ def test_without_arguments_every_file_under_the_directory(
     )
 
 
+KEYS = ("id", "entry", "stages", "always_run", "files", "verbose")
+
+
 def test_the_hooks_of_the_repository() -> None:
     manifest = yaml.safe_load(
         (REPOSITORY_ROOT / ".pre-commit-hooks.yaml").read_text(encoding="utf-8")
     )
     common = {"language": "python", "additional_dependencies": ["./python[tables]"]}
-    assert [
-        {key: hook.get(key) for key in ("id", "entry", "stages", "always_run", "files")}
-        for hook in manifest
-    ] == [
+    assert [{key: hook.get(key) for key in KEYS} for hook in manifest] == [
         {
             "id": "timetoshare-commit-type",
             "entry": "timetoshare hook prepare-commit-msg",
             "stages": ["prepare-commit-msg"],
             "always_run": True,
             "files": None,
+            "verbose": None,
         },
         {
             "id": "timetoshare-commit-check",
@@ -176,6 +241,7 @@ def test_the_hooks_of_the_repository() -> None:
             "stages": ["commit-msg"],
             "always_run": True,
             "files": None,
+            "verbose": None,
         },
         {
             "id": "timetoshare-validate",
@@ -183,6 +249,7 @@ def test_the_hooks_of_the_repository() -> None:
             "stages": ["pre-commit"],
             "always_run": None,
             "files": r"\.(ya?ml|json)$",
+            "verbose": True,
         },
     ]
     for hook in manifest:

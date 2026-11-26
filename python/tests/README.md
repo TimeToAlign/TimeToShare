@@ -50,7 +50,9 @@ and the same lists; so are the cases of several problems
    commit type of a staged change (`commit_types`); `release_step` names the
    step a release from one version to the next carries, and `timetoshare
    step --require-version` refuses a release that carries less than the
-   change requires; `timetoshare validate` validates manifest files, and
+   change requires; `timetoshare release-check` decides whether a dataset
+   repository's `HEAD` is a release and checks it; `timetoshare validate`
+   validates manifest files, and
    the repository's `.pre-commit-hooks.yaml` offers the three as
    pre-commit hooks.
 
@@ -3268,7 +3270,8 @@ this file before the lockfile moves.
 A dataset repository versions its manifests and tables by release tags; the
 step a change requires (none, patch, minor, major, or refused) is the
 format's rule table in the main README ("Versions of a dataset").
-`test_version_step.py` and `test_commit_hooks.py` prove it.
+`test_version_step.py`, `test_commit_hooks.py` and `test_release_check.py`
+prove it.
 
 **The rule table, one case per rule.** `fixtures/versions/<case>/` holds
 an `old/` and a `new/` tree of manifests and `expected.yaml` with the step,
@@ -3311,7 +3314,11 @@ element type the format has.
 another format version gives the one finding `unsupported_version`,
 undetermined, and no other; the scope is the first directory when the
 findings lie in two manifests of one directory and none when they lie in
-two top-level manifests; and the findings are sorted by path, kind and ID
+two top-level manifests; a manifest file named `manifest.<ext>` gives its
+folder's name (`bpsd/op106/manifest.yaml` and `.json` `op106`), except at
+the top, where there is none (`manifest`), while `manifest.minimal.yaml`
+is no such name (`manifest.minimal`); two such files under one top folder
+give the top folder (`bpsd`), under two none; and the findings are sorted by path, kind and ID
 whatever order the changes were made in. Numbers by value: the LinearMap's
 `scalar` and `offset` written `2`/`[1, 2]`, `[2, 1]`/`[2, 4]` and
 `[4, 2]`/`0.5` give no finding against `2.0`/`[1, 2]`; an offset `0.1`
@@ -3342,7 +3349,12 @@ repository without commits is the empty tree, so a staged manifest is
 read: a repository holding a manifest marked `export-ignore`, the audio
 file its resource names and an unrelated text file materialises exactly
 the manifest and the audio file on both sides, and the changed audio is
-`changed_table`, undetermined. **History**: with tags `v1.0.0` (the sketch
+`changed_table`, undetermined. A table file is read through the filters
+its path's attributes name, as a checkout writes it: a filter storing the
+MatchClaim table as base64 text (`base64 -w0` to clean, `base64 -d` to
+smudge, standing in for Git LFS's pointer) leaves a blob starting `UEFS`
+(no Parquet file), and dropping `claim_18` from the staged table still
+gives `removed_row`, major (read unfiltered, `changed_table`). **History**: with tags `v1.0.0` (the sketch
 held) and `v2.0.0` (removed), staging the sketch again gives `added`
 without `history` and `added` plus `reused_id`, refused, with it, the
 detail naming both tags; so does the commit of it. With `v1.0.0` (region
@@ -3422,6 +3434,34 @@ manifest it gives the one finding `added_manifest`, minor, with and
 without `--history`, and with a directory as NEW it is refused like any
 mix of a directory and a reference.
 
+**`timetoshare release-check`** (`test_release_check.py`). Each case is a
+temporary repository whose commits hold one base manifest of the version
+cases and a `.release-please-manifest.json` with the version `"."`; the
+expected output is the exact text. `HEAD` is a release when that version
+is not `0.0.0` and has no tag `v<version>`; the data compared runs from the
+nearest tag matching `v[0-9]*` reachable from `HEAD` (other tags, `draft`
+on `HEAD` itself, are passed over), or from the empty tree, to `HEAD`, with
+the history of the tags. Without a tag at `0.0.0` it prints `no release:
+the version 0.0.0 is no release`, the data from the empty tree, the step
+and the finding `added_manifest`, and exits 0; at `0.1.0` without a tag it
+is the first release, `release: 0.1.0, the first, carries major` (from
+`0.0.0`), and `passes`. With `v0.1.0` tagged and the version `0.1.0`, a
+later removal is reported (`is tagged v0.1.0`) and exits 0. At `0.1.1`
+after `v0.1.0` a removal `fails` with `release_problem`'s sentence and
+exits 2, while an added region `passes`, an addition taking the last
+number below 1.0.0. Restoring the sketch at `0.2.1` after `v0.1.0` held it
+and `v0.2.0` removed it fails as `a change is refused`. A table of the
+type Note whose bytes change gives `changed_table`, undetermined: at a
+release (`0.2.0` after `v0.1.0`) it `fails: a change is undetermined` and
+exits 2 although the release carries a major step; at the tagged `0.1.0`
+it is reported and exits 0. `--summary FILE` appends to FILE `### Release
+0.1.1: fails` (or `### No release`), a blank line and the printed lines in a
+`text` code block. A missing `.release-please-manifest.json` and one
+without `"."` exit 1 with their message on standard error, nothing on
+standard output, and the summary `### Release check: error`; a version
+below the last tag's (`0.1.9` after `v0.2.0`) exits 1 with
+`release_step`'s message.
+
 **`timetoshare validate`.** Every case is a file written in the test's
 temporary directory, and each expected line is the exact text the command
 prints, `<path>: <code> at <JSON pointer>: <message>`; the codes and
@@ -3434,11 +3474,20 @@ refusal exits 1: a manifest without `timelines` (`schema at #`), one whose
 second timeline repeats the first's ID (`duplicate_id at #/timelines/1/id`,
 the validator's first violation only), one of the version 0.1.0
 (`unsupported_version at #/timetoshare`), a manifest written with a YAML
-anchor that `loads` refuses and PyYAML reads (`unreadable at #`, `loads`'s
-message), a text no reader reads, and bytes that are not UTF-8. Files that
-are no manifests are skipped without a line: an object without
-`timetoshare`, a JSON array, and a YAML file with an anchor that PyYAML
-reads as an object without `timetoshare`. Without arguments the command
+anchor that `loads` refuses (`unreadable at #`, `loads`'s message), a text
+no reader reads, and bytes that are not UTF-8, each with a line starting
+`timetoshare:`. A text `loads` refuses is refused exactly when it names
+the format at the top: in YAML a line starting with the key, quoted or not
+(`"timetoshare": "0.2.0"` before a broken list), and a text starting with
+`{` as JSON, an object holding the key (`timetoshare` twice, which `loads`
+refuses) or, where it is no JSON, the key anywhere in it, quoted (a JSON
+object left open) or not (a YAML flow mapping); a manifest followed by a
+second YAML document is refused too. Files that are no manifests are
+skipped without a line: an object without `timetoshare`, a JSON array, a
+YAML file with an anchor, a YAML file of two documents, an `mkdocs.yml`
+with a `!!python/name:` tag, a broken YAML file holding `timetoshare:` only
+nested, a broken JSON text with the key `timetoshare_version`, and bytes
+that are not UTF-8 without the key. Without arguments the command
 reads every `.yaml`, `.yml` and `.json` file under the current directory,
 sorted, subdirectories included, skipping `.git` (a refused manifest there
 prints nothing) and files of other extensions, and prints each path
@@ -3448,10 +3497,15 @@ relative to that directory.
 repository root is read and compared, hook by hook, with the three hooks
 the README's configuration names: `timetoshare-commit-type`
 (`prepare-commit-msg`), `timetoshare-commit-check` (`commit-msg`) and
-`timetoshare-validate` (`pre-commit`, files `\.(ya?ml|json)$`), each
+`timetoshare-validate` (`pre-commit`, files `\.(ya?ml|json)$`,
+`verbose: true` so that warnings show; the two others not verbose), each
 `language: python` with the one additional dependency `./python[tables]`;
 every entry, with a file name appended, parses as a subcommand of the
 command. pre-commit itself installing them from a clone needs the package
-index and is checked by hand: `pre-commit try-repo <checkout> <hook id>
---hook-stage <stage>` in a git repository holding a manifest.
+index, so no test here does it: CI's job "Pre-commit hooks" runs
+`pre-commit try-repo . timetoshare-validate --files
+fixtures/0.2.0/bare.yaml`, which installs the root distribution and
+`./python` as a dataset repository's clone does and accepts that fixture;
+the two commit hooks are checked by hand, `pre-commit try-repo <checkout>
+<hook id> --hook-stage <stage>` in a git repository holding a manifest.
 

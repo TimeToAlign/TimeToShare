@@ -251,6 +251,32 @@ def test_the_scope_is_one_directory(tmp_path: Path) -> None:
     ]
 
 
+def renamed_trees(root: Path, *paths: str) -> StepReport:
+    """The report of renaming the base manifest at each of ``paths``."""
+    for side in ("old", "new"):
+        name = "Sonata" if side == "old" else "Sonata, revised"
+        for path in paths:
+            write(root / side / path, renamed(base(), name))
+    return tree_step(root / "old", root / "new")
+
+
+@pytest.mark.parametrize(
+    ("paths", "scope"),
+    [
+        (["bpsd/op106/manifest.yaml"], "op106"),
+        (["bpsd/op106/manifest.json"], "op106"),
+        (["manifest.yaml"], "manifest"),
+        (["bpsd/op106/manifest.minimal.yaml"], "manifest.minimal"),
+        (["bpsd/op106/manifest.yaml", "bpsd/op110/manifest.yaml"], "bpsd"),
+        (["bpsd/op106/manifest.yaml", "mtd/manifest.yaml"], None),
+    ],
+)
+def test_a_file_named_manifest_takes_its_folder_s_name(
+    tmp_path: Path, paths: list[str], scope: str | None
+) -> None:
+    assert renamed_trees(tmp_path, *paths).scope == scope
+
+
 def test_no_scope_over_two_top_level_manifests(tmp_path: Path) -> None:
     for side in ("old", "new"):
         name = "Sonata" if side == "old" else "Sonata, revised"
@@ -496,6 +522,36 @@ def test_only_manifests_and_their_tables_are_read_from_git(
     assert written == [{"base.yaml", "take_1.flac"}, {"base.yaml", "take_1.flac"}]
     assert [(f.kind, f.step, f.id) for f in report.findings] == [
         ("changed_table", "undetermined", "recording")
+    ]
+
+
+def test_a_table_is_read_through_the_filters_of_its_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A filter that stores the table as base64 text stands in for Git LFS,
+    which stores a pointer: unfiltered, the stored text is no Parquet file."""
+    pq = pytest.importorskip("pyarrow.parquet")
+    pa = pytest.importorskip("pyarrow")
+    from timetoshare.tables import fixture_path
+
+    repo = repository(tmp_path)
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
+    git(repo, "config", "filter.b64.clean", "base64 -w0")
+    git(repo, "config", "filter.b64.smudge", "base64 -d")
+    (repo / ".gitattributes").write_text("*.parquet filter=b64\n", encoding="utf-8")
+    write(repo / "claims.yaml", table_manifest())
+    rows = claim_rows()
+    schema = pq.read_table(fixture_path("match_claims.parquet")).schema
+    table = repo / "match_claims.parquet"
+    pq.write_table(pa.Table.from_pylist(rows, schema=schema), table)
+    git(repo, "add", ".")
+    git(repo, "commit", "--quiet", "-m", "first")
+    assert git(repo, "cat-file", "-p", "HEAD:match_claims.parquet").startswith("UEFS")
+    fewer = [row for row in rows if row["id"] != "claim_18"]
+    pq.write_table(pa.Table.from_pylist(fewer, schema=schema), table)
+    git(repo, "add", "match_claims.parquet")
+    assert [(f.kind, f.step, f.id) for f in git_step("HEAD", None, repo).findings] == [
+        ("removed_row", "major", "claim_18")
     ]
 
 

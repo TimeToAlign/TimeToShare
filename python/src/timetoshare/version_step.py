@@ -130,9 +130,11 @@ class StepReport:
         findings: Every finding, sorted by path, kind and ID.
         refused: Whether a finding is refused.
         undetermined: Whether a finding could not be judged.
-        scope: The manifest file's stem when every finding lies in one
-            manifest file, else the first path component when all lie under
-            one top directory, else ``None``.
+        scope: Where every finding lies: the manifest file's stem when all
+            lie in one manifest file (its folder's name for a file named
+            ``manifest.<ext>``: ``op106`` for ``bpsd/op106/manifest.yaml``),
+            else the first path component when all lie under one top
+            folder (``bpsd``), else ``None``.
     """
 
     step: str
@@ -183,7 +185,10 @@ def _scope(findings: tuple[Finding, ...]) -> str | None:
     if not paths or len(paths) != len({f.path for f in findings}):
         return None
     if len(paths) == 1:
-        return next(iter(paths)).stem or None
+        (path,) = paths
+        if path.stem == "manifest" and len(path.parts) > 1:
+            return path.parent.name
+        return path.stem or None
     tops = {path.parts[0] for path in paths if len(path.parts) > 1}
     if len(tops) == 1 and all(len(path.parts) > 1 for path in paths):
         return next(iter(tops))
@@ -1046,6 +1051,16 @@ def _blobs(repo: Path, names: set[str]) -> dict[str, bytes]:
     return found
 
 
+def _filtered(repo: Path, path: str, blob: str) -> bytes:
+    """A table file's contents as a checkout writes them: through the filters
+    the repository's attributes name for its path, so that a table kept by
+    Git LFS is read as the table, not as the pointer git holds."""
+    done = _git(repo, "cat-file", "--filters", f"--path={path}", blob)
+    if done.returncode:
+        raise _failed(done)
+    return done.stdout
+
+
 def _manifest_files(files: Mapping[str, str]) -> dict[str, str]:
     return {
         path: blob
@@ -1090,8 +1105,7 @@ def _materialise(repo: Path, ref: str | None, target: Path) -> None:
         for named in _named_tables(path, text)
         if named in files and named not in written
     }
-    contents = _blobs(repo, set(tables.values()))
-    written.update({path: contents[blob] for path, blob in tables.items()})
+    written.update({path: _filtered(repo, path, blob) for path, blob in tables.items()})
     for path, data in written.items():
         file = target / PurePosixPath(path)
         file.parent.mkdir(parents=True, exist_ok=True)
@@ -1211,7 +1225,9 @@ def git_step(
     Only the manifests and the table files their resources name are read
     from git (``git ls-tree``, ``git ls-files --stage`` and ``git cat-file
     --batch``), so the rest of the tree, audio included, is never written
-    out.
+    out. A table file is read through the filters the work tree's attributes
+    name for its path (``git cat-file --filters``), so a table kept by Git
+    LFS is read as the table where git-lfs is installed.
 
     Args:
         old_ref: The earlier reference, such as a release tag. ``HEAD`` in a
