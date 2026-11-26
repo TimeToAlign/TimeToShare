@@ -1313,16 +1313,21 @@ flow that does not follow from its manifest.
   imported jump and two elements added by hand, the two jumps at one
   coordinate (`repairs`). `sonata_exposition` holds three regions typed
   `tts:AtomicSection` with an `inferred` entry each, the FlowMaps of the
-  three conventions, each with the one provenance entry `{method:
-  inferred}`, and one virtual timeline; read as RDF it says exactly
-  that each region is an `AtomicSection` of the format's namespace and that
-  the pair was inferred, fifteen quads; `volta_run` says so of its five
-  atomic sections, `region_2` to `region_6`, twenty-five quads, and
-  nothing of its `region_1`, which is none; `virtual_cards`,
-  `switched_card` and the groups `virtual_member` and `switched_frame`,
-  which hold one root `allegro` built alike, say so of its three sections
-  `section_a`, `section_b` and `section_c`, fifteen quads each; every
-  other fixture outside `statements/` says nothing. `virtual_cards` holds
+  three conventions, `default`, `single` and `printed` once each, each with
+  the one provenance entry `{method: inferred}`, and one virtual timeline;
+  read as RDF it says exactly that each region is an `AtomicSection` of the
+  format's namespace and that the pair was inferred, fifteen quads;
+  `volta_run` says so of its five atomic sections, the regions named "A"
+  to "E", twenty-five quads, and nothing of its `region_1`
+  ("Exposition"), which is none; `virtual_cards`, `switched_card` and the
+  groups `virtual_member` and `switched_frame`, which hold one root
+  `allegro` built alike, say so of its three sections `section_a`,
+  `section_b` and `section_c` ("A", "B" and "C"), fifteen quads each;
+  every other fixture outside `statements/` says nothing. The library
+  mints the IDs of the regions and FlowMaps it computes, so the tests find
+  the atomic sections by their names and the FlowMaps by their
+  conventions, never by a minted ID, and do not rely on the order by ID
+  of the FlowMaps. `virtual_cards` holds
   the three computed FlowMaps under the IDs `default`, `single` and
   `printed`, the FlowMap `by_hand` with a run of four entries and a gap,
   and three virtual timelines; `switched_card` holds the same `timelines`,

@@ -10,6 +10,7 @@ import {
   NAMESPACE,
   SCHEMA_VERSION,
   samePair,
+  withBareIds,
 } from "../src/index.js";
 import { type JsonObject, plain } from "../src/json/value.js";
 import { fixtureFiles, fixtureText, repositoryRoot } from "./fixtures.js";
@@ -229,31 +230,51 @@ describe("the statement fixtures", () => {
   );
 });
 
-/** Per fixture whose regions are atomic sections, their IDs; `volta_run`'s `region_1` is none. */
-const SONATA = ["region_1", "region_2", "region_3"];
-const VOLTA_RUN = ["region_2", "region_3", "region_4", "region_5", "region_6"];
-const ALLEGRO = ["section_a", "section_b", "section_c"];
+/**
+ * Per fixture whose regions are atomic sections, their names; `volta_run`'s
+ * region "Exposition" is none. The library mints the IDs of the regions it
+ * computes, so a region is found by its name.
+ */
+const ABC = ["A", "B", "C"];
+const VOLTA_RUN = ["A", "B", "C", "D", "E"];
 const SECTION_REGIONS: Record<string, string[]> = {
-  "flow/sonata_exposition": SONATA,
-  "flow/sonata_exposition.minimal": SONATA,
+  "flow/sonata_exposition": ABC,
+  "flow/sonata_exposition.minimal": ABC,
   volta_run: VOLTA_RUN,
   "volta_run.minimal": VOLTA_RUN,
-  "flow/virtual_cards": ALLEGRO,
-  "flow/virtual_cards.minimal": ALLEGRO,
-  "flow/switched_card": ALLEGRO,
-  "flow/switched_card.minimal": ALLEGRO,
-  "groups/virtual_member": ALLEGRO,
-  "groups/virtual_member.minimal": ALLEGRO,
-  "groups/switched_frame": ALLEGRO,
-  "groups/switched_frame.minimal": ALLEGRO,
+  "flow/virtual_cards": ABC,
+  "flow/virtual_cards.minimal": ABC,
+  "flow/switched_card": ABC,
+  "flow/switched_card.minimal": ABC,
+  "groups/virtual_member": ABC,
+  "groups/virtual_member.minimal": ABC,
+  "groups/switched_frame": ABC,
+  "groups/switched_frame.minimal": ABC,
 };
+
+/** The IDs of the regions named `names`, one each, in the timelines of the fixture `path`. */
+function regionIds(path: string, names: string[]): string[] {
+  const found = new Map<string, string[]>();
+  const visit = (timeline: JsonObject): void => {
+    for (const region of (timeline.regions ?? []) as JsonObject[]) {
+      const name = String(region.name);
+      found.set(name, [...(found.get(name) ?? []), String(region.id)]);
+    }
+    for (const child of (timeline.children ?? []) as JsonObject[]) visit(child);
+  };
+  const manifest = withBareIds(loads(fixtureText(path))) as JsonObject;
+  for (const root of manifest.timelines as JsonObject[]) visit(root);
+  const ids = names.map((name) => found.get(name) ?? []);
+  expect(ids.map((each) => each.length)).toEqual(names.map(() => 1));
+  return ids.map(([id]) => id as string);
+}
 const ATOMIC_SECTIONS = Object.keys(SECTION_REGIONS);
 
 describe("the atomic sections", () => {
   it.each(ATOMIC_SECTIONS)("of %s are typed in the format's namespace", async (path) => {
     const type = `${RDF}type`;
     const rdf = RDF;
-    const ids = SECTION_REGIONS[path] as string[];
+    const ids = regionIds(path, SECTION_REGIONS[path] as string[]);
     const regions = ids.map((id) => `<${baseOf(path)}#${id}>`);
     const quads = quadsOf(await canonical(path));
     const named = quads.filter((quad) => (quad[0] as string).startsWith("<"));

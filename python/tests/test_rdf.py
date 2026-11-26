@@ -18,6 +18,7 @@ from timetoshare import (
     loads,
     rdf_expectation,
     same_pair,
+    with_bare_ids,
 )
 from timetoshare.statements import NODE_MEMBERS, container_pairs
 
@@ -54,17 +55,19 @@ UNSTATED = {
 subject has an IRI: those whose value is a thing or a plain literal, which
 the triple check reads, and those it passes over."""
 STATEMENTS = [path for path in fixture_paths() if path.parent.name == "statements"]
-_ALLEGRO = ("section_a", "section_b", "section_c")
+_ABC = ("A", "B", "C")
 SECTION_REGIONS = {
-    "sonata_exposition": tuple(f"region_{number}" for number in (1, 2, 3)),
-    "volta_run": tuple(f"region_{number}" for number in (2, 3, 4, 5, 6)),
-    "virtual_cards": _ALLEGRO,
-    "switched_card": _ALLEGRO,
-    "virtual_member": _ALLEGRO,
-    "switched_frame": _ALLEGRO,
+    "sonata_exposition": _ABC,
+    "volta_run": ("A", "B", "C", "D", "E"),
+    "virtual_cards": _ABC,
+    "switched_card": _ABC,
+    "virtual_member": _ABC,
+    "switched_frame": _ABC,
 }
-"""Per fixture whose regions state that they are atomic sections, the IDs
-of those regions; ``volta_run``'s ``region_1`` is no atomic section."""
+"""Per fixture whose regions state that they are atomic sections, the names
+of those regions; ``volta_run``'s region "Exposition" is no atomic section.
+The library mints the IDs of the regions it computes, so a region is found
+by its name."""
 ATOMIC_SECTIONS = [
     path
     for path in fixture_paths()
@@ -76,6 +79,24 @@ OTHERS = [
     for path in fixture_paths()
     if path.parent.name != "statements" and path not in ATOMIC_SECTIONS
 ]
+
+
+def _region_ids(path: Path, names: tuple[str, ...]) -> list[str]:
+    """The IDs of the regions named ``names``, one each, in the timelines of
+    the fixture at ``path``."""
+    found: dict[str, list[str]] = {}
+
+    def visit(timeline: dict[str, Any]) -> None:
+        for region in timeline.get("regions", []):
+            found.setdefault(region.get("name"), []).append(region["id"])
+        for child in timeline.get("children", []):
+            visit(child)
+
+    for root in with_bare_ids(loads(path.read_text("utf-8")))["timelines"]:
+        visit(root)
+    ids = [found.get(name, []) for name in names]
+    assert all(len(each) == 1 for each in ids), (names, ids)
+    return [identifier for (identifier,) in ids]
 
 
 def _base(path: Path) -> str:
@@ -290,8 +311,8 @@ def test_the_atomic_section_fixture_is_found() -> None:
 @pytest.mark.parametrize("path", ATOMIC_SECTIONS, ids=lambda path: path.name)
 def test_an_atomic_section_is_typed_in_the_formats_namespace(path: Path) -> None:
     section = NAMESPACE + "AtomicSection"
-    ids = SECTION_REGIONS[path.name.removesuffix(".yaml").removesuffix(".minimal")]
-    regions = [f"{_base(path)}#{region}" for region in ids]
+    names = SECTION_REGIONS[path.name.removesuffix(".yaml").removesuffix(".minimal")]
+    regions = [f"{_base(path)}#{region}" for region in _region_ids(path, names)]
     quads = _quads(path)
     named = {
         (quad["subject"]["value"], quad["predicate"]["value"], quad["object"]["value"])

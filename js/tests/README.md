@@ -614,7 +614,9 @@ so the inline context is all a processor reads. For both, it asserts:
    `flow/virtual_cards`, `flow/switched_card`, `groups/virtual_member` and
    `groups/switched_frame` with their twins, whose regions state that
    they are atomic sections, three in `sonata_exposition`, five in
-   `volta_run` (its `region_1` is none) and three in each of the others: the dataset is exactly,
+   `volta_run` (its `region_1`, "Exposition", is none) and three in each of
+   the others, found by their names "A" to "C" or "E", since the library
+   mints the IDs of the regions it computes: the dataset is exactly,
    per such region, the triple typing it `AtomicSection` in the format's
    namespace and the reified statement of that pair with the method
    `Inferred`, five quads; the FlowMaps and their provenance add none,

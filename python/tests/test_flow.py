@@ -1311,11 +1311,11 @@ def test_the_flow_fixtures_cover_what_their_names_say() -> None:
     assert "convention" not in flow_map
     assert flow_map["provenance"][0]["method"] == "manual"
     computed = read("sonata_exposition")
-    assert [
+    assert sorted(
         (entry["convention"], entry["provenance"]) for entry in computed["flow_maps"]
-    ] == [
+    ) == [
         (convention, [{"method": "inferred"}])
-        for convention in ("default", "single", "printed")
+        for convention in ("default", "printed", "single")
     ]
     assert [
         [(entry["method"], entry["property"]) for entry in region["provenance"]]
