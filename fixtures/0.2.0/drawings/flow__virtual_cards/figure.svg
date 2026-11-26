@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="642.9351" height="347.383" viewBox="0 0 642.9351 347.383" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="610.9351" height="315.383" rx="10" fill="#F3F4F6"/>
+<text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Virtual cards</text>
+<rect data-id="allegro" data-part="card" x="10" y="30.8047" width="592.9351" height="66.672" rx="5" fill="#B8BEC8"/>
+<rect data-id="allegro" data-part="card" x="8" y="28.8047" width="592.9351" height="66.672" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="volta_break" x1="305.5896" y1="48.707" x2="305.5896" y2="36.8047" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
+<line data-id="volta_jump" data-part="fork" x1="291.8718" y1="71.9141" x2="299.8718" y2="71.9141" stroke="#000000" stroke-width="1"/>
+<line data-id="volta_jump" data-part="fork" x1="299.8718" y1="71.9141" x2="313.8718" y2="71.9141" stroke="#000000" stroke-width="1"/>
+<polygon data-id="volta_jump" data-part="fork" points="317.8718,71.9141 313.8718,69.9141 313.8718,73.9141" fill="#000000"/>
+<line data-id="volta_jump" data-part="fork" x1="299.8718" y1="71.9141" x2="311.3399" y2="79.9441" stroke="#000000" stroke-width="1"/>
+<polygon data-id="volta_jump" data-part="fork" points="314.6165,82.2384 312.4871,78.3058 310.1928,81.5824" fill="#000000"/>
+<text data-id="volta_jump" data-part="fork" x="320.8718" y="75.0298" text-anchor="start" font-size="9" fill="#000000">1.</text>
+<text data-id="volta_jump" data-part="fork" x="317.6165" y="85.3542" text-anchor="start" font-size="9" fill="#000000">2.</text>
+<line data-id="allegro" x1="183.9351" y1="43.207" x2="583.9351" y2="43.207" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="allegro" cx="183.9351" cy="43.207" r="3" fill="#00CC00"/>
+<polygon data-id="allegro" points="592.9351,43.207 583.9351,38.707 583.9351,47.707" fill="#00CC00"/>
+<text data-id="allegro" data-part="name" x="16" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Allegro</text>
+<text data-id="repeat_end" data-part="symbol" x="305.5896" y="61.8457" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
+<rect data-id="allegro_by_hand" data-part="card" x="10" y="105.4767" width="592.9351" height="76.9531" rx="5" fill="#B8BEC8"/>
+<rect data-id="allegro_by_hand" data-part="card" x="8" y="103.4767" width="592.9351" height="76.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-id="allegro_by_hand" data-facet="regions" data-part="0" d="M183.9351 131.4767Q183.9351 134.4767 186.9351 134.4767L212.14 134.4767Q215.14 134.4767 215.14 137.4767Q215.14 134.4767 218.14 134.4767L243.345 134.4767Q246.345 134.4767 246.345 131.4767" fill="none" stroke="#000000" stroke-width="1"/>
+<path data-id="allegro_by_hand" data-facet="regions" data-part="5" d="M246.8689 131.4767Q246.8689 134.4767 249.8689 134.4767L318.7871 134.4767Q321.7871 134.4767 321.7871 137.4767Q321.7871 134.4767 324.7871 134.4767L393.7052 134.4767Q396.7052 134.4767 396.7052 131.4767" fill="none" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro_by_hand" x1="183.9351" y1="119.4767" x2="246.345" y2="119.4767" stroke="#00CC00" stroke-width="3"/>
+<line data-id="allegro_by_hand" x1="246.8689" y1="119.4767" x2="396.7052" y2="119.4767" stroke="#00CC00" stroke-width="3"/>
+<line data-id="allegro_by_hand" x1="246.345" y1="119.4767" x2="246.8689" y2="119.4767" stroke="#00CC00" stroke-width="1.5" stroke-dasharray="1.5 3"/>
+<circle data-id="allegro_by_hand" cx="183.9351" cy="119.4767" r="3" fill="#00CC00"/>
+<circle data-id="allegro_by_hand" cx="396.7052" cy="119.4767" r="3" fill="#00CC00"/>
+<line data-id="allegro_by_hand" data-facet="regions" data-part="4 start" x1="246.345" y1="111.4767" x2="246.345" y2="127.4767" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro_by_hand" data-facet="regions" data-part="5 start" x1="246.8689" y1="111.4767" x2="246.8689" y2="127.4767" stroke="#000000" stroke-width="1"/>
+<text data-id="allegro_by_hand" data-part="name" x="16" y="123.2848" text-anchor="start" font-size="11" fill="#000000">Allegro, practice · unfolded…</text>
+<text data-id="allegro_by_hand" data-facet="regions" data-part="0 label" x="215.14" y="147.8307" text-anchor="middle" font-size="9" fill="#000000">A × 4</text>
+<text data-id="allegro_by_hand" data-facet="regions" data-part="4 label" x="246.607" y="170.3073" text-anchor="middle" font-size="9" fill="#000000">4 ♩</text>
+<text data-id="allegro_by_hand" data-facet="regions" data-part="5 label" x="321.7871" y="147.8307" text-anchor="middle" font-size="9" fill="#000000">C</text>
+<rect data-id="allegro_default" data-part="card" x="10" y="190.4298" width="592.9351" height="54.4766" rx="5" fill="#B8BEC8"/>
+<rect data-id="allegro_default" data-part="card" x="8" y="188.4298" width="592.9351" height="54.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-id="allegro_default" data-facet="regions" data-part="0" d="M183.9351 216.4298Q183.9351 219.4298 186.9351 219.4298L225.8773 219.4298Q228.8773 219.4298 228.8773 222.4298Q228.8773 219.4298 231.8773 219.4298L270.8195 219.4298Q273.8195 219.4298 273.8195 216.4298" fill="none" stroke="#000000" stroke-width="1"/>
+<path data-id="allegro_default" data-facet="regions" data-part="1" d="M273.8195 216.4298Q273.8195 219.4298 276.8195 219.4298L273.036 219.4298Q276.036 219.4298 276.036 222.4298Q276.036 219.4298 279.036 219.4298L275.2524 219.4298Q278.2524 219.4298 278.2524 216.4298" fill="none" stroke="#000000" stroke-width="1"/>
+<path data-id="allegro_default" data-facet="regions" data-part="2" d="M278.2524 216.4298Q278.2524 219.4298 281.2524 219.4298L320.1947 219.4298Q323.1947 219.4298 323.1947 222.4298Q323.1947 219.4298 326.1947 219.4298L365.1369 219.4298Q368.1369 219.4298 368.1369 216.4298" fill="none" stroke="#000000" stroke-width="1"/>
+<path data-id="allegro_default" data-facet="regions" data-part="3" d="M368.1369 216.4298Q368.1369 219.4298 371.1369 219.4298L473.036 219.4298Q476.036 219.4298 476.036 222.4298Q476.036 219.4298 479.036 219.4298L580.9351 219.4298Q583.9351 219.4298 583.9351 216.4298" fill="none" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro_default" x1="183.9351" y1="204.4298" x2="583.9351" y2="204.4298" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="allegro_default" cx="183.9351" cy="204.4298" r="3" fill="#00CC00"/>
+<circle data-id="allegro_default" cx="583.9351" cy="204.4298" r="3" fill="#00CC00"/>
+<line data-id="allegro_default" data-facet="regions" data-part="1 start" x1="273.8195" y1="196.4298" x2="273.8195" y2="212.4298" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro_default" data-facet="regions" data-part="2 start" x1="278.2524" y1="196.4298" x2="278.2524" y2="212.4298" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro_default" data-facet="regions" data-part="3 start" x1="368.1369" y1="196.4298" x2="368.1369" y2="212.4298" stroke="#000000" stroke-width="1"/>
+<text data-id="allegro_default" data-part="name" x="16" y="208.238" text-anchor="start" font-size="11" fill="#000000">Allegro, default · unfolded …</text>
+<text data-id="allegro_default" data-facet="regions" data-part="0 label" x="228.8773" y="232.7838" text-anchor="middle" font-size="9" fill="#000000">A</text>
+<text data-id="allegro_default" data-facet="regions" data-part="1 label" x="276.036" y="232.7838" text-anchor="middle" font-size="9" fill="#000000">B</text>
+<text data-id="allegro_default" data-facet="regions" data-part="2 label" x="323.1947" y="232.7838" text-anchor="middle" font-size="9" fill="#000000">A</text>
+<text data-id="allegro_default" data-facet="regions" data-part="3 label" x="476.036" y="232.7838" text-anchor="middle" font-size="9" fill="#000000">C</text>
+<rect data-id="allegro_single" data-part="card" x="10" y="252.9064" width="592.9351" height="54.4766" rx="5" fill="#B8BEC8"/>
+<rect data-id="allegro_single" data-part="card" x="8" y="250.9064" width="592.9351" height="54.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-id="allegro_single" data-facet="regions" data-part="0" d="M183.9351 278.9064Q183.9351 281.9064 186.9351 281.9064L239.7441 281.9064Q242.7441 281.9064 242.7441 284.9064Q242.7441 281.9064 245.7441 281.9064L298.5531 281.9064Q301.5531 281.9064 301.5531 278.9064" fill="none" stroke="#000000" stroke-width="1"/>
+<path data-id="allegro_single" data-facet="regions" data-part="1" d="M301.5531 278.9064Q301.5531 281.9064 304.5531 281.9064L439.7441 281.9064Q442.7441 281.9064 442.7441 284.9064Q442.7441 281.9064 445.7441 281.9064L580.9351 281.9064Q583.9351 281.9064 583.9351 278.9064" fill="none" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro_single" x1="183.9351" y1="266.9064" x2="583.9351" y2="266.9064" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="allegro_single" cx="183.9351" cy="266.9064" r="3" fill="#00CC00"/>
+<circle data-id="allegro_single" cx="583.9351" cy="266.9064" r="3" fill="#00CC00"/>
+<line data-id="allegro_single" data-facet="regions" data-part="1 start" x1="301.5531" y1="258.9064" x2="301.5531" y2="274.9064" stroke="#000000" stroke-width="1"/>
+<text data-id="allegro_single" data-part="name" x="16" y="270.7145" text-anchor="start" font-size="11" fill="#000000">Allegro, single · unfolded fr…</text>
+<text data-id="allegro_single" data-facet="regions" data-part="0 label" x="242.7441" y="295.2604" text-anchor="middle" font-size="9" fill="#000000">A</text>
+<text data-id="allegro_single" data-facet="regions" data-part="1 label" x="442.7441" y="295.2604" text-anchor="middle" font-size="9" fill="#000000">C</text>
+</g>
+</svg>
