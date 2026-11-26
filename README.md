@@ -2979,14 +2979,23 @@ order, elements matched by their IDs at any depth:
 
 | Change | Step |
 | --- | --- |
-| removing anything with an ID (a timeline, a child, a group, a map, a region, a flow-control element, a FlowMap, a virtual timeline, a resource, a named timestamp, a named MatchStamp, an alignment anchor), a group member, a statement pair, a prefix of `@context`, a row of a table, a manifest file | major |
+| removing anything with an ID (a timeline, a child, a group, a MeasureMap, a conversion map, a region, a flow-control element, a FlowMap, a virtual timeline, a resource, a named timestamp, a named MatchStamp, an alignment anchor), a group member, a statement pair, a prefix of `@context`, a row of a table, a manifest file | major |
 | changing an ID (a removal and an addition) | major |
 | adding any of these | minor |
-| editing what an element states (a unit, a number type, a length, an offset, a map's numbers, a coordinate, a statement's value, a prefix's IRI), corrections included | minor |
+| editing what an element states (a unit, a number type, a length, an offset, a map's numbers, a coordinate, a FlowMap's chunks, a statement's value, a prefix's IRI), corrections included | minor |
 | a belief, a rejection included | patch |
-| a `name`, `meta`, styling in `graphical`, an elision, a resource's `url` for the same bytes (its `integrity` equal) | patch |
-| another form or serialization of the same value | none |
-| giving an ID to an element of another type | refused |
+| a `name`, `meta`, styling in `graphical` (a named timestamp's `display` included), an elision added, edited or removed, a resource's `url` for the same bytes (its `integrity` equal) | patch |
+| another form or serialization of the same value, comments | none |
+| giving an ID to an element of another type, or again after its element was removed | refused |
+
+Numbers compare by exact value wherever the format reads a number, as
+[Defaults](#defaults) states: an integer, a float and a Fraction pair of
+equal value are one value (`2`, `2.0`, `[2, 1]` and `[4, 2]`), so a
+conversion map's numbers and a MeasureMap row's lengths written in
+another spelling are no change, while `0.1` and `[1, 10]` differ. `meta`
+and the literals of `statements` and `provenance` compare as written. A
+file that is a manifest in one state and cannot be read in the other is
+reported as undetermined, never as a removal.
 
 A major version promises that every cited ID still exists, not that every
 coordinate keeps its meaning.
@@ -2995,10 +3004,21 @@ The `timetoshare` command of the Python package prints the step of a
 change and one line per finding (`--json` for the whole report): between
 two directories, between two git references of the repository `--repo`
 (default `.`), or between a reference and the changes staged for the next
-commit, when the second argument is left out. It exits 2 when a change is
-refused. Comparing the rows of a MatchClaim or Projections table needs the
-`tables` extra; without it, and for tables of any other type, a changed
+commit, when the second argument is left out. From git it reads only the
+manifests (the files ending `.yaml`, `.yml` or `.json`) and the table files
+their resources name, never the rest of the tree. It exits 2 when a change
+is refused. Comparing the rows of a MatchClaim or Projections table needs
+the `tables` extra; without it, and for tables of any other type, a changed
 table is reported as undetermined.
+
+Two states alone cannot show an ID given again after a release in between
+removed its element. `--history` (git references only) also reads every tag
+reachable from NEW (or `HEAD`) and from OLD, and OLD itself, in the order
+of the history, and refuses (`reused_id`) every ID of NEW that one of them
+held for an element of another type, or for an element that a later one of
+them no longer holds. This is the check the job on the release pull
+request runs, `timetoshare step --history <last tag> HEAD`; the hooks below
+compare two states only.
 
 ```console
 $ timetoshare step v2.1.0 HEAD
@@ -3009,10 +3029,11 @@ major	removed	op106.yaml	#clt_3	Timeline #clt_3 removed
 
 In Python, `manifest_step(old, new)` compares two manifests,
 `tree_step(old_root, new_root)` two directories and `git_step(old_ref,
-new_ref, repo)` two references (`new_ref=None`: the staged changes); the
-last two return a `StepReport` with the `step`, the `findings` (each a
-`Finding` with `kind`, `step`, `path`, `id` and `detail`) and the
-`scope`, the manifest or directory every finding lies in.
+new_ref, repo, history=False)` two references (`new_ref=None`: the staged
+changes); the last two return a `StepReport` with the `step`, the
+`findings` (each a `Finding` with `kind`, `step`, `path`, `id` and
+`detail`), the flags `refused` and `undetermined`, and the `scope`, the
+manifest or directory every finding lies in.
 
 The release tool [release-please](https://github.com/googleapis/release-please)
 computes the version from Conventional Commits: a `feat` commit makes a
@@ -3022,8 +3043,8 @@ scope naming the manifest or the part of the dataset (`op106`, `bpsd`):
 
 | Type | Instead of | Step | Changelog section | For |
 | --- | --- | --- | --- | --- |
-| `feat` | `feat`; `fix` for a correction | minor | Added or changed | adding or editing data, corrections included: `feat(op106): add the BPSD recordings` |
-| `remove` with `!` | `feat!` | major | Removed, and the IDs under the breaking changes | removing anything, changing an ID, with the footer `BREAKING CHANGE: removes #clt_3, #region_7` |
+| `feat` (release-please reads `feature` alike) | `feat`; `fix` for a correction | minor | Added or changed | adding or editing data, corrections included: `feat(op106): add the BPSD recordings` |
+| `remove` with `!` | `feat!` | major | Removed, and the IDs under the breaking changes | removing anything, changing an ID, with the footer `BREAKING CHANGE: removes #clt_3, #region_7`; any other type with `!` or with that footer also makes a major release, and the hook refuses it for a removal |
 | `belief` | `fix` | patch | Beliefs | recording a belief |
 | `label` | `chore` | patch | Names | a `name` |
 | `graphic` | `style` | patch | Drawing | `graphical`: styling rules, orders, display words, elisions |
@@ -3040,15 +3061,30 @@ Two git hooks keep the types honest. `timetoshare hook prepare-commit-msg`
 writes the header the staged change requires (the type of the highest
 step, the scope where every change lies in one manifest or directory, `!`
 and the `BREAKING CHANGE` footer for a removal, and a line `also: …`
-counting the smaller changes) before the subject given with `-m` or
-before the editor opens, so that `git commit -m "add the BPSD recordings"`
-commits `feat(op106): add the BPSD recordings`; it leaves merges, amends,
-squashes, messages that already have a type and commits without a change
-of the data alone. `timetoshare hook commit-msg` refuses a message whose
-type gives a lower step than the staged change, `remove` without `!` and
-an ID given to an element of another type, and warns where a data type
-gives a higher step or the footer misses a removed ID. A dataset repository
-installs both through [pre-commit](https://pre-commit.com) with this
+counting the smaller changes by kind, `also: 2 belief, 1 label`) before
+the subject given with `-m` or before the editor opens, so that `git commit
+-m "add the BPSD recordings"` commits `feat(op106): add the BPSD
+recordings`; it leaves merges, amends, squashes, every message whose first
+line already reads as a header (`type(scope): `, whatever the type) and
+commits without a change of the data alone. `timetoshare hook commit-msg`
+refuses a message whose type gives a lower step than the staged change, a
+removal written with any type but `remove` with `!` (`feat!` included),
+`remove` without `!`, a header without a subject (closing the editor on the
+written `feat(op106): `) and an ID given to an element of another type, and
+warns where a data type or a `!` gives a higher step, where a `BREAKING
+CHANGE` footer stands on a commit that removes nothing, and where the
+footer misses a removed ID. Both read comment lines by git's
+`core.commentChar` (`#` where it is `auto`). For `git commit --amend` with
+the editor or `--no-edit`, the first hook records the amended commit in
+`timetoshare-amend-base` in the git directory, and the second compares the
+amended commit's parent (the empty tree for a first commit) with the index;
+`git commit --amend -m` tells the hooks no amend and is compared with
+`HEAD`.
+
+pre-commit installs a hook of a repository listed under `repo:` by
+`pip install .` at that repository's root, where this repository holds no
+Python package, so a dataset repository declares both hooks as local ones
+whose environment installs the package from git, with this
 `.pre-commit-config.yaml`:
 
 ```yaml
@@ -3060,21 +3096,26 @@ repos:
         name: write the commit type of the staged manifests
         entry: timetoshare hook prepare-commit-msg
         language: python
-        additional_dependencies: ["timetoshare[tables]"]
+        additional_dependencies:
+          - "timetoshare[tables] @ git+https://github.com/TimeToAlign/TimeToShare@<tag or commit>#subdirectory=python"
         stages: [prepare-commit-msg]
         always_run: true
       - id: timetoshare-commit-check
         name: check the commit type against the staged manifests
         entry: timetoshare hook commit-msg
         language: python
-        additional_dependencies: ["timetoshare[tables]"]
+        additional_dependencies:
+          - "timetoshare[tables] @ git+https://github.com/TimeToAlign/TimeToShare@<tag or commit>#subdirectory=python"
         stages: [commit-msg]
         always_run: true
 ```
 
 and `pre-commit install --hook-type prepare-commit-msg --hook-type
-commit-msg`. The two hooks are also declared in this repository's
-`.pre-commit-hooks.yaml`.
+commit-msg`. The reference after `@` must be a tag or a commit, never a
+branch: pre-commit keys the hook's environment on the requirement's text
+and never reinstalls it while the text stays the same. Once a release of
+the package on PyPI carries the command, the requirement
+`timetoshare[tables]==<version>` replaces the git one.
 
 release-please's configuration of a dataset repository names the
 sections and makes a dataset's drafts `0.y.z` releases:

@@ -896,33 +896,57 @@ packages read the same files and compare their lists with them.
 `fixtures/versions/<case>/` holds the hand-authored cases of the version
 step a change of a repository of manifests requires ([main
 README](../README.md#versions-of-a-dataset)): an `old/` and a `new/` tree
-of manifests and `expected.yaml`, the `step`, the `scope` and the
-`findings` as `{kind, step, id}` in the order the report lists them (by
-path, kind and ID). They are not versioned by schema version: a case
-compares two states of data, not two formats. Every manifest is written
-in canonical YAML with `dumps` and validates; every `new/` but four is one
-edit of the one base manifest `old/base.yaml`, a quarters score with a
-child, a region, a statement and its provenance with a belief, a seconds
-take, a sketch, a group, an audio resource with its digest, a styling
-rule, a named timestamp and an elision. There is one case per rule:
+of manifests and `expected.yaml`, the `step`, the `scope`, the flags
+`refused` and `undetermined`, and the `findings` as `{kind, step, id}` in
+the order the report lists them (by path, kind and ID). They are not
+versioned by schema version: a case compares two states of data, not two
+formats. Every manifest is written in canonical YAML with `dumps` (one
+with comment lines added by hand) and validates; every `new/` but four is
+one edit of the one base manifest `old/base.yaml`: a quarters score with a
+child, three regions, a LinearMap and a flow-control element, a statement
+and its provenance with a belief, two seconds takes, a sketch, a group, a
+MeasureMap, a FlowMap and the virtual timeline applying it, an audio
+resource with its digest, a styling rule, a named timestamp, an elision, a
+named MatchStamp with two alignment anchors, and a prefix `ex` beside the
+default context. There is one case per rule:
 
 | Case | Change | Step |
 | --- | --- | --- |
 | `timeline_removed` | the root `sketch` removed | major |
 | `child_removed` | the child `movement_2` removed | major |
+| `group_removed` | the group `pair` removed | major |
+| `measure_map_removed` | the MeasureMap `bars` removed | major |
+| `conversion_map_removed` | the LinearMap `tempo` removed | major |
+| `flow_control_removed` | the flow-control element `fine` removed | major |
+| `flow_map_removed` | the FlowMap `reading` and the virtual timeline `score_read` applying it removed | major |
+| `virtual_timeline_removed` | the virtual timeline `score_read` removed | major |
+| `resource_removed` | the resource `recording` removed | major |
+| `matchstamp_removed` | the named MatchStamp `ms_1` removed, with its anchors and match timestamps | major |
+| `anchor_removed` | the anchor `anchor_2` removed, with the match timestamp `ts_m3` only it names | major |
 | `member_removed` | `take_1` taken out of the group `pair` | major |
 | `member_added` | `sketch` put into the group `pair` | minor |
 | `pair_removed` | the statement pair `wdt:P31` of `score` removed | major |
 | `pair_replaced` | its value replaced | minor |
 | `pair_added` | a pair `wdt:P86` added | minor |
+| `prefix_removed` | the prefix `ex` removed from `@context` | major |
+| `prefix_added` | a prefix `dcterms` added | minor |
+| `prefix_iri_edited` | the IRI of `ex` | minor |
 | `offset_edited` | the offset of `movement_2` | minor |
 | `unit_edited` | the unit of `sketch` | minor |
+| `number_type_edited` | the number type of `sketch`, `float`, its length `8.0` | minor |
+| `length_edited` | the length of `sketch` | minor |
+| `map_numbers_edited` | the `scalar` of `tempo`, `2.0` to `2.5` | minor |
+| `coordinate_edited` | the coordinate of the named timestamp `ts_start` | minor |
+| `chunks_edited` | the chunks of `reading`, `coda` to `bridge` | minor |
 | `region_added` | a region `region_2` added | minor |
 | `belief_added` | a second actor's belief on the provenance of `score` | patch |
 | `belief_changed` | the editor's belief changed from `true` to `false` | patch |
 | `name_changed` | the `name` of `score` | patch |
 | `graphical_rule_changed` | a styling rule's `fill` | patch |
+| `elision_added` | an elision `elision_2` added | patch |
+| `elision_edited` | the end of `elision_1` | patch |
 | `elision_removed` | the elision `elision_1` removed | patch |
+| `timestamp_display_edited` | the `display` of `ts_start` | patch |
 | `timestamp_removed` | the named timestamp `ts_start` removed | major |
 | `meta_changed` | the manifest's `meta` | patch |
 | `resource_moved` | the resource's `url`, its `integrity` equal | patch |
@@ -930,6 +954,8 @@ rule, a named timestamp and an elision. There is one case per rule:
 | `id_reused` | `region_1` removed and its ID given to the timeline `sketch` | refused (and major) |
 | `minimal_to_complete` | the minimal form rewritten in the complete form | none |
 | `yaml_to_json` | `base.yaml` rewritten as pretty JSON, `base.json` | none |
+| `comments_only` | two comment lines added | none |
+| `numbers_respelled` | `tempo`'s `scalar` `2.0` as `2` and `offset` `[1, 2]` as `[2, 4]`, a MeasureMap row's `actual_length` `[3, 1]` as `3` | none |
 | `manifest_removed` | a second manifest file `sketches.yaml` removed | major |
 | `manifest_added` | that file added | minor |
 

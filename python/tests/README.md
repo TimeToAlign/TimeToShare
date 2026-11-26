@@ -3267,34 +3267,55 @@ format's rule table in the main README ("Versions of a dataset").
 
 **The rule table, one case per rule.** `fixtures/versions/<case>/` holds
 an `old/` and a `new/` tree of manifests and `expected.yaml` with the step,
-the scope and the findings as `{kind, step, id}` in report order (path,
-kind, ID), all written by hand: each `new/` is one literal edit of the one
-base manifest in `old/` (a quarters score with a child, a region, a
-statement and its provenance with a belief, a seconds take, a sketch, a
-group, an audio resource with its digest, a rule, a named timestamp and an
-elision), so a finding the case does not name, or a missing one, fails the
-case. `tree_step(old, new)` must give exactly `expected.yaml`. The cases
-cover every row of the table: a root removed, a child removed, a group
-member removed and added, a statement pair removed, replaced and added, an
-offset and a unit edited, a region added, a belief added and one changed by
-its actor, a `name`, a `graphical` rule, an elision removed, a named
-timestamp removed, `meta`, a resource moved with equal integrity, an ID
-changed (a removal and an addition), a manifest file removed and added, and
-an ID given to an element of another type (refused). Two cases prove that
-nothing is a change of the data: the minimal and the complete form of one
-manifest, and its YAML rewritten as JSON (`base.yaml` to `base.json`).
-Every manifest of the cases validates. Beyond the table, the fixture
-manifests of `fixtures/0.2.0/` against their minimal twins, and each
-against itself, give no finding, which proves that comparison happens in
-the complete form and in canonical order on every element type the format
-has.
+the scope, the flags `refused` and `undetermined`, and the findings as
+`{kind, step, id}` in report order (path, kind, ID), all written by hand:
+each `new/` is one literal edit of the one base manifest in `old/` (a
+quarters score with a child, three regions, a LinearMap, a flow-control
+element, a statement and its provenance with a belief, two seconds takes,
+a sketch, a group, a MeasureMap, a FlowMap and the virtual timeline
+applying it, an audio resource with its digest, a rule, a named timestamp,
+an elision, a named MatchStamp with two alignment anchors and their match
+timestamps, and a prefix `ex` beside the default context), so a finding
+the case does not name, or a missing one, fails the case. `tree_step(old,
+new)` must give exactly `expected.yaml`. The cases cover every row of the
+table: removals (major) of a root timeline, a child, a group, a MeasureMap,
+a conversion map, a flow-control element, a FlowMap (with the virtual
+timeline applying it), a virtual timeline, a resource, a named timestamp,
+a named MatchStamp (with its anchors and match timestamps), an alignment
+anchor (with its one match timestamp no other anchor names), a group
+member, a statement pair and an `@context` prefix; additions (minor) of a
+region, a member, a pair and a prefix; edits (minor) of a prefix's IRI, an
+offset, a unit, a number type, a length, a LinearMap's scalar, a named
+timestamp's coordinate, a FlowMap's chunks and a pair's value; patches of a
+belief added and one changed by its actor, a `name`, a `graphical` rule,
+an elision added, edited and removed, a named timestamp's `display`,
+`meta` and a resource moved with equal integrity; an ID changed (a removal
+and an addition), a manifest file removed and added, and an ID given to an
+element of another type (refused). Four cases prove that nothing is a
+change of the data: the minimal and the complete form of one manifest, its
+YAML rewritten as JSON (`base.yaml` to `base.json`), the same text with
+comment lines, and the numbers of the LinearMap and a MeasureMap row
+respelled (`2.0` as `2`, `[1, 2]` as `[2, 4]`, `[3, 1]` as `3`). Every
+manifest of the cases validates, which a test asserts file by file. Beyond
+the table, the fixture manifests of `fixtures/0.2.0/` against their
+minimal twins, and each against itself, give no finding, which proves that
+comparison happens in the complete form and in canonical order on every
+element type the format has.
 
 **What the cases cannot hold.** Inline in the tests: a manifest declaring
 another format version gives the one finding `unsupported_version`,
 undetermined, and no other; the scope is the first directory when the
 findings lie in two manifests of one directory and none when they lie in
 two top-level manifests; and the findings are sorted by path, kind and ID
-whatever order the changes were made in.
+whatever order the changes were made in. Numbers by value: the LinearMap's
+`scalar` and `offset` written `2`/`[1, 2]`, `[2, 1]`/`[2, 4]` and
+`[4, 2]`/`0.5` give no finding against `2.0`/`[1, 2]`; an offset `0.1`
+against `[1, 10]` is `edited` (a float's exact binary value); a break's
+`passes` `[1, 2]` against `[2, 4]` is `edited` (two integers where the
+schema admits no Fraction pair stay two numbers); `meta` with `1` against
+`1.0` is `meta`, patch (literals as written). A manifest whose new text no
+longer parses gives `unreadable_manifest`, undetermined, never
+`removed_manifest`, naming the later tree; the reverse names the earlier.
 
 **Tables.** The table cases need Parquet files, which the fixture rules
 let only `scripts/emit_tables.py` write into `fixtures/`, so the tests
@@ -3312,7 +3333,19 @@ does not rise.
 commits equals the step between their trees, the staged change is read
 from the index (a change left unstaged is not seen), and `HEAD` in a
 repository without commits is the empty tree, so a staged manifest is
-`added_manifest`.
+`added_manifest`. Only manifests and the files their resources name are
+read: a repository holding a manifest marked `export-ignore`, the audio
+file its resource names and an unrelated text file materialises exactly
+the manifest and the audio file on both sides, and the changed audio is
+`changed_table`, undetermined. **History**: with tags `v1.0.0` (the sketch
+held) and `v2.0.0` (removed), staging the sketch again gives `added`
+without `history` and `added` plus `reused_id`, refused, with it, the
+detail naming both tags; so does the commit of it. With `v1.0.0` (region
+`region_1`), `v1.1.0` (without it) and `v2.0.0` (`region_1` a timeline),
+`v1.1.0` to `v2.0.0` adds `reused_id` "was a Region in v1.0.0 and is now a
+Timeline", while `v1.0.0` to `v1.1.0` is a plain removal. The command
+exits 0 without `--history` and 2 with it, printing the refused line, and
+refuses `--history` over two directories.
 
 **Commit types.** The suggested header of every case's report is fixed
 (`remove(base)!: `, `feat(base): `, `belief(base): `, `label(base): `,
@@ -3321,11 +3354,17 @@ patch type of a mixed report follows the count and then the order belief,
 label, graphic, meta, move, and the trailer of a removal with an addition
 is `also: 1 added` and `BREAKING CHANGE: removes #sketch`. `check_message`
 is held to its exact errors and warnings: an understated type (`label` for
-an added region, `feat` for a removal), `remove` without `!`, a reused ID
-and a missing header are errors; an overstated data type, a footer missing
-a removed ID and an undetermined change are warnings; a correct message
-gives neither, and merges, fixups, squashes, amends and reverts are not
-checked.
+an added region, `feat` for a removal), a removal written `feat!`, `fix!`
+or `feature`, `remove` without `!`, a header with an empty subject (with
+and without the space after the colon), a reused ID and a missing header
+are errors; `feature` for an addition passes; an overstated data type or
+`!` (`feat!` for an addition, `fix!` for no change of the data), a
+`BREAKING CHANGE` footer on a commit that removes nothing, a footer
+missing a removed ID and an undetermined change are warnings; a correct
+message gives neither, and merges, fixups, squashes, amends and reverts
+are not checked. With the comment character `;`, lines starting with `;`
+and everything below `;`'s scissors line are ignored and a line starting
+with `#` is message text.
 
 **The hooks.** Each runs in a temporary git repository with git's global
 and system configuration switched off, once called as the command line
@@ -3334,9 +3373,20 @@ commit`, which proves that the staged tree reaches the hook as git hands
 it over. `prepare-commit-msg` turns `-m "add the second region"` into
 `feat(base): add the second region`, writes `remove(base)!: ` and the
 footer for a removal, puts the header before git's comment lines in an
-editor template, and leaves the message untouched for an amend (source
-`commit`, given as an argument or by pre-commit's
-`PRE_COMMIT_COMMIT_MSG_SOURCE`), a merge, a message that already has a
-type, and a commit with no change of the data. `commit-msg` exits 0 for a
-message it accepts and 1 with the error on standard error for an
-understated one, and `git commit` then makes no commit.
+editor template (also with `core.commentChar` `;`), and leaves the message
+untouched for an amend (source `commit`, given as an argument or by
+pre-commit's `PRE_COMMIT_COMMIT_MSG_SOURCE`), a merge, a message whose
+first line reads as a header of any type (`label`, `data`, `feat(base):`
+without a subject), and a commit with no change of the data. `commit-msg`
+exits 0 for a message it accepts and 1 with the error on standard error
+for an understated one, and `git commit` then makes no commit. **Amend**:
+after a commit removing the sketch, `git commit --amend` whose editor
+writes `label(base): x` is refused (the amended commit's parent, not
+`HEAD`, is compared with the index), the commit stays and the recorded
+file is gone; `--amend --no-edit` keeps the removal's message. Amending the
+first commit compares with the empty tree: `docs: x` is refused as adding
+the manifest. pre-commit's `PRE_COMMIT_COMMIT_MSG_SOURCE=commit` and
+`PRE_COMMIT_COMMIT_OBJECT_NAME=HEAD` record `HEAD`'s commit in
+`timetoshare-amend-base`; `commit-msg` then refuses `label` for the
+removal and deletes the file, so the next check compares with `HEAD`
+again.
