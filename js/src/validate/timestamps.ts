@@ -21,7 +21,6 @@ import {
   SchemaValidationError,
   stringId,
   text,
-  timelinesById,
   timestampsOf,
 } from "./diagnostics.js";
 
@@ -106,13 +105,13 @@ export function* timestampProblems(manifest: JsonObject): Generator<SchemaValida
 /**
  * Yield elisions off the manifest's timelines or outside their extent.
  *
- * An elision names a timeline of the manifest, at any depth, and its `start`
- * lies before its `end`, both between 0 and that timeline's length, or at or
- * after 0 where the length is not known. Elisions may overlap; no overlap is
- * a problem.
+ * An elision names a timeline of the manifest, at any depth, or a virtual
+ * timeline, and its `start` lies before its `end`, both between 0 and that
+ * timeline's length, or at or after 0 where the length is not known.
+ * Elisions may overlap; no overlap is a problem.
  */
 export function* elisionProblems(manifest: JsonObject): Generator<SchemaValidationError> {
-  const timelines = timelinesById(manifest);
+  const timelines = axesById(manifest);
   for (const [index, elision] of elisionsOf(manifest).entries()) {
     const path = ["graphical", "elisions", index];
     const id = text(elision, "timeline");
@@ -121,7 +120,7 @@ export function* elisionProblems(manifest: JsonObject): Generator<SchemaValidati
       yield new SchemaValidationError(
         "elision_timeline",
         [...path, "timeline"],
-        `'${id}' names no timeline of this manifest`,
+        `'${id}' names no timeline or virtual timeline of this manifest`,
       );
       continue;
     }

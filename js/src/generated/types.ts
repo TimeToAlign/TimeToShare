@@ -1868,7 +1868,7 @@ export interface AlignmentAnchor {
   display?: ("line" | "name")[];
 }
 /**
- * An elision: the stretch from `start` to `end` on the own axis of the timeline `timeline` (any depth, a segment included), left out of the drawing. Every row drawn across the stretch stops where it starts and resumes where it ends, at full scale on either side, and the narrow gap between holds one ellipsis, centred in it, with the elision's labels below it and grey continuations of the rows, as `display` selects. The elision lies on its timeline and moves with it; nothing refers to an elision but an address in a rule: its gap `{"id": id}`, its ellipsis `{"id": id, "part": ["ellipsis"]}` and its three labels, its name `{"id": id, "part": ["name"]}`, its ID `{"id": id, "part": ["id"]}` and its elided coordinates `{"id": id, "part": ["coordinate"]}`. `start` and `end` are numbers as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), `start` before `end`. An elision on a timeline that lies in a group is drawn across that group's frame; every other is drawn in the cards of its timeline's root as their `elision-mode` selects; both are the drawing specification's (`docs/drawing.md`). That the timeline is one of the manifest's, that `start` and `end` read as its number type, and that they lie in order within the timeline are checked after the schema.
+ * An elision: the stretch from `start` to `end` on the own axis of the timeline `timeline` (any depth, a segment included, or a virtual timeline, on its played axis), left out of the drawing. Every row drawn across the stretch stops where it starts and resumes where it ends, at full scale on either side, and the narrow gap between holds one ellipsis, centred in it, with the elision's labels below it and grey continuations of the rows, as `display` selects. The elision lies on its timeline and moves with it; nothing refers to an elision but an address in a rule: its gap `{"id": id}`, its ellipsis `{"id": id, "part": ["ellipsis"]}` and its three labels, its name `{"id": id, "part": ["name"]}`, its ID `{"id": id, "part": ["id"]}` and its elided coordinates `{"id": id, "part": ["coordinate"]}`. `start` and `end` are numbers as that timeline's number type selects, from its zero to its length (only from its zero when the length is null), `start` before `end`. An elision on a timeline that lies in a group, a virtual timeline that is a member of one included, is drawn across that group's frame; every other is drawn in the cards of its timeline's root, a virtual timeline being its own, as their `elision-mode` selects; both are the drawing specification's (`docs/drawing.md`). That the timeline is a timeline or a virtual timeline of the manifest, that `start` and `end` read as its number type, and that they lie in order within the timeline are checked after the schema.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
  * via the `definition` "Elision".
@@ -1879,7 +1879,7 @@ export interface Elision {
    */
   id: Id;
   /**
-   * The ID of the timeline the elision lies on: a root or a descendant at any depth, a segment included.
+   * The ID of the timeline the elision lies on: a root or a descendant at any depth, a segment included, or a virtual timeline.
    */
   timeline: Id;
   /**

@@ -111,7 +111,7 @@ function* timelineRepresentation(
  * first (a flow-control element's coordinate, then the `by` of its `ends` and
  * of each destination and its `after`), then the coordinate of every named
  * timestamp on a timeline of the manifest or a virtual timeline, then the `start`, `end` and width
- * `span` of every elision on one, then the gaps of every FlowMap of one, each
+ * `span` of every elision on one, then the gaps of every FlowMap of a timeline of the manifest, each
  * read as that timeline's number type, then the `length` of every virtual
  * timeline, read as its own.
  */
@@ -132,7 +132,7 @@ export function* representationProblems(manifest: JsonObject): Generator<SchemaV
     );
   }
   for (const [index, elision] of elisionsOf(manifest).entries()) {
-    const timeline = timelines.get(text(elision, "timeline"));
+    const timeline = axes.get(text(elision, "timeline"));
     if (timeline === undefined) continue;
     const path = ["graphical", "elisions", index];
     const numberType = numberTypeOf(timeline as { unit: TimeUnit; number_type?: NumberType });

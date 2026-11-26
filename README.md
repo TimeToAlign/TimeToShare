@@ -541,17 +541,19 @@ name it as a member, so that it shares the frame with the recordings that
 follow its flow ([Groups and the `graphical`
 object](#groups-and-the-graphical-object)); a named timestamp, a
 groupstamp where it is a member, may lie on it; a resource and the
-MatchClaim table may name it; and `graphical.order` may hold its band
-order. No elision lies on it. A FlowMap is drawn as the axis it plays,
-its chunks laid end to end, each a brace named by its source, a run of
-one chunk repeated drawn once with `× n`, a gap as a dashed stretch of the
-line labelled with its length: on the card of a virtual timeline, which
+MatchClaim table may name it; `graphical.order` may hold its band
+order; and an elision may lie on it, on its own axis. A FlowMap is drawn
+as the axis it plays, its chunks laid end to end, each a brace named by
+its source, a run of one chunk repeated drawn once with `× n`, a gap as a
+grey stretch of the line in the line's own stroke, labelled with its
+length: on the card of a virtual timeline, which
 the drawing places where its placement holds the virtual timeline's ID,
 and on the card of a root switched to it by the property `flow`, which a
 rule addressed to the root's cards sets to the ID of one of its FlowMaps
-or of a virtual timeline applying one to it. A switched card draws every
-element of its tree at each position where it is played and no flow
-control; in a frame, the switch of one member carries every member
+or of a virtual timeline applying one to it. A switched card keeps the
+bands it displays: it draws every element of its tree, its flow control
+and conversion maps included, at each position where it is played; in a
+frame, the switch of one member carries every member
 through the group, and the switches of two members, which both
 validators warn of as `flow_conflict` at the group's `members`, leave the
 frame as written (the drawing specification, section 8.10).
@@ -1009,9 +1011,9 @@ of the drawing. Every row drawn across the stretch stops where the
 stretch starts and resumes where it ends, at full scale on either side,
 and a narrow **gap** lies between, holding one **ellipsis** (`•••`),
 centred in it, and below it the elision's name. The elision **lies on** its timeline, a root or a
-descendant at any depth, a segment included, never a virtual timeline:
+descendant at any depth, a segment included, or a virtual timeline:
 `timeline` has the meaning and the validation of a named timestamp's
-`timeline` otherwise, and `start < end`,
+`timeline`, and `start < end`,
 its **elided coordinates**, are values on that timeline's own axis, from
 its zero to its `length` (and only from its zero when the length is
 `null`), written as its number type selects and respelled by writers as
@@ -1192,8 +1194,8 @@ of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor that a named timestamp lies
 on a timeline or a virtual timeline of the manifest and within it, nor that a groupstamp lies
-in a group, nor that an elision lies on a timeline of the manifest and
-within it, nor that a resource's
+in a group, nor that an elision lies on a timeline or a virtual timeline
+of the manifest and within it, nor that a resource's
 timelines are timelines or virtual timelines of the manifest, nor the rules of named
 MatchStamps ([Named MatchStamps](#named-matchstamps)), nor the rules of
 flow control, FlowMaps and virtual timelines ([Flow
@@ -1238,7 +1240,7 @@ stable code:
 | A named timestamp's `timeline` names no timeline and no virtual timeline of the manifest | `timestamp_timeline` | the `timeline` | `'<id>' names no timeline or virtual timeline of this manifest` |
 | A named timestamp's `coordinate` lies before 0, or beyond its timeline's known length | `timestamp_coordinate` | the `coordinate` | `coordinate <value> of '<id>' lies before the start of its timeline '<id>'` (`… is beyond the length <length> of its timeline '<id>'`) |
 | A groupstamp lies on a timeline that lies in no group (neither it nor any of its ancestors is a member), or on a virtual timeline that is no member | `groupstamp` | its `groupstamp` | `'<id>' is a groupstamp, but its timeline '<timeline id>' is a member of no group and lies in none` |
-| An elision's `timeline` names no timeline of the manifest (a virtual timeline is none) | `elision_timeline` | the `timeline` | `'<id>' names no timeline of this manifest` |
+| An elision's `timeline` names no timeline and no virtual timeline of the manifest | `elision_timeline` | the `timeline` | `'<id>' names no timeline or virtual timeline of this manifest` |
 | An elision's `start` lies before 0 | `elision_stretch` | the `start` | `start <value> of '<id>' lies before the start of its timeline '<timeline id>'` |
 | An elision's `end` lies beyond its timeline's known length | `elision_stretch` | the `end` | `end <value> of '<id>' is beyond the length <length> of its timeline '<timeline id>'` |
 | An elision's `end` does not lie after its `start` | `elision_stretch` | the `end` | `end <value> of '<id>' does not lie after its start <value>` |

@@ -228,8 +228,10 @@ groups and keying a band order validates, a member naming a FlowMap or an
 unknown ID is `group_member`; a named timestamp at either end of a virtual
 timeline, a groupstamp on a virtual member and a resource naming one
 validate, a coordinate beyond its length is `timestamp_coordinate`, a
-groupstamp on a virtual timeline in no group `groupstamp`, and an elision
-on one `elision_timeline`; the shared cases `group_member_flow_map` and
+groupstamp on a virtual timeline in no group `groupstamp`; an elision on
+one within its length validates, one beyond it is `elision_stretch`, a
+`start` `1.0` on it `representation`, and `canonicalOrder` respells an
+elision's and a timestamp's values on it; the shared cases `group_member_flow_map` and
 `group_member_virtual_unknown` (`validate.test.ts`).
 
 ## Groupstamps

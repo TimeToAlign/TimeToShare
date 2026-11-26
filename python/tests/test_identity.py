@@ -1414,14 +1414,14 @@ def test_elisions_lie_on_their_timelines() -> None:
 def test_an_elision_names_a_timeline() -> None:
     assert _only(_elided(_elision("elision_1", "ghost", [1, 1], [3, 1]))) == (
         ("graphical", "elisions", 0, "timeline"),
-        "'ghost' names no timeline of this manifest",
+        "'ghost' names no timeline or virtual timeline of this manifest",
     )
     value = _elided(
         _elision("elision_1", "g", [1, 1], [3, 1]), groups=[group("g", "score")]
     )
     assert _only(value) == (
         ("graphical", "elisions", 0, "timeline"),
-        "'g' names no timeline of this manifest",
+        "'g' names no timeline or virtual timeline of this manifest",
     )
 
 
@@ -1820,14 +1820,37 @@ def test_a_named_timestamp_and_a_resource_may_name_a_virtual_timeline() -> None:
         "'timestamp_3' is a groupstamp, but its timeline 'virtual_1' is a member of no "
         "group and lies in none",
     )
-    elision = {
-        "id": "elision_1",
-        "timeline": "virtual_1",
-        "start": [1, 1],
-        "end": [2, 1],
-    }
-    value = _virtually(graphical={"elisions": [elision]})
-    assert _only(value) == (
-        ("graphical", "elisions", 0, "timeline"),
-        "'virtual_1' names no timeline of this manifest",
+
+
+def test_an_elision_lies_on_a_virtual_timelines_own_axis() -> None:
+    inside = _elision("elision_1", "virtual_1", [1, 1], [2, 1])
+    whole = _elision("elision_2", "virtual_1", [0, 1], [12, 1])
+    value = _virtually(graphical={"elisions": [inside, whole]})
+    assert _problems(value) == []
+    validate(value)
+    beyond = _elision("elision_1", "virtual_1", [1, 1], [25, 2])
+    assert _only(_virtually(graphical={"elisions": [beyond]})) == (
+        ("graphical", "elisions", 0, "end"),
+        "end [25, 2] of 'elision_1' is beyond the length [12, 1] of its timeline "
+        "'virtual_1'",
     )
+    floated = _elision("elision_1", "virtual_1", 1.0, [2, 1])
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(_virtually(graphical={"elisions": [floated]}))
+    assert (caught.value.code, caught.value.path, caught.value.message) == (
+        "representation",
+        ("graphical", "elisions", 0, "start"),
+        "start 1.0 of 'elision_1' is a float on a fraction axis: write [1, 1]",
+    )
+
+
+def test_canonical_order_respells_values_on_a_virtual_timeline() -> None:
+    value = _virtually(
+        graphical={
+            "elisions": [_elision("elision_1", "virtual_1", [2, 4], [2, 1])],
+            "timestamps": [_stamp("timestamp_1", "virtual_1", [12, 2])],
+        }
+    )
+    graphical = timetoshare.canonical_order(value)["graphical"]
+    assert graphical["elisions"][0]["start"] == [1, 2]
+    assert graphical["timestamps"][0]["coordinate"] == [6, 1]

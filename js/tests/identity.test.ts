@@ -1497,14 +1497,14 @@ describe("elisions", () => {
   it("holds an elision to name a timeline", () => {
     expect(only(elided([elision("elision_1", "ghost", [1, 1], [3, 1])]))).toEqual([
       ["graphical", "elisions", 0, "timeline"],
-      "'ghost' names no timeline of this manifest",
+      "'ghost' names no timeline or virtual timeline of this manifest",
     ]);
     const value = elided([elision("elision_1", "g", [1, 1], [3, 1])], {
       groups: [group("g", ["score"])],
     });
     expect(only(value)).toEqual([
       ["graphical", "elisions", 0, "timeline"],
-      "'g' names no timeline of this manifest",
+      "'g' names no timeline or virtual timeline of this manifest",
     ]);
   });
 
@@ -1658,10 +1658,44 @@ describe("virtual timelines named where timelines are", () => {
       ["graphical", "timestamps", 0, "groupstamp"],
       "'timestamp_3' is a groupstamp, but its timeline 'virtual_1' is a member of no group and lies in none",
     ]);
-    const elision = { id: "elision_1", timeline: "virtual_1", start: [1, 1], end: [2, 1] };
-    expect(only(virtually({ graphical: { elisions: [elision] } }))).toEqual([
-      ["graphical", "elisions", 0, "timeline"],
-      "'virtual_1' names no timeline of this manifest",
+  });
+
+  it("lays an elision on a virtual timeline's own axis", () => {
+    const inside = elision("elision_1", "virtual_1", [1, 1], [2, 1]);
+    const whole = elision("elision_2", "virtual_1", [0, 1], [12, 1]);
+    const value = virtually({ graphical: { elisions: [inside, whole] } });
+    expect(problems(value)).toEqual([]);
+    validate(value);
+    const beyond = elision("elision_1", "virtual_1", [1, 1], [25, 2]);
+    expect(only(virtually({ graphical: { elisions: [beyond] } }))).toEqual([
+      ["graphical", "elisions", 0, "end"],
+      "end [25, 2] of 'elision_1' is beyond the length [12, 1] of its timeline 'virtual_1'",
     ]);
+    const floated = elision("elision_1", "virtual_1", new JsonFloat(1), [2, 1]);
+    try {
+      validate(virtually({ graphical: { elisions: [floated] } }));
+    } catch (error) {
+      expect(error).toBeInstanceOf(SchemaValidationError);
+      const { code, path, detail } = error as SchemaValidationError;
+      expect([code, path, detail]).toEqual([
+        "representation",
+        ["graphical", "elisions", 0, "start"],
+        "start 1.0 of 'elision_1' is a float on a fraction axis: write [1, 1]",
+      ]);
+      return;
+    }
+    throw new Error("value was accepted");
+  });
+
+  it("respells values on a virtual timeline in canonical order", () => {
+    const value = virtually({
+      graphical: {
+        elisions: [elision("elision_1", "virtual_1", [2, 4], [2, 1])],
+        timestamps: [stamp("timestamp_1", "virtual_1", [12, 2])],
+      },
+    });
+    const graphical = timetoshare.canonicalOrder(value).graphical as JsonObject;
+    expect(plain((graphical.elisions as JsonObject[])[0]?.start)).toEqual([1, 2]);
+    expect(plain((graphical.timestamps as JsonObject[])[0]?.coordinate)).toEqual([6, 1]);
   });
 });

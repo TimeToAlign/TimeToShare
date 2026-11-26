@@ -780,7 +780,7 @@ code:
 | `timestamp_timeline` | a named timestamp names a timeline or a virtual timeline of the manifest | `timestamp_timeline_unknown` |
 | `timestamp_coordinate` | a named timestamp's coordinate lies from 0 to its timeline's own length, from 0 on where the length is unknown | `timestamp_coordinate_beyond_length`, `timestamp_coordinate_negative` |
 | `groupstamp` | a groupstamp, a match timestamp included, lies in a group, its timeline or one of its ancestors being a member (an ancestor of a member lies in none through it) | `groupstamp_without_group`, `groupstamp_child_without_group`, `groupstamp_member_parent`, `groupstamp_match_without_group` |
-| `elision_timeline` | an elision names a timeline of the manifest | `elision_timeline_unknown` |
+| `elision_timeline` | an elision names a timeline or a virtual timeline of the manifest | `elision_timeline_unknown` |
 | `elision_stretch` | an elision starts at 0 or later, ends within its timeline's known length, and starts before it ends | `elision_end_beyond_length`, `elision_start_not_before_end` |
 | `context` | a manifest whose elements carry `statements` or `provenance` holds `@context` | `context_absent_with_statements`, `context_absent_with_provenance` |
 | `reserved_key` | no element key is one JSON-LD would read | `reserved_key_term_on_timeline` (`label`), `reserved_key_iri_on_region`, `reserved_key_statements_on_group`, `reserved_key_prefix_on_manifest`, `reserved_key_context_on_timeline`, `reserved_key_children_on_region` |

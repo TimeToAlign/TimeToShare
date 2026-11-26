@@ -332,9 +332,9 @@ def _respell_timeline(timeline: dict[str, Any], offset_type: str | None) -> None
 
 
 def _axis_types(manifest: dict[str, Any]) -> dict[str, str | None]:
-    """The number type of every timeline's axis by ID.
+    """The number type of every timeline's and virtual timeline's axis by ID.
 
-    An ID that names more than one timeline names no axis (``None``).
+    An ID that names more than one of them names no axis (``None``).
     """
     found: dict[str, str | None] = {}
     counts: Counter[str] = Counter()
@@ -350,6 +350,11 @@ def _axis_types(manifest: dict[str, Any]) -> dict[str, str | None]:
 
     for timeline in _dicts(manifest.get("timelines")):
         visit(timeline)
+    for virtual in _dicts(manifest.get("virtual_timelines")):
+        identifier = virtual.get("id")
+        if isinstance(identifier, str):
+            counts[identifier] += 1
+            found[identifier] = _axis_type(virtual)
     return {key: value if counts[key] == 1 else None for key, value in found.items()}
 
 
@@ -376,7 +381,9 @@ def respell(manifest: Any) -> None:
     ``by`` of every destination and of every ``after`` on it, the
     coordinate of every named timestamp on it, the ``start``, ``end`` and
     width ``span`` of every elision on it, the gaps of every FlowMap of it,
-    and a virtual timeline's ``length`` on the virtual timeline's own axis.
+    and a virtual timeline's ``length``, the coordinates of the named
+    timestamps and the values of the elisions on it, on the virtual
+    timeline's own axis.
     A timestamp, an elision or a FlowMap whose ``timeline`` names no
     timeline, or more than one, keeps its values.
     """

@@ -595,7 +595,7 @@ package words it as this package does.
 | `band_order` | a timeline's order lists `line` and any of the five facets | the entry, then the order | `'annotations' is not 'line' or a facet, in the band order of 'score'`, `'line' is missing from the band order of 'score'` |
 | `timestamp_timeline` | a named timestamp's `timeline` names a timeline of the manifest, at any depth, or a virtual timeline | its `timeline` | `'ghost' names no timeline or virtual timeline of this manifest` |
 | `timestamp_coordinate` | its `coordinate` lies from 0 to its timeline's length, from 0 on where the length is null | its `coordinate` | `coordinate [9, 1] of 'timestamp_1' is beyond the length [8, 1] of its timeline 'score'`, `coordinate [-1, 1] of 'timestamp_1' lies before the start of its timeline 'score'` |
-| `elision_timeline` | an elision's `timeline` names a timeline of the manifest, at any depth | its `timeline` | `'ghost' names no timeline of this manifest` |
+| `elision_timeline` | an elision's `timeline` names a timeline of the manifest, at any depth, or a virtual timeline | its `timeline` | `'ghost' names no timeline or virtual timeline of this manifest` |
 | `elision_stretch` | its `start` lies at or after 0, its `end` at or before its timeline's length where the length is known, and its `start` before its `end`; each elision checked in that order | its `start`, its `end`, its `end` | `start [-1, 1] of 'elision_1' lies before the start of its timeline 'score'`, `end [5, 1] of 'elision_1' is beyond the length [4, 1] of its timeline 'verse'`, `end [3, 1] of 'elision_1' does not lie after its start [3, 1]` |
 | `flow_map_timeline`, `flow_map_chunk`, `flow_map_canonical` | after the MatchStamps and resources (section "MatchStamps and resources"), FlowMap by FlowMap: its `timeline` names a root; each ID among its chunks a region, a child or a virtual timeline inside that root's tree; at most one FlowMap of a timeline is canonical | its `timeline`, the chunk, its `canonical` | `'coda' is a child timeline; a FlowMap names a root timeline`, `'jump_target_1' names no region, child timeline or virtual timeline in the tree of 'score'`, `'flow_map_2' is a second canonical FlowMap of 'score', after 'flow_map_1'` |
 | `dangling_target`, `virtual_timeline` | then virtual timeline by virtual timeline: its `map` names a FlowMap or a conversion map, its `timeline` a timeline or another virtual timeline, never itself (`dangling_target`); it comes from no ring of virtual timelines, reported at each member of the ring; without `through`, a FlowMap it applies is one of the root its timeline comes from, else its `length` is the sum of the FlowMap's chunks and gaps, compared where every chunk has a known length on its axis and the axis is not `float` (`virtual_timeline`) | its `map`, its `timeline`, its `timeline`, its `map`, its `length` | `'virtual_1' comes from itself through 'virtual_2': a virtual timeline comes, virtual timeline by virtual timeline, from a timeline of this manifest`, `'flow_map_1' is a FlowMap of 'score', and 'sketch' comes from the tree of 'sketch': without through, a virtual timeline applies a FlowMap within the tree of the FlowMap's root timeline`, `length [30, 1] of 'virtual_1' is not the sum of the chunks and gaps of 'flow_map_1', [22, 1]` |
@@ -938,8 +938,16 @@ documents that bound each rule from the other side:
   length (`[24, 1]`) it passes, at `[25, 1]` it is `timestamp_coordinate`
   against that length; a groupstamp on a virtual timeline that is a member
   passes, on one that is none it is `groupstamp`; a resource naming a
-  virtual timeline passes. An elision on a virtual timeline is still
-  `elision_timeline`: elisions lie on the manifest's timelines alone.
+  virtual timeline passes. An elision on a virtual timeline lies on its
+  own axis as well: from `[1, 1]` to `[2, 1]` and from 0 to its length
+  `[12, 1]` it passes, ending at `[25, 2]` it is `elision_stretch` at its
+  `end` against that length (`end [25, 2] of 'elision_1' is beyond the
+  length [12, 1] of its timeline 'virtual_1'`), and its `start` `1.0` is
+  `representation` at its `start` (`write [1, 1]`); `canonical_order`
+  respells an elision's `start` `[2, 4]` on it as `[1, 2]` and a named
+  timestamp's `coordinate` `[12, 2]` on it as `[6, 1]`, as on any
+  timeline. A test that still refused the elision, read its values on
+  the axis of the timeline it comes from, or left them unspelled, fails.
   So is the ID of a resource, a MatchStamp and an alignment anchor: the
   MatchStamp fixture with its MatchStamps renamed `matchstamp_3kq9x0m2ztb7a`
   and `Take 2, downbeat`, its anchors `anchor_00000000000zz` and `Bar 2`,

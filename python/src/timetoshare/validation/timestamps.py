@@ -22,7 +22,6 @@ from .diagnostics import (
     entries_of,
     matchstamps_of,
     string_id,
-    timelines_by_id,
     timestamps_of,
 )
 
@@ -123,12 +122,12 @@ def elision_problems(
 ) -> Iterator[SchemaValidationError]:
     """Yield elisions off the manifest's timelines or outside their extent.
 
-    An elision names a timeline of the manifest, at any depth, and its
-    ``start`` lies before its ``end``, both between 0 and that timeline's
-    length, or at or after 0 where the length is not known. Elisions may
-    overlap; no overlap is a problem.
+    An elision names a timeline of the manifest, at any depth, or a virtual
+    timeline, and its ``start`` lies before its ``end``, both between 0 and
+    that timeline's length, or at or after 0 where the length is not known.
+    Elisions may overlap; no overlap is a problem.
     """
-    timelines = timelines_by_id(manifest)
+    timelines = axes_by_id(manifest)
     ends: dict[str, Fraction] = {}
     for index, elision in enumerate(elisions_of(manifest)):
         path = ("graphical", "elisions", index)
@@ -138,7 +137,8 @@ def elision_problems(
             yield SchemaValidationError(
                 "elision_timeline",
                 (*path, "timeline"),
-                f"'{identifier}' names no timeline of this manifest",
+                f"'{identifier}' names no timeline or virtual timeline of this "
+                "manifest",
             )
             continue
         start, end = elision["start"], elision["end"]

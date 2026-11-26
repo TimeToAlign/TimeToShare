@@ -101,9 +101,10 @@ function respellTimeline(timeline: JsonObject, offsetAxis: Axis | undefined): vo
  * `offset` on its parent's, region `start` and `end`, flow-control
  * `coordinate`s and the `by` of every destination and of every `after`, every
  * named timestamp's `coordinate`, every elision's `start`, `end` and width
- * `span` and every gap of a FlowMap, on the axis of the one timeline its
- * `timeline` names (as given where it names none or several), and a virtual
- * timeline's `length` on the virtual timeline's own axis. Anything else is left as it is, so any value may be given.
+ * `span` and every gap of a FlowMap, on the axis of the one timeline or
+ * virtual timeline its `timeline` names (as given where it names none or
+ * several), and a virtual timeline's `length` on the virtual timeline's own
+ * axis. Anything else is left as it is, so any value may be given.
  */
 export function respell(manifest: unknown): void {
   if (!isJsonObject(manifest)) return;
@@ -115,6 +116,10 @@ export function respell(manifest: unknown): void {
     for (const child of objects(timeline.children)) visit(child);
   };
   for (const timeline of objects(manifest.timelines)) visit(timeline);
+  for (const virtual of objects(manifest.virtual_timelines)) {
+    const { id } = virtual;
+    if (typeof id === "string") axes.set(id, [...(axes.get(id) ?? []), axisOf(virtual)]);
+  }
   const axisNamed = (timeline: unknown): Axis | undefined => {
     const found = typeof timeline === "string" ? axes.get(timeline) : undefined;
     return found?.length === 1 ? found[0] : undefined;
