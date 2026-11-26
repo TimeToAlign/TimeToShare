@@ -3,7 +3,7 @@
 <rect x="0" y="0" width="547.8193" height="67.4766" rx="10" fill="#F3F4F6"/>
 <rect data-id="maps:whole_notes" data-part="card" x="10" y="10" width="529.8193" height="49.4766" rx="5" fill="#B8BEC8"/>
 <rect data-id="maps:whole_notes" data-part="card" x="8" y="8" width="529.8193" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<polygon data-id="cmap_1" points="120.8193,16 520.8193,16 520.8193,18 120.8193,18" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-id="cmap_1768e77g41x2h" points="120.8193,16 520.8193,16 520.8193,18 120.8193,18" fill="none" stroke="#00CC00" stroke-width="1"/>
 <line data-id="maps:whole_notes" x1="120.8193" y1="22.5" x2="520.8193" y2="22.5" stroke="#00CC00" stroke-width="3"/>
 <circle data-id="maps:whole_notes" cx="120.8193" cy="22.5" r="3" fill="#00CC00"/>
 <polygon data-id="maps:whole_notes" points="529.8193,22.5 520.8193,18 520.8193,27" fill="#00CC00"/>
