@@ -4321,7 +4321,8 @@ removal written with any type but <code class="docutils literal notranslate"><sp
 <code class="docutils literal notranslate"><span class="pre">remove</span></code> without <code class="docutils literal notranslate"><span class="pre">!</span></code>, a header without a subject (closing the editor on the
 written <code class="docutils literal notranslate"><span class="pre">feat(op106):</span> </code>) and an ID given to an element of another type, and
 warns where a data type or a <code class="docutils literal notranslate"><span class="pre">!</span></code> gives a higher step, where a <code class="docutils literal notranslate"><span class="pre">BREAKING</span> <span class="pre">CHANGE</span></code> footer stands on a commit that removes nothing, and where the
-footer misses a removed ID. Both read comment lines by git’s
+footer misses a removed ID; the check hook is <code class="docutils literal notranslate"><span class="pre">verbose</span></code>, so pre-commit
+shows these warnings when the message is accepted. Both read comment lines by git’s
 <code class="docutils literal notranslate"><span class="pre">core.commentChar</span></code> (<code class="docutils literal notranslate"><span class="pre">#</span></code> where it is <code class="docutils literal notranslate"><span class="pre">auto</span></code>). For <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span></code> with
 the editor or <code class="docutils literal notranslate"><span class="pre">--no-edit</span></code>, the first hook records the amended commit in
 <code class="docutils literal notranslate"><span class="pre">timetoshare-amend-base</span></code> in the git directory, and the second compares the
