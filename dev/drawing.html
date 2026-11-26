@@ -5201,7 +5201,23 @@ on <code class="docutils literal notranslate"><span class="pre">F</span></code>�
 own tree unfolded, its ancestor lines included; only <code class="docutils literal notranslate"><span class="pre">T</span></code>’s card draws the
 chunks of <code class="docutils literal notranslate"><span class="pre">F</span></code>, their boundaries and its gap lines, a virtual member’s own
 chunks unfolding as every other element of its drawing, and over a gap of
-<code class="docutils literal notranslate"><span class="pre">F</span></code> every other member draws nothing. A groupstamp’s lines cross the frame
+<code class="docutils literal notranslate"><span class="pre">F</span></code> every other member draws nothing. An ancestor line of a member <code class="docutils literal notranslate"><span class="pre">M</span></code>
+that is a child timeline (section 8.3) is unfolded as <code class="docutils literal notranslate"><span class="pre">M</span></code>’s own line is:
+the stretch of <code class="docutils literal notranslate"><span class="pre">M</span></code>’s axis it is drawn over, from 0 to <code class="docutils literal notranslate"><span class="pre">te</span></code> where <code class="docutils literal notranslate"><span class="pre">te</span> <span class="pre">&lt;</span> <span class="pre">λ</span></code>
+and to <code class="docutils literal notranslate"><span class="pre">λ</span></code> otherwise, goes to <code class="docutils literal notranslate"><span class="pre">T</span></code>’s axis at both ends and is drawn once in
+every stretch piece it reaches into, from the played x of its start there
+to that of its end, keeping its start only where <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">a)</span> <span class="pre">=</span> <span class="pre">s</span></code> and its
+end only where <code class="docutils literal notranslate"><span class="pre">min(e,</span> <span class="pre">b)</span> <span class="pre">=</span> <span class="pre">e</span></code>; a start or end so kept is drawn as section
+8.3 draws it, with the played x of 0 in place of <code class="docutils literal notranslate"><span class="pre">x0</span></code> (a line running on
+to the left starts <code class="docutils literal notranslate"><span class="pre">4w</span></code> before it, in chevrons) and the played x of its
+end in place of <code class="docutils literal notranslate"><span class="pre">x0</span> <span class="pre">+</span> <span class="pre">L'</span></code> and of <code class="docutils literal notranslate"><span class="pre">x(te)</span></code> (a line running on to the right
+ends <code class="docutils literal notranslate"><span class="pre">4w</span></code> after it, in chevrons), and an end not kept draws no mark. The
+named timestamps on it and the secondary coordinates on it are drawn at
+every played position of their positions on <code class="docutils literal notranslate"><span class="pre">M</span></code>’s axis, labelled with the
+written coordinates, their stacks placed by its one first fit piece by
+piece, in the order of the pieces, and within a piece in the order of
+section 8.3. The start <code class="docutils literal notranslate"><span class="pre">s0</span></code> of section 8.2 still counts every ancestor
+line that runs on to the left. A groupstamp’s lines cross the frame
 at every played x of its position. A switched frame draws no group elision and
 carries none into the ancestor cards behind it, which are drawn as
 written. Where two or more members of a group have switched cards, which

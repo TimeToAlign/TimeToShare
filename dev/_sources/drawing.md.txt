@@ -4412,7 +4412,23 @@ on `F`'s virtual axis from `x0` to `x0 + L` (section 8.2) and draws its
 own tree unfolded, its ancestor lines included; only `T`'s card draws the
 chunks of `F`, their boundaries and its gap lines, a virtual member's own
 chunks unfolding as every other element of its drawing, and over a gap of
-`F` every other member draws nothing. A groupstamp's lines cross the frame
+`F` every other member draws nothing. An ancestor line of a member `M`
+that is a child timeline (section 8.3) is unfolded as `M`'s own line is:
+the stretch of `M`'s axis it is drawn over, from 0 to `te` where `te < λ`
+and to `λ` otherwise, goes to `T`'s axis at both ends and is drawn once in
+every stretch piece it reaches into, from the played x of its start there
+to that of its end, keeping its start only where `max(s, a) = s` and its
+end only where `min(e, b) = e`; a start or end so kept is drawn as section
+8.3 draws it, with the played x of 0 in place of `x0` (a line running on
+to the left starts `4w` before it, in chevrons) and the played x of its
+end in place of `x0 + L'` and of `x(te)` (a line running on to the right
+ends `4w` after it, in chevrons), and an end not kept draws no mark. The
+named timestamps on it and the secondary coordinates on it are drawn at
+every played position of their positions on `M`'s axis, labelled with the
+written coordinates, their stacks placed by its one first fit piece by
+piece, in the order of the pieces, and within a piece in the order of
+section 8.3. The start `s0` of section 8.2 still counts every ancestor
+line that runs on to the left. A groupstamp's lines cross the frame
 at every played x of its position. A switched frame draws no group elision and
 carries none into the ancestor cards behind it, which are drawn as
 written. Where two or more members of a group have switched cards, which
