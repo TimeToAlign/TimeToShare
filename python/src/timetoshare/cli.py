@@ -10,9 +10,7 @@ of the repository ``--repo`` (NEW left out: the staged changes; OLD ``-``:
 the empty tree, for a repository without a release). With ``--history``
 (git references only) it also reports every ID of NEW that a tag reachable
 from NEW or OLD held for an element that is gone since or of another type:
-the check a release pull request's job runs. ``--require-version FROM TO``
-also refuses the change where a release from version FROM to TO carries a
-lower step than it requires.
+the check a release pull request's job runs.
 
 ``timetoshare release-check`` is the check of a dataset repository's
 release workflow. Its ``HEAD`` is a release when the version in
@@ -116,36 +114,23 @@ def _report(old: str, new: str | None, repo: Path, history: bool) -> StepReport:
 
 
 def _step(arguments: argparse.Namespace) -> int:
-    release = arguments.require_version
     try:
-        carried = release_step(*release) if release else None
         report = _report(
             arguments.old, arguments.new, Path(arguments.repo), arguments.history
         )
     except ValueError as error:
         print(f"timetoshare step: {error}", file=sys.stderr)
         return 1
-    problem = release_problem(report, *release) if release else None
     if arguments.json:
-        written = report.to_dict()
-        if release:
-            written["release"] = {
-                "from": release[0],
-                "to": release[1],
-                "carries": carried,
-            }
-        sys.stdout.write(dumps(written, "json"))
+        sys.stdout.write(dumps(report.to_dict(), "json"))
     else:
-        carries = f"{release[0]} to {release[1]} carries {carried}" if release else None
-        print("\n".join(_report_lines(report, carries)))
-    if problem is not None:
-        print(f"timetoshare step: {problem}", file=sys.stderr)
-    return 2 if report.refused or problem is not None else 0
+        print("\n".join(_report_lines(report)))
+    return 2 if report.refused else 0
 
 
 def _report_lines(report: StepReport, carries: str | None = None) -> list[str]:
-    """The lines ``timetoshare step`` prints: the step, the scope, the release
-    (``carries``, where one is checked) and one line per finding."""
+    """The lines of a report: the step, the scope, the release (``carries``,
+    where the release check names one) and one line per finding."""
     lines = [f"step: {report.step}", f"scope: {report.scope or '-'}"]
     if carries is not None:
         lines.append(f"release: {carries}")
@@ -506,13 +491,6 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="also refuse an ID that a reachable tag held for an element gone "
         "since or of another type (git references only)",
-    )
-    step.add_argument(
-        "--require-version",
-        nargs=2,
-        metavar=("FROM", "TO"),
-        help="also refuse the change where a release from version FROM to TO "
-        "carries a lower step than it requires",
     )
     step.set_defaults(run=_step)
     check_release = commands.add_parser(

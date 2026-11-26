@@ -3020,12 +3020,7 @@ reachable from NEW (or `HEAD`) and from OLD, and OLD itself, in the order
 of the history, and refuses (`reused_id`) every ID of NEW that one of them
 held for an element of another type, or for an element that a later one of
 them no longer holds. The release check below runs it from the last tag
-to `HEAD`; the hooks below compare two states only. `--require-version FROM TO` also exits 2 when a release from
-version FROM to TO carries a lower step than the change requires, printing
-`release: FROM to TO carries <step>` after the scope: from 1.0.0 on, the
-first number that rises names the step it carries; below 1.0.0 the middle
-number carries a major step and the last a minor one, as the configuration
-below makes release-please count.
+to `HEAD`; the hooks below compare two states only.
 
 ```console
 $ timetoshare step v2.1.0 HEAD
@@ -3193,7 +3188,10 @@ where there is none) with `HEAD`, with `--history`, and fails when an ID is
 given again, when a change is undetermined (a table that cannot be
 compared, a manifest that no longer reads), or when the release from the
 tag's version (`0.0.0` without a tag) to the new one carries a lower step
-than the data requires; the remedy is a commit whose type says what the
+than the data requires (from 1.0.0 on, the first number that rises names
+the step a release carries; below 1.0.0 the middle number carries a major
+step and the last a minor one, as the configuration above makes
+release-please count); the remedy is a commit whose type says what the
 data does, or a `Release-As:` footer. On every other push it reports the
 same comparison, undetermined changes included, and never fails. Either
 way the findings and the verdict also go to the job summary (`--summary

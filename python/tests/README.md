@@ -49,9 +49,8 @@ and the same lists; so are the cases of several problems
    change, and the `timetoshare` command's two hooks write and check the
    commit type of a staged change (`commit_types`); `release_step` names the
    step a release from one version to the next carries, and `timetoshare
-   step --require-version` refuses a release that carries less than the
-   change requires; `timetoshare release-check` decides whether a dataset
-   repository's `HEAD` is a release and checks it; `timetoshare validate`
+   release-check` decides whether a dataset repository's `HEAD` is a
+   release and refuses one that carries less than the change requires; `timetoshare validate`
    validates manifest files, and
    the repository's `.pre-commit-hooks.yaml` offers the three as
    pre-commit hooks.
@@ -3422,15 +3421,8 @@ carries at least the change's step (a major change in `0.3.0` to `0.4.0`,
 no change in equal versions, a patch in `1.0.0` to `1.0.1`) and otherwise
 the exact sentence naming both versions and both steps ("carries at most
 a minor step" for `0.3.0` to `0.3.1` under a removal, "carries no step"
-for `1.0.0` to `1.0.0` under an addition). On the command line, over the
-tags of a repository whose later tag removes the sketch: `--require-version
-0.1.0 0.1.1` prints `release: 0.1.0 to 0.1.1 carries minor` after the
-scope, exits 2 and writes the sentence on standard error; `0.1.0 0.2.0`
-exits 0; `1.0.0 1.1.0` exits 2; with `--json` the report gains `release`,
-`{from, to, carries}`; a version that is none (`v0.2.0`) exits 1 with its
-message before any comparison, printing nothing on standard output. OLD
-`-` is the empty tree: against a repository's one commit holding the base
-manifest it gives the one finding `added_manifest`, minor, with and
+for `1.0.0` to `1.0.0` under an addition). OLD `-` is the empty tree:
+against a repository's one commit holding the base manifest it gives the one finding `added_manifest`, minor, with and
 without `--history`, and with a directory as NEW it is refused like any
 mix of a directory and a reference.
 

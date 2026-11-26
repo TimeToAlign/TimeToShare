@@ -655,49 +655,6 @@ def test_the_command_checks_the_history(
     )
 
 
-def test_the_command_requires_the_version_of_a_release(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
-) -> None:
-    from timetoshare.cli import main
-
-    repo = repository(tmp_path)
-    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
-    tagged(repo, "timeline_removed", "old", "v1.0.0")
-    tagged(repo, "timeline_removed", "new", "v2.0.0")
-    step = ["step", "--repo", str(repo), "v1.0.0", "v2.0.0", "--require-version"]
-    assert main([*step, "0.1.0", "0.1.1"]) == 2
-    captured = capsys.readouterr()
-    assert captured.out.splitlines() == [
-        "step: major",
-        "scope: base",
-        "release: 0.1.0 to 0.1.1 carries minor",
-        "major\tremoved\tbase.yaml\t#sketch\tTimeline #sketch removed",
-    ]
-    assert captured.err == (
-        "timetoshare step: a release from 0.1.0 to 0.1.1 carries at most a minor "
-        "step; the change requires a major step\n"
-    )
-    assert main([*step, "0.1.0", "0.2.0"]) == 0
-    assert capsys.readouterr().err == ""
-    assert main([*step, "1.0.0", "1.1.0"]) == 2
-    assert capsys.readouterr().err == (
-        "timetoshare step: a release from 1.0.0 to 1.1.0 carries at most a minor "
-        "step; the change requires a major step\n"
-    )
-    assert main([*step, "0.1.0", "0.2.0", "--json"]) == 0
-    assert loads(capsys.readouterr().out)["release"] == {
-        "from": "0.1.0",
-        "to": "0.2.0",
-        "carries": "major",
-    }
-    assert main([*step, "0.1.0", "v0.2.0"]) == 1
-    captured = capsys.readouterr()
-    assert (captured.out, captured.err) == (
-        "",
-        "timetoshare step: 'v0.2.0' is no version MAJOR.MINOR.PATCH\n",
-    )
-
-
 def test_the_command_compares_with_the_empty_tree(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture
 ) -> None:
