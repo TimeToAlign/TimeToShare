@@ -35,8 +35,10 @@ These rules apply to every contributor, human or automated.
   `fixtures/rdf/<version>/` (canonical N-Quads, emitted), the table
   fixture under `fixtures/tables/<version>/` (a manifest naming its
   MatchClaim table and its Projections table, the two Parquet files and
-  the anchors and potential MatchStamps expected of them, emitted),
-  hand-authored rejection cases under `fixtures/rejections/<version>/`,
+  the anchors and potential MatchStamps expected of them, emitted), the
+  test vectors of minted IDs under `fixtures/ids/` (`minted_ids.json`,
+  emitted, the values every tool that mints IDs checks its minter
+  against), hand-authored rejection cases under `fixtures/rejections/<version>/`,
   hand-authored warning cases under `fixtures/warnings/<version>/`, the
   hand-authored acceptance table of own-axis values under
   `fixtures/acceptances/<version>/`, and the hand-authored cases of a
@@ -65,8 +67,10 @@ These rules apply to every contributor, human or automated.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
 - `js/`: the npm package, generated TypeScript types, tests, and lockfile.
 - `scripts/`: fixture emission (`emit_fixtures.py`, `emit_rdf.py`
-  for the expected RDF of the statement fixtures, and `emit_tables.py` for
-  the table fixture), `convert_flow_control.py`, which rewrites manifest
+  for the expected RDF of the statement fixtures, `emit_tables.py` for
+  the table fixture, and `emit_id_vectors.py`, the reference
+  implementation of the ID minter, for the vectors under `fixtures/ids/`),
+  `convert_flow_control.py`, which rewrites manifest
   files whose flow control is written in the earlier form, font-metrics
   extraction, the check that every version declaration agrees, and
   `check_published.py`, which assembles the documents a release publishes
@@ -94,7 +98,9 @@ These rules apply to every contributor, human or automated.
   `fixtures/rdf/<version>/` only through `scripts/emit_rdf.py` after
   them, and the table fixture under `fixtures/tables/<version>/` only
   through `scripts/emit_tables.py`, whose expected anchors and MatchStamps
-  are literal data written in the script; never hand-edit any of them.
+  are literal data written in the script, and the vectors under
+  `fixtures/ids/` only through `scripts/emit_id_vectors.py`; never
+  hand-edit any of them.
   The manifests of flow control under `fixtures/<version>/flow/` are
   emitted like every other; only their expected flows under
   `fixtures/flows/<version>/` are derived by hand. The
@@ -155,6 +161,7 @@ Run these commands from the stated directory.
 | repository root | `python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"` | Emit and round-trip the fixtures with an environment containing timetoalign. |
 | `python/` | `uv run python ../scripts/emit_rdf.py` | Write the expected RDF of the statement fixtures. |
 | `python/` | `uv run python ../scripts/emit_tables.py` | Write the table fixture (needs pyarrow, a development dependency). |
+| repository root | `python3 scripts/emit_id_vectors.py` | Write the test vectors of minted IDs (standard library only). |
 | `python/` | `uv sync` | Synchronize Python dependencies. |
 | `python/` | `uv run ruff check .` | Run Python lint checks. |
 | `python/` | `uv run ruff format --check .` | Check Python formatting. |

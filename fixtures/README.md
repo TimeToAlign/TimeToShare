@@ -133,15 +133,19 @@ every group member, a virtual timeline a group names among them, and
 every root that is neither a member nor holds one, as an editor marks a
 new root: the named timestamp `origin` at 0 and, where
 the length is known, `length` at the root's length, each with the `display`
-`["wedge", "coordinate"]` and the smallest `timestamp_N` the manifest
-leaves free, minted by timeline ID and then coordinate
-(`origin_and_length` in `graphical.py`). On a member that is a child
+`["wedge", "coordinate"]` and an ID the script gives, `timestamp_N`
+with the smallest `N` the manifest leaves free, by timeline ID and then
+coordinate (`origin_and_length` in `graphical.py`). On a member that is a child
 timeline both are groupstamps with the `display` `["wedge", "coordinate",
 "cross_section"]`, as an editor gives them to a child joining a group, so
 that their lines cross the frame and the member's ancestor lines. Every timeline, MeasureMap, conversion
 map, region and flow-control element carries an ID; IDs the script does not give are
-minted by timetoalign and depend on the construction order within the
-builder, which is part of the fixture contract. Every manifest carries the
+minted by timetoalign when it constructs the element: the type prefix, `_`
+and 13 random base-36 characters, seeded from the element's content (by
+a loader, from the bytes it reads), so that every run of the script mints
+the same IDs. Elements of equal content
+take their IDs in the order they are constructed, so that order is part of
+the fixture contract. Every manifest carries the
 inline `@context` of the
 [description specification](https://github.com/TimeToAlign/TimeToShare/blob/main/docs/description.md),
 written last by `with_context`: the format's terms and the prefixes its

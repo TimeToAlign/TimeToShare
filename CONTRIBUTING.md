@@ -54,6 +54,14 @@ returns included, are significant: `.gitattributes` marks
 `fixtures/serializations/** -text`, so git never converts their line
 ends.
 
+The test vectors of minted IDs, `fixtures/ids/minted_ids.json`, are
+written only by `python3 scripts/emit_id_vectors.py` (standard library
+only), the reference implementation of the minter described in the
+README's "Identity": a minted ID is the element's type prefix, `_` and 13
+random base-36 characters, computed from a seed. Every tool that mints IDs
+checks its minter against these vectors, so a change to the algorithm
+changes the script, the vectors and those tools together.
+
 ## The drawing specification
 
 `docs/drawing.md` specifies the `graphical` object, arithmetic, default
