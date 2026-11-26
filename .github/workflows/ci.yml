@@ -25,6 +25,20 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run pytest -q
 
+  hooks:
+    name: Pre-commit hooks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.12"
+      # pre-commit installs the hook from this checkout as a dataset repository
+      # installs it from a clone (the root setup.py, then ./python) and runs it
+      # on one valid fixture.
+      - name: The validate hook installs and accepts a manifest
+        run: uvx pre-commit try-repo . timetoshare-validate --files fixtures/0.2.0/bare.yaml
+
   js:
     name: npm package
     runs-on: ubuntu-latest
