@@ -2963,6 +2963,156 @@ document](#the-schema-document)); `scripts/check_published.py` checks those
 addresses. `scripts/check_versions.py` checks that all
 version declarations agree.
 
+### Versions of a dataset
+
+The marker `timetoshare` says how to read a file; nothing in a manifest
+says which state of its data it is. A dataset keeps its manifests and the
+tables they name in one git repository, and that repository's release tags
+(`v2.1.0`) version all of them together: a citation of an element pins
+its state by the tagged URL or the DOI of the release. One repository
+holds one dataset; where several share one, their tags carry a prefix
+(`mtd/v2.0.0`). A tag is never moved or deleted.
+
+A release compares the tree of the last tag with the new one, every
+manifest and every table, by value in the complete form and canonical
+order, elements matched by their IDs at any depth:
+
+| Change | Step |
+| --- | --- |
+| removing anything with an ID (a timeline, a child, a group, a map, a region, a flow-control element, a FlowMap, a virtual timeline, a resource, a named timestamp, a named MatchStamp, an alignment anchor), a group member, a statement pair, a prefix of `@context`, a row of a table, a manifest file | major |
+| changing an ID (a removal and an addition) | major |
+| adding any of these | minor |
+| editing what an element states (a unit, a number type, a length, an offset, a map's numbers, a coordinate, a statement's value, a prefix's IRI), corrections included | minor |
+| a belief, a rejection included | patch |
+| a `name`, `meta`, styling in `graphical`, an elision, a resource's `url` for the same bytes (its `integrity` equal) | patch |
+| another form or serialization of the same value | none |
+| giving an ID to an element of another type | refused |
+
+A major version promises that every cited ID still exists, not that every
+coordinate keeps its meaning.
+
+The `timetoshare` command of the Python package prints the step of a
+change and one line per finding (`--json` for the whole report): between
+two directories, between two git references of the repository `--repo`
+(default `.`), or between a reference and the changes staged for the next
+commit, when the second argument is left out. It exits 2 when a change is
+refused. Comparing the rows of a MatchClaim or Projections table needs the
+`tables` extra; without it, and for tables of any other type, a changed
+table is reported as undetermined.
+
+```console
+$ timetoshare step v2.1.0 HEAD
+step: major
+scope: op106
+major	removed	op106.yaml	#clt_3	Timeline #clt_3 removed
+```
+
+In Python, `manifest_step(old, new)` compares two manifests,
+`tree_step(old_root, new_root)` two directories and `git_step(old_ref,
+new_ref, repo)` two references (`new_ref=None`: the staged changes); the
+last two return a `StepReport` with the `step`, the `findings` (each a
+`Finding` with `kind`, `step`, `path`, `id` and `detail`) and the
+`scope`, the manifest or directory every finding lies in.
+
+The release tool [release-please](https://github.com/googleapis/release-please)
+computes the version from Conventional Commits: a `feat` commit makes a
+minor step, a commit whose header carries `!` a major one, and every other
+commit a patch. A dataset repository therefore writes these types, the
+scope naming the manifest or the part of the dataset (`op106`, `bpsd`):
+
+| Type | Instead of | Step | Changelog section | For |
+| --- | --- | --- | --- | --- |
+| `feat` | `feat`; `fix` for a correction | minor | Added or changed | adding or editing data, corrections included: `feat(op106): add the BPSD recordings` |
+| `remove` with `!` | `feat!` | major | Removed, and the IDs under the breaking changes | removing anything, changing an ID, with the footer `BREAKING CHANGE: removes #clt_3, #region_7` |
+| `belief` | `fix` | patch | Beliefs | recording a belief |
+| `label` | `chore` | patch | Names | a `name` |
+| `graphic` | `style` | patch | Drawing | `graphical`: styling rules, orders, display words, elisions |
+| `meta` | `chore` | patch | Application data | `meta` |
+| `move` | `refactor` | patch | Moved | a resource's `url` changed for the same bytes |
+| `docs` | `docs` | patch | Documentation | prose |
+| `fix` | `fix` | patch | Scripts | the repository's own scripts or loaders |
+| `chore`, `build`, `ci`, `refactor`, `test`, `style` | the same | none (hidden) | — | everything else about the repository's code |
+
+A commit touching data and code takes the type of its data. Moving a
+manifest file changes its address and is a removal.
+
+Two git hooks keep the types honest. `timetoshare hook prepare-commit-msg`
+writes the header the staged change requires (the type of the highest
+step, the scope where every change lies in one manifest or directory, `!`
+and the `BREAKING CHANGE` footer for a removal, and a line `also: …`
+counting the smaller changes) before the subject given with `-m` or
+before the editor opens, so that `git commit -m "add the BPSD recordings"`
+commits `feat(op106): add the BPSD recordings`; it leaves merges, amends,
+squashes, messages that already have a type and commits without a change
+of the data alone. `timetoshare hook commit-msg` refuses a message whose
+type gives a lower step than the staged change, `remove` without `!` and
+an ID given to an element of another type, and warns where a data type
+gives a higher step or the footer misses a removed ID. A dataset repository
+installs both through [pre-commit](https://pre-commit.com) with this
+`.pre-commit-config.yaml`:
+
+```yaml
+default_install_hook_types: [prepare-commit-msg, commit-msg]
+repos:
+  - repo: local
+    hooks:
+      - id: timetoshare-commit-type
+        name: write the commit type of the staged manifests
+        entry: timetoshare hook prepare-commit-msg
+        language: python
+        additional_dependencies: ["timetoshare[tables]"]
+        stages: [prepare-commit-msg]
+        always_run: true
+      - id: timetoshare-commit-check
+        name: check the commit type against the staged manifests
+        entry: timetoshare hook commit-msg
+        language: python
+        additional_dependencies: ["timetoshare[tables]"]
+        stages: [commit-msg]
+        always_run: true
+```
+
+and `pre-commit install --hook-type prepare-commit-msg --hook-type
+commit-msg`. The two hooks are also declared in this repository's
+`.pre-commit-hooks.yaml`.
+
+release-please's configuration of a dataset repository names the
+sections and makes a dataset's drafts `0.y.z` releases:
+`bump-minor-pre-major` turns a removal into a minor step and
+`bump-patch-for-minor-pre-major` an addition into a patch below 1.0.0, so
+a removal raises `y`; `1.0.0` is set by a person with a `Release-As: 1.0.0`
+footer.
+
+```json
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true,
+      "changelog-sections": [
+        {"type": "feat", "section": "Added or changed"},
+        {"type": "remove", "section": "Removed"},
+        {"type": "belief", "section": "Beliefs"},
+        {"type": "label", "section": "Names"},
+        {"type": "graphic", "section": "Drawing"},
+        {"type": "meta", "section": "Application data"},
+        {"type": "move", "section": "Moved"},
+        {"type": "docs", "section": "Documentation"},
+        {"type": "fix", "section": "Scripts"},
+        {"type": "chore", "hidden": true},
+        {"type": "build", "hidden": true},
+        {"type": "ci", "hidden": true},
+        {"type": "refactor", "hidden": true},
+        {"type": "test", "hidden": true},
+        {"type": "style", "hidden": true}
+      ]
+    }
+  }
+}
+```
+
 ## Fixtures
 
 The [fixture guide](fixtures/README.md) describes the generated manifests
