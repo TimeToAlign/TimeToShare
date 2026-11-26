@@ -31,6 +31,9 @@ dependencies = [
 # Projections table, read and checked as Arrow tables.
 tables = ["pyarrow>=25.0.0,<26"]
 
+[project.scripts]
+timetoshare = "timetoshare.cli:main"
+
 [project.urls]
 Repository = "https://github.com/TimeToAlign/TimeToShare"
 Issues = "https://github.com/TimeToAlign/TimeToShare/issues"

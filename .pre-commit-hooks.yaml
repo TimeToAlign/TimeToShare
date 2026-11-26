@@ -1,0 +1,18 @@
+# Hooks for a dataset repository of TimeToShare manifests. Install both with
+# pre-commit install --hook-type prepare-commit-msg --hook-type commit-msg
+- id: timetoshare-commit-type
+  name: write the commit type of the staged manifests
+  description: Writes the Conventional Commits type, scope and BREAKING CHANGE footer that the staged change of manifests and tables requires in front of the commit message.
+  entry: timetoshare hook prepare-commit-msg
+  language: python
+  stages: [prepare-commit-msg]
+  always_run: true
+  pass_filenames: true
+- id: timetoshare-commit-check
+  name: check the commit type against the staged manifests
+  description: Refuses a commit message whose type declares a smaller version step than the staged change of manifests and tables requires.
+  entry: timetoshare hook commit-msg
+  language: python
+  stages: [commit-msg]
+  always_run: true
+  pass_filenames: true
