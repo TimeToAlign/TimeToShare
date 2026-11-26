@@ -1098,7 +1098,12 @@ unique across the whole manifest: the manifest's own, and the IDs of every
 timeline (root or descendant), group, MeasureMap, conversion map at any
 depth of nesting, region, flow-control element, resource, FlowMap,
 virtual timeline, named timestamp, named MatchStamp, alignment anchor and
-elision. An ID is never parsed
+elision. Two strings are reserved for the sentinels of the MatchClaim
+table, `NOMATCH_SENTINEL` and `CHUNK_SENTINEL` ([The MatchClaim
+table](#the-matchclaim-table)): no element, event or Projection takes
+either as its ID, and the checks of the tables refuse them as a
+MatchClaim's, a Projection's or an event's ID ([Checking the
+tables](#checking-the-tables)). An ID is never parsed
 and never composed with another. A reference is an ID, written in a file
 as an ID is ([Written in a file](#written-in-a-file)): a destination's
 `to` names a jump target, a region or a child of the same timeline or the
@@ -1420,10 +1425,16 @@ Projections table, like every event type a resource names, is
 
 ### The MatchClaim table
 
-A **MatchClaim** connects two events of two timelines: a synchronous
-MatchClaim states that they happen at the same time, a conceptual one
-relates them without stating a time, and a NOMATCH states that an event
-has no counterpart on the other timeline. MatchClaims are data, not
+A **MatchClaim** connects two timelines. A synchronous MatchClaim states
+that two sides happen at the same time, each side an event or the sentinel
+**CHUNK**: a coordinate on a timeline that holds no event for it, stated
+by the MatchClaim's anchors alone. A conceptual MatchClaim relates two
+events without stating a time, and a NOMATCH states that an event has no
+counterpart on the other timeline, the side without one being the
+sentinel **NOMATCH**. CHUNK, like NOMATCH, is a sentinel and never an
+event; each is written in the side's event ID column as its reserved
+string, `CHUNK_SENTINEL` and `NOMATCH_SENTINEL`, and an event ID column
+is never null. MatchClaims are data, not
 structure, and a manifest holds none. They live in one table per package,
 the **MatchClaim table**, named by the resource of type `MatchClaim`, and
 it is the one place they live. A MatchClaim table belongs to one
@@ -1434,12 +1445,12 @@ column whose Null is "never" holds a value in every row:
 | Column | Arrow type | Null | Holds |
 | --- | --- | --- | --- |
 | `timeline_a_id`, `timeline_b_id` | string | never | the IDs of its two timelines, two different timelines, each a timeline of the manifest |
-| `start_anchor`, `end_anchor` | anchor | allowed | the alignment anchors the two events give, of their starts and, for intervals, of their ends; null where the MatchClaim gives none |
+| `start_anchor`, `end_anchor` | anchor | allowed | the alignment anchors the two sides give, of their starts and, for intervals, of their ends; null where the MatchClaim gives none |
 | `is_synchronous` | bool | never | `true` for a synchronous MatchClaim; `false` for a conceptual one, which states no temporal equivalence, and for a NOMATCH |
 | `provenance` | provenance | allowed | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)); null where the row states none |
 | `certainty` | float64 | allowed | how certain the MatchClaim is, from 0 to 1, both included; null where none is stated |
-| `event_a_id`, `event_b_id` | string | allowed | the IDs of its two events, one on each timeline. A synchronous or a conceptual MatchClaim names an event on each side, a Projection where the timeline holds no event of its own ([The Projections table](#the-projections-table)); null is the NOMATCH sentinel alone, on the side without a counterpart, and is never an event |
-| `event_a_name`, `event_b_name` | string | allowed | the name of each event, where it is known |
+| `event_a_id`, `event_b_id` | string | never | each side's event, one on each timeline: an event's ID, a Projection's where the timeline holds no event of its own ([The Projections table](#the-projections-table)), or a sentinel's reserved string, never an event: `CHUNK_SENTINEL`, the side of a synchronous MatchClaim whose coordinate the anchors state, or `NOMATCH_SENTINEL`, the side without a counterpart of a NOMATCH |
+| `event_a_name`, `event_b_name` | string | allowed | the name of each event, where it is known; null on a sentinel side, which has no name |
 | `id` | string | never | the MatchClaim's ID, never changed once given (below) |
 
 The columns may stand in any order, and a table may hold further
@@ -1494,17 +1505,31 @@ the coordinates of one timeline in two units or number types.
 Each row obeys these rules ([Checking the tables](#checking-the-tables)
 gives their codes and messages):
 
-- Its two timelines differ, and it names at least one event.
-- A row with one event is a NOMATCH, which is not synchronous and has no
-  anchors.
-- A synchronous row with an event on each side has a `start_anchor`; a
-  conceptual row, not synchronous with an event on each side, has no
-  anchors. An `end_anchor` comes only with a `start_anchor`.
+- Its two timelines differ.
+- Its kind follows from `is_synchronous` and its two sides, each an
+  event or a sentinel:
+
+  | `is_synchronous` | Side A / side B | Kind | Anchors |
+  | --- | --- | --- | --- |
+  | `true` | event / event | synchronous MatchClaim between two events | a `start_anchor`, an `end_anchor` optional |
+  | `true` | event / CHUNK, CHUNK / event | synchronous, CHUNK on one side | the same |
+  | `true` | CHUNK / CHUNK | synchronous, CHUNK on both sides | the same |
+  | `false` | event / event | conceptual | none |
+  | `false` | event / NOMATCH, NOMATCH / event | NOMATCH | none |
+
+  Every other row is refused: CHUNK stands only on a synchronous
+  MatchClaim, NOMATCH only on one that is not synchronous, and never on
+  both sides.
+- A sentinel side has no name: its `event_a_name` or `event_b_name` is
+  null.
+- An `end_anchor` comes only with a `start_anchor`.
 - Both coordinates of an anchor are cells, never null.
 - A stated `certainty` lies in [0, 1].
 - The ID and an event ID are non-empty strings without control
   characters (U+0000 to U+001F), as every ID of the format
-  ([Identity](#identity)); an ID is given once in the table.
+  ([Identity](#identity)); an ID is given once in the table. Neither
+  the ID nor an event's ID is a reserved string: `NOMATCH_SENTINEL` and
+  `CHUNK_SENTINEL` stand in an event ID column for the sentinels alone.
 - The provenance is a provenance entry ([Provenance and
   beliefs](#provenance-and-beliefs)): valid against
   `provenance.schema.json`, without a key the entry or a belief does not
@@ -1513,7 +1538,9 @@ gives their codes and messages):
   manifest's `@context`.
 
 A NOMATCH or a conceptual MatchClaim has no anchors and is a row like any
-other.
+other. A CHUNK side's coordinate is the anchors' coordinate on that side:
+its start in `start_anchor` and, for an interval, its end in
+`end_anchor`.
 
 **IDs and succession.** A MatchClaim is never deleted, and its ID never
 changes. A MatchClaim found wrong is invalidated by a belief `false`
@@ -1540,7 +1567,7 @@ of them, the **Projections table**, named by the resource of type
 
 | Column | Arrow type | Null | Holds |
 | --- | --- | --- | --- |
-| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted otherwise, `projection_` and 13 random base-36 characters ([Identity](#identity)). An event's ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on |
+| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted otherwise, `projection_` and 13 random base-36 characters ([Identity](#identity)), never a sentinel's reserved string. An event's ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on |
 | `timeline_id` | string | never | the timeline the Projection is an event of, a timeline of the manifest |
 | `unit`, `number_type` | string | never | the unit and the number type of its `start` and `duration`, stated once for both: those of the timeline's own axis |
 | `start` | number | never | its position on that timeline's own axis |
@@ -1555,19 +1582,27 @@ order, further columns are kept and never checked, and the rows of one
 timeline lie in one unit and one number type, its own where a manifest
 is given.
 
-A Projection repeats nothing else of its source. One mechanism serves
-every side of a MatchClaim that has no event of its own:
+A Projection repeats nothing else of its source. A side of a MatchClaim
+that has no event of its own is a Projection or the sentinel CHUNK:
 
 - **The other side has an event.** The Projection names it in
   `projection_of`: score notes aligned to a recording whose alignment
   gives onsets only are projected onto the recording's axis as instants.
-- **Both sides are stated as coordinates**, as a beat grid or the spine
-  of IEEE 1599 states them: a Projection on each side, `projection_of`
-  null. The source states positions, and nothing beyond them is invented.
 - **The source names an event the package does not hold**, such as a
   note a performance inserts: a Projection under the source's ID,
-  `projection_of` null. In a NOMATCH the other side stays the sentinel,
-  which is never an event.
+  `projection_of` null. In a NOMATCH the other side stays the sentinel
+  `NOMATCH_SENTINEL`, which is never an event.
+- **A NOMATCH is stated from a position**: a Projection, `projection_of`
+  null, since a NOMATCH has no anchor that could hold the coordinate.
+- **A conceptual MatchClaim relates two positions**: a Projection on
+  each side, since a conceptual MatchClaim has no anchors either.
+- **A synchronous MatchClaim states a position on both sides**, naming no
+  event: it is CHUNK on both sides, `CHUNK_SENTINEL` in both event ID
+  columns, and adds no Projection. A Listen Here!
+  export, a grid of positions aligning recordings of one piece to each
+  other, states its alignment so, and so does a beat grid aligned to a
+  recording. The anchors hold the positions, and nothing beyond them is
+  invented.
 
 ### Provenance and beliefs
 
@@ -1665,17 +1700,20 @@ The MatchClaim table:
 | Rule | Code | Column | Message |
 | --- | --- | --- | --- |
 | A column of the type is missing, or of another type | `schema_violation` | the column, row `None` | `the table has no column '<name>'`, `the column '<name>' is <type>, not <type>` |
-| `timeline_a_id`, `timeline_b_id`, `is_synchronous` or `id` is null | `schema_violation` | the column | `'<name>' is null` |
+| `timeline_a_id`, `timeline_b_id`, `is_synchronous`, `event_a_id`, `event_b_id` or `id` is null | `schema_violation` | the column | `'<name>' is null` |
 | An ID is empty or holds a control character | `invalid_id` | `id` | `the ID is empty`, `the ID '<id>' holds a control character` |
+| An ID is a reserved string, `NOMATCH_SENTINEL` or `CHUNK_SENTINEL` (in an event ID column such a string is its sentinel) | `invalid_id` | `id` | `'<string>' is reserved for a sentinel` |
 | An ID repeats the ID of an earlier row | `duplicate_id` | `id` | `the ID '<id>' is given twice` |
 | The file's provenance is no JSON text, no object or no provenance entry | `invalid_provenance` | `provenance`, row `None` | `the file's provenance is no JSON text`, `the file's provenance is no object`, `the file's provenance <pointer>: <problem>` |
 | A timeline names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `timeline_a_id`, `timeline_b_id` | `the manifest has no timeline '<id>'` |
 | Both timelines are one | `claim_timelines` | `timeline_b_id` | `both sides are '<id>'` |
-| An event ID is empty or holds a control character | `invalid_id` | `event_a_id`, `event_b_id` | `the event ID is empty`, `the event ID '<id>' holds a control character` |
-| The row names no event | `claim_events` | `event_a_id` | `the MatchClaim names no event` |
-| A NOMATCH is synchronous | `claim_anchors` | `is_synchronous` | `a NOMATCH MatchClaim is not synchronous` |
-| A NOMATCH that is not synchronous has an anchor | `claim_anchors` | `start_anchor`, else `end_anchor` | `a NOMATCH MatchClaim has no anchors` |
-| A synchronous row with an event on each side has no start anchor | `claim_anchors` | `start_anchor` | `a synchronous MatchClaim has a start anchor` |
+| An event ID that is not a reserved string is empty or holds a control character | `invalid_id` | `event_a_id`, `event_b_id` | `the event ID is empty`, `the event ID '<id>' holds a control character` |
+| `CHUNK_SENTINEL` on a row that is not synchronous | `claim_events` | the side's `event_a_id` or `event_b_id`, A before B | `CHUNK_SENTINEL stands only on a synchronous MatchClaim` |
+| `NOMATCH_SENTINEL` on a synchronous row | `claim_events` | the side's `event_a_id` or `event_b_id`, A before B | `NOMATCH_SENTINEL stands only on a MatchClaim that is not synchronous` |
+| `NOMATCH_SENTINEL` on both sides | `claim_events` | `event_b_id` | `a NOMATCH MatchClaim names an event on its other side` |
+| A sentinel side has a name | `claim_events` | the side's `event_a_name` or `event_b_name` | `a sentinel side has no name` |
+| A NOMATCH has an anchor | `claim_anchors` | `start_anchor`, else `end_anchor` | `a NOMATCH MatchClaim has no anchors` |
+| A synchronous row has no start anchor | `claim_anchors` | `start_anchor` | `a synchronous MatchClaim has a start anchor` |
 | A conceptual row has an anchor | `claim_anchors` | `start_anchor`, else `end_anchor` | `a conceptual MatchClaim has no anchors` |
 | An end anchor has no start anchor | `claim_anchors` | `end_anchor` | `an end anchor needs a start anchor` |
 | A coordinate of an anchor (the start anchor's before the end anchor's, `coordinate_a` before `coordinate_b`) is null or malformed | `invalid_coordinate` | the cell, such as `start_anchor.coordinate_b` | a cell's message (below) |
@@ -1691,6 +1729,7 @@ The Projections table:
 | A column of the type is missing or of another type | `schema_violation` | the column, row `None` | as in the MatchClaim table |
 | `id`, `timeline_id`, `unit`, `number_type` or `start` is null | `schema_violation` | the column | `'<name>' is null` |
 | An ID is empty or holds a control character | `invalid_id` | `id` | as in the MatchClaim table |
+| An ID is a reserved string | `invalid_id` | `id` | as in the MatchClaim table |
 | An ID repeats the ID of an earlier row | `duplicate_id` | `id` | as in the MatchClaim table |
 | `timeline_id` names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `timeline_id` | `the manifest has no timeline '<id>'` |
 | `unit` is none of the format's units, or `number_type` none of `int`, `float` and `fraction` or one the unit does not admit | `invalid_coordinate` | `unit`, else `number_type` | `'<unit>' is no unit`, `'<number type>' is no number type`, `'<unit>' admits no number type '<number type>'` |
@@ -1766,7 +1805,9 @@ An **alignment anchor** is a pair of coordinates of two timelines, each
 on its timeline's own axis.
 
 - A synchronous MatchClaim gives the anchor of its `start_anchor` and, if
-  it has one, of its `end_anchor`. A MatchClaim with both is an **interval
+  it has one, of its `end_anchor`, whatever its sides are: a side naming
+  an event gives that event's coordinate, a CHUNK side its coordinate and
+  no event. A MatchClaim with both anchors is an **interval
   MatchClaim**, and its two anchors bound a **matched span** on each timeline.
   A NOMATCH or a conceptual MatchClaim gives none, and so does one the
   belief filter leaves out.
@@ -2698,7 +2739,9 @@ else:
   tables](#resources-and-tables)). `tables_path()` returns the path of
   `tables.json` (`TABLES_DOCUMENT`), from which `MATCH_CLAIM_SCHEMA` and
   `PROJECTION_SCHEMA` declare their columns, `MATCH_CLAIM_REQUIRED` and
-  `PROJECTION_REQUIRED` name the columns that hold no null, and
+  `PROJECTION_REQUIRED` name the columns that hold no null,
+  `NOMATCH_SENTINEL` and `CHUNK_SENTINEL` hold the reserved strings of
+  the two sentinels ([The MatchClaim table](#the-matchclaim-table)), and
   `NUMBER_TYPE`, `COORDINATE_TYPE`, `ANCHOR_TYPE`, `PROJECTION_OF_TYPE`
   and `PROVENANCE_TYPE` declare the struct types; `NUMBER_KEYS` holds a
   number's members and `NUMBER_MEMBERS` the members each number type
