@@ -3063,29 +3063,42 @@ A commit touching data and code takes the type of its data. Moving a
 manifest file changes its address and is a removal.
 
 Two git hooks keep the types honest. `timetoshare hook prepare-commit-msg`
-writes the header the staged change requires (the type of the highest
-step, the scope where every change lies in one manifest or directory, `!`
-and the `BREAKING CHANGE` footer for a removal, and a line `also: …`
-counting the smaller changes by kind, `also: 2 belief, 1 label`) before
-the subject given with `-m` or before the editor opens, so that `git commit
--m "add the BPSD recordings"` commits `feat(op106): add the BPSD
-recordings`; it leaves merges, amends, squashes, every message whose first
-line already reads as a header (`type(scope): `, whatever the type) and
-commits without a change of the data alone. `timetoshare hook commit-msg`
-refuses a message whose type gives a lower step than the staged change, a
-removal written with any type but `remove` with `!` (`feat!` included),
-`remove` without `!`, a header without a subject (closing the editor on the
-written `feat(op106): `) and an ID given to an element of another type, and
-warns where a data type or a `!` gives a higher step, where a `BREAKING
-CHANGE` footer stands on a commit that removes nothing, and where the
-footer misses a removed ID; the check hook is `verbose`, so pre-commit
-shows these warnings when the message is accepted. Both read comment lines by git's
-`core.commentChar` (`#` where it is `auto`). For `git commit --amend` with
-the editor or `--no-edit`, the first hook records the amended commit in
-`timetoshare-amend-base` in the git directory, and the second compares the
-amended commit's parent (the empty tree for a first commit) with the index;
-`git commit --amend -m` tells the hooks no amend and is compared with
-`HEAD`.
+writes the type only for the two large steps: `feat` for an addition or an
+edit, and `remove` with `!` and the `BREAKING CHANGE` footer for a removal,
+with the scope where every change lies in one manifest or directory. It
+writes them before the subject given with `-m` or before the editor opens,
+so that `git commit -m "add the BPSD recordings"` commits `feat(op106): add
+the BPSD recordings`. For a patch (a belief, a `name`, `graphical`, `meta`,
+a moved resource) it writes no type and only suggests one, `Suggested
+type: belief(op106): (this commit records beliefs only)`, since the choice
+between `belief`, `docs` or `fix` is the author's. A commit mixing kinds
+of change (additions, edits, removals, beliefs, names, drawing,
+application data, moves) gets a hint, `This commit mixes 2 kinds of change
+(1 added, 1 belief); one kind of change per commit keeps the history and
+the changelog clear.`; nothing counting the smaller changes is written into
+the message. Where the message is edited, the suggestion and the hint are
+comment lines, which git removes; where it comes from `-m` or `-F`, they
+are printed on standard error and the message stays as given. The hook
+leaves merges, amends, squashes, every message whose first line already
+reads as a header (`type(scope): `, whatever the type) and commits without
+a change of the data alone. `timetoshare hook commit-msg` refuses a
+message whose type gives a lower step than an addition, an edit or a
+removal requires, or that has no type at all for such a change (the first
+hook was skipped), a removal written with any type but `remove` with `!`
+(`feat!` included), `remove` without `!`, a header without a subject
+(closing the editor on the written `feat(op106): `) and an ID given to an
+element of another type. For a patch, a missing type or a type without a
+step (`chore`) is only a warning naming the suggested type, and the commit
+goes through. It also warns where a data type or a `!` gives a higher step,
+where a `BREAKING CHANGE` footer stands on a commit that removes nothing,
+and where the footer misses a removed ID; the check hook is `verbose`, so
+pre-commit shows these warnings when the message is accepted. Both read
+comment lines by git's `core.commentChar` (`#` where it is `auto`). For
+`git commit --amend` with the editor or `--no-edit`, the first hook records
+the amended commit in `timetoshare-amend-base` in the git directory, and
+the second compares the amended commit's parent (the empty tree for a first
+commit) with the index; `git commit --amend -m` tells the hooks no amend
+and is compared with `HEAD`.
 
 This repository is a pre-commit hook repository: its
 `.pre-commit-hooks.yaml` offers both hooks and a third,

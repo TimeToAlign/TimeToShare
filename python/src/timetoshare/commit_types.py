@@ -19,8 +19,9 @@ the types of a dataset repository say which change a commit makes:
 - ``chore``, ``build``, ``ci``, ``refactor``, ``test``, ``style``: none;
 - ``revert``: accepted without a check.
 
-:func:`suggest_header` writes the header a staged change requires,
-:func:`suggest_trailer` the lines that go below it, and
+:func:`suggest_header` names the header a staged change requires,
+:func:`suggest_trailer` the footer that goes below it, :func:`suggest_hints`
+the suggestion and the hint shown beside the message, and
 :func:`check_message` checks a message against a change.
 :func:`release_step` names the largest step a release from one version to
 the next carries, and :func:`release_problem` says where it is lower than a
@@ -44,6 +45,7 @@ __all__ = [
     "release_problem",
     "release_step",
     "suggest_header",
+    "suggest_hints",
     "suggest_trailer",
 ]
 
@@ -79,6 +81,27 @@ _PATCH_TYPES = (
     ("moved", "move"),
 )
 """The kind of each patch finding and its type, in the order that breaks ties."""
+
+_PATCH_DOES = {
+    "belief": "records beliefs",
+    "label": "changes names",
+    "graphic": "changes the drawing",
+    "meta": "changes application data",
+    "move": "moves resources",
+}
+"""What a commit of each patch type does, as its suggestion says it."""
+
+_CHANGE_KINDS = (
+    "added",
+    "edited",
+    "removed",
+    "belief",
+    "label",
+    "graphic",
+    "meta",
+    "move",
+)
+"""The kinds of change a commit should not mix, in the order a hint counts them."""
 
 _RANK = {step: rank for rank, step in enumerate(STEPS)}
 
@@ -190,27 +213,56 @@ def _cited(finding: Finding) -> str:
 
 
 def suggest_trailer(report: StepReport) -> str:
-    """The lines below the header: the smaller changes, then the removals.
+    """The footer below the header of a major step, empty for any other.
 
-    A body line ``also: <n> <kind>, …`` counts the findings of lower steps
-    than the report's, and for a major step the footer ``BREAKING CHANGE:
-    removes …`` names every removal in finding order. Empty when there is
-    nothing to say.
+    ``BREAKING CHANGE: removes …`` names every removal in finding order.
     """
-    lower = Counter(
-        f.kind
-        for f in report.findings
-        if f.step in _RANK and _RANK[f.step] < _RANK[report.step]
-    )
-    blocks: list[str] = []
-    if lower:
-        blocks.append(
-            "also: " + ", ".join(f"{n} {kind}" for kind, n in sorted(lower.items()))
+    if report.step != "major":
+        return ""
+    removed = [_cited(f) for f in report.findings if f.step == "major"]
+    return "BREAKING CHANGE: removes " + ", ".join(removed)
+
+
+def _change_kind(finding: Finding) -> str | None:
+    """The kind of change a finding makes, one of ``_CHANGE_KINDS``; ``None``
+    for a refused or undetermined finding."""
+    if finding.step in ("major", "minor"):
+        return next(
+            kind
+            for kind in ("added", "edited", "removed")
+            if finding.kind.startswith(kind)
         )
-    if report.step == "major":
-        removed = [_cited(f) for f in report.findings if f.step == "major"]
-        blocks.append("BREAKING CHANGE: removes " + ", ".join(removed))
-    return "\n\n".join(blocks)
+    if finding.step == "patch":
+        return dict(_PATCH_TYPES)[finding.kind]
+    return None
+
+
+def suggest_hints(report: StepReport) -> list[str]:
+    """The lines shown beside a message, never written into it.
+
+    For a patch, whose type the person chooses, ``Suggested type: <header>
+    (this commit <does> only)``; ``, among other changes`` instead of
+    ``only`` where patch kinds mix. For a change mixing several of the kinds
+    added, edited, removed, belief, label, graphic, meta and move, ``This
+    commit mixes <n> kinds of change (<count> <kind>, …); …``.
+    """
+    hints: list[str] = []
+    counts = Counter(
+        kind for kind in map(_change_kind, report.findings) if kind is not None
+    )
+    if report.step == "patch":
+        header = (suggest_header(report) or "").rstrip()
+        does = _PATCH_DOES[_patch_type(report.findings)]
+        mixed = sum(1 for kind in counts if kind in _PATCH_DOES) > 1
+        tail = ", among other changes" if mixed else " only"
+        hints.append(f"Suggested type: {header} (this commit {does}{tail})")
+    if len(counts) > 1:
+        named = ", ".join(f"{counts[k]} {k}" for k in _CHANGE_KINDS if counts[k])
+        hints.append(
+            f"This commit mixes {len(counts)} kinds of change ({named}); one kind of "
+            "change per commit keeps the history and the changelog clear."
+        )
+    return hints
 
 
 def _declared(header: Header) -> str:
@@ -223,7 +275,8 @@ def _declared(header: Header) -> str:
 
 
 def _requirement(report: StepReport) -> str:
-    """What the change requires, in words, with the header to write."""
+    """What the change requires, in words, with the header to write; for a
+    patch, whose type the person chooses, the header suggested."""
     wanted = suggest_header(report) or ""
     of_step = [f for f in report.findings if f.step == report.step]
     named = ", ".join(_cited(f) if f.step == "major" else f.detail for f in of_step)
@@ -234,7 +287,7 @@ def _requirement(report: StepReport) -> str:
         )
     if report.step == "minor":
         return f"this commit adds or edits data ({named}); write {_with_dots(wanted)}"
-    return f"this commit changes {named}; write {_with_dots(wanted)}"
+    return f"this commit changes {named}; suggested type: {wanted.rstrip()}"
 
 
 def _with_dots(header: str) -> str:
@@ -256,15 +309,17 @@ def check_message(
 
     Returns:
         The errors and the warnings. An error where the declared step is
-        lower than the change requires, for a removal written with any type
-        but ``remove`` with ``!`` (``feat!`` included), for ``remove``
-        without ``!``, for a header with an empty subject, for a message
-        without a header when the change requires a step, and for every
-        refused finding (an ID given again). A warning where a data type or
-        a ``!`` declares a higher step than the change requires, where a
-        ``BREAKING CHANGE`` footer stands on a commit that removes nothing,
-        where a major commit's footer misses a removed ID, and where a change
-        could not be judged.
+        lower than a minor or a major step the change requires, for a
+        removal written with any type but ``remove`` with ``!`` (``feat!``
+        included), for ``remove`` without ``!``, for a header with an empty
+        subject, for a message without a header when the change requires a
+        minor or a major step, and for every refused finding (an ID given
+        again). A warning, carrying the suggested type, where a patch-level
+        change has no header or a type without a step; a warning where a
+        data type or a ``!`` declares a higher step than the change
+        requires, where a ``BREAKING CHANGE`` footer stands on a commit that
+        removes nothing, where a major commit's footer misses a removed ID,
+        and where a change could not be judged.
     """
     text = message_text(message, comment)
     if text.startswith(_SKIPPED):
@@ -280,9 +335,10 @@ def check_message(
             errors.append(f"{finding.path}: {finding.detail}; an ID is never reused")
         elif finding.step == UNDETERMINED:
             warnings.append(f"{finding.path}: {finding.detail}")
+    patch = report.step == "patch"
     if header is None:
         if report.step != "none":
-            errors.append(
+            (warnings if patch else errors).append(
                 f"the first line is no Conventional Commits header; "
                 f"{_requirement(report)}"
             )
@@ -298,7 +354,7 @@ def check_message(
     footer = _BREAKING.search(text)
     removal = report.step == "major"
     if _RANK[declared] < _RANK[report.step] or (removal and header.type != "remove"):
-        errors.append(_requirement(report))
+        (warnings if patch else errors).append(_requirement(report))
     elif (header.type in DATA_TYPES or header.breaking) and _RANK[declared] > _RANK[
         report.step
     ]:

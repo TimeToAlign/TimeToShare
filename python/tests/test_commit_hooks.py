@@ -18,6 +18,7 @@ from timetoshare.commit_types import (
     release_problem,
     release_step,
     suggest_header,
+    suggest_hints,
     suggest_trailer,
 )
 from timetoshare.validate import data_root
@@ -69,7 +70,7 @@ def test_the_patch_type_follows_the_count_then_the_order() -> None:
 
 def test_the_trailer() -> None:
     assert suggest_trailer(report_of("id_changed")) == (
-        "also: 1 added\n\nBREAKING CHANGE: removes #sketch"
+        "BREAKING CHANGE: removes #sketch"
     )
     assert suggest_trailer(report_of("timeline_removed")) == (
         "BREAKING CHANGE: removes #sketch"
@@ -79,6 +80,69 @@ def test_the_trailer() -> None:
     )
     assert suggest_trailer(report_of("region_added")) == ""
 
+
+MIXED_ID = (
+    "This commit mixes 2 kinds of change (1 added, 1 removed); one kind of "
+    "change per commit keeps the history and the changelog clear."
+)
+
+LABEL = "Suggested type: label(base): (this commit changes names only)"
+
+
+@pytest.mark.parametrize(
+    ("case", "hints"),
+    [
+        ("name_changed", [LABEL]),
+        (
+            "belief_added",
+            ["Suggested type: belief(base): (this commit records beliefs only)"],
+        ),
+        (
+            "graphical_rule_changed",
+            ["Suggested type: graphic(base): (this commit changes the drawing only)"],
+        ),
+        (
+            "meta_changed",
+            ["Suggested type: meta(base): (this commit changes application data only)"],
+        ),
+        (
+            "resource_moved",
+            ["Suggested type: move(base): (this commit moves resources only)"],
+        ),
+        ("id_changed", [MIXED_ID]),
+        ("region_added", []),
+        ("timeline_removed", []),
+        ("id_reused", []),
+        ("minimal_to_complete", []),
+    ],
+)
+def test_the_hints(case: str, hints: list[str]) -> None:
+    assert suggest_hints(report_of(case)) == hints
+
+
+def test_the_hints_of_mixed_patch_kinds() -> None:
+    assert suggest_hints(patch_report("label", "belief", "label")) == [
+        "Suggested type: label(a): (this commit changes names, among other changes)",
+        "This commit mixes 2 kinds of change (1 belief, 2 label); one kind of "
+        "change per commit keeps the history and the changelog clear.",
+    ]
+
+
+def test_an_undetermined_finding_is_no_kind_of_change() -> None:
+    report = StepReport.of(
+        [
+            Finding("label", "patch", "a.yaml", "x", "the name of Timeline #x"),
+            Finding("changed_table", "undetermined", "a.yaml", "t", "t.csv changed"),
+        ]
+    )
+    assert suggest_hints(report) == [
+        "Suggested type: label(a): (this commit changes names only)"
+    ]
+
+
+RENAMED = (
+    "this commit changes the name of Timeline #score; suggested type: label(base):"
+)
 
 REMOVAL = (
     "this commit removes #sketch; write remove(...)!: and a BREAKING CHANGE footer"
@@ -139,6 +203,29 @@ REMOVAL = (
             ["feat declares a minor step; the staged change requires patch"],
         ),
         ("belief_added", "belief(base): record a doubt", [], []),
+        (
+            "name_changed",
+            "rename the score",
+            [],
+            [f"the first line is no Conventional Commits header; {RENAMED}"],
+        ),
+        ("name_changed", "chore: rename the score", [], [RENAMED]),
+        ("name_changed", "docs: rename the score", [], []),
+        (
+            "name_changed",
+            "remove(base): rename the score",
+            ["remove requires '!': write remove(...)!:"],
+            [],
+        ),
+        (
+            "region_added",
+            "add the second region",
+            [
+                "the first line is no Conventional Commits header; this commit "
+                "adds or edits data (Region #region_2 added); write feat(...):"
+            ],
+            [],
+        ),
         ("minimal_to_complete", "docs: explain the sources", [], []),
         ("minimal_to_complete", "chore: tidy the scripts", [], []),
         ("timeline_removed", "Merge branch 'sketches'", [], []),
@@ -343,12 +430,15 @@ def prepared(repo: Path, text: str, *arguments: str) -> tuple[int, str]:
     return status, message.read_text(encoding="utf-8")
 
 
-def test_prepare_writes_the_type_before_a_given_subject(repo: Path) -> None:
+def test_prepare_writes_the_type_before_a_given_subject(
+    repo: Path, capsys: pytest.CaptureFixture
+) -> None:
     stage(repo, "region_added")
     assert prepared(repo, "add the second region\n", "message") == (
         0,
         "feat(base): add the second region\n",
     )
+    assert capsys.readouterr().err == ""
 
 
 def test_prepare_writes_a_removal_and_its_footer(repo: Path) -> None:
@@ -362,6 +452,53 @@ def test_prepare_writes_a_removal_and_its_footer(repo: Path) -> None:
 def test_prepare_writes_before_the_comments_of_a_template(repo: Path) -> None:
     stage(repo, "region_added")
     assert prepared(repo, TEMPLATE) == (0, "feat(base): \n" + TEMPLATE)
+
+
+def test_prepare_suggests_a_patch_type_on_standard_error(
+    repo: Path, capsys: pytest.CaptureFixture
+) -> None:
+    stage(repo, "name_changed")
+    assert prepared(repo, "rename the score\n", "message") == (0, "rename the score\n")
+    assert capsys.readouterr().err == f"timetoshare: {LABEL}\n"
+
+
+@pytest.mark.parametrize("arguments", [(), ("template",)])
+def test_prepare_suggests_a_patch_type_as_a_comment(
+    repo: Path, capsys: pytest.CaptureFixture, arguments: tuple[str, ...]
+) -> None:
+    stage(repo, "name_changed")
+    assert prepared(repo, TEMPLATE, *arguments) == (
+        0,
+        f"\n# {LABEL}\n#\n" + TEMPLATE[1:],
+    )
+    assert capsys.readouterr().err == ""
+
+
+def test_prepare_comments_with_gits_comment_character(repo: Path) -> None:
+    git(repo, "config", "core.commentChar", ";")
+    stage(repo, "name_changed")
+    template = TEMPLATE.replace("#", ";")
+    assert prepared(repo, template) == (0, f"\n; {LABEL}\n;\n" + template[1:])
+
+
+def test_prepare_hints_at_a_mixed_change_on_standard_error(
+    repo: Path, capsys: pytest.CaptureFixture
+) -> None:
+    stage(repo, "id_changed")
+    assert prepared(repo, "rename the sketch\n", "message") == (
+        0,
+        "remove(base)!: rename the sketch\n\nBREAKING CHANGE: removes #sketch\n",
+    )
+    assert capsys.readouterr().err == f"timetoshare: {MIXED_ID}\n"
+
+
+def test_prepare_hints_at_a_mixed_change_as_a_comment(repo: Path) -> None:
+    stage(repo, "id_changed")
+    assert prepared(repo, TEMPLATE) == (
+        0,
+        "remove(base)!: \n\nBREAKING CHANGE: removes #sketch\n\n"
+        f"# {MIXED_ID}\n#\n" + TEMPLATE[1:],
+    )
 
 
 @pytest.mark.parametrize(
@@ -381,14 +518,16 @@ def test_prepare_writes_before_the_comments_of_a_template(repo: Path) -> None:
 def test_prepare_leaves_a_message_alone(
     repo: Path,
     monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture,
     text: str,
     arguments: tuple[str, ...],
     source: str | None,
 ) -> None:
-    stage(repo, "region_added")
+    stage(repo, "id_changed")
     if source is not None:
         monkeypatch.setenv("PRE_COMMIT_COMMIT_MSG_SOURCE", source)
     assert prepared(repo, text, *arguments) == (0, text)
+    assert capsys.readouterr().err == ""
 
 
 def test_prepare_leaves_a_change_without_data_alone(repo: Path) -> None:
@@ -414,6 +553,32 @@ def test_commit_msg_refuses_an_understated_type(
     assert checked(repo, "feat(base): drop the sketch\n", capsys) == (
         1,
         f"timetoshare: error: {REMOVAL}\n",
+    )
+
+
+def test_commit_msg_warns_on_a_patch_without_a_type(
+    repo: Path, capsys: pytest.CaptureFixture
+) -> None:
+    stage(repo, "name_changed")
+    assert checked(repo, "rename the score\n", capsys) == (
+        0,
+        "timetoshare: warning: the first line is no Conventional Commits header; "
+        f"{RENAMED}\n",
+    )
+    assert checked(repo, "chore: rename the score\n", capsys) == (
+        0,
+        f"timetoshare: warning: {RENAMED}\n",
+    )
+
+
+def test_commit_msg_refuses_an_addition_without_a_type(
+    repo: Path, capsys: pytest.CaptureFixture
+) -> None:
+    stage(repo, "region_added")
+    assert checked(repo, "add the second region\n", capsys) == (
+        1,
+        "timetoshare: error: the first line is no Conventional Commits header; "
+        "this commit adds or edits data (Region #region_2 added); write feat(...):\n",
     )
 
 
@@ -450,6 +615,48 @@ def test_git_commit_through_the_hooks(repo: Path) -> None:
     done = git(repo, "commit", "--quiet", "-m", "label(base): rename", check=False)
     assert done.returncode == 1
     assert git(repo, "rev-list", "--count", "HEAD").stdout == "2\n"
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="git hooks run by sh")
+def test_git_commit_of_a_patch_without_a_type(repo: Path) -> None:
+    install_hooks(repo)
+    stage(repo, "name_changed")
+    done = git(repo, "commit", "--quiet", "-m", "rename the score")
+    assert done.stderr == (
+        f"timetoshare: {LABEL}\n"
+        "timetoshare: warning: the first line is no Conventional Commits header; "
+        f"{RENAMED}\n"
+    )
+    assert git(repo, "log", "-1", "--format=%B").stdout == "rename the score\n\n"
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="git hooks run by sh")
+def test_git_strips_the_suggestion_of_the_editor(repo: Path) -> None:
+    install_hooks(repo)
+    stage(repo, "name_changed")
+    received = repo.parent / "received"
+    script = repo.parent / "editor.sh"
+    script.write_text(
+        f'#!/bin/sh\ncp "$1" "{received}"\n'
+        f"{{ printf '%s\\n' 'label(base): rename the score'; cat \"{received}\"; }}"
+        ' > "$1"\n',
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    done = subprocess.run(
+        ["git", "commit", "--quiet"],
+        cwd=repo,
+        env={**environment(repo.parent), "GIT_EDITOR": str(script)},
+        capture_output=True,
+        text=True,
+    )
+    assert (done.returncode, done.stderr) == (0, "")
+    assert received.read_text(encoding="utf-8").startswith(
+        f"\n# {LABEL}\n#\n# Please enter the commit message for your changes."
+    )
+    assert git(repo, "log", "-1", "--format=%B").stdout == (
+        "label(base): rename the score\n\n"
+    )
 
 
 def test_prepare_writes_before_comments_of_gits_comment_character(repo: Path) -> None:

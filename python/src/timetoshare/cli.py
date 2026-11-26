@@ -23,7 +23,10 @@ release carries a lower step than the change requires. On any other
 appends the report to FILE as Markdown, the job summary of a workflow.
 
 ``timetoshare hook prepare-commit-msg MSGFILE [SOURCE [SHA]]`` writes the
-commit type the staged change requires in front of the message, and
+commit type of a minor or a major step in front of the message, and
+suggests one for a patch; the suggestion, and the hint that a commit mixes
+kinds of change, are comment lines where the message is edited and go to
+standard error where it is given with ``-m`` or ``-F``.
 ``timetoshare hook commit-msg MSGFILE`` checks the final message against
 the staged change. Both run as git hooks directly or through pre-commit,
 which hands over the message file as the one file name, the source of the
@@ -57,6 +60,7 @@ from .commit_types import (
     release_problem,
     release_step,
     suggest_header,
+    suggest_hints,
     suggest_trailer,
 )
 from .serialization import dumps, loads
@@ -72,6 +76,10 @@ __all__ = ["main"]
 
 _UNTOUCHED_SOURCES = ("merge", "squash", "commit")
 """Sources of a message the first hook leaves alone: merges, squashes, amends."""
+
+_GIVEN_SOURCE = "message"
+"""The source of a message given with ``-m`` or ``-F``, whose comment lines
+git keeps."""
 
 AMEND_BASE = "timetoshare-amend-base"
 """The file in the git directory naming the commit an amend replaces."""
@@ -391,6 +399,25 @@ def prepared_message(text: str, header: str, trailer: str, comment: str = "#") -
     return result
 
 
+def with_hints(text: str, hints: list[str], comment: str = "#") -> str:
+    """A message with ``hints`` as comment lines before its first comment line.
+
+    A lone comment character separates them from comment lines that follow;
+    without comment lines the hints go to the end.
+    """
+    if not hints:
+        return text
+    noted = [f"{comment} {hint}" for hint in hints]
+    lines = text.split("\n")
+    at = next(
+        (index for index, line in enumerate(lines) if line.startswith(comment)), None
+    )
+    if at is None:
+        ended = text if text.endswith("\n") else text + "\n"
+        return ended + "\n".join(noted) + "\n"
+    return "\n".join([*lines[:at], *noted, comment, *lines[at:]])
+
+
 def _prepare(arguments: argparse.Namespace) -> int:
     source = arguments.source or os.environ.get("PRE_COMMIT_COMMIT_MSG_SOURCE")
     commit = arguments.sha or os.environ.get("PRE_COMMIT_COMMIT_OBJECT_NAME")
@@ -414,13 +441,16 @@ def _prepare(arguments: argparse.Namespace) -> int:
     except ValueError as error:
         print(f"timetoshare: no commit type written: {error}", file=sys.stderr)
         return 0
-    suggested = suggest_header(report)
-    if suggested is None:
-        return 0
-    path.write_text(
-        prepared_message(text, suggested, suggest_trailer(report), comment),
-        encoding="utf-8",
-    )
+    hints = suggest_hints(report)
+    if report.step in ("minor", "major"):
+        header = suggest_header(report) or ""
+        text = prepared_message(text, header, suggest_trailer(report), comment)
+    if source == _GIVEN_SOURCE:
+        for hint in hints:
+            print(f"timetoshare: {hint}", file=sys.stderr)
+    else:
+        text = with_hints(text, hints, comment)
+    path.write_text(text, encoding="utf-8")
     return 0
 
 
@@ -510,7 +540,9 @@ def _parser() -> argparse.ArgumentParser:
     hook = commands.add_parser("hook", help="run as a git hook")
     hooks = hook.add_subparsers(dest="hook", required=True)
     prepare = hooks.add_parser(
-        "prepare-commit-msg", help="write the commit type the staged change requires"
+        "prepare-commit-msg",
+        help="write the commit type a minor or a major change requires, suggest "
+        "one for a patch",
     )
     prepare.add_argument("msgfile", metavar="MSGFILE")
     prepare.add_argument("source", metavar="SOURCE", nargs="?")
