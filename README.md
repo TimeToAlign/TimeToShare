@@ -603,25 +603,25 @@ format's terms:
 ```yaml
 flow_maps:
   -
-    chunks: ["#region_1", "#region_2", "#region_1", "#region_3"]
-    convention: default
-    id: "#flow_map_1"
-    provenance:
-      -
-        method: inferred
-    timeline: "#score"
-  -
-    chunks: ["#region_1", "#region_3"]
+    chunks: ["#region_3gr351kj2rne4", "#region_1sds8frdr4gcb"]
     convention: single
-    id: "#flow_map_2"
+    id: "#flow_1a6b8chz5jxvf"
     provenance:
       -
         method: inferred
     timeline: "#score"
   -
-    chunks: ["#region_1", "#region_2", "#region_3"]
+    chunks: ["#region_3gr351kj2rne4", "#region_34nspphwkjsxm", "#region_3gr351kj2rne4", "#region_1sds8frdr4gcb"]
+    convention: default
+    id: "#flow_1ehd6m4iqaqeb"
+    provenance:
+      -
+        method: inferred
+    timeline: "#score"
+  -
+    chunks: ["#region_3gr351kj2rne4", "#region_34nspphwkjsxm", "#region_1sds8frdr4gcb"]
     convention: printed
-    id: "#flow_map_3"
+    id: "#flow_2dbu5af0gros4"
     provenance:
       -
         method: inferred
@@ -667,7 +667,7 @@ timelines:
     regions:
       -
         end: [12, 1]
-        id: "#region_1"
+        id: "#region_3gr351kj2rne4"
         name: A
         provenance:
           -
@@ -680,7 +680,7 @@ timelines:
           type: ["tts:AtomicSection"]
       -
         end: [16, 1]
-        id: "#region_2"
+        id: "#region_34nspphwkjsxm"
         name: B
         provenance:
           -
@@ -693,7 +693,7 @@ timelines:
           type: ["tts:AtomicSection"]
       -
         end: [24, 1]
-        id: "#region_3"
+        id: "#region_1sds8frdr4gcb"
         name: C
         provenance:
           -
@@ -710,7 +710,7 @@ virtual_timelines:
   -
     id: "#virtual_1"
     length: [36, 1]
-    map: "#flow_map_1"
+    map: "#flow_1ehd6m4iqaqeb"
     name: "Score, as played"
     number_type: fraction
     timeline: "#score"
@@ -725,19 +725,20 @@ bracket's repeat sign, whose one destination has no place and so lands at
 the timeline's start, no section break lying before it, and the
 JumpTarget `jump_target_1`. The boundaries 0, 12, 16 and 24 give the
 atomic sections A from 0 to 12, B from 12 to 16 and C from 16 to 24, the
-regions `region_1` to `region_3`.
+regions named A, B and C. Their IDs, and those of the FlowMaps, are
+minted, so the FlowMaps are listed in the order of their IDs.
 
 The `default` flow plays A up to 12, where `jump_1` on pass 1 goes on, and
 B up to 16, where `jump_2` is taken back to 0. That restores nothing:
 `jump_1` has a place at 16, outside the stretch from 0 up to 16, and keeps
 its pass, and `break_1` lies at 16. The flow plays A again, `jump_1` on
 pass 2 takes it to 16, and it plays C up to the length: A B A C, the
-chunks of `flow_map_1`, with no finding. The `single` flow arrives at
+chunks of the `default` FlowMap, with no finding. The `single` flow arrives at
 `jump_1` on pass 1 + 1, since the repeat end restores, is taken once and
-goes back over 12: A C, `flow_map_2`. The `printed` flow is A B C,
-`flow_map_3`. The three FlowMaps are computed from the flow control, so
+goes back over 12: A C, the `single` FlowMap. The `printed` flow is A B C,
+the `printed` FlowMap. The three FlowMaps are computed from the flow control, so
 each carries a provenance entry of method `inferred`. `virtual_1` is
-`flow_map_1` applied to `score`, and is 12 + 4 + 12 + 8 = 36 quarters
+the `default` FlowMap applied to `score`, and is 12 + 4 + 12 + 8 = 36 quarters
 long, the length both validators compare with the sum of its chunks. The expected flows
 `fixtures/flows/0.2.0/sonata_exposition.yaml` state these runs and
 sections.
