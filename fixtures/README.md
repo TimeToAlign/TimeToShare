@@ -646,7 +646,12 @@ the second at the scale 1.5
 `bundle_arranged_roots` arranged side by side in the order
 `page`, `group_3`, `group_1`, `group_2`
 (`bundle__bundle_arranged_roots__horizontal`), whose row the rules of the
-arrangement repair to `page`, `group_1`, `group_2`, `group_3`; and
+arrangement repair to `page`, `group_1`, `group_2`, `group_3`, and one
+under another in that order (`bundle__bundle_arranged_roots__vertical`);
+`bundle_arranged_conflict`, `bundle_elided_layerit` and
+`bundle_shared_parent` arranged side by side with an empty order
+(`bundle__<name>__horizontal`), the first refused, its two groups
+overlapping on the score, and so drawn one under another; and
 `flow/virtual_cards` with the places `{allegro_by_hand: {}, allegro_default:
 {}, allegro_single: {}}`, its three virtual timelines placed as cards of
 their own, one with a run drawn once and a gap line
