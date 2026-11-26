@@ -499,10 +499,12 @@
 <span class="sd">"""The two reserved strings: an event ID column holds them besides event</span>
 <span class="sd">IDs, and no element, event or Projection takes either as its ID."""</span>
 
-<span class="n">Shape</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">,</span> <span class="s2">"order"</span><span class="p">]</span>
+<span class="n">Shape</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">"id"</span><span class="p">,</span> <span class="s2">"ref"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">,</span> <span class="s2">"order"</span><span class="p">]</span>
 <span class="sd">"""How a member holds IDs.</span>
 
-<span class="sd">``id`` the member is one ID; ``ids`` a list of IDs, an item that is no</span>
+<span class="sd">``id`` the member is one ID; ``ref`` one ID too, in a member named ``id``</span>
+<span class="sd">that names another element rather than the object's own (an address's</span>
+<span class="sd">``id``); ``ids`` a list of IDs, an item that is no</span>
 <span class="sd">string (a FlowMap's gap) kept as it is; ``order`` an object</span>
 <span class="sd">keyed by IDs whose value, where the key names a group, is a list of member</span>
 <span class="sd">IDs (a timeline's value holds band words).</span>
@@ -523,7 +525,7 @@
     <span class="p">(</span><span class="s2">"AlignmentAnchor"</span><span class="p">,</span> <span class="s2">"timestamps"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Resource"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Resource"</span><span class="p">,</span> <span class="s2">"timelines"</span><span class="p">,</span> <span class="s2">"ids"</span><span class="p">),</span>
-    <span class="p">(</span><span class="s2">"Address"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"Address"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"ref"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"MeasureMap"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"Region"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
     <span class="p">(</span><span class="s2">"FlowControlElement"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">,</span> <span class="s2">"id"</span><span class="p">),</span>
@@ -730,6 +732,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_file</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">to_file_id</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">_bare</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">strict</span> <span class="k">else</span> <span class="n">_leniently_bare</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="n">ref</span> <span class="o">=</span> <span class="nb">id</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">ids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">_Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""A list of IDs converted item by item; a value that is no list is copied."""</span>

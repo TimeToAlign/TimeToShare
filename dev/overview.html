@@ -4137,6 +4137,260 @@ documents at both their addresses (<a class="reference internal" href="#the-sche
 document</a>); <code class="docutils literal notranslate"><span class="pre">scripts/check_published.py</span></code> checks those
 addresses. <code class="docutils literal notranslate"><span class="pre">scripts/check_versions.py</span></code> checks that all
 version declarations agree.</p>
+<section id="versions-of-a-dataset">
+<h3>Versions of a dataset<a class="headerlink" href="#versions-of-a-dataset" title="Link to this heading">#</a></h3>
+<p>The marker <code class="docutils literal notranslate"><span class="pre">timetoshare</span></code> says how to read a file; nothing in a manifest
+says which state of its data it is. A dataset keeps its manifests and the
+tables they name in one git repository, and that repository’s release tags
+(<code class="docutils literal notranslate"><span class="pre">v2.1.0</span></code>) version all of them together: a citation of an element pins
+its state by the tagged URL or the DOI of the release. One repository
+holds one dataset; where several share one, their tags carry a prefix
+(<code class="docutils literal notranslate"><span class="pre">mtd/v2.0.0</span></code>). A tag is never moved or deleted.</p>
+<p>A release compares the tree of the last tag with the new one, every
+manifest and every table, by value in the complete form and canonical
+order, elements matched by their IDs at any depth:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Change</p></th>
+<th class="head"><p>Step</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>removing anything with an ID (a timeline, a child, a group, a MeasureMap, a conversion map, a region, a flow-control element, a FlowMap, a virtual timeline, a resource, a named timestamp, a named MatchStamp, an alignment anchor), a group member, a statement pair, a prefix of <code class="docutils literal notranslate"><span class="pre">&#64;context</span></code>, a row of a table, a manifest file</p></td>
+<td><p>major</p></td>
+</tr>
+<tr class="row-odd"><td><p>changing an ID (a removal and an addition)</p></td>
+<td><p>major</p></td>
+</tr>
+<tr class="row-even"><td><p>adding any of these</p></td>
+<td><p>minor</p></td>
+</tr>
+<tr class="row-odd"><td><p>editing what an element states (a unit, a number type, a length, an offset, a map’s numbers, a coordinate, a FlowMap’s chunks, a statement’s value, a prefix’s IRI), corrections included</p></td>
+<td><p>minor</p></td>
+</tr>
+<tr class="row-even"><td><p>a belief, a rejection included</p></td>
+<td><p>patch</p></td>
+</tr>
+<tr class="row-odd"><td><p>a <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">meta</span></code>, styling in <code class="docutils literal notranslate"><span class="pre">graphical</span></code> (a named timestamp’s <code class="docutils literal notranslate"><span class="pre">display</span></code> included), an elision added, edited or removed, a resource’s <code class="docutils literal notranslate"><span class="pre">url</span></code> for the same bytes (its <code class="docutils literal notranslate"><span class="pre">integrity</span></code> equal)</p></td>
+<td><p>patch</p></td>
+</tr>
+<tr class="row-even"><td><p>another form or serialization of the same value, comments</p></td>
+<td><p>none</p></td>
+</tr>
+<tr class="row-odd"><td><p>giving an ID to an element of another type, or again after its element was removed</p></td>
+<td><p>refused</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Numbers compare by exact value wherever the format reads a number, as
+<a class="reference internal" href="#defaults">Defaults</a> states: an integer, a float and a Fraction pair of
+equal value are one value (<code class="docutils literal notranslate"><span class="pre">2</span></code>, <code class="docutils literal notranslate"><span class="pre">2.0</span></code>, <code class="docutils literal notranslate"><span class="pre">[2,</span> <span class="pre">1]</span></code> and <code class="docutils literal notranslate"><span class="pre">[4,</span> <span class="pre">2]</span></code>), so a
+conversion map’s numbers and a MeasureMap row’s lengths written in
+another spelling are no change, while <code class="docutils literal notranslate"><span class="pre">0.1</span></code> and <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">10]</span></code> differ. <code class="docutils literal notranslate"><span class="pre">meta</span></code>
+and the literals of <code class="docutils literal notranslate"><span class="pre">statements</span></code> and <code class="docutils literal notranslate"><span class="pre">provenance</span></code> compare as written. A
+file that is a manifest in one state and cannot be read in the other is
+reported as undetermined, never as a removal.</p>
+<p>A major version promises that every cited ID still exists, not that every
+coordinate keeps its meaning.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">timetoshare</span></code> command of the Python package prints the step of a
+change and one line per finding (<code class="docutils literal notranslate"><span class="pre">--json</span></code> for the whole report): between
+two directories, between two git references of the repository <code class="docutils literal notranslate"><span class="pre">--repo</span></code>
+(default <code class="docutils literal notranslate"><span class="pre">.</span></code>), or between a reference and the changes staged for the next
+commit, when the second argument is left out. From git it reads only the
+manifests (the files ending <code class="docutils literal notranslate"><span class="pre">.yaml</span></code>, <code class="docutils literal notranslate"><span class="pre">.yml</span></code> or <code class="docutils literal notranslate"><span class="pre">.json</span></code>) and the table files
+their resources name, never the rest of the tree. It exits 2 when a change
+is refused. Comparing the rows of a MatchClaim or Projections table needs
+the <code class="docutils literal notranslate"><span class="pre">tables</span></code> extra; without it, and for tables of any other type, a changed
+table is reported as undetermined.</p>
+<p>Two states alone cannot show an ID given again after a release in between
+removed its element. <code class="docutils literal notranslate"><span class="pre">--history</span></code> (git references only) also reads every tag
+reachable from NEW (or <code class="docutils literal notranslate"><span class="pre">HEAD</span></code>) and from OLD, and OLD itself, in the order
+of the history, and refuses (<code class="docutils literal notranslate"><span class="pre">reused_id</span></code>) every ID of NEW that one of them
+held for an element of another type, or for an element that a later one of
+them no longer holds. This is the check the job on the release pull
+request runs, <code class="docutils literal notranslate"><span class="pre">timetoshare</span> <span class="pre">step</span> <span class="pre">--history</span> <span class="pre">&lt;last</span> <span class="pre">tag&gt;</span> <span class="pre">HEAD</span></code>; the hooks below
+compare two states only.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>timetoshare<span class="w"> </span>step<span class="w"> </span>v2.1.0<span class="w"> </span>HEAD
+<span class="go">step: major</span>
+<span class="go">scope: op106</span>
+<span class="go">major	removed	op106.yaml	#clt_3	Timeline #clt_3 removed</span>
+</pre></div>
+</div>
+<p>In Python, <code class="docutils literal notranslate"><span class="pre">manifest_step(old,</span> <span class="pre">new)</span></code> compares two manifests,
+<code class="docutils literal notranslate"><span class="pre">tree_step(old_root,</span> <span class="pre">new_root)</span></code> two directories and <code class="docutils literal notranslate"><span class="pre">git_step(old_ref,</span> <span class="pre">new_ref,</span> <span class="pre">repo,</span> <span class="pre">history=False)</span></code> two references (<code class="docutils literal notranslate"><span class="pre">new_ref=None</span></code>: the staged
+changes); the last two return a <code class="docutils literal notranslate"><span class="pre">StepReport</span></code> with the <code class="docutils literal notranslate"><span class="pre">step</span></code>, the
+<code class="docutils literal notranslate"><span class="pre">findings</span></code> (each a <code class="docutils literal notranslate"><span class="pre">Finding</span></code> with <code class="docutils literal notranslate"><span class="pre">kind</span></code>, <code class="docutils literal notranslate"><span class="pre">step</span></code>, <code class="docutils literal notranslate"><span class="pre">path</span></code>, <code class="docutils literal notranslate"><span class="pre">id</span></code> and
+<code class="docutils literal notranslate"><span class="pre">detail</span></code>), the flags <code class="docutils literal notranslate"><span class="pre">refused</span></code> and <code class="docutils literal notranslate"><span class="pre">undetermined</span></code>, and the <code class="docutils literal notranslate"><span class="pre">scope</span></code>, the
+manifest or directory every finding lies in.</p>
+<p>The release tool <a class="reference external" href="https://github.com/googleapis/release-please">release-please</a>
+computes the version from Conventional Commits: a <code class="docutils literal notranslate"><span class="pre">feat</span></code> commit makes a
+minor step, a commit whose header carries <code class="docutils literal notranslate"><span class="pre">!</span></code> a major one, and every other
+commit a patch. A dataset repository therefore writes these types, the
+scope naming the manifest or the part of the dataset (<code class="docutils literal notranslate"><span class="pre">op106</span></code>, <code class="docutils literal notranslate"><span class="pre">bpsd</span></code>):</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Type</p></th>
+<th class="head"><p>Instead of</p></th>
+<th class="head"><p>Step</p></th>
+<th class="head"><p>Changelog section</p></th>
+<th class="head"><p>For</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">feat</span></code> (release-please reads <code class="docutils literal notranslate"><span class="pre">feature</span></code> alike)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">feat</span></code>; <code class="docutils literal notranslate"><span class="pre">fix</span></code> for a correction</p></td>
+<td><p>minor</p></td>
+<td><p>Added or changed</p></td>
+<td><p>adding or editing data, corrections included: <code class="docutils literal notranslate"><span class="pre">feat(op106):</span> <span class="pre">add</span> <span class="pre">the</span> <span class="pre">BPSD</span> <span class="pre">recordings</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">remove</span></code> with <code class="docutils literal notranslate"><span class="pre">!</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">feat!</span></code></p></td>
+<td><p>major</p></td>
+<td><p>Removed, and the IDs under the breaking changes</p></td>
+<td><p>removing anything, changing an ID, with the footer <code class="docutils literal notranslate"><span class="pre">BREAKING</span> <span class="pre">CHANGE:</span> <span class="pre">removes</span> <span class="pre">#clt_3,</span> <span class="pre">#region_7</span></code>; any other type with <code class="docutils literal notranslate"><span class="pre">!</span></code> or with that footer also makes a major release, and the hook refuses it for a removal</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">belief</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fix</span></code></p></td>
+<td><p>patch</p></td>
+<td><p>Beliefs</p></td>
+<td><p>recording a belief</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">label</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">chore</span></code></p></td>
+<td><p>patch</p></td>
+<td><p>Names</p></td>
+<td><p>a <code class="docutils literal notranslate"><span class="pre">name</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">graphic</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">style</span></code></p></td>
+<td><p>patch</p></td>
+<td><p>Drawing</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">graphical</span></code>: styling rules, orders, display words, elisions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">meta</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">chore</span></code></p></td>
+<td><p>patch</p></td>
+<td><p>Application data</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">meta</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">move</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">refactor</span></code></p></td>
+<td><p>patch</p></td>
+<td><p>Moved</p></td>
+<td><p>a resource’s <code class="docutils literal notranslate"><span class="pre">url</span></code> changed for the same bytes</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">docs</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">docs</span></code></p></td>
+<td><p>patch</p></td>
+<td><p>Documentation</p></td>
+<td><p>prose</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">fix</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fix</span></code></p></td>
+<td><p>patch</p></td>
+<td><p>Scripts</p></td>
+<td><p>the repository’s own scripts or loaders</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">chore</span></code>, <code class="docutils literal notranslate"><span class="pre">build</span></code>, <code class="docutils literal notranslate"><span class="pre">ci</span></code>, <code class="docutils literal notranslate"><span class="pre">refactor</span></code>, <code class="docutils literal notranslate"><span class="pre">test</span></code>, <code class="docutils literal notranslate"><span class="pre">style</span></code></p></td>
+<td><p>the same</p></td>
+<td><p>none (hidden)</p></td>
+<td><p>—</p></td>
+<td><p>everything else about the repository’s code</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A commit touching data and code takes the type of its data. Moving a
+manifest file changes its address and is a removal.</p>
+<p>Two git hooks keep the types honest. <code class="docutils literal notranslate"><span class="pre">timetoshare</span> <span class="pre">hook</span> <span class="pre">prepare-commit-msg</span></code>
+writes the header the staged change requires (the type of the highest
+step, the scope where every change lies in one manifest or directory, <code class="docutils literal notranslate"><span class="pre">!</span></code>
+and the <code class="docutils literal notranslate"><span class="pre">BREAKING</span> <span class="pre">CHANGE</span></code> footer for a removal, and a line <code class="docutils literal notranslate"><span class="pre">also:</span> <span class="pre">…</span></code>
+counting the smaller changes by kind, <code class="docutils literal notranslate"><span class="pre">also:</span> <span class="pre">2</span> <span class="pre">belief,</span> <span class="pre">1</span> <span class="pre">label</span></code>) before
+the subject given with <code class="docutils literal notranslate"><span class="pre">-m</span></code> or before the editor opens, so that <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">-m</span> <span class="pre">&quot;add</span> <span class="pre">the</span> <span class="pre">BPSD</span> <span class="pre">recordings&quot;</span></code> commits <code class="docutils literal notranslate"><span class="pre">feat(op106):</span> <span class="pre">add</span> <span class="pre">the</span> <span class="pre">BPSD</span> <span class="pre">recordings</span></code>; it leaves merges, amends, squashes, every message whose first
+line already reads as a header (<code class="docutils literal notranslate"><span class="pre">type(scope):</span> </code>, whatever the type) and
+commits without a change of the data alone. <code class="docutils literal notranslate"><span class="pre">timetoshare</span> <span class="pre">hook</span> <span class="pre">commit-msg</span></code>
+refuses a message whose type gives a lower step than the staged change, a
+removal written with any type but <code class="docutils literal notranslate"><span class="pre">remove</span></code> with <code class="docutils literal notranslate"><span class="pre">!</span></code> (<code class="docutils literal notranslate"><span class="pre">feat!</span></code> included),
+<code class="docutils literal notranslate"><span class="pre">remove</span></code> without <code class="docutils literal notranslate"><span class="pre">!</span></code>, a header without a subject (closing the editor on the
+written <code class="docutils literal notranslate"><span class="pre">feat(op106):</span> </code>) and an ID given to an element of another type, and
+warns where a data type or a <code class="docutils literal notranslate"><span class="pre">!</span></code> gives a higher step, where a <code class="docutils literal notranslate"><span class="pre">BREAKING</span> <span class="pre">CHANGE</span></code> footer stands on a commit that removes nothing, and where the
+footer misses a removed ID. Both read comment lines by git’s
+<code class="docutils literal notranslate"><span class="pre">core.commentChar</span></code> (<code class="docutils literal notranslate"><span class="pre">#</span></code> where it is <code class="docutils literal notranslate"><span class="pre">auto</span></code>). For <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span></code> with
+the editor or <code class="docutils literal notranslate"><span class="pre">--no-edit</span></code>, the first hook records the amended commit in
+<code class="docutils literal notranslate"><span class="pre">timetoshare-amend-base</span></code> in the git directory, and the second compares the
+amended commit’s parent (the empty tree for a first commit) with the index;
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">--amend</span> <span class="pre">-m</span></code> tells the hooks no amend and is compared with
+<code class="docutils literal notranslate"><span class="pre">HEAD</span></code>.</p>
+<p>pre-commit installs a hook of a repository listed under <code class="docutils literal notranslate"><span class="pre">repo:</span></code> by
+<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">.</span></code> at that repository’s root, where this repository holds no
+Python package, so a dataset repository declares both hooks as local ones
+whose environment installs the package from git, with this
+<code class="docutils literal notranslate"><span class="pre">.pre-commit-config.yaml</span></code>:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">default_install_hook_types</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">prepare-commit-msg</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">commit-msg</span><span class="p p-Indicator">]</span>
+<span class="nt">repos</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">local</span>
+<span class="w">    </span><span class="nt">hooks</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">timetoshare-commit-type</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write the commit type of the staged manifests</span>
+<span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">timetoshare hook prepare-commit-msg</span>
+<span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+<span class="w">        </span><span class="nt">additional_dependencies</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"timetoshare[tables]</span><span class="nv"> </span><span class="s">@</span><span class="nv"> </span><span class="s">git+https://github.com/TimeToAlign/TimeToShare@&lt;tag</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">commit&gt;#subdirectory=python"</span>
+<span class="w">        </span><span class="nt">stages</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">prepare-commit-msg</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">always_run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">timetoshare-commit-check</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">check the commit type against the staged manifests</span>
+<span class="w">        </span><span class="nt">entry</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">timetoshare hook commit-msg</span>
+<span class="w">        </span><span class="nt">language</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+<span class="w">        </span><span class="nt">additional_dependencies</span><span class="p">:</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"timetoshare[tables]</span><span class="nv"> </span><span class="s">@</span><span class="nv"> </span><span class="s">git+https://github.com/TimeToAlign/TimeToShare@&lt;tag</span><span class="nv"> </span><span class="s">or</span><span class="nv"> </span><span class="s">commit&gt;#subdirectory=python"</span>
+<span class="w">        </span><span class="nt">stages</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">commit-msg</span><span class="p p-Indicator">]</span>
+<span class="w">        </span><span class="nt">always_run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</pre></div>
+</div>
+<p>and <code class="docutils literal notranslate"><span class="pre">pre-commit</span> <span class="pre">install</span> <span class="pre">--hook-type</span> <span class="pre">prepare-commit-msg</span> <span class="pre">--hook-type</span> <span class="pre">commit-msg</span></code>. The reference after <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> must be a tag or a commit, never a
+branch: pre-commit keys the hook’s environment on the requirement’s text
+and never reinstalls it while the text stays the same. Once a release of
+the package on PyPI carries the command, the requirement
+<code class="docutils literal notranslate"><span class="pre">timetoshare[tables]==&lt;version&gt;</span></code> replaces the git one.</p>
+<p>release-please’s configuration of a dataset repository names the
+sections and makes a dataset’s drafts <code class="docutils literal notranslate"><span class="pre">0.y.z</span></code> releases:
+<code class="docutils literal notranslate"><span class="pre">bump-minor-pre-major</span></code> turns a removal into a minor step and
+<code class="docutils literal notranslate"><span class="pre">bump-patch-for-minor-pre-major</span></code> an addition into a patch below 1.0.0, so
+a removal raises <code class="docutils literal notranslate"><span class="pre">y</span></code>; <code class="docutils literal notranslate"><span class="pre">1.0.0</span></code> is set by a person with a <code class="docutils literal notranslate"><span class="pre">Release-As:</span> <span class="pre">1.0.0</span></code>
+footer.</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">"packages"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"."</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"release-type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"simple"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"changelog-path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"CHANGELOG.md"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"bump-minor-pre-major"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"bump-patch-for-minor-pre-major"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"changelog-sections"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"feat"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Added or changed"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"remove"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Removed"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"belief"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Beliefs"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"label"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Names"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"graphic"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Drawing"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"meta"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Application data"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"move"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Moved"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"docs"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Documentation"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"fix"</span><span class="p">,</span><span class="w"> </span><span class="nt">"section"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Scripts"</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"chore"</span><span class="p">,</span><span class="w"> </span><span class="nt">"hidden"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"build"</span><span class="p">,</span><span class="w"> </span><span class="nt">"hidden"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ci"</span><span class="p">,</span><span class="w"> </span><span class="nt">"hidden"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"refactor"</span><span class="p">,</span><span class="w"> </span><span class="nt">"hidden"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"test"</span><span class="p">,</span><span class="w"> </span><span class="nt">"hidden"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"style"</span><span class="p">,</span><span class="w"> </span><span class="nt">"hidden"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">}</span>
+<span class="w">      </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="fixtures">
 <h2>Fixtures<a class="headerlink" href="#fixtures" title="Link to this heading">#</a></h2>
@@ -4384,7 +4638,10 @@ The bundled fonts keep their own licences: <code class="docutils literal notrans
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#typescript">TypeScript</a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#versioning">Versioning</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#versioning">Versioning</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#versions-of-a-dataset">Versions of a dataset</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#fixtures">Fixtures</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#development">Development</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#releasing">Releasing</a></li>
