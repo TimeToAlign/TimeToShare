@@ -3,5 +3,7 @@ findings:
     id: pair
     kind: added_member
     step: minor
+refused: false
 scope: base
 step: minor
+undetermined: false

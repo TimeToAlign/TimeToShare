@@ -1,0 +1,9 @@
+findings:
+  -
+    id: sketch
+    kind: edited
+    step: minor
+refused: false
+scope: base
+step: minor
+undetermined: false

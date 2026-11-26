@@ -3,5 +3,7 @@ findings:
     id: elision_1
     kind: graphic
     step: patch
+refused: false
 scope: base
 step: patch
+undetermined: false

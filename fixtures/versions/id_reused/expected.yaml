@@ -7,5 +7,7 @@ findings:
     id: region_1
     kind: reused_id
     step: refused
+refused: true
 scope: base
 step: major
+undetermined: false

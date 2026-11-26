@@ -3,5 +3,7 @@ findings:
     id: null
     kind: removed_manifest
     step: major
+refused: false
 scope: sketches
 step: major
+undetermined: false

@@ -16,6 +16,7 @@
   date:
     "@id": "http://purl.org/dc/terms/date"
     "@type": "http://www.w3.org/2001/XMLSchema#date"
+  ex: "https://example.org/terms/"
   exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
   "false": "https://timetoalign.github.io/timetoshare/ns#False"
   groups: "@included"
@@ -55,6 +56,13 @@
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
   wd: "http://www.wikidata.org/entity/"
   wdt: "http://www.wikidata.org/prop/direct/"
+flow_maps:
+  -
+    canonical: false
+    chunks: ["#coda"]
+    id: "#reading"
+    name: null
+    timeline: "#score"
 graphical:
   elisions:
     -
@@ -63,7 +71,20 @@ graphical:
       id: "#elision_1"
       start: [20, 1]
       timeline: "#score"
-  matchstamps: []
+  matchstamps:
+    -
+      alignment_anchors:
+        -
+          display: [line]
+          id: "#anchor_1"
+          timestamps: ["#ts_m1", "#ts_m2"]
+        -
+          display: [line]
+          id: "#anchor_2"
+          timestamps: ["#ts_m1", "#ts_m3"]
+      id: "#ms_1"
+      match_claims: [claim_1]
+      name: "Bar 2"
   order: {}
   rules:
     -
@@ -81,6 +102,27 @@ graphical:
       matchstamp: false
       name: start
       timeline: "#score"
+    -
+      coordinate: [4, 1]
+      display: [cross_section]
+      groupstamp: false
+      id: "#ts_m1"
+      matchstamp: true
+      timeline: "#score"
+    -
+      coordinate: 2.0
+      display: [cross_section]
+      groupstamp: false
+      id: "#ts_m2"
+      matchstamp: true
+      timeline: "#take_1"
+    -
+      coordinate: 3.0
+      display: [cross_section]
+      groupstamp: false
+      id: "#ts_m3"
+      matchstamp: true
+      timeline: "#take_2"
 groups:
   -
     id: "#pair"
@@ -88,7 +130,19 @@ groups:
     meta: {}
     name: null
 id: "#op106"
-measure_maps: []
+measure_maps:
+  -
+    id: "#bars"
+    meta: {}
+    name: null
+    rows:
+      -
+        actual_length: [3, 1]
+        count: 1
+        nominal_length: [3, 1]
+        number: 1
+        qstamp: [0, 1]
+        time_signature: "3/4"
 meta:
   source: "first edition"
 name: "Sonata Op. 106"
@@ -118,8 +172,24 @@ timelines:
         offset: [16, 1]
         regions: []
         unit: quarters
-    conversion_maps: []
-    flow_control: []
+    conversion_maps:
+      -
+        id: "#tempo"
+        name: null
+        offset: [1, 2]
+        scalar: 2.0
+        source_unit: quarters
+        target_unit: seconds
+        type: LinearMap
+    flow_control:
+      -
+        coordinate: [24, 1]
+        id: "#fine"
+        label: null
+        manifestation: fine
+        meta: {}
+        name: null
+        role: break
     id: "#score"
     is_segment_line: false
     length: [32, 1]
@@ -147,6 +217,18 @@ timelines:
         meta: {}
         name: Exposition
         start: [0, 1]
+      -
+        end: [24, 1]
+        id: "#bridge"
+        meta: {}
+        name: null
+        start: [16, 1]
+      -
+        end: [32, 1]
+        id: "#coda"
+        meta: {}
+        name: null
+        start: [24, 1]
     statements:
       "wdt:P31":
         -
@@ -178,4 +260,26 @@ timelines:
     number_type: float
     regions: []
     unit: seconds
+  -
+    children: []
+    conversion_maps: []
+    flow_control: []
+    id: "#take_2"
+    is_segment_line: false
+    length: 50.0
+    locked: false
+    meta: {}
+    name: null
+    number_type: float
+    regions: []
+    unit: seconds
 timetoshare: "0.2.0"
+virtual_timelines:
+  -
+    id: "#score_read"
+    length: [8, 1]
+    map: "#reading"
+    name: null
+    number_type: fraction
+    timeline: "#score"
+    unit: quarters

@@ -3,5 +3,7 @@ findings:
     id: recording
     kind: moved
     step: patch
+refused: false
 scope: base
 step: patch
+undetermined: false

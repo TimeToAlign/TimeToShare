@@ -3,5 +3,7 @@ findings:
     id: score
     kind: added_pair
     step: minor
+refused: false
 scope: base
 step: minor
+undetermined: false

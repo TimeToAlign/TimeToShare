@@ -1,0 +1,9 @@
+findings:
+  -
+    id: elision_2
+    kind: graphic
+    step: patch
+refused: false
+scope: base
+step: patch
+undetermined: false

@@ -15,8 +15,16 @@ canonical order, elements matched by their IDs:
   timestamps, named MatchStamps and their alignment anchors (an elision
   included), and a resource's ``url`` changed for the same bytes are a
   **patch**;
-- another form or serialization of the same value is no step at all;
-- giving an ID to an element of another type is **refused**.
+- another form or serialization of the same value, comments included, is
+  no step at all: numbers compare by exact value wherever the format reads
+  a number (``2``, ``2.0``, ``[2, 1]`` and ``[4, 2]`` are one value), while
+  ``meta`` and the literals of statements and provenance compare as written;
+- giving an ID to an element of another type, or again after its element
+  was removed, is **refused**. Two states show the first; ``git_step`` with
+  ``history=True`` reads the tags of the repository for the second.
+
+A file that is a manifest in one state and cannot be read in the other is
+**undetermined**, as is a changed table that cannot be compared by rows.
 
 ``manifest_step`` compares two manifests, ``tree_step`` two directories and
 ``git_step`` two git references (or a reference and the staged changes). Each
@@ -26,22 +34,24 @@ they require together.
 
 from __future__ import annotations
 
-import io
 import json
+import math
+import posixpath
 import subprocess
-import tarfile
 import tempfile
 from collections import Counter
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
+from fractions import Fraction
+from functools import cache
 from pathlib import Path, PurePosixPath
 from typing import Any
 
 from .defaults import DEFAULTS, complete
 from .ids import CONTAINERS, ID_POSITIONS, definitions_of, with_bare_ids
-from .manifest import canonical_order
+from .manifest import canonical_order, fraction_pair
 from .serialization import loads
-from .validate import SCHEMA_VERSION
+from .validate import SCHEMA_VERSION, load_schema
 
 __all__ = [
     "STEPS",
@@ -56,11 +66,12 @@ STEPS = ("none", "patch", "minor", "major")
 """The version steps, from the smallest to the largest."""
 
 REFUSED = "refused"
-"""The step of a change no release may make: an ID given to another element type."""
+"""The step of a change no release may make: an ID given to another element
+type, or again after its element was removed."""
 
 UNDETERMINED = "undetermined"
 """The step of a change this package cannot judge: a table it cannot read, a
-manifest of another format version."""
+manifest of another format version, a manifest that no longer reads."""
 
 TABLE_TYPES = ("MatchClaim", "Projection")
 """The resource types whose tables are compared row by row."""
@@ -72,10 +83,8 @@ _ELEMENT_POSITIONS = frozenset(
     for definition, member, shape in ID_POSITIONS
     if member == "id" and shape == "id"
 )
-"""The definitions whose ``id`` member holds an ID."""
-
-_REFERENCE = "Address"
-"""The one definition whose ``id`` names another element rather than its own."""
+"""The definitions whose ``id`` member holds their own ID; a member ``id``
+that names another element (an address's) has the shape ``ref``."""
 
 _HELD: dict[str, dict[str, tuple[str, str]]] = {}
 for _definition, _member, _holding, _child in CONTAINERS:
@@ -181,13 +190,136 @@ def _scope(findings: tuple[Finding, ...]) -> str | None:
     return None
 
 
-def _text(value: Any) -> str:
-    """A key equal for two JSON values exactly when they are equal.
+def _exact(value: Fraction) -> list[Any]:
+    return ["\u0000", value.numerator, value.denominator]
 
-    Object keys are sorted; an integer, a float and a boolean are distinct,
-    as the format's data model has them.
+
+def _text(value: Any) -> str:
+    """A key equal for two values exactly when they are equal.
+
+    Object keys are sorted. A number the format reads by value stands as a
+    ``Fraction`` (:func:`_by_value`), equal to another of equal value
+    whatever its spelling; every other integer, float and boolean is
+    compared as written.
     """
-    return json.dumps(value, sort_keys=True, ensure_ascii=False)
+    return json.dumps(value, sort_keys=True, ensure_ascii=False, default=_exact)
+
+
+# Numbers by value -----------------------------------------------------------
+
+_NUMBERS = ("integer", "number")
+
+_AS_WRITTEN = frozenset({"@context", "meta", "statements", "provenance"})
+"""Members whose values are compared as written: their literals are data."""
+
+
+@cache
+def _definitions() -> dict[str, Any]:
+    return load_schema()["$defs"]
+
+
+def _resolved(node: Any) -> Mapping[str, Any] | None:
+    """A schema node with its ``$ref`` followed; ``None`` outside the manifest's."""
+    seen = 0
+    while isinstance(node, Mapping) and "$ref" in node and seen < 16:
+        reference = node["$ref"]
+        if not isinstance(reference, str) or not reference.startswith("#/$defs/"):
+            return None
+        node = _definitions().get(reference.removeprefix("#/$defs/"))
+        seen += 1
+    return node if isinstance(node, Mapping) else None
+
+
+def _branches(node: Mapping[str, Any]) -> list[Mapping[str, Any]]:
+    found = []
+    for key in ("allOf", "oneOf", "anyOf"):
+        for branch in node.get(key, ()):
+            resolved = _resolved(branch)
+            if resolved is not None:
+                found.append(resolved)
+    return found
+
+
+def _admits(node: Mapping[str, Any], value: Any) -> bool:
+    """Whether a node admits ``value`` as a number: a JSON number or a pair."""
+    kinds = node.get("type")
+    kinds = kinds if isinstance(kinds, list) else [kinds]
+    if isinstance(value, list):
+        if "array" in kinds and "prefixItems" in node:
+            prefix = [_resolved(item) or {} for item in node["prefixItems"]]
+            return len(prefix) == 2 and all(i.get("type") == "integer" for i in prefix)
+    elif any(kind in _NUMBERS for kind in kinds):
+        return True
+    return any(_admits(branch, value) for branch in _branches(node))
+
+
+def _number_of(node: Mapping[str, Any], value: Any) -> Fraction | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, list):
+        pair = fraction_pair(value)
+        return pair if pair is not None and _admits(node, value) else None
+    if isinstance(value, int) or (isinstance(value, float) and math.isfinite(value)):
+        return Fraction(value) if _admits(node, value) else None
+    return None
+
+
+def _member_schemas(
+    node: Mapping[str, Any], value: Mapping[str, Any]
+) -> tuple[dict[str, Any], Any]:
+    """The schemas of an object's members, and of any further member."""
+    members: dict[str, Any] = {}
+    further: Any = None
+    pending = [node]
+    while pending:
+        current = pending.pop(0)
+        members = {**current.get("properties", {}), **members}
+        extra = current.get("additionalProperties")
+        if further is None and isinstance(extra, Mapping):
+            further = extra
+        for branch in _branches(current):
+            const = branch.get("properties", {}).get("type", {}).get("const")
+            if const is None or const == value.get("type"):
+                pending.append(branch)
+    return members, further
+
+
+def _items(node: Mapping[str, Any]) -> Any:
+    if isinstance(node.get("items"), Mapping):
+        return node["items"]
+    for branch in _branches(node):
+        if isinstance(branch.get("items"), Mapping):
+            return branch["items"]
+    return None
+
+
+def _by_value(schema: Any, value: Any) -> Any:
+    """A value with every number the format reads by value as a ``Fraction``.
+
+    Guided by the schema: where a node admits a number, an integer, a float
+    and a Fraction pair of equal value become one ``Fraction`` (``2``,
+    ``2.0``, ``[2, 1]`` and ``[4, 2]`` alike); a list of two integers where
+    the schema admits no pair stays a list. ``meta``, ``statements``,
+    ``provenance`` and ``@context`` keep every literal as written.
+    """
+    node = _resolved(schema)
+    if node is None:
+        return value
+    number = _number_of(node, value)
+    if number is not None:
+        return number
+    if isinstance(value, Mapping):
+        members, further = _member_schemas(node, value)
+        return {
+            key: item
+            if key in _AS_WRITTEN
+            else _by_value(members.get(key, further), item)
+            for key, item in value.items()
+        }
+    if isinstance(value, list):
+        items = _items(node)
+        return [_by_value(items, item) for item in value]
+    return value
 
 
 # Elements -------------------------------------------------------------------
@@ -231,7 +363,6 @@ class _Elements:
         own = value.get("id")
         is_element = (
             not root
-            and definition != _REFERENCE
             and isinstance(own, str)
             and any(name in _ELEMENT_POSITIONS for name in definitions)
         )
@@ -247,7 +378,9 @@ class _Elements:
             holding, child = holds[key]
             inside = graphical or child == "Graphical"
             kept = self._holding(member, holding, child, holder, (*at, key), inside)
-            if kept is not _CUT:
+            # A list or object left empty once its elements are cut out says
+            # nothing an absent one does not: its elements are compared alone.
+            if kept is not _CUT and (holding == "one" or kept):
                 content[key] = kept
         if not is_element:
             return content
@@ -278,13 +411,14 @@ class _Elements:
 
 
 def _prepared(manifest: Mapping[str, Any]) -> dict[str, Any]:
-    """A manifest with bare IDs, in the complete form and in canonical order."""
+    """A manifest with bare IDs, in the complete form and in canonical order,
+    its numbers by value."""
     prepared = canonical_order(complete(with_bare_ids(manifest)))
     if not isinstance(prepared.get("graphical"), Mapping):
         prepared["graphical"] = {}
     for key, value in DEFAULTS["graphical"].items():
         prepared["graphical"].setdefault(key, json.loads(json.dumps(value)))
-    return prepared
+    return _by_value({"$ref": "#/$defs/Manifest"}, prepared)
 
 
 def _named(element: _Element | None, id: str | None) -> str:
@@ -585,26 +719,45 @@ def manifest_step(
 # Trees ----------------------------------------------------------------------
 
 
-def _manifests(root: Path) -> dict[str, tuple[str, dict[str, Any]]]:
-    """The manifests under a directory, by their path without extension."""
+def _manifest_of(text: bytes) -> dict[str, Any] | None:
+    """The manifest a file's bytes hold; ``None`` for a file that is none.
+
+    Raises:
+        ValueError: If the bytes cannot be read as JSON or YAML text.
+    """
+    try:
+        value = loads(text.decode("utf-8"))
+    except TypeError as error:
+        raise ValueError(str(error)) from error
+    if not isinstance(value, dict) or "timetoshare" not in value:
+        return None
+    return value
+
+
+def _manifests(
+    root: Path,
+) -> tuple[dict[str, tuple[str, dict[str, Any]]], dict[str, tuple[str, str]]]:
+    """The manifests under a directory by their path without extension, and the
+    files there that cannot be read, with the reason."""
     found: dict[str, tuple[str, dict[str, Any]]] = {}
+    unreadable: dict[str, tuple[str, str]] = {}
     if not root.is_dir():
-        return found
+        return found, unreadable
     for file in sorted(root.rglob("*")):
         relative = file.relative_to(root)
         if ".git" in relative.parts or file.suffix not in _SERIALIZED:
             continue
         if not file.is_file():
             continue
-        try:
-            value = loads(file.read_text(encoding="utf-8"))
-        except (ValueError, TypeError):
-            continue
-        if not isinstance(value, dict) or "timetoshare" not in value:
-            continue
         key = relative.with_suffix("").as_posix()
-        found.setdefault(key, (relative.as_posix(), value))
-    return found
+        try:
+            value = _manifest_of(file.read_bytes())
+        except ValueError as error:
+            unreadable.setdefault(key, (relative.as_posix(), str(error)))
+            continue
+        if value is not None:
+            found.setdefault(key, (relative.as_posix(), value))
+    return found, unreadable
 
 
 def _resources(manifest: Mapping[str, Any]) -> dict[str, Mapping[str, Any]]:
@@ -751,7 +904,9 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
     A manifest is every ``.yaml``, ``.yml`` or ``.json`` file outside ``.git``
     that ``loads`` reads as an object holding ``timetoshare``. Manifests are
     matched by their path without the extension, so a manifest rewritten in
-    another serialization is the same manifest. For a resource of the type
+    another serialization is the same manifest. A file that is a manifest in
+    one tree and cannot be read in the other gives ``unreadable_manifest``,
+    undetermined, never a removal or an addition. For a resource of the type
     ``MatchClaim`` or ``Projection`` in both states whose file's bytes
     differ, the rows are compared by their ``id``, which needs pyarrow;
     without it, or for a table of any other type, the change is
@@ -763,9 +918,31 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
         new_root: The directory of the later state.
     """
     old_root, new_root = Path(old_root), Path(new_root)
-    before, after = _manifests(old_root), _manifests(new_root)
+    (before, old_unreadable), (after, new_unreadable) = (
+        _manifests(old_root),
+        _manifests(new_root),
+    )
     findings: list[Finding] = []
     for key in sorted(before.keys() | after.keys()):
+        for side, held, unreadable in (
+            ("later", after, new_unreadable),
+            ("earlier", before, old_unreadable),
+        ):
+            if key not in held and key in unreadable:
+                path, reason = unreadable[key]
+                findings.append(
+                    Finding(
+                        "unreadable_manifest",
+                        UNDETERMINED,
+                        path,
+                        None,
+                        f"the manifest cannot be read in the {side} tree: {reason}",
+                    )
+                )
+        if key in new_unreadable and key not in after:
+            continue
+        if key in old_unreadable and key not in before:
+            continue
         if key not in after:
             path = before[key][0]
             findings.append(
@@ -802,35 +979,239 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
 # Git ------------------------------------------------------------------------
 
 
-def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[bytes]:
-    return subprocess.run(["git", "-C", str(repo), *args], capture_output=True)
+def _git(
+    repo: Path, *args: str, input: bytes | None = None
+) -> subprocess.CompletedProcess[bytes]:
+    return subprocess.run(
+        ["git", "-C", str(repo), *args], capture_output=True, input=input
+    )
+
+
+def _failed(done: subprocess.CompletedProcess[bytes]) -> ValueError:
+    return ValueError(done.stderr.decode(errors="replace").strip())
+
+
+def _files(repo: Path, ref: str | None) -> dict[str, str] | None:
+    """The regular files of a reference's tree, or of the index for ``None``,
+    as path and blob name; ``None`` for ``HEAD`` without commits.
+
+    Raises:
+        ValueError: If the reference names no tree, or git fails.
+    """
+    if ref is None:
+        done = _git(repo, "ls-files", "--stage", "-z")
+    else:
+        tree = _git(repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{tree}}")
+        if tree.returncode:
+            if ref == "HEAD":
+                return None
+            raise ValueError(f"'{ref}' names no commit of {repo}")
+        name = tree.stdout.decode().strip()
+        done = _git(repo, "ls-tree", "-r", "--full-tree", "-z", name)
+    if done.returncode:
+        raise _failed(done)
+    files: dict[str, str] = {}
+    for entry in done.stdout.decode("utf-8", errors="surrogateescape").split("\0"):
+        if not entry:
+            continue
+        info, path = entry.split("\t", 1)
+        fields = info.split()
+        mode, blob = fields[0], fields[1] if ref is None else fields[2]
+        if mode in ("100644", "100755") and (ref is not None or fields[2] == "0"):
+            files[path] = blob
+    return files
+
+
+def _blobs(repo: Path, names: set[str]) -> dict[str, bytes]:
+    """The contents of blobs, read by one ``git cat-file --batch``."""
+    if not names:
+        return {}
+    ordered = sorted(names)
+    done = _git(
+        repo, "cat-file", "--batch", input="".join(f"{n}\n" for n in ordered).encode()
+    )
+    if done.returncode:
+        raise _failed(done)
+    found: dict[str, bytes] = {}
+    out, at = done.stdout, 0
+    for name in ordered:
+        end = out.index(b"\n", at)
+        header = out[at:end].split()
+        at = end + 1
+        if len(header) < 3:
+            raise ValueError(f"git holds no object {name}")
+        size = int(header[2])
+        found[name] = out[at : at + size]
+        at += size + 1
+    return found
+
+
+def _manifest_files(files: Mapping[str, str]) -> dict[str, str]:
+    return {
+        path: blob
+        for path, blob in files.items()
+        if PurePosixPath(path).suffix in _SERIALIZED
+    }
+
+
+def _named_tables(path: str, text: bytes) -> Iterator[str]:
+    """The paths, inside the tree, of the files a manifest's resources name."""
+    try:
+        manifest = _manifest_of(text)
+    except ValueError:
+        return
+    for resource in _listed((manifest or {}).get("resources")):
+        url = resource.get("url") if isinstance(resource, Mapping) else None
+        if not isinstance(url, str) or "://" in url or url.startswith("/"):
+            continue
+        named = posixpath.normpath(posixpath.join(posixpath.dirname(path), url))
+        if named != ".." and not named.startswith("../"):
+            yield named
 
 
 def _materialise(repo: Path, ref: str | None, target: Path) -> None:
-    """Write the tree of a reference, or of the index for ``None``, into ``target``."""
+    """Write the manifests of a reference's tree, or of the index for ``None``,
+    and the table files their resources name, into ``target``.
+
+    Only files ending ``.yaml``, ``.yml`` or ``.json`` and the files the
+    resources of those that are manifests name are read from git, whatever
+    the repository's ``export-ignore`` attributes say.
+    """
     target.mkdir(parents=True, exist_ok=True)
-    if ref is None:
-        done = _git(repo, "checkout-index", "--all", f"--prefix={target}/")
-        if done.returncode:
-            raise ValueError(done.stderr.decode(errors="replace").strip())
+    files = _files(repo, ref)
+    if files is None:
         return
-    commit = _git(repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
-    if commit.returncode:
-        if ref == "HEAD":
-            return
-        raise ValueError(f"'{ref}' names no commit of {repo}")
-    archive = _git(repo, "archive", "--format=tar", commit.stdout.decode().strip())
-    if archive.returncode:
-        raise ValueError(archive.stderr.decode(errors="replace").strip())
-    with tarfile.open(fileobj=io.BytesIO(archive.stdout)) as tar:
-        if hasattr(tarfile, "data_filter"):
-            tar.extractall(target, filter="data")
-        else:  # pragma: no cover - Python before 3.11.4
-            tar.extractall(target)  # noqa: S202
+    manifests = _manifest_files(files)
+    texts = _blobs(repo, set(manifests.values()))
+    written = {path: texts[blob] for path, blob in manifests.items()}
+    tables = {
+        named: files[named]
+        for path, text in written.items()
+        for named in _named_tables(path, text)
+        if named in files and named not in written
+    }
+    contents = _blobs(repo, set(tables.values()))
+    written.update({path: contents[blob] for path, blob in tables.items()})
+    for path, data in written.items():
+        file = target / PurePosixPath(path)
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_bytes(data)
 
 
-def git_step(old_ref: str, new_ref: str | None, repo: Path) -> StepReport:
+def _held_ids(repo: Path, ref: str) -> dict[str, dict[str, str]]:
+    """The element type of every ID each manifest of a reference's tree holds,
+    by the manifest's path without extension; unreadable manifests held none."""
+    files = _files(repo, ref) or {}
+    manifests = _manifest_files(files)
+    texts = _blobs(repo, set(manifests.values()))
+    held: dict[str, dict[str, str]] = {}
+    for path, blob in sorted(manifests.items()):
+        try:
+            manifest = _manifest_of(texts[blob])
+            if manifest is None or manifest.get("timetoshare") != SCHEMA_VERSION:
+                continue
+            found = _Elements(_prepared(manifest)).found
+        except ValueError:
+            continue
+        key = PurePosixPath(path).with_suffix("").as_posix()
+        held.setdefault(key, {id: e.definition for id, e in found.items()})
+    return held
+
+
+def _lines(done: subprocess.CompletedProcess[bytes]) -> list[str]:
+    if done.returncode:
+        raise _failed(done)
+    return [line for line in done.stdout.decode().splitlines() if line]
+
+
+def _history(
+    repo: Path, old_ref: str, new_ref: str | None, new_root: Path, found: list[Finding]
+) -> list[Finding]:
+    """``reused_id`` for every ID of the later state that an earlier tagged
+    state held for an element that is gone since or of another type."""
+    tip = new_ref or "HEAD"
+    tips = [
+        ref
+        for ref in (tip, old_ref)
+        if _git(
+            repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"
+        ).returncode
+        == 0
+    ]
+    if not tips:
+        return []
+    tags: set[str] = set()
+    for ref in tips:
+        tags.update(_lines(_git(repo, "tag", "--merged", ref)))
+    states = [(tag, f"refs/tags/{tag}") for tag in sorted(tags)]
+    if old_ref in tips:
+        states.append((old_ref, old_ref))
+    commits = {
+        label: _lines(_git(repo, "rev-parse", f"{ref}^{{commit}}"))[0]
+        for label, ref in states
+    }
+    order = {
+        commit: index
+        for index, commit in enumerate(
+            _lines(_git(repo, "rev-list", "--topo-order", "--reverse", *tips))
+        )
+    }
+    states.sort(key=lambda state: (order.get(commits[state[0]], -1), state[0]))
+    held = {label: _held_ids(repo, ref) for label, ref in states}
+    seen = {(f.path, f.id) for f in found if f.kind == "reused_id"}
+    findings: list[Finding] = []
+    now, _ = _manifests(new_root)
+    for key, (path, manifest) in sorted(now.items()):
+        try:
+            elements = _Elements(_prepared(manifest)).found
+        except ValueError:
+            continue
+        for id, element in sorted(elements.items()):
+            if (path, id) in seen:
+                continue
+            detail = _reuse(id, element.definition, key, states, commits, order, held)
+            if detail is not None:
+                findings.append(Finding("reused_id", REFUSED, path, id, detail))
+    return findings
+
+
+def _reuse(
+    id: str,
+    definition: str,
+    key: str,
+    states: list[tuple[str, str]],
+    commits: Mapping[str, str],
+    order: Mapping[str, int],
+    held: Mapping[str, Mapping[str, Mapping[str, str]]],
+) -> str | None:
+    """How the tagged states show an ID given again; ``None`` where they do not."""
+    for index, (label, _) in enumerate(states):
+        earlier = held[label].get(key, {}).get(id)
+        if earlier is None:
+            continue
+        if earlier != definition:
+            return f"#{id} was a {earlier} in {label} and is now a {definition}"
+        at = order.get(commits[label], -1)
+        for later, _ in states[index + 1 :]:
+            if order.get(commits[later], -1) > at and id not in held[later].get(
+                key, {}
+            ):
+                return (
+                    f"#{id} was a {earlier} in {label}, is gone in {later} and is "
+                    f"now a {definition} again"
+                )
+    return None
+
+
+def git_step(
+    old_ref: str, new_ref: str | None, repo: Path, history: bool = False
+) -> StepReport:
     """Compare the trees of two git references of a repository.
+
+    Only the manifests and the table files their resources name are read
+    from git (``git ls-tree``, ``git ls-files --stage`` and ``git cat-file
+    --batch``), so the rest of the tree, audio included, is never written
+    out.
 
     Args:
         old_ref: The earlier reference, such as a release tag. ``HEAD`` in a
@@ -838,16 +1219,26 @@ def git_step(old_ref: str, new_ref: str | None, repo: Path) -> StepReport:
         new_ref: The later reference; ``None`` for the index, the changes
             staged for the next commit.
         repo: A directory inside the repository; its whole tree is compared.
+        history: Also check every tag reachable from ``new_ref`` (``HEAD``
+            for the index) or from ``old_ref``, and ``old_ref`` itself: an ID
+            of the later state that one of these held for an element of
+            another type, or for an element that a later one of them no
+            longer holds, gives ``reused_id``, refused. The states are
+            ordered as ``git rev-list --topo-order`` lists their commits.
 
     Raises:
         ValueError: If a reference names no commit, or git fails.
     """
     top = _git(Path(repo), "rev-parse", "--show-toplevel")
     if top.returncode:
-        raise ValueError(top.stderr.decode(errors="replace").strip())
+        raise _failed(top)
     root = Path(top.stdout.decode().strip())
     with tempfile.TemporaryDirectory() as scratch:
         old_dir, new_dir = Path(scratch, "old"), Path(scratch, "new")
         _materialise(root, old_ref, old_dir)
         _materialise(root, new_ref, new_dir)
-        return tree_step(old_dir, new_dir)
+        report = tree_step(old_dir, new_dir)
+        if not history:
+            return report
+        found = list(report.findings)
+        return StepReport.of(found + _history(root, old_ref, new_ref, new_dir, found))

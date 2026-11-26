@@ -16,6 +16,7 @@
   date:
     "@id": "http://purl.org/dc/terms/date"
     "@type": "http://www.w3.org/2001/XMLSchema#date"
+  ex: "https://example.org/terms/"
   exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
   "false": "https://timetoalign.github.io/timetoshare/ns#False"
   groups: "@included"
@@ -55,6 +56,11 @@
   value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
   wd: "http://www.wikidata.org/entity/"
   wdt: "http://www.wikidata.org/prop/direct/"
+flow_maps:
+  -
+    chunks: ["#coda"]
+    id: "#reading"
+    timeline: "#score"
 graphical:
   elisions:
     -
@@ -62,6 +68,18 @@ graphical:
       id: "#elision_1"
       start: [20, 1]
       timeline: "#score"
+  matchstamps:
+    -
+      alignment_anchors:
+        -
+          id: "#anchor_1"
+          timestamps: ["#ts_m1", "#ts_m2"]
+        -
+          id: "#anchor_2"
+          timestamps: ["#ts_m1", "#ts_m3"]
+      id: "#ms_1"
+      match_claims: [claim_1]
+      name: "Bar 2"
   rules:
     -
       select:
@@ -74,11 +92,37 @@ graphical:
       id: "#ts_start"
       name: start
       timeline: "#score"
+    -
+      coordinate: [4, 1]
+      id: "#ts_m1"
+      matchstamp: true
+      timeline: "#score"
+    -
+      coordinate: 2.0
+      id: "#ts_m2"
+      matchstamp: true
+      timeline: "#take_1"
+    -
+      coordinate: 3.0
+      id: "#ts_m3"
+      matchstamp: true
+      timeline: "#take_2"
 groups:
   -
     id: "#pair"
     members: ["#score"]
 id: "#op106"
+measure_maps:
+  -
+    id: "#bars"
+    rows:
+      -
+        actual_length: [3, 1]
+        count: 1
+        nominal_length: [3, 1]
+        number: 1
+        qstamp: [0, 1]
+        time_signature: "3/4"
 meta:
   source: "first edition"
 name: "Sonata Op. 106"
@@ -99,6 +143,20 @@ timelines:
         length: [16, 1]
         offset: [16, 1]
         unit: quarters
+    conversion_maps:
+      -
+        id: "#tempo"
+        offset: [1, 2]
+        scalar: 2.0
+        source_unit: quarters
+        target_unit: seconds
+        type: LinearMap
+    flow_control:
+      -
+        coordinate: [24, 1]
+        id: "#fine"
+        manifestation: fine
+        role: break
     id: "#score"
     length: [32, 1]
     name: Score
@@ -121,6 +179,14 @@ timelines:
         id: "#region_1"
         name: Exposition
         start: [0, 1]
+      -
+        end: [24, 1]
+        id: "#bridge"
+        start: [16, 1]
+      -
+        end: [32, 1]
+        id: "#coda"
+        start: [24, 1]
     statements:
       "wdt:P31":
         -
@@ -134,4 +200,16 @@ timelines:
     id: "#take_1"
     length: 60.0
     unit: seconds
+  -
+    id: "#take_2"
+    length: 50.0
+    unit: seconds
 timetoshare: "0.2.0"
+virtual_timelines:
+  -
+    id: "#score_read"
+    length: [8, 1]
+    map: "#reading"
+    number_type: fraction
+    timeline: "#score"
+    unit: quarters

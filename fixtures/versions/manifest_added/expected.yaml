@@ -3,5 +3,7 @@ findings:
     id: null
     kind: added_manifest
     step: minor
+refused: false
 scope: sketches
 step: minor
+undetermined: false

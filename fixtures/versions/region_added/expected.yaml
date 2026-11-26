@@ -3,5 +3,7 @@ findings:
     id: region_2
     kind: added
     step: minor
+refused: false
 scope: base
 step: minor
+undetermined: false

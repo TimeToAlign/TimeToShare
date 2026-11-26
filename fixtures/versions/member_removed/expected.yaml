@@ -3,5 +3,7 @@ findings:
     id: pair
     kind: removed_member
     step: major
+refused: false
 scope: base
 step: major
+undetermined: false

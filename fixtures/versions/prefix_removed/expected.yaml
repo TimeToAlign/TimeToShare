@@ -1,0 +1,9 @@
+findings:
+  -
+    id: null
+    kind: removed_prefix
+    step: major
+refused: false
+scope: base
+step: major
+undetermined: false

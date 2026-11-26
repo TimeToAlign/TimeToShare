@@ -1,0 +1,9 @@
+findings:
+  -
+    id: ts_start
+    kind: graphic
+    step: patch
+refused: false
+scope: base
+step: patch
+undetermined: false

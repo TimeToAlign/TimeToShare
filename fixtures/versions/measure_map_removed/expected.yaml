@@ -1,0 +1,9 @@
+findings:
+  -
+    id: bars
+    kind: removed
+    step: major
+refused: false
+scope: base
+step: major
+undetermined: false

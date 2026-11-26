@@ -1,0 +1,9 @@
+findings:
+  -
+    id: ts_start
+    kind: edited
+    step: minor
+refused: false
+scope: base
+step: minor
+undetermined: false

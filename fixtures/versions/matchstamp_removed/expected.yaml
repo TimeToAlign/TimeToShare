@@ -1,0 +1,29 @@
+findings:
+  -
+    id: anchor_1
+    kind: removed
+    step: major
+  -
+    id: anchor_2
+    kind: removed
+    step: major
+  -
+    id: ms_1
+    kind: removed
+    step: major
+  -
+    id: ts_m1
+    kind: removed
+    step: major
+  -
+    id: ts_m2
+    kind: removed
+    step: major
+  -
+    id: ts_m3
+    kind: removed
+    step: major
+refused: false
+scope: base
+step: major
+undetermined: false

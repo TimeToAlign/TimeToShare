@@ -3,5 +3,7 @@ findings:
     id: null
     kind: meta
     step: patch
+refused: false
 scope: base
 step: patch
+undetermined: false

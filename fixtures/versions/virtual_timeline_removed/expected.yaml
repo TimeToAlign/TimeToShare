@@ -1,0 +1,9 @@
+findings:
+  -
+    id: score_read
+    kind: removed
+    step: major
+refused: false
+scope: base
+step: major
+undetermined: false

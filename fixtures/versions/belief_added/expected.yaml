@@ -3,5 +3,7 @@ findings:
     id: score
     kind: belief
     step: patch
+refused: false
 scope: base
 step: patch
+undetermined: false

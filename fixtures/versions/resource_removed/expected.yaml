@@ -1,0 +1,9 @@
+findings:
+  -
+    id: recording
+    kind: removed
+    step: major
+refused: false
+scope: base
+step: major
+undetermined: false
