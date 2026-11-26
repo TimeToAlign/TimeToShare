@@ -283,7 +283,7 @@ def test_band_words_and_the_iris_of_statements_stay_as_written() -> None:
 # -- the tables against the schema ------------------------------------------------
 
 ID = "#/$defs/Id"
-HOW = {"id": "value", "ids": "items", "order": "propertyNames"}
+HOW = {"id": "value", "ref": "value", "ids": "items", "order": "propertyNames"}
 
 
 def _schema_id_positions(defs: dict[str, Any]) -> Iterator[tuple[str, str, str]]:

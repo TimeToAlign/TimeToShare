@@ -52,10 +52,12 @@ SENTINELS = (NOMATCH_SENTINEL, CHUNK_SENTINEL)
 """The two reserved strings: an event ID column holds them besides event
 IDs, and no element, event or Projection takes either as its ID."""
 
-Shape = Literal["id", "ids", "order"]
+Shape = Literal["id", "ref", "ids", "order"]
 """How a member holds IDs.
 
-``id`` the member is one ID; ``ids`` a list of IDs, an item that is no
+``id`` the member is one ID; ``ref`` one ID too, in a member named ``id``
+that names another element rather than the object's own (an address's
+``id``); ``ids`` a list of IDs, an item that is no
 string (a FlowMap's gap) kept as it is; ``order`` an object
 keyed by IDs whose value, where the key names a group, is a list of member
 IDs (a timeline's value holds band words).
@@ -76,7 +78,7 @@ ID_POSITIONS: tuple[tuple[str, str, Shape], ...] = (
     ("AlignmentAnchor", "timestamps", "ids"),
     ("Resource", "id", "id"),
     ("Resource", "timelines", "ids"),
-    ("Address", "id", "id"),
+    ("Address", "id", "ref"),
     ("MeasureMap", "id", "id"),
     ("Region", "id", "id"),
     ("FlowControlElement", "id", "id"),
@@ -271,6 +273,8 @@ class _Converter:
         if self.to_file:
             return to_file_id(text)
         return _bare(text, path) if self.strict else _leniently_bare(text)
+
+    ref = id
 
     def ids(self, value: Any, path: _Path) -> Any:
         """A list of IDs converted item by item; a value that is no list is copied."""
