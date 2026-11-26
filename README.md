@@ -3004,7 +3004,8 @@ The `timetoshare` command of the Python package prints the step of a
 change and one line per finding (`--json` for the whole report): between
 two directories, between two git references of the repository `--repo`
 (default `.`), or between a reference and the changes staged for the next
-commit, when the second argument is left out. From git it reads only the
+commit, when the second argument is left out; OLD `-` is the empty tree,
+the state before a first release. From git it reads only the
 manifests (the files ending `.yaml`, `.yml` or `.json`) and the table files
 their resources name, never the rest of the tree. It exits 2 when a change
 is refused. Comparing the rows of a MatchClaim or Projections table needs
@@ -3016,9 +3017,14 @@ removed its element. `--history` (git references only) also reads every tag
 reachable from NEW (or `HEAD`) and from OLD, and OLD itself, in the order
 of the history, and refuses (`reused_id`) every ID of NEW that one of them
 held for an element of another type, or for an element that a later one of
-them no longer holds. This is the check the job on the release pull
-request runs, `timetoshare step --history <last tag> HEAD`; the hooks below
-compare two states only.
+them no longer holds. This is the check the release check below runs,
+`timetoshare step --history <last tag> HEAD`; the hooks below compare two
+states only. `--require-version FROM TO` also exits 2 when a release from
+version FROM to TO carries a lower step than the change requires, printing
+`release: FROM to TO carries <step>` after the scope: from 1.0.0 on, the
+first number that rises names the step it carries; below 1.0.0 the middle
+number carries a major step and the last a minor one, as the configuration
+below makes release-please count.
 
 ```console
 $ timetoshare step v2.1.0 HEAD
@@ -3081,41 +3087,47 @@ amended commit's parent (the empty tree for a first commit) with the index;
 `git commit --amend -m` tells the hooks no amend and is compared with
 `HEAD`.
 
-pre-commit installs a hook of a repository listed under `repo:` by
-`pip install .` at that repository's root, where this repository holds no
-Python package, so a dataset repository declares both hooks as local ones
-whose environment installs the package from git, with this
-`.pre-commit-config.yaml`:
+This repository is a pre-commit hook repository: its
+`.pre-commit-hooks.yaml` offers both hooks and a third,
+`timetoshare-validate`, which runs `timetoshare validate` on every staged
+`.yaml`, `.yml` and `.json` file. pre-commit installs them by running `pip
+install .` in its clone of this repository; the root `setup.py` is an empty
+distribution, and each hook installs the package from `./python` of the
+same clone. A dataset repository's `.pre-commit-config.yaml`:
 
 ```yaml
-default_install_hook_types: [prepare-commit-msg, commit-msg]
+default_install_hook_types: [pre-commit, prepare-commit-msg, commit-msg]
 repos:
-  - repo: local
+  - repo: https://github.com/TimeToAlign/TimeToShare
+    rev: <tag or commit>
     hooks:
       - id: timetoshare-commit-type
-        name: write the commit type of the staged manifests
-        entry: timetoshare hook prepare-commit-msg
-        language: python
-        additional_dependencies:
-          - "timetoshare[tables] @ git+https://github.com/TimeToAlign/TimeToShare@<tag or commit>#subdirectory=python"
-        stages: [prepare-commit-msg]
-        always_run: true
       - id: timetoshare-commit-check
-        name: check the commit type against the staged manifests
-        entry: timetoshare hook commit-msg
-        language: python
-        additional_dependencies:
-          - "timetoshare[tables] @ git+https://github.com/TimeToAlign/TimeToShare@<tag or commit>#subdirectory=python"
-        stages: [commit-msg]
-        always_run: true
+      - id: timetoshare-validate
 ```
 
-and `pre-commit install --hook-type prepare-commit-msg --hook-type
-commit-msg`. The reference after `@` must be a tag or a commit, never a
-branch: pre-commit keys the hook's environment on the requirement's text
-and never reinstalls it while the text stays the same. Once a release of
-the package on PyPI carries the command, the requirement
-`timetoshare[tables]==<version>` replaces the git one.
+and, once per clone, `pre-commit install --hook-type pre-commit
+--hook-type prepare-commit-msg --hook-type commit-msg`. `rev:` is a tag or
+a commit, never a branch: pre-commit keeps the environment of a `rev` and
+never reinstalls it.
+
+`timetoshare validate [PATH ...]` validates the files named, or, without
+arguments, every `.yaml`, `.yml` and `.json` file under the current
+directory outside `.git`, and prints one line per problem, `<path>: <code>
+at <JSON pointer>: <message>`, a warning's code preceded by `warning: `. A
+file is a manifest when `loads` reads it as an object holding
+`timetoshare`; other files are skipped. A manifest is refused for its first
+violation, with the code `validate` raises it with, or
+`unsupported_version` at `#/timetoshare` for another version, and a file
+`loads` cannot read is refused as `unreadable` unless PyYAML reads it as an
+object without `timetoshare` (a workflow file using YAML anchors, for
+example). The command exits 1 when a file is refused, else 0, warnings
+included.
+
+```console
+$ timetoshare validate op106.yaml notes.yaml
+op106.yaml: duplicate_id at #/timelines/1/id: 'score' is not unique in the manifest, first at #/timelines/0/id
+```
 
 release-please's configuration of a dataset repository names the
 sections and makes a dataset's drafts `0.y.z` releases:
@@ -3152,6 +3164,47 @@ footer.
     }
   }
 }
+```
+
+The hooks are the gate where people commit to the default branch without
+pull requests; a commit made without them is caught by the reusable
+workflow `.github/workflows/dataset-release-check.yml` of this repository,
+which a dataset's release workflow runs before release-please. On the push
+that merges a release pull request (the push that changes the version in
+`.release-please-manifest.json`), it compares the tag of the old version
+(`v<old>`, or the empty tree where that tag does not exist) with `HEAD`,
+running `timetoshare step --history --require-version <old> <new>`, and
+fails when an ID is given again or when the new version carries a lower
+step than the data requires; the remedy is a commit whose type says what
+the data does, or a `Release-As:` footer. On every other push it writes the
+step since the last tag, with its findings, to the job summary and never
+fails. Its input `timetoshare-ref` names the TimeToShare tag or commit
+whose package runs the check, the one the workflow is taken from:
+
+```yaml
+name: Release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  check:
+    uses: TimeToAlign/TimeToShare/.github/workflows/dataset-release-check.yml@<tag or commit>
+    with:
+      timetoshare-ref: <the same tag or commit>
+  release-please:
+    needs: check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
 ```
 
 ## Fixtures

@@ -61,7 +61,10 @@ These rules apply to every contributor, human or automated.
   drawings (`inputs.json`, in pretty JSON and naming the `.yaml`
   manifests, `figure.svg` and `figure.tex` per drawing; the hand-derived `figure.svg`
   files are listed with their arithmetic in `drawings/README.md`, everything
-  else is emitted); see `fixtures/README.md`.
+  else is emitted), and the hand-authored version cases under
+  `fixtures/versions/` (`<case>/old/` and `<case>/new/`, two trees of
+  manifests, beside `expected.yaml`, the step and findings `tree_step`
+  gives); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37 and Noto Music 2.004, their licences, and the
   one table of advance-width metrics used by the drawing.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
@@ -76,9 +79,16 @@ These rules apply to every contributor, human or automated.
   `check_published.py`, which assembles the documents a release publishes
   and checks their `$id`s and references.
 - `decisions/`: numbered MADR decision records.
+- `.pre-commit-hooks.yaml`: the pre-commit hooks a dataset repository
+  installs from this repository (the commit type, its check and
+  `timetoshare validate`), and `setup.py`, an empty distribution at the
+  root that exists only so that pre-commit's `pip install .` succeeds; each
+  hook installs the package from `./python`.
 - `.github/workflows/`: continuous integration and the release automation,
   which publishes both packages and, on both sites, every document of the
-  schema version and the catalogue's schema.
+  schema version and the catalogue's schema; and
+  `dataset-release-check.yml`, the reusable workflow a dataset repository's
+  release workflow calls before release-please tags.
 
 ## Rules
 
