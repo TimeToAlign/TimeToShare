@@ -3370,11 +3370,12 @@ patch type of a mixed report follows the count and then the order belief,
 label, graphic, meta, move, and the trailer is the `BREAKING CHANGE:
 removes #sketch` footer of a removal alone (a removal with an addition
 included: no line counts the smaller changes), empty otherwise. The hints
-are held to their exact lines: a patch gives the line `Suggested type:
-<header> (this commit <does> only)`, one wording per kind (beliefs, names,
-the drawing, application data, resources moved), and `, among other
-changes` instead of `only` where patch kinds mix; a minor or a major step
-gives no suggestion. A report whose findings fall into more than one of the
+are held to their exact lines: a patch gives the line `Suggested type
+"<header>", since this commit <does> only`, one wording per kind (beliefs,
+names, the drawing, application data, resources moved), and `, among other
+changes` instead of ` only` where patch kinds mix; a minor or a major step
+gives no suggestion, and neither does a message that already has a type,
+which keeps only the line counting the kinds of a mixed change. A report whose findings fall into more than one of the
 kinds added, edited, removed, belief, label, graphic, meta and move adds
 the line `This commit mixes <n> kinds of change (<count> <kind>, …); one
 kind of change per commit keeps the history and the changelog clear.`, the
@@ -3382,15 +3383,17 @@ counts in that order (the ID changed: `1 added, 1 removed`); a refused or
 undetermined finding is no kind of change. `check_message` is held to its
 exact errors and warnings. Errors: an understated type where the change
 requires a minor or a major step (`label` for an added region, `feat` for a
-removal), a removal written `feat!`, `fix!` or `feature`, `remove` without
-`!` (on a removal and on a patch-level change alike), a header with an
-empty subject (with and without the space after the colon), a reused ID,
+removal), a removal written `feat!`, `fix!`, `feature` or `remove` without
+`!`, a header with an empty subject (with and without the space after the colon), a reused ID,
 and a missing header where the change requires a minor or a major step.
 Warnings, the commit passing: a missing header or a type without a step
 (`chore`) on a patch-level change, each naming the change and the suggested
 type (`suggested type: label(base):`); `feature` for an addition passes; an
 overstated data type or `!` (`feat!` for an addition, `fix!` for no change
-of the data), a `BREAKING CHANGE` footer on a commit that removes nothing,
+of the data), `remove` without `!` on a commit that removes nothing (a
+changed name, no change of the data: that warning alone; an added region:
+beside the error asking for `feat`), a `BREAKING CHANGE` footer on a
+commit that removes nothing,
 a footer missing a removed ID and an undetermined change. A correct message
 gives neither, and merges, fixups, squashes, amends and reverts are not
 checked. With the comment character `;`, lines starting with `;` and
@@ -3413,7 +3416,16 @@ character, before git's comment lines, with git's comment character (also
 with `core.commentChar` `;`). The hint of a mixed change goes the same two
 ways (the ID changed: the removal's header and footer in the message, the
 hint on standard error or as a comment line), and the message never holds
-a line counting the smaller changes. Through `git commit`: `-m "add the
+a line counting the smaller changes. With `commit.cleanup` set to
+`scissors` or `verbatim`, with which git keeps comment lines, an editor
+template stays as it was and the suggestion goes to standard error;
+through `git commit` with `scissors` and an editor writing a subject above
+the template, the commit holds the subject alone and standard error the
+suggestion. A message that already has a type (`label(base): x`,
+`data(base): x`, `feat(base):` without a subject) on a mixed change stays
+as it is and gets the mixed hint alone, on standard error with `-m` and as
+a comment line in an editor template; the same message on a change of
+names only gets nothing. Through `git commit`: `-m "add the
 second region"` commits `feat(base): add the second region`; `-m "rename
 the score"` on a changed name commits exactly that message, exit 0, the
 suggestion and `commit-msg`'s warning on standard error; with an editor
@@ -3421,9 +3433,8 @@ that writes a subject above the template it was given, the template the
 editor received starts with the suggestion's comment line, and the commit
 holds the subject alone. The hooks leave the message untouched and print
 nothing for an amend (source `commit`, given as an argument or by
-pre-commit's `PRE_COMMIT_COMMIT_MSG_SOURCE`), a merge, a message whose
-first line reads as a header of any type (`label`, `data`, `feat(base):`
-without a subject), and a commit with no change of the data. `commit-msg`
+pre-commit's `PRE_COMMIT_COMMIT_MSG_SOURCE`), a merge and a commit with
+no change of the data. `commit-msg`
 exits 0 for a message it accepts, 0 with the warning on standard error for
 a patch-level change without a type, and 1 with the error on standard
 error for an understated one, and `git commit` then makes no commit.

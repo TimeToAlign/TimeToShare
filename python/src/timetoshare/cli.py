@@ -23,10 +23,17 @@ release carries a lower step than the change requires. On any other
 appends the report to FILE as Markdown, the job summary of a workflow.
 
 ``timetoshare hook prepare-commit-msg MSGFILE [SOURCE [SHA]]`` writes the
-commit type of a minor or a major step in front of the message, and
-suggests one for a patch; the suggestion, and the hint that a commit mixes
-kinds of change, are comment lines where the message is edited and go to
-standard error where it is given with ``-m`` or ``-F``.
+commit type of a minor or a major step in front of a message without one,
+and suggests one for a patch; a message that already has a type gets no
+suggestion, only the hint that a commit mixes kinds of change. The
+suggestion and the hint are comment lines where the message is edited and
+git removes comment lines. They go to standard error where the message is
+given with ``-m`` or ``-F`` (also ``git commit -m x -e``: git hands over the
+source ``message``, so they are printed before the editor opens) and where
+``git config commit.cleanup`` is ``whitespace``, ``verbatim`` or
+``scissors``, with which git keeps the comment lines above the scissors
+line. A ``--cleanup=`` option of ``git commit`` is invisible to the hook,
+which reads only the configuration.
 ``timetoshare hook commit-msg MSGFILE`` checks the final message against
 the staged change. Both run as git hooks directly or through pre-commit,
 which hands over the message file as the one file name, the source of the
@@ -80,6 +87,10 @@ _UNTOUCHED_SOURCES = ("merge", "squash", "commit")
 _GIVEN_SOURCE = "message"
 """The source of a message given with ``-m`` or ``-F``, whose comment lines
 git keeps."""
+
+_KEPT_COMMENTS = ("whitespace", "verbatim", "scissors")
+"""The values of ``commit.cleanup`` with which git keeps the comment lines
+of an edited message (above the scissors line)."""
 
 AMEND_BASE = "timetoshare-amend-base"
 """The file in the git directory naming the commit an amend replaces."""
@@ -434,18 +445,22 @@ def _prepare(arguments: argparse.Namespace) -> int:
     text = path.read_text(encoding="utf-8")
     comment = _comment()
     first = message_text(text, comment).split("\n", 1)[0]
-    if first.startswith(_SKIPPED) or parse_header(first) is not None:
+    if first.startswith(_SKIPPED):
         return 0
+    typed = parse_header(first) is not None
     try:
         report = git_step("HEAD", None, Path.cwd())
     except ValueError as error:
-        print(f"timetoshare: no commit type written: {error}", file=sys.stderr)
+        if not typed:
+            print(f"timetoshare: no commit type written: {error}", file=sys.stderr)
         return 0
-    hints = suggest_hints(report)
-    if report.step in ("minor", "major"):
+    hints = suggest_hints(report, typed=typed)
+    if typed and not hints:
+        return 0
+    if not typed and report.step in ("minor", "major"):
         header = suggest_header(report) or ""
         text = prepared_message(text, header, suggest_trailer(report), comment)
-    if source == _GIVEN_SOURCE:
+    if source == _GIVEN_SOURCE or _git("config", "commit.cleanup") in _KEPT_COMMENTS:
         for hint in hints:
             print(f"timetoshare: {hint}", file=sys.stderr)
     else:

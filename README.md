@@ -3070,27 +3070,33 @@ writes them before the subject given with `-m` or before the editor opens,
 so that `git commit -m "add the BPSD recordings"` commits `feat(op106): add
 the BPSD recordings`. For a patch (a belief, a `name`, `graphical`, `meta`,
 a moved resource) it writes no type and only suggests one, `Suggested
-type: belief(op106): (this commit records beliefs only)`, since the choice
-between `belief`, `docs` or `fix` is the author's. A commit mixing kinds
-of change (additions, edits, removals, beliefs, names, drawing,
+type "belief(op106):", since this commit records beliefs only`, because
+the choice between `belief`, `docs` or `fix` is the author's. A commit mixing
+kinds of change (additions, edits, removals, beliefs, names, drawing,
 application data, moves) gets a hint, `This commit mixes 2 kinds of change
 (1 added, 1 belief); one kind of change per commit keeps the history and
-the changelog clear.`; nothing counting the smaller changes is written into
-the message. Where the message is edited, the suggestion and the hint are
-comment lines, which git removes; where it comes from `-m` or `-F`, they
-are printed on standard error and the message stays as given. The hook
-leaves merges, amends, squashes, every message whose first line already
-reads as a header (`type(scope): `, whatever the type) and commits without
-a change of the data alone. `timetoshare hook commit-msg` refuses a
-message whose type gives a lower step than an addition, an edit or a
-removal requires, or that has no type at all for such a change (the first
-hook was skipped), a removal written with any type but `remove` with `!`
-(`feat!` included), `remove` without `!`, a header without a subject
+the changelog clear.`, also when the message already has a type; nothing
+counting the smaller changes is written into the message. A message whose
+first line already reads as a header (`type(scope): `, whatever the type)
+keeps it and gets no suggestion. Where the message is edited, the
+suggestion and the hint are comment lines, which git removes; where it
+comes from `-m` or `-F` (`git commit -m x -e` included, where they are
+printed before the editor opens), or where `git config commit.cleanup` is
+`whitespace`, `verbatim` or `scissors`, with which git keeps comment
+lines, they are printed on standard error and the message stays as given
+(a `--cleanup=` option on the command line does not reach the hook). The
+hook leaves merges, amends, squashes and commits without a change of the
+data alone. `timetoshare hook commit-msg` refuses a message whose type
+gives a lower step than an addition, an edit or a removal requires, or
+that has no type at all for such a change (the first hook was skipped), a
+removal written with any type but `remove` with `!` (`feat!` and `remove`
+without `!` included), a header without a subject
 (closing the editor on the written `feat(op106): `) and an ID given to an
 element of another type. For a patch, a missing type or a type without a
 step (`chore`) is only a warning naming the suggested type, and the commit
 goes through. It also warns where a data type or a `!` gives a higher step,
-where a `BREAKING CHANGE` footer stands on a commit that removes nothing,
+where `remove` without `!` or a `BREAKING CHANGE` footer stands on a
+commit that removes nothing,
 and where the footer misses a removed ID; the check hook is `verbose`, so
 pre-commit shows these warnings when the message is accepted. Both read
 comment lines by git's `core.commentChar` (`#` where it is `auto`). For

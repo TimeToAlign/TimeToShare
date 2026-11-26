@@ -68,7 +68,8 @@ COMMIT_TYPES: dict[str, str | None] = {
     "style": "none",
     "revert": None,
 }
-"""The step of each commit type; ``remove`` requires ``!``, ``revert`` none."""
+"""The step of each commit type; ``remove`` requires ``!`` on a removal,
+``revert`` none."""
 
 DATA_TYPES = ("feat", "feature", "remove", "belief", "label", "graphic", "meta", "move")
 """The types that name a change of the data."""
@@ -237,25 +238,30 @@ def _change_kind(finding: Finding) -> str | None:
     return None
 
 
-def suggest_hints(report: StepReport) -> list[str]:
+def suggest_hints(report: StepReport, *, typed: bool = False) -> list[str]:
     """The lines shown beside a message, never written into it.
 
-    For a patch, whose type the person chooses, ``Suggested type: <header>
-    (this commit <does> only)``; ``, among other changes`` instead of
-    ``only`` where patch kinds mix. For a change mixing several of the kinds
-    added, edited, removed, belief, label, graphic, meta and move, ``This
-    commit mixes <n> kinds of change (<count> <kind>, …); …``.
+    For a patch, whose type the person chooses, ``Suggested type
+    "<header>", since this commit <does> only``; ``, among other changes``
+    instead of `` only`` where patch kinds mix. For a change mixing several
+    of the kinds added, edited, removed, belief, label, graphic, meta and
+    move, ``This commit mixes <n> kinds of change (<count> <kind>, …); …``.
+
+    Args:
+        report: The staged change.
+        typed: Whether the message already has a type; then no type is
+            suggested, and only the hint at a mixed change remains.
     """
     hints: list[str] = []
     counts = Counter(
         kind for kind in map(_change_kind, report.findings) if kind is not None
     )
-    if report.step == "patch":
+    if report.step == "patch" and not typed:
         header = (suggest_header(report) or "").rstrip()
         does = _PATCH_DOES[_patch_type(report.findings)]
         mixed = sum(1 for kind in counts if kind in _PATCH_DOES) > 1
         tail = ", among other changes" if mixed else " only"
-        hints.append(f"Suggested type: {header} (this commit {does}{tail})")
+        hints.append(f'Suggested type "{header}", since this commit {does}{tail}')
     if len(counts) > 1:
         named = ", ".join(f"{counts[k]} {k}" for k in _CHANGE_KINDS if counts[k])
         hints.append(
@@ -311,13 +317,14 @@ def check_message(
         The errors and the warnings. An error where the declared step is
         lower than a minor or a major step the change requires, for a
         removal written with any type but ``remove`` with ``!`` (``feat!``
-        included), for ``remove`` without ``!``, for a header with an empty
+        and ``remove`` without ``!`` included), for a header with an empty
         subject, for a message without a header when the change requires a
         minor or a major step, and for every refused finding (an ID given
         again). A warning, carrying the suggested type, where a patch-level
         change has no header or a type without a step; a warning where a
         data type or a ``!`` declares a higher step than the change
-        requires, where a ``BREAKING CHANGE`` footer stands on a commit that
+        requires, where ``remove`` without ``!`` or a ``BREAKING CHANGE``
+        footer stands on a commit that
         removes nothing, where a major commit's footer misses a removed ID,
         and where a change could not be judged.
     """
@@ -346,18 +353,23 @@ def check_message(
     if not header.subject.strip():
         written = first[: len(first) - len(header.subject)].rstrip()
         errors.append(f'write what the commit does after "{written} "')
-    if header.type == "remove" and not header.breaking:
+    removal = report.step == "major"
+    bare_remove = header.type == "remove" and not header.breaking
+    if bare_remove and removal:
         errors.append("remove requires '!': write remove(...)!:")
+    elif bare_remove:
+        warnings.append("remove names a removal; this commit removes nothing")
     if header.type not in COMMIT_TYPES:
         warnings.append(f"'{header.type}' is no type of a dataset repository")
     declared = _declared(header)
     footer = _BREAKING.search(text)
-    removal = report.step == "major"
     if _RANK[declared] < _RANK[report.step] or (removal and header.type != "remove"):
         (warnings if patch else errors).append(_requirement(report))
-    elif (header.type in DATA_TYPES or header.breaking) and _RANK[declared] > _RANK[
-        report.step
-    ]:
+    elif (
+        (header.type in DATA_TYPES or header.breaking)
+        and not bare_remove
+        and _RANK[declared] > _RANK[report.step]
+    ):
         warnings.append(
             f"{header.type}{'!' if header.breaking else ''} declares a {declared} "
             f"step; the staged change requires {report.step}"

@@ -86,7 +86,7 @@ MIXED_ID = (
     "change per commit keeps the history and the changelog clear."
 )
 
-LABEL = "Suggested type: label(base): (this commit changes names only)"
+LABEL = 'Suggested type "label(base):", since this commit changes names only'
 
 
 @pytest.mark.parametrize(
@@ -95,19 +95,25 @@ LABEL = "Suggested type: label(base): (this commit changes names only)"
         ("name_changed", [LABEL]),
         (
             "belief_added",
-            ["Suggested type: belief(base): (this commit records beliefs only)"],
+            ['Suggested type "belief(base):", since this commit records beliefs only'],
         ),
         (
             "graphical_rule_changed",
-            ["Suggested type: graphic(base): (this commit changes the drawing only)"],
+            [
+                'Suggested type "graphic(base):", '
+                "since this commit changes the drawing only"
+            ],
         ),
         (
             "meta_changed",
-            ["Suggested type: meta(base): (this commit changes application data only)"],
+            [
+                'Suggested type "meta(base):", '
+                "since this commit changes application data only"
+            ],
         ),
         (
             "resource_moved",
-            ["Suggested type: move(base): (this commit moves resources only)"],
+            ['Suggested type "move(base):", since this commit moves resources only'],
         ),
         ("id_changed", [MIXED_ID]),
         ("region_added", []),
@@ -122,9 +128,19 @@ def test_the_hints(case: str, hints: list[str]) -> None:
 
 def test_the_hints_of_mixed_patch_kinds() -> None:
     assert suggest_hints(patch_report("label", "belief", "label")) == [
-        "Suggested type: label(a): (this commit changes names, among other changes)",
+        'Suggested type "label(a):", '
+        "since this commit changes names, among other changes",
         "This commit mixes 2 kinds of change (1 belief, 2 label); one kind of "
         "change per commit keeps the history and the changelog clear.",
+    ]
+
+
+def test_a_typed_message_keeps_only_the_hint_at_a_mixed_change() -> None:
+    assert suggest_hints(report_of("name_changed"), typed=True) == []
+    assert suggest_hints(report_of("id_changed"), typed=True) == [MIXED_ID]
+    assert suggest_hints(patch_report("label", "belief", "label"), typed=True) == [
+        "This commit mixes 2 kinds of change (1 belief, 2 label); one kind of "
+        "change per commit keeps the history and the changelog clear."
     ]
 
 
@@ -136,7 +152,7 @@ def test_an_undetermined_finding_is_no_kind_of_change() -> None:
         ]
     )
     assert suggest_hints(report) == [
-        "Suggested type: label(a): (this commit changes names only)"
+        'Suggested type "label(a):", since this commit changes names only'
     ]
 
 
@@ -147,6 +163,8 @@ RENAMED = (
 REMOVAL = (
     "this commit removes #sketch; write remove(...)!: and a BREAKING CHANGE footer"
 )
+
+BARE_REMOVE = "remove names a removal; this commit removes nothing"
 
 
 @pytest.mark.parametrize(
@@ -211,11 +229,16 @@ REMOVAL = (
         ),
         ("name_changed", "chore: rename the score", [], [RENAMED]),
         ("name_changed", "docs: rename the score", [], []),
+        ("name_changed", "remove(base): rename the score", [], [BARE_REMOVE]),
+        ("minimal_to_complete", "remove: tidy the scripts", [], [BARE_REMOVE]),
         (
-            "name_changed",
-            "remove(base): rename the score",
-            ["remove requires '!': write remove(...)!:"],
-            [],
+            "region_added",
+            "remove(base): add the second region",
+            [
+                "this commit adds or edits data (Region #region_2 added); "
+                "write feat(...):"
+            ],
+            [BARE_REMOVE],
         ),
         (
             "region_added",
@@ -509,9 +532,6 @@ def test_prepare_hints_at_a_mixed_change_as_a_comment(repo: Path) -> None:
         ("add the second region\n", ("squash",), None),
         ("add the second region\n", (), "commit"),
         ("add the second region\n", (), "merge"),
-        ("label(base): name the region\n", ("message",), None),
-        ("data(base): add the second region\n", ("message",), None),
-        ("feat(base):\n", ("message",), None),
         ("Merge branch 'sketches'\n", ("message",), None),
     ],
 )
@@ -528,6 +548,54 @@ def test_prepare_leaves_a_message_alone(
         monkeypatch.setenv("PRE_COMMIT_COMMIT_MSG_SOURCE", source)
     assert prepared(repo, text, *arguments) == (0, text)
     assert capsys.readouterr().err == ""
+
+
+TYPED = [
+    "label(base): name the region\n",
+    "data(base): add the second region\n",
+    "feat(base):\n",
+]
+
+
+@pytest.mark.parametrize("text", TYPED)
+def test_prepare_hints_at_a_mixed_change_of_a_typed_message(
+    repo: Path, capsys: pytest.CaptureFixture, text: str
+) -> None:
+    stage(repo, "id_changed")
+    assert prepared(repo, text, "message") == (0, text)
+    assert capsys.readouterr().err == f"timetoshare: {MIXED_ID}\n"
+
+
+def test_prepare_comments_on_a_mixed_change_of_a_typed_template(
+    repo: Path, capsys: pytest.CaptureFixture
+) -> None:
+    stage(repo, "id_changed")
+    template = "label(base): name the region\n" + TEMPLATE
+    assert prepared(repo, template) == (
+        0,
+        f"label(base): name the region\n\n# {MIXED_ID}\n#\n" + TEMPLATE[1:],
+    )
+    assert capsys.readouterr().err == ""
+
+
+@pytest.mark.parametrize("text", TYPED)
+def test_prepare_leaves_a_typed_message_of_one_kind_alone(
+    repo: Path, capsys: pytest.CaptureFixture, text: str
+) -> None:
+    stage(repo, "name_changed")
+    assert prepared(repo, text, "message") == (0, text)
+    assert prepared(repo, text + TEMPLATE) == (0, text + TEMPLATE)
+    assert capsys.readouterr().err == ""
+
+
+@pytest.mark.parametrize("cleanup", ["scissors", "verbatim"])
+def test_prepare_suggests_on_standard_error_where_git_keeps_comments(
+    repo: Path, capsys: pytest.CaptureFixture, cleanup: str
+) -> None:
+    git(repo, "config", "commit.cleanup", cleanup)
+    stage(repo, "name_changed")
+    assert prepared(repo, TEMPLATE) == (0, TEMPLATE)
+    assert capsys.readouterr().err == f"timetoshare: {LABEL}\n"
 
 
 def test_prepare_leaves_a_change_without_data_alone(repo: Path) -> None:
@@ -654,6 +722,33 @@ def test_git_strips_the_suggestion_of_the_editor(repo: Path) -> None:
     assert received.read_text(encoding="utf-8").startswith(
         f"\n# {LABEL}\n#\n# Please enter the commit message for your changes."
     )
+    assert git(repo, "log", "-1", "--format=%B").stdout == (
+        "label(base): rename the score\n\n"
+    )
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="git hooks run by sh")
+def test_git_keeps_no_suggestion_with_the_scissors_cleanup(repo: Path) -> None:
+    install_hooks(repo)
+    git(repo, "config", "commit.cleanup", "scissors")
+    stage(repo, "name_changed")
+    script = repo.parent / "editor.sh"
+    script.write_text(
+        "#!/bin/sh\n"
+        f"{{ printf '%s\\n' 'label(base): rename the score'; cat \"$1\"; }}"
+        f' > "{repo.parent / "edited"}"\n'
+        f'mv "{repo.parent / "edited"}" "$1"\n',
+        encoding="utf-8",
+    )
+    script.chmod(0o755)
+    done = subprocess.run(
+        ["git", "commit", "--quiet"],
+        cwd=repo,
+        env={**environment(repo.parent), "GIT_EDITOR": str(script)},
+        capture_output=True,
+        text=True,
+    )
+    assert (done.returncode, done.stderr) == (0, f"timetoshare: {LABEL}\n")
     assert git(repo, "log", "-1", "--format=%B").stdout == (
         "label(base): rename the score\n\n"
     )
