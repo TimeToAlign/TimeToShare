@@ -36,9 +36,9 @@ class FixtureCase:
     names the origin and length of each root it draws (``origin_and_length``),
     as an editor marks them; a corpus fixture, which is not drawn,
     ``timestamps``, whose drawing shows its own timestamps alone, a fixture
-    with statements and a fixture of ``flow``, neither of which is drawn, do
-    not. A fixture with statements
-    (``described``) takes them from ``descriptions/<name>.yaml``.
+    with statements, which is not drawn, and a fixture of ``flow`` do not. A
+    fixture with statements (``described``) takes them from
+    ``descriptions/<name>.yaml``.
     """
 
     name: str
@@ -94,9 +94,16 @@ def _described(name: str, build: Callable[[], Any]) -> FixtureCase:
     )
 
 
-def _flow(name: str, build: Callable[[], Any]) -> FixtureCase:
-    """Return a case of the ``flow`` directory, which is not drawn."""
-    return FixtureCase(name, "flow", Timeline, build, None, False)
+def _flow(
+    name: str, build: Callable[[], Any], styled: str | None = None
+) -> FixtureCase:
+    """Return a case of the ``flow`` directory, which names no origin or length.
+
+    A styled case takes the ``graphical`` entry ``GRAPHICAL`` holds under its
+    name and the root's id ``styled``.
+    """
+    graphical = None if styled is None else GRAPHICAL[name][styled]
+    return FixtureCase(name, "flow", Timeline, build, graphical, False)
 
 
 RESOURCES: dict[str, tuple[Mapping[str, Any], ...]] = {
@@ -213,6 +220,8 @@ CATALOGUE = (
     _group("group_grandchild_parent_on_top", groups.group_grandchild, "group_1"),
     _group("group_elided_inside", groups.group_elided_inside),
     _group("group_elided_members", groups.group_elided_members, "group_1"),
+    _group("virtual_member", groups.virtual_member),
+    _group("switched_frame", groups.switched_frame, "performance"),
     _bundle("bundle_mixed", bundles.bundle_mixed),
     _bundle("bundle_shared_parent", bundles.bundle_shared_parent),
     _bundle("bundle_ungrouped", bundles.bundle_ungrouped),
@@ -261,6 +270,8 @@ CATALOGUE = (
     _flow("loop", flow.loop),
     _flow("flow_map_by_hand", flow.flow_map_by_hand),
     _flow("repairs", flow.repairs),
+    _flow("virtual_cards", flow.virtual_cards),
+    _flow("switched_card", flow.switched_card, "allegro"),
 )
 """The fixture cases in emission order; append new cases within their directory."""
 

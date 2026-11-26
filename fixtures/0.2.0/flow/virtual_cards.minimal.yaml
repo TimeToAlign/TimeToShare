@@ -1,0 +1,211 @@
+"@context":
+  "@version": 1.1
+  actor:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#actor"
+    "@type": "@id"
+  basis:
+    "@id": "http://www.w3.org/ns/prov#hadPrimarySource"
+    "@type": "@id"
+  belief:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#belief"
+    "@type": "@vocab"
+  beliefs: "https://timetoalign.github.io/timetoshare/ns#beliefs"
+  broad: "http://www.w3.org/2004/02/skos/core#broadMatch"
+  children: "@included"
+  close: "http://www.w3.org/2004/02/skos/core#closeMatch"
+  date:
+    "@id": "http://purl.org/dc/terms/date"
+    "@type": "http://www.w3.org/2001/XMLSchema#date"
+  exact: "http://www.w3.org/2004/02/skos/core#exactMatch"
+  "false": "https://timetoalign.github.io/timetoshare/ns#False"
+  groups: "@included"
+  id: "@id"
+  imported: "https://timetoalign.github.io/timetoshare/ns#Imported"
+  inferred: "https://timetoalign.github.io/timetoshare/ns#Inferred"
+  label: "http://www.w3.org/2000/01/rdf-schema#label"
+  list: "@list"
+  manual: "https://timetoalign.github.io/timetoshare/ns#Manual"
+  match:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#match"
+    "@type": "@vocab"
+  method:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#method"
+    "@type": "@vocab"
+  narrow: "http://www.w3.org/2004/02/skos/core#narrowMatch"
+  note: "http://www.w3.org/2000/01/rdf-schema#comment"
+  property:
+    "@id": "http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate"
+    "@type": "@vocab"
+  provenance:
+    "@reverse": "http://www.w3.org/1999/02/22-rdf-syntax-ns#subject"
+  rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  reconciled: "https://timetoalign.github.io/timetoshare/ns#Reconciled"
+  regions: "@included"
+  related: "http://www.w3.org/2004/02/skos/core#relatedMatch"
+  service:
+    "@id": "https://timetoalign.github.io/timetoshare/ns#service"
+    "@type": "@id"
+  stated_by:
+    "@id": "http://www.w3.org/ns/prov#wasAttributedTo"
+    "@type": "@id"
+  statements: "@nest"
+  timelines: "@included"
+  "true": "https://timetoalign.github.io/timetoshare/ns#True"
+  tts: "https://timetoalign.github.io/timetoshare/ns#"
+  type: "@type"
+  unlikely: "https://timetoalign.github.io/timetoshare/ns#Unlikely"
+  value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#object"
+flow_maps:
+  -
+    chunks:
+      - "#section_a"
+      - "#section_a"
+      - "#section_a"
+      - "#section_a"
+      -
+        gap: [4, 1]
+      - "#section_c"
+    id: "#by_hand"
+    name: Practice
+    provenance:
+      -
+        beliefs:
+          -
+            actor: "https://example.org/people/editor"
+            belief: "true"
+            date: "2026-11-25"
+        date: "2026-11-25"
+        method: manual
+        stated_by: ["https://example.org/people/editor"]
+    timeline: "#allegro"
+  -
+    chunks: ["#section_a", "#section_b", "#section_a", "#section_c"]
+    convention: default
+    id: "#default"
+    provenance:
+      -
+        method: inferred
+    timeline: "#allegro"
+  -
+    chunks: ["#section_a", "#section_b", "#section_c"]
+    convention: printed
+    id: "#printed"
+    provenance:
+      -
+        method: inferred
+    timeline: "#allegro"
+  -
+    chunks: ["#section_a", "#section_c"]
+    convention: single
+    id: "#single"
+    provenance:
+      -
+        method: inferred
+    timeline: "#allegro"
+meta:
+  generator: "timetoalign 1.2.0 (5318e6d9)"
+name: "Virtual cards"
+timelines:
+  -
+    flow_control:
+      -
+        coordinate: [953, 2]
+        id: "#volta_jump"
+        role: jump
+        targets:
+          -
+            by: [0, 1]
+            manifestation: volta
+            passes: [1]
+          -
+            manifestation: volta
+            passes: [2]
+            to: "#second_ending"
+      -
+        coordinate: [500, 1]
+        id: "#repeat_end"
+        role: jump
+        targets:
+          -
+            manifestation: repeat_end
+            repeat_count: 1
+      -
+        coordinate: [500, 1]
+        id: "#second_ending"
+        manifestation: volta
+        role: jump_target
+      -
+        coordinate: [500, 1]
+        id: "#volta_break"
+        manifestation: volta
+        role: break
+    id: "#allegro"
+    length: [1644, 1]
+    name: Allegro
+    regions:
+      -
+        end: [953, 2]
+        id: "#section_a"
+        name: A
+        provenance:
+          -
+            method: inferred
+            property: "rdf:type"
+            value:
+              id: "tts:AtomicSection"
+        start: [0, 1]
+        statements:
+          type: ["tts:AtomicSection"]
+      -
+        end: [500, 1]
+        id: "#section_b"
+        name: B
+        provenance:
+          -
+            method: inferred
+            property: "rdf:type"
+            value:
+              id: "tts:AtomicSection"
+        start: [953, 2]
+        statements:
+          type: ["tts:AtomicSection"]
+      -
+        end: [1644, 1]
+        id: "#section_c"
+        name: C
+        provenance:
+          -
+            method: inferred
+            property: "rdf:type"
+            value:
+              id: "tts:AtomicSection"
+        start: [500, 1]
+        statements:
+          type: ["tts:AtomicSection"]
+    unit: quarters
+timetoshare: "0.2.0"
+virtual_timelines:
+  -
+    id: "#allegro_by_hand"
+    length: [3054, 1]
+    map: "#by_hand"
+    name: "Allegro, practice"
+    number_type: fraction
+    timeline: "#allegro"
+    unit: quarters
+  -
+    id: "#allegro_default"
+    length: [4241, 2]
+    map: "#default"
+    name: "Allegro, default"
+    number_type: fraction
+    timeline: "#allegro"
+    unit: quarters
+  -
+    id: "#allegro_single"
+    length: [3241, 2]
+    map: "#single"
+    name: "Allegro, single"
+    number_type: fraction
+    timeline: "#allegro"
+    unit: quarters

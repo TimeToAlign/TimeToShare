@@ -161,7 +161,20 @@ def _matchstamp_cards(*, groupstamp: bool) -> dict[str, Any]:
     }
 
 
+_FLOW_DEFAULT = {
+    "rules": [
+        {
+            "select": {"addresses": [{"id": "allegro", "part": ["card"]}]},
+            "set": {"flow": "default"},
+        }
+    ]
+}
+"""The rule that switches the card of ``allegro`` to its FlowMap ``default``."""
+
+
 GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
+    "switched_card": {"allegro": _FLOW_DEFAULT},
+    "switched_frame": {"performance": _FLOW_DEFAULT},
     "styled": {
         "score": {
             **_STYLED_SCORE,
@@ -774,7 +787,9 @@ def drawn_roots(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
     These are every group's members and every ungrouped root, a root of
     ``timelines`` that no group names as a member and that contains no member
     (``docs/drawing.md``, section 8.1), in the traversal order of
-    ``timelines``.
+    ``timelines``, and then the entries of ``virtual_timelines`` that a group
+    names as a member, in their order. A virtual timeline lies in no tree, so
+    the root it applies a FlowMap to stays an ungrouped root.
     """
     members = {
         member for group in manifest.get("groups", []) for member in group["members"]
@@ -786,10 +801,17 @@ def drawn_roots(manifest: Mapping[str, Any]) -> list[Mapping[str, Any]]:
         for ancestor in ancestors
     }
     return [
-        timeline
-        for timeline, ancestors in _tree(manifest["timelines"])
-        if timeline["id"] in members
-        or (not ancestors and timeline["id"] not in holding)
+        *(
+            timeline
+            for timeline, ancestors in _tree(manifest["timelines"])
+            if timeline["id"] in members
+            or (not ancestors and timeline["id"] not in holding)
+        ),
+        *(
+            virtual
+            for virtual in manifest.get("virtual_timelines", [])
+            if virtual["id"] in members
+        ),
     ]
 
 

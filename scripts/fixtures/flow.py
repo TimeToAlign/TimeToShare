@@ -20,6 +20,7 @@ from timetoalign import (
 )
 from timetoalign.core import Gap
 from timetoalign.core.provenance import Belief, Provenance
+from timetoalign.timelines import Region
 from timetoalign.timelines.flowcontrol import (
     Barline,
     Break,
@@ -31,12 +32,22 @@ from timetoalign.timelines.flowcontrol import (
     SectionBreak,
 )
 
+import timetoshare
+
 from . import parts
 
 EDITOR = "https://example.org/people/editor"
 """The actor who writes by hand and holds the beliefs of these fixtures."""
 DAY = "2026-11-25"
 """The day of every dated entry and belief of these fixtures."""
+
+
+ALLEGRO_SECTIONS = (
+    ("section_a", "A", Fraction(0), Fraction(953, 2)),
+    ("section_b", "B", Fraction(953, 2), Fraction(500)),
+    ("section_c", "C", Fraction(500), Fraction(1644)),
+)
+"""The atomic sections of ``allegro``: ID, letter, start and end in quarters."""
 
 
 def _manifest(name: str, root: Timeline) -> AlignmentBundle:
@@ -416,3 +427,117 @@ def repairs() -> AlignmentBundle:
         )
     )
     return _manifest("Repairs", score)
+
+
+def allegro() -> Timeline:
+    """Return the root ``allegro``, its atomic sections, FlowMaps and views.
+
+    The root ``allegro`` ("Allegro", 1644 quarters) is the first movement of
+    a sonata whose exposition is repeated through two volta brackets: the
+    jump ``volta_jump`` at 953/2 goes on (``by`` 0) on pass 1 and to the
+    second bracket ``second_ending`` at 500 on pass 2; at 500 lie the break
+    ``volta_break`` between the brackets and the first bracket's repeat
+    sign ``repeat_end``, a repeat end taken once, without a place. Its
+    atomic sections are the regions ``section_a`` "A" [0, 953/2),
+    ``section_b`` "B" [953/2, 500) and ``section_c`` "C" [500, 1644), each
+    stating the type ``tts:AtomicSection`` with the method ``inferred``,
+    and its computed FlowMaps ``default`` (A B A C, 4241/2 quarters),
+    ``single`` (A C, 3241/2) and ``printed`` (A B C, 1644), each naming its
+    convention with the method ``inferred``. The sections and FlowMaps are
+    written first under these IDs and then computed by the library from the
+    flow control, which keeps them: an atomic section keeps the Region of
+    its stretch and a computed FlowMap its ID, so the library confirms
+    every chunk. The FlowMap ``by_hand`` ("Practice"), written by the
+    editor, plays A four times, a gap of 4 quarters and C (3054 quarters).
+    The virtual timelines ``allegro_default`` ("Allegro, default"),
+    ``allegro_single`` ("Allegro, single") and ``allegro_by_hand``
+    ("Allegro, practice") apply ``default``, ``single`` and ``by_hand``.
+    """
+    root = parts.named(ContinuousLogicalTimeline, "allegro", "Allegro", Fraction(1644))
+    at = root.make_coordinate
+    inferred = Provenance(method="inferred")
+    sections = {
+        letter: root.add_region(
+            Region(at(start), at(end), name=letter, id=region_id)
+            .with_prefix("tts", timetoshare.NAMESPACE)
+            .with_statement(
+                "type",
+                "tts:" + timetoshare.ATOMIC_SECTION.removeprefix(timetoshare.NAMESPACE),
+                provenance=inferred,
+            )
+        )
+        for region_id, letter, start, end in ALLEGRO_SECTIONS
+    }
+    a, b, c = sections["A"], sections["B"], sections["C"]
+    for convention, chunks in (
+        ("default", (a, b, a, c)),
+        ("single", (a, c)),
+        ("printed", (a, b, c)),
+    ):
+        root.create_flow_map(
+            chunks, id=convention, convention=convention, provenance=[inferred]
+        )
+    flow = root.flow_control
+    second = flow.add(JumpTarget(at(500), manifestation="volta", id="second_ending"))
+    flow.add(
+        Jump(
+            at(Fraction(953, 2)),
+            [
+                JumpDestination(by=0, passes=[1], manifestation="volta"),
+                JumpDestination(to=second.id, passes=[2], manifestation="volta"),
+            ],
+            id="volta_jump",
+        )
+    )
+    flow.add(Break(at(500), manifestation="volta", id="volta_break"))
+    flow.add(
+        Jump(
+            at(500),
+            [JumpDestination(repeat_count=1, manifestation="repeat_end")],
+            id="repeat_end",
+        )
+    )
+    computed = root.create_flow_maps_from_flow_control()
+    if (
+        computed is None
+        or computed.findings
+        or [region.id for region in computed.sections] != [a.id, b.id, c.id]
+        or [flow_map.id for flow_map in computed.flow_maps]
+        != ["default", "single", "printed"]
+        or root.list_flow_maps() != ["default", "single", "printed"]
+    ):
+        raise SystemExit(f"allegro: the flows computed are {computed!r}")
+    root.create_flow_map(
+        [a, a, a, a, Gap(Fraction(4)), c],
+        id="by_hand",
+        name="Practice",
+        provenance=[_by_hand()],
+    )
+    for flow_map, name in (
+        ("default", "Allegro, default"),
+        ("single", "Allegro, single"),
+        ("by_hand", "Allegro, practice"),
+    ):
+        root.create_virtual_timeline(flow_map, id=f"allegro_{flow_map}", name=name)
+    return root
+
+
+def virtual_cards() -> AlignmentBundle:
+    """Build ``virtual_cards``: three FlowMaps of one root and their views.
+
+    The manifest "Virtual cards" holds the root of :func:`allegro`, its
+    computed FlowMaps ``default``, ``single`` and ``printed``, the FlowMap
+    ``by_hand`` with a run and a gap, and the virtual timelines of
+    ``default``, ``single`` and ``by_hand``.
+    """
+    return _manifest("Virtual cards", allegro())
+
+
+def switched_card() -> AlignmentBundle:
+    """Build ``switched_card``: the root of :func:`allegro`, its card switched.
+
+    The manifest "Switched card" holds what ``virtual_cards`` holds; its
+    ``graphical`` entry (``GRAPHICAL["switched_card"]``) sets the property
+    ``flow`` of the card of ``allegro`` to the FlowMap ``default``.
+    """
+    return _manifest("Switched card", allegro())

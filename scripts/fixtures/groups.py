@@ -17,6 +17,7 @@ from timetoalign.maps import LinearMap
 from timetoalign.testdata import ensure_data
 
 from . import parts
+from .flow import allegro
 from .timelines import four_bars
 
 
@@ -330,3 +331,45 @@ def group_groupstamp_child_member() -> TimelineGroup:
         ContinuousPhysicalTimeline, "performance", "Performance", 4.0
     )
     return TimelineGroup(name="Performance", timelines=[score, performance])
+
+
+RECORDING_SECONDS = 702.5
+"""The length of the recording of ``allegro``, unequal to every virtual length."""
+
+
+def virtual_member() -> TimelineGroup:
+    """Build ``virtual_member``: a virtual timeline and a recording in a group.
+
+    The group ``performance`` ("Performance") lists the virtual timeline
+    ``allegro_default`` ("Allegro, default", 4241/2 quarters), which applies
+    the computed FlowMap ``default`` to the root ``allegro`` of
+    ``flow.allegro``, and the recording ``recording`` ("Recording", 702.5
+    seconds). The root is no member and holds none: it is written whole,
+    its FlowMaps and its other virtual timelines with it.
+    """
+    root = allegro()
+    recording = parts.named(
+        ContinuousPhysicalTimeline, "recording", "Recording", RECORDING_SECONDS
+    )
+    played = root.get_virtual_timeline("allegro_default").as_member(root)
+    return TimelineGroup(
+        id="performance", name="Performance", timelines=[played, recording]
+    )
+
+
+def switched_frame() -> TimelineGroup:
+    """Build ``switched_frame``: the root ``allegro`` and a recording in a group.
+
+    The group ``performance`` ("Performance") lists the root ``allegro`` of
+    ``flow.allegro`` and the recording ``recording`` ("Recording", 702.5
+    seconds); ``switched_frame`` holds it with the ``graphical`` entry of
+    ``GRAPHICAL``, which sets the property ``flow`` of the card of
+    ``allegro`` to the FlowMap ``default``, so that the whole frame is drawn
+    on its virtual axis.
+    """
+    recording = parts.named(
+        ContinuousPhysicalTimeline, "recording", "Recording", RECORDING_SECONDS
+    )
+    return TimelineGroup(
+        id="performance", name="Performance", timelines=[allegro(), recording]
+    )
