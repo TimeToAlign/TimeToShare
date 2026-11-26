@@ -1215,8 +1215,8 @@
 <span class="sd">    An event ID column holds an event's ID or a sentinel's reserved string,</span>
 <span class="sd">    never a null: ``CHUNK_SENTINEL`` on a side of a synchronous MatchClaim</span>
 <span class="sd">    (the anchor states that side's coordinate), ``NOMATCH_SENTINEL`` on one</span>
-<span class="sd">    side of a MatchClaim that is not synchronous (no anchor). A sentinel</span>
-<span class="sd">    side has no name."""</span>
+<span class="sd">    side of a MatchClaim that is not synchronous (no anchor). A NOMATCH</span>
+<span class="sd">    side has no name; a CHUNK side may name the position it states."""</span>
     <span class="n">events</span> <span class="o">=</span> <span class="p">{</span><span class="n">side</span><span class="p">:</span> <span class="n">_array</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"event_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_id"</span><span class="p">)</span> <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">)}</span>
     <span class="n">chunk</span> <span class="o">=</span> <span class="p">{</span><span class="n">side</span><span class="p">:</span> <span class="n">_held</span><span class="p">(</span><span class="n">pc</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">CHUNK</span><span class="p">))</span> <span class="k">for</span> <span class="n">side</span><span class="p">,</span> <span class="n">ids</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="n">nomatch</span> <span class="o">=</span> <span class="p">{</span><span class="n">side</span><span class="p">:</span> <span class="n">_held</span><span class="p">(</span><span class="n">pc</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">NOMATCH</span><span class="p">))</span> <span class="k">for</span> <span class="n">side</span><span class="p">,</span> <span class="n">ids</span> <span class="ow">in</span> <span class="n">events</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
@@ -1254,12 +1254,9 @@
         <span class="o">*</span><span class="p">(</span>
             <span class="p">(</span>
                 <span class="s2">"claim_events"</span><span class="p">,</span>
-                <span class="n">_all</span><span class="p">(</span>
-                    <span class="n">_any</span><span class="p">(</span><span class="n">chunk</span><span class="p">[</span><span class="n">side</span><span class="p">],</span> <span class="n">nomatch</span><span class="p">[</span><span class="n">side</span><span class="p">]),</span>
-                    <span class="n">pc</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">_array</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"event_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_name"</span><span class="p">)),</span>
-                <span class="p">),</span>
+                <span class="n">_all</span><span class="p">(</span><span class="n">nomatch</span><span class="p">[</span><span class="n">side</span><span class="p">],</span> <span class="n">pc</span><span class="o">.</span><span class="n">is_valid</span><span class="p">(</span><span class="n">_array</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"event_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_name"</span><span class="p">))),</span>
                 <span class="sa">f</span><span class="s2">"event_</span><span class="si">{</span><span class="n">side</span><span class="si">}</span><span class="s2">_name"</span><span class="p">,</span>
-                <span class="s2">"a sentinel side has no name"</span><span class="p">,</span>
+                <span class="s2">"a NOMATCH side has no name"</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">side</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="s2">"b"</span><span class="p">)</span>
         <span class="p">),</span>

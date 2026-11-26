@@ -2409,7 +2409,7 @@ column whose Null is “never” holds a value in every row:</p>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">event_a_name</span></code>, <code class="docutils literal notranslate"><span class="pre">event_b_name</span></code></p></td>
 <td><p>string</p></td>
 <td><p>allowed</p></td>
-<td><p>the name of each event, where it is known; null on a sentinel side, which has no name</p></td>
+<td><p>the name of each event, where it is known; on a CHUNK side the name of the position it states, where it is known; null on a NOMATCH side, which has no name</p></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">id</span></code></p></td>
 <td><p>string</p></td>
@@ -2508,8 +2508,8 @@ event or a sentinel:</p>
 MatchClaim, NOMATCH only on one that is not synchronous, and never on
 both sides.</p>
 </li>
-<li><p>A sentinel side has no name: its <code class="docutils literal notranslate"><span class="pre">event_a_name</span></code> or <code class="docutils literal notranslate"><span class="pre">event_b_name</span></code> is
-null.</p></li>
+<li><p>A NOMATCH side has no name: its <code class="docutils literal notranslate"><span class="pre">event_a_name</span></code> or <code class="docutils literal notranslate"><span class="pre">event_b_name</span></code> is
+null. A CHUNK side may carry one, the name of the position it states.</p></li>
 <li><p>An <code class="docutils literal notranslate"><span class="pre">end_anchor</span></code> comes only with a <code class="docutils literal notranslate"><span class="pre">start_anchor</span></code>.</p></li>
 <li><p>Both coordinates of an anchor are cells, never null.</p></li>
 <li><p>A stated <code class="docutils literal notranslate"><span class="pre">certainty</span></code> lies in [0, 1].</p></li>
@@ -2777,10 +2777,10 @@ only. <code class="docutils literal notranslate"><span class="pre">check_match_c
 <td><p><code class="docutils literal notranslate"><span class="pre">event_b_id</span></code></p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">NOMATCH</span> <span class="pre">MatchClaim</span> <span class="pre">names</span> <span class="pre">an</span> <span class="pre">event</span> <span class="pre">on</span> <span class="pre">its</span> <span class="pre">other</span> <span class="pre">side</span></code></p></td>
 </tr>
-<tr class="row-even"><td><p>A sentinel side has a name</p></td>
+<tr class="row-even"><td><p>A NOMATCH side has a name</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">claim_events</span></code></p></td>
 <td><p>the side’s <code class="docutils literal notranslate"><span class="pre">event_a_name</span></code> or <code class="docutils literal notranslate"><span class="pre">event_b_name</span></code></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">sentinel</span> <span class="pre">side</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">name</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">NOMATCH</span> <span class="pre">side</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">name</span></code></p></td>
 </tr>
 <tr class="row-odd"><td><p>A NOMATCH has an anchor</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">claim_anchors</span></code></p></td>
