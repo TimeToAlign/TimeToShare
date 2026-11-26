@@ -1097,9 +1097,14 @@ An IRI reference of the statements or their provenance that begins with
 `#`, such as the `id` of a value, names an element of any kind
 ([Describing a manifest](#describing-a-manifest)).
 
-timetoalign and TimeLineEditor mint a speaking default `{prefix}_{N}` for
-an element created without an ID, such as `clt_1` or `region_1`, never one
-the manifest holds; an ID that is given is kept verbatim. An ID that is an
+An ID that is given is kept verbatim. A tool that mints an ID for an
+element created without one writes the element's type prefix, `_` and 13
+random base-36 characters (`0` to `9`, `a` to `z`), such as
+`region_3kq9x0m2ztb7a`, seeded so that it can mint the same IDs again
+([fixture guide](fixtures/README.md#minted-id-vectors)). A minted ID is
+opaque like any other: the format requires nothing of it beyond the
+character rule above, and no reader parses its prefix or its characters.
+An ID that is an
 absolute URI identifies its element globally. A manifest published at a
 stable location gives every local ID a global identity too: the
 manifest's URI with the ID as its fragment, `<manifest location>#<id>`,
@@ -1502,7 +1507,7 @@ of them, the **Projections table**, named by the resource of type
 
 | Column | Arrow type | Null | Holds |
 | --- | --- | --- | --- |
-| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted as `projection_N` otherwise. An event's ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on |
+| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted otherwise, `projection_` and 13 random base-36 characters ([Identity](#identity)). An event's ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on |
 | `timeline_id` | string | never | the timeline the Projection is an event of, a timeline of the manifest |
 | `unit`, `number_type` | string | never | the unit and the number type of its `start` and `duration`, stated once for both: those of the timeline's own axis |
 | `start` | number | never | its position on that timeline's own axis |

@@ -2195,6 +2195,54 @@ definition is held (`CONTAINERS`). What proves them:
   with_bare_ids(fixture)) == fixture`: the fixtures are written in the file
   form and every ID in them converts.
 
+## Minted ID vectors
+
+The package mints no ID; it ships `fixtures/ids/minted_ids.json`, the test
+vectors that tools minting IDs check their minters against
+(`test_minted_ids.py`; the algorithm is stated in the file and in
+`scripts/emit_id_vectors.py`, its reference implementation). The file is
+read where a consumer reads it, at `data_root() / "fixtures" / "ids" /
+"minted_ids.json"`, so the test fails if the package stops finding it.
+
+- **The file is the script's output.** The test loads the script, builds the
+  vectors in memory and renders them, and the text equals the file byte for
+  byte: a hand edit of the file, or a change of the script left unemitted,
+  fails.
+- **`mix64` is SplitMix64's finalizer.** Independently of the file, the
+  script's `mix64` reproduces the published SplitMix64 outputs of the seed
+  1234567, whose generator steps its state by `0x9e3779b97f4a7c15` and
+  returns the finalizer of the new state: 6457827717110365317,
+  3203168211198807973, 9817491932198370423, 4593380528125082431,
+  16408922859458223821. The script's own arithmetic therefore cannot be
+  what the file is checked against alone. Each `{input, output}` pair of the
+  file is inverted by the inverse of the finalizer written in the test
+  (each xorshift undone, each product multiplied by its inverse modulo
+  2^64), giving back the input, so the pairs are those of a bijection.
+- **The content is what the file promises.** `mix64` holds the inputs 0, 1,
+  2, 42, 2^63, 2^64 − 1 and 0x0123456789abcdef, in that order;
+  `minters` the seeds 0, 1, 42, 81985529216486895, 18446744073709551615
+  and −1, each at the lengths 13, 10 and 7 in that order, each with the
+  prefixes `note`, `clt`, `note`, `claim`, `score:clt` and five IDs;
+  `later_ids` the seed 42 at the three lengths, the prefix `note` and the
+  counter 1000. Seeds, inputs and outputs are decimal strings; lengths and
+  counters are integers.
+- **Each ID decodes to its counter.** For every ID, the part before the
+  last `_` is its prefix, and the suffix matches `^[0-9a-z]{L}$` with its
+  entry's L (the whole ID `^.+_[0-9a-z]{L}$`); read in base 36, the suffix
+  equals `mix64(mix64(seed mod 2^64) + k) mod 36^L`, computed with the
+  script's `mix64` that the point above checks, k being the ID's place in
+  its entry (1 to 5) or the entry's `counter`; this decoding checks the
+  base-36 digits and the padding apart from the script's `base36`.
+- **Pinned values.** So that the script and the file cannot change
+  together unnoticed, the test also states three values literally: the
+  output of `mix64` of 0 is 0, the first ID of the seed 42 at length 13 is
+  `note_26vx31m84xkac`, and the ID at counter 1000 of the seed 42 at
+  length 13 is `note_3cu6welhit32x`.
+- **A seed is taken modulo 2^64.** The entries of the seed −1 hold the same
+  IDs as those of 18446744073709551615 at each length.
+- **The counter is shared by the prefixes.** In every entry of `minters`,
+  the two `note` IDs (the first and the third) differ.
+
 ## Manifest files
 
 `file_form(text)` gives a `FileForm`: whether the manifest is `minimal`,

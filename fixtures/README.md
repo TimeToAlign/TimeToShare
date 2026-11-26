@@ -30,8 +30,9 @@ Version 0.2.0 has 52 manifests directly under `fixtures/0.2.0/`, 17 under
 lie the expected RDF of the 4 statement fixtures under
 `fixtures/rdf/0.2.0/`, the expected flows of 9 flow fixtures under
 `fixtures/flows/0.2.0/`, the table fixture under `fixtures/tables/0.2.0/`
-([The table fixture](#the-table-fixture)), 248 rejection cases, 18 warning
-cases, one table of acceptances under
+([The table fixture](#the-table-fixture)), the vectors of minted IDs under
+`fixtures/ids/` ([Minted ID vectors](#minted-id-vectors)), 248 rejection
+cases, 18 warning cases, one table of acceptances under
 `fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)) and
 one list of cases of several problems under `fixtures/precedence/0.2.0/`
 ([Cases of several problems](#cases-of-several-problems)).
@@ -533,6 +534,43 @@ sizes and digests are read from the bytes written. It rewrites a Parquet
 file only when its table changes and refuses to replace the files of a
 version whose tag `v<version>` exists. Python's
 `timetoshare.tables.fixture_path(name)` gives the path of each file.
+
+## Minted ID vectors
+
+`fixtures/ids/minted_ids.json` holds the test vectors of minted IDs. The
+format requires nothing of an ID beyond its character rule, and neither
+package mints one; a tool that mints IDs writes the element's type prefix,
+`_` and random base-36 characters, seeded so that it can mint them again
+([main README](../README.md#identity)). Two tools that mint from one seed
+must mint the same IDs, and the file holds the values both check against:
+timetoalign's tests read it at `timetoshare.validate.data_root() /
+"fixtures" / "ids" / "minted_ids.json"`, TimeLineEditor's at
+`@timetoalign/timetoshare/fixtures/ids/minted_ids.json`. It is JSON with
+sorted keys, an indent of two spaces and a final line feed:
+
+- `description`: the algorithm, as `scripts/emit_id_vectors.py` states it.
+- `mix64`: pairs `{input, output}` of SplitMix64's finalizer for the inputs
+  0, 1, 2, 42, 2^63, 2^64 − 1 and 0x0123456789abcdef.
+- `minters`: for each seed 0, 1, 42, 81985529216486895
+  (0x0123456789abcdef), 18446744073709551615 and −1, at each length 13,
+  10 and 7, the first five IDs a fresh minter mints (`ids`) with the
+  `prefixes` `note`, `clt`, `note`, `claim` and `score:clt`, in order: one
+  counter serves every prefix, a prefix led by a role is a prefix like any
+  other, and the seed −1, taken modulo 2^64, gives the IDs of
+  18446744073709551615.
+- `later_ids`: for the seed 42 at each length, the ID (`id`) a fresh
+  minter mints at the `counter` 1000, every ID before it minted with the
+  same `prefix`, `note`.
+
+Seeds and the inputs and outputs of `mix64` are decimal strings, since they
+may exceed 2^53 (JavaScript reads them as BigInt); lengths and counters are
+integers. The script `scripts/emit_id_vectors.py`, a reference
+implementation of the algorithm in the standard library alone, is the
+file's only writer (`python3 scripts/emit_id_vectors.py` from the
+repository root); it rewrites the file only when its bytes change. The
+Python suite regenerates the file in memory and compares it byte for byte,
+and checks every value apart from the script (`python/tests/README.md`,
+"Minted ID vectors").
 
 ## Drawings
 

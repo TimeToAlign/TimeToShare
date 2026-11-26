@@ -1,0 +1,382 @@
+{
+  "description": "Test vectors of minted IDs. All arithmetic is modulo 2^64. mix64(x): x ^= x >> 30; x *= 0xbf58476d1ce4e5b9; x ^= x >> 27; x *= 0x94d049bb133111eb; x ^= x >> 31 (the finalizer of SplitMix64). A minter of seed s and length L (1 to 13) starts at mix64(s mod 2^64); its k-th ID (k = 1, 2, ...), for any prefix, is prefix + '_' + base36(mix64(start + k) mod 36^L), digits 0-9a-z, left-padded with '0' to L characters; one counter is shared by all prefixes. Seeds and the inputs and outputs of mix64 are decimal strings; lengths and counters are integers. 'minters' lists the IDs a fresh minter mints with the given prefixes in order; 'later_ids' the ID a fresh minter mints at the given counter, every ID before it minted with the same prefix.",
+  "later_ids": [
+    {
+      "counter": 1000,
+      "id": "note_3cu6welhit32x",
+      "length": 13,
+      "prefix": "note",
+      "seed": "42"
+    },
+    {
+      "counter": 1000,
+      "id": "note_6welhit32x",
+      "length": 10,
+      "prefix": "note",
+      "seed": "42"
+    },
+    {
+      "counter": 1000,
+      "id": "note_lhit32x",
+      "length": 7,
+      "prefix": "note",
+      "seed": "42"
+    }
+  ],
+  "minters": [
+    {
+      "ids": [
+        "note_1be6k8ij6dzad",
+        "clt_3cccv6pc7fclm",
+        "note_0gloaudxbozjk",
+        "claim_2sjbpc8k7u4gk",
+        "score:clt_2s1ouracf844c"
+      ],
+      "length": 13,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "0"
+    },
+    {
+      "ids": [
+        "note_6k8ij6dzad",
+        "clt_cv6pc7fclm",
+        "note_oaudxbozjk",
+        "claim_bpc8k7u4gk",
+        "score:clt_ouracf844c"
+      ],
+      "length": 10,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "0"
+    },
+    {
+      "ids": [
+        "note_ij6dzad",
+        "clt_pc7fclm",
+        "note_dxbozjk",
+        "claim_8k7u4gk",
+        "score:clt_acf844c"
+      ],
+      "length": 7,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "0"
+    },
+    {
+      "ids": [
+        "note_3b7gu4iwqkg9i",
+        "clt_3my3bzv32t8mj",
+        "note_2dbqc82r25vt5",
+        "claim_00v2kcgfkvr2q",
+        "score:clt_1lj2tbe2go68s"
+      ],
+      "length": 13,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "1"
+    },
+    {
+      "ids": [
+        "note_gu4iwqkg9i",
+        "clt_3bzv32t8mj",
+        "note_qc82r25vt5",
+        "claim_2kcgfkvr2q",
+        "score:clt_2tbe2go68s"
+      ],
+      "length": 10,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "1"
+    },
+    {
+      "ids": [
+        "note_iwqkg9i",
+        "clt_v32t8mj",
+        "note_2r25vt5",
+        "claim_gfkvr2q",
+        "score:clt_e2go68s"
+      ],
+      "length": 7,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "1"
+    },
+    {
+      "ids": [
+        "note_26vx31m84xkac",
+        "clt_29v96hxrz8r81",
+        "note_3lh8y7zjq5bdy",
+        "claim_01c290lhchnll",
+        "score:clt_1yhpwbgjz2gzo"
+      ],
+      "length": 13,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "42"
+    },
+    {
+      "ids": [
+        "note_x31m84xkac",
+        "clt_96hxrz8r81",
+        "note_8y7zjq5bdy",
+        "claim_290lhchnll",
+        "score:clt_pwbgjz2gzo"
+      ],
+      "length": 10,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "42"
+    },
+    {
+      "ids": [
+        "note_m84xkac",
+        "clt_xrz8r81",
+        "note_zjq5bdy",
+        "claim_lhchnll",
+        "score:clt_gjz2gzo"
+      ],
+      "length": 7,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "42"
+    },
+    {
+      "ids": [
+        "note_3ho3fo5fhnwnx",
+        "clt_1392u119paob3",
+        "note_2xx3d1v81ql6e",
+        "claim_2t4n00ft20135",
+        "score:clt_0digueu26dq8w"
+      ],
+      "length": 13,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "81985529216486895"
+    },
+    {
+      "ids": [
+        "note_3fo5fhnwnx",
+        "clt_2u119paob3",
+        "note_3d1v81ql6e",
+        "claim_n00ft20135",
+        "score:clt_gueu26dq8w"
+      ],
+      "length": 10,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "81985529216486895"
+    },
+    {
+      "ids": [
+        "note_5fhnwnx",
+        "clt_19paob3",
+        "note_v81ql6e",
+        "claim_ft20135",
+        "score:clt_u26dq8w"
+      ],
+      "length": 7,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "81985529216486895"
+    },
+    {
+      "ids": [
+        "note_3umncojmye85b",
+        "clt_1yb7tesjsq1s6",
+        "note_2ct4di4wge30i",
+        "claim_321dkz37tnyqg",
+        "score:clt_1yw1kwbrag258"
+      ],
+      "length": 13,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "18446744073709551615"
+    },
+    {
+      "ids": [
+        "note_ncojmye85b",
+        "clt_7tesjsq1s6",
+        "note_4di4wge30i",
+        "claim_dkz37tnyqg",
+        "score:clt_1kwbrag258"
+      ],
+      "length": 10,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "18446744073709551615"
+    },
+    {
+      "ids": [
+        "note_jmye85b",
+        "clt_sjsq1s6",
+        "note_4wge30i",
+        "claim_37tnyqg",
+        "score:clt_brag258"
+      ],
+      "length": 7,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "18446744073709551615"
+    },
+    {
+      "ids": [
+        "note_3umncojmye85b",
+        "clt_1yb7tesjsq1s6",
+        "note_2ct4di4wge30i",
+        "claim_321dkz37tnyqg",
+        "score:clt_1yw1kwbrag258"
+      ],
+      "length": 13,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "-1"
+    },
+    {
+      "ids": [
+        "note_ncojmye85b",
+        "clt_7tesjsq1s6",
+        "note_4di4wge30i",
+        "claim_dkz37tnyqg",
+        "score:clt_1kwbrag258"
+      ],
+      "length": 10,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "-1"
+    },
+    {
+      "ids": [
+        "note_jmye85b",
+        "clt_sjsq1s6",
+        "note_4wge30i",
+        "claim_37tnyqg",
+        "score:clt_brag258"
+      ],
+      "length": 7,
+      "prefixes": [
+        "note",
+        "clt",
+        "note",
+        "claim",
+        "score:clt"
+      ],
+      "seed": "-1"
+    }
+  ],
+  "mix64": [
+    {
+      "input": "0",
+      "output": "0"
+    },
+    {
+      "input": "1",
+      "output": "6238072747940578789"
+    },
+    {
+      "input": "2",
+      "output": "15839785061582574730"
+    },
+    {
+      "input": "42",
+      "output": "12058926934050108962"
+    },
+    {
+      "input": "9223372036854775808",
+      "output": "2720858781877447050"
+    },
+    {
+      "input": "18446744073709551615",
+      "output": "13029008266876403067"
+    },
+    {
+      "input": "81985529216486895",
+      "output": "12880392674509918508"
+    }
+  ]
+}
