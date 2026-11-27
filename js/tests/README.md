@@ -998,8 +998,10 @@ the same table:
 
 The Python README's section "Packages" is proved here for what the npm
 package reads, `package.yaml`; it reads no tables (`package.test.ts`).
-`validatePackage` accepts the `package.yaml` of the shared package and of
-every rejected package under `fixtures/packages/0.2.0/` but
+`validatePackage` accepts the `package.yaml` of the shared package, of
+every accepted package (exactly `recording_resource`, a manifest naming a
+recording beside it) and of every rejected package under
+`fixtures/packages/0.2.0/` but
 `folder_with_size` and `table_listed_twice`, whose problem is the one
 their `expected.yaml` lists (`folder_descriptor`, `[tables, 1, size]`,
 `'tables/Projection/' names a folder, which has no size`; `duplicate_url`,

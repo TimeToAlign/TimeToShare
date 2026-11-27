@@ -3090,7 +3090,13 @@ What proves them (`test_packages.py`, needs pyarrow):
   lacks reads as null in its rows: the shared Projections with a further
   column `velocity` in `part_a` alone read four nulls for `part_b`'s rows.
   A path that is neither a file nor a folder raises `FileNotFoundError`.
-- **`package_problems`.** The shared package has none. Each package under
+- **`package_problems`.** The shared package has none, and neither has
+  each package under `fixtures/packages/0.2.0/acceptances/`, whose
+  `expected.yaml` lists no problem: `recording_resource`, the shared
+  package whose Bach manifest names a recording beside it (`Audio`,
+  `recording.flac`, `audio/flac`, for `dpt_1`), a resource naming no
+  table, which `package.yaml` does not list and the check passes over.
+  Each package under
   `fixtures/packages/0.2.0/rejections/` breaks one rule, and
   `package_problems` of its `package.yaml` returns exactly the problems its
   `expected.yaml` lists, in order, each as `{code, file, row, path,
@@ -3150,6 +3156,18 @@ What proves them (`test_packages.py`, needs pyarrow):
   check would report it too), and an event ID shared by a Projection and a
   row of another type (a `Box` file listing `projection_1`,
   `duplicate_id` at the Box row): event IDs are unique across every type.
+  **Which resources name a table** is proved inline as well, every branch
+  of the rule once: added to Bach's manifest in a copy of the shared
+  package, a resource of the type `Image` at `score.png` without a media
+  type, and one of the type `Text` at `notes.txt` with the media type
+  `text/plain`, are carried, no problem; and each of four resources that
+  `package.yaml` does not list is a table resource by one branch alone and
+  is `unknown_table` at its `url`, in this order: `Recording` at
+  `take.parquet` (its URL's `.parquet`), `Scan` at `scans/` (a folder),
+  `Sheet` at `sheet.bin` with the media type
+  `application/vnd.apache.parquet`, `Projection` at `more.arrow` without a
+  media type (its type), each message `the resource '<id>' names '<url>',
+  which is no table of the type <type> in the package`.
 - **The package check reads columns, and checks each row once.** It finds
   its rules over the columns `id`, `timeline_id`, `unit` and
   `number_type` (MatchClaims: `id`, `timeline_a_id`, `timeline_b_id`)

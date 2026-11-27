@@ -21,7 +21,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import unquote, urldefrag, urljoin
+from urllib.parse import unquote, urldefrag, urljoin, urlsplit
 
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -351,6 +351,7 @@ def _read(
 
 
 _DECLARED = {"MatchClaim": MATCH_CLAIM_SCHEMA, "Projection": PROJECTION_SCHEMA}
+"""The table types the format defines, with their declared columns."""
 
 
 def read_table(
@@ -404,6 +405,21 @@ def read_table(
 _BASE = "file:///package/"
 """The address a package's root is resolved at: references resolve as URLs,
 and a reference leaving the package lies outside this prefix."""
+
+
+_PARQUET = "application/vnd.apache.parquet"
+"""The media type of a Parquet file."""
+
+
+def _is_table_resource(resource: Mapping[str, Any]) -> bool:
+    """Whether a resource names a table: its type is ``MatchClaim`` or
+    ``Projection``, its URL names a folder (ends in ``/``) or a Parquet file
+    (ends in ``.parquet``), or its media type is Parquet's. Any other
+    resource, a recording, an image or a score file, is carried with its
+    manifest and names no table."""
+    if resource["type"] in _DECLARED or resource.get("media_type") == _PARQUET:
+        return True
+    return urlsplit(resource["url"]).path.endswith(("/", ".parquet"))
 
 
 def _resolved(reference: str, against: str) -> str | None:
@@ -503,8 +519,14 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
 
     - ``duplicate_timeline``: a timeline ID, a virtual timeline's included,
       held by two manifests, at the later's;
-    - ``unknown_table``: a manifest's resource whose URL names no table
-      entry of the resource's type, or leads outside the package;
+    - ``unknown_table``: a manifest's table resource whose URL names no
+      table entry of the resource's type, or leads outside the package; a
+      table resource is one of the type ``MatchClaim`` or ``Projection``,
+      or one whose URL names a folder (ends in ``/``) or a Parquet file
+      (ends in ``.parquet``), or whose media type is
+      ``application/vnd.apache.parquet``. Any other resource, a recording,
+      an image or a score file, is carried and not checked against the
+      tables;
     - ``duplicate_id``: an event ID held twice among all event rows of the
       package, every type and file, then a MatchClaim ID twice among the
       MatchClaims, at the later row;
@@ -757,7 +779,8 @@ class _Check:
         self.number_type_of = pa.array([axes[key][1] for key in owners], pa.string())
 
     def _resources(self) -> None:
-        """Each resource's table entry; ``unknown_table``; the listings."""
+        """Each table resource's table entry; ``unknown_table``; the
+        listings. A resource naming no table is passed over."""
         by_url = {(entry.url, entry.kind): entry for entry in self.entries}
         self.resolved: dict[tuple[int, int], _Entry] = {}
         listing_entry: list[int] = []
@@ -765,6 +788,8 @@ class _Check:
         listing_manifest: list[int] = []
         for number, manifest in enumerate(self.manifests):
             for index, resource in enumerate(entries_of(manifest.bare, "resources")):
+                if not _is_table_resource(resource):
+                    continue
                 url = _resolved(resource["url"], manifest.file)
                 named = None if url is None else (url, resource["type"])
                 entry = None if named is None else by_url.get(named)

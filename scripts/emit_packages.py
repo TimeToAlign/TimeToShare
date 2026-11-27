@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Write the package fixtures: a package of two manifests sharing their
-tables, and one package per rule of the package check that breaks it, to
+tables, the packages that change it and pass the package check, and one
+package per rule of the package check that breaks it, to
 ``fixtures/packages/<version>/``.
 
 Every value is written here by hand: the rows, the manifests, the rows
@@ -24,9 +25,11 @@ it; ``part_b`` lies unsorted, which readers accept. The MatchClaim file
 states one provenance for all its rows in its metadata. Each manifest's
 resources name the two folders, with the timelines whose rows it reads.
 
-Each rejection under ``rejections/<case>/`` is ``shared/`` with one change,
-beside an ``expected.yaml`` listing exactly the problems the package check
-reports, in order.
+Each acceptance under ``acceptances/<case>/`` is ``shared/`` with one
+change the package check accepts, beside an ``expected.yaml`` listing no
+problem. Each rejection under ``rejections/<case>/`` is ``shared/`` with one
+change, beside an ``expected.yaml`` listing exactly the problems the package
+check reports, in order.
 """
 
 from __future__ import annotations
@@ -346,6 +349,34 @@ def problem(
     code: str, file: str, row: int | None, path: list[Any], message: str
 ) -> dict[str, Any]:
     return {"code": code, "file": file, "row": row, "path": path, "message": message}
+
+
+# The acceptances: each a change to the shared package that the package
+# check accepts, with its reason.
+
+
+def _recording_resource(package: Package) -> None:
+    package.manifests["bach/manifest.yaml"]["resources"].append(
+        {
+            "id": "resource_3",
+            "type": "Audio",
+            "timelines": ["dpt_1"],
+            "url": "recording.flac",
+            "media_type": "audio/flac",
+        }
+    )
+
+
+ACCEPTANCES: dict[str, tuple[Callable[[Package], None], str]] = {
+    "recording_resource": (
+        _recording_resource,
+        "Bach's manifest names a recording beside it, a resource naming no "
+        "table, which package.yaml does not list and the package check "
+        "passes over.",
+    ),
+}
+"""Each acceptance: the change and its reason; the package check finds no
+problem."""
 
 
 # The rejections: each a change to the shared package, with its reason and
@@ -676,6 +707,21 @@ def main() -> int:
     found = _found(PACKAGE_DIR / "shared")
     if found:
         raise SystemExit(f"the shared package has problems: {found}")
+    accepted = PACKAGE_DIR / "acceptances"
+    for stale in accepted.iterdir() if accepted.is_dir() else ():
+        if stale.name not in ACCEPTANCES:
+            shutil.rmtree(stale)
+    for name, (change, reason) in ACCEPTANCES.items():
+        package = Package()
+        change(package)
+        directory = accepted / name
+        package.write(directory)
+        _write_text(
+            directory / "expected.yaml", dumps({"problems": [], "reason": reason})
+        )
+        found = _found(directory)
+        if found:
+            raise SystemExit(f"{name}: expected no problem, found {found}")
     cases = PACKAGE_DIR / "rejections"
     for stale in cases.iterdir() if cases.is_dir() else ():
         if stale.name not in REJECTIONS:

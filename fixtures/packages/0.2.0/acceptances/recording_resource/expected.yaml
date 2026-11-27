@@ -1,0 +1,2 @@
+problems: []
+reason: "Bach's manifest names a recording beside it, a resource naming no table, which package.yaml does not list and the package check passes over."

@@ -39,9 +39,9 @@ These rules apply to every contributor, human or automated.
   MatchClaim table and its Projections table, the two Parquet files and
   the anchors and potential MatchStamps expected of them, emitted), the
   package fixtures under `fixtures/packages/<version>/` (`shared/`, two
-  manifests sharing folders of tables, and `rejections/<case>/`, each
-  beside an `expected.yaml` of the rows read or the problems the package
-  check reports, emitted), the
+  manifests sharing folders of tables, `acceptances/<case>/` and
+  `rejections/<case>/`, each beside an `expected.yaml` of the rows read or
+  the problems the package check reports, emitted), the
   test vectors of minted IDs under `fixtures/ids/` (`minted_ids.json`,
   emitted, the values every tool that mints IDs checks its minter
   against), hand-authored rejection cases under `fixtures/rejections/<version>/`,

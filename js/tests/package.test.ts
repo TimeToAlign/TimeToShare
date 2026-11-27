@@ -12,8 +12,13 @@ type Node = Record<string, unknown>;
 const packages = resolve(repositoryRoot, "fixtures", "packages", timetoshare.SCHEMA_VERSION);
 const read = (path: string): JsonObject =>
   timetoshare.loads(readFileSync(path, "utf8")) as JsonObject;
+const accepted = readdirSync(resolve(packages, "acceptances")).sort();
 const cases = readdirSync(resolve(packages, "rejections")).sort();
-const directories = ["shared", ...cases.map((name) => `rejections/${name}`)];
+const directories = [
+  "shared",
+  ...accepted.map((name) => `acceptances/${name}`),
+  ...cases.map((name) => `rejections/${name}`),
+];
 /** The rejected packages whose one problem is `package.yaml`'s own. */
 const refusedListings = ["rejections/folder_with_size", "rejections/table_listed_twice"];
 
@@ -56,6 +61,10 @@ describe("validatePackage", () => {
       const manifest = read(resolve(packages, directory, entry.url as string));
       expect(() => timetoshare.validate(manifest)).not.toThrow();
     }
+  });
+
+  it("names the accepted packages", () => {
+    expect(accepted).toEqual(["recording_resource"]);
   });
 
   it("names the rejected packages", () => {

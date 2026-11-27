@@ -587,6 +587,14 @@ metadata; the MatchClaim file states one provenance for every row
 rows. `expected.yaml` lists, per manifest and resource, the IDs of the
 rows read for the resource's timelines, sorted.
 
+`acceptances/<case>/` are the shared package with one change each that
+the package check accepts, beside an `expected.yaml` listing no problem
+(`problems: []`) and the `reason`:
+
+| Case | Change |
+| --- | --- |
+| `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list |
+
 `rejections/<case>/` are the shared package with one change each, beside
 an `expected.yaml` listing every problem the package check reports, in
 order (`code`, `file` from the package's root, `row` in that file or null,

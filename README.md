@@ -1896,9 +1896,14 @@ open:
 - **Each manifest's resources name the files and folders it reads**,
   with the timelines whose rows it keeps, so that the manifests and
   `package.yaml` name the same files, and nothing in a table file names a
-  manifest. A resource names a table entry exactly, by the same resolved
-  URL and the same type: a resource naming one file of a folder entry
-  names no entry.
+  manifest. A **table resource** is one whose `type` is `MatchClaim` or
+  `Projection`, whose `url` names a folder (ends in `/`) or a Parquet file
+  (ends in `.parquet`), or whose `media_type` is
+  `application/vnd.apache.parquet`; only a table resource names a table
+  entry, and it names one exactly, by the same resolved URL and the same
+  type: a resource naming one file of a folder entry names no entry. Any
+  other resource, a recording, an image or a score file, is carried with
+  its manifest and not checked against `tables`.
 - **A file's metadata** states its type (`timetoshare:type`, such as
   `Projection`) and its format version (`timetoshare:version`); a
   MatchClaim file may state the provenance its rows share
@@ -2013,7 +2018,7 @@ order:
 | A file declares another version than the package | `version_mismatch` | the file, `[]` | `the file declares the version '<version>', the package '<version>'` |
 | One column has two Arrow types in two files | `column_type_mismatch` | the folder, the column | `the column '<name>' is <type> in '<file>' and <type> in '<file>'` |
 | A timeline ID, a virtual timeline's included, is held by two manifests | `duplicate_timeline` | the later manifest, the timeline's `id` | `the timeline '<id>' is a timeline of '<manifest>' as well` |
-| A resource's URL names no table entry of its type, or leads outside the package | `unknown_table` | the manifest, the resource's `url` | `the resource '<id>' names '<url>', which is no table of the type <type> in the package` |
+| A table resource's URL names no table entry of its type, or leads outside the package | `unknown_table` | the manifest, the resource's `url` | `the resource '<id>' names '<url>', which is no table of the type <type> in the package` |
 | An event ID is held twice among all the event rows of the package, of every type and file; then a MatchClaim ID twice among its MatchClaims | `duplicate_id` | the later row's file and row, `id` | `the event ID '<id>' is given twice, first in '<file>' at row <row>` (`the MatchClaim ID …`) |
 | A row's timeline (a MatchClaim's either, column by column) is null, where the file holds the column as strings | `schema_violation` | the row, the column | `'<column>' is null` |
 | A row's timeline is held by no manifest | `unknown_timeline` | the row, the column | `no manifest of the package has the timeline '<id>'` |
@@ -2023,7 +2028,9 @@ order:
 
 `fixtures/packages/0.2.0/` holds the package fixtures: `shared/`, two
 manifests sharing a folder of Projections and a folder of MatchClaims,
-beside an `expected.yaml` naming the rows each resource reads, and
+beside an `expected.yaml` naming the rows each resource reads,
+`acceptances/<case>/`, the shared package with one change each that the
+package check accepts, such as a manifest naming a recording, and
 `rejections/<case>/`, the shared package broken by one change each,
 beside the problems the package check reports
 ([Fixtures](#fixtures)); Python's `package_fixture_path(*parts)` gives
@@ -3537,7 +3544,8 @@ them; the expected values are literal data, never computed by the
 derivation they test. The package fixtures lie under
 `fixtures/packages/0.2.0/` ([Packages](#packages)): `shared/`, a package
 of two manifests sharing a folder of Projections and a folder of
-MatchClaims, and `rejections/<case>/`, the shared package breaking one
+MatchClaims, `acceptances/<case>/`, the shared package changed and still
+accepted, and `rejections/<case>/`, the shared package breaking one
 rule each, every package beside an `expected.yaml` of literal data, the rows read or the
 problems reported, written by `scripts/emit_packages.py`, which alone
 writes them ([fixture guide](fixtures/README.md#the-package-fixtures)).

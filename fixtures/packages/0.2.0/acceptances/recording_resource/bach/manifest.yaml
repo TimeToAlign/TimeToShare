@@ -1,0 +1,30 @@
+name: Bach
+resources:
+  -
+    id: "#resource_1"
+    media_type: application/vnd.apache.parquet
+    timelines: ["#clt_1", "#dpt_1"]
+    type: MatchClaim
+    url: "../tables/MatchClaim/"
+  -
+    id: "#resource_2"
+    media_type: application/vnd.apache.parquet
+    timelines: ["#dpt_1"]
+    type: Projection
+    url: "../tables/Projection/"
+  -
+    id: "#resource_3"
+    media_type: audio/flac
+    timelines: ["#dpt_1"]
+    type: Audio
+    url: recording.flac
+timelines:
+  -
+    id: "#clt_1"
+    length: [8, 1]
+    unit: quarters
+  -
+    id: "#dpt_1"
+    length: 352800
+    unit: samples
+timetoshare: "0.2.0"

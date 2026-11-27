@@ -51,6 +51,7 @@ package_module = import_module("timetoshare.tables.package")
 
 SHARED = package_fixture_path("shared")
 CASES = sorted(path.name for path in package_fixture_path("rejections").iterdir())
+ACCEPTED = sorted(path.name for path in package_fixture_path("acceptances").iterdir())
 
 
 def _read(path: Path) -> Any:
@@ -602,6 +603,35 @@ def test_the_shared_package_has_no_problem() -> None:
     assert _problems(SHARED) == []
 
 
+def test_every_acceptance_is_stated() -> None:
+    assert ACCEPTED == ["recording_resource"]
+
+
+@pytest.mark.parametrize("case", ACCEPTED)
+def test_each_accepted_package(case: str) -> None:
+    directory = package_fixture_path("acceptances", case)
+    assert _read(directory / "expected.yaml")["problems"] == []
+    assert _problems(directory) == []
+
+
+def test_the_recording_is_the_one_change() -> None:
+    directory = package_fixture_path("acceptances", "recording_resource")
+    bach = _read(directory / "bach" / "manifest.yaml")
+    assert (
+        bach["resources"][:2] == _read(SHARED / "bach" / "manifest.yaml")["resources"]
+    )
+    assert bach["resources"][2:] == [
+        {
+            "id": "#resource_3",
+            "type": "Audio",
+            "timelines": ["#dpt_1"],
+            "url": "recording.flac",
+            "media_type": "audio/flac",
+        }
+    ]
+    assert not (directory / "bach" / "recording.flac").exists()
+
+
 def test_every_rejection_is_stated() -> None:
     assert CASES == [
         "axis_mismatch",
@@ -747,6 +777,46 @@ def test_a_url_leaving_the_package_names_no_table(tmp_path: Path) -> None:
             "message": "the resource 'resource_3' names '../../outside/', which is "
             "no table of the type Box in the package",
         },
+    ]
+
+
+def test_only_a_table_resource_names_a_table(tmp_path: Path) -> None:
+    directory = _copied(tmp_path)
+    bach = _read(directory / "bach" / "manifest.yaml")
+    added = [
+        ("Image", "#clt_1", "score.png", None),
+        ("Text", "#dpt_1", "notes.txt", "text/plain"),
+        ("Recording", "#dpt_1", "take.parquet", None),
+        ("Scan", "#clt_1", "scans/", None),
+        ("Sheet", "#dpt_1", "sheet.bin", "application/vnd.apache.parquet"),
+        ("Projection", "#clt_1", "more.arrow", None),
+    ]
+    for number, (kind, timeline, url, media_type) in enumerate(added, start=3):
+        resource = {
+            "id": f"#resource_{number}",
+            "type": kind,
+            "timelines": [timeline],
+            "url": url,
+        }
+        if media_type is not None:
+            resource["media_type"] = media_type
+        bach["resources"].append(resource)
+    _write_yaml(directory / "bach" / "manifest.yaml", bach)
+    assert _problems(directory) == [
+        {
+            "code": "unknown_table",
+            "file": "bach/manifest.yaml",
+            "row": None,
+            "path": ["resources", index, "url"],
+            "message": f"the resource 'resource_{index + 1}' names '{url}', which "
+            f"is no table of the type {kind} in the package",
+        }
+        for index, (kind, url) in (
+            (4, ("Recording", "take.parquet")),
+            (5, ("Scan", "scans/")),
+            (6, ("Sheet", "sheet.bin")),
+            (7, ("Projection", "more.arrow")),
+        )
     ]
 
 
