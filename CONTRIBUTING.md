@@ -5,10 +5,10 @@ TypeScript packages validate it, and timetoalign emits its fixtures.
 
 ## Schema changes
 
-A version's schema is three documents in `schema/<version>/`: the
+A version's schema is four documents in `schema/<version>/`: the
 manifest schema `timetoshare.schema.json`, the provenance schema
-`provenance.schema.json` and the column types of the tables,
-`tables.json`, each with the `$id`
+`provenance.schema.json`, the column types of the tables,
+`tables.json`, and the package schema `package.schema.json`, each with the `$id`
 `https://timetoalign.github.io/timetoshare/<version>/<file>`. A release
 serves them, with the catalogue's schema `catalogue/catalogue.schema.json`
 as `<version>/catalogue.schema.json`, at their `$id`s and at

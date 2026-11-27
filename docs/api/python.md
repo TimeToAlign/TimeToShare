@@ -1,7 +1,7 @@
 # Python API
 
-The package `timetoshare` validates, reads and writes manifests and checks
-the table types. Install it with `pip install timetoshare`, and with
+The package `timetoshare` validates, reads and writes manifests, reads and
+checks the table types, and validates and checks packages. Install it with `pip install timetoshare`, and with
 `pip install "timetoshare[tables]"` for {py:mod}`timetoshare.tables`.
 
 The package root re-exports the public names of its modules (its

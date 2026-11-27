@@ -79,6 +79,9 @@ myst_substitutions = {
         f"{{download}}`provenance.schema.json <{_SCHEMA}/provenance.schema.json>`"
     ),
     "tables_schema": f"{{download}}`tables.json <{_SCHEMA}/tables.json>`",
+    "package_schema": (
+        f"{{download}}`package.schema.json <{_SCHEMA}/package.schema.json>`"
+    ),
 }
 
 # -- Design decisions --------------------------------------------------------

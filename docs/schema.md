@@ -1,6 +1,6 @@
 # Schema
 
-The schema of version {{ schema_version }} is three documents in
+The schema of version {{ schema_version }} is four documents in
 `schema/{{ schema_version }}/`, the contract the two packages validate
 (README, [The schema document](overview.md#the-schema-document)):
 
@@ -9,7 +9,10 @@ The schema of version {{ schema_version }} is three documents in
 - {{ provenance_schema }}: the provenance entry that statements,
   flow-control elements, FlowMaps and the MatchClaim table share;
 - {{ tables_schema }}: the column types of the MatchClaim table and the
-  Projections table, as data.
+  Projections table, as data;
+- {{ package_schema }}: the `package.yaml` of a package, which lists its
+  manifests and the tables they share (README,
+  [Packages](overview.md#packages)).
 
 The catalogue of identifier systems, verbs and types that guides the
 writing of statements ([Describing a manifest](description.md), section

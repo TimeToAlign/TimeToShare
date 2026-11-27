@@ -24,8 +24,10 @@ packages write each serialization to the same bytes and read each without
 losing what it holds; the JSON Schema validates the value a
 text holds, whatever its serialization. It defines the tables a manifest
 names beside it, the MatchClaim table and the Projections table, which
-the Python package checks, and how MatchClaims give alignment anchors and
-MatchStamps. It also specifies how a manifest
+the Python package reads and checks; the package, a folder whose
+`package.yaml` lists manifests and the tables they share, which both
+packages validate and the Python package checks whole; and how
+MatchClaims give alignment anchors and MatchStamps. It also specifies how a manifest
 is drawn and how its elements are described by property–value statements
 in published vocabularies, which make a manifest a YAML-LD document, with
 a catalogue of identifier systems, verbs and types that guides their
@@ -1196,7 +1198,9 @@ line's segments are contiguous and alike, nor that a named timestamp lies
 on a timeline or a virtual timeline of the manifest and within it, nor that a groupstamp lies
 in a group, nor that an elision lies on a timeline or a virtual timeline
 of the manifest and within it, nor that a resource's
-timelines are timelines or virtual timelines of the manifest, nor the rules of named
+timelines are timelines or virtual timelines of the manifest, nor that a
+timeline is listed by at most one resource of each type, nor that a
+folder has no `size` and no `integrity`, nor the rules of named
 MatchStamps ([Named MatchStamps](#named-matchstamps)), nor the rules of
 flow control, FlowMaps and virtual timelines ([Flow
 control](#flow-control)), nor the use of the property `flow` ([Drawing a
@@ -1251,7 +1255,8 @@ stable code:
 | A match timestamp lies on the coordinate of an earlier match timestamp of its timeline, compared by exact value | `match_timestamp` | the later timestamp | `'<id>' lies on the coordinate of the match timestamp '<earlier id>'` |
 | No named MatchStamp's anchor names a match timestamp | `match_timestamp` | the timestamp | `the match timestamp '<id>' belongs to no MatchStamp` |
 | An entry of a resource's `timelines` names no timeline and no virtual timeline of the manifest | `resource_timeline` | the entry | `'<id>' names no timeline or virtual timeline of this manifest` |
-| A resource has the type `MatchClaim` or `Projection` of an earlier resource | `resource_type` | the later resource's `type` | `a manifest names at most one resource of the type <type>; '<earlier id>' is one` |
+| An entry of a resource's `timelines` names a timeline that an earlier resource of the same type lists, for every type | `resource_type` | the entry | `'<id>' is listed by the resource '<earlier id>' of the type <type> already` |
+| A resource whose `url` ends in `/`, naming a folder, has a `size` or an `integrity` | `folder_descriptor` | that member, `size` before `integrity` | `'<url>' names a folder, which has no size` (`… which has no integrity`) |
 | A FlowMap's `timeline` names a child timeline, or no timeline | `flow_map_timeline` | the `timeline` | `'<id>' is a child timeline; a FlowMap names a root timeline` (`'<id>' names no root timeline of this manifest`) |
 | An ID among a FlowMap's `chunks` names no region, child timeline or virtual timeline inside the tree of its root | `flow_map_chunk` | the chunk | `'<id>' names no region, child timeline or virtual timeline in the tree of '<timeline id>'` |
 | A FlowMap is canonical after an earlier canonical FlowMap of its timeline | `flow_map_canonical` | its `canonical` | `'<id>' is a second canonical FlowMap of '<timeline id>', after '<earlier id>'` |
@@ -1303,7 +1308,9 @@ timestamps in order, then whether they lie on one timeline) before
 whether the MatchStamp's anchors connect, followed by the match
 timestamps in array order, for each a
 coordinate shared with an earlier one, then belonging to no MatchStamp; then the resources, in array order, each its
-`timelines` in order before its `type`; then the FlowMaps, in array
+`timelines` in order, for each entry first whether it names a timeline,
+then whether an earlier resource of its type lists it, and last a
+folder's `size` or `integrity`; then the FlowMaps, in array
 order, each its `timeline`, then its chunks in order (none where the
 `timeline` names no root), then whether it is a second canonical FlowMap;
 then the virtual timelines, in array order, each its `map`, then its
@@ -1342,7 +1349,7 @@ refused by the schema.
 
 ### The schema document
 
-Version 0.2.0 is three documents in `schema/0.2.0/`: the manifest
+Version 0.2.0 is four documents in `schema/0.2.0/`: the manifest
 document `timetoshare.schema.json`, with the identifier
 `https://timetoalign.github.io/timetoshare/0.2.0/timetoshare.schema.json`,
 so the document lies below `schema/` at the path of its identifier; beside
@@ -1351,8 +1358,11 @@ provenance entry that the manifest's statements, its flow-control
 elements and FlowMaps and the MatchClaim table's rows share ([Provenance
 and beliefs](#provenance-and-beliefs)),
 and to which the manifest document refers for every `provenance` entry;
-and `tables.json`, the column types of the two tables as data ([Resources
-and tables](#resources-and-tables)). Every released version's documents,
+`tables.json`, the column types of the two tables as data ([Resources
+and tables](#resources-and-tables)); and the package document
+`package.schema.json`, the schema of a package's `package.yaml`
+([Packages](#packages)), which refers to the manifest document for
+`Descriptor`, `IriReference`, `Name` and `Meta`. Every released version's documents,
 and with them the catalogue's schema `catalogue/catalogue.schema.json` as
 `<version>/catalogue.schema.json`, are served at their identifiers and,
 by this repository's own GitHub Pages site, at
@@ -1368,7 +1378,7 @@ embedded by a host schema; within 0.2.x they change only by addition:
 
 `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
 `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
-`MeasureMap`, `MeasureMapRow`, `Resource`, `Timestamp`, `MatchStamp`,
+`MeasureMap`, `MeasureMapRow`, `Descriptor`, `Resource`, `Timestamp`, `MatchStamp`,
 `AlignmentAnchor`, `Context`, `Statements`, `StatementValue` and
 `ProvenanceEntry`.
 
@@ -1388,8 +1398,11 @@ the manifest and provenance documents.
 
 A manifest holds the structure of its timelines; what lies on them, their
 events and the MatchClaims that relate them, lies in tables beside it,
-which the manifest names. A manifest and the files it names make a
-**package**. The manifest draws and validates without them.
+which the manifest names. Manifests and the files they name make a
+**package**: a folder whose `package.yaml` lists them, so that several
+manifests may share their tables ([Packages](#packages)), or a manifest
+alone with the files beside it, a package of one manifest. The manifest
+draws and validates without them.
 
 ### Resources
 
@@ -1412,13 +1425,28 @@ resources:
 | `id` | yes | the resource's ID ([Identity](#identity)) |
 | `type` | yes | what its rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events it holds |
 | `timelines` | yes | the IDs of the timelines it holds data for, each a timeline or a virtual timeline of the manifest |
-| `url` | yes | its location, relative to the manifest's own, so that a bare file name lies beside the manifest |
-| `media_type` | no | its media type |
-| `size` | no | its size in bytes |
-| `integrity` | no | the digest of its raw bytes, `{algorithm, digest}`: `algorithm` the hash function as the PREMIS vocabulary of cryptographic hash functions names it, one of `MD5`, `SHA-1`, `SHA-256`, `SHA-384` and `SHA-512`, and `digest` the digest in lower-case hexadecimal |
+| `url` | yes | its location, relative to the manifest's own, so that a bare file name lies beside the manifest: a file, or a folder of files when it ends in `/` |
+| `media_type` | no | its media type, or that of each file of a folder |
+| `size` | no | its size in bytes; a file's only |
+| `integrity` | no | the digest of its raw bytes, `{algorithm, digest}`: `algorithm` the hash function as the PREMIS vocabulary of cryptographic hash functions names it, one of `MD5`, `SHA-1`, `SHA-256`, `SHA-384` and `SHA-512`, and `digest` the digest in lower-case hexadecimal; a file's only |
 
-At most one resource has the type `MatchClaim`, and at most one the type
-`Projection`. A table of events is named by the same entry, its `type`
+`url`, `media_type`, `size` and `integrity` are the members of a
+**descriptor**, the schema's `Descriptor`, which also names each manifest
+and each table of a package's `package.yaml`. A manifest may name several
+resources of one type, for rows kept in different files, but a timeline
+is listed by at most one resource of each type (`resource_type`,
+[Identity](#identity)). A **folder**, a `url` ending in `/`, is read as
+one table: its files are the names ending in `.parquet` directly inside
+it, not in its subfolders, none starting with `.` or `_` (a file being
+written, a `_delta_log`); their schemas are unified by column name, a
+column a file lacks reading as null, and one column of two Arrow types in
+two files is refused. A folder has no `size` and no `integrity`
+(`folder_descriptor`). A file or a folder may hold the rows of other
+manifests' timelines, as the files a package's manifests share do: a
+reader of the manifest keeps, for each resource, the rows of the
+timelines it lists, an event's by its `timeline_id` and a MatchClaim's by
+either of its timelines, and passes over the others
+([Packages](#packages)). A table of events is named by the same entry, its `type`
 the type of its events; the Projections table is the one such table this
 version defines. Parquet is the form in which packages read and write
 these tables. `schema/0.2.0/tables.json` publishes the column types of
@@ -1441,10 +1469,12 @@ string, `CHUNK_SENTINEL` and `NOMATCH_SENTINEL`, and an event ID column
 is never null. The sentinel CHUNK of a MatchClaim side is unrelated to
 the chunks of a FlowMap, the stretches in the order they are played
 ([FlowMaps and virtual timelines](#flowmaps-and-virtual-timelines)). MatchClaims are data, not
-structure, and a manifest holds none. They live in one table per package,
-the **MatchClaim table**, named by the resource of type `MatchClaim`, and
-it is the one place they live. A MatchClaim table belongs to one
-manifest, and a MatchClaim is addressed by its ID alone. It holds one row per MatchClaim and one
+structure, and a manifest holds none. They live in the **MatchClaim
+table**, a file or a folder of files that a manifest names by its
+resources of type `MatchClaim`, and it is the one place they live. Every
+MatchClaim belongs to one manifest, the one holding both its timelines,
+and a MatchClaim is addressed by its ID alone, which the package holds
+once. It holds one row per MatchClaim and one
 column per property of a MatchClaim, each of the Arrow type given; a
 column whose Null is "never" holds a value in every row:
 
@@ -1567,13 +1597,13 @@ for its history: it reads the table it is given.
 ### The Projections table
 
 A **Projection** is an event that stands on a timeline for an event not
-held there. It is an event type of its own, and a package holds one table
-of them, the **Projections table**, named by the resource of type
-`Projection`:
+held there. It is an event type of its own, held in the **Projections
+table**, a file or a folder of files that a manifest names by its
+resources of type `Projection`:
 
 | Column | Arrow type | Null | Holds |
 | --- | --- | --- | --- |
-| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted otherwise, `projection_` and 13 random base-36 characters ([Identity](#identity)), never a sentinel's reserved string. An event's ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on |
+| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted otherwise, `projection_` and 13 random base-36 characters ([Identity](#identity)), never a sentinel's reserved string. An event's ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on, and the package check refuses an ID held twice among all the event rows of a package, of every type and file ([Packages](#packages)) |
 | `timeline_id` | string | never | the timeline the Projection is an event of, a timeline of the manifest |
 | `unit`, `number_type` | string | never | the unit and the number type of its `start` and `duration`, stated once for both: those of the timeline's own axis |
 | `start` | number | never | its position on that timeline's own axis |
@@ -1687,7 +1717,10 @@ The Python package checks both tables in `timetoshare.tables`
 `projection_problems(table, manifest=None)` list every problem of a table;
 given a manifest (as read from its file, IDs written `#`), they also
 refuse a timeline the manifest does not hold and a cell off its
-timeline's axis. Each problem is a `TableProblem` of a `code`, a `row`
+timeline's axis. Given a manifest, every row is the manifest's, a row of
+another manifest's timelines included: a file the manifests of a package
+share is read filtered first, by `read_table` with the timelines a
+resource lists ([Packages](#packages)), and then checked. Each problem is a `TableProblem` of a `code`, a `row`
 (its index from 0, or `None` for the whole table), a `column` (a tuple
 path such as `("start_anchor", "coordinate_a")`, written
 `start_anchor.coordinate_a` below) and a `message`. A table missing a
@@ -1803,6 +1836,186 @@ columns in the type's order; `check_succession` raises the first.
 | --- | --- | --- | --- |
 | A MatchClaim of the old table is missing from the new one | `succession_missing` | `id`, row `None` | `the MatchClaim '<id>' is missing` |
 | A MatchClaim of the old table has another value in a column but `provenance` | `succession_changed` | that column, the row in the new table | `the MatchClaim '<id>' changed its '<column>'` |
+
+### Packages
+
+A **package** is a folder of manifests and the tables their resources
+name, with a file `package.yaml` at its root listing them:
+
+```yaml
+manifests:
+  -
+    media_type: application/yaml
+    url: bach/manifest.yaml
+  -
+    media_type: application/yaml
+    url: handel/manifest.yaml
+name: "Two manifests sharing their tables"
+tables:
+  -
+    media_type: application/vnd.apache.parquet
+    type: MatchClaim
+    url: tables/MatchClaim/
+  -
+    media_type: application/vnd.apache.parquet
+    type: Projection
+    url: tables/Projection/
+timetoshare: "0.2.0"
+```
+
+Its schema is the package document, `schema/0.2.0/package.schema.json`
+([The schema document](#the-schema-document)), and every object in it is
+open:
+
+| Key | Required | Holds |
+| --- | --- | --- |
+| `timetoshare` | yes | the version of the package, `"0.2.0"`, which every manifest and every table file of it declares |
+| `id` | no | the package's IRI where it is published, such as its repository or its DOI |
+| `name`, `meta` | no | its name and free-form metadata, as a manifest's |
+| `manifests` | yes | the manifests, each once, each a descriptor ([Resources](#resources)): its `url`, and optionally its `media_type`, `size` and `integrity` |
+| `tables` | yes, possibly empty | the tables, each a descriptor with the `type` of its rows, as a resource states it; a type may have several entries, for rows kept in different files |
+
+- **URLs** are resolved against the address of the document stating
+  them: an entry of `package.yaml` against the package's root, a
+  resource against its manifest. A URL leading outside the package names
+  nothing in it. A `url` ending in `/` names a folder, read as one table
+  ([Resources](#resources)); a folder has no `size` and no `integrity`.
+- **The manifests are listed one by one**, never by a pattern.
+- **Each manifest's resources name the files and folders it reads**,
+  with the timelines whose rows it keeps, so that the manifests and
+  `package.yaml` name the same files, and nothing in a table file names a
+  manifest. A resource names a table entry exactly, by the same resolved
+  URL and the same type: a resource naming one file of a folder entry
+  names no entry.
+- **A file's metadata** states its type (`timetoshare:type`, such as
+  `Projection`) and its format version (`timetoshare:version`); a
+  MatchClaim file may state the provenance its rows share
+  (`timetoshare:provenance`, [The MatchClaim
+  table](#the-matchclaim-table)). Nothing else of a file's metadata is
+  read.
+- **A manifest alone**, its resources naming files beside it, without a
+  `package.yaml`, stays valid unchanged: it is a package of one manifest.
+  Checked against that manifest, a row of a timeline the manifest does
+  not hold is refused (`unknown_timeline`, [Checking the
+  tables](#checking-the-tables)). Manifests that share a file are listed
+  by a `package.yaml`, which the package check reads.
+
+**Validating `package.yaml`.** Python's `validate_package(value)` and
+npm's `validatePackage(value)` check the value of a `package.yaml` alike
+and raise the first problem as a `SchemaValidationError`. A value without
+`timetoshare` is `not_a_package` at the root (`not a TimeToShare
+package`), and one declaring another version raises
+`UnsupportedVersionError`, as a manifest does. Then the package schema,
+its problem chosen by the one path rule (`schema`); then, entry by entry,
+the manifests and then the tables:
+
+| Rule | Code | Path | Message |
+| --- | --- | --- | --- |
+| A manifest is listed again under the same `url` | `duplicate_url` | the later entry's `url` | `the manifest '<url>' is listed twice, first at <pointer>` |
+| A table is listed again under the same `url` and `type` | `duplicate_url` | the later entry's `url` | `the table '<url>' of the type <type> is listed twice, first at <pointer>` |
+| An entry whose `url` ends in `/`, naming a folder, has a `size` or an `integrity` | `folder_descriptor` | that member, `size` before `integrity` | `'<url>' names a folder, which has no size` (`… which has no integrity`) |
+
+URLs are compared as written, and one `url` under two types is valid.
+Python's `package_schema_path()` returns the path of the package document,
+and `load_package_schema()` returns it with the definitions it reaches in
+the manifest document bundled into it, so that every reference is local;
+the npm package validates against the same bundle.
+
+**Reading a manifest's rows.** Python's
+`timetoshare.tables.read_table(path, *, timelines=None, type=None)` reads
+a table, a file or a folder of files, as one Arrow table through
+`pyarrow.dataset`; `table_files(path)` lists a folder's files, sorted by
+code point. Given `timelines`, bare IDs, the reader keeps the rows of
+those timelines: an event's whose `timeline_id` is listed, a
+MatchClaim's either of whose timelines is, so that a check against the
+manifest sees a MatchClaim reaching outside it. A manifest's rows of one
+resource are therefore `read_table` of the resource's URL with its
+`timelines`, which the table checks against the manifest then pass. A
+MatchClaim file's shared provenance is filled into the `provenance` cell
+of each of its own rows before the files are joined, so that no reader of
+a folder loses it. The table's type is what its files state, else
+`type`; where both are stated they agree, and the table returned states
+its type alone in its metadata. An empty folder gives no rows, in the
+declared columns of a MatchClaim or Projections table and in none for
+another type. The rows come in the files' order, then each file's;
+readers never rely on it, and an unsorted file is read. `read_table`
+raises `FileNotFoundError` for a path that is neither a file nor a
+folder, and a `TableError` for:
+
+| Refusal | Code | Column | Message |
+| --- | --- | --- | --- |
+| Two files state two types | `table_type` | none | `'<file>' holds the type <type> and '<file>' the type <type>` |
+| A file states another type than `type` | `table_type` | none | `'<file>' holds the type <type>, not <type>` |
+| No file states a type and no `type` is given | `table_type` | none | `the table names no type: no file states 'timetoshare:type'` |
+| One column has two Arrow types in two files, nullability and the names of list items not compared | `column_type_mismatch` | the column | `the column '<name>' is <type> in '<file>' and <type> in '<file>'` |
+| `timelines` is given and the files lack a column naming a row's timeline | `schema_violation` | that column | `the table has no column '<name>'` |
+| A MatchClaim file's provenance is no provenance entry | `invalid_provenance` | `provenance` | the file's provenance message ([Checking the tables](#checking-the-tables)), followed by `, in '<file>'` |
+| A MatchClaim row states its own provenance beside the file's | `invalid_provenance` | `provenance`, at its row in the table read | `the provenance is stated in the file's metadata and in the row` |
+| A MatchClaim file states a shared provenance and its `provenance` column is of another type than the declared one, so that the provenance cannot be filled in | `schema_violation` | `provenance` | `the column 'provenance' is <type>, not <type>, in '<file>'` |
+
+**The package check.** Python's
+`timetoshare.tables.package_problems(path)`, `path` a package's
+`package.yaml` (`PACKAGE_FILE`), lists every problem of a package. Each is
+a `PackageProblem` of a `code`, a `file` (its path from the package's
+root, `/`-separated: `package.yaml`, a manifest, a table's file, or a
+table's folder for what its files share), a `row` of that file (`None`
+for no single row), a `path` (a JSON path in `package.yaml` or a
+manifest, the column path of a table's row) and a `message`.
+`PackageCode` names the codes of its own rules; a problem may also carry
+a manifest validation's code or a table check's. It raises
+`FileNotFoundError` where `path` is no file and `ValueError` where
+`package.yaml` or a manifest is no readable text. It checks, in this
+order:
+
+1. `package.yaml` itself, by `validate_package`; a problem there ends the
+   check, another version being reported as `version_mismatch`.
+2. Manifest by manifest, as listed: a missing manifest, and a manifest
+   that is not valid, with its validation's code and path.
+3. Table by table and file by file: a missing file or folder, a file an
+   earlier entry of the same type reaches already, such as a file entry
+   inside a listed folder (the later entry reads its other files only, so
+   that no row is read twice), a file of another type or version, and a
+   column of two Arrow types (whose rows are then not read).
+4. The rules the manifests and the rows keep together, rule by rule as
+   the table below lists them, each over the event rows and then the
+   MatchClaim rows, in the order of the entries, their files and their
+   rows. They read the columns `id`, `timeline_id`, `unit` and
+   `number_type` of the event tables and `id`, `timeline_a_id` and
+   `timeline_b_id` of the MatchClaim tables.
+5. Manifest by manifest, the table checks of each MatchClaim or
+   Projections table its resources name, in the order they first name it,
+   over the rows of the timelines those resources list, each problem
+   placed in its file and row ([Checking the
+   tables](#checking-the-tables)). A problem a package rule already
+   reports at the same file, row and column with the same code, or an
+   `unknown_timeline` on a MatchClaim reaching another manifest, is not
+   repeated.
+
+| Rule | Code | File, path | Message |
+| --- | --- | --- | --- |
+| A manifest `package.yaml` lists is missing | `missing_file` | `package.yaml`, the entry's `url` | `no manifest lies at '<url>' in the package` |
+| A manifest declares another version than the package | `version_mismatch` | the manifest, `timetoshare` | `the manifest declares the version '<version>', the package '<version>'` |
+| A table's file or folder is missing | `missing_file` | `package.yaml`, the entry's `url` | `no file lies at '<url>' in the package` (`no folder lies at …`) |
+| A file an earlier table entry of the same type reaches | `duplicate_url` | `package.yaml`, the later entry's `url` | `the file '<file>' is read by the table '<earlier url>' already` |
+| A file states another type than its entry | `table_type` | the file, `[]` | `the file holds the type <type>, its table the type <type>` |
+| A file declares another version than the package | `version_mismatch` | the file, `[]` | `the file declares the version '<version>', the package '<version>'` |
+| One column has two Arrow types in two files | `column_type_mismatch` | the folder, the column | `the column '<name>' is <type> in '<file>' and <type> in '<file>'` |
+| A timeline ID, a virtual timeline's included, is held by two manifests | `duplicate_timeline` | the later manifest, the timeline's `id` | `the timeline '<id>' is a timeline of '<manifest>' as well` |
+| A resource's URL names no table entry of its type, or leads outside the package | `unknown_table` | the manifest, the resource's `url` | `the resource '<id>' names '<url>', which is no table of the type <type> in the package` |
+| An event ID is held twice among all the event rows of the package, of every type and file; then a MatchClaim ID twice among its MatchClaims | `duplicate_id` | the later row's file and row, `id` | `the event ID '<id>' is given twice, first in '<file>' at row <row>` (`the MatchClaim ID …`) |
+| A row's timeline (a MatchClaim's either, column by column) is null, where the file holds the column as strings | `schema_violation` | the row, the column | `'<column>' is null` |
+| A row's timeline is held by no manifest | `unknown_timeline` | the row, the column | `no manifest of the package has the timeline '<id>'` |
+| A row's timeline is listed by none of its manifest's resources of the row's type naming the row's table | `unlisted_timeline` | the row, the column | `the timeline '<id>' of '<manifest>' is listed by no resource of the type <type> naming this table` |
+| A MatchClaim's two timelines lie in two manifests | `claim_across_manifests` | the row, `timeline_b_id` | `the MatchClaim joins the timeline '<id>' of '<manifest>' and the timeline '<id>' of '<manifest>'` |
+| An event row states a unit and a number type the format admits that are not its timeline's in its manifest | `axis_mismatch` | the row, `unit` where the units differ, else `number_type` | `a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit> (<number type>)` |
+
+`fixtures/packages/0.2.0/` holds the package fixtures: `shared/`, two
+manifests sharing a folder of Projections and a folder of MatchClaims,
+beside an `expected.yaml` naming the rows each resource reads, and
+`rejections/<case>/`, the shared package broken by one change each,
+beside the problems the package check reports
+([Fixtures](#fixtures)); Python's `package_fixture_path(*parts)` gives
+their paths.
 
 ## MatchStamps
 
@@ -2740,6 +2953,10 @@ else:
   `provenance_schema_path()` that of the provenance document beside it;
   `load_schema()` returns the manifest document with the provenance
   document bundled into it, so that every reference is local.
+  `validate_package(value)` checks the value of a package's
+  `package.yaml`, `package_schema_path()` returns the path of the package
+  document and `load_package_schema()` that document with the
+  definitions it reaches bundled into it ([Packages](#packages)).
 - `timetoshare.tables`, which needs the extra `tables`
   (`pip install "timetoshare[tables]"`, which installs pyarrow), reads
   the two tables as Arrow tables ([Resources and
@@ -2767,13 +2984,21 @@ else:
   tables](#checking-the-tables) gives every rule);
   `check_succession` and `succession_problems` check the succession rule;
   `row_provenance(table)` gives each row's provenance, its own or the
-  file's. `alignment_anchors`, `potential_matchstamps` and
+  file's. `read_table(path, *, timelines=None, type=None)` reads a table,
+  a file or a folder of files (`table_files(path)`), keeping the rows of
+  the timelines given, and `package_problems(path)` checks a package
+  whole, each problem a `PackageProblem` (`code`, `file`, `row`, `path`,
+  `message`) of a `PackageCode`, a `TableCode` or a validation code
+  ([Packages](#packages)); `PACKAGE_FILE` is `"package.yaml"`, and
+  `TYPE_METADATA_KEY` and `VERSION_METADATA_KEY` are the metadata keys
+  `"timetoshare:type"` and `"timetoshare:version"`. `alignment_anchors`, `potential_matchstamps` and
   `believed_rows` derive the unique anchors and the potential MatchStamps
   of a MatchClaim table under the belief filter ([From MatchClaims to
   anchors](#from-matchclaims-to-anchors)), a reference derivation for
   conformance; each takes a `believer`, the `beliefs` it keeps (by
   default `DEFAULT_BELIEFS`) and the `context` under which actors
-  expand. `fixture_path(name)` returns a file of the table fixture
+  expand. `fixture_path(name)` returns a file of the table fixture and
+  `package_fixture_path(*parts)` a package fixture or a file in it
   ([Fixtures](#fixtures)).
 - `fixture_paths()` returns the bundled accepted fixtures,
   `rejection_paths()` the bundled rejection cases and `warning_paths()` the
@@ -2849,6 +3074,9 @@ rewrite(text) === text; // true: the text is canonical YAML
   `LosslessManifest` (its numbers may be bigints and `JsonFloat`s),
   checking it as Python's `validate` does; its `SchemaValidationError` carries the same
   `code` (typed `ValidationCode`), a `path` and a `detail`.
+  `validatePackage(value)` checks the value of a `package.yaml` as
+  Python's `validate_package` does, with the same codes, paths and
+  messages ([Packages](#packages)).
 - `unknownKeys(value)` returns the same list as Python's `unknown_keys`,
   and `manifestWarnings(value)` the same list as Python's
   `manifest_warnings`.
@@ -3290,7 +3518,14 @@ table (`match_claims.parquet`), its Projections table
 MatchStamps expected of the MatchClaim table (`expected.yaml`), every
 value written by hand in `scripts/emit_tables.py`, which alone writes
 them; the expected values are literal data, never computed by the
-derivation they test. The rejection and warning cases are
+derivation they test. The package fixtures lie under
+`fixtures/packages/0.2.0/` ([Packages](#packages)): `shared/`, a package
+of two manifests sharing a folder of Projections and a folder of
+MatchClaims, and `rejections/<case>/`, the shared package breaking one
+rule each, every package beside an `expected.yaml` of literal data, the rows read or the
+problems reported, written by `scripts/emit_packages.py`, which alone
+writes them ([fixture guide](fixtures/README.md#the-package-fixtures)).
+The rejection and warning cases are
 written in canonical YAML too; a case about JSON text itself would be
 written in JSON, and none is at present.
 
@@ -3381,7 +3616,13 @@ and the table fixture, also from `python/`:
 uv run python ../scripts/emit_tables.py
 ```
 
-Each of the three scripts refuses to overwrite the files of a version
+and the package fixtures, also from `python/`:
+
+```bash
+uv run python ../scripts/emit_packages.py
+```
+
+Each of the four scripts refuses to overwrite the files of a version
 whose `v<version>` tag exists.
 
 From the repository root, check version declarations with:
