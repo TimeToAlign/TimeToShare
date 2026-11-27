@@ -62,8 +62,8 @@ containers are the **boxes** of a drawing.
     default), each item lying at its place, or an object `{direction,
     order}` that places the items in an order instead: `direction` is
     `"vertical"`, the items one under another, or `"horizontal"`, the
-    items side by side in one row, every root that groups hang on drawn
-    once behind the row (section 8.8, Drawn once); `order` is a list of
+    items side by side in one row, every root that two or more groups
+    hang on drawn once behind the row (section 8.8, Drawn once); `order` is a list of
     the IDs of groups, ungrouped roots and placed virtual timelines, the
     order to take the items in.
     Like every input here, an arrangement says where the drawing places
@@ -110,7 +110,8 @@ from which places are measured (section 8.6). Every element carries its
 coordinate it shows, whatever its label's text (section 5.2). A drawing
 of an arranged block also states its **arrangement**: its direction, the
 order of its items (for `horizontal`, the row) and the roots drawn once,
-top to bottom, or, where `horizontal` is refused, the conflict, its
+line by line from the top and on each line from the left, or, where
+`horizontal` is refused, the conflict, its
 groups, its roots and its reason (section 8.8, Drawn once). Canvas units become
 CSS pixels in SVG and points in TikZ (section 7).
 
@@ -813,7 +814,7 @@ The value of a property on an element is found per property:
 3. Otherwise the property's initial value applies: `stroke` `none`,
    `stroke-width` 1, `stroke-dasharray` `none`, `fill` `none`, `opacity` 1,
    `font-size` 9, `rx` 0, `shadow` `none`, `display` `inline`, `content`
-   `none`, `max-width` `none`, `rotation` 0, `elision-mode` `auto`,
+   `none`, `max-width` `none`, `rotation` 0, `elision-mode` `custom`,
    `elision-proportion` `auto`, `elision-depths` `auto`, `elision-display`
    `ellipsis name`, `label-display` `name label`, and `flow` none, which
    no declaration writes: the card is drawn as written.
@@ -2917,15 +2918,21 @@ root of unknown length is drawn with its reach at the shared end (section
 
 ### 8.1 What is drawn
 
-- **Groups.** A block draws the manifest's groups in canonical order (by ID), and
+- **Groups.** A block draws the manifest's groups in **name order**, and
   then every **ungrouped root**, a root of `timelines` that no group names
-  as a member and that contains no member, in canonical order (by ID). A
+  as a member and that contains no member, in name order. A
   root that contains a member is no ungrouped root: it is drawn as an
   ancestor line of that member and, unless a rule hides it, whole in an
   ancestor card behind the member's frame (section 8.8). Then come the
   **placed virtual timelines**, those that no group names and whose ID
-  `places` holds, in canonical order (by ID); a virtual timeline that no
+  `places` holds, in name order; a virtual timeline that no
   group names and `places` does not hold is not drawn (section 8.10).
+  Name order is by the title of a group and the name of a timeline
+  (section 5.3: its `name`, or its whole `id` where `name` is null),
+  compared by Unicode code point, and then by `id`, compared by code
+  point: groups named `Theme B`, `Theme A` and `group_7` (no `name`) are
+  drawn `Theme A`, `Theme B`, `group_7`, and two groups named `Score`
+  in the order of their IDs.
   This is the block's **drawing order**; an arrangement takes the items in its own
   order instead (section 8.6).
 - **Frames.** Each group is a **frame**, a `frame` element: a rounded
@@ -3280,18 +3287,20 @@ come the gaps of the frames' group elisions, frame by frame in drawing
 order and in each frame from the left, each written as a card's gap is,
 its rows taken card by card from the top; then the
 groupstamps' lines, timestamp by timestamp in the order of `timestamps`
-and frame by frame in the order of `groups`, each frame's lines from the
+and frame by frame in drawing order, each frame's lines from the
 top down (section 6.6); then the alignment anchors and then their labels (section 8.7), so that they
 lie over everything else. In an arranged block (section 8.6) the item
 order, or for `horizontal` the row, takes the place of drawing order
 throughout: the frames and the ungrouped roots' cards are written in
 that one order, a frame or a card each where it stands in it, and the
 gaps of the frames follow it too. In a block arranged `horizontal` the
-ancestor cards written are its once cards (section 8.8, Drawn once), in
-the order of their roots from the top, each followed by its gaps from
-the left as a card's gaps are, a seam writing nothing; a line of the
-member drawing cut by gaps is written as its pieces from the left, in the
-line's place.
+ancestor cards written are first its once cards (section 8.8, Drawn
+once), line by line from the top and on each line from the left, each
+followed by its gaps from the left as a card's gaps are, a seam writing
+nothing, and then the ancestor cards of the roots that one group hangs
+on, frame by frame in the row, each frame's in the order of section 8.8
+(Which); a line of the member drawing cut by gaps is written as its
+pieces from the left, in the line's place.
 A title is a text descriptor of section 7.2, anchored at `start`;
 its `content` and `max-width` apply as section 6.6 applies them to a row's
 name.
@@ -3347,15 +3356,22 @@ not arranged; every other member of its place applies as above.
   displayed ancestor cards, as above.
 - `horizontal`: the items stand in one row, in the **row** of section
   8.8 (Drawn once), which keeps the item order wherever the stretches of
-  the groups on their roots leave it free. The first item lies at `x =
-  P`, each further one at the previous item's `x` plus its width plus
-  the **row gap** `max(S, 48)`, `S` the block's spacing, summed in that
-  order; an item's width is its drawn width, `scale` times its `b − a`
-  (section 8.4), a card's shadow not counted. Their tops, and the once
-  cards of the roots they hang on, are those of section 8.8; where no
-  group hangs on a root every item's top is the first item's default
-  `y`. When the rules of section 8.8 refuse the row, the block is drawn
-  as `vertical`, in the item order, and the drawing states why.
+  the groups on their shared roots leave it free. An item's **row
+  extent** runs from its drawn left edge to its drawn right edge, `scale` times
+  its `b − a` (section 8.4) wide, a card's shadow not counted, and
+  further to either side where a displayed ancestor card of a root that
+  one group hangs on, which stays behind its frame (section 8.8, Drawn
+  once), lies beyond it, that card's shadow not counted either. The
+  first item's row extent starts at `x = P`, and each further one's the
+  **row gap** `max(S, 48)` right of where the previous one's ends, `S`
+  the block's spacing, summed in that order; each item's `x` lies as far
+  right of where its row extent starts as its ancestor cards lie left of
+  its left edge, 0 for an item without such a card, so that without
+  them each item lies at the previous item's `x` plus its width plus the
+  row gap. Their tops, and the once cards of the shared roots, are
+  those of section 8.8 (Drawn once). When the rules of section 8.8
+  refuse the row, the block is drawn as `vertical`, in the item order,
+  and the drawing states why.
 
 An item is laid out by sections 8.2 and 8.4 with its own `length` as `L`,
 in item coordinates, its left edge and top at 0, every sum written as those
@@ -3583,7 +3599,8 @@ forms them. With `x0` the start of the member drawings of `G`'s frame and
 The fixture `group_parent_both` drawn with the defaults shows the root
 `piece` (16 quarters) behind the frame of its child `middle` (8 quarters
 at offset 4), so `us = −0.5` and `ue = 1.5` and `LA = 800` at the
-length 400; its proportion is 1 (section 8.9), so it derives no elision,
+length 400; under the initial mode `custom` it derives no elision (nor
+would it under `auto`, its proportion being 1, section 8.9),
 and the card is written at `x` 8 and `y` 36.207, 1013.0391 wide
 and 63.3789 high, `piece`'s line runs from 60.3354 to 1004.0391 at
 `y` 85.1836, on the faded ancestor line of `piece`, which the default band
@@ -3595,12 +3612,23 @@ at 47.207: between `middle`'s markers band and the line of `piece`,
 row of `piece`, and `piece`'s drawing only the start 7 of its children
 band.
 In `group_parents_mixed`, three roots lie behind one frame, each aligned
-to the first of its members in the display order; `sonata` is drawn
-whole, `session` and `page` with the gaps they derive (section 8.9).
+to the first of its members in the display order; with the defaults
+each is drawn whole, and with the rule
+
+```json
+{"select": {"element": "ancestor_card"}, "set": {"elision-mode": "auto"}}
+```
+
+in a layer `sonata` is still drawn whole, `session` and `page` with the
+gaps they derive (section 8.9).
 
 **Drawn once.** In a block arranged `horizontal` (section 8.6) every
-root that groups hang on is drawn once, behind the row of items, and
-each group stands where its stretch lies on that root.
+**shared root**, a root that two or more groups hang on, is drawn once,
+behind the row of items, and each of those groups stands where its
+stretch lies on that root. A root that one group hangs on is no shared
+root: it keeps its ancestor card behind that group's frame, laid out,
+placed and drawn as in a block not arranged (Which, Geometry, above),
+and the card moves with its frame.
 
 *Words.* A group **hangs on** a root `R` when it has an ancestor card of
 `R` (Which, above): when one of its members lies below `R`, a child, a
@@ -3609,37 +3637,45 @@ first member below `R` in its display order, is the group's **anchor**
 on `R`, and the anchor's **stretch** runs on `R`'s axis from the
 anchor's start (section 3.1) to its end (section 3.4), so that a member
 of unknown length stretches to its drawn end. A member that is the root
-itself anchors nothing; an ungrouped root's card hangs on nothing.
+itself anchors nothing; the card of an ungrouped root or of a placed
+virtual timeline hangs on nothing.
 
 *The rules.*
 
-1. The items stand side by side in one row, and each root that a group
-   hangs on is drawn once behind them, the roots one under another.
-2. Along every root, the stretches of the groups hanging on it follow
-   the row from left to right without overlapping; touching is allowed.
-3. In every group, the anchors lie in the same top-to-bottom order as
-   their roots.
+1. The items stand side by side in one row, and each shared root is
+   drawn once behind them, on a **line**: the lines lie one under
+   another, and one line may hold several shared roots side by side.
+2. Along every shared root, the stretches of the groups hanging on it
+   follow the row from left to right without overlapping; touching is
+   allowed.
+3. In every group, the anchors on shared roots lie in the same
+   top-to-bottom order as the lines of their roots.
 
-*The orders.* Rule 2 gives, for each root in canonical order (by ID) and
-each two groups hanging on it, taken in the item order (section 8.6),
+A root that one group hangs on is bound by none of them.
+
+*The orders.* Rule 2 gives, for each shared root in name order (section
+8.1) and each two groups hanging on it, taken in the item order (section 8.6),
 "`G` before `H`" when `G`'s stretch ends at or before the start of
 `H`'s, and "`H` before `G`" when `H`'s ends at or before the start of
 `G`'s, compared exactly: nothing when both hold (two stretches without
 length at one position), and an **overlap** when neither does. Rule 3
-gives, for each group in canonical order and each two of its anchors
-next to each other in its display order, "the upper anchor's root above
-the lower's". The **row** is the item order sorted by the first
-relation: repeatedly the first item of the item order left that no item
-left must precede. The **roots**, every root some group hangs on, are
-sorted likewise by the second relation, starting from canonical order.
-So the row keeps the item order wherever the stretches leave it free,
-and roots no group orders lie in canonical order.
+gives, for each group in drawing order and each two of its anchors on
+shared roots that follow each other among them in its display order,
+"the upper anchor's root above the lower's". The **row** is the item
+order sorted by the first relation: repeatedly the first item of the
+item order left that no item left must precede. The **roots**, the
+shared roots, are sorted likewise by the second relation, starting from
+the order of their first groups: each root where the first group of the
+row hanging on it stands in the row, and roots of one first group in
+name order. So the row keeps the item order wherever the stretches leave
+it free, and the roots follow the row wherever the anchors leave them
+free.
 
 *Refusal.* When no row and no order of the roots satisfy rules 2 and 3
 for all groups at once, `horizontal` is refused, and the first of these
 names the conflict:
 
-- **An overlap**, on the first root in canonical order where two
+- **An overlap**, on the first shared root in name order where two
   stretches overlap, of the first such pair in the item order: its groups
   are the pair, its root that root, and its reason `"G" and "H" overlap
   on "R" (a–b)`, the stretch both cover, from the later start to the
@@ -3653,13 +3689,13 @@ names the conflict:
   item order among those still left, until an item repeats. The cycle so
   found, begun at its item earliest in the item order, gives the
   groups, the root of each step (of two roots giving one step, the
-  earlier in canonical order) and the reason, for two groups `on "R" "G"
+  earlier in name order) and the reason, for two groups `on "R" "G"
   comes first, on "S" "H"`, and for more `on "R" "G" comes before "H", on
   "S" "H" before "J", on "T" "J" before "G"`.
-- **The roots in a cycle**, found and begun likewise among the roots in
-  canonical order, every root that must lie above none of the others
+- **The roots in a cycle**, found and begun likewise among the shared
+  roots in name order, every root that must lie above none of the others
   still left set aside first: the groups of its steps (of two groups
-  giving one step, the earlier in canonical order), its roots and the
+  giving one step, the earlier in drawing order), its roots and the
   reason `"G" holds "R" above "S", "H" holds "S" above "R"`.
 
 Each group and root is named in a reason by its title or name (section
@@ -3667,41 +3703,65 @@ Each group and root is named in a reason by its title or name (section
 (section 8.6), and the drawing states the conflict (section 1); nothing
 else refuses one.
 
-*Vertically.* In place coordinates, with `S` the block's spacing: the
-**once card** of a root `R` is its ancestor card behind the first group
-of the row hanging on it, `G1`, aligned to `G1`'s anchor `M1`, laid out
-alone as step 1 above lays it out, at that card's graphical length `LA`,
-and drawn at `G1`'s scale `s1`; `yR` is the ordinate of `R`'s line in
-that layout and `Hm` its height, so the card reaches `aR = s1 × yR`
+*Horizontally first.* The **once card** of a shared root `R` is its
+ancestor card behind the first group of the row hanging on it, `G1`,
+aligned to `G1`'s anchor `M1`, laid out alone as step 1 above lays it
+out, at that card's graphical length `LA`, and drawn at `G1`'s scale
+`s1`. The places of the row (section 8.6) and every abscissa of a once
+card (The axis of a once card, Drawing a once card, below) follow from
+the row alone, before any ordinate. Where a once
+card's left edge lies left of `P`, the row is packed again from `x = P +
+δx` instead of `P`, `δx` that edge's distance from `P` for the leftmost
+such edge, and every abscissa follows from the new places. A once card's
+**extent** runs from its left edge to its right edge plus 2, its shadow.
+
+*Vertically.* In place coordinates, with `S` the block's spacing: `yR`
+is the ordinate of `R`'s line in the layout of its once card and `Hm`
+that layout's height, so the card reaches `aR = s1 × yR`
 above its line and `bR = s1 × (Hm − yR)` below it. For the anchor `M` of
 a group `G` on `R`, `yM` is the ordinate in `G`'s item coordinates of
 `R`'s ancestor line in `M`'s card, laid out as section 8.4 lays out the
 frame, or of `M`'s line where that ancestor line is not displayed (the
 `yA` of step 2 above).
 
-1. **Lines.** The line of the first root lies at `y1 = 0`, and that of
-   each further root `R'` at the largest of `(y + bR) + S + aR'`, `R`
-   the root above it and `y` its line, so that the cards of two roots
-   never overlap, and, for each group whose anchor `M'` on `R'` comes
-   after an anchor `M` on a root `Q` in its display order, `M` the one
-   just before `M'`, `yQ + sG × (yM' − yM)`, `yQ` the line of `Q` and
-   `sG` the group's scale, so that the group can lie on both roots.
-2. **Padding.** In each such group the card of each anchor `M'` after
-   the first lies `δ = (yR' − yQ) / sG − (yM' − yM)` lower than section
+1. **Lines.** The roots take their lines in their order: each takes the
+   highest line that lies below the lines of every root the second
+   relation puts above it and on which its extent overlaps the extent of
+   no root already there, and a new line below the last where none does.
+   Two extents overlap unless one ends at least `S` left of where the
+   other starts. So roots that lie apart along the row share a line,
+   and two roots of one group never do, both once cards passing behind
+   its frame: where three recordings each hold the excerpts of two
+   groups standing next to each other in the row, their three once cards
+   lie side by side on one line.
+2. **Ordinates.** The first line lies at `y = 0`, and each further line
+   at the largest of `(y + b) + S + a'`, `y` the line above it, `b` the
+   largest `bR` of the roots on that line and `a'` the largest `aR` of
+   the roots on this one, so that the cards of two lines never overlap,
+   and, for each group whose anchor `M'` on a root `R'` of this line
+   comes after an anchor `M` on a shared root `Q` in its display order,
+   `M` the one of its anchors on shared roots just before `M'`, `yQ + sG
+   × (yM' − yM)`, `yQ` the line of `Q` and `sG` the group's scale, so
+   that the group can lie on both roots. A root's line lies at the
+   ordinate of the line it takes.
+3. **Padding.** In each such group the card of each anchor `M'` on a
+   shared root after the first lies `δ = (yR' − yQ) / sG − (yM' − yM)` lower than section
    8.4 lays it, the gap above it grown by `δ`, `yR'` and `yQ` the lines
-   of the two anchors' roots: every card after it moves with it, no card
-   changes its height, and the frame is the sum of its `δ` higher. So
+   of the two anchors' roots: every card after it moves with it, and so
+   does an ancestor card of a root one group hangs on that is aligned to
+   one of them (Geometry, step 2), no card changes its height, and the
+   frame is the sum of its `δ` higher. So
    every anchor lies on its root's line, up to the rounding of binary64.
-3. **Tops.** A group hanging on roots has its top at `yR − sG × yM` of
-   its first anchor `M`, on the root `R`, and a once card at `yR − aR`.
-   The **row's top** `T0` is the smallest of these tops; every item that
-   hangs on nothing has its top at `T0`. Then every ordinate moves by
-   `Y − T0`, `Y` the first item's default `y` (section 8.6), so that the
-   highest frame or once card lies where the first item would.
-4. **Left.** Where a once card's left edge (below) lies left of `P`, the
-   row is packed again from `x = P + δx` instead of `P`, `δx` that edge's
-   distance from `P` for the leftmost such edge, and every abscissa below
-   follows from the new places.
+4. **Tops.** A group hanging on shared roots has its top at `yR − sG ×
+   yM` of its first anchor `M` on a shared root, on the root `R`, and a
+   once card at `yR − aR`. The **row's top** `T0` is the smallest of
+   these tops, 0 where there is none; every item that hangs on no
+   shared root has its top at `T0`. Then every ordinate moves by `Y − T`, `Y` the first item's
+   default `y` (section 8.6) and `T` the smallest top of the frames,
+   cards and once cards and of the displayed ancestor cards of roots one
+   group hangs on, each of those at its frame's top plus `sG` times its
+   top in the frame's item coordinates (Geometry, step 2), so that the
+   highest of them lies where the first item would.
 
 *The axis of a once card.* `R`'s line in its once card is drawn in
 **runs**, each at the scale of one anchor's frame. The run of an anchor
@@ -3733,12 +3793,7 @@ the row, in binary64:
   `XB(m) − XA(m)` wide. It leaves out nothing: it marks where the scale
   changes where the room holds no whole unit.
 
-So every change of scale lies in a gap or at a seam. A gap is an elision
-the card derives on `R` (section 8.9), with the address `{"id": R,
-"part": ["elision"]}` (section 2.2) and the elided coordinates `s` and
-`e`, drawn as every gap is (section 6.6), its `display` the card's
-`elision-display`. A seam is none, and a row crossing it is drawn across
-it whole (section 3.2). An element at `m` lies on `B`'s run when it
+So every change of scale lies in a gap or at a seam. An element at `m` lies on `B`'s run when it
 belongs to a timeline that starts at `m` (its line's start, its named
 timestamps there with their wedges, labels and cross-section lines) or
 is the start of a region at `m` or the place `m` of a jump's destination,
@@ -3747,35 +3802,59 @@ otherwise; a line ending at `m` ends there on `A`'s run, one starting
 there starts on `B`'s.
 
 Left of the first anchor's stretch `R` lies on that anchor's run and
-right of the last one's on the last anchor's run, and there the card
-draws the gaps its elision mode gives (section 8.9): left of the first
-stretch those that `R`'s ancestor card behind the first anchor's group
-draws left of its protected span, right of the last those that the one
-behind the last anchor's group draws right of its own, with their
-natural and drawn widths taken from those cards and multiplied by their
-groups' scales; the proportion `r` of their derived elisions is the
-least of the proportions of `R`'s ancestor cards behind every group
-hanging on it (section 8.9), each as section 8.9 gives it. As in an ancestor card (step 2), a seam lies at the start of the
-first stretch, `s1 × OL` wide with the `OL` of the first anchor's frame,
-and one at the end of the last stretch, `sN × OR` wide with the `OR` of
-the last anchor's frame, `N` the last anchor and `sN` its group's scale;
-a position at either lies on its stretch's side. A position `t` left of
-the first stretch in no gap lies at `XM(t) + s1 × (DL − OL)`, `DL` the
-sum of the shrinks of those gaps that start at or after `t`, and one
-right of the last stretch at `XN(t) − sN × (DR − OR)`, `DR` the sum of
-those that end at or before `t`, each sum taken from the left. Between
-the first stretch and the last the arrangement's gaps leave out what
-they leave out whatever the mode, and stored card elisions lying there are kept and
-not drawn; the gaps of each anchor's frame lie in its run, carried as
-section 8.9 carries them.
+right of the last one's on the last anchor's run. As in an ancestor card
+(step 2), a seam lies at the start of the first stretch, `s1 × OL` wide
+with the `OL` of the first anchor's frame, and one at the end of the
+last stretch, `sN × OR` wide with the `OR` of the last anchor's frame,
+`N` the last anchor and `sN` its group's scale; a position at either
+lies on its stretch's side. A position `t` left of the first stretch
+lies at `XO(t) = XM1(t) − s1 × OL`, `M1` the first anchor, and one right
+of the last at `XO(t) = XN(t) + sN × OR`: `R` runs on outwards from the
+left edge `xl` of the first anchor's frame and the right edge `xr` of
+the last's, at their scales. An edge of a gap below at the first
+stretch's start `a` or the last one's end `b` lies on the seam's outer
+side, `XO(a) = xl` and `XO(b) = xr`, and `R`'s line crosses the seam
+whole; `R`'s own start at `a` or end at `b` lies on the stretch's side,
+as every position there. There the arrangement ends `R` shortly beyond
+the outer frames, as it cuts it between them:
+
+- **Right.** With `e` the end of `R` (its drawn end where its length is
+  `null`, section 3.4), `s` is the largest whole unit of `R`'s axis no
+  less than `b` with `XO(s) ≤ xr + 8`, or `b` where none is. When `XO(e)
+  − XO(s) > 32`, an **end gap** leaves out `R` from `s` to `e`, drawn
+  the standard gap of 32 wide from `XO(s)` to `XO(s) + 32`, where `R`'s
+  line ends with its end mark; otherwise `R` runs on to its end.
+- **Left**, mirrored. With `s` the start of `R`, `e` is the smallest
+  whole unit no more than `a` with `XO(e) ≥ xl − 8`, or `a` where none
+  is. When `XO(e) − XO(s) > 32`, a **start gap** leaves out `R` from `s`
+  to `e`, drawn 32 wide from `XO(e) − 32` to `XO(e)`, where `R`'s line
+  starts; otherwise `R` starts at its start.
+
+So `R`'s line starts at most 40 left of the first frame and ends at most
+40 right of the last, inside the least row gap of 48 (section 8.6).
+Every gap of the arrangement, between two anchors or at either end, is
+an elision the card derives on `R` (section 8.9), with the address
+`{"id": R, "part": ["elision"]}` (section 2.2) and the elided
+coordinates `s` and `e`, drawn as every gap is (section 6.6), its
+`display` the card's `elision-display`; a seam is none, and a row
+crossing it is drawn across it whole (section 3.2). A once card reads
+no other elision property: in every mode it draws no card elision, those
+lying on `R` or its descendants being kept and not drawn, and derives
+none of the elisions of section 8.9 (Derived elisions), the
+arrangement's gaps taking their place. The
+gaps of each anchor's frame lie in its run, carried as section 8.9
+carries them.
 
 *Drawing a once card.* The once card draws the layout of step 1 with
 every ordinate `y` of it at `(yR − aR) + s1 × y`, and every abscissa by
 the position it belongs to: an element at a position `t` of `R`'s axis,
 or at an offset `o` from it (a wedge's corners, a label centred on it, a
 mark at a line's end), lies at `X(t) + s1 × o`, `X` the run the position
-lies on; a line or row crossing a gap is drawn in pieces (section 6.6,
-Elisions), and one crossing a seam whole across it (section 3.2); the names, the chevrons and everything else of
+lies on (`XO` outside the outer stretches); a line or row crossing a gap is drawn in pieces (section 6.6,
+Elisions), and one crossing a seam whole across it (section 3.2). With
+`X(start)` and `X(end)` the x at which `R`'s line starts and ends, the
+left edge of its start gap and the right edge of its end gap where it
+has them, the names, the chevrons and everything else of
 the layout left of `R`'s start `s0'` keep their distance from it at
 `X(start) + s1 × (x − s0')`, so the card's left edge lies at `X(start) −
 s1 × s0'`; and the card's right edge lies at `X(end) + s1 × ((Ri' + K) −
@@ -3791,7 +3870,7 @@ The rows are those of step 1, as gaps never move a row (section 3.2).
 The once card is the ancestor card of `R` behind `G1`; `R`'s ancestor
 cards behind the other groups hanging on it draw nothing and take no
 room. A once card that is not displayed draws nothing but keeps its
-place in 1 to 4, so that hiding it moves nothing.
+line and its place, so that hiding it moves nothing.
 
 *Worked example.* The fixture `bundle_arranged_roots` arranged
 `horizontal` in the order `page`, `group_3`, `group_1`, `group_2`
@@ -3805,8 +3884,13 @@ quarters) holds the touching movements `exposition`, `development` and
 and `take_b`, and `page` is ungrouped. On `score` Exposition comes
 before Development before Recapitulation, on `session` Exposition before
 Recapitulation, and `page` hangs on nothing, so the row is `page`,
-`group_1`, `group_2`, `group_3`, and `score` lies above `session`.
-Every item is 567.39013671875 wide, so with the row gap 48 they lie at
+`group_1`, `group_2`, `group_3`. Both roots are shared, three groups
+hanging on `score` and two on `session`; both have their first group in
+Exposition, which holds `exposition` above `take_a`, so `score` comes
+first and takes the first line, and `session`, whose once card overlaps
+`score`'s along the row, the second.
+No item has an ancestor card of its own, and every item is
+567.39013671875 wide, so with the row gap 48 they lie at
 `x` 8, 623.39013671875, 1238.7802734375 and 1854.17041015625.
 
 - Vertically: `score`'s once card, laid out at `LA` = 1200, holds the
@@ -3847,6 +3931,23 @@ Every item is 567.39013671875 wide, so with the row gap 48 they lie at
   2398.560546875 (`session`, `s0'` = 98.2529296875). The block is 2429.560546875 wide,
   the right edge of Recapitulation's frame plus `P`, and 283.72265625
   high, the bottom of `session`'s once card with its shadow plus `P`.
+  Neither root has a stretch outside the outer anchors: `score` and
+  `session` start where Exposition's stretches start and end where
+  Recapitulation's end, so neither has a start or an end gap.
+- Were `session` 160.0 seconds long, it would run on 30.0 seconds past
+  the end `b` = 130.0 of `take_b`, the last stretch. Right of
+  Recapitulation's frame, whose right edge `xr` is 2421.560546875,
+  `XO(t)` = 2421.560546875 + (t − 130.0) × 400 / 30.0, so `s` = 130.0
+  (`XO(131.0)` lies 400 / 30.0 right of `xr`, more than 8), and
+  `XO(160.0)` − `XO(130.0)` = 400 > 32: an end gap leaves out 130.0 to
+  160.0, from 2421.560546875 to 2453.560546875, its ellipsis centred at
+  2437.560546875 and its name label `Session` under it, as under the
+  gap leaving out 33.0 to 44.0. `session`'s line crosses the seam from
+  2381.560546875 to 2421.560546875 whole and ends at 2453.560546875, its
+  arrowhead's tip at 2462.560546875, so that its once card's right edge
+  lies at 2470.560546875 and the block is 2480.560546875 wide, that
+  card's right edge with its shadow plus `P`; every ordinate is as
+  above.
 
 ### 8.9 Elisions
 
@@ -3854,7 +3955,9 @@ Every item is 567.39013671875 wide, so with the row gap 48 they lie at
 whole. A **card elision**, one on a timeline that lies in no group, is
 drawn in the cards that draw its root whole: the ungrouped root's card
 and every ancestor card of that root (section 8.8), and for a virtual
-timeline, its own root, its placed card (section 8.10); never in a
+timeline, its own root, its placed card (section 8.10), which, like an
+ungrouped root's card, draws it under the initial mode `custom` (Modes,
+below); never in a
 member's card, whose members convert linearly between their shared start
 and end (README, "Groups and the `graphical` object"). A **group elision**, one
 on a timeline that lies in a group, is drawn across the frame of each
@@ -3878,23 +3981,30 @@ the mode of all of them, beside the `display` that hides them:
 
 | `elision-mode` | What the card draws |
 |---|---|
+| `custom` (initial) | the stored card elisions lying on `R` or on a descendant of `R`, and no derived one |
 | `full` | no card elision, and no derived one |
 | `proportional` | the elisions the card derives (Derived elisions, below), and no stored card elision |
-| `custom` | the stored card elisions lying on `R` or on a descendant of `R`, and no derived one |
-| `auto` (initial) | as `custom` where at least one stored card elision lies on `R` or a descendant, displayed or not, and as `proportional` otherwise |
+| `auto` | as `custom` where at least one stored card elision lies on `R` or a descendant, displayed or not, and as `proportional` otherwise |
+
+So by default a card draws the elisions stored for it and shortens
+nothing on its own; a rule setting `proportional` or `auto` lets it
+derive elisions. A root drawn once behind a horizontal row is cut by its
+arrangement instead, between its groups and shortly beyond the outer
+ones, whatever its mode (section 8.8, Drawn once).
 
 Group elisions are never counted and never switched by a card's mode: an
 ancestor card draws the gaps carried into it in every mode, so a group
 elision neither turns `auto` into `custom` nor disappears under `full`;
 a card that is not displayed draws nothing at all. An ungrouped root's
-card has no protected span and derives nothing, so `proportional` draws
-no gap there. `elision-proportion` and `elision-depths` act under
+card and a placed virtual timeline's card have no protected span and
+derive nothing, so `proportional` draws no gap there. `elision-proportion` and `elision-depths` act under
 `proportional` alone, and `elision-display` is the `display` of every
 elision the card derives (`none` an empty one), the order and repetition
 of its words meaning nothing. A frame reads `elision-mode` for its group
-elisions as an ungrouped root's card reads it for its own: `full` draws
-none, neither across the frame nor carried, `auto` and `custom` draw
-them, and `proportional` draws none; it reads none of the other three. So
+elisions as an ungrouped root's card reads it for its own: `custom`, its
+initial value, and `auto` draw them, `full` draws none, neither across
+the frame nor carried, and `proportional` draws none; it reads none of
+the other three. So
 the rules
 
 ```json
@@ -4115,9 +4225,13 @@ not depend on the view.
 
 **Worked examples**, at the default view `1280 × 720` and the length 400,
 so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
-`B = 716.8` wherever `zG` exceeds `Z`, which it does in each:
+`B = 716.8` wherever `zG` exceeds `Z`, which it does in each. The first
+three are drawn with the rule of `group_parents_mixed` above, which sets
+`auto` on every ancestor card, in a layer of their own (under the initial
+`custom` they would derive nothing and draw their roots whole); the
+fourth with the defaults alone:
 
-- The fixture `group_elided_inside` (`auto`): the root `piece` of 64
+- The fixture `group_elided_inside`: the root `piece` of 64
   quarters, its movements `first` (32 at 0) and `second` (32 at 32), and
   the member `excerpt` of 8 at 8 in `first`, so `ts` = −8, `EL` = 8, `ER`
   = 48, `E` = 56 and `LA` = 3200, 50 canvas units per quarter. Depth 2
@@ -4216,8 +4330,9 @@ so `0.8 × VW = 1024`, `0.8 × VH = 576`, `zb = Z = 0.7142857142857143` and
   less `OL` = 90.09326171875.
 - Stored elisions, the fixture `bundle_elisions_stored`. In the ancestor
   card of `score` (64 quarters) aligned to its child `theme` (8 at 16;
-  `LA` = 3200, the protected span 16 to 24), under `auto`, which reads
-  `custom`: `elision_4` from 0 to 20 with `{"ratio": 0.5}` is clipped to
+  `LA` = 3200, the protected span 16 to 24), under the initial `custom`
+  (which `auto` would read too, stored card elisions lying on `score`):
+  `elision_4` from 0 to 20 with `{"ratio": 0.5}` is clipped to
   0–16, natural width 800, drawn 400 wide; `elision_5` from 32 to 48 with
   `{"span": [4, 1]}` is drawn 3200 × 0.0625 = 200 wide of 800, its name
   `Development` its one label; `elision_6` from 40 to 56 with `{"canvas":

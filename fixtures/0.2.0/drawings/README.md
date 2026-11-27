@@ -33,9 +33,9 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `nested__length-800-card-spacing-8` | `nested.yaml` | `length` 800, `places` `{clt_1: {spacing: 8}}` |
 | `segment_line` | `segment_line.yaml` | none |
 | `segment_pages_accolades` | `segment_pages_accolades.yaml` | none |
-| `group__group_child_member` | `groups/group_child_member.yaml` | none |
-| `group__group_parents_mixed` | `groups/group_parents_mixed.yaml` | none |
-| `group__group_grandchild` | `groups/group_grandchild.yaml` | none |
+| `group__group_child_member` | `groups/group_child_member.yaml` | the application layer `[{"select": {"element": "ancestor_card"}, "set": {"elision-mode": "auto"}}]` |
+| `group__group_parents_mixed` | `groups/group_parents_mixed.yaml` | the application layer `[{"select": {"element": "ancestor_card"}, "set": {"elision-mode": "auto"}}]` |
+| `group__group_grandchild` | `groups/group_grandchild.yaml` | the application layer `[{"select": {"element": "ancestor_card"}, "set": {"elision-mode": "auto"}}]` |
 | `unknown_length` | `unknown_length.yaml` | none |
 | `unknown_length_empty` | `unknown_length_empty.yaml` | none |
 | `unknown_length_locked` | `unknown_length_locked.yaml` | none |
@@ -57,13 +57,13 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `bundle__bundle_matchstamp_cards` | `bundles/bundle_matchstamp_cards.yaml` | none (the manifest's own `graphical` object names its MatchStamps) |
 | `map_band_order_subset` | `map_band_order_subset.yaml` | none (the manifest's own `graphical` object orders the bands of `melody`) |
 | `group__group_child_member_stamps` | `groups/group_child_member_stamps.yaml` | none (the manifest's own `graphical` object names its timestamps and its MatchStamp) |
-| `group__group_grandchild_parent_on_top` | `groups/group_grandchild_parent_on_top.yaml` | none (the manifest's own `graphical` object orders the bands of `movement`) |
-| `group__group_elided_inside` | `groups/group_elided_inside.yaml` | none |
+| `group__group_grandchild_parent_on_top` | `groups/group_grandchild_parent_on_top.yaml` | the application layer `[{"select": {"element": "ancestor_card"}, "set": {"elision-mode": "auto"}}]` (and the manifest's own band order of `movement`) |
+| `group__group_elided_inside` | `groups/group_elided_inside.yaml` | the application layer `[{"select": {"element": "ancestor_card"}, "set": {"elision-mode": "auto"}}]` |
 | `group__group_elided_inside__full` | `groups/group_elided_inside.yaml` | the application layer `[{"select": {"element": "elision"}, "set": {"display": "none"}}]` |
 | `group__group_grandchild__full` | `groups/group_grandchild.yaml` | the application layer `[{"select": {"element": "elision"}, "set": {"display": "none"}}]` |
 | `group__group_grandchild_parent_on_top__full` | `groups/group_grandchild_parent_on_top.yaml` | the application layer `[{"select": {"element": "elision"}, "set": {"display": "none"}}]` (and the manifest's own band order of `movement`) |
 | `group__group_parents_mixed__full` | `groups/group_parents_mixed.yaml` | the application layer `[{"select": {"element": "elision"}, "set": {"display": "none"}}]` |
-| `group__group_elided_members` | `groups/group_elided_members.yaml` | none (the manifest's own `graphical` object holds its two group elisions) |
+| `group__group_elided_members` | `groups/group_elided_members.yaml` | the application layer `[{"select": {"element": "ancestor_card"}, "set": {"elision-mode": "auto"}}]` (and the manifest's own `graphical` object holds its two group elisions) |
 | `bundle__bundle_arranged_roots__horizontal` | `bundles/bundle_arranged_roots.yaml` | `arrangement` `{"direction": "horizontal", "order": ["page", "group_3", "group_1", "group_2"]}` |
 
 ## Shared quantities
@@ -304,12 +304,15 @@ space and the point, 1067 `s`, 1995 `m`, 1300 `p`, 1212 `x`, 465 `′` and
   own line, `S` parting `M`'s markers band from its ancestor band in `M`'s
   card and having no counterpart in `R`'s drawing; every further ancestor
   row lies at exactly its height on the card behind (§8.3).
-- The defaults draw an ancestor card with the elisions it derives (§8.9)
-  wherever its mode is `auto` with no stored card elision, as in every
-  drawing here, and its proportion `r` is below 1, and draw it whole
-  otherwise; an application layer hiding every elision, `{"element":
-  "elision"}` set to `display` `none`, leaves out no stretch (§2.4), so
-  each `__full` case draws its card whole. Every drawing here is drawn for
+- The defaults draw every ancestor card whole: its initial mode is
+  `custom` (§2.5, §8.9), and no stored card elision lies on a root here.
+  The six drawings whose table row names the application layer setting
+  `elision-mode` `auto` on every ancestor card draw each with the
+  elisions it derives (§8.9) where its proportion `r` is below 1, no
+  stored card elision lying on its root, and whole otherwise; an
+  application layer hiding every elision, `{"element": "elision"}` set
+  to `display` `none`, leaves out no stretch (§2.4), so each `__full`
+  case draws its card whole, as the defaults do. Every drawing here is drawn for
   the default view 1280 × 720 at scale 1 (§1): `0.8 × VW` = 1024, `0.8 ×
   VH` = 576, `Z` = 0.7142857142857143, the double nearest 5/7, and wherever
   `zG` exceeds `Z`, `zb` = `Z` and `B` = 1024 / (2 × `Z`) = 716.8. `r` =
@@ -1915,9 +1918,10 @@ the root.
 
 The block "MatchStamp cards" of two groups that share the member `score`
 (8 quarters), which holds the child `second-half` (4 quarters at 4): the
-frame of `group_1` "Performance", in the display order `score`,
-`performance` (4.0 seconds), and below it the frame of `group_2` "Page",
-in the display order `score`, `page` (800 pixels). `score` is so drawn in
+frame of `group_2` "Page", in the display order `score`, `page` (800
+pixels), and below it the frame of `group_1` "Performance", in the
+display order `score`, `performance` (4.0 seconds), since groups are
+drawn in name order, `Page` before `Performance` (§8.1). `score` is so drawn in
 two cards, one in each frame, each with its children band holding the row
 of `second-half` (§8.1). Three match timestamps (§2) draw only their
 cross-section lines (`display` `["cross_section"]`), so none has a gap
@@ -1956,18 +1960,19 @@ two equally short lines.
   29 + 26.9765625 + 8 = 63.9765625 → 63.9766. `performance` and `page`
   have no band above: `y_root` = 8 + 6.40234375 = 14.40234375 and `Hm` =
   14.40234375 + 26.9765625 + 8 = 49.37890625 → 49.3789.
-- The frames (§8.4): `Pt` = 28.8046875, so `group_1`'s frame starts at
+- The frames (§8.4): `Pt` = 28.8046875, so `group_2`'s frame starts at
   28.8046875 → 28.8047 and is 8 + 12.8046875 + 4 + 63.9765625 + 8 +
   49.37890625 + 8 = 154.16015625 → 154.1602 high; its cards start at
   28.8046875 + 24.8046875 = 53.609375 → 53.6094 (`score`) and 53.609375 +
-  63.9765625 + 8 = 125.5859375 → 125.5859 (`performance`). `group_2`'s
-  frame, the block's spacing 8 below, starts at 28.8046875 + 154.16015625
-  + 8 = 190.96484375 → 190.9648, its cards at 215.76953125 → 215.7695
-  (`score`) and 287.74609375 → 287.7461 (`page`).
-- Drawn, each line at its card's top plus `y_root`: in `group_1`, `score`
+  63.9765625 + 8 = 125.5859375 → 125.5859 (`page`). `group_1`'s frame,
+  as high, the block's spacing 8 below, starts at 28.8046875 +
+  154.16015625 + 8 = 190.96484375 → 190.9648, its cards at 215.76953125
+  → 215.7695 (`score`) and 287.74609375 → 287.7461 (`performance`).
+- Drawn, each line at its card's top plus `y_root`: in `group_2`, `score`
   at 82.609375 → 82.6094, `second-half` 14 above at 68.609375 → 68.6094,
-  `performance` at 139.98828125 → 139.9883; in `group_2`, `score` at
-  244.76953125 → 244.7695 and `second-half` at 230.76953125 → 230.7695.
+  `page` at 139.98828125 → 139.9883; in `group_1`, `score` at
+  244.76953125 → 244.7695, `second-half` at 230.76953125 → 230.7695 and
+  `performance` at 302.1484375 → 302.1484.
 - The match timestamps' abscissae: `timestamp_1` at `x0 + 200` =
   302.29150390625 → 302.2915, `timestamp_2` at `x0 + 100` =
   202.29150390625 → 202.2915, and `timestamp_3`, at 4 + 2 = 6 on the
@@ -1976,49 +1981,51 @@ two equally short lines.
   across the whole card that draws its timeline's line, from its top to
   its bottom: `timestamp_1` and `timestamp_3`, whose `second-half` is drawn
   in both `score` cards, from 53.609375 → 53.6094 to 53.609375 +
-  63.9765625 = 117.5859375 → 117.5859 in `group_1` and from
-  215.76953125 → 215.7695 to 279.74609375 → 279.7461 in `group_2`;
-  `timestamp_2` from 125.5859375 → 125.5859 to 125.5859375 + 49.37890625
-  = 174.96484375 → 174.9648 in `performance`'s card. Each is drawn as one
+  63.9765625 = 117.5859375 → 117.5859 in `group_2` and from
+  215.76953125 → 215.7695 to 279.74609375 → 279.7461 in `group_1`;
+  `timestamp_2` from 287.74609375 → 287.7461 to 287.74609375 +
+  49.37890625 = 337.125 in `performance`'s card. Each is drawn as one
   line (`data-id="timestamp_N" data-part="line"`). In each `score` card
   the line of `timestamp_1` also crosses `second-half` at its start 0, its
   ends included, and that of `timestamp_3` crosses `score` at 6: secondary
   coordinates (§2), which draw nothing, a match timestamp's `display`
   listing neither a wedge nor a label and the last default rule hiding
   them (§4).
-- `anchor_1`, `A` the segment of `timestamp_2` (`a1` = 125.5859375, `a2`
-  = 174.96484375), `B` a segment of `timestamp_1`: in `group_1`, `lo` =
-  125.5859375 > `hi` = 117.5859375 and `a2` ≥ `b1` = 53.609375, so the
-  third branch, from (`Xa`, `a1`) to (`Xb`, `b2`): (202.29150390625,
-  125.5859375) to (302.29150390625, 117.5859375), `dx` = 100, `dy` = −8,
-  `dx² + dy²` = 10064; in `group_2`, `a2` < `b1` = 215.76953125, so the
-  second branch, from (202.29150390625, 174.96484375) to
-  (302.29150390625, 215.76953125), `dy` = 40.8046875,
-  11665.02252197265625. The line of `group_1` is shorter: from
-  (202.2915, 125.5859), the top of `performance`'s card, to (302.2915,
-  117.5859), the bottom of `score`'s.
+- `anchor_1`, `A` the segment of `timestamp_2` (`a1` = 287.74609375,
+  `a2` = 337.125), `B` a segment of `timestamp_1`, in descriptor order:
+  in `group_2`, `lo` = 287.74609375 > `hi` = 117.5859375 and `a2` ≥ `b1`
+  = 53.609375, so the third branch, from (`Xa`, `a1`) to (`Xb`, `b2`):
+  (202.29150390625, 287.74609375) to (302.29150390625, 117.5859375), `dx`
+  = 100, `dy` = −170.16015625, `dx² + dy²` = 38954.4787750244140625; in
+  `group_1`, `lo` = 287.74609375 > `hi` = 279.74609375 and `a2` ≥ `b1` =
+  215.76953125, the third branch again, from (202.29150390625,
+  287.74609375) to (302.29150390625, 279.74609375), `dy` = −8, 10064.
+  The line of `group_1` is shorter: from (202.2915, 287.7461), the top
+  of `performance`'s card, to (302.2915, 279.7461), the bottom of
+  `score`'s.
 - `anchor_2`, `A` a segment of `timestamp_1`, `B` a segment of
   `timestamp_3`, four pairs in the order of `A`'s segments, then `B`'s:
-  `group_1` with `group_1` overlaps wholly (`lo` = 53.609375, `hi` =
+  `group_2` with `group_2` overlaps wholly (`lo` = 53.609375, `hi` =
   117.5859375), so the line is horizontal at their middle 85.59765625,
-  `dx` = 100, 10000; `group_1` with `group_2`, `a2` = 117.5859375 < `b1`
-  = 215.76953125, `dy` = 98.18359375, 19640.0180816650390625; `group_2` with `group_1`, the third branch from
+  `dx` = 100, 10000; `group_2` with `group_1`, `a2` = 117.5859375 < `b1`
+  = 215.76953125, `dy` = 98.18359375, 19640.0180816650390625; `group_1` with `group_2`, the third branch from
   (302.29150390625, 215.76953125) to (402.29150390625, 117.5859375), `dy`
-  = −98.18359375, the same; `group_2` with `group_2` overlaps at
+  = −98.18359375, the same; `group_1` with `group_1` overlaps at
   247.7578125, 10000. The first and the last tie, so the first in that
   order is drawn: from (302.2915, 85.5977) to (402.2915, 85.5977).
 - The names, at size 9, centred on each line's midpoint with the baseline
   `(a(9) − d(9)) / 2` = 3.11572265625 below it: `Bar 2, performed`
   (17531 advances, 77.04052734375 wide) at (252.29150390625,
-  121.5859375 + 3.11572265625 = 124.70166015625) → (252.2915,
-  124.7017), and `Second half, bar 1` (18684 advances, 82.107421875 wide)
+  283.74609375 + 3.11572265625 = 286.86181640625) → (252.2915,
+  286.8618), and `Second half, bar 1` (18684 advances, 82.107421875 wide)
   at (352.29150390625, 85.59765625 + 3.11572265625 = 88.71337890625) →
   (352.2915, 88.7134). Neither line nor name takes room: `R`, the frames
   and the cards are as without them.
-- The descriptors (§7.2, §8.5): each frame, its title and its cards as
+- The descriptors (§7.2, §8.5): each frame in drawing order, `group_2`
+  first, its title and its cards as
   for any frame, the cross-section lines of `timestamp_1` and then
   `timestamp_3` last in each `score` card, that of `timestamp_2` last in
-  `performance`'s; after `page`'s card the lines of `anchor_1` and
+  `performance`'s; after `performance`'s card the lines of `anchor_1` and
   `anchor_2` (`data-id="anchor_1"`, `data-id="anchor_2"`), then their
   names (`data-id="anchor_1" data-part="name"`, `data-id="anchor_2"
   data-part="name"`).
@@ -2173,8 +2180,9 @@ each lies 252.33544921875 further right.
   543.70361328125 and `Fh` = 157.5625, `zG` = 1.8833790598156273, `zb` =
   `Z`, `B` = 716.8, `c` = 271.851806640625, `σ` = 52.33544921875, `dl` =
   324.187255859375 and `dr` = 279.851806640625, `EL` = `ER` = 4, `uL` =
-  `uR` = 0.5: `r` = min(1, 1, 1.9630637207031247, 2.1847409667968747),
-  drawn whole. `dx` = (−96.29638671875 − 103.70361328125) −
+  `uR` = 0.5: under the initial `custom` the card derives nothing, and
+  under `auto` `r` would be min(1, 1, 1.9630637207031247,
+  2.1847409667968747) = 1, so it is drawn whole either way. `dx` = (−96.29638671875 − 103.70361328125) −
   52.33544921875 = −252.33544921875, the left edge −252.33544921875, the
   place −244.33544921875; the card is 103.70361328125 + 52.33544921875 +
   800 + 40 + 9 + 8 = 1013.0390625 → 1013.0391 wide, 63.37890625 → 63.3789
@@ -2622,8 +2630,12 @@ example in §8.8. The stored order `page`, `group_3`, `group_1`,
 `score` Exposition (0–16) comes before Development (16–32) before
 Recapitulation (32–48), touching, on `session` Exposition (0.0–30.0)
 before Recapitulation (100.0–130.0), and `page`, hanging on nothing,
-keeps its first place. The roots are `score` above `session` (Exposition
-and Recapitulation hold them in that order). Each frame and card is laid
+keeps its first place. Both roots are shared (three groups hang on
+`score`, two on `session`), and their first group is Exposition, which
+holds `exposition` above `take_a`: `score` takes the first line, and
+`session`, whose once card's extent (451.322265625 to 2400.839599609375
+for `score`, 525.13720703125 to 2400.560546875 for `session`, below)
+overlaps it, the second; neither item has an ancestor card of its own. Each frame and card is laid
 out by §8.2 and §8.4 as in the drawing of the manifest with the default
 placement: `x0` = 127.39013671875 (the chevron term of the ancestor
 lines that run on to the left), `R` = 551.39013671875 (the right
@@ -2661,7 +2673,8 @@ out alone (§8.8, step 1):
 Each root starts where its first stretch starts and ends where its last
 one ends, so the seams `s1 × OL` and `sN × OR` (§8.8, Drawn once) lie at
 its own start and end, which lie on their stretches' sides: nothing of
-either line lies left of the first stretch or right of the last. The
+either line lies left of the first stretch or right of the last, so
+neither has a start or an end gap. The
 names, as in an ancestor card behind one frame, lie left of Exposition's
 frame: they keep their distance `s0'` from `X(start) − s1 × OL`, `OL` =
 `x0` = 127.39013671875 and `s1` = 1 (§8.8, Drawn once).

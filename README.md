@@ -1046,10 +1046,12 @@ its root is drawn whole outside a frame: in an ungrouped root's card and
 in the ancestor cards behind the frames of the groups holding a member
 below it. Which of these a root's cards draw is a styling property of
 those cards, `elision-mode` in a rule addressed to `{"id": "#R", "part":
-["card"]}`: `full` draws none, `custom` the stored ones, `proportional`
-elisions the drawing derives around the member in each ancestor card, and
-`auto`, the initial value, the stored ones where the root has any, else
-the derived ones. A derived elision leaves out the middle of a timeline's
+["card"]}`: `custom`, the initial value, draws the stored ones, `full`
+none, `proportional` elisions the drawing derives around the member in
+each ancestor card, and `auto` the stored ones where the root has any,
+else the derived ones. A root that two or more groups hang on, drawn
+once behind them where they stand side by side, is cut between the
+groups and shortly beyond the outer ones whatever its mode. A derived elision leaves out the middle of a timeline's
 stretch outside the member, rounded outwards to whole units of its axis,
 so that each stretch keeps its start and its end at full scale; all of a
 card's derived elisions share one proportion, which `elision-proportion`
