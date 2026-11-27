@@ -263,7 +263,9 @@ def _with_shared_provenance(
                 f"'{file.name}'",
             )
         )
-    stated = pc.indices_nonzero(pc.is_valid(part.column(index)))
+    # One array: a filter may leave a column of no chunks, on which
+    # ``indices_nonzero`` crashes the process (pyarrow 25).
+    stated = pc.indices_nonzero(pc.is_valid(part.column(index).combine_chunks()))
     if len(stated):
         raise TableError(
             TableProblem(

@@ -3056,6 +3056,16 @@ What proves them (`test_packages.py`, needs pyarrow):
   `_part_d.parquet`, `notes.txt` and a subfolder `sub/` holding
   `part_e.parquet`, added in a copy, are passed over, and the copy reads
   the same rows. A single file is read as itself.
+- **A filter keeping no row of a MatchClaim file reads no row.** The
+  shared MatchClaim folder, whose file states a shared provenance, read
+  for `clt_3`, Handel's child, which no MatchClaim names, gives zero rows
+  in exactly the declared MatchClaim columns, the type alone in its
+  metadata; a MatchClaim file stating a shared provenance and holding no
+  row, read whole, gives zero rows as well. Both once crashed the process
+  in pyarrow 25 (the filter left a column of no chunks, whose valid rows
+  were searched), so each runs in a child Python process: a regression
+  fails its test, with the child's exit status and error output, instead
+  of ending the test run.
 - **Reading refuses what cannot be one table.** Each refusal is a
   `TableError` with its exact problem: two files of a folder in which one
   column has two Arrow types (`column_type_mismatch`, column

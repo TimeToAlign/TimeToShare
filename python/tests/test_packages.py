@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
+import sys
 from fractions import Fraction
 from importlib import import_module
 from pathlib import Path
@@ -537,6 +539,60 @@ def test_timelines_need_the_column_naming_a_rows_timeline(tmp_path: Path) -> Non
 def test_a_missing_table_raises(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         read_table(tmp_path / "missing")
+
+
+_READ_IN_A_CHILD = """
+import json, sys
+from timetoshare.tables import read_table
+timelines = json.loads(sys.argv[2])
+table = read_table(sys.argv[1], timelines=timelines)
+print(json.dumps({
+    "rows": table.num_rows,
+    "columns": table.schema.names,
+    "metadata": {k.decode(): v.decode() for k, v in table.schema.metadata.items()},
+}))
+"""
+"""Read a table in a child process and print what it holds, so that a crash
+fails the test instead of ending the test run."""
+
+
+def _read_in_a_child(path: Path, timelines: list[str] | None) -> Any:
+    done = subprocess.run(
+        [sys.executable, "-c", _READ_IN_A_CHILD, str(path), json.dumps(timelines)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert (done.returncode, done.stderr) == (0, "")
+    return json.loads(done.stdout)
+
+
+_NO_MATCH_CLAIM = {
+    "rows": 0,
+    "columns": MATCH_CLAIM_SCHEMA.names,
+    "metadata": {TYPE_METADATA_KEY: "MatchClaim"},
+}
+
+
+def test_a_filter_keeping_no_match_claim_of_a_shared_provenance() -> None:
+    folder = SHARED / "tables" / "MatchClaim"
+    assert (
+        PROVENANCE_METADATA_KEY.encode()
+        in pq.read_schema(folder / "part_a.parquet").metadata
+    )
+    assert _read_in_a_child(folder, ["clt_3"]) == _NO_MATCH_CLAIM
+
+
+def test_a_match_claim_file_of_a_shared_provenance_without_rows(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "empty.parquet"
+    metadata = pq.read_schema(SHARED / "tables" / "MatchClaim" / "part_a.parquet")
+    pq.write_table(
+        MATCH_CLAIM_SCHEMA.empty_table().replace_schema_metadata(metadata.metadata),
+        path,
+    )
+    assert _read_in_a_child(path, None) == _NO_MATCH_CLAIM
 
 
 # package_problems
