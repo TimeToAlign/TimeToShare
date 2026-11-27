@@ -426,6 +426,18 @@ def _file_of_another_type(package: Package) -> None:
     package.metadata[PART_B_FILE][TYPE_METADATA_KEY] = "MatchClaim"
 
 
+def _table_listed_twice(package: Package) -> None:
+    package.package["tables"].append(
+        {"type": "Projection", "url": PROJECTIONS, "media_type": PARQUET}
+    )
+
+
+def _file_in_a_listed_folder(package: Package) -> None:
+    package.package["tables"].append(
+        {"type": "Projection", "url": PART_B_FILE, "media_type": PARQUET}
+    )
+
+
 REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]]] = {
     "row_of_no_manifest": (
         _row_of_no_manifest,
@@ -586,6 +598,36 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 None,
                 [],
                 "the file holds the type MatchClaim, its table the type Projection",
+            )
+        ],
+    ),
+    "table_listed_twice": (
+        _table_listed_twice,
+        "package.yaml lists the folder of Projections twice; a table is listed "
+        "once under its URL and type.",
+        [
+            problem(
+                "duplicate_url",
+                "package.yaml",
+                None,
+                ["tables", 2, "url"],
+                "the table 'tables/Projection/' of the type Projection is listed "
+                "twice, first at #/tables/1/url",
+            )
+        ],
+    ),
+    "file_in_a_listed_folder": (
+        _file_in_a_listed_folder,
+        "package.yaml lists part_b, a file of the listed folder of Projections, "
+        "as a table of its own; its rows would be read twice.",
+        [
+            problem(
+                "duplicate_url",
+                "package.yaml",
+                None,
+                ["tables", 2, "url"],
+                "the file 'tables/Projection/part_b.parquet' is read by the table "
+                "'tables/Projection/' already",
             )
         ],
     ),

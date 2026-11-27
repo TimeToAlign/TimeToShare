@@ -2822,28 +2822,32 @@ extraction's are without fontTools. What proves them:
   `alignment_anchors` gives the table with `(2, 2, null)` exactly the
   anchors and MatchClaim IDs of the table with `(1, 1, null)`. A test
   that refuses one of these cells, or reads it as another value, fails.
-- **The rows of other manifests are passed over.** A file may hold the
-  rows of several manifests of a package. Given a manifest, a MatchClaim
-  row neither of whose timelines the manifest holds, and a Projection whose
-  `timeline_id` it does not hold, is passed over: neither checked nor
-  reported. What proves it (`test_tables.py`): the inline tables with
-  three rows of foreign timelines (`dpt_8`, `dpt_9`) inserted before,
-  between and after their own rows, each foreign row breaking a rule (a
-  null `is_synchronous`, an ID repeating one of the manifest's rows, a
-  coordinate without unit, a certainty of 2; for the Projections a null
-  `start`, a repeated ID, a unit the row's number does not fit) give
-  against the manifest exactly the problems the inline tables give
-  (none), and without it the null of the first foreign row (row 0) as
-  before. A problem of a broken own row is reported at that row's index
-  in the table as given: an own MatchClaim's certainty of 2, row 1 alone,
-  is row 2 among the foreign rows, its message unchanged (`the certainty
-  2.0 lies outside [0, 1]`), and an own Projection's negative duration
-  among foreign Projections is row 4. A MatchClaim row with exactly one of its
-  timelines in the manifest is checked, its other side
-  `unknown_timeline`, the message unchanged (`the manifest has no
-  timeline 'dpt_9'`). The comparison with the reference
-  (`test_table_checks.py`) holds the rule on every mutated table: the
-  reference passes the same rows over, row by row.
+- **Given a manifest, every row is the manifest's.** A file may hold the
+  rows of several manifests of a package. A manifest reads its rows by
+  filtering first (`read_table` with the timelines its resource lists,
+  a MatchClaim kept where either of its timelines is listed); the checks
+  themselves pass no row over, so a lone manifest is a package of one.
+  Each timeline a row names that the manifest does not hold is
+  `unknown_timeline` at that row and column. What proves it
+  (`test_tables.py`): the inline tables with three rows of foreign
+  timelines (`dpt_8`, `dpt_9`), valid otherwise, inserted before, between
+  and after their own rows give against the manifest exactly
+  `unknown_timeline` at rows 0, 3 and 6, at `timeline_a_id` then
+  `timeline_b_id` (`the manifest has no timeline 'dpt_8'`, then `'dpt_9'`),
+  and for the Projections at rows 0, 3 and 5, at `timeline_id`; without
+  the manifest, no problem. A Projection whose `timeline_id` is `ghost`
+  (row 2) is `unknown_timeline` at `timeline_id` (`the manifest has no
+  timeline 'ghost'`), and no problem without the manifest. A MatchClaim
+  with exactly one of its timelines in the manifest (row 4) is
+  `unknown_timeline` at its other side alone (`the manifest has no
+  timeline 'dpt_9'`). A null timeline names no timeline of the manifest:
+  a Projection whose `timeline_id` is null (row 1) and a MatchClaim whose
+  two timelines are null (row 1) are `schema_violation` at each null
+  column (`'timeline_id' is null`, `'timeline_a_id' is null`), with and
+  without the manifest. The shared package fixture's rows, read with
+  `read_table(..., timelines=)` for each resource, pass the checks against
+  their manifest (`test_packages.py`). The comparison with the reference
+  (`test_table_checks.py`) holds the rule on every mutated table.
 - **Against a manifest.** Given a manifest (as read from its file), every
   timeline a cell or a row names exists, a virtual timeline of the
   manifest included (a claim on `virtual_1` passes against the manifest
@@ -3018,7 +3022,11 @@ What proves them (`test_packages.py`, needs pyarrow):
   `'type' is a required property`); a negative `size` (`schema`,
   `[manifests, 0, size]`, `-1 is less than the minimum of 0`); a manifest
   listed twice (`duplicate_url`, `[manifests, 1, url]`, `the manifest
-  'a.yaml' is listed twice, first at #/manifests/0/url`); a folder with a
+  'a.yaml' is listed twice, first at #/manifests/0/url`); a table listed
+  twice under one `url` and `type` (`duplicate_url`, `[tables, 1, url]`,
+  `the table 'tables/Projection/' of the type Projection is listed twice,
+  first at #/tables/0/url`), while one `url` under two types validates;
+  a folder with a
   `size` (`folder_descriptor`, `[tables, 1, size]`, `'tables/Projection/'
   names a folder, which has no size`), with an `integrity` alone (at
   `integrity`, `… which has no integrity`), a folder among the manifests
@@ -3059,7 +3067,15 @@ What proves them (`test_packages.py`, needs pyarrow):
   stating none without a `type` given (`the table names no type: no file
   states 'timetoshare:type'`); a MatchClaim row stating its own
   provenance beside the file's (`invalid_provenance`, row 0, `the
-  provenance is stated in the file's metadata and in the row`). A file
+  provenance is stated in the file's metadata and in the row`); a
+  MatchClaim file stating a shared provenance whose `provenance` column is
+  of another type, strings, so that the provenance cannot be filled in
+  (`schema_violation`, column `provenance`, `the column 'provenance' is
+  string, not …, in 'part_a.parquet'`, the declared type as Arrow prints
+  it), where a reader
+  ignoring it would lose the provenance silently; `timelines` given for
+  files without the column naming a row's timeline (`schema_violation`,
+  column `timeline_id`, `the table has no column 'timeline_id'`). A file
   stating no type is read under the `type` given, and a column a file
   lacks reads as null in its rows: the shared Projections with a further
   column `velocity` in `part_a` alone read four nulls for `part_b`'s rows.
@@ -3083,18 +3099,38 @@ What proves them (`test_packages.py`, needs pyarrow):
 | `timeline_unlisted` | `unlisted_timeline` | `tables/Projection/part_a.parquet`, 0, and `part_b.parquet`, 2, `[timeline_id]` |
 | `axis_mismatch` | `axis_mismatch` | `tables/Projection/part_b.parquet`, 1, `[unit]` |
 | `file_of_another_type` | `table_type` | `tables/Projection/part_b.parquet`, null, `[]` |
+| `table_listed_twice` | `duplicate_url` | `package.yaml`, null, `[tables, 2, url]` |
+| `file_in_a_listed_folder` | `duplicate_url` | `package.yaml`, null, `[tables, 2, url]` |
 
   Each list is exact, so a problem reported twice (by a package rule and
   again by a manifest's table check, as `axis_mismatch` and the
   MatchClaim across two manifests would be) fails, as does one missed.
   The cases prove the rules where a manifest's own check cannot see them:
   the repeated Projection ID lies on two manifests' timelines, and each
-  manifest's check alone passes. Beside the fixtures, inline packages
+  manifest's check alone passes. `table_listed_twice` is
+  `validate_package`'s refusal (`the table 'tables/Projection/' of the
+  type Projection is listed twice, first at #/tables/1/url`), which the
+  JavaScript suite throws alike; `file_in_a_listed_folder` lists `part_b`
+  of the folder of Projections as a table of its own, a URL no validator
+  can compare, and is the package check's (`the file
+  'tables/Projection/part_b.parquet' is read by the table
+  'tables/Projection/' already`), its one problem proving the file's rows
+  are read once (read twice, each would be a `duplicate_id` of itself).
+  Beside the fixtures, inline packages
   built in `tmp_path` prove what the fixtures leave out: a missing
-  manifest (`missing_file`, `package.yaml`, `[manifests, 0, url]`, `no
+  manifest (`missing_file`, `package.yaml`, `[manifests, 2, url]`, `no
   manifest lies at 'gone.yaml' in the package`), a missing folder
-  (`missing_file`, `[tables, 0, url]`, `no folder lies at 'tables/Box/' in
-  the package`), a manifest of another version (`version_mismatch`, the
+  (`missing_file`, `[tables, 2, url]`, `no folder lies at 'tables/Box/' in
+  the package`), a table entry and a resource whose URLs lead outside the
+  package (`missing_file` at the entry, then `unknown_table` at the
+  resource, `the resource 'resource_3' names '../../outside/', which is no
+  table of the type Box in the package`; a resource leaving the package
+  names no table even where an entry leaves it too), a null timeline
+  (`schema_violation` at the row and column, `'timeline_id' is null` for a
+  Projection of `part_b`, `'timeline_a_id' is null` and `'timeline_b_id'
+  is null` for a MatchClaim whose two timelines are null, each reported
+  once although the Projection's and the MatchClaim's table check word
+  the same problem), a manifest of another version (`version_mismatch`, the
   manifest, `[timetoshare]`, `the manifest declares the version '0.1.0',
   the package '0.2.0'`), an invalid manifest (the validator's code and
   path, `resource_timeline` at `[resources, 0, timelines, 0]`, in that
@@ -3104,12 +3140,19 @@ What proves them (`test_packages.py`, needs pyarrow):
   check would report it too), and an event ID shared by a Projection and a
   row of another type (a `Box` file listing `projection_1`,
   `duplicate_id` at the Box row): event IDs are unique across every type.
-- **The package check reads columns.** It finds its rules over the
-  columns `id`, `timeline_id`, `unit` and `number_type` (MatchClaims:
-  `id`, `timeline_a_id`, `timeline_b_id`) with `pyarrow.compute` and
-  joins, reading Python values only at the rows it reports; the cases
-  above pin its results, and a package of 20,000 Projections over two
-  manifests, two of them sharing one ID, gives exactly one `duplicate_id`.
+- **The package check reads columns, and checks each row once.** It finds
+  its rules over the columns `id`, `timeline_id`, `unit` and
+  `number_type` (MatchClaims: `id`, `timeline_a_id`, `timeline_b_id`)
+  with `pyarrow.compute` and joins, reading Python values only at the rows
+  it reports. The table checks run once per manifest and table, over that
+  manifest's rows alone, found once for every row by its timelines'
+  listings, never by filtering the whole table again for each manifest.
+  A package of 20,000 Projections over two manifests (`dpt_1` on the odd
+  rows, `dpt_2` on the even), two of them sharing one ID, gives exactly
+  one `duplicate_id`, and its table checks, recorded, are called exactly
+  four times: Bach's MatchClaims (3 rows), Bach's Projections (10,000,
+  all on `dpt_1`), Handel's MatchClaims (2), Handel's Projections
+  (10,000, all on `dpt_2`); 20,005 rows, each checked once.
 
 ## The table checks read columns, not rows
 

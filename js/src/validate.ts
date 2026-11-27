@@ -418,9 +418,10 @@ function passesPackage(branch: unknown, data: unknown): boolean {
  * throws `UnsupportedVersionError`. Then the package schema, its problem
  * chosen by the one path rule (`schema`). Then, entry by entry, the
  * manifests and then the tables: a manifest listed again under the same
- * `url` (`duplicate_url`, at the later entry's `url`) and a folder, a `url`
- * ending in `/`, with a `size` or an `integrity` (`folder_descriptor`, at
- * that member, `size` first). What the manifests and the tables hold is the
+ * `url`, and a table listed again under the same `url` and `type`
+ * (`duplicate_url`, at the later entry's `url`; URLs compared as written),
+ * and a folder, a `url` ending in `/`, with a `size` or an `integrity`
+ * (`folder_descriptor`, at that member, `size` first). What the manifests and the tables hold is the
  * Python package's package check.
  */
 export function validatePackage(value: unknown): void {
@@ -456,8 +457,22 @@ export function validatePackage(value: unknown): void {
     const folder = first(folderProblems(entry, path));
     if (folder !== undefined) throw folder;
   }
+  const tables = new Map<string, number>();
   for (const [index, entry] of entries(value, "tables").entries()) {
-    const folder = first(folderProblems(entry, ["tables", index]));
+    const path = ["tables", index];
+    const url = text(entry, "url");
+    const type = text(entry, "type");
+    const key = JSON.stringify([url, type]);
+    const earlier = tables.get(key);
+    if (earlier !== undefined) {
+      throw new SchemaValidationError(
+        "duplicate_url",
+        [...path, "url"],
+        `the table '${url}' of the type ${type} is listed twice, first at ${jsonPointer(["tables", earlier, "url"])}`,
+      );
+    }
+    tables.set(key, index);
+    const folder = first(folderProblems(entry, path));
     if (folder !== undefined) throw folder;
   }
 }

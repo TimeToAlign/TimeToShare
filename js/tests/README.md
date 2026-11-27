@@ -1000,17 +1000,21 @@ The Python README's section "Packages" is proved here for what the npm
 package reads, `package.yaml`; it reads no tables (`package.test.ts`).
 `validatePackage` accepts the `package.yaml` of the shared package and of
 every rejected package under `fixtures/packages/0.2.0/` but
-`folder_with_size`, whose problem is the one its `expected.yaml` lists
-(`folder_descriptor`, `[tables, 1, size]`, `'tables/Projection/' names a
-folder, which has no size`), and `validate` accepts every manifest of
+`folder_with_size` and `table_listed_twice`, whose problem is the one
+their `expected.yaml` lists (`folder_descriptor`, `[tables, 1, size]`,
+`'tables/Projection/' names a folder, which has no size`; `duplicate_url`,
+`[tables, 2, url]`, `the table 'tables/Projection/' of the type
+Projection is listed twice, first at #/tables/1/url`), and `validate`
+accepts every manifest of
 those packages, so a package's faults beyond `package.yaml` stay the
 Python check's. Each inline refusal of the Python list is thrown here with
 the same code, path and message (`not_a_package` for a value without
 `timetoshare` and for a list, the schema's `'tables' is a required
 property` at the root, `'type' is a required property` at `[tables, 0]`,
 `-1 is less than the minimum of 0` at `[manifests, 0, size]`,
-`duplicate_url`, `folder_descriptor` at `size` and at `integrity`, and a
-folder among the manifests), another version throws
+`duplicate_url` for a manifest and for a table of one type listed twice,
+`folder_descriptor` at `size` and at `integrity`, and a folder among the
+manifests), one `url` under two types validates, another version throws
 `UnsupportedVersionError` with Python's message, and the smallest package
 and a file with a `size` and an `integrity` validate. The generated
 `packageSchema` is Python's `load_package_schema()`: its definitions are

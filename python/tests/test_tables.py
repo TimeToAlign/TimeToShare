@@ -1911,13 +1911,9 @@ def _foreign_claim(identifier: str, **members: Any) -> dict[str, Any]:
     )
 
 
-FOREIGN_CLAIMS = [
-    _foreign_claim("claim_1", is_synchronous=None),
-    _foreign_claim("claim_8", start_anchor=anchor(q(0), {**smp(0), "unit": None})),
-    _foreign_claim("claim_9", certainty=2.0),
-]
-"""Three rows of another manifest, each breaking a rule: a null, the ID of
-a row of the manifest, an invalid coordinate and a certainty outside [0, 1]."""
+def _foreign_projection(identifier: str) -> dict[str, Any]:
+    """A Projection on a timeline the manifest lacks."""
+    return {**projection(identifier, smp(0), None), "timeline_id": "dpt_9"}
 
 
 def _interleaved(own: list[dict], foreign: list[dict]) -> list[dict]:
@@ -1925,45 +1921,57 @@ def _interleaved(own: list[dict], foreign: list[dict]) -> list[dict]:
     return [foreign[0], own[0], own[1], foreign[1], *own[2:], foreign[2]]
 
 
-def test_the_rows_of_other_manifests_are_passed_over() -> None:
-    claims = claims_table(_interleaved(CLAIMS, FOREIGN_CLAIMS))
-    assert match_claim_problems(claims, MANIFEST) == []
-    assert found(match_claim_problems(claims)) == [
-        ("schema_violation", 0, ("is_synchronous",))
+def test_the_rows_of_other_manifests_are_unknown_timelines() -> None:
+    foreign = [_foreign_claim(f"claim_{n}") for n in (7, 8, 9)]
+    claims = claims_table(_interleaved(CLAIMS, foreign))
+    problems = match_claim_problems(claims, MANIFEST)
+    assert found(problems) == [
+        ("unknown_timeline", row, (column,))
+        for row in (0, 3, 6)
+        for column in ("timeline_a_id", "timeline_b_id")
     ]
-    foreign = [
-        {**projection(f"projection_{n}", smp(0), None), "timeline_id": "dpt_9"}
-        for n in (7, 1, 8)
+    assert [problem.message for problem in problems[:2]] == [
+        "the manifest has no timeline 'dpt_8'",
+        "the manifest has no timeline 'dpt_9'",
     ]
-    foreign[0]["start"] = None
-    foreign[2]["unit"] = "seconds"
+    assert match_claim_problems(claims) == []
+    foreign = [_foreign_projection(f"projection_{n}") for n in (7, 8, 9)]
     projections = projections_table(_interleaved(PROJECTIONS, foreign))
-    assert projection_problems(projections, MANIFEST) == []
-    assert found(projection_problems(projections)) == [
-        ("schema_violation", 0, ("start",))
+    problems = projection_problems(projections, MANIFEST)
+    assert found(problems) == [
+        ("unknown_timeline", row, ("timeline_id",)) for row in (0, 3, 5)
     ]
+    assert problems[0].message == "the manifest has no timeline 'dpt_9'"
+    assert projection_problems(projections) == []
 
 
-def test_a_problem_of_an_own_row_keeps_its_index_in_the_table() -> None:
-    own = changed(CLAIMS, put(1, "certainty", value=2.0))
-    alone = match_claim_problems(claims_table(own), MANIFEST)
-    among = match_claim_problems(
-        claims_table(_interleaved(own, FOREIGN_CLAIMS)), MANIFEST
-    )
-    assert found(alone) == [("invalid_certainty", 1, ("certainty",))]
-    assert found(among) == [("invalid_certainty", 2, ("certainty",))]
-    assert (
-        among[0].message == alone[0].message == "the certainty 2.0 lies outside [0, 1]"
-    )
-    own = changed(PROJECTIONS, put(2, "duration", value=number(smp(-1))))
-    rows = _interleaved(own, [{**row, "timeline_id": "dpt_9"} for row in PROJECTIONS])
-    assert found(projection_problems(projections_table(rows), MANIFEST)) == [
-        ("invalid_duration", 4, ("duration",))
-    ]
+def test_a_projection_on_an_unknown_timeline_is_refused() -> None:
+    rows = changed(PROJECTIONS, put(2, "timeline_id", value="ghost"))
+    problems = projection_problems(projections_table(rows), MANIFEST)
+    assert found(problems) == [("unknown_timeline", 2, ("timeline_id",))]
+    assert problems[0].message == "the manifest has no timeline 'ghost'"
+    assert projection_problems(projections_table(rows)) == []
 
 
-def test_a_claim_half_in_the_manifest_is_checked() -> None:
+def test_a_claim_half_in_the_manifest_is_refused_at_its_other_side() -> None:
     rows = [*CLAIMS, _foreign_claim("claim_9", timeline_a_id="clt_1")]
     problems = match_claim_problems(claims_table(rows), MANIFEST)
     assert found(problems) == [("unknown_timeline", 4, ("timeline_b_id",))]
     assert problems[0].message == "the manifest has no timeline 'dpt_9'"
+
+
+def test_a_null_timeline_is_refused_with_a_manifest() -> None:
+    rows = changed(PROJECTIONS, put(1, "timeline_id", value=None))
+    for manifest in (MANIFEST, None):
+        problems = projection_problems(projections_table(rows), manifest)
+        assert found(problems) == [("schema_violation", 1, ("timeline_id",))]
+        assert problems[0].message == "'timeline_id' is null"
+    rows = changed(CLAIMS, put(1, "timeline_a_id", value=None))
+    rows = changed(rows, put(1, "timeline_b_id", value=None))
+    for manifest in (MANIFEST, None):
+        problems = match_claim_problems(claims_table(rows), manifest)
+        assert found(problems) == [
+            ("schema_violation", 1, ("timeline_a_id",)),
+            ("schema_violation", 1, ("timeline_b_id",)),
+        ]
+        assert problems[0].message == "'timeline_a_id' is null"

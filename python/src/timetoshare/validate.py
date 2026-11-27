@@ -281,7 +281,9 @@ def validate_package(value: Mapping[str, Any]) -> None:
     :class:`UnsupportedVersionError`. Then the package schema, its problem
     chosen by the one path rule (``schema``). Then, entry by entry, the
     manifests and then the tables: a manifest listed again under the same
-    ``url`` (``duplicate_url``, at the later entry's ``url``) and a folder,
+    ``url``, and a table listed again under the same ``url`` and ``type``
+    (``duplicate_url``, at the later entry's ``url``; URLs compared as
+    written), and a folder,
     a ``url`` ending in ``/``, with a ``size`` or an ``integrity``
     (``folder_descriptor``, at that member, ``size`` first). What the
     manifests and the tables hold is :func:`timetoshare.tables.package_problems`'
@@ -311,8 +313,18 @@ def validate_package(value: Mapping[str, Any]) -> None:
             )
         for problem in folder_problems(entry, path):
             raise problem
+    tables: dict[tuple[str, str], int] = {}
     for index, entry in enumerate(value["tables"]):
-        for problem in folder_problems(entry, ("tables", index)):
+        path = ("tables", index)
+        earlier = tables.setdefault((entry["url"], entry["type"]), index)
+        if earlier != index:
+            raise SchemaValidationError(
+                "duplicate_url",
+                (*path, "url"),
+                f"the table '{entry['url']}' of the type {entry['type']} is listed "
+                f"twice, first at {json_pointer(('tables', earlier, 'url'))}",
+            )
+        for problem in folder_problems(entry, path):
             raise problem
 
 

@@ -121,7 +121,7 @@ class SchemaValidationError(ValueError):
     """Raised when a value violates the schema or a semantic rule."""
 
     def __init__(self, code: ValidationCode, path: InstancePath, message: str) -> None:
-        self.code = code
+        self.code: ValidationCode = code
         self.path = path
         self.message = message
         super().__init__(f"{json_pointer(path)}: {message}")

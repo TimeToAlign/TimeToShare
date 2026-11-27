@@ -12,7 +12,7 @@ import json
 import math
 import re
 from collections.abc import Mapping
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 from functools import cache
 from typing import Any, Literal
 
@@ -545,42 +545,6 @@ EVENT_TIMELINES = ("timeline_id",)
 """The column naming the timeline an event (a Projection among them) lies on."""
 
 
-def _manifest_rows(
-    table: pa.Table, manifest: _Manifest | None, columns: tuple[str, ...]
-) -> tuple[pa.Table, pa.Array | None]:
-    """The rows of ``table`` a manifest checks, and their indices in ``table``.
-
-    A row is checked where one of ``columns`` names a timeline of the
-    manifest; a null names none. Without a manifest, or where every row is
-    checked, the table is returned whole with no indices.
-    """
-    if manifest is None:
-        return table, None
-    mine = _any(
-        *(
-            _held(pc.is_in(_array(table, column), value_set=manifest.ids))
-            for column in columns
-        )
-    )
-    if pc.all(mine).as_py() is not False:
-        return table, None
-    kept = _indices(mine)
-    return table.take(kept), kept
-
-
-def _placed(problems: list[TableProblem], kept: pa.Array | None) -> list[TableProblem]:
-    """The problems of the rows checked, each at its row's index in the table
-    as given (:func:`_manifest_rows`)."""
-    if kept is None:
-        return problems
-    rows = [problem.row for problem in problems if problem.row is not None]
-    placed = iter(kept.take(pa.array(rows, pa.int64())).to_pylist())
-    return [
-        problem if problem.row is None else replace(problem, row=next(placed))
-        for problem in problems
-    ]
-
-
 def _unknown_problems(
     found: _Found,
     manifest: _Manifest,
@@ -1031,25 +995,23 @@ def match_claim_problems(
     """Every problem of a MatchClaim table, checked against a manifest (as
     read from its file, IDs written ``#``) where one is given.
 
-    A MatchClaim's ID is unique among the rows checked. Given a manifest,
-    the table may be a file its package's manifests share: a row neither of
-    whose timelines the manifest holds is another manifest's, passed over
-    (neither checked nor reported), and a row with one of its timelines in
-    the manifest is checked, its other timeline included, so that a
-    MatchClaim reaching another manifest is ``unknown_timeline``. A
-    problem's row is the row's index in ``table`` as given. An actor holds
-    one belief in a row; against a manifest, actors are compared as the
-    IRIs they stand for under its ``@context``, so a compact and an absolute
-    IRI of one actor are one actor, else as written."""
+    A MatchClaim's ID is unique in the table, which belongs to one manifest:
+    given a manifest, each of a row's timelines is one of it, else
+    ``unknown_timeline``. A file the manifests of a package share is read
+    for one manifest by filtering first
+    (:func:`timetoshare.tables.read_table` with the timelines its resource
+    lists), which keeps a MatchClaim either of whose timelines is listed, so
+    that one reaching another manifest is refused.
+    An actor holds one belief in a row; against a manifest, actors are
+    compared as the IRIs they stand for under its ``@context``, so a compact
+    and an absolute IRI of one actor are one actor, else as written."""
     problems = _schema_problems(table, MATCH_CLAIM_SCHEMA)
     if problems:
         return problems
-    axes = None if manifest is None else _Manifest(manifest)
-    table, kept = _manifest_rows(table, axes, MATCH_CLAIM_TIMELINES)
     _readable(table, MATCH_CLAIM_SCHEMA.names)
     problems = _null_problems(table, MATCH_CLAIM_REQUIRED)
     if problems:
-        return _placed(problems, kept)
+        return problems
     found = _Found()
     _id_problems(found, _array(table, "id"))
     shared = PROVENANCE_METADATA_KEY.encode() in (table.schema.metadata or {})
@@ -1059,9 +1021,9 @@ def match_claim_problems(
         found.add(
             -1, 0, TableProblem("invalid_provenance", None, ("provenance",), problem)
         )
-    _claim_problems(found, table, axes)
+    _claim_problems(found, table, None if manifest is None else _Manifest(manifest))
     _row_provenance_problems(found, _array(table, "provenance"), shared, context)
-    return _placed(found.problems(), kept)
+    return found.problems()
 
 
 def projection_problems(
@@ -1071,26 +1033,27 @@ def projection_problems(
     read from its file, IDs written ``#``) where one is given.
 
     A Projection's ID is unique in the package, as every event's: two
-    timelines never both hold ``projection_1``. Given a manifest, the table
-    may be a file its package's manifests share: a row whose timeline the
-    manifest does not hold is another manifest's, passed over (neither
-    checked nor reported); the event a checked row stands for lies in the
-    manifest. A problem's row is the row's index in ``table`` as given."""
+    timelines never both hold ``projection_1``. Given a manifest, every
+    row's timeline is one of it, else ``unknown_timeline``; a file the
+    manifests of a package share is read for one manifest by filtering first
+    (:func:`timetoshare.tables.read_table` with the timelines its resource
+    lists)."""
     problems = _schema_problems(table, PROJECTION_SCHEMA)
     if problems:
         return problems
-    axes = None if manifest is None else _Manifest(manifest)
-    table, kept = _manifest_rows(table, axes, EVENT_TIMELINES)
     _readable(table, PROJECTION_SCHEMA.names)
     problems = _null_problems(table, PROJECTION_REQUIRED)
     if problems:
-        return _placed(problems, kept)
+        return problems
     found = _Found()
     _id_problems(found, _array(table, "id"))
+    axes = None if manifest is None else _Manifest(manifest)
     timelines = _array(table, "timeline_id")
+    if axes is not None:
+        _unknown_problems(found, axes, timelines, 1, ("timeline_id",))
     _projection_numbers(found, table, timelines, axes)
     _projected_events(found, table, timelines, axes)
-    return _placed(found.problems(), kept)
+    return found.problems()
 
 
 def _projection_numbers(

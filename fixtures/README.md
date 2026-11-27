@@ -605,6 +605,8 @@ order (`code`, `file` from the package's root, `row` in that file or null,
 | `timeline_unlisted` | Handel's Projection resource no longer lists its child `clt_3` | `unlisted_timeline` (two rows) |
 | `axis_mismatch` | a Projection on the samples timeline written in seconds | `axis_mismatch` |
 | `file_of_another_type` | a file of the Projections folder states the type `MatchClaim` | `table_type` |
+| `table_listed_twice` | `package.yaml` lists the folder of Projections twice | `duplicate_url` (`validate_package`) |
+| `file_in_a_listed_folder` | `package.yaml` lists a file of the folder of Projections as a table of its own | `duplicate_url` |
 
 The script `scripts/emit_packages.py` (run from `python/` as `uv run
 python ../scripts/emit_packages.py`; it needs pyarrow) is their only

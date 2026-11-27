@@ -5,11 +5,12 @@ beside it, or a file or folder its package's manifests share) and the events
 standing on a timeline for events held elsewhere in a Projections table. This
 module declares their columns, read from the schema's ``tables.json``,
 reads a table, a file or a folder of files, keeping the rows of some
-timelines (``read_table``), checks a table (alone, or against a manifest's
-timelines, passing over the rows of other manifests), checks a package
-whole (``package_problems``), checks the succession rule between a table and
-the one written over it, and derives the AlignmentAnchors and potential
-MatchStamps of a MatchClaim table under the belief filter.
+timelines (``read_table``), checks a table (alone, or against a manifest,
+every row then the manifest's: a shared file is read filtered first),
+checks a package whole (``package_problems``), checks the succession rule
+between a table and the one written over it, and derives the
+AlignmentAnchors and potential MatchStamps of a MatchClaim table under the
+belief filter.
 
 It needs pyarrow: install the extra, ``pip install "timetoshare[tables]"``.
 """

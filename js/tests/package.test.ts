@@ -14,6 +14,8 @@ const read = (path: string): JsonObject =>
   timetoshare.loads(readFileSync(path, "utf8")) as JsonObject;
 const cases = readdirSync(resolve(packages, "rejections")).sort();
 const directories = ["shared", ...cases.map((name) => `rejections/${name}`)];
+/** The rejected packages whose one problem is `package.yaml`'s own. */
+const refusedListings = ["rejections/folder_with_size", "rejections/table_listed_twice"];
 
 /** What `call` throws: a `SchemaValidationError`'s code, path and message. */
 function refusal(call: () => void): [string, readonly (string | number)[], string] | undefined {
@@ -40,7 +42,7 @@ const DIGEST = { algorithm: "SHA-256", digest: "00ff" };
 describe("validatePackage", () => {
   it.each(directories)("reads the package.yaml of %s", (directory) => {
     const value = read(resolve(packages, directory, "package.yaml"));
-    if (directory === "rejections/folder_with_size") {
+    if (refusedListings.includes(directory)) {
       const [expected] = read(resolve(packages, directory, "expected.yaml")).problems as Node[];
       expect(refusal(() => timetoshare.validatePackage(value))).toEqual([
         expected?.code,
@@ -61,11 +63,13 @@ describe("validatePackage", () => {
       "axis_mismatch",
       "claim_across_manifests",
       "column_in_two_types",
+      "file_in_a_listed_folder",
       "file_of_another_type",
       "folder_with_size",
       "projection_id_in_two_files",
       "resource_naming_no_table",
       "row_of_no_manifest",
+      "table_listed_twice",
       "timeline_in_two_manifests",
       "timeline_unlisted",
       "version_mismatch",
@@ -76,6 +80,11 @@ describe("validatePackage", () => {
     expect(refusal(() => timetoshare.validatePackage(smallest))).toBeUndefined();
     const file = withManifest({ tables: [{ ...FILE, size: 1024, integrity: DIGEST }] });
     expect(refusal(() => timetoshare.validatePackage(file))).toBeUndefined();
+  });
+
+  it("accepts one url under two types", () => {
+    const value = withManifest({ tables: [FOLDER, { ...FOLDER, type: "Box" }] });
+    expect(refusal(() => timetoshare.validatePackage(value))).toBeUndefined();
   });
 
   it.each([
@@ -96,6 +105,14 @@ describe("validatePackage", () => {
         "duplicate_url",
         ["manifests", 1, "url"],
         "the manifest 'a.yaml' is listed twice, first at #/manifests/0/url",
+      ],
+    ],
+    [
+      withManifest({ tables: [FOLDER, FOLDER] }),
+      [
+        "duplicate_url",
+        ["tables", 1, "url"],
+        "the table 'tables/Projection/' of the type Projection is listed twice, first at #/tables/0/url",
       ],
     ],
     [

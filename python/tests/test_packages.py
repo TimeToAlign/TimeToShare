@@ -45,6 +45,7 @@ from timetoshare.tables import (  # noqa: E402
 )
 
 bundle_package_schema = import_module("timetoshare.validate").bundle_package_schema
+package_module = import_module("timetoshare.tables.package")
 
 SHARED = package_fixture_path("shared")
 CASES = sorted(path.name for path in package_fixture_path("rejections").iterdir())
@@ -224,6 +225,15 @@ PACKAGE_REFUSALS = [
         ),
     ),
     (
+        _package(tables=[FOLDER, FOLDER]),
+        (
+            "duplicate_url",
+            ("tables", 1, "url"),
+            "the table 'tables/Projection/' of the type Projection is listed twice, "
+            "first at #/tables/0/url",
+        ),
+    ),
+    (
         _package(tables=[FILE, {**FOLDER, "size": 1024}]),
         (
             "folder_descriptor",
@@ -265,6 +275,10 @@ def test_a_package_of_another_version() -> None:
 
 def test_a_file_with_size_and_integrity_validates() -> None:
     validate_package(_package(tables=[{**FILE, "size": 1024, "integrity": DIGEST}]))
+
+
+def test_one_url_under_two_types_validates() -> None:
+    validate_package(_package(tables=[FOLDER, {**FOLDER, "type": "Box"}]))
 
 
 # read_table
@@ -489,6 +503,37 @@ def test_a_row_stating_provenance_beside_its_file(tmp_path: Path) -> None:
     )
 
 
+def test_a_provenance_column_of_another_type_is_refused(tmp_path: Path) -> None:
+    folder = _copied(tmp_path) / "tables" / "MatchClaim"
+
+    def as_strings(table: Any) -> Any:
+        index = table.schema.get_field_index("provenance")
+        strings = pa.array(["manual"] * len(table), pa.string())
+        return table.set_column(index, pa.field("provenance", pa.string()), strings)
+
+    _rewrite(folder / "part_a.parquet", as_strings)
+    declared = MATCH_CLAIM_SCHEMA.field("provenance").type
+    assert _table_refusal(lambda: read_table(folder)) == (
+        "schema_violation",
+        None,
+        ("provenance",),
+        f"the column 'provenance' is string, not {declared}, in 'part_a.parquet'",
+    )
+
+
+def test_timelines_need_the_column_naming_a_rows_timeline(tmp_path: Path) -> None:
+    folder = _copied(tmp_path) / "tables" / "Projection"
+    for name in ("part_a.parquet", "part_b.parquet"):
+        _rewrite(folder / name, lambda table: table.drop_columns(["timeline_id"]))
+    assert len(read_table(folder)) == 9
+    assert _table_refusal(lambda: read_table(folder, timelines=["dpt_1"])) == (
+        "schema_violation",
+        None,
+        ("timeline_id",),
+        "the table has no column 'timeline_id'",
+    )
+
+
 def test_a_missing_table_raises(tmp_path: Path) -> None:
     with pytest.raises(FileNotFoundError):
         read_table(tmp_path / "missing")
@@ -506,11 +551,13 @@ def test_every_rejection_is_stated() -> None:
         "axis_mismatch",
         "claim_across_manifests",
         "column_in_two_types",
+        "file_in_a_listed_folder",
         "file_of_another_type",
         "folder_with_size",
         "projection_id_in_two_files",
         "resource_naming_no_table",
         "row_of_no_manifest",
+        "table_listed_twice",
         "timeline_in_two_manifests",
         "timeline_unlisted",
         "version_mismatch",
@@ -542,6 +589,8 @@ EXPECTED = {
     "folder_with_size": ("folder_descriptor", "package.yaml", None),
     "axis_mismatch": ("axis_mismatch", "tables/Projection/part_b.parquet", 1),
     "file_of_another_type": ("table_type", "tables/Projection/part_b.parquet", None),
+    "table_listed_twice": ("duplicate_url", "package.yaml", None),
+    "file_in_a_listed_folder": ("duplicate_url", "package.yaml", None),
 }
 """The one problem of each case but ``timeline_unlisted``, as the README's
 table states it."""
@@ -606,6 +655,89 @@ def test_a_missing_manifest_and_a_missing_folder(tmp_path: Path) -> None:
             "row": None,
             "path": ["tables", 2, "url"],
             "message": "no folder lies at 'tables/Box/' in the package",
+        },
+    ]
+
+
+def test_a_url_leaving_the_package_names_no_table(tmp_path: Path) -> None:
+    directory = _copied(tmp_path)
+    _listing(
+        directory,
+        lambda value: value["tables"].append({"type": "Box", "url": "../outside/"}),
+    )
+    bach = _read(directory / "bach" / "manifest.yaml")
+    bach["resources"].append(
+        {
+            "id": "#resource_3",
+            "type": "Box",
+            "timelines": ["#clt_1"],
+            "url": "../../outside/",
+        }
+    )
+    _write_yaml(directory / "bach" / "manifest.yaml", bach)
+    assert _problems(directory) == [
+        {
+            "code": "missing_file",
+            "file": "package.yaml",
+            "row": None,
+            "path": ["tables", 2, "url"],
+            "message": "no folder lies at '../outside/' in the package",
+        },
+        {
+            "code": "unknown_table",
+            "file": "bach/manifest.yaml",
+            "row": None,
+            "path": ["resources", 2, "url"],
+            "message": "the resource 'resource_3' names '../../outside/', which is "
+            "no table of the type Box in the package",
+        },
+    ]
+
+
+def test_a_null_timeline_is_reported_at_its_row(tmp_path: Path) -> None:
+    directory = _copied(tmp_path)
+
+    def nulled(*columns: str) -> Any:
+        def change(table: Any) -> Any:
+            for column in columns:
+                index = table.schema.get_field_index(column)
+                values = table.column(column).to_pylist()
+                values[0] = None
+                table = table.set_column(
+                    index, table.schema.field(index), pa.array(values, pa.string())
+                )
+            return table
+
+        return change
+
+    _rewrite(
+        directory / "tables" / "Projection" / "part_b.parquet", nulled("timeline_id")
+    )
+    _rewrite(
+        directory / "tables" / "MatchClaim" / "part_a.parquet",
+        nulled("timeline_a_id", "timeline_b_id"),
+    )
+    assert _problems(directory) == [
+        {
+            "code": "schema_violation",
+            "file": "tables/Projection/part_b.parquet",
+            "row": 0,
+            "path": ["timeline_id"],
+            "message": "'timeline_id' is null",
+        },
+        {
+            "code": "schema_violation",
+            "file": "tables/MatchClaim/part_a.parquet",
+            "row": 0,
+            "path": ["timeline_a_id"],
+            "message": "'timeline_a_id' is null",
+        },
+        {
+            "code": "schema_violation",
+            "file": "tables/MatchClaim/part_a.parquet",
+            "row": 0,
+            "path": ["timeline_b_id"],
+            "message": "'timeline_b_id' is null",
         },
     ]
 
@@ -748,7 +880,9 @@ def test_an_event_id_is_unique_across_every_type(tmp_path: Path) -> None:
     ]
 
 
-def test_a_large_package_is_checked_by_columns(tmp_path: Path) -> None:
+def test_a_large_package_checks_each_row_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     directory = _copied(tmp_path)
     folder = directory / "tables" / "Projection"
     for file in folder.iterdir():
@@ -768,6 +902,28 @@ def test_a_large_package_is_checked_by_columns(tmp_path: Path) -> None:
     ]
     rows[15000] = {**rows[15000], "id": "projection_11"}
     _write_table(folder / "part_a.parquet", rows, PROJECTION_SCHEMA, "Projection")
+    checks = dict(package_module._CHECKED)
+    calls: list[tuple[str, str | None, int, set[str]]] = []
+
+    def recorded(kind: str) -> Any:
+        def check(table: Any, manifest: Any) -> Any:
+            timelines = (
+                ["timeline_a_id", "timeline_b_id"]
+                if kind == "MatchClaim"
+                else ["timeline_id"]
+            )
+            seen = {
+                value
+                for column in timelines
+                for value in table.column(column).to_pylist()
+            }
+            calls.append((kind, manifest.get("name"), len(table), seen))
+            return checks[kind](table, manifest)
+
+        return check
+
+    for kind in ("MatchClaim", "Projection"):
+        monkeypatch.setitem(package_module._CHECKED, kind, recorded(kind))
     found = _problems(directory)
     assert found == [
         {
@@ -778,6 +934,12 @@ def test_a_large_package_is_checked_by_columns(tmp_path: Path) -> None:
             "message": "the event ID 'projection_11' is given twice, first in "
             "'tables/Projection/part_a.parquet' at row 11",
         }
+    ]
+    assert calls == [
+        ("MatchClaim", "Bach", 3, {"clt_1", "dpt_1"}),
+        ("Projection", "Bach", 10000, {"dpt_1"}),
+        ("MatchClaim", "Handel", 2, {"clt_2", "dpt_2"}),
+        ("Projection", "Handel", 10000, {"dpt_2"}),
     ]
 
 

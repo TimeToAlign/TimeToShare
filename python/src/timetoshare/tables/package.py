@@ -38,10 +38,16 @@ from ..validate import (
     validate,
     validate_package,
 )
-from ..validation.diagnostics import axes_by_id, entries_of, number_type_of
+from ..validation.diagnostics import (
+    ValidationCode,
+    axes_by_id,
+    entries_of,
+    number_type_of,
+)
 from .checks import (
     EVENT_TIMELINES,
     MATCH_CLAIM_TIMELINES,
+    TableCode,
     TableError,
     TableProblem,
     _array,
@@ -95,7 +101,13 @@ PackageCode = Literal[
 ]
 """The codes of the package check's own rules. A package problem may also
 carry the code of a manifest's validation (``timetoshare.ValidationCode``)
-or of a table check (:data:`~timetoshare.tables.TableCode`)."""
+or of a table check (:data:`~timetoshare.tables.TableCode`); two package
+rules use such codes as well: ``duplicate_url`` for a file two table entries
+reach, ``schema_violation`` for a row whose timeline is null."""
+
+ProblemCode = PackageCode | TableCode | ValidationCode
+"""The code of a package problem: a package rule's, a table check's or a
+manifest validation's."""
 
 Path_ = tuple[str | int, ...]
 
@@ -109,7 +121,7 @@ class PackageProblem:
     fault (a JSON path in ``package.yaml`` or a manifest, the column path of
     a table's row) and its message."""
 
-    code: str
+    code: ProblemCode
     file: str
     row: int | None
     path: Path_
@@ -222,7 +234,9 @@ def _with_shared_provenance(
     Raises:
         TableError: If the file's provenance is no provenance entry, or a
             row states its own beside it (``invalid_provenance``; the row
-            counted from ``offset``).
+            counted from ``offset``); if its ``provenance`` column is of
+            another type than the declared one, which the shared provenance
+            cannot be filled into (``schema_violation``).
     """
     if PROVENANCE_METADATA_KEY.encode() not in (schema.metadata or {}):
         return part
@@ -238,8 +252,17 @@ def _with_shared_provenance(
         return part
     index = part.schema.get_field_index("provenance")
     field = part.schema.field(index)
-    if _shape(field.type) != _shape(MATCH_CLAIM_SCHEMA.field("provenance").type):
-        return part
+    declared = MATCH_CLAIM_SCHEMA.field("provenance").type
+    if _shape(field.type) != _shape(declared):
+        raise TableError(
+            TableProblem(
+                "schema_violation",
+                None,
+                ("provenance",),
+                f"the column 'provenance' is {field.type}, not {declared}, in "
+                f"'{file.name}'",
+            )
+        )
     stated = pc.indices_nonzero(pc.is_valid(part.column(index)))
     if len(stated):
         raise TableError(
@@ -357,8 +380,12 @@ def read_table(
         TableError: If the files state two types, or another type than
             ``type``, or neither states one (``table_type``); if one column
             has two Arrow types in two files (``column_type_mismatch``); if
-            a MatchClaim file's provenance is unreadable or a row states its
-            own beside it (``invalid_provenance``).
+            ``timelines`` is given and the files lack a column naming a
+            row's timeline (``schema_violation``); if a MatchClaim file's
+            provenance is unreadable or a row states its own beside it
+            (``invalid_provenance``); if a MatchClaim file stating a shared
+            provenance has a ``provenance`` column of another type than the
+            declared one (``schema_violation``).
     """
     files = table_files(path)
     schemas = [pq.read_schema(file) for file in files]
@@ -416,7 +443,7 @@ class _Problems:
         self.found: list[PackageProblem] = []
 
     def add(
-        self, code: str, file: str, row: int | None, path: Path_, message: str
+        self, code: ProblemCode, file: str, row: int | None, path: Path_, message: str
     ) -> None:
         self.found.append(PackageProblem(code, file, row, path, message))
 
@@ -462,7 +489,10 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     that is missing (``missing_file``) or that is no valid manifest (its
     validation's code and path; another version ``version_mismatch``).
     Then, table by table and file by file, a file or folder that is missing
-    (``missing_file``), a file stating another type (``table_type``) or
+    (``missing_file``), a file an earlier entry of the same type reaches
+    already, a file entry inside a listed folder for instance
+    (``duplicate_url``, at the later entry's ``url``; the later entry reads
+    its other files only), a file stating another type (``table_type``) or
     another version (``version_mismatch``) than its entry and the package,
     and a column of two Arrow types in two files (``column_type_mismatch``,
     at the folder; its rows are not read). Then the rules the manifests and
@@ -472,12 +502,14 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     - ``duplicate_timeline``: a timeline ID, a virtual timeline's included,
       held by two manifests, at the later's;
     - ``unknown_table``: a manifest's resource whose URL names no table
-      entry of the resource's type;
+      entry of the resource's type, or leads outside the package;
     - ``duplicate_id``: an event ID held twice among all event rows of the
       package, every type and file, then a MatchClaim ID twice among the
       MatchClaims, at the later row;
-    - ``unknown_timeline``: a row's timeline (a MatchClaim's either) that no
-      manifest holds;
+    - ``schema_violation``, then ``unknown_timeline``: a row's timeline (a
+      MatchClaim's either, column by column) that is null, worded as the
+      table checks word it (``'timeline_id' is null``), or that no manifest
+      holds;
     - ``unlisted_timeline``: a row's timeline that its manifest's resources
       of the row's type, naming the row's table, do not list;
     - ``claim_across_manifests``: a MatchClaim whose timelines lie in two
@@ -488,10 +520,12 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     These read the columns ``id``, ``timeline_id``, ``unit`` and
     ``number_type`` of the event tables and ``id``, ``timeline_a_id`` and
     ``timeline_b_id`` of the MatchClaim tables, column by column. Last,
-    manifest by manifest, resource by resource, the table checks of a
-    MatchClaim or Projections table over the rows of the timelines the
-    resource lists (:func:`match_claim_problems`,
-    :func:`projection_problems`), each problem placed in its file and row;
+    manifest by manifest, the table checks of each MatchClaim or Projections
+    table its resources name, in the order they first name it, over the rows
+    of the timelines those resources list (:func:`match_claim_problems`,
+    :func:`projection_problems`): each row's manifests are found once and the
+    rows ordered by manifest, so each manifest is checked on its own rows
+    alone, and each problem is placed in its file and row;
     a problem a package rule already reports at the same file, row and
     column with the same code, or an ``unknown_timeline`` on a MatchClaim
     reaching another manifest, is not repeated.
@@ -518,7 +552,11 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     version = value["timetoshare"]
     manifests = _manifests(root, value, problems)
     entries = _entries(root, value, version, problems)
-    listed = {(_resolved(entry["url"], ""), entry["type"]) for entry in value["tables"]}
+    listed = {
+        (url, entry["type"])
+        for entry in value["tables"]
+        if (url := _resolved(entry["url"], "")) is not None
+    }
     _Check(listed, manifests, entries, problems).run()
     return problems.found
 
@@ -562,8 +600,10 @@ def _manifests(
 def _entries(
     root: Path, value: Mapping[str, Any], version: str, problems: _Problems
 ) -> list[_Entry]:
-    """The table entries whose files could be read as one table."""
+    """The table entries whose files could be read as one table; a file an
+    earlier entry of its type reaches already is left to that entry."""
     found = []
+    reached: dict[tuple[str, str], int] = {}
     for index, entry in enumerate(value["tables"]):
         url = _resolved(entry["url"], "")
         folder = entry["url"].endswith("/")
@@ -579,10 +619,27 @@ def _entries(
             )
             continue
         assert url is not None
-        files = table_files(target)
-        names = [f"{url}{file.name}" if folder else url for file in files]
-        schemas = [pq.read_schema(file) for file in files]
         kind = entry["type"]
+        files: list[Path] = []
+        names: list[str] = []
+        for file in table_files(target):
+            name = f"{url}{file.name}" if folder else url
+            earlier = reached.setdefault((kind, name), index)
+            if earlier != index:
+                problems.add(
+                    "duplicate_url",
+                    PACKAGE_FILE,
+                    None,
+                    ("tables", index, "url"),
+                    f"the file '{name}' is read by the table "
+                    f"'{value['tables'][earlier]['url']}' already",
+                )
+                continue
+            files.append(file)
+            names.append(name)
+        if not files and not folder:
+            continue
+        schemas = [pq.read_schema(file) for file in files]
         for name, schema in zip(names, schemas, strict=True):
             stated = _metadata(schema, TYPE_METADATA_KEY)
             if stated is not None and stated != kind:
@@ -619,6 +676,17 @@ def _entries(
     return found
 
 
+@dataclass(frozen=True)
+class _Full:
+    """An entry's rows read whole: each row's file (an index of the check's
+    file names) and row in the file, and each manifest's run of rows."""
+
+    table: pa.Table
+    files: pa.Array
+    rows: pa.Array
+    runs: dict[int, pa.Array]
+
+
 _EVENT_COLUMNS = ("id", "timeline_id", "unit", "number_type")
 _CLAIM_COLUMNS = ("id", "timeline_a_id", "timeline_b_id")
 _CHECKED = {"MatchClaim": match_claim_problems, "Projection": projection_problems}
@@ -629,7 +697,7 @@ class _Check:
 
     def __init__(
         self,
-        listed: set[tuple[str | None, str]],
+        listed: set[tuple[str, str]],
         manifests: list[_Manifest],
         entries: list[_Entry],
         problems: _Problems,
@@ -692,12 +760,14 @@ class _Check:
         self.resolved: dict[tuple[int, int], _Entry] = {}
         listing_entry: list[int] = []
         listing_timeline: list[str] = []
+        listing_manifest: list[int] = []
         for number, manifest in enumerate(self.manifests):
             for index, resource in enumerate(entries_of(manifest.bare, "resources")):
-                named = (_resolved(resource["url"], manifest.file), resource["type"])
-                entry = by_url.get(named)
+                url = _resolved(resource["url"], manifest.file)
+                named = None if url is None else (url, resource["type"])
+                entry = None if named is None else by_url.get(named)
                 if entry is None:
-                    if named not in self.listed:
+                    if named is None or named not in self.listed:
                         self.problems.add(
                             "unknown_table",
                             manifest.file,
@@ -712,10 +782,12 @@ class _Check:
                 for timeline in resource["timelines"]:
                     listing_entry.append(entry.index)
                     listing_timeline.append(timeline)
+                    listing_manifest.append(number)
         self.listings = pa.table(
             {
                 "entry": pa.array(listing_entry, pa.int64()),
                 "timeline": pa.array(listing_timeline, pa.string()),
+                "manifest": pa.array(listing_manifest, pa.int64()),
             }
         )
 
@@ -726,6 +798,7 @@ class _Check:
         the MatchClaim tables, with the table entry, the file (an index of
         :attr:`names`) and the row in the file of each."""
         columns = _CLAIM_COLUMNS if claims else _EVENT_COLUMNS
+        timelines = MATCH_CLAIM_TIMELINES if claims else EVENT_TIMELINES
         parts = []
         for number, entry in enumerate(self.entries):
             if (entry.kind == "MatchClaim") != claims:
@@ -737,6 +810,12 @@ class _Check:
                 pa.table(
                     {
                         **{name: _strings(table, name) for name in columns},
+                        **{
+                            _READ + name: pa.repeat(
+                                pa.scalar(_is_strings(table, name)), len(table)
+                            )
+                            for name in timelines
+                        },
                         "entry": pa.repeat(
                             pa.scalar(entry.index, pa.int64()), len(table)
                         ),
@@ -749,6 +828,7 @@ class _Check:
             return pa.table(
                 {
                     **{name: pa.array([], pa.string()) for name in columns},
+                    **{_READ + name: pa.array([], pa.bool_()) for name in timelines},
                     "entry": _arange(0),
                     "file": _arange(0),
                     "row": _arange(0),
@@ -757,7 +837,12 @@ class _Check:
         return pa.concat_tables(parts)
 
     def _add_rows(
-        self, code: str, rows: pa.Table, mask: pa.Array, column: str, message: Any
+        self,
+        code: ProblemCode,
+        rows: pa.Table,
+        mask: pa.Array,
+        column: str,
+        message: Any,
     ) -> None:
         """Add a problem at each row ``mask`` flags, worded by ``message``
         from the row read in Python."""
@@ -788,8 +873,20 @@ class _Check:
         self._add_rows("duplicate_id", located, again, "id", message)
 
     def _unknown(self, rows: pa.Table, columns: tuple[str, ...]) -> None:
+        """A null timeline (``schema_violation``, as the table checks word
+        it), then a timeline no manifest holds (``unknown_timeline``), column
+        by column; a column a table lacks, or holds no strings in, is its
+        table check's to report."""
         for column in columns:
             timelines = _array(rows, column)
+            null = pc.and_(pc.is_null(timelines), _array(rows, _READ + column))
+            self._add_rows(
+                "schema_violation",
+                rows,
+                null,
+                column,
+                lambda row, column=column: f"'{column}' is null",
+            )
             unknown = pc.and_(
                 pc.is_valid(timelines), pc.is_null(self._owners(timelines))
             )
@@ -815,7 +912,9 @@ class _Check:
             keys = held.select(["entry", column]).rename_columns(["entry", "timeline"])
             keys = keys.append_column("order", held.column("order"))
             missing = keys.join(
-                self.listings, keys=["entry", "timeline"], join_type="left anti"
+                self.listings.select(["entry", "timeline"]),
+                keys=["entry", "timeline"],
+                join_type="left anti",
             )
             mask = pc.is_in(_arange(len(rows)), value_set=missing.column("order"))
 
@@ -882,40 +981,43 @@ class _Check:
     # The table checks.
 
     def _table_checks(self) -> None:
+        """The table checks of each MatchClaim or Projections table, once per
+        manifest whose resources name it, over that manifest's rows alone:
+        each row's manifests are found once, by its timelines' listings, and
+        the rows ordered by manifest, so that every manifest is checked on
+        its own run of rows."""
         package = {
             (problem.code, problem.file, problem.row, problem.path)
             for problem in self.problems.found
         }
         across = {(self.names[file], row) for file, row in self.across}
-        full: dict[int, tuple[pa.Table, pa.Array, pa.Array] | None] = {}
+        full: dict[int, _Full | None] = {}
         reported: set[PackageProblem] = set(self.problems.found)
         for number, manifest in enumerate(self.manifests):
-            for index, resource in enumerate(entries_of(manifest.bare, "resources")):
+            checked_entries: set[int] = set()
+            for index in range(len(entries_of(manifest.bare, "resources"))):
                 entry = self.resolved.get((number, index))
-                if entry is None or entry.kind not in _CHECKED:
+                if (
+                    entry is None
+                    or entry.kind not in _CHECKED
+                    or entry.index in checked_entries
+                ):
                     continue
+                checked_entries.add(entry.index)
                 if entry.index not in full:
                     full[entry.index] = self._full(entry)
                 read = full[entry.index]
                 if read is None:
                     continue
-                table, files, rows = read
-                listed = pa.array(resource["timelines"], pa.string())
-                mine = pc.is_in(
-                    _array(table, _timeline_columns(entry.kind)[0]), value_set=listed
-                )
-                for column in _timeline_columns(entry.kind)[1:]:
-                    mine = pc.or_(
-                        mine, pc.is_in(_array(table, column), value_set=listed)
-                    )
-                taken = pc.indices_nonzero(_held(mine))
-                checked = _CHECKED[entry.kind](table.take(taken), manifest.value)
+                taken = read.runs.get(number, _arange(0))
+                checked = _CHECKED[entry.kind](read.table.take(taken), manifest.value)
                 for problem in checked:
                     if problem.row is None:
                         file, row = entry.url, None
                     else:
                         at = taken[problem.row].as_py()
-                        file, row = self.names[files[at].as_py()], rows[at].as_py()
+                        file = self.names[read.files[at].as_py()]
+                        row = read.rows[at].as_py()
                     if (problem.code, file, row, problem.column) in package:
                         continue
                     if problem.code == "unknown_timeline" and (file, row) in across:
@@ -927,10 +1029,39 @@ class _Check:
                         reported.add(placed)
                         self.problems.found.append(placed)
 
-    def _full(self, entry: _Entry) -> tuple[pa.Table, pa.Array, pa.Array] | None:
+    def _runs(self, entry: _Entry, table: pa.Table) -> dict[int, pa.Array]:
+        """The rows of an entry's table each manifest checks, by manifest: a
+        row whose timeline (a MatchClaim's either) a resource of the manifest
+        naming the entry lists, in the table's order. One hash join per
+        timeline column and one sort over the rows found."""
+        listed = self.listings.filter(
+            pc.equal(self.listings.column("entry"), entry.index)
+        ).select(["timeline", "manifest"])
+        pairs = [
+            pa.table({"timeline": _strings(table, column), "row": _arange(len(table))})
+            .join(listed, keys="timeline", join_type="inner")
+            .select(["manifest", "row"])
+            for column in _timeline_columns(entry.kind)
+        ]
+        owned = (
+            pa.concat_tables(pairs)
+            .group_by(["manifest", "row"])
+            .aggregate([])
+            .sort_by([("manifest", "ascending"), ("row", "ascending")])
+        )
+        rows = owned.column("row").combine_chunks()
+        runs: dict[int, pa.Array] = {}
+        offset = 0
+        for count in pc.value_counts(owned.column("manifest")).to_pylist():
+            runs[count["values"]] = rows.slice(offset, count["counts"])
+            offset += count["counts"]
+        return runs
+
+    def _full(self, entry: _Entry) -> _Full | None:
         """Every column of an entry's rows, with each row's file (an index of
-        :attr:`names`) and its row in the file; ``None`` where they cannot
-        be read as one table, the problem added."""
+        :attr:`names`), its row in the file, and the rows each manifest
+        checks (:meth:`_runs`); ``None`` where they cannot be read as one
+        table, the problem added."""
         first = self.first_file[self.entries.index(entry)]
         try:
             read = _read(entry.files, entry.schemas, entry.kind)
@@ -948,17 +1079,26 @@ class _Check:
             self.problems.add(problem.code, file, row, problem.column, problem.message)
             return None
         files, rows = _origins(first, read.lengths)
-        return read.table, files, rows
+        return _Full(read.table, files, rows, self._runs(entry, read.table))
+
+
+_READ = "read:"
+"""The prefix of the column telling whether a row's table holds the timeline
+column after it as strings."""
+
+
+def _is_strings(table: pa.Table, name: str) -> bool:
+    return name in table.column_names and pa.types.is_string(
+        table.schema.field(name).type
+    )
 
 
 def _strings(table: pa.Table, name: str) -> pa.Array:
     """A column of strings, as the package rules read it: null where the
     table lacks it or holds no strings in it, which its table check
     reports."""
-    if name in table.column_names:
-        column = table.column(name).combine_chunks()
-        if pa.types.is_string(column.type):
-            return column
+    if _is_strings(table, name):
+        return table.column(name).combine_chunks()
     return pa.nulls(len(table), pa.string())
 
 
