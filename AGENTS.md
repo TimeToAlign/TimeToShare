@@ -12,7 +12,9 @@ These rules apply to every contributor, human or automated.
   `<version>/provenance.schema.json`, the provenance entry that
   statements, flow-control elements, FlowMaps and the MatchClaim table
   share, `<version>/tables.json`,
-  the column types of the MatchClaim and Projections tables as data, and
+  the column types of the four table types of a package as data (the
+  registry, the Extraction table, the MatchClaim table and the pre-parsed
+  Projection table), and
   `<version>/package.schema.json`, the schema of a package's
   `package.yaml` `{timetoshare, manifests, tables, id?, name?, meta?}`;
   they are the format contract and source of truth.
@@ -36,12 +38,15 @@ These rules apply to every contributor, human or automated.
   derived with), the expected RDF of the statement fixtures under
   `fixtures/rdf/<version>/` (canonical N-Quads, emitted), the table
   fixture under `fixtures/tables/<version>/` (a manifest naming its
-  MatchClaim table and its Projections table, the two Parquet files and
-  the anchors and potential MatchStamps expected of them, emitted), the
+  registry and its MatchClaim table, the Parquet files of the registry,
+  the MatchClaim table and the pre-parsed Projection table, and the
+  anchors and potential MatchStamps expected of them, emitted), the
   package fixtures under `fixtures/packages/<version>/` (`shared/`, two
-  manifests sharing folders of tables, `acceptances/<case>/` and
-  `rejections/<case>/`, each beside an `expected.yaml` of the rows read or
-  the problems the package check reports, emitted), the
+  manifests sharing a registry, an Extraction table, a pre-parsed
+  Projection table and a folder of MatchClaims, `acceptances/<case>/` and
+  `rejections/<case>/`, each beside an `expected.yaml` of the rows read
+  and the resolutions, or the problems the package check reports,
+  emitted), the
   test vectors of minted IDs under `fixtures/ids/` (`minted_ids.json`,
   emitted, the values every tool that mints IDs checks its minter
   against), hand-authored rejection cases under `fixtures/rejections/<version>/`,
@@ -69,8 +74,9 @@ These rules apply to every contributor, human or automated.
   files are listed with their arithmetic in `drawings/README.md`, everything
   else is emitted), and the hand-authored version cases under
   `fixtures/versions/` (`<case>/old/` and `<case>/new/`, two trees of
-  manifests, beside `expected.yaml`, the step and findings `tree_step`
-  gives); see `fixtures/README.md`.
+  manifests, and for the cases of tables the registry and the pre-parsed
+  Projection table they name, beside `expected.yaml`, the step and
+  findings `tree_step` gives); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37 and Noto Music 2.004, their licences, and the
   one table of advance-width metrics used by the drawing.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
@@ -87,8 +93,9 @@ These rules apply to every contributor, human or automated.
   and checks their `$id`s and references.
 - `decisions/`: numbered MADR decision records.
 - `.pre-commit-hooks.yaml`: the pre-commit hooks a dataset repository
-  installs from this repository (the commit type, its check and
-  `timetoshare validate`), and `setup.py`, an empty distribution at the
+  installs from this repository (the commit type, its check,
+  `timetoshare validate` and `timetoshare registry --check`, which checks
+  the registry's index against the manifests), and `setup.py`, an empty distribution at the
   root that exists only so that pre-commit's `pip install .` succeeds; each
   hook installs the package from `./python`.
 - `.github/workflows/`: continuous integration and the release automation,

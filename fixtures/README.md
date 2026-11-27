@@ -33,7 +33,7 @@ lie the expected RDF of the 4 statement fixtures under
 ([The table fixture](#the-table-fixture)), the vectors of minted IDs under
 `fixtures/ids/` ([Minted ID vectors](#minted-id-vectors)), the package
 fixtures under `fixtures/packages/0.2.0/` ([The package
-fixtures](#the-package-fixtures)), 258 rejection
+fixtures](#the-package-fixtures)), 259 rejection
 cases, 19 warning cases, one table of acceptances under
 `fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)) and
 one list of cases of several problems under `fixtures/precedence/0.2.0/`
@@ -514,10 +514,12 @@ each provenance entry gives one reified statement.
 
 ## The table fixture
 
-`fixtures/tables/<version>/` holds the fixture of the two table types,
+`fixtures/tables/<version>/` holds the fixture of the table types,
 outside `fixtures/<version>/` so that no reader of the manifest fixtures
-takes it for one: `manifest.yaml`, the MatchClaim table
-`match_claims.parquet`, the Projections table `projections.parquet` and
+takes it for one, a manifest alone with the tables beside it:
+`manifest.yaml`, the MatchClaim table `match_claims.parquet`, the registry
+`registry.parquet` (one file), the pre-parsed Projection table
+`projections.parquet`, the Extraction table `extractions.parquet` and
 `expected.yaml`, the AlignmentAnchors and potential MatchStamps expected
 of the MatchClaim table under seven belief filters, each a believer and
 the states it keeps, in this order: no believer, every state but `false`;
@@ -527,12 +529,15 @@ then `unlikely` with `false`; and the first actor written as the compact
 IRI `orcid:0000-0002-1825-0097`, `true` alone, which keeps what the third
 filter keeps. Every filter reads actors under the manifest's `@context`,
 which declares the prefix `orcid`. The manifest holds three roots
-(`clt_1`, quarters, with the child `clt_2`; `dpt_1`, samples; `cpt_1`,
-seconds) and names both tables in its `resources`, each with its media
-type, its size, its SHA-256 digest and the timelines its table holds data
-for: `resource_1`, the MatchClaim table, names `clt_1`, `clt_2`, `dpt_1`
-and `cpt_1`; `resource_2`, the Projections table, names `clt_2`, `dpt_1`
-and `cpt_1`. The MatchClaim table holds 18 rows; an event ID column holds
+(`clt_1`, quarters, with the child `clt_2` starting at the quarter 8;
+`dpt_1`, samples; `cpt_1`, seconds) and names two tables in its
+`resources`, each with its media type, its size, its SHA-256 digest and
+the timelines its table holds data for: `resource_1`, the MatchClaim
+table, names `clt_1`, `clt_2`, `dpt_1` and `cpt_1`; `resource_2`, the
+registry, names `clt_2`, `dpt_1` and `cpt_1`, the timelines its event
+rows lie on. The pre-parsed Projection table
+and the Extraction table are named by the registry's rows, not by the
+manifest. The MatchClaim table holds 18 rows; an event ID column holds
 an event's ID or a sentinel's reserved string, never a null: `claim_12` is
 a NOMATCH (`NOMATCH_SENTINEL` on its `dpt_1` side), `claim_11` a
 synchronous MatchClaim with `CHUNK_SENTINEL` on both sides (`dpt_1` and
@@ -545,19 +550,26 @@ one potential MatchStamp; `claim_17` joins the note at the quarter 45/4 of
 `claim_18` is a NOMATCH stated from `inserted_1`, a Projection on `dpt_1`
 under the source's ID for a note the package does not hold
 (`NOMATCH_SENTINEL` on its `clt_1` side), which states no anchor.
-The Projections table holds 11 Projections, none
-where a side is CHUNK (a CHUNK is no Projection; the Projections keep their
-numbers, so `projection_6` and `projection_7` are not held), and each
-number type of a cell: ints on `dpt_1` (instants and one interval), a
-float instant and a float interval on `cpt_1`, and a fraction interval (start 7/2, duration
-1/2) on `clt_2`; the float interval and the fraction interval are named by
-no MatchClaim. Every Projection but one names the event it stands for in
-`projection_of`; `inserted_1`, an int instant at the sample 573300, names
-none (`projection_of` null).
-Its rows lie sorted stably by `timeline_id` (`clt_2`, then `cpt_1`, then
-`dpt_1`), each timeline's in the order the script lists them: the order in
-which timetoalign writes a bundle's Projections table, so that the two
-files are equal byte for byte. The script
+
+The registry holds 11 event rows, one per Projection, none where a side
+is CHUNK (a CHUNK is no Projection; the Projections keep their numbers, so
+`projection_6` and `projection_7` are not held), and each number type:
+ints on `dpt_1` (instants and one interval), a float instant and a float
+interval on `cpt_1`, and a fraction interval on the child `clt_2`,
+`projection_10`, at 7/2 on the child and stored at 23/2, its position on
+the axis of its root `clt_1`, with the duration 1/2; the float interval
+and the fraction interval are named by no MatchClaim. Every event row
+names the one extraction `extraction_1`, a run of an aligner without a
+source file (`source` null), and the location `projections.parquet`. The
+pre-parsed Projection table holds each Projection's `projection_of`:
+every Projection but one names the event it stands for; `inserted_1`, an
+int instant at the sample 573300, names none (`projection_of` null). The
+registry's file holds its index rows first, the extraction at
+`extractions.parquet`, each element of the manifest at `manifest.yaml`
+and each MatchClaim at `match_claims.parquet`, sorted by location and ID,
+then its event rows, sorted by timeline (code point), start (exact value)
+and ID, as a writer writes them; the pre-parsed rows lie in the order of
+the event rows. The script
 `scripts/emit_tables.py` (run from `python/` as `uv run python
 ../scripts/emit_tables.py`; it needs pyarrow, a development dependency) is
 its only writer: every row and every expected value is literal data in the
@@ -571,29 +583,47 @@ version whose tag `v<version>` exists. Python's
 
 `fixtures/packages/<version>/` holds packages: folders with a
 `package.yaml` at their root, listing their manifests and their tables.
-`shared/` is a package of two manifests sharing their tables:
-`bach/manifest.yaml` (a score `clt_1` in quarters, a performance `dpt_1`
-in samples) and `handel/manifest.yaml` (a score `clt_2` with a child
-`clt_3`, a performance `dpt_2`) both name the folder of Projections
-`tables/Projection/` (two files) and the folder of MatchClaims
-`tables/MatchClaim/` (one file) in their resources, each with the
-timelines whose rows it reads. The rows of the two manifests are
-interleaved in every file; `part_a.parquet` of the Projections lies sorted
-by timeline, start and ID, as a writer writes it, and `part_b.parquet`
-unsorted, which a reader accepts. Every file states its type
+`shared/` is a package of two manifests sharing their registry and their
+tables: `bach/manifest.yaml` (a score `clt_1` in quarters, a performance
+`dpt_1` in samples) and `handel/manifest.yaml` (a score `clt_2` with a
+child `clt_3` starting at the quarter 4, a performance `dpt_2`). They
+share the registry `registry/`, a folder of parts: `index.parquet`, the
+index rows of both manifests' elements, of the MatchClaims and of the
+extractions, sorted by location and ID, and one part per extraction
+holding its event rows, sorted by timeline, start and ID:
+`extraction_1.parquet`, Bach's Projections, made from the source file
+`bach/alignment.csv`, each with its locator, and `extraction_2.parquet`,
+Handel's, made by a tool without a source file, the two on the child
+`clt_3` stored at their positions on its root `clt_2`. The Extraction
+table `tables/extractions.parquet` records both runs, the first with the
+source file's digest. The pre-parsed Projection table `tables/Projection/`
+holds each Projection's `projection_of` in two files, `part_a.parquet`
+and `part_b.parquet`, whose rows interleave the two manifests'. The
+folder of
+MatchClaims `tables/MatchClaim/` holds one file, which states one
+provenance for every row (`timetoshare:provenance`), filled into the rows
+by a reader of the folder. Each manifest's resources name the registry,
+with the timelines whose event rows it keeps, and the MatchClaims, with
+the timelines whose MatchClaims it reads; neither names the Projection
+table or the Extraction table. Every file states its type
 (`timetoshare:type`) and the version (`timetoshare:version`) in its
-metadata; the MatchClaim file states one provenance for every row
-(`timetoshare:provenance`), which a reader of the folder fills into the
-rows. `expected.yaml` lists, per manifest and resource, the IDs of the
-rows read for the resource's timelines, sorted.
+metadata. `expected.yaml` lists under `read`, per manifest and resource,
+the IDs of the rows read for the resource's timelines, sorted, and under
+`resolutions` the resolutions of some IDs, each a `path` (a manifest, or
+`.` for the package root), an `id` and the `found` list of `Resolution`s,
+each its `kind`, `location`, `manifest` and the registry `row`.
 
 `acceptances/<case>/` are the shared package with one change each that
 the package check accepts, beside an `expected.yaml` listing no problem
-(`problems: []`) and the `reason`:
+(`problems: []`), the `reason` and, where the case concerns them, the
+resolutions of some IDs:
 
 | Case | Change |
 | --- | --- |
-| `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list |
+| `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list; the index holds the resource |
+| `timeline_in_two_manifests` | Handel's manifest holds a timeline `dpt_1`, as Bach's does, and keeps its event rows too; `dpt_1` resolves through each manifest to its own element, and through the package root to both, and Bach's `projection_1` resolves through Handel's manifest |
+| `single_file_registry` | the registry is one file, `registry.parquet`, holding the index rows and the event rows of both extractions |
+| `re_parsable_event` | an onset of Bach's extraction, `onset_9`, has no pre-parsed content: its `location` is null, its content re-parsable from the extraction's source file; it resolves through Bach's manifest with the location `None` |
 
 `rejections/<case>/` are the shared package with one change each, beside
 an `expected.yaml` listing every problem the package check reports, in
@@ -602,25 +632,39 @@ order (`code`, `file` from the package's root, `row` in that file or null,
 
 | Case | Change | Code |
 | --- | --- | --- |
-| `row_of_no_manifest` | a Projection on `dpt_9`, which no manifest holds | `unknown_timeline` |
-| `projection_id_in_two_files` | one Projection ID in both files, on timelines of the two manifests | `duplicate_id` |
-| `timeline_in_two_manifests` | Handel's manifest holds Bach's `dpt_1` | `duplicate_timeline` |
+| `row_of_no_manifest` | an event row on `dpt_9`, which no manifest holds | `unknown_timeline` |
+| `projection_id_in_two_files` | the ID `projection_3` names a pre-parsed Projection of Handel's in `part_a` and, in `part_b`, the one of Bach's `projection_9`, whose content is then missing | `duplicate_id` |
 | `claim_across_manifests` | a MatchClaim between Bach's score and Handel's performance | `claim_across_manifests` |
-| `column_in_two_types` | a further column `velocity`, an integer in one file and a string in the other | `column_type_mismatch` |
+| `column_in_two_types` | a further column `velocity`, an integer in one file of the Projection table and a string in the other | `column_type_mismatch` |
 | `version_mismatch` | a file declares the version 0.1.0 | `version_mismatch` |
 | `resource_naming_no_table` | a resource names a folder of `Box` events `package.yaml` does not list | `unknown_table` |
 | `folder_with_size` | `package.yaml` states a size for a folder | `folder_descriptor` |
-| `timeline_unlisted` | Handel's Projection resource no longer lists its child `clt_3` | `unlisted_timeline` (two rows) |
-| `axis_mismatch` | a Projection on the samples timeline written in seconds | `axis_mismatch` |
-| `file_of_another_type` | a file of the Projections folder states the type `MatchClaim` | `table_type` |
+| `timeline_unlisted` | Handel's registry resource no longer lists its child `clt_3`, whose event rows the registry holds | `unlisted_timeline` |
+| `axis_mismatch` | an event row on the samples timeline `dpt_1` written in seconds | `axis_mismatch` |
+| `file_of_another_type` | a file of the Projection folder states the type `MatchClaim` | `table_type` |
 | `table_listed_twice` | `package.yaml` lists the folder of Projections twice | `duplicate_url` (`validate_package`) |
 | `file_in_a_listed_folder` | `package.yaml` lists a file of the folder of Projections as a table of its own | `duplicate_url` |
+| `registry_missing` | `package.yaml` lists no registry | `missing_registry` |
+| `registry_listed_twice` | `package.yaml` lists a second registry | `duplicate_registry` |
+| `extraction_table_listed_twice` | `package.yaml` lists a second Extraction table | `duplicate_extraction` |
+| `unknown_extraction` | an event row of Handel's names `extraction_9`, which the Extraction table does not hold | `unknown_extraction` |
+| `vanished_in_an_unknown_extraction` | an event row of Handel's vanished in `extraction_3`, which the Extraction table does not hold | `unknown_extraction` |
+| `unknown_location` | an event row names `tables/Note/`, which `package.yaml` does not list, as its content's table | `unknown_location` |
+| `missing_content` | an event row names the pre-parsed Projections, which hold no row of its ID | `missing_content` |
+| `unregistered_id` | a pre-parsed Projection has an ID no event row of the registry has | `unregistered_id` |
+| `locator_twice` | two event rows of Bach's extraction give the locator `row 1` | `duplicate_locator` |
+| `registry_id_twice` | an onset of Handel's has the ID `claim_1`, a MatchClaim's | `duplicate_id` |
+| `index_row_with_a_position` | an index row states a position | `schema_violation` |
+| `stale_index` | the index gives Bach's score a name it does not have and a region it does not hold, and lacks the group Handel's manifest gained | `stale_index` (three rows) |
+| `projection_of_its_own_timeline` | a pre-parsed Projection of Bach's on `dpt_1` stands for an event of `dpt_1` | `invalid_projection_of` |
+| `projection_of_no_timeline` | a pre-parsed Projection stands for an event of `clt_9`, which no manifest holds | `unknown_timeline` |
 
 The script `scripts/emit_packages.py` (run from `python/` as `uv run
 python ../scripts/emit_packages.py`; it needs pyarrow) is their only
-writer: every row, every manifest, the rows read and the problems expected
-are literal data in the script, which checks that the package check
-agrees before it writes. It rewrites a Parquet file only when its table
+writer: every row, every manifest, the rows read, the resolutions and
+the problems expected are literal data in the script, the digest of the
+first extraction's source file alone being read from its bytes, and the
+script checks that the package check agrees before it writes. It rewrites a Parquet file only when its table
 changes and refuses to replace the files of a version whose tag
 `v<version>` exists. Python's
 `timetoshare.tables.package_fixture_path(*parts)` gives the path of a
@@ -844,6 +888,7 @@ code:
 | `jump_destination` | the destinations of a jump lie at distinct places | `jump_destinations_same_place`, `jump_destinations_same_distance`, `jump_destinations_both_without_place` |
 | `conversion_map` | a map attached to a timeline converts from the timeline's unit, and a map a `PiecewiseMap` or `CombinationMap` holds, or a `ChainMap`'s first map, from its holder's source unit, wherever both are stated; a `TableMap`'s x and y values agree in length and its x values increase strictly; a `PiecewiseMap` has one map fewer than breaks, and its breaks increase strictly | `map_source_unit_mismatch`, `table_map_lengths_differ`, `table_map_x_not_increasing`, `piecewise_map_maps_count`, `piecewise_map_breaks_not_increasing` |
 | `child_unit` | a child has its parent's unit | `child_unit_differs` |
+| `child_number_type` | a child has its parent's number type, each the declared one or its unit's default | `child_number_type_differs` |
 | `child_offset` | a child starts within its parent's known length | `child_offset_beyond_parent` |
 | `child_end` | a child ends within its parent's known length | `child_end_beyond_parent` |
 | `segment_line` | segments run contiguously from 0 to the line's length, with one `is_segment_line` value | `segment_line_not_from_zero`, `segment_line_gap`, `segment_line_gap_in_later_root`, `segment_line_short_of_length`, `segment_line_segment_flag` |
@@ -1035,10 +1080,23 @@ default context. There is one case per rule:
 | `manifest_removed` | a second manifest file `sketches.yaml` removed | major |
 | `manifest_added` | that file added | minor |
 
-The cases of tables need Parquet files, which only
-`scripts/emit_tables.py` writes into `fixtures/`; the package tests write
-them into a temporary directory from the table fixture's MatchClaim table
-instead.
+The cases of tables compare packages: an `old/` and a `new/` package,
+each a `package.yaml`, the manifest `score.yaml`, a registry folder of an
+index part and one extraction part, an Extraction table and a pre-parsed
+Projection table, the `new/` one edit of the `old/`. Every finding lies at
+the manifest whose registry resource lists the row's timeline
+(`score.yaml`, scope `score`); the manifests validate and the index parts
+are not stale:
+
+| Case | Change | Findings |
+| --- | --- | --- |
+| `registry_row_removed` | the event `note_2` removed from its extraction part | `removed_row`, major |
+| `registry_row_added` | an event `note_3` added | `added_row`, minor |
+| `registry_projection_moved` | the start of the Projection `proj_1` moved | `edited_row`, minor |
+| `registry_row_vanished` | the `vanished_in` of `note_2` set | `vanished_row`, minor |
+| `registry_index_only` | an index row's `name` changed, nothing else | none |
+| `projection_row_edited` | the `projection_of` of `proj_1` edited in the pre-parsed table | `edited_row`, minor |
+| `projection_row_removed` | `proj_1` removed from the registry and the pre-parsed table | `removed_row` twice, major |
 
 See the [main README](../README.md) for the manifest shape, the schema API
 and the serializations.

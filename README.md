@@ -22,11 +22,13 @@ serializations: canonical YAML, which every reader reads and every writer
 writes, and two optional JSON forms, pretty JSON and RFC 8785 JSON. Both
 packages write each serialization to the same bytes and read each without
 losing what it holds; the JSON Schema validates the value a
-text holds, whatever its serialization. It defines the tables a manifest
-names beside it, the MatchClaim table and the Projections table, which
-the Python package reads and checks; the package, a folder whose
-`package.yaml` lists manifests and the tables they share, which both
-packages validate and the Python package checks whole; and how
+text holds, whatever its serialization. It defines the tables of a
+package, the registry of every resolvable ID with the positions of the
+events, the Extraction table, the MatchClaim table and the pre-parsed
+tables of event content such as the Projection table, which the Python
+package reads and checks; the package, a folder whose `package.yaml`
+lists manifests and the tables they share, which both packages validate
+and the Python package checks whole and resolves IDs in; and how
 MatchClaims give alignment anchors and MatchStamps. It also specifies how a manifest
 is drawn and how its elements are described by property–value statements
 in published vocabularies, which make a manifest a YAML-LD document, with
@@ -158,24 +160,29 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
 - `length` is the timeline's length on its own axis, or `null` when it is
   not known (section [Unknown length](#unknown-length)).
 - `children` is an array of timelines, each carrying its `offset` on the
-  parent's axis, written in offset order with ties by ID; a child shares
-  its parent's `unit`, here `seconds`:
+  parent's axis, written in offset order with ties by ID; a child has
+  exactly one parent and shares its parent's `unit`, here `seconds`, and
+  its number type, the declared one or the unit's default:
 
   ```json
   "children": [{"id": "#perf", "offset": 4.0, "unit": "seconds", "length": 1503.2}]
   ```
 
-  A child requires `offset`. The schema and both validators accept a
+  Both validators refuse a child of another unit (`child_unit`) or
+  another number type (`child_number_type`, [Identity](#identity)); a
+  timeline's tree therefore has one unit and one number type, its root's.
+  Another unit or number type reaches a timeline only through a
+  conversion map, never as a child. A child requires `offset`. The schema and both validators accept a
   negative offset, a child starting before its parent's 0; timetoalign and
   TimeLineEditor do not support it yet and refuse it (`A negative child
   offset is not supported yet: …`). Where its
   parent's length is known, a child starts at or before the parent's end
   and ends at or before it, locked or not: no child reaches past a known
   length. A child's **end** is its offset plus its length, both known.
-  Where the parent's number type and the child's are both `float`, it is
+  Where the number type, the parent's and so the child's, is `float`, it is
   the sum of the two doubles in IEEE 754 binary64 arithmetic, rounding to
   nearest, ties to even, as a reader adding the two JSON numbers finds it;
-  wherever either number type is `int` or `fraction`, and where a value
+  where the number type is `int` or `fraction`, and where a value
   has no double (a Fraction pair, an integer beyond the range of doubles)
   or the double sum overflows, it is the exact sum. The end is then
   compared with the parent's length by exact value. So a child of length
@@ -203,7 +210,7 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
 - `is_segment_line` marks a **segment line**, a timeline containing only
   contiguous segments: its children are its segments, contiguous from 0 in
   offset order to its length, each starting where the one before it ends
-  (a child's end, as above), all sharing its unit as every child does,
+  (a child's end, as above), all sharing its unit and number type as every child does,
   and all with one `is_segment_line` value. Segments that are segment lines
   themselves make a nested segment line.
 - `conversion_maps`, `regions` and `flow_control` hold the timeline's
@@ -1158,6 +1165,31 @@ stable location gives every local ID a global identity too: the
 manifest's URI with the ID as its fragment, `<manifest location>#<id>`,
 which is what the written form of the ID resolves to.
 
+The same form identifies what a package holds beside its manifests: an
+event, a MatchClaim and an extraction are identified globally by
+`<manifest location>#<id>` too, the manifest being one that keeps it
+([The registry](#the-registry)). Their IDs follow the same rules: a given
+ID is kept verbatim, a missing one is minted as above, the prefix being
+the event type for an event (`projection` for a Projection), `claim` for
+a MatchClaim and `extraction` for an extraction. Their scope is wider than a manifest's:
+an event, MatchClaim or extraction ID is held once in the whole package,
+while an element ID is unique within its manifest only and may repeat in
+another manifest of the package. An ID therefore **resolves** in two
+ways, and the answer is always a list:
+
+- **through a manifest**: the manifest's element with that ID, then the
+  registry rows with that ID that belong to the manifest, an event of a
+  timeline its registry resource lists, a MatchClaim of a table its
+  MatchClaim resources name, and an extraction one of its events names;
+- **through the package root**, the folder of its `package.yaml`: every
+  registry row with that ID, so that an element ID repeated across
+  manifests gives one answer per manifest.
+
+An ID that nothing holds gives the empty list. Python's
+`timetoshare.tables.resolve(path, id)` answers both ways, `path` a
+manifest file or a package root and `id` bare or written with its `#`,
+which is stripped once ([Packages](#packages)).
+
 #### Written in a file
 
 In a manifest file every ID and every reference to an ID is written `#`
@@ -1238,6 +1270,7 @@ stable code:
 | An x value of a `TableMap`, or a break of a `PiecewiseMap`, does not exceed the one before it | `conversion_map` | the value | `x value <value> of TableMap '<id>' does not exceed the one before it` (`break <value> of PiecewiseMap …`) |
 | A `PiecewiseMap` does not have one map fewer than breaks | `conversion_map` | the `maps` | `PiecewiseMap '<id>' has <n> maps for <m> breaks; it needs <m − 1> maps` |
 | A child's `unit` is not its parent's | `child_unit` | the child's `unit` | `child '<id>' has unit '<unit>', its parent '<id>' has '<unit>'` |
+| A child's number type, the declared one or its unit's default, is not its parent's | `child_number_type` | the child's `number_type`, or its `unit` where it states none | `child '<id>' has the number type '<type>', its parent '<id>' has '<type>'` |
 | A child's `offset` lies beyond its parent's known length | `child_offset` | the child's `offset` | `offset <offset> of '<id>' is beyond the length <length> of its parent '<id>'` |
 | A child ends beyond its parent's known length, its own end known | `child_end` | the child's `length` | `child '<id>' ends at <end>, beyond the length <length> of its parent '<id>'` |
 | A segment's `is_segment_line` differs from the first segment's | `segment_line` | the segment's `is_segment_line`, or the segment when it leaves the key out | `segment '<id>' of segment line '<id>' differs from segment '<first id>' in is_segment_line` |
@@ -1297,7 +1330,7 @@ then the conversion-map rules (a timeline's maps in array order, each
 before the maps it holds, the outputs of a `CombinationMap` in code-point
 order of their names, then its children's), then children off their
 parent's axis (child by child, each followed by its
-own children: its unit, then an offset beyond its parent's known length
+own children: its unit, then its number type, then an offset beyond its parent's known length
 or else an end beyond it), then segment lines, whose
 segments are visited in canonical order and each segment's end, a
 child's end ([The timeline](#the-timeline)), is compared by exact value
@@ -1370,8 +1403,9 @@ provenance entry that the manifest's statements, its flow-control
 elements and FlowMaps and the MatchClaim table's rows share ([Provenance
 and beliefs](#provenance-and-beliefs)),
 and to which the manifest document refers for every `provenance` entry;
-`tables.json`, the column types of the two tables as data ([Resources
-and tables](#resources-and-tables)); and the package document
+`tables.json`, the column types of the four table types as data, the
+registry, the Extraction table, the MatchClaim table and the Projection
+table ([Resources and tables](#resources-and-tables)); and the package document
 `package.schema.json`, the schema of a package's `package.yaml`
 ([Packages](#packages)), which refers to the manifest document for
 `Descriptor`, `IriReference`, `Name` and `Meta`. Every released version's documents,
@@ -1409,12 +1443,26 @@ the manifest and provenance documents.
 ## Resources and tables
 
 A manifest holds the structure of its timelines; what lies on them, their
-events and the MatchClaims that relate them, lies in tables beside it,
-which the manifest names. Manifests and the files they name make a
-**package**: a folder whose `package.yaml` lists them, so that several
-manifests may share their tables ([Packages](#packages)), or a manifest
-alone with the files beside it, a package of one manifest. The manifest
-draws and validates without them.
+events and the MatchClaims that relate them, lies in tables beside it.
+Manifests and these tables make a **package**: a folder whose
+`package.yaml` lists them, so that several manifests may share their
+tables ([Packages](#packages)), or a manifest alone with the files beside
+it, a package of one manifest. The manifest draws and validates without
+them.
+
+A package keeps four kinds of table. The **registry** holds one row per
+ID the package can resolve: what every event has, its ID, its type, its
+timeline and its position, and an index of every other ID, so that a
+manifest URL and an ID reference anything the package holds ([The
+registry](#the-registry)). The **Extraction table** records how events
+were taken from their source files ([The Extraction
+table](#the-extraction-table)). The **MatchClaim table** holds the
+MatchClaims ([The MatchClaim table](#the-matchclaim-table)). A
+**pre-parsed table** holds what is particular to events of one type,
+keyed by their IDs and without positions ([Pre-parsed, re-parsed and
+source files](#pre-parsed-re-parsed-and-source-files)); the Projection
+table is the one this version defines ([The Projection
+table](#the-projection-table)).
 
 ### Resources
 
@@ -1425,9 +1473,9 @@ resources:
     timelines: ["#clt_6", "#dpt_1"]
     url: match_claims.parquet
   - id: "#resource_2"
-    type: Projection
-    timelines: ["#dpt_1"]
-    url: projections.parquet
+    type: Registry
+    timelines: ["#clt_6", "#dpt_1"]
+    url: registry/
 ```
 
 `resources` lists the files the manifest names, each one descriptor:
@@ -1435,7 +1483,7 @@ resources:
 | Key | Required | Holds |
 | --- | --- | --- |
 | `id` | yes | the resource's ID ([Identity](#identity)) |
-| `type` | yes | what its rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events it holds |
+| `type` | yes | what it is: `Registry` for the registry, `MatchClaim` for the MatchClaim table, or the type of any other file the manifest carries, such as `Audio` |
 | `timelines` | yes | the IDs of the timelines it holds data for, each a timeline or a virtual timeline of the manifest |
 | `url` | yes | its location, relative to the manifest's own, so that a bare file name lies beside the manifest: a file, or a folder of files when it ends in `/` |
 | `media_type` | no | its media type, or that of each file of a folder |
@@ -1453,19 +1501,181 @@ it, not in its subfolders, none starting with `.` or `_` (a file being
 written, a `_delta_log`); their schemas are unified by column name, a
 column a file lacks reading as null, and one column of two Arrow types in
 two files is refused. A folder has no `size` and no `integrity`
-(`folder_descriptor`). A file or a folder may hold the rows of other
-manifests' timelines, as the files a package's manifests share do: a
-reader of the manifest keeps, for each resource, the rows of the
+(`folder_descriptor`). The registry is a resource like any other, with
+the same descriptor whether it is one file or a folder of parts.
+
+A manifest names the registry by one resource of type `Registry`, whose
+`timelines` are the timelines whose event rows it keeps, and the
+MatchClaim table by its resources of type `MatchClaim`. It names no
+pre-parsed table, the Projection table included: an event's registry row
+names the pre-parsed table holding its content ([The
+registry](#the-registry)), and the Extraction table is reached through
+the events that name an extraction. A file or a folder may hold the rows
+of other manifests' timelines, as the files a package's manifests share
+do: a reader of the manifest keeps, for each resource, the rows of the
 timelines it lists, an event's by its `timeline_id` and a MatchClaim's by
 either of its timelines, and passes over the others
-([Packages](#packages)). A table of events is named by the same entry, its `type`
-the type of its events; the Projections table is the one such table this
-version defines. Parquet is the form in which packages read and write
-these tables. `schema/0.2.0/tables.json` publishes the column types of
-both tables as data ([The schema document](#the-schema-document)), each
-table with its `status`: the MatchClaim table is `stable`; the
-Projections table, like every event type a resource names, is
-`experimental` and may change in any version.
+([Packages](#packages)). Parquet is the form in which packages read and
+write these tables. `schema/0.2.0/tables.json` publishes the column types
+of the four table types, `Registry`, `Extraction`, `MatchClaim` and
+`Projection`, as data ([The schema document](#the-schema-document)), each
+with its `status`: the MatchClaim table is `stable`; the registry, the
+Extraction table and the Projection table, like every pre-parsed table
+of an event type, are `experimental` and may change in any version.
+
+### The registry
+
+The **registry** of a package holds one row per ID the package can
+resolve ([Identity](#identity)). An **event row** stands for an event and
+holds what every event has, whatever its type: its ID, its type, its
+timeline, its position, its name and the extraction it came from. An
+**index row** stands for any other ID: a manifest element, a MatchClaim
+or an extraction, and says where it lies. A package has one registry,
+named in `package.yaml` by its table entry of type `Registry` and in each
+manifest by a resource of that type ([Resources](#resources)). It holds
+one row per ID and one column per property, each of the Arrow type given;
+a column whose Null is "never" holds a value in every row, and one whose
+Null is "event row" holds a value in every event row:
+
+| Column | Arrow type | Null | Holds |
+| --- | --- | --- | --- |
+| `id` | string | never | the ID of the event, the element, the MatchClaim or the extraction |
+| `kind` | string | never | an event row's event type, such as `Projection` or `MidiNote`; an index row's `MatchClaim`, `Extraction` or the name of the manifest element's definition in the schema: `Manifest`, `Timeline`, `VirtualTimeline`, `Group`, `MeasureMap`, `ConversionMap`, `Region`, `FlowControlElement`, `Resource`, `FlowMap`, `Timestamp`, `MatchStamp`, `AlignmentAnchor` or `Elision`, the kinds `tables.json` lists as the registry's `index_kinds` |
+| `location` | string | allowed | where the row's content lies, a URI reference resolved against the package root (below): an element's manifest; the MatchClaim table entry holding a MatchClaim; the Extraction table entry holding an extraction; the pre-parsed table entry holding an event's content, or null where that content is only re-parsable from its extraction's source file. Never null on an index row |
+| `timeline_id` | string | event row | an event's timeline, a timeline of a manifest of the package; for the index row of a region, a flow-control element, an elision or a named timestamp the one timeline it lies on; null for every other index row |
+| `unit`, `number_type` | string | event row | the unit and the number type of the axis `start` and `duration` lie on, the axis of the root of the event's timeline; null on an index row |
+| `start` | number | event row | the event's position on the axis of the root of its timeline; null on an index row |
+| `duration` | number | allowed | the event's duration on the same axis, never negative; null for an instant and on an index row |
+| `name` | string | allowed | an event's name, the label its source gives it, which may repeat; an element's `name`; null where none is known |
+| `extraction_id` | string | event row | the ID of the extraction that made the event, a row of the Extraction table ([The Extraction table](#the-extraction-table)); null on an index row |
+| `locator` | string | allowed | where the parser found the event in its source file (below); null where it gives none and on an index row |
+| `vanished_in` | string | allowed | the ID of the extraction, an update, that no longer found the event in its source (below); null while the event is found, and on an index row |
+
+A **number** is `struct<numerator: int64, denominator: int64, value:
+double>`, filled as the row's `number_type` selects and never mirrored:
+an `int` is its `numerator` alone, a `fraction` its `numerator` and its
+`denominator`, at least 1, a `float` its finite `value` alone, and every
+other member is null. A fraction in any terms is accepted and read as its
+value. The columns may stand in any order, and a registry may hold
+further columns, which are kept and never checked.
+
+**Positions on the root's axis.** A child has exactly one parent and its
+parent's unit and number type ([The timeline](#the-timeline)), so a root
+and every timeline in its tree share one axis, and a position on a child
+is the position on its root less the offsets of the child and of its
+ancestors below the root, an exact difference. The registry therefore
+stores every event's `start` and `duration` on the axis of the root of
+its timeline, in the root's unit and number type, and a reader derives
+the position on the event's own timeline when it loads the rows; both are
+then at hand. Rows on the axis of their root sort and compare across a
+whole tree without knowing any offset. Moving a
+child that holds events, or making a root the child of another timeline,
+is not part of the format; the positions of the registry never shift.
+Another unit or number type reaches an event's timeline only as a
+Projection through a conversion map ([The Projection
+table](#the-projection-table)). Where a source states positions of its
+own, in another unit or relative to another origin, they are kept as raw
+fields of its pre-parsed table ([Pre-parsed, re-parsed and source
+files](#pre-parsed-re-parsed-and-source-files)).
+
+**Locations.** A `location` is a URI reference resolved against the
+**package root**, the folder of `package.yaml`, or, for a manifest alone,
+the manifest's folder: a path such as `bach/manifest.yaml` or
+`tables/Projection/`, and equally the URI of a service or of another
+serialization of the table, such as a database file. It names a table
+entry of `package.yaml` by the same URL as written there, so that a
+manifest, a MatchClaim table, the Extraction table or a pre-parsed table
+of the row's `kind` lies at it.
+
+**Locators and updates.** A `locator` is opaque: the parser that made the
+row writes it, such as a MIDI track and the index of the message, an
+`xml:id` or a row of a CSV file, and only that parser reads it. Within one
+extraction a locator is given once. An **update** runs an extraction
+again over a changed source file and records itself as a new extraction.
+It matches the events it finds to the rows of the earlier extraction by
+their locators: a matched row keeps its ID and takes the update's
+values, an event without a match is added under a new ID, and a row no
+event matches is kept, its `vanished_in` naming the update. A row is
+removed only by a new major version of the dataset ([Versions of a
+dataset](#versions-of-a-dataset)), so that every ID the registry once
+held stays resolvable until then.
+
+**IDs.** An event, a MatchClaim and an extraction ID is held by one row
+among all the event rows and the index rows of MatchClaims and
+extractions (`duplicate_id`). An element ID is held once among the index
+rows of one `location`: the same element ID may stand in two manifests
+of the package, as their identity rules allow ([Identity](#identity)), and
+resolving it through the package root gives both.
+
+**A folder of parts.** A registry is one Parquet file or a folder of
+files read as one table ([Resources](#resources)). A writer of a folder
+writes the index rows into one part, `index.parquet`, and the event rows
+of each extraction into a part of their own, `<extraction_id>.parquet`
+(where an ID cannot name a file, a writer names the part otherwise); an
+extraction or an update then writes one file and leaves the others
+untouched. A writer sorts each event part by `timeline_id` (by code
+point), then `start` (by exact value), then `id`, and the index part by
+`location`, then `id`, so that a filter on a timeline or a location skips
+the row groups that hold none of it. Readers never rely on the order or
+on the names of the parts.
+
+### The Extraction table
+
+The **Extraction table** holds one row per **extraction**: one run of a
+parser over a source file, or one run of a tool that made events without
+a source file, a script or an editor. An extraction is an activity, a
+Software Execution of CIDOC CRMdig (D10) and an activity of PROV-O
+(`prov:Activity`) that used the source file and generated the event
+rows naming it. A package names the Extraction table by at most one
+table entry of type `Extraction`; no manifest names it, and a manifest
+reaches an extraction through the events that name it ([Identity](#identity)):
+
+| Column | Arrow type | Null | Holds |
+| --- | --- | --- | --- |
+| `id` | string | never | the extraction's ID, given once in the package |
+| `source` | string | allowed | the source file, a URI reference resolved against the package root; null for events made without a source file |
+| `source_integrity` | `struct<algorithm: string, digest: string>` | allowed | the digest of the source file's raw bytes, as a descriptor's `integrity` states it ([Resources](#resources)); never null where `source` is given |
+| `parser`, `parser_version` | string | never | the name of the parser or tool and its version |
+| `parameters` | string | allowed | the parameters it ran with, the RFC 8785 JSON text of an object ([RFC 8785 JSON](#rfc-8785-json)); null where it took none |
+| `minter` | string | never | the algorithm of the ID minter and its version, as the tool names it |
+| `id_length` | int64 | never | the number of random characters of the IDs it minted, 13 by default ([Identity](#identity)) |
+| `seed` | string | allowed | the seed of the minter, a decimal string, where one was given explicitly; null where the seed is taken from the source file's bytes |
+| `date` | string | never | when it ran, an ISO 8601 date-time in UTC, such as `2026-11-27T21:04:00Z` |
+
+Every event row names one extraction. An extraction is what makes the
+events reproducible: run again over a source file of the same digest,
+with the parser of the same name and version, the same parameters, and a
+minter of the same algorithm, length and seed, it gives the same events
+under the same IDs and locators. As in the other tables, the columns may
+stand in any order and further columns are kept and never checked.
+
+### Pre-parsed, re-parsed and source files
+
+The registry holds what every event has; what is particular to an
+event's type, the pitch of a note, the velocity of a MIDI message, the
+text of a lyric, comes from one of three places:
+
+- **Source files** are the files events are taken from, a score, a MIDI
+  file, an audio file, an export of a database, as the source makes
+  them. A package may hold them, and the Extraction table names each one
+  with its digest.
+- A **re-parsed** event's content is read from its source file when it is
+  needed, by running its extraction again; its registry row's `location`
+  is null.
+- A **pre-parsed** event's content was stored when it was extracted, in a
+  **pre-parsed table** of its event type, which its registry row's
+  `location` names. Re-parsed content that is stored becomes
+  pre-parsed.
+
+A pre-parsed table is a table entry of `package.yaml` whose `type` is the
+event type. It holds one row per event, keyed by `id`, a string that is
+never null and is held once in the table, and the columns of its type,
+without positions: the positions are the registry's. The positions a
+source states of its own, in another unit or from another origin, are
+kept there as raw fields under their own names. This version defines the
+columns of one pre-parsed table, the Projection table ([The Projection
+table](#the-projection-table)); a pre-parsed table of another type holds
+`id` and any further columns, which are kept and not checked.
 
 ### The MatchClaim table
 
@@ -1484,9 +1694,10 @@ the chunks of a FlowMap, the stretches in the order they are played
 structure, and a manifest holds none. They live in the **MatchClaim
 table**, a file or a folder of files that a manifest names by its
 resources of type `MatchClaim`, and it is the one place they live. Every
-MatchClaim belongs to one manifest, the one holding both its timelines,
-and a MatchClaim is addressed by its ID alone, which the package holds
-once. It holds one row per MatchClaim and one
+MatchClaim belongs to a manifest holding both its timelines, to each of
+them where manifests share those timelines, and a MatchClaim is addressed
+by its ID alone, which the package holds once; the registry indexes it
+([The registry](#the-registry)). It holds one row per MatchClaim and one
 column per property of a MatchClaim, each of the Arrow type given; a
 column whose Null is "never" holds a value in every row:
 
@@ -1497,7 +1708,7 @@ column whose Null is "never" holds a value in every row:
 | `is_synchronous` | bool | never | `true` for a synchronous MatchClaim; `false` for a conceptual one, which states no temporal equivalence, and for a NOMATCH |
 | `provenance` | provenance | allowed | how the MatchClaim was made and who believes it ([Provenance and beliefs](#provenance-and-beliefs)); null where the row states none |
 | `certainty` | float64 | allowed | how certain the MatchClaim is, from 0 to 1, both included; null where none is stated |
-| `event_a_id`, `event_b_id` | string | never | each side's event, one on each timeline: an event's ID, a Projection's where the timeline holds no event of its own ([The Projections table](#the-projections-table)), or a sentinel's reserved string, never an event: `CHUNK_SENTINEL`, the side of a synchronous MatchClaim whose coordinate the anchors state, or `NOMATCH_SENTINEL`, the side without a counterpart of a NOMATCH |
+| `event_a_id`, `event_b_id` | string | never | each side's event, one on each timeline: an event's ID, a Projection's where the timeline holds no event of its own ([The Projection table](#the-projection-table)), or a sentinel's reserved string, never an event: `CHUNK_SENTINEL`, the side of a synchronous MatchClaim whose coordinate the anchors state, or `NOMATCH_SENTINEL`, the side without a counterpart of a NOMATCH |
 | `event_a_name`, `event_b_name` | string | allowed | the name of each event, where it is known; on a CHUNK side the name of the position it states, where it is known; null on a NOMATCH side, which has no name |
 | `id` | string | never | the MatchClaim's ID, never changed once given (below) |
 
@@ -1606,32 +1817,28 @@ package checks the rule for an old and a new table,
 and `succession_problems(old, new)` listing them ([Python](#python)). A reader refuses no table
 for its history: it reads the table it is given.
 
-### The Projections table
+### The Projection table
 
 A **Projection** is an event that stands on a timeline for an event not
-held there. It is an event type of its own, held in the **Projections
-table**, a file or a folder of files that a manifest names by its
-resources of type `Projection`:
+held there. It is an event type of its own: its registry row holds its
+ID, its timeline and its position, on the axis of the root of its
+timeline as every event's ([The registry](#the-registry)), and its
+content is pre-parsed in the **Projection table**, a table entry of
+`package.yaml` of type `Projection` that its registry row's `location`
+names ([Pre-parsed, re-parsed and source
+files](#pre-parsed-re-parsed-and-source-files)):
 
 | Column | Arrow type | Null | Holds |
 | --- | --- | --- | --- |
-| `id` | string | never | the event's ID: an ID its source gives is kept, and one is minted otherwise, `projection_` and 13 random base-36 characters ([Identity](#identity)), never a sentinel's reserved string. An event's ID is unique in the package: the table holds an ID once, whichever timelines its rows lie on, and the package check refuses an ID held twice among all the event rows of a package, of every type and file ([Packages](#packages)) |
-| `timeline_id` | string | never | the timeline the Projection is an event of, a timeline of the manifest |
-| `unit`, `number_type` | string | never | the unit and the number type of its `start` and `duration`, stated once for both: those of the timeline's own axis |
-| `start` | number | never | its position on that timeline's own axis |
-| `duration` | number | allowed | its duration on the same axis, never negative; null for an instant |
+| `id` | string | never | the Projection's ID, the `id` of its registry row: an ID its source gives is kept, and one is minted otherwise, `projection_` and 13 random base-36 characters ([Identity](#identity)), never a sentinel's reserved string; the table holds an ID once |
 | `projection_of` | `struct<timeline_id: string, event_id: string>` | allowed | the event it stands for, an object and never a joined string: both members given, the timeline another than the Projection's own, the event never a sentinel's reserved string; null where no such event is known |
 
-A **number** is `struct<numerator: int64, denominator: int64, value:
-double>`, a coordinate cell without its `unit` and `number_type`: its
-members are filled as the row's `number_type` selects, as a coordinate
-cell's are. As in the MatchClaim table, the columns may stand in any
-order, further columns are kept and never checked, and the rows of one
-timeline lie in one unit and one number type, its own where a manifest
-is given.
+As in the other tables, the columns may stand in any order, and further
+columns are kept and never checked.
 
-A Projection repeats nothing else of its source. A side of a MatchClaim
-that has no event of its own is a Projection or the sentinel CHUNK:
+A Projection repeats nothing else of its source, and its position is
+always its registry row's. A side of a MatchClaim that has no event of
+its own is a Projection or the sentinel CHUNK:
 
 - **The other side has an event.** The Projection names it in
   `projection_of`: score notes aligned to a recording whose alignment
@@ -1723,16 +1930,22 @@ under the manifest's context, its state is the most critical of them:
 
 ### Checking the tables
 
-The Python package checks both tables in `timetoshare.tables`
+The Python package checks the four table types in `timetoshare.tables`
 ([Python](#python)); the npm package reads no tables.
+`registry_problems(table, manifest=None)`,
+`extraction_problems(table)`,
 `match_claim_problems(table, manifest=None)` and
-`projection_problems(table, manifest=None)` list every problem of a table;
-given a manifest (as read from its file, IDs written `#`), they also
-refuse a timeline the manifest does not hold and a cell off its
-timeline's axis. Given a manifest, every row is the manifest's, a row of
-another manifest's timelines included: a file the manifests of a package
-share is read filtered first, by `read_table` with the timelines a
-resource lists ([Packages](#packages)), and then checked. Each problem is a `TableProblem` of a `code`, a `row`
+`projection_problems(table, manifest=None)` list every problem of a
+table; given a manifest (as read from its file, IDs written `#`), they
+also refuse a timeline the manifest does not hold (for a Projection, the
+timeline of the event it stands for) and a position or a cell off its
+timeline's axis. Given a manifest, every row is the manifest's, a
+row of another manifest's timelines included: a file the manifests of a
+package share is read filtered first, by `read_table` with the timelines
+a resource lists ([Packages](#packages)), and then checked; what the
+tables hold together, a registry row and the content its `location`
+names, is checked by the package check ([Packages](#packages)). Each
+problem is a `TableProblem` of a `code`, a `row`
 (its index from 0, or `None` for the whole table), a `column` (a tuple
 path such as `("start_anchor", "coordinate_a")`, written
 `start_anchor.coordinate_a` below) and a `message`. A table missing a
@@ -1742,9 +1955,44 @@ table holding a null where its type allows none is reported for those
 alone, row by row. Otherwise the table's own problems come first, then
 row by row, each row's ID before the rules below in their
 order, its provenance last. Every check reports a cell's first problem
-only. `check_match_claims(table, manifest=None)` and
-`check_projections(table, manifest=None)` raise the first problem as a
-`TableError`, a `ValueError` whose `problem` is that `TableProblem`.
+only. `check_registry`, `check_extractions`, `check_match_claims` and
+`check_projections`, with the same arguments, raise the first problem as
+a `TableError`, a `ValueError` whose `problem` is that `TableProblem`.
+Python's `INDEX_KINDS` holds the kinds of the index rows, as `tables.json`
+lists them.
+
+The registry, where an index row is one whose `kind` is one of the
+registry's `index_kinds` ([The registry](#the-registry)) and every other
+row an event row:
+
+| Rule | Code | Column | Message |
+| --- | --- | --- | --- |
+| A column of the type is missing or of another type | `schema_violation` | the column, row `None` | as in the MatchClaim table |
+| `id` or `kind` is null; in an event row `timeline_id`, `unit`, `number_type`, `start` or `extraction_id`; in an index row `location` | `schema_violation` | the column | `'<name>' is null` |
+| An index row states `unit`, `number_type`, `start`, `duration`, `extraction_id`, `locator` or `vanished_in` | `schema_violation` | the column | `an index row has no '<name>'` |
+| An ID is empty, holds a control character or is a reserved string | `invalid_id` | `id` | as in the MatchClaim table |
+| An event, MatchClaim or extraction ID repeats such an ID of an earlier row | `duplicate_id` | `id` | `the ID '<id>' is given twice` |
+| A manifest element's ID repeats the ID of an earlier element row of the same `location` | `duplicate_id` | `id` | `the ID '<id>' is given twice at '<location>'` |
+| An event row's `timeline_id` names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `timeline_id` | `the manifest has no timeline '<id>'` |
+| An event row's `unit` is none of the format's units, or its `number_type` none of `int`, `float` and `fraction` or one the unit does not admit | `invalid_coordinate` | `unit`, else `number_type` | `'<unit>' is no unit`, `'<number type>' is no number type`, `'<unit>' admits no number type '<number type>'` |
+| An event row's unit and number type are not those of its timeline in the manifest, the axis of its root, or not those of an earlier row of its timeline | `axis_mismatch` | `unit` where the units differ, else `number_type` | an axis message (below) |
+| `start`, then `duration`, is malformed | `invalid_coordinate` | the number | a number's message (below) |
+| A well-formed `duration` is negative | `invalid_duration` | `duration` | `the duration is negative` |
+| A `locator` repeats the locator of an earlier row of the same extraction | `duplicate_locator` | `locator` | `the locator '<locator>' is given twice in the extraction '<id>'` |
+
+The Extraction table:
+
+| Rule | Code | Column | Message |
+| --- | --- | --- | --- |
+| A column of the type is missing or of another type | `schema_violation` | the column, row `None` | as in the MatchClaim table |
+| `id`, `parser`, `parser_version`, `minter`, `id_length` or `date` is null | `schema_violation` | the column | `'<name>' is null` |
+| An ID is empty, holds a control character or is a reserved string | `invalid_id` | `id` | as in the MatchClaim table |
+| An ID repeats the ID of an earlier row | `duplicate_id` | `id` | as in the MatchClaim table |
+| `source` is given and `source_integrity` is null | `schema_violation` | `source_integrity` | `'source_integrity' is null where 'source' is given` |
+| A member of `source_integrity` is null, its `algorithm` none of a descriptor's, or its `digest` no lower-case hexadecimal | `schema_violation` | `source_integrity.algorithm`, `source_integrity.digest` | `'source_integrity' has no <member>`, `'<algorithm>' is no algorithm of a digest`, `the digest '<digest>' is no lower-case hexadecimal` |
+| `parameters` is no JSON text, no object, or not written in RFC 8785 JSON | `schema_violation` | `parameters` | `the parameters are no JSON text`, `the parameters are no JSON object`, `the parameters are not written in RFC 8785 JSON` |
+| `id_length` is below 1 | `schema_violation` | `id_length` | `the ID length <n> is below 1` |
+| `date` is no ISO 8601 date-time in UTC, or no time of the Gregorian calendar | `schema_violation` | `date` | `the date '<date>' is no ISO 8601 date-time in UTC, such as '2026-11-27T21:30:00Z'`, `the date '<date>' is no time of the Gregorian calendar` |
 
 The MatchClaim table:
 
@@ -1773,24 +2021,21 @@ The MatchClaim table:
 | A row states a provenance where the file states one | `invalid_provenance` | `provenance` | `the provenance is stated in the file's metadata and in the row` |
 | A row's provenance is no provenance entry | `invalid_provenance` | `provenance` | `the provenance <pointer>: <problem>` |
 
-The Projections table:
+The Projection table:
 
 | Rule | Code | Column | Message |
 | --- | --- | --- | --- |
 | A column of the type is missing or of another type | `schema_violation` | the column, row `None` | as in the MatchClaim table |
-| `id`, `timeline_id`, `unit`, `number_type` or `start` is null | `schema_violation` | the column | `'<name>' is null` |
-| An ID is empty or holds a control character | `invalid_id` | `id` | as in the MatchClaim table |
-| An ID is a reserved string | `invalid_id` | `id` | as in the MatchClaim table |
+| `id` is null | `schema_violation` | `id` | `'id' is null` |
+| An ID is empty, holds a control character or is a reserved string | `invalid_id` | `id` | as in the MatchClaim table |
 | An ID repeats the ID of an earlier row | `duplicate_id` | `id` | as in the MatchClaim table |
-| `timeline_id` names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `timeline_id` | `the manifest has no timeline '<id>'` |
-| `unit` is none of the format's units, or `number_type` none of `int`, `float` and `fraction` or one the unit does not admit | `invalid_coordinate` | `unit`, else `number_type` | `'<unit>' is no unit`, `'<number type>' is no number type`, `'<unit>' admits no number type '<number type>'` |
-| The row's unit and number type are not those of its timeline in the manifest, or of an earlier row on its timeline | `axis_mismatch` | `unit` where the units differ, else `number_type` | an axis message (below) |
-| `start`, then `duration`, is malformed | `invalid_coordinate` | the number | a number's message (below) |
-| A well-formed `duration` is negative | `invalid_duration` | `duration` | `the duration is negative` |
 | A member of `projection_of` is null or empty | `invalid_projection_of` | `projection_of.timeline_id`, `projection_of.event_id` | `the projected event has no timeline_id`, `the projected event has no event_id` |
 | `projection_of.event_id` is a reserved string, `NOMATCH_SENTINEL` or `CHUNK_SENTINEL` | `invalid_projection_of` | `projection_of.event_id` | `'<string>' is reserved for a sentinel` |
-| `projection_of` names the Projection's own timeline | `invalid_projection_of` | `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
 | `projection_of` names no timeline and no virtual timeline of the manifest | `unknown_timeline` | `projection_of.timeline_id` | `the manifest has no timeline '<id>'` |
+
+That `projection_of` names another timeline than the Projection's own is
+checked by the package check, which reads the Projection's timeline in
+its registry row ([Packages](#packages)).
 
 A cell's message names the first of: an anchor's coordinate that is null
 (`the coordinate is null`); a null `unit`, then a null `number_type`
@@ -1800,8 +2045,8 @@ other than `int`, `float` and `fraction` (`'<number type>' is no number
 type`); a number type its unit does not admit (`'<unit>' admits no number
 type '<number type>'`), so that a table checked alone refuses it too; then
 the problem of its number. A number's message calls a
-cell and a Projection's `start` the coordinate and a Projection's
-`duration` the duration, and names the first of: a member its number type
+cell and a registry row's `start` the coordinate and its `duration` the
+duration, and names the first of: a member its number type
 fills that is null, in the order `numerator`, `denominator`, `value` (`a
 float coordinate has no value`, `a fraction duration has no
 denominator`); a member it leaves null that holds a value (`an int
@@ -1813,7 +2058,7 @@ finite`); a denominator below 1 (`the coordinate's denominator
 message is `a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit>
 (<number type>)` against a manifest, and `the timeline '<id>' has
 coordinates in <unit> (<number type>) and in <unit> (<number type>)` at
-the later of two cells, or Projections, of one timeline in a table, the
+the later of two cells, or registry rows, of one timeline in a table, the
 first axis met before the second. A cell on a timeline the manifest does not hold is
 not compared.
 
@@ -1851,8 +2096,8 @@ columns in the type's order; `check_succession` raises the first.
 
 ### Packages
 
-A **package** is a folder of manifests and the tables their resources
-name, with a file `package.yaml` at its root listing them:
+A **package** is a folder of manifests and the tables of their events
+and MatchClaims, with a file `package.yaml` at its root listing them:
 
 ```yaml
 manifests:
@@ -1862,8 +2107,16 @@ manifests:
   -
     media_type: application/yaml
     url: handel/manifest.yaml
-name: "Two manifests sharing their tables"
+name: "Two manifests sharing their registry and tables"
 tables:
+  -
+    media_type: application/vnd.apache.parquet
+    type: Registry
+    url: registry/
+  -
+    media_type: application/vnd.apache.parquet
+    type: Extraction
+    url: tables/extractions.parquet
   -
     media_type: application/vnd.apache.parquet
     type: MatchClaim
@@ -1885,38 +2138,47 @@ open:
 | `id` | no | the package's IRI where it is published, such as its repository or its DOI |
 | `name`, `meta` | no | its name and free-form metadata, as a manifest's |
 | `manifests` | yes | the manifests, each once, each a descriptor ([Resources](#resources)): its `url`, and optionally its `media_type`, `size` and `integrity` |
-| `tables` | yes, possibly empty | the tables, each a descriptor with the `type` of its rows, as a resource states it; a type may have several entries, for rows kept in different files |
+| `tables` | yes | the tables, each a descriptor with the `type` of its rows: `Registry` for the registry, exactly one entry; `Extraction` for the Extraction table, at most one entry; `MatchClaim` for the MatchClaim table; and an event type for a pre-parsed table of it, such as `Projection`. A type other than `Registry` and `Extraction` may have several entries, for rows kept in different files |
 
 - **URLs** are resolved against the address of the document stating
   them: an entry of `package.yaml` against the package's root, a
-  resource against its manifest. A URL leading outside the package names
-  nothing in it. A `url` ending in `/` names a folder, read as one table
-  ([Resources](#resources)); a folder has no `size` and no `integrity`.
+  resource against its manifest, a registry row's `location` and an
+  extraction's `source` against the package's root. A URL leading
+  outside the package names nothing in it. A `url` ending in `/` names a
+  folder, read as one table ([Resources](#resources)); a folder has no
+  `size` and no `integrity`.
 - **The manifests are listed one by one**, never by a pattern.
-- **Each manifest's resources name the files and folders it reads**,
-  with the timelines whose rows it keeps, so that the manifests and
-  `package.yaml` name the same files, and nothing in a table file names a
-  manifest. A **table resource** is one whose `type` is `MatchClaim` or
-  `Projection`, whose `url` names a folder (ends in `/`) or a Parquet file
-  (ends in `.parquet`), or whose `media_type` is
-  `application/vnd.apache.parquet`; only a table resource names a table
-  entry, and it names one exactly, by the same resolved URL and the same
-  type: a resource naming one file of a folder entry names no entry. Any
-  other resource, a recording, an image or a score file, is carried with
-  its manifest and not checked against `tables`. Python's
-  `timetoshare.tables.is_table_resource(resource)` answers this rule.
+- **Each manifest's resources name the tables it reads**, the registry
+  and the MatchClaim tables, with the timelines whose rows it keeps, and
+  nothing in a table file names a manifest. A **table resource** is one
+  whose `type` is `Registry` or `MatchClaim`, whose `url` names a folder
+  (ends in `/`) or a Parquet file (ends in `.parquet`), or whose
+  `media_type` is `application/vnd.apache.parquet`; only a table
+  resource names a table entry, and it names one exactly, by the same
+  resolved URL and the same type: a resource naming one file of a folder
+  entry names no entry. Any other resource, a recording, an image or a
+  score file, is carried with its manifest and not checked against
+  `tables`. Python's `timetoshare.tables.is_table_resource(resource)`
+  answers this rule.
+- **Manifests may share a timeline ID.** An element ID is unique within
+  its manifest only ([Identity](#identity)), so two manifests of a
+  package may hold a timeline of one ID, such as two layers stating the
+  same score; they then share that timeline's event rows, and each is
+  checked against them on its own axis. A MatchClaim belongs to every
+  manifest holding both its timelines.
 - **A file's metadata** states its type (`timetoshare:type`, such as
-  `Projection`) and its format version (`timetoshare:version`); a
+  `Registry`) and its format version (`timetoshare:version`); a
   MatchClaim file may state the provenance its rows share
   (`timetoshare:provenance`, [The MatchClaim
   table](#the-matchclaim-table)). Nothing else of a file's metadata is
   read.
 - **A manifest alone**, its resources naming files beside it, without a
-  `package.yaml`, stays valid unchanged: it is a package of one manifest.
-  Checked against that manifest, a row of a timeline the manifest does
-  not hold is refused (`unknown_timeline`, [Checking the
-  tables](#checking-the-tables)). Manifests that share a file are listed
-  by a `package.yaml`, which the package check reads.
+  `package.yaml`, stays valid unchanged: it is a package of one manifest,
+  whose root is the manifest's folder. Checked against that manifest, a
+  row of a timeline the manifest does not hold is refused
+  (`unknown_timeline`, [Checking the tables](#checking-the-tables)).
+  Manifests that share a file are listed by a `package.yaml`, which the
+  package check reads.
 
 **Validating `package.yaml`.** Python's `validate_package(value)` and
 npm's `validatePackage(value)` check the value of a `package.yaml` alike
@@ -1934,31 +2196,38 @@ the manifests and then the tables:
 | An entry whose `url` ends in `/`, naming a folder, has a `size` or an `integrity` | `folder_descriptor` | that member, `size` before `integrity` | `'<url>' names a folder, which has no size` (`… which has no integrity`) |
 
 URLs are compared as written, and one `url` under two types is valid.
-Python's `package_schema_path()` returns the path of the package document,
-and `load_package_schema()` returns it with the definitions it reaches in
-the manifest document bundled into it, so that every reference is local;
-the npm package validates against the same bundle.
+How many entries of type `Registry` and `Extraction` a package lists is
+the package check's to report. Python's `package_schema_path()` returns
+the path of the package document, and `load_package_schema()` returns it
+with the definitions it reaches in the manifest document bundled into
+it, so that every reference is local; the npm package validates against
+the same bundle.
 
 **Reading a manifest's rows.** Python's
-`timetoshare.tables.read_table(path, *, timelines=None, type=None)` reads
-a table, a file or a folder of files, as one Arrow table through
-`pyarrow.dataset`; `table_files(path)` lists a folder's files, sorted by
-code point. Given `timelines`, bare IDs, the reader keeps the rows of
-those timelines: an event's whose `timeline_id` is listed, a
-MatchClaim's either of whose timelines is, so that a check against the
-manifest sees a MatchClaim reaching outside it. A manifest's rows of one
-resource are therefore `read_table` of the resource's URL with its
-`timelines`, which the table checks against the manifest then pass. A
-MatchClaim file's shared provenance is filled into the `provenance` cell
-of each of its own rows before the files are joined, so that no reader of
-a folder loses it. The table's type is what its files state, else
-`type`; where both are stated they agree, and the table returned states
-its type alone in its metadata. An empty folder gives no rows, in the
-declared columns of a MatchClaim or Projections table and in none for
-another type. The rows come in the files' order, then each file's;
-readers never rely on it, and an unsorted file is read. `read_table`
-raises `FileNotFoundError` for a path that is neither a file nor a
-folder, and a `TableError` for:
+`timetoshare.tables.read_table(path, *, timelines=None, ids=None,
+type=None)` reads a table, a file or a folder of files, as one Arrow
+table through `pyarrow.dataset`; `table_files(path)` lists a folder's
+files, sorted by code point. Given `timelines`, bare IDs, the reader
+keeps the rows of those timelines: an event's whose `timeline_id` is
+listed, a MatchClaim's either of whose timelines is, so that a check
+against the manifest sees a MatchClaim reaching outside it. Given `ids`,
+it keeps the rows whose `id` is listed, a filter `pyarrow.dataset`
+applies to the row groups of the files, so that a lookup of a few IDs
+in a registry sorted as a writer sorts it reads only the row groups
+that may hold them; `timelines` and `ids` together keep the rows both
+keep. A manifest's rows of one resource are therefore `read_table` of
+the resource's URL with its `timelines`, which the table checks against
+the manifest then pass, and an event's content is `read_table` of its
+`location` with its `id`. A MatchClaim file's shared provenance is
+filled into the `provenance` cell of each of its own rows before the
+files are joined, so that no reader of a folder loses it. The table's
+type is what its files state, else `type`; where both are stated they
+agree, and the table returned states its type alone in its metadata. An
+empty folder gives no rows, in the declared columns of a table type
+`tables.json` declares and in none for another type. The rows come in
+the files' order, then each file's; readers never rely on it, and an
+unsorted file is read. `read_table` raises `FileNotFoundError` for a
+path that is neither a file nor a folder, and a `TableError` for:
 
 | Refusal | Code | Column | Message |
 | --- | --- | --- | --- |
@@ -1966,10 +2235,57 @@ folder, and a `TableError` for:
 | A file states another type than `type` | `table_type` | none | `'<file>' holds the type <type>, not <type>` |
 | No file states a type and no `type` is given | `table_type` | none | `the table names no type: no file states 'timetoshare:type'` |
 | One column has two Arrow types in two files, nullability and the names of list items not compared | `column_type_mismatch` | the column | `the column '<name>' is <type> in '<file>' and <type> in '<file>'` |
-| `timelines` is given and the files lack a column naming a row's timeline | `schema_violation` | that column | `the table has no column '<name>'` |
+| `timelines` is given and the files lack a column naming a row's timeline, or `ids` is given and they lack `id` | `schema_violation` | that column | `the table has no column '<name>'` |
 | A MatchClaim file's provenance is no provenance entry | `invalid_provenance` | `provenance` | the file's provenance message ([Checking the tables](#checking-the-tables)), followed by `, in '<file>'` |
 | A MatchClaim row states its own provenance beside the file's | `invalid_provenance` | `provenance`, at its row in the table read | `the provenance is stated in the file's metadata and in the row` |
 | A MatchClaim file states a shared provenance and its `provenance` column is of another type than the declared one, so that the provenance cannot be filled in | `schema_violation` | `provenance` | `the column 'provenance' is <type>, not <type>, in '<file>'` |
+
+**Resolving an ID.** Python's `timetoshare.tables.resolve(path, id)`
+resolves an ID as [Identity](#identity) states, `path` a manifest file or
+a package root, the folder holding `package.yaml`, and returns a list of
+`Resolution`s, empty where nothing holds the ID. A `Resolution` holds the
+`kind` and the `location` of what the ID names, as the registry states
+them, the `manifest` it was found through or, through the package root,
+an element's own manifest, a path from the package root (`None` for
+another row found through the root), and the registry `row` as a
+dictionary of its columns. Through a
+manifest, its element comes first, then the registry rows with the ID
+that belong to it: an event row of a timeline its registry resource
+lists, a MatchClaim of a table its MatchClaim resources name, an
+extraction one of its event rows names. Through the package root every
+registry row with the ID is returned. A manifest without a resource of
+type `Registry` resolves its own elements alone, with `row` `None`, and so
+does an element the index lacks.
+
+**Building the index.** The index rows of the registry follow from the
+manifests, the MatchClaim tables and the Extraction table of the package:
+one row per ID of a manifest element (the manifest's own where it has
+one, and every element of [Identity](#identity)'s list, each `kind` the
+name of its definition in the schema), per MatchClaim and per extraction,
+each with the `location` and, for an element, the `timeline_id` and
+`name` [The registry](#the-registry) gives them. `timetoshare registry
+[--check] [PACKAGE]`, `PACKAGE` a folder holding `package.yaml` (by
+default the current folder), rebuilds them and writes the index part of
+the registry, `index.parquet` in its folder, or, where the registry is
+one file, that file with its event rows kept; it writes a new file
+beside the old one and renames it into place, leaves every event part
+untouched, prints `wrote <file>` and exits 0. With `--check` it changes
+nothing; where the index differs from what it would write, it prints one
+line per `stale_index` problem (below), `<file>: row <row>: stale_index:
+<message>` (`<file>: stale_index: <message>` for a missing row), and
+exits 1, else it prints nothing and exits 0. A folder without
+`package.yaml`, or a `package.yaml` listing no registry or two, exits 1
+with one line on standard error starting `timetoshare:`.
+
+```console
+$ timetoshare registry --check
+registry/index.parquet: stale_index: the index lacks the ID 'region_9' at 'bach/manifest.yaml'
+```
+ This repository's
+`.pre-commit-hooks.yaml` offers the hook `timetoshare-registry`, which
+runs `timetoshare registry --check` before every commit of a dataset
+repository ([Versions of a dataset](#versions-of-a-dataset)), so that a
+change to a manifest is committed with the index that matches it.
 
 **The package check.** Python's
 `timetoshare.tables.package_problems(path)`, `path` a package's
@@ -1986,7 +2302,9 @@ a manifest validation's code or a table check's. It raises
 order:
 
 1. `package.yaml` itself, by `validate_package`; a problem there ends the
-   check, another version being reported as `version_mismatch`.
+   check, another version being reported as `version_mismatch`. Then its
+   registry: no table of the type `Registry`, a second one, or a second
+   table of the type `Extraction`; only the first of each is read.
 2. Manifest by manifest, as listed: a missing manifest, and a manifest
    that is not valid, with its validation's code and path.
 3. Table by table and file by file: a missing file or folder, a file an
@@ -1994,23 +2312,34 @@ order:
    inside a listed folder (the later entry reads its other files only, so
    that no row is read twice), a file of another type or version, and a
    column of two Arrow types (whose rows are then not read).
-4. The rules the manifests and the rows keep together, rule by rule as
-   the table below lists them, each over the event rows and then the
-   MatchClaim rows, in the order of the entries, their files and their
-   rows. They read the columns `id`, `timeline_id`, `unit` and
-   `number_type` of the event tables and `id`, `timeline_a_id` and
-   `timeline_b_id` of the MatchClaim tables.
-5. Manifest by manifest, the table checks of each MatchClaim or
-   Projections table its resources name, in the order they first name it,
-   over the rows of the timelines those resources list, each problem
-   placed in its file and row ([Checking the
-   tables](#checking-the-tables)). A problem a package rule already
+4. The rules the manifests and the tables keep together, rule by rule as
+   the table below lists them, each over every row in the order of the
+   entries, their files and their rows. They read the identifying
+   columns of each table: `id`, `kind`, `location`, `timeline_id`,
+   `unit`, `number_type`, `name`, `extraction_id`, `locator` and
+   `vanished_in` of the registry, `id` of the Extraction table and of the
+   pre-parsed tables, `projection_of` of the Projection table, and `id`,
+   `timeline_a_id` and `timeline_b_id` of the MatchClaim tables. The index
+   rows are compared as `timetoshare registry --check` compares them, by
+   `location` and `id`: the index's extra or differing rows in its order,
+   then the missing rows by `location` and `id`. A manifest or table that
+   could not be read gives no index row and has none compared.
+5. The table checks, each problem placed in its file and row ([Checking
+   the tables](#checking-the-tables)): of the registry (its
+   `axis_mismatch`, a matter of the manifests, being the package rule's),
+   of the Extraction table and of each pre-parsed Projection table, each
+   once and whole; then, manifest by manifest, of each MatchClaim table
+   its resources name, in the order they first name it, over the rows of
+   the timelines those resources list. A problem a package rule already
    reports at the same file, row and column with the same code, or an
    `unknown_timeline` on a MatchClaim reaching another manifest, is not
    repeated.
 
 | Rule | Code | File, path | Message |
 | --- | --- | --- | --- |
+| `package.yaml` lists no table of the type `Registry` | `missing_registry` | `package.yaml`, `tables` | `the package lists no table of the type Registry` |
+| `package.yaml` lists a second table of the type `Registry` | `duplicate_registry` | `package.yaml`, the later entry's `type` | `the package lists a second table of the type Registry, first at <pointer>` |
+| `package.yaml` lists a second table of the type `Extraction` | `duplicate_extraction` | `package.yaml`, the later entry's `type` | `the package lists a second table of the type Extraction, first at <pointer>` |
 | A manifest `package.yaml` lists is missing | `missing_file` | `package.yaml`, the entry's `url` | `no manifest lies at '<url>' in the package` |
 | A manifest declares another version than the package | `version_mismatch` | the manifest, `timetoshare` | `the manifest declares the version '<version>', the package '<version>'` |
 | A table's file or folder is missing | `missing_file` | `package.yaml`, the entry's `url` | `no file lies at '<url>' in the package` (`no folder lies at …`) |
@@ -2018,22 +2347,33 @@ order:
 | A file states another type than its entry | `table_type` | the file, `[]` | `the file holds the type <type>, its table the type <type>` |
 | A file declares another version than the package | `version_mismatch` | the file, `[]` | `the file declares the version '<version>', the package '<version>'` |
 | One column has two Arrow types in two files | `column_type_mismatch` | the folder, the column | `the column '<name>' is <type> in '<file>' and <type> in '<file>'` |
-| A timeline ID, a virtual timeline's included, is held by two manifests | `duplicate_timeline` | the later manifest, the timeline's `id` | `the timeline '<id>' is a timeline of '<manifest>' as well` |
 | A table resource's URL names no table entry of its type, or leads outside the package | `unknown_table` | the manifest, the resource's `url` | `the resource '<id>' names '<url>', which is no table of the type <type> in the package` |
-| An event ID is held twice among all the event rows of the package, of every type and file; then a MatchClaim ID twice among its MatchClaims | `duplicate_id` | the later row's file and row, `id` | `the event ID '<id>' is given twice, first in '<file>' at row <row>` (`the MatchClaim ID …`) |
-| A row's timeline (a MatchClaim's either, column by column) is null, where the file holds the column as strings | `schema_violation` | the row, the column | `'<column>' is null` |
-| A row's timeline is held by no manifest | `unknown_timeline` | the row, the column | `no manifest of the package has the timeline '<id>'` |
-| A row's timeline is listed by none of its manifest's resources of the row's type naming the row's table | `unlisted_timeline` | the row, the column | `the timeline '<id>' of '<manifest>' is listed by no resource of the type <type> naming this table` |
-| A MatchClaim's two timelines lie in two manifests | `claim_across_manifests` | the row, `timeline_b_id` | `the MatchClaim joins the timeline '<id>' of '<manifest>' and the timeline '<id>' of '<manifest>'` |
-| An event row states a unit and a number type the format admits that are not its timeline's in its manifest | `axis_mismatch` | the row, `unit` where the units differ, else `number_type` | `a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit> (<number type>)` |
+| In the registry, an event, MatchClaim or extraction ID held by an earlier row of these, in any part, or a manifest element's ID held by an earlier row of the same `location`; an event ID held twice among the rows of the pre-parsed tables, of every type and file; a MatchClaim ID held twice among the MatchClaims | `duplicate_id` | the later row's file and row, `id` | `the ID '<id>' is given twice, first in '<file>' at row <row>` (`the ID '<id>' is given twice at '<location>', first in …` for an element, `the event ID …` in the pre-parsed tables, `the MatchClaim ID …`) |
+| An event row's timeline, or a MatchClaim's either, column by column, is null, where the file holds the column as strings | `schema_violation` | the row, the column | `'<column>' is null` |
+| Such a timeline is held by no manifest | `unknown_timeline` | the row, the column | `no manifest of the package has the timeline '<id>'` |
+| An event row's timeline is listed by no manifest's `Registry` resource naming the registry, a MatchClaim's by no manifest's `MatchClaim` resource naming its table | `unlisted_timeline` | the row, the column | `the timeline '<id>' of '<manifest>' is listed by no resource of the type <type> naming this table` |
+| An event row states a unit and a number type the format admits that are not its timeline's in a manifest holding it, its root's axis, reported once per distinct axis | `axis_mismatch` | the row, `unit` where the units differ, else `number_type` | `a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit> (<number type>)` |
+| An event row's `extraction_id` or `vanished_in` names no row of the Extraction table | `unknown_extraction` | the row, the column | `no extraction of the package has the ID '<id>'` |
+| An event row's `location` names no table entry of its `kind` | `unknown_location` | the row, `location` | `the location '<location>' names no table of the type <kind> in the package` |
+| An event row's `location` names a table that holds no row of its `id` | `missing_content` | the row, `location` | `the table '<location>' holds no row of the ID '<id>'` |
+| A row of a pre-parsed table has an `id` no event row of the table's type has | `unregistered_id` | that table's file and row, `id` | `no event row of the type <type> in the registry has the ID '<id>'` |
+| A pre-parsed Projection stands for an event of its own registry row's timeline | `invalid_projection_of` | the Projection table's file and row, `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
+| A pre-parsed Projection stands for an event of a timeline no manifest holds | `unknown_timeline` | the Projection table's file and row, `projection_of.timeline_id` | `no manifest of the package has the timeline '<id>'` |
+| An index row stands for nothing a manifest element, a MatchClaim or an extraction gives at its `location`, or repeats an earlier index row there; its `kind`, `timeline_id` or `name` differs from what they give; or a row they give is missing, one problem per row | `stale_index` | the index part, the row (`None` for a missing row), `id` for an extra or a missing row, else the differing column | `the index holds the ID '<id>' at '<location>', which no manifest or table holds there`, `the index row of the ID '<id>' at '<location>' has the <column> <value>, not <value>`, `the index lacks the ID '<id>' at '<location>'` |
+| No manifest holds both timelines of a MatchClaim | `claim_across_manifests` | the row, `timeline_b_id` | `no manifest of the package holds both the timeline '<id>' and the timeline '<id>'` |
+
+In the message of a differing index row, each `<value>` is written as
+Python's `repr` writes it: a string in single quotes, a missing value
+`None`.
 
 `fixtures/packages/0.2.0/` holds the package fixtures: `shared/`, two
-manifests sharing a folder of Projections and a folder of MatchClaims,
-beside an `expected.yaml` naming the rows each resource reads,
-`acceptances/<case>/`, the shared package with one change each that the
-package check accepts, such as a manifest naming a recording, and
-`rejections/<case>/`, the shared package broken by one change each,
-beside the problems the package check reports
+manifests sharing a registry of an index part and two extraction parts,
+an Extraction table, a pre-parsed Projection table and a folder of
+MatchClaims, beside an `expected.yaml` naming the rows each resource
+reads and what IDs resolve to, `acceptances/<case>/`, the shared package
+with one change each that the package check accepts, such as a manifest
+naming a recording, and `rejections/<case>/`, the shared package broken
+by one change each, beside the problems the package check reports
 ([Fixtures](#fixtures)); Python's `package_fixture_path(*parts)` gives
 their paths.
 
@@ -2926,7 +3266,7 @@ else:
   default, and `check_belief_filter(beliefs)` checks a filter ([Provenance
   and beliefs](#provenance-and-beliefs)). They live in
   `timetoshare.statements`, and the package exports them.
-- `load_catalogue()` returns the shipped catalogue and
+- `load_catalogue()` returns the bundled catalogue and
   `read_catalogue(document)` reads another; `recognize`, `instantiate`,
   `verb_of` and `rectangles` read an address, a verb, a pair and a
   subject's pairs through it (the description specification, section 10).
@@ -2983,15 +3323,19 @@ else:
   definitions it reaches bundled into it ([Packages](#packages)).
 - `timetoshare.tables`, which needs the extra `tables`
   (`pip install "timetoshare[tables]"`, which installs pyarrow), reads
-  the two tables as Arrow tables ([Resources and
+  the four table types as Arrow tables ([Resources and
   tables](#resources-and-tables)). `tables_path()` returns the path of
-  `tables.json` (`TABLES_DOCUMENT`), from which `MATCH_CLAIM_SCHEMA` and
-  `PROJECTION_SCHEMA` declare their columns, `MATCH_CLAIM_REQUIRED` and
-  `PROJECTION_REQUIRED` name the columns that hold no null,
+  `tables.json` (`TABLES_DOCUMENT`), from which `REGISTRY_SCHEMA`,
+  `EXTRACTION_SCHEMA`, `MATCH_CLAIM_SCHEMA` and `PROJECTION_SCHEMA`
+  declare their columns, `REGISTRY_REQUIRED`, `EXTRACTION_REQUIRED`,
+  `MATCH_CLAIM_REQUIRED` and `PROJECTION_REQUIRED` name the columns that
+  hold no null, `REGISTRY_EVENT_REQUIRED` those every event row of the
+  registry fills, `INDEX_KINDS` the kinds of its index rows ([The
+  registry](#the-registry)),
   `NOMATCH_SENTINEL` and `CHUNK_SENTINEL` hold the reserved strings of
   the two sentinels ([The MatchClaim table](#the-matchclaim-table)), and
-  `NUMBER_TYPE`, `COORDINATE_TYPE`, `ANCHOR_TYPE`, `PROJECTION_OF_TYPE`
-  and `PROVENANCE_TYPE` declare the struct types; `NUMBER_KEYS` holds a
+  `NUMBER_TYPE`, `COORDINATE_TYPE`, `ANCHOR_TYPE`, `PROJECTION_OF_TYPE`,
+  `INTEGRITY_TYPE` and `PROVENANCE_TYPE` declare the struct types; `NUMBER_KEYS` holds a
   number's members and `NUMBER_MEMBERS` the members each number type
   fills; `number_cell(value, number_type)` writes a number's
   members, raising `ValueError` for a value its number type does not
@@ -2999,18 +3343,24 @@ else:
   finite, a Fraction on a `float` axis or an integer no double holds
   there, a Fraction that is no integer on an `int` axis, an exact number
   beyond 64-bit integers), and `coordinate_value(cell, number_type=None)`
-  reads its exact value back; `match_claim_problems(table,
-  manifest=None)` and `projection_problems(table, manifest=None)` list
-  every problem of a table, the table's own first, then row by row, each a
-  `TableProblem` (`code`, `row`, `column`, `message`), checked against the
-  manifest's timelines where one is given, and `check_match_claims` and
-  `check_projections` raise the first as a `TableError` ([Checking the
-  tables](#checking-the-tables) gives every rule);
+  reads its exact value back; `registry_problems(table,
+  manifest=None)`, `extraction_problems(table)`,
+  `match_claim_problems(table, manifest=None)` and
+  `projection_problems(table, manifest=None)` list every problem of a
+  table, the table's
+  own first, then row by row, each a `TableProblem` (`code`, `row`,
+  `column`, `message`), checked against the manifest's timelines where one
+  is given, and `check_registry`, `check_extractions`,
+  `check_match_claims` and `check_projections` raise the first as a
+  `TableError` ([Checking the tables](#checking-the-tables) gives every
+  rule);
   `check_succession` and `succession_problems` check the succession rule;
   `row_provenance(table)` gives each row's provenance, its own or the
-  file's. `read_table(path, *, timelines=None, type=None)` reads a table,
-  a file or a folder of files (`table_files(path)`), keeping the rows of
-  the timelines given, `is_table_resource(resource)` says whether a
+  file's. `read_table(path, *, timelines=None, ids=None, type=None)`
+  reads a table, a file or a folder of files (`table_files(path)`),
+  keeping the rows of the timelines and the IDs given, `resolve(path, id)`
+  resolves an ID through a manifest or a package root into a list of
+  `Resolution`s, `is_table_resource(resource)` says whether a
   manifest's resource names a table, and `package_problems(path)` checks a package
   whole, each problem a `PackageProblem` (`code`, `file`, `row`, `path`,
   `message`) of a `PackageCode`, a `TableCode` or a validation code
@@ -3261,13 +3611,25 @@ two directories, between two git references of the repository `--repo`
 (default `.`), or between a reference and the changes staged for the next
 commit, when the second argument is left out; OLD `-` is the empty tree,
 the state before a first release. From git it reads only the
-manifests (the files ending `.yaml`, `.yml` or `.json`) and the table files
-their resources name, never the rest of the tree; a table file is read
+manifests (the files ending `.yaml`, `.yml` or `.json`), the table files
+their resources name, the tables a `package.yaml` lists and the
+pre-parsed tables the registry's rows name, never the rest of the tree; a table file is read
 through the filters git's attributes name for its path, so a table kept by
 Git LFS is compared as the table where git-lfs is installed. It exits 2
-when a change is refused. Comparing the rows of a MatchClaim or Projections table needs
-the `tables` extra; without it, and for tables of any other type, a changed
-table is reported as undetermined.
+when a change is refused.
+
+Tables are compared row by row, rows matched by their `id`: the rows of a
+MatchClaim table, the event rows of the registry and the rows of the
+pre-parsed Projection table. A row removed is a major step, a row added a
+minor one, a row with a changed cell a minor one (an edit), and a row
+whose provenance differs in beliefs alone a patch. An event row whose
+`vanished_in` is newly set, an update no longer finding its event, is a
+minor step, since the row is kept ([The registry](#the-registry)); a
+Projection moved to another position is a changed cell of its registry
+row. The index rows of the registry are not compared: the manifests, the
+MatchClaim tables and the Extraction table they follow are. Comparing
+rows needs the `tables` extra; without it, and for tables of any other
+type, a changed table is reported as undetermined.
 
 Two states alone cannot show an ID given again after a release in between
 removed its element. `--history` (git references only) also reads every tag
@@ -3362,9 +3724,12 @@ commit) with the index; `git commit --amend -m` tells the hooks no amend
 and is compared with `HEAD`.
 
 This repository is a pre-commit hook repository: its
-`.pre-commit-hooks.yaml` offers both hooks and a third,
+`.pre-commit-hooks.yaml` offers both hooks and two more,
 `timetoshare-validate`, which runs `timetoshare validate` on every staged
-`.yaml`, `.yml` and `.json` file. pre-commit installs them by running `pip
+`.yaml`, `.yml` and `.json` file, and `timetoshare-registry`, which runs
+`timetoshare registry --check` on the package at the repository's root
+before every commit, so that the registry's index agrees with the
+manifests ([Packages](#packages)). pre-commit installs them by running `pip
 install .` in its clone of this repository; the root `setup.py` is an empty
 distribution, and each hook installs the package from `./python` of the
 same clone. A dataset repository's `.pre-commit-config.yaml`:
@@ -3378,6 +3743,7 @@ repos:
       - id: timetoshare-commit-type
       - id: timetoshare-commit-check
       - id: timetoshare-validate
+      - id: timetoshare-registry
 ```
 
 and, once per clone, `pre-commit install --hook-type pre-commit
@@ -3548,17 +3914,20 @@ flow control, each derived by hand beside the trace it was derived with
 have their expected RDF under `fixtures/rdf/0.2.0/`, canonical N-Quads
 that `scripts/emit_rdf.py` writes. The table fixture lies apart, under
 `fixtures/tables/0.2.0/`: a manifest (`manifest.yaml`), its MatchClaim
-table (`match_claims.parquet`), its Projections table
-(`projections.parquet`) and the alignment anchors and potential
+table (`match_claims.parquet`), its registry (`registry.parquet`), the
+pre-parsed Projection table (`projections.parquet`) and the Extraction
+table (`extractions.parquet`) its registry names, and the alignment
+anchors and potential
 MatchStamps expected of the MatchClaim table (`expected.yaml`), every
 value written by hand in `scripts/emit_tables.py`, which alone writes
 them; the expected values are literal data, never computed by the
 derivation they test. The package fixtures lie under
 `fixtures/packages/0.2.0/` ([Packages](#packages)): `shared/`, a package
-of two manifests sharing a folder of Projections and a folder of
-MatchClaims, `acceptances/<case>/`, the shared package changed and still
-accepted, and `rejections/<case>/`, the shared package breaking one
-rule each, every package beside an `expected.yaml` of literal data, the rows read or the
+of two manifests sharing a registry, an Extraction table, a pre-parsed
+Projection table and a folder of MatchClaims, `acceptances/<case>/`, the
+shared package changed and still accepted, and `rejections/<case>/`, the
+shared package breaking one rule each, every package beside an
+`expected.yaml` of literal data, the rows read and the resolutions, or the
 problems reported, written by `scripts/emit_packages.py`, which alone
 writes them ([fixture guide](fixtures/README.md#the-package-fixtures)).
 The rejection and warning cases are
