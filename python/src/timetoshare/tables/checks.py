@@ -14,7 +14,6 @@ import math
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime
 from functools import cache
 from typing import Any, Literal
 
@@ -24,13 +23,13 @@ from jsonschema import Draft202012Validator
 
 from ..ids import SENTINELS, with_bare_ids
 from ..manifest import UNITS
-from ..serialization import dumps, loads
 from ..statements import calendar_date, expand_iri
 from ..validate import PROVENANCE_DEFINITION, load_schema, select, worded
 from ..validation.diagnostics import axes_by_id, json_pointer, number_type_of
 from .columns import (
     BELIEF_KEYS,
     COORDINATE_KEYS,
+    ELEMENT_KINDS,
     EXTRACTION_REQUIRED,
     EXTRACTION_SCHEMA,
     INDEX_KINDS,
@@ -1115,10 +1114,7 @@ def _projected_events(
 
 
 _INDEX_KINDS = pa.array(INDEX_KINDS, pa.string())
-_ELEMENT_KINDS = pa.array(
-    [kind for kind in INDEX_KINDS if kind not in ("MatchClaim", "Extraction")],
-    pa.string(),
-)
+_ELEMENT_KINDS = pa.array(ELEMENT_KINDS, pa.string())
 _INDEX_EMPTY = tuple(
     name
     for name in REGISTRY_SCHEMA.names
@@ -1128,8 +1124,9 @@ _INDEX_EMPTY = tuple(
 _KEY_SEPARATOR = pa.scalar("\x00")
 
 
-def _is_index(kinds: pa.Array) -> pa.Array:
-    """Where a registry row is an index row; a null kind is neither."""
+def is_index(kinds: pa.Array | pa.ChunkedArray) -> pa.Array:
+    """Where a registry row is an index row, its ``kind`` one of
+    :data:`~timetoshare.tables.INDEX_KINDS`; a null kind is no index row."""
     return _held(pc.is_in(kinds, value_set=_INDEX_KINDS))
 
 
@@ -1139,7 +1136,7 @@ def _registry_null_problems(table: pa.Table) -> list[TableProblem]:
     is null or a column stated that an index row leaves null."""
     found = _Found()
     kinds = _array(table, "kind")
-    index = _is_index(kinds)
+    index = is_index(kinds)
     event = _all(pc.is_valid(kinds), _not(index))
     for place, key in enumerate(REGISTRY_SCHEMA.names):
         values = _array(table, key)
@@ -1225,7 +1222,7 @@ def registry_problems(
     found = _Found()
     ids = _array(table, "id")
     kinds = _array(table, "kind")
-    index = _is_index(kinds)
+    index = is_index(kinds)
     event = _not(index)
     malformed = _malformed(ids)
     rows = _rows(malformed)
@@ -1374,91 +1371,17 @@ def _event_numbers(
                 )
 
 
-_DATE_TIME = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z$"
-"""A date-time of ISO 8601 in UTC, in the syntax of Python's ``re`` and RE2."""
-
-
-def _date_time_problem(value: str) -> str | None:
-    """Why a string is no ISO 8601 date-time in UTC, or ``None``."""
-    if re.fullmatch(_DATE_TIME, value) is None:
-        return (
-            f"the date {value!r} is no ISO 8601 date-time in UTC, such as "
-            "'2026-11-27T21:30:00Z'"
-        )
-    try:
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return f"the date {value!r} is no time of the Gregorian calendar"
-    return None
-
-
-def _parameters_problem(value: str) -> str | None:
-    """Why a string is no RFC 8785 JSON text of an object, or ``None``."""
-    try:
-        parameters = json.loads(value)
-    except ValueError:
-        return "the parameters are no JSON text"
-    if not isinstance(parameters, dict):
-        return "the parameters are no JSON object"
-    try:
-        written = dumps(loads(value), "jcs")
-    except ValueError:
-        written = None
-    if written != value:
-        return "the parameters are not written in RFC 8785 JSON"
-    return None
-
-
-@cache
-def _integrity_definition() -> tuple[pa.Array, re.Pattern[str]]:
-    """The algorithms and the digest pattern of the manifest schema's
-    ``Descriptor`` integrity, the one declaration of both."""
-    integrity = load_schema()["$defs"]["Descriptor"]["properties"]["integrity"]
-    members = integrity["properties"]
-    return (
-        pa.array(members["algorithm"]["enum"], pa.string()),
-        re.compile(members["digest"]["pattern"]),
-    )
-
-
-def _distinct_problems(
-    found: _Found,
-    values: pa.Array,
-    among: pa.Array,
-    place: int,
-    column: Column,
-    problem: Any,
-) -> None:
-    """The problem of each distinct string of ``values`` at the rows of
-    ``among``, worded once per distinct string."""
-    rows = _indices(_all(among, pc.is_valid(values)))
-    codes = _dense(values.take(rows))
-    firsts = _firsts(codes)
-    failing = {}
-    for code, value in enumerate(values.take(rows.take(firsts)).to_pylist()):
-        message = problem(value)
-        if message is not None:
-            failing[code] = message
-    if not failing:
-        return
-    flagged = pc.is_in(codes, value_set=pa.array(list(failing), pa.int64()))
-    for row, code in zip(
-        rows.filter(flagged).to_pylist(), codes.filter(flagged).to_pylist(), strict=True
-    ):
-        found.add(
-            row, place, TableProblem("schema_violation", row, column, failing[code])
-        )
-
-
 def extraction_problems(table: pa.Table) -> list[TableProblem]:
     """Every problem of an Extraction table.
 
-    Each ID is valid and given once (``invalid_id``, ``duplicate_id``); a
-    row naming a ``source`` states its ``source_integrity``, whose
-    ``algorithm`` is one of the manifest schema's and whose ``digest`` is
-    lower-case hexadecimal; ``parameters`` is the RFC 8785 JSON text of an
-    object, ``id_length`` at least 1 and ``date`` an ISO 8601 date-time in
-    UTC (each ``schema_violation``)."""
+    The table's shape: its columns (``schema_violation``) and its nulls
+    (``'<column>' is null``); each ID is valid and given once
+    (``invalid_id``, ``duplicate_id``); a row naming a ``source`` states
+    its ``source_integrity``, with both its ``algorithm`` and its ``digest``
+    (``schema_violation``). The values a writer writes in a canonical
+    spelling (``parameters`` in RFC 8785 JSON, ``date`` in UTC with ``Z``)
+    and the algorithm and digest of an integrity are read as given and not
+    checked."""
     problems = _schema_problems(table, EXTRACTION_SCHEMA)
     if problems:
         return problems
@@ -1481,12 +1404,9 @@ def extraction_problems(table: pa.Table) -> list[TableProblem]:
                 "'source_integrity' is null where 'source' is given",
             ),
         )
-    algorithms, digest_pattern = _integrity_definition()
     stated = pc.is_valid(integrity)
-    algorithm = _member(integrity, "algorithm")
-    digest = _member(integrity, "digest")
-    for key, member in (("algorithm", algorithm), ("digest", digest)):
-        for row in _rows(_all(stated, pc.is_null(member))):
+    for key in ("algorithm", "digest"):
+        for row in _rows(_all(stated, pc.is_null(_member(integrity, key)))):
             found.add(
                 row,
                 1,
@@ -1497,57 +1417,6 @@ def extraction_problems(table: pa.Table) -> list[TableProblem]:
                     f"'source_integrity' has no {key}",
                 ),
             )
-    unknown = _all(
-        stated, pc.is_valid(algorithm), _not(pc.is_in(algorithm, value_set=algorithms))
-    )
-    for row, value in zip(_rows(unknown), _at(algorithm, _rows(unknown)), strict=True):
-        found.add(
-            row,
-            1,
-            TableProblem(
-                "schema_violation",
-                row,
-                ("source_integrity", "algorithm"),
-                f"{value!r} is no algorithm of a digest",
-            ),
-        )
-    _distinct_problems(
-        found,
-        digest,
-        stated,
-        1,
-        ("source_integrity", "digest"),
-        lambda value: (
-            None
-            if digest_pattern.search(value)
-            else f"the digest {value!r} is no lower-case hexadecimal"
-        ),
-    )
-    every = pa.repeat(pa.scalar(True), len(table))
-    _distinct_problems(
-        found,
-        _array(table, "parameters"),
-        every,
-        2,
-        ("parameters",),
-        _parameters_problem,
-    )
-    lengths = _array(table, "id_length")
-    short = _rows(pc.less(lengths, _ONE))
-    for row, value in zip(short, _at(lengths, short), strict=True):
-        found.add(
-            row,
-            3,
-            TableProblem(
-                "schema_violation",
-                row,
-                ("id_length",),
-                f"the ID length {value} is below 1",
-            ),
-        )
-    _distinct_problems(
-        found, _array(table, "date"), every, 4, ("date",), _date_time_problem
-    )
     return found.problems()
 
 

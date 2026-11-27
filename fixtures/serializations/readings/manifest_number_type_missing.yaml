@@ -7,8 +7,6 @@ timelines:
     unit: quarters
     number_type: float
     length: 8
-    children:
-      - id: verse
-        unit: quarters
-        offset: 2
-        length: [4, 8]
+  - id: verse
+    unit: quarters
+    length: [4, 8]

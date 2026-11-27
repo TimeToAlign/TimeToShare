@@ -38,6 +38,7 @@ from timetoshare.tables import (  # noqa: E402
     REGISTRY_SCHEMA,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
+    Resolution,
     TableError,
     check_match_claims,
     check_projections,
@@ -46,6 +47,7 @@ from timetoshare.tables import (  # noqa: E402
     package_fixture_path,
     package_problems,
     read_table,
+    resolve,
     table_files,
 )
 
@@ -415,6 +417,7 @@ def test_each_resolution_states_a_row_of_the_registry() -> None:
     ]
     assert [directory.name for directory, _ in cases] == [
         "shared",
+        "external_location",
         "re_parsable_event",
         "timeline_in_two_manifests",
     ]
@@ -434,6 +437,13 @@ def test_each_resolution_states_a_row_of_the_registry() -> None:
                 assert sorted((row["location"] or "", row["kind"]) for row in rows) == [
                     (found["location"] or "", found["kind"]) for found in case["found"]
                 ]
+            resolved = resolve(directory / case["path"], case["id"])
+            assert resolved == [
+                Resolution(
+                    found["kind"], found["location"], found["manifest"], found["row"]
+                )
+                for found in case["found"]
+            ], (directory.name, case)
 
 
 def test_a_folder_holds_its_parquet_files_alone(tmp_path: Path) -> None:
@@ -681,6 +691,7 @@ def test_the_shared_package_has_no_problem() -> None:
 
 def test_every_acceptance_is_stated() -> None:
     assert ACCEPTED == [
+        "external_location",
         "re_parsable_event",
         "recording_resource",
         "single_file_registry",

@@ -42,9 +42,10 @@ def child_end(timeline: Mapping[str, Any], child: Mapping[str, Any]) -> Fraction
     has the parent's number type. On a ``float`` axis a reader adds the two
     JSON numbers as doubles, so the end is their double sum, which may differ
     from the exact sum by a rounding; on an ``int`` or ``fraction`` axis the
-    end is the exact sum.
+    end is the exact sum. The end of a child of another number type, which
+    the format refuses (``child_number_type``), is not specified.
     """
-    if number_type_of(timeline) == number_type_of(child) == "float":
+    if number_type_of(timeline) == "float":
         offset, length = _double(child["offset"]), _double(child["length"])
         if offset is not None and length is not None and math.isfinite(offset + length):
             return Fraction(offset + length)

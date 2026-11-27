@@ -19,7 +19,11 @@ pq = pytest.importorskip("pyarrow.parquet")
 
 from timetoshare import dumps, with_file_ids  # noqa: E402
 from timetoshare.cli import _parser, main  # noqa: E402
-from timetoshare.tables import PackageProblem  # noqa: E402
+from timetoshare.tables import (  # noqa: E402
+    PackageProblem,
+    package_fixture_path,
+    package_problems,
+)
 from timetoshare.tables.registry import (  # noqa: E402
     Resolution,
     index_rows,
@@ -599,6 +603,98 @@ def test_without_an_index_part_every_row_is_missing(tmp_path: Path) -> None:
     ]
 
 
+# One comparison of the index --------------------------------------------------
+
+
+def _package_fixtures() -> list[Path]:
+    """Every package fixture whose package.yaml lists exactly one registry."""
+    base = package_fixture_path()
+    roots = [base / "shared"] + [
+        case
+        for kind in ("acceptances", "rejections")
+        for case in sorted((base / kind).iterdir())
+    ]
+    return [
+        root
+        for root in roots
+        if [
+            entry["type"]
+            for entry in yaml.safe_load((root / "package.yaml").read_text())["tables"]
+        ].count("Registry")
+        == 1
+    ]
+
+
+def _the_checks_stale(root: Path) -> list[PackageProblem]:
+    return [
+        problem
+        for problem in package_problems(root / "package.yaml")
+        if problem.code == "stale_index"
+    ]
+
+
+@pytest.mark.parametrize("root", _package_fixtures(), ids=lambda root: root.name)
+def test_the_command_and_the_check_compare_alike(root: Path) -> None:
+    assert stale_index(root) == _the_checks_stale(root)
+
+
+def _shared_copy(tmp_path: Path) -> Path:
+    root = tmp_path / "shared"
+    shutil.copytree(package_fixture_path("shared"), root)
+    return root
+
+
+def test_an_invalid_manifests_rows_are_not_compared(tmp_path: Path) -> None:
+    root = _shared_copy(tmp_path)
+    handel = root / "handel" / "manifest.yaml"
+    handel.write_text(
+        handel.read_text(encoding="utf-8").replace("unit: quarters", "unit: quarter"),
+        encoding="utf-8",
+    )
+    assert stale_index(root) == _the_checks_stale(root) == []
+    part = root / "registry" / "index.parquet"
+    before = pq.read_table(part).to_pylist()
+    write_index(root)
+    after = pq.read_table(part).to_pylist()
+    assert [row for row in after if row["location"] == HANDEL] == [
+        row for row in before if row["location"] == HANDEL
+    ]
+    assert after == before
+    assert stale_index(root) == _the_checks_stale(root) == []
+
+
+def test_locations_are_compared_resolved(tmp_path: Path) -> None:
+    root = _shared_copy(tmp_path)
+    file = root / "package.yaml"
+    value = yaml.safe_load(file.read_text(encoding="utf-8"))
+    for member in ("manifests", "tables"):
+        for entry in value[member]:
+            entry["url"] = "./" + entry["url"]
+    file.write_text(dumps(value), encoding="utf-8")
+    assert stale_index(root) == _the_checks_stale(root) == []
+
+
+def test_the_registry_names_are_public() -> None:
+    from timetoshare import tables
+    from timetoshare.tables import columns, registry
+
+    for name in (
+        "Resolution",
+        "resolve",
+        "index_rows",
+        "write_index",
+        "stale_index",
+        "INDEX_PART",
+    ):
+        assert name in tables.__all__
+        assert getattr(tables, name) is getattr(registry, name)
+    assert "ELEMENT_KINDS" in tables.__all__
+    assert tables.ELEMENT_KINDS is columns.ELEMENT_KINDS
+    assert tables.ELEMENT_KINDS == tuple(
+        kind for kind in tables.INDEX_KINDS if kind not in ("MatchClaim", "Extraction")
+    )
+
+
 # Resolving -----------------------------------------------------------------------
 
 
@@ -670,6 +766,53 @@ def test_resolve_through_a_manifest(written: Path) -> None:
     assert resolve(through_handel, "ext_1") == [
         Resolution("Extraction", "extractions.parquet", HANDEL, first)
     ]
+
+
+def test_resolving_reads_filtered(
+    written: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from timetoshare.tables import registry
+
+    calls: list[dict[str, Any]] = []
+    original = registry.read_table
+
+    def recorded(*arguments: Any, **keywords: Any) -> Any:
+        calls.append(keywords)
+        return original(*arguments, **keywords)
+
+    monkeypatch.setattr(registry, "read_table", recorded)
+    first = index_of(INDEX, "ext_1", "extractions.parquet")
+    claim = index_of(INDEX, "claim_2", "tables/MatchClaim/")
+    assert resolve(written, "note_1") == [Resolution("MidiNote", None, None, NOTE_1)]
+    assert resolve(written, "claim_2") == [
+        Resolution("MatchClaim", "tables/MatchClaim/", None, claim)
+    ]
+    assert resolve(written / BACH, "ext_1") == [
+        Resolution("Extraction", "extractions.parquet", BACH, first)
+    ]
+    assert resolve(written / BACH, "claim_2") == [
+        Resolution("MatchClaim", "tables/MatchClaim/", BACH, claim)
+    ]
+    assert resolve(written / HANDEL, "note_2") == [
+        Resolution("MidiNote", None, HANDEL, NOTE_2)
+    ]
+    assert [sorted(call) for call in calls] == [
+        ["ids", "type"],
+        ["ids", "type"],
+        ["ids", "type"],
+        ["columns", "timelines", "type"],
+        ["ids", "type"],
+        ["ids", "type"],
+    ]
+    assert [call.get("ids") for call in calls] == [
+        ["note_1"],
+        ["claim_2"],
+        ["ext_1"],
+        None,
+        ["claim_2"],
+        ["note_2"],
+    ]
+    assert calls[3]["columns"] == ["extraction_id"]
 
 
 def test_a_written_id_is_read_bare(written: Path) -> None:

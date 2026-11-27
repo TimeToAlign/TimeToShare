@@ -36,7 +36,6 @@ from __future__ import annotations
 
 import json
 import math
-import posixpath
 import subprocess
 import tempfile
 from collections import Counter
@@ -47,6 +46,7 @@ from functools import cache
 from pathlib import Path, PurePosixPath
 from typing import Any
 
+from ._urls import PACKAGE_FILE, package_path
 from .defaults import DEFAULTS, complete
 from .ids import CONTAINERS, ID_POSITIONS, definitions_of, with_bare_ids
 from .manifest import canonical_order, fraction_pair
@@ -77,9 +77,6 @@ TABLE_TYPES = ("MatchClaim", "Projection", "Registry")
 """The table types whose rows are compared by their ``id``: a manifest's
 MatchClaim tables, and a package's registry (its event rows) and pre-parsed
 Projection tables."""
-
-PACKAGE_FILE = "package.yaml"
-"""The name of a package's file, which lists its manifests and its tables."""
 
 _RANK = {step: rank for rank, step in enumerate(STEPS)}
 
@@ -922,14 +919,12 @@ def _row_change(
 
 def _tree_path(document: str, url: Any) -> str | None:
     """The path inside the tree of what a document's ``url`` names, a
-    folder's ending in ``/``; ``None`` for a URL leaving the tree."""
-    if not isinstance(url, str) or not url or "://" in url or url.startswith("/"):
+    folder's ending in ``/``, read as a package reads its URLs
+    (:func:`~timetoshare._urls.package_path`); ``None`` for no URL or one
+    leaving the tree."""
+    if not isinstance(url, str) or not url:
         return None
-    joined = posixpath.normpath(posixpath.join(posixpath.dirname(document), url))
-    if joined == ".." or joined.startswith("../"):
-        return None
-    joined = "" if joined == "." else joined
-    return f"{joined}/" if url.endswith("/") and joined else joined or None
+    return package_path(url, document)
 
 
 def _unhashed(id: Any) -> Any:
@@ -1068,26 +1063,17 @@ def _registry_table(root: Path, path: str) -> Any:
 
 def _event_rows(registry: Any) -> Any:
     """A registry's event rows: every row whose ``kind`` names no index row."""
-    import pyarrow as pa
     import pyarrow.compute as pc
 
-    from .tables.registry import INDEX_KINDS
+    from .tables.checks import is_index
 
-    if "kind" not in registry.column_names:
-        return registry
-    kinds = registry.column("kind").combine_chunks()
-    index = pc.fill_null(
-        pc.is_in(kinds, value_set=pa.array(sorted(INDEX_KINDS), pa.string())), False
-    )
-    return registry.filter(pc.invert(index))
+    return registry.filter(pc.invert(is_index(_strings_of(registry, "kind"))))
 
 
 def _strings_of(table: Any, name: str) -> Any:
-    import pyarrow as pa
+    from .tables.package import _strings
 
-    if name not in table.column_names:
-        return pa.nulls(len(table), pa.string())
-    return table.column(name).combine_chunks().cast(pa.string())
+    return _strings(table, name)
 
 
 def _projection_locations(registry: Any, root: str) -> dict[str, str]:

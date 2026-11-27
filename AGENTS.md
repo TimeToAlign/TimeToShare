@@ -74,17 +74,19 @@ These rules apply to every contributor, human or automated.
   files are listed with their arithmetic in `drawings/README.md`, everything
   else is emitted), and the hand-authored version cases under
   `fixtures/versions/` (`<case>/old/` and `<case>/new/`, two trees of
-  manifests, and for the cases of tables the registry and the pre-parsed
-  Projection table they name, beside `expected.yaml`, the step and
-  findings `tree_step` gives); see `fixtures/README.md`.
+  manifests, and for the cases of tables the registry, the Extraction
+  table and the pre-parsed Projection table they name, whose Parquet
+  files are emitted, beside `expected.yaml`, the step and findings
+  `tree_step` gives); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37 and Noto Music 2.004, their licences, and the
   one table of advance-width metrics used by the drawing.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
 - `js/`: the npm package, generated TypeScript types, tests, and lockfile.
 - `scripts/`: fixture emission (`emit_fixtures.py`, `emit_rdf.py`
   for the expected RDF of the statement fixtures, `emit_tables.py` for
-  the table fixture, `emit_packages.py` for the package fixtures, and
-  `emit_id_vectors.py`, the reference
+  the table fixture, `emit_packages.py` for the package fixtures,
+  `emit_versions.py` for the Parquet files of the version cases of
+  tables, and `emit_id_vectors.py`, the reference
   implementation of the ID minter, for the vectors under `fixtures/ids/`),
   `convert_flow_control.py`, which rewrites manifest
   files whose flow control is written in the earlier form, font-metrics
@@ -125,15 +127,19 @@ These rules apply to every contributor, human or automated.
   are literal data written in the script, the package fixtures under
   `fixtures/packages/<version>/` only through `scripts/emit_packages.py`,
   whose rows, manifests, rows read and problems expected are literal data
-  written in the script, and the vectors under
+  written in the script, the Parquet files of the version cases of tables
+  under `fixtures/versions/` only through `scripts/emit_versions.py`,
+  whose rows are literal data written in the script (their YAML files and
+  `expected.yaml` are written by hand, their index parts by
+  `write_index`), and the vectors under
   `fixtures/ids/` only through `scripts/emit_id_vectors.py`; never
   hand-edit any of them.
   The manifests of flow control under `fixtures/<version>/flow/` are
   emitted like every other; only their expected flows under
   `fixtures/flows/<version>/` are derived by hand. The
-  four scripts `emit_fixtures.py`, `emit_rdf.py`, `emit_tables.py` and
-  `emit_packages.py` refuse to overwrite the files of a version whose
-  `v<version>` tag exists. Emit
+  five scripts `emit_fixtures.py`, `emit_rdf.py`, `emit_tables.py`,
+  `emit_packages.py` and `emit_versions.py` refuse to overwrite the files
+  of a version whose `v<version>` tag exists. Emit
   the drawings under `fixtures/<version>/drawings/` only through
   TimeLineEditor's `emit-drawings` script, which never rewrites the
   hand-derived figures but compares them with its own output.
@@ -190,6 +196,7 @@ Run these commands from the stated directory.
 | `python/` | `uv run python ../scripts/emit_rdf.py` | Write the expected RDF of the statement fixtures. |
 | `python/` | `uv run python ../scripts/emit_tables.py` | Write the table fixture (needs pyarrow, a development dependency). |
 | `python/` | `uv run python ../scripts/emit_packages.py` | Write the package fixtures (needs pyarrow, a development dependency). |
+| `python/` | `uv run python ../scripts/emit_versions.py` | Write the Parquet files of the version cases of tables (needs pyarrow, a development dependency). |
 | repository root | `python3 scripts/emit_id_vectors.py` | Write the test vectors of minted IDs (standard library only). |
 | `python/` | `uv sync` | Synchronize Python dependencies. |
 | `python/` | `uv run ruff check .` | Run Python lint checks. |

@@ -73,6 +73,10 @@ describe("segment lines", () => {
         [...AT, "children", 1, "unit"],
         "child 'b' has unit 'ticks', its parent 'line' has 'quarters'",
       ],
+      [
+        [...AT, "children", 1, "unit"],
+        "child 'b' has the number type 'int', its parent 'line' has 'fraction'",
+      ],
     ]);
     expect(
       problems(
@@ -203,7 +207,8 @@ describe("segment lines", () => {
       ],
       [[...AT, "length"], `the segments of ${ID} do not end at its length`],
     ]);
-    expect(problems(withB(76.70371459980326, b, fraction))).toEqual([
+    // On the float line a length no double equals, the pair, is added exactly.
+    expect(problems(withB(76.70371459980326, b))).toEqual([
       [
         [...AT, "children", 2, "offset"],
         `segment 'c' of ${ID} does not start where the one before it ends`,
@@ -279,6 +284,10 @@ describe("segment lines", () => {
       [
         [...AT, "children", 1, "unit"],
         "child 'b' has unit 'ticks', its parent 'line' has 'quarters'",
+      ],
+      [
+        [...AT, "children", 1, "unit"],
+        "child 'b' has the number type 'int', its parent 'line' has 'fraction'",
       ],
       [
         [...AT, "children", 2, "is_segment_line"],

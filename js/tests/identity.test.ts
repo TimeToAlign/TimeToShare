@@ -831,7 +831,9 @@ describe("identity", () => {
       only(
         manifest([
           timeline("score", "quarters", [8, 1], {
-            children: [timeline("take", "seconds", 4, { offset: [2, 1] })],
+            children: [
+              timeline("take", "seconds", [4, 1], { offset: [2, 1], number_type: "fraction" }),
+            ],
           }),
         ]),
       ),
@@ -848,12 +850,20 @@ describe("identity", () => {
     );
     const grandchild = timeline("b", "ticks", 4, { offset: [1, 1] });
     const parent = timeline("a", "quarters", [8, 1], { offset: [0, 1], children: [grandchild] });
-    expect(only(manifest([timeline("score", "quarters", [8, 1], { children: [parent] })]))).toEqual(
+    // ticks admit int alone, so the grandchild breaks the number type as
+    // well: reported after its unit, at its unit, as it states none.
+    expect(
+      problems(manifest([timeline("score", "quarters", [8, 1], { children: [parent] })])),
+    ).toEqual([
       [
         ["timelines", 0, "children", 0, "children", 0, "unit"],
         "child 'b' has unit 'ticks', its parent 'a' has 'quarters'",
       ],
-    );
+      [
+        ["timelines", 0, "children", 0, "children", 0, "unit"],
+        "child 'b' has the number type 'int', its parent 'a' has 'fraction'",
+      ],
+    ]);
     const same = timeline("c", "quarters", [8, 1], { offset: [0, 1] });
     expect(
       problems(manifest([timeline("score", "quarters", [8, 1], { children: [same] })])),
@@ -932,10 +942,14 @@ describe("identity", () => {
       ["timelines", 0, "children", 0, "length"],
       "child 'take' ends at 0.30000000000000004, beyond the length 0.3 of its parent 'recording'",
     ]);
-    const third = timeline("take", "seconds", [1, 3], { offset: 0.5, number_type: "fraction" });
-    expect(only(recording(0.75, third))).toEqual([
-      ["timelines", 0, "children", 0, "length"],
-      "child 'take' ends at [5, 6], beyond the length 0.75 of its parent 'recording'",
+    // A length no double equals, a Fraction pair, is added exactly on a float
+    // axis too (the schema refuses the pair there, as a representation).
+    const third = timeline("take", "seconds", [1, 3], { offset: 0.5 });
+    expect(problems(recording(0.75, third))).toEqual([
+      [
+        ["timelines", 0, "children", 0, "length"],
+        "child 'take' ends at [5, 6], beyond the length 0.75 of its parent 'recording'",
+      ],
     ]);
     const midi = timeline("midi", "ticks", 480, {
       children: [timeline("m", "ticks", 240, { offset: 480 })],
@@ -944,12 +958,22 @@ describe("identity", () => {
       ["timelines", 0, "children", 0, "length"],
       "child 'm' ends at 720, beyond the length 480 of its parent 'midi'",
     ]);
-    const loose = timeline("f", "quarters", 2.5, { offset: [7, 1], number_type: "float" });
-    expect(only(score([8, 1], loose))).toEqual([
+    const loose = timeline("f", "quarters", 2.5, {
+      offset: new JsonFloat(7),
+      number_type: "float",
+    });
+    const floating = timeline("score", "quarters", new JsonFloat(8), {
+      number_type: "float",
+      children: [loose],
+    });
+    expect(only(manifest([floating]))).toEqual([
       ["timelines", 0, "children", 0, "length"],
-      "child 'f' ends at [19, 2], beyond the length [8, 1] of its parent 'score'",
+      "child 'f' ends at 9.5, beyond the length 8.0 of its parent 'score'",
     ]);
-    const other = timeline("take", "seconds", new JsonFloat(100), { offset: [2, 1] });
+    const other = timeline("take", "seconds", [100, 1], {
+      offset: [2, 1],
+      number_type: "fraction",
+    });
     expect(problems(score([8, 1], other))).toEqual([
       [
         ["timelines", 0, "children", 0, "unit"],
@@ -1324,7 +1348,7 @@ describe("identity", () => {
         ),
       ],
       children: [
-        timeline("kid", "seconds", 1, { offset: [-1, 1] }),
+        timeline("kid", "seconds", [1, 1], { offset: [-1, 1], number_type: "fraction" }),
         timeline("gone", "quarters", null, { offset: [9, 1] }),
         timeline("late", "quarters", [8, 1], { offset: [6, 1] }),
       ],

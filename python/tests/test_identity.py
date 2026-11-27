@@ -627,13 +627,10 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
         "child 'take' ends at 0.30000000000000004, beyond the length 0.3 of its "
         "parent 'recording'",
     )
-    third = timeline("take", "seconds", [1, 3], offset=0.5, number_type="fraction")
+    # A length no double equals, a Fraction pair, is added exactly on a float
+    # axis too (the schema refuses the pair there, as a representation).
+    third = timeline("take", "seconds", [1, 3], offset=0.5)
     assert _problems(recording(0.75, third)) == [
-        (
-            ("timelines", 0, "children", 0, "number_type"),
-            "child 'take' has the number type 'fraction', its parent 'recording' "
-            "has 'float'",
-        ),
         (
             ("timelines", 0, "children", 0, "length"),
             "child 'take' ends at [5, 6], beyond the length 0.75 of its parent "
@@ -647,17 +644,12 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
         ("timelines", 0, "children", 0, "length"),
         "child 'm' ends at 720, beyond the length 480 of its parent 'midi'",
     )
-    loose = timeline("f", length=2.5, offset=(7, 1), number_type="float")
-    assert _problems(manifest(timeline("score", children=[loose]))) == [
-        (
-            ("timelines", 0, "children", 0, "number_type"),
-            "child 'f' has the number type 'float', its parent 'score' has 'fraction'",
-        ),
-        (
-            ("timelines", 0, "children", 0, "length"),
-            "child 'f' ends at [19, 2], beyond the length [8, 1] of its parent 'score'",
-        ),
-    ]
+    loose = timeline("f", length=2.5, offset=7.0, number_type="float")
+    score = timeline("score", length=8.0, number_type="float", children=[loose])
+    assert _only(manifest(score)) == (
+        ("timelines", 0, "children", 0, "length"),
+        "child 'f' ends at 9.5, beyond the length 8.0 of its parent 'score'",
+    )
     other = timeline("take", "seconds", (100, 1), offset=(2, 1), number_type="fraction")
     assert _problems(manifest(timeline("score", children=[other]))) == [
         (

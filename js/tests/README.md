@@ -164,6 +164,28 @@ cases fail. The packages differ only where JavaScript must:
   hold one, so only a number built in code reaches the finite rule; the
   tests build infinity, NaN and negative infinity as Python's do.
 
+**A child's number type** (`child-number-type.test.ts`, the Python
+README's "Containment"). A child has its parent's unit (`child_unit`) and
+then its parent's number type (`child_number_type`), each the declared one
+or the unit's default; the rule is proved on inline manifests that differ
+from each other in the one thing under test, each path and message spelled
+out: a child declaring another number type than its parent's (a quarters
+child declared `float` under a `fraction` root) is reported at its
+`number_type`, `child '<id>' has the number type '<type>', its parent
+'<id>' has '<type>'`; a child declaring none whose unit's default differs
+from the parent's declared type at its `unit`; a parent and a child that
+agree, by declaration, by default or one of each, are accepted; a child
+breaking both rules (a ticks grandchild under a quarters child) is
+reported by `child_unit` first, then by `child_number_type` at its `unit`;
+a grandchild is checked against its own parent, not the root. Every test
+of another rule that builds a child gives it its parent's number type
+(`validate.test.ts` "admits for <unit> at a child exactly its number
+types": the parent declares the child's number type where the unit admits
+it, else keeps the unit's default), so that it tests its own rule alone,
+as its Python twin does. The end of a child on a `float` axis is the double
+sum of its offset and length, a value without a double (a Fraction pair)
+added exactly, as in Python.
+
 **The acceptance table** of the Python README ("Reading by the declared
 number type") is run here row by row on the same file,
 `fixtures/acceptances/0.2.0/numbers.yaml`, read by `loads`
@@ -999,8 +1021,11 @@ the same table:
 The Python README's section "Packages" is proved here for what the npm
 package reads, `package.yaml`; it reads no tables (`package.test.ts`).
 `validatePackage` accepts the `package.yaml` of the shared package, of
-every accepted package (exactly `recording_resource`, a manifest naming a
-recording beside it) and of every rejected package under
+every accepted package (exactly `external_location`, `re_parsable_event`,
+`recording_resource`, `single_file_registry` and
+`timeline_in_two_manifests`, the directory names in code-point order)
+and of every rejected package (the 26 directory names, in code-point
+order, are stated literally) under
 `fixtures/packages/0.2.0/` but
 `folder_with_size` and `table_listed_twice`, whose problem is the one
 their `expected.yaml` lists (`folder_descriptor`, `[tables, 1, size]`,

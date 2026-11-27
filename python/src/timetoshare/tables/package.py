@@ -18,17 +18,18 @@ metadata is read.
 from __future__ import annotations
 
 import os
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
-from urllib.parse import unquote, urldefrag, urljoin, urlsplit
+from urllib.parse import urlsplit
 
 import pyarrow as pa
 import pyarrow.compute as pc
 import pyarrow.dataset as ds
 import pyarrow.parquet as pq
 
+from .._urls import PACKAGE_FILE, package_path
 from ..ids import with_bare_ids
 from ..serialization import loads
 from ..validate import (
@@ -64,13 +65,14 @@ from .checks import (
     _shape,
     _shared_provenance,
     extraction_problems,
+    is_index,
     match_claim_problems,
     projection_problems,
     registry_problems,
 )
 from .columns import (
+    ELEMENT_KINDS,
     EXTRACTION_SCHEMA,
-    INDEX_KINDS,
     MATCH_CLAIM_SCHEMA,
     PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
@@ -78,6 +80,7 @@ from .columns import (
 )
 
 __all__ = [
+    "INDEX_PART",
     "PACKAGE_FILE",
     "TYPE_METADATA_KEY",
     "VERSION_METADATA_KEY",
@@ -86,18 +89,21 @@ __all__ = [
     "package_fixture_path",
     "package_problems",
     "is_table_resource",
+    "index_rows_of",
     "read_table",
+    "stale_problems",
     "table_files",
+    "table_index_rows",
 ]
-
-PACKAGE_FILE = "package.yaml"
-"""The name of the file at a package's root listing its manifests and tables."""
 
 TYPE_METADATA_KEY = "timetoshare:type"
 """The schema-metadata key holding a file's table type, such as ``Projection``."""
 
 VERSION_METADATA_KEY = "timetoshare:version"
 """The schema-metadata key holding the format version of a file."""
+
+INDEX_PART = "index.parquet"
+"""The part of a registry folder holding the index rows."""
 
 PackageCode = Literal[
     "missing_file",
@@ -346,15 +352,12 @@ def _read(
 
     The files' schemas are unified by name, a column a file lacks read as
     null, and no file reads as no row in the columns of a type the format
-    declares; the filter of ``timelines`` and ``ids`` is pushed into the reader.
-    A MatchClaim file's shared provenance is filled into its rows before the
-    files are joined, unless only ``columns`` are read.
+    declares; the filter of ``timelines`` and ``ids`` is pushed into the
+    reader, and only ``columns`` (those the files hold) are read where
+    given. A MatchClaim file's shared provenance is filled into its rows
+    before the files are joined, unless only ``columns`` are read.
     """
     schema = _unified(files, schemas) if files else _DECLARED.get(kind, pa.schema([]))
-    if columns is not None:
-        schema = pa.schema(
-            [schema.field(name) for name in columns if name in schema.names]
-        )
     expression = _rows_of(kind, timelines, ids)
     needed = (*(_timeline_columns(kind) if timelines is not None else ()),)
     needed += ("id",) if ids is not None else ()
@@ -368,18 +371,28 @@ def _read(
                     f"the table has no column '{name}'",
                 )
             )
+    names = None
+    if columns is not None:
+        names = [name for name in columns if name in schema.names]
     dataset = ds.dataset([str(file) for file in files], schema=schema, format="parquet")
     parts: list[pa.Table] = []
     offset = 0
     for fragment, file, own in zip(
         dataset.get_fragments(), files, schemas, strict=True
     ):
-        part = fragment.to_table(schema=schema, filter=expression)
+        part = fragment.to_table(schema=schema, columns=names, filter=expression)
         if kind == "MatchClaim" and columns is None:
             part = _with_shared_provenance(part, own, file, offset)
         parts.append(part)
         offset += len(part)
-    table = pa.concat_tables(parts) if parts else schema.empty_table()
+    if parts:
+        table = pa.concat_tables(parts)
+    else:
+        table = (
+            schema.empty_table()
+            if names is None
+            else schema.empty_table().select(names)
+        )
     return _Read(table, [len(part) for part in parts])
 
 
@@ -397,6 +410,7 @@ def read_table(
     *,
     timelines: Iterable[str] | None = None,
     ids: Iterable[str] | None = None,
+    columns: Sequence[str] | None = None,
     type: str | None = None,  # noqa: A002 - the word the format uses
 ) -> pa.Table:
     """Read a table, a file or a folder of files, as one Arrow table.
@@ -409,9 +423,11 @@ def read_table(
     MatchClaim reaching outside them. ``ids`` (bare IDs) keeps, in the
     reader, the rows whose ``id`` is listed: a registry's rows of an ID, a
     pre-parsed table's content of some events; given both, a row is kept
-    where both keep it. A MatchClaim file's shared provenance
-    (``timetoshare:provenance``) is filled into its own rows before the
-    files are joined. The order of the rows is the files' order, then each
+    where both keep it. ``columns`` reads only those columns, of those the
+    files hold, in their order; the filters may name others. A MatchClaim
+    file's shared provenance (``timetoshare:provenance``) is filled into
+    its own rows before the files are joined, unless ``columns`` are given.
+    The order of the rows is the files' order, then each
     file's; readers never rely on it.
 
     The table's type is what its files state (``timetoshare:type``), else
@@ -439,17 +455,16 @@ def read_table(
     kind = _table_type(files, schemas, type)
     if not files:
         table = _DECLARED.get(kind, pa.schema([])).empty_table()
+        if columns is not None:
+            table = table.select(
+                [name for name in columns if name in table.column_names]
+            )
     else:
-        table = _read(files, schemas, kind, timelines, ids=ids).table
+        table = _read(files, schemas, kind, timelines, columns=columns, ids=ids).table
     return table.replace_schema_metadata({TYPE_METADATA_KEY: kind})
 
 
 # The package check.
-
-_BASE = "file:///package/"
-"""The address a package's root is resolved at: references resolve as URLs,
-and a reference leaving the package lies outside this prefix."""
-
 
 _PARQUET = "application/vnd.apache.parquet"
 """The media type of a Parquet file."""
@@ -482,17 +497,6 @@ def is_table_resource(resource: Mapping[str, Any]) -> bool:
     if resource["type"] in _DECLARED or resource.get("media_type") == _PARQUET:
         return True
     return urlsplit(resource["url"]).path.endswith(("/", ".parquet"))
-
-
-def _resolved(reference: str, against: str) -> str | None:
-    """The path from the package's root of ``reference`` written in the
-    document at ``against`` (a path from the root), or ``None`` where it
-    leads outside the package; a folder's keeps its final ``/``."""
-    address = urldefrag(urljoin(_BASE + against, reference)).url
-    if not address.startswith(_BASE) or "?" in address:
-        return None
-    resolved = unquote(address.removeprefix(_BASE))
-    return resolved or None
 
 
 @dataclass(frozen=True)
@@ -585,8 +589,10 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
       its timeline's in a manifest holding it, once per distinct axis;
     - ``unknown_extraction``: an event row's ``extraction_id`` or
       ``vanished_in`` naming no row of the Extraction table;
-    - ``unknown_location``: an event row's ``location`` naming no table
-      entry of the row's kind;
+    - ``unknown_location``: an event row's ``location``, a relative
+      reference, naming no table entry of the row's kind; a ``location``
+      that is an absolute URI names a resource outside the package and is
+      not checked;
     - ``missing_content``: an event row whose location's table holds no row
       of its ID;
     - ``unregistered_id``: a row of a pre-parsed table whose ID has no
@@ -604,7 +610,8 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     - ``claim_across_manifests``: a MatchClaim whose two timelines no one
       manifest holds.
 
-    These read the identifying columns of each table, column by column. Last,
+    These read the identifying columns of each table, column by column, the
+    registry's from the one reading of it whole its table check uses. Last,
     the table checks: of the registry (:func:`registry_problems`; its
     ``axis_mismatch``, a matter of the manifests, is the package rule's), the
     Extraction table (:func:`extraction_problems`) and each pre-parsed
@@ -644,7 +651,7 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     listed = {
         (url, entry["type"])
         for entry in value["tables"]
-        if (url := _resolved(entry["url"], "")) is not None
+        if (url := package_path(entry["url"], "")) is not None
     }
     _Check(listed, manifests, unread, entries, problems).run()
     return problems.found
@@ -688,7 +695,7 @@ def _manifests(
     found = []
     unread: set[str] = set()
     for index, entry in enumerate(value["manifests"]):
-        file = _resolved(entry["url"], "")
+        file = package_path(entry["url"], "")
         if file is None or not (root / file).is_file():
             problems.add(
                 "missing_file",
@@ -730,7 +737,7 @@ def _entries(
     found = []
     reached: dict[tuple[str, str], int] = {}
     for index, entry in enumerate(value["tables"]):
-        url = _resolved(entry["url"], "")
+        url = package_path(entry["url"], "")
         folder = entry["url"].endswith("/")
         target = None if url is None else root / url
         if target is None or not (target.is_dir() if folder else target.is_file()):
@@ -847,9 +854,7 @@ _KIND_OF = {
 }
 """The kind of a manifest element by the member holding it."""
 
-_INDEX = pa.array(INDEX_KINDS, pa.string())
-_ONE_PER_PACKAGE = pa.array(["MatchClaim", "Extraction"], pa.string())
-"""The index kinds whose IDs are held once among the event rows as well."""
+_ELEMENTS = pa.array(ELEMENT_KINDS, pa.string())
 _SEPARATOR = pa.scalar("\x00")
 _EMPTY_TEXT = pa.scalar("")
 
@@ -877,10 +882,25 @@ def _at_path(value: Any, path: Path_) -> Any:
     return value
 
 
-def _index_rows_of(manifest: Mapping[str, Any], location: str) -> list[dict[str, Any]]:
-    """The index rows a valid manifest (IDs bare) gives, at ``location``:
-    one per element holding an ID, in the order of
-    :func:`~timetoshare.validation.diagnostics.manifest_ids`."""
+_INDEX_ROW = pa.schema(
+    [
+        pa.field(name, pa.string())
+        for name in ("id", "kind", "location", "timeline_id", "name")
+    ]
+)
+"""The columns of an index row its sources give, as :func:`index_rows_of`
+builds them; every other column of an index row is null."""
+
+
+def index_rows_of(manifest: Mapping[str, Any], location: str) -> pa.Table:
+    """The index rows a valid manifest (IDs bare) gives, at ``location``.
+
+    One row per element holding an ID, in the order of
+    :func:`~timetoshare.validation.diagnostics.manifest_ids`: ``id``,
+    ``kind`` (the schema's name of the element's definition), ``location``,
+    ``timeline_id`` (the timeline holding a region or a flow-control
+    element, the ``timeline`` of a named timestamp or an elision, else
+    null) and ``name`` (the element's, else null), all strings."""
     rows = []
     for identifier, path in manifest_ids(manifest):
         element = _at_path(manifest, path[:-1])
@@ -901,7 +921,152 @@ def _index_rows_of(manifest: Mapping[str, Any], location: str) -> list[dict[str,
                 "name": name if isinstance(name, str) else None,
             }
         )
-    return rows
+    return pa.Table.from_pylist(rows, schema=_INDEX_ROW)
+
+
+def table_index_rows(ids: pa.Array, kind: str, location: str | pa.Array) -> pa.Table:
+    """The index rows of the MatchClaims or the extractions of a table:
+    one per non-null ID of ``ids``, of ``kind`` (``MatchClaim`` or
+    ``Extraction``), at ``location``, the table entry's URL, one for all
+    or one per ID; in the columns of :func:`index_rows_of`."""
+    kept = pc.is_valid(ids)
+    ids = ids.filter(kept)
+    if isinstance(location, str):
+        locations = pa.repeat(pa.scalar(location, pa.string()), len(ids))
+    else:
+        locations = location.filter(kept)
+    return pa.table(
+        {
+            "id": ids.cast(pa.string()),
+            "kind": pa.repeat(pa.scalar(kind, pa.string()), len(ids)),
+            "location": locations.cast(pa.string()),
+            "timeline_id": pa.nulls(len(ids), pa.string()),
+            "name": pa.nulls(len(ids), pa.string()),
+        },
+        schema=_INDEX_ROW,
+    )
+
+
+def _resolved_locations(locations: pa.Array) -> pa.Array:
+    """Each location's path from the package root (:func:`package_path`),
+    resolved once per distinct location; null where it leads outside."""
+    codes = _dense(locations)
+    paths = [
+        None if value is None else package_path(value)
+        for value in locations.take(_firsts(codes)).to_pylist()
+    ]
+    return pa.array(paths, pa.string()).take(codes)
+
+
+def stale_problems(
+    held: pa.Table, expected: pa.Table, file: str, unread: Collection[str]
+) -> list[PackageProblem]:
+    """Where the index rows held disagree with the index rows expected
+    (``stale_index``), one problem per row.
+
+    ``held`` is the index part's index rows in its order, with their
+    ``row`` in the part (int64) beside the columns of
+    :func:`index_rows_of`; ``expected`` the index rows the sources give;
+    ``file`` the index part's path from the package root; ``unread`` the
+    paths from the root of the manifests and tables that could not be read,
+    whose rows are not compared. Rows are matched by ``id`` and by
+    ``location`` resolved against the package root, so that
+    ``./bach/manifest.yaml`` and ``bach/manifest.yaml`` are one location;
+    ``kind``, ``timeline_id`` and ``name`` are compared. First the held
+    rows in their order, an extra one (nothing expected there, or a
+    location and ID held again; path ``["id"]``) or a differing one (path
+    its first differing column), then each expected row the part lacks, by
+    resolved location and ID (row ``None``, path ``["id"]``)."""
+    held = held.append_column("order", _arange(len(held)))
+    held = held.append_column("resolved", _resolved_locations(_array(held, "location")))
+    gone = pa.array(sorted(unread), pa.string())
+    held = held.filter(pc.invert(_held(pc.is_in(held["resolved"], value_set=gone))))
+    expected = pa.table(
+        {
+            "id": _array(expected, "id"),
+            "resolved": _resolved_locations(_array(expected, "location")),
+            **{f"expected_{name}": _array(expected, name) for name in _COMPARED},
+            "position": _arange(len(expected)),
+        }
+    )
+    unique = expected.group_by(["id", "resolved"], use_threads=False).aggregate(
+        [
+            ("position", "min"),
+            *((f"expected_{name}", "first") for name in _COMPARED),
+        ]
+    )
+    unique = unique.rename_columns(
+        [
+            name.removesuffix("_min").removesuffix("_first")
+            for name in unique.column_names
+        ]
+    )
+    joined = held.join(unique, keys=["id", "resolved"], join_type="left outer").sort_by(
+        "order"
+    )
+    keys = _dense(
+        pc.binary_join_element_wise(
+            _array(joined, "id"),
+            pc.coalesce(_array(joined, "resolved"), _EMPTY_TEXT),
+            _SEPARATOR,
+        )
+    )
+    again = pc.invert(pc.is_in(_arange(len(joined)), value_set=_firsts(keys)))
+    extra = pc.or_(pc.is_null(joined["position"]), again)
+    differs = {
+        name: pc.and_(
+            pc.invert(extra),
+            _differ(_array(joined, name), _array(joined, f"expected_{name}")),
+        )
+        for name in _COMPARED
+    }
+    flagged = joined.append_column("extra", extra)
+    for name, mask in differs.items():
+        flagged = flagged.append_column(f"differs_{name}", mask)
+    # Only the rows found stale are read in Python, to word their problems.
+    flagged = flagged.filter(_any_of(extra, *differs.values()))
+    problems = []
+    for row in flagged.to_pylist():
+        if row["extra"]:
+            problems.append(
+                PackageProblem(
+                    "stale_index",
+                    file,
+                    row["row"],
+                    ("id",),
+                    f"the index holds the ID '{row['id']}' at '{row['location']}', "
+                    "which no manifest or table holds there",
+                )
+            )
+            continue
+        column = next(name for name in _COMPARED if row[f"differs_{name}"])
+        problems.append(
+            PackageProblem(
+                "stale_index",
+                file,
+                row["row"],
+                (column,),
+                f"the index row of the ID '{row['id']}' at '{row['location']}' has "
+                f"the {column} {row[column]!r}, not {row[f'expected_{column}']!r}",
+            )
+        )
+    missing = unique.join(
+        held.select(["id", "resolved"]), keys=["id", "resolved"], join_type="left anti"
+    )
+    missing = missing.filter(pc.is_valid(missing["id"])).sort_by(
+        [("resolved", "ascending"), ("id", "ascending")]
+    )
+    for row in missing.select(["id", "resolved"]).to_pylist():
+        problems.append(
+            PackageProblem(
+                "stale_index",
+                file,
+                None,
+                ("id",),
+                f"the index lacks the ID '{row['id']}' at '{row['resolved']}'",
+            )
+        )
+    return problems
 
 
 def _differ(old: pa.Array, new: pa.Array) -> pa.Array:
@@ -950,7 +1115,7 @@ class _Check:
         self._timelines()
         self._resources()
         registry = self._registry_rows()
-        events = registry.filter(pc.invert(_held(pc.is_in(registry["kind"], _INDEX))))
+        events = registry.filter(pc.invert(is_index(registry["kind"])))
         contents = self._rows(_content=True)
         claims = self._rows(_content=False)
         extractions = self._column_rows(self.extraction, "id")
@@ -1016,7 +1181,7 @@ class _Check:
             for index, resource in enumerate(entries_of(manifest.bare, "resources")):
                 if not is_table_resource(resource):
                     continue
-                url = _resolved(resource["url"], manifest.file)
+                url = package_path(resource["url"], manifest.file)
                 named = None if url is None else (url, resource["type"])
                 entry = None if named is None else by_url.get(named)
                 if entry is None:
@@ -1056,8 +1221,20 @@ class _Check:
         """An entry's ``columns`` as strings, with whether its table holds
         each of ``timelines`` as strings, its entry, file and row."""
         read = _read(entry.files, entry.schemas, entry.kind, columns=columns)
-        table = read.table
         files, rows = _origins(self.first_file[number], read.lengths)
+        return self._frame(entry, read.table, files, rows, columns, timelines)
+
+    def _frame(
+        self,
+        entry: _Entry,
+        table: pa.Table,
+        files: pa.Array,
+        rows: pa.Array,
+        columns: Sequence[str],
+        timelines: Sequence[str],
+    ) -> pa.Table:
+        """The ``columns`` of an entry's rows read as strings, with the
+        :meth:`_framed` columns beside them."""
         return pa.table(
             {
                 **{name: _strings(table, name) for name in columns},
@@ -1106,14 +1283,17 @@ class _Check:
 
     def _registry_rows(self) -> pa.Table:
         """The registry's identifying columns, none where its shape is broken,
-        which its table check reports."""
+        which its table check reports. The registry is read whole once
+        (:attr:`whole_registry`), for these columns and its table check."""
         columns = _REGISTRY_COLUMNS
         entry = self.registry
-        if entry is not None:
-            schema = _unified(entry.files, entry.schemas)
-            if not _schema_problems(schema.empty_table(), REGISTRY_SCHEMA):
-                number = self.entries.index(entry)
-                return self._framed(number, entry, columns, EVENT_TIMELINES)
+        self.whole_registry = None if entry is None else self._full(entry, runs=False)
+        read = self.whole_registry
+        if entry is not None and read is not None:
+            if not _schema_problems(read.table.schema.empty_table(), REGISTRY_SCHEMA):
+                return self._frame(
+                    entry, read.table, read.files, read.rows, columns, EVENT_TIMELINES
+                )
         return self._empty(columns, EVENT_TIMELINES)
 
     def _column_rows(self, entry: _Entry | None, column: str) -> pa.Table:
@@ -1176,12 +1356,7 @@ class _Check:
         """The registry's IDs: an event, MatchClaim or Extraction ID once
         among these rows, a manifest element's once per location."""
         kinds = _array(registry, "kind")
-        element = _held(
-            pc.and_(
-                pc.is_in(kinds, value_set=_INDEX),
-                pc.invert(pc.is_in(kinds, value_set=_ONE_PER_PACKAGE)),
-            )
-        )
+        element = _held(pc.is_in(kinds, value_set=_ELEMENTS))
         stated = pc.is_valid(kinds)
         self._duplicates(registry, "ID", pc.and_(stated, pc.invert(element)))
         keys = pc.binary_join_element_wise(
@@ -1325,14 +1500,14 @@ class _Check:
 
     def _locations(self, events: pa.Table) -> pa.Table:
         """Each event row with a location, resolved against the package's
-        root, and the entry it names (null where none of its kind does);
-        ``unknown_location``."""
+        root, and the entry it names (null where none of its kind does, and
+        for an absolute URI, which names a resource outside the package and
+        is not checked); ``unknown_location``."""
         locations = _array(events, "location")
         kinds = _array(events, "kind")
         codes = _dense(pc.binary_join_element_wise(locations, kinds, _SEPARATOR))
         firsts = _firsts(codes)
         by_url = {(entry.url, entry.kind): entry.index for entry in self.entries}
-        resolved: list[str | None] = []
         entry_of: list[int | None] = []
         named: list[bool] = []
         for location, kind in zip(
@@ -1340,10 +1515,11 @@ class _Check:
             kinds.take(firsts).to_pylist(),
             strict=True,
         ):
-            url = None if location is None else _resolved(location, "")
-            resolved.append(url)
+            # An absolute URI names a resource outside the package, unchecked.
+            outside = location is not None and bool(urlsplit(location).scheme)
+            url = None if location is None or outside else package_path(location)
             entry_of.append(by_url.get((url, kind)) if url is not None else None)
-            named.append(location is None or (url, kind) in self.listed)
+            named.append(location is None or outside or (url, kind) in self.listed)
         placed = events.append_column(
             "entry_named", pa.array(entry_of, pa.int64()).take(codes)
         ).append_column("order", _arange(len(events)))
@@ -1469,158 +1645,40 @@ class _Check:
 
     def _expected_index(self, claims: pa.Table, extractions: pa.Table) -> pa.Table:
         """The index rows the manifests, the MatchClaim tables and the
-        Extraction table give: ``id``, ``resolved`` (the location),
-        ``expected_kind``, ``expected_timeline_id``, ``expected_name`` and
-        their ``position``."""
-        rows: list[dict[str, Any]] = []
-        for manifest in self.manifests:
-            rows.extend(_index_rows_of(manifest.bare, manifest.file))
-        strings = pa.schema(
-            [
-                pa.field(name, pa.string())
-                for name in ("id", "kind", "location", "timeline_id", "name")
-            ]
-        )
-        parts = [pa.Table.from_pylist(rows, schema=strings)]
+        Extraction table give, each manifest's at its path from the root,
+        each table's at its entry's URL."""
+        parts = [
+            index_rows_of(manifest.bare, manifest.file) for manifest in self.manifests
+        ]
         urls = pa.array([entry.url for entry in self.entries], pa.string())
         numbers = pa.array([entry.index for entry in self.entries], pa.int64())
         for table, kind in ((claims, "MatchClaim"), (extractions, "Extraction")):
-            table = table.filter(pc.is_valid(_array(table, "id")))
             locations = urls.take(
                 pc.index_in(_array(table, "entry"), value_set=numbers)
             )
-            parts.append(
-                pa.table(
-                    {
-                        "id": _array(table, "id"),
-                        "kind": pa.repeat(pa.scalar(kind), len(table)),
-                        "location": locations,
-                        "timeline_id": pa.nulls(len(table), pa.string()),
-                        "name": pa.nulls(len(table), pa.string()),
-                    },
-                    schema=strings,
-                )
-            )
-        expected = pa.concat_tables(parts)
-        return pa.table(
-            {
-                "id": _array(expected, "id"),
-                "resolved": _array(expected, "location"),
-                "expected_kind": _array(expected, "kind"),
-                "expected_timeline_id": _array(expected, "timeline_id"),
-                "expected_name": _array(expected, "name"),
-                "position": _arange(len(expected)),
-            }
-        )
+            parts.append(table_index_rows(_array(table, "id"), kind, locations))
+        return pa.concat_tables(parts) if parts else _INDEX_ROW.empty_table()
 
     def _stale(
         self, registry: pa.Table, claims: pa.Table, extractions: pa.Table
     ) -> None:
-        """The registry's index rows against what the manifests, the
-        MatchClaim tables and the Extraction table give (``stale_index``): the
-        index rows of the index part (``index.parquet`` of a folder, else
-        the file), an extra row (a location and ID given again among them
-        included) or a differing one in the part's order, then each missing
-        row by location and ID. Rows at a location that could not be read
-        are not compared."""
+        """The index part's index rows (``index.parquet`` of a folder, else
+        the file) against the rows the sources give (:func:`stale_problems`);
+        rows at a manifest or table that could not be read are not
+        compared."""
         entry = self.registry
         if entry is None:
             return
-        expected = self._expected_index(claims, extractions)
-        at = f"{entry.url}index.parquet" if entry.url.endswith("/") else entry.url
-        index = registry.filter(_held(pc.is_in(registry["kind"], _INDEX)))
+        at = f"{entry.url}{INDEX_PART}" if entry.url.endswith("/") else entry.url
+        index = registry.filter(is_index(registry["kind"]))
         if at in self.names:
             part = pa.array([self.names.index(at)], pa.int64())
             index = index.filter(pc.is_in(index["file"], value_set=part))
         else:
             index = index.slice(0, 0)
-        index = index.append_column("order", _arange(len(index)))
-        locations = _array(index, "location")
-        codes = _dense(locations)
-        resolved = pa.array(
-            [
-                None if value is None else _resolved(value, "")
-                for value in locations.take(_firsts(codes)).to_pylist()
-            ],
-            pa.string(),
-        ).take(codes)
-        index = index.append_column("resolved", resolved)
-        unread = pa.array(sorted(self.unread), pa.string())
-        index = index.filter(pc.invert(_held(pc.is_in(resolved, value_set=unread))))
-        actual = index.select(
-            ["order", "id", "resolved", *_COMPARED, "file", "row", "location"]
-        )
-        unique = expected.group_by(["id", "resolved"], use_threads=False).aggregate(
-            [
-                ("position", "min"),
-                *((f"expected_{name}", "first") for name in _COMPARED),
-            ]
-        )
-        unique = unique.rename_columns(
-            [
-                name.removesuffix("_min").removesuffix("_first")
-                for name in unique.column_names
-            ]
-        )
-        joined = actual.join(
-            unique, keys=["id", "resolved"], join_type="left outer"
-        ).sort_by("order")
-        keys = _dense(
-            pc.binary_join_element_wise(
-                _array(joined, "id"),
-                pc.coalesce(_array(joined, "resolved"), _EMPTY_TEXT),
-                _SEPARATOR,
-            )
-        )
-        again = pc.invert(pc.is_in(_arange(len(joined)), value_set=_firsts(keys)))
-        extra = pc.or_(pc.is_null(joined["position"]), again)
-        differs = {
-            name: pc.and_(
-                pc.invert(extra),
-                _differ(_array(joined, name), _array(joined, f"expected_{name}")),
-            )
-            for name in _COMPARED
-        }
-        flagged = joined.append_column("extra", extra)
-        for name, mask in differs.items():
-            flagged = flagged.append_column(f"differs_{name}", mask)
-        flagged = flagged.filter(_any_of(extra, *differs.values()))
-        for row in flagged.to_pylist():
-            file = self.names[row["file"]]
-            if row["extra"]:
-                self.problems.add(
-                    "stale_index",
-                    file,
-                    row["row"],
-                    ("id",),
-                    f"the index holds the ID '{row['id']}' at '{row['location']}', "
-                    "which no manifest or table holds there",
-                )
-                continue
-            for column in _COMPARED:
-                if row[f"differs_{column}"]:
-                    self.problems.add(
-                        "stale_index",
-                        file,
-                        row["row"],
-                        (column,),
-                        f"the index row of the ID '{row['id']}' at "
-                        f"'{row['location']}' has the {column} {row[column]!r}, "
-                        f"not {row[f'expected_{column}']!r}",
-                    )
-        missing = expected.join(
-            actual.select(["id", "resolved"]),
-            keys=["id", "resolved"],
-            join_type="left anti",
-        ).sort_by([("resolved", "ascending"), ("id", "ascending")])
-        for row in missing.to_pylist():
-            self.problems.add(
-                "stale_index",
-                at,
-                None,
-                ("id",),
-                f"the index lacks the ID '{row['id']}' at '{row['resolved']}'",
-            )
+        held = index.select([*_INDEX_ROW.names, "row"])
+        expected = self._expected_index(claims, extractions)
+        self.problems.found.extend(stale_problems(held, expected, at, self.unread))
 
     def _across(self, claims: pa.Table) -> None:
         """A MatchClaim whose two timelines are held, but by no one manifest."""
@@ -1685,7 +1743,10 @@ class _Check:
                 and entry not in (self.registry, self.extraction)
             ):
                 continue
-            read = self._full(entry, runs=False)
+            if entry is self.registry:
+                read = self.whole_registry
+            else:
+                read = self._full(entry, runs=False)
             if read is None:
                 continue
             everything = _arange(len(read.table))

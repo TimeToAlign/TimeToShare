@@ -47,13 +47,15 @@ type Axis = { unit: TimeUnit; number_type?: NumberType };
 /**
  * Where a child of known length ends on its parent's axis.
  *
- * The offset lies on the parent's axis and the length on the child's. Where
- * both axes are `float`, a reader adds the two JSON numbers as doubles, so the
- * end is their double sum, which may differ from the exact sum by a rounding;
- * wherever either axis is `int` or `fraction`, the end is the exact sum.
+ * The offset lies on the parent's axis and the length on the child's, which
+ * has the parent's number type. On a `float` axis a reader adds the two JSON
+ * numbers as doubles, so the end is their double sum, which may differ from
+ * the exact sum by a rounding; on an `int` or `fraction` axis the end is the
+ * exact sum. The end of a child of another number type, which the format
+ * refuses (`child_number_type`), is not specified.
  */
 export function childEnd(timeline: JsonObject, child: JsonObject, length: unknown): Rational {
-  if (numberTypeOf(timeline as Axis) === "float" && numberTypeOf(child as Axis) === "float") {
+  if (numberTypeOf(timeline as Axis) === "float") {
     const offset = double(child.offset);
     const extent = double(length);
     if (offset !== null && extent !== null && Number.isFinite(offset + extent)) {
@@ -66,11 +68,11 @@ export function childEnd(timeline: JsonObject, child: JsonObject, length: unknow
 /**
  * Where each child ends on its parent's axis, as an exact rational.
  *
- * A child's end is its `offset` plus its `length`. Where the timeline and the
- * child both have number type `float`, the two JSON numbers are summed in IEEE
+ * A child's end is its `offset` plus its `length`. On a `float` axis (a child
+ * has its parent's number type) the two JSON numbers are summed in IEEE
  * double arithmetic, as a reader adds them, so the end may differ from the
- * exact sum by a rounding. In every other case (`int`, `fraction`, mixed number
- * types, a value with no double such as a Fraction pair or an integer beyond the
+ * exact sum by a rounding. In every other case (`int`, `fraction`, a value
+ * with no double such as a Fraction pair or an integer beyond the
  * range of doubles, or a double sum that overflows) the sum is exact. A child
  * with no length, or on another unit than its parent, has end `null`, except a
  * child of a segment line without a length, whose end is the offset of the next

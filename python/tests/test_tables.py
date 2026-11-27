@@ -2115,63 +2115,41 @@ EXTRACTION_CASES = [
         [("schema_violation", 0, ("source_integrity", "digest"))],
         "'source_integrity' has no digest",
     ),
+]
+
+
+ADMITTED_EXTRACTIONS = [
     (
         "integrity_of_an_unknown_algorithm",
         put(0, "source_integrity", "algorithm", value="SHA-3"),
-        [("schema_violation", 0, ("source_integrity", "algorithm"))],
-        "'SHA-3' is no algorithm of a digest",
     ),
-    (
-        "digest_in_capitals",
-        put(0, "source_integrity", "digest", value="00FF"),
-        [("schema_violation", 0, ("source_integrity", "digest"))],
-        "the digest '00FF' is no lower-case hexadecimal",
-    ),
-    (
-        "parameters_no_json",
-        put(0, "parameters", value="{merge_tracks: false}"),
-        [("schema_violation", 0, ("parameters",))],
-        "the parameters are no JSON text",
-    ),
-    (
-        "parameters_no_object",
-        put(0, "parameters", value="[480]"),
-        [("schema_violation", 0, ("parameters",))],
-        "the parameters are no JSON object",
-    ),
+    ("digest_in_capitals", put(0, "source_integrity", "digest", value="00FF")),
+    ("parameters_no_json", put(0, "parameters", value="{merge_tracks: false}")),
+    ("parameters_no_object", put(0, "parameters", value="[480]")),
     (
         "parameters_not_canonical",
         put(0, "parameters", value='{"resolution": 480, "merge_tracks": false}'),
-        [("schema_violation", 0, ("parameters",))],
-        "the parameters are not written in RFC 8785 JSON",
     ),
-    (
-        "id_length_zero",
-        put(1, "id_length", value=0),
-        [("schema_violation", 1, ("id_length",))],
-        "the ID length 0 is below 1",
-    ),
-    (
-        "date_without_zone",
-        put(0, "date", value="2026-11-27T21:30:00"),
-        [("schema_violation", 0, ("date",))],
-        "the date '2026-11-27T21:30:00' is no ISO 8601 date-time in UTC, such as "
-        "'2026-11-27T21:30:00Z'",
-    ),
-    (
-        "date_impossible",
-        put(1, "date", value="2026-02-30T00:00:00Z"),
-        [("schema_violation", 1, ("date",))],
-        "the date '2026-02-30T00:00:00Z' is no time of the Gregorian calendar",
-    ),
-    (
-        "one_bad_date_on_two_rows",
-        lambda rows: [row.update(date="2026-11-27") for row in rows],
-        [("schema_violation", 0, ("date",)), ("schema_violation", 1, ("date",))],
-        "the date '2026-11-27' is no ISO 8601 date-time in UTC, such as "
-        "'2026-11-27T21:30:00Z'",
-    ),
+    ("id_length_zero", put(1, "id_length", value=0)),
+    ("date_with_a_zero_offset", put(0, "date", value="2026-11-27T21:30:00+00:00")),
+    ("date_without_zone", put(0, "date", value="2026-11-27T21:30:00")),
+    ("date_impossible", put(1, "date", value="2026-02-30T00:00:00Z")),
+    ("date_without_time", lambda rows: [row.update(date="2026-11-27") for row in rows]),
 ]
+"""Values a writer spells otherwise than the README writes them, each
+admitted: a reader refuses only the shape and a source without its
+integrity."""
+
+
+@pytest.mark.parametrize(
+    "change",
+    [case[1] for case in ADMITTED_EXTRACTIONS],
+    ids=[case[0] for case in ADMITTED_EXTRACTIONS],
+)
+def test_an_extraction_is_read_as_written(change: Callable[[list[dict]], None]) -> None:
+    table = extractions_table(changed(EXTRACTIONS, change))
+    assert extraction_problems(table) == []
+    check_extractions(table)
 
 
 @pytest.mark.parametrize(

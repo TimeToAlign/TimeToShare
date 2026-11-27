@@ -42,6 +42,7 @@ __all__ = [
     "CHUNK_SENTINEL",
     "COORDINATE_KEYS",
     "COORDINATE_TYPE",
+    "ELEMENT_KINDS",
     "EXTRACTION_COLUMNS",
     "EXTRACTION_REQUIRED",
     "EXTRACTION_SCHEMA",
@@ -254,6 +255,12 @@ INDEX_KINDS: tuple[str, ...] = tuple(_TABLES["tables"]["Registry"]["index_kinds"
 """The kinds of the registry's index rows: the schema's names of the manifest
 elements, ``MatchClaim`` and ``Extraction``. A row of any other kind is an
 event row, its kind its event's type."""
+
+ELEMENT_KINDS: tuple[str, ...] = tuple(
+    kind for kind in INDEX_KINDS if kind not in ("MatchClaim", "Extraction")
+)
+"""The kinds of the index rows of manifest elements: the schema's names of
+their definitions, the index kinds but ``MatchClaim`` and ``Extraction``."""
 
 
 _INT64 = (-(2**63), 2**63 - 1)

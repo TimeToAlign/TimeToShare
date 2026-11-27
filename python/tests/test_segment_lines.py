@@ -89,7 +89,11 @@ def test_each_rule_one_problem() -> None:
         (
             (*AT, "children", 1, "unit"),
             "child 'b' has unit 'ticks', its parent 'line' has 'quarters'",
-        )
+        ),
+        (
+            (*AT, "children", 1, "unit"),
+            "child 'b' has the number type 'int', its parent 'line' has 'fraction'",
+        ),
     ]
     value = _line(
         _segment("a", (0, 1), (3, 1)),
@@ -208,8 +212,9 @@ def test_the_double_sum_decides_where_the_exact_one_differs() -> None:
         ),
         ((*AT, "length"), f"the segments of {ID} do not end at its length"),
     ]
-    mixed = with_b(76.70371459980326, pairs[855.5289364103584], number_type="fraction")
-    assert _problems(mixed) == [
+    # On the float line a length no double equals, the pair, is added exactly.
+    paired = with_b(76.70371459980326, pairs[855.5289364103584])
+    assert _problems(paired) == [
         (
             (*AT, "children", 2, "offset"),
             f"segment 'c' of {ID} does not start where the one before it ends",
@@ -293,6 +298,10 @@ def test_order_and_scope() -> None:
         (
             (*AT, "children", 1, "unit"),
             "child 'b' has unit 'ticks', its parent 'line' has 'quarters'",
+        ),
+        (
+            (*AT, "children", 1, "unit"),
+            "child 'b' has the number type 'int', its parent 'line' has 'fraction'",
         ),
         (
             (*AT, "children", 2, "is_segment_line"),

@@ -814,11 +814,12 @@ documents that bound each rule from the other side:
   compared exactly. The end is spelled in the parent's number type, a
   fraction pair where that type has no exact spelling: `0.2` at `0.1` in
   `0.3` seconds ends at `0.30000000000000004`, their double sum, `0.5` at
-  `0.5` in `0.75` at `1.0`, `240` ticks at `480` in `480` at `720`; a
-  quarters child declared `float`, `2.5` at `[7, 1]` in `[8, 1]`, is
-  `child_number_type`, then `child_end` at `[19, 2]`, the exact sum, and a
-  seconds child declared `fraction`, `[1, 3]` at `0.5` in `0.75`, is
-  `child_number_type`, then `child_end` at `[5, 6]`; `0.25` at
+  `0.5` in `0.75` at `1.0`, `240` ticks at `480` in `480` at `720`, a
+  quarters child of a quarters root both declared `float`, `2.5` at `7.0`
+  in `8.0`, at `9.5`; a seconds child whose length is the Fraction pair
+  `[1, 3]`, which no double equals, at `0.5` in `0.75` ends at `[5, 6]`,
+  the exact sum (`identity_problems`; `validate` refuses the pair on a
+  `float` axis first, as a representation problem); `0.25` at
   `0.5` in `0.75` and `[2, 1]` at `[8, 1]` in `[10, 1]` end at the length
   and pass. The double sum decides even where it differs from the exact
   one, as for three doubles whose exact sum exceeds the parent's length by
@@ -848,7 +849,7 @@ documents that bound each rule from the other side:
   reported. A grandchild is reported at its own path, naming its parent.
 - **Segment lines.** Offset order decides, not array order (`b`, `a` at 3
   and 0 are contiguous). A segment ends where a child ends under
-  containment: where the line's axis and the segment's are both `float`,
+  containment: on a `float` axis (a segment has its line's number type),
   at the double sum of its offset and length, else at the exact sum
   (`0.1 + 0.2` seconds does not meet `0.3`, their double sum being
   `0.30000000000000004`; `0.5 + 0.25` meets `0.75` and `0.3 + 0.7` meets
@@ -861,9 +862,10 @@ documents that bound each rule from the other side:
   refused: `b` at `76.70371459980328`, one double after `a`'s end, is one
   problem at its offset. The same values as the Fraction pairs that equal
   them on a `fraction` line are added exactly and refused at `c`'s offset
-  and at the line's length, and so are they on the `float` line where `b`
-  alone is declared `fraction`, its length the pair: one problem, at `c`'s
-  offset. Where a segment's offset and length have no
+  and at the line's length; on the `float` line, `b`'s length written as
+  the pair, which no double equals, is added exactly too: one problem, at
+  `c`'s offset (`identity_problems`; `validate` refuses the pair on a
+  `float` axis first). Where a segment's offset and length have no
   double sum, it ends at their exact sum: on a `points` line of unknown
   length, `b` of `1e308` at `1e308` after `a` of `1e308` at `0.0` ends
   beyond every double, so `c` at `1.7976931348623157e308` is one problem
@@ -2078,7 +2080,14 @@ any text and `serialization_of` names a text's serialization. They live in
   JSON its `.expected.rfc8785.json` where one exists; every refusal raises
   `ValueError`; every writer refusal raises `ValueError` in exactly the
   serializations the directory's README names; `serialization_of` gives
-  the README's name for every file, and never raises. Values are compared
+  the README's name for every file, and never raises. No reading whose
+  expected value is a manifest (an object with a `timelines` array)
+  holds a child, at any depth, of another unit or number type than its
+  parent's, each the declared one or the unit's default, a shape both
+  validators refuse; `manifest_fraction_reduced` and
+  `manifest_number_type_missing` are among them. Other rules a reading's
+  manifest may break, since readings test the reading of a text, not a
+  manifest's validity. Values are compared
   kind for kind (an integer equals only an integer, `-0.0` differs from
   `0.0`). No case is skipped.
 - **The test's tables name exactly their files.** Each table the test keeps
@@ -2836,16 +2845,18 @@ extraction's are without fontTools. What proves them:
   `parser_version`, `minter`, `id_length` or `date` is null
   (`schema_violation`); an ID twice or reserved (`duplicate_id`,
   `invalid_id`); a `source` without `source_integrity` (`'source_integrity'
-  is null where 'source' is given`), an integrity without `digest`, of an
-  algorithm the manifest schema's `Descriptor` does not list (`'SHA-3' is
-  no algorithm of a digest`), a digest that is no lower-case hexadecimal;
-  `parameters` that are no JSON text, no JSON object or not RFC 8785 JSON
-  (`{"resolution": 480, "merge_tracks": false}`, spaced and unsorted); an
-  `id_length` below 1; a `date` that is no ISO 8601 date-time in UTC
-  (without `Z`) or no time of the Gregorian calendar (`2026-02-30T00:00:00Z`),
-  one problem per row a bad cell stands in (each `schema_violation`); a
-  fractional second (`21:31:05.250Z`) and a run without a source are
-  admitted.
+  is null where 'source' is given`) and an integrity without `digest`, one
+  problem per row a bad cell stands in (each `schema_violation`). Nothing
+  else of a row is refused, since a reader accepts what a writer may write
+  and spelling a value canonically is the writer's duty: `parameters`
+  that are no JSON text (`{merge_tracks: false}`), no object (`[480]`) or
+  not in RFC 8785 JSON (`{"resolution": 480, "merge_tracks": false}`,
+  spaced and unsorted), a `date` with the offset `+00:00`, without a zone
+  or of no calendar day (`2026-02-30T00:00:00Z`), a fractional second
+  (`21:31:05.250Z`), an `id_length` of 0, an integrity of an algorithm
+  the manifest schema's `Descriptor` does not list (`SHA-3`) or with a
+  digest in capitals (`00FF`), and a run without a source are each
+  admitted, with no problem.
 - **The sentinels are reserved strings, read by `is_synchronous`.** An
   event ID column holds an event's ID or one of the two strings
   `timetoshare.tables` exports, `NOMATCH_SENTINEL` and `CHUNK_SENTINEL`
@@ -3127,9 +3138,13 @@ What proves them (`test_packages.py`, needs pyarrow):
   event row of `projection_5`; given with `timelines`, a row is kept where
   both keep it; `[]` keeps none; a pre-parsed table read by `ids` gives
   the content of those events. Each resolution an `expected.yaml` lists
-  (the shared package's and two acceptances') states a row the registry
+  (the shared package's and three acceptances') states a row the registry
   holds for that ID, its kind and location the row's, and through the
-  package every row of the ID. `table_files` of the Projections folder
+  package every row of the ID; and `resolve` of its path and ID returns
+  exactly those resolutions, in the order listed (through a manifest the
+  element first, then the registry rows in the registry's order), each
+  `Resolution` equal to the entry's `kind`, `location`, `manifest` and
+  `row`. `table_files` of the Projections folder
   is `part_a.parquet`, `part_b.parquet`; files named `.part_c.parquet`,
   `_part_d.parquet`, `notes.txt` and a subfolder `sub/` holding
   `part_e.parquet`, added in a copy, are passed over, and the copy reads
@@ -3183,7 +3198,13 @@ What proves them (`test_packages.py`, needs pyarrow):
   registry check against either manifest, and the ID resolves through
   each; `single_file_registry`, the registry one file holding the 25 rows
   of the three parts; `re_parsable_event`, an `Onset` event row without a
-  location, its content only re-parsable from its extraction's source.
+  location, its content only re-parsable from its extraction's source;
+  `external_location`, the event row of `projection_1` whose `location`
+  is the absolute URI `https://example.org/events/projection_1`, its
+  pre-parsed row removed: a location with a scheme names a resource
+  outside the package, which the check does not follow (no
+  `unknown_location`, no `missing_content`), while a relative location
+  naming no table entry stays `unknown_location` (the rejection below).
   Each package under
   `fixtures/packages/0.2.0/rejections/` breaks one rule, and
   `package_problems` of its `package.yaml` returns exactly the problems its
@@ -4020,6 +4041,35 @@ ID. Without an index part every index row is missing. Only `kind`,
 `timeline_id` and `name` are compared: the other columns of an index row
 are null by the format.
 
+**One comparison of the index.** `stale_index` and the package check
+compare the index alike, by one function: over the shared package and
+every acceptance and rejection under `fixtures/packages/0.2.0/` whose
+`package.yaml` lists exactly one registry, over a copy of `shared/` whose
+Handel manifest is made invalid (a unit spelled `quarter`), and over a
+copy whose `package.yaml` writes every URL with a leading `./`,
+`stale_index(root)` equals the `stale_index` problems of
+`package_problems(root / "package.yaml")`, in order. The two copies give
+none: locations are compared resolved against the package root, so
+`./bach/manifest.yaml` and `bach/manifest.yaml` are one location, and an
+invalid manifest's index rows are not compared. `write_index` of the copy
+with the invalid manifest keeps its index rows at `handel/manifest.yaml`
+cell for cell, since they cannot be rebuilt, and the copy is still not
+stale.
+
+**The names are public.** `timetoshare.tables` exports `Resolution`,
+`resolve`, `index_rows`, `write_index`, `stale_index` and `INDEX_PART`,
+each the object `timetoshare.tables.registry` holds, and
+`ELEMENT_KINDS`, the index kinds but `MatchClaim` and `Extraction`.
+
+**Resolving reads filtered.** With the module's `read_table` wrapped to
+record its calls, `resolve` of an event ID and a MatchClaim ID through
+the package root, and of an Extraction ID, a MatchClaim ID and an event ID
+through a manifest, gives its usual answer and reads each registry with
+`ids` of the one ID, a filter `read_table` pushes into the reader
+(above, "Packages"); the Extraction found through Bach's manifest adds one
+read of the `extraction_id` column alone with Bach's listed `timelines`,
+whether an event row of the manifest names it. No registry is read whole.
+
 **Resolving.** `resolve(path, id)` always returns a list. Through the
 package root: an event ID gives its one registry row (`kind`, `location`,
 the row as a dictionary, `manifest` null); the ID of the timeline
@@ -4068,7 +4118,11 @@ extraction part, an Extraction table, a pre-parsed Projection table), the
 
 Every finding lies at the manifest whose Registry resource lists the
 row's timeline (`score.yaml`, scope `score`). The cases' manifests
-validate and their index parts are not stale (`stale_index` empty).
+validate and their index parts are not stale (`stale_index` empty). Their
+other Parquet files are `scripts/emit_versions.py`'s: for each case the
+script names (exactly the seven), each tree's extraction part, Extraction
+table and pre-parsed Projection table equal, cell for cell and with their
+metadata, the tables the script builds from its literal rows.
 Inline: an event row whose timeline no manifest's Registry resource lists
 lies at `package.yaml`; with two manifests listing one timeline, a removed
 row is reported at both; a vanished row's detail names the extraction

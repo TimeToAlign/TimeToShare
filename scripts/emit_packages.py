@@ -570,6 +570,16 @@ def problem(
 # check accepts, with its reason.
 
 
+EXTERNAL = "https://example.org/events/projection_1"
+"""An absolute URI naming the content of an event outside the package."""
+
+
+def _external_location(package: Package) -> None:
+    package.tables[BACH_PART][0][0]["location"] = EXTERNAL
+    rows = package.tables[PART_A_FILE][0]
+    rows[:] = [row for row in rows if row["id"] != "projection_1"]
+
+
 def _recording_resource(package: Package) -> None:
     package.manifests[BACH_FILE]["resources"].append(
         {
@@ -623,6 +633,26 @@ def _re_parsable_event(package: Package) -> None:
 ACCEPTANCES: dict[
     str, tuple[Callable[[Package], None], str, list[dict[str, Any]] | None]
 ] = {
+    "external_location": (
+        _external_location,
+        "The content of Bach's first Projection lies outside the package: its "
+        "location is an absolute URI, which the package check does not follow, "
+        "and the pre-parsed tables hold no row of it.",
+        [
+            {
+                "path": BACH_FILE,
+                "id": "projection_1",
+                "found": [
+                    resolution(
+                        "Projection",
+                        EXTERNAL,
+                        BACH_FILE,
+                        {**BACH_EVENTS[0], "location": EXTERNAL},
+                    )
+                ],
+            }
+        ],
+    ),
     "recording_resource": (
         _recording_resource,
         "Bach's manifest names a recording beside it, a resource naming no "

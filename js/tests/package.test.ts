@@ -64,7 +64,13 @@ describe("validatePackage", () => {
   });
 
   it("names the accepted packages", () => {
-    expect(accepted).toEqual(["recording_resource"]);
+    expect(accepted).toEqual([
+      "external_location",
+      "re_parsable_event",
+      "recording_resource",
+      "single_file_registry",
+      "timeline_in_two_manifests",
+    ]);
   });
 
   it("names the rejected packages", () => {
@@ -72,15 +78,28 @@ describe("validatePackage", () => {
       "axis_mismatch",
       "claim_across_manifests",
       "column_in_two_types",
+      "extraction_table_listed_twice",
       "file_in_a_listed_folder",
       "file_of_another_type",
       "folder_with_size",
+      "index_row_with_a_position",
+      "locator_twice",
+      "missing_content",
       "projection_id_in_two_files",
+      "projection_of_its_own_timeline",
+      "projection_of_no_timeline",
+      "registry_id_twice",
+      "registry_listed_twice",
+      "registry_missing",
       "resource_naming_no_table",
       "row_of_no_manifest",
+      "stale_index",
       "table_listed_twice",
-      "timeline_in_two_manifests",
       "timeline_unlisted",
+      "unknown_extraction",
+      "unknown_location",
+      "unregistered_id",
+      "vanished_in_an_unknown_extraction",
       "version_mismatch",
     ]);
   });

@@ -399,7 +399,7 @@ export type Resource = Descriptor & {
    */
   id: Id;
   /**
-   * What the file's rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events an event table holds. The Projections table and the event types are experimental: they may change in any version.
+   * What the file's rows are: `Registry` for the package's registry, `MatchClaim` for a MatchClaim table, or the type of what another file holds. The registry is experimental: it may change in any version.
    */
   type: string;
   /**
@@ -980,7 +980,7 @@ export interface Manifest {
    */
   measure_maps?: MeasureMap[];
   /**
-   * The files and folders of files the manifest names, each one `Resource`: the MatchClaim table, the Projections table and event tables. A timeline is listed by at most one resource of each type. The manifest never names an event or a MatchClaim inside them. The array may be empty.
+   * The files and folders of files the manifest names, each one `Resource`: the package's registry, whose event rows of the timelines listed the manifest keeps, the MatchClaim tables, and any other file, a recording, an image or a score file. The pre-parsed tables are named by the registry's rows, not by a manifest. A timeline is listed by at most one resource of each type. The manifest never names an event or a MatchClaim inside them. The array may be empty.
    */
   resources?: Resource[];
   /**
@@ -1101,7 +1101,7 @@ export interface Timeline {
   name?: Name;
   unit: TimeUnit;
   /**
-   * The number type of every coordinate on the timeline's axis. Absent means the unit's default number type, which the unit table (`TimeUnit`) states for every unit. A discrete unit admits int only, a continuous unit float or fraction, and `number` any of the three.
+   * The number type of every coordinate on the timeline's axis. Absent means the unit's default number type, which the unit table (`TimeUnit`) states for every unit. A discrete unit admits int only, a continuous unit float or fraction, and `number` any of the three. A child has its parent's unit and number type, the declared one or its unit's default, which is checked after the schema.
    */
   number_type?: NumberType;
   /**
@@ -1519,7 +1519,7 @@ export interface MeasureMapRow {
  */
 export interface Descriptor {
   /**
-   * Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `match_claims.parquet` beside a manifest, or `../tables/Projection/`, a folder.
+   * Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `match_claims.parquet` beside a manifest, or `../registry/`, a folder.
    */
   url: IriReference;
   /**

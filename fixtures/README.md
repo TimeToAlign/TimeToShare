@@ -304,7 +304,7 @@ labelled "Repeat" whose one destination, a repeat end (`repeat_end`,
 | `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the break "Fine" at 8 (`fine`, its `ends.after` naming the da capo) and the jump "D.C. al Fine" at 16 back to 0 (a destination `da_capo_al_fine` without a place); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
 | `bundle_shared_member` | the bundle "Shared" of two groups that share a member: the score `t` ("Score", 8 quarters) is a member of the group `g1` ("Performance") beside the performance `u` (4.0 seconds) and of the group `g2` ("Page") beside the page `v` (800 pixels); no timeline carries a map, a region or flow control |
 | `bundle_free_ids` | the bundle "Free IDs" of the group `group_1` ("Piece") of two roots whose IDs are free strings: the score `https://example.org/piece/score` ("Score", 8 quarters) with the region "Exposition" `https://example.org/piece/score#exposition` from 0 to 4, and the take `perf/take 2` ("Take 2", 4.0 seconds) with the region "Intro" `take 2/intro` from 0.0 to 1.0; one rule selects the take's region by its address `{"id": "#take 2/intro"}` and strokes it teal |
-| `bundle_resources` | the bundle "Resources" of the score `score` (8 quarters) and the recording `take_1` (352800 samples), ungrouped, with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, and `resource_2`, the Projections table `projections.parquet` (an experimental type) holding data for `take_1`, with nothing optional; neither file lies beside the fixture, so neither states a size or a digest (the table fixture's manifest states both of its own tables')
+| `bundle_resources` | the bundle "Resources" of the score `score` (8 quarters) and the recording `take_1` (352800 samples), ungrouped, with two resources: `resource_1`, the MatchClaim table `match_claims.parquet` holding data for both timelines, with its media type `application/vnd.apache.parquet`, and `resource_2`, of the type `Projection`, a table type manifests no longer name (an event's registry row names its pre-parsed table), at `projections.parquet`, holding data for `take_1`, with nothing optional; neither file lies beside the fixture, so neither states a size or a digest (the table fixture's manifest states both of its own tables')
 | `bundle_matchstamps` | the bundle "MatchStamps" of the score `score` ("Score", 8 quarters) and the takes `take_1` ("Take 1", 352800 samples) and `take_2` ("Take 2", 396900 samples), ungrouped; the match timestamp `timestamp_1` at quarter 4 of the score, without a name, shared by two MatchStamps: `matchstamp_1` ("Bar 2, downbeat (take 1)") joins it to sample 88200 of `take_1` by the anchor `anchor_1`, which also draws the name, from the MatchClaims `claim_1` and `claim_2`; `matchstamp_2` ("Bar 2, downbeat (take 2)") to sample 99225 of `take_2` (the match timestamp `timestamp_3`, named "Take 2, bar 2" and drawing its name) by `anchor_2`, from `claim_3` |
 | `bundle_matchstamp_cards` | the bundle "MatchStamp cards" of two groups that share a member, as `bundle_shared_member`: the score `score` ("Score", 8 quarters), holding the child `second-half` ("Second half", 4 quarters at 4), is a member of the group `group_1` ("Performance") beside the performance `performance` (4.0 seconds) and of the group `group_2` ("Page") beside the page `page` (800 pixels); three match timestamps without a name, `timestamp_1` at quarter 4 of the score, `timestamp_2` at second 1.0 of the performance and `timestamp_3` at quarter 2 of the child; `matchstamp_1` ("Bar 2, performed") joins the performance to the score, drawn in two cards, by `anchor_1`, from `claim_1`; `matchstamp_2` ("Second half, bar 1") the score to its child, whose lines lie in one card, by `anchor_2`, from `claim_2`; both anchors draw the name |
 | `bundle_matchstamp_groupstamp` | the bundle of `bundle_matchstamp_cards` whose match timestamp `timestamp_1` at quarter 4 of the score, a member of both groups, is a groupstamp, its line across the frame of `group_1` and that of `group_2` |
@@ -611,7 +611,11 @@ metadata. `expected.yaml` lists under `read`, per manifest and resource,
 the IDs of the rows read for the resource's timelines, sorted, and under
 `resolutions` the resolutions of some IDs, each a `path` (a manifest, or
 `.` for the package root), an `id` and the `found` list of `Resolution`s,
-each its `kind`, `location`, `manifest` and the registry `row`.
+each its `kind`, `location`, `manifest` and the registry `row`, in the
+order `resolve` returns them: through a manifest, its element first, then
+the registry rows belonging to it in the registry's order (the files of
+the registry folder in code-point order, then each file's rows); through
+the package root, every row of the ID in the registry's order.
 
 `acceptances/<case>/` are the shared package with one change each that
 the package check accepts, beside an `expected.yaml` listing no problem
@@ -620,6 +624,7 @@ resolutions of some IDs:
 
 | Case | Change |
 | --- | --- |
+| `external_location` | the content of Bach's `projection_1` lies outside the package: its `location` is the absolute URI `https://example.org/events/projection_1`, which the package check does not follow, and the pre-parsed tables hold no row of it; it resolves through Bach's manifest with that location |
 | `recording_resource` | Bach's manifest names a recording beside it (`Audio`, `recording.flac`, `audio/flac`), a resource naming no table, which `package.yaml` does not list; the index holds the resource |
 | `timeline_in_two_manifests` | Handel's manifest holds a timeline `dpt_1`, as Bach's does, and keeps its event rows too; `dpt_1` resolves through each manifest to its own element, and through the package root to both, and Bach's `projection_1` resolves through Handel's manifest |
 | `single_file_registry` | the registry is one file, `registry.parquet`, holding the index rows and the event rows of both extractions |
@@ -1014,7 +1019,7 @@ packages read the same files and compare their lists with them.
 
 ## Version cases
 
-`fixtures/versions/<case>/` holds the hand-authored cases of the version
+`fixtures/versions/<case>/` holds the cases of the version
 step a change of a repository of manifests requires ([main
 README](../README.md#versions-of-a-dataset)): an `old/` and a `new/` tree
 of manifests and `expected.yaml`, the `step`, the `scope`, the flags
@@ -1086,7 +1091,14 @@ index part and one extraction part, an Extraction table and a pre-parsed
 Projection table, the `new/` one edit of the `old/`. Every finding lies at
 the manifest whose registry resource lists the row's timeline
 (`score.yaml`, scope `score`); the manifests validate and the index parts
-are not stale:
+are not stale. Their YAML files and `expected.yaml` are written by hand,
+like every other case; their Parquet files are emitted by
+`scripts/emit_versions.py` (run from `python/` as `uv run python
+../scripts/emit_versions.py`; it needs pyarrow), whose rows are literal
+data in the script, the index part of each tree written by `write_index`
+from the tree's manifest and tables. It rewrites a Parquet file only when
+its table changes and refuses to replace the files while the tag
+`v<version>` of the current version exists:
 
 | Case | Change | Findings |
 | --- | --- | --- |
@@ -1094,7 +1106,7 @@ are not stale:
 | `registry_row_added` | an event `note_3` added | `added_row`, minor |
 | `registry_projection_moved` | the start of the Projection `proj_1` moved | `edited_row`, minor |
 | `registry_row_vanished` | the `vanished_in` of `note_2` set | `vanished_row`, minor |
-| `registry_index_only` | an index row's `name` changed, nothing else | none |
+| `registry_index_only` | the timeline `score` renamed, its index row rewritten | `label`, patch (the manifest's finding alone) |
 | `projection_row_edited` | the `projection_of` of `proj_1` edited in the pre-parsed table | `edited_row`, minor |
 | `projection_row_removed` | `proj_1` removed from the registry and the pre-parsed table | `removed_row` twice, major |
 

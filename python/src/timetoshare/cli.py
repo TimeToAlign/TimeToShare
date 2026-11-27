@@ -378,7 +378,7 @@ def _validate(arguments: argparse.Namespace) -> int:
 
 def _registry(arguments: argparse.Namespace) -> int:
     try:
-        from .tables.registry import stale_index, write_index
+        from .tables import stale_index, write_index
     except ImportError as error:
         print(f"timetoshare: {error}", file=sys.stderr)
         return 1

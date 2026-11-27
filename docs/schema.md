@@ -8,8 +8,9 @@ The schema of version {{ schema_version }} is four documents in
   describing the one manifest shape;
 - {{ provenance_schema }}: the provenance entry that statements,
   flow-control elements, FlowMaps and the MatchClaim table share;
-- {{ tables_schema }}: the column types of the MatchClaim table and the
-  Projections table, as data;
+- {{ tables_schema }}: the column types of the package's four table types
+  (the registry, the Extraction table, the MatchClaim table and the
+  pre-parsed Projection table), as data;
 - {{ package_schema }}: the `package.yaml` of a package, which lists its
   manifests and the tables they share (README,
   [Packages](overview.md#packages)).

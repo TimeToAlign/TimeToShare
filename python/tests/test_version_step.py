@@ -167,6 +167,36 @@ def test_every_case_package_has_a_fresh_index(root: Path) -> None:
     assert stale_index(root) == []
 
 
+def test_the_case_tables_are_the_scripts() -> None:
+    pq = pytest.importorskip("pyarrow.parquet")
+    import importlib.util
+
+    script_path = Path(__file__).resolve().parents[2] / "scripts" / "emit_versions.py"
+    spec = importlib.util.spec_from_file_location("emit_versions", script_path)
+    assert spec is not None and spec.loader is not None
+    script = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(script)
+    assert sorted(script.CASES) == sorted(
+        path.parent.name for path in PACKAGES if path.name == "old"
+    )
+    for name, change in script.CASES.items():
+        for side in ("old", "new"):
+            tree = script.Tree()
+            if side == "new":
+                change(tree)
+            root = VERSIONS / name / side
+            for file, (rows, schema, kind) in tree.tables.items():
+                table = script.pa.Table.from_pylist(rows, schema=schema)
+                table = table.replace_schema_metadata(
+                    {"timetoshare:type": kind, "timetoshare:version": "0.2.0"}
+                )
+                assert pq.read_table(root / file).equals(table, check_metadata=True), (
+                    name,
+                    side,
+                    file,
+                )
+
+
 def tempo(manifest: dict[str, Any]) -> dict[str, Any]:
     (score,) = [t for t in manifest["timelines"] if t["id"] == "#score"]
     return score["conversion_maps"][0]

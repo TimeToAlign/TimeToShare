@@ -1582,10 +1582,12 @@ files](#pre-parsed-re-parsed-and-source-files)).
 **package root**, the folder of `package.yaml`, or, for a manifest alone,
 the manifest's folder: a path such as `bach/manifest.yaml` or
 `tables/Projection/`, and equally the URI of a service or of another
-serialization of the table, such as a database file. It names a table
-entry of `package.yaml` by the same URL as written there, so that a
-manifest, a MatchClaim table, the Extraction table or a pre-parsed table
-of the row's `kind` lies at it.
+serialization of the table, such as a database file. A relative
+reference names a table entry of `package.yaml`, resolved as its URL is,
+so that a manifest, a MatchClaim table, the Extraction table or a
+pre-parsed table of the row's `kind` lies at it. An absolute URI, one
+with a scheme such as `https://example.org/events/projection_1`, names a
+resource outside the package, which the package check does not follow.
 
 **Locators and updates.** A `locator` is opaque: the parser that made the
 row writes it, such as a MIDI track and the index of the message, an
@@ -1636,18 +1638,21 @@ reaches an extraction through the events that name it ([Identity](#identity)):
 | `source` | string | allowed | the source file, a URI reference resolved against the package root; null for events made without a source file |
 | `source_integrity` | `struct<algorithm: string, digest: string>` | allowed | the digest of the source file's raw bytes, as a descriptor's `integrity` states it ([Resources](#resources)); never null where `source` is given |
 | `parser`, `parser_version` | string | never | the name of the parser or tool and its version |
-| `parameters` | string | allowed | the parameters it ran with, the RFC 8785 JSON text of an object ([RFC 8785 JSON](#rfc-8785-json)); null where it took none |
+| `parameters` | string | allowed | the parameters it ran with, the JSON text of an object, written in RFC 8785 JSON ([RFC 8785 JSON](#rfc-8785-json)); null where it took none |
 | `minter` | string | never | the algorithm of the ID minter and its version, as the tool names it |
 | `id_length` | int64 | never | the number of random characters of the IDs it minted, 13 by default ([Identity](#identity)) |
 | `seed` | string | allowed | the seed of the minter, a decimal string, where one was given explicitly; null where the seed is taken from the source file's bytes |
-| `date` | string | never | when it ran, an ISO 8601 date-time in UTC, such as `2026-11-27T21:04:00Z` |
+| `date` | string | never | when it ran, an ISO 8601 date-time in UTC, written such as `2026-11-27T21:04:00Z` |
 
 Every event row names one extraction. An extraction is what makes the
 events reproducible: run again over a source file of the same digest,
 with the parser of the same name and version, the same parameters, and a
 minter of the same algorithm, length and seed, it gives the same events
-under the same IDs and locators. As in the other tables, the columns may
-stand in any order and further columns are kept and never checked.
+under the same IDs and locators. A writer writes `parameters` in RFC
+8785 JSON and `date` in UTC with `Z`, as above; a reader reads both as
+given ([Checking the tables](#checking-the-tables)). As in the other
+tables, the columns may stand in any order and further columns are kept
+and never checked.
 
 ### Pre-parsed, re-parsed and source files
 
@@ -1989,10 +1994,11 @@ The Extraction table:
 | An ID is empty, holds a control character or is a reserved string | `invalid_id` | `id` | as in the MatchClaim table |
 | An ID repeats the ID of an earlier row | `duplicate_id` | `id` | as in the MatchClaim table |
 | `source` is given and `source_integrity` is null | `schema_violation` | `source_integrity` | `'source_integrity' is null where 'source' is given` |
-| A member of `source_integrity` is null, its `algorithm` none of a descriptor's, or its `digest` no lower-case hexadecimal | `schema_violation` | `source_integrity.algorithm`, `source_integrity.digest` | `'source_integrity' has no <member>`, `'<algorithm>' is no algorithm of a digest`, `the digest '<digest>' is no lower-case hexadecimal` |
-| `parameters` is no JSON text, no object, or not written in RFC 8785 JSON | `schema_violation` | `parameters` | `the parameters are no JSON text`, `the parameters are no JSON object`, `the parameters are not written in RFC 8785 JSON` |
-| `id_length` is below 1 | `schema_violation` | `id_length` | `the ID length <n> is below 1` |
-| `date` is no ISO 8601 date-time in UTC, or no time of the Gregorian calendar | `schema_violation` | `date` | `the date '<date>' is no ISO 8601 date-time in UTC, such as '2026-11-27T21:30:00Z'`, `the date '<date>' is no time of the Gregorian calendar` |
+| A member of `source_integrity` is null | `schema_violation` | `source_integrity.algorithm`, `source_integrity.digest` | `'source_integrity' has no <member>` |
+
+Nothing else of an Extraction row is refused: `parameters`, `date` and
+the members of an integrity are read as given, a canonical spelling
+([The Extraction table](#the-extraction-table)) being the writer's duty.
 
 The MatchClaim table:
 
@@ -2151,7 +2157,8 @@ open:
 - **Each manifest's resources name the tables it reads**, the registry
   and the MatchClaim tables, with the timelines whose rows it keeps, and
   nothing in a table file names a manifest. A **table resource** is one
-  whose `type` is `Registry` or `MatchClaim`, whose `url` names a folder
+  whose `type` is one of the four table types the format declares,
+  `Registry`, `Extraction`, `MatchClaim` or `Projection`, whose `url` names a folder
   (ends in `/`) or a Parquet file (ends in `.parquet`), or whose
   `media_type` is `application/vnd.apache.parquet`; only a table
   resource names a table entry, and it names one exactly, by the same
@@ -2205,7 +2212,7 @@ the same bundle.
 
 **Reading a manifest's rows.** Python's
 `timetoshare.tables.read_table(path, *, timelines=None, ids=None,
-type=None)` reads a table, a file or a folder of files, as one Arrow
+columns=None, type=None)` reads a table, a file or a folder of files, as one Arrow
 table through `pyarrow.dataset`; `table_files(path)` lists a folder's
 files, sorted by code point. Given `timelines`, bare IDs, the reader
 keeps the rows of those timelines: an event's whose `timeline_id` is
@@ -2215,7 +2222,9 @@ it keeps the rows whose `id` is listed, a filter `pyarrow.dataset`
 applies to the row groups of the files, so that a lookup of a few IDs
 in a registry sorted as a writer sorts it reads only the row groups
 that may hold them; `timelines` and `ids` together keep the rows both
-keep. A manifest's rows of one resource are therefore `read_table` of
+keep. Given `columns`, only those of the columns the files hold are read,
+in their order, while the filters may name others; a MatchClaim file's
+shared provenance is then not filled in. A manifest's rows of one resource are therefore `read_table` of
 the resource's URL with its `timelines`, which the table checks against
 the manifest then pass, and an event's content is `read_table` of its
 `location` with its `id`. A MatchClaim file's shared provenance is
@@ -2255,7 +2264,12 @@ lists, a MatchClaim of a table its MatchClaim resources name, an
 extraction one of its event rows names. Through the package root every
 registry row with the ID is returned. A manifest without a resource of
 type `Registry` resolves its own elements alone, with `row` `None`, and so
-does an element the index lacks.
+does an element the index lacks. Each registry is read with the filter of
+the ID pushed into the reader (`read_table` with `ids`), so that a lookup
+reads only the row groups that may hold the ID; an Extraction row found
+through a manifest is kept where an event row of the timelines its
+registry resource lists names it, a read of the `extraction_id` column
+alone with those `timelines` pushed into the reader.
 
 **Building the index.** The index rows of the registry follow from the
 manifests, the MatchClaim tables and the Extraction table of the package:
@@ -2267,7 +2281,9 @@ each with the `location` and, for an element, the `timeline_id` and
 [--check] [PACKAGE]`, `PACKAGE` a folder holding `package.yaml` (by
 default the current folder), rebuilds them and writes the index part of
 the registry, `index.parquet` in its folder, or, where the registry is
-one file, that file with its event rows kept; it writes a new file
+one file, that file with its event rows kept; the index rows at a
+manifest or table that could not be read cannot be rebuilt and are kept
+as they were; it writes a new file
 beside the old one and renames it into place, leaves every event part
 untouched, prints `wrote <file>` and exits 0. With `--check` it changes
 nothing; where the index differs from what it would write, it prints one
@@ -2317,13 +2333,17 @@ order:
    entries, their files and their rows. They read the identifying
    columns of each table: `id`, `kind`, `location`, `timeline_id`,
    `unit`, `number_type`, `name`, `extraction_id`, `locator` and
-   `vanished_in` of the registry, `id` of the Extraction table and of the
+   `vanished_in` of the registry (read whole once, for these columns and
+   its table check), `id` of the Extraction table and of the
    pre-parsed tables, `projection_of` of the Projection table, and `id`,
    `timeline_a_id` and `timeline_b_id` of the MatchClaim tables. The index
    rows are compared as `timetoshare registry --check` compares them, by
-   `location` and `id`: the index's extra or differing rows in its order,
-   then the missing rows by `location` and `id`. A manifest or table that
-   could not be read gives no index row and has none compared.
+   one function, by `location`, resolved against the package root (so
+   that `./bach/manifest.yaml` and `bach/manifest.yaml` are one
+   location), and `id`: the index's extra or differing rows in its order,
+   one problem per row at its first differing column, then the missing
+   rows by `location` and `id`. A manifest or table that could not be read
+   gives no index row and has none compared.
 5. The table checks, each problem placed in its file and row ([Checking
    the tables](#checking-the-tables)): of the registry (its
    `axis_mismatch`, a matter of the manifests, being the package rule's),
@@ -2354,7 +2374,7 @@ order:
 | An event row's timeline is listed by no manifest's `Registry` resource naming the registry, a MatchClaim's by no manifest's `MatchClaim` resource naming its table | `unlisted_timeline` | the row, the column | `the timeline '<id>' of '<manifest>' is listed by no resource of the type <type> naming this table` |
 | An event row states a unit and a number type the format admits that are not its timeline's in a manifest holding it, its root's axis, reported once per distinct axis | `axis_mismatch` | the row, `unit` where the units differ, else `number_type` | `a coordinate in <unit> (<number type>) on the timeline '<id>' in <unit> (<number type>)` |
 | An event row's `extraction_id` or `vanished_in` names no row of the Extraction table | `unknown_extraction` | the row, the column | `no extraction of the package has the ID '<id>'` |
-| An event row's `location` names no table entry of its `kind` | `unknown_location` | the row, `location` | `the location '<location>' names no table of the type <kind> in the package` |
+| An event row's `location`, a relative reference, names no table entry of its `kind` (an absolute URI names a resource outside the package and is not checked) | `unknown_location` | the row, `location` | `the location '<location>' names no table of the type <kind> in the package` |
 | An event row's `location` names a table that holds no row of its `id` | `missing_content` | the row, `location` | `the table '<location>' holds no row of the ID '<id>'` |
 | A row of a pre-parsed table has an `id` no event row of the table's type has | `unregistered_id` | that table's file and row, `id` | `no event row of the type <type> in the registry has the ID '<id>'` |
 | A pre-parsed Projection stands for an event of its own registry row's timeline | `invalid_projection_of` | the Projection table's file and row, `projection_of.timeline_id` | `a Projection stands for an event of another timeline than '<id>'` |
@@ -3356,11 +3376,19 @@ else:
   rule);
   `check_succession` and `succession_problems` check the succession rule;
   `row_provenance(table)` gives each row's provenance, its own or the
-  file's. `read_table(path, *, timelines=None, ids=None, type=None)`
-  reads a table, a file or a folder of files (`table_files(path)`),
-  keeping the rows of the timelines and the IDs given, `resolve(path, id)`
-  resolves an ID through a manifest or a package root into a list of
-  `Resolution`s, `is_table_resource(resource)` says whether a
+  file's. `read_table(path, *, timelines=None, ids=None, columns=None,
+  type=None)` reads a table, a file or a folder of files
+  (`table_files(path)`), keeping the rows of the timelines and the IDs
+  given and the columns named, `resolve(path, id)` resolves an ID through
+  a manifest or a package root into a list of `Resolution`s, each its
+  `kind`, `location`, `manifest` and registry `row`; `index_rows(package_root)`
+  builds the registry's index rows from the package's sources,
+  `write_index(package_root)` writes them into the registry's index part
+  (`INDEX_PART`, `"index.parquet"` in a registry folder) and
+  `stale_index(package_root)` lists where the part disagrees with them
+  ([Packages](#packages)); `ELEMENT_KINDS` names the index kinds of
+  manifest elements, `INDEX_KINDS` those and `MatchClaim` and
+  `Extraction`; `is_table_resource(resource)` says whether a
   manifest's resource names a table, and `package_problems(path)` checks a package
   whole, each problem a `PackageProblem` (`code`, `file`, `row`, `path`,
   `message`) of a `PackageCode`, a `TableCode` or a validation code

@@ -68,6 +68,7 @@ const REJECTIONS = [
   "child_end_beyond_parent",
   "child_id_control_character_newline",
   "child_missing_offset",
+  "child_number_type_differs",
   "child_offset_beyond_parent",
   "child_offset_fraction_on_float_axis",
   "child_unit_differs",
@@ -393,11 +394,16 @@ describe("the units", () => {
   it.each(cases)("admits for %s at a child exactly its number types (%s)", (unit, numberType) => {
     const admitted = (ADMITTED[unit] ?? ["float", "fraction"]).includes(numberType);
     const fallback = timetoshare.UNITS[unit as timetoshare.TimeUnit].numberType;
+    // A child has its parent's number type: the parent declares the child's
+    // where the unit admits it, else keeps its unit's default.
+    const parentType = admitted ? numberType : fallback;
     const child = {
       ...timeline("axis", unit, TWO[numberType], { number_type: numberType }),
-      offset: ZERO[fallback],
+      offset: ZERO[parentType],
     };
-    const value = manifest([timeline("parent", unit, TWO[fallback], { children: [child] })]);
+    const value = manifest([
+      timeline("parent", unit, TWO[parentType], { number_type: parentType, children: [child] }),
+    ]);
     expect(refusal(value)).toEqual(
       admitted ? null : ["schema", ["timelines", 0, "children", 0, "number_type"]],
     );
@@ -736,6 +742,7 @@ describe("the shared rejection cases", () => {
       "belief_actor",
       "calendar_date",
       "child_end",
+      "child_number_type",
       "child_offset",
       "child_unit",
       "context",

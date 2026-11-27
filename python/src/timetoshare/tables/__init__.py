@@ -12,7 +12,9 @@ MatchClaim table. This module declares their columns, read from the
 schema's ``tables.json``, reads a table, a file or a folder of files,
 keeping the rows of some timelines or IDs (``read_table``), checks a table
 (alone, or against a manifest, every row then the manifest's: a shared file
-is read filtered first), checks a package whole (``package_problems``),
+is read filtered first), checks a package whole (``package_problems``), resolves an ID
+(``resolve``) and builds, writes and checks the registry's index rows
+(``index_rows``, ``write_index``, ``stale_index``),
 checks the succession rule
 between a table and the one written over it, and derives the
 AlignmentAnchors and potential MatchStamps of a MatchClaim table under the
@@ -61,6 +63,7 @@ from .columns import (
     CHUNK_SENTINEL,
     COORDINATE_KEYS,
     COORDINATE_TYPE,
+    ELEMENT_KINDS,
     EXTRACTION_COLUMNS,
     EXTRACTION_REQUIRED,
     EXTRACTION_SCHEMA,
@@ -91,6 +94,7 @@ from .columns import (
     tables_path,
 )
 from .package import (
+    INDEX_PART,
     PACKAGE_FILE,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
@@ -102,8 +106,10 @@ from .package import (
     read_table,
     table_files,
 )
+from .registry import Resolution, index_rows, resolve, stale_index, write_index
 
 __all__ = [
+    "INDEX_PART",
     "PACKAGE_FILE",
     "TYPE_METADATA_KEY",
     "VERSION_METADATA_KEY",
@@ -120,6 +126,7 @@ __all__ = [
     "CHUNK_SENTINEL",
     "COORDINATE_KEYS",
     "COORDINATE_TYPE",
+    "ELEMENT_KINDS",
     "EXTRACTION_COLUMNS",
     "EXTRACTION_REQUIRED",
     "EXTRACTION_SCHEMA",
@@ -146,6 +153,7 @@ __all__ = [
     "TABLES_DOCUMENT",
     "AlignmentAnchor",
     "PotentialMatchStamp",
+    "Resolution",
     "TableCode",
     "TableError",
     "TableProblem",
@@ -160,12 +168,16 @@ __all__ = [
     "coordinate_value",
     "extraction_problems",
     "fixture_path",
+    "index_rows",
     "match_claim_problems",
     "number_cell",
     "potential_matchstamps",
     "projection_problems",
     "registry_problems",
+    "resolve",
     "row_provenance",
+    "stale_index",
     "succession_problems",
     "tables_path",
+    "write_index",
 ]

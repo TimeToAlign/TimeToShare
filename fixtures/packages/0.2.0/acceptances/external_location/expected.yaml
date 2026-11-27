@@ -1,0 +1,27 @@
+problems: []
+reason: "The content of Bach's first Projection lies outside the package: its location is an absolute URI, which the package check does not follow, and the pre-parsed tables hold no row of it."
+resolutions:
+  -
+    found:
+      -
+        kind: Projection
+        location: "https://example.org/events/projection_1"
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: extraction_1
+          id: projection_1
+          kind: Projection
+          location: "https://example.org/events/projection_1"
+          locator: "row 1"
+          name: null
+          number_type: int
+          start:
+            denominator: null
+            numerator: 0
+            value: null
+          timeline_id: dpt_1
+          unit: samples
+          vanished_in: null
+    id: projection_1
+    path: bach/manifest.yaml

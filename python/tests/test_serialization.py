@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 from timetoshare import canonical_order, dumps, loads, serialization_of
+from timetoshare.validation.diagnostics import number_type_of
 
 from .conftest import manifest, timeline
 
@@ -201,6 +202,52 @@ def test_a_reading_reads_to_its_expected_value(path: Path) -> None:
     rfc8785 = _expected(path, ".expected.rfc8785.json")
     if rfc8785.exists():
         assert dumps(value, serialization="jcs") == _text(rfc8785)
+
+
+MANIFEST_READINGS = [
+    path
+    for path in READINGS
+    if isinstance(value := loads(_text(_expected(path, ".expected.yaml"))), dict)
+    and isinstance(value.get("timelines"), list)
+]
+
+
+def test_the_manifest_readings_are_found() -> None:
+    names = [path.name for path in MANIFEST_READINGS]
+    assert "manifest_fraction_reduced.yaml" in names
+    assert "manifest_number_type_missing.yaml" in names
+
+
+def _children_off_their_axis(value: dict) -> list[Any]:
+    """The children, at any depth, of another unit or number type than their
+    parent's, each the declared one or the unit's default; an axis no reader
+    can name (a unit missing or of no type) is no such child."""
+    found = []
+
+    def walk(parent: Any) -> None:
+        children = parent.get("children") if isinstance(parent, dict) else None
+        for child in children if isinstance(children, list) else ():
+            if not isinstance(child, dict):
+                continue
+            try:
+                differs = child["unit"] != parent["unit"] or number_type_of(
+                    child
+                ) != number_type_of(parent)
+            except (KeyError, TypeError):
+                differs = False
+            if differs:
+                found.append(child.get("id"))
+            walk(child)
+
+    for root in value["timelines"]:
+        walk(root)
+    return found
+
+
+@pytest.mark.parametrize("path", MANIFEST_READINGS, ids=lambda path: path.name)
+def test_no_reading_holds_a_child_off_its_parents_axis(path: Path) -> None:
+    value = loads(_text(_expected(path, ".expected.yaml")))
+    assert _children_off_their_axis(value) == []
 
 
 @pytest.mark.parametrize("path", READINGS, ids=lambda path: path.name)

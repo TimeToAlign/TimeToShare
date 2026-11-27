@@ -67,7 +67,7 @@
       ]
     },
     "Extraction": {
-      "description": "The Extraction table: one row per extraction, a run of a parser over one source file (CRMdig's D10 Software Execution), named by the registry's event rows. `source` is the source file, a URI reference resolved against the package's root, null for events a tool made without a source file; `source_integrity` its digest, never null where `source` is given; `parser` and `parser_version` the parser run; `parameters` the parameters it was run with, the RFC 8785 JSON text of an object; `minter` the version of the algorithm minting the IDs it gave, `id_length` their length and `seed` the seed given, so that a run again mints the same IDs; `date` the date-time of the run, ISO 8601 in UTC (`2026-11-27T21:30:00Z`).",
+      "description": "The Extraction table: one row per extraction, a run of a parser over one source file (CRMdig's D10 Software Execution), named by the registry's event rows. `source` is the source file, a URI reference resolved against the package's root, null for events a tool made without a source file; `source_integrity` its digest, never null where `source` is given; `parser` and `parser_version` the parser run; `parameters` the parameters it was run with, the JSON text of an object, written in RFC 8785 JSON; `minter` the version of the algorithm minting the IDs it gave, `id_length` their length and `seed` the seed given, so that a run again mints the same IDs; `date` the date-time of the run, ISO 8601 in UTC, written `2026-11-27T21:30:00Z`.",
       "status": "experimental",
       "columns": [
         { "name": "id", "type": "string", "nullable": false },
@@ -91,7 +91,7 @@
       ]
     },
     "MatchClaim": {
-      "description": "The MatchClaim table: one row per MatchClaim, addressed by its ID alone. A MatchClaim table belongs to one manifest. Each side's `event_a_id` or `event_b_id` holds the ID of an event or the reserved string of a sentinel, never a null: `CHUNK_SENTINEL` on a side of a synchronous MatchClaim, whose timeline holds no event for the coordinate its anchors state there; `NOMATCH_SENTINEL` on one side of a MatchClaim that is not synchronous, which has no anchors. A sentinel side has no name, and no element has a reserved string as its ID.",
+      "description": "The MatchClaim table: one row per MatchClaim, addressed by its ID alone. A MatchClaim belongs to every manifest of the package holding both its timelines. Each side's `event_a_id` or `event_b_id` holds the ID of an event or the reserved string of a sentinel, never a null: `CHUNK_SENTINEL` on a side of a synchronous MatchClaim, whose timeline holds no event for the coordinate its anchors state there; `NOMATCH_SENTINEL` on one side of a MatchClaim that is not synchronous, which has no anchors. A sentinel side has no name, and no element has a reserved string as its ID.",
       "status": "stable",
       "columns": [
         { "name": "timeline_a_id", "type": "string", "nullable": false },
