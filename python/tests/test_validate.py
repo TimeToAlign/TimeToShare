@@ -68,6 +68,7 @@ REJECTIONS = [
     "child_end_beyond_parent",
     "child_id_control_character_newline",
     "child_missing_offset",
+    "child_number_type_differs",
     "child_offset_beyond_parent",
     "child_offset_fraction_on_float_axis",
     "child_unit_differs",
@@ -370,14 +371,17 @@ def test_a_child_admits_the_number_types_of_its_unit(
     unit: str, number_type: str
 ) -> None:
     admitted = number_type in _ADMITTED.get(unit, {"float", "fraction"})
-    default = timetoshare.UNITS[unit].number_type
+    # A child has its parent's number type: the parent declares the child's
+    # where the unit admits it, else keeps its unit's default.
+    parent = number_type if admitted else timetoshare.UNITS[unit].number_type
     child = timeline("axis", unit, _TWO[number_type], number_type=number_type)
     value = manifest(
         timeline(
             "parent",
             unit,
-            _TWO[default],
-            children=[{**child, "offset": _ZERO[default]}],
+            _TWO[parent],
+            number_type=parent,
+            children=[{**child, "offset": _ZERO[parent]}],
         )
     )
     if admitted:
@@ -923,6 +927,7 @@ def test_rejections_cover_every_rule_code() -> None:
         "band_order",
         "calendar_date",
         "child_end",
+        "child_number_type",
         "child_offset",
         "child_unit",
         "context",

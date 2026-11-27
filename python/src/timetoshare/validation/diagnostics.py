@@ -37,6 +37,7 @@ ValidationCode: TypeAlias = Literal[
     "flow_rule",
     "conversion_map",
     "child_unit",
+    "child_number_type",
     "child_offset",
     "child_end",
     "segment_line",

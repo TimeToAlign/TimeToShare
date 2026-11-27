@@ -507,9 +507,8 @@ def test_measure_map_ids_share_the_manifest_scope() -> None:
 
 
 def test_a_child_shares_its_parents_unit() -> None:
-    value = manifest(
-        timeline("score", children=[timeline("take", "seconds", 4.0, offset=(2, 1))])
-    )
+    take = timeline("take", "seconds", (4, 1), offset=(2, 1), number_type="fraction")
+    value = manifest(timeline("score", children=[take]))
     assert _only(value) == (
         ("timelines", 0, "children", 0, "unit"),
         "child 'take' has unit 'seconds', its parent 'score' has 'quarters'",
@@ -525,10 +524,18 @@ def test_a_child_shares_its_parents_unit() -> None:
             "score", children=[timeline("a", offset=(0, 1), children=[grandchild])]
         )
     )
-    assert _only(value) == (
-        ("timelines", 0, "children", 0, "children", 0, "unit"),
-        "child 'b' has unit 'ticks', its parent 'a' has 'quarters'",
-    )
+    # ticks admit int alone, so the grandchild breaks the number type as
+    # well: reported after its unit, at its unit, as it states none.
+    assert _problems(value) == [
+        (
+            ("timelines", 0, "children", 0, "children", 0, "unit"),
+            "child 'b' has unit 'ticks', its parent 'a' has 'quarters'",
+        ),
+        (
+            ("timelines", 0, "children", 0, "children", 0, "unit"),
+            "child 'b' has the number type 'int', its parent 'a' has 'fraction'",
+        ),
+    ]
     assert (
         _problems(manifest(timeline("score", children=[timeline("c", offset=(0, 1))])))
         == []
@@ -621,10 +628,18 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
         "parent 'recording'",
     )
     third = timeline("take", "seconds", [1, 3], offset=0.5, number_type="fraction")
-    assert _only(recording(0.75, third)) == (
-        ("timelines", 0, "children", 0, "length"),
-        "child 'take' ends at [5, 6], beyond the length 0.75 of its parent 'recording'",
-    )
+    assert _problems(recording(0.75, third)) == [
+        (
+            ("timelines", 0, "children", 0, "number_type"),
+            "child 'take' has the number type 'fraction', its parent 'recording' "
+            "has 'float'",
+        ),
+        (
+            ("timelines", 0, "children", 0, "length"),
+            "child 'take' ends at [5, 6], beyond the length 0.75 of its parent "
+            "'recording'",
+        ),
+    ]
     midi = timeline(
         "midi", "ticks", 480, children=[timeline("m", "ticks", 240, offset=480)]
     )
@@ -633,11 +648,17 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
         "child 'm' ends at 720, beyond the length 480 of its parent 'midi'",
     )
     loose = timeline("f", length=2.5, offset=(7, 1), number_type="float")
-    assert _only(manifest(timeline("score", children=[loose]))) == (
-        ("timelines", 0, "children", 0, "length"),
-        "child 'f' ends at [19, 2], beyond the length [8, 1] of its parent 'score'",
-    )
-    other = timeline("take", "seconds", 100.0, offset=(2, 1))
+    assert _problems(manifest(timeline("score", children=[loose]))) == [
+        (
+            ("timelines", 0, "children", 0, "number_type"),
+            "child 'f' has the number type 'float', its parent 'score' has 'fraction'",
+        ),
+        (
+            ("timelines", 0, "children", 0, "length"),
+            "child 'f' ends at [19, 2], beyond the length [8, 1] of its parent 'score'",
+        ),
+    ]
+    other = timeline("take", "seconds", (100, 1), offset=(2, 1), number_type="fraction")
     assert _problems(manifest(timeline("score", children=[other]))) == [
         (
             ("timelines", 0, "children", 0, "unit"),
@@ -779,6 +800,11 @@ def test_a_child_without_a_double_sum_ends_at_the_exact_sum() -> None:
         (
             "child_unit_differs",
             "child 'take' has unit 'seconds', its parent 'score' has 'quarters'",
+        ),
+        (
+            "child_number_type_differs",
+            "child 'verse' has the number type 'float', its parent 'score' has "
+            "'fraction'",
         ),
         (
             "child_offset_beyond_parent",
@@ -1599,7 +1625,7 @@ def test_every_step_in_order() -> None:
             _table([[0, 1], [4, 1], [8, 1]], [60, 72]),
         ],
         children=[
-            timeline("kid", "seconds", 1.0, offset=(-1, 1)),
+            timeline("kid", "seconds", (1, 1), offset=(-1, 1), number_type="fraction"),
             timeline("gone", length=None, offset=(9, 1)),
             timeline("late", offset=(6, 1)),
         ],

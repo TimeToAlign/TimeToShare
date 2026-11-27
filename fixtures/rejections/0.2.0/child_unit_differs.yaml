@@ -13,11 +13,11 @@ manifest:
           flow_control: []
           id: "#take"
           is_segment_line: false
-          length: 4.0
+          length: [4, 1]
           locked: false
           meta: {}
           name: null
-          number_type: float
+          number_type: fraction
           offset: [2, 1]
           regions: []
           unit: seconds

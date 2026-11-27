@@ -38,11 +38,11 @@ def _double(value: Any) -> float | None:
 def child_end(timeline: Mapping[str, Any], child: Mapping[str, Any]) -> Fraction:
     """Return where a child of known length ends on its parent's axis.
 
-    The offset lies on the parent's axis and the length on the child's. Where
-    both axes are ``float``, a reader adds the two JSON numbers as doubles, so
-    the end is their double sum, which may differ from the exact sum by a
-    rounding; wherever either axis is ``int`` or ``fraction``, the end is the
-    exact sum.
+    The offset lies on the parent's axis and the length on the child's, which
+    has the parent's number type. On a ``float`` axis a reader adds the two
+    JSON numbers as doubles, so the end is their double sum, which may differ
+    from the exact sum by a rounding; on an ``int`` or ``fraction`` axis the
+    end is the exact sum.
     """
     if number_type_of(timeline) == number_type_of(child) == "float":
         offset, length = _double(child["offset"]), _double(child["length"])
@@ -54,15 +54,15 @@ def child_end(timeline: Mapping[str, Any], child: Mapping[str, Any]) -> Fraction
 def child_ends(timeline: Mapping[str, Any]) -> list[Fraction | None]:
     """Return each child's end on its parent's axis, as an exact Fraction.
 
-    A child's end is its ``offset`` plus its ``length``. Where the timeline and
-    the child both have number type ``float``, the two JSON numbers are summed
-    in IEEE double arithmetic, as a reader adds them, so the end may differ from
-    the exact sum by a rounding. In every other case (``int``, ``fraction``,
-    mixed number types, a value with no double such as a Fraction pair or an
-    integer beyond the range of doubles, or a double sum that overflows) the
-    sum is exact. A child with no length, or on another unit than its parent, has
-    end ``None``, except a child of a segment line without a length, whose
-    end is the offset of the next child in offset order.
+    A child's end is its ``offset`` plus its ``length``. On a ``float`` axis
+    (a child has its parent's number type) the two JSON numbers are summed in
+    IEEE double arithmetic, as a reader adds them, so the end may differ from
+    the exact sum by a rounding. In every other case (``int``, ``fraction``, a
+    value with no double such as a Fraction pair or an integer beyond the range
+    of doubles, or a double sum that overflows) the sum is exact. A child with
+    no length, or on another unit than its parent, has end ``None``, except a
+    child of a segment line without a length, whose end is the offset of the
+    next child in offset order.
     """
     children = entries_of(timeline, "children")
     ends: list[Fraction | None] = [
@@ -82,7 +82,12 @@ def child_ends(timeline: Mapping[str, Any]) -> list[Fraction | None]:
 def timeline_containment_problems(
     timeline: Mapping[str, Any], path: InstancePath
 ) -> Iterator[SchemaValidationError]:
-    """Yield children off their parent's axis or beyond its known end."""
+    """Yield children off their parent's axis or beyond its known end.
+
+    A child has its parent's unit, then its parent's number type, each the
+    declared one or the unit's default; then its offset and its end lie
+    within the parent's known length.
+    """
     length = timeline.get("length")
     ends = child_ends(timeline)
     for index, child in enumerate(entries_of(timeline, "children")):
@@ -94,6 +99,14 @@ def timeline_containment_problems(
                 (*at, "unit"),
                 f"child '{child['id']}' has unit '{child['unit']}', its parent "
                 f"'{timeline['id']}' has '{timeline['unit']}'",
+            )
+        if number_type_of(child) != number_type_of(timeline):
+            yield SchemaValidationError(
+                "child_number_type",
+                (*at, "number_type" if "number_type" in child else "unit"),
+                f"child '{child['id']}' has the number type "
+                f"'{number_type_of(child)}', its parent '{timeline['id']}' has "
+                f"'{number_type_of(timeline)}'",
             )
         end = ends[index]
         if length is not None and offset > exact(length):
