@@ -851,12 +851,15 @@ atomic sections (README, "Atomic sections") and a `MeasureRecordMap` and a
 in the manifest's `graphical` hide the conversion maps band of the root
 and of every movement, display the regions band of each (the defaults
 hide none, so the second rule matters where a rule of a lower rank, or of
-an earlier layer, hides them), and show the movements' sections in those
+an earlier layer, hides them) and show it explicitly (section 6.4,
+Empty bands), and show the movements' sections in those
 bands: showing a band shows what it holds as the cascade gives it, and an
 atomic section, which the defaults hide (section 4), needs the third rule,
-which outranks that default by its layer. Without the third rule the four
-regions bands are displayed and draw nothing, being empty of displayed
-regions, and so are absent (section 6.4, Levels). A rule addressed to one
+which outranks that default by its layer. Without the third rule the five
+regions bands, the root's, which holds no region, and the four movements',
+draw nothing, being empty of displayed regions; shown explicitly by the
+second rule, each is present all the same, an empty band under its line
+(section 6.4, Empty bands, works the root's). A rule addressed to one
 movement's band outranks the root's rule by rank 2 (section 2.5): after
 them, `{"select": {"addresses": [{"id": "#clt_3opbddrcd7p0z", "facet":
 "conversion_maps"}]}, "set": {"display": "inline"}}` shows the two maps of
@@ -866,8 +869,10 @@ acts on a timeline and all its descendants writes the one rule `within`
 that timeline; where a descendant's own rule of the same facet outranks
 it, the descendants differ from the timeline, and the control shows its
 state as mixed. A control that displays a band is never disabled because
-the band would draw nothing: displaying an empty band is how content is
-added to it.
+the band would draw nothing: the rule it writes shows the band
+explicitly, so that the band is present though empty, takes its room and
+can be pointed at (section 6.4, Empty bands), and displaying an empty band is
+how content is added to it.
 
 ### 2.5 The cascade
 
@@ -1228,7 +1233,9 @@ outrank the domain rules (section 2.5): a gap is unfilled and an ellipsis
 black on every timeline. A rule of a later layer setting a gap's `fill`
 draws it as a filled rectangle under its ellipsis.
 No rule hides a band of a timeline: every band of every timeline is
-shown, a child's regions band included, and a child's flow control is
+displayed, a child's regions band included, though none is shown
+explicitly (section 6.4, Empty bands), so a band drawing nothing is
+absent; and a child's flow control is
 drawn in its root's flow control band (section 6.4). The one rule hiding
 bands hides the bands of the chunks' windows, so that a virtual card
 starts stripped down, showing its line, its chunks and its own named
@@ -1457,6 +1464,7 @@ number it has always had.
 | label separation (horizontal, between labels) | 2 |
 | brace height | 6 |
 | region row pitch `prk` of row `k`, its labels filling `Tk ≥ 1` label tiers | 6 + 2 + Tk × h(9) + S |
+| **empty band width** `Wb`: the least width of a band shown explicitly that draws nothing (section 6.4, Empty bands) | 6 + 2 + h(9), the width `pr1 − S` of a regions band of one row with one label tier |
 | first jump depth | 4 + S |
 | jump row pitch `pjk` of row `k`, its labels filling `Tk ≥ 1` label tiers | 6 + S + Tk × h(9) |
 | flow label offset (from a flow-control element's `x` to its stack) | 3 |
@@ -1566,14 +1574,16 @@ below), and in the flow control band of the root (below):
   or end is marked in it, and a flow line is drawn by the flow control
   band, never by the markers band (section 2.1), so the markers band of a
   timeline that draws no wedge and no label of a named timestamp or an
-  elision draws nothing and is absent (Levels);
+  elision draws nothing and is absent unless it is shown explicitly
+  (Empty bands);
 - the **conversion maps band** its maps (Conversion maps);
 - the **children band** its children (Children);
 - the **regions band** its regions (Regions);
 - the **flow control band** of the root, the flow control of the whole
   tree (Flow control): its symbols, flow lines, forks and the arcs of
   its jumps, with their labels and stacks; the flow control band of any
-  other timeline draws nothing and is never present.
+  other timeline draws nothing and is never present, shown explicitly
+  (Empty bands) or not.
 
 On the line of a virtual timeline each band draws, after its own content,
 what the bands of its facet of the chunks' windows join to it (Windows,
@@ -1590,7 +1600,8 @@ states it, so that the cascade, `within` and the hiding of section 2.4
 treat it as that timeline's: a child whose line or flow control band is
 not displayed draws none of its elements, and they take no room. The
 root's flow control band is present when it is displayed and draws an
-element, of the root's or of a descendant's; when it is not displayed,
+element, of the root's or of a descendant's, or is shown explicitly
+(Empty bands); when it is not displayed,
 it draws nothing of the whole tree it lays out and is absent (section
 2.4). When
 the root of the member drawing is a member that is a child timeline
@@ -1609,7 +1620,8 @@ An element that is not displayed (section 2.4) is drawn in no band and
 takes no room.
 
 **Levels.** A timeline's line lies at **level** 0. A band is **present**
-when it draws an element, and in a row of one band order also when the
+when it draws an element, when it is shown explicitly (Empty bands,
+below), and in a row of one band order also when the
 band of its facet of another line of the row is (Children); the present
 bands above the line are the levels
 1, 2, … outwards, level 1 being the present band listed nearest before
@@ -1617,6 +1629,68 @@ bands above the line are the levels
 level −1 being the present band listed nearest after it. An absent band
 has no level and takes no room. A distance `o` outwards from a timeline's
 line lies at `yl − o` above and `yl + o` below.
+
+**Empty bands.** A band laid out at its own timeline's line is **shown
+explicitly** when the rule that sets its `display` (section 2.5, step 1)
+sets `inline` and its selector names `addresses` or `within`: a rule
+written for that timeline's drawing, by the band's own address or by a
+`within` naming its timeline or one of its ancestors, as an editor's
+control writes it (section 2.4, One rule for a tree). A band whose
+`display` is `inline` by the initial value alone, or by a rule naming
+neither, such as `{"select": {"facet": "regions"}, "set": {"display":
+"inline"}}`, which reaches every regions band of the manifest, is not
+shown explicitly, and no default shows a band explicitly (section 4):
+such a band is present only when it draws an element, so a drawing that
+shows no band explicitly is laid out as it would be without this
+paragraph. A band shown explicitly that draws nothing, holding no element
+or none that is displayed, is an **empty band**: it is present and takes
+its level as every present band does, and its width is the larger of
+`Wb` (section 6.2) and the width the paragraph of its facet below gives
+a band drawing nothing. It draws no element, and the writers write
+nothing for it (section 7.2). Its **room** is the rectangle from `x` of
+its timeline's start to `x` of its end (sections 3.1 and 3.4), between
+its start `c` and its outer edge; an application that edits the drawing
+takes that room for the band, so that the pointer hovers the band there
+and a double click there opens it, as on the band of a drawn element,
+and content can be added to the band where it will be drawn. `Wb` is the
+width of a regions band of one row with one label tier (Regions), the
+band to which regions are added by hand: the first region added to an
+empty regions band, its label, if any, in tier 1, leaves the band as
+wide as it was, so nothing around it moves; and at the default stroke
+width `w = 3` of a line (section 4) it is wider than the narrowest drawn
+markers band, `w / 2 + 13` with one wedge and no label, and conversion
+maps band, `w / 2 + 5` with one slot, so an empty band is no thinner than
+a band of either drawing the least it can. The bands of a segment without a line of its
+own and of a chunk's window join another line's bands (below) and are
+never present on their own: shown explicitly and empty, they add nothing
+to the band they join.
+
+In Op. 106 (section 2.4, One rule for a tree) the root
+`clt_0is8auvrgrzyd` holds no region, no map, no flow-control element and
+no named timestamp, and by the default band order (section 4) its
+markers, regions and flow control bands lie below its line, whose stroke
+width is `w = 3` (section 4). The one rule
+
+```json
+{"select": {"facet": "regions", "within": "#clt_0is8auvrgrzyd"}, "set": {"display": "inline"}}
+```
+
+shows its regions band explicitly. Its markers band draws nothing and,
+not shown explicitly, is absent, so the regions band is the present band
+listed nearest after `line`, at level −1. The line reaches nothing below,
+having no boundary and its map stack lying above, so the band starts at
+`c = S + max(0, w / 2) = 4 + 1.5 = 5.5` (Where a band lies; `S = 4`),
+and it is `Wb = 6 + 2 + h(9) = 8 + 10.4765625 = 18.4765625` wide, the
+larger of `Wb` and the `0 − S = −4` that Regions gives a band of no row.
+Its outer edge lies `5.5 + 18.4765625 = 23.9765625` below the root's
+line, and its room spans the root's line from its start to its end,
+from `yl + 5.5` to `yl + 23.9765625`. The root's flow control band,
+where it draws the movements' flow control (Gathering), starts `S`
+beyond that edge, at `27.9765625` instead of `5.5`: the empty band moves
+everything below the root's line `Wb + S = 22.4765625` down. The same
+rule shows each movement's regions band explicitly, under the movement's
+line: with the third rule of section 2.4 it holds the movement's
+sections, and without it it is an empty band too.
 
 **Where a band lies.** Each band is laid out from its **start** `c`, a
 distance outwards from its timeline's line, so that a band starting at `c
@@ -1772,7 +1846,8 @@ line's markers band (section 6.6).
 Section 2.4 states when a segment adds nothing. A band of a segment line
 is present when it draws anything, of its own or of its segments, also
 when its own `display` is `none`, since each segment's bands are displayed
-or hidden on their own (section 2.4).
+or hidden on their own (section 2.4), and when it is shown explicitly
+(Empty bands).
 
 **Windows.** The bands of a chunk's window (section 8.10) lie at the line
 of the virtual timeline `V` that draws the chunk, as a segment's without
@@ -1789,7 +1864,7 @@ those of the source's descendants a children band of a window shows, in
 its card draws as a root's does (Gathering). A band of `V` that is not
 displayed hides what its windows join to it (section 2.4), and one
 displayed is present when it draws anything, of its own or of its
-windows.
+windows, or when it is shown explicitly (Empty bands).
 
 **Markers.** The markers band of a timeline draws its named timestamps, in
 canonical order (section 2), and after them those that its segments
