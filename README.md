@@ -1903,7 +1903,8 @@ open:
   entry, and it names one exactly, by the same resolved URL and the same
   type: a resource naming one file of a folder entry names no entry. Any
   other resource, a recording, an image or a score file, is carried with
-  its manifest and not checked against `tables`.
+  its manifest and not checked against `tables`. Python's
+  `timetoshare.tables.is_table_resource(resource)` answers this rule.
 - **A file's metadata** states its type (`timetoshare:type`, such as
   `Projection`) and its format version (`timetoshare:version`); a
   MatchClaim file may state the provenance its rows share
@@ -3009,7 +3010,8 @@ else:
   `row_provenance(table)` gives each row's provenance, its own or the
   file's. `read_table(path, *, timelines=None, type=None)` reads a table,
   a file or a folder of files (`table_files(path)`), keeping the rows of
-  the timelines given, and `package_problems(path)` checks a package
+  the timelines given, `is_table_resource(resource)` says whether a
+  manifest's resource names a table, and `package_problems(path)` checks a package
   whole, each problem a `PackageProblem` (`code`, `file`, `row`, `path`,
   `message`) of a `PackageCode`, a `TableCode` or a validation code
   ([Packages](#packages)); `PACKAGE_FILE` is `"package.yaml"`, and

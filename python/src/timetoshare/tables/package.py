@@ -73,6 +73,7 @@ __all__ = [
     "PackageProblem",
     "package_fixture_path",
     "package_problems",
+    "is_table_resource",
     "read_table",
     "table_files",
 ]
@@ -411,12 +412,29 @@ _PARQUET = "application/vnd.apache.parquet"
 """The media type of a Parquet file."""
 
 
-def _is_table_resource(resource: Mapping[str, Any]) -> bool:
-    """Whether a resource names a table: its type is ``MatchClaim`` or
+def is_table_resource(resource: Mapping[str, Any]) -> bool:
+    """Whether a resource of a manifest names a table.
+
+    A resource names a table when its type is ``MatchClaim`` or
     ``Projection``, its URL names a folder (ends in ``/``) or a Parquet file
     (ends in ``.parquet``), or its media type is Parquet's. Any other
     resource, a recording, an image or a score file, is carried with its
-    manifest and names no table."""
+    manifest and names no table. This is the one rule of the format; a
+    package lists a table entry for every table resource of its manifests.
+
+    Args:
+        resource: The resource as a manifest holds it: its ``type`` and
+            ``url``, and its ``media_type`` where stated.
+
+    Returns:
+        ``True`` if the resource names a table.
+
+    Examples:
+        >>> is_table_resource({"type": "Note", "url": "Note.parquet"})
+        True
+        >>> is_table_resource({"type": "Audio", "url": "take.flac"})
+        False
+    """
     if resource["type"] in _DECLARED or resource.get("media_type") == _PARQUET:
         return True
     return urlsplit(resource["url"]).path.endswith(("/", ".parquet"))
@@ -788,7 +806,7 @@ class _Check:
         listing_manifest: list[int] = []
         for number, manifest in enumerate(self.manifests):
             for index, resource in enumerate(entries_of(manifest.bare, "resources")):
-                if not _is_table_resource(resource):
+                if not is_table_resource(resource):
                     continue
                 url = _resolved(resource["url"], manifest.file)
                 named = None if url is None else (url, resource["type"])

@@ -40,6 +40,7 @@ from timetoshare.tables import (  # noqa: E402
     TableError,
     check_match_claims,
     check_projections,
+    is_table_resource,
     package_fixture_path,
     package_problems,
     read_table,
@@ -817,6 +818,33 @@ def test_only_a_table_resource_names_a_table(tmp_path: Path) -> None:
             (6, ("Sheet", "sheet.bin")),
             (7, ("Projection", "more.arrow")),
         )
+    ]
+
+
+def test_the_rule_is_public_and_answers_each_branch() -> None:
+    resources = [
+        {"type": "Image", "url": "score.png"},
+        {"type": "Text", "url": "notes.txt", "media_type": "text/plain"},
+        {"type": "Recording", "url": "take.parquet"},
+        {"type": "Scan", "url": "scans/"},
+        {
+            "type": "Sheet",
+            "url": "sheet.bin",
+            "media_type": "application/vnd.apache.parquet",
+        },
+        {"type": "Projection", "url": "more.arrow"},
+        {"type": "MatchClaim", "url": "claims.arrow"},
+        {"type": "Note", "url": "Note.parquet?v=1#rows"},
+    ]
+    assert [is_table_resource(resource) for resource in resources] == [
+        False,
+        False,
+        True,
+        True,
+        True,
+        True,
+        True,
+        True,
     ]
 
 

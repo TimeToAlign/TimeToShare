@@ -3168,6 +3168,11 @@ What proves them (`test_packages.py`, needs pyarrow):
   `application/vnd.apache.parquet`, `Projection` at `more.arrow` without a
   media type (its type), each message `the resource '<id>' names '<url>',
   which is no table of the type <type> in the package`.
+  The rule is public, `is_table_resource(resource)`, and answers each
+  branch alone, without a package: `False` for the `Image` and the `Text`
+  resource above, `True` for the four above, for a `MatchClaim` at
+  `claims.arrow` (its type) and for a `Note` at `Note.parquet?v=1#rows`
+  (the URL's path is read, its query and fragment are not).
 - **The package check reads columns, and checks each row once.** It finds
   its rules over the columns `id`, `timeline_id`, `unit` and
   `number_type` (MatchClaims: `id`, `timeline_a_id`, `timeline_b_id`)
