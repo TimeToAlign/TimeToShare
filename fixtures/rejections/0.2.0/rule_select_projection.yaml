@@ -28,6 +28,6 @@ manifest:
       regions: []
       unit: quarters
   timetoshare: "0.2.0"
-message: "'projection' is not one of ['block', 'timeline', 'child', 'band', 'map', 'region', 'break', 'section_break', 'barline', 'jump', 'wedge', 'name', 'label', 'boundary', 'ancestor', 'frame', 'card', 'cross_section', 'alignment_anchor', 'ancestor_card', 'elision', 'ellipsis', 'symbol', 'fork', 'leader']"
+message: "'projection' is not one of ['block', 'timeline', 'child', 'band', 'map', 'region', 'break', 'section_break', 'barline', 'jump', 'wedge', 'name', 'label', 'boundary', 'ancestor', 'frame', 'card', 'cross_section', 'alignment_anchor', 'ancestor_card', 'elision', 'ellipsis', 'symbol', 'fork', 'leader', 'chunk']"
 path: [graphical, rules, 0, select, element]
 reason: "Projection is not an element type."

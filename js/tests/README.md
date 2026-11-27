@@ -296,7 +296,7 @@ every rule's code, path and message for both packages; the canonical order
 of a jump's destinations lies in `manifest.test.ts`, the ID positions in
 `ids.test.ts`, the defaults in `defaults.test.ts` and `schema.test.ts`.
 
-The defaults block of section 4 of `docs/drawing.md`, three styles and 43
+The defaults block of section 4 of `docs/drawing.md`, three styles and 44
 rules, among them one for each of the element types `jump`, `break`,
 `section_break`, `barline`, `symbol`, `fork` and `leader`, and one
 selecting the atomic sections by the `class` `tts:AtomicSection`,

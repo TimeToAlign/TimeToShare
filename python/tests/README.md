@@ -2529,7 +2529,7 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 43 rules,
+`docs/drawing.md` section 4's defaults block (three styles, 44 rules,
 among them one for each of the element types `jump`, `break`,
 `section_break`, `barline`, `symbol`, `fork` and `leader`, and one
 selecting the atomic sections by `{"element": "region", "class":
