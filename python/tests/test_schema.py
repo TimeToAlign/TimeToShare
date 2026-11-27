@@ -229,6 +229,7 @@ def test_the_ten_map_types() -> None:
         "symbol",
         "fork",
         "leader",
+        "chunk",
     ]
     name = defs["Elision"]["properties"]["name"]
     assert (name["type"], name["minLength"]) == ("string", 1)

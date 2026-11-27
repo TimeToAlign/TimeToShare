@@ -303,6 +303,7 @@ describe("the schema document", () => {
       "symbol",
       "fork",
       "leader",
+      "chunk",
     ]);
     const name = properties("Elision").name as Node;
     expect([name.type, name.minLength]).toEqual(["string", 1]);

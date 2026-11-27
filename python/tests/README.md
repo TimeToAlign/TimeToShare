@@ -93,11 +93,11 @@ rejection cases that use them (`test_schema.py`):
   `Elision`'s `display` exactly `ELISION_DISPLAY`, `ellipsis`, `name`,
   `id`, `coordinate` and `continuation` in that order, so the canonical
   order the writers apply cannot drift from the words the schema admits.
-  `ElementType` is exactly the twenty-five types `block`,
+  `ElementType` is exactly the twenty-six types `block`,
   `timeline`, `child`, `band`, `map`, `region`, `break`, `section_break`,
   `barline`, `jump`, `wedge`, `name`, `label`, `boundary`, `ancestor`, `frame`, `card`,
   `cross_section`, `alignment_anchor`, `ancestor_card`, `elision`,
-  `ellipsis`, `symbol`, `fork` and `leader`. An `Elision`'s `name` is a non-empty string. Its `width` declares exactly `ratio` (a number, exclusive
+  `ellipsis`, `symbol`, `fork`, `leader` and `chunk`. An `Elision`'s `name` is a non-empty string. Its `width` declares exactly `ratio` (a number, exclusive
   minimum 0, maximum 1), `span` (`NumberPositive`) and `canvas` (a number,
   exclusive minimum 0), and its `oneOf` is exactly the three subschemas
   requiring one of them each, so `{"ratio": 0.5}`, `{"span": [3, 2]}`

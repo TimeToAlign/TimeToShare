@@ -545,14 +545,24 @@ object](#groups-and-the-graphical-object)); a named timestamp, a
 groupstamp where it is a member, may lie on it; a resource and the
 MatchClaim table may name it; `graphical.order` may hold its band
 order; and an elision may lie on it, on its own axis. A FlowMap is drawn
-as the axis it plays, its chunks laid end to end, each a brace named by
-its source, a run of one chunk repeated drawn once with `× n`, a gap as a
-grey stretch of the line in the line's own stroke, labelled with its
-length: on the card of a virtual timeline, which
+as the axis it plays: on the card of a virtual timeline, which
 the drawing places where its placement holds the virtual timeline's ID,
 and on the card of a root switched to it by the property `flow`, which a
 rule addressed to the root's cards sets to the ID of one of its FlowMaps
-or of a virtual timeline applying one to it. A switched card keeps the
+or of a virtual timeline applying one to it. Its line is a segment line
+of its **chunks**, one per entry, laid end to end and each named above
+the line by its source, with a boundary at each start; a run of one
+chunk repeated is drawn once with `× n`, and a gap is a grey stretch of
+the line in the line's own stroke, labelled with its length and drawn at
+least 32 wide on a card of its own. On a virtual timeline's card each
+chunk is a window onto its source, the stretch of the written timeline
+it plays: it can show what the source holds there, its children,
+regions, named timestamps, flow control and conversion maps, at every
+position where it is played, each band turned on for all chunks at once
+and hidden by default, so that a new virtual timeline's card shows its
+line, its chunks and its own named timestamps alone. What a chunk shows
+belongs to its source and keeps the source's address; the virtual
+timeline still holds nothing, and showing writes nothing to it. A switched card keeps the
 bands it displays: it draws every element of its tree, its flow control
 and conversion maps included, at each position where it is played; in a
 frame, the switch of one member carries every member
@@ -2182,7 +2192,10 @@ facets and lies above or below its line as the timeline's band order
 places it; a band that is not displayed hides everything it holds; a
 root's flow control band draws the flow control of its whole tree, and no
 other timeline draws one), and the content `timeline`, `child`,
-`boundary` (a segment's start on its segment line), `ancestor`, `map`,
+`boundary` (a segment's start on its segment line, or a chunk's),
+`chunk` (the segment of a FlowMap's line that one entry plays, drawing
+nothing of its own and on a virtual timeline holding the bands of its
+window onto its source), `ancestor`, `map`,
 `region` (the atomic sections hidden by default, through the selector
 `class` naming `tts:AtomicSection`), `break`, `section_break` and
 `barline` (each a vertical line at its coordinate), `jump` (one arc per
@@ -2208,7 +2221,8 @@ objects, each matched as a whole object), `domain`, `modality`, `class`
 `ContinuousPhysicalTimeline` for `seconds`, a conversion map's type, or
 the IRI of a class a region's `type` statement names),
 `facet` (the bands drawing that facet), `within` (a timeline and its
-descendants), `inside` (an element type that holds the element at any
+descendants, or a virtual timeline and what its chunks' windows show),
+`inside` (an element type that holds the element at any
 depth) and `coordinates` (`"primary"` or `"secondary"`: the wedges and
 labels of the named timestamps' primary coordinates, or of their secondary
 ones; no other element). The defaults hide the secondary ones, so the rule

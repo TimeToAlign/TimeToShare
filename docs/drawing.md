@@ -346,7 +346,10 @@ are, and `continuation`, grey continuations of the rows across the gap;
 when it is absent the elision draws `["ellipsis", "name"]`, an empty
 array draws a bare gap, and writers write it in the canonical order `ellipsis`, `name`,
 `id`, `coordinate`, `continuation`. Its order means nothing. Whatever
-`display` lists, the gap leaves the stretch out. Elisions may overlap
+`display` lists, the gap leaves the stretch out. A stored elision that a
+card draws is always seen there: its gap draws its ellipsis whatever its
+width (section 6.6, Elisions), and on a virtual timeline no run drawn
+once and no widened gap takes its stretch (section 8.10). Elisions may overlap
 each other and the span of a group member; neither is refused, and
 section 8.9 states what is drawn. Their canonical order is by `timeline`,
 compared by Unicode code point, then by `start`, compared by exact value,
@@ -383,11 +386,12 @@ of a timeline, which draws nothing of its own:
 | `ancestor_card` | the card of a root that contains a member, behind the frame of that member's group, at the proportions of the root's axis; shown by default, hidden by a rule (section 8.8) |
 | `timeline` | the line of a timeline drawn in a card (section 8), a virtual timeline's included (section 8.10) |
 | `child` | a child timeline's line, at any depth |
-| `band` | one of the five bands of a timeline, each drawing one of its facets: its markers, conversion maps, children, regions or flow control (below; section 6.4) |
+| `band` | one of the five bands of a timeline, each drawing one of its facets: its markers, conversion maps, children, regions or flow control (below; section 6.4), or of the window of a chunk (below; section 8.10) |
+| `chunk` | a chunk: the segment of the line of a virtual timeline, or of the root line of a switched card, that one drawn entry of its FlowMap plays (section 8.10); it draws nothing of its own, and on a virtual timeline it holds the five bands of its **window**, which show what its source holds in its stretch |
 | `boundary` | the start of a segment on its segment line, or of a chunk on the line of a virtual timeline or of a switched card (section 8.10), drawn as a thin vertical rule (section 6.4) |
 | `ancestor` | the faded line of an ancestor of a member that is a child timeline, clipped to the member (section 8.3) |
 | `map` | a conversion map, drawn as a closed double line |
-| `region` | a region, drawn as a brace, and the brace of a chunk (section 8.10) |
+| `region` | a region, drawn as a brace |
 | `break` | a break, an element of `flow_control` of the role `break`, drawn as a vertical line, a flow line (below) |
 | `section_break` | a section break, an element of the role `section_break`, drawn as a vertical line, a flow line |
 | `barline` | a barline, an element of the role `barline`, drawn as a vertical line, a flow line |
@@ -401,7 +405,7 @@ of a timeline, which draws nothing of its own:
 | `elision` | the gap of an elision: the narrow rectangle in which a stretch of a timeline is left out, from its card's top border to its bottom border, or for a group elision across the frame's member cards; it draws nothing unless a rule fills it, and its stroke draws the continuations of the rows that cross it (sections 6.6 and 8.9) |
 | `ellipsis` | the ellipsis of an elision, three filled dots, one centred in each drawing of its gap (section 6.6) |
 | `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
-| `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the name, ID or elided coordinates of an elision, the label of a region, of a chunk, of an arc of a jump or of a segment, or the name, ID or label of a flow-control element (its **stack**, section 6.4, Flow labels) |
+| `label` | any other text: the name, ID or coordinate of a named timestamp, the name of a MatchStamp at an alignment anchor, the name, ID or elided coordinates of an elision, the label of a region, of an arc of a jump, of a segment or of a chunk, or the name, ID or label of a flow-control element (its **stack**, section 6.4, Flow labels) |
 
 A drawing has two kinds of mark at a position, and they are never
 confused. A **coordinate marker** marks a position of a timeline: it is a
@@ -427,10 +431,11 @@ matches the band itself (section 2.5). An element has the **domain**
 (`graphical`, `logical` or `physical`) and the **modality** (`continuous`
 or `discrete`) of its timeline's `unit`. A map instead has the domain and
 modality of the map's `target_unit`, so a map is drawn in the style of the
-timelines it converts to. A virtual timeline's elements, a chunk's brace
-and boundary included, take the domain, modality and class of the virtual
-timeline's own `unit`, and those a switched card draws on its root line
-those of its timeline (section 8.10):
+timelines it converts to. A virtual timeline's elements, its chunks with
+their labels and boundaries included, take the domain, modality and class
+of the virtual timeline's own `unit`, and those a switched card draws on
+its root line those of its timeline; what a chunk's window shows is its
+source's, with the source's domain, modality and class (section 8.10):
 
 | Domain | Units |
 |---|---|
@@ -481,10 +486,15 @@ its five bands, its named timestamps' cross-section lines and the gaps
 of the card and derived elisions lying on it as a line does, whose content is drawn at its segment line's line (section 6.4), and
 has no element type, so `inside` never names it; one that is a segment
 line is drawn as a `child` (section 6.1). The line of a virtual timeline,
-and the root line of a switched card, holds what a root's line holds;
-its regions band holds the braces of its chunks with their labels, before
-any region, and the line holds the chunks' boundaries directly, in no
-band, as a segment line holds its segments' (section 8.10).
+and the root line of a switched card, holds what a root's line holds and
+its chunks, one per drawn entry of the FlowMap, and the chunks' labels,
+leaders and boundaries directly, in no band, as a segment line holds its
+segments' (section 8.10). A chunk of a virtual timeline holds the five
+bands of its window, and each of them what the chunk's source holds of
+its facet in the chunk's stretch, every element in the tree it has under
+the source (a child of the source holding its own five bands); a chunk
+of a gap, which has no source, and a chunk of a switched card, whose card
+draws its own timeline's bands (section 8.10), hold no band.
 Section 8 states the top of the tree: the block, frames, cards, ancestor
 cards and ancestor lines; a frame also holds the gaps of its group
 elisions; the block also holds every `alignment_anchor`, and an
@@ -500,8 +510,8 @@ and compared as a whole object. No address is a string composed from IDs.
 band; `part` is a non-empty array of the words `start`, `end`, `name`,
 `label`, `id`, `coordinate`, `card`, `line`, `elision`, `ellipsis`,
 `symbol`, `fork` and `leader`, and names a part of an element, or begins
-with a **chunk index**, an integer from 0, and names a chunk drawn in a
-regions band (section 8.10); `end` names no element in this version. `facet` stands only with `id`, and with `part` only where the part begins with a chunk index. The name or
+with a **chunk index**, an integer from 0, and names a chunk drawn on a
+line, or with `facet` a band of its window (section 8.10); `end` names no element in this version. `facet` stands only with `id`, and with `part` only where the part begins with a chunk index. The name or
 label of an element is addressed by the element's address with `name` or
 `label` appended to its `part`; a named timestamp has no row and so no
 `name` element, and the part `name` of its address names its first label,
@@ -541,8 +551,10 @@ and `X` an element's ID:
 | the boundary of a segment with ID `S` | `{"id": S, "part": ["start"]}` | `S` |
 | the label of a segment with ID `S` | `{"id": S, "part": ["label"]}` | `S` |
 | the ancestor line of a timeline with ID `A` | `{"id": A}` | `A` |
-| the brace of the chunk at index `k` of the FlowMap drawn on the line of `V`, a virtual timeline or a timeline whose card is switched (section 8.10) | `{"id": V, "facet": "regions", "part": [k]}` | `V` |
-| its label, its leader and the boundary at its start, a `label`, a `leader` and a `boundary` element | `{"id": V, "facet": "regions", "part": [k, "label"]}`, `{"id": V, "facet": "regions", "part": [k, "leader"]}`, `{"id": V, "facet": "regions", "part": [k, "start"]}` | `V` |
+| the chunk at index `k` of the FlowMap drawn on the line of `V`, a virtual timeline or a timeline whose card is switched (section 8.10) | `{"id": V, "part": [k]}` | `V` |
+| its label, its leader and the boundary at its start, a `label`, a `leader` and a `boundary` element | `{"id": V, "part": [k, "label"]}`, `{"id": V, "part": [k, "leader"]}`, `{"id": V, "part": [k, "start"]}` | `V` |
+| the band of the facet `F` of that chunk's window, on a virtual timeline `V` | `{"id": V, "facet": F, "part": [k]}` | `V` |
+| an element a window shows: a child, map, region, flow-control element or named timestamp of the chunk's source, and every part of it | the element's own address, as on its source's card | that element's timeline |
 | the frame of a group with ID `G` | `{"id": G}` | none |
 | the title of a group with ID `G` | `{"id": G, "part": ["name"]}` | none |
 
@@ -589,7 +601,8 @@ every card that draws them.
 One timeline may be drawn more than once: as a member in the frame of each
 group that has it as a member, as an ancestor line of several members, in
 the ancestor card behind each frame holding a member below it (section
-8.8), or in several of these. An element drawn more than once,
+8.8), in the windows of the chunks that play it on a virtual card
+(section 8.10), or in several of these. An element drawn more than once,
 such a timeline with its cards, descendants, bands, maps, regions,
 flow-control elements, named timestamps and elisions, an ancestor line, and the parts of
 each, keeps one address, which every drawing of it carries. No address
@@ -635,8 +648,14 @@ A selector is an object with any of these members:
   manifest, each held by the regions band of the timeline that holds it
   and drawn only where that band is displayed (section 2.4);
 - `facet`: a facet (section 2.1); it matches the bands drawing that facet;
-- `within`: a timeline ID; it matches the elements belonging to that
-  timeline or to any of its descendants;
+- `within`: the ID of a timeline or of a virtual timeline; it matches the
+  elements belonging to that timeline or to any of its descendants. A
+  virtual timeline has no descendants: what belongs to it, its line, its
+  chunks with their labels, leaders and boundaries, the bands of their
+  windows and its own named timestamps, and every drawing its chunks'
+  windows show of their sources (section 8.10), whatever timeline that
+  element belongs to, match its `within`, the drawings of the same
+  elements on their sources' cards not;
 - `inside`: an element type; it matches the elements held, at any depth,
   by an element of that type in the tree of section 2.1 (so
   `{"element": "name", "inside": "ancestor"}` matches the names of ancestor
@@ -731,7 +750,11 @@ refer to it:
 - **A band hides everything it holds.** A band that is not displayed hides
   every element it holds, at any depth of the tree of section 2.1, and a
   root's flow control band also every element it lays out, the flow
-  control of the root's whole tree in that card (section 6.4, Gathering).
+  control of the root's whole tree in that card (section 6.4, Gathering);
+  a band of a virtual timeline also hides the bands of its facet of every
+  chunk's window, which it lays out (section 6.4, Windows), so that
+  hiding a virtual timeline's regions band hides every region its windows
+  show.
 - **An element hides its label.** The label of a region, the labels of
   a flow line's stack, the label of each arc of a jump, and each ellipsis
   and label of an elision, is displayed
@@ -745,7 +768,8 @@ refer to it:
   it joins, is displayed.
 - **A line hides its timeline's whole drawing.** A line that is not
   displayed, the root's and a child's alike, hides its name, the maps,
-  boundaries and segment labels on it (section 6.4), the cross-section
+  boundaries and segment labels on it (section 6.4), its chunks with
+  their labels, boundaries and windows (section 8.10), the cross-section
   lines and the gaps it holds (section 2.1), and its five bands with everything they
   hold, at any depth, its children and its segments with everything of
   theirs included. It takes no room, its stroke
@@ -760,6 +784,10 @@ refer to it:
   a line) and draws no cross-section line. The boundary and the label of a segment, of
   either kind, are parts of its segment line's line (section 2.1): that
   line hides them, the segment never does.
+- **A chunk hides its window.** A chunk (section 8.10) that is not
+  displayed hides the five bands of its window and everything they
+  hold; its label, leader and boundary are parts of its line, which hides
+  them, and the chunk never does.
 - **An ancestor line hides its name and its timestamps.** An
   ancestor line (section 8.3) that is not displayed hides its name and
   what it holds of named timestamps (section 8.1): the wedges and labels of the
@@ -801,7 +829,45 @@ own flow control band (section 2.1) though the root's band lays them out
 (section 6.4): hiding the child's line or its flow control band hides
 them, and hiding the root's flow control band hides everything it lays
 out, the flow control of the root's whole tree in that card. The
-defaults hide no band (section 4).
+defaults hide no band of a timeline, only the bands of the chunks'
+windows (section 4).
+
+**One rule for a tree.** `within` matches what belongs to a timeline and
+to its descendants (section 2.3), and a band belongs to its timeline
+(section 2.1), so one rule naming a root in its `within` reaches the
+bands of every timeline of the root's tree, while each band is still
+displayed or hidden on its own. In Op. 106, the root `clt_0is8auvrgrzyd`
+holds four movements (`clt_1krr1fd62fulu`, `clt_2um4zmzhvdmiz`,
+`clt_3opbddrcd7p0z`, `clt_2hpwfng54ddxs`), each holding its sections as
+atomic sections (README, "Atomic sections") and a `MeasureRecordMap` and a
+`FloatingMeasureMap`. The rules
+
+```json
+{"select": {"facet": "conversion_maps", "within": "#clt_0is8auvrgrzyd"}, "set": {"display": "none"}}
+{"select": {"facet": "regions", "within": "#clt_0is8auvrgrzyd"}, "set": {"display": "inline"}}
+{"select": {"element": "region", "class": "tts:AtomicSection", "within": "#clt_0is8auvrgrzyd"}, "set": {"display": "inline"}}
+```
+
+in the manifest's `graphical` hide the conversion maps band of the root
+and of every movement, display the regions band of each (the defaults
+hide none, so the second rule matters where a rule of a lower rank, or of
+an earlier layer, hides them), and show the movements' sections in those
+bands: showing a band shows what it holds as the cascade gives it, and an
+atomic section, which the defaults hide (section 4), needs the third rule,
+which outranks that default by its layer. Without the third rule the four
+regions bands are displayed and draw nothing, being empty of displayed
+regions, and so are absent (section 6.4, Levels). A rule addressed to one
+movement's band outranks the root's rule by rank 2 (section 2.5): after
+them, `{"select": {"addresses": [{"id": "#clt_3opbddrcd7p0z", "facet":
+"conversion_maps"}]}, "set": {"display": "inline"}}` shows the two maps of
+the Adagio sostenuto alone; a rule `within` a movement outranks one
+`within` the root by its depth (2 against 1). An editor's control that
+acts on a timeline and all its descendants writes the one rule `within`
+that timeline; where a descendant's own rule of the same facet outranks
+it, the descendants differ from the timeline, and the control shows its
+state as mixed. A control that displays a band is never disabled because
+the band would draw nothing: displaying an empty band is how content is
+added to it.
 
 ### 2.5 The cascade
 
@@ -837,7 +903,9 @@ tree. Drawings that share an address (section 2.2) match the same `addresses`,
 `within` and `element`, but each inherits from its own parent and matches
 `inside` by its own holders: the name of an ancestor line matches
 `{"inside": "ancestor"}`, the name of the same timeline's row in a card
-that draws its line does not.
+that draws its line does not. One `within` is matched by drawing too: a
+`within` naming a virtual timeline matches, of an element its windows
+show, the drawings in those windows alone (section 2.3).
 
 ## 3. Numbers
 
@@ -919,8 +987,9 @@ lies over a stretch `[a, b]` of the root's axis, `a < b`, no two gaps of
 a card overlap, and every gap comes from a stored elision or is derived
 by the card (section 8.9). A gap's **natural width** is `n = L × ub − L ×
 ua`, `ua` and `ub` the proportions of `a` and `b`, the products formed
-first; its drawn width `g` (section 8.9) is at most `n`, and its
-**shrink** is `n − g`. A position `t` lies **in** a gap when `a < t < b`,
+first; its drawn width `g` (section 8.9) is at most `n`, but for a
+widened gap of a FlowMap (section 8.10), and its **shrink** is `n − g`,
+negative for a widened gap. A position `t` lies **in** a gap when `a < t < b`,
 compared exactly: the ends of a gap lie in none, but in the runs on
 either side. A position in no gap has the x
 
@@ -933,7 +1002,8 @@ u`; so every run keeps the scale `L / λ` of the card, a gap is drawn
 `x(b) − x(a)` wide, and every position right of a gap lies its shrink
 further left. The end of a root of unknown length (section 3.4) lies at
 `x0 + (L − D)`, `D` the sum of every shrink. A position in a gap has no
-x: an element marking it is not drawn (section 6.6, Elisions). Wherever
+x: an element marking it is not drawn (section 6.6, Elisions); only in a
+widened gap, which leaves nothing out, it has one (section 8.10). Wherever
 sections 6.7 and 8.2 write `L × u` for a drawn position, it stands here
 for `L × u − D`. Gaps move x alone: section 6 lays the card out as
 without them, its first fits (section 6.3) measuring every extent by `L ×
@@ -1081,6 +1151,7 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"element": "wedge"}, "set": {"fill": "#000000"}},
     {"select": {"element": "region"}, "set": {"stroke": "#000000", "stroke-width": 1, "stroke-dasharray": "none"}},
     {"select": {"element": "region", "class": "tts:AtomicSection"}, "set": {"display": "none"}},
+    {"select": {"element": "band", "inside": "chunk"}, "set": {"display": "none"}},
     {"select": {"element": "jump"}, "set": {"stroke": "#000000", "fill": "#000000", "stroke-width": 1, "stroke-dasharray": "1 1", "display": "none"}},
     {"select": {"element": "break"}, "set": {"stroke": "#D62728", "stroke-width": 1.5, "stroke-dasharray": "1.5 1.5"}},
     {"select": {"element": "section_break"}, "set": {"stroke": "#4B5563", "stroke-width": 1.5, "stroke-dasharray": "4 2"}},
@@ -1156,13 +1227,18 @@ is. The rules selecting a gap and an ellipsis name `element` and so
 outrank the domain rules (section 2.5): a gap is unfilled and an ellipsis
 black on every timeline. A rule of a later layer setting a gap's `fill`
 draws it as a filled rectangle under its ellipsis.
-No rule hides a band: every band of every timeline is shown, a child's
-regions band included, and a child's flow control is drawn in its root's
-flow control band (section 6.4). A chunk's brace is a `region` and the
-tick at its start a `boundary` (section 8.10), so chunks take the black
-brace of a region and the thin black rule of a segment's start, and
-neither the rule hiding atomic sections, which selects by `class`, nor
-any other default hides them; a gap of a FlowMap is drawn in the grey
+No rule hides a band of a timeline: every band of every timeline is
+shown, a child's regions band included, and a child's flow control is
+drawn in its root's flow control band (section 6.4). The one rule hiding
+bands hides the bands of the chunks' windows, so that a virtual card
+starts stripped down, showing its line, its chunks and its own named
+timestamps alone, whichever tool wrote the virtual timeline; a rule of
+the manifest displaying them outranks it by its layer (section 8.10,
+Windows). A chunk's label is a `label` and the tick at its start a
+`boundary` (section 8.10), so chunks are labelled as segments are and
+take the thin black rule of a segment's start, and neither the rule
+hiding atomic sections, which selects by `class` and matches regions
+alone, nor any other default hides them; a gap of a FlowMap is drawn in the grey
 `#9CA3AF` of an elision's continuations, keeping its line's own stroke
 width and dash pattern, solid on a solid line and dotted on a dotted one,
 never dashed in a pattern of its own (section 6.6, Gap lines). The last rule hides every wedge and
@@ -1391,6 +1467,7 @@ number it has always had.
 | fork row height `Hf` | (h(zf) / 2 + 18 × sM) + h(zf) / 2, `zf` the largest font size of the drawn forks, `N` the most branches a drawn fork has and `sM` the `sk` of the last branch of a fork of `N` branches (section 6.4, Forks); 0 when none is drawn |
 | boundary half-height `k`, of a segment's start and of a chunk's alike | 8 |
 | gap line of a FlowMap's gap (section 6.6): stroke colour, stroke width, dash pattern | `#9CA3AF`, `w` and the `stroke-dasharray` of its line, `w` the stroke width of its line |
+| **least gap width** `Gm`: the narrowest drawn width of a FlowMap's gap in a card that is an item of the block (section 8.10) | 32, the standard gap of an elision |
 | group frame padding `Q` | 8 |
 | card padding `K` | 8 |
 | gap after the manifest's title `F` | 8 |
@@ -1478,8 +1555,9 @@ parent's line it lies on.
 
 **What a band holds.** A band draws what its own timeline holds of its
 facet (section 2.1), and what another timeline holds only where a segment
-without a line of its own joins its segment line's bands (below), and in
-the flow control band of the root (below):
+without a line of its own joins its segment line's bands (below), where
+the windows of a virtual timeline's chunks join its bands (Windows,
+below), and in the flow control band of the root (below):
 
 - the **markers band** its coordinate markers (Markers): the wedges and
   labels of its named timestamps (section 2), and the label stacks of the
@@ -1491,14 +1569,16 @@ the flow control band of the root (below):
   elision draws nothing and is absent (Levels);
 - the **conversion maps band** its maps (Conversion maps);
 - the **children band** its children (Children);
-- the **regions band** its regions (Regions), and, on the line of a
-  virtual timeline or the root line of a switched card, before them the
-  braces of the chunks of its FlowMap and the labels of its gaps (section
-  8.10);
+- the **regions band** its regions (Regions);
 - the **flow control band** of the root, the flow control of the whole
   tree (Flow control): its symbols, flow lines, forks and the arcs of
   its jumps, with their labels and stacks; the flow control band of any
   other timeline draws nothing and is never present.
+
+On the line of a virtual timeline each band draws, after its own content,
+what the bands of its facet of the chunks' windows join to it (Windows,
+below); its chunks' labels and boundaries belong to its line and to no
+band (Segment lines).
 
 **Gathering.** Flow control holds across descendants, so the root's flow
 control band draws the flow-control elements of the root and of every
@@ -1583,7 +1663,7 @@ order of the steps gives the same starts.
 
 **Level 0.** A timeline's line reaches out on each side as every line does
 (Segment lines, below): by its map stack (Conversion maps) and, when it is
-a segment line or draws the boundaries of chunks (section 8.10), by its
+a segment line or draws chunks (section 8.10), by its
 boundaries, `k` both ways, and above by its segment
 labels, which belong to the line and to no band, so its segment labels lie
 beyond the maps against it. A drawn boundary spans `k` to either side of
@@ -1653,7 +1733,14 @@ on its own. The labels
 placed by one first fit into **segment-label tiers** above its line, each
 centred on `x` of the midpoint (section 3.1) of its segment's start and end (the
 end of section 3.4, so a segment of unknown length ends where the next
-segment starts, and the last where its segment line ends). Tier
+segment starts, and the last where its segment line ends). The chunks
+drawn on a line, the line of a virtual timeline or the root line of a
+switched card (section 8.10), are segments of that line here: each
+chunk's boundary, where section 8.10 draws one, is a boundary of the
+line, and each chunk's label (section 8.10) is a segment label of it,
+centred on `x` of the midpoint of the chunk's drawn span, the labels of
+the chunks taken in the order of the FlowMap's entries before those of
+the line's own segments that a switched card unfolds. Tier
 `n` has its baseline at `y − (m + 2 + (n − 1) × h(9)) − d(9)`, `y` the
 line's ordinate and `m` the largest of the reach `e` of the line's stack
 above, the width of its markers band when that band lies at level 1, and,
@@ -1686,6 +1773,23 @@ Section 2.4 states when a segment adds nothing. A band of a segment line
 is present when it draws anything, of its own or of its segments, also
 when its own `display` is `none`, since each segment's bands are displayed
 or hidden on their own (section 2.4).
+
+**Windows.** The bands of a chunk's window (section 8.10) lie at the line
+of the virtual timeline `V` that draws the chunk, as a segment's without
+a line lie at its segment line's: what each of its displayed bands holds
+joins `V`'s band of the same facet, after `V`'s own content, chunk after
+chunk in the order of the FlowMap's drawn entries, and that band draws it
+and lays it out as it lays out its own, each element at its played
+position (section 8.10). So the source's children lie in rows of `V`'s
+children band, its maps take slots in `V`'s conversion maps band by their
+keys, its regions lie in `V`'s regions band, its named timestamps' wedges
+and labels in `V`'s markers band, and its flow-control elements, with
+those of the source's descendants a children band of a window shows, in
+`V`'s flow control band, which lays out the flow control of everything
+its card draws as a root's does (Gathering). A band of `V` that is not
+displayed hides what its windows join to it (section 2.4), and one
+displayed is present when it draws anything, of its own or of its
+windows.
 
 **Markers.** The markers band of a timeline draws its named timestamps, in
 canonical order (section 2), and after them those that its segments
@@ -1929,11 +2033,7 @@ hides.
 **Regions.** The regions band of a timeline places its displayed regions,
 in canonical order, by first fit with the extent from the smaller to the
 larger of their start and end, never widened by their labels, into `R`
-rows: a region keeps its row whatever its label's width. On the line of a
-virtual timeline or the root line of a switched card, the chunks of its
-FlowMap come first, in the order of `chunks`, each an item whose extent is
-its drawn span, a gap among them (section 8.10), and then the regions.
-Then the drawn
+rows: a region keeps its row whatever its label's width. Then the drawn
 labels of each row, in the order of their regions, are placed by one
 first fit of that row, each with the extent of a label centred on `Xm`
 (section 6.6, Regions), into the row's **label tiers**: tier 1 is where
@@ -2263,7 +2363,7 @@ one below it.
   the drawn start of a chunk and `y` the ordinate of the line that draws
   it (section 8.10), drawn over the line.
 - **Segment labels.** Centred on `x` of the midpoint of the segment's start and end,
-  in its tier (section 6.4).
+  or of a chunk's drawn span, in its tier (section 6.4).
 - **Wedges.** A filled triangle, not stroked, its tip at `X`, at the
   distance `c + w / 2` outwards from the line of its band's timeline, `c`
   the start of the markers band (section 6.4) and `w` the stroke width of
@@ -2448,7 +2548,9 @@ one below it.
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
 - **Gap lines.** Over the span of a gap of a FlowMap drawn on a line
-  (section 8.10), from `Xa` to `Xb`, the line itself is not drawn; a **gap
+  (section 8.10), from `Xa` to `Xb`, the x of the gap's start and end, so
+  over its drawn width, at least `Gm` where section 8.10 widens it, and
+  over its natural width otherwise, the line itself is not drawn; a **gap
   line** stands in for it, from `(Xa, y)` to `(Xb, y)`, stroked in the
   grey `#9CA3AF` with the line's `opacity`, its stroke width `w` and its
   `stroke-dasharray`, so that it keeps the line's own stroke, solid on a
@@ -2460,9 +2562,7 @@ one below it.
   element of its own.
 - **Regions.** A brace from `Xs` to `Xe`, arms at `yb`, tip 6 further out
   at `Xm`, `x` of the midpoint (section 3.1) of the region's start and end, so it
-  opens towards its timeline's line; a chunk's brace alike over its drawn
-  span, and a gap of a FlowMap no brace, its label alone, placed as a
-  brace's label is; its label centred on `Xm` beyond the
+  opens towards its timeline's line; its label centred on `Xm` beyond the
   tip, 2 further out, in its label tier. The arms lie at the distance `ak`
   of their row (section 6.4), the tip at `ak + 6`, and the line of the
   label's tier `j` starts at `ak + 6 + 2 + (j − 1) × h(9)`, the label's
@@ -2508,8 +2608,9 @@ one below it.
   jump in tier `k ≥ 2`, `X` the `x` of the jump's position, from the flow
   row `f0` to `fn1 = f0 − (n1 − 1) × h(9)`, `n1` the stack's first line
   (section 6.4, Flow labels); and for the label of a segment, a child's
-  name on its segment line, in tier `n ≥ 2` (section 6.4, Segment lines),
-  `X` the `x` of the midpoint of the segment's start and end, from the
+  name on its segment line, or of a chunk, in tier `n ≥ 2` (section 6.4,
+  Segment lines), `X` the `x` of the midpoint of the segment's start and
+  end, or of the chunk's drawn span, from the
   distance `m` above its segment line to `m + 2 + (n − 1) × h(9)`, `m` as
   that section defines it (in a row of one band order the row's, section
   6.4, Children). Each distance is summed whole, left to right,
@@ -2530,7 +2631,23 @@ one below it.
   text instead (an editor sets it to give a row its own name, and resets it
   to `none`). When the text is wider than that name's `max-width`, it is cut
   to its longest prefix that, followed by `…` (U+2026), fits, and the cut
-  text is shown. It is drawn starting at `x = n` (section 8.2), vertically
+  text is shown. The cut holds for every row of every card alike, by the
+  default `max-width` 160 (section 4): the names of an ungrouped root's
+  card, of a member's card, of an ancestor card and of an ancestor line
+  (section 8.3), and the names of a virtual card (`V · unfolded from T`)
+  and of a switched card (`T · F`, section 8.10), each cut as one text, so
+  that its end, the suffix first, gives way. The name column ends where
+  its widest drawn name ends, at `n + N` (section 8.2), and every line of
+  the block starts at least `G'` further right, so no name covers a line
+  or anything drawn beside it. The drawing writes the cut text alone; the
+  name carries the address of the first name of its row, by which an
+  application finds the whole text, the names joined or the `content`, to
+  show it in full, as on hover, in an overlay of its own over what lies
+  behind it (section 8.10, Overlays), which is no element of the drawing.
+  An overlay drawing a member drawing outside the block, as the rows of
+  the flow subeditor draw virtual cards, cuts its names by this rule and
+  draws them in a name column of its own before its lines (section 8.2),
+  so that there too no name covers a line. It is drawn starting at `x = n` (section 8.2), vertically
   centred on the row: baseline at `y + (a(s) − d(s)) / 2`, `s` the font size of that first
   name, whose address the text carries. Name descriptors are ordered from
   the top row down.
@@ -2578,8 +2695,11 @@ one below it.
   middle of its height, `yt` and `yb` the top and the bottom border of
   the card that draws it, or, for a gap across a frame, the top of the
   topmost and the bottom of the bottommost member card (section 8.9), in
-  binary64; an ellipsis is not drawn in a gap narrower than 20, `x(b) −
-  x(a) < 20`. Where its `display` lists `continuation`, each row that
+  binary64. The ellipsis of a derived elision is not drawn in a gap
+  narrower than 20, `x(b) − x(a) < 20`; that of a stored elision is drawn
+  whatever its gap's width, its dots reaching past the edges of a gap
+  narrower than 16, so that every stored elision a card draws is seen
+  where it lies, as a gap holding its ellipsis. Where its `display` lists `continuation`, each row that
   crosses the gap gets a **continuation**, a line from `(x(a), y)` to
   `(x(b), y)`, `y` its ordinate, drawn in the gap's stroke, under the
   ellipsis. Its labels, the stack of section 6.4 (Markers), are drawn
@@ -2694,7 +2814,8 @@ forks, each of these five
 band by band in the traversal order of the bands' timelines, and each
 band's in the order it places them (section 6.4: the flow lines and the
 forks in the order of the band's elements); the root and
-then the children in traversal order; the boundaries, in the traversal order
+then the children in traversal order; the boundaries, those of the
+chunks first, in the order of the FlowMap's entries, then in the traversal order
 of their segments (a nested segment line's boundaries thus follow its own
 boundary, not its siblings'); the wedges, band by band in the traversal
 order of the bands' timelines, and each band's in the order it places its
@@ -2703,7 +2824,8 @@ Markers); the names; the **marker labels**, the labels of the named
 timestamps' coordinates in the same order, coordinate by coordinate,
 each one's in the order of its stack, its name, its ID and its
 coordinate, whether or not its wedge is displayed; the leaders, in the
-order of the labels they join below; the segment labels, in
+order of the labels they join below; the segment labels, the chunks'
+first, in the order of the FlowMap's entries, then in
 the traversal order of their segments, the region labels, the labels of
 the arcs and the labels of the stacks, each stack's in its order, name,
 ID, label, the stacks in the order of the band's elements; the
@@ -2998,6 +3120,10 @@ every item. Every row name of every member drawing, ancestor names
 included, is drawn at `x = n`. `N` is the width of the widest name of any
 member drawing of the block (section 6.7), and `G' = 8` when any such name is
 drawn and 0 otherwise; titles are not names of rows and count for neither.
+Each name counts as it is drawn, cut to its `max-width` (section 6.6,
+Names), so that a long name, a virtual card's or a switched card's among
+them, widens the column no further than that width, and no name reaches
+past `n + N` into the lines that start at `s0`.
 The **start** is
 
     s0 = max(n + N + G', max over i, j of (n + wj / 2 − (Li × uj + vj)), max over a of (n + N + G' + 8 × wa))
@@ -4397,6 +4523,18 @@ Pi + ℓi`, `ℓi` the length of piece `i`, `b − a` for a stretch `[a, b]` and
 is none. An entry's **span** runs from the start of its first piece to the
 end of its last.
 
+**Sources.** Every stretch piece has a **source**, the timeline whose
+stretch it plays, and its **written stretch**, `[a, b]` on `R`'s axis: a
+piece a region `X` of `T` gave has the source `T`, and a piece a child
+`C` gave the source `C`, also where it reached `F` through a virtual
+timeline `W` an entry names. What a stretch piece shows of its source is
+what the source's tree, the source included, holds in its written
+stretch: its children and theirs, its regions, its named timestamps,
+its flow-control elements and its conversion maps, at any depth; never
+what the source's ancestors hold, never the source's elisions, which
+shorten one card's drawing and no other, and, for a piece a region `X`
+gave, never `X` itself, which the piece plays.
+
 **Runs.** A **run** is a longest sequence of `n ≥ 2` consecutive entries
 naming one ID; gaps form none. In a card that is an item of the block,
 never in a frame, a run is **drawn once**: its first entry is drawn, and
@@ -4404,31 +4542,98 @@ the rest of its span, from the end of its first entry `a` to the end of
 its last `b`, is a **run gap**, a gap of section 3.2 over `[a, b]` whose
 drawn width is 0, so that its whole natural width is its shrink: the run
 takes the drawn width of one entry and every position after it lies that
-shrink further left, as after an elision. The shrink is not subtracted,
-though: a position `t` at or after the end `b` of a run gap, compared
-exactly, and before the start of the next one has the x
+shrink further left, as after an elision. The shrink
+is not subtracted, though: a position `t` at or after the end `b` of a
+run gap, compared exactly, and before the start of the next one has the x
 
     x(t) = x(a) + (L × u − L × ub − D)
 
 `x(a)` the x of the gap's start, by this same rule where an earlier run
 gap lies before it, `ub` the proportion of `b`, the two products formed
 first, and `D` the sum of the shrinks of the gaps of elisions lying on the
-card's virtual timeline (Elisions of a virtual timeline, below) from `b`
-up to `t`, those with `b ≤ a'` and `b' ≤ t` for a gap over `[a', b']`,
-compared exactly and summed from the left as section 3.2 sums them, 0
-where there is none; the end of the line, at `u = 1`, so lies at `x(a) +
-(L − L × ub − D)` for the last run gap, `D` the shrinks of every gap of an
-elision after it. So `x(b) = x(a)` exactly, and the entry after a
-run starts where the run's drawn entry ends, which `L × u − D` would miss
-by the rounding of `D`. A run gap is no elision: it has
-no address, draws nothing, neither rectangle, ellipsis, continuation nor
-label, and cuts no row, a row that crosses it being drawn across it whole
-as across a seam (section 3.2); a position in it, `a < t < b` compared
-exactly, is not drawn and takes no room. A card with run gaps lays out
-every first fit (section 6.3) by the drawn x less `x0`, not by `L × u`, so
-that the rows follow the drawn widths. In a frame every
-entry is drawn: the members of a group share one linear axis (section
-8.2), which a gap of one member's runs would break.
+card's virtual timeline (Elisions of a virtual timeline, below) and of
+the widened gaps (below) from `b` up to `t`, those with `b ≤ a'` and `b'
+≤ t` for a gap over `[a', b']`, compared exactly and summed from the left
+as section 3.2 sums them, 0 where there is none; the end of the line, at
+`u = 1`, so lies at `x(a) + (L − L × ub − D)` for the last run gap, `D`
+the shrinks of every gap of an elision and every widened gap after it.
+So `x(b) = x(a)` exactly, and the entry after a run starts where the
+run's drawn entry ends, which `L × u − D` would miss by the rounding of
+`D`. A run gap is no elision: it has no address, draws nothing, neither
+rectangle, ellipsis, continuation nor label, and cuts no row, a row that
+crosses it being drawn across it whole as across a seam (section 3.2); a
+position in it, `a < t < b` compared exactly, is not drawn and takes no
+room. A card with run gaps or widened gaps lays out every first fit
+(section 6.3) by the drawn x less `x0`, not by `L × u`, so that the rows
+follow the drawn widths. In a frame every entry is drawn: the members of
+a group share one linear axis (section 8.2), which a gap of one member's
+runs would break. A run is drawn entry by entry too, as in a frame,
+where a stored elision the card draws (Elisions of a virtual timeline,
+below) **reaches into** its run gap, the elision's stretch `[a', b']`
+having `a' < b` and `a < b'`, compared exactly: so an elision is never
+swallowed by a run.
+
+**Widened gaps.** In a card that is an item of the block, where runs are
+drawn once, a gap entry over `[a, b]` whose natural width `n = L × ub − L
+× ua` (section 3.2) is less than the least gap width `Gm` = 32 (section
+6.2) is a **widened gap**: a gap of section 3.2 over `[a, b]` of the
+drawn width `Gm`, so that its shrink `n − Gm` is negative and every
+position after it lies `Gm − n` further right, counted in `D` as every
+shrink is. Only a gap entry that a stored elision the card draws reaches
+into, as into a run gap (Runs), keeps its natural width. The value is the
+standard gap of an elision (section 2), the format's one width for a
+stretch drawn by convention rather than to scale: a pause in the playing
+then reads at the width of a passage left out, wide enough for its grey
+gap line, its two boundaries and a short label such as `4 ♩` to be told
+apart, and never wider. Every other entry keeps the card's scale `L / λ`,
+so the played axis is stretched nowhere else, and the line ends the sum
+of the widenings further right than it would; section 8.2 gives the
+block the right margin of the widest card, as it does for every content
+that reaches past `x0 + L`. A widened gap is no elision: it has no
+address and leaves nothing out, draws its gap line (section 6.6, Gap
+lines) over its drawn width and no rectangle, ellipsis, continuation or
+label of an elision, and cuts no row; a position `t` in it, `a < t < b`
+compared exactly, is drawn at `x(a) + Gm × v`, `v = (t − a) / (b − a)` a
+proportion formed as section 3.2 forms one, the product in binary64, so
+that what a virtual timeline names in a gap keeps its place. In a frame
+every gap entry is drawn at its natural width, as every entry is drawn
+there (Runs).
+
+**Chunks.** Every entry drawn on a line, the first entry of a run drawn
+once standing for the run, is a **chunk** of that line, a `chunk`
+element (section 2.1), addressed `{"id": V, "part": [k]}`, `k` its
+entry's index and `V` the virtual timeline, or on a switched card the
+timeline `T` whose card it is (section 2.2). Its **drawn span** is the
+span of its entry on the drawn axis, for a run drawn once its first
+entry's. A chunk draws nothing of its own: an application finds it on its
+drawn span of the line, as a gap's rectangle is found without a fill
+(section 6.6, Elisions), and by its label and its boundary, which the
+line holds as a segment line holds its segments' (section 2.1). The line
+that draws chunks is so a segment line of them in section 6.4 (Segment
+lines), its segments the chunks, and every chunk has
+
+- its **label**, a `label` element `{"id": V, "part": [k, "label"]}`, a
+  segment label of the line, placed above it in its segment-label tiers
+  (section 6.4, Segment lines), centred on `x` of the midpoint of its
+  drawn span, with its leader `{"id": V, "part": [k, "leader"]}` where it
+  lies in a further tier. The label is the name of the entry's source: a
+  region's `name`, or its whole ID where the name is null, so that every
+  chunk is labelled; a child timeline's or a virtual timeline's name
+  (section 5.3); and for a gap the pretty text of its length on `R`'s axis
+  (section 5.2: `2 ♩`, `5.764″`). The label of a run drawn once is its
+  first entry's followed by a space, `×` (U+00D7), a space and `n` in
+  decimal digits, in the label's own font size and place, so that a loop
+  of four bars played eight times is labelled `Loop × 8`. A chunk and its
+  label match `{"element": "chunk"}` and `{"element": "label"}` and the
+  rules selecting their addresses, never a `class` (a chunk has no `type`
+  statement), so the default hiding atomic sections hides no chunk whose
+  source is one;
+- its **boundary**, at the drawn start of every chunk `k ≥ 1`, a
+  `boundary` element `{"id": V, "part": [k, "start"]}` drawn as a
+  segment's (section 6.6, Boundaries), held by the line and hidden with
+  it, reaching the boundary half-height 8 on both sides of the line
+  (section 6.4, Level 0);
+- on a virtual card, where it is no gap, its **window** (Windows, below).
 
 **The virtual card.** A virtual timeline `V` is drawn as the root of its
 member drawing (section 8.1): in a card of its own where it is a placed
@@ -4447,47 +4652,81 @@ the axis is exact). Its card draws
   never an arrowhead or chevrons; over the span of every gap entry the
   line is not drawn and a gap line stands in for it (section 6.6, Gap
   lines), the line written as its pieces from the left;
-- its **chunks**, in its regions band (section 6.4, Regions): each drawn
-  entry `k` a brace over its drawn span, for a run drawn once over its
-  first entry's span, a `region` element with the address `{"id": V,
-  "facet": "regions", "part": [k]}`, and a gap entry no brace; each entry
-  its **label**, a `label` element `{"id": V, "facet": "regions", "part":
-  [k, "label"]}` placed as a region's label (section 6.6, Regions) with its
-  leader `{"id": V, "facet": "regions", "part": [k, "leader"]}` where it
-  moves to a further tier. The label is the name of the entry's source: a
-  region's `name`, or its whole ID where the name is null, so that every
-  chunk is labelled; a child timeline's or a virtual timeline's name
-  (section 5.3); and for a gap the pretty text of its length on `R`'s axis
-  (section 5.2: `2 ♩`, `5.764″`). The label of a run drawn once is its
-  first entry's followed by a space, `×` (U+00D7), a space and `n` in
-  decimal digits, in the label's own font size and place, so that a loop
-  of four bars played eight times is labelled `Loop × 8`. A chunk's brace
-  matches `{"element": "region"}` and the rules selecting its address,
-  never a `class` (it has no `type` statement), so the default hiding
-  atomic sections hides no chunk whose source is one;
-- its **boundaries**: at the drawn start of every entry `k ≥ 1` that is
-  not the second or a later entry of a run drawn once, a `boundary`
-  element `{"id": V, "facet": "regions", "part": [k, "start"]}` drawn as a
-  segment's (section 6.6, Boundaries), held by the line and hidden with
-  it, not with the regions band, and reaching the boundary half-height 8
-  on both sides of the line (section 6.4, Level 0);
+- its **chunks** (Chunks, above), with their labels above the line, their
+  boundaries and their windows;
 - its **named timestamps**, in its markers band, with their cross-section
   lines, and in a frame its groupstamps across the frame, as every root's;
 - its **name** (section 6.6, Names): the name of `V` (section 5.3)
   followed by ` · unfolded from ` and the name of its `timeline` where its
   `map` is a FlowMap, and by ` · converted from ` and that name where it
   is a conversion map, `·` being U+00B7: `Allegro, default · unfolded from
-  Allegro`. A rule setting the name's `content` replaces the whole text.
+  Allegro`, cut to its `max-width` as one text as every name is. A rule
+  setting the name's `content` replaces the whole text.
 
-A virtual timeline has no children, conversion maps or flow control, so
-its children, conversion maps and flow control bands are never present;
-its band order is its entry of `graphical.order`, else the default of
-section 4. It lies in no tree: it has no ancestor line and no ancestor
-card. A new virtual timeline is so drawn stripped down: it lends nothing
-of the bands of the timeline it comes from, unlike a switched card
-(below). An unresolved virtual timeline draws its line whole, its named
-timestamps, its elisions and its name, and no chunk, boundary or gap
-line.
+Nothing is written to a virtual timeline by drawing it: it holds no
+children, conversion maps, regions or flow control of its own, and its
+bands draw what its windows join to them besides its own named
+timestamps (section 6.4, Windows). Its band order is its entry of
+`graphical.order`, else the default of section 4. It lies in no tree: it
+has no ancestor line and no ancestor card. An unresolved virtual timeline
+draws its line whole, its named timestamps, its elisions and its name,
+and no chunk, boundary or gap line.
+
+**Windows.** The **window** of a chunk `k` on a virtual card is the five
+bands `{"id": V, "facet": F, "part": [k]}` the chunk holds, one for each
+facet `F` (section 2.1), each holding what the stretch pieces of its
+entry show of their sources of that facet (Sources, above), as the
+source's own band of `F` holds it on the source's card: a child with
+everything it holds, its five bands included, a map, a region, a named
+timestamp with its labels and cross-section line, a flow-control element
+with its symbol, fork and stack. Everything a window holds is **unfolded**
+over the chunk's pieces as a switched card unfolds what its bands hold
+(Switched cards, below), piece by piece in the order of the FlowMap,
+taking only the positions and extents that lie in the chunk's own pieces:
+a position `t` of a source's tree on `R`'s axis lies in a stretch piece
+`[a, b]` starting at `P` where `a ≤ t < b`, or where `t = b` and that piece
+is the last or is followed by a gap or by a stretch that does not start
+at `b`, and is drawn at `P + (t − a)`; an element over `[s, e]` is drawn
+once in every piece where `max(s, a) < min(e, b)`, keeping its start mark
+only where `max(s, a) = s` and its end mark only where `min(e, b) = e`;
+an arc of a jump only where its from and its to lie in one piece. So
+where the next chunk continues the written axis an element crossing the
+border is drawn in both chunks and reads as one line through the
+boundary, where the flow jumps it is cut, keeping each mark only where
+it lies, and a repeat sign at a chunk's end that the next chunk does not
+continue from is drawn at that end and again at the start of every chunk
+starting there; a region so clipped is drawn as a whole brace with its
+whole label over each piece of it, a child clipped into several pieces
+is named once in its row of the name column, and a label of a coordinate
+shows the written coordinate, never the played one. A chunk played
+several times shows its source each time, every chunk its own window; a
+run drawn once draws its first entry's window alone; in a frame every
+entry draws its window. Every drawing keeps its element's address
+(section 2.2), so that selecting an element a window shows selects it on
+its source's card and in every window at once, and an edit of it is an
+edit of the source.
+
+The defaults hide every band inside a chunk (section 4), so a virtual
+card is drawn **stripped down**, its line, chunks and own named
+timestamps alone, whichever tool wrote the virtual timeline. One rule
+per facet displays a window band of every chunk of `V` and, through
+`within` (section 2.3), the bands of that facet of everything the
+windows show:
+
+```json
+{"select": {"facet": "children", "inside": "chunk", "within": "#allegro_default"}, "set": {"display": "inline"}}
+```
+
+displays, on the card of `allegro_default`, the children band of every
+chunk's window and of every child those bands show, and the same rule
+naming `regions` their regions bands, where atomic sections still need
+the rule of section 2.3; an editor's switch **From the sources** in the band list of a virtual
+timeline writes and removes that one rule for its band, the same for
+every chunk, and is never disabled because the sources hold nothing of
+that facet. The band of `V` of that facet still hides what its windows
+join to it where it is not displayed (section 2.4), and a rule addressed
+to an element of a source, written on the source's card, reaches every
+window that shows it, as it reaches every drawing of its address.
 
 **Elisions of a virtual timeline.** An elision may lie on a virtual
 timeline `V` (section 2). Its `start` and `end` are positions on `V`'s own
@@ -4503,32 +4742,49 @@ elision of `V`'s placed card, drawn as that card's `elision-mode` selects
 card, has no protected span and derives nothing, so `proportional` draws
 no gap there, and `auto` and `custom` draw the stored ones. A card
 elision of `V` is taken as section 8.9 takes one (Pieces, Widths), on
-`V`'s axis with `λ` `V`'s length, except that its pieces are what of its
-stretch lies outside every run gap of the card as well: a run gap is
-drawn 0 wide already, and an elision leaves nothing out there. Each piece
-is a gap of section 3.2 and cuts what crosses it as every gap does
+`V`'s axis with `λ` `V`'s length, before the card's runs and widened
+gaps: a run whose run gap it reaches into is drawn entry by entry (Runs),
+and a gap entry it reaches into keeps its natural width (Widened gaps),
+so that it always leaves out a stretch drawn at full scale, and its gap
+holds its ellipsis (section 6.6, Elisions). Each piece is a gap of section 3.2 and cuts what crosses it as every gap does
 (section 6.6, Elisions): the line and its gap lines are drawn in pieces,
-a chunk's brace is cut as a region's is, and is not drawn, with its
-label, where its start, end or midpoint lies in the gap, and a boundary
-or a named timestamp marking a position in the gap is not drawn. A
+a chunk's label is not drawn where the midpoint of its drawn span lies in
+the gap, nor is a boundary or a named timestamp marking a position in it,
+and what the windows show is cut there as on every card. A
 card switched to `V` (below) draws none of `V`'s elisions: it draws its
 own timeline, and no elision at all.
 
 So, in the worked example below, an elision of `virtual_1` from `[10, 1]`
-to `[14, 1]` on its placed card (`L` = 400) lies wholly in the run gap
-`[8, 16]` of entries 0 and 1: it has no piece and draws no gap. One from
-`[17, 1]` to `[19, 1]` with the width `{"canvas": 8}` lies in entry 2: its
-one piece has the natural width `400 × u(19) − 400 × u(17)` =
+to `[14, 1]` on its placed card (`L` = 400) reaches into the run gap
+`[8, 16]` of entries 0 and 1, which are then drawn one by one: its one
+piece has the natural width `400 × u(14) − 400 × u(10)` =
+233.33333333333334 − 166.66666666666669 = 66.66666666666666, the drawn
+width 32, the standard gap, and the shrink 34.66666666666666; the gap
+runs from `x(10) = x0 + 166.66666666666669` to `x(14) = x0 +
+(233.33333333333334 − 34.66666666666666) = x0 + 198.66666666666669`, its
+ellipsis at `xm = x0 + 182.66666666666669`; the boundaries stand at `x(8)
+= x0 + 133.33333333333331` and `x(16) = x0 + (266.66666666666663 −
+34.66666666666666) = x0 + 231.99999999999997`, the labels `A` at `x(4) =
+x0 + 66.66666666666666` and `B` at `x(20) = x0 + (333.33333333333337 −
+34.66666666666666) = x0 + 298.66666666666674`, while the second `A`,
+whose midpoint 12 lies in the gap, is not drawn, and the line ends at
+`x(24) = x0 + (400 − 34.66666666666666) = x0 + 365.33333333333337` in its
+end circle. One from `[17, 1]` to `[19, 1]` with the width `{"canvas":
+8}` lies in entry 2 and reaches into no run gap, so the run is drawn
+once: its one piece has the natural width `400 × u(19) − 400 × u(17)` =
 316.66666666666663 − 283.33333333333337 = 33.33333333333326, the drawn
 width 8 and the shrink 25.333333333333258; it lies after the run gap, so
 `x(17) = x0 + (133.33333333333331 + (283.33333333333337 −
 266.66666666666663 − 0)) = x0 + 150.00000000000006` and `x(19) = x0 +
 (133.33333333333331 + (316.66666666666663 − 266.66666666666663 −
-25.333333333333258)) = x0 + 158.00000000000006`; the brace of `B`, whose
-midpoint 20 lies in no gap, is cut there, the gap draws no ellipsis (it is
-narrower than 20), and the line ends at `x(24) = x0 + (133.33333333333331
-+ (400 − 266.66666666666663 − 25.333333333333258)) = x0 +
-241.33333333333343` in its end circle.
+25.333333333333258)) = x0 + 158.00000000000006`; the label `B`, at the
+midpoint 20 of entry 2, which lies in no gap, is drawn at `x(20) = x0 +
+(133.33333333333331 + (333.33333333333337 − 266.66666666666663 −
+25.333333333333258)) = x0 + 174.6666666666668`; the gap draws its
+ellipsis at `xm = x0 + 154.00000000000006`, its dots reaching past both
+edges of the 8 wide gap; and the line ends at `x(24) = x0 +
+(133.33333333333331 + (400 − 266.66666666666663 − 25.333333333333258)) =
+x0 + 241.33333333333343` in its end circle.
 
 **Switched cards.** A card of a timeline `T` that reads `flow` (section
 2.4), a member's card or the card of an ungrouped root, is **switched**
@@ -4538,9 +4794,10 @@ otherwise. A switched card is laid out by section 6 on `F`'s virtual axis,
 `λ` being `Λ`:
 
 - its root line is drawn as a virtual card's line, from 0 to `Λ`, with
-  its gap lines, its chunks and their labels in its regions band before
-  `T`'s regions, and their boundaries, each carrying `T`'s ID in place of
-  `V`'s (`{"id": T, "facet": "regions", "part": [k]}`);
+  its gap lines and its chunks (Chunks, above), their labels above the
+  line in its segment-label tiers and their boundaries, each carrying
+  `T`'s ID in place of `V`'s (`{"id": T, "part": [k]}`); its chunks have
+  no window, since the card draws `T`'s own bands (below);
 - it keeps the **band configuration** of the card drawn as written: every
   band of `T` and of every timeline of its tree, the children, markers,
   regions, conversion maps and flow control bands alike, is laid out by
@@ -4594,11 +4851,11 @@ otherwise. A switched card is laid out by section 6 on `F`'s virtual axis,
   FlowMap or virtual timeline `flow` names, its `name` or, where that is
   null, its whole ID.
 
-Runs are drawn once on the switched card of an ungrouped root and on no
-card in a frame (Runs, above).
+Runs are drawn once, and gaps widened, on the switched card of an
+ungrouped root and on no card in a frame (Runs and Widened gaps, above).
 
 So switching keeps what the card shows, where a new virtual timeline's
-card starts stripped down (The virtual card, above). In `flow/switched_card`
+card starts stripped down (Windows, above). In `flow/switched_card`
 the card of `allegro` (1644 quarters) is switched to `default`, playing
 `section_a`, `section_b`, `section_a`, `section_c`: the pieces `[0,
 953/2]` at 0, `[953/2, 500]` at 953/2, `[0, 953/2]` at 500 and `[500,
@@ -4615,7 +4872,8 @@ one arc, of `repeat_end`, runs from 500 back to 0 (its destination states
 no place, neither `to` nor `by`, so it leads back to 0, no section break
 lying before it, section 3.1), and no piece holds both ends. The atomic
 sections, which the defaults hide, are drawn under the rule of section
-2.3 after the chunk braces in the regions band:
+2.3 in the regions band, the chunks' labels `A`, `B`, `A`, `C` standing
+above the line:
 `A` over `[0, 953/2]` and `[500, 1953/2]`, `B` over `[953/2, 500]` and
 `C` over `[1953/2, 4241/2]`, each with its whole label. A child of
 `allegro` over `[450, 520]`, were one added, crosses the ends 953/2 and
@@ -4651,7 +4909,7 @@ draws its line once in each of the four pieces, a position `m` of it
 carried to `t = (m × 1644) / 702.5` in binary64, so that a timestamp at
 351.25 would lie at 822.0 and be played in piece 3 at 976.5 + (822.0 −
 500) = 1298.5. Only `T`'s card draws the
-chunks of `F`, their boundaries and its gap lines, a virtual member's own
+chunks of `F`, their labels and boundaries and its gap lines, a virtual member's own
 chunks unfolding as every other element of its drawing, and over a gap of
 `F` every other member draws nothing. An ancestor line of a member `M`
 that is a child timeline (section 8.3) is unfolded as `M`'s own line is:
@@ -4695,9 +4953,34 @@ at the length 400, entries 0 and 1 are a run drawn once: the run gap over
 133.33333333333331` labelled `A × 2`, entry 2 from `x(16) = x0 +
 (133.33333333333331 + (266.66666666666663 − 266.66666666666663)) = x0 +
 133.33333333333331` to `x(24) = x0 + (133.33333333333331 + (400 −
-266.66666666666663)) = x0 + 266.6666666666667` labelled `B`, with one boundary at `x(16)`, addressed `{"id":
-"virtual_1", "facet": "regions", "part": [2, "start"]}`, and the line
-ends at `x(24)` in an end circle. In a frame with `recording` (10.0
+266.66666666666663)) = x0 + 266.6666666666667` labelled `B`, the two
+chunks `{"id": "virtual_1", "part": [0]}` and `{"id": "virtual_1",
+"part": [2]}` with their labels `A × 2` and `B` above the line, centred
+on `x(4) = x0 + 66.66666666666666` and `x(20) = x0 + (133.33333333333331
++ (333.33333333333337 − 266.66666666666663)) = x0 + 200.00000000000006`,
+and one boundary at `x(16)`, addressed `{"id": "virtual_1", "part": [2,
+"start"]}`; the line ends at `x(24)` in an end circle. Each chunk's
+window shows `score` over its stretch, without the chunk's own region,
+and is hidden until a rule displays it (Windows). In a frame with `recording` (10.0
 seconds) the run is not drawn once: the entries are drawn at `x0`, `x0 +
 133.33333333333331` and `x0 + 266.66666666666663` to `x0 + 400`,
 labelled `A`, `A` and `B`, with boundaries at entries 1 and 2.
+
+In `flow/virtual_cards` the placed card of `allegro_by_hand` (3054
+quarters, `L` = 400) plays `section_a` four times, a gap of 4 quarters
+and `section_c`. The four entries of `section_a` are a run drawn once,
+labelled `A × 4` at `x(953/4) = x0 + 31.204977079240344`; its run gap
+over `[953/2, 1906]` has the shrink 249.63981663392275 −
+62.40995415848069 = 187.22986247544206. The gap entry over `[1906,
+1910]` has the natural width 250.1637197118533 − 249.63981663392275 =
+0.5239030779305551, less than `Gm`, so it is a widened gap 32 wide with
+the shrink 0.5239030779305551 − 32 = −31.476096922069445: its gap line
+runs from `x(1906) = x(953/2) = x0 + 62.40995415848069` to `x(1910) = x0
++ (62.40995415848069 + (250.1637197118533 − 249.63981663392275 −
+(−31.476096922069445))) = x0 + 94.40995415848069`, with the boundaries of
+chunks 4 and 5 at its two ends and its label `4 ♩` at `x(1908) = x0 +
+(62.40995415848069 + 32 × 0.5) = x0 + 78.40995415848069`; `C` is labelled
+at `x(2482) = x0 + 169.328094302554` and the line ends at `x(3054) = x0 +
+(62.40995415848069 + (400 − 249.63981663392275 − (−31.476096922069445)))
+= x0 + 244.2462344466274`, `Gm − n` further right than it would end
+without the widening.
