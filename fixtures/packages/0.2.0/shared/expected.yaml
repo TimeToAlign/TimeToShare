@@ -1,0 +1,7 @@
+read:
+  bach/manifest.yaml:
+    resource_1: [claim_1, claim_2, claim_5]
+    resource_2: [projection_1, projection_2, projection_7, projection_9]
+  handel/manifest.yaml:
+    resource_1: [claim_3, claim_4]
+    resource_2: [projection_3, projection_4, projection_5, projection_6, projection_8]

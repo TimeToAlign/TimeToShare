@@ -196,6 +196,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
-message: "a manifest names at most one resource of the type Projection; 'resource_2' is one"
-path: [resources, 2, type]
-reason: "A manifest names at most one Projections table; resource_2 is one."
+message: "'take_1' is listed by the resource 'resource_2' of the type Projection already"
+path: [resources, 2, timelines, 0]
+reason: "Two Projection resources both list the timeline take_1; a timeline is listed by at most one resource of each type."

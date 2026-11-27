@@ -31,7 +31,9 @@ lie the expected RDF of the 4 statement fixtures under
 `fixtures/rdf/0.2.0/`, the expected flows of 10 flow fixtures under
 `fixtures/flows/0.2.0/`, the table fixture under `fixtures/tables/0.2.0/`
 ([The table fixture](#the-table-fixture)), the vectors of minted IDs under
-`fixtures/ids/` ([Minted ID vectors](#minted-id-vectors)), 255 rejection
+`fixtures/ids/` ([Minted ID vectors](#minted-id-vectors)), the package
+fixtures under `fixtures/packages/0.2.0/` ([The package
+fixtures](#the-package-fixtures)), 258 rejection
 cases, 19 warning cases, one table of acceptances under
 `fixtures/acceptances/0.2.0/` ([Acceptance cases](#acceptance-cases)) and
 one list of cases of several problems under `fixtures/precedence/0.2.0/`
@@ -565,6 +567,55 @@ file only when its table changes and refuses to replace the files of a
 version whose tag `v<version>` exists. Python's
 `timetoshare.tables.fixture_path(name)` gives the path of each file.
 
+## The package fixtures
+
+`fixtures/packages/<version>/` holds packages: folders with a
+`package.yaml` at their root, listing their manifests and their tables.
+`shared/` is a package of two manifests sharing their tables:
+`bach/manifest.yaml` (a score `clt_1` in quarters, a performance `dpt_1`
+in samples) and `handel/manifest.yaml` (a score `clt_2` with a child
+`clt_3`, a performance `dpt_2`) both name the folder of Projections
+`tables/Projection/` (two files) and the folder of MatchClaims
+`tables/MatchClaim/` (one file) in their resources, each with the
+timelines whose rows it reads. The rows of the two manifests are
+interleaved in every file; `part_a.parquet` of the Projections lies sorted
+by timeline, start and ID, as a writer writes it, and `part_b.parquet`
+unsorted, which a reader accepts. Every file states its type
+(`timetoshare:type`) and the version (`timetoshare:version`) in its
+metadata; the MatchClaim file states one provenance for every row
+(`timetoshare:provenance`), which a reader of the folder fills into the
+rows. `expected.yaml` lists, per manifest and resource, the IDs of the
+rows read for the resource's timelines, sorted.
+
+`rejections/<case>/` are the shared package with one change each, beside
+an `expected.yaml` listing every problem the package check reports, in
+order (`code`, `file` from the package's root, `row` in that file or null,
+`path`, `message`), and the `reason`:
+
+| Case | Change | Code |
+| --- | --- | --- |
+| `row_of_no_manifest` | a Projection on `dpt_9`, which no manifest holds | `unknown_timeline` |
+| `projection_id_in_two_files` | one Projection ID in both files, on timelines of the two manifests | `duplicate_id` |
+| `timeline_in_two_manifests` | Handel's manifest holds Bach's `dpt_1` | `duplicate_timeline` |
+| `claim_across_manifests` | a MatchClaim between Bach's score and Handel's performance | `claim_across_manifests` |
+| `column_in_two_types` | a further column `velocity`, an integer in one file and a string in the other | `column_type_mismatch` |
+| `version_mismatch` | a file declares the version 0.1.0 | `version_mismatch` |
+| `resource_naming_no_table` | a resource names a folder of `Box` events `package.yaml` does not list | `unknown_table` |
+| `folder_with_size` | `package.yaml` states a size for a folder | `folder_descriptor` |
+| `timeline_unlisted` | Handel's Projection resource no longer lists its child `clt_3` | `unlisted_timeline` (two rows) |
+| `axis_mismatch` | a Projection on the samples timeline written in seconds | `axis_mismatch` |
+| `file_of_another_type` | a file of the Projections folder states the type `MatchClaim` | `table_type` |
+
+The script `scripts/emit_packages.py` (run from `python/` as `uv run
+python ../scripts/emit_packages.py`; it needs pyarrow) is their only
+writer: every row, every manifest, the rows read and the problems expected
+are literal data in the script, which checks that the package check
+agrees before it writes. It rewrites a Parquet file only when its table
+changes and refuses to replace the files of a version whose tag
+`v<version>` exists. Python's
+`timetoshare.tables.package_fixture_path(*parts)` gives the path of a
+package or of a file in it.
+
 ## Minted ID vectors
 
 `fixtures/ids/minted_ids.json` holds the test vectors of minted IDs. The
@@ -793,7 +844,8 @@ code:
 | `matchstamp` | the alignment anchors of a MatchStamp are one connected set | `matchstamp_not_connected` |
 | `match_timestamp` | some MatchStamp names every match timestamp, and no two match timestamps lie on one coordinate | `match_timestamp_in_no_matchstamp`, `match_timestamp_coordinate_repeated` |
 | `resource_timeline` | a resource's `timelines` name timelines or virtual timelines of the manifest | `resource_timeline_unknown` |
-| `resource_type` | at most one resource has the type `MatchClaim`, at most one the type `Projection` | `resource_match_claim_twice`, `resource_projection_twice` |
+| `resource_type` | a timeline is listed by at most one resource of each type, every type | `resource_match_claim_twice`, `resource_projection_twice`, `resource_event_timeline_twice` |
+| `folder_descriptor` | a resource naming a folder (a `url` ending in `/`) has no `size` and no `integrity` | `resource_folder_size` |
 | `flow_map_timeline` | a FlowMap names a root timeline | `flow_map_timeline_child`, `flow_map_timeline_unknown` |
 | `flow_map_chunk` | every ID among a FlowMap's chunks names a region, a child timeline or a virtual timeline inside the tree of its root | `flow_map_chunk_unknown`, `flow_map_chunk_other_root`, `flow_map_chunk_root` |
 | `flow_map_canonical` | at most one FlowMap of a timeline is canonical | `flow_map_canonical_twice` |

@@ -48,6 +48,7 @@ def test_the_repository_tree_is_published_whole_and_sound() -> None:
     files = check.published()
     assert sorted(files) == [
         "0.2.0/catalogue.schema.json",
+        "0.2.0/package.schema.json",
         "0.2.0/provenance.schema.json",
         "0.2.0/tables.json",
         "0.2.0/timetoshare.schema.json",
@@ -56,7 +57,12 @@ def test_the_repository_tree_is_published_whole_and_sound() -> None:
         files["0.2.0/catalogue.schema.json"]
         == (REPOSITORY_ROOT / "catalogue" / "catalogue.schema.json").read_bytes()
     )
-    for name in ("provenance.schema.json", "tables.json", "timetoshare.schema.json"):
+    for name in (
+        "package.schema.json",
+        "provenance.schema.json",
+        "tables.json",
+        "timetoshare.schema.json",
+    ):
         assert (
             files[f"0.2.0/{name}"]
             == (REPOSITORY_ROOT / "schema" / "0.2.0" / name).read_bytes()

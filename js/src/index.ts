@@ -181,5 +181,6 @@ export {
   unknownKeys,
   type ValidationCode,
   validate,
+  validatePackage,
   type WarningCode,
 } from "./validate.js";

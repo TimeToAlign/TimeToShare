@@ -1,0 +1,8 @@
+problems:
+  -
+    code: table_type
+    file: tables/Projection/part_b.parquet
+    message: "the file holds the type MatchClaim, its table the type Projection"
+    path: []
+    row: null
+reason: "part_b, in the folder of Projections, states the type MatchClaim."

@@ -1,0 +1,8 @@
+problems:
+  -
+    code: unknown_timeline
+    file: tables/Projection/part_b.parquet
+    message: "no manifest of the package has the timeline 'dpt_9'"
+    path: [timeline_id]
+    row: 4
+reason: "A Projection lies on dpt_9, a timeline no manifest of the package holds."

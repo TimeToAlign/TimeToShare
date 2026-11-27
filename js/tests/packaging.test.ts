@@ -50,6 +50,7 @@ describe("the npm package", () => {
 
   it("ships the schema documents", () => {
     const paths = [
+      "schema/0.2.0/package.schema.json",
       "schema/0.2.0/provenance.schema.json",
       "schema/0.2.0/tables.json",
       "schema/0.2.0/timetoshare.schema.json",

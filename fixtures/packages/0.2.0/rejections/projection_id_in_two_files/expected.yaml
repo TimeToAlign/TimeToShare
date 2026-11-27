@@ -1,0 +1,8 @@
+problems:
+  -
+    code: duplicate_id
+    file: tables/Projection/part_b.parquet
+    message: "the event ID 'projection_3' is given twice, first in 'tables/Projection/part_a.parquet' at row 3"
+    path: [id]
+    row: 3
+reason: "The ID projection_3 names a Projection of Handel's in part_a and one of Bach's in part_b; an event ID is held once in the package."

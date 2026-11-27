@@ -191,6 +191,6 @@ manifest:
       regions: []
       unit: samples
   timetoshare: "0.2.0"
-message: "a manifest names at most one resource of the type MatchClaim; 'resource_1' is one"
-path: [resources, 1, type]
-reason: "A manifest names at most one MatchClaim table; resource_1 is one."
+message: "'score' is listed by the resource 'resource_1' of the type MatchClaim already"
+path: [resources, 1, timelines, 0]
+reason: "Two MatchClaim resources both list the timeline score; a timeline is listed by at most one resource of each type."

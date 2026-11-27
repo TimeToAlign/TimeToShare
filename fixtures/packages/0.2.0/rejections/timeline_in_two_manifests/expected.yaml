@@ -1,0 +1,8 @@
+problems:
+  -
+    code: duplicate_timeline
+    file: handel/manifest.yaml
+    message: "the timeline 'dpt_1' is a timeline of 'bach/manifest.yaml' as well"
+    path: [timelines, 1, id]
+    row: null
+reason: "Handel's manifest holds a timeline dpt_1, which Bach's holds; a timeline ID is held by one manifest of the package."

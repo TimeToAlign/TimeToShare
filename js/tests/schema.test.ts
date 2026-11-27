@@ -28,6 +28,7 @@ const PUBLIC = [
   "Id",
   "MeasureMap",
   "MeasureMapRow",
+  "Descriptor",
   "Resource",
   "Timestamp",
   "MatchStamp",
@@ -46,8 +47,8 @@ const ANCHORED: [string[], string][] = [
   [["Declaration", "properties", "elision-display"], "ellipsis name"],
   [["Declaration", "properties", "label-display"], "name id"],
   [["CalendarDate"], "2026-11-17"],
-  [["Resource", "properties", "media_type"], "application/vnd.apache.parquet"],
-  [["Resource", "properties", "integrity", "properties", "digest"], "00ff"],
+  [["Descriptor", "properties", "media_type"], "application/vnd.apache.parquet"],
+  [["Descriptor", "properties", "integrity", "properties", "digest"], "00ff"],
 ];
 
 const MAP_TYPES = [

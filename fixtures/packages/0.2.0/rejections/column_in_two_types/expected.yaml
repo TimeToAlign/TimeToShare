@@ -1,0 +1,8 @@
+problems:
+  -
+    code: column_type_mismatch
+    file: tables/Projection/
+    message: "the column 'velocity' is int64 in 'part_a.parquet' and string in 'part_b.parquet'"
+    path: [velocity]
+    row: null
+reason: "The further column velocity is an integer in part_a and a string in part_b; one column name has one Arrow type in the files of a folder."

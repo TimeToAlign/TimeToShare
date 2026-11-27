@@ -2,8 +2,8 @@
 
 The timeline a timestamp names, its coordinate and whether it may be a
 groupstamp; the timeline an elision names and its stretch; the alignment
-anchors of the named MatchStamps and their match timestamps; the timelines
-and types of the resources.
+anchors of the named MatchStamps and their match timestamps; the timelines,
+types and folders of the resources.
 """
 
 from __future__ import annotations
@@ -253,8 +253,27 @@ def matchstamp_problems(
             )
 
 
-ONE_RESOURCE_TYPES = ("MatchClaim", "Projection")
-"""The resource types a manifest names at most once."""
+FOLDER_FILE_KEYS = ("size", "integrity")
+"""The members of a descriptor that state a file's bytes, which a folder has not."""
+
+
+def folder_problems(
+    descriptor: Mapping[str, Any], path: tuple[str | int, ...]
+) -> Iterator[SchemaValidationError]:
+    """Yield the problem of a descriptor naming a folder (a ``url`` ending in
+    ``/``) with a ``size`` or an ``integrity``: the first of the two it
+    states, at that member."""
+    url = descriptor.get("url")
+    if not (isinstance(url, str) and url.endswith("/")):
+        return
+    for key in FOLDER_FILE_KEYS:
+        if key in descriptor:
+            yield SchemaValidationError(
+                "folder_descriptor",
+                (*path, key),
+                f"'{url}' names a folder, which has no {key}",
+            )
+            return
 
 
 def resource_problems(
@@ -264,29 +283,29 @@ def resource_problems(
 
     Resource by resource, each ID of its ``timelines`` names a timeline of
     the manifest, at any depth, or a virtual timeline, and no earlier
-    resource has its type where that type is ``MatchClaim`` or
-    ``Projection``.
+    resource of its type lists it; then a folder has no ``size`` and no
+    ``integrity``.
     """
     timelines = axes_by_id(manifest)
-    first: dict[str, str] = {}
+    first: dict[tuple[str, str], str] = {}
     for index, resource in enumerate(entries_of(manifest, "resources")):
         path = ("resources", index)
+        kind = resource["type"]
         for number, identifier in enumerate(resource["timelines"]):
+            at = (*path, "timelines", number)
             if identifier not in timelines:
                 yield SchemaValidationError(
                     "resource_timeline",
-                    (*path, "timelines", number),
+                    at,
                     f"'{identifier}' names no timeline or virtual timeline of "
                     "this manifest",
                 )
-        kind = resource["type"]
-        if kind in ONE_RESOURCE_TYPES:
-            if kind in first:
+            earlier = first.setdefault((kind, identifier), resource["id"])
+            if earlier != resource["id"]:
                 yield SchemaValidationError(
                     "resource_type",
-                    (*path, "type"),
-                    f"a manifest names at most one resource of the type {kind}; "
-                    f"'{first[kind]}' is one",
+                    at,
+                    f"'{identifier}' is listed by the resource '{earlier}' of the "
+                    f"type {kind} already",
                 )
-            else:
-                first[kind] = resource["id"]
+        yield from folder_problems(resource, path)

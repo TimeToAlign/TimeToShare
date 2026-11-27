@@ -388,6 +388,26 @@ export type NumberPositive = number | FractionPositive;
  */
 export type FractionPositive = [number, number];
 /**
+ * A file or a folder of files the manifest names: its ID, the type of its rows and the timelines it holds rows of, with the members of a `Descriptor`. A manifest may name several resources of one type, for rows kept in different files, but a timeline is listed by at most one resource of each type; every ID of `timelines` names a timeline of the manifest, at any depth, or a virtual timeline; and a folder has no `size` and no `integrity`. All three are checked after the schema. A file or a folder may hold rows of other manifests' timelines as well, as the files a package's manifests share do: a reader of this manifest keeps the rows of the timelines listed and passes over the others.
+ *
+ * This interface was referenced by `Manifest`'s JSON-Schema
+ * via the `definition` "Resource".
+ */
+export type Resource = Descriptor & {
+  /**
+   * The resource ID.
+   */
+  id: Id;
+  /**
+   * What the file's rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events an event table holds. The Projections table and the event types are experimental: they may change in any version.
+   */
+  type: string;
+  /**
+   * The IDs of the timelines the file or the folder holds rows of for this manifest, each once: timelines of the manifest at any depth and virtual timelines. A MatchClaim belongs to the manifest listing both its timelines.
+   */
+  timelines: Id[];
+};
+/**
  * The type of an element of the drawing. Four types are the boxes, the containers of the drawing, each drawing a semantic container: the `block`, the whole drawing, draws the bundle; a `frame` draws a group; a `card` draws a timeline, one card per group that has the timeline as a member and one for an ungrouped root or a placed virtual timeline that is a member of no group, and an `ancestor_card` is the card of the root of a member that is a child timeline, drawn whole behind the frame of that member's group at the proportions of the root's own axis, shown unless a rule hides it; a `band` draws one facet of a timeline and holds what the timeline has of that facet, drawing nothing of its own; a root's flow control band lays out the flow control of the root's whole tree. The others are content and keep their semantic names: a root timeline's line (`timeline`, a group member's or an ungrouped root's, a virtual timeline's included), a child timeline's line at any depth (`child`), a conversion map (`map`), a region (`region`, also the brace of a chunk of a virtual timeline or of a switched card), a break, a section break and a barline (`break`, `section_break`, `barline`, each a vertical line at its coordinate), a jump (`jump`, its arcs: one arc per destination whose place is not `by` 0, from the jump's coordinate to that place, hidden by default, and none for a destination whose manifestation is `volta`, which its fork shows; an arc is labelled with its destination's `label` alone, and the jump's own `name`, ID and `label` label the jump once, never each of its arcs, as its `label-display` lists them; no arc is drawn to a place that a `to` names where the element named is rejected, as a destination of a rejected jump may name one), the symbol of a flow-control element (`symbol`, the music-font glyphs of its manifestation or of its destinations' manifestations on the flow row; a jump target draws its symbol alone), a volta fork (`fork`, one per jump with destinations whose manifestation is `volta`, a stem splitting into one arrow per such destination, the first straight on and each further one bent further away from the line, each with its passes as text), a leader line (`leader`, the thin line joining a label moved to a further tier to its element), a wedge (a coordinate marker of a named timestamp of any timeline), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, or the tick where a chunk of a virtual timeline or of a switched card starts (`boundary`), a cross-section line (`cross_section`), the vertical line of a named timestamp across its timeline's line, children band and conversion-maps band and, for a member that is a child timeline, its ancestor lines, the line of an alignment anchor of a named MatchStamp (`alignment_anchor`, the shortest line between the cross-section lines of its two timestamps), an ancestor line of a member that is a child timeline (`ancestor`), the gap of an elision (`elision`), held by the line of the timeline the elision lies on, or by a group's frame where that timeline lies in the group, and the ellipsis of an elision, one centred in each drawing of its gap (`ellipsis`); an elision's ellipsis and labels are held by its gap, its labels as `label` elements.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
@@ -959,7 +979,7 @@ export interface Manifest {
    */
   measure_maps?: MeasureMap[];
   /**
-   * The files the manifest names, each one descriptor (`Resource`): the MatchClaim table, the Projections table and event tables. The manifest never names an event or a MatchClaim inside them. The array may be empty.
+   * The files and folders of files the manifest names, each one `Resource`: the MatchClaim table, the Projections table and event tables. A timeline is listed by at most one resource of each type. The manifest never names an event or a MatchClaim inside them. The array may be empty.
    */
   resources?: Resource[];
   /**
@@ -1491,38 +1511,26 @@ export interface MeasureMapRow {
   offset_within_measure?: NumberPositive;
 }
 /**
- * A file the manifest names, one descriptor: its ID, the type of its rows, the timelines it holds data for and its location, with the optional media type, size and digest of the file. At most one resource of a manifest has the type `MatchClaim` and at most one the type `Projection`; every ID of `timelines` names a timeline of the manifest, at any depth, or a virtual timeline. Both are checked after the schema.
+ * Where a file or a folder of files lies, with the optional media type, size and digest of a file: what a manifest's `Resource` and an entry of a package's `package.yaml` (`package.schema.json`) state of the file they name. A `url` ending in `/` names a folder, whose files are the names ending in `.parquet` directly inside it, none starting with `.` or `_`; a folder has no `size` and no `integrity`, which is checked after the schema.
  *
  * This interface was referenced by `Manifest`'s JSON-Schema
- * via the `definition` "Resource".
+ * via the `definition` "Descriptor".
  */
-export interface Resource {
+export interface Descriptor {
   /**
-   * The resource ID.
-   */
-  id: Id;
-  /**
-   * What the file's rows are: `MatchClaim` for the MatchClaim table, `Projection` for the Projections table, or the type of the events an event table holds. The Projections table and the event types are experimental: they may change in any version.
-   */
-  type: string;
-  /**
-   * The IDs of the timelines the file holds data for, each once: timelines of the manifest at any depth and virtual timelines.
-   */
-  timelines: Id[];
-  /**
-   * Where the file lies: a reference resolved against the manifest's address, such as `match_claims.parquet` beside it.
+   * Where the file or the folder lies: a reference resolved against the address of the document naming it, such as `match_claims.parquet` beside a manifest, or `../tables/Projection/`, a folder.
    */
   url: IriReference;
   /**
-   * The media type of the file without parameters, such as `application/vnd.apache.parquet`.
+   * The media type of the file, or of each file of the folder, without parameters, such as `application/vnd.apache.parquet`.
    */
   media_type?: string;
   /**
-   * The size of the file in bytes.
+   * The size of the file in bytes. A folder has none.
    */
   size?: number;
   /**
-   * The digest of the file's raw bytes: the hash function, named as the PREMIS vocabulary of cryptographic hash functions names it, and the digest in lower-case hexadecimal.
+   * The digest of the file's raw bytes: the hash function, named as the PREMIS vocabulary of cryptographic hash functions names it, and the digest in lower-case hexadecimal. A folder has none.
    */
   integrity?: {
     algorithm: "MD5" | "SHA-1" | "SHA-256" | "SHA-384" | "SHA-512";

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timetoalign.github.io/timetoshare/0.2.0/package.schema.json",
+  "title": "TimeToShare package",
+  "description": "The `package.yaml` of a TimeToShare! 0.2.0 package: a folder holding manifests and the tables their resources name, with this file at its root. It lists every manifest of the package and every table, each by one `Descriptor` (`timetoshare.schema.json`), its `url` resolved against the address of `package.yaml`. The manifests are listed one by one, never by a pattern. A table is a file, or a folder of files read as one table when its `url` ends in `/`; a type may have several entries, for rows kept in different files. Files may hold rows of several manifests: each manifest's resources name the files and folders it reads, with the timelines whose rows it keeps, so the manifests and `package.yaml` name the same files, and nothing in a file names a manifest. Every manifest and every table file of the package declares the package's version. Every manifest is listed once and a folder has no `size` and no `integrity`, both checked after the schema; the rules a package's manifests and rows keep together (an event ID, a MatchClaim ID and a timeline ID each held once in the package, each row's timeline listed by a resource of its manifest) are the package check's. Every object is open: a key an object does not declare is kept.",
+  "type": "object",
+  "properties": {
+    "timetoshare": {
+      "const": "0.2.0",
+      "description": "The TimeToShare version of the package, which every manifest and every table file of it declares. Compulsory: a JSON structure without it is not a TimeToShare package."
+    },
+    "id": {
+      "$ref": "timetoshare.schema.json#/$defs/IriReference",
+      "description": "The package's IRI where it is published, such as its repository or its DOI."
+    },
+    "name": {
+      "$ref": "timetoshare.schema.json#/$defs/Name",
+      "description": "The package's human-readable name, or null when none was given."
+    },
+    "meta": {
+      "$ref": "timetoshare.schema.json#/$defs/Meta",
+      "description": "Free-form metadata of the package."
+    },
+    "manifests": {
+      "type": "array",
+      "description": "The manifests of the package, each once, by its location: one `Descriptor` per manifest.",
+      "items": {
+        "$ref": "timetoshare.schema.json#/$defs/Descriptor"
+      }
+    },
+    "tables": {
+      "type": "array",
+      "description": "The tables of the package, each a file or a folder of files, with the type of its rows. The array may be empty.",
+      "items": {
+        "$ref": "#/$defs/Table"
+      }
+    }
+  },
+  "required": [
+    "timetoshare",
+    "manifests",
+    "tables"
+  ],
+  "$defs": {
+    "Table": {
+      "type": "object",
+      "description": "A table of the package: the type of its rows, with the members of a `Descriptor`. A folder's files share the type's declared columns.",
+      "allOf": [
+        {
+          "$ref": "timetoshare.schema.json#/$defs/Descriptor"
+        }
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "What the rows are: `MatchClaim` for MatchClaims, `Projection` for Projections, or the type of the events the table holds, as a manifest's `Resource` names it."
+        }
+      },
+      "required": [
+        "type"
+      ]
+    }
+  }
+}

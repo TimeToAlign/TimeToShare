@@ -43,6 +43,7 @@ PUBLIC = [
     "Id",
     "MeasureMap",
     "MeasureMapRow",
+    "Descriptor",
     "Resource",
     "Timestamp",
     "MatchStamp",
@@ -128,6 +129,7 @@ def test_one_document_with_one_root() -> None:
     )
     assert sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir()) == ["0.2.0"]
     assert sorted(p.name for p in (REPOSITORY_ROOT / "schema" / "0.2.0").iterdir()) == [
+        "package.schema.json",
         "provenance.schema.json",
         "tables.json",
         "timetoshare.schema.json",
@@ -578,8 +580,8 @@ ANCHORED = {
     ("Declaration", "properties", "elision-display"): "ellipsis name",
     ("Declaration", "properties", "label-display"): "name id",
     ("CalendarDate",): "2026-11-17",
-    ("Resource", "properties", "media_type"): "application/vnd.apache.parquet",
-    ("Resource", "properties", "integrity", "properties", "digest"): "00ff",
+    ("Descriptor", "properties", "media_type"): "application/vnd.apache.parquet",
+    ("Descriptor", "properties", "integrity", "properties", "digest"): "00ff",
 }
 """Every node whose pattern ends in ``$``, with a value its pattern accepts."""
 
@@ -753,7 +755,7 @@ def test_statements_provenance_and_the_context() -> None:
     for name in ("Manifest", "Timeline", "Region"):
         for member in ("links", "schemes"):
             assert member not in defs[name]["properties"]
-    removed = ("Link", "PartSlot", "PartOf", "Assertion", "Descriptor", "Identifier")
+    removed = ("Link", "PartSlot", "PartOf", "Assertion", "Identifier")
     for name in (*removed, "Scheme", "Level", "Term", "Uri", "UriReference"):
         assert name not in defs, name
     assert defs["ProvenanceEntry"]["allOf"] == [{"$ref": "#/$defs/ProvenanceRecord"}]

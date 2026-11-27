@@ -55,6 +55,7 @@ from .validation.representation import (
     representation_problems,
 )
 from .validation.statements import statement_rule_problems, statement_warnings
+from .validation.timestamps import folder_problems
 from .validation.timestamps import matchstamp_problems as _matchstamp_rule_problems
 
 SCHEMA_VERSION = "0.2.0"
@@ -187,6 +188,132 @@ def load_schema() -> dict[str, Any]:
     (:func:`bundle_schemas`); treat it as read-only.
     """
     return bundle_schemas(_read(schema_path()), _read(provenance_schema_path()))
+
+
+PACKAGE_DOCUMENT = "package.schema.json"
+"""The file name of the package schema, the schema of ``package.yaml``."""
+
+
+def package_schema_path() -> Path:
+    """Return the path of the package schema, the schema of ``package.yaml``."""
+    return data_root() / "schema" / SCHEMA_VERSION / PACKAGE_DOCUMENT
+
+
+def _reached(definitions: Mapping[str, Any], node: Any) -> list[str]:
+    """The definitions ``node`` refers to locally, and those they refer to,
+    in the order of ``definitions``."""
+    found: set[str] = set()
+    stack = [node]
+    while stack:
+        item = stack.pop()
+        if isinstance(item, list):
+            stack.extend(item)
+        elif isinstance(item, Mapping):
+            reference = item.get("$ref")
+            if isinstance(reference, str) and reference.startswith("#/$defs/"):
+                name = reference.removeprefix("#/$defs/")
+                if name in definitions and name not in found:
+                    found.add(name)
+                    stack.append(definitions[name])
+            stack.extend(item.values())
+    return [name for name in definitions if name in found]
+
+
+def bundle_package_schema(
+    package: Mapping[str, Any], manifest: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Return the package schema with the definitions it reaches in ``manifest``.
+
+    ``manifest`` is the bundle of the manifest schema (:func:`load_schema`).
+    A reference of the package schema into the manifest schema
+    (``timetoshare.schema.json#/$defs/Descriptor``) becomes local, and every
+    definition of the manifest bundle it reaches, directly or through
+    another, joins the package's own definitions, in the bundle's order; a
+    local reference keeps its pointer. The JavaScript package's generated
+    ``packageSchema`` is the same bundle.
+
+    Raises:
+        ValueError: If a reference leads to another document or to no
+            definition of the manifest schema, or both define one name.
+    """
+
+    def local(reference: str) -> str:
+        """A reference of the package schema made local."""
+        document, _, pointer = reference.partition("#")
+        if document in ("", PACKAGE_DOCUMENT):
+            return "#" + pointer
+        if document != MANIFEST_DOCUMENT or not pointer.startswith("/$defs/"):
+            raise ValueError(
+                f"reference '{reference}' leads to no definition of the manifest schema"
+            )
+        return "#" + pointer
+
+    bundled = _with_references(package, local)
+    own = bundled.setdefault("$defs", {})
+    definitions = manifest["$defs"]
+    for name in _reached(definitions, {**bundled, "$defs": {}}):
+        if name in own:
+            raise ValueError(f"both schemas define '{name}'")
+    for name in _reached(definitions, bundled):
+        own[name] = definitions[name]
+    return bundled
+
+
+@cache
+def load_package_schema() -> dict[str, Any]:
+    """Return the cached package schema, bundled (:func:`bundle_package_schema`);
+    treat it as read-only."""
+    return bundle_package_schema(_read(package_schema_path()), load_schema())
+
+
+@cache
+def _package_validator() -> Draft202012Validator:
+    schema = load_package_schema()
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema)
+
+
+def validate_package(value: Mapping[str, Any]) -> None:
+    """Check the value of a ``package.yaml`` and raise its first problem.
+
+    The version marker first: a value without ``timetoshare`` is no package
+    (``not_a_package``), another version raises
+    :class:`UnsupportedVersionError`. Then the package schema, its problem
+    chosen by the one path rule (``schema``). Then, entry by entry, the
+    manifests and then the tables: a manifest listed again under the same
+    ``url`` (``duplicate_url``, at the later entry's ``url``) and a folder,
+    a ``url`` ending in ``/``, with a ``size`` or an ``integrity``
+    (``folder_descriptor``, at that member, ``size`` first). What the
+    manifests and the tables hold is :func:`timetoshare.tables.package_problems`'
+    to check.
+
+    Raises:
+        SchemaValidationError: If the value breaks a rule.
+        UnsupportedVersionError: If it names another version.
+    """
+    if not isinstance(value, Mapping) or "timetoshare" not in value:
+        raise SchemaValidationError("not_a_package", (), "not a TimeToShare package")
+    if value["timetoshare"] != SCHEMA_VERSION:
+        raise UnsupportedVersionError(value["timetoshare"])
+    error = select(_package_validator().iter_errors(value))
+    if error is not None:
+        raise SchemaValidationError("schema", tuple(error.absolute_path), worded(error))
+    listed: dict[str, int] = {}
+    for index, entry in enumerate(value["manifests"]):
+        path: InstancePath = ("manifests", index)
+        earlier = listed.setdefault(entry["url"], index)
+        if earlier != index:
+            raise SchemaValidationError(
+                "duplicate_url",
+                (*path, "url"),
+                f"the manifest '{entry['url']}' is listed twice, first at "
+                f"{json_pointer(('manifests', earlier, 'url'))}",
+            )
+        for problem in folder_problems(entry, path):
+            raise problem
+    for index, entry in enumerate(value["tables"]):
+        for problem in folder_problems(entry, ("tables", index)):
+            raise problem
 
 
 _BRANCHES = ("oneOf", "anyOf", "if", "then", "else")

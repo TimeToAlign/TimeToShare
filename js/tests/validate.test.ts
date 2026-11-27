@@ -230,6 +230,8 @@ const REJECTIONS = [
   "reserved_key_prefix_on_manifest",
   "reserved_key_statements_on_group",
   "reserved_key_term_on_timeline",
+  "resource_event_timeline_twice",
+  "resource_folder_size",
   "resource_integrity_algorithm_unknown",
   "resource_match_claim_twice",
   "resource_projection_twice",
@@ -751,6 +753,7 @@ describe("the shared rejection cases", () => {
       "flow_map_chunk",
       "flow_map_timeline",
       "flow_rule",
+      "folder_descriptor",
       "group_member",
       "groupstamp",
       "iri",
@@ -1492,10 +1495,55 @@ describe("the MatchStamp and resource rules", () => {
       "'anchor_1' is not unique in the manifest, first at #/graphical/matchstamps/0/alignment_anchors/0/id",
     resource_timeline_unknown: "'take_3' names no timeline or virtual timeline of this manifest",
     resource_match_claim_twice:
-      "a manifest names at most one resource of the type MatchClaim; 'resource_1' is one",
+      "'score' is listed by the resource 'resource_1' of the type MatchClaim already",
     resource_projection_twice:
-      "a manifest names at most one resource of the type Projection; 'resource_2' is one",
+      "'take_1' is listed by the resource 'resource_2' of the type Projection already",
+    resource_event_timeline_twice:
+      "'take_2' is listed by the resource 'resource_2' of the type Box already",
+    resource_folder_size: "'../tables/MatchClaim/' names a folder, which has no size",
   };
+
+  /** A resource case's manifest, read plainly so that it may be changed. */
+  const resourceCase = (name: string): JsonObject =>
+    plain(rejectionCase(name).manifest) as JsonObject;
+  const resources = (value: JsonObject): JsonObject[] => value.resources as JsonObject[];
+
+  it("admit resources of one type over disjoint timelines", () => {
+    const claims = resourceCase("resource_match_claim_twice");
+    (resources(claims)[1] as JsonObject).timelines = ["#take_2"];
+    expect(() => timetoshare.validate(claims)).not.toThrow();
+    const boxes = resourceCase("resource_event_timeline_twice");
+    resources(boxes).pop();
+    expect(() => timetoshare.validate(boxes)).not.toThrow();
+  });
+
+  it("admit one timeline listed by a resource of each of two types", () => {
+    const value = resourceCase("resource_match_claim_twice");
+    (resources(value)[1] as JsonObject).type = "Projection";
+    expect(() => timetoshare.validate(value)).not.toThrow();
+  });
+
+  it("refuse a folder with a size or an integrity, and admit a file with both", () => {
+    const value = resourceCase("resource_folder_size");
+    const resource = resources(value)[0] as JsonObject;
+    delete resource.size;
+    expect(() => timetoshare.validate(value)).not.toThrow();
+    resource.integrity = { algorithm: "SHA-256", digest: "00ff" };
+    let refusal: timetoshare.SchemaValidationError | undefined;
+    try {
+      timetoshare.validate(value);
+    } catch (error) {
+      refusal = error as timetoshare.SchemaValidationError;
+    }
+    expect([refusal?.code, refusal?.path, refusal?.detail]).toEqual([
+      "folder_descriptor",
+      ["resources", 0, "integrity"],
+      "'../tables/MatchClaim/' names a folder, which has no integrity",
+    ]);
+    resource.url = "match_claims.parquet";
+    resource.size = 1024;
+    expect(() => timetoshare.validate(value)).not.toThrow();
+  });
 
   it.each(Object.keys(MESSAGES).sort())("pin the message of %s", (name) => {
     const testCase = rejectionCase(name);

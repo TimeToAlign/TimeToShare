@@ -69,11 +69,12 @@ rejection cases that use them (`test_schema.py`):
   and `schema/` holds exactly the directory `0.2.0` with exactly that file.
   Every `$ref` is local (`#/$defs/<name>`) and names a definition; no node
   carries `$anchor`.
-- **The public definitions.** The definitions include the seventeen public
-  ones `Manifest`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
-  `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
-  `MeasureMap`, `MeasureMapRow`, `Context`, `Statements`, `StatementValue`
-  and `ProvenanceEntry`, and the root's
+- **The public definitions.** The definitions include the twenty-two
+  public ones `Manifest`, `Timeline`, `Group`, `Graphical`,
+  `ConversionMap`, `Coordinate`, `Number`, `Fraction`, `TimeUnit`,
+  `NumberType`, `Id`, `MeasureMap`, `MeasureMapRow`, `Descriptor`,
+  `Resource`, `Timestamp`, `MatchStamp`, `AlignmentAnchor`, `Context`,
+  `Statements`, `StatementValue` and `ProvenanceEntry`, and the root's
   description, which tells a host what it may refer to, names exactly
   these, in this order.
 - **The map types.** `ConversionMap` chooses between exactly the ten types
@@ -655,7 +656,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 256 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 258 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
@@ -1015,8 +1016,27 @@ named timestamps, in `validation/timestamps.py`. What proves them:
 | `matchstamp` | `matchstamp_not_connected` | `the alignment anchors of 'matchstamp_1' are not one connected set` |
 | `duplicate_id` | `alignment_anchor_id_repeated` | `'anchor_1' is not unique in the manifest, first at #/graphical/matchstamps/0/alignment_anchors/0/id` |
 | `resource_timeline` | `resource_timeline_unknown` | `'take_3' names no timeline or virtual timeline of this manifest` |
-| `resource_type` | `resource_match_claim_twice` | `a manifest names at most one resource of the type MatchClaim; 'resource_1' is one` |
-| `resource_type` | `resource_projection_twice` | `a manifest names at most one resource of the type Projection; 'resource_2' is one` |
+| `resource_type` | `resource_match_claim_twice` | `'score' is listed by the resource 'resource_1' of the type MatchClaim already` |
+| `resource_type` | `resource_projection_twice` | `'take_1' is listed by the resource 'resource_2' of the type Projection already` |
+| `resource_type` | `resource_event_timeline_twice` | `'take_2' is listed by the resource 'resource_2' of the type Box already` |
+| `folder_descriptor` | `resource_folder_size` | `'../tables/MatchClaim/' names a folder, which has no size` |
+
+  A timeline is listed by at most one resource of each type, for every
+  type, not only `MatchClaim` and `Projection`; several resources of one
+  type are admitted. Each refusal is reported at the later resource's
+  entry of `timelines` (`[resources, 1, timelines, 0]`), never at its
+  `type`. What proves the rule admits what it should: the case
+  `resource_match_claim_twice` with its second resource listing only
+  `#take_2` validates, two MatchClaim resources over disjoint timelines;
+  `resource_event_timeline_twice`, three `Box` resources of which the first
+  two list `take_1` and `take_2`, validates without its third; and
+  `resource_folder_size` validates without its `size`, a folder named
+  alone, and is refused again (`folder_descriptor`, `… which has no
+  integrity`, at `integrity`) with an `integrity` instead, while a file
+  (`match_claims.parquet`) with a `size` and an `integrity` validates. A
+  test that accepts a timeline listed twice by one type, or refuses one
+  listed once by each of two types (a timeline listed by a `MatchClaim`
+  and a `Projection` resource, as the table fixture's `clt_2` is), fails.
 
   `identity_problems` lists every problem in order: a match timestamp is a
   named timestamp first, so a groupstamp lying in no group is reported with
@@ -2802,6 +2822,28 @@ extraction's are without fontTools. What proves them:
   `alignment_anchors` gives the table with `(2, 2, null)` exactly the
   anchors and MatchClaim IDs of the table with `(1, 1, null)`. A test
   that refuses one of these cells, or reads it as another value, fails.
+- **The rows of other manifests are passed over.** A file may hold the
+  rows of several manifests of a package. Given a manifest, a MatchClaim
+  row neither of whose timelines the manifest holds, and a Projection whose
+  `timeline_id` it does not hold, is passed over: neither checked nor
+  reported. What proves it (`test_tables.py`): the inline tables with
+  three rows of foreign timelines (`dpt_8`, `dpt_9`) inserted before,
+  between and after their own rows, each foreign row breaking a rule (a
+  null `is_synchronous`, an ID repeating one of the manifest's rows, a
+  coordinate without unit, a certainty of 2; for the Projections a null
+  `start`, a repeated ID, a unit the row's number does not fit) give
+  against the manifest exactly the problems the inline tables give
+  (none), and without it the null of the first foreign row (row 0) as
+  before. A problem of a broken own row is reported at that row's index
+  in the table as given: an own MatchClaim's certainty of 2, row 1 alone,
+  is row 2 among the foreign rows, its message unchanged (`the certainty
+  2.0 lies outside [0, 1]`), and an own Projection's negative duration
+  among foreign Projections is row 4. A MatchClaim row with exactly one of its
+  timelines in the manifest is checked, its other side
+  `unknown_timeline`, the message unchanged (`the manifest has no
+  timeline 'dpt_9'`). The comparison with the reference
+  (`test_table_checks.py`) holds the rule on every mutated table: the
+  reference passes the same rows over, row by row.
 - **Against a manifest.** Given a manifest (as read from its file), every
   timeline a cell or a row names exists, a virtual timeline of the
   manifest included (a claim on `virtual_1` passes against the manifest
@@ -2936,6 +2978,138 @@ extraction's are without fontTools. What proves them:
   `projection_9` and `inserted_1` on `dpt_1`, the order in which a
   writer holding the Projections per timeline writes them, so that such a
   writer's file can equal the fixture's byte for byte.
+
+## Packages
+
+A package is a folder whose `package.yaml` lists its manifests and its
+tables; a table is a file, or a folder of files read as one table
+(`schema/0.2.0/package.schema.json`, `timetoshare.validate_package`,
+`timetoshare.tables.read_table`, `timetoshare.tables.package_problems`).
+What proves them (`test_packages.py`, needs pyarrow):
+
+- **The package schema is published beside the manifest schema.** Its
+  `$id` is `https://timetoalign.github.io/timetoshare/0.2.0/package.schema.json`;
+  it requires exactly `timetoshare`, `manifests` and `tables`, declares
+  `id`, `name` and `meta` beside them, and refers into the manifest
+  schema for `Descriptor`, `IriReference`, `Name` and `Meta`.
+  `load_package_schema()` equals `bundle_package_schema` of the file and
+  `load_schema()`: every reference local, its definitions exactly
+  `Table`, `Descriptor`, `Name`, `Meta` and `IriReference` in that order
+  (its own, then the manifest bundle's it reaches, in the bundle's order),
+  each reached definition the manifest bundle's own. A reference to
+  another document (`https://example.org/other.json`) is refused with
+  "reference 'https://example.org/other.json' leads to no definition of
+  the manifest schema", and a package definition of a name it reaches in
+  the manifest schema with "both schemas define 'Descriptor'".
+- **One `Descriptor`.** The manifest schema's `Descriptor` declares exactly
+  `url`, `media_type`, `size` and `integrity`, requiring `url`; `Resource`
+  is that descriptor (its one `allOf`) with `id`, `type` and `timelines`,
+  requiring those three, so a resource keeps its public shape, and the
+  package's `Table` is the descriptor with `type`. Every fixture with
+  resources still validates, so no resource lost or gained a member.
+- **`validate_package`.** The shared package's `package.yaml` validates,
+  and so does the smallest package, `{timetoshare: "0.2.0", manifests: [],
+  tables: []}`. Each refusal is exact, code, path and message: a value
+  without `timetoshare` (`not_a_package`, `[]`, `not a TimeToShare
+  package`, also for a list); another version (`UnsupportedVersionError`,
+  the manifest's message `unsupported TimeToShare version "0.1.0"; this
+  package reads 0.2.0 only`); no `tables` (`schema`, `[]`, `'tables' is a
+  required property`); a table without `type` (`schema`, `[tables, 0]`,
+  `'type' is a required property`); a negative `size` (`schema`,
+  `[manifests, 0, size]`, `-1 is less than the minimum of 0`); a manifest
+  listed twice (`duplicate_url`, `[manifests, 1, url]`, `the manifest
+  'a.yaml' is listed twice, first at #/manifests/0/url`); a folder with a
+  `size` (`folder_descriptor`, `[tables, 1, size]`, `'tables/Projection/'
+  names a folder, which has no size`), with an `integrity` alone (at
+  `integrity`, `… which has no integrity`), a folder among the manifests
+  with a `size` (at `[manifests, 0, size]`); a file with a `size` and an
+  `integrity` validates. The JavaScript suite holds `validatePackage` to
+  the same codes, paths and messages.
+- **`read_table` reads a folder as one table.** For each resource of the
+  two manifests of the shared package, `read_table` of the folder its URL
+  names, given the resource's `timelines`, returns exactly the rows
+  `expected.yaml` lists, compared as sorted IDs: Bach's MatchClaims
+  `claim_1`, `claim_2`, `claim_5` (`claim_5` written in the other
+  orientation, its first timeline Bach's performance), Handel's
+  `claim_3`, `claim_4`; Bach's Projections `projection_1`, `projection_2`,
+  `projection_7`, `projection_9`, Handel's `projection_3`, `projection_4`,
+  `projection_5`, `projection_6`, `projection_8` (the rows of its child
+  `clt_3` among them, from both files, one of them unsorted). Each table
+  read states its type alone in its metadata (`timetoshare:type`), and
+  passes the table check against its manifest. Every MatchClaim read holds
+  the file's provenance in its `provenance` cell, `{method: imported,
+  service: https://example.org/aligner, date: 2026-11-20}`, the other
+  members null, so no reader of a folder loses the provenance a file
+  shares. A MatchClaim with either timeline listed is kept: given
+  `["dpt_1"]` alone, Bach's MatchClaims are still `claim_1`, `claim_2`,
+  `claim_5`. Without `timelines` every row is read (five MatchClaims, nine
+  Projections), and given `[]` none. `table_files` of the Projections folder
+  is `part_a.parquet`, `part_b.parquet`; files named `.part_c.parquet`,
+  `_part_d.parquet`, `notes.txt` and a subfolder `sub/` holding
+  `part_e.parquet`, added in a copy, are passed over, and the copy reads
+  the same rows. A single file is read as itself.
+- **Reading refuses what cannot be one table.** Each refusal is a
+  `TableError` with its exact problem: two files of a folder in which one
+  column has two Arrow types (`column_type_mismatch`, column
+  `velocity`, `the column 'velocity' is int64 in 'part_a.parquet' and
+  string in 'part_b.parquet'`); a file stating another type than the
+  `type` given (`table_type`, `'part_a.parquet' holds the type Projection,
+  not MatchClaim`), two files stating two types (`'part_a.parquet' holds
+  the type Projection and 'part_b.parquet' the type MatchClaim`), a file
+  stating none without a `type` given (`the table names no type: no file
+  states 'timetoshare:type'`); a MatchClaim row stating its own
+  provenance beside the file's (`invalid_provenance`, row 0, `the
+  provenance is stated in the file's metadata and in the row`). A file
+  stating no type is read under the `type` given, and a column a file
+  lacks reads as null in its rows: the shared Projections with a further
+  column `velocity` in `part_a` alone read four nulls for `part_b`'s rows.
+  A path that is neither a file nor a folder raises `FileNotFoundError`.
+- **`package_problems`.** The shared package has none. Each package under
+  `fixtures/packages/0.2.0/rejections/` breaks one rule, and
+  `package_problems` of its `package.yaml` returns exactly the problems its
+  `expected.yaml` lists, in order, each as `{code, file, row, path,
+  message}`:
+
+| Case | Code | File, row, path |
+| --- | --- | --- |
+| `row_of_no_manifest` | `unknown_timeline` | `tables/Projection/part_b.parquet`, 4, `[timeline_id]` |
+| `projection_id_in_two_files` | `duplicate_id` | `tables/Projection/part_b.parquet`, 3, `[id]` |
+| `timeline_in_two_manifests` | `duplicate_timeline` | `handel/manifest.yaml`, null, `[timelines, 1, id]` |
+| `claim_across_manifests` | `claim_across_manifests` | `tables/MatchClaim/part_a.parquet`, 2, `[timeline_b_id]` |
+| `column_in_two_types` | `column_type_mismatch` | `tables/Projection/`, null, `[velocity]` |
+| `version_mismatch` | `version_mismatch` | `tables/Projection/part_b.parquet`, null, `[]` |
+| `resource_naming_no_table` | `unknown_table` | `bach/manifest.yaml`, null, `[resources, 2, url]` |
+| `folder_with_size` | `folder_descriptor` | `package.yaml`, null, `[tables, 1, size]` |
+| `timeline_unlisted` | `unlisted_timeline` | `tables/Projection/part_a.parquet`, 0, and `part_b.parquet`, 2, `[timeline_id]` |
+| `axis_mismatch` | `axis_mismatch` | `tables/Projection/part_b.parquet`, 1, `[unit]` |
+| `file_of_another_type` | `table_type` | `tables/Projection/part_b.parquet`, null, `[]` |
+
+  Each list is exact, so a problem reported twice (by a package rule and
+  again by a manifest's table check, as `axis_mismatch` and the
+  MatchClaim across two manifests would be) fails, as does one missed.
+  The cases prove the rules where a manifest's own check cannot see them:
+  the repeated Projection ID lies on two manifests' timelines, and each
+  manifest's check alone passes. Beside the fixtures, inline packages
+  built in `tmp_path` prove what the fixtures leave out: a missing
+  manifest (`missing_file`, `package.yaml`, `[manifests, 0, url]`, `no
+  manifest lies at 'gone.yaml' in the package`), a missing folder
+  (`missing_file`, `[tables, 0, url]`, `no folder lies at 'tables/Box/' in
+  the package`), a manifest of another version (`version_mismatch`, the
+  manifest, `[timetoshare]`, `the manifest declares the version '0.1.0',
+  the package '0.2.0'`), an invalid manifest (the validator's code and
+  path, `resource_timeline` at `[resources, 0, timelines, 0]`, in that
+  manifest's file), a MatchClaim ID twice in the folder of MatchClaims
+  (`duplicate_id`, `the MatchClaim ID 'claim_1' is given twice, first in
+  'tables/MatchClaim/part_a.parquet' at row 0`, once, though Bach's own
+  check would report it too), and an event ID shared by a Projection and a
+  row of another type (a `Box` file listing `projection_1`,
+  `duplicate_id` at the Box row): event IDs are unique across every type.
+- **The package check reads columns.** It finds its rules over the
+  columns `id`, `timeline_id`, `unit` and `number_type` (MatchClaims:
+  `id`, `timeline_a_id`, `timeline_b_id`) with `pyarrow.compute` and
+  joins, reading Python values only at the rows it reports; the cases
+  above pin its results, and a package of 20,000 Projections over two
+  manifests, two of them sharing one ID, gives exactly one `duplicate_id`.
 
 ## The table checks read columns, not rows
 
@@ -3096,7 +3270,8 @@ so a check that cannot fail would let a release publish documents whose
 path and proves both directions with `problems()`:
 
 - The repository's tree is sound: `published()` holds exactly
-  `0.2.0/catalogue.schema.json`, `0.2.0/provenance.schema.json`,
+  `0.2.0/catalogue.schema.json`, `0.2.0/package.schema.json`,
+  `0.2.0/provenance.schema.json`,
   `0.2.0/tables.json` and `0.2.0/timetoshare.schema.json`, each byte for
   byte its file, and `problems(published())` is `[]`; a small hand-written
   tree (a document whose `$ref` names a member of another, a
@@ -3126,6 +3301,7 @@ The test builds the sdist and the wheel with `uv build` twice (the wheel
 from the checkout, and from the sdist as the release does) and requires
 `timetoshare/docs/description.md`, `timetoshare/docs/drawing.md`,
 `timetoshare/schema/0.2.0/timetoshare.schema.json`,
+`timetoshare/schema/0.2.0/package.schema.json`,
 `timetoshare/schema/0.2.0/provenance.schema.json`,
 `timetoshare/schema/0.2.0/tables.json`,
 `timetoshare/catalogue/catalogue.yaml`,

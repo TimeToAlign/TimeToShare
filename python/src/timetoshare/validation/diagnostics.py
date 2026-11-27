@@ -21,6 +21,7 @@ InstancePath = tuple[str | int, ...]
 #: value breaks.
 ValidationCode: TypeAlias = Literal[
     "not_a_manifest",
+    "not_a_package",
     "schema",
     "representation",
     "duplicate_id",
@@ -54,6 +55,8 @@ ValidationCode: TypeAlias = Literal[
     "matchstamp",
     "resource_timeline",
     "resource_type",
+    "folder_descriptor",
+    "duplicate_url",
     "calendar_date",
     "finite_number",
     "context",

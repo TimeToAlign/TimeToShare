@@ -1,13 +1,15 @@
 """The table types of a TimeToShare package: MatchClaims and Projections.
 
-A package keeps its MatchClaims beside the manifest in one MatchClaim table
-(``match_claims.parquet``) and the events standing on a timeline for events
-held elsewhere in one Projections table (``projections.parquet``). This
+A manifest names its MatchClaims in a MatchClaim table (``match_claims.parquet``
+beside it, or a file or folder its package's manifests share) and the events
+standing on a timeline for events held elsewhere in a Projections table. This
 module declares their columns, read from the schema's ``tables.json``,
-checks a table (alone, or against the manifest's timelines), checks the
-succession rule between a table and the one written over it, and derives the
-AlignmentAnchors and potential MatchStamps of a MatchClaim table under the
-belief filter.
+reads a table, a file or a folder of files, keeping the rows of some
+timelines (``read_table``), checks a table (alone, or against a manifest's
+timelines, passing over the rows of other manifests), checks a package
+whole (``package_problems``), checks the succession rule between a table and
+the one written over it, and derives the AlignmentAnchors and potential
+MatchStamps of a MatchClaim table under the belief filter.
 
 It needs pyarrow: install the extra, ``pip install "timetoshare[tables]"``.
 """
@@ -68,8 +70,28 @@ from .columns import (
     number_cell,
     tables_path,
 )
+from .package import (
+    PACKAGE_FILE,
+    TYPE_METADATA_KEY,
+    VERSION_METADATA_KEY,
+    PackageCode,
+    PackageProblem,
+    package_fixture_path,
+    package_problems,
+    read_table,
+    table_files,
+)
 
 __all__ = [
+    "PACKAGE_FILE",
+    "TYPE_METADATA_KEY",
+    "VERSION_METADATA_KEY",
+    "PackageCode",
+    "PackageProblem",
+    "package_fixture_path",
+    "package_problems",
+    "read_table",
+    "table_files",
     "ANCHOR_TYPE",
     "BELIEF_KEYS",
     "BELIEF_TYPE",

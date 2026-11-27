@@ -230,6 +230,8 @@ REJECTIONS = [
     "reserved_key_prefix_on_manifest",
     "reserved_key_statements_on_group",
     "reserved_key_term_on_timeline",
+    "resource_event_timeline_twice",
+    "resource_folder_size",
     "resource_integrity_algorithm_unknown",
     "resource_match_claim_twice",
     "resource_projection_twice",
@@ -956,6 +958,7 @@ def test_rejections_cover_every_rule_code() -> None:
         "matchstamp",
         "resource_timeline",
         "resource_type",
+        "folder_descriptor",
         "belief_actor",
         "jump_destination",
         "jump_repeated",
@@ -1222,8 +1225,8 @@ def _worded_places(node: Any, pointer: str) -> list[str]:
 def test_the_worded_shapes_lie_where_the_cases_below_reach() -> None:
     element = "#/$defs/FlowControlElement"
     assert _worded_places(timetoshare.load_schema(), "#") == [
-        "#/$defs/Resource/properties/media_type/not",
-        "#/$defs/Resource/properties/integrity/properties/digest/not",
+        "#/$defs/Descriptor/properties/media_type/not",
+        "#/$defs/Descriptor/properties/integrity/properties/digest/not",
         "#/$defs/TimeUnit/oneOf",
         "#/$defs/Id/not",
         f"{element}/then/properties/manifestation/not",
@@ -1634,13 +1637,15 @@ MATCHSTAMP_MESSAGES = {
         "'take_3' names no timeline or virtual timeline of this manifest"
     ),
     "resource_match_claim_twice": (
-        "a manifest names at most one resource of the type MatchClaim; "
-        "'resource_1' is one"
+        "'score' is listed by the resource 'resource_1' of the type MatchClaim already"
     ),
     "resource_projection_twice": (
-        "a manifest names at most one resource of the type Projection; "
-        "'resource_2' is one"
+        "'take_1' is listed by the resource 'resource_2' of the type Projection already"
     ),
+    "resource_event_timeline_twice": (
+        "'take_2' is listed by the resource 'resource_2' of the type Box already"
+    ),
+    "resource_folder_size": "'../tables/MatchClaim/' names a folder, which has no size",
 }
 
 
@@ -1651,6 +1656,44 @@ def test_a_matchstamp_or_resource_case_pins_its_message(name: str) -> None:
     with pytest.raises(SchemaValidationError) as raised:
         timetoshare.validate(case.manifest)
     assert raised.value.message == MATCHSTAMP_MESSAGES[name]
+
+
+def _resource_case(name: str) -> dict:
+    (path,) = [path for path in rejection_paths() if path.stem == name]
+    return rejection_case(path).manifest
+
+
+def test_resources_of_one_type_over_disjoint_timelines_validate() -> None:
+    value = _resource_case("resource_match_claim_twice")
+    value["resources"][1]["timelines"] = ["#take_2"]
+    timetoshare.validate(value)
+    value = _resource_case("resource_event_timeline_twice")
+    del value["resources"][2]
+    timetoshare.validate(value)
+
+
+def test_a_timeline_listed_once_by_each_of_two_types_validates() -> None:
+    value = _resource_case("resource_match_claim_twice")
+    value["resources"][1]["type"] = "Projection"
+    timetoshare.validate(value)
+
+
+def test_a_folder_resource_names_no_size_or_integrity() -> None:
+    value = _resource_case("resource_folder_size")
+    resource = value["resources"][0]
+    del resource["size"]
+    timetoshare.validate(value)
+    resource["integrity"] = {"algorithm": "SHA-256", "digest": "00ff"}
+    with pytest.raises(SchemaValidationError) as raised:
+        timetoshare.validate(value)
+    assert (raised.value.code, raised.value.path, raised.value.message) == (
+        "folder_descriptor",
+        ("resources", 0, "integrity"),
+        "'../tables/MatchClaim/' names a folder, which has no integrity",
+    )
+    resource["url"] = "match_claims.parquet"
+    resource["size"] = 1024
+    timetoshare.validate(value)
 
 
 def test_the_matchstamp_rules_report_every_problem() -> None:

@@ -3,7 +3,9 @@
 The package's checks (``timetoshare.tables``) find their problems column by
 column; this module is the implementation they replaced, one row at a time,
 kept so that ``test_table_checks.py`` can compare the two on every table it
-builds. It changes where the format's rules change, and only there: its
+builds. It changes where the format's rules change, and only there: given
+a manifest, it passes over the rows naming none of the manifest's
+timelines, as a file shared by a package's manifests holds them; its
 rules of a MatchClaim's sides and anchors read the sentinels' reserved
 strings in the event ID columns (``CHUNK_SENTINEL`` on a synchronous row,
 ``NOMATCH_SENTINEL`` on one that is not), an ID that is a sentinel's
@@ -42,11 +44,45 @@ from timetoshare.tables.columns import (
     PROVENANCE_METADATA_KEY,
     coordinate_value,
 )
-from timetoshare.validation.diagnostics import number_type_of, timelines_by_id
+from timetoshare.validation.diagnostics import (
+    axes_by_id,
+    number_type_of,
+    timelines_by_id,
+)
 
 __all__ = ["match_claim_problems", "projection_problems", "succession_problems"]
 
 Column = tuple[str, ...]
+
+
+def _kept(
+    table: pa.Table, manifest: Mapping[str, Any] | None, columns: tuple[str, ...]
+) -> list[int] | None:
+    """The rows a manifest checks, one of ``columns`` naming a timeline or a
+    virtual timeline of it; ``None`` without a manifest or where every row is
+    checked."""
+    if manifest is None:
+        return None
+    timelines = axes_by_id(with_bare_ids(manifest))
+    values = [table.column(column).to_pylist() for column in columns]
+    kept = [
+        index
+        for index, row in enumerate(zip(*values, strict=True))
+        if any(value in timelines for value in row if value is not None)
+    ]
+    return None if len(kept) == len(table) else kept
+
+
+def _placed(problems: list[TableProblem], kept: list[int]) -> list[TableProblem]:
+    """The problems of the rows kept, each at its row's index in the table."""
+    return [
+        problem
+        if problem.row is None
+        else TableProblem(
+            problem.code, kept[problem.row], problem.column, problem.message
+        )
+        for problem in problems
+    ]
 
 
 class _Axes:
@@ -303,6 +339,9 @@ def match_claim_problems(
     problems = _schema_problems(table, MATCH_CLAIM_SCHEMA)
     if problems:
         return problems
+    kept = _kept(table, manifest, ("timeline_a_id", "timeline_b_id"))
+    if kept is not None:
+        return _placed(match_claim_problems(table.take(kept), manifest), kept)
     rows = _claim_rows(table)
     problems = [*_nulls(rows, MATCH_CLAIM_REQUIRED)]
     if problems:
@@ -343,6 +382,9 @@ def projection_problems(
     problems = _schema_problems(table, PROJECTION_SCHEMA)
     if problems:
         return problems
+    kept = _kept(table, manifest, ("timeline_id",))
+    if kept is not None:
+        return _placed(projection_problems(table.take(kept), manifest), kept)
     rows = table.select(list(PROJECTION_SCHEMA.names)).to_pylist()
     problems = [*_nulls(rows, PROJECTION_REQUIRED)]
     if problems:

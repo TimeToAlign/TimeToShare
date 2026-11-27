@@ -193,8 +193,12 @@ order by ID and `ANCHOR_DISPLAY` (`manifest.test.ts`, whose reversal walk
 reverses `resources`, `matchstamps`, `alignment_anchors` and an anchor's
 `display`); the defaults of a match timestamp and an anchor
 (`defaults.test.ts`, and the `then` and `else` arms in `schema.test.ts`);
-the eleven messages of its table and the one list of every problem
-(`validate.test.ts`, "the MatchStamp and resource rules"); the MatchStamps
+the thirteen messages of its table, the resources it admits (two
+resources of one type over disjoint timelines, one timeline listed by a
+resource of each of two types, a folder without `size` or `integrity`, a
+file with both) and the folder refused with an `integrity`, and the one
+list of every problem (`validate.test.ts`, "the MatchStamp and resource
+rules"); the MatchStamps
 alone (`validate.test.ts`, "the MatchStamps alone"): `matchstampProblems`
 gives, for each of the nine MatchStamp rejection cases, a first problem
 equal in code, path and message to the one `validate` throws, nothing for
@@ -308,7 +312,7 @@ replaced, at the selector's `element` and at an address's `part`
 
 ## Shared rejection cases
 
-Each of the 256 cases (`validate.test.ts`), found by its name whatever
+Each of the 258 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises
@@ -990,6 +994,31 @@ the same table:
 - `dumps(fontMetrics, { serialization: "json" })` reproduces the metrics file
   `fonts/dejavu-sans-2.37+noto-music-2.004.metrics.json`.
 
+## Packages
+
+The Python README's section "Packages" is proved here for what the npm
+package reads, `package.yaml`; it reads no tables (`package.test.ts`).
+`validatePackage` accepts the `package.yaml` of the shared package and of
+every rejected package under `fixtures/packages/0.2.0/` but
+`folder_with_size`, whose problem is the one its `expected.yaml` lists
+(`folder_descriptor`, `[tables, 1, size]`, `'tables/Projection/' names a
+folder, which has no size`), and `validate` accepts every manifest of
+those packages, so a package's faults beyond `package.yaml` stay the
+Python check's. Each inline refusal of the Python list is thrown here with
+the same code, path and message (`not_a_package` for a value without
+`timetoshare` and for a list, the schema's `'tables' is a required
+property` at the root, `'type' is a required property` at `[tables, 0]`,
+`-1 is less than the minimum of 0` at `[manifests, 0, size]`,
+`duplicate_url`, `folder_descriptor` at `size` and at `integrity`, and a
+folder among the manifests), another version throws
+`UnsupportedVersionError` with Python's message, and the smallest package
+and a file with a `size` and an `integrity` validate. The generated
+`packageSchema` is Python's `load_package_schema()`: its definitions are
+exactly `Table`, `Descriptor`, `Name`, `Meta` and `IriReference`, every
+reference local, each reached definition equal to the bundled manifest
+schema's, and `bundlePackageSchema` refuses a reference to another
+document and a definition of a name it reaches with Python's messages.
+
 ## Packaging
 
 After `scripts/copy-assets.ts`, the package directory's `docs/` holds
@@ -999,9 +1028,9 @@ and build, which a package must not carry: the copy step leaves it out, and
 `files` alone would not catch a copy step that brought it along), and
 `npm pack --dry-run --json` lists exactly these two under `docs/` (so
 `docs/conf.py` shipped fails),
-exactly the three schema documents
-`schema/0.2.0/provenance.schema.json`, `schema/0.2.0/tables.json` and
-`schema/0.2.0/timetoshare.schema.json`,
+exactly the four schema documents
+`schema/0.2.0/package.schema.json`, `schema/0.2.0/provenance.schema.json`,
+`schema/0.2.0/tables.json` and `schema/0.2.0/timetoshare.schema.json`,
 `catalogue/catalogue.yaml` and `catalogue/catalogue.schema.json` (and
 `package.json` exports `./catalogue/*`),
 `LICENSE` and

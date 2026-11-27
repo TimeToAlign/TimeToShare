@@ -1,0 +1,8 @@
+problems:
+  -
+    code: version_mismatch
+    file: tables/Projection/part_b.parquet
+    message: "the file declares the version '0.1.0', the package '0.2.0'"
+    path: []
+    row: null
+reason: "part_b declares the format version 0.1.0 in its metadata, the package 0.2.0."

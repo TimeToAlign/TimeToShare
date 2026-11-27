@@ -1,0 +1,8 @@
+problems:
+  -
+    code: unknown_table
+    file: bach/manifest.yaml
+    message: "the resource 'resource_3' names '../tables/Box/', which is no table of the type Box in the package"
+    path: [resources, 2, url]
+    row: null
+reason: "Bach's manifest names a folder of Box events that package.yaml does not list."

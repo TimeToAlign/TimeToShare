@@ -2,8 +2,8 @@
  * Named-timestamp, elision, MatchStamp and resource rules: the timeline a
  * timestamp names, its coordinate and whether it may be a groupstamp; the
  * timeline an elision names and its stretch; the alignment anchors of the
- * named MatchStamps and their match timestamps; the timelines and types of
- * the resources.
+ * named MatchStamps and their match timestamps; the timelines, types and
+ * folders of the resources.
  * Python's `timetoshare.validation.timestamps` checks the same rules with
  * the same messages.
  */
@@ -254,39 +254,70 @@ export function* matchstampProblems(manifest: JsonObject): Generator<SchemaValid
   }
 }
 
-/** The resource types a manifest names at most once. */
-export const ONE_RESOURCE_TYPES = ["MatchClaim", "Projection"] as const;
+/** The members of a descriptor that state a file's bytes, which a folder has not. */
+export const FOLDER_FILE_KEYS = ["size", "integrity"] as const;
+
+/**
+ * Yield the problem of a descriptor naming a folder (a `url` ending in `/`)
+ * with a `size` or an `integrity`: the first of the two it states, at that
+ * member.
+ */
+export function* folderProblems(
+  descriptor: JsonObject,
+  path: readonly PathSegment[],
+): Generator<SchemaValidationError> {
+  const url = descriptor.url;
+  if (typeof url !== "string" || !url.endsWith("/")) return;
+  for (const key of FOLDER_FILE_KEYS) {
+    if (Object.hasOwn(descriptor, key)) {
+      yield new SchemaValidationError(
+        "folder_descriptor",
+        [...path, key],
+        `'${url}' names a folder, which has no ${key}`,
+      );
+      return;
+    }
+  }
+}
 
 /**
  * Yield the problems of the resources.
  *
  * Resource by resource, each ID of its `timelines` names a timeline of the
- * manifest, at any depth, or a virtual timeline, and no earlier resource has
- * its type where that type is `MatchClaim` or `Projection`.
+ * manifest, at any depth, or a virtual timeline, and no earlier resource of
+ * its type lists it; then a folder has no `size` and no `integrity`.
  */
 export function* resourceProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const timelines = axesById(manifest);
-  const first = new Map<string, string>();
+  const first = new Map<string, Map<string, string>>();
   for (const [index, resource] of entries(manifest, "resources").entries()) {
     const path = ["resources", index];
-    for (const [number, id] of (resource.timelines as string[]).entries()) {
-      if (!timelines.has(id)) {
+    const kind = text(resource, "type");
+    const id = text(resource, "id");
+    let listed = first.get(kind);
+    if (listed === undefined) {
+      listed = new Map();
+      first.set(kind, listed);
+    }
+    for (const [number, timeline] of (resource.timelines as string[]).entries()) {
+      const at = [...path, "timelines", number];
+      if (!timelines.has(timeline)) {
         yield new SchemaValidationError(
           "resource_timeline",
-          [...path, "timelines", number],
-          `'${id}' names no timeline or virtual timeline of this manifest`,
+          at,
+          `'${timeline}' names no timeline or virtual timeline of this manifest`,
+        );
+      }
+      const earlier = listed.get(timeline);
+      if (earlier === undefined) listed.set(timeline, id);
+      else if (earlier !== id) {
+        yield new SchemaValidationError(
+          "resource_type",
+          at,
+          `'${timeline}' is listed by the resource '${earlier}' of the type ${kind} already`,
         );
       }
     }
-    const kind = text(resource, "type");
-    if (!(ONE_RESOURCE_TYPES as readonly string[]).includes(kind)) continue;
-    const earlier = first.get(kind);
-    if (earlier !== undefined) {
-      yield new SchemaValidationError(
-        "resource_type",
-        [...path, "type"],
-        `a manifest names at most one resource of the type ${kind}; '${earlier}' is one`,
-      );
-    } else first.set(kind, text(resource, "id"));
+    yield* folderProblems(resource, path);
   }
 }

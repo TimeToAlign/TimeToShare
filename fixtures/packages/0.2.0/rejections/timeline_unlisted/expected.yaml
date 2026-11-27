@@ -1,0 +1,14 @@
+problems:
+  -
+    code: unlisted_timeline
+    file: tables/Projection/part_a.parquet
+    message: "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no resource of the type Projection naming this table"
+    path: [timeline_id]
+    row: 0
+  -
+    code: unlisted_timeline
+    file: tables/Projection/part_b.parquet
+    message: "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no resource of the type Projection naming this table"
+    path: [timeline_id]
+    row: 2
+reason: "Handel's Projection resource no longer lists its child clt_3, whose rows the folder holds; a reader of the manifest would not find them."

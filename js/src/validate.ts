@@ -13,7 +13,7 @@
  */
 
 import { Ajv2020, type ErrorObject, type ValidateFunction } from "ajv/dist/2020.js";
-import { schema } from "./generated/schema.js";
+import { packageSchema, schema } from "./generated/schema.js";
 import type { LosslessManifest } from "./generated/types.js";
 import { FileIdError, lenientlyBareIds, withBareIds } from "./ids.js";
 import { isJsonObject, type JsonObject, plain } from "./json/value.js";
@@ -23,11 +23,13 @@ import { subjects } from "./statements/statements.js";
 import {
   comparePaths,
   duplicateProblem,
+  entries,
   jsonPointer,
   manifestIds,
   type PathSegment,
   SchemaValidationError,
   stringId,
+  text,
   timestampsOf,
 } from "./validate/diagnostics.js";
 import { earlierFormProblems, flowWarnings } from "./validate/flow.js";
@@ -35,7 +37,10 @@ import { identityProblems as semanticProblems } from "./validate/identity.js";
 import { finiteNumberProblems, representationProblems } from "./validate/representation.js";
 import { pythonSearch, schemaRefusal, toPath } from "./validate/schemaMessages.js";
 import { type ManifestWarning, statementRuleProblems, warningsOf } from "./validate/statements.js";
-import { matchstampProblems as matchstampRuleProblems } from "./validate/timestamps.js";
+import {
+  folderProblems,
+  matchstampProblems as matchstampRuleProblems,
+} from "./validate/timestamps.js";
 
 export type { JsonObject } from "./json/value.js";
 export { childEnds } from "./validate/containment.js";
@@ -388,6 +393,73 @@ function reject(instance: unknown, original: unknown): never {
     throw new SchemaValidationError("schema", [], "value is invalid");
   }
   throw new SchemaValidationError("schema", refusal.path, refusal.message);
+}
+
+const packageCheck = new Ajv2020(REPORTING).compile(packageSchema);
+const packageBranchChecks = new WeakMap<object, ValidateFunction>();
+
+/** Whether `data` passes `branch`, a schema of the package schema, as that schema checks it. */
+function passesPackage(branch: unknown, data: unknown): boolean {
+  if (typeof branch === "boolean") return branch;
+  if (typeof branch !== "object" || branch === null) return false;
+  let compiled = packageBranchChecks.get(branch);
+  if (compiled === undefined) {
+    const definitions = (packageSchema as Node).$defs;
+    compiled = new Ajv2020(OPTIONS).compile({ $defs: definitions, ...(branch as Node) });
+    packageBranchChecks.set(branch, compiled);
+  }
+  return compiled(data);
+}
+
+/**
+ * Check the value of a `package.yaml` and throw its first problem, as
+ * Python's `validate_package` does. The version marker first: a value
+ * without `timetoshare` is no package (`not_a_package`), another version
+ * throws `UnsupportedVersionError`. Then the package schema, its problem
+ * chosen by the one path rule (`schema`). Then, entry by entry, the
+ * manifests and then the tables: a manifest listed again under the same
+ * `url` (`duplicate_url`, at the later entry's `url`) and a folder, a `url`
+ * ending in `/`, with a `size` or an `integrity` (`folder_descriptor`, at
+ * that member, `size` first). What the manifests and the tables hold is the
+ * Python package's package check.
+ */
+export function validatePackage(value: unknown): void {
+  if (!isJsonObject(value) || !Object.hasOwn(value, "timetoshare")) {
+    throw new SchemaValidationError("not_a_package", [], "not a TimeToShare package");
+  }
+  if (value.timetoshare !== SCHEMA_VERSION) throw new UnsupportedVersionError(value.timetoshare);
+  const instance = plain(value);
+  if (!packageCheck(instance)) {
+    const refusal = schemaRefusal(
+      packageCheck.errors ?? [],
+      instance,
+      value,
+      packageCheck.schema,
+      passesPackage,
+    );
+    if (refusal === undefined) throw new SchemaValidationError("schema", [], "value is invalid");
+    throw new SchemaValidationError("schema", refusal.path, refusal.message);
+  }
+  const listed = new Map<string, number>();
+  for (const [index, entry] of entries(value, "manifests").entries()) {
+    const path = ["manifests", index];
+    const url = text(entry, "url");
+    const earlier = listed.get(url);
+    if (earlier !== undefined) {
+      throw new SchemaValidationError(
+        "duplicate_url",
+        [...path, "url"],
+        `the manifest '${url}' is listed twice, first at ${jsonPointer(["manifests", earlier, "url"])}`,
+      );
+    }
+    listed.set(url, index);
+    const folder = first(folderProblems(entry, path));
+    if (folder !== undefined) throw folder;
+  }
+  for (const [index, entry] of entries(value, "tables").entries()) {
+    const folder = first(folderProblems(entry, ["tables", index]));
+    if (folder !== undefined) throw folder;
+  }
 }
 
 /**
