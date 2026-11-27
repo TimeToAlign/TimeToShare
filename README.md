@@ -3519,6 +3519,16 @@ the same commit: the pre-commit `rev:`, the workflow's `@<ref>` and its
 `timetoshare-ref`. `pre-commit autoupdate` must not be used until then: it
 moves `rev:` to the latest tag, which has none of them.
 
+GitHub runs no workflow for a pull request opened with a workflow's own
+token, so the release pull request of this example shows no checks. Where
+release-please acts as a GitHub App instead (its token minted by
+`actions/create-github-app-token` and passed as the action's `token`), the
+checks run on it as on any other. The [dataset
+template](https://github.com/TimeToAlign/TimeToShare-dataset-template)
+carries such a release workflow, falling back to the workflow's token
+where no app is set up, and its README describes creating the app, adding
+repositories to it, and its secrets on GitHub's free plan.
+
 ## Fixtures
 
 The [fixture guide](fixtures/README.md) describes the generated manifests
