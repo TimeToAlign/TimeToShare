@@ -1,41 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="564.8335" height="168.0509" viewBox="0 0 564.8335 168.0509" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="564.8335" height="158.0509" viewBox="0 0 564.8335 158.0509" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="532.8335" height="136.0509" rx="10" fill="#F3F4F6"/>
+<rect x="0" y="0" width="532.8335" height="126.0509" rx="10" fill="#F3F4F6"/>
 <text data-part="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Switched card</text>
-<rect data-id="allegro" data-part="card" x="10" y="30.8047" width="514.8335" height="97.2463" rx="5" fill="#B8BEC8"/>
-<rect data-id="allegro" data-part="card" x="8" y="28.8047" width="514.8335" height="97.2463" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="volta_break" x1="206.1509" y1="79.2812" x2="206.1509" y2="36.8047" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
-<line data-id="volta_break" x1="296.0353" y1="79.2812" x2="296.0353" y2="36.8047" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
-<path data-id="allegro" data-facet="regions" data-part="0" d="M111.8335 56.8047Q111.8335 59.8047 114.8335 59.8047L153.7757 59.8047Q156.7757 59.8047 156.7757 62.8047Q156.7757 59.8047 159.7757 59.8047L198.718 59.8047Q201.718 59.8047 201.718 56.8047" fill="none" stroke="#000000" stroke-width="1"/>
-<path data-id="allegro" data-facet="regions" data-part="1" d="M201.718 56.8047Q201.718 59.8047 204.718 59.8047L200.9344 59.8047Q203.9344 59.8047 203.9344 62.8047Q203.9344 59.8047 206.9344 59.8047L203.1509 59.8047Q206.1509 59.8047 206.1509 56.8047" fill="none" stroke="#000000" stroke-width="1"/>
-<path data-id="allegro" data-facet="regions" data-part="2" d="M206.1509 56.8047Q206.1509 59.8047 209.1509 59.8047L248.0931 59.8047Q251.0931 59.8047 251.0931 62.8047Q251.0931 59.8047 254.0931 59.8047L293.0353 59.8047Q296.0353 59.8047 296.0353 56.8047" fill="none" stroke="#000000" stroke-width="1"/>
-<path data-id="allegro" data-facet="regions" data-part="3" d="M296.0353 56.8047Q296.0353 59.8047 299.0353 59.8047L400.9344 59.8047Q403.9344 59.8047 403.9344 62.8047Q403.9344 59.8047 406.9344 59.8047L508.8335 59.8047Q511.8335 59.8047 511.8335 56.8047" fill="none" stroke="#000000" stroke-width="1"/>
-<line data-id="volta_jump" data-part="fork" x1="193.718" y1="102.4883" x2="201.718" y2="102.4883" stroke="#000000" stroke-width="1"/>
-<line data-id="volta_jump" data-part="fork" x1="201.718" y1="102.4883" x2="215.718" y2="102.4883" stroke="#000000" stroke-width="1"/>
-<polygon data-id="volta_jump" data-part="fork" points="219.718,102.4883 215.718,100.4883 215.718,104.4883" fill="#000000"/>
-<line data-id="volta_jump" data-part="fork" x1="201.718" y1="102.4883" x2="213.1861" y2="110.5184" stroke="#000000" stroke-width="1"/>
-<polygon data-id="volta_jump" data-part="fork" points="216.4627,112.8127 214.3332,108.88 212.0389,112.1567" fill="#000000"/>
-<text data-id="volta_jump" data-part="fork" x="222.718" y="105.604" text-anchor="start" font-size="9" fill="#000000">1.</text>
-<text data-id="volta_jump" data-part="fork" x="219.4627" y="115.9284" text-anchor="start" font-size="9" fill="#000000">2.</text>
-<line data-id="volta_jump" data-part="fork" x1="288.0353" y1="102.4883" x2="296.0353" y2="102.4883" stroke="#000000" stroke-width="1"/>
-<line data-id="volta_jump" data-part="fork" x1="296.0353" y1="102.4883" x2="310.0353" y2="102.4883" stroke="#000000" stroke-width="1"/>
-<polygon data-id="volta_jump" data-part="fork" points="314.0353,102.4883 310.0353,100.4883 310.0353,104.4883" fill="#000000"/>
-<line data-id="volta_jump" data-part="fork" x1="296.0353" y1="102.4883" x2="307.5035" y2="110.5184" stroke="#000000" stroke-width="1"/>
-<polygon data-id="volta_jump" data-part="fork" points="310.7801,112.8127 308.6506,108.88 306.3563,112.1567" fill="#000000"/>
-<text data-id="volta_jump" data-part="fork" x="317.0353" y="105.604" text-anchor="start" font-size="9" fill="#000000">1.</text>
-<text data-id="volta_jump" data-part="fork" x="313.7801" y="115.9284" text-anchor="start" font-size="9" fill="#000000">2.</text>
-<line data-id="allegro" x1="111.8335" y1="44.8047" x2="511.8335" y2="44.8047" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="allegro" cx="111.8335" cy="44.8047" r="3" fill="#00CC00"/>
-<circle data-id="allegro" cx="511.8335" cy="44.8047" r="3" fill="#00CC00"/>
-<line data-id="allegro" data-facet="regions" data-part="1 start" x1="201.718" y1="36.8047" x2="201.718" y2="52.8047" stroke="#000000" stroke-width="1"/>
-<line data-id="allegro" data-facet="regions" data-part="2 start" x1="206.1509" y1="36.8047" x2="206.1509" y2="52.8047" stroke="#000000" stroke-width="1"/>
-<line data-id="allegro" data-facet="regions" data-part="3 start" x1="296.0353" y1="36.8047" x2="296.0353" y2="52.8047" stroke="#000000" stroke-width="1"/>
-<text data-id="allegro" data-part="name" x="16" y="48.6128" text-anchor="start" font-size="11" fill="#000000">Allegro · default</text>
-<text data-id="allegro" data-facet="regions" data-part="0 label" x="156.7757" y="73.1587" text-anchor="middle" font-size="9" fill="#000000">A</text>
-<text data-id="allegro" data-facet="regions" data-part="1 label" x="203.9344" y="73.1587" text-anchor="middle" font-size="9" fill="#000000">B</text>
-<text data-id="allegro" data-facet="regions" data-part="2 label" x="251.0931" y="73.1587" text-anchor="middle" font-size="9" fill="#000000">A</text>
-<text data-id="allegro" data-facet="regions" data-part="3 label" x="403.9344" y="73.1587" text-anchor="middle" font-size="9" fill="#000000">C</text>
-<text data-id="repeat_end" data-part="symbol" x="206.1509" y="92.4199" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
-<text data-id="repeat_end" data-part="symbol" x="296.0353" y="92.4199" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
+<rect data-id="allegro" data-part="card" x="10" y="30.8047" width="514.8335" height="87.2463" rx="5" fill="#B8BEC8"/>
+<rect data-id="allegro" data-part="card" x="8" y="28.8047" width="514.8335" height="87.2463" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="volta_break" x1="206.1509" y1="69.2812" x2="206.1509" y2="36.8047" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
+<line data-id="volta_break" x1="296.0353" y1="69.2812" x2="296.0353" y2="36.8047" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
+<line data-id="volta_jump" data-part="fork" x1="193.718" y1="92.4883" x2="201.718" y2="92.4883" stroke="#000000" stroke-width="1"/>
+<line data-id="volta_jump" data-part="fork" x1="201.718" y1="92.4883" x2="215.718" y2="92.4883" stroke="#000000" stroke-width="1"/>
+<polygon data-id="volta_jump" data-part="fork" points="219.718,92.4883 215.718,90.4883 215.718,94.4883" fill="#000000"/>
+<line data-id="volta_jump" data-part="fork" x1="201.718" y1="92.4883" x2="213.1861" y2="100.5184" stroke="#000000" stroke-width="1"/>
+<polygon data-id="volta_jump" data-part="fork" points="216.4627,102.8127 214.3332,98.88 212.0389,102.1567" fill="#000000"/>
+<text data-id="volta_jump" data-part="fork" x="222.718" y="95.604" text-anchor="start" font-size="9" fill="#000000">1.</text>
+<text data-id="volta_jump" data-part="fork" x="219.4627" y="105.9284" text-anchor="start" font-size="9" fill="#000000">2.</text>
+<line data-id="volta_jump" data-part="fork" x1="288.0353" y1="92.4883" x2="296.0353" y2="92.4883" stroke="#000000" stroke-width="1"/>
+<line data-id="volta_jump" data-part="fork" x1="296.0353" y1="92.4883" x2="310.0353" y2="92.4883" stroke="#000000" stroke-width="1"/>
+<polygon data-id="volta_jump" data-part="fork" points="314.0353,92.4883 310.0353,90.4883 310.0353,94.4883" fill="#000000"/>
+<line data-id="volta_jump" data-part="fork" x1="296.0353" y1="92.4883" x2="307.5035" y2="100.5184" stroke="#000000" stroke-width="1"/>
+<polygon data-id="volta_jump" data-part="fork" points="310.7801,102.8127 308.6506,98.88 306.3563,102.1567" fill="#000000"/>
+<text data-id="volta_jump" data-part="fork" x="317.0353" y="95.604" text-anchor="start" font-size="9" fill="#000000">1.</text>
+<text data-id="volta_jump" data-part="fork" x="313.7801" y="105.9284" text-anchor="start" font-size="9" fill="#000000">2.</text>
+<line data-id="allegro" x1="111.8335" y1="57.2812" x2="511.8335" y2="57.2812" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="allegro" cx="111.8335" cy="57.2812" r="3" fill="#00CC00"/>
+<circle data-id="allegro" cx="511.8335" cy="57.2812" r="3" fill="#00CC00"/>
+<line data-id="allegro" data-part="1 start" x1="201.718" y1="49.2812" x2="201.718" y2="65.2812" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro" data-part="2 start" x1="206.1509" y1="49.2812" x2="206.1509" y2="65.2812" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro" data-part="3 start" x1="296.0353" y1="49.2812" x2="296.0353" y2="65.2812" stroke="#000000" stroke-width="1"/>
+<text data-id="allegro" data-part="name" x="16" y="61.0894" text-anchor="start" font-size="11" fill="#000000">Allegro · default</text>
+<text data-id="allegro" data-part="0 label" x="156.7757" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">A</text>
+<text data-id="allegro" data-part="1 label" x="203.9344" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">B</text>
+<text data-id="allegro" data-part="2 label" x="251.0931" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">A</text>
+<text data-id="allegro" data-part="3 label" x="403.9344" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">C</text>
+<text data-id="repeat_end" data-part="symbol" x="206.1509" y="82.4199" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
+<text data-id="repeat_end" data-part="symbol" x="296.0353" y="82.4199" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
 </g>
 </svg>

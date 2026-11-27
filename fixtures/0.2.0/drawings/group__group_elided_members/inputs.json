@@ -1,5 +1,18 @@
 {
-  "layers": [],
+  "layers": [
+    {
+      "rules": [
+        {
+          "select": {
+            "element": "ancestor_card"
+          },
+          "set": {
+            "elision-mode": "auto"
+          }
+        }
+      ]
+    }
+  ],
   "manifest": "groups/group_elided_members.yaml",
   "placement": {
     "height": null,

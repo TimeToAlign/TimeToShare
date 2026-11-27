@@ -1,57 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="671.3354" height="313.7853" viewBox="0 0 671.3354 313.7853" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="671.3354" height="303.7853" viewBox="0 0 671.3354 303.7853" font-family="DejaVu Sans, Noto Music" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="639.3354" height="281.7853" rx="10" fill="#F3F4F6"/>
-<rect data-id="performance" x="8" y="8" width="621.3354" height="163.6367" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<rect x="0" y="0" width="639.3354" height="271.7853" rx="10" fill="#F3F4F6"/>
+<rect data-id="performance" x="8" y="8" width="621.3354" height="153.6367" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-id="performance" data-part="name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Performance</text>
-<rect data-id="allegro_default" data-part="card" x="18" y="34.8047" width="605.3354" height="73.4531" rx="5" fill="#B8BEC8"/>
-<rect data-id="allegro_default" data-part="card" x="16" y="32.8047" width="605.3354" height="73.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<path data-id="allegro_default" data-facet="regions" data-part="0" d="M189.6577 79.7812Q189.6577 82.7812 192.6577 82.7812L231.5999 82.7812Q234.5999 82.7812 234.5999 85.7812Q234.5999 82.7812 237.5999 82.7812L276.5422 82.7812Q279.5422 82.7812 279.5422 79.7812" fill="none" stroke="#000000" stroke-width="1"/>
-<path data-id="allegro_default" data-facet="regions" data-part="1" d="M279.5422 79.7812Q279.5422 82.7812 282.5422 82.7812L278.7586 82.7812Q281.7586 82.7812 281.7586 85.7812Q281.7586 82.7812 284.7586 82.7812L280.9751 82.7812Q283.9751 82.7812 283.9751 79.7812" fill="none" stroke="#000000" stroke-width="1"/>
-<path data-id="allegro_default" data-facet="regions" data-part="2" d="M283.9751 79.7812Q283.9751 82.7812 286.9751 82.7812L325.9173 82.7812Q328.9173 82.7812 328.9173 85.7812Q328.9173 82.7812 331.9173 82.7812L370.8596 82.7812Q373.8596 82.7812 373.8596 79.7812" fill="none" stroke="#000000" stroke-width="1"/>
-<path data-id="allegro_default" data-facet="regions" data-part="3" d="M373.8596 79.7812Q373.8596 82.7812 376.8596 82.7812L478.7586 82.7812Q481.7586 82.7812 481.7586 85.7812Q481.7586 82.7812 484.7586 82.7812L586.6577 82.7812Q589.6577 82.7812 589.6577 79.7812" fill="none" stroke="#000000" stroke-width="1"/>
-<line data-id="allegro_default" x1="189.6577" y1="48.8047" x2="589.6577" y2="48.8047" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="allegro_default" cx="189.6577" cy="48.8047" r="3" fill="#00CC00"/>
-<circle data-id="allegro_default" cx="589.6577" cy="48.8047" r="3" fill="#00CC00"/>
-<line data-id="allegro_default" data-facet="regions" data-part="1 start" x1="279.5422" y1="40.8047" x2="279.5422" y2="56.8047" stroke="#000000" stroke-width="1"/>
-<line data-id="allegro_default" data-facet="regions" data-part="2 start" x1="283.9751" y1="40.8047" x2="283.9751" y2="56.8047" stroke="#000000" stroke-width="1"/>
-<line data-id="allegro_default" data-facet="regions" data-part="3 start" x1="373.8596" y1="40.8047" x2="373.8596" y2="56.8047" stroke="#000000" stroke-width="1"/>
-<polygon data-id="timestamp_3" points="189.6577,50.3047 186.6577,63.3047 192.6577,63.3047" fill="#000000"/>
-<polygon data-id="timestamp_4" points="589.6577,50.3047 586.6577,63.3047 592.6577,63.3047" fill="#000000"/>
-<text data-id="allegro_default" data-part="name" x="24" y="52.6128" text-anchor="start" font-size="11" fill="#000000">Allegro, default · unfolded …</text>
-<text data-id="timestamp_3" data-part="coordinate" x="189.6577" y="73.6587" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="timestamp_4" data-part="coordinate" x="589.6577" y="73.6587" text-anchor="middle" font-size="9" fill="#000000">2120 1/2 ♩</text>
-<text data-id="allegro_default" data-facet="regions" data-part="0 label" x="234.5999" y="96.1353" text-anchor="middle" font-size="9" fill="#000000">A</text>
-<text data-id="allegro_default" data-facet="regions" data-part="1 label" x="281.7586" y="96.1353" text-anchor="middle" font-size="9" fill="#000000">B</text>
-<text data-id="allegro_default" data-facet="regions" data-part="2 label" x="328.9173" y="96.1353" text-anchor="middle" font-size="9" fill="#000000">A</text>
-<text data-id="allegro_default" data-facet="regions" data-part="3 label" x="481.7586" y="96.1353" text-anchor="middle" font-size="9" fill="#000000">C</text>
-<rect data-id="recording" data-part="card" x="18" y="116.2578" width="605.3354" height="49.3789" rx="5" fill="#B8BEC8"/>
-<rect data-id="recording" data-part="card" x="16" y="114.2578" width="605.3354" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="recording" x1="189.6577" y1="128.6602" x2="589.6577" y2="128.6602" stroke="#0050EF" stroke-width="3"/>
-<circle data-id="recording" cx="189.6577" cy="128.6602" r="3" fill="#0050EF"/>
-<polygon data-id="recording" points="598.6577,128.6602 589.6577,124.1602 589.6577,133.1602" fill="#0050EF"/>
-<polygon data-id="timestamp_5" points="189.6577,130.1602 186.6577,143.1602 192.6577,143.1602" fill="#000000"/>
-<polygon data-id="timestamp_6" points="589.6577,130.1602 586.6577,143.1602 592.6577,143.1602" fill="#000000"/>
-<text data-id="recording" data-part="name" x="24" y="132.4683" text-anchor="start" font-size="11" fill="#000000">Recording</text>
-<text data-id="timestamp_5" data-part="coordinate" x="189.6577" y="153.5142" text-anchor="middle" font-size="9" fill="#000000">0″</text>
-<text data-id="timestamp_6" data-part="coordinate" x="589.6577" y="153.5142" text-anchor="middle" font-size="9" fill="#000000">11′42.5″</text>
-<rect data-id="allegro" data-part="card" x="10" y="181.6367" width="621.3354" height="92.1486" rx="5" fill="#B8BEC8"/>
-<rect data-id="allegro" data-part="card" x="8" y="179.6367" width="621.3354" height="92.1486" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-id="volta_break" x1="311.3122" y1="225.0156" x2="311.3122" y2="187.6367" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
-<line data-id="volta_jump" data-part="fork" x1="297.5945" y1="248.2227" x2="305.5945" y2="248.2227" stroke="#000000" stroke-width="1"/>
-<line data-id="volta_jump" data-part="fork" x1="305.5945" y1="248.2227" x2="319.5945" y2="248.2227" stroke="#000000" stroke-width="1"/>
-<polygon data-id="volta_jump" data-part="fork" points="323.5945,248.2227 319.5945,246.2227 319.5945,250.2227" fill="#000000"/>
-<line data-id="volta_jump" data-part="fork" x1="305.5945" y1="248.2227" x2="317.0626" y2="256.2527" stroke="#000000" stroke-width="1"/>
-<polygon data-id="volta_jump" data-part="fork" points="320.3392,258.547 318.2097,254.6144 315.9154,257.891" fill="#000000"/>
-<text data-id="volta_jump" data-part="fork" x="326.5945" y="251.3384" text-anchor="start" font-size="9" fill="#000000">1.</text>
-<text data-id="volta_jump" data-part="fork" x="323.3392" y="261.6628" text-anchor="start" font-size="9" fill="#000000">2.</text>
-<line data-id="allegro" x1="189.6577" y1="194.0391" x2="589.6577" y2="194.0391" stroke="#00CC00" stroke-width="3"/>
-<circle data-id="allegro" cx="189.6577" cy="194.0391" r="3" fill="#00CC00"/>
-<polygon data-id="allegro" points="598.6577,194.0391 589.6577,189.5391 589.6577,198.5391" fill="#00CC00"/>
-<polygon data-id="timestamp_1" points="189.6577,195.5391 186.6577,208.5391 192.6577,208.5391" fill="#000000"/>
-<polygon data-id="timestamp_2" points="589.6577,195.5391 586.6577,208.5391 592.6577,208.5391" fill="#000000"/>
-<text data-id="allegro" data-part="name" x="24" y="197.8472" text-anchor="start" font-size="11" fill="#000000">Allegro</text>
-<text data-id="timestamp_1" data-part="coordinate" x="189.6577" y="218.8931" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-id="timestamp_2" data-part="coordinate" x="589.6577" y="218.8931" text-anchor="middle" font-size="9" fill="#000000">1644 ♩</text>
-<text data-id="repeat_end" data-part="symbol" x="311.3122" y="238.1543" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
+<rect data-id="allegro_default" data-part="card" x="18" y="34.8047" width="605.3354" height="63.4531" rx="5" fill="#B8BEC8"/>
+<rect data-id="allegro_default" data-part="card" x="16" y="32.8047" width="605.3354" height="63.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="allegro_default" x1="189.6577" y1="61.2812" x2="589.6577" y2="61.2812" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="allegro_default" cx="189.6577" cy="61.2812" r="3" fill="#00CC00"/>
+<circle data-id="allegro_default" cx="589.6577" cy="61.2812" r="3" fill="#00CC00"/>
+<line data-id="allegro_default" data-part="1 start" x1="279.5422" y1="53.2812" x2="279.5422" y2="69.2812" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro_default" data-part="2 start" x1="283.9751" y1="53.2812" x2="283.9751" y2="69.2812" stroke="#000000" stroke-width="1"/>
+<line data-id="allegro_default" data-part="3 start" x1="373.8596" y1="53.2812" x2="373.8596" y2="69.2812" stroke="#000000" stroke-width="1"/>
+<polygon data-id="timestamp_3" points="189.6577,62.7812 186.6577,75.7812 192.6577,75.7812" fill="#000000"/>
+<polygon data-id="timestamp_4" points="589.6577,62.7812 586.6577,75.7812 592.6577,75.7812" fill="#000000"/>
+<text data-id="allegro_default" data-part="name" x="24" y="65.0894" text-anchor="start" font-size="11" fill="#000000">Allegro, default · unfolded …</text>
+<text data-id="timestamp_3" data-part="coordinate" x="189.6577" y="86.1353" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_4" data-part="coordinate" x="589.6577" y="86.1353" text-anchor="middle" font-size="9" fill="#000000">2120 1/2 ♩</text>
+<text data-id="allegro_default" data-part="0 label" x="234.5999" y="49.1587" text-anchor="middle" font-size="9" fill="#000000">A</text>
+<text data-id="allegro_default" data-part="1 label" x="281.7586" y="49.1587" text-anchor="middle" font-size="9" fill="#000000">B</text>
+<text data-id="allegro_default" data-part="2 label" x="328.9173" y="49.1587" text-anchor="middle" font-size="9" fill="#000000">A</text>
+<text data-id="allegro_default" data-part="3 label" x="481.7586" y="49.1587" text-anchor="middle" font-size="9" fill="#000000">C</text>
+<rect data-id="recording" data-part="card" x="18" y="106.2578" width="605.3354" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-id="recording" data-part="card" x="16" y="104.2578" width="605.3354" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="recording" x1="189.6577" y1="118.6602" x2="589.6577" y2="118.6602" stroke="#0050EF" stroke-width="3"/>
+<circle data-id="recording" cx="189.6577" cy="118.6602" r="3" fill="#0050EF"/>
+<polygon data-id="recording" points="598.6577,118.6602 589.6577,114.1602 589.6577,123.1602" fill="#0050EF"/>
+<polygon data-id="timestamp_5" points="189.6577,120.1602 186.6577,133.1602 192.6577,133.1602" fill="#000000"/>
+<polygon data-id="timestamp_6" points="589.6577,120.1602 586.6577,133.1602 592.6577,133.1602" fill="#000000"/>
+<text data-id="recording" data-part="name" x="24" y="122.4683" text-anchor="start" font-size="11" fill="#000000">Recording</text>
+<text data-id="timestamp_5" data-part="coordinate" x="189.6577" y="143.5142" text-anchor="middle" font-size="9" fill="#000000">0″</text>
+<text data-id="timestamp_6" data-part="coordinate" x="589.6577" y="143.5142" text-anchor="middle" font-size="9" fill="#000000">11′42.5″</text>
+<rect data-id="allegro" data-part="card" x="10" y="171.6367" width="621.3354" height="92.1486" rx="5" fill="#B8BEC8"/>
+<rect data-id="allegro" data-part="card" x="8" y="169.6367" width="621.3354" height="92.1486" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-id="volta_break" x1="311.3122" y1="215.0156" x2="311.3122" y2="177.6367" stroke="#D62728" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
+<line data-id="volta_jump" data-part="fork" x1="297.5945" y1="238.2227" x2="305.5945" y2="238.2227" stroke="#000000" stroke-width="1"/>
+<line data-id="volta_jump" data-part="fork" x1="305.5945" y1="238.2227" x2="319.5945" y2="238.2227" stroke="#000000" stroke-width="1"/>
+<polygon data-id="volta_jump" data-part="fork" points="323.5945,238.2227 319.5945,236.2227 319.5945,240.2227" fill="#000000"/>
+<line data-id="volta_jump" data-part="fork" x1="305.5945" y1="238.2227" x2="317.0626" y2="246.2527" stroke="#000000" stroke-width="1"/>
+<polygon data-id="volta_jump" data-part="fork" points="320.3392,248.547 318.2097,244.6144 315.9154,247.891" fill="#000000"/>
+<text data-id="volta_jump" data-part="fork" x="326.5945" y="241.3384" text-anchor="start" font-size="9" fill="#000000">1.</text>
+<text data-id="volta_jump" data-part="fork" x="323.3392" y="251.6628" text-anchor="start" font-size="9" fill="#000000">2.</text>
+<line data-id="allegro" x1="189.6577" y1="184.0391" x2="589.6577" y2="184.0391" stroke="#00CC00" stroke-width="3"/>
+<circle data-id="allegro" cx="189.6577" cy="184.0391" r="3" fill="#00CC00"/>
+<polygon data-id="allegro" points="598.6577,184.0391 589.6577,179.5391 589.6577,188.5391" fill="#00CC00"/>
+<polygon data-id="timestamp_1" points="189.6577,185.5391 186.6577,198.5391 192.6577,198.5391" fill="#000000"/>
+<polygon data-id="timestamp_2" points="589.6577,185.5391 586.6577,198.5391 592.6577,198.5391" fill="#000000"/>
+<text data-id="allegro" data-part="name" x="24" y="187.8472" text-anchor="start" font-size="11" fill="#000000">Allegro</text>
+<text data-id="timestamp_1" data-part="coordinate" x="189.6577" y="208.8931" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-id="timestamp_2" data-part="coordinate" x="589.6577" y="208.8931" text-anchor="middle" font-size="9" fill="#000000">1644 ♩</text>
+<text data-id="repeat_end" data-part="symbol" x="311.3122" y="228.1543" text-anchor="middle" font-size="12" fill="#000000">𝄇</text>
 </g>
 </svg>

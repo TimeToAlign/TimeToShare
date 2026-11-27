@@ -4,6 +4,14 @@
       "rules": [
         {
           "select": {
+            "element": "ancestor_card"
+          },
+          "set": {
+            "elision-mode": "auto"
+          }
+        },
+        {
+          "select": {
             "addresses": [
               {
                 "id": "group_1"
