@@ -1,0 +1,9 @@
+findings:
+  -
+    id: proj_1
+    kind: edited_row
+    step: minor
+refused: false
+scope: score
+step: minor
+undetermined: false

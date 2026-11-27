@@ -227,7 +227,10 @@ def suggest_trailer(report: StepReport) -> str:
 
 def _change_kind(finding: Finding) -> str | None:
     """The kind of change a finding makes, one of ``_CHANGE_KINDS``; ``None``
-    for a refused or undetermined finding."""
+    for a refused or undetermined finding. A registry row newly vanished is
+    an edit of its row."""
+    if finding.kind == "vanished_row":
+        return "edited"
     if finding.step in ("major", "minor"):
         return next(
             kind

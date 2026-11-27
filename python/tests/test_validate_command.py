@@ -251,11 +251,20 @@ def test_the_hooks_of_the_repository() -> None:
             "files": r"\.(ya?ml|json)$",
             "verbose": True,
         },
+        {
+            "id": "timetoshare-registry",
+            "entry": "timetoshare registry --check",
+            "stages": ["pre-commit"],
+            "always_run": True,
+            "files": None,
+            "verbose": None,
+        },
     ]
     for hook in manifest:
         assert {key: hook[key] for key in common} == common
-        assert hook["pass_filenames"] is True
+        filenames = hook["id"] != "timetoshare-registry"
+        assert hook["pass_filenames"] is filenames
         command, *arguments = hook["entry"].split()
         assert command == "timetoshare"
-        parsed = _parser().parse_args([*arguments, "MSGFILE"])
-        assert parsed.run.__name__ in ("_prepare", "_check", "_validate")
+        parsed = _parser().parse_args([*arguments, *(["MSGFILE"] if filenames else [])])
+        assert parsed.run.__name__ in ("_prepare", "_check", "_validate", "_registry")

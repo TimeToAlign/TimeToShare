@@ -1,0 +1,9 @@
+findings:
+  -
+    id: note_3
+    kind: added_row
+    step: minor
+refused: false
+scope: score
+step: minor
+undetermined: false

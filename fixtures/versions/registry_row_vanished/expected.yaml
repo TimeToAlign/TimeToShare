@@ -1,0 +1,9 @@
+findings:
+  -
+    id: note_2
+    kind: vanished_row
+    step: minor
+refused: false
+scope: score
+step: minor
+undetermined: false

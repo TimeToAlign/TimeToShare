@@ -3940,8 +3940,9 @@ prints nothing) and files of other extensions, and prints each path
 relative to that directory.
 
 **The hooks of the repository.** `.pre-commit-hooks.yaml` at the
-repository root is read and compared, hook by hook, with the three hooks
-the README's configuration names: `timetoshare-commit-type`
+repository root is read and compared, hook by hook, with the hooks the
+README's configuration names (the fourth, `timetoshare-registry`, is held
+in "The registry" below): `timetoshare-commit-type`
 (`prepare-commit-msg`), `timetoshare-commit-check` (`commit-msg`) and
 `timetoshare-validate` (`pre-commit`, files `\.(ya?ml|json)$`,
 `verbose: true` so that warnings show; the two others not verbose), each
@@ -3955,3 +3956,129 @@ fixtures/0.2.0/bare.yaml`, which installs the root distribution and
 the two commit hooks are checked by hand, `pre-commit try-repo <checkout>
 <hook id> --hook-stage <stage>` in a git repository holding a manifest.
 
+
+## The registry: index rows, resolving, the registry command and version steps
+
+A package's registry holds one row per resolvable ID: the **event rows**
+(an event's position on the axis of its timeline's root, its extraction,
+its locator) and the **index rows** of everything else with an ID (each
+element of each manifest, each MatchClaim, each Extraction), which are
+derived and rebuilt from their sources. `timetoshare.tables.registry`
+builds and checks the index rows and resolves an ID; `timetoshare registry`
+rewrites or checks them; the version step compares the event rows and the
+pre-parsed Projection rows. `test_registry.py` proves the first three and
+`test_version_step.py` the last; both need pyarrow. Each test builds its
+package in its temporary directory: the manifests written with `dumps`,
+`package.yaml`, and the Parquet files written directly in the columns the
+format declares for the registry, the Extraction table and the pre-parsed
+Projection table (literal rows in the test, never through the module under
+test), so a test cannot pass by agreeing with itself.
+
+**The index rows.** The test package holds two manifests, `bach/manifest.yaml`
+and `handel/manifest.yaml`, both holding a timeline `shared` (the IDs of
+elements repeat across manifests) and between them every kind of element:
+the manifest's own ID, a root and a child timeline, a region and a
+flow-control element on a timeline, a conversion map with a nested map, a
+group, a MeasureMap, a resource of each kind, a FlowMap and a virtual
+timeline, a named timestamp, an elision, a named MatchStamp with an
+alignment anchor; a MatchClaim folder of two files and an Extraction
+table. `index_rows` gives exactly the literal table of the test, in the
+registry's columns and order: one row per element (its `kind` the
+schema's definition name, `location` its manifest's URL as `package.yaml`
+lists it, `timeline_id` the holding timeline of a region or flow-control
+element and the `timeline` of a named timestamp or elision, null for every
+other kind, `name` the element's name or null), one per MatchClaim
+(`location` the MatchClaim entry's URL) and one per Extraction (the
+Extraction entry's URL), every other column null, sorted by `location`
+then `id` by code point. A manifest that does not validate gives no rows.
+
+**Writing the index.** With a registry folder (`registry/`, the index
+part beside two extraction parts), `write_index` writes `index.parquet`
+holding exactly `index_rows`, with the file metadata `timetoshare:type`
+`Registry` and `timetoshare:version` `0.2.0`; the two extraction parts are
+byte for byte as before, and no file starting with `.` is left in the
+folder. A missing folder is created. With a single-file registry holding
+two event rows and a stale index row, the file afterwards holds the fresh
+index rows followed by the two event rows, cell for cell. An event row
+that was written into `index.parquet` is kept there too: no rewrite drops
+a row it does not own. A package whose `package.yaml` lists no Registry
+table is refused with `package.yaml lists no table of the type Registry`.
+
+**The stale index.** `stale_index` of a freshly written package is empty.
+Then each difference gives one problem, code `stale_index`, file the
+index part (`registry/index.parquet`), held to the exact message: a region
+added to a manifest after the write (missing: row null, path `["id"]`,
+"the index lacks the ID 'region_9' at 'bach/manifest.yaml'"), a group
+removed (extra: its row in the part, "the index holds the ID 'pair' at
+'bach/manifest.yaml', which no manifest or table holds there"), a
+timeline renamed (differing: path `["name"]`, "the index row of the ID
+'score' at 'bach/manifest.yaml' has the name 'Score', not 'Partitur'"),
+and a MatchClaim added to the MatchClaim folder (missing, at the MatchClaim
+entry's URL). The problems are in this order: the index part's rows in
+their order (extra or differing), then the missing rows by location and
+ID. Without an index part every index row is missing. Only `kind`,
+`timeline_id` and `name` are compared: the other columns of an index row
+are null by the format.
+
+**Resolving.** `resolve(path, id)` always returns a list. Through the
+package root: an event ID gives its one registry row (`kind`, `location`,
+the row as a dictionary, `manifest` null); the ID of the timeline
+`shared`, held by both manifests, gives two resolutions, one per manifest,
+each with its manifest; a MatchClaim's and an Extraction's ID give their
+index rows; an unknown ID gives `[]`. Through a manifest file: the
+element with the ID first, with its index row, then the registry rows that
+belong to the manifest: an event row whose timeline the manifest's
+Registry resource lists (an event on a timeline it does not list is not
+found through it), a MatchClaim row of a table its MatchClaim resources
+name, an Extraction row named by one of its event rows (an Extraction only
+the other manifest's events name is not found). Every resolution through
+a manifest names that manifest. A written `#id` is read as the bare ID
+(`#shared` and `shared` give the same list). A
+manifest without a Registry resource resolves its own elements with the
+row null and nothing else.
+
+**The command and the hook.** `timetoshare registry PACKAGE` writes the
+index part and prints `wrote registry/index.parquet`,
+exit 0; without PACKAGE it takes the current directory. `--check` on the
+fresh package prints nothing and exits 0, writes nothing (the part's bytes
+unchanged); after a region is added it prints one line per problem,
+`<file>: row <row>: stale_index: <message>` (`<file>: stale_index:
+<message>` for a missing row, which has none), and exits 1, still writing nothing. A folder without
+`package.yaml` exits 1 with one line on standard error starting
+`timetoshare:`. `.pre-commit-hooks.yaml` holds the hook
+`timetoshare-registry`: entry `timetoshare registry --check`, stage
+`pre-commit`, `pass_filenames: false`, `always_run: true`, the language
+and dependency of the other hooks; its entry parses as the command.
+
+**Version steps over the registry.** Hand-authored cases under
+`fixtures/versions/`, each an `old/` and a `new/` package (`package.yaml`,
+the manifest `score.yaml`, a registry folder of an index part and one
+extraction part, an Extraction table, a pre-parsed Projection table), the
+`new/` one edit of the one `old/`:
+
+| Case | Change | Findings |
+| --- | --- | --- |
+| `registry_row_removed` | the event `note_2` removed from its extraction part | `removed_row`, major |
+| `registry_row_added` | an event `note_3` added | `added_row`, minor |
+| `registry_projection_moved` | the start of the Projection `proj_1` moved | `edited_row`, minor |
+| `registry_row_vanished` | `vanished_in` of `note_2` set | `vanished_row`, minor |
+| `registry_index_only` | the timeline `score` renamed, its index row rewritten | `label`, patch (the manifest's finding alone) |
+| `projection_row_edited` | the `projection_of` of `proj_1` edited in the pre-parsed table | `edited_row`, minor |
+| `projection_row_removed` | `proj_1` removed from the registry and the pre-parsed table | `removed_row` twice, major |
+
+Every finding lies at the manifest whose Registry resource lists the
+row's timeline (`score.yaml`, scope `score`). The cases' manifests
+validate and their index parts are not stale (`stale_index` empty).
+Inline: an event row whose timeline no manifest's Registry resource lists
+lies at `package.yaml`; with two manifests listing one timeline, a removed
+row is reported at both; a vanished row's detail names the extraction
+(`row note_2 of registry/, vanished in the extraction ext_2`); without
+pyarrow a changed registry is `changed_table`, undetermined, at the
+`package.yaml` listing it, and the step does not rise. `git_step` reads
+the registry folder and the pre-parsed Projection table from git, the
+latter reached through the registry's rows alone (its `package.yaml`
+entry taken out), and gives each case's `expected.yaml` for the staged
+change of `registry_row_removed` and `projection_row_edited`.
+The suggested commit type follows the step (`remove(score)!: ` for the
+removed row, `feat(score): ` for an added, moved, vanished or edited one;
+a vanished row counts as an edit) and no case gives a hint.

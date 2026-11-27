@@ -1,0 +1,13 @@
+resources:
+  -
+    id: "#registry"
+    timelines: ["#score"]
+    type: Registry
+    url: registry/
+timelines:
+  -
+    id: "#score"
+    length: [8, 1]
+    name: Score
+    unit: quarters
+timetoshare: "0.2.0"

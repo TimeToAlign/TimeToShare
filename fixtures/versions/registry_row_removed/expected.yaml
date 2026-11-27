@@ -1,0 +1,9 @@
+findings:
+  -
+    id: note_2
+    kind: removed_row
+    step: major
+refused: false
+scope: score
+step: major
+undetermined: false

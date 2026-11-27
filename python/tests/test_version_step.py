@@ -122,7 +122,14 @@ def test_the_cases_cover_the_table() -> None:
         "prefix_added",
         "prefix_iri_edited",
         "prefix_removed",
+        "projection_row_edited",
+        "projection_row_removed",
         "region_added",
+        "registry_index_only",
+        "registry_projection_moved",
+        "registry_row_added",
+        "registry_row_removed",
+        "registry_row_vanished",
         "resource_moved",
         "resource_removed",
         "timeline_removed",
@@ -137,8 +144,10 @@ def test_the_cases_cover_the_table() -> None:
 CASE_MANIFESTS = sorted(
     path
     for path in VERSIONS.rglob("*")
-    if path.suffix in (".yaml", ".json") and path.name != "expected.yaml"
+    if path.suffix in (".yaml", ".json")
+    and path.name not in ("expected.yaml", "package.yaml")
 )
+PACKAGES = sorted(path.parent for path in VERSIONS.rglob("package.yaml"))
 
 
 @pytest.mark.parametrize(
@@ -146,6 +155,16 @@ CASE_MANIFESTS = sorted(
 )
 def test_every_case_manifest_validates(path: Path) -> None:
     assert validate(loads(path.read_text(encoding="utf-8"))) is None
+
+
+@pytest.mark.parametrize(
+    "root", PACKAGES, ids=lambda path: path.relative_to(VERSIONS).as_posix()
+)
+def test_every_case_package_has_a_fresh_index(root: Path) -> None:
+    pytest.importorskip("pyarrow")
+    from timetoshare.tables.registry import stale_index
+
+    assert stale_index(root) == []
 
 
 def tempo(manifest: dict[str, Any]) -> dict[str, Any]:
@@ -426,6 +445,103 @@ def test_a_table_of_another_type_is_undetermined(tmp_path: Path) -> None:
     )
 
 
+# Registries ----------------------------------------------------------------
+
+
+def registry_case(tmp_path: Path, case: str) -> tuple[Path, Path]:
+    """A copy of a registry case's two packages."""
+    old, new = tmp_path / "old", tmp_path / "new"
+    shutil.copytree(VERSIONS / case / "old", old)
+    shutil.copytree(VERSIONS / case / "new", new)
+    return old, new
+
+
+def listing(root: Path, name: str, timelines: list[str]) -> None:
+    """Write a manifest holding the timeline score whose Registry resource
+    lists ``timelines``."""
+    manifest = loads((root / "score.yaml").read_text(encoding="utf-8"))
+    manifest["resources"][0]["timelines"] = timelines
+    write(root / name, manifest)
+
+
+def test_a_row_listed_by_no_manifest_lies_at_the_package(tmp_path: Path) -> None:
+    pytest.importorskip("pyarrow")
+    old, new = registry_case(tmp_path, "registry_row_removed")
+    for root in (old, new):
+        listing(root, "score.yaml", [])
+    assert tree_step(old, new).findings == (
+        Finding(
+            "removed_row", "major", "package.yaml", "note_2", "row note_2 of registry/"
+        ),
+    )
+
+
+def test_a_row_two_manifests_list_lies_at_both(tmp_path: Path) -> None:
+    pytest.importorskip("pyarrow")
+    old, new = registry_case(tmp_path, "registry_row_removed")
+    for root in (old, new):
+        listing(root, "other.yaml", ["#score"])
+    assert tree_step(old, new).findings == (
+        Finding(
+            "removed_row", "major", "other.yaml", "note_2", "row note_2 of registry/"
+        ),
+        Finding(
+            "removed_row", "major", "score.yaml", "note_2", "row note_2 of registry/"
+        ),
+    )
+
+
+def test_a_vanished_row_names_the_extraction(tmp_path: Path) -> None:
+    pytest.importorskip("pyarrow")
+    case = VERSIONS / "registry_row_vanished"
+    assert tree_step(case / "old", case / "new").findings == (
+        Finding(
+            "vanished_row",
+            "minor",
+            "score.yaml",
+            "note_2",
+            "row note_2 of registry/, vanished in the extraction ext_2",
+        ),
+    )
+
+
+def test_without_pyarrow_a_changed_registry_is_undetermined(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    old, new = registry_case(tmp_path, "registry_row_removed")
+    monkeypatch.setitem(sys.modules, "pyarrow.parquet", None)
+    report = tree_step(old, new)
+    assert report.findings == (
+        Finding(
+            "changed_table",
+            "undetermined",
+            "package.yaml",
+            None,
+            "registry/ changed; comparing its rows needs pyarrow: pip install "
+            '"timetoshare[tables]"',
+        ),
+    )
+    assert (report.step, report.undetermined) == ("none", True)
+
+
+@pytest.mark.parametrize(
+    ("case", "header"),
+    [
+        ("registry_row_removed", "remove(score)!: "),
+        ("registry_row_added", "feat(score): "),
+        ("registry_projection_moved", "feat(score): "),
+        ("registry_row_vanished", "feat(score): "),
+        ("projection_row_edited", "feat(score): "),
+    ],
+)
+def test_the_commit_type_of_a_registry_change(case: str, header: str) -> None:
+    pytest.importorskip("pyarrow")
+    from timetoshare.commit_types import suggest_header, suggest_hints
+
+    report = tree_step(VERSIONS / case / "old", VERSIONS / case / "new")
+    assert (suggest_header(report), suggest_hints(report)) == (header, [])
+
+
 # Git -----------------------------------------------------------------------
 
 
@@ -523,6 +639,29 @@ def test_only_manifests_and_their_tables_are_read_from_git(
     assert [(f.kind, f.step, f.id) for f in report.findings] == [
         ("changed_table", "undetermined", "recording")
     ]
+
+
+def test_a_registry_and_its_tables_are_read_from_git(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pytest.importorskip("pyarrow")
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
+    for case in ("registry_row_removed", "projection_row_edited"):
+        repo = tmp_path / case
+        repo.mkdir()
+        git(repo, "init", "--quiet")
+        shutil.copytree(VERSIONS / case / "old", repo, dirs_exist_ok=True)
+        # The pre-parsed table is reached through the registry's rows alone.
+        package = loads((repo / "package.yaml").read_text(encoding="utf-8"))
+        package["tables"] = [t for t in package["tables"] if t["type"] != "Projection"]
+        write(repo / "package.yaml", package)
+        git(repo, "add", ".")
+        git(repo, "commit", "--quiet", "-m", "first")
+        for part in ("registry/ext_1.parquet", "tables/Projection/part.parquet"):
+            shutil.copy(VERSIONS / case / "new" / part, repo / part)
+        git(repo, "add", ".")
+        expected = loads((VERSIONS / case / "expected.yaml").read_text())
+        assert summary(git_step("HEAD", None, repo)) == expected
 
 
 def test_a_table_is_read_through_the_filters_of_its_path(

@@ -22,6 +22,14 @@ release allows a lower step than the change requires. On any other
 ``HEAD`` it reports the same comparison and passes. ``--summary FILE``
 appends the report to FILE as Markdown, the job summary of a workflow.
 
+``timetoshare registry [--check] [PACKAGE]`` rewrites the index rows of
+the registry of the package PACKAGE (a folder holding ``package.yaml``, the
+current directory without it) from its manifests, MatchClaim tables and
+Extraction table, the event rows untouched; with ``--check`` it writes
+nothing and lists every index row that is missing, extra or differs, one
+line each, exiting 1 when there is one: the check of the pre-commit hook
+``timetoshare-registry``.
+
 ``timetoshare hook prepare-commit-msg MSGFILE [SOURCE [SHA]]`` writes the
 commit type of a minor or a major step in front of a message without one,
 and suggests one for a patch; a message that already has a type gets no
@@ -368,6 +376,28 @@ def _validate(arguments: argparse.Namespace) -> int:
     return 1 if refused else 0
 
 
+def _registry(arguments: argparse.Namespace) -> int:
+    try:
+        from .tables.registry import stale_index, write_index
+    except ImportError as error:
+        print(f"timetoshare: {error}", file=sys.stderr)
+        return 1
+    root = Path(arguments.package)
+    try:
+        if not arguments.check:
+            written = write_index(root)
+            print(f"wrote {written.relative_to(root).as_posix()}")
+            return 0
+        problems = stale_index(root)
+    except (OSError, ValueError) as error:
+        print(f"timetoshare: {error}", file=sys.stderr)
+        return 1
+    for problem in problems:
+        at = "" if problem.row is None else f" row {problem.row}:"
+        print(f"{problem.file}:{at} {problem.code}: {problem.message}")
+    return 1 if problems else 0
+
+
 def _git(*args: str) -> str | None:
     """The output of a git command in the current directory; ``None`` on failure."""
     return _git_in(Path.cwd(), *args)
@@ -542,6 +572,23 @@ def _parser() -> argparse.ArgumentParser:
         "since or of another type (git references only)",
     )
     step.set_defaults(run=_step)
+    registry = commands.add_parser(
+        "registry", help="rewrite or check the index rows of a package's registry"
+    )
+    registry.add_argument(
+        "package",
+        metavar="PACKAGE",
+        nargs="?",
+        default=".",
+        help="a folder holding package.yaml (default: .)",
+    )
+    registry.add_argument(
+        "--check",
+        action="store_true",
+        help="write nothing; list every index row that is missing, extra or "
+        "differs, and fail if there is one",
+    )
+    registry.set_defaults(run=_registry)
     check_release = commands.add_parser(
         "release-check",
         help="check the release a dataset repository's HEAD makes, or report the "

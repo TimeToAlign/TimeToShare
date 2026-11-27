@@ -1,0 +1,780 @@
+"""The registry: index rows, resolving an ID, the registry command and its hook.
+
+The strategy is the README's section "The registry: index rows, resolving,
+the registry command and version steps".
+"""
+
+from __future__ import annotations
+
+import copy
+import shutil
+from pathlib import Path
+from typing import Any
+
+import pytest
+import yaml
+
+pa = pytest.importorskip("pyarrow")
+pq = pytest.importorskip("pyarrow.parquet")
+
+from timetoshare import dumps, with_file_ids  # noqa: E402
+from timetoshare.cli import _parser, main  # noqa: E402
+from timetoshare.tables import PackageProblem  # noqa: E402
+from timetoshare.tables.registry import (  # noqa: E402
+    Resolution,
+    index_rows,
+    resolve,
+    stale_index,
+    write_index,
+)
+
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+
+NUMBER = pa.struct(
+    [("numerator", pa.int64()), ("denominator", pa.int64()), ("value", pa.float64())]
+)
+REGISTRY = pa.schema(
+    [
+        ("id", pa.string()),
+        ("kind", pa.string()),
+        ("location", pa.string()),
+        ("timeline_id", pa.string()),
+        ("unit", pa.string()),
+        ("number_type", pa.string()),
+        ("start", NUMBER),
+        ("duration", NUMBER),
+        ("name", pa.string()),
+        ("extraction_id", pa.string()),
+        ("locator", pa.string()),
+        ("vanished_in", pa.string()),
+    ]
+)
+"""The registry's columns as the format declares them."""
+
+EXTRACTION = pa.schema(
+    [
+        ("id", pa.string()),
+        ("source", pa.string()),
+        (
+            "source_integrity",
+            pa.struct([("algorithm", pa.string()), ("digest", pa.string())]),
+        ),
+        ("parser", pa.string()),
+        ("parser_version", pa.string()),
+        ("parameters", pa.string()),
+        ("minter", pa.string()),
+        ("id_length", pa.int64()),
+        ("seed", pa.string()),
+        ("date", pa.string()),
+    ]
+)
+PROJECTION = pa.schema(
+    [
+        ("id", pa.string()),
+        (
+            "projection_of",
+            pa.struct([("timeline_id", pa.string()), ("event_id", pa.string())]),
+        ),
+    ]
+)
+CLAIMS = pa.schema(
+    [
+        ("id", pa.string()),
+        ("timeline_a_id", pa.string()),
+        ("timeline_b_id", pa.string()),
+    ]
+)
+
+BACH = "bach/manifest.yaml"
+HANDEL = "handel/manifest.yaml"
+
+
+def bach() -> dict[str, Any]:
+    """Bach's manifest, IDs bare: an element of every kind."""
+    return {
+        "timetoshare": "0.2.0",
+        "id": "bach",
+        "name": "Bach",
+        "timelines": [
+            {
+                "id": "score",
+                "name": "Score",
+                "unit": "quarters",
+                "length": [8, 1],
+                "children": [
+                    {
+                        "id": "movement",
+                        "unit": "quarters",
+                        "length": [4, 1],
+                        "offset": [4, 1],
+                    }
+                ],
+                "regions": [
+                    {"id": "region_1", "name": "A", "start": [0, 1], "end": [4, 1]}
+                ],
+                "flow_control": [
+                    {
+                        "id": "fine",
+                        "coordinate": [6, 1],
+                        "role": "break",
+                        "manifestation": "fine",
+                    }
+                ],
+                "conversion_maps": [
+                    {
+                        "id": "tempo_chain",
+                        "type": "ChainMap",
+                        "source_unit": "quarters",
+                        "target_unit": "seconds",
+                        "maps": [
+                            {
+                                "id": "tempo",
+                                "type": "LinearMap",
+                                "scalar": [1, 2],
+                                "offset": 0,
+                                "source_unit": "quarters",
+                                "target_unit": "seconds",
+                            }
+                        ],
+                    }
+                ],
+            },
+            {"id": "shared", "unit": "seconds", "length": 10.0},
+        ],
+        "groups": [{"id": "pair", "members": ["score", "shared"]}],
+        "measure_maps": [
+            {
+                "id": "bars",
+                "rows": [
+                    {
+                        "actual_length": [4, 1],
+                        "count": 2,
+                        "nominal_length": [4, 1],
+                        "number": 1,
+                        "qstamp": [0, 1],
+                        "time_signature": "4/4",
+                    }
+                ],
+            }
+        ],
+        "resources": [
+            {
+                "id": "registry",
+                "type": "Registry",
+                "url": "../registry/",
+                "timelines": ["score", "movement", "shared"],
+            },
+            {
+                "id": "claims",
+                "type": "MatchClaim",
+                "url": "../tables/MatchClaim/",
+                "timelines": ["score", "shared"],
+            },
+        ],
+        "flow_maps": [{"id": "reading", "timeline": "score", "chunks": ["region_1"]}],
+        "virtual_timelines": [
+            {
+                "id": "score_read",
+                "map": "reading",
+                "timeline": "score",
+                "unit": "quarters",
+                "number_type": "fraction",
+                "length": [4, 1],
+            }
+        ],
+        "graphical": {
+            "timestamps": [
+                {
+                    "id": "ts_1",
+                    "name": "start",
+                    "timeline": "score",
+                    "coordinate": [0, 1],
+                },
+                {
+                    "id": "ts_m1",
+                    "timeline": "score",
+                    "coordinate": [4, 1],
+                    "matchstamp": True,
+                },
+                {
+                    "id": "ts_m2",
+                    "timeline": "shared",
+                    "coordinate": 2.0,
+                    "matchstamp": True,
+                },
+            ],
+            "elisions": [
+                {"id": "elision_1", "timeline": "score", "start": [5, 1], "end": [6, 1]}
+            ],
+            "matchstamps": [
+                {
+                    "id": "ms_1",
+                    "name": "Bar 1",
+                    "match_claims": ["claim_1"],
+                    "alignment_anchors": [
+                        {"id": "anchor_1", "timestamps": ["ts_m1", "ts_m2"]}
+                    ],
+                }
+            ],
+        },
+    }
+
+
+def handel() -> dict[str, Any]:
+    return {
+        "timetoshare": "0.2.0",
+        "timelines": [
+            {"id": "shared", "unit": "seconds", "length": 10.0},
+            {"id": "aria", "unit": "quarters", "length": [4, 1]},
+        ],
+        "resources": [
+            {
+                "id": "handel_registry",
+                "type": "Registry",
+                "url": "../registry/",
+                "timelines": ["shared", "aria"],
+            }
+        ],
+    }
+
+
+def number(numerator: int | None, denominator: int | None, value: float | None):
+    return {"numerator": numerator, "denominator": denominator, "value": value}
+
+
+def event(
+    id: str,
+    kind: str,
+    timeline: str,
+    unit: str,
+    number_type: str,
+    start: dict,
+    extraction: str,
+    location: str | None = None,
+    locator: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "id": id,
+        "kind": kind,
+        "location": location,
+        "timeline_id": timeline,
+        "unit": unit,
+        "number_type": number_type,
+        "start": start,
+        "duration": None,
+        "name": None,
+        "extraction_id": extraction,
+        "locator": locator,
+        "vanished_in": None,
+    }
+
+
+NOTE_1 = event(
+    "note_1",
+    "MidiNote",
+    "score",
+    "quarters",
+    "fraction",
+    number(1, 2, None),
+    "ext_1",
+    locator="track 0 message 3",
+)
+PROJ_1 = event(
+    "proj_1",
+    "Projection",
+    "shared",
+    "seconds",
+    "float",
+    number(None, None, 1.5),
+    "ext_1",
+    location="tables/Projection/",
+)
+NOTE_2 = event(
+    "note_2",
+    "MidiNote",
+    "aria",
+    "quarters",
+    "fraction",
+    number(1, 1, None),
+    "ext_2",
+    locator="track 1 message 0",
+)
+
+
+def extraction(id: str, source: str) -> dict[str, Any]:
+    return {
+        "id": id,
+        "source": source,
+        "source_integrity": {"algorithm": "SHA-256", "digest": "00" * 32},
+        "parser": "mido",
+        "parser_version": "1.3.3",
+        "parameters": None,
+        "minter": "1",
+        "id_length": 8,
+        "seed": None,
+        "date": "2026-11-27T00:00:00Z",
+    }
+
+
+def parquet(path: Path, rows: list[dict], schema: Any, kind: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    table = pa.Table.from_pylist(rows, schema=schema).replace_schema_metadata(
+        {"timetoshare:type": kind, "timetoshare:version": "0.2.0"}
+    )
+    pq.write_table(table, path)
+
+
+def manifest(root: Path, url: str, value: dict[str, Any]) -> None:
+    path = root / url
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(dumps(with_file_ids(value)), encoding="utf-8")
+
+
+def package(root: Path, registry: str = "registry/") -> Path:
+    """The test package, its index part not yet written."""
+    manifest(root, BACH, bach())
+    manifest(root, HANDEL, handel())
+    (root / "package.yaml").write_text(
+        dumps(
+            {
+                "timetoshare": "0.2.0",
+                "manifests": [{"url": BACH}, {"url": HANDEL}],
+                "tables": [
+                    {"type": "Registry", "url": registry},
+                    {"type": "Extraction", "url": "extractions.parquet"},
+                    {"type": "MatchClaim", "url": "tables/MatchClaim/"},
+                    {"type": "Projection", "url": "tables/Projection/"},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    if registry.endswith("/"):
+        parquet(
+            root / registry / "ext_1.parquet", [NOTE_1, PROJ_1], REGISTRY, "Registry"
+        )
+        parquet(root / registry / "ext_2.parquet", [NOTE_2], REGISTRY, "Registry")
+    parquet(
+        root / "extractions.parquet",
+        [extraction("ext_1", "bach/take.mid"), extraction("ext_2", "handel/aria.mid")],
+        EXTRACTION,
+        "Extraction",
+    )
+    parquet(
+        root / "tables/MatchClaim/a.parquet",
+        [{"id": "claim_1", "timeline_a_id": "score", "timeline_b_id": "shared"}],
+        CLAIMS,
+        "MatchClaim",
+    )
+    parquet(
+        root / "tables/MatchClaim/b.parquet",
+        [{"id": "claim_2", "timeline_a_id": "shared", "timeline_b_id": "score"}],
+        CLAIMS,
+        "MatchClaim",
+    )
+    parquet(
+        root / "tables/Projection/part.parquet",
+        [
+            {
+                "id": "proj_1",
+                "projection_of": {"timeline_id": "score", "event_id": "note_1"},
+            }
+        ],
+        PROJECTION,
+        "Projection",
+    )
+    return root
+
+
+def row(id: str, kind: str, location: str, timeline=None, name=None) -> dict:
+    return {
+        "id": id,
+        "kind": kind,
+        "location": location,
+        "timeline_id": timeline,
+        "unit": None,
+        "number_type": None,
+        "start": None,
+        "duration": None,
+        "name": name,
+        "extraction_id": None,
+        "locator": None,
+        "vanished_in": None,
+    }
+
+
+INDEX = [
+    row("anchor_1", "AlignmentAnchor", BACH),
+    row("bach", "Manifest", BACH, name="Bach"),
+    row("bars", "MeasureMap", BACH),
+    row("claims", "Resource", BACH),
+    row("elision_1", "Elision", BACH, "score"),
+    row("fine", "FlowControlElement", BACH, "score"),
+    row("movement", "Timeline", BACH),
+    row("ms_1", "MatchStamp", BACH, name="Bar 1"),
+    row("pair", "Group", BACH),
+    row("reading", "FlowMap", BACH),
+    row("region_1", "Region", BACH, "score", "A"),
+    row("registry", "Resource", BACH),
+    row("score", "Timeline", BACH, name="Score"),
+    row("score_read", "VirtualTimeline", BACH),
+    row("shared", "Timeline", BACH),
+    row("tempo", "ConversionMap", BACH),
+    row("tempo_chain", "ConversionMap", BACH),
+    row("ts_1", "Timestamp", BACH, "score", "start"),
+    row("ts_m1", "Timestamp", BACH, "score"),
+    row("ts_m2", "Timestamp", BACH, "shared"),
+    row("ext_1", "Extraction", "extractions.parquet"),
+    row("ext_2", "Extraction", "extractions.parquet"),
+    row("aria", "Timeline", HANDEL),
+    row("handel_registry", "Resource", HANDEL),
+    row("shared", "Timeline", HANDEL),
+    row("claim_1", "MatchClaim", "tables/MatchClaim/"),
+    row("claim_2", "MatchClaim", "tables/MatchClaim/"),
+]
+"""The index rows of the test package, by hand."""
+
+
+def index_of(rows: list[dict], id: str, location: str = BACH) -> dict:
+    (found,) = [r for r in rows if r["id"] == id and r["location"] == location]
+    return found
+
+
+# The index rows ----------------------------------------------------------------
+
+
+def test_the_index_rows_of_every_kind(tmp_path: Path) -> None:
+    table = index_rows(package(tmp_path))
+    assert table.schema.names == REGISTRY.names
+    assert [field.type for field in table.schema] == list(REGISTRY.types)
+    assert table.to_pylist() == INDEX
+
+
+def test_a_manifest_that_does_not_validate_gives_no_rows(tmp_path: Path) -> None:
+    root = package(tmp_path)
+    (root / HANDEL).write_text("timetoshare: '0.2.0'\n", encoding="utf-8")
+    assert index_rows(root).to_pylist() == [r for r in INDEX if r["location"] != HANDEL]
+
+
+# Writing -------------------------------------------------------------------------
+
+
+def test_write_index_into_a_folder(tmp_path: Path) -> None:
+    root = package(tmp_path)
+    parts = {
+        name: (root / "registry" / name).read_bytes()
+        for name in ("ext_1.parquet", "ext_2.parquet")
+    }
+    written = write_index(root)
+    assert written == root / "registry" / "index.parquet"
+    table = pq.read_table(written)
+    assert table.to_pylist() == INDEX
+    assert table.schema.metadata == {
+        b"timetoshare:type": b"Registry",
+        b"timetoshare:version": b"0.2.0",
+    }
+    for name, data in parts.items():
+        assert (root / "registry" / name).read_bytes() == data
+    assert sorted(p.name for p in (root / "registry").iterdir()) == [
+        "ext_1.parquet",
+        "ext_2.parquet",
+        "index.parquet",
+    ]
+
+
+def test_write_index_creates_a_missing_folder(tmp_path: Path) -> None:
+    root = package(tmp_path)
+    shutil.rmtree(root / "registry")
+    write_index(root)
+    assert pq.read_table(root / "registry" / "index.parquet").to_pylist() == INDEX
+
+
+def test_write_index_into_a_single_file_keeps_its_event_rows(tmp_path: Path) -> None:
+    root = package(tmp_path, registry="registry.parquet")
+    stale = row("gone", "Region", BACH, "score")
+    parquet(root / "registry.parquet", [NOTE_1, stale, NOTE_2], REGISTRY, "Registry")
+    write_index(root)
+    assert pq.read_table(root / "registry.parquet").to_pylist() == [
+        *INDEX,
+        NOTE_1,
+        NOTE_2,
+    ]
+    assert [p.name for p in root.iterdir() if p.name.startswith(".")] == []
+
+
+def test_an_event_row_in_the_index_part_is_kept(tmp_path: Path) -> None:
+    root = package(tmp_path)
+    parquet(root / "registry" / "index.parquet", [NOTE_2], REGISTRY, "Registry")
+    write_index(root)
+    assert pq.read_table(root / "registry" / "index.parquet").to_pylist() == [
+        *INDEX,
+        NOTE_2,
+    ]
+
+
+def test_a_package_without_a_registry_is_refused(tmp_path: Path) -> None:
+    root = package(tmp_path)
+    text = (root / "package.yaml").read_text(encoding="utf-8")
+    value = yaml.safe_load(text)
+    value["tables"] = [t for t in value["tables"] if t["type"] != "Registry"]
+    (root / "package.yaml").write_text(dumps(value), encoding="utf-8")
+    with pytest.raises(
+        ValueError, match="^package.yaml lists no table of the type Registry$"
+    ):
+        write_index(root)
+
+
+# The stale index -----------------------------------------------------------------
+
+PART = "registry/index.parquet"
+
+
+def stale_package(root: Path) -> Path:
+    """The written package, then a region added, a group removed, the score
+    renamed and a MatchClaim added."""
+    package(root)
+    write_index(root)
+    changed = bach()
+    changed["timelines"][0]["regions"].append(
+        {"id": "region_9", "start": [4, 1], "end": [8, 1]}
+    )
+    changed["groups"] = []
+    changed["timelines"][0]["name"] = "Partitur"
+    manifest(root, BACH, changed)
+    parquet(
+        root / "tables/MatchClaim/c.parquet",
+        [{"id": "claim_3", "timeline_a_id": "score", "timeline_b_id": "shared"}],
+        CLAIMS,
+        "MatchClaim",
+    )
+    return root
+
+
+def test_a_written_index_is_not_stale(tmp_path: Path) -> None:
+    root = package(tmp_path)
+    write_index(root)
+    assert stale_index(root) == []
+
+
+def test_each_stale_row_is_one_problem(tmp_path: Path) -> None:
+    assert stale_index(stale_package(tmp_path)) == [
+        PackageProblem(
+            "stale_index",
+            PART,
+            8,
+            ("id",),
+            "the index holds the ID 'pair' at 'bach/manifest.yaml', which no "
+            "manifest or table holds there",
+        ),
+        PackageProblem(
+            "stale_index",
+            PART,
+            12,
+            ("name",),
+            "the index row of the ID 'score' at 'bach/manifest.yaml' has the name "
+            "'Score', not 'Partitur'",
+        ),
+        PackageProblem(
+            "stale_index",
+            PART,
+            None,
+            ("id",),
+            "the index lacks the ID 'region_9' at 'bach/manifest.yaml'",
+        ),
+        PackageProblem(
+            "stale_index",
+            PART,
+            None,
+            ("id",),
+            "the index lacks the ID 'claim_3' at 'tables/MatchClaim/'",
+        ),
+    ]
+
+
+def test_without_an_index_part_every_row_is_missing(tmp_path: Path) -> None:
+    problems = stale_index(package(tmp_path))
+    assert [(p.row, p.message) for p in problems] == [
+        (None, f"the index lacks the ID '{r['id']}' at '{r['location']}'")
+        for r in INDEX
+    ]
+
+
+# Resolving -----------------------------------------------------------------------
+
+
+@pytest.fixture
+def written(tmp_path: Path) -> Path:
+    root = package(tmp_path)
+    write_index(root)
+    return root
+
+
+def test_resolve_through_the_package(written: Path) -> None:
+    assert resolve(written, "note_1") == [Resolution("MidiNote", None, None, NOTE_1)]
+    assert resolve(written, "shared") == [
+        Resolution("Timeline", BACH, BACH, index_of(INDEX, "shared")),
+        Resolution("Timeline", HANDEL, HANDEL, index_of(INDEX, "shared", HANDEL)),
+    ]
+    assert resolve(written, "claim_1") == [
+        Resolution(
+            "MatchClaim",
+            "tables/MatchClaim/",
+            None,
+            index_of(INDEX, "claim_1", "tables/MatchClaim/"),
+        )
+    ]
+    assert resolve(written, "ext_2") == [
+        Resolution(
+            "Extraction",
+            "extractions.parquet",
+            None,
+            index_of(INDEX, "ext_2", "extractions.parquet"),
+        )
+    ]
+    assert resolve(written, "nothing") == []
+
+
+def test_resolve_through_a_manifest(written: Path) -> None:
+    through_bach = written / BACH
+    through_handel = written / HANDEL
+    assert resolve(through_bach, "score") == [
+        Resolution("Timeline", BACH, BACH, index_of(INDEX, "score"))
+    ]
+    assert resolve(through_bach, "shared") == [
+        Resolution("Timeline", BACH, BACH, index_of(INDEX, "shared"))
+    ]
+    assert resolve(through_bach, "proj_1") == [
+        Resolution("Projection", "tables/Projection/", BACH, PROJ_1)
+    ]
+    assert resolve(through_handel, "proj_1") == [
+        Resolution("Projection", "tables/Projection/", HANDEL, PROJ_1)
+    ]
+    assert resolve(through_bach, "note_2") == []
+    assert resolve(through_handel, "note_2") == [
+        Resolution("MidiNote", None, HANDEL, NOTE_2)
+    ]
+    claim = index_of(INDEX, "claim_2", "tables/MatchClaim/")
+    assert resolve(through_bach, "claim_2") == [
+        Resolution("MatchClaim", "tables/MatchClaim/", BACH, claim)
+    ]
+    assert resolve(through_handel, "claim_2") == []
+    first = index_of(INDEX, "ext_1", "extractions.parquet")
+    second = index_of(INDEX, "ext_2", "extractions.parquet")
+    assert resolve(through_bach, "ext_1") == [
+        Resolution("Extraction", "extractions.parquet", BACH, first)
+    ]
+    assert resolve(through_bach, "ext_2") == []
+    assert resolve(through_handel, "ext_2") == [
+        Resolution("Extraction", "extractions.parquet", HANDEL, second)
+    ]
+    assert resolve(through_handel, "ext_1") == [
+        Resolution("Extraction", "extractions.parquet", HANDEL, first)
+    ]
+
+
+def test_a_written_id_is_read_bare(written: Path) -> None:
+    assert resolve(written, "#shared") == resolve(written, "shared")
+    assert resolve(written / BACH, "#score") == resolve(written / BACH, "score")
+
+
+def test_a_manifest_without_a_registry(tmp_path: Path) -> None:
+    lone = copy.deepcopy(bach())
+    lone["resources"] = []
+    manifest(tmp_path, "lone.yaml", lone)
+    assert resolve(tmp_path / "lone.yaml", "score") == [
+        Resolution("Timeline", "lone.yaml", "lone.yaml", None)
+    ]
+    assert resolve(tmp_path / "lone.yaml", "note_1") == []
+
+
+# The command and the hook -------------------------------------------------------
+
+
+def run(capsys: pytest.CaptureFixture, *arguments: str) -> tuple[int, list[str], str]:
+    status = main(["registry", *arguments])
+    captured = capsys.readouterr()
+    return status, captured.out.splitlines(), captured.err
+
+
+def test_the_command_writes_the_index(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    root = package(tmp_path)
+    assert run(capsys, str(root)) == (
+        0,
+        [f"wrote {PART}"],
+        "",
+    )
+    assert pq.read_table(root / PART).to_pylist() == INDEX
+
+
+def test_the_command_takes_the_current_directory(
+    tmp_path: Path, capsys: pytest.CaptureFixture, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = package(tmp_path)
+    monkeypatch.chdir(root)
+    assert run(capsys)[0] == 0
+    assert run(capsys, "--check") == (0, [], "")
+
+
+def test_the_check_writes_nothing(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    root = stale_package(tmp_path)
+    before = (root / PART).read_bytes()
+    assert run(capsys, "--check", str(root)) == (
+        1,
+        [
+            f"{PART}: row 8: stale_index: the index holds the ID 'pair' at "
+            "'bach/manifest.yaml', which no manifest or table holds there",
+            f"{PART}: row 12: stale_index: the index row of the ID 'score' at "
+            "'bach/manifest.yaml' has the name 'Score', not 'Partitur'",
+            f"{PART}: stale_index: the index lacks the ID 'region_9' at "
+            "'bach/manifest.yaml'",
+            f"{PART}: stale_index: the index lacks the ID 'claim_3' at "
+            "'tables/MatchClaim/'",
+        ],
+        "",
+    )
+    assert (root / PART).read_bytes() == before
+
+
+def test_a_folder_without_a_package(
+    tmp_path: Path, capsys: pytest.CaptureFixture
+) -> None:
+    status, out, err = run(capsys, "--check", str(tmp_path))
+    assert (status, out) == (1, [])
+    assert err.splitlines() == [f"timetoshare: no package.yaml lies in '{tmp_path}'"]
+
+
+def test_the_registry_hook() -> None:
+    hooks = yaml.safe_load(
+        (REPOSITORY_ROOT / ".pre-commit-hooks.yaml").read_text(encoding="utf-8")
+    )
+    (hook,) = [h for h in hooks if h["id"] == "timetoshare-registry"]
+    assert {
+        key: hook.get(key)
+        for key in (
+            "entry",
+            "language",
+            "additional_dependencies",
+            "stages",
+            "pass_filenames",
+            "always_run",
+        )
+    } == {
+        "entry": "timetoshare registry --check",
+        "language": "python",
+        "additional_dependencies": ["./python[tables]"],
+        "stages": ["pre-commit"],
+        "pass_filenames": False,
+        "always_run": True,
+    }
+    command, *arguments = hook["entry"].split()
+    assert command == "timetoshare"
+    parsed = _parser().parse_args(arguments)
+    assert (parsed.run.__name__, parsed.check, parsed.package) == (
+        "_registry",
+        True,
+        ".",
+    )

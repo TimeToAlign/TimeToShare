@@ -1,0 +1,9 @@
+findings:
+  -
+    id: score
+    kind: label
+    step: patch
+refused: false
+scope: score
+step: patch
+undetermined: false

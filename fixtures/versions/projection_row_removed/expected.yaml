@@ -1,0 +1,13 @@
+findings:
+  -
+    id: proj_1
+    kind: removed_row
+    step: major
+  -
+    id: proj_1
+    kind: removed_row
+    step: major
+refused: false
+scope: score
+step: major
+undetermined: false

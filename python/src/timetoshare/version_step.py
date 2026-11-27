@@ -73,8 +73,13 @@ UNDETERMINED = "undetermined"
 """The step of a change this package cannot judge: a table it cannot read, a
 manifest of another format version, a manifest that no longer reads."""
 
-TABLE_TYPES = ("MatchClaim", "Projection")
-"""The resource types whose tables are compared row by row."""
+TABLE_TYPES = ("MatchClaim", "Projection", "Registry")
+"""The table types whose rows are compared by their ``id``: a manifest's
+MatchClaim tables, and a package's registry (its event rows) and pre-parsed
+Projection tables."""
+
+PACKAGE_FILE = "package.yaml"
+"""The name of a package's file, which lists its manifests and its tables."""
 
 _RANK = {step: rank for rank, step in enumerate(STEPS)}
 
@@ -787,10 +792,19 @@ def _table_findings(
     new_path: str,
     old: Mapping[str, Any],
     new: Mapping[str, Any],
+    handled: frozenset[str] = frozenset(),
 ) -> list[Finding]:
+    """The findings of the tables a manifest's resources name in both states,
+    a registry and the tables in ``handled`` (compared once for the package)
+    left out."""
     findings: list[Finding] = []
     before, after = _resources(old), _resources(new)
     for id in sorted(before.keys() & after.keys()):
+        if after[id].get("type") == "Registry":
+            continue
+        named = _tree_path(new_path, after[id].get("url"))
+        if named is not None and named in handled:
+            continue
         old_file = _table_file(old_root, old_path, before[id].get("url"))
         new_file = _table_file(new_root, new_path, after[id].get("url"))
         if old_file is None or new_file is None:
@@ -903,6 +917,491 @@ def _row_change(
     return Finding("edited_row", "minor", path, id, f"row {id} of {url}")
 
 
+# Registries ---------------------------------------------------------------
+
+
+def _tree_path(document: str, url: Any) -> str | None:
+    """The path inside the tree of what a document's ``url`` names, a
+    folder's ending in ``/``; ``None`` for a URL leaving the tree."""
+    if not isinstance(url, str) or not url or "://" in url or url.startswith("/"):
+        return None
+    joined = posixpath.normpath(posixpath.join(posixpath.dirname(document), url))
+    if joined == ".." or joined.startswith("../"):
+        return None
+    joined = "" if joined == "." else joined
+    return f"{joined}/" if url.endswith("/") and joined else joined or None
+
+
+def _unhashed(id: Any) -> Any:
+    return id[1:] if isinstance(id, str) and id.startswith("#") and id[1:] else id
+
+
+@dataclass(frozen=True)
+class _Namer:
+    """A document naming a registry: a manifest's Registry resource or a
+    ``package.yaml``'s Registry entry."""
+
+    path: str
+    id: str | None
+    url: str
+    timelines: frozenset[str] | None
+
+
+@dataclass
+class _Registry:
+    """A registry of a tree: its package root and the documents naming it."""
+
+    root: str
+    namers: list[_Namer]
+    projections: dict[str, str]
+    """The pre-parsed Projection tables by their path in the tree, each with
+    its location as ``package.yaml`` or the registry writes it."""
+
+    def owners(self, timeline: Any) -> list[_Namer]:
+        """The manifests whose Registry resource lists ``timeline``, else the
+        ``package.yaml``, else the first document naming the registry."""
+        listed = [
+            namer
+            for namer in self.namers
+            if namer.timelines is not None and timeline in namer.timelines
+        ]
+        if listed:
+            return listed
+        packages = [namer for namer in self.namers if namer.timelines is None]
+        return packages[:1] or sorted(self.namers, key=lambda namer: namer.path)[:1]
+
+
+def _is_package(path: str, value: Mapping[str, Any]) -> bool:
+    return PurePosixPath(path).name == PACKAGE_FILE and isinstance(
+        value.get("tables"), list
+    )
+
+
+def _package_root(path: str, packages: set[str]) -> str:
+    """The folder of the nearest ``package.yaml`` above a document, else the
+    document's own folder; ``""`` for the tree's root."""
+    folder = PurePosixPath(path).parent
+    for candidate in (folder, *folder.parents):
+        text = "" if str(candidate) == "." else candidate.as_posix()
+        if text in packages:
+            return text
+    return "" if str(folder) == "." else folder.as_posix()
+
+
+def _registries(
+    documents: Mapping[str, tuple[str, dict[str, Any]]],
+) -> dict[str, _Registry]:
+    """The registries a tree's documents name, by their path in the tree."""
+    packages = {
+        _package_root(path, set()): (path, value)
+        for path, value in documents.values()
+        if _is_package(path, value)
+    }
+    found: dict[str, _Registry] = {}
+
+    def add(path: str, root: str, namer: _Namer) -> None:
+        registry = found.setdefault(path, _Registry(root, [], {}))
+        registry.namers.append(namer)
+
+    for root, (path, value) in sorted(packages.items()):
+        for entry in _listed(value.get("tables")):
+            if not isinstance(entry, Mapping):
+                continue
+            named = _tree_path(path, entry.get("url"))
+            if named is None or entry.get("type") != "Registry":
+                continue
+            add(named, root, _Namer(path, None, entry["url"], None))
+    for path, value in sorted(documents.values()):
+        if _is_package(path, value):
+            continue
+        root = _package_root(path, set(packages))
+        for resource in _listed(value.get("resources")):
+            if not isinstance(resource, Mapping) or resource.get("type") != "Registry":
+                continue
+            named = _tree_path(path, resource.get("url"))
+            if named is None:
+                continue
+            timelines = frozenset(
+                _unhashed(t) for t in _listed(resource.get("timelines"))
+            )
+            add(
+                named,
+                root,
+                _Namer(path, _unhashed(resource.get("id")), resource["url"], timelines),
+            )
+    for registry in found.values():
+        package = packages.get(registry.root)
+        if package is None:
+            continue
+        path, value = package
+        for entry in _listed(value.get("tables")):
+            if isinstance(entry, Mapping) and entry.get("type") == "Projection":
+                named = _tree_path(path, entry.get("url"))
+                if named is not None:
+                    registry.projections[named] = entry["url"]
+    return found
+
+
+def _held(root: Path, path: str) -> bool:
+    target = root / path
+    return target.is_dir() if path.endswith("/") else target.is_file()
+
+
+def _same_bytes(old: Path, new: Path) -> bool:
+    if old.is_file() and new.is_file():
+        return old.read_bytes() == new.read_bytes()
+    if not (old.is_dir() and new.is_dir()):
+        return False
+    old_files = {p.name: p for p in old.iterdir() if p.is_file()}
+    new_files = {p.name: p for p in new.iterdir() if p.is_file()}
+    return old_files.keys() == new_files.keys() and all(
+        old_files[name].read_bytes() == new_files[name].read_bytes()
+        for name in old_files
+    )
+
+
+def _registry_table(root: Path, path: str) -> Any:
+    from .tables import read_table
+
+    return read_table(root / path, type="Registry")
+
+
+def _event_rows(registry: Any) -> Any:
+    """A registry's event rows: every row whose ``kind`` names no index row."""
+    import pyarrow as pa
+    import pyarrow.compute as pc
+
+    from .tables.registry import INDEX_KINDS
+
+    if "kind" not in registry.column_names:
+        return registry
+    kinds = registry.column("kind").combine_chunks()
+    index = pc.fill_null(
+        pc.is_in(kinds, value_set=pa.array(sorted(INDEX_KINDS), pa.string())), False
+    )
+    return registry.filter(pc.invert(index))
+
+
+def _strings_of(table: Any, name: str) -> Any:
+    import pyarrow as pa
+
+    if name not in table.column_names:
+        return pa.nulls(len(table), pa.string())
+    return table.column(name).combine_chunks().cast(pa.string())
+
+
+def _projection_locations(registry: Any, root: str) -> dict[str, str]:
+    """The pre-parsed Projection tables a registry's Projection rows locate,
+    by their path in the tree."""
+    import pyarrow.compute as pc
+
+    rows = registry.filter(pc.equal(_strings_of(registry, "kind"), "Projection"))
+    found = {}
+    for location in pc.unique(_strings_of(rows, "location")).to_pylist():
+        named = _tree_path(f"{root}/{PACKAGE_FILE}" if root else PACKAGE_FILE, location)
+        if named is not None:
+            found[named] = location
+    return found
+
+
+def _differs(old: Any, new: Any) -> Any:
+    """Whether each pair of cells differs, a null equal to a null only; a
+    struct compared member by member."""
+    import pyarrow as pa
+    import pyarrow.compute as pc
+
+    validity = pc.xor(pc.is_valid(old), pc.is_valid(new))
+    if pa.types.is_struct(old.type) and old.type == new.type:
+        differs = validity
+        for index in range(old.type.num_fields):
+            differs = pc.or_(
+                differs,
+                _differs(pc.struct_field(old, [index]), pc.struct_field(new, [index])),
+            )
+        return differs
+    try:
+        unequal = pc.fill_null(pc.not_equal(old, new), False)
+    except (pa.ArrowNotImplementedError, pa.ArrowInvalid, pa.ArrowTypeError):
+        unequal = pa.array(
+            [
+                _text(a) != _text(b)
+                for a, b in zip(old.to_pylist(), new.to_pylist(), strict=True)
+            ],
+            pa.bool_(),
+        )
+    return pc.or_(validity, unequal)
+
+
+@dataclass(frozen=True)
+class _RowChange:
+    kind: str
+    step: str
+    id: str
+    timelines: tuple[Any, ...]
+    vanished_in: Any = None
+
+
+def _row_changes(
+    old: Any, new: Any, old_timelines: Any = None, new_timelines: Any = None
+) -> list[_RowChange]:
+    """The rows of two states of a table paired by ``id``: removed, added,
+    edited or newly vanished, each with its timelines (each row's, the
+    table's ``timeline_id`` unless given)."""
+    import pyarrow as pa
+    import pyarrow.compute as pc
+
+    for table in (old, new):
+        if "id" not in table.column_names:
+            raise KeyError("the table has no column id")
+
+    def firsts(table: Any, name: str) -> Any:
+        ids = _strings_of(table, "id")
+        keyed = pa.table({"id": ids, name: pa.array(range(len(table)), pa.int64())})
+        keyed = keyed.filter(pc.is_valid(ids))
+        return keyed.group_by("id", use_threads=False).aggregate([(name, "min")])
+
+    pairs = firsts(old, "o").join(firsts(new, "n"), "id", join_type="full outer")
+    changes: list[_RowChange] = []
+    if old_timelines is None:
+        old_timelines = _strings_of(old, "timeline_id")
+    if new_timelines is None:
+        new_timelines = _strings_of(new, "timeline_id")
+    for row in pairs.filter(pc.is_null(pairs.column("n_min"))).to_pylist():
+        timeline = old_timelines[row["o_min"]].as_py()
+        changes.append(_RowChange("removed_row", "major", row["id"], (timeline,)))
+    for row in pairs.filter(pc.is_null(pairs.column("o_min"))).to_pylist():
+        timeline = new_timelines[row["n_min"]].as_py()
+        changes.append(_RowChange("added_row", "minor", row["id"], (timeline,)))
+    both = pairs.filter(
+        pc.and_(pc.is_valid(pairs.column("o_min")), pc.is_valid(pairs.column("n_min")))
+    )
+    taken_old = both.column("o_min").combine_chunks()
+    taken_new = both.column("n_min").combine_chunks()
+    other = pa.repeat(pa.scalar(False), len(both))
+    vanished = pa.repeat(pa.scalar(False), len(both))
+    names = [n for n in old.column_names if n != "id"]
+    names += [n for n in new.column_names if n != "id" and n not in names]
+    for name in names:
+        kind = (old if name in old.column_names else new).schema.field(name).type
+        cells = []
+        for table, taken in ((old, taken_old), (new, taken_new)):
+            if name in table.column_names:
+                cells.append(table.column(name).combine_chunks().take(taken))
+            else:
+                cells.append(pa.nulls(len(both), kind))
+        differs = _differs(*cells)
+        if name == "vanished_in":
+            vanished = pc.and_(differs, pc.is_null(cells[0]))
+            other = pc.or_(other, pc.and_(differs, pc.invert(vanished)))
+        else:
+            other = pc.or_(other, differs)
+    olds = old_timelines.take(taken_old)
+    news = new_timelines.take(taken_new)
+    vanished_in = _strings_of(new, "vanished_in").take(taken_new)
+    changed = pc.or_(other, vanished)
+    edited = pc.indices_nonzero(changed).to_pylist()
+    ids = both.column("id").combine_chunks()
+    others = other.to_pylist()
+    for index in edited:
+        timelines = tuple(dict.fromkeys((news[index].as_py(), olds[index].as_py())))
+        if others[index]:
+            changes.append(
+                _RowChange("edited_row", "minor", ids[index].as_py(), timelines)
+            )
+        else:
+            changes.append(
+                _RowChange(
+                    "vanished_row",
+                    "minor",
+                    ids[index].as_py(),
+                    timelines,
+                    vanished_in[index].as_py(),
+                )
+            )
+    return changes
+
+
+def _undetermined(namer: _Namer, detail: str) -> Finding:
+    return Finding("changed_table", UNDETERMINED, namer.path, namer.id, detail)
+
+
+def _without_pyarrow() -> str | None:
+    try:
+        import pyarrow.parquet  # noqa: F401
+
+        from .tables import registry  # noqa: F401
+    except ImportError:
+        return 'comparing its rows needs pyarrow: pip install "timetoshare[tables]"'
+    return None
+
+
+def _package_findings(
+    old_root: Path,
+    new_root: Path,
+    before: Mapping[str, tuple[str, dict[str, Any]]],
+    after: Mapping[str, tuple[str, dict[str, Any]]],
+) -> tuple[list[Finding], frozenset[str]]:
+    """The findings of the registries both trees name and of their
+    pre-parsed Projection tables, and the paths of those tables."""
+    old_registries, new_registries = _registries(before), _registries(after)
+    findings: list[Finding] = []
+    handled: set[str] = set()
+    for path in sorted(old_registries.keys() & new_registries.keys()):
+        old, new = old_registries[path], new_registries[path]
+        handled.add(path)
+        fallback = new.owners(None)[0]
+        old_held, new_held = _held(old_root, path), _held(new_root, path)
+        if not old_held and not new_held:
+            continue
+        if old_held != new_held:
+            side = "earlier" if not old_held else "later"
+            findings.append(
+                _undetermined(
+                    fallback, f"{fallback.url} is missing from the {side} tree"
+                )
+            )
+            continue
+        registry_changed = not _same_bytes(old_root / path, new_root / path)
+        missing = _without_pyarrow()
+        if missing is not None:
+            for table in sorted(old.projections.keys() & new.projections.keys()):
+                handled.add(table)
+                if _held(old_root, table) and not _same_bytes(
+                    old_root / table, new_root / table
+                ):
+                    location = new.projections[table]
+                    findings.append(
+                        _undetermined(fallback, f"{location} changed; {missing}")
+                    )
+            if registry_changed:
+                findings.append(
+                    _undetermined(fallback, f"{fallback.url} changed; {missing}")
+                )
+            continue
+        import pyarrow as pa
+
+        try:
+            old_rows = _registry_table(old_root, path)
+            new_rows = _registry_table(new_root, path)
+        except (OSError, ValueError, KeyError, pa.ArrowException) as error:
+            findings.append(
+                _undetermined(
+                    fallback, f"{fallback.url} cannot be read by rows: {error}"
+                )
+            )
+            continue
+        old_events, new_events = _event_rows(old_rows), _event_rows(new_rows)
+        if registry_changed:
+            try:
+                changes = _row_changes(old_events, new_events)
+            except (KeyError, pa.ArrowException) as error:
+                findings.append(
+                    _undetermined(
+                        fallback,
+                        f"{fallback.url} changed and cannot be read by rows: {error}",
+                    )
+                )
+                changes = []
+            for change in changes:
+                registry = old if change.kind == "removed_row" else new
+                findings.extend(_placed(registry, change, None))
+        old_tables = {**old.projections, **_projection_locations(old_events, old.root)}
+        new_tables = {**new.projections, **_projection_locations(new_events, new.root)}
+        for table in sorted(old_tables.keys() & new_tables.keys()):
+            handled.add(table)
+            findings.extend(
+                _projection_findings(
+                    old_root,
+                    new_root,
+                    table,
+                    new_tables[table],
+                    old,
+                    new,
+                    old_events,
+                    new_events,
+                )
+            )
+    return findings, frozenset(handled)
+
+
+def _placed(
+    registry: _Registry, change: _RowChange, location: str | None
+) -> list[Finding]:
+    """A row's change at each manifest holding the row, worded with the URL
+    that names the table there."""
+    namers: dict[str, _Namer] = {}
+    for timeline in change.timelines:
+        for namer in registry.owners(timeline):
+            namers.setdefault(namer.path, namer)
+    found = []
+    for namer in namers.values():
+        detail = f"row {change.id} of {location or namer.url}"
+        if change.kind == "vanished_row":
+            detail += f", vanished in the extraction {change.vanished_in}"
+        found.append(Finding(change.kind, change.step, namer.path, change.id, detail))
+    return found
+
+
+def _projection_findings(
+    old_root: Path,
+    new_root: Path,
+    path: str,
+    location: str,
+    old: _Registry,
+    new: _Registry,
+    old_events: Any,
+    new_events: Any,
+) -> list[Finding]:
+    """The findings of a pre-parsed Projection table, each row placed by the
+    timeline of its registry row."""
+    import pyarrow as pa
+    import pyarrow.parquet  # noqa: F401
+
+    from .tables import read_table
+
+    fallback = new.owners(None)[0]
+    old_held, new_held = _held(old_root, path), _held(new_root, path)
+    if not old_held and not new_held:
+        return []
+    if old_held != new_held:
+        side = "earlier" if not old_held else "later"
+        return [_undetermined(fallback, f"{location} is missing from the {side} tree")]
+    if _same_bytes(old_root / path, new_root / path):
+        return []
+    try:
+        old_rows = read_table(old_root / path, type="Projection")
+        new_rows = read_table(new_root / path, type="Projection")
+        changes = _row_changes(
+            old_rows,
+            new_rows,
+            _timelines_of(old_rows, old_events),
+            _timelines_of(new_rows, new_events),
+        )
+    except (OSError, ValueError, KeyError, pa.ArrowException) as error:
+        return [
+            _undetermined(
+                fallback, f"{location} changed and cannot be read by rows: {error}"
+            )
+        ]
+    found = []
+    for change in changes:
+        registry = old if change.kind == "removed_row" else new
+        found.extend(_placed(registry, change, location))
+    return found
+
+
+def _timelines_of(rows: Any, events: Any) -> Any:
+    """The timeline of each pre-parsed row: its own ``timeline_id`` where the
+    table holds one, else its registry row's; a pre-parsed table holds no
+    position, so this places a finding and is never compared."""
+    import pyarrow.compute as pc
+
+    if "timeline_id" in rows.column_names:
+        return _strings_of(rows, "timeline_id")
+    found = pc.index_in(_strings_of(rows, "id"), value_set=_strings_of(events, "id"))
+    return _strings_of(events, "timeline_id").take(found)
+
+
 def tree_step(old_root: Path, new_root: Path) -> StepReport:
     """Compare two trees of manifests and the tables they name.
 
@@ -917,6 +1416,19 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
     without it, or for a table of any other type, the change is
     undetermined.
 
+    A registry, the table of the type ``Registry`` that a ``package.yaml``
+    lists or a manifest's resource names (a file, or a folder of parts), is
+    compared once by its event rows, and so is every pre-parsed Projection
+    table, one a ``package.yaml`` lists or a registry's Projection rows
+    locate: a row removed is major, one added minor, a cell changed minor
+    (``edited_row``: a Projection moved is a changed cell), ``vanished_in``
+    newly set and nothing else changed minor (``vanished_row``). Index rows
+    are not compared: the manifests and tables they are derived from are. A
+    finding lies at each manifest whose Registry resource lists the row's
+    timeline (a pre-parsed row's, its registry row's), else at the
+    ``package.yaml`` listing the registry. Rows are paired by their first
+    occurrence of an ``id``; a row without one is not compared.
+
     Args:
         old_root: The directory of the earlier state; a missing directory is
             an empty tree.
@@ -927,7 +1439,7 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
         _manifests(old_root),
         _manifests(new_root),
     )
-    findings: list[Finding] = []
+    findings, handled = _package_findings(old_root, new_root, before, after)
     for key in sorted(before.keys() | after.keys()):
         for side, held, unreadable in (
             ("later", after, new_unreadable),
@@ -976,7 +1488,9 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
         findings.extend(found)
         if not any(f.step == UNDETERMINED for f in found):
             findings.extend(
-                _table_findings(old_root, new_root, old_path, new_path, old, new)
+                _table_findings(
+                    old_root, new_root, old_path, new_path, old, new, handled
+                )
             )
     return StepReport.of(findings)
 
@@ -1070,27 +1584,60 @@ def _manifest_files(files: Mapping[str, str]) -> dict[str, str]:
 
 
 def _named_tables(path: str, text: bytes) -> Iterator[str]:
-    """The paths, inside the tree, of the files a manifest's resources name."""
+    """The paths, inside the tree, of the files and folders (ending in ``/``)
+    a manifest's resources name, or a ``package.yaml``'s tables."""
     try:
         manifest = _manifest_of(text)
     except ValueError:
         return
-    for resource in _listed((manifest or {}).get("resources")):
-        url = resource.get("url") if isinstance(resource, Mapping) else None
-        if not isinstance(url, str) or "://" in url or url.startswith("/"):
-            continue
-        named = posixpath.normpath(posixpath.join(posixpath.dirname(path), url))
-        if named != ".." and not named.startswith("../"):
+    value = manifest or {}
+    entries = value.get("tables") if _is_package(path, value) else None
+    for entry in _listed(entries if entries is not None else value.get("resources")):
+        url = entry.get("url") if isinstance(entry, Mapping) else None
+        named = _tree_path(path, url)
+        if named is not None:
             yield named
+
+
+def _held_files(files: Mapping[str, str], named: str) -> Iterator[str]:
+    """The files a path names in a tree: the file, or a folder's files
+    directly inside it."""
+    if not named.endswith("/"):
+        if named in files:
+            yield named
+        return
+    for path in files:
+        if path.startswith(named) and "/" not in path[len(named) :]:
+            yield path
+
+
+def _located_tables(target: Path) -> set[str]:
+    """The pre-parsed Projection tables the registries written into
+    ``target`` locate; none without pyarrow."""
+    if _without_pyarrow() is not None:
+        return set()
+    documents, _ = _manifests(target)
+    found: set[str] = set()
+    for path, registry in _registries(documents).items():
+        if not _held(target, path):
+            continue
+        try:
+            rows = _registry_table(target, path)
+        except (OSError, ValueError, KeyError):
+            continue
+        found.update(_projection_locations(_event_rows(rows), registry.root))
+    return found
 
 
 def _materialise(repo: Path, ref: str | None, target: Path) -> None:
     """Write the manifests of a reference's tree, or of the index for ``None``,
     and the table files their resources name, into ``target``.
 
-    Only files ending ``.yaml``, ``.yml`` or ``.json`` and the files the
-    resources of those that are manifests name are read from git, whatever
-    the repository's ``export-ignore`` attributes say.
+    Only files ending ``.yaml``, ``.yml`` or ``.json``, the files the
+    resources of those that are manifests name (a folder's files directly
+    inside it), the tables a ``package.yaml`` lists and the pre-parsed tables
+    the registries locate are read from git, whatever the repository's
+    ``export-ignore`` attributes say.
     """
     target.mkdir(parents=True, exist_ok=True)
     files = _files(repo, ref)
@@ -1099,17 +1646,38 @@ def _materialise(repo: Path, ref: str | None, target: Path) -> None:
     manifests = _manifest_files(files)
     texts = _blobs(repo, set(manifests.values()))
     written = {path: texts[blob] for path, blob in manifests.items()}
-    tables = {
-        named: files[named]
+    named = {
+        held
         for path, text in written.items()
-        for named in _named_tables(path, text)
-        if named in files and named not in written
+        for table in _named_tables(path, text)
+        for held in _held_files(files, table)
+        if held not in written
     }
-    written.update({path: _filtered(repo, path, blob) for path, blob in tables.items()})
-    for path, data in written.items():
+    _write_files(repo, files, target, written, named)
+    located = {
+        held
+        for table in _located_tables(target)
+        for held in _held_files(files, table)
+        if held not in written and held not in named
+    }
+    _write_files(repo, files, target, {}, located)
+
+
+def _write_files(
+    repo: Path,
+    files: Mapping[str, str],
+    target: Path,
+    written: Mapping[str, bytes],
+    tables: set[str],
+) -> None:
+    """Write files into ``target``: ``written`` as given, each of ``tables``
+    through the filters of its path."""
+    data = dict(written)
+    data.update({path: _filtered(repo, path, files[path]) for path in sorted(tables)})
+    for path, content in data.items():
         file = target / PurePosixPath(path)
         file.parent.mkdir(parents=True, exist_ok=True)
-        file.write_bytes(data)
+        file.write_bytes(content)
 
 
 def _held_ids(repo: Path, ref: str) -> dict[str, dict[str, str]]:

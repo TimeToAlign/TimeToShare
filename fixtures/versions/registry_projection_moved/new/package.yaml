@@ -1,0 +1,14 @@
+manifests:
+  -
+    url: score.yaml
+tables:
+  -
+    type: Registry
+    url: registry/
+  -
+    type: Extraction
+    url: extractions.parquet
+  -
+    type: Projection
+    url: tables/Projection/
+timetoshare: "0.2.0"
