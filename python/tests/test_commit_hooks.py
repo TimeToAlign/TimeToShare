@@ -15,6 +15,7 @@ from timetoshare.cli import AMEND_BASE, main
 from timetoshare.commit_types import (
     check_message,
     message_text,
+    release_allows,
     release_problem,
     release_step,
     suggest_header,
@@ -362,8 +363,22 @@ def test_an_undetermined_change_warns() -> None:
         ("0.3.0", "0.3.0", "none"),
     ],
 )
-def test_the_step_a_release_carries(old: str, new: str, step: str) -> None:
+def test_the_step_a_release_allows(old: str, new: str, step: str) -> None:
     assert release_step(old, new) == step
+
+
+@pytest.mark.parametrize(
+    ("old", "new", "words"),
+    [
+        ("0.0.0", "0.1.0", "any change"),
+        ("1.2.3", "1.3.0", "changes up to minor"),
+        ("1.2.3", "1.2.4", "changes up to patch"),
+        ("0.3.0", "0.3.1", "changes up to minor"),
+        ("1.2.3", "1.2.3", "no change"),
+    ],
+)
+def test_what_a_release_allows_in_words(old: str, new: str, words: str) -> None:
+    assert release_allows(old, new) == words
 
 
 @pytest.mark.parametrize(
@@ -388,12 +403,11 @@ def test_the_problem_of_a_release() -> None:
     assert removal.step == "major" and addition.step == "minor"
     assert release_problem(removal, "0.3.0", "0.4.0") is None
     assert release_problem(removal, "0.3.0", "0.3.1") == (
-        "a release from 0.3.0 to 0.3.1 carries at most a minor step; the change "
-        "requires a major step"
+        "a release from 0.3.0 to 0.3.1 allows changes up to minor; the change "
+        "requires major"
     )
     assert release_problem(addition, "1.0.0", "1.0.0") == (
-        "a release from 1.0.0 to 1.0.0 carries no step; the change requires a "
-        "minor step"
+        "a release from 1.0.0 to 1.0.0 allows no change; the change requires minor"
     )
     assert release_problem(report_of("minimal_to_complete"), "1.0.0", "1.0.0") is None
     assert release_problem(report_of("name_changed"), "1.0.0", "1.0.1") is None

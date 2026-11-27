@@ -18,7 +18,7 @@ release workflow. Its ``HEAD`` is a release when the version in
 ``v<version>`` yet; the check then compares the last version tag reachable
 from ``HEAD`` (the empty tree without one) with ``HEAD``, with the history of
 the tags, and fails when a change is refused or undetermined or when the
-release carries a lower step than the change requires. On any other
+release allows a lower step than the change requires. On any other
 ``HEAD`` it reports the same comparison and passes. ``--summary FILE``
 appends the report to FILE as Markdown, the job summary of a workflow.
 
@@ -64,8 +64,8 @@ from .commit_types import (
     check_message,
     message_text,
     parse_header,
+    release_allows,
     release_problem,
-    release_step,
     suggest_header,
     suggest_hints,
     suggest_trailer,
@@ -147,12 +147,12 @@ def _step(arguments: argparse.Namespace) -> int:
     return 2 if report.refused else 0
 
 
-def _report_lines(report: StepReport, carries: str | None = None) -> list[str]:
-    """The lines of a report: the step, the scope, the release (``carries``,
+def _report_lines(report: StepReport, release: str | None = None) -> list[str]:
+    """The lines of a report: the step, the scope, the release (``release``,
     where the release check names one) and one line per finding."""
     lines = [f"step: {report.step}", f"scope: {report.scope or '-'}"]
-    if carries is not None:
-        lines.append(f"release: {carries}")
+    if release is not None:
+        lines.append(f"release: {release}")
     for f in report.findings:
         cited = f"#{f.id}" if f.id is not None else "-"
         lines.append(f"{f.step}\t{f.kind}\t{f.path}\t{cited}\t{f.detail}")
@@ -207,7 +207,7 @@ def _release_lines(repo: Path) -> tuple[str, list[str], bool]:
     release it only reports, and an error comparing is one more line. At a
     release (the version ``v<new>`` untagged) it fails when a change is
     refused, when a change is undetermined, or when the release from the last
-    tag's version (``0.0.0`` without one) to the new carries a lower step
+    tag's version (``0.0.0`` without one) to the new allows a lower step
     than the change requires (:func:`release_problem`).
 
     Raises:
@@ -230,7 +230,7 @@ def _release_lines(repo: Path) -> tuple[str, list[str], bool]:
             False,
         )
     previous = last.removeprefix("v") if last else NO_RELEASE
-    carried = release_step(previous, version)
+    allows = release_allows(previous, version)
     report = _since(since, repo)
     problem = release_problem(report, previous, version)
     reasons = [
@@ -238,10 +238,14 @@ def _release_lines(repo: Path) -> tuple[str, list[str], bool]:
         *(["a change is undetermined"] if report.undetermined else []),
         *([problem] if problem is not None else []),
     ]
-    named = f"{version}, the first," if last is None else f"{previous} to {version}"
+    named = (
+        f"{version} is the first release; it allows {allows}"
+        if last is None
+        else f"{previous} to {version} allows {allows}"
+    )
     lines = [
         data,
-        *_report_lines(report, f"{named} carries {carried}"),
+        *_report_lines(report, named),
         *([f"fails: {reason}" for reason in reasons] or ["passes"]),
     ]
     verdict = "fails" if reasons else "passes"

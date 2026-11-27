@@ -3209,10 +3209,10 @@ tags it. The check then compares the latest version tag reachable from
 where there is none) with `HEAD`, with `--history`, and fails when an ID is
 given again, when a change is undetermined (a table that cannot be
 compared, a manifest that no longer reads), or when the release from the
-tag's version (`0.0.0` without a tag) to the new one carries a lower step
+tag's version (`0.0.0` without a tag) to the new one allows a lower step
 than the data requires (from 1.0.0 on, the first number that rises names
-the step a release carries; below 1.0.0 the middle number carries a major
-step and the last a minor one, as the configuration above makes
+the step of change a release allows; below 1.0.0 the middle number allows
+a major step and the last a minor one, as the configuration above makes
 release-please count); the remedy is a commit whose type says what the
 data does, or a `Release-As:` footer. On every other push it reports the
 same comparison, undetermined changes included, and never fails. Either
@@ -3224,9 +3224,9 @@ $ timetoshare release-check
 the data from v0.1.0 to HEAD
 step: major
 scope: op106
-release: 0.1.0 to 0.1.1 carries minor
+release: 0.1.0 to 0.1.1 allows changes up to minor
 major	removed	bpsd/op106/manifest.yaml	#clt_3	Timeline #clt_3 removed
-fails: a release from 0.1.0 to 0.1.1 carries at most a minor step; the change requires a major step
+fails: a release from 0.1.0 to 0.1.1 allows changes up to minor; the change requires major
 ```
 
 It exits 2 when a release fails, 1 when the version cannot be read (or, at

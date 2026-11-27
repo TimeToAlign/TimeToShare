@@ -11,7 +11,7 @@
 #   HEAD, with the history of every tag, and fails when a finding is refused
 #   (an ID given again), when a finding is undetermined (a table that cannot be
 #   compared, a manifest that no longer reads), or when the release from the
-#   tag's version (0.0.0 without one) to the new one carries a lower step than
+#   tag's version (0.0.0 without one) to the new one allows a lower step than
 #   the data requires (below 1.0.0 a removal raises the middle number, an
 #   addition the last). The remedy is a commit whose type says what the data
 #   does, or a `Release-As:` footer.
@@ -63,5 +63,5 @@ jobs:
           python -m pip install
           "timetoshare[tables] @ git+https://github.com/TimeToAlign/TimeToShare@${TIMETOSHARE_REF}#subdirectory=python"
 
-      - name: The release carries the step the data requires
+      - name: The release allows the step the data requires
         run: timetoshare release-check --summary "$GITHUB_STEP_SUMMARY"

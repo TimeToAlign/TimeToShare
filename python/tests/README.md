@@ -48,9 +48,10 @@ and the same lists; so are the cases of several problems
    change of a repository of manifests requires, with one finding per
    change, and the `timetoshare` command's two hooks write and check the
    commit type of a staged change (`commit_types`); `release_step` names the
-   step a release from one version to the next carries, and `timetoshare
-   release-check` decides whether a dataset repository's `HEAD` is a
-   release and refuses one that carries less than the change requires; `timetoshare validate`
+   step of change a release from one version to the next allows,
+   `release_allows` says it in words, and `timetoshare release-check`
+   decides whether a dataset repository's `HEAD` is a release and refuses
+   one that allows less than the change requires; `timetoshare validate`
    validates manifest files, and
    the repository's `.pre-commit-hooks.yaml` offers the three as
    pre-commit hooks.
@@ -3462,16 +3463,21 @@ exact values: from 1.0.0 on the first number that rises names the step
 (`1.2.3` to `2.0.0` major, to `1.3.0` minor, to `1.2.4` patch, `1.9.0` to
 `1.10.0` minor, numbers compared as numbers); below 1.0.0, as release-please
 reads a dataset repository's two pre-major settings, the middle number
-carries a major step and the last a minor one (`0.3.0` to `0.4.0` major,
-to `0.3.1` minor, `0.3.4` to `1.0.0` major); equal versions carry none. A
+allows a major step and the last a minor one (`0.3.0` to `0.4.0` major,
+to `0.3.1` minor, `0.3.4` to `1.0.0` major); equal versions allow none.
+`release_allows` says the step in words, held to exact values: `any
+change` for a major step (`0.0.0` to `0.1.0`), `changes up to minor`
+(`1.2.3` to `1.3.0`, `0.3.0` to `0.3.1`), `changes up to patch` (`1.2.3`
+to `1.2.4`), `no change` for equal versions. A
 lower version (`1.2.3` to `1.2.2`) and anything but three numbers without a
 leading zero (`v1.0.0`, `1.0.0-rc.1`, `01.0.0`, `1.0`) are refused with
 their exact messages. `release_problem` returns `None` where the release
-carries at least the change's step (a major change in `0.3.0` to `0.4.0`,
+allows at least the change's step (a major change in `0.3.0` to `0.4.0`,
 no change in equal versions, a patch in `1.0.0` to `1.0.1`) and otherwise
-the exact sentence naming both versions and both steps ("carries at most
-a minor step" for `0.3.0` to `0.3.1` under a removal, "carries no step"
-for `1.0.0` to `1.0.0` under an addition). OLD `-` is the empty tree:
+the exact sentence naming both versions and both steps ("allows changes
+up to minor; the change requires major" for `0.3.0` to `0.3.1` under a
+removal, "allows no change; the change requires minor" for `1.0.0` to
+`1.0.0` under an addition). OLD `-` is the empty tree:
 against a repository's one commit holding the base manifest it gives the one finding `added_manifest`, minor, with and
 without `--history`, and with a directory as NEW it is refused like any
 mix of a directory and a reference.
@@ -3486,8 +3492,8 @@ on `HEAD` itself, are passed over), or from the empty tree, to `HEAD`, with
 the history of the tags. Without a tag at `0.0.0` it prints `no release:
 the version 0.0.0 is no release`, the data from the empty tree, the step
 and the finding `added_manifest`, and exits 0; at `0.1.0` without a tag it
-is the first release, `release: 0.1.0, the first, carries major` (from
-`0.0.0`), and `passes`. With `v0.1.0` tagged and the version `0.1.0`, a
+is the first release, `release: 0.1.0 is the first release; it allows
+any change` (from `0.0.0`), and `passes`. With `v0.1.0` tagged and the version `0.1.0`, a
 later removal is reported (`is tagged v0.1.0`) and exits 0. At `0.1.1`
 after `v0.1.0` a removal `fails` with `release_problem`'s sentence and
 exits 2, while an added region `passes`, an addition taking the last
@@ -3495,7 +3501,7 @@ number below 1.0.0. Restoring the sketch at `0.2.1` after `v0.1.0` held it
 and `v0.2.0` removed it fails as `a change is refused`. A table of the
 type Note whose bytes change gives `changed_table`, undetermined: at a
 release (`0.2.0` after `v0.1.0`) it `fails: a change is undetermined` and
-exits 2 although the release carries a major step; at the tagged `0.1.0`
+exits 2 although the release allows any change; at the tagged `0.1.0`
 it is reported and exits 0. `--summary FILE` appends to FILE `### Release
 0.1.1: fails` (or `### No release`), a blank line and the printed lines in a
 `text` code block. A missing `.release-please-manifest.json` and one

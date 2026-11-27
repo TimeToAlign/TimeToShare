@@ -23,9 +23,9 @@ the types of a dataset repository say which change a commit makes:
 :func:`suggest_trailer` the footer that goes below it, :func:`suggest_hints`
 the suggestion and the hint shown beside the message, and
 :func:`check_message` checks a message against a change.
-:func:`release_step` names the largest step a release from one version to
-the next carries, and :func:`release_problem` says where it is lower than a
-change requires.
+:func:`release_step` names the largest step of change a release from one
+version to the next allows, :func:`release_allows` says it in words, and
+:func:`release_problem` says where it is lower than a change requires.
 """
 
 from __future__ import annotations
@@ -42,6 +42,7 @@ __all__ = [
     "Header",
     "check_message",
     "parse_header",
+    "release_allows",
     "release_problem",
     "release_step",
     "suggest_header",
@@ -404,16 +405,16 @@ def _version(text: str) -> tuple[int, int, int]:
 
 
 def release_step(old: str, new: str) -> str:
-    """The largest step of the data a release from ``old`` to ``new`` carries.
+    """The largest step of change a release from ``old`` to ``new`` allows.
 
     A dataset repository's release-please configuration sets
     ``bump-minor-pre-major`` and ``bump-patch-for-minor-pre-major``. From
     1.0.0 on, the first number that rises names the step: the major number
     ``major``, the minor number ``minor``, the patch number ``patch``. Below
     1.0.0 a removal raises the middle number and an addition the last, so a
-    release from a ``0.y.z`` version carries ``major`` where the middle
+    release from a ``0.y.z`` version allows ``major`` where the middle
     number rises (or the major number, to 1.0.0 or above) and ``minor``
-    where only the last one does. Two equal versions carry ``none``.
+    where only the last one does. Two equal versions allow ``none``.
 
     Raises:
         ValueError: If a version is not ``MAJOR.MINOR.PATCH`` (no ``v``, no
@@ -431,6 +432,21 @@ def release_step(old: str, new: str) -> str:
     return "minor" if after[1] > before[1] else "patch"
 
 
+def release_allows(old: str, new: str) -> str:
+    """What a release from ``old`` to ``new`` allows, in words: ``any
+    change`` where its step (:func:`release_step`) is ``major``, ``changes
+    up to minor`` or ``changes up to patch``, and ``no change`` for two
+    equal versions.
+
+    Raises:
+        ValueError: As :func:`release_step` does.
+    """
+    allowed = release_step(old, new)
+    if allowed == "major":
+        return "any change"
+    return "no change" if allowed == "none" else f"changes up to {allowed}"
+
+
 def release_problem(report: StepReport, old: str, new: str) -> str | None:
     """Why a release from ``old`` to ``new`` cannot carry a change; ``None``
     where it can, its step (:func:`release_step`) being at least the
@@ -439,11 +455,9 @@ def release_problem(report: StepReport, old: str, new: str) -> str | None:
     Raises:
         ValueError: As :func:`release_step` does.
     """
-    carried = release_step(old, new)
-    if _RANK[carried] >= _RANK[report.step]:
+    if _RANK[release_step(old, new)] >= _RANK[report.step]:
         return None
-    most = "no step" if carried == "none" else f"at most a {carried} step"
     return (
-        f"a release from {old} to {new} carries {most}; the change requires a "
-        f"{report.step} step"
+        f"a release from {old} to {new} allows {release_allows(old, new)}; "
+        f"the change requires {report.step}"
     )
