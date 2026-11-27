@@ -5,4 +5,10 @@ problems:
     message: "the event ID 'projection_3' is given twice, first in 'tables/Projection/part_a.parquet' at row 3"
     path: [id]
     row: 3
-reason: "The ID projection_3 names a Projection of Handel's in part_a and one of Bach's in part_b; an event ID is held once in the package."
+  -
+    code: missing_content
+    file: registry/extraction_1.parquet
+    message: "the table 'tables/Projection/' holds no row of the ID 'projection_9'"
+    path: [location]
+    row: 2
+reason: "The ID projection_3 names a pre-parsed Projection of Handel's in part_a and, in part_b, the one of Bach's projection_9, whose content is then missing."

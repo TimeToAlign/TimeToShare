@@ -1,12 +1,13 @@
 """The tables of a package: reading a table, and checking a package whole.
 
 A package is a folder with ``package.yaml`` at its root, which lists the
-package's manifests and its tables (:func:`timetoshare.validate_package`).
-A table is a file, or a folder of files read as one table when its URL ends
-in ``/``: its files are the names ending in ``.parquet`` directly inside it,
-none starting with ``.`` or ``_`` (:func:`table_files`). Files may hold the
-rows of several manifests; a manifest finds its rows by the timelines its
-resources list (:func:`read_table`).
+package's manifests and its tables (:func:`timetoshare.validate_package`),
+its registry among them. A table is a file, or a folder of files read as one
+table when its URL ends in ``/``: its files are the names ending in
+``.parquet`` directly inside it, none starting with ``.`` or ``_``
+(:func:`table_files`). Files may hold the rows of several manifests; a
+manifest finds its rows by the timelines its resources list, a row by its
+ID (:func:`read_table`).
 
 A file states in its metadata its type (``timetoshare:type``) and its format
 version (``timetoshare:version``); a MatchClaim file may state a provenance
@@ -42,6 +43,8 @@ from ..validation.diagnostics import (
     ValidationCode,
     axes_by_id,
     entries_of,
+    json_pointer,
+    manifest_ids,
     number_type_of,
 )
 from .checks import (
@@ -50,19 +53,28 @@ from .checks import (
     TableCode,
     TableError,
     TableProblem,
+    _all,
     _array,
     _axis_admitted,
+    _dense,
     _first_rows,
+    _firsts,
     _held,
+    _schema_problems,
     _shape,
     _shared_provenance,
+    extraction_problems,
     match_claim_problems,
     projection_problems,
+    registry_problems,
 )
 from .columns import (
+    EXTRACTION_SCHEMA,
+    INDEX_KINDS,
     MATCH_CLAIM_SCHEMA,
     PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
+    REGISTRY_SCHEMA,
 )
 
 __all__ = [
@@ -89,22 +101,31 @@ VERSION_METADATA_KEY = "timetoshare:version"
 
 PackageCode = Literal[
     "missing_file",
+    "missing_registry",
+    "duplicate_registry",
+    "duplicate_extraction",
     "table_type",
     "column_type_mismatch",
     "version_mismatch",
-    "duplicate_timeline",
     "unknown_table",
     "duplicate_id",
     "unknown_timeline",
     "unlisted_timeline",
     "claim_across_manifests",
     "axis_mismatch",
+    "unknown_extraction",
+    "unknown_location",
+    "missing_content",
+    "unregistered_id",
+    "stale_index",
 ]
 """The codes of the package check's own rules. A package problem may also
 carry the code of a manifest's validation (``timetoshare.ValidationCode``)
 or of a table check (:data:`~timetoshare.tables.TableCode`); two package
 rules use such codes as well: ``duplicate_url`` for a file two table entries
-reach, ``schema_violation`` for a row whose timeline is null."""
+reach, ``schema_violation`` for a row whose timeline is null,
+``invalid_projection_of`` for a Projection standing for an event of its own
+timeline."""
 
 ProblemCode = PackageCode | TableCode | ValidationCode
 """The code of a package problem: a package rule's, a table check's or a
@@ -131,8 +152,9 @@ class PackageProblem:
 
 def package_fixture_path(*parts: str) -> Path:
     """The path of a package fixture, or of a file in it: ``shared``, the
-    package of two manifests sharing their tables, or ``rejections/<case>``,
-    each beside an ``expected.yaml``."""
+    package of two manifests sharing their registry and tables,
+    ``acceptances/<case>`` or ``rejections/<case>``, each beside an
+    ``expected.yaml``."""
     return data_root().joinpath("fixtures", "packages", SCHEMA_VERSION, *parts)
 
 
@@ -285,16 +307,22 @@ def _timeline_columns(kind: str) -> tuple[str, ...]:
     return MATCH_CLAIM_TIMELINES if kind == "MatchClaim" else EVENT_TIMELINES
 
 
-def _rows_of(kind: str, timelines: Iterable[str] | None) -> ds.Expression | None:
-    """The filter keeping the rows of ``timelines``: an event's own timeline,
-    either timeline of a MatchClaim."""
-    if timelines is None:
-        return None
-    listed = pa.array(list(timelines), pa.string())
-    columns = _timeline_columns(kind)
-    expression = ds.field(columns[0]).isin(listed)
-    for column in columns[1:]:
-        expression = expression | ds.field(column).isin(listed)
+def _rows_of(
+    kind: str, timelines: Iterable[str] | None, ids: Iterable[str] | None = None
+) -> ds.Expression | None:
+    """The filter keeping the rows of ``timelines`` (an event row's own
+    timeline, either timeline of a MatchClaim) and of ``ids``, both where
+    both are given."""
+    expression = None
+    if timelines is not None:
+        listed = pa.array(list(timelines), pa.string())
+        columns = _timeline_columns(kind)
+        expression = ds.field(columns[0]).isin(listed)
+        for column in columns[1:]:
+            expression = expression | ds.field(column).isin(listed)
+    if ids is not None:
+        kept = ds.field("id").isin(pa.array(list(ids), pa.string()))
+        expression = kept if expression is None else expression & kept
     return expression
 
 
@@ -312,21 +340,25 @@ def _read(
     kind: str,
     timelines: Iterable[str] | None = None,
     columns: Sequence[str] | None = None,
+    ids: Iterable[str] | None = None,
 ) -> _Read:
     """The files read as one table of ``kind``, file by file in order.
 
     The files' schemas are unified by name, a column a file lacks read as
-    null; the filter of ``timelines`` is pushed into the reader. A
-    MatchClaim file's shared provenance is filled into its rows before the
+    null, and no file reads as no row in the columns of a type the format
+    declares; the filter of ``timelines`` and ``ids`` is pushed into the reader.
+    A MatchClaim file's shared provenance is filled into its rows before the
     files are joined, unless only ``columns`` are read.
     """
-    schema = _unified(files, schemas)
+    schema = _unified(files, schemas) if files else _DECLARED.get(kind, pa.schema([]))
     if columns is not None:
         schema = pa.schema(
             [schema.field(name) for name in columns if name in schema.names]
         )
-    expression = _rows_of(kind, timelines)
-    for name in _timeline_columns(kind) if expression is not None else ():
+    expression = _rows_of(kind, timelines, ids)
+    needed = (*(_timeline_columns(kind) if timelines is not None else ()),)
+    needed += ("id",) if ids is not None else ()
+    for name in needed:
         if name not in schema.names:
             raise TableError(
                 TableProblem(
@@ -351,7 +383,12 @@ def _read(
     return _Read(table, [len(part) for part in parts])
 
 
-_DECLARED = {"MatchClaim": MATCH_CLAIM_SCHEMA, "Projection": PROJECTION_SCHEMA}
+_DECLARED = {
+    "Registry": REGISTRY_SCHEMA,
+    "Extraction": EXTRACTION_SCHEMA,
+    "Projection": PROJECTION_SCHEMA,
+    "MatchClaim": MATCH_CLAIM_SCHEMA,
+}
 """The table types the format defines, with their declared columns."""
 
 
@@ -359,6 +396,7 @@ def read_table(
     path: str | os.PathLike[str],
     *,
     timelines: Iterable[str] | None = None,
+    ids: Iterable[str] | None = None,
     type: str | None = None,  # noqa: A002 - the word the format uses
 ) -> pa.Table:
     """Read a table, a file or a folder of files, as one Arrow table.
@@ -366,9 +404,12 @@ def read_table(
     The files of a folder are :func:`table_files`'; they are read through
     ``pyarrow.dataset``, their schemas unified by name, a column a file
     lacks read as null. ``timelines`` (bare IDs) keeps, in the reader, the
-    rows of those timelines: an event's whose ``timeline_id`` is listed, a
-    MatchClaim's either of whose timelines is, so that a check sees a
-    MatchClaim reaching outside them. A MatchClaim file's shared provenance
+    rows of those timelines: a registry row whose ``timeline_id`` is listed,
+    a MatchClaim's either of whose timelines is, so that a check sees a
+    MatchClaim reaching outside them. ``ids`` (bare IDs) keeps, in the
+    reader, the rows whose ``id`` is listed: a registry's rows of an ID, a
+    pre-parsed table's content of some events; given both, a row is kept
+    where both keep it. A MatchClaim file's shared provenance
     (``timetoshare:provenance``) is filled into its own rows before the
     files are joined. The order of the rows is the files' order, then each
     file's; readers never rely on it.
@@ -376,8 +417,9 @@ def read_table(
     The table's type is what its files state (``timetoshare:type``), else
     ``type``; where both are stated they agree. The table returned states
     its type alone in its metadata. An empty folder gives no rows, in the
-    declared columns of a MatchClaim or Projections table, in none for
-    another type.
+    declared columns of a type the format declares (``Registry``,
+    ``Extraction``, ``Projection``, ``MatchClaim``), in none for another
+    type.
 
     Raises:
         FileNotFoundError: If ``path`` is neither a file nor a folder.
@@ -385,7 +427,8 @@ def read_table(
             ``type``, or neither states one (``table_type``); if one column
             has two Arrow types in two files (``column_type_mismatch``); if
             ``timelines`` is given and the files lack a column naming a
-            row's timeline (``schema_violation``); if a MatchClaim file's
+            row's timeline, or ``ids`` is given and they lack ``id``
+            (``schema_violation``); if a MatchClaim file's
             provenance is unreadable or a row states its own beside it
             (``invalid_provenance``); if a MatchClaim file stating a shared
             provenance has a ``provenance`` column of another type than the
@@ -397,7 +440,7 @@ def read_table(
     if not files:
         table = _DECLARED.get(kind, pa.schema([])).empty_table()
     else:
-        table = _read(files, schemas, kind, timelines).table
+        table = _read(files, schemas, kind, timelines, ids=ids).table
     return table.replace_schema_metadata({TYPE_METADATA_KEY: kind})
 
 
@@ -415,8 +458,9 @@ _PARQUET = "application/vnd.apache.parquet"
 def is_table_resource(resource: Mapping[str, Any]) -> bool:
     """Whether a resource of a manifest names a table.
 
-    A resource names a table when its type is ``MatchClaim`` or
-    ``Projection``, its URL names a folder (ends in ``/``) or a Parquet file
+    A resource names a table when its type is one the format declares
+    (``Registry``, ``Extraction``, ``Projection``, ``MatchClaim``), its URL
+    names a folder (ends in ``/``) or a Parquet file
     (ends in ``.parquet``), or its media type is Parquet's. Any other
     resource, a recording, an image or a score file, is carried with its
     manifest and names no table. This is the one rule of the format; a
@@ -484,23 +528,6 @@ class _Problems:
         self.found.append(PackageProblem(code, file, row, path, message))
 
 
-def _timeline_paths(manifest: Mapping[str, Any]) -> dict[str, Path_]:
-    """The path of the ``id`` of every timeline, at any depth, and of every
-    virtual timeline of a manifest, the first of a repeated ID kept."""
-    found: dict[str, Path_] = {}
-
-    def visit(timeline: Mapping[str, Any], path: Path_) -> None:
-        found.setdefault(timeline["id"], (*path, "id"))
-        for index, child in enumerate(entries_of(timeline, "children")):
-            visit(child, (*path, "children", index))
-
-    for index, root in enumerate(entries_of(manifest, "timelines")):
-        visit(root, ("timelines", index))
-    for index, entry in enumerate(entries_of(manifest, "virtual_timelines")):
-        found.setdefault(entry["id"], ("virtual_timelines", index, "id"))
-    return found
-
-
 def _axis(timeline: Mapping[str, Any]) -> tuple[str | None, str | None]:
     try:
         return timeline.get("unit"), number_type_of(timeline)
@@ -521,8 +548,12 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
 
     First ``package.yaml`` itself (:func:`timetoshare.validate_package`; a
     problem there ends the check, another version being
-    ``version_mismatch``). Then, manifest by manifest as listed, a file
-    that is missing (``missing_file``) or that is no valid manifest (its
+    ``version_mismatch``), then its registry: no table of the type
+    ``Registry`` (``missing_registry``, at ``tables``), a second one
+    (``duplicate_registry``) or a second table of the type ``Extraction``
+    (``duplicate_extraction``), each at the later entry's ``type``; only the
+    first of each is read. Then, manifest by manifest as listed, a file that
+    is missing (``missing_file``) or that is no valid manifest (its
     validation's code and path; another version ``version_mismatch``).
     Then, table by table and file by file, a file or folder that is missing
     (``missing_file``), a file an earlier entry of the same type reaches
@@ -535,42 +566,57 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     the rows keep together, each over every row in the order of the
     entries, their files and their rows:
 
-    - ``duplicate_timeline``: a timeline ID, a virtual timeline's included,
-      held by two manifests, at the later's;
     - ``unknown_table``: a manifest's table resource whose URL names no
-      table entry of the resource's type, or leads outside the package; a
-      table resource is one of the type ``MatchClaim`` or ``Projection``,
-      or one whose URL names a folder (ends in ``/``) or a Parquet file
-      (ends in ``.parquet``), or whose media type is
-      ``application/vnd.apache.parquet``. Any other resource, a recording,
-      an image or a score file, is carried and not checked against the
-      tables;
-    - ``duplicate_id``: an event ID held twice among all event rows of the
-      package, every type and file, then a MatchClaim ID twice among the
-      MatchClaims, at the later row;
-    - ``schema_violation``, then ``unknown_timeline``: a row's timeline (a
-      MatchClaim's either, column by column) that is null, worded as the
-      table checks word it (``'timeline_id' is null``), or that no manifest
-      holds;
-    - ``unlisted_timeline``: a row's timeline that its manifest's resources
-      of the row's type, naming the row's table, do not list;
-    - ``claim_across_manifests``: a MatchClaim whose timelines lie in two
-      manifests;
-    - ``axis_mismatch``: an event row stating a unit and number type its
-      timeline does not have in its manifest.
+      table entry of the resource's type, or leads outside the package
+      (:func:`is_table_resource`); any other resource, a recording, an
+      image or a score file, is carried and not checked against the tables;
+    - ``duplicate_id``: in the registry, an event, MatchClaim or Extraction
+      ID held twice among all of these rows, a manifest element's ID twice
+      at one ``location``; an event ID twice among the rows of the
+      pre-parsed tables, every type and file; a MatchClaim ID twice among
+      the MatchClaims; each at the later row;
+    - ``schema_violation``, then ``unknown_timeline``: an event row's
+      timeline, and a MatchClaim's either, column by column, that is null
+      (``'timeline_id' is null``) or that no manifest holds;
+    - ``unlisted_timeline``: an event row's timeline that no manifest's
+      ``Registry`` resource naming the registry lists, a MatchClaim's that
+      no manifest's ``MatchClaim`` resource naming its table lists;
+    - ``axis_mismatch``: an event row whose unit and number type are not
+      its timeline's in a manifest holding it, once per distinct axis;
+    - ``unknown_extraction``: an event row's ``extraction_id`` or
+      ``vanished_in`` naming no row of the Extraction table;
+    - ``unknown_location``: an event row's ``location`` naming no table
+      entry of the row's kind;
+    - ``missing_content``: an event row whose location's table holds no row
+      of its ID;
+    - ``unregistered_id``: a row of a pre-parsed table whose ID has no
+      event row of the table's type;
+    - ``invalid_projection_of``, then ``unknown_timeline``: a pre-parsed
+      Projection standing for an event of its own registry row's timeline,
+      or of a timeline no manifest holds;
+    - ``stale_index``: an index row of the registry that no manifest
+      element, MatchClaim or extraction gives at its location (an extra
+      row), or whose ``kind``, ``timeline_id`` or ``name`` differs from
+      what they give, in the registry's order; then each index row they
+      give that the registry lacks, by location and ID (a missing row). A
+      manifest or table that could not be read gives no row and has none
+      compared;
+    - ``claim_across_manifests``: a MatchClaim whose two timelines no one
+      manifest holds.
 
-    These read the columns ``id``, ``timeline_id``, ``unit`` and
-    ``number_type`` of the event tables and ``id``, ``timeline_a_id`` and
-    ``timeline_b_id`` of the MatchClaim tables, column by column. Last,
-    manifest by manifest, the table checks of each MatchClaim or Projections
-    table its resources name, in the order they first name it, over the rows
-    of the timelines those resources list (:func:`match_claim_problems`,
-    :func:`projection_problems`): each row's manifests are found once and the
-    rows ordered by manifest, so each manifest is checked on its own rows
-    alone, and each problem is placed in its file and row;
-    a problem a package rule already reports at the same file, row and
-    column with the same code, or an ``unknown_timeline`` on a MatchClaim
-    reaching another manifest, is not repeated.
+    These read the identifying columns of each table, column by column. Last,
+    the table checks: of the registry (:func:`registry_problems`; its
+    ``axis_mismatch``, a matter of the manifests, is the package rule's), the
+    Extraction table (:func:`extraction_problems`) and each pre-parsed
+    Projection table (:func:`projection_problems`), each once and whole;
+    then, manifest by manifest, of each MatchClaim table its resources name,
+    in the order they first name it, over the rows of the timelines those
+    resources list (:func:`match_claim_problems`): each row's manifests are
+    found once and the rows ordered by manifest, so each manifest is checked
+    on its own rows alone. Each problem is placed in its file and row; a
+    problem a package rule already reports at the same file, row and column
+    with the same code, or an ``unknown_timeline`` on a MatchClaim reaching
+    another manifest, is not repeated.
 
     Raises:
         FileNotFoundError: If ``path`` is no file.
@@ -591,23 +637,56 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     except SchemaValidationError as error:
         problems.add(error.code, PACKAGE_FILE, None, error.path, error.message)
         return problems.found
+    _registry_entries(value, problems)
     version = value["timetoshare"]
-    manifests = _manifests(root, value, problems)
+    manifests, unread = _manifests(root, value, problems)
     entries = _entries(root, value, version, problems)
     listed = {
         (url, entry["type"])
         for entry in value["tables"]
         if (url := _resolved(entry["url"], "")) is not None
     }
-    _Check(listed, manifests, entries, problems).run()
+    _Check(listed, manifests, unread, entries, problems).run()
     return problems.found
+
+
+def _registry_entries(value: Mapping[str, Any], problems: _Problems) -> None:
+    """``missing_registry``, ``duplicate_registry``, ``duplicate_extraction``."""
+    by_type: dict[str, list[int]] = {"Registry": [], "Extraction": []}
+    for index, entry in enumerate(value["tables"]):
+        if entry["type"] in by_type:
+            by_type[entry["type"]].append(index)
+    if not by_type["Registry"]:
+        problems.add(
+            "missing_registry",
+            PACKAGE_FILE,
+            None,
+            ("tables",),
+            "the package lists no table of the type Registry",
+        )
+    for kind, code in (
+        ("Registry", "duplicate_registry"),
+        ("Extraction", "duplicate_extraction"),
+    ):
+        indices = by_type[kind]
+        for later in indices[1:]:
+            problems.add(
+                code,
+                PACKAGE_FILE,
+                None,
+                ("tables", later, "type"),
+                f"the package lists a second table of the type {kind}, first at "
+                f"{json_pointer(('tables', indices[0], 'type'))}",
+            )
 
 
 def _manifests(
     root: Path, value: Mapping[str, Any], problems: _Problems
-) -> list[_Manifest]:
-    """The manifests ``package.yaml`` lists that are valid, in its order."""
+) -> tuple[list[_Manifest], set[str]]:
+    """The manifests ``package.yaml`` lists that are valid, in its order, and
+    the paths of those listed that could not be read as one."""
     found = []
+    unread: set[str] = set()
     for index, entry in enumerate(value["manifests"]):
         file = _resolved(entry["url"], "")
         if file is None or not (root / file).is_file():
@@ -618,6 +697,8 @@ def _manifests(
                 ("manifests", index, "url"),
                 f"no manifest lies at '{entry['url']}' in the package",
             )
+            if file is not None:
+                unread.add(file)
             continue
         manifest = loads((root / file).read_text(encoding="utf-8"))
         try:
@@ -631,12 +712,14 @@ def _manifests(
                 f"the manifest declares the version {_version_text(error.version)}, "
                 f"the package {value['timetoshare']!r}",
             )
+            unread.add(file)
             continue
         except SchemaValidationError as error:
             problems.add(error.code, file, None, error.path, error.message)
+            unread.add(file)
             continue
         found.append(_Manifest(file, manifest, with_bare_ids(manifest)))
-    return found
+    return found, unread
 
 
 def _entries(
@@ -729,9 +812,103 @@ class _Full:
     runs: dict[int, pa.Array]
 
 
-_EVENT_COLUMNS = ("id", "timeline_id", "unit", "number_type")
+_REGISTRY_COLUMNS = (
+    "id",
+    "kind",
+    "location",
+    "timeline_id",
+    "unit",
+    "number_type",
+    "name",
+    "extraction_id",
+    "locator",
+    "vanished_in",
+)
 _CLAIM_COLUMNS = ("id", "timeline_a_id", "timeline_b_id")
-_CHECKED = {"MatchClaim": match_claim_problems, "Projection": projection_problems}
+_COMPARED = ("kind", "timeline_id", "name")
+"""The columns of an index row compared with what the manifests give."""
+
+_KIND_OF = {
+    "timelines": "Timeline",
+    "children": "Timeline",
+    "conversion_maps": "ConversionMap",
+    "maps": "ConversionMap",
+    "regions": "Region",
+    "flow_control": "FlowControlElement",
+    "groups": "Group",
+    "measure_maps": "MeasureMap",
+    "timestamps": "Timestamp",
+    "elisions": "Elision",
+    "matchstamps": "MatchStamp",
+    "alignment_anchors": "AlignmentAnchor",
+    "resources": "Resource",
+    "flow_maps": "FlowMap",
+    "virtual_timelines": "VirtualTimeline",
+}
+"""The kind of a manifest element by the member holding it."""
+
+_INDEX = pa.array(INDEX_KINDS, pa.string())
+_ONE_PER_PACKAGE = pa.array(["MatchClaim", "Extraction"], pa.string())
+"""The index kinds whose IDs are held once among the event rows as well."""
+_SEPARATOR = pa.scalar("\x00")
+_EMPTY_TEXT = pa.scalar("")
+
+
+def _any_of(*masks: pa.Array) -> pa.Array:
+    result = masks[0]
+    for mask in masks[1:]:
+        result = pc.or_(result, mask)
+    return result
+
+
+_WHOLE = {
+    "Registry": registry_problems,
+    "Extraction": extraction_problems,
+    "Projection": projection_problems,
+}
+"""The table checks run once over a whole table."""
+_TABLE_KINDS = ("Registry", "Extraction", "MatchClaim")
+"""The types of the tables that hold no event's content."""
+
+
+def _at_path(value: Any, path: Path_) -> Any:
+    for step in path:
+        value = value[step]
+    return value
+
+
+def _index_rows_of(manifest: Mapping[str, Any], location: str) -> list[dict[str, Any]]:
+    """The index rows a valid manifest (IDs bare) gives, at ``location``:
+    one per element holding an ID, in the order of
+    :func:`~timetoshare.validation.diagnostics.manifest_ids`."""
+    rows = []
+    for identifier, path in manifest_ids(manifest):
+        element = _at_path(manifest, path[:-1])
+        kind = "Manifest" if path == ("id",) else _KIND_OF[path[-3]]
+        timeline = None
+        if kind in ("Region", "FlowControlElement"):
+            timeline = _at_path(manifest, path[:-3])["id"]
+        elif kind in ("Timestamp", "Elision"):
+            held = element.get("timeline")
+            timeline = held if isinstance(held, str) else None
+        name = element.get("name")
+        rows.append(
+            {
+                "id": identifier,
+                "kind": kind,
+                "location": location,
+                "timeline_id": timeline,
+                "name": name if isinstance(name, str) else None,
+            }
+        )
+    return rows
+
+
+def _differ(old: pa.Array, new: pa.Array) -> pa.Array:
+    """Where two string columns differ, a null equal to a null alone."""
+    return pc.or_(
+        pc.xor(pc.is_null(old), pc.is_null(new)), _held(pc.not_equal(old, new))
+    )
 
 
 class _Check:
@@ -741,11 +918,13 @@ class _Check:
         self,
         listed: set[tuple[str, str]],
         manifests: list[_Manifest],
+        unread: set[str],
         entries: list[_Entry],
         problems: _Problems,
     ) -> None:
         self.listed = listed
         self.manifests = manifests
+        self.unread = set(unread)
         self.entries = entries
         self.problems = problems
         self.names = [name for entry in entries for name in entry.names]
@@ -754,47 +933,76 @@ class _Check:
         for entry in entries:
             self.first_file.append(count)
             count += len(entry.files)
+        read = {(entry.url, entry.kind) for entry in entries}
+        self.unread |= {
+            url
+            for url, kind in listed
+            if kind in ("MatchClaim", "Extraction") and (url, kind) not in read
+        }
+        self.registry = next(
+            (entry for entry in entries if entry.kind == "Registry"), None
+        )
+        self.extraction = next(
+            (entry for entry in entries if entry.kind == "Extraction"), None
+        )
 
     def run(self) -> None:
         self._timelines()
         self._resources()
-        events = self._rows(claims=False)
-        claims = self._rows(claims=True)
-        self._duplicates(events, "event")
-        self._duplicates(claims, "MatchClaim")
+        registry = self._registry_rows()
+        events = registry.filter(pc.invert(_held(pc.is_in(registry["kind"], _INDEX))))
+        contents = self._rows(_content=True)
+        claims = self._rows(_content=False)
+        extractions = self._column_rows(self.extraction, "id")
+        self._registry_duplicates(registry)
+        self._duplicates(contents, "event ID")
+        self._duplicates(claims, "MatchClaim ID")
         self._unknown(events, ("timeline_id",))
-        self._unknown(claims, MATCH_CLAIM_TIMELINES)
         self._unlisted(events, ("timeline_id",))
+        self._axes(events)
+        self._extractions(events, extractions)
+        located = self._locations(events)
+        self._content(events, located, contents)
+        self._projections()
+        self._stale(registry, claims, extractions)
+        self._unknown(claims, MATCH_CLAIM_TIMELINES)
         self._unlisted(claims, MATCH_CLAIM_TIMELINES)
         self._across(claims)
-        self._axes(events)
         self._table_checks()
 
     # The manifests.
 
     def _timelines(self) -> None:
-        """The owner and the axis of every timeline; ``duplicate_timeline``."""
-        owners: dict[str, int] = {}
-        axes: dict[str, tuple[str | None, str | None]] = {}
+        """Every timeline each manifest holds, with its axis there; a
+        timeline ID may be held by several manifests, which share its event
+        rows."""
+        timelines: list[str] = []
+        manifests: list[int] = []
+        units: list[str | None] = []
+        number_types: list[str | None] = []
         for index, manifest in enumerate(self.manifests):
-            paths = _timeline_paths(manifest.bare)
             for identifier, timeline in axes_by_id(manifest.bare).items():
-                held = owners.setdefault(identifier, index)
-                if held != index:
-                    self.problems.add(
-                        "duplicate_timeline",
-                        manifest.file,
-                        None,
-                        paths[identifier],
-                        f"the timeline '{identifier}' is a timeline of "
-                        f"'{self.manifests[held].file}' as well",
-                    )
-                else:
-                    axes[identifier] = _axis(timeline)
-        self.timeline_ids = pa.array(list(owners), pa.string())
-        self.owner_of = pa.array(list(owners.values()), pa.int64())
-        self.unit_of = pa.array([axes[key][0] for key in owners], pa.string())
-        self.number_type_of = pa.array([axes[key][1] for key in owners], pa.string())
+                unit, number_type = _axis(timeline)
+                timelines.append(identifier)
+                manifests.append(index)
+                units.append(unit if isinstance(unit, str) else None)
+                number_types.append(number_type)
+        self.held = pa.table(
+            {
+                "timeline": pa.array(timelines, pa.string()),
+                "manifest": pa.array(manifests, pa.int64()),
+                "unit": pa.array(units, pa.string()),
+                "number_type": pa.array(number_types, pa.string()),
+            }
+        )
+        firsts = _first_rows(
+            self.held["timeline"].combine_chunks(),
+            self.held["timeline"].combine_chunks(),
+        )
+        kept = pc.equal(firsts, _arange(len(self.held)))
+        first = self.held.filter(kept)
+        self.timeline_ids = first["timeline"].combine_chunks()
+        self.owner_of = first["manifest"].combine_chunks()
 
     def _resources(self) -> None:
         """Each table resource's table entry; ``unknown_table``; the
@@ -838,84 +1046,148 @@ class _Check:
 
     # The rows.
 
-    def _rows(self, *, claims: bool) -> pa.Table:
-        """The identifying columns of every row of the event tables, or of
-        the MatchClaim tables, with the table entry, the file (an index of
-        :attr:`names`) and the row in the file of each."""
-        columns = _CLAIM_COLUMNS if claims else _EVENT_COLUMNS
-        timelines = MATCH_CLAIM_TIMELINES if claims else EVENT_TIMELINES
-        parts = []
-        for number, entry in enumerate(self.entries):
-            if (entry.kind == "MatchClaim") != claims:
-                continue
-            read = _read(entry.files, entry.schemas, entry.kind, columns=columns)
-            table = read.table
-            files, rows = _origins(self.first_file[number], read.lengths)
-            parts.append(
-                pa.table(
-                    {
-                        **{name: _strings(table, name) for name in columns},
-                        **{
-                            _READ + name: pa.repeat(
-                                pa.scalar(_is_strings(table, name)), len(table)
-                            )
-                            for name in timelines
-                        },
-                        "entry": pa.repeat(
-                            pa.scalar(entry.index, pa.int64()), len(table)
-                        ),
-                        "file": files,
-                        "row": rows,
-                    }
-                )
+    def _framed(
+        self,
+        number: int,
+        entry: _Entry,
+        columns: Sequence[str],
+        timelines: Sequence[str],
+    ) -> pa.Table:
+        """An entry's ``columns`` as strings, with whether its table holds
+        each of ``timelines`` as strings, its entry, file and row."""
+        read = _read(entry.files, entry.schemas, entry.kind, columns=columns)
+        table = read.table
+        files, rows = _origins(self.first_file[number], read.lengths)
+        return pa.table(
+            {
+                **{name: _strings(table, name) for name in columns},
+                **{
+                    _READ + name: pa.repeat(
+                        pa.scalar(_is_strings(table, name)), len(table)
+                    )
+                    for name in timelines
+                },
+                "entry": pa.repeat(pa.scalar(entry.index, pa.int64()), len(table)),
+                "kind_of_entry": pa.repeat(pa.scalar(entry.kind), len(table)),
+                "file": files,
+                "row": rows,
+            }
+        )
+
+    def _empty(self, columns: Sequence[str], timelines: Sequence[str]) -> pa.Table:
+        return pa.table(
+            {
+                **{name: pa.array([], pa.string()) for name in columns},
+                **{_READ + name: pa.array([], pa.bool_()) for name in timelines},
+                "entry": _arange(0),
+                "kind_of_entry": pa.array([], pa.string()),
+                "file": _arange(0),
+                "row": _arange(0),
+            }
+        )
+
+    def _rows(self, *, _content: bool) -> pa.Table:
+        """The identifying columns of every row of the pre-parsed tables
+        (``id``), or of the MatchClaim tables (``id`` and both timelines),
+        with the table entry, the file (an index of :attr:`names`) and the
+        row in the file of each."""
+        columns = ("id",) if _content else _CLAIM_COLUMNS
+        timelines = () if _content else MATCH_CLAIM_TIMELINES
+        parts = [
+            self._framed(number, entry, columns, timelines)
+            for number, entry in enumerate(self.entries)
+            if (
+                entry.kind not in _TABLE_KINDS
+                if _content
+                else entry.kind == "MatchClaim"
             )
-        if not parts:
-            return pa.table(
-                {
-                    **{name: pa.array([], pa.string()) for name in columns},
-                    **{_READ + name: pa.array([], pa.bool_()) for name in timelines},
-                    "entry": _arange(0),
-                    "file": _arange(0),
-                    "row": _arange(0),
-                }
-            )
-        return pa.concat_tables(parts)
+        ]
+        return pa.concat_tables(parts) if parts else self._empty(columns, timelines)
+
+    def _registry_rows(self) -> pa.Table:
+        """The registry's identifying columns, none where its shape is broken,
+        which its table check reports."""
+        columns = _REGISTRY_COLUMNS
+        entry = self.registry
+        if entry is not None:
+            schema = _unified(entry.files, entry.schemas)
+            if not _schema_problems(schema.empty_table(), REGISTRY_SCHEMA):
+                number = self.entries.index(entry)
+                return self._framed(number, entry, columns, EVENT_TIMELINES)
+        return self._empty(columns, EVENT_TIMELINES)
+
+    def _column_rows(self, entry: _Entry | None, column: str) -> pa.Table:
+        if entry is None:
+            return self._empty((column,), ())
+        return self._framed(self.entries.index(entry), entry, (column,), ())
 
     def _add_rows(
         self,
         code: ProblemCode,
         rows: pa.Table,
         mask: pa.Array,
-        column: str,
+        column: str | Path_,
         message: Any,
     ) -> None:
         """Add a problem at each row ``mask`` flags, worded by ``message``
         from the row read in Python."""
+        path = (column,) if isinstance(column, str) else column
         flagged = rows.filter(_held(mask)).to_pylist()
         for row in flagged:
             self.problems.add(
-                code, self.names[row["file"]], row["row"], (column,), message(row)
+                code, self.names[row["file"]], row["row"], path, message(row)
             )
 
     def _owners(self, timelines: pa.Array) -> pa.Array:
-        """The manifest holding each timeline, null where none does."""
+        """The first manifest holding each timeline, null where none does."""
         return self.owner_of.take(pc.index_in(timelines, value_set=self.timeline_ids))
 
-    def _duplicates(self, rows: pa.Table, what: str) -> None:
+    def _duplicates(
+        self,
+        rows: pa.Table,
+        what: str,
+        among: pa.Array | None = None,
+        keys: pa.Array | None = None,
+        where: bool = False,
+    ) -> None:
+        """An ID given again, at the later row; among the rows ``among``
+        flags, by ``keys`` where given (else the IDs)."""
+        if among is not None:
+            rows = rows.filter(among)
+            keys = None if keys is None else keys.filter(among)
         ids = _array(rows, "id")
-        first = _first_rows(ids, ids)
+        keys = ids if keys is None else keys
+        first = _first_rows(keys, keys)
         again = _held(pc.not_equal(first, _arange(len(ids))))
-        again = pc.and_(again, pc.is_valid(ids))
+        again = pc.and_(again, pc.is_valid(keys))
         located = rows.append_column("first", first)
 
         def message(row: Mapping[str, Any]) -> str:
             held = located.slice(row["first"], 1).to_pylist()[0]
+            at = f" at '{row['location']}'" if where else ""
             return (
-                f"the {what} ID '{row['id']}' is given twice, first in "
+                f"the {what} '{row['id']}' is given twice{at}, first in "
                 f"'{self.names[held['file']]}' at row {held['row']}"
             )
 
         self._add_rows("duplicate_id", located, again, "id", message)
+
+    def _registry_duplicates(self, registry: pa.Table) -> None:
+        """The registry's IDs: an event, MatchClaim or Extraction ID once
+        among these rows, a manifest element's once per location."""
+        kinds = _array(registry, "kind")
+        element = _held(
+            pc.and_(
+                pc.is_in(kinds, value_set=_INDEX),
+                pc.invert(pc.is_in(kinds, value_set=_ONE_PER_PACKAGE)),
+            )
+        )
+        stated = pc.is_valid(kinds)
+        self._duplicates(registry, "ID", pc.and_(stated, pc.invert(element)))
+        keys = pc.binary_join_element_wise(
+            _array(registry, "location"), _array(registry, "id"), _SEPARATOR
+        )
+        self._duplicates(registry, "ID", element, keys, where=True)
 
     def _unknown(self, rows: pa.Table, columns: tuple[str, ...]) -> None:
         """A null timeline (``schema_violation``, as the table checks word
@@ -946,6 +1218,8 @@ class _Check:
             )
 
     def _unlisted(self, rows: pa.Table, columns: tuple[str, ...]) -> None:
+        """A row's timeline that no resource naming its table lists, in any
+        manifest; worded with the first manifest holding the timeline."""
         kinds = {entry.index: entry.kind for entry in self.entries}
         for column in columns:
             timelines = _array(rows, column)
@@ -972,79 +1246,463 @@ class _Check:
 
             self._add_rows("unlisted_timeline", placed, mask, column, message)
 
+    def _axes(self, events: pa.Table) -> None:
+        """Each event row against its timeline's axis in every manifest
+        holding it; one problem per distinct axis it is not on."""
+        placed = events.append_column("order", _arange(len(events)))
+        row_unit = _array(placed, "unit")
+        row_type = _array(placed, "number_type")
+        admitted = _axis_admitted(row_unit, row_type)
+        candidates = placed.filter(
+            pc.and_(admitted, pc.is_valid(_array(placed, "timeline_id")))
+        )
+        pairs = candidates.select(["order", "timeline_id", "unit", "number_type"]).join(
+            self.held.rename_columns(
+                ["timeline_id", "manifest", "expected_unit", "expected_number_type"]
+            ),
+            keys="timeline_id",
+            join_type="inner",
+        )
+        unit_differs = _differ(_array(pairs, "unit"), _array(pairs, "expected_unit"))
+        type_differs = _differ(
+            _array(pairs, "number_type"), _array(pairs, "expected_number_type")
+        )
+        flagged = pairs.filter(pc.or_(unit_differs, type_differs)).append_column(
+            "column",
+            pc.if_else(
+                unit_differs.filter(pc.or_(unit_differs, type_differs)),
+                pa.scalar("unit"),
+                pa.scalar("number_type"),
+            ),
+        )
+        flagged = flagged.sort_by([("order", "ascending"), ("manifest", "ascending")])
+        orders = flagged["order"].combine_chunks()
+        rows = dict(
+            zip(
+                orders.to_pylist(),
+                placed.take(orders).to_pylist(),
+                strict=True,
+            )
+        )
+        seen: set[tuple[int, str, str]] = set()
+        for found in flagged.to_pylist():
+            row = rows[found["order"]]
+            message = (
+                f"a coordinate in {row['unit']} ({row['number_type']}) on the "
+                f"timeline '{row['timeline_id']}' in {found['expected_unit']} "
+                f"({found['expected_number_type']})"
+            )
+            key = (found["order"], found["column"], message)
+            if key in seen:
+                continue
+            seen.add(key)
+            self.problems.add(
+                "axis_mismatch",
+                self.names[row["file"]],
+                row["row"],
+                (found["column"],),
+                message,
+            )
+
+    def _extractions(self, events: pa.Table, extractions: pa.Table) -> None:
+        """An event row's ``extraction_id`` or ``vanished_in`` naming no
+        extraction."""
+        known = _array(extractions, "id")
+        for column in ("extraction_id", "vanished_in"):
+            values = _array(events, column)
+            unknown = pc.and_(
+                pc.is_valid(values), pc.invert(pc.is_in(values, value_set=known))
+            )
+            self._add_rows(
+                "unknown_extraction",
+                events,
+                unknown,
+                column,
+                lambda row, column=column: (
+                    f"no extraction of the package has the ID '{row[column]}'"
+                ),
+            )
+
+    def _locations(self, events: pa.Table) -> pa.Table:
+        """Each event row with a location, resolved against the package's
+        root, and the entry it names (null where none of its kind does);
+        ``unknown_location``."""
+        locations = _array(events, "location")
+        kinds = _array(events, "kind")
+        codes = _dense(pc.binary_join_element_wise(locations, kinds, _SEPARATOR))
+        firsts = _firsts(codes)
+        by_url = {(entry.url, entry.kind): entry.index for entry in self.entries}
+        resolved: list[str | None] = []
+        entry_of: list[int | None] = []
+        named: list[bool] = []
+        for location, kind in zip(
+            locations.take(firsts).to_pylist(),
+            kinds.take(firsts).to_pylist(),
+            strict=True,
+        ):
+            url = None if location is None else _resolved(location, "")
+            resolved.append(url)
+            entry_of.append(by_url.get((url, kind)) if url is not None else None)
+            named.append(location is None or (url, kind) in self.listed)
+        placed = events.append_column(
+            "entry_named", pa.array(entry_of, pa.int64()).take(codes)
+        ).append_column("order", _arange(len(events)))
+        self._add_rows(
+            "unknown_location",
+            placed,
+            pc.invert(pa.array(named, pa.bool_()).take(codes)),
+            "location",
+            lambda row: (
+                f"the location '{row['location']}' names no table of the type "
+                f"{row['kind']} in the package"
+            ),
+        )
+        return placed
+
+    def _content(self, events: pa.Table, located: pa.Table, contents: pa.Table) -> None:
+        """``missing_content``, then ``unregistered_id``."""
+        named = located.filter(pc.is_valid(located["entry_named"]))
+        keys = named.select(["entry_named", "id", "order"]).rename_columns(
+            ["entry", "id", "order"]
+        )
+        missing = keys.join(
+            contents.select(["entry", "id"]),
+            keys=["entry", "id"],
+            join_type="left anti",
+        )
+        mask = pc.is_in(
+            _arange(len(located)), value_set=missing["order"].combine_chunks()
+        )
+        self._add_rows(
+            "missing_content",
+            located,
+            mask,
+            "location",
+            lambda row: (
+                f"the table '{row['location']}' holds no row of the ID '{row['id']}'"
+            ),
+        )
+        self.events = events
+        if self.registry is None:
+            return
+        placed = contents.append_column("order", _arange(len(contents)))
+        registered = events.select(["kind", "id"]).rename_columns(
+            ["kind_of_entry", "id"]
+        )
+        unregistered = placed.select(["kind_of_entry", "id", "order"]).join(
+            registered, keys=["kind_of_entry", "id"], join_type="left anti"
+        )
+        mask = pc.and_(
+            pc.is_in(
+                _arange(len(placed)), value_set=unregistered["order"].combine_chunks()
+            ),
+            pc.is_valid(_array(placed, "id")),
+        )
+        self._add_rows(
+            "unregistered_id",
+            placed,
+            mask,
+            "id",
+            lambda row: (
+                f"no event row of the type {row['kind_of_entry']} in the registry "
+                f"has the ID '{row['id']}'"
+            ),
+        )
+
+    def _projections(self) -> None:
+        """A pre-parsed Projection standing for an event of its registry
+        row's own timeline (``invalid_projection_of``), or of a timeline no
+        manifest holds (``unknown_timeline``)."""
+        if self.registry is None:
+            return
+        events = self.events.select(["kind", "id", "timeline_id"])
+        events = events.filter(pc.equal(events["kind"], pa.scalar("Projection")))
+        for number, entry in enumerate(self.entries):
+            if entry.kind != "Projection":
+                continue
+            try:
+                read = _read(entry.files, entry.schemas, entry.kind)
+            except TableError:
+                continue
+            table = read.table
+            if _schema_problems(table.schema.empty_table(), PROJECTION_SCHEMA):
+                continue
+            files, rows = _origins(self.first_file[number], read.lengths)
+            source = _array(table, "projection_of")
+            frame = pa.table(
+                {
+                    "id": _strings(table, "id"),
+                    "source": pc.struct_field(source, "timeline_id"),
+                    "file": files,
+                    "row": rows,
+                    "order": _arange(len(table)),
+                }
+            )
+            joined = frame.join(
+                events.select(["id", "timeline_id"]), keys="id", join_type="left outer"
+            ).sort_by("order")
+            own = _held(pc.equal(joined["source"], joined["timeline_id"]))
+            self._add_rows(
+                "invalid_projection_of",
+                joined,
+                own,
+                ("projection_of", "timeline_id"),
+                lambda row: (
+                    "a Projection stands for an event of another timeline than "
+                    f"'{row['timeline_id']}'"
+                ),
+            )
+            sources = _array(joined, "source")
+            unknown = pc.and_(
+                _held(pc.not_equal(sources, pa.scalar(""))),
+                pc.is_null(self._owners(sources)),
+            )
+            self._add_rows(
+                "unknown_timeline",
+                joined,
+                unknown,
+                ("projection_of", "timeline_id"),
+                lambda row: (
+                    f"no manifest of the package has the timeline '{row['source']}'"
+                ),
+            )
+
+    def _expected_index(self, claims: pa.Table, extractions: pa.Table) -> pa.Table:
+        """The index rows the manifests, the MatchClaim tables and the
+        Extraction table give: ``id``, ``resolved`` (the location),
+        ``expected_kind``, ``expected_timeline_id``, ``expected_name`` and
+        their ``position``."""
+        rows: list[dict[str, Any]] = []
+        for manifest in self.manifests:
+            rows.extend(_index_rows_of(manifest.bare, manifest.file))
+        strings = pa.schema(
+            [
+                pa.field(name, pa.string())
+                for name in ("id", "kind", "location", "timeline_id", "name")
+            ]
+        )
+        parts = [pa.Table.from_pylist(rows, schema=strings)]
+        urls = pa.array([entry.url for entry in self.entries], pa.string())
+        numbers = pa.array([entry.index for entry in self.entries], pa.int64())
+        for table, kind in ((claims, "MatchClaim"), (extractions, "Extraction")):
+            table = table.filter(pc.is_valid(_array(table, "id")))
+            locations = urls.take(
+                pc.index_in(_array(table, "entry"), value_set=numbers)
+            )
+            parts.append(
+                pa.table(
+                    {
+                        "id": _array(table, "id"),
+                        "kind": pa.repeat(pa.scalar(kind), len(table)),
+                        "location": locations,
+                        "timeline_id": pa.nulls(len(table), pa.string()),
+                        "name": pa.nulls(len(table), pa.string()),
+                    },
+                    schema=strings,
+                )
+            )
+        expected = pa.concat_tables(parts)
+        return pa.table(
+            {
+                "id": _array(expected, "id"),
+                "resolved": _array(expected, "location"),
+                "expected_kind": _array(expected, "kind"),
+                "expected_timeline_id": _array(expected, "timeline_id"),
+                "expected_name": _array(expected, "name"),
+                "position": _arange(len(expected)),
+            }
+        )
+
+    def _stale(
+        self, registry: pa.Table, claims: pa.Table, extractions: pa.Table
+    ) -> None:
+        """The registry's index rows against what the manifests, the
+        MatchClaim tables and the Extraction table give (``stale_index``): the
+        index rows of the index part (``index.parquet`` of a folder, else
+        the file), an extra row (a location and ID given again among them
+        included) or a differing one in the part's order, then each missing
+        row by location and ID. Rows at a location that could not be read
+        are not compared."""
+        entry = self.registry
+        if entry is None:
+            return
+        expected = self._expected_index(claims, extractions)
+        at = f"{entry.url}index.parquet" if entry.url.endswith("/") else entry.url
+        index = registry.filter(_held(pc.is_in(registry["kind"], _INDEX)))
+        if at in self.names:
+            part = pa.array([self.names.index(at)], pa.int64())
+            index = index.filter(pc.is_in(index["file"], value_set=part))
+        else:
+            index = index.slice(0, 0)
+        index = index.append_column("order", _arange(len(index)))
+        locations = _array(index, "location")
+        codes = _dense(locations)
+        resolved = pa.array(
+            [
+                None if value is None else _resolved(value, "")
+                for value in locations.take(_firsts(codes)).to_pylist()
+            ],
+            pa.string(),
+        ).take(codes)
+        index = index.append_column("resolved", resolved)
+        unread = pa.array(sorted(self.unread), pa.string())
+        index = index.filter(pc.invert(_held(pc.is_in(resolved, value_set=unread))))
+        actual = index.select(
+            ["order", "id", "resolved", *_COMPARED, "file", "row", "location"]
+        )
+        unique = expected.group_by(["id", "resolved"], use_threads=False).aggregate(
+            [
+                ("position", "min"),
+                *((f"expected_{name}", "first") for name in _COMPARED),
+            ]
+        )
+        unique = unique.rename_columns(
+            [
+                name.removesuffix("_min").removesuffix("_first")
+                for name in unique.column_names
+            ]
+        )
+        joined = actual.join(
+            unique, keys=["id", "resolved"], join_type="left outer"
+        ).sort_by("order")
+        keys = _dense(
+            pc.binary_join_element_wise(
+                _array(joined, "id"),
+                pc.coalesce(_array(joined, "resolved"), _EMPTY_TEXT),
+                _SEPARATOR,
+            )
+        )
+        again = pc.invert(pc.is_in(_arange(len(joined)), value_set=_firsts(keys)))
+        extra = pc.or_(pc.is_null(joined["position"]), again)
+        differs = {
+            name: pc.and_(
+                pc.invert(extra),
+                _differ(_array(joined, name), _array(joined, f"expected_{name}")),
+            )
+            for name in _COMPARED
+        }
+        flagged = joined.append_column("extra", extra)
+        for name, mask in differs.items():
+            flagged = flagged.append_column(f"differs_{name}", mask)
+        flagged = flagged.filter(_any_of(extra, *differs.values()))
+        for row in flagged.to_pylist():
+            file = self.names[row["file"]]
+            if row["extra"]:
+                self.problems.add(
+                    "stale_index",
+                    file,
+                    row["row"],
+                    ("id",),
+                    f"the index holds the ID '{row['id']}' at '{row['location']}', "
+                    "which no manifest or table holds there",
+                )
+                continue
+            for column in _COMPARED:
+                if row[f"differs_{column}"]:
+                    self.problems.add(
+                        "stale_index",
+                        file,
+                        row["row"],
+                        (column,),
+                        f"the index row of the ID '{row['id']}' at "
+                        f"'{row['location']}' has the {column} {row[column]!r}, "
+                        f"not {row[f'expected_{column}']!r}",
+                    )
+        missing = expected.join(
+            actual.select(["id", "resolved"]),
+            keys=["id", "resolved"],
+            join_type="left anti",
+        ).sort_by([("resolved", "ascending"), ("id", "ascending")])
+        for row in missing.to_pylist():
+            self.problems.add(
+                "stale_index",
+                at,
+                None,
+                ("id",),
+                f"the index lacks the ID '{row['id']}' at '{row['resolved']}'",
+            )
+
     def _across(self, claims: pa.Table) -> None:
-        a = self._owners(_array(claims, "timeline_a_id"))
-        b = self._owners(_array(claims, "timeline_b_id"))
-        placed = claims.append_column("owner_a", a).append_column("owner_b", b)
-        across = pc.not_equal(a, b)
+        """A MatchClaim whose two timelines are held, but by no one manifest."""
+        a = _array(claims, "timeline_a_id")
+        b = _array(claims, "timeline_b_id")
+        order = _arange(len(claims))
+        held = self.held.select(["timeline", "manifest"])
+        sides = [
+            pa.table({"order": order, "timeline": side}).join(
+                held, keys="timeline", join_type="inner"
+            )
+            for side in (a, b)
+        ]
+        shared = (
+            sides[0]
+            .select(["order", "manifest"])
+            .join(
+                sides[1].select(["order", "manifest"]),
+                keys=["order", "manifest"],
+                join_type="inner",
+            )
+        )
+        across = _all(
+            pc.is_valid(self._owners(a)),
+            pc.is_valid(self._owners(b)),
+            pc.invert(pc.is_in(order, value_set=shared["order"].combine_chunks())),
+        )
 
         def message(row: Mapping[str, Any]) -> str:
             return (
-                f"the MatchClaim joins the timeline '{row['timeline_a_id']}' of "
-                f"'{self.manifests[row['owner_a']].file}' and the timeline "
-                f"'{row['timeline_b_id']}' of '{self.manifests[row['owner_b']].file}'"
+                "no manifest of the package holds both the timeline "
+                f"'{row['timeline_a_id']}' and the timeline '{row['timeline_b_id']}'"
             )
 
         self._add_rows(
-            "claim_across_manifests", placed, across, "timeline_b_id", message
+            "claim_across_manifests", claims, across, "timeline_b_id", message
         )
         self.across = {
-            (row["file"], row["row"])
-            for row in placed.filter(_held(across)).to_pylist()
+            (row["file"], row["row"]) for row in claims.filter(across).to_pylist()
         }
-
-    def _axes(self, events: pa.Table) -> None:
-        timelines = _array(events, "timeline_id")
-        found = pc.index_in(timelines, value_set=self.timeline_ids)
-        unit = self.unit_of.take(found)
-        number_type = self.number_type_of.take(found)
-        row_unit = _array(events, "unit")
-        row_type = _array(events, "number_type")
-        admitted = _axis_admitted(row_unit, row_type)
-        held = pc.and_(pc.is_valid(found), admitted)
-        unit_differs = _held(pc.not_equal(row_unit, unit))
-        differs = pc.or_(unit_differs, _held(pc.not_equal(row_type, number_type)))
-        placed = events.append_column("expected_unit", unit).append_column(
-            "expected_number_type", number_type
-        )
-        for column, mask in (
-            ("unit", pc.and_(held, unit_differs)),
-            ("number_type", pc.and_(pc.and_(held, differs), pc.invert(unit_differs))),
-        ):
-            self._add_rows(
-                "axis_mismatch",
-                placed,
-                mask,
-                column,
-                lambda row: (
-                    f"a coordinate in {row['unit']} ({row['number_type']}) on the "
-                    f"timeline '{row['timeline_id']}' in {row['expected_unit']} "
-                    f"({row['expected_number_type']})"
-                ),
-            )
 
     # The table checks.
 
     def _table_checks(self) -> None:
-        """The table checks of each MatchClaim or Projections table, once per
-        manifest whose resources name it, over that manifest's rows alone:
-        each row's manifests are found once, by its timelines' listings, and
-        the rows ordered by manifest, so that every manifest is checked on
-        its own run of rows."""
-        package = {
+        """The table checks: the registry's (its ``axis_mismatch`` left to
+        the package rule, which compares each manifest's axis), the
+        Extraction table's and each pre-parsed Projection table's, once and
+        whole, in the order of the entries; then each MatchClaim table's,
+        once per manifest whose resources name it, over that manifest's rows
+        alone: each row's manifests are found once, by its timelines'
+        listings, and the rows ordered by manifest, so that every manifest is
+        checked on its own run of rows."""
+        self.package = {
             (problem.code, problem.file, problem.row, problem.path)
             for problem in self.problems.found
         }
-        across = {(self.names[file], row) for file, row in self.across}
+        self.reported: set[PackageProblem] = set(self.problems.found)
+        for entry in self.entries:
+            whole = _WHOLE.get(entry.kind)
+            if whole is None or (
+                entry.kind in ("Registry", "Extraction")
+                and entry not in (self.registry, self.extraction)
+            ):
+                continue
+            read = self._full(entry, runs=False)
+            if read is None:
+                continue
+            everything = _arange(len(read.table))
+            checked = [
+                problem
+                for problem in whole(read.table)
+                if not (entry.kind == "Registry" and problem.code == "axis_mismatch")
+            ]
+            self._place(entry, read, everything, checked)
         full: dict[int, _Full | None] = {}
-        reported: set[PackageProblem] = set(self.problems.found)
         for number, manifest in enumerate(self.manifests):
             checked_entries: set[int] = set()
             for index in range(len(entries_of(manifest.bare, "resources"))):
                 entry = self.resolved.get((number, index))
                 if (
                     entry is None
-                    or entry.kind not in _CHECKED
+                    or entry.kind != "MatchClaim"
                     or entry.index in checked_entries
                 ):
                     continue
@@ -1055,24 +1713,36 @@ class _Check:
                 if read is None:
                     continue
                 taken = read.runs.get(number, _arange(0))
-                checked = _CHECKED[entry.kind](read.table.take(taken), manifest.value)
-                for problem in checked:
-                    if problem.row is None:
-                        file, row = entry.url, None
-                    else:
-                        at = taken[problem.row].as_py()
-                        file = self.names[read.files[at].as_py()]
-                        row = read.rows[at].as_py()
-                    if (problem.code, file, row, problem.column) in package:
-                        continue
-                    if problem.code == "unknown_timeline" and (file, row) in across:
-                        continue
-                    placed = PackageProblem(
-                        problem.code, file, row, problem.column, problem.message
-                    )
-                    if placed not in reported:
-                        reported.add(placed)
-                        self.problems.found.append(placed)
+                checked = match_claim_problems(read.table.take(taken), manifest.value)
+                self._place(entry, read, taken, checked)
+
+    def _place(
+        self,
+        entry: _Entry,
+        read: _Full,
+        taken: pa.Array,
+        checked: Iterable[TableProblem],
+    ) -> None:
+        """Put each problem of a table check in its file and row, unless a
+        package rule reports it already."""
+        across = {(self.names[file], row) for file, row in self.across}
+        for problem in checked:
+            if problem.row is None:
+                file, row = entry.url, None
+            else:
+                at = taken[problem.row].as_py()
+                file = self.names[read.files[at].as_py()]
+                row = read.rows[at].as_py()
+            if (problem.code, file, row, problem.column) in self.package:
+                continue
+            if problem.code == "unknown_timeline" and (file, row) in across:
+                continue
+            placed = PackageProblem(
+                problem.code, file, row, problem.column, problem.message
+            )
+            if placed not in self.reported:
+                self.reported.add(placed)
+                self.problems.found.append(placed)
 
     def _runs(self, entry: _Entry, table: pa.Table) -> dict[int, pa.Array]:
         """The rows of an entry's table each manifest checks, by manifest: a
@@ -1102,7 +1772,7 @@ class _Check:
             offset += count["counts"]
         return runs
 
-    def _full(self, entry: _Entry) -> _Full | None:
+    def _full(self, entry: _Entry, *, runs: bool = True) -> _Full | None:
         """Every column of an entry's rows, with each row's file (an index of
         :attr:`names`), its row in the file, and the rows each manifest
         checks (:meth:`_runs`); ``None`` where they cannot be read as one
@@ -1124,7 +1794,8 @@ class _Check:
             self.problems.add(problem.code, file, row, problem.column, problem.message)
             return None
         files, rows = _origins(first, read.lengths)
-        return _Full(read.table, files, rows, self._runs(entry, read.table))
+        found = self._runs(entry, read.table) if runs else {}
+        return _Full(read.table, files, rows, found)
 
 
 _READ = "read:"

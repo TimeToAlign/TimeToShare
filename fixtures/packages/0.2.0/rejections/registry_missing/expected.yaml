@@ -1,0 +1,8 @@
+problems:
+  -
+    code: missing_registry
+    file: package.yaml
+    message: "the package lists no table of the type Registry"
+    path: [tables]
+    row: null
+reason: "package.yaml lists no registry; the manifests name none and no event has content."

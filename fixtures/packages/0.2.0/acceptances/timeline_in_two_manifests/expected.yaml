@@ -1,0 +1,107 @@
+problems: []
+reason: "Handel's manifest holds a timeline dpt_1, as Bach's does, and keeps its event rows too: manifests sharing a timeline ID share its event rows, and the ID resolves through each."
+resolutions:
+  -
+    found:
+      -
+        kind: Timeline
+        location: bach/manifest.yaml
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: dpt_1
+          kind: Timeline
+          location: bach/manifest.yaml
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+    id: dpt_1
+    path: bach/manifest.yaml
+  -
+    found:
+      -
+        kind: Timeline
+        location: handel/manifest.yaml
+        manifest: handel/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: dpt_1
+          kind: Timeline
+          location: handel/manifest.yaml
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+    id: dpt_1
+    path: handel/manifest.yaml
+  -
+    found:
+      -
+        kind: Projection
+        location: tables/Projection/
+        manifest: handel/manifest.yaml
+        row:
+          duration: null
+          extraction_id: extraction_1
+          id: projection_1
+          kind: Projection
+          location: tables/Projection/
+          locator: "row 1"
+          name: null
+          number_type: int
+          start:
+            denominator: null
+            numerator: 0
+            value: null
+          timeline_id: dpt_1
+          unit: samples
+          vanished_in: null
+    id: projection_1
+    path: handel/manifest.yaml
+  -
+    found:
+      -
+        kind: Timeline
+        location: bach/manifest.yaml
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: dpt_1
+          kind: Timeline
+          location: bach/manifest.yaml
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+      -
+        kind: Timeline
+        location: handel/manifest.yaml
+        manifest: handel/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: dpt_1
+          kind: Timeline
+          location: handel/manifest.yaml
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+    id: dpt_1
+    path: "."

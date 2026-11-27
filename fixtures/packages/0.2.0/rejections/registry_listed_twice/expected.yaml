@@ -1,0 +1,8 @@
+problems:
+  -
+    code: duplicate_registry
+    file: package.yaml
+    message: "the package lists a second table of the type Registry, first at #/tables/0/type"
+    path: [tables, 4, type]
+    row: null
+reason: "package.yaml lists a second registry; a package has one."

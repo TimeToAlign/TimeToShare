@@ -2,7 +2,7 @@ problems:
   -
     code: claim_across_manifests
     file: tables/MatchClaim/part_a.parquet
-    message: "the MatchClaim joins the timeline 'clt_1' of 'bach/manifest.yaml' and the timeline 'dpt_2' of 'handel/manifest.yaml'"
+    message: "no manifest of the package holds both the timeline 'clt_1' and the timeline 'dpt_2'"
     path: [timeline_b_id]
     row: 2
 reason: "A MatchClaim joins Bach's score and Handel's performance; a MatchClaim lies within one manifest."

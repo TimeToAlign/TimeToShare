@@ -1,0 +1,8 @@
+problems:
+  -
+    code: unknown_extraction
+    file: registry/extraction_2.parquet
+    message: "no extraction of the package has the ID 'extraction_9'"
+    path: [extraction_id]
+    row: 2
+reason: "An event row of Handel's names extraction_9, which the Extraction table does not hold."

@@ -1,40 +1,54 @@
 #!/usr/bin/env python
 """Write the package fixtures: a package of two manifests sharing their
-tables, the packages that change it and pass the package check, and one
-package per rule of the package check that breaks it, to
+registry and tables, the packages that change it and pass the package check,
+and one package per rule of the package check that breaks it, to
 ``fixtures/packages/<version>/``.
 
 Every value is written here by hand: the rows, the manifests, the rows
-``read_table`` returns for each resource and the problems expected of each
-broken package are literal data, never computed by the code they test; the
-script checks that the package check agrees before it writes anything. A
-Parquet file is rewritten only when its table changes, and the files of a
-released version, whose tag ``v<version>`` exists, are never overwritten.
+``read_table`` returns for each resource, the resolutions of some IDs and
+the problems expected of each broken package are literal data, never
+computed by the code they test; the script checks that the package check
+agrees before it writes anything. The one value read from bytes is the
+digest of the source file of the first extraction. A Parquet file is
+rewritten only when its table changes, and the files of a released
+version, whose tag ``v<version>`` exists, are never overwritten.
 
 Run it from ``python/`` with ``uv run python ../scripts/emit_packages.py``;
 pyarrow is a development dependency of the package.
 
 The package ``shared/``: two manifests, ``bach/manifest.yaml`` (a score
 ``clt_1`` in quarters and a performance ``dpt_1`` in samples) and
-``handel/manifest.yaml`` (a score ``clt_2`` with a child ``clt_3`` and a
-performance ``dpt_2``), share a folder of Projections, ``tables/Projection/``
-(two files), and a folder of MatchClaims, ``tables/MatchClaim/`` (one file).
-The rows of the two manifests are interleaved in every file. ``part_a`` of
-the Projections lies sorted by timeline, start and ID, as a writer writes
-it; ``part_b`` lies unsorted, which readers accept. The MatchClaim file
-states one provenance for all its rows in its metadata. Each manifest's
-resources name the two folders, with the timelines whose rows it reads.
+``handel/manifest.yaml`` (a score ``clt_2`` with a child ``clt_3`` starting
+at the quarter 4, and a performance ``dpt_2``), share the registry
+``registry/``, a folder of parts: ``index.parquet``, the index rows of both
+manifests' elements, the MatchClaims and the extractions, sorted by
+location and ID, and one part per extraction holding its event rows, sorted
+by timeline, start and ID: ``extraction_1.parquet``, Bach's Projections,
+made from ``bach/alignment.csv``, each with its locator, and
+``extraction_2.parquet``, Handel's, made by a tool without a source file,
+the two on ``clt_3`` at their positions on the root ``clt_2``. The
+Extraction table ``tables/extractions.parquet`` records both runs. The
+pre-parsed Projection table ``tables/Projection/`` holds each Projection's
+``projection_of`` in two files whose rows interleave the two manifests',
+and the folder of MatchClaims ``tables/MatchClaim/`` one file, which states
+one provenance for all its rows in its metadata. Each manifest's resources
+name the registry, with the timelines whose event rows it keeps, and the
+MatchClaims, with the timelines whose MatchClaims it reads.
 
 Each acceptance under ``acceptances/<case>/`` is ``shared/`` with one
 change the package check accepts, beside an ``expected.yaml`` listing no
-problem. Each rejection under ``rejections/<case>/`` is ``shared/`` with one
-change, beside an ``expected.yaml`` listing exactly the problems the package
-check reports, in order.
+problem and, where the case concerns them, the resolutions of some IDs.
+Each rejection under ``rejections/<case>/`` is ``shared/`` with one change,
+beside an ``expected.yaml`` listing exactly the problems the package check
+reports, in order. A change that adds or alters an element of a manifest
+changes its index row too, so that the index is stale only where a case
+says so.
 """
 
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import shutil
 import subprocess
@@ -49,9 +63,11 @@ import pyarrow.parquet as pq
 
 from timetoshare import SCHEMA_VERSION, dumps, validate, validate_package, with_file_ids
 from timetoshare.tables import (
+    EXTRACTION_SCHEMA,
     MATCH_CLAIM_SCHEMA,
     PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
+    REGISTRY_SCHEMA,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
     package_problems,
@@ -61,8 +77,21 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_DIR = REPOSITORY_ROOT / "fixtures" / "packages" / SCHEMA_VERSION
 
 PARQUET = "application/vnd.apache.parquet"
+REGISTRY = "registry/"
+EXTRACTIONS = "tables/extractions.parquet"
 PROJECTIONS = "tables/Projection/"
 MATCH_CLAIMS = "tables/MatchClaim/"
+INDEX_FILE = f"{REGISTRY}index.parquet"
+BACH_PART = f"{REGISTRY}extraction_1.parquet"
+HANDEL_PART = f"{REGISTRY}extraction_2.parquet"
+PART_A_FILE = f"{PROJECTIONS}part_a.parquet"
+PART_B_FILE = f"{PROJECTIONS}part_b.parquet"
+CLAIM_FILE = f"{MATCH_CLAIMS}part_a.parquet"
+BACH_FILE = "bach/manifest.yaml"
+HANDEL_FILE = "handel/manifest.yaml"
+SOURCE = "bach/alignment.csv"
+SOURCE_TEXT = "onset,sample\n0,0\n1,44100\n2,88200\n3,132300\n"
+"""The source file of the first extraction, Bach's alignment."""
 
 BACH: dict[str, Any] = {
     "timetoshare": SCHEMA_VERSION,
@@ -81,9 +110,9 @@ BACH: dict[str, Any] = {
         },
         {
             "id": "resource_2",
-            "type": "Projection",
+            "type": "Registry",
             "timelines": ["dpt_1"],
-            "url": f"../{PROJECTIONS}",
+            "url": f"../{REGISTRY}",
             "media_type": PARQUET,
         },
     ],
@@ -114,23 +143,26 @@ HANDEL: dict[str, Any] = {
         },
         {
             "id": "resource_2",
-            "type": "Projection",
+            "type": "Registry",
             "timelines": ["clt_3", "dpt_2"],
-            "url": f"../{PROJECTIONS}",
+            "url": f"../{REGISTRY}",
             "media_type": PARQUET,
         },
     ],
 }
-"""The second manifest, IDs bare; its child ``clt_3`` holds rows of its own."""
+"""The second manifest, IDs bare; its child ``clt_3`` holds event rows of
+its own."""
 
 PACKAGE: dict[str, Any] = {
     "timetoshare": SCHEMA_VERSION,
-    "name": "Two manifests sharing their tables",
+    "name": "Two manifests sharing their registry and tables",
     "manifests": [
-        {"url": "bach/manifest.yaml", "media_type": "application/yaml"},
-        {"url": "handel/manifest.yaml", "media_type": "application/yaml"},
+        {"url": BACH_FILE, "media_type": "application/yaml"},
+        {"url": HANDEL_FILE, "media_type": "application/yaml"},
     ],
     "tables": [
+        {"type": "Registry", "url": REGISTRY, "media_type": PARQUET},
+        {"type": "Extraction", "url": EXTRACTIONS, "media_type": PARQUET},
         {"type": "MatchClaim", "url": MATCH_CLAIMS, "media_type": PARQUET},
         {"type": "Projection", "url": PROJECTIONS, "media_type": PARQUET},
     ],
@@ -159,54 +191,147 @@ def number(value: int | Fraction | float, number_type: str) -> dict[str, Any]:
     }
 
 
-def projection(
+SAMPLES = ("samples", "int")
+QUARTERS = ("quarters", "fraction")
+_NULLS = dict.fromkeys(REGISTRY_SCHEMA.names)
+
+
+def event(
     identifier: str,
     timeline: str,
     axis: tuple[str, str],
     start: Any,
-    of: tuple[str, str] | None,
+    extraction: str,
     duration: Any = None,
+    locator: str | None = None,
+    kind: str = "Projection",
+    location: str | None = PROJECTIONS,
 ) -> dict[str, Any]:
+    """An event row, its position on its root's axis."""
     unit, number_type = axis
     return {
+        **_NULLS,
         "id": identifier,
+        "kind": kind,
+        "location": location,
         "timeline_id": timeline,
         "unit": unit,
         "number_type": number_type,
         "start": number(start, number_type),
         "duration": None if duration is None else number(duration, number_type),
+        "extraction_id": extraction,
+        "locator": locator,
+    }
+
+
+def index(identifier: str, kind: str, location: str, **members: Any) -> dict[str, Any]:
+    """An index row."""
+    return {**_NULLS, "id": identifier, "kind": kind, "location": location, **members}
+
+
+BACH_EVENTS: list[dict[str, Any]] = [
+    event("projection_1", "dpt_1", SAMPLES, 0, "extraction_1", locator="row 1"),
+    event("projection_2", "dpt_1", SAMPLES, 44100, "extraction_1", locator="row 2"),
+    event("projection_9", "dpt_1", SAMPLES, 88200, "extraction_1", locator="row 3"),
+    event("projection_7", "dpt_1", SAMPLES, 132300, "extraction_1", locator="row 4"),
+]
+"""Bach's event rows, sorted by timeline, start and ID."""
+
+HANDEL_EVENTS: list[dict[str, Any]] = [
+    event(
+        "projection_5",
+        "clt_3",
+        QUARTERS,
+        Fraction(9, 2),
+        "extraction_2",
+        Fraction(1, 2),
+    ),
+    event("projection_8", "clt_3", QUARTERS, Fraction(11, 2), "extraction_2"),
+    event("projection_3", "dpt_2", SAMPLES, 0, "extraction_2"),
+    event("projection_4", "dpt_2", SAMPLES, 88200, "extraction_2", 44100),
+    event("projection_6", "dpt_2", SAMPLES, 132300, "extraction_2"),
+]
+"""Handel's event rows, sorted by timeline, start and ID; the two on the
+child ``clt_3`` lie at 1/2 and 3/2 on it, 9/2 and 11/2 on its root."""
+
+INDEX: list[dict[str, Any]] = [
+    index("clt_1", "Timeline", BACH_FILE),
+    index("dpt_1", "Timeline", BACH_FILE),
+    index("resource_1", "Resource", BACH_FILE),
+    index("resource_2", "Resource", BACH_FILE),
+    index("clt_2", "Timeline", HANDEL_FILE),
+    index("clt_3", "Timeline", HANDEL_FILE),
+    index("dpt_2", "Timeline", HANDEL_FILE),
+    index("resource_1", "Resource", HANDEL_FILE),
+    index("resource_2", "Resource", HANDEL_FILE),
+    *(
+        index(f"claim_{number}", "MatchClaim", MATCH_CLAIMS)
+        for number in (1, 2, 3, 4, 5)
+    ),
+    index("extraction_1", "Extraction", EXTRACTIONS),
+    index("extraction_2", "Extraction", EXTRACTIONS),
+]
+"""The index rows, sorted by location and ID: each element of the two
+manifests, each MatchClaim and each extraction."""
+
+
+def projection(identifier: str, of: tuple[str, str] | None) -> dict[str, Any]:
+    """A pre-parsed Projection: its ID and the event it stands for."""
+    return {
+        "id": identifier,
         "projection_of": None
         if of is None
         else {"timeline_id": of[0], "event_id": of[1]},
     }
 
 
-SAMPLES = ("samples", "int")
-QUARTERS = ("quarters", "fraction")
-
 PART_A: list[dict[str, Any]] = [
-    projection(
-        "projection_5",
-        "clt_3",
-        QUARTERS,
-        Fraction(1, 2),
-        ("dpt_2", "onset_1"),
-        Fraction(1, 2),
-    ),
-    projection("projection_1", "dpt_1", SAMPLES, 0, ("clt_1", "note_1")),
-    projection("projection_2", "dpt_1", SAMPLES, 44100, ("clt_1", "note_2")),
-    projection("projection_3", "dpt_2", SAMPLES, 0, ("clt_2", "note_5")),
-    projection("projection_4", "dpt_2", SAMPLES, 88200, ("clt_2", "note_6"), 44100),
+    projection("projection_5", ("dpt_2", "onset_1")),
+    projection("projection_1", ("clt_1", "note_1")),
+    projection("projection_2", ("clt_1", "note_2")),
+    projection("projection_3", ("clt_2", "note_5")),
+    projection("projection_4", ("clt_2", "note_6")),
 ]
-"""The first Projections file, sorted by timeline, start and ID."""
+"""The first file of pre-parsed Projections."""
 
 PART_B: list[dict[str, Any]] = [
-    projection("projection_6", "dpt_2", SAMPLES, 132300, ("clt_2", "note_7")),
-    projection("projection_7", "dpt_1", SAMPLES, 132300, ("clt_1", "note_3")),
-    projection("projection_8", "clt_3", QUARTERS, Fraction(3, 2), ("dpt_2", "onset_2")),
-    projection("projection_9", "dpt_1", SAMPLES, 88200, ("clt_1", "note_4")),
+    projection("projection_6", ("clt_2", "note_7")),
+    projection("projection_7", ("clt_1", "note_3")),
+    projection("projection_8", ("dpt_2", "onset_2")),
+    projection("projection_9", ("clt_1", "note_4")),
 ]
-"""The second Projections file, deliberately unsorted."""
+"""The second file of pre-parsed Projections."""
+
+
+def extractions() -> list[dict[str, Any]]:
+    """The two runs: a parser over Bach's alignment, a tool without a source."""
+    digest = hashlib.sha256(SOURCE_TEXT.encode("utf-8")).hexdigest()
+    return [
+        {
+            "id": "extraction_1",
+            "source": SOURCE,
+            "source_integrity": {"algorithm": "SHA-256", "digest": digest},
+            "parser": "https://example.org/alignment-reader",
+            "parser_version": "1.2.0",
+            "parameters": '{"delimiter":","}',
+            "minter": "1",
+            "id_length": 8,
+            "seed": None,
+            "date": "2026-11-27T21:30:00Z",
+        },
+        {
+            "id": "extraction_2",
+            "source": None,
+            "source_integrity": None,
+            "parser": "https://example.org/aligner",
+            "parser_version": "0.4",
+            "parameters": None,
+            "minter": "1",
+            "id_length": 8,
+            "seed": "handel",
+            "date": "2026-11-27T21:31:00Z",
+        },
+    ]
 
 
 def coordinate(value: Any, axis: tuple[str, str]) -> dict[str, Any]:
@@ -281,11 +406,11 @@ CLAIMS: list[dict[str, Any]] = [
 then Bach's again, written in the other orientation."""
 
 READ: dict[str, dict[str, list[str]]] = {
-    "bach/manifest.yaml": {
+    BACH_FILE: {
         "resource_1": ["claim_1", "claim_2", "claim_5"],
         "resource_2": ["projection_1", "projection_2", "projection_7", "projection_9"],
     },
-    "handel/manifest.yaml": {
+    HANDEL_FILE: {
         "resource_1": ["claim_3", "claim_4"],
         "resource_2": [
             "projection_3",
@@ -300,32 +425,120 @@ READ: dict[str, dict[str, list[str]]] = {
 for the resource's timelines, sorted: a reader never relies on their order."""
 
 
+def resolution(
+    kind: str, location: str, manifest: str | None, row: dict[str, Any] | None
+) -> dict[str, Any]:
+    return {"kind": kind, "location": location, "manifest": manifest, "row": row}
+
+
+RESOLUTIONS: list[dict[str, Any]] = [
+    {
+        "path": BACH_FILE,
+        "id": "dpt_1",
+        "found": [
+            resolution(
+                "Timeline", BACH_FILE, BACH_FILE, index("dpt_1", "Timeline", BACH_FILE)
+            )
+        ],
+    },
+    {
+        "path": BACH_FILE,
+        "id": "projection_1",
+        "found": [resolution("Projection", PROJECTIONS, BACH_FILE, BACH_EVENTS[0])],
+    },
+    {"path": BACH_FILE, "id": "projection_3", "found": []},
+    {
+        "path": BACH_FILE,
+        "id": "claim_1",
+        "found": [
+            resolution(
+                "MatchClaim",
+                MATCH_CLAIMS,
+                BACH_FILE,
+                index("claim_1", "MatchClaim", MATCH_CLAIMS),
+            )
+        ],
+    },
+    {
+        "path": BACH_FILE,
+        "id": "extraction_1",
+        "found": [
+            resolution(
+                "Extraction",
+                EXTRACTIONS,
+                BACH_FILE,
+                index("extraction_1", "Extraction", EXTRACTIONS),
+            )
+        ],
+    },
+    {"path": BACH_FILE, "id": "extraction_2", "found": []},
+    {
+        "path": HANDEL_FILE,
+        "id": "projection_5",
+        "found": [resolution("Projection", PROJECTIONS, HANDEL_FILE, HANDEL_EVENTS[0])],
+    },
+    {
+        "path": ".",
+        "id": "resource_1",
+        "found": [
+            resolution(
+                "Resource",
+                BACH_FILE,
+                BACH_FILE,
+                index("resource_1", "Resource", BACH_FILE),
+            ),
+            resolution(
+                "Resource",
+                HANDEL_FILE,
+                HANDEL_FILE,
+                index("resource_1", "Resource", HANDEL_FILE),
+            ),
+        ],
+    },
+    {
+        "path": ".",
+        "id": "projection_5",
+        "found": [resolution("Projection", PROJECTIONS, None, HANDEL_EVENTS[0])],
+    },
+    {"path": ".", "id": "ghost", "found": []},
+]
+"""For each path (a manifest, or ``.``, the package's root) and ID, every
+resolution, sorted by location: through a manifest, its element, then the
+registry rows belonging to it; through the package, every registry row."""
+
+
 class Package:
     """A package's files as data: its ``package.yaml``, its manifests, its
-    Parquet files with their metadata."""
+    Parquet files with their metadata and its other files."""
 
     def __init__(self) -> None:
         self.package = copy.deepcopy(PACKAGE)
         self.manifests = {
-            "bach/manifest.yaml": copy.deepcopy(BACH),
-            "handel/manifest.yaml": copy.deepcopy(HANDEL),
+            BACH_FILE: copy.deepcopy(BACH),
+            HANDEL_FILE: copy.deepcopy(HANDEL),
         }
         self.tables: dict[str, tuple[list[dict[str, Any]], pa.Schema]] = {
-            f"{PROJECTIONS}part_a.parquet": (copy.deepcopy(PART_A), PROJECTION_SCHEMA),
-            f"{PROJECTIONS}part_b.parquet": (copy.deepcopy(PART_B), PROJECTION_SCHEMA),
-            f"{MATCH_CLAIMS}part_a.parquet": (
-                copy.deepcopy(CLAIMS),
-                MATCH_CLAIM_SCHEMA,
-            ),
+            INDEX_FILE: (copy.deepcopy(INDEX), REGISTRY_SCHEMA),
+            BACH_PART: (copy.deepcopy(BACH_EVENTS), REGISTRY_SCHEMA),
+            HANDEL_PART: (copy.deepcopy(HANDEL_EVENTS), REGISTRY_SCHEMA),
+            EXTRACTIONS: (extractions(), EXTRACTION_SCHEMA),
+            PART_A_FILE: (copy.deepcopy(PART_A), PROJECTION_SCHEMA),
+            PART_B_FILE: (copy.deepcopy(PART_B), PROJECTION_SCHEMA),
+            CLAIM_FILE: (copy.deepcopy(CLAIMS), MATCH_CLAIM_SCHEMA),
         }
         self.metadata = {
-            f"{PROJECTIONS}part_a.parquet": _metadata("Projection"),
-            f"{PROJECTIONS}part_b.parquet": _metadata("Projection"),
-            f"{MATCH_CLAIMS}part_a.parquet": {
+            INDEX_FILE: _metadata("Registry"),
+            BACH_PART: _metadata("Registry"),
+            HANDEL_PART: _metadata("Registry"),
+            EXTRACTIONS: _metadata("Extraction"),
+            PART_A_FILE: _metadata("Projection"),
+            PART_B_FILE: _metadata("Projection"),
+            CLAIM_FILE: {
                 **_metadata("MatchClaim"),
                 PROVENANCE_METADATA_KEY: json.dumps(SHARED_PROVENANCE, sort_keys=True),
             },
         }
+        self.texts = {SOURCE: SOURCE_TEXT}
 
     def table(self, name: str) -> pa.Table:
         rows, schema = self.tables[name]
@@ -337,6 +550,8 @@ class Package:
         _write_text(directory / "package.yaml", dumps(self.package))
         for name, manifest in self.manifests.items():
             _write_text(directory / name, dumps(with_file_ids(manifest)))
+        for name, text in self.texts.items():
+            _write_text(directory / name, text)
         for name in self.tables:
             _write_table(directory / name, self.table(name))
 
@@ -356,7 +571,7 @@ def problem(
 
 
 def _recording_resource(package: Package) -> None:
-    package.manifests["bach/manifest.yaml"]["resources"].append(
+    package.manifests[BACH_FILE]["resources"].append(
         {
             "id": "resource_3",
             "type": "Audio",
@@ -365,29 +580,168 @@ def _recording_resource(package: Package) -> None:
             "media_type": "audio/flac",
         }
     )
+    package.tables[INDEX_FILE][0].insert(4, index("resource_3", "Resource", BACH_FILE))
 
 
-ACCEPTANCES: dict[str, tuple[Callable[[Package], None], str]] = {
+def _timeline_in_two_manifests(package: Package) -> None:
+    handel = package.manifests[HANDEL_FILE]
+    handel["timelines"].insert(1, {"id": "dpt_1", "unit": "samples", "length": 352800})
+    handel["resources"][1]["timelines"].append("dpt_1")
+    package.tables[INDEX_FILE][0].insert(6, index("dpt_1", "Timeline", HANDEL_FILE))
+
+
+def _single_file_registry(package: Package) -> None:
+    rows = [
+        *package.tables.pop(INDEX_FILE)[0],
+        *package.tables.pop(BACH_PART)[0],
+        *package.tables.pop(HANDEL_PART)[0],
+    ]
+    for name in (INDEX_FILE, BACH_PART, HANDEL_PART):
+        del package.metadata[name]
+    package.tables["registry.parquet"] = (rows, REGISTRY_SCHEMA)
+    package.metadata["registry.parquet"] = _metadata("Registry")
+    package.package["tables"][0]["url"] = "registry.parquet"
+    for manifest in package.manifests.values():
+        manifest["resources"][1]["url"] = "../registry.parquet"
+
+
+def _re_parsable_event(package: Package) -> None:
+    package.tables[BACH_PART][0].append(
+        event(
+            "onset_9",
+            "dpt_1",
+            SAMPLES,
+            176400,
+            "extraction_1",
+            locator="row 5",
+            kind="Onset",
+            location=None,
+        )
+    )
+
+
+ACCEPTANCES: dict[
+    str, tuple[Callable[[Package], None], str, list[dict[str, Any]] | None]
+] = {
     "recording_resource": (
         _recording_resource,
         "Bach's manifest names a recording beside it, a resource naming no "
         "table, which package.yaml does not list and the package check "
-        "passes over.",
+        "passes over; the index holds the resource.",
+        None,
+    ),
+    "timeline_in_two_manifests": (
+        _timeline_in_two_manifests,
+        "Handel's manifest holds a timeline dpt_1, as Bach's does, and keeps its "
+        "event rows too: manifests sharing a timeline ID share its event rows, "
+        "and the ID resolves through each.",
+        [
+            {
+                "path": BACH_FILE,
+                "id": "dpt_1",
+                "found": [
+                    resolution(
+                        "Timeline",
+                        BACH_FILE,
+                        BACH_FILE,
+                        index("dpt_1", "Timeline", BACH_FILE),
+                    )
+                ],
+            },
+            {
+                "path": HANDEL_FILE,
+                "id": "dpt_1",
+                "found": [
+                    resolution(
+                        "Timeline",
+                        HANDEL_FILE,
+                        HANDEL_FILE,
+                        index("dpt_1", "Timeline", HANDEL_FILE),
+                    )
+                ],
+            },
+            {
+                "path": HANDEL_FILE,
+                "id": "projection_1",
+                "found": [
+                    resolution("Projection", PROJECTIONS, HANDEL_FILE, BACH_EVENTS[0])
+                ],
+            },
+            {
+                "path": ".",
+                "id": "dpt_1",
+                "found": [
+                    resolution(
+                        "Timeline",
+                        BACH_FILE,
+                        BACH_FILE,
+                        index("dpt_1", "Timeline", BACH_FILE),
+                    ),
+                    resolution(
+                        "Timeline",
+                        HANDEL_FILE,
+                        HANDEL_FILE,
+                        index("dpt_1", "Timeline", HANDEL_FILE),
+                    ),
+                ],
+            },
+        ],
+    ),
+    "single_file_registry": (
+        _single_file_registry,
+        "The registry is one file, registry.parquet, holding the index rows and "
+        "the event rows of both extractions.",
+        None,
+    ),
+    "re_parsable_event": (
+        _re_parsable_event,
+        "An onset of Bach's extraction has no pre-parsed content: its location "
+        "is null, its content re-parsable from the extraction's source file.",
+        [
+            {
+                "path": BACH_FILE,
+                "id": "onset_9",
+                "found": [
+                    resolution(
+                        "Onset",
+                        None,
+                        BACH_FILE,
+                        event(
+                            "onset_9",
+                            "dpt_1",
+                            SAMPLES,
+                            176400,
+                            "extraction_1",
+                            locator="row 5",
+                            kind="Onset",
+                            location=None,
+                        ),
+                    )
+                ],
+            }
+        ],
     ),
 }
-"""Each acceptance: the change and its reason; the package check finds no
-problem."""
+"""Each acceptance: the change, its reason, and the resolutions it lists (or
+none); the package check finds no problem."""
 
 
 # The rejections: each a change to the shared package, with its reason and
 # the problems expected, written by hand.
 
-PART_B_FILE = f"{PROJECTIONS}part_b.parquet"
-
 
 def _row_of_no_manifest(package: Package) -> None:
-    package.tables[PART_B_FILE][0].append(
-        projection("projection_10", "dpt_9", SAMPLES, 0, None)
+    package.tables[BACH_PART][0].append(
+        event(
+            "onset_9",
+            "dpt_9",
+            SAMPLES,
+            0,
+            "extraction_1",
+            locator="row 5",
+            kind="Onset",
+            location=None,
+        )
     )
 
 
@@ -395,13 +749,8 @@ def _projection_id_in_two_files(package: Package) -> None:
     package.tables[PART_B_FILE][0][3]["id"] = "projection_3"
 
 
-def _timeline_in_two_manifests(package: Package) -> None:
-    timelines = package.manifests["handel/manifest.yaml"]["timelines"]
-    timelines.insert(1, {"id": "dpt_1", "unit": "samples", "length": 352800})
-
-
 def _claim_across_manifests(package: Package) -> None:
-    package.tables[f"{MATCH_CLAIMS}part_a.parquet"][0].insert(
+    package.tables[CLAIM_FILE][0].insert(
         2,
         claim(
             "claim_6",
@@ -410,16 +759,16 @@ def _claim_across_manifests(package: Package) -> None:
             (coordinate(3, QUARTERS), coordinate(132300, SAMPLES)),
         ),
     )
+    package.tables[INDEX_FILE][0].insert(
+        14, index("claim_6", "MatchClaim", MATCH_CLAIMS)
+    )
 
 
 def _column_in_two_types(package: Package) -> None:
-    for name, kind in (
-        (f"{PROJECTIONS}part_a.parquet", pa.int64()),
-        (PART_B_FILE, pa.string()),
-    ):
+    for name, kind in ((PART_A_FILE, pa.int64()), (PART_B_FILE, pa.string())):
         rows, schema = package.tables[name]
-        for index, row in enumerate(rows):
-            row["velocity"] = 64 + index if kind == pa.int64() else "mf"
+        for number_, row in enumerate(rows):
+            row["velocity"] = 64 + number_ if kind == pa.int64() else "mf"
         package.tables[name] = (rows, schema.append(pa.field("velocity", kind)))
 
 
@@ -428,7 +777,7 @@ def _version_mismatch(package: Package) -> None:
 
 
 def _resource_naming_no_table(package: Package) -> None:
-    package.manifests["bach/manifest.yaml"]["resources"].append(
+    package.manifests[BACH_FILE]["resources"].append(
         {
             "id": "resource_3",
             "type": "Box",
@@ -436,20 +785,26 @@ def _resource_naming_no_table(package: Package) -> None:
             "url": "../tables/Box/",
         }
     )
+    package.tables[INDEX_FILE][0].insert(4, index("resource_3", "Resource", BACH_FILE))
 
 
 def _folder_with_size(package: Package) -> None:
-    package.package["tables"][1]["size"] = 1024
+    package.package["tables"][3]["size"] = 1024
 
 
 def _timeline_unlisted(package: Package) -> None:
-    package.manifests["handel/manifest.yaml"]["resources"][1]["timelines"] = ["dpt_2"]
+    package.manifests[HANDEL_FILE]["resources"][1]["timelines"] = ["dpt_2"]
 
 
 def _axis_mismatch(package: Package) -> None:
-    rows = package.tables[PART_B_FILE][0]
-    rows[1] = projection(
-        "projection_7", "dpt_1", ("seconds", "float"), 3.0, ("clt_1", "note_3")
+    rows = package.tables[BACH_PART][0]
+    rows[3] = event(
+        "projection_7",
+        "dpt_1",
+        ("seconds", "float"),
+        3.0,
+        "extraction_1",
+        locator="row 4",
     )
 
 
@@ -469,24 +824,119 @@ def _file_in_a_listed_folder(package: Package) -> None:
     )
 
 
+def _registry_missing(package: Package) -> None:
+    del package.package["tables"][0]
+    for name in (INDEX_FILE, BACH_PART, HANDEL_PART):
+        del package.tables[name]
+    for manifest in package.manifests.values():
+        del manifest["resources"][1]
+
+
+def _registry_listed_twice(package: Package) -> None:
+    package.package["tables"].append(
+        {"type": "Registry", "url": "old/registry.parquet", "media_type": PARQUET}
+    )
+    package.tables["old/registry.parquet"] = ([], REGISTRY_SCHEMA)
+    package.metadata["old/registry.parquet"] = _metadata("Registry")
+
+
+def _extraction_table_listed_twice(package: Package) -> None:
+    package.package["tables"].append(
+        {"type": "Extraction", "url": "old/extractions.parquet", "media_type": PARQUET}
+    )
+    package.tables["old/extractions.parquet"] = ([], EXTRACTION_SCHEMA)
+    package.metadata["old/extractions.parquet"] = _metadata("Extraction")
+
+
+def _unknown_extraction(package: Package) -> None:
+    package.tables[HANDEL_PART][0][2]["extraction_id"] = "extraction_9"
+
+
+def _vanished_in_an_unknown_extraction(package: Package) -> None:
+    package.tables[HANDEL_PART][0][2]["vanished_in"] = "extraction_3"
+
+
+def _unknown_location(package: Package) -> None:
+    package.tables[BACH_PART][0][1]["location"] = "tables/Note/"
+
+
+def _missing_content(package: Package) -> None:
+    package.tables[BACH_PART][0].append(
+        event(
+            "projection_10", "dpt_1", SAMPLES, 176400, "extraction_1", locator="row 5"
+        )
+    )
+
+
+def _unregistered_id(package: Package) -> None:
+    package.tables[PART_B_FILE][0].append(projection("projection_10", None))
+
+
+def _locator_twice(package: Package) -> None:
+    package.tables[BACH_PART][0][3]["locator"] = "row 1"
+
+
+def _registry_id_twice(package: Package) -> None:
+    package.tables[HANDEL_PART][0].append(
+        event(
+            "claim_1",
+            "dpt_2",
+            SAMPLES,
+            176400,
+            "extraction_2",
+            kind="Onset",
+            location=None,
+        )
+    )
+
+
+def _index_row_with_a_position(package: Package) -> None:
+    row = package.tables[INDEX_FILE][0][0]
+    row.update(unit="quarters", number_type="fraction", start=number(0, "fraction"))
+
+
+def _stale_index(package: Package) -> None:
+    rows = package.tables[INDEX_FILE][0]
+    rows[0]["name"] = "Score"
+    rows.insert(4, index("region_9", "Region", BACH_FILE, timeline_id="clt_1"))
+    package.manifests[HANDEL_FILE]["groups"] = [
+        {"id": "group_1", "members": ["clt_2", "dpt_2"]}
+    ]
+
+
+def _projection_of_its_own_timeline(package: Package) -> None:
+    package.tables[PART_A_FILE][0][1]["projection_of"] = {
+        "timeline_id": "dpt_1",
+        "event_id": "note_1",
+    }
+
+
+def _projection_of_no_timeline(package: Package) -> None:
+    package.tables[PART_B_FILE][0][1]["projection_of"] = {
+        "timeline_id": "clt_9",
+        "event_id": "note_3",
+    }
+
+
 REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]]] = {
     "row_of_no_manifest": (
         _row_of_no_manifest,
-        "A Projection lies on dpt_9, a timeline no manifest of the package holds.",
+        "An event row lies on dpt_9, a timeline no manifest of the package holds.",
         [
             problem(
                 "unknown_timeline",
-                PART_B_FILE,
+                BACH_PART,
                 4,
                 ["timeline_id"],
                 "no manifest of the package has the timeline 'dpt_9'",
-            )
+            ),
         ],
     ),
     "projection_id_in_two_files": (
         _projection_id_in_two_files,
-        "The ID projection_3 names a Projection of Handel's in part_a and one of "
-        "Bach's in part_b; an event ID is held once in the package.",
+        "The ID projection_3 names a pre-parsed Projection of Handel's in part_a "
+        "and, in part_b, the one of Bach's projection_9, whose content is then "
+        "missing.",
         [
             problem(
                 "duplicate_id",
@@ -495,21 +945,14 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 ["id"],
                 "the event ID 'projection_3' is given twice, first in "
                 "'tables/Projection/part_a.parquet' at row 3",
-            )
-        ],
-    ),
-    "timeline_in_two_manifests": (
-        _timeline_in_two_manifests,
-        "Handel's manifest holds a timeline dpt_1, which Bach's holds; a timeline "
-        "ID is held by one manifest of the package.",
-        [
+            ),
             problem(
-                "duplicate_timeline",
-                "handel/manifest.yaml",
-                None,
-                ["timelines", 1, "id"],
-                "the timeline 'dpt_1' is a timeline of 'bach/manifest.yaml' as well",
-            )
+                "missing_content",
+                BACH_PART,
+                2,
+                ["location"],
+                "the table 'tables/Projection/' holds no row of the ID 'projection_9'",
+            ),
         ],
     ),
     "claim_across_manifests": (
@@ -519,12 +962,12 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "claim_across_manifests",
-                f"{MATCH_CLAIMS}part_a.parquet",
+                CLAIM_FILE,
                 2,
                 ["timeline_b_id"],
-                "the MatchClaim joins the timeline 'clt_1' of 'bach/manifest.yaml' "
-                "and the timeline 'dpt_2' of 'handel/manifest.yaml'",
-            )
+                "no manifest of the package holds both the timeline 'clt_1' and the "
+                "timeline 'dpt_2'",
+            ),
         ],
     ),
     "column_in_two_types": (
@@ -539,7 +982,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 ["velocity"],
                 "the column 'velocity' is int64 in 'part_a.parquet' and string in "
                 "'part_b.parquet'",
-            )
+            ),
         ],
     ),
     "version_mismatch": (
@@ -552,7 +995,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 None,
                 [],
                 "the file declares the version '0.1.0', the package '0.2.0'",
-            )
+            ),
         ],
     ),
     "resource_naming_no_table": (
@@ -561,12 +1004,12 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "unknown_table",
-                "bach/manifest.yaml",
+                BACH_FILE,
                 None,
                 ["resources", 2, "url"],
                 "the resource 'resource_3' names '../tables/Box/', which is no table "
                 "of the type Box in the package",
-            )
+            ),
         ],
     ),
     "folder_with_size": (
@@ -577,46 +1020,46 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 "folder_descriptor",
                 "package.yaml",
                 None,
-                ["tables", 1, "size"],
+                ["tables", 3, "size"],
                 "'tables/Projection/' names a folder, which has no size",
-            )
+            ),
         ],
     ),
     "timeline_unlisted": (
         _timeline_unlisted,
-        "Handel's Projection resource no longer lists its child clt_3, whose rows "
-        "the folder holds; a reader of the manifest would not find them.",
+        "Handel's Registry resource no longer lists its child clt_3, whose event "
+        "rows the registry holds; a reader of the manifest would not find them.",
         [
             problem(
                 "unlisted_timeline",
-                f"{PROJECTIONS}part_a.parquet",
+                HANDEL_PART,
                 0,
                 ["timeline_id"],
                 "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no "
-                "resource of the type Projection naming this table",
+                "resource of the type Registry naming this table",
             ),
             problem(
                 "unlisted_timeline",
-                PART_B_FILE,
-                2,
+                HANDEL_PART,
+                1,
                 ["timeline_id"],
                 "the timeline 'clt_3' of 'handel/manifest.yaml' is listed by no "
-                "resource of the type Projection naming this table",
+                "resource of the type Registry naming this table",
             ),
         ],
     ),
     "axis_mismatch": (
         _axis_mismatch,
-        "A Projection on the samples timeline dpt_1 is written in seconds.",
+        "An event row on the samples timeline dpt_1 is written in seconds.",
         [
             problem(
                 "axis_mismatch",
-                PART_B_FILE,
-                1,
+                BACH_PART,
+                3,
                 ["unit"],
-                "a coordinate in seconds (float) on the timeline 'dpt_1' in "
-                "samples (int)",
-            )
+                "a coordinate in seconds (float) on the timeline 'dpt_1' in samples "
+                "(int)",
+            ),
         ],
     ),
     "file_of_another_type": (
@@ -629,7 +1072,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 None,
                 [],
                 "the file holds the type MatchClaim, its table the type Projection",
-            )
+            ),
         ],
     ),
     "table_listed_twice": (
@@ -641,10 +1084,10 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 "duplicate_url",
                 "package.yaml",
                 None,
-                ["tables", 2, "url"],
+                ["tables", 4, "url"],
                 "the table 'tables/Projection/' of the type Projection is listed "
-                "twice, first at #/tables/1/url",
-            )
+                "twice, first at #/tables/3/url",
+            ),
         ],
     ),
     "file_in_a_listed_folder": (
@@ -656,10 +1099,234 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
                 "duplicate_url",
                 "package.yaml",
                 None,
-                ["tables", 2, "url"],
+                ["tables", 4, "url"],
                 "the file 'tables/Projection/part_b.parquet' is read by the table "
                 "'tables/Projection/' already",
-            )
+            ),
+        ],
+    ),
+    "registry_missing": (
+        _registry_missing,
+        "package.yaml lists no registry; the manifests name none and no event "
+        "has content.",
+        [
+            problem(
+                "missing_registry",
+                "package.yaml",
+                None,
+                ["tables"],
+                "the package lists no table of the type Registry",
+            ),
+        ],
+    ),
+    "registry_listed_twice": (
+        _registry_listed_twice,
+        "package.yaml lists a second registry; a package has one.",
+        [
+            problem(
+                "duplicate_registry",
+                "package.yaml",
+                None,
+                ["tables", 4, "type"],
+                "the package lists a second table of the type Registry, first at "
+                "#/tables/0/type",
+            ),
+        ],
+    ),
+    "extraction_table_listed_twice": (
+        _extraction_table_listed_twice,
+        "package.yaml lists a second Extraction table; a package has at most one.",
+        [
+            problem(
+                "duplicate_extraction",
+                "package.yaml",
+                None,
+                ["tables", 4, "type"],
+                "the package lists a second table of the type Extraction, first at "
+                "#/tables/1/type",
+            ),
+        ],
+    ),
+    "unknown_extraction": (
+        _unknown_extraction,
+        "An event row of Handel's names extraction_9, which the Extraction table "
+        "does not hold.",
+        [
+            problem(
+                "unknown_extraction",
+                HANDEL_PART,
+                2,
+                ["extraction_id"],
+                "no extraction of the package has the ID 'extraction_9'",
+            ),
+        ],
+    ),
+    "vanished_in_an_unknown_extraction": (
+        _vanished_in_an_unknown_extraction,
+        "An event row of Handel's vanished in extraction_3, which the Extraction "
+        "table does not hold.",
+        [
+            problem(
+                "unknown_extraction",
+                HANDEL_PART,
+                2,
+                ["vanished_in"],
+                "no extraction of the package has the ID 'extraction_3'",
+            ),
+        ],
+    ),
+    "unknown_location": (
+        _unknown_location,
+        "An event row names tables/Note/ as its content's table, which "
+        "package.yaml does not list.",
+        [
+            problem(
+                "unknown_location",
+                BACH_PART,
+                1,
+                ["location"],
+                "the location 'tables/Note/' names no table of the type Projection in "
+                "the package",
+            ),
+        ],
+    ),
+    "missing_content": (
+        _missing_content,
+        "An event row names the pre-parsed Projections, which hold no row of its ID.",
+        [
+            problem(
+                "missing_content",
+                BACH_PART,
+                4,
+                ["location"],
+                "the table 'tables/Projection/' holds no row of the ID 'projection_10'",
+            ),
+        ],
+    ),
+    "unregistered_id": (
+        _unregistered_id,
+        "A pre-parsed Projection has an ID no event row of the registry has.",
+        [
+            problem(
+                "unregistered_id",
+                PART_B_FILE,
+                4,
+                ["id"],
+                "no event row of the type Projection in the registry has the ID "
+                "'projection_10'",
+            ),
+        ],
+    ),
+    "locator_twice": (
+        _locator_twice,
+        "Two event rows of Bach's extraction give the locator 'row 1'.",
+        [
+            problem(
+                "duplicate_locator",
+                BACH_PART,
+                3,
+                ["locator"],
+                "the locator 'row 1' is given twice in the extraction 'extraction_1'",
+            ),
+        ],
+    ),
+    "registry_id_twice": (
+        _registry_id_twice,
+        "An onset of Handel's has the ID claim_1, a MatchClaim's; an event ID and "
+        "a MatchClaim ID are held once among the registry's rows.",
+        [
+            problem(
+                "duplicate_id",
+                INDEX_FILE,
+                9,
+                ["id"],
+                "the ID 'claim_1' is given twice, first in "
+                "'registry/extraction_2.parquet' at row 5",
+            ),
+        ],
+    ),
+    "index_row_with_a_position": (
+        _index_row_with_a_position,
+        "An index row states a position; an element's position lies in its manifest.",
+        [
+            problem(
+                "schema_violation",
+                INDEX_FILE,
+                0,
+                ["unit"],
+                "an index row has no 'unit'",
+            ),
+            problem(
+                "schema_violation",
+                INDEX_FILE,
+                0,
+                ["number_type"],
+                "an index row has no 'number_type'",
+            ),
+            problem(
+                "schema_violation",
+                INDEX_FILE,
+                0,
+                ["start"],
+                "an index row has no 'start'",
+            ),
+        ],
+    ),
+    "stale_index": (
+        _stale_index,
+        "The index gives Bach's score a name it does not have and a region it "
+        "does not hold, and lacks the group Handel's manifest gained.",
+        [
+            problem(
+                "stale_index",
+                INDEX_FILE,
+                0,
+                ["name"],
+                "the index row of the ID 'clt_1' at 'bach/manifest.yaml' has the name "
+                "'Score', not None",
+            ),
+            problem(
+                "stale_index",
+                INDEX_FILE,
+                4,
+                ["id"],
+                "the index holds the ID 'region_9' at 'bach/manifest.yaml', which no "
+                "manifest or table holds there",
+            ),
+            problem(
+                "stale_index",
+                INDEX_FILE,
+                None,
+                ["id"],
+                "the index lacks the ID 'group_1' at 'handel/manifest.yaml'",
+            ),
+        ],
+    ),
+    "projection_of_its_own_timeline": (
+        _projection_of_its_own_timeline,
+        "A pre-parsed Projection of Bach's on dpt_1 stands for an event of dpt_1.",
+        [
+            problem(
+                "invalid_projection_of",
+                PART_A_FILE,
+                1,
+                ["projection_of", "timeline_id"],
+                "a Projection stands for an event of another timeline than 'dpt_1'",
+            ),
+        ],
+    ),
+    "projection_of_no_timeline": (
+        _projection_of_no_timeline,
+        "A pre-parsed Projection stands for an event of clt_9, a timeline no "
+        "manifest holds.",
+        [
+            problem(
+                "unknown_timeline",
+                PART_B_FILE,
+                1,
+                ["projection_of", "timeline_id"],
+                "no manifest of the package has the timeline 'clt_9'",
+            ),
         ],
     ),
 }
@@ -676,6 +1343,23 @@ def _write_table(path: Path, table: pa.Table) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if not path.is_file() or not pq.read_table(path).equals(table, check_metadata=True):
         pq.write_table(table, path)
+
+
+def _prune(directory: Path, package: Package) -> None:
+    """Remove the files of a case's folder that its package no longer has."""
+    kept = {
+        "package.yaml",
+        "expected.yaml",
+        *package.manifests,
+        *package.tables,
+        *package.texts,
+    }
+    for path in sorted(directory.rglob("*"), reverse=True):
+        name = path.relative_to(directory).as_posix()
+        if path.is_file() and name not in kept:
+            path.unlink()
+        elif path.is_dir() and not any(path.iterdir()):
+            path.rmdir()
 
 
 def _found(directory: Path) -> list[dict[str, Any]]:
@@ -703,7 +1387,11 @@ def main() -> int:
     for manifest in shared.manifests.values():
         validate(with_file_ids(manifest))
     shared.write(PACKAGE_DIR / "shared")
-    _write_text(PACKAGE_DIR / "shared" / "expected.yaml", dumps({"read": READ}))
+    _prune(PACKAGE_DIR / "shared", shared)
+    _write_text(
+        PACKAGE_DIR / "shared" / "expected.yaml",
+        dumps({"read": READ, "resolutions": RESOLUTIONS}),
+    )
     found = _found(PACKAGE_DIR / "shared")
     if found:
         raise SystemExit(f"the shared package has problems: {found}")
@@ -711,17 +1399,20 @@ def main() -> int:
     for stale in accepted.iterdir() if accepted.is_dir() else ():
         if stale.name not in ACCEPTANCES:
             shutil.rmtree(stale)
-    for name, (change, reason) in ACCEPTANCES.items():
+    for name, (change, reason, resolutions) in ACCEPTANCES.items():
         package = Package()
         change(package)
         directory = accepted / name
         package.write(directory)
-        _write_text(
-            directory / "expected.yaml", dumps({"problems": [], "reason": reason})
-        )
+        _prune(directory, package)
+        expected = {"problems": [], "reason": reason}
+        if resolutions is not None:
+            expected["resolutions"] = resolutions
+        _write_text(directory / "expected.yaml", dumps(expected))
         found = _found(directory)
         if found:
             raise SystemExit(f"{name}: expected no problem, found {found}")
+    failed: list[str] = []
     cases = PACKAGE_DIR / "rejections"
     for stale in cases.iterdir() if cases.is_dir() else ():
         if stale.name not in REJECTIONS:
@@ -731,12 +1422,15 @@ def main() -> int:
         change(package)
         directory = cases / name
         package.write(directory)
+        _prune(directory, package)
         _write_text(
             directory / "expected.yaml", dumps({"problems": expected, "reason": reason})
         )
         found = _found(directory)
         if found != expected:
-            raise SystemExit(f"{name}: expected {expected}, found {found}")
+            failed.append(f"{name}: expected {expected},\n found {found}")
+    if failed:
+        raise SystemExit("\n".join(failed))
     return 0
 
 

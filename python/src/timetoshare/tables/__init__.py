@@ -1,13 +1,19 @@
-"""The table types of a TimeToShare package: MatchClaims and Projections.
+"""The table types of a TimeToShare package: the registry, the Extraction
+table, the pre-parsed tables and the MatchClaim tables.
 
-A manifest names its MatchClaims in a MatchClaim table (``match_claims.parquet``
-beside it, or a file or folder its package's manifests share) and the events
-standing on a timeline for events held elsewhere in a Projections table. This
-module declares their columns, read from the schema's ``tables.json``,
-reads a table, a file or a folder of files, keeping the rows of some
-timelines (``read_table``), checks a table (alone, or against a manifest,
-every row then the manifest's: a shared file is read filtered first),
-checks a package whole (``package_problems``), checks the succession rule
+A package's registry holds one row per resolvable ID: an event row for each
+event (its timeline, its position on the root's axis, its extraction and
+the pre-parsed table holding its content), an index row for each element of
+the manifests, each MatchClaim and each extraction. The Extraction table
+records each run of a parser over a source file; a pre-parsed table holds
+the content of events of one type by their IDs, the Projection table the
+event each Projection stands for; a manifest names its MatchClaims in a
+MatchClaim table. This module declares their columns, read from the
+schema's ``tables.json``, reads a table, a file or a folder of files,
+keeping the rows of some timelines or IDs (``read_table``), checks a table
+(alone, or against a manifest, every row then the manifest's: a shared file
+is read filtered first), checks a package whole (``package_problems``),
+checks the succession rule
 between a table and the one written over it, and derives the
 AlignmentAnchors and potential MatchStamps of a MatchClaim table under the
 belief filter.
@@ -36,11 +42,15 @@ from .checks import (
     TableCode,
     TableError,
     TableProblem,
+    check_extractions,
     check_match_claims,
     check_projections,
+    check_registry,
     check_succession,
+    extraction_problems,
     match_claim_problems,
     projection_problems,
+    registry_problems,
     row_provenance,
     succession_problems,
 )
@@ -51,6 +61,11 @@ from .columns import (
     CHUNK_SENTINEL,
     COORDINATE_KEYS,
     COORDINATE_TYPE,
+    EXTRACTION_COLUMNS,
+    EXTRACTION_REQUIRED,
+    EXTRACTION_SCHEMA,
+    INDEX_KINDS,
+    INTEGRITY_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
@@ -65,6 +80,10 @@ from .columns import (
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
     PROVENANCE_TYPE,
+    REGISTRY_COLUMNS,
+    REGISTRY_EVENT_REQUIRED,
+    REGISTRY_REQUIRED,
+    REGISTRY_SCHEMA,
     TABLES_DOCUMENT,
     coordinate_value,
     fixture_path,
@@ -101,6 +120,11 @@ __all__ = [
     "CHUNK_SENTINEL",
     "COORDINATE_KEYS",
     "COORDINATE_TYPE",
+    "EXTRACTION_COLUMNS",
+    "EXTRACTION_REQUIRED",
+    "EXTRACTION_SCHEMA",
+    "INDEX_KINDS",
+    "INTEGRITY_TYPE",
     "MATCH_CLAIM_COLUMNS",
     "MATCH_CLAIM_REQUIRED",
     "MATCH_CLAIM_SCHEMA",
@@ -115,6 +139,10 @@ __all__ = [
     "PROVENANCE_KEYS",
     "PROVENANCE_METADATA_KEY",
     "PROVENANCE_TYPE",
+    "REGISTRY_COLUMNS",
+    "REGISTRY_EVENT_REQUIRED",
+    "REGISTRY_REQUIRED",
+    "REGISTRY_SCHEMA",
     "TABLES_DOCUMENT",
     "AlignmentAnchor",
     "PotentialMatchStamp",
@@ -124,15 +152,19 @@ __all__ = [
     "TimelineCoordinate",
     "alignment_anchors",
     "believed_rows",
+    "check_extractions",
     "check_match_claims",
     "check_projections",
+    "check_registry",
     "check_succession",
     "coordinate_value",
+    "extraction_problems",
     "fixture_path",
     "match_claim_problems",
     "number_cell",
     "potential_matchstamps",
     "projection_problems",
+    "registry_problems",
     "row_provenance",
     "succession_problems",
     "tables_path",

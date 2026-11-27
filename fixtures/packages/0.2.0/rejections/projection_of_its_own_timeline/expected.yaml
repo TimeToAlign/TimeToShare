@@ -1,0 +1,8 @@
+problems:
+  -
+    code: invalid_projection_of
+    file: tables/Projection/part_a.parquet
+    message: "a Projection stands for an event of another timeline than 'dpt_1'"
+    path: [projection_of, timeline_id]
+    row: 1
+reason: "A pre-parsed Projection of Bach's on dpt_1 stands for an event of dpt_1."

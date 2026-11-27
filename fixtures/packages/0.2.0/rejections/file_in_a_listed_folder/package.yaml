@@ -5,8 +5,16 @@ manifests:
   -
     media_type: application/yaml
     url: handel/manifest.yaml
-name: "Two manifests sharing their tables"
+name: "Two manifests sharing their registry and tables"
 tables:
+  -
+    media_type: application/vnd.apache.parquet
+    type: Registry
+    url: registry/
+  -
+    media_type: application/vnd.apache.parquet
+    type: Extraction
+    url: tables/extractions.parquet
   -
     media_type: application/vnd.apache.parquet
     type: MatchClaim

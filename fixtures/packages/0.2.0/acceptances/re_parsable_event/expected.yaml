@@ -1,0 +1,27 @@
+problems: []
+reason: "An onset of Bach's extraction has no pre-parsed content: its location is null, its content re-parsable from the extraction's source file."
+resolutions:
+  -
+    found:
+      -
+        kind: Onset
+        location: null
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: extraction_1
+          id: onset_9
+          kind: Onset
+          location: null
+          locator: "row 5"
+          name: null
+          number_type: int
+          start:
+            denominator: null
+            numerator: 176400
+            value: null
+          timeline_id: dpt_1
+          unit: samples
+          vanished_in: null
+    id: onset_9
+    path: bach/manifest.yaml

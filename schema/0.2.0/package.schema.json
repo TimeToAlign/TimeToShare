@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timetoshare/0.2.0/package.schema.json",
   "title": "TimeToShare package",
-  "description": "The `package.yaml` of a TimeToShare! 0.2.0 package: a folder holding manifests and the tables their resources name, with this file at its root. It lists every manifest of the package and every table, each by one `Descriptor` (`timetoshare.schema.json`), its `url` resolved against the address of `package.yaml`. The manifests are listed one by one, never by a pattern. A table is a file, or a folder of files read as one table when its `url` ends in `/`; a type may have several entries, for rows kept in different files. Files may hold rows of several manifests: each manifest's resources name the files and folders it reads, with the timelines whose rows it keeps, so the manifests and `package.yaml` name the same files, and nothing in a file names a manifest. Every manifest and every table file of the package declares the package's version. Every manifest is listed once and a folder has no `size` and no `integrity`, both checked after the schema; the rules a package's manifests and rows keep together (an event ID, a MatchClaim ID and a timeline ID each held once in the package, each row's timeline listed by a resource of its manifest) are the package check's. Every object is open: a key an object does not declare is kept.",
+  "description": "The `package.yaml` of a TimeToShare! 0.2.0 package: a folder holding manifests and the tables their resources name, with this file at its root. It lists every manifest of the package and every table, each by one `Descriptor` (`timetoshare.schema.json`), its `url` resolved against the address of `package.yaml`. The manifests are listed one by one, never by a pattern. A table is a file, or a folder of files read as one table when its `url` ends in `/`; a type may have several entries, for rows kept in different files. Files may hold rows of several manifests: each manifest's resources name the registry and the MatchClaim tables it reads, with the timelines whose rows it keeps, and the registry's rows name the pre-parsed tables holding their content, so nothing in a file names a manifest. Every manifest and every table file of the package declares the package's version. Every manifest is listed once and a folder has no `size` and no `integrity`, both checked after the schema; the rules a package's manifests and rows keep together (exactly one registry and at most one Extraction table, an event, MatchClaim and Extraction ID each held once in the registry, each event row's timeline listed by a manifest's `Registry` resource, the registry's index rows agreeing with the manifests and tables) are the package check's. Every object is open: a key an object does not declare is kept.",
   "type": "object",
   "properties": {
     "timetoshare": {
@@ -30,7 +30,7 @@
     },
     "tables": {
       "type": "array",
-      "description": "The tables of the package, each a file or a folder of files, with the type of its rows. The array may be empty.",
+      "description": "The tables of the package, each a file or a folder of files, with the type of its rows; the registry among them.",
       "items": {
         "$ref": "#/$defs/Table"
       }
@@ -54,7 +54,7 @@
         "type": {
           "type": "string",
           "minLength": 1,
-          "description": "What the rows are: `MatchClaim` for MatchClaims, `Projection` for Projections, or the type of the events the table holds, as a manifest's `Resource` names it."
+          "description": "What the rows are: `Registry` for the package's registry, exactly one entry, `Extraction` for its Extraction table, at most one entry, `MatchClaim` for MatchClaims, `Projection` for the pre-parsed Projections, or the type of the events a pre-parsed table holds, as the registry's event rows name it."
         }
       },
       "required": [

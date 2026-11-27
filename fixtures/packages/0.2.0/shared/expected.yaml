@@ -5,3 +5,195 @@ read:
   handel/manifest.yaml:
     resource_1: [claim_3, claim_4]
     resource_2: [projection_3, projection_4, projection_5, projection_6, projection_8]
+resolutions:
+  -
+    found:
+      -
+        kind: Timeline
+        location: bach/manifest.yaml
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: dpt_1
+          kind: Timeline
+          location: bach/manifest.yaml
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+    id: dpt_1
+    path: bach/manifest.yaml
+  -
+    found:
+      -
+        kind: Projection
+        location: tables/Projection/
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: extraction_1
+          id: projection_1
+          kind: Projection
+          location: tables/Projection/
+          locator: "row 1"
+          name: null
+          number_type: int
+          start:
+            denominator: null
+            numerator: 0
+            value: null
+          timeline_id: dpt_1
+          unit: samples
+          vanished_in: null
+    id: projection_1
+    path: bach/manifest.yaml
+  -
+    found: []
+    id: projection_3
+    path: bach/manifest.yaml
+  -
+    found:
+      -
+        kind: MatchClaim
+        location: tables/MatchClaim/
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: claim_1
+          kind: MatchClaim
+          location: tables/MatchClaim/
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+    id: claim_1
+    path: bach/manifest.yaml
+  -
+    found:
+      -
+        kind: Extraction
+        location: tables/extractions.parquet
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: extraction_1
+          kind: Extraction
+          location: tables/extractions.parquet
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+    id: extraction_1
+    path: bach/manifest.yaml
+  -
+    found: []
+    id: extraction_2
+    path: bach/manifest.yaml
+  -
+    found:
+      -
+        kind: Projection
+        location: tables/Projection/
+        manifest: handel/manifest.yaml
+        row:
+          duration:
+            denominator: 2
+            numerator: 1
+            value: null
+          extraction_id: extraction_2
+          id: projection_5
+          kind: Projection
+          location: tables/Projection/
+          locator: null
+          name: null
+          number_type: fraction
+          start:
+            denominator: 2
+            numerator: 9
+            value: null
+          timeline_id: clt_3
+          unit: quarters
+          vanished_in: null
+    id: projection_5
+    path: handel/manifest.yaml
+  -
+    found:
+      -
+        kind: Resource
+        location: bach/manifest.yaml
+        manifest: bach/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: resource_1
+          kind: Resource
+          location: bach/manifest.yaml
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+      -
+        kind: Resource
+        location: handel/manifest.yaml
+        manifest: handel/manifest.yaml
+        row:
+          duration: null
+          extraction_id: null
+          id: resource_1
+          kind: Resource
+          location: handel/manifest.yaml
+          locator: null
+          name: null
+          number_type: null
+          start: null
+          timeline_id: null
+          unit: null
+          vanished_in: null
+    id: resource_1
+    path: "."
+  -
+    found:
+      -
+        kind: Projection
+        location: tables/Projection/
+        manifest: null
+        row:
+          duration:
+            denominator: 2
+            numerator: 1
+            value: null
+          extraction_id: extraction_2
+          id: projection_5
+          kind: Projection
+          location: tables/Projection/
+          locator: null
+          name: null
+          number_type: fraction
+          start:
+            denominator: 2
+            numerator: 9
+            value: null
+          timeline_id: clt_3
+          unit: quarters
+          vanished_in: null
+    id: projection_5
+    path: "."
+  -
+    found: []
+    id: ghost
+    path: "."

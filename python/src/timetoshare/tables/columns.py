@@ -1,17 +1,17 @@
-"""The columns of the two table types and the cells they hold.
+"""The columns of the table types and the cells they hold.
 
 A number is three members, filled by its number type and never mirrored:
 an ``int`` is its ``numerator`` alone, a ``fraction`` its ``numerator`` and
 its ``denominator`` (at least 1), a ``float`` its finite ``value`` alone;
 every other member is null. A coordinate cell of the MatchClaim table adds
-the ``unit`` and the ``number_type`` of its coordinate; a row of the
-Projections table states them once, in its own ``unit`` and ``number_type``
-columns, for its ``start`` and its ``duration``. :func:`number_cell` writes
-a number's members and :func:`coordinate_value` reads them back.
+the ``unit`` and the ``number_type`` of its coordinate; an event row of the
+registry states them once, in its own ``unit`` and ``number_type`` columns,
+for its ``start`` and its ``duration``. :func:`number_cell` writes a
+number's members and :func:`coordinate_value` reads them back.
 
-Both tables' columns and the structs of their cells are read from one file,
-``tables.json`` beside the manifest schema (:func:`tables_path`), never
-declared a second time here.
+Every table's columns and the structs of their cells are read from one
+file, ``tables.json`` beside the manifest schema (:func:`tables_path`),
+never declared a second time here.
 """
 
 from __future__ import annotations
@@ -42,6 +42,11 @@ __all__ = [
     "CHUNK_SENTINEL",
     "COORDINATE_KEYS",
     "COORDINATE_TYPE",
+    "EXTRACTION_COLUMNS",
+    "EXTRACTION_REQUIRED",
+    "EXTRACTION_SCHEMA",
+    "INDEX_KINDS",
+    "INTEGRITY_TYPE",
     "MATCH_CLAIM_COLUMNS",
     "MATCH_CLAIM_REQUIRED",
     "MATCH_CLAIM_SCHEMA",
@@ -56,6 +61,10 @@ __all__ = [
     "PROVENANCE_KEYS",
     "PROVENANCE_METADATA_KEY",
     "PROVENANCE_TYPE",
+    "REGISTRY_COLUMNS",
+    "REGISTRY_EVENT_REQUIRED",
+    "REGISTRY_REQUIRED",
+    "REGISTRY_SCHEMA",
     "TABLES_DOCUMENT",
     "coordinate_value",
     "fixture_path",
@@ -68,11 +77,12 @@ TABLES_DOCUMENT = "tables.json"
 
 
 def tables_path() -> Path:
-    """Return the path of the column types of the two tables, ``tables.json``.
+    """Return the path of the column types of the tables, ``tables.json``.
 
-    The one source of :data:`MATCH_CLAIM_SCHEMA` and
-    :data:`PROJECTION_SCHEMA`: its ``types`` declare the structs a cell
-    holds, its ``tables`` each table's status and its columns, in order.
+    The one source of :data:`REGISTRY_SCHEMA`, :data:`EXTRACTION_SCHEMA`,
+    :data:`PROJECTION_SCHEMA` and :data:`MATCH_CLAIM_SCHEMA`: its ``types``
+    declare the structs a cell holds, its ``tables`` each table's status and
+    its columns, in order, and the registry's ``index_kinds``.
     """
     return data_root() / "schema" / SCHEMA_VERSION / TABLES_DOCUMENT
 
@@ -170,8 +180,8 @@ NUMBER_MEMBERS: Mapping[str, tuple[str, ...]] = MappingProxyType(
 """The members a number of each number type fills; the others are null."""
 
 NUMBER_TYPE = _arrow_type("number")
-"""A number: a Projection's ``start`` or ``duration``, whose row states the unit
-and the number type."""
+"""A number: an event row's ``start`` or ``duration``, whose row states the
+unit and the number type."""
 
 COORDINATE_KEYS = tuple(
     member["name"] for member in _TABLES["types"]["coordinate"]["struct"]
@@ -199,19 +209,51 @@ MATCH_CLAIM_SCHEMA = _table_schema("MatchClaim")
 """The MatchClaim table: one row per MatchClaim, one column per property,
 each MatchClaim addressed by its ID alone."""
 
+INTEGRITY_TYPE = _arrow_type("integrity")
+"""The integrity of a source file: its digest's ``algorithm`` and ``digest``."""
+
 PROJECTION_SCHEMA = _table_schema("Projection")
-"""The Projections table: one row per Projection, its ``unit`` and
-``number_type`` stated once for its ``start`` and its ``duration``;
-``duration`` null for an instant."""
+"""The pre-parsed Projection table: one row per Projection, its ``id`` and
+the event it stands for; its timeline and its position are its registry
+row's."""
+
+REGISTRY_SCHEMA = _table_schema("Registry")
+"""The registry: one row per resolvable ID of a package, an event row or an
+index row."""
+
+EXTRACTION_SCHEMA = _table_schema("Extraction")
+"""The Extraction table: one row per run of a parser over a source file."""
 
 MATCH_CLAIM_COLUMNS = tuple(MATCH_CLAIM_SCHEMA.names)
 PROJECTION_COLUMNS = tuple(PROJECTION_SCHEMA.names)
+REGISTRY_COLUMNS = tuple(REGISTRY_SCHEMA.names)
+EXTRACTION_COLUMNS = tuple(EXTRACTION_SCHEMA.names)
 
 MATCH_CLAIM_REQUIRED = _required("MatchClaim")
 """The columns of the MatchClaim table that hold no null, in its order."""
 
 PROJECTION_REQUIRED = _required("Projection")
-"""The columns of the Projections table that hold no null, in its order."""
+"""The columns of the Projection table that hold no null, in its order."""
+
+REGISTRY_REQUIRED = _required("Registry")
+"""The columns of the registry that hold no null in any row, in its order."""
+
+REGISTRY_EVENT_REQUIRED = (
+    "timeline_id",
+    "unit",
+    "number_type",
+    "start",
+    "extraction_id",
+)
+"""The further columns of the registry that hold no null in an event row."""
+
+EXTRACTION_REQUIRED = _required("Extraction")
+"""The columns of the Extraction table that hold no null, in its order."""
+
+INDEX_KINDS: tuple[str, ...] = tuple(_TABLES["tables"]["Registry"]["index_kinds"])
+"""The kinds of the registry's index rows: the schema's names of the manifest
+elements, ``MatchClaim`` and ``Extraction``. A row of any other kind is an
+event row, its kind its event's type."""
 
 
 _INT64 = (-(2**63), 2**63 - 1)
@@ -279,8 +321,8 @@ def coordinate_value(
     is the value ``1/2``.
 
     Args:
-        cell: A coordinate cell, or a Projection's ``start`` or ``duration``.
-        number_type: The number type the row states, for a Projection's
+        cell: A coordinate cell, or an event row's ``start`` or ``duration``.
+        number_type: The number type the row states, for an event row's
             number; ``None`` reads the cell's own ``number_type``.
     """
     kind = cell["number_type"] if number_type is None else number_type
@@ -294,9 +336,10 @@ def coordinate_value(
 def fixture_path(name: str) -> Path:
     """The path of one file of the table fixture, by its name.
 
-    The fixture is a manifest (``manifest.yaml``), its two tables
-    (``match_claims.parquet``, ``projections.parquet``) and the anchors and
-    potential MatchStamps expected of the MatchClaim table
-    (``expected.yaml``).
+    The fixture is a manifest (``manifest.yaml``), its MatchClaim table
+    (``match_claims.parquet``), its registry (``registry.parquet``), the
+    pre-parsed Projection table the registry names (``projections.parquet``)
+    and the anchors and potential MatchStamps expected of the MatchClaim
+    table (``expected.yaml``).
     """
     return data_root() / "fixtures" / "tables" / SCHEMA_VERSION / name

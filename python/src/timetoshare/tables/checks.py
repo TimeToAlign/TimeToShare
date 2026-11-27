@@ -1,4 +1,5 @@
-"""The checks of the MatchClaim table and the Projections table.
+"""The checks of the registry, the Extraction table, the pre-parsed
+Projection table and the MatchClaim table.
 
 Each ``*_problems`` function lists every problem it finds, the table's own
 first, then row by row; each ``check_*`` function raises the first as a
@@ -13,6 +14,7 @@ import math
 import re
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from functools import cache
 from typing import Any, Literal
 
@@ -22,12 +24,16 @@ from jsonschema import Draft202012Validator
 
 from ..ids import SENTINELS, with_bare_ids
 from ..manifest import UNITS
+from ..serialization import dumps, loads
 from ..statements import calendar_date, expand_iri
 from ..validate import PROVENANCE_DEFINITION, load_schema, select, worded
 from ..validation.diagnostics import axes_by_id, json_pointer, number_type_of
 from .columns import (
     BELIEF_KEYS,
     COORDINATE_KEYS,
+    EXTRACTION_REQUIRED,
+    EXTRACTION_SCHEMA,
+    INDEX_KINDS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
     NUMBER_KEYS,
@@ -36,6 +42,9 @@ from .columns import (
     PROJECTION_SCHEMA,
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
+    REGISTRY_EVENT_REQUIRED,
+    REGISTRY_REQUIRED,
+    REGISTRY_SCHEMA,
     coordinate_value,
 )
 from .columns import CHUNK_SENTINEL as CHUNK
@@ -45,11 +54,15 @@ __all__ = [
     "TableCode",
     "TableError",
     "TableProblem",
+    "check_extractions",
     "check_match_claims",
     "check_projections",
+    "check_registry",
     "check_succession",
+    "extraction_problems",
     "match_claim_problems",
     "projection_problems",
+    "registry_problems",
     "row_provenance",
     "succession_problems",
 ]
@@ -68,6 +81,7 @@ TableCode = Literal[
     "unknown_timeline",
     "invalid_projection_of",
     "invalid_duration",
+    "duplicate_locator",
     "succession_missing",
     "succession_changed",
     "table_type",
@@ -542,7 +556,7 @@ MATCH_CLAIM_TIMELINES = ("timeline_a_id", "timeline_b_id")
 """The columns naming a MatchClaim's timelines."""
 
 EVENT_TIMELINES = ("timeline_id",)
-"""The column naming the timeline an event (a Projection among them) lies on."""
+"""The column naming the timeline a registry's event row lies on."""
 
 
 def _unknown_problems(
@@ -1029,15 +1043,15 @@ def match_claim_problems(
 def projection_problems(
     table: pa.Table, manifest: Mapping[str, Any] | None = None
 ) -> list[TableProblem]:
-    """Every problem of a Projections table, checked against a manifest (as
-    read from its file, IDs written ``#``) where one is given.
+    """Every problem of a pre-parsed Projection table, checked against a
+    manifest (as read from its file, IDs written ``#``) where one is given.
 
-    A Projection's ID is unique in the package, as every event's: two
-    timelines never both hold ``projection_1``. Given a manifest, every
-    row's timeline is one of it, else ``unknown_timeline``; a file the
-    manifests of a package share is read for one manifest by filtering first
-    (:func:`timetoshare.tables.read_table` with the timelines its resource
-    lists)."""
+    A row holds a Projection's ``id`` and the event it stands for; its
+    timeline and its position are its registry row's, so the rules that
+    compare the two (an event of another timeline than the Projection's) are
+    the package check's. A Projection's ID is unique in the package, as
+    every event's. Given a manifest, the projected event's timeline is one of
+    it, else ``unknown_timeline``."""
     problems = _schema_problems(table, PROJECTION_SCHEMA)
     if problems:
         return problems
@@ -1047,24 +1061,248 @@ def projection_problems(
         return problems
     found = _Found()
     _id_problems(found, _array(table, "id"))
-    axes = None if manifest is None else _Manifest(manifest)
-    timelines = _array(table, "timeline_id")
-    if axes is not None:
-        _unknown_problems(found, axes, timelines, 1, ("timeline_id",))
-    _projection_numbers(found, table, timelines, axes)
-    _projected_events(found, table, timelines, axes)
+    _projected_events(found, table, None if manifest is None else _Manifest(manifest))
     return found.problems()
 
 
-def _projection_numbers(
-    found: _Found, table: pa.Table, timelines: pa.Array, manifest: _Manifest | None
+def _projected_events(
+    found: _Found, table: pa.Table, manifest: _Manifest | None
 ) -> None:
-    """The problems of a Projection's axis (place 2), ``start`` (3) and
+    """The event a Projection stands for: both members given (places 5 and
+    6), the event no sentinel (6), on a timeline the manifest has (7)."""
+    source = _array(table, "projection_of")
+    present = pc.is_valid(source)
+    members = {key: _member(source, key) for key in ("timeline_id", "event_id")}
+    for place, (key, member) in enumerate(members.items(), 5):
+        missing = _any(pc.is_null(member), _held(pc.equal(member, _EMPTY)))
+        for row in _rows(_all(present, missing)):
+            found.add(
+                row,
+                place,
+                TableProblem(
+                    "invalid_projection_of",
+                    row,
+                    ("projection_of", key),
+                    f"the projected event has no {key}",
+                ),
+            )
+    # A Projection stands for an event, never for a sentinel.
+    events = members["event_id"]
+    reserved = _all(present, _held(pc.is_in(events, value_set=_SENTINELS)))
+    rows = _rows(reserved)
+    for row, value in zip(rows, _at(events, rows), strict=True):
+        found.add(
+            row,
+            6,
+            TableProblem(
+                "invalid_projection_of",
+                row,
+                ("projection_of", "event_id"),
+                f"'{value}' is reserved for a sentinel",
+            ),
+        )
+    if manifest is not None:
+        source_timeline = members["timeline_id"]
+        named = _all(present, _held(pc.not_equal(source_timeline, _EMPTY)))
+        _unknown_problems(
+            found,
+            manifest,
+            source_timeline,
+            7,
+            ("projection_of", "timeline_id"),
+            named,
+        )
+
+
+_INDEX_KINDS = pa.array(INDEX_KINDS, pa.string())
+_ELEMENT_KINDS = pa.array(
+    [kind for kind in INDEX_KINDS if kind not in ("MatchClaim", "Extraction")],
+    pa.string(),
+)
+_INDEX_EMPTY = tuple(
+    name
+    for name in REGISTRY_SCHEMA.names
+    if name not in (*REGISTRY_REQUIRED, "location", "timeline_id", "name")
+)
+"""The columns an index row leaves null: its positions and its extraction."""
+_KEY_SEPARATOR = pa.scalar("\x00")
+
+
+def _is_index(kinds: pa.Array) -> pa.Array:
+    """Where a registry row is an index row; a null kind is neither."""
+    return _held(pc.is_in(kinds, value_set=_INDEX_KINDS))
+
+
+def _registry_null_problems(table: pa.Table) -> list[TableProblem]:
+    """A null where no row holds one (``id``, ``kind``); in an event row, a
+    null where an event row holds none; in an index row, a ``location`` that
+    is null or a column stated that an index row leaves null."""
+    found = _Found()
+    kinds = _array(table, "kind")
+    index = _is_index(kinds)
+    event = _all(pc.is_valid(kinds), _not(index))
+    for place, key in enumerate(REGISTRY_SCHEMA.names):
+        values = _array(table, key)
+        if key in REGISTRY_REQUIRED:
+            missing = pc.is_null(values)
+        elif key in REGISTRY_EVENT_REQUIRED:
+            missing = _all(event, pc.is_null(values))
+        elif key == "location":
+            missing = _all(index, pc.is_null(values))
+        else:
+            missing = None
+        for row in _rows(missing) if missing is not None else ():
+            found.add(
+                row,
+                place,
+                TableProblem("schema_violation", row, (key,), f"'{key}' is null"),
+            )
+        if key in _INDEX_EMPTY:
+            for row in _rows(_all(index, pc.is_valid(values))):
+                found.add(
+                    row,
+                    place,
+                    TableProblem(
+                        "schema_violation",
+                        row,
+                        (key,),
+                        f"an index row has no '{key}'",
+                    ),
+                )
+    return found.problems()
+
+
+def _scoped_duplicates(
+    found: _Found, keys: pa.Array, ids: pa.Array, among: pa.Array, message: Any
+) -> None:
+    """An ID given again within one scope: among the rows of ``among``, a
+    row whose key a row before it holds, at that later row."""
+    rows = _indices(among)
+    scoped = keys.take(rows)
+    first = _first_rows(scoped, scoped)
+    again = _held(pc.not_equal(first, _int_range(len(scoped))))
+    later = rows.filter(again).to_pylist()
+    for row, value in zip(later, _at(ids, later), strict=True):
+        found.add(
+            row, 0, TableProblem("duplicate_id", row, ("id",), message(row, value))
+        )
+
+
+def _int_range(length: int) -> pa.Array:
+    return pa.array(range(length), pa.int64())
+
+
+def registry_problems(
+    table: pa.Table, manifest: Mapping[str, Any] | None = None
+) -> list[TableProblem]:
+    """Every problem of a registry, checked against a manifest (as read from
+    its file, IDs written ``#``) where one is given.
+
+    A row is an index row when its ``kind`` is one of
+    :data:`~timetoshare.tables.INDEX_KINDS`, else an event row. Each ID is
+    valid; an event, MatchClaim or Extraction ID is held once among all of
+    these rows, an element's once per ``location`` (``duplicate_id``). An
+    event row states its timeline, its axis, its ``start`` and its
+    extraction; its axis is one the unit admits, its numbers numbers of its
+    number type (``invalid_coordinate``), its duration not negative
+    (``invalid_duration``), and one timeline's rows are on one axis, the
+    manifest's timeline's where a manifest is given (``axis_mismatch``); a
+    locator is held once within its extraction (``duplicate_locator``). An
+    index row states its ``location`` and no position nor extraction.
+    Given a manifest, every event row's timeline is one of it, else
+    ``unknown_timeline``: a registry the manifests of a package share is
+    read for one manifest by filtering first
+    (:func:`timetoshare.tables.read_table` with the timelines its Registry
+    resource lists). Index rows are checked against the manifests by the
+    package check."""
+    problems = _schema_problems(table, REGISTRY_SCHEMA)
+    if problems:
+        return problems
+    _readable(table, REGISTRY_SCHEMA.names)
+    problems = _registry_null_problems(table)
+    if problems:
+        return problems
+    found = _Found()
+    ids = _array(table, "id")
+    kinds = _array(table, "kind")
+    index = _is_index(kinds)
+    event = _not(index)
+    malformed = _malformed(ids)
+    rows = _rows(malformed)
+    for row, value in zip(rows, _at(ids, rows), strict=True):
+        found.add(
+            row,
+            0,
+            TableProblem("invalid_id", row, ("id",), _id_problem(value, "the ID")),
+        )
+    element = _held(pc.is_in(kinds, value_set=_ELEMENT_KINDS))
+    sound = _not(malformed)
+    _scoped_duplicates(
+        found,
+        ids,
+        ids,
+        _all(sound, _not(element)),
+        lambda row, value: f"the ID '{value}' is given twice",
+    )
+    locations = _array(table, "location")
+    _scoped_duplicates(
+        found,
+        pc.binary_join_element_wise(locations, ids, _KEY_SEPARATOR),
+        ids,
+        _all(sound, element),
+        lambda row, value: (
+            f"the ID '{value}' is given twice at '{locations[row].as_py()}'"
+        ),
+    )
+    axes = None if manifest is None else _Manifest(manifest)
+    timelines = _array(table, "timeline_id")
+    if axes is not None:
+        _unknown_problems(found, axes, timelines, 1, ("timeline_id",), event)
+    _event_numbers(found, table, timelines, axes, event)
+    _locator_problems(found, table, event)
+    return found.problems()
+
+
+def _locator_problems(found: _Found, table: pa.Table, event: pa.Array) -> None:
+    """A locator given twice in one extraction, at place 5 of its later row."""
+    locators = _array(table, "locator")
+    extractions = _array(table, "extraction_id")
+    stated = _all(event, pc.is_valid(locators))
+    rows = _indices(stated)
+    keys = pc.binary_join_element_wise(
+        extractions.take(rows), locators.take(rows), _KEY_SEPARATOR
+    )
+    first = _first_rows(keys, keys)
+    later = rows.filter(_held(pc.not_equal(first, _int_range(len(keys))))).to_pylist()
+    for row, locator, extraction in zip(
+        later, _at(locators, later), _at(extractions, later), strict=True
+    ):
+        found.add(
+            row,
+            5,
+            TableProblem(
+                "duplicate_locator",
+                row,
+                ("locator",),
+                f"the locator '{locator}' is given twice in the extraction "
+                f"'{extraction}'",
+            ),
+        )
+
+
+def _event_numbers(
+    found: _Found,
+    table: pa.Table,
+    timelines: pa.Array,
+    manifest: _Manifest | None,
+    event: pa.Array,
+) -> None:
+    """The problems of an event row's axis (place 2), ``start`` (3) and
     ``duration`` (4): its row states the unit and the number type of both,
     never null here; a row without an axis has no numbers checked."""
     unit, number_type = _array(table, "unit"), _array(table, "number_type")
     admitted = _axis_admitted(unit, number_type)
-    rows = _rows(_not(admitted))
+    rows = _rows(_all(event, _not(admitted)))
     for row, row_unit, row_type in zip(
         rows, _at(unit, rows), _at(number_type, rows), strict=True
     ):
@@ -1079,6 +1317,7 @@ def _projection_numbers(
                 _axis_problem(row_unit, row_type),
             ),
         )
+    admitted = _all(event, admitted)
     stated = _indices(admitted)
     axes = pa.table(
         {
@@ -1135,67 +1374,181 @@ def _projection_numbers(
                 )
 
 
-def _projected_events(
-    found: _Found, table: pa.Table, timelines: pa.Array, manifest: _Manifest | None
+_DATE_TIME = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]+)?Z$"
+"""A date-time of ISO 8601 in UTC, in the syntax of Python's ``re`` and RE2."""
+
+
+def _date_time_problem(value: str) -> str | None:
+    """Why a string is no ISO 8601 date-time in UTC, or ``None``."""
+    if re.fullmatch(_DATE_TIME, value) is None:
+        return (
+            f"the date {value!r} is no ISO 8601 date-time in UTC, such as "
+            "'2026-11-27T21:30:00Z'"
+        )
+    try:
+        datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return f"the date {value!r} is no time of the Gregorian calendar"
+    return None
+
+
+def _parameters_problem(value: str) -> str | None:
+    """Why a string is no RFC 8785 JSON text of an object, or ``None``."""
+    try:
+        parameters = json.loads(value)
+    except ValueError:
+        return "the parameters are no JSON text"
+    if not isinstance(parameters, dict):
+        return "the parameters are no JSON object"
+    try:
+        written = dumps(loads(value), "jcs")
+    except ValueError:
+        written = None
+    if written != value:
+        return "the parameters are not written in RFC 8785 JSON"
+    return None
+
+
+@cache
+def _integrity_definition() -> tuple[pa.Array, re.Pattern[str]]:
+    """The algorithms and the digest pattern of the manifest schema's
+    ``Descriptor`` integrity, the one declaration of both."""
+    integrity = load_schema()["$defs"]["Descriptor"]["properties"]["integrity"]
+    members = integrity["properties"]
+    return (
+        pa.array(members["algorithm"]["enum"], pa.string()),
+        re.compile(members["digest"]["pattern"]),
+    )
+
+
+def _distinct_problems(
+    found: _Found,
+    values: pa.Array,
+    among: pa.Array,
+    place: int,
+    column: Column,
+    problem: Any,
 ) -> None:
-    """The event a Projection stands for: both members given (places 5 and
-    6), the event no sentinel (6), on another timeline than the
-    Projection's, one the manifest has (7)."""
-    source = _array(table, "projection_of")
-    present = pc.is_valid(source)
-    members = {key: _member(source, key) for key in ("timeline_id", "event_id")}
-    for place, (key, member) in enumerate(members.items(), 5):
-        missing = _any(pc.is_null(member), _held(pc.equal(member, _EMPTY)))
-        for row in _rows(_all(present, missing)):
+    """The problem of each distinct string of ``values`` at the rows of
+    ``among``, worded once per distinct string."""
+    rows = _indices(_all(among, pc.is_valid(values)))
+    codes = _dense(values.take(rows))
+    firsts = _firsts(codes)
+    failing = {}
+    for code, value in enumerate(values.take(rows.take(firsts)).to_pylist()):
+        message = problem(value)
+        if message is not None:
+            failing[code] = message
+    if not failing:
+        return
+    flagged = pc.is_in(codes, value_set=pa.array(list(failing), pa.int64()))
+    for row, code in zip(
+        rows.filter(flagged).to_pylist(), codes.filter(flagged).to_pylist(), strict=True
+    ):
+        found.add(
+            row, place, TableProblem("schema_violation", row, column, failing[code])
+        )
+
+
+def extraction_problems(table: pa.Table) -> list[TableProblem]:
+    """Every problem of an Extraction table.
+
+    Each ID is valid and given once (``invalid_id``, ``duplicate_id``); a
+    row naming a ``source`` states its ``source_integrity``, whose
+    ``algorithm`` is one of the manifest schema's and whose ``digest`` is
+    lower-case hexadecimal; ``parameters`` is the RFC 8785 JSON text of an
+    object, ``id_length`` at least 1 and ``date`` an ISO 8601 date-time in
+    UTC (each ``schema_violation``)."""
+    problems = _schema_problems(table, EXTRACTION_SCHEMA)
+    if problems:
+        return problems
+    _readable(table, EXTRACTION_SCHEMA.names)
+    problems = _null_problems(table, EXTRACTION_REQUIRED)
+    if problems:
+        return problems
+    found = _Found()
+    _id_problems(found, _array(table, "id"))
+    integrity = _array(table, "source_integrity")
+    rows = _rows(_all(pc.is_valid(_array(table, "source")), pc.is_null(integrity)))
+    for row in rows:
+        found.add(
+            row,
+            1,
+            TableProblem(
+                "schema_violation",
+                row,
+                ("source_integrity",),
+                "'source_integrity' is null where 'source' is given",
+            ),
+        )
+    algorithms, digest_pattern = _integrity_definition()
+    stated = pc.is_valid(integrity)
+    algorithm = _member(integrity, "algorithm")
+    digest = _member(integrity, "digest")
+    for key, member in (("algorithm", algorithm), ("digest", digest)):
+        for row in _rows(_all(stated, pc.is_null(member))):
             found.add(
                 row,
-                place,
+                1,
                 TableProblem(
-                    "invalid_projection_of",
+                    "schema_violation",
                     row,
-                    ("projection_of", key),
-                    f"the projected event has no {key}",
+                    ("source_integrity", key),
+                    f"'source_integrity' has no {key}",
                 ),
             )
-    # A Projection stands for an event, never for a sentinel.
-    events = members["event_id"]
-    reserved = _all(present, _held(pc.is_in(events, value_set=_SENTINELS)))
-    rows = _rows(reserved)
-    for row, value in zip(rows, _at(events, rows), strict=True):
+    unknown = _all(
+        stated, pc.is_valid(algorithm), _not(pc.is_in(algorithm, value_set=algorithms))
+    )
+    for row, value in zip(_rows(unknown), _at(algorithm, _rows(unknown)), strict=True):
         found.add(
             row,
-            6,
+            1,
             TableProblem(
-                "invalid_projection_of",
+                "schema_violation",
                 row,
-                ("projection_of", "event_id"),
-                f"'{value}' is reserved for a sentinel",
+                ("source_integrity", "algorithm"),
+                f"{value!r} is no algorithm of a digest",
             ),
         )
-    source_timeline = members["timeline_id"]
-    same = _all(present, _held(pc.equal(source_timeline, timelines)))
-    rows = _rows(same)
-    for row, value in zip(rows, _at(timelines, rows), strict=True):
+    _distinct_problems(
+        found,
+        digest,
+        stated,
+        1,
+        ("source_integrity", "digest"),
+        lambda value: (
+            None
+            if digest_pattern.search(value)
+            else f"the digest {value!r} is no lower-case hexadecimal"
+        ),
+    )
+    every = pa.repeat(pa.scalar(True), len(table))
+    _distinct_problems(
+        found,
+        _array(table, "parameters"),
+        every,
+        2,
+        ("parameters",),
+        _parameters_problem,
+    )
+    lengths = _array(table, "id_length")
+    short = _rows(pc.less(lengths, _ONE))
+    for row, value in zip(short, _at(lengths, short), strict=True):
         found.add(
             row,
-            7,
+            3,
             TableProblem(
-                "invalid_projection_of",
+                "schema_violation",
                 row,
-                ("projection_of", "timeline_id"),
-                f"a Projection stands for an event of another timeline than '{value}'",
+                ("id_length",),
+                f"the ID length {value} is below 1",
             ),
         )
-    if manifest is not None:
-        named = _all(present, _not(same), _held(pc.not_equal(source_timeline, _EMPTY)))
-        _unknown_problems(
-            found,
-            manifest,
-            source_timeline,
-            7,
-            ("projection_of", "timeline_id"),
-            named,
-        )
+    _distinct_problems(
+        found, _array(table, "date"), every, 4, ("date",), _date_time_problem
+    )
+    return found.problems()
 
 
 def _differs(old: pa.Array, new: pa.Array) -> pa.Array:
@@ -1332,8 +1685,18 @@ def check_match_claims(
 def check_projections(
     table: pa.Table, manifest: Mapping[str, Any] | None = None
 ) -> None:
-    """Raise ``TableError`` for the first problem of a Projections table."""
+    """Raise ``TableError`` for the first problem of a Projection table."""
     _first(projection_problems(table, manifest))
+
+
+def check_registry(table: pa.Table, manifest: Mapping[str, Any] | None = None) -> None:
+    """Raise ``TableError`` for the first problem of a registry."""
+    _first(registry_problems(table, manifest))
+
+
+def check_extractions(table: pa.Table) -> None:
+    """Raise ``TableError`` for the first problem of an Extraction table."""
+    _first(extraction_problems(table))
 
 
 def check_succession(old: pa.Table, new: pa.Table) -> None:

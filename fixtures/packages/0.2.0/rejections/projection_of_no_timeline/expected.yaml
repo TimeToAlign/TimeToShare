@@ -1,0 +1,8 @@
+problems:
+  -
+    code: unknown_timeline
+    file: tables/Projection/part_b.parquet
+    message: "no manifest of the package has the timeline 'clt_9'"
+    path: [projection_of, timeline_id]
+    row: 1
+reason: "A pre-parsed Projection stands for an event of clt_9, a timeline no manifest holds."

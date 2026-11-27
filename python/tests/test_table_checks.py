@@ -23,10 +23,12 @@ from timetoshare.tables import (  # noqa: E402
     NOMATCH_SENTINEL,
     PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
+    REGISTRY_SCHEMA,
     checks,
     fixture_path,
     match_claim_problems,
     projection_problems,
+    registry_problems,
     succession_problems,
 )
 
@@ -42,12 +44,15 @@ from .test_tables import (  # noqa: E402
     PROJECTIONS,
     PROVENANCE,
     PROVENANCE_CASES,
+    REGISTRY,
+    REGISTRY_CASES,
     anchor,
     changed,
     claims_table,
     number,
     projections_table,
     q,
+    registry_table,
     sec,
     smp,
 )
@@ -94,6 +99,12 @@ def assert_same_projection_problems(table: Any, manifest: Any) -> list:
     return expected[1] if expected[0] == "problems" else ["raised"]
 
 
+def assert_same_registry_problems(table: Any, manifest: Any) -> list:
+    expected = _outcome(reference.registry_problems, table, manifest)
+    assert _outcome(registry_problems, table, manifest) == expected
+    return expected[1] if expected[0] == "problems" else ["raised"]
+
+
 # The fixture tables and the inline cases
 
 
@@ -103,8 +114,10 @@ def assert_same_projection_problems(table: Any, manifest: Any) -> list:
 def test_the_fixture_tables(manifest: Any) -> None:
     claims = pq.read_table(fixture_path("match_claims.parquet"))
     projections = pq.read_table(fixture_path("projections.parquet"))
+    registry = pq.read_table(fixture_path("registry.parquet"))
     assert assert_same_claim_problems(claims, manifest) == []
     assert assert_same_projection_problems(projections, manifest) == []
+    assert assert_same_registry_problems(registry, manifest) == []
     assert succession_problems(claims, claims) == []
 
 
@@ -129,6 +142,13 @@ def test_each_admitted_row(case: tuple, manifest: Any) -> None:
 def test_each_projection_case(case: tuple, manifest: Any) -> None:
     table = projections_table(changed(PROJECTIONS, case[1]))
     assert assert_same_projection_problems(table, manifest) != []
+
+
+@pytest.mark.parametrize("case", REGISTRY_CASES, ids=lambda case: case[0])
+@pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
+def test_each_registry_case(case: tuple, manifest: Any) -> None:
+    table = registry_table(changed(REGISTRY, case[1]))
+    assert assert_same_registry_problems(table, manifest) != []
 
 
 # A manifest's timelines, read where a row reaches them
@@ -174,7 +194,7 @@ def test_a_bad_timeline_is_read_where_a_row_reaches_it(bad: dict, named: bool) -
     manifest = _with_bad_timeline(MANIFEST, bad, named)
     for compared, table in (
         (assert_same_claim_problems, claims_table(CLAIMS)),
-        (assert_same_projection_problems, projections_table(PROJECTIONS)),
+        (assert_same_registry_problems, registry_table(REGISTRY)),
     ):
         problems = compared(table, manifest)
         if not named:
@@ -238,6 +258,10 @@ _POOLS: dict[str, list[Any]] = {
     "anchor": [None, anchor(q(1, 2), smp(22050)), anchor(q(3), sec(0.5))],
     "coordinate": [None, q(1), q(2, 4), smp(3), sec(0.5), q(-1, 2)],
     "provenance": [None, *_PROVENANCE_POOL],
+    "kind": ["Projection", "MidiNote", "Timeline", "MatchClaim", "", None],
+    "location": ["projections.parquet", "manifest.yaml", "", None],
+    "extraction_id": ["extraction_1", "extraction_2", None],
+    "locator": ["track 0, message 4", "track 0, message 9", None],
     "projection_of": [
         None,
         {"timeline_id": "clt_1", "event_id": "note_1"},
@@ -279,6 +303,7 @@ _KEY_POOLS = {
     "event_a_id": "event",
     "event_b_id": "event",
     "event_id": "event",
+    "vanished_in": "extraction_id",
     "event_a_name": "name",
     "event_b_name": "name",
     "timeline_a_id": "timeline",
@@ -532,6 +557,10 @@ _PROJECTION_BASES = [
     (_fixture_rows("projections.parquet"), FIXTURE_MANIFEST),
     (PROJECTIONS, MANIFEST),
 ]
+_REGISTRY_BASES = [
+    (_fixture_rows("registry.parquet"), FIXTURE_MANIFEST),
+    (REGISTRY, MANIFEST),
+]
 
 
 def mutated(
@@ -566,19 +595,36 @@ def test_mutated_match_claim_tables() -> None:
         assert counts["problems"] > 0 and counts["none"] > 0, (kind, counts)
 
 
-def test_mutated_projection_tables() -> None:
+def test_mutated_registries() -> None:
     outcomes: dict[str, Counter] = {kind: Counter() for kind in KINDS}
     for kind in KINDS:
         if kind in ("provenance", "shared"):
             continue
         for n in range(100):
-            table, _, manifest = mutated(kind, n, _PROJECTION_BASES, PROJECTION_SCHEMA)
-            problems = assert_same_projection_problems(table, manifest)
+            table, _, manifest = mutated(kind, n, _REGISTRY_BASES, REGISTRY_SCHEMA)
+            problems = assert_same_registry_problems(table, manifest)
             outcomes[kind]["problems" if problems else "none"] += 1
     assert sum(sum(counts.values()) for counts in outcomes.values()) == 1_000
     for kind, counts in outcomes.items():
         if counts:
             assert counts["problems"] > 0 and counts["none"] > 0, (kind, counts)
+
+
+_PROJECTION_KINDS = ("null", "value", "duplicate", "timeline", "rows", "chunks")
+"""The kinds that change a pre-parsed Projection table, which holds no axis,
+number or provenance."""
+
+
+def test_mutated_projection_tables() -> None:
+    outcomes: dict[str, Counter] = {kind: Counter() for kind in _PROJECTION_KINDS}
+    for kind in _PROJECTION_KINDS:
+        for n in range(100):
+            table, _, manifest = mutated(kind, n, _PROJECTION_BASES, PROJECTION_SCHEMA)
+            problems = assert_same_projection_problems(table, manifest)
+            outcomes[kind]["problems" if problems else "none"] += 1
+    assert sum(sum(counts.values()) for counts in outcomes.values()) == 600
+    for kind, counts in outcomes.items():
+        assert counts["problems"] > 0 and counts["none"] > 0, (kind, counts)
 
 
 # The succession rule
@@ -806,6 +852,14 @@ def test_a_projection_that_is_no_utf8(manifest: Any) -> None:
     table = _broken(projections_table(rows))
     assert assert_same_projection_problems(table, manifest) == ["raised"]
     assert _outcome(projection_problems, table, manifest) == _undecodable(0)
+
+
+@pytest.mark.parametrize("manifest", [None, MANIFEST], ids=["alone", "manifest"])
+def test_a_registry_location_that_is_no_utf8(manifest: Any) -> None:
+    rows = changed(REGISTRY, lambda rows: rows[4].update(location=_HOLE))
+    table = _broken(registry_table(rows))
+    assert assert_same_registry_problems(table, manifest) == ["raised"]
+    assert _outcome(registry_problems, table, manifest) == _undecodable(0)
 
 
 def test_bytes_that_are_never_read() -> None:

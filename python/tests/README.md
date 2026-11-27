@@ -586,6 +586,7 @@ package words it as this package does.
 | `dangling_target` | then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the `measure_map` | `'ghost' names no MeasureMap of this manifest` |
 | `conversion_map` | a non-null `source_unit` of a map attached to a timeline is the timeline's unit, and that of every map a `PiecewiseMap` or `CombinationMap` holds, and of a `ChainMap`'s first map, is its holder's non-null `source_unit`; a `TableMap`'s x and y values of equal length, its x values strictly increasing; a `PiecewiseMap`'s maps one fewer than its breaks, its breaks strictly increasing | the `source_unit`, the `y_values`, the value, the `maps`, the break | `MeasureRecordMap 'bars' has source unit 'quarters', its timeline 'score' has 'ticks'`, `LinearMap 'scale' has source unit 'ticks', its ChainMap 'chain' has 'quarters'`, `TableMap 'tempo' has 3 x values and 2 y values`, `x value [0, 1] of TableMap 'tempo' does not exceed the one before it`, `PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps`, `break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
+| `child_number_type` | then, a child has its parent's number type, each the declared one or its unit's default | its `number_type`, its `unit` where it declares none | `child 'verse' has the number type 'float', its parent 'score' has 'fraction'` |
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
 | `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
 | `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
@@ -679,9 +680,10 @@ value in place and are reported at their path with the exact message, a
 case without one (`id_empty`) reads as written, and an unknown name is
 refused with `ValueError`. Each case's text is the
 standard writer's, and the set of names is stated literally, so a case cannot
-disappear unnoticed. Twenty-two cases pin their message too (`test_identity.py`
+disappear unnoticed. Twenty-three cases pin their message too (`test_identity.py`
 and `test_statements.py`):
-`child_unit_differs`, `child_offset_beyond_parent`, `child_end_beyond_parent`,
+`child_unit_differs`, `child_number_type_differs`,
+`child_offset_beyond_parent`, `child_end_beyond_parent`,
 `region_id_duplicate_across_roots`, `band_order_unknown_entry`,
 `band_order_missing_line`, `band_order_old_form`, `order_unknown_group`,
 `timestamp_timeline_unknown`, `timestamp_coordinate_beyond_length`,
@@ -794,18 +796,29 @@ documents that bound each rule from the other side:
   sentinel` (the ID without its `#`), and `identity_problems` finds
   nothing, the rule being the schema's `Id`. The rejection case
   `id_chunk_sentinel` holds it for a timeline in both packages.
-- **Containment.** A child's end is its offset plus its length, or, for a
-  segment of unknown length, its successor's offset. Where the parent's
-  axis and the child's are both `float`, the offset and the length are
-  added as doubles, as a reader adds the JSON numbers it reads, and that
-  sum is compared with the parent's length; wherever either axis is `int`
-  or `fraction`, the values are added and compared exactly. The end is
-  spelled in the parent's number type, a fraction pair where that type has
-  no exact spelling: `0.2` at `0.1` in `0.3` seconds ends at
-  `0.30000000000000004`, their double sum, `0.5` at `0.5` in `0.75` at
-  `1.0`, `240` ticks at `480` in `480` at `720`, a quarters child declared
-  `float`, `2.5` at `[7, 1]` in `[8, 1]`, at `[19, 2]`, and a seconds child
-  declared `fraction`, `[1, 3]` at `0.5` in `0.75`, at `[5, 6]`; `0.25` at
+- **Containment.** A child has its parent's unit (`child_unit`), then its
+  parent's number type (`child_number_type`), each the declared one or the
+  unit's default: a seconds child declared `fraction` under a quarters
+  root is `child_unit` alone; a ticks grandchild under a quarters child is
+  `child_unit`, then `child_number_type` at its `unit`, since it declares
+  no number type (`child 'b' has the number type 'int', its parent 'a' has
+  'fraction'`); a quarters child declared `float` under a `fraction` root is
+  `child_number_type` at its `number_type`. A child admits every number
+  type its unit admits when its parent has it (the parent declares it, a
+  test per unit and number type), and a number type its unit does not
+  admit is the schema's, at the child. A child's end is its offset plus
+  its length, or, for a segment of unknown length, its successor's offset.
+  On a `float` axis the offset and the length are added as doubles, as a
+  reader adds the JSON numbers it reads, and that sum is compared with the
+  parent's length; on an `int` or `fraction` axis the values are added and
+  compared exactly. The end is spelled in the parent's number type, a
+  fraction pair where that type has no exact spelling: `0.2` at `0.1` in
+  `0.3` seconds ends at `0.30000000000000004`, their double sum, `0.5` at
+  `0.5` in `0.75` at `1.0`, `240` ticks at `480` in `480` at `720`; a
+  quarters child declared `float`, `2.5` at `[7, 1]` in `[8, 1]`, is
+  `child_number_type`, then `child_end` at `[19, 2]`, the exact sum, and a
+  seconds child declared `fraction`, `[1, 3]` at `0.5` in `0.75`, is
+  `child_number_type`, then `child_end` at `[5, 6]`; `0.25` at
   `0.5` in `0.75` and `[2, 1]` at `[8, 1]` in `[10, 1]` end at the length
   and pass. The double sum decides even where it differs from the exact
   one, as for three doubles whose exact sum exceeds the parent's length by
@@ -2625,9 +2638,12 @@ one table. What proves the table:
 
 ## The table types
 
-`timetoshare.tables` (the extra `tables`, pyarrow) holds the two table
-types a package keeps beside its manifest: the MatchClaim table
-(`match_claims.parquet`) and the Projections table (`projections.parquet`).
+`timetoshare.tables` (the extra `tables`, pyarrow) holds the table types
+a package keeps beside its manifests: the registry, one row per resolvable
+ID (an event row per event, its position on its root's axis; an index row
+per manifest element, MatchClaim and extraction), the Extraction table, the
+pre-parsed Projection table (`id`, `projection_of`) and the MatchClaim
+table.
 The tests (`test_tables.py`, `test_tables_anchors.py`) need pyarrow, a
 development dependency; without it they are skipped, as the font
 extraction's are without fontTools. What proves them:
@@ -2636,10 +2652,20 @@ extraction's are without fontTools. What proves them:
   this order, `timeline_a_id`, `timeline_b_id`, `start_anchor`,
   `end_anchor`, `is_synchronous`, `provenance`, `certainty`,
   `event_a_id`, `event_a_name`, `event_b_id`, `event_b_name`, `id`;
-  `PROJECTION_COLUMNS` `id`, `timeline_id`, `unit`, `number_type`,
-  `start`, `duration`, `projection_of`. A number is the struct `numerator`,
-  `denominator` (int64), `value` (float64), the type of a Projection's
-  `start` and `duration`; a coordinate cell is a number followed by `unit`
+  `PROJECTION_COLUMNS` `id`, `projection_of`; `REGISTRY_COLUMNS` `id`,
+  `kind`, `location`, `timeline_id`, `unit`, `number_type`, `start`,
+  `duration`, `name`, `extraction_id`, `locator`, `vanished_in`;
+  `EXTRACTION_COLUMNS` `id`, `source`, `source_integrity` (the struct
+  `algorithm`, `digest`, `INTEGRITY_TYPE`), `parser`, `parser_version`,
+  `parameters`, `minter`, `id_length` (int64), `seed`, `date`; and
+  `INDEX_KINDS`, the kinds of an index row, the sixteen names `Manifest`,
+  `Timeline`, `VirtualTimeline`, `Group`, `MeasureMap`, `ConversionMap`,
+  `Region`, `FlowControlElement`, `Resource`, `FlowMap`, `Timestamp`,
+  `MatchStamp`, `AlignmentAnchor`, `Elision` (each a definition of the
+  manifest schema, which the test reads), `MatchClaim`, `Extraction`. A
+  number is the struct `numerator`, `denominator` (int64), `value`
+  (float64), the type of an event row's `start` and `duration`; a
+  coordinate cell is a number followed by `unit`
   and `number_type` (strings); an anchor the struct `coordinate_a`,
   `coordinate_b`, its timelines the
   row's `timeline_a_id` and `timeline_b_id` (an anchor cell holding the
@@ -2657,31 +2683,39 @@ extraction's are without fontTools. What proves them:
   string; `belief` is one of `timetoshare.BELIEFS`, the strings `true`,
   `false`, `unlikely`, the schema's enum.
 - **The column types are published as data.** `schema/0.2.0/tables.json`
-  (`tables_path()`) is the one source of both schemas: its `types` declare
-  `number`, `coordinate`, `anchor` and `projection_of` as Arrow structs of
-  named members and `provenance` as the struct read from the provenance
-  schema it names; its `tables` give each table a `status` and its
-  `columns` in order, each a `name`, a `type` (one of the four type names
+  (`tables_path()`) is the one source of every table schema: its `types`
+  declare `number`, `coordinate`, `anchor`, `projection_of` and
+  `integrity` as Arrow structs of named members and `provenance` as the
+  struct read from the provenance schema it names; its `tables` give each
+  table a `status` and its `columns` in order, and the registry its
+  `index_kinds`, each column a `name`, a `type` (one of the four type names
   `string`, `bool`, `int64` and `float64`, Arrow's utf8, bool, int64 and
   double, or a type of `types`) and whether it is `nullable`. The test
   reads the file and
   pins it: its `$id` is
   `https://timetoalign.github.io/timetoshare/0.2.0/tables.json`, its
   sections are exactly `types` and `tables`, the MatchClaim table is
-  `stable` and the Projections table `experimental`, the `coordinate`'s
+  `stable` and the registry, the Extraction table and the Projection table
+  `experimental`, the members of each table entry are exactly
+  `description`, `status` and `columns` (and `index_kinds` for the
+  registry), the `coordinate`'s
   members are the `number`'s followed by `unit` and `number_type`, and
   `provenance` names `provenance.schema.json`, a file beside it.
   `MATCH_CLAIM_SCHEMA` equals, field by field, a literal list of its
   twelve columns with their Arrow types written out in the test
   (`timeline_a_id` string, …, the anchors the struct of two coordinate
   structs, `provenance` the struct of the eight members, `certainty`
-  double, …, `id` string), and `PROJECTION_SCHEMA` its seven; every Arrow
-  field is nullable, so a writer need declare nothing, and the columns the
-  file marks `nullable: false` are exactly those a null is refused in
-  (`timeline_a_id`, `timeline_b_id`, `is_synchronous`, `event_a_id`,
-  `event_b_id`, `id`; `id`, `timeline_id`, `unit`, `number_type`,
-  `start`), each proved below, and
-  `MATCH_CLAIM_REQUIRED` and `PROJECTION_REQUIRED` are these tuples. Every
+  double, …, `id` string), `PROJECTION_SCHEMA` its two, `REGISTRY_SCHEMA`
+  its twelve and `EXTRACTION_SCHEMA` its ten; every Arrow field is
+  nullable, so a writer need declare nothing, and the columns the file
+  marks `nullable: false` are exactly those a null is refused in in every
+  row (`timeline_a_id`, `timeline_b_id`, `is_synchronous`, `event_a_id`,
+  `event_b_id`, `id`; `id`; `id`, `kind`; `id`, `parser`,
+  `parser_version`, `minter`, `id_length`, `date`), each proved below, and
+  `MATCH_CLAIM_REQUIRED`, `PROJECTION_REQUIRED`, `REGISTRY_REQUIRED` and
+  `EXTRACTION_REQUIRED` are these tuples; `REGISTRY_EVENT_REQUIRED`,
+  `timeline_id`, `unit`, `number_type`, `start`, `extraction_id`, are the
+  columns an event row holds no null in. Every
   column and member type is one of the four names or a name of `types`,
   and the four are `pa.string()`, `pa.bool_()`, `pa.int64()` and
   `pa.float64()`, so a reader in another language needs no list beyond
@@ -2704,14 +2738,15 @@ extraction's are without fontTools. What proves them:
   its exact message and always as a `ValueError`.
   `coordinate_value` reads each pattern back to the exact value (`3`,
   `1/2`, `1/4`, a float as its exact binary value), from the cell's own
-  `number_type` or from the one given for a Projection's number, and
+  `number_type` or from the one given for an event row's number, and
   reads nothing from a member its number type leaves null.
 - **Each rule refuses its smallest counterexample and nothing else.** A
   valid table of a few rows is built inline; each rule is proved by
   changing one cell (or one column type) and asserting the exact list of
   problems `(code, row, column)` and the message of the first, which
-  `check_match_claims`, `check_projections` and `check_succession` raise
-  as `TableError`. The valid table itself yields no problem, with and
+  `check_match_claims`, `check_projections`, `check_registry`,
+  `check_extractions` and `check_succession` raise as `TableError`. The
+  valid table itself yields no problem, with and
   without its manifest. The rules: a missing column or a column of
   another type (`schema_violation`; a Parquet round trip, which renames
   list items, changes nothing; a column the type does not declare is
@@ -2722,8 +2757,8 @@ extraction's are without fontTools. What proves them:
   (`invalid_id`, `'NOMATCH_SENTINEL' is reserved for a sentinel`, in both
   tables); an ID twice in a table (`duplicate_id`, at its second
   row: `the ID 'claim_1' is given twice`, `the ID 'projection_1' is given
-  twice`), a Projection's ID as much on two timelines as on one, since a
-  Projection's ID is unique in the package as every event's; a `scope`
+  twice`), an event row's ID as much on two timelines as on one, since an
+  event's ID is unique in the package; a `scope`
   column is one of the undeclared columns, kept and never checked: one of
   integers is no problem, and one of strings giving a repeated `claim_1`
   two values leaves it given twice; a
@@ -2764,23 +2799,53 @@ extraction's are without fontTools. What proves them:
   reported, never raised; provenance stated both in the file's
   metadata (`timetoshare:provenance`) and in a row (`invalid_provenance`);
   one timeline's cells in two units or number types within a table
-  (`axis_mismatch`); a Projection whose `projection_of` lacks a member,
-  names a sentinel's string as its `event_id` (a Projection stands for an
-  event, never for a sentinel: `'NOMATCH_SENTINEL' is reserved for a
-  sentinel` at `projection_of.event_id`, after the missing members and
-  before the own timeline) or names its own timeline
-  (`invalid_projection_of`), whose row's `unit` or
-  `number_type` is null (`schema_violation`) or unknown
-  (`invalid_coordinate` at that column), whose row's number type its unit
-  does not admit (`'samples' admits no number type 'fraction'`,
-  `invalid_coordinate` at `number_type`), whose `start` or `duration`
-  breaks the number rule of the row's number type (`invalid_coordinate`
-  at that column), whose `duration` is negative (`invalid_duration`), two
-  Projections of one timeline whose rows state two units
-  (`axis_mismatch` at `unit`) or two number types its unit admits
-  (seconds as float and as fraction, at `number_type`),
-  and a `projection_of` column holding a joined string
-  (`schema_violation`).
+  (`axis_mismatch`). A pre-parsed Projection whose `id` is null
+  (`schema_violation`), whose `projection_of` lacks a member or names a
+  sentinel's string as its `event_id` (a Projection stands for an event,
+  never for a sentinel: `'NOMATCH_SENTINEL' is reserved for a sentinel` at
+  `projection_of.event_id`, after the missing members)
+  (`invalid_projection_of`), and a `projection_of` column holding a
+  joined string (`schema_violation`); a Projection naming its own
+  timeline is no problem of the table alone, which holds no timeline, but
+  of the package check (below), and former columns (`timeline_id`,
+  `start`) are further columns, kept and never checked. A registry's event
+  row (its `kind` none of `INDEX_KINDS`) whose `timeline_id`, `unit`,
+  `number_type`, `start` or `extraction_id` is null, and a row whose `id`
+  or `kind` is null (`schema_violation`, `'<column>' is null`, row by row,
+  column by column in the table's order); an index row whose `location` is
+  null, or which states a `unit`, `number_type`, `start`, `duration`,
+  `extraction_id`, `locator` or `vanished_in` (`schema_violation`, `an
+  index row has no 'start'`); an event, MatchClaim or Extraction row
+  holding an ID another of these rows holds (`the ID 'projection_2' is
+  given twice`: an event's ID and a MatchClaim's are held once together),
+  an element's ID twice at one `location` (`the ID 'clt_1' is given twice
+  at 'manifest.yaml'`), while the same element ID at two locations is no
+  problem (`duplicate_id`); an empty or reserved ID (`invalid_id`); an
+  event row whose `unit` or `number_type` is unknown or not admitted
+  (`invalid_coordinate` at that column), whose `start` or `duration`
+  breaks the number rule (`invalid_coordinate`), whose `duration` is
+  negative (`invalid_duration`), two event rows of one timeline in two
+  units (`axis_mismatch` at `unit`) or two number types (at
+  `number_type`); a locator given twice within one extraction
+  (`duplicate_locator`, `the locator 'track 0, message 4' is given twice in
+  the extraction 'extraction_1'`), while one locator in two extractions,
+  an event row without a location (re-parsable only), another event kind
+  (`MidiNote`) and a row with `vanished_in` stated are admitted; index rows
+  are never checked against a manifest (a Region of another manifest on a
+  timeline it lacks passes). An Extraction row whose `id`, `parser`,
+  `parser_version`, `minter`, `id_length` or `date` is null
+  (`schema_violation`); an ID twice or reserved (`duplicate_id`,
+  `invalid_id`); a `source` without `source_integrity` (`'source_integrity'
+  is null where 'source' is given`), an integrity without `digest`, of an
+  algorithm the manifest schema's `Descriptor` does not list (`'SHA-3' is
+  no algorithm of a digest`), a digest that is no lower-case hexadecimal;
+  `parameters` that are no JSON text, no JSON object or not RFC 8785 JSON
+  (`{"resolution": 480, "merge_tracks": false}`, spaced and unsorted); an
+  `id_length` below 1; a `date` that is no ISO 8601 date-time in UTC
+  (without `Z`) or no time of the Gregorian calendar (`2026-02-30T00:00:00Z`),
+  one problem per row a bad cell stands in (each `schema_violation`); a
+  fractional second (`21:31:05.250Z`) and a run without a source are
+  admitted.
 - **The sentinels are reserved strings, read by `is_synchronous`.** An
   event ID column holds an event's ID or one of the two strings
   `timetoshare.tables` exports, `NOMATCH_SENTINEL` and `CHUNK_SENTINEL`
@@ -2816,9 +2881,9 @@ extraction's are without fontTools. What proves them:
   MatchClaim table with `claim_2`'s start anchor written `(2, 2, null)`
   (the quarter 1) or `(0, 4, null)` has no problem, with and without its
   manifest, and `coordinate_value` reads the two cells as exactly `1` and
-  `0`; so does the Projections table whose third row, moved to the
-  quarters of `clt_1`, starts at `4/2` (read as `2`) or starts at `7/2`
-  and lasts `2/4` (read as `1/2`). Its anchors are the reduced table's:
+  `0`; so does the registry whose third event row, moved to the quarters
+  of `clt_1`, starts at `4/2` (read as `2`) or starts at `7/2` and lasts
+  `2/4` (read as `1/2`). Its anchors are the reduced table's:
   `alignment_anchors` gives the table with `(2, 2, null)` exactly the
   anchors and MatchClaim IDs of the table with `(1, 1, null)`. A test
   that refuses one of these cells, or reads it as another value, fails.
@@ -2834,17 +2899,19 @@ extraction's are without fontTools. What proves them:
   and after their own rows give against the manifest exactly
   `unknown_timeline` at rows 0, 3 and 6, at `timeline_a_id` then
   `timeline_b_id` (`the manifest has no timeline 'dpt_8'`, then `'dpt_9'`),
-  and for the Projections at rows 0, 3 and 5, at `timeline_id`; without
-  the manifest, no problem. A Projection whose `timeline_id` is `ghost`
-  (row 2) is `unknown_timeline` at `timeline_id` (`the manifest has no
-  timeline 'ghost'`), and no problem without the manifest. A MatchClaim
-  with exactly one of its timelines in the manifest (row 4) is
-  `unknown_timeline` at its other side alone (`the manifest has no
-  timeline 'dpt_9'`). A null timeline names no timeline of the manifest:
-  a Projection whose `timeline_id` is null (row 1) and a MatchClaim whose
-  two timelines are null (row 1) are `schema_violation` at each null
-  column (`'timeline_id' is null`, `'timeline_a_id' is null`), with and
-  without the manifest. The shared package fixture's rows, read with
+  and for the registry's event rows at rows 0, 3 and 5, at `timeline_id`;
+  without the manifest, no problem. An event row whose `timeline_id` is
+  `ghost` (row 2) is `unknown_timeline` at `timeline_id` (`the manifest
+  has no timeline 'ghost'`), and no problem without the manifest; a
+  pre-parsed Projection standing for an event of `clt_9` is
+  `unknown_timeline` at `projection_of.timeline_id` against the manifest
+  alone. A MatchClaim with exactly one of its timelines in the manifest
+  (row 4) is `unknown_timeline` at its other side alone (`the manifest has
+  no timeline 'dpt_9'`). A null timeline names no timeline of the
+  manifest: an event row whose `timeline_id` is null (row 1) and a
+  MatchClaim whose two timelines are null (row 1) are `schema_violation`
+  at each null column (`'timeline_id' is null`, `'timeline_a_id' is
+  null`), with and without the manifest. The shared package fixture's rows, read with
   `read_table(..., timelines=)` for each resource, pass the checks against
   their manifest (`test_packages.py`). The comparison with the reference
   (`test_table_checks.py`) holds the rule on every mutated table.
@@ -2853,12 +2920,12 @@ extraction's are without fontTools. What proves them:
   manifest included (a claim on `virtual_1` passes against the manifest
   stating it and is `unknown_timeline` against one without it)
   (`unknown_timeline`), and every
-  cell, every Projection's row, is in its timeline's own unit and number
+  cell, every event row, is in its timeline's own unit and number
   type (`axis_mismatch`): seconds on a samples timeline and a float on a
   fraction axis are refused, the same cells and rows without a manifest
   are not. A number type the unit does not admit is no question of the
-  manifest: a MatchClaim's `samples` cell as `float` and a Projection's
-  `samples` row as `float` are refused as `invalid_coordinate`, at the
+  manifest: a MatchClaim's `samples` cell as `float` and an event row's
+  `samples` axis as `float` are refused as `invalid_coordinate`, at the
   cell and at `number_type`, with the same message with and without the
   manifest, and never also reported as `axis_mismatch`. A test where the
   manifest is needed to refuse such a pair fails.
@@ -2922,13 +2989,13 @@ extraction's are without fontTools. What proves them:
   (`projection_of` null), `NOMATCH_SENTINEL` on its quarters side; as a
   NOMATCH it states no anchor and leaves every expected value unchanged,
   so a reader that takes a Projection without a source for an anchor's
-  coordinate fails the literal values. Its Projections
-  table holds each number type of the cell form: int instants and an int
+  coordinate fails the literal values. Its registry's
+  event rows hold each number type of the cell form: int instants and an int
   interval on the samples timeline, a float instant (`projection_12`) and
-  a float interval on the seconds timeline, and a fraction interval
-  (start 7/2, duration 1/2) on the child timeline in quarters, so every
-  reader of the shared tables meets a fraction, a float instant and a
-  float duration. Without an actor the row believed false still gives
+  a float interval on the seconds timeline, and a fraction interval on the
+  child timeline in quarters (at 7/2 on the child, which starts at the
+  quarter 8: start 23/2 on its root, duration 1/2), so every reader of the
+  shared tables meets a fraction, a float instant and a float duration. Without an actor the row believed false still gives
   its anchor.
 - **The belief filter takes the four states.** The states and the check of
   a filter are the package's (`timetoshare.BELIEF_STATES`,
@@ -2958,30 +3025,32 @@ extraction's are without fontTools. What proves them:
   alone; `unlikely` beside `true` is `unlikely`; without the context the
   two spellings are two actors and the absolute believer reads its own
   belief alone.
-- **The fixture files are the script's.** The two Parquet files read back
-  equal to the tables the script builds, the manifest equal to the
-  script's manifest of the files written, and both tables pass every
-  check against that manifest. The manifest names the two tables in its
-  `resources` (`resource_1`, `MatchClaim`, `match_claims.parquet`;
-  `resource_2`, `Projection`, `projections.parquet`), each with the media
-  type `application/vnd.apache.parquet`, the size of the file in bytes, its
-  SHA-256 digest (both computed by the test from the file) and, in the
-  manifest's order, exactly the timelines its table names. Each
-  Projection a MatchClaim names stands on that side's timeline at the
-  anchor's coordinate, its duration spanning to the end anchor; the
-  fixture's eleven Projections are all named but two, the fraction
-  interval and the float interval; one, `inserted_1`, names no event
-  (`projection_of` null) and is named by the NOMATCH `claim_18`, the only
-  MatchClaim side naming a Projection without an anchor; and no Projection stands
-  where a MatchClaim's side is `CHUNK_SENTINEL` (a CHUNK is no
-  Projection). The Projections keep their numbers, `projection_6` and
-  `projection_7` being no longer held. The Projections table's rows
-  lie sorted stably by `timeline_id`, each timeline's in the order the
-  script lists them: `projection_10` on `clt_2`, `projection_11` and
-  `projection_12` on `cpt_1`, then `projection_1` to `projection_5`, `projection_8`,
-  `projection_9` and `inserted_1` on `dpt_1`, the order in which a
-  writer holding the Projections per timeline writes them, so that such a
-  writer's file can equal the fixture's byte for byte.
+- **The fixture files are the script's.** The four Parquet files
+  (`match_claims.parquet`, `registry.parquet`, `projections.parquet`,
+  `extractions.parquet`) read back equal to the tables the script builds,
+  the manifest equal to the script's manifest of the files written, and
+  every table passes its check against that manifest. The manifest names
+  two tables in its `resources` (`resource_1`, `MatchClaim`,
+  `match_claims.parquet`; `resource_2`, `Registry`, `registry.parquet`),
+  each with the media type `application/vnd.apache.parquet`, the size of
+  the file in bytes, its SHA-256 digest (both computed by the test from the
+  file) and, in the manifest's order, exactly the timelines its rows name;
+  the registry's rows name the other two. The registry holds 36 rows: its
+  index rows (the extraction at `extractions.parquet`, the four timelines
+  and two resources at `manifest.yaml`, the eighteen MatchClaims at
+  `match_claims.parquet`) sorted by location and ID, then the eleven event
+  rows, each a `Projection` at `projections.parquet` of `extraction_1`,
+  sorted by timeline, exact start and ID; the pre-parsed rows lie in the
+  event rows' order. Each Projection a MatchClaim names stands on that
+  side's timeline at the anchor's coordinate, its registry start less the
+  offset of its child timeline from the root, its duration spanning to the
+  end anchor; the fixture's eleven Projections are all named but two, the
+  fraction interval and the float interval; one, `inserted_1`, names no
+  event (`projection_of` null) and is named by the NOMATCH `claim_18`, the
+  only MatchClaim side naming a Projection without an anchor; and no
+  Projection stands where a MatchClaim's side is `CHUNK_SENTINEL` (a CHUNK
+  is no Projection). The Projections keep their numbers, `projection_6`
+  and `projection_7` being no longer held.
 
 ## Packages
 
@@ -3039,10 +3108,11 @@ What proves them (`test_packages.py`, needs pyarrow):
   `expected.yaml` lists, compared as sorted IDs: Bach's MatchClaims
   `claim_1`, `claim_2`, `claim_5` (`claim_5` written in the other
   orientation, its first timeline Bach's performance), Handel's
-  `claim_3`, `claim_4`; Bach's Projections `projection_1`, `projection_2`,
-  `projection_7`, `projection_9`, Handel's `projection_3`, `projection_4`,
-  `projection_5`, `projection_6`, `projection_8` (the rows of its child
-  `clt_3` among them, from both files, one of them unsorted). Each table
+  `claim_3`, `claim_4`; from the registry, Bach's event rows
+  `projection_1`, `projection_2`, `projection_7`, `projection_9`, Handel's
+  `projection_3`, `projection_4`, `projection_5`, `projection_6`,
+  `projection_8` (the rows of its child `clt_3` among them), event rows
+  alone, since an index row's timeline is null or not listed. Each table
   read states its type alone in its metadata (`timetoshare:type`), and
   passes the table check against its manifest. Every MatchClaim read holds
   the file's provenance in its `provenance` cell, `{method: imported,
@@ -3051,7 +3121,15 @@ What proves them (`test_packages.py`, needs pyarrow):
   shares. A MatchClaim with either timeline listed is kept: given
   `["dpt_1"]` alone, Bach's MatchClaims are still `claim_1`, `claim_2`,
   `claim_5`. Without `timelines` every row is read (five MatchClaims, nine
-  Projections), and given `[]` none. `table_files` of the Projections folder
+  pre-parsed Projections, 25 registry rows), and given `[]` none. `ids`
+  keeps the rows of those IDs: `resource_1`, `projection_5` and `ghost`
+  give the two index rows of `resource_1` (Bach's and Handel's) and the
+  event row of `projection_5`; given with `timelines`, a row is kept where
+  both keep it; `[]` keeps none; a pre-parsed table read by `ids` gives
+  the content of those events. Each resolution an `expected.yaml` lists
+  (the shared package's and two acceptances') states a row the registry
+  holds for that ID, its kind and location the row's, and through the
+  package every row of the ID. `table_files` of the Projections folder
   is `part_a.parquet`, `part_b.parquet`; files named `.part_c.parquet`,
   `_part_d.parquet`, `notes.txt` and a subfolder `sub/` holding
   `part_e.parquet`, added in a copy, are passed over, and the copy reads
@@ -3084,48 +3162,88 @@ What proves them (`test_packages.py`, needs pyarrow):
   string, not …, in 'part_a.parquet'`, the declared type as Arrow prints
   it), where a reader
   ignoring it would lose the provenance silently; `timelines` given for
-  files without the column naming a row's timeline (`schema_violation`,
-  column `timeline_id`, `the table has no column 'timeline_id'`). A file
-  stating no type is read under the `type` given, and a column a file
-  lacks reads as null in its rows: the shared Projections with a further
-  column `velocity` in `part_a` alone read four nulls for `part_b`'s rows.
+  files without the column naming a row's timeline, a pre-parsed table
+  among them (`schema_violation`, column `timeline_id`, `the table has no
+  column 'timeline_id'`), and `ids` given for files without `id` (column
+  `id`). A file stating no type is read under the `type` given, and a
+  column a file lacks reads as null in its rows: the shared Projections
+  with a further column `velocity` in `part_a` alone read four nulls for
+  `part_b`'s rows; an empty folder of a declared type reads as no row in
+  its declared columns.
   A path that is neither a file nor a folder raises `FileNotFoundError`.
 - **`package_problems`.** The shared package has none, and neither has
   each package under `fixtures/packages/0.2.0/acceptances/`, whose
   `expected.yaml` lists no problem: `recording_resource`, the shared
   package whose Bach manifest names a recording beside it (`Audio`,
   `recording.flac`, `audio/flac`, for `dpt_1`), a resource naming no
-  table, which `package.yaml` does not list and the check passes over.
+  table, which `package.yaml` does not list and the check passes over
+  (the index holds the resource); `timeline_in_two_manifests`, Handel's
+  manifest holding `dpt_1` too and listing it in its Registry resource:
+  manifests sharing a timeline ID share its event rows, which pass the
+  registry check against either manifest, and the ID resolves through
+  each; `single_file_registry`, the registry one file holding the 25 rows
+  of the three parts; `re_parsable_event`, an `Onset` event row without a
+  location, its content only re-parsable from its extraction's source.
   Each package under
   `fixtures/packages/0.2.0/rejections/` breaks one rule, and
   `package_problems` of its `package.yaml` returns exactly the problems its
   `expected.yaml` lists, in order, each as `{code, file, row, path,
-  message}`:
+  message}`, and exactly these (file, row, path):
 
 | Case | Code | File, row, path |
 | --- | --- | --- |
-| `row_of_no_manifest` | `unknown_timeline` | `tables/Projection/part_b.parquet`, 4, `[timeline_id]` |
-| `projection_id_in_two_files` | `duplicate_id` | `tables/Projection/part_b.parquet`, 3, `[id]` |
-| `timeline_in_two_manifests` | `duplicate_timeline` | `handel/manifest.yaml`, null, `[timelines, 1, id]` |
+| `row_of_no_manifest` | `unknown_timeline` | `registry/extraction_1.parquet`, 4, `[timeline_id]` |
+| `projection_id_in_two_files` | `duplicate_id`, then `missing_content` | `tables/Projection/part_b.parquet`, 3, `[id]`; `registry/extraction_1.parquet`, 2, `[location]` (`projection_9`'s content is gone) |
 | `claim_across_manifests` | `claim_across_manifests` | `tables/MatchClaim/part_a.parquet`, 2, `[timeline_b_id]` |
 | `column_in_two_types` | `column_type_mismatch` | `tables/Projection/`, null, `[velocity]` |
 | `version_mismatch` | `version_mismatch` | `tables/Projection/part_b.parquet`, null, `[]` |
 | `resource_naming_no_table` | `unknown_table` | `bach/manifest.yaml`, null, `[resources, 2, url]` |
-| `folder_with_size` | `folder_descriptor` | `package.yaml`, null, `[tables, 1, size]` |
-| `timeline_unlisted` | `unlisted_timeline` | `tables/Projection/part_a.parquet`, 0, and `part_b.parquet`, 2, `[timeline_id]` |
-| `axis_mismatch` | `axis_mismatch` | `tables/Projection/part_b.parquet`, 1, `[unit]` |
+| `folder_with_size` | `folder_descriptor` | `package.yaml`, null, `[tables, 3, size]` |
+| `timeline_unlisted` | `unlisted_timeline` | `registry/extraction_2.parquet`, 0 and 1, `[timeline_id]` |
+| `axis_mismatch` | `axis_mismatch` | `registry/extraction_1.parquet`, 3, `[unit]` |
 | `file_of_another_type` | `table_type` | `tables/Projection/part_b.parquet`, null, `[]` |
-| `table_listed_twice` | `duplicate_url` | `package.yaml`, null, `[tables, 2, url]` |
-| `file_in_a_listed_folder` | `duplicate_url` | `package.yaml`, null, `[tables, 2, url]` |
+| `table_listed_twice` | `duplicate_url` | `package.yaml`, null, `[tables, 4, url]` |
+| `file_in_a_listed_folder` | `duplicate_url` | `package.yaml`, null, `[tables, 4, url]` |
+| `registry_missing` | `missing_registry` | `package.yaml`, null, `[tables]` |
+| `registry_listed_twice` | `duplicate_registry` | `package.yaml`, null, `[tables, 4, type]` |
+| `extraction_table_listed_twice` | `duplicate_extraction` | `package.yaml`, null, `[tables, 4, type]` |
+| `unknown_extraction` | `unknown_extraction` | `registry/extraction_2.parquet`, 2, `[extraction_id]` |
+| `vanished_in_an_unknown_extraction` | `unknown_extraction` | `registry/extraction_2.parquet`, 2, `[vanished_in]` |
+| `unknown_location` | `unknown_location` | `registry/extraction_1.parquet`, 1, `[location]` |
+| `missing_content` | `missing_content` | `registry/extraction_1.parquet`, 4, `[location]` |
+| `unregistered_id` | `unregistered_id` | `tables/Projection/part_b.parquet`, 4, `[id]` |
+| `locator_twice` | `duplicate_locator` | `registry/extraction_1.parquet`, 3, `[locator]` |
+| `registry_id_twice` | `duplicate_id` | `registry/index.parquet`, 9, `[id]` (an onset holds `claim_1`) |
+| `index_row_with_a_position` | `schema_violation` | `registry/index.parquet`, 0, `[unit]`, `[number_type]`, `[start]` |
+| `stale_index` | `stale_index` | `registry/index.parquet`, 0, `[name]` (differing); 4, `[id]` (extra); null, `[id]` (missing) |
+| `projection_of_its_own_timeline` | `invalid_projection_of` | `tables/Projection/part_a.parquet`, 1, `[projection_of, timeline_id]` |
+| `projection_of_no_timeline` | `unknown_timeline` | `tables/Projection/part_b.parquet`, 1, `[projection_of, timeline_id]` |
 
   Each list is exact, so a problem reported twice (by a package rule and
-  again by a manifest's table check, as `axis_mismatch` and the
+  again by a table check, as `axis_mismatch`, `duplicate_id` and the
   MatchClaim across two manifests would be) fails, as does one missed.
+  The messages of the new rules are pinned in `test_packages.py`: `the
+  package lists no table of the type Registry`, `the package lists a second
+  table of the type Registry, first at #/tables/0/type`, `no manifest of
+  the package holds both the timeline 'clt_1' and the timeline 'dpt_2'`,
+  `no extraction of the package has the ID 'extraction_9'`, `the location
+  'tables/Note/' names no table of the type Projection in the package`,
+  `the table 'tables/Projection/' holds no row of the ID 'projection_10'`,
+  `no event row of the type Projection in the registry has the ID
+  'projection_10'`, `the ID 'claim_1' is given twice, first in
+  'registry/extraction_2.parquet' at row 5`, and the three of
+  `stale_index`: `the index row of the ID 'clt_1' at 'bach/manifest.yaml'
+  has the name 'Score', not None`, `the index holds the ID 'region_9' at
+  'bach/manifest.yaml', which no manifest or table holds there`, `the
+  index lacks the ID 'group_1' at 'handel/manifest.yaml'`. A case that
+  adds a manifest element adds its index row as well, so that each case
+  breaks its one rule; `registry_missing` drops the manifests' Registry
+  resources with the registry, and no pre-parsed row is then compared.
   The cases prove the rules where a manifest's own check cannot see them:
-  the repeated Projection ID lies on two manifests' timelines, and each
-  manifest's check alone passes. `table_listed_twice` is
+  the repeated Projection ID lies in two files, and each file alone, and
+  each manifest's registry rows, pass. `table_listed_twice` is
   `validate_package`'s refusal (`the table 'tables/Projection/' of the
-  type Projection is listed twice, first at #/tables/1/url`), which the
+  type Projection is listed twice, first at #/tables/3/url`), which the
   JavaScript suite throws alike; `file_in_a_listed_folder` lists `part_b`
   of the folder of Projections as a table of its own, a URL no validator
   can compare, and is the package check's (`the file
@@ -3136,26 +3254,29 @@ What proves them (`test_packages.py`, needs pyarrow):
   built in `tmp_path` prove what the fixtures leave out: a missing
   manifest (`missing_file`, `package.yaml`, `[manifests, 2, url]`, `no
   manifest lies at 'gone.yaml' in the package`), a missing folder
-  (`missing_file`, `[tables, 2, url]`, `no folder lies at 'tables/Box/' in
+  (`missing_file`, `[tables, 4, url]`, `no folder lies at 'tables/Box/' in
   the package`), a table entry and a resource whose URLs lead outside the
   package (`missing_file` at the entry, then `unknown_table` at the
   resource, `the resource 'resource_3' names '../../outside/', which is no
-  table of the type Box in the package`; a resource leaving the package
-  names no table even where an entry leaves it too), a null timeline
-  (`schema_violation` at the row and column, `'timeline_id' is null` for a
-  Projection of `part_b`, `'timeline_a_id' is null` and `'timeline_b_id'
+  table of the type Box in the package`, then the index's missing row of
+  `resource_3`; a resource leaving the package names no table even where
+  an entry leaves it too), a null timeline (`schema_violation` at the row
+  and column, `'timeline_id' is null` for an event row of
+  `extraction_1.parquet`, `'timeline_a_id' is null` and `'timeline_b_id'
   is null` for a MatchClaim whose two timelines are null, each reported
-  once although the Projection's and the MatchClaim's table check word
-  the same problem), a manifest of another version (`version_mismatch`, the
+  once although the registry's and the MatchClaim's table check word the
+  same problem), a manifest of another version (`version_mismatch`, the
   manifest, `[timetoshare]`, `the manifest declares the version '0.1.0',
   the package '0.2.0'`), an invalid manifest (the validator's code and
   path, `resource_timeline` at `[resources, 0, timelines, 0]`, in that
-  manifest's file), a MatchClaim ID twice in the folder of MatchClaims
-  (`duplicate_id`, `the MatchClaim ID 'claim_1' is given twice, first in
-  'tables/MatchClaim/part_a.parquet' at row 0`, once, though Bach's own
-  check would report it too), and an event ID shared by a Projection and a
-  row of another type (a `Box` file listing `projection_1`,
-  `duplicate_id` at the Box row): event IDs are unique across every type.
+  manifest's file; neither has its index rows compared), a MatchClaim ID
+  twice in the folder of MatchClaims (`duplicate_id`, `the MatchClaim ID
+  'claim_1' is given twice, first in 'tables/MatchClaim/part_a.parquet' at
+  row 0`, once, though Bach's own check would report it too), and an
+  event ID shared by a pre-parsed Projection and a pre-parsed row of
+  another type (a `Box` file listing `projection_1`, `duplicate_id` at the
+  Box row, then `unregistered_id`, no `Box` event row holding it): event
+  IDs are unique across every type.
   **Which resources name a table** is proved inline as well, every branch
   of the rule once: added to Bach's manifest in a copy of the shared
   package, a resource of the type `Image` at `score.png` without a media
@@ -3167,30 +3288,43 @@ What proves them (`test_packages.py`, needs pyarrow):
   `Sheet` at `sheet.bin` with the media type
   `application/vnd.apache.parquet`, `Projection` at `more.arrow` without a
   media type (its type), each message `the resource '<id>' names '<url>',
-  which is no table of the type <type> in the package`.
+  which is no table of the type <type> in the package`, then the index's
+  missing rows of the six resources added.
   The rule is public, `is_table_resource(resource)`, and answers each
   branch alone, without a package: `False` for the `Image` and the `Text`
   resource above, `True` for the four above, for a `MatchClaim` at
-  `claims.arrow` (its type) and for a `Note` at `Note.parquet?v=1#rows`
+  `claims.arrow`, a `Registry` at `registry.arrow` and an `Extraction` at
+  `runs.arrow` (their types) and for a `Note` at `Note.parquet?v=1#rows`
   (the URL's path is read, its query and fragment are not).
 - **The package check reads columns, and checks each row once.** It finds
-  its rules over the columns `id`, `timeline_id`, `unit` and
-  `number_type` (MatchClaims: `id`, `timeline_a_id`, `timeline_b_id`)
-  with `pyarrow.compute` and joins, reading Python values only at the rows
-  it reports. The table checks run once per manifest and table, over that
-  manifest's rows alone, found once for every row by its timelines'
-  listings, never by filtering the whole table again for each manifest.
-  A package of 20,000 Projections over two manifests (`dpt_1` on the odd
-  rows, `dpt_2` on the even), two of them sharing one ID, gives exactly
-  one `duplicate_id`, and its table checks, recorded, are called exactly
-  four times: Bach's MatchClaims (3 rows), Bach's Projections (10,000,
-  all on `dpt_1`), Handel's MatchClaims (2), Handel's Projections
-  (10,000, all on `dpt_2`); 20,005 rows, each checked once.
+  its rules over the identifying columns of each table with
+  `pyarrow.compute` and joins, reading Python values only at the rows it
+  reports (and once per distinct location of the registry's rows). The
+  registry, Extraction and pre-parsed Projection checks run once over the
+  whole table; the MatchClaim checks once per manifest and table, over
+  that manifest's rows alone, found once for every row by its timelines'
+  listings. A package whose `extraction_1.parquet` holds 20,000 event rows
+  over two manifests (`dpt_1` on the odd rows, `dpt_2` on the even), two
+  of them sharing one ID, gives exactly one `duplicate_id`, and its table
+  checks, recorded, are called exactly three times: the registry's (20,016
+  rows, the index rows included), Bach's MatchClaims (3 rows), Handel's
+  MatchClaims (2).
+- **The fixture files are the script's.** `package.yaml` lists the
+  registry folder, the Extraction file, the MatchClaim folder and the
+  Projection folder; every file states its type and the version `0.2.0`,
+  the MatchClaim file alone a shared provenance; the index part lies
+  sorted by location and ID and holds timelines, resources, MatchClaims
+  and extractions; each extraction part lies sorted by timeline, exact
+  start and ID and holds the rows of its extraction alone, the first with
+  locators, the second without; Handel's two rows on `clt_3` lie at 9/2
+  and 11/2, on the root's axis; the first extraction's integrity is the
+  SHA-256 digest of its source file `bach/alignment.csv`, which the
+  package holds, the second has no source.
 
 ## The table checks read columns, not rows
 
-`match_claim_problems`, `projection_problems` and `succession_problems`
-compute their rules over whole columns (`pyarrow.compute`); Python reads
+`match_claim_problems`, `registry_problems`, `projection_problems` and
+`succession_problems` compute their rules over whole columns (`pyarrow.compute`); Python reads
 only the cells a rule flags, to word their problems, one cell per
 distinct provenance cell, which is checked against the provenance schema
 once, and, against a manifest, the unit and number type of each timeline
@@ -3222,11 +3356,17 @@ with the same message. What proves it (`test_table_checks.py`):
   asserts that both implementations return equal lists of `TableProblem`
   (code, row, column and message, in order), or raise the same exception
   type with the same message, for the MatchClaim table without and with
-  its manifest, and for the Projections table likewise.
-- **The fixture tables and every inline case.** The two Parquet files of
-  the table fixture, against their manifest and without; the inline tables
-  of `test_tables.py` and every one of their rule cases (`CLAIM_CASES`,
-  `PROVENANCE_CASES`, `PROJECTION_CASES`), so every code and every message
+  its manifest, and for the registry and the pre-parsed Projection table
+  likewise. The registry's row loop is the former Projections table's
+  (the positions moved to the event rows), with the registry's nulls, its
+  two scopes of IDs and its locators written in the reference as the
+  format states them, so the comparison proves the column rules of the
+  event rows unchanged and the new ones equal to a reading row by row.
+- **The fixture tables and every inline case.** The MatchClaim table, the
+  registry and the pre-parsed Projection table of the table fixture,
+  against their manifest and without; the inline tables of `test_tables.py`
+  and every one of their rule cases (`CLAIM_CASES`, `PROVENANCE_CASES`,
+  `PROJECTION_CASES`, `REGISTRY_CASES`), so every code and every message
   the suite names is reached by both.
 - **A manifest's timeline is read where a row reaches it.** The inline
   tables are checked against their manifest with one more timeline, `x`,
@@ -3248,9 +3388,11 @@ with the same message. What proves it (`test_table_checks.py`):
   (`a coordinate in samples (int) on the timeline 'dpt_1' in None (int)`).
   A check that reads a timeline no row reaches, or compares a null unit as
   a column value (null equal to everything), fails here.
-- **Seeded mutations.** 1,920 MatchClaim tables (160 per kind) and 1,000
-  Projections tables (100 per kind; the two provenance kinds do not apply
-  to them), each drawn from its own stream
+- **Seeded mutations.** 1,920 MatchClaim tables (160 per kind), 1,000
+  registries (100 per kind; the two provenance kinds do not apply to them)
+  and 600 pre-parsed Projection tables (100 for each of the six kinds that
+  change one: `null`, `value`, `duplicate`, `timeline`, `rows`, `chunks`;
+  it holds no axis, number or provenance), each drawn from its own stream
   `random.Random("20261122-tables-<kind>-<n>")` from a fixture table or an
   inline one (the inline MatchClaims also with a provenance in every row,
   against a manifest whose context declares `orcid`), checked against its
@@ -3258,7 +3400,10 @@ with the same message. What proves it (`test_table_checks.py`):
   and up to twice by any row kind. The kinds: a
   null put in any column or any member of a cell (a coordinate's member, an
   anchor's coordinate, a provenance member, a belief, a projected event's
-  member); any member set to a value of a pool written for its key (IDs
+  member); any member set to a value of a pool written for its key (a
+  registry row's `kind` an event type, an index kind, empty or null, its
+  `location`, `extraction_id`, `vanished_in` and `locator` from small
+  pools that repeat; IDs
   empty, holding a control character or a sentinel's string (in an `id`
   as well as in an event ID or a projected event's), certainties outside [0, 1] or not a
   number, anchors added or taken away, a flag flipped); an ID given again (a second row with another row's ID); a
@@ -3306,8 +3451,9 @@ with the same message. What proves it (`test_table_checks.py`):
   row by row; so do the column checks, for the first such cell in the same
   order, with the same message: an invalid `id`, an invalid
   `start_anchor.coordinate_a.unit` and an invalid provenance actor in a
-  MatchClaim table, an invalid `projection_of.event_id` in a Projections
-  table, in the old and in the new table of a succession. The same bytes
+  MatchClaim table, an invalid `projection_of.event_id` in a Projection
+  table, an invalid `location` of a registry's index row, in the old and in
+  the new table of a succession. The same bytes
   in a null slot of a string column, or in a member of a null struct, are
   never read and are no problem, by both.
 - **Every flagged cell has its message.** Each rule exists twice, as a

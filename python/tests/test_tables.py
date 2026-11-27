@@ -1,6 +1,5 @@
 """The table types: their columns, their checks, the succession rule and the
-fixture files (see "The MatchClaim table", "The Projections table" and
-"Checking the tables" in README.md)."""
+fixture files (see "The table types" in README.md)."""
 
 from __future__ import annotations
 
@@ -22,6 +21,7 @@ from timetoshare import (  # noqa: E402
     BELIEFS,
     FORMAT_CONTEXT,
     dumps,
+    load_schema,
     loads,
     provenance_schema_path,
     with_bare_ids,
@@ -33,6 +33,11 @@ from timetoshare.tables import (  # noqa: E402
     CHUNK_SENTINEL,
     COORDINATE_KEYS,
     COORDINATE_TYPE,
+    EXTRACTION_COLUMNS,
+    EXTRACTION_REQUIRED,
+    EXTRACTION_SCHEMA,
+    INDEX_KINDS,
+    INTEGRITY_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
@@ -46,20 +51,28 @@ from timetoshare.tables import (  # noqa: E402
     PROVENANCE_KEYS,
     PROVENANCE_METADATA_KEY,
     PROVENANCE_TYPE,
+    REGISTRY_COLUMNS,
+    REGISTRY_EVENT_REQUIRED,
+    REGISTRY_REQUIRED,
+    REGISTRY_SCHEMA,
     TABLES_DOCUMENT,
     AlignmentAnchor,
     TableError,
     TableProblem,
     TimelineCoordinate,
     alignment_anchors,
+    check_extractions,
     check_match_claims,
     check_projections,
+    check_registry,
     check_succession,
     coordinate_value,
+    extraction_problems,
     fixture_path,
     match_claim_problems,
     number_cell,
     projection_problems,
+    registry_problems,
     row_provenance,
     succession_problems,
     tables_path,
@@ -165,21 +178,64 @@ CLAIMS = [
 """An instant claim, an interval claim, a NOMATCH and a conceptual claim."""
 
 
-def projection(
+def event(
     identifier: str,
     start: dict,
-    of: tuple[str | None, str | None] | None,
     duration: dict | None = None,
+    **members: Any,
 ) -> dict[str, Any]:
-    """A Projection on ``dpt_1`` from coordinate cells: the row states their
-    unit and number type once."""
-    return {
+    """A registry's event row of a Projection on ``dpt_1`` from coordinate
+    cells: the row states their unit and number type once."""
+    row = {
         "id": identifier,
+        "kind": "Projection",
+        "location": "projections.parquet",
         "timeline_id": "dpt_1",
         "unit": start["unit"],
         "number_type": start["number_type"],
         "start": number(start),
         "duration": number(duration),
+        "name": None,
+        "extraction_id": "extraction_1",
+        "locator": None,
+        "vanished_in": None,
+    }
+    row.update(members)
+    return row
+
+
+def index(identifier: str, kind: str, location: str, **members: Any) -> dict:
+    """A registry's index row."""
+    row = {key: None for key in REGISTRY_SCHEMA.names}
+    row.update(id=identifier, kind=kind, location=location, **members)
+    return row
+
+
+EVENTS = [
+    event("projection_1", smp(0), locator="track 0, message 4"),
+    event("projection_2", smp(44100), smp(44100), locator="track 0, message 9"),
+    event("projection_3", smp(132300)),
+]
+"""An int instant, an int interval and an instant without a locator."""
+
+REGISTRY = [
+    *EVENTS,
+    index("clt_1", "Timeline", "manifest.yaml"),
+    index("dpt_1", "Timeline", "manifest.yaml", name="the recording"),
+    index("region_1", "Region", "manifest.yaml", timeline_id="clt_1"),
+    index("claim_1", "MatchClaim", "match_claims.parquet"),
+    index("extraction_1", "Extraction", "extractions.parquet"),
+]
+"""The registry: the three event rows, then index rows of two timelines, a
+region, a MatchClaim and the extraction."""
+
+
+def projection(
+    identifier: str, of: tuple[str | None, str | None] | None
+) -> dict[str, Any]:
+    """A pre-parsed Projection: its ID and the event it stands for."""
+    return {
+        "id": identifier,
         "projection_of": None
         if of is None
         else {"timeline_id": of[0], "event_id": of[1]},
@@ -187,10 +243,39 @@ def projection(
 
 
 PROJECTIONS = [
-    projection("projection_1", smp(0), ("clt_1", "note_1")),
-    projection("projection_2", smp(44100), ("clt_1", "note_2"), smp(44100)),
-    projection("projection_3", smp(132300), None),
+    projection("projection_1", ("clt_1", "note_1")),
+    projection("projection_2", ("clt_1", "note_2")),
+    projection("projection_3", None),
 ]
+"""The pre-parsed Projections of the three event rows."""
+
+EXTRACTIONS = [
+    {
+        "id": "extraction_1",
+        "source": "performance.mid",
+        "source_integrity": {"algorithm": "SHA-256", "digest": "00ff"},
+        "parser": "https://example.org/midi-parser",
+        "parser_version": "2.1.0",
+        "parameters": '{"merge_tracks":false,"resolution":480}',
+        "minter": "1",
+        "id_length": 8,
+        "seed": None,
+        "date": "2026-11-27T21:30:00Z",
+    },
+    {
+        "id": "extraction_2",
+        "source": None,
+        "source_integrity": None,
+        "parser": "https://example.org/editor",
+        "parser_version": "0.9",
+        "parameters": None,
+        "minter": "1",
+        "id_length": 8,
+        "seed": "take 2",
+        "date": "2026-11-27T21:31:05.250Z",
+    },
+]
+"""A parser's run over a MIDI file, and a tool's without a source file."""
 
 MANIFEST = with_file_ids(
     {
@@ -211,6 +296,14 @@ def claims_table(rows: list[dict], **metadata: str) -> Any:
 
 def projections_table(rows: list[dict]) -> Any:
     return pa.Table.from_pylist(rows, schema=PROJECTION_SCHEMA)
+
+
+def registry_table(rows: list[dict]) -> Any:
+    return pa.Table.from_pylist(rows, schema=REGISTRY_SCHEMA)
+
+
+def extractions_table(rows: list[dict]) -> Any:
+    return pa.Table.from_pylist(rows, schema=EXTRACTION_SCHEMA)
 
 
 def found(problems: list) -> list[tuple]:
@@ -259,17 +352,60 @@ def test_the_match_claim_columns() -> None:
 
 
 def test_the_projection_columns() -> None:
-    assert PROJECTION_COLUMNS == (
+    assert PROJECTION_COLUMNS == ("id", "projection_of")
+    projection_of = PROJECTION_SCHEMA.field("projection_of").type
+    assert [field.name for field in projection_of] == ["timeline_id", "event_id"]
+
+
+def test_the_registry_and_extraction_columns() -> None:
+    assert REGISTRY_COLUMNS == (
         "id",
+        "kind",
+        "location",
         "timeline_id",
         "unit",
         "number_type",
         "start",
         "duration",
-        "projection_of",
+        "name",
+        "extraction_id",
+        "locator",
+        "vanished_in",
     )
-    projection_of = PROJECTION_SCHEMA.field("projection_of").type
-    assert [field.name for field in projection_of] == ["timeline_id", "event_id"]
+    assert EXTRACTION_COLUMNS == (
+        "id",
+        "source",
+        "source_integrity",
+        "parser",
+        "parser_version",
+        "parameters",
+        "minter",
+        "id_length",
+        "seed",
+        "date",
+    )
+    assert INDEX_KINDS == (
+        "Manifest",
+        "Timeline",
+        "VirtualTimeline",
+        "Group",
+        "MeasureMap",
+        "ConversionMap",
+        "Region",
+        "FlowControlElement",
+        "Resource",
+        "FlowMap",
+        "Timestamp",
+        "MatchStamp",
+        "AlignmentAnchor",
+        "Elision",
+        "MatchClaim",
+        "Extraction",
+    )
+    # Every kind of a manifest element is the manifest schema's name of it.
+    definitions = load_schema()["$defs"]
+    elements = INDEX_KINDS[:-2]
+    assert [kind for kind in elements if kind not in definitions] == []
 
 
 _NUMBER = pa.struct(
@@ -316,16 +452,44 @@ def test_the_projection_schema_field_by_field() -> None:
         (field.name, field.type, field.nullable) for field in PROJECTION_SCHEMA
     ] == [
         ("id", pa.string(), True),
-        ("timeline_id", pa.string(), True),
-        ("unit", pa.string(), True),
-        ("number_type", pa.string(), True),
-        ("start", _NUMBER, True),
-        ("duration", _NUMBER, True),
         (
             "projection_of",
             pa.struct([("timeline_id", pa.string()), ("event_id", pa.string())]),
             True,
         ),
+    ]
+
+
+def test_the_registry_and_extraction_schemas_field_by_field() -> None:
+    assert [(field.name, field.type, field.nullable) for field in REGISTRY_SCHEMA] == [
+        ("id", pa.string(), True),
+        ("kind", pa.string(), True),
+        ("location", pa.string(), True),
+        ("timeline_id", pa.string(), True),
+        ("unit", pa.string(), True),
+        ("number_type", pa.string(), True),
+        ("start", _NUMBER, True),
+        ("duration", _NUMBER, True),
+        ("name", pa.string(), True),
+        ("extraction_id", pa.string(), True),
+        ("locator", pa.string(), True),
+        ("vanished_in", pa.string(), True),
+    ]
+    integrity = pa.struct([("algorithm", pa.string()), ("digest", pa.string())])
+    assert INTEGRITY_TYPE == integrity
+    assert [
+        (field.name, field.type, field.nullable) for field in EXTRACTION_SCHEMA
+    ] == [
+        ("id", pa.string(), True),
+        ("source", pa.string(), True),
+        ("source_integrity", integrity, True),
+        ("parser", pa.string(), True),
+        ("parser_version", pa.string(), True),
+        ("parameters", pa.string(), True),
+        ("minter", pa.string(), True),
+        ("id_length", pa.int64(), True),
+        ("seed", pa.string(), True),
+        ("date", pa.string(), True),
     ]
 
 
@@ -341,6 +505,7 @@ def test_the_column_types_are_published_as_data() -> None:
     assert sorted(types) == [
         "anchor",
         "coordinate",
+        "integrity",
         "number",
         "projection_of",
         "provenance",
@@ -368,13 +533,23 @@ def test_the_column_types_are_published_as_data() -> None:
         ("timeline_id", "string"),
         ("event_id", "string"),
     ]
+    assert members["integrity"] == [("algorithm", "string"), ("digest", "string")]
     assert types["provenance"]["schema"] == "provenance.schema.json"
     assert (tables_path().parent / "provenance.schema.json").is_file()
     tables = document["tables"]
     assert {name: table["status"] for name, table in tables.items()} == {
-        "MatchClaim": "stable",
+        "Registry": "experimental",
+        "Extraction": "experimental",
         "Projection": "experimental",
+        "MatchClaim": "stable",
     }
+    assert {name: sorted(table) for name, table in tables.items()} == {
+        "Registry": ["columns", "description", "index_kinds", "status"],
+        "Extraction": ["columns", "description", "status"],
+        "Projection": ["columns", "description", "status"],
+        "MatchClaim": ["columns", "description", "status"],
+    }
+    assert tuple(tables["Registry"]["index_kinds"]) == INDEX_KINDS
     columns = {
         name: [(column["name"], column["type"]) for column in table["columns"]]
         for name, table in tables.items()
@@ -395,12 +570,33 @@ def test_the_column_types_are_published_as_data() -> None:
     ]
     assert columns["Projection"] == [
         ("id", "string"),
+        ("projection_of", "projection_of"),
+    ]
+    assert columns["Registry"] == [
+        ("id", "string"),
+        ("kind", "string"),
+        ("location", "string"),
         ("timeline_id", "string"),
         ("unit", "string"),
         ("number_type", "string"),
         ("start", "number"),
         ("duration", "number"),
-        ("projection_of", "projection_of"),
+        ("name", "string"),
+        ("extraction_id", "string"),
+        ("locator", "string"),
+        ("vanished_in", "string"),
+    ]
+    assert columns["Extraction"] == [
+        ("id", "string"),
+        ("source", "string"),
+        ("source_integrity", "integrity"),
+        ("parser", "string"),
+        ("parser_version", "string"),
+        ("parameters", "string"),
+        ("minter", "string"),
+        ("id_length", "int64"),
+        ("seed", "string"),
+        ("date", "string"),
     ]
     required = {
         name: [column["name"] for column in table["columns"] if not column["nullable"]]
@@ -415,7 +611,9 @@ def test_the_column_types_are_published_as_data() -> None:
             "event_b_id",
             "id",
         ],
-        "Projection": ["id", "timeline_id", "unit", "number_type", "start"],
+        "Projection": ["id"],
+        "Registry": ["id", "kind"],
+        "Extraction": ["id", "parser", "parser_version", "minter", "id_length", "date"],
     }
     assert MATCH_CLAIM_REQUIRED == (
         "timeline_a_id",
@@ -425,7 +623,23 @@ def test_the_column_types_are_published_as_data() -> None:
         "event_b_id",
         "id",
     )
-    assert PROJECTION_REQUIRED == ("id", "timeline_id", "unit", "number_type", "start")
+    assert PROJECTION_REQUIRED == ("id",)
+    assert REGISTRY_REQUIRED == ("id", "kind")
+    assert REGISTRY_EVENT_REQUIRED == (
+        "timeline_id",
+        "unit",
+        "number_type",
+        "start",
+        "extraction_id",
+    )
+    assert EXTRACTION_REQUIRED == (
+        "id",
+        "parser",
+        "parser_version",
+        "minter",
+        "id_length",
+        "date",
+    )
     named = {
         *(member["type"] for t in types.values() for member in t.get("struct", ())),
         *(column["type"] for table in tables.values() for column in table["columns"]),
@@ -453,10 +667,10 @@ def test_a_number_and_a_coordinate_cell() -> None:
         ("denominator", "int64"),
         ("value", "double"),
     ]
-    assert PROJECTION_SCHEMA.field("start").type == NUMBER_TYPE
-    assert PROJECTION_SCHEMA.field("duration").type == NUMBER_TYPE
-    assert str(PROJECTION_SCHEMA.field("unit").type) == "string"
-    assert str(PROJECTION_SCHEMA.field("number_type").type) == "string"
+    assert REGISTRY_SCHEMA.field("start").type == NUMBER_TYPE
+    assert REGISTRY_SCHEMA.field("duration").type == NUMBER_TYPE
+    assert str(REGISTRY_SCHEMA.field("unit").type) == "string"
+    assert str(REGISTRY_SCHEMA.field("number_type").type) == "string"
     assert COORDINATE_KEYS == (
         "numerator",
         "denominator",
@@ -1270,9 +1484,9 @@ def test_a_number_type_the_unit_does_not_admit_needs_no_manifest() -> None:
     ]
     assert match_claim_problems(claims) == expected
     assert match_claim_problems(claims, MANIFEST) == expected
-    projections = projections_table(
+    registry = registry_table(
         changed(
-            PROJECTIONS,
+            REGISTRY,
             lambda rows: rows[0].update(number_type="float", start=number(sec(0.0))),
         )
     )
@@ -1284,8 +1498,8 @@ def test_a_number_type_the_unit_does_not_admit_needs_no_manifest() -> None:
             "'samples' admits no number type 'float'",
         )
     ]
-    assert projection_problems(projections) == expected
-    assert projection_problems(projections, MANIFEST) == expected
+    assert registry_problems(registry) == expected
+    assert registry_problems(registry, MANIFEST) == expected
 
 
 def test_an_unknown_timeline_is_refused_only_against_the_manifest() -> None:
@@ -1424,7 +1638,7 @@ def test_a_scope_column_never_tells_one_id_apart() -> None:
     assert str(error.value) == "the ID 'claim_1' is given twice"
 
 
-# The Projections table
+# The pre-parsed Projection table
 
 
 def test_the_valid_projections_have_no_problem_with_or_without_the_manifest() -> None:
@@ -1436,10 +1650,10 @@ def test_the_valid_projections_have_no_problem_with_or_without_the_manifest() ->
 
 PROJECTION_CASES = [
     (
-        "start_null",
-        put(0, "start", value=None),
-        [("schema_violation", 0, ("start",))],
-        "'start' is null",
+        "id_null",
+        put(0, "id", value=None),
+        [("schema_violation", 0, ("id",))],
+        "'id' is null",
     ),
     (
         "id_twice",
@@ -1475,37 +1689,185 @@ PROJECTION_CASES = [
         "the projected event has no timeline_id",
     ),
     (
-        "source_event_sentinel_on_own_timeline",
+        "source_event_sentinel_on_dpt_1",
         put(0, "projection_of", value={"timeline_id": "dpt_1", "event_id": CHUNK}),
-        [
-            ("invalid_projection_of", 0, ("projection_of", "event_id")),
-            ("invalid_projection_of", 0, ("projection_of", "timeline_id")),
+        [("invalid_projection_of", 0, ("projection_of", "event_id"))],
+        "'CHUNK_SENTINEL' is reserved for a sentinel",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    ("change", "expected", "message"),
+    [case[1:] for case in PROJECTION_CASES],
+    ids=[case[0] for case in PROJECTION_CASES],
+)
+def test_each_projection_rule(
+    change: Callable[[list[dict]], None], expected: list[tuple], message: str
+) -> None:
+    table = projections_table(changed(PROJECTIONS, change))
+    assert found(projection_problems(table)) == expected
+    with pytest.raises(TableError) as error:
+        check_projections(table)
+    assert str(error.value) == message
+
+
+def test_a_projection_of_its_own_timeline_is_the_package_checks() -> None:
+    # The Projection's timeline is its registry row's: alone, the pre-parsed
+    # table cannot tell it from another timeline.
+    table = projections_table(
+        changed(PROJECTIONS, put(0, "projection_of", "timeline_id", value="dpt_1"))
+    )
+    assert projection_problems(table) == []
+    assert projection_problems(table, MANIFEST) == []
+
+
+def test_a_joined_string_is_no_projected_event() -> None:
+    table = projections_table(PROJECTIONS)
+    index = table.column_names.index("projection_of")
+    joined = pa.array(["clt_1/note_1", "clt_1/note_2", None])
+    table = table.set_column(index, "projection_of", joined)
+    assert found(projection_problems(table)) == [
+        ("schema_violation", None, ("projection_of",))
+    ]
+    with pytest.raises(TableError) as error:
+        check_projections(table)
+    assert str(error.value) == (
+        "the column 'projection_of' is string, "
+        "not struct<timeline_id: string, event_id: string>"
+    )
+
+
+def test_a_projection_table_with_positions_keeps_them_unchecked() -> None:
+    # Former columns are further columns: kept, never checked.
+    rows = [{**row, "timeline_id": None, "start": "x"} for row in PROJECTIONS]
+    table = pa.Table.from_pylist(rows)
+    assert projection_problems(table) == []
+
+
+def test_projections_against_the_manifest() -> None:
+    rows = changed(PROJECTIONS, put(0, "projection_of", "timeline_id", value="clt_9"))
+    table = projections_table(rows)
+    assert projection_problems(table) == []
+    assert found(projection_problems(table, MANIFEST)) == [
+        ("unknown_timeline", 0, ("projection_of", "timeline_id"))
+    ]
+    with pytest.raises(TableError) as error:
+        check_projections(table, MANIFEST)
+    assert str(error.value) == "the manifest has no timeline 'clt_9'"
+
+
+# The registry
+
+
+def test_the_valid_registry_has_no_problem_with_or_without_the_manifest() -> None:
+    table = registry_table(REGISTRY)
+    assert registry_problems(table) == []
+    assert registry_problems(table, MANIFEST) == []
+    check_registry(table, MANIFEST)
+
+
+REGISTRY_CASES = [
+    (
+        "id_null",
+        put(3, "id", value=None),
+        [("schema_violation", 3, ("id",))],
+        "'id' is null",
+    ),
+    (
+        "kind_null",
+        put(0, "kind", value=None),
+        [("schema_violation", 0, ("kind",))],
+        "'kind' is null",
+    ),
+    *(
+        (
+            f"event_{key}_null",
+            put(1, key, value=None),
+            [("schema_violation", 1, (key,))],
+            f"'{key}' is null",
+        )
+        for key in ("timeline_id", "unit", "number_type", "start", "extraction_id")
+    ),
+    (
+        "index_location_null",
+        put(4, "location", value=None),
+        [("schema_violation", 4, ("location",))],
+        "'location' is null",
+    ),
+    *(
+        (
+            f"index_{key}_stated",
+            put(5, key, value=value),
+            [("schema_violation", 5, (key,))],
+            f"an index row has no '{key}'",
+        )
+        for key, value in (
+            ("unit", "quarters"),
+            ("number_type", "fraction"),
+            ("start", number(q(0))),
+            ("duration", number(q(1))),
+            ("extraction_id", "extraction_1"),
+            ("locator", "bar 1"),
+            ("vanished_in", "extraction_1"),
+        )
+    ),
+    (
+        "nulls_by_row_then_column",
+        lambda rows: [
+            rows[2].update(start=None, extraction_id=None),
+            rows[0].update(unit=None),
+            rows[6].update(start=number(q(0))),
         ],
+        [
+            ("schema_violation", 0, ("unit",)),
+            ("schema_violation", 2, ("start",)),
+            ("schema_violation", 2, ("extraction_id",)),
+            ("schema_violation", 6, ("start",)),
+        ],
+        "'unit' is null",
+    ),
+    (
+        "id_twice",
+        put(2, "id", value="projection_1"),
+        [("duplicate_id", 2, ("id",))],
+        "the ID 'projection_1' is given twice",
+    ),
+    (
+        "event_id_is_a_match_claim_id",
+        put(6, "id", value="projection_2"),
+        [("duplicate_id", 6, ("id",))],
+        "the ID 'projection_2' is given twice",
+    ),
+    (
+        "extraction_id_is_a_match_claim_id",
+        put(7, "id", value="claim_1"),
+        [("duplicate_id", 7, ("id",))],
+        "the ID 'claim_1' is given twice",
+    ),
+    (
+        "element_id_twice_at_one_location",
+        put(4, "id", value="clt_1"),
+        [("duplicate_id", 4, ("id",))],
+        "the ID 'clt_1' is given twice at 'manifest.yaml'",
+    ),
+    (
+        "id_chunk_sentinel",
+        put(2, "id", value=CHUNK),
+        [("invalid_id", 2, ("id",))],
         "'CHUNK_SENTINEL' is reserved for a sentinel",
     ),
     (
-        "source_on_own_timeline",
-        put(0, "projection_of", "timeline_id", value="dpt_1"),
-        [("invalid_projection_of", 0, ("projection_of", "timeline_id"))],
-        "a Projection stands for an event of another timeline than 'dpt_1'",
+        "id_empty",
+        put(4, "id", value=""),
+        [("invalid_id", 4, ("id",))],
+        "the ID is empty",
     ),
     (
         "negative_duration",
         put(1, "duration", value=number(smp(-1))),
         [("invalid_duration", 1, ("duration",))],
         "the duration is negative",
-    ),
-    (
-        "unit_null",
-        put(0, "unit", value=None),
-        [("schema_violation", 0, ("unit",))],
-        "'unit' is null",
-    ),
-    (
-        "number_type_null",
-        put(0, "number_type", value=None),
-        [("schema_violation", 0, ("number_type",))],
-        "'number_type' is null",
     ),
     (
         "unit_unknown",
@@ -1567,22 +1929,55 @@ PROJECTION_CASES = [
         "the timeline 'dpt_1' has coordinates in seconds (float) and in seconds "
         "(fraction)",
     ),
+    (
+        "locator_twice_in_one_extraction",
+        put(2, "locator", value="track 0, message 4"),
+        [("duplicate_locator", 2, ("locator",))],
+        "the locator 'track 0, message 4' is given twice in the extraction "
+        "'extraction_1'",
+    ),
 ]
 
 
 @pytest.mark.parametrize(
     ("change", "expected", "message"),
-    [case[1:] for case in PROJECTION_CASES],
-    ids=[case[0] for case in PROJECTION_CASES],
+    [case[1:] for case in REGISTRY_CASES],
+    ids=[case[0] for case in REGISTRY_CASES],
 )
-def test_each_projection_rule(
+def test_each_registry_rule(
     change: Callable[[list[dict]], None], expected: list[tuple], message: str
 ) -> None:
-    table = projections_table(changed(PROJECTIONS, change))
-    assert found(projection_problems(table)) == expected
+    table = registry_table(changed(REGISTRY, change))
+    assert found(registry_problems(table)) == expected
     with pytest.raises(TableError) as error:
-        check_projections(table)
+        check_registry(table)
     assert str(error.value) == message
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        None,
+        lambda rows: rows.insert(4, index("clt_1", "Timeline", "other/manifest.yaml")),
+        lambda rows: rows[2].update(
+            extraction_id="extraction_2", locator=rows[0]["locator"]
+        ),
+        lambda rows: rows[0].update(kind="MidiNote", location=None),
+        lambda rows: rows[1].update(vanished_in="extraction_2"),
+    ],
+    ids=[
+        "the_valid_registry",
+        "element_id_at_two_locations",
+        "locator_in_two_extractions",
+        "event_re_parsable_only",
+        "vanished_row_kept",
+    ],
+)
+def test_each_admitted_registry(change: Callable[[list[dict]], None] | None) -> None:
+    rows = REGISTRY if change is None else changed(REGISTRY, change)
+    table = registry_table(rows)
+    assert registry_problems(table) == []
+    assert registry_problems(table, MANIFEST) == []
 
 
 @pytest.mark.parametrize(
@@ -1593,12 +1988,12 @@ def test_each_projection_rule(
     ],
     ids=["start_unreduced", "duration_unreduced"],
 )
-def test_an_unreduced_projection_number_is_read_as_its_value(
+def test_an_unreduced_event_number_is_read_as_its_value(
     start: dict, duration: dict | None, values: tuple[Fraction, Fraction | None]
 ) -> None:
-    table = projections_table(
+    table = registry_table(
         changed(
-            PROJECTIONS,
+            REGISTRY,
             lambda rows: rows[2].update(
                 timeline_id="clt_1",
                 unit="quarters",
@@ -1608,9 +2003,9 @@ def test_an_unreduced_projection_number_is_read_as_its_value(
             ),
         )
     )
-    assert projection_problems(table) == []
-    assert projection_problems(table, MANIFEST) == []
-    check_projections(table, MANIFEST)
+    assert registry_problems(table) == []
+    assert registry_problems(table, MANIFEST) == []
+    check_registry(table, MANIFEST)
     row = table.to_pylist()[2]
     read = tuple(
         None if row[key] is None else coordinate_value(row[key], "fraction")
@@ -1619,41 +2014,22 @@ def test_an_unreduced_projection_number_is_read_as_its_value(
     assert read == values
 
 
-def test_a_joined_string_is_no_projected_event() -> None:
-    table = projections_table(PROJECTIONS)
-    index = table.column_names.index("projection_of")
-    joined = pa.array(["clt_1/note_1", "clt_1/note_2", None])
-    table = table.set_column(index, "projection_of", joined)
-    assert found(projection_problems(table)) == [
-        ("schema_violation", None, ("projection_of",))
-    ]
-    with pytest.raises(TableError) as error:
-        check_projections(table)
-    assert str(error.value) == (
-        "the column 'projection_of' is string, "
-        "not struct<timeline_id: string, event_id: string>"
-    )
-
-
 def test_one_id_on_two_timelines_is_a_duplicate() -> None:
     rows = [
-        *PROJECTIONS,
-        {
-            **projection("projection_1", q(1), ("dpt_1", "projection_2")),
-            "timeline_id": "clt_1",
-        },
+        *REGISTRY,
+        event("projection_1", q(1), timeline_id="clt_1"),
     ]
-    table = projections_table(rows)
-    assert found(projection_problems(table)) == [("duplicate_id", 3, ("id",))]
-    assert found(projection_problems(table, MANIFEST)) == [("duplicate_id", 3, ("id",))]
+    table = registry_table(rows)
+    assert found(registry_problems(table)) == [("duplicate_id", 8, ("id",))]
+    assert found(registry_problems(table, MANIFEST)) == [("duplicate_id", 8, ("id",))]
     with pytest.raises(TableError) as error:
-        check_projections(table, MANIFEST)
+        check_registry(table, MANIFEST)
     assert str(error.value) == "the ID 'projection_1' is given twice"
 
 
-def test_projections_against_the_manifest() -> None:
-    rows = changed(PROJECTIONS, put(0, "projection_of", "timeline_id", value="clt_9"))
-    for row in rows:
+def test_event_rows_against_the_manifest() -> None:
+    rows = copy.deepcopy(REGISTRY)
+    for row in rows[:3]:
         row.update(
             unit="seconds",
             number_type="float",
@@ -1661,21 +2037,156 @@ def test_projections_against_the_manifest() -> None:
         )
     rows[1]["duration"] = number(sec(1.0))
     rows[2]["unit"] = "samples"
-    table = projections_table(rows)
-    assert found(projection_problems(table)) == [
+    table = registry_table(rows)
+    assert found(registry_problems(table)) == [
         ("invalid_coordinate", 2, ("number_type",))
     ]
-    assert found(projection_problems(table, MANIFEST)) == [
+    assert found(registry_problems(table, MANIFEST)) == [
         ("axis_mismatch", 0, ("unit",)),
-        ("unknown_timeline", 0, ("projection_of", "timeline_id")),
         ("axis_mismatch", 1, ("unit",)),
         ("invalid_coordinate", 2, ("number_type",)),
     ]
     with pytest.raises(TableError) as error:
-        check_projections(table, MANIFEST)
+        check_registry(table, MANIFEST)
     assert str(error.value) == (
         "a coordinate in seconds (float) on the timeline 'dpt_1' in samples (int)"
     )
+
+
+def test_index_rows_are_not_checked_against_the_manifest() -> None:
+    # An element of another manifest, a Region on a timeline the manifest
+    # lacks: the package check compares index rows with the manifests.
+    rows = [*REGISTRY, index("region_9", "Region", "x.yaml", timeline_id="ghost")]
+    assert registry_problems(registry_table(rows), MANIFEST) == []
+
+
+def test_an_event_row_on_an_unknown_timeline_is_refused_only_against_the_manifest() -> (
+    None
+):
+    table = registry_table(changed(REGISTRY, put(2, "timeline_id", value="ghost")))
+    assert registry_problems(table) == []
+    assert found(registry_problems(table, MANIFEST)) == [
+        ("unknown_timeline", 2, ("timeline_id",))
+    ]
+    with pytest.raises(TableError, match="^the manifest has no timeline 'ghost'$"):
+        check_registry(table, MANIFEST)
+
+
+# The Extraction table
+
+
+def test_the_valid_extractions_have_no_problem() -> None:
+    table = extractions_table(EXTRACTIONS)
+    assert extraction_problems(table) == []
+    check_extractions(table)
+
+
+EXTRACTION_CASES = [
+    *(
+        (
+            f"{key}_null",
+            put(0, key, value=None),
+            [("schema_violation", 0, (key,))],
+            f"'{key}' is null",
+        )
+        for key in ("id", "parser", "parser_version", "minter", "id_length", "date")
+    ),
+    (
+        "id_twice",
+        put(1, "id", value="extraction_1"),
+        [("duplicate_id", 1, ("id",))],
+        "the ID 'extraction_1' is given twice",
+    ),
+    (
+        "id_nomatch_sentinel",
+        put(1, "id", value=NOMATCH),
+        [("invalid_id", 1, ("id",))],
+        "'NOMATCH_SENTINEL' is reserved for a sentinel",
+    ),
+    (
+        "source_without_integrity",
+        put(0, "source_integrity", value=None),
+        [("schema_violation", 0, ("source_integrity",))],
+        "'source_integrity' is null where 'source' is given",
+    ),
+    (
+        "integrity_without_digest",
+        put(0, "source_integrity", "digest", value=None),
+        [("schema_violation", 0, ("source_integrity", "digest"))],
+        "'source_integrity' has no digest",
+    ),
+    (
+        "integrity_of_an_unknown_algorithm",
+        put(0, "source_integrity", "algorithm", value="SHA-3"),
+        [("schema_violation", 0, ("source_integrity", "algorithm"))],
+        "'SHA-3' is no algorithm of a digest",
+    ),
+    (
+        "digest_in_capitals",
+        put(0, "source_integrity", "digest", value="00FF"),
+        [("schema_violation", 0, ("source_integrity", "digest"))],
+        "the digest '00FF' is no lower-case hexadecimal",
+    ),
+    (
+        "parameters_no_json",
+        put(0, "parameters", value="{merge_tracks: false}"),
+        [("schema_violation", 0, ("parameters",))],
+        "the parameters are no JSON text",
+    ),
+    (
+        "parameters_no_object",
+        put(0, "parameters", value="[480]"),
+        [("schema_violation", 0, ("parameters",))],
+        "the parameters are no JSON object",
+    ),
+    (
+        "parameters_not_canonical",
+        put(0, "parameters", value='{"resolution": 480, "merge_tracks": false}'),
+        [("schema_violation", 0, ("parameters",))],
+        "the parameters are not written in RFC 8785 JSON",
+    ),
+    (
+        "id_length_zero",
+        put(1, "id_length", value=0),
+        [("schema_violation", 1, ("id_length",))],
+        "the ID length 0 is below 1",
+    ),
+    (
+        "date_without_zone",
+        put(0, "date", value="2026-11-27T21:30:00"),
+        [("schema_violation", 0, ("date",))],
+        "the date '2026-11-27T21:30:00' is no ISO 8601 date-time in UTC, such as "
+        "'2026-11-27T21:30:00Z'",
+    ),
+    (
+        "date_impossible",
+        put(1, "date", value="2026-02-30T00:00:00Z"),
+        [("schema_violation", 1, ("date",))],
+        "the date '2026-02-30T00:00:00Z' is no time of the Gregorian calendar",
+    ),
+    (
+        "one_bad_date_on_two_rows",
+        lambda rows: [row.update(date="2026-11-27") for row in rows],
+        [("schema_violation", 0, ("date",)), ("schema_violation", 1, ("date",))],
+        "the date '2026-11-27' is no ISO 8601 date-time in UTC, such as "
+        "'2026-11-27T21:30:00Z'",
+    ),
+]
+
+
+@pytest.mark.parametrize(
+    ("change", "expected", "message"),
+    [case[1:] for case in EXTRACTION_CASES],
+    ids=[case[0] for case in EXTRACTION_CASES],
+)
+def test_each_extraction_rule(
+    change: Callable[[list[dict]], None], expected: list[tuple], message: str
+) -> None:
+    table = extractions_table(changed(EXTRACTIONS, change))
+    assert found(extraction_problems(table)) == expected
+    with pytest.raises(TableError) as error:
+        check_extractions(table)
+    assert str(error.value) == message
 
 
 # The succession rule
@@ -1779,38 +2290,45 @@ def test_the_fixture_files_are_the_scripts() -> None:
     directory = fixture_path("manifest.yaml").parent
     assert sorted(path.name for path in directory.iterdir()) == [
         "expected.yaml",
+        "extractions.parquet",
         "manifest.yaml",
         "match_claims.parquet",
         "projections.parquet",
+        "registry.parquet",
     ]
-    assert pq.read_table(fixture_path("match_claims.parquet")).equals(
-        script.match_claims_table()
-    )
-    assert pq.read_table(fixture_path("projections.parquet")).equals(
-        script.projections_table()
-    )
+    for name, table in (
+        ("match_claims.parquet", script.match_claims_table()),
+        ("registry.parquet", script.registry_table()),
+        ("projections.parquet", script.projections_table()),
+        ("extractions.parquet", script.extractions_table()),
+    ):
+        assert pq.read_table(fixture_path(name)).equals(table), name
     manifest = fixture_path("manifest.yaml").read_text(encoding="utf-8")
     assert manifest == dumps(script.manifest(directory))
     expected = fixture_path("expected.yaml").read_text(encoding="utf-8")
     assert expected == dumps(script.EXPECTED)
 
 
+def _events() -> list[dict[str, Any]]:
+    rows = pq.read_table(fixture_path("registry.parquet")).to_pylist()
+    return [row for row in rows if row["kind"] not in INDEX_KINDS]
+
+
 def test_the_manifest_names_its_tables_with_their_size_and_digest() -> None:
     manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
     claims = pq.read_table(fixture_path("match_claims.parquet")).to_pylist()
-    projections = pq.read_table(fixture_path("projections.parquet")).to_pylist()
     named = {
         "match_claims.parquet": {
             *(row["timeline_a_id"] for row in claims),
             *(row["timeline_b_id"] for row in claims),
         },
-        "projections.parquet": {row["timeline_id"] for row in projections},
+        "registry.parquet": {row["timeline_id"] for row in _events()},
     }
     order = ["clt_1", "clt_2", "dpt_1", "cpt_1"]
     resources = manifest["resources"]
     assert [(r["id"], r["type"], r["url"]) for r in resources] == [
         ("#resource_1", "MatchClaim", "match_claims.parquet"),
-        ("#resource_2", "Projection", "projections.parquet"),
+        ("#resource_2", "Registry", "registry.parquet"),
     ]
     for resource in resources:
         data = fixture_path(resource["url"]).read_bytes()
@@ -1829,45 +2347,89 @@ def test_the_manifest_names_its_tables_with_their_size_and_digest() -> None:
 def test_the_fixture_tables_pass_every_check_against_their_manifest() -> None:
     manifest = loads(fixture_path("manifest.yaml").read_text(encoding="utf-8"))
     claims = pq.read_table(fixture_path("match_claims.parquet"))
+    registry = pq.read_table(fixture_path("registry.parquet"))
     projections = pq.read_table(fixture_path("projections.parquet"))
+    extractions = pq.read_table(fixture_path("extractions.parquet"))
     assert claims.num_rows == 18
+    assert registry.num_rows == 36
     assert projections.num_rows == 11
+    assert extractions.num_rows == 1
     assert match_claim_problems(claims, manifest) == []
+    assert registry_problems(registry, manifest) == []
     assert projection_problems(projections, manifest) == []
+    assert extraction_problems(extractions) == []
+
+
+def test_the_registry_indexes_the_manifest_the_claims_and_the_extraction() -> None:
+    rows = pq.read_table(fixture_path("registry.parquet")).to_pylist()
+    index = [
+        (row["location"], row["id"], row["kind"])
+        for row in rows
+        if row["kind"] in INDEX_KINDS
+    ]
+    claims = pq.read_table(fixture_path("match_claims.parquet")).column("id")
+    assert index == sorted(
+        [
+            ("extractions.parquet", "extraction_1", "Extraction"),
+            *(
+                ("manifest.yaml", identifier, "Timeline")
+                for identifier in ("clt_1", "clt_2", "cpt_1", "dpt_1")
+            ),
+            ("manifest.yaml", "resource_1", "Resource"),
+            ("manifest.yaml", "resource_2", "Resource"),
+            *(
+                ("match_claims.parquet", identifier, "MatchClaim")
+                for identifier in claims.to_pylist()
+            ),
+        ]
+    )
+    assert {
+        (row["kind"], row["location"], row["extraction_id"]) for row in _events()
+    } == {("Projection", "projections.parquet", "extraction_1")}
+    content = pq.read_table(fixture_path("projections.parquet")).column("id")
+    assert content.to_pylist() == [row["id"] for row in _events()]
 
 
 def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
     claims = pq.read_table(fixture_path("match_claims.parquet")).to_pylist()
-    projections = {
-        row["id"]: row
+    standing = {row["id"]: row for row in _events()}
+    sources = {
+        row["id"]: row["projection_of"]
         for row in pq.read_table(fixture_path("projections.parquet")).to_pylist()
     }
+    # The child clt_2 starts at the quarter 8 of its root clt_1: a registry
+    # position lies on the root's axis, an anchor on the row's own timeline.
+    offsets = {"clt_2": Fraction(8)}
     named = set()
     unanchored = []
     for row in claims:
         for side in ("a", "b"):
             event = row[f"event_{side}_id"]
-            if event not in projections:
+            if event not in standing:
                 continue
             named.add(event)
-            standing = projections[event]
-            assert standing["timeline_id"] == row[f"timeline_{side}_id"]
+            held = standing[event]
+            timeline = row[f"timeline_{side}_id"]
+            assert held["timeline_id"] == timeline
             if row["start_anchor"] is None:
-                unanchored.append((row["id"], side, event, standing["projection_of"]))
+                unanchored.append((row["id"], side, event, sources[event]))
                 continue
-            kind = standing["number_type"]
-            start = coordinate_value(standing["start"], kind)
+            kind = held["number_type"]
+            start = coordinate_value(held["start"], kind) - offsets.get(timeline, 0)
             assert start == coordinate_value(row["start_anchor"][f"coordinate_{side}"])
             if row["end_anchor"] is None:
-                assert standing["duration"] is None
+                assert held["duration"] is None
             else:
                 end = coordinate_value(row["end_anchor"][f"coordinate_{side}"])
-                assert start + coordinate_value(standing["duration"], kind) == end
-    assert set(projections) - named == {"projection_10", "projection_11"}
+                assert start + coordinate_value(held["duration"], kind) == end
+    assert set(standing) - named == {"projection_10", "projection_11"}
     assert unanchored == [("claim_18", "a", "inserted_1", None)]
-    assert [
-        row["id"] for row in projections.values() if row["projection_of"] is None
-    ] == ["inserted_1"]
+    assert [key for key, value in sources.items() if value is None] == ["inserted_1"]
+    ten = standing["projection_10"]
+    assert (ten["timeline_id"], coordinate_value(ten["start"], "fraction")) == (
+        "clt_2",
+        Fraction(23, 2),
+    )
     sentinels = [
         (row["id"], side, row[f"event_{side}_id"], row[f"event_{side}_name"])
         for row in claims
@@ -1883,19 +2445,27 @@ def test_each_projection_a_claim_names_stands_at_its_anchor() -> None:
     ]
 
 
-def test_the_projections_lie_sorted_by_timeline() -> None:
-    rows = pq.read_table(fixture_path("projections.parquet")).to_pylist()
-    assert [(row["timeline_id"], row["id"]) for row in rows] == [
+def test_the_event_rows_lie_sorted_by_timeline_start_and_id() -> None:
+    order = [
+        (
+            row["timeline_id"],
+            coordinate_value(row["start"], row["number_type"]),
+            row["id"],
+        )
+        for row in _events()
+    ]
+    assert order == sorted(order)
+    assert [(timeline, identifier) for timeline, _, identifier in order] == [
         ("clt_2", "projection_10"),
-        ("cpt_1", "projection_11"),
         ("cpt_1", "projection_12"),
+        ("cpt_1", "projection_11"),
         ("dpt_1", "projection_1"),
         ("dpt_1", "projection_2"),
         ("dpt_1", "projection_3"),
         ("dpt_1", "projection_4"),
         ("dpt_1", "projection_5"),
-        ("dpt_1", "projection_8"),
         ("dpt_1", "projection_9"),
+        ("dpt_1", "projection_8"),
         ("dpt_1", "inserted_1"),
     ]
 
@@ -1911,9 +2481,9 @@ def _foreign_claim(identifier: str, **members: Any) -> dict[str, Any]:
     )
 
 
-def _foreign_projection(identifier: str) -> dict[str, Any]:
-    """A Projection on a timeline the manifest lacks."""
-    return {**projection(identifier, smp(0), None), "timeline_id": "dpt_9"}
+def _foreign_event(identifier: str) -> dict[str, Any]:
+    """An event row on a timeline the manifest lacks."""
+    return event(identifier, smp(0), timeline_id="dpt_9")
 
 
 def _interleaved(own: list[dict], foreign: list[dict]) -> list[dict]:
@@ -1935,22 +2505,14 @@ def test_the_rows_of_other_manifests_are_unknown_timelines() -> None:
         "the manifest has no timeline 'dpt_9'",
     ]
     assert match_claim_problems(claims) == []
-    foreign = [_foreign_projection(f"projection_{n}") for n in (7, 8, 9)]
-    projections = projections_table(_interleaved(PROJECTIONS, foreign))
-    problems = projection_problems(projections, MANIFEST)
+    foreign = [_foreign_event(f"projection_{n}") for n in (7, 8, 9)]
+    registry = registry_table(_interleaved(EVENTS, foreign))
+    problems = registry_problems(registry, MANIFEST)
     assert found(problems) == [
         ("unknown_timeline", row, ("timeline_id",)) for row in (0, 3, 5)
     ]
     assert problems[0].message == "the manifest has no timeline 'dpt_9'"
-    assert projection_problems(projections) == []
-
-
-def test_a_projection_on_an_unknown_timeline_is_refused() -> None:
-    rows = changed(PROJECTIONS, put(2, "timeline_id", value="ghost"))
-    problems = projection_problems(projections_table(rows), MANIFEST)
-    assert found(problems) == [("unknown_timeline", 2, ("timeline_id",))]
-    assert problems[0].message == "the manifest has no timeline 'ghost'"
-    assert projection_problems(projections_table(rows)) == []
+    assert registry_problems(registry) == []
 
 
 def test_a_claim_half_in_the_manifest_is_refused_at_its_other_side() -> None:
@@ -1961,9 +2523,9 @@ def test_a_claim_half_in_the_manifest_is_refused_at_its_other_side() -> None:
 
 
 def test_a_null_timeline_is_refused_with_a_manifest() -> None:
-    rows = changed(PROJECTIONS, put(1, "timeline_id", value=None))
+    rows = changed(REGISTRY, put(1, "timeline_id", value=None))
     for manifest in (MANIFEST, None):
-        problems = projection_problems(projections_table(rows), manifest)
+        problems = registry_problems(registry_table(rows), manifest)
         assert found(problems) == [("schema_violation", 1, ("timeline_id",))]
         assert problems[0].message == "'timeline_id' is null"
     rows = changed(CLAIMS, put(1, "timeline_a_id", value=None))

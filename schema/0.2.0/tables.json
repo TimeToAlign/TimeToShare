@@ -1,6 +1,6 @@
 {
   "$id": "https://timetoalign.github.io/timetoshare/0.2.0/tables.json",
-  "description": "The column types of the two tables a TimeToShare package keeps beside its manifest, as Apache Arrow types. Each type of `types` is a struct of named members, in order, or the struct read from the schema it names. Each table of `tables` has a `status` (`stable`: under the version promise of the format; `experimental`: outside it, free to change in any version) and its `columns`, in order, each with its `name`, its `type` (a type name of `string`, `bool`, `int64` or `float64`, Arrow's utf8, bool, int64 and double, or a name of `types`) and whether it is `nullable`. A column that is not nullable holds no null in any row; its Arrow field may still be declared nullable. A table may hold further columns, which a reader keeps and never checks.",
+  "description": "The column types of the tables a TimeToShare package keeps beside its manifests, as Apache Arrow types. Each type of `types` is a struct of named members, in order, or the struct read from the schema it names. Each table of `tables` has a `status` (`stable`: under the version promise of the format; `experimental`: outside it, free to change in any version) and its `columns`, in order, each with its `name`, its `type` (a type name of `string`, `bool`, `int64` or `float64`, Arrow's utf8, bool, int64 and double, or a name of `types`) and whether it is `nullable`; the Registry also lists its `index_kinds`, the kinds of its index rows. A column that is not nullable holds no null in any row; its Arrow field may still be declared nullable. A table may hold further columns, which a reader keeps and never checks.",
   "types": {
     "number": {
       "description": "A number, filled by its number type and never mirrored: an int is its numerator alone, a fraction its numerator and its denominator (at least 1), a float its finite value alone; every other member is null.",
@@ -34,12 +34,62 @@
         { "name": "event_id", "type": "string" }
       ]
     },
+    "integrity": {
+      "description": "The integrity of a source file: the algorithm of its digest, as a manifest's `Descriptor` names it, and the digest in lower-case hexadecimal.",
+      "struct": [
+        { "name": "algorithm", "type": "string" },
+        { "name": "digest", "type": "string" }
+      ]
+    },
     "provenance": {
       "description": "A row's provenance: a struct of the provenance schema's properties, in its order; a property of type array is a list (of the struct of the Belief's properties, each a string, for beliefs; of strings otherwise), every other property a string.",
       "schema": "provenance.schema.json"
     }
   },
   "tables": {
+    "Registry": {
+      "description": "The registry: one row per resolvable ID of the package. An event row (its `kind` the type of its event, `Projection` among them) states the event's timeline, its `start` and its `duration` (null for an instant) on the axis of the root of that timeline's family, in that axis's `unit` and `number_type`, and the extraction that made it; its `location` names the pre-parsed table holding its content, or is null where its content is only re-parsable from its extraction's source file. An index row (its `kind` one of `index_kinds`) points at what the manifests, the MatchClaim tables and the Extraction table hold: its `location` is the manifest holding the element, or the table entry holding the MatchClaim or the extraction; its `timeline_id` is the one timeline a Region, FlowControlElement, Elision or Timestamp lies on, else null; its `name` the element's; every other column null. A `location` is a URI reference resolved against the package's root. `locator` is the parser's locator of an event in its source file, unique within its extraction where given; `vanished_in` the extraction of an update that no longer found the event, whose row is kept. Event, MatchClaim and Extraction IDs are each held once among all of these rows; the ID of a manifest element is held once per `location`. The registry is a file, or a folder of parts: `index.parquet` holding the index rows and one part `<extraction_id>.parquet` per extraction holding its event rows, each written sorted by `timeline_id`, `start` and `id` (the index part by `location` and `id`); readers never rely on the order.",
+      "status": "experimental",
+      "index_kinds": ["Manifest", "Timeline", "VirtualTimeline", "Group", "MeasureMap", "ConversionMap", "Region", "FlowControlElement", "Resource", "FlowMap", "Timestamp", "MatchStamp", "AlignmentAnchor", "Elision", "MatchClaim", "Extraction"],
+      "columns": [
+        { "name": "id", "type": "string", "nullable": false },
+        { "name": "kind", "type": "string", "nullable": false },
+        { "name": "location", "type": "string", "nullable": true },
+        { "name": "timeline_id", "type": "string", "nullable": true },
+        { "name": "unit", "type": "string", "nullable": true },
+        { "name": "number_type", "type": "string", "nullable": true },
+        { "name": "start", "type": "number", "nullable": true },
+        { "name": "duration", "type": "number", "nullable": true },
+        { "name": "name", "type": "string", "nullable": true },
+        { "name": "extraction_id", "type": "string", "nullable": true },
+        { "name": "locator", "type": "string", "nullable": true },
+        { "name": "vanished_in", "type": "string", "nullable": true }
+      ]
+    },
+    "Extraction": {
+      "description": "The Extraction table: one row per extraction, a run of a parser over one source file (CRMdig's D10 Software Execution), named by the registry's event rows. `source` is the source file, a URI reference resolved against the package's root, null for events a tool made without a source file; `source_integrity` its digest, never null where `source` is given; `parser` and `parser_version` the parser run; `parameters` the parameters it was run with, the RFC 8785 JSON text of an object; `minter` the version of the algorithm minting the IDs it gave, `id_length` their length and `seed` the seed given, so that a run again mints the same IDs; `date` the date-time of the run, ISO 8601 in UTC (`2026-11-27T21:30:00Z`).",
+      "status": "experimental",
+      "columns": [
+        { "name": "id", "type": "string", "nullable": false },
+        { "name": "source", "type": "string", "nullable": true },
+        { "name": "source_integrity", "type": "integrity", "nullable": true },
+        { "name": "parser", "type": "string", "nullable": false },
+        { "name": "parser_version", "type": "string", "nullable": false },
+        { "name": "parameters", "type": "string", "nullable": true },
+        { "name": "minter", "type": "string", "nullable": false },
+        { "name": "id_length", "type": "int64", "nullable": false },
+        { "name": "seed", "type": "string", "nullable": true },
+        { "name": "date", "type": "string", "nullable": false }
+      ]
+    },
+    "Projection": {
+      "description": "The pre-parsed Projection table: one row per Projection, by its ID, with the event it stands for; its timeline and its position are its registry row's.",
+      "status": "experimental",
+      "columns": [
+        { "name": "id", "type": "string", "nullable": false },
+        { "name": "projection_of", "type": "projection_of", "nullable": true }
+      ]
+    },
     "MatchClaim": {
       "description": "The MatchClaim table: one row per MatchClaim, addressed by its ID alone. A MatchClaim table belongs to one manifest. Each side's `event_a_id` or `event_b_id` holds the ID of an event or the reserved string of a sentinel, never a null: `CHUNK_SENTINEL` on a side of a synchronous MatchClaim, whose timeline holds no event for the coordinate its anchors state there; `NOMATCH_SENTINEL` on one side of a MatchClaim that is not synchronous, which has no anchors. A sentinel side has no name, and no element has a reserved string as its ID.",
       "status": "stable",
@@ -56,19 +106,6 @@
         { "name": "event_b_id", "type": "string", "nullable": false },
         { "name": "event_b_name", "type": "string", "nullable": true },
         { "name": "id", "type": "string", "nullable": false }
-      ]
-    },
-    "Projection": {
-      "description": "The Projections table: one row per Projection, its unit and number type stated once for its start and its duration; duration null for an instant.",
-      "status": "experimental",
-      "columns": [
-        { "name": "id", "type": "string", "nullable": false },
-        { "name": "timeline_id", "type": "string", "nullable": false },
-        { "name": "unit", "type": "string", "nullable": false },
-        { "name": "number_type", "type": "string", "nullable": false },
-        { "name": "start", "type": "number", "nullable": false },
-        { "name": "duration", "type": "number", "nullable": true },
-        { "name": "projection_of", "type": "projection_of", "nullable": true }
       ]
     }
   }

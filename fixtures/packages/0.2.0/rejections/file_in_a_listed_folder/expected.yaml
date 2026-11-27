@@ -3,6 +3,6 @@ problems:
     code: duplicate_url
     file: package.yaml
     message: "the file 'tables/Projection/part_b.parquet' is read by the table 'tables/Projection/' already"
-    path: [tables, 2, url]
+    path: [tables, 4, url]
     row: null
 reason: "package.yaml lists part_b, a file of the listed folder of Projections, as a table of its own; its rows would be read twice."

@@ -1,4 +1,4 @@
-"""The row-by-row checks of the two tables, kept as the reference.
+"""The row-by-row checks of the tables, kept as the reference.
 
 The package's checks (``timetoshare.tables``) find their problems column by
 column; this module is the implementation they replaced, one row at a time,
@@ -8,10 +8,14 @@ rules of a MatchClaim's sides and anchors read the sentinels' reserved
 strings in the event ID columns (``CHUNK_SENTINEL`` on a synchronous row,
 ``NOMATCH_SENTINEL`` on one that is not), an ID that is a sentinel's
 string is refused by the package's message of an ID, and so is a projected
-event's ID, by a message written here. The helpers the change left as
-they were (the shape check, the messages, the check of a provenance entry)
-are the package's own, imported; the row loops are this module's. It is no
-part of the package.
+event's ID, by a message written here. The positions of events moved
+from the Projections table to the registry's event rows, whose row loop is
+the former Projections table's, with the registry's own nulls, scoped IDs
+and locators added; the pre-parsed Projection table keeps the rules of its
+``projection_of``. The helpers the change left as they were (the shape
+check, the messages, the check of a provenance entry) are the package's
+own, imported; the row loops are this module's. It is no part of the
+package.
 """
 
 from __future__ import annotations
@@ -35,16 +39,25 @@ from timetoshare.tables.checks import (
 )
 from timetoshare.tables.columns import (
     COORDINATE_KEYS,
+    INDEX_KINDS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
     PROJECTION_REQUIRED,
     PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
+    REGISTRY_EVENT_REQUIRED,
+    REGISTRY_REQUIRED,
+    REGISTRY_SCHEMA,
     coordinate_value,
 )
 from timetoshare.validation.diagnostics import number_type_of, timelines_by_id
 
-__all__ = ["match_claim_problems", "projection_problems", "succession_problems"]
+__all__ = [
+    "match_claim_problems",
+    "projection_problems",
+    "registry_problems",
+    "succession_problems",
+]
 
 Column = tuple[str, ...]
 
@@ -335,11 +348,8 @@ def match_claim_problems(
 def projection_problems(
     table: pa.Table, manifest: Mapping[str, Any] | None = None
 ) -> list[TableProblem]:
-    """Every problem of a Projections table, checked against a manifest (as
-    read from its file, IDs written ``#``) where one is given.
-
-    A Projection's ID is unique in the package, as every event's: two
-    timelines never both hold ``projection_1``."""
+    """Every problem of a pre-parsed Projection table, checked against a
+    manifest (as read from its file, IDs written ``#``) where one is given."""
     problems = _schema_problems(table, PROJECTION_SCHEMA)
     if problems:
         return problems
@@ -350,11 +360,6 @@ def projection_problems(
     problems.extend(_ids(rows))
     axes = _Axes(manifest)
     for index, row in enumerate(rows):
-        timeline_id = row["timeline_id"]
-        problem = axes.timeline(index, ("timeline_id",), timeline_id)
-        if problem:
-            problems.append(problem)
-        problems.extend(_projection_numbers(index, row, axes))
         source = row["projection_of"]
         if source is None:
             continue
@@ -377,17 +382,7 @@ def projection_problems(
                     f"'{source['event_id']}' is reserved for a sentinel",
                 )
             )
-        if source["timeline_id"] == timeline_id:
-            problems.append(
-                TableProblem(
-                    "invalid_projection_of",
-                    index,
-                    ("projection_of", "timeline_id"),
-                    f"a Projection stands for an event of another timeline than "
-                    f"'{timeline_id}'",
-                )
-            )
-        elif source["timeline_id"]:
+        if source["timeline_id"]:
             problem = axes.timeline(
                 index, ("projection_of", "timeline_id"), source["timeline_id"]
             )
@@ -396,10 +391,105 @@ def projection_problems(
     return sorted(problems, key=_order)
 
 
+_ELEMENTS = tuple(
+    kind for kind in INDEX_KINDS if kind not in ("MatchClaim", "Extraction")
+)
+_INDEX_EMPTY = (
+    "unit",
+    "number_type",
+    "start",
+    "duration",
+    "extraction_id",
+    "locator",
+    "vanished_in",
+)
+
+
+def _registry_nulls(rows: list[dict[str, Any]]) -> Iterator[TableProblem]:
+    for index, row in enumerate(rows):
+        kind = row["kind"]
+        is_index = kind in INDEX_KINDS
+        for key in REGISTRY_SCHEMA.names:
+            value = row[key]
+            if key in REGISTRY_REQUIRED:
+                missing = value is None
+            elif key in REGISTRY_EVENT_REQUIRED:
+                missing = kind is not None and not is_index and value is None
+            elif key == "location":
+                missing = is_index and value is None
+            else:
+                missing = False
+            if missing:
+                yield TableProblem(
+                    "schema_violation", index, (key,), f"'{key}' is null"
+                )
+            if is_index and key in _INDEX_EMPTY and value is not None:
+                yield TableProblem(
+                    "schema_violation", index, (key,), f"an index row has no '{key}'"
+                )
+
+
+def registry_problems(
+    table: pa.Table, manifest: Mapping[str, Any] | None = None
+) -> list[TableProblem]:
+    """Every problem of a registry, checked against a manifest where one is
+    given, one row at a time: the event rows as the former Projections
+    table's rows."""
+    problems = _schema_problems(table, REGISTRY_SCHEMA)
+    if problems:
+        return problems
+    rows = table.select(list(REGISTRY_SCHEMA.names)).to_pylist()
+    problems = [*_registry_nulls(rows)]
+    if problems:
+        return problems
+    seen: set[Any] = set()
+    axes = _Axes(manifest)
+    locators: set[tuple[str, str]] = set()
+    for index, row in enumerate(rows):
+        value = row["id"]
+        problem = _id_problem(value, "the ID")
+        if problem:
+            problems.append(TableProblem("invalid_id", index, ("id",), problem))
+        else:
+            element = row["kind"] in _ELEMENTS
+            key = (row["location"], value) if element else value
+            if key in seen:
+                at = f" at '{row['location']}'" if element else ""
+                problems.append(
+                    TableProblem(
+                        "duplicate_id",
+                        index,
+                        ("id",),
+                        f"the ID '{value}' is given twice{at}",
+                    )
+                )
+            seen.add(key)
+        if row["kind"] in INDEX_KINDS:
+            continue
+        problem = axes.timeline(index, ("timeline_id",), row["timeline_id"])
+        if problem:
+            problems.append(problem)
+        problems.extend(_projection_numbers(index, row, axes))
+        if row["locator"] is not None:
+            located = (row["extraction_id"], row["locator"])
+            if located in locators:
+                problems.append(
+                    TableProblem(
+                        "duplicate_locator",
+                        index,
+                        ("locator",),
+                        f"the locator '{row['locator']}' is given twice in the "
+                        f"extraction '{row['extraction_id']}'",
+                    )
+                )
+            locators.add(located)
+    return sorted(problems, key=_order)
+
+
 def _projection_numbers(
     index: int, row: Mapping[str, Any], axes: _Axes
 ) -> Iterator[TableProblem]:
-    """The problems of a Projection's axis, ``start`` and ``duration``: its
+    """The problems of an event row's axis, ``start`` and ``duration``: its
     row states the unit and the number type of both, never null here."""
     unit, number_type = row["unit"], row["number_type"]
     problem = _axis_problem(unit, number_type)

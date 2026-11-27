@@ -1,8 +1,8 @@
 problems:
   -
     code: axis_mismatch
-    file: tables/Projection/part_b.parquet
+    file: registry/extraction_1.parquet
     message: "a coordinate in seconds (float) on the timeline 'dpt_1' in samples (int)"
     path: [unit]
-    row: 1
-reason: "A Projection on the samples timeline dpt_1 is written in seconds."
+    row: 3
+reason: "An event row on the samples timeline dpt_1 is written in seconds."
