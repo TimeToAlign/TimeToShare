@@ -100,7 +100,7 @@ function exceeds(left: Rational, right: Rational): boolean {
   return left.numerator * right.denominator > right.numerator * left.denominator;
 }
 
-/** Yield children that do not sit on their parent's axis or within its known end. */
+/** Yield children that do not sit on their parent's axis (unit and number type) or within its known end. */
 export function* timelineContainmentProblems(
   timeline: JsonObject,
   path: readonly PathSegment[],
@@ -117,6 +117,15 @@ export function* timelineContainmentProblems(
         "child_unit",
         [...at, "unit"],
         `child '${id}' has unit '${text(child, "unit")}', ${parent} has '${text(timeline, "unit")}'`,
+      );
+    }
+    const childType = numberTypeOf(child as Axis);
+    const parentType = numberTypeOf(timeline as Axis);
+    if (childType !== parentType) {
+      yield new SchemaValidationError(
+        "child_number_type",
+        [...at, child.number_type === undefined ? "unit" : "number_type"],
+        `child '${id}' has the number type '${childType}', ${parent} has '${parentType}'`,
       );
     }
     const end = ends[index] ?? null;
