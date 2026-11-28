@@ -58,7 +58,7 @@ statements has an ID), and satisfies both round trips of `complete` and
 refactor that keeps the accepted language stays green: the bundled `schema`
 is the file; references are local and resolve; the public definitions exist and the root's description names exactly them; `ConversionMap` chooses between exactly the ten
 map types, `Selector.class` admits the six timeline classes and the ten types, or an `Iri`,
-`Facet`, `Part`, `ElementType`, the words of `Selector.coordinates`, the words of a `Timestamp`'s `display` (`TIMESTAMP_DISPLAY`) and of an `Elision`'s (`ELISION_DISPLAY`) are exactly the Python suite's lists, an `Elision`'s `width` declares the Python suite's three forms, one of them required by its `oneOf`, and accepts and refuses the Python suite's widths, and
+`Facet`, `Part`, `ElementType`, the words of `Selector.coordinates`, `Selector.alternate`'s type `boolean`, the words of a `Timestamp`'s `display` (`TIMESTAMP_DISPLAY`) and of an `Elision`'s (`ELISION_DISPLAY`) are exactly the Python suite's lists, an `Elision`'s `width` declares the Python suite's three forms, one of them required by its `oneOf`, and accepts and refuses the Python suite's widths, and
 each measure view fixes its target unit over
 `MeasureView`, which fixes the source unit; the unit
 table's consts are exactly the keys of
@@ -204,7 +204,11 @@ object"): `{coordinates: "primary"}` and `{element: "wedge", coordinates:
 "secondary"}` each validate and leave `unknownKeys` empty
 (`validate.test.ts`), and the shared case `rule_select_coordinates_unknown`
 refuses any other word at the selector's `coordinates` with the Python
-suite's code, path and message.
+suite's code, path and message. So too a selector's `alternate`:
+`{alternate: true}` and `{element: "region", alternate: false}` each
+validate and leave `unknownKeys` empty, and the shared case
+`rule_select_alternate_not_boolean` refuses the string `yes` at the
+selector's `alternate` with the Python suite's code, path and message.
 
 ## MatchStamps and resources
 
@@ -318,10 +322,11 @@ every rule's code, path and message for both packages; the canonical order
 of a jump's destinations lies in `manifest.test.ts`, the ID positions in
 `ids.test.ts`, the defaults in `defaults.test.ts` and `schema.test.ts`.
 
-The defaults block of section 4 of `docs/drawing.md`, three styles and 44
+The defaults block of section 4 of `docs/drawing.md`, three styles and 46
 rules, among them one for each of the element types `jump`, `break`,
-`section_break`, `barline`, `symbol`, `fork` and `leader`, and one
-selecting the atomic sections by the `class` `tts:AtomicSection`,
+`section_break`, `barline`, `symbol`, `fork` and `leader`, one
+selecting the atomic sections by the `class` `tts:AtomicSection`, and two
+toning the second, fourth, … regions and their labels by `alternate`,
 validates as the `graphical` object of the smallest manifest
 (`validate.test.ts`). So do the selectors of the three element types
 `symbol`, `fork` and `leader`, addresses with the parts `symbol`,
@@ -334,7 +339,7 @@ replaced, at the selector's `element` and at an address's `part`
 
 ## Shared rejection cases
 
-Each of the 258 cases (`validate.test.ts`), found by its name whatever
+Each of the 259 cases (`validate.test.ts`), found by its name whatever
 its extension and read by `loads`, is stored as the writers write it,
 byte for byte (a canonical YAML text is `dumps`'s bytes, a JSON text the
 bytes of `dumps` in pretty JSON) and raises

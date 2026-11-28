@@ -203,6 +203,7 @@ def test_the_ten_map_types() -> None:
     assert defs["Selector"]["properties"]["facet"]["$ref"] == "#/$defs/Facet"
     coordinates = defs["Selector"]["properties"]["coordinates"]
     assert coordinates["enum"] == ["primary", "secondary"]
+    assert defs["Selector"]["properties"]["alternate"]["type"] == "boolean"
     assert defs["ElementType"]["enum"] == [
         "block",
         "timeline",

@@ -277,6 +277,7 @@ describe("the schema document", () => {
     expect(elided.uniqueItems).toBe(true);
     expect(properties("Selector").facet?.$ref).toBe("#/$defs/Facet");
     expect(properties("Selector").coordinates?.enum).toEqual(["primary", "secondary"]);
+    expect(properties("Selector").alternate?.type).toBe("boolean");
     expect(defs.ElementType?.enum).toEqual([
       "block",
       "timeline",

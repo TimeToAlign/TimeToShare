@@ -1770,6 +1770,10 @@
             "secondary"
           ],
           "description": "Coordinates of a stamp: the element must belong to a stamp's primary coordinate (`primary`) or to one of its secondary coordinates (`secondary`). An element that belongs to no coordinate of a stamp matches neither."
+        },
+        "alternate": {
+          "type": "boolean",
+          "description": "A region's place in its row of its regions band, and with the region its label and its label's leader: `true` matches the second, fourth, … region of the row, `false` the first, third, …, counted in the order of the lower ends of their extents, so that of two braces that touch exactly one is matched by `true`. An element that is no region's matches neither. A rule naming it sets only `stroke`, `stroke-width`, `stroke-dasharray`, `fill` and `opacity`."
         }
       }
     },

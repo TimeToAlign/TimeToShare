@@ -667,6 +667,30 @@ A selector is an object with any of these members:
   other element: not a cross-section line, which belongs to its timestamp
   as a whole and marks no one coordinate, nor an alignment anchor or its
   label, nor any element that is no named timestamp's.
+- `alternate`: `true` or `false`; it matches a region by its place in its
+  row of its regions band (section 6.4, Regions), and with the region
+  every element it holds, its label and its label's leader: `true` the
+  second, fourth, … region of its row, `false` the first, third, …,
+  counted in the order of the lower ends of their extents (section 6.3),
+  which no two regions of one row share, since two items starting at one
+  point never share a row. It matches no other element: an element that is
+  no region's matches neither. The regions of one row never overlap, so
+  only braces drawn side by side are counted one after the other, and of
+  two that touch, one ending where the next starts, exactly one is matched
+  by `true`; a region overlapping another lies in another row and is
+  counted there. Every displayed region the band's first fit places is
+  counted, one that an elision leaves out included (section 6.6,
+  Elisions). In a row of one band order the regions bands of the row's
+  lines share their rows (section 6.4, Rows of one band order), and each
+  row is counted across those lines. A region drawn more than once, in the
+  pieces of a switched card or the windows of a virtual card (section
+  8.10), is counted at each of its drawings by that drawing's row, as the
+  cascade runs on each drawing (section 2.5). The rows are found before a
+  region's place in them is known, so a rule whose selector names
+  `alternate` sets only the properties that paint and never lay out:
+  `stroke`, `stroke-width`, `stroke-dasharray`, `fill` and `opacity`; its
+  declarations of any other property set nothing, so which regions and
+  labels are displayed, and how wide a label is, never depend on it.
 
 An element matches a selector when it matches every member present. The
 empty selector `{}` matches every element. A band is selected as every
@@ -689,6 +713,18 @@ every default rule by its layer and sets no `rotation` (section 2.5); the
 same rule with the selector `{"coordinates": "secondary"}` shows their
 labels too, and one selecting `{"element": "wedge", "coordinates":
 "primary"}` restyles the own wedge of every timestamp at once.
+A region's place in its row is selected so too: the defaults draw the
+second, fourth, … brace of every row and its label in dark grey (section
+4), and the rule
+
+```json
+{"select": {"element": "region"}, "set": {"stroke": "#000000"}}
+```
+
+in a manifest's `graphical` draws every brace black again, since it
+outranks every default rule by its layer (section 2.5), while the labels
+keep their tones; `{"element": "label", "alternate": true}` with `fill`
+restyles the labels of the second, fourth, … regions alone.
 
 ### 2.4 Properties
 
@@ -897,7 +933,8 @@ The rank of a rule is, from the most to the least significant:
 2. whether its selector names `addresses`;
 3. the depth of its `within`: none is 0, the root 1, its children 2, and
    so on; deeper outranks shallower;
-4. whether its selector names `class`, `facet` or `coordinates`;
+4. whether its selector names `class`, `facet`, `coordinates` or
+   `alternate`;
 5. whether its selector names `element`;
 6. whether its selector names `inside`;
 7. how many of `domain` and `modality` its selector names;
@@ -1156,6 +1193,8 @@ between them and the manifest's own `graphical` object (section 1).
     {"select": {"element": "wedge"}, "set": {"fill": "#000000"}},
     {"select": {"element": "region"}, "set": {"stroke": "#000000", "stroke-width": 1, "stroke-dasharray": "none"}},
     {"select": {"element": "region", "class": "tts:AtomicSection"}, "set": {"display": "none"}},
+    {"select": {"element": "region", "alternate": true}, "set": {"stroke": "#595959"}},
+    {"select": {"element": "label", "alternate": true}, "set": {"fill": "#595959"}},
     {"select": {"element": "band", "inside": "chunk"}, "set": {"display": "none"}},
     {"select": {"element": "jump"}, "set": {"stroke": "#000000", "fill": "#000000", "stroke-width": 1, "stroke-dasharray": "1 1", "display": "none"}},
     {"select": {"element": "break"}, "set": {"stroke": "#D62728", "stroke-width": 1.5, "stroke-dasharray": "1.5 1.5"}},
@@ -1193,7 +1232,13 @@ solid when continuous (dotted: dashes and gaps as long as the stroke is
 wide); a conversion map takes the colour and pattern of the domain and
 modality it converts to; wedges and braces are black and solid, and the
 regions that are atomic sections are hidden (section 2.3 shows the rule
-that shows them); the arcs of jumps are thin, black and dotted, and
+that shows them); along each row of a regions band the braces alternate
+in tone, the first, third, … black and the second, fourth, … dark grey
+`#595959`, each label in its brace's tone and every leader light grey,
+so that where two braces touch, one ending where the next starts, the
+two ends never read as one brace's tip (the rules naming `alternate`
+outrank the rules of every region and every label by rank 4, section
+2.5); the arcs of jumps are thin, black and dotted, and
 hidden, so that a jump shows its symbol, its fork and its stack, of
 its name and its label by default (`label-display`, section 2.5),
 alone until a rule shows its arcs (`{"select": {"element": "jump"},
@@ -2108,7 +2153,12 @@ hides.
 **Regions.** The regions band of a timeline places its displayed regions,
 in canonical order, by first fit with the extent from the smaller to the
 larger of their start and end, never widened by their labels, into `R`
-rows: a region keeps its row whatever its label's width. Then the drawn
+rows: a region keeps its row whatever its label's width. The regions of
+one row never overlap and lie in the order of the lower ends of their
+extents, no two at one point (section 6.3); in that order they are the
+first, second, third, … of their row, which the selector member
+`alternate` reads (section 2.3), and in a row of one band order the
+regions of the shared rows are counted so across the row's lines. Then the drawn
 labels of each row, in the order of their regions, are placed by one
 first fit of that row, each with the extent of a label centred on `Xm`
 (section 6.6, Regions), into the row's **label tiers**: tier 1 is where

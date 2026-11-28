@@ -103,7 +103,7 @@ rejection cases that use them (`test_schema.py`):
   requiring one of them each, so `{"ratio": 0.5}`, `{"span": [3, 2]}`
   and `{"canvas": 40}` pass and `{}` and two forms together are refused.
   `Selector.coordinates` is exactly the two words `primary` and
-  `secondary`. The four
+  `secondary`, and `Selector.alternate` is a boolean. The four
   measure views fix `source_unit` to `quarters` and `target_unit` to
   `floating_measures` (`FloatingMeasureMap`) or null (the other three).
 - **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
@@ -667,7 +667,7 @@ section "Statements").
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 258 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
+the 259 cases of `fixtures/rejections/0.2.0/` breaks one rule and stores the
 path, the code and the message (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly all three, and the JavaScript suite
 holds its validator to the same three, so the two packages refuse every
@@ -2560,11 +2560,12 @@ cannot prove that the emitter produces them:
 
 ## The graphical object
 
-`docs/drawing.md` section 4's defaults block (three styles, 44 rules,
+`docs/drawing.md` section 4's defaults block (three styles, 46 rules,
 among them one for each of the element types `jump`, `break`,
-`section_break`, `barline`, `symbol`, `fork` and `leader`, and one
+`section_break`, `barline`, `symbol`, `fork` and `leader`, one
 selecting the atomic sections by `{"element": "region", "class":
-"tts:AtomicSection"}`), read from the file, validates as the
+"tts:AtomicSection"}`, and `{"element": "region", "alternate": true}`
+and `{"element": "label", "alternate": true}`), read from the file, validates as the
 `graphical` of the smallest file. The flow drawing's vocabulary
 validates in a rule of the smallest file and leaves `unknown_keys`
 empty: the selectors `{"element": "symbol"}`, `{"element": "fork"}`
@@ -2595,7 +2596,12 @@ validates. A selector's `coordinates` chooses a stamp's primary or its
 secondary coordinates: `{"coordinates": "primary"}` and `{"element":
 "wedge", "coordinates": "secondary"}` each validate and leave
 `unknown_keys` empty, and any other word is refused at the selector's
-`coordinates` (`rule_select_coordinates_unknown`, the word `both`). The schema shapes each entry of an order as an ID: the empty
+`coordinates` (`rule_select_coordinates_unknown`, the word `both`). A
+selector's `alternate` chooses a region by its place in its row:
+`{"alternate": true}` and `{"element": "region", "alternate": false}`
+each validate and leave `unknown_keys` empty, and a value that is no
+boolean is refused at the selector's `alternate`
+(`rule_select_alternate_not_boolean`, the string `yes`). The schema shapes each entry of an order as an ID: the empty
 string is refused at the entry, and a repeated entry (`line`, `markers`,
 `line`) at the order, before any identity rule is read; property
 bounds accept `stroke-width` and `rx` 0, `opacity` 0 and 1, positive

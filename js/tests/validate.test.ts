@@ -238,6 +238,7 @@ const REJECTIONS = [
   "resource_timeline_unknown",
   "root_missing_marker",
   "root_missing_timelines",
+  "rule_select_alternate_not_boolean",
   "rule_select_coordinates_unknown",
   "rule_select_empty_addresses",
   "rule_select_inside_unknown_element",
@@ -1306,6 +1307,16 @@ describe("the graphical object", () => {
     },
   );
 
+  it.each([{ alternate: true }, { element: "region", alternate: false }])(
+    "accepts the selector %o choosing a region by its place in its row",
+    (select) => {
+      const rule = { select, set: { stroke: "#595959" } };
+      const value = manifest([timeline("score")], { graphical: { rules: [rule] } });
+      validate(value);
+      expect(unknownKeys(value)).toEqual([]);
+    },
+  );
+
   it("accepts a selector naming every card of a timeline in several groups", () => {
     const card = { id: "t", part: ["card"] };
     const rule = { select: { addresses: [card] }, set: { stroke: "#B8BEC8" } };
@@ -1372,7 +1383,7 @@ describe("the graphical object", () => {
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.rules as unknown[]).length).toBe(44);
+    expect((defaults.rules as unknown[]).length).toBe(46);
     validate({ ...SMALLEST, graphical: defaults });
   });
 

@@ -238,6 +238,7 @@ REJECTIONS = [
     "resource_timeline_unknown",
     "root_missing_marker",
     "root_missing_timelines",
+    "rule_select_alternate_not_boolean",
     "rule_select_coordinates_unknown",
     "rule_select_empty_addresses",
     "rule_select_inside_unknown_element",
@@ -1153,6 +1154,17 @@ def test_a_selector_chooses_a_stamps_primary_or_secondary_coordinates(
     assert unknown_keys(value) == []
 
 
+@pytest.mark.parametrize(
+    "select",
+    [{"alternate": True}, {"element": "region", "alternate": False}],
+)
+def test_a_selector_chooses_a_region_by_its_place_in_its_row(select: dict) -> None:
+    rule = {"select": select, "set": {"stroke": "#595959"}}
+    value = manifest(timeline("score"), graphical={"rules": [rule]})
+    validate(value)
+    assert unknown_keys(value) == []
+
+
 def test_a_selector_names_every_card_of_a_timeline_in_several_groups() -> None:
     card = {"id": "t", "part": ["card"]}
     rule = {"select": {"addresses": [card]}, "set": {"stroke": "#B8BEC8"}}
@@ -1551,7 +1563,7 @@ def _defaults_block() -> dict:
 def test_the_defaults_are_a_valid_graphical_object() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["rules"]) == 44
+    assert len(defaults["rules"]) == 46
     validate({**SMALLEST, "graphical": defaults})
 
 
