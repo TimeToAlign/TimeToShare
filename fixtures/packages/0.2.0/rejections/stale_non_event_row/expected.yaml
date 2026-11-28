@@ -1,0 +1,20 @@
+problems:
+  -
+    code: stale_non_event_row
+    file: registry/non_events.parquet
+    message: "the non-event row of the ID 'clt_1' at 'bach/manifest.yaml' has the kind 'VirtualTimeline', not 'Timeline'"
+    path: [kind]
+    row: 0
+  -
+    code: stale_non_event_row
+    file: registry/non_events.parquet
+    message: "the registry holds the non-event row of the ID 'region_9' at 'bach/manifest.yaml', which no manifest or table holds there"
+    path: [id]
+    row: 4
+  -
+    code: stale_non_event_row
+    file: registry/non_events.parquet
+    message: "the registry lacks the non-event row of the ID 'group_1' at 'handel/manifest.yaml'"
+    path: [id]
+    row: null
+reason: "The registry gives Bach's score timeline the kind of a virtual timeline, holds a region the manifest does not hold, and lacks the group Handel's manifest gained."

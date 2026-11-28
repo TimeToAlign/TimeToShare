@@ -14,7 +14,6 @@ resolutions:
           kind: Timeline
           location: bach/manifest.yaml
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null
@@ -35,7 +34,6 @@ resolutions:
           kind: Timeline
           location: handel/manifest.yaml
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null
@@ -56,7 +54,6 @@ resolutions:
           kind: Projection
           location: tables/Projection/
           locator: "row 1"
-          name: null
           number_type: int
           start:
             denominator: null
@@ -80,7 +77,6 @@ resolutions:
           kind: Timeline
           location: bach/manifest.yaml
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null
@@ -97,7 +93,6 @@ resolutions:
           kind: Timeline
           location: handel/manifest.yaml
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null

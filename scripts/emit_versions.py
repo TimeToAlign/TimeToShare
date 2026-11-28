@@ -5,7 +5,7 @@
 A version case is two trees, ``old/`` and ``new/``, beside an
 ``expected.yaml`` of the step and the findings ``tree_step`` gives. The
 cases of tables are packages: ``package.yaml``, the manifest ``score.yaml``,
-a registry folder ``registry/`` of an index part and one extraction part
+a registry folder ``registry/`` of a non-event part and one extraction part
 ``ext_1.parquet``, the Extraction table ``extractions.parquet`` and the
 pre-parsed Projection table ``tables/Projection/part.parquet``. Their YAML
 files and ``expected.yaml`` are written by hand; this script writes their
@@ -13,9 +13,9 @@ Parquet files. Every row is literal data here, never computed by the code
 the cases test: each ``old/`` tree holds the same three event rows (the
 MIDI notes ``note_1`` and ``note_2`` and the Projection ``proj_1`` on the
 quarters timeline ``score``), one extraction and one pre-parsed Projection,
-and each ``new/`` tree the one change of its case. The index part of each
-tree is then written by ``timetoshare.tables.write_index`` from the tree's
-hand-written manifest and tables, so that no case's index is stale.
+and each ``new/`` tree the one change of its case. The non-event part of each
+tree is then written by ``timetoshare.tables.write_non_event_rows`` from the tree's
+hand-written manifest and tables, so that no case's non-event rows are stale.
 
 A Parquet file is rewritten only when its table changes, and the files of
 a released version, whose tag ``v<version>`` exists, are never overwritten.
@@ -44,7 +44,7 @@ from timetoshare.tables import (
     REGISTRY_SCHEMA,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
-    write_index,
+    write_non_event_rows,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
@@ -84,7 +84,6 @@ def event(
         "number_type": "fraction",
         "start": number(start),
         "duration": None if duration is None else number(duration),
-        "name": None,
         "extraction_id": "ext_1",
         "locator": locator,
         "vanished_in": vanished_in,
@@ -159,7 +158,7 @@ class Tree:
                 {TYPE_METADATA_KEY: kind, VERSION_METADATA_KEY: SCHEMA_VERSION}
             )
             _write_table(root / name, table)
-        write_index(root)
+        write_non_event_rows(root)
 
 
 def _row_removed(tree: Tree) -> None:
@@ -181,7 +180,7 @@ def _row_vanished(tree: Tree) -> None:
     tree.rows(EXTRACTIONS).append(extraction("ext_2", "2026-11-28T00:00:00Z"))
 
 
-def _index_only(tree: Tree) -> None:
+def _non_event_rows_only(tree: Tree) -> None:
     """No row changes: the manifest renames its timeline, by hand."""
 
 
@@ -199,7 +198,7 @@ CASES: dict[str, Callable[[Tree], None]] = {
     "registry_row_added": _row_added,
     "registry_projection_moved": _projection_moved,
     "registry_row_vanished": _row_vanished,
-    "registry_index_only": _index_only,
+    "registry_non_event_rows_only": _non_event_rows_only,
     "projection_row_edited": _projection_edited,
     "projection_row_removed": _projection_removed,
 }

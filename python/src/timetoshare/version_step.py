@@ -1062,12 +1062,12 @@ def _registry_table(root: Path, path: str) -> Any:
 
 
 def _event_rows(registry: Any) -> Any:
-    """A registry's event rows: every row whose ``kind`` names no index row."""
+    """A registry's event rows: every row whose ``kind`` names no non-event row."""
     import pyarrow.compute as pc
 
-    from .tables.checks import is_index
+    from .tables.checks import is_non_event
 
-    return registry.filter(pc.invert(is_index(_strings_of(registry, "kind"))))
+    return registry.filter(pc.invert(is_non_event(_strings_of(registry, "kind"))))
 
 
 def _strings_of(table: Any, name: str) -> Any:
@@ -1408,7 +1408,7 @@ def tree_step(old_root: Path, new_root: Path) -> StepReport:
     table, one a ``package.yaml`` lists or a registry's Projection rows
     locate: a row removed is major, one added minor, a cell changed minor
     (``edited_row``: a Projection moved is a changed cell), ``vanished_in``
-    newly set and nothing else changed minor (``vanished_row``). Index rows
+    newly set and nothing else changed minor (``vanished_row``). Non-event rows
     are not compared: the manifests and tables they are derived from are. A
     finding lies at each manifest whose Registry resource lists the row's
     timeline (a pre-parsed row's, its registry row's), else at the

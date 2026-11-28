@@ -3,7 +3,7 @@ table, the pre-parsed tables and the MatchClaim tables.
 
 A package's registry holds one row per resolvable ID: an event row for each
 event (its timeline, its position on the root's axis, its extraction and
-the pre-parsed table holding its content), an index row for each element of
+the pre-parsed table holding its content), a non-event row for each element of
 the manifests, each MatchClaim and each extraction. The Extraction table
 records each run of a parser over a source file; a pre-parsed table holds
 the content of events of one type by their IDs, the Projection table the
@@ -13,8 +13,8 @@ schema's ``tables.json``, reads a table, a file or a folder of files,
 keeping the rows of some timelines or IDs (``read_table``), checks a table
 (alone, or against a manifest, every row then the manifest's: a shared file
 is read filtered first), checks a package whole (``package_problems``), resolves an ID
-(``resolve``) and builds, writes and checks the registry's index rows
-(``index_rows``, ``write_index``, ``stale_index``),
+(``resolve``) and builds, writes and checks the registry's non-event rows
+(``non_event_rows``, ``write_non_event_rows``, ``stale_non_event_rows``),
 checks the succession rule
 between a table and the one written over it, and derives the
 AlignmentAnchors and potential MatchStamps of a MatchClaim table under the
@@ -67,12 +67,12 @@ from .columns import (
     EXTRACTION_COLUMNS,
     EXTRACTION_REQUIRED,
     EXTRACTION_SCHEMA,
-    INDEX_KINDS,
     INTEGRITY_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
     NOMATCH_SENTINEL,
+    NON_EVENT_KINDS,
     NUMBER_KEYS,
     NUMBER_MEMBERS,
     NUMBER_TYPE,
@@ -94,7 +94,7 @@ from .columns import (
     tables_path,
 )
 from .package import (
-    INDEX_PART,
+    NON_EVENT_PART,
     PACKAGE_FILE,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
@@ -106,10 +106,16 @@ from .package import (
     read_table,
     table_files,
 )
-from .registry import Resolution, index_rows, resolve, stale_index, write_index
+from .registry import (
+    Resolution,
+    non_event_rows,
+    resolve,
+    stale_non_event_rows,
+    write_non_event_rows,
+)
 
 __all__ = [
-    "INDEX_PART",
+    "NON_EVENT_PART",
     "PACKAGE_FILE",
     "TYPE_METADATA_KEY",
     "VERSION_METADATA_KEY",
@@ -130,7 +136,7 @@ __all__ = [
     "EXTRACTION_COLUMNS",
     "EXTRACTION_REQUIRED",
     "EXTRACTION_SCHEMA",
-    "INDEX_KINDS",
+    "NON_EVENT_KINDS",
     "INTEGRITY_TYPE",
     "MATCH_CLAIM_COLUMNS",
     "MATCH_CLAIM_REQUIRED",
@@ -168,7 +174,7 @@ __all__ = [
     "coordinate_value",
     "extraction_problems",
     "fixture_path",
-    "index_rows",
+    "non_event_rows",
     "match_claim_problems",
     "number_cell",
     "potential_matchstamps",
@@ -176,8 +182,8 @@ __all__ = [
     "registry_problems",
     "resolve",
     "row_provenance",
-    "stale_index",
+    "stale_non_event_rows",
     "succession_problems",
     "tables_path",
-    "write_index",
+    "write_non_event_rows",
 ]

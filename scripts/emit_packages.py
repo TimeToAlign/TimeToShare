@@ -20,8 +20,8 @@ The package ``shared/``: two manifests, ``bach/manifest.yaml`` (a score
 ``clt_1`` in quarters and a performance ``dpt_1`` in samples) and
 ``handel/manifest.yaml`` (a score ``clt_2`` with a child ``clt_3`` starting
 at the quarter 4, and a performance ``dpt_2``), share the registry
-``registry/``, a folder of parts: ``index.parquet``, the index rows of both
-manifests' elements, the MatchClaims and the extractions, sorted by
+``registry/``, a folder of parts: ``non_events.parquet``, the non-event rows
+of both manifests' elements, the MatchClaims and the extractions, sorted by
 location and ID, and one part per extraction holding its event rows, sorted
 by timeline, start and ID: ``extraction_1.parquet``, Bach's Projections,
 made from ``bach/alignment.csv``, each with its locator, and
@@ -41,8 +41,8 @@ problem and, where the case concerns them, the resolutions of some IDs.
 Each rejection under ``rejections/<case>/`` is ``shared/`` with one change,
 beside an ``expected.yaml`` listing exactly the problems the package check
 reports, in order. A change that adds or alters an element of a manifest
-changes its index row too, so that the index is stale only where a case
-says so.
+changes its non-event row too, so that the non-event rows are stale only
+where a case says so.
 """
 
 from __future__ import annotations
@@ -81,7 +81,7 @@ REGISTRY = "registry/"
 EXTRACTIONS = "tables/extractions.parquet"
 PROJECTIONS = "tables/Projection/"
 MATCH_CLAIMS = "tables/MatchClaim/"
-INDEX_FILE = f"{REGISTRY}index.parquet"
+NON_EVENTS_FILE = f"{REGISTRY}non_events.parquet"
 BACH_PART = f"{REGISTRY}extraction_1.parquet"
 HANDEL_PART = f"{REGISTRY}extraction_2.parquet"
 PART_A_FILE = f"{PROJECTIONS}part_a.parquet"
@@ -224,8 +224,10 @@ def event(
     }
 
 
-def index(identifier: str, kind: str, location: str, **members: Any) -> dict[str, Any]:
-    """An index row."""
+def non_event(
+    identifier: str, kind: str, location: str, **members: Any
+) -> dict[str, Any]:
+    """A non-event row."""
     return {**_NULLS, "id": identifier, "kind": kind, "location": location, **members}
 
 
@@ -254,24 +256,24 @@ HANDEL_EVENTS: list[dict[str, Any]] = [
 """Handel's event rows, sorted by timeline, start and ID; the two on the
 child ``clt_3`` lie at 1/2 and 3/2 on it, 9/2 and 11/2 on its root."""
 
-INDEX: list[dict[str, Any]] = [
-    index("clt_1", "Timeline", BACH_FILE),
-    index("dpt_1", "Timeline", BACH_FILE),
-    index("resource_1", "Resource", BACH_FILE),
-    index("resource_2", "Resource", BACH_FILE),
-    index("clt_2", "Timeline", HANDEL_FILE),
-    index("clt_3", "Timeline", HANDEL_FILE),
-    index("dpt_2", "Timeline", HANDEL_FILE),
-    index("resource_1", "Resource", HANDEL_FILE),
-    index("resource_2", "Resource", HANDEL_FILE),
+NON_EVENTS: list[dict[str, Any]] = [
+    non_event("clt_1", "Timeline", BACH_FILE),
+    non_event("dpt_1", "Timeline", BACH_FILE),
+    non_event("resource_1", "Resource", BACH_FILE),
+    non_event("resource_2", "Resource", BACH_FILE),
+    non_event("clt_2", "Timeline", HANDEL_FILE),
+    non_event("clt_3", "Timeline", HANDEL_FILE),
+    non_event("dpt_2", "Timeline", HANDEL_FILE),
+    non_event("resource_1", "Resource", HANDEL_FILE),
+    non_event("resource_2", "Resource", HANDEL_FILE),
     *(
-        index(f"claim_{number}", "MatchClaim", MATCH_CLAIMS)
+        non_event(f"claim_{number}", "MatchClaim", MATCH_CLAIMS)
         for number in (1, 2, 3, 4, 5)
     ),
-    index("extraction_1", "Extraction", EXTRACTIONS),
-    index("extraction_2", "Extraction", EXTRACTIONS),
+    non_event("extraction_1", "Extraction", EXTRACTIONS),
+    non_event("extraction_2", "Extraction", EXTRACTIONS),
 ]
-"""The index rows, sorted by location and ID: each element of the two
+"""The non-event rows, sorted by location and ID: each element of the two
 manifests, each MatchClaim and each extraction."""
 
 
@@ -437,7 +439,10 @@ RESOLUTIONS: list[dict[str, Any]] = [
         "id": "dpt_1",
         "found": [
             resolution(
-                "Timeline", BACH_FILE, BACH_FILE, index("dpt_1", "Timeline", BACH_FILE)
+                "Timeline",
+                BACH_FILE,
+                BACH_FILE,
+                non_event("dpt_1", "Timeline", BACH_FILE),
             )
         ],
     },
@@ -455,7 +460,7 @@ RESOLUTIONS: list[dict[str, Any]] = [
                 "MatchClaim",
                 MATCH_CLAIMS,
                 BACH_FILE,
-                index("claim_1", "MatchClaim", MATCH_CLAIMS),
+                non_event("claim_1", "MatchClaim", MATCH_CLAIMS),
             )
         ],
     },
@@ -467,7 +472,7 @@ RESOLUTIONS: list[dict[str, Any]] = [
                 "Extraction",
                 EXTRACTIONS,
                 BACH_FILE,
-                index("extraction_1", "Extraction", EXTRACTIONS),
+                non_event("extraction_1", "Extraction", EXTRACTIONS),
             )
         ],
     },
@@ -485,13 +490,13 @@ RESOLUTIONS: list[dict[str, Any]] = [
                 "Resource",
                 BACH_FILE,
                 BACH_FILE,
-                index("resource_1", "Resource", BACH_FILE),
+                non_event("resource_1", "Resource", BACH_FILE),
             ),
             resolution(
                 "Resource",
                 HANDEL_FILE,
                 HANDEL_FILE,
-                index("resource_1", "Resource", HANDEL_FILE),
+                non_event("resource_1", "Resource", HANDEL_FILE),
             ),
         ],
     },
@@ -518,7 +523,7 @@ class Package:
             HANDEL_FILE: copy.deepcopy(HANDEL),
         }
         self.tables: dict[str, tuple[list[dict[str, Any]], pa.Schema]] = {
-            INDEX_FILE: (copy.deepcopy(INDEX), REGISTRY_SCHEMA),
+            NON_EVENTS_FILE: (copy.deepcopy(NON_EVENTS), REGISTRY_SCHEMA),
             BACH_PART: (copy.deepcopy(BACH_EVENTS), REGISTRY_SCHEMA),
             HANDEL_PART: (copy.deepcopy(HANDEL_EVENTS), REGISTRY_SCHEMA),
             EXTRACTIONS: (extractions(), EXTRACTION_SCHEMA),
@@ -527,7 +532,7 @@ class Package:
             CLAIM_FILE: (copy.deepcopy(CLAIMS), MATCH_CLAIM_SCHEMA),
         }
         self.metadata = {
-            INDEX_FILE: _metadata("Registry"),
+            NON_EVENTS_FILE: _metadata("Registry"),
             BACH_PART: _metadata("Registry"),
             HANDEL_PART: _metadata("Registry"),
             EXTRACTIONS: _metadata("Extraction"),
@@ -590,23 +595,27 @@ def _recording_resource(package: Package) -> None:
             "media_type": "audio/flac",
         }
     )
-    package.tables[INDEX_FILE][0].insert(4, index("resource_3", "Resource", BACH_FILE))
+    package.tables[NON_EVENTS_FILE][0].insert(
+        4, non_event("resource_3", "Resource", BACH_FILE)
+    )
 
 
 def _timeline_in_two_manifests(package: Package) -> None:
     handel = package.manifests[HANDEL_FILE]
     handel["timelines"].insert(1, {"id": "dpt_1", "unit": "samples", "length": 352800})
     handel["resources"][1]["timelines"].append("dpt_1")
-    package.tables[INDEX_FILE][0].insert(6, index("dpt_1", "Timeline", HANDEL_FILE))
+    package.tables[NON_EVENTS_FILE][0].insert(
+        6, non_event("dpt_1", "Timeline", HANDEL_FILE)
+    )
 
 
 def _single_file_registry(package: Package) -> None:
     rows = [
-        *package.tables.pop(INDEX_FILE)[0],
+        *package.tables.pop(NON_EVENTS_FILE)[0],
         *package.tables.pop(BACH_PART)[0],
         *package.tables.pop(HANDEL_PART)[0],
     ]
-    for name in (INDEX_FILE, BACH_PART, HANDEL_PART):
+    for name in (NON_EVENTS_FILE, BACH_PART, HANDEL_PART):
         del package.metadata[name]
     package.tables["registry.parquet"] = (rows, REGISTRY_SCHEMA)
     package.metadata["registry.parquet"] = _metadata("Registry")
@@ -657,7 +666,7 @@ ACCEPTANCES: dict[
         _recording_resource,
         "Bach's manifest names a recording beside it, a resource naming no "
         "table, which package.yaml does not list and the package check "
-        "passes over; the index holds the resource.",
+        "passes over; the registry holds its non-event row.",
         None,
     ),
     "timeline_in_two_manifests": (
@@ -674,7 +683,7 @@ ACCEPTANCES: dict[
                         "Timeline",
                         BACH_FILE,
                         BACH_FILE,
-                        index("dpt_1", "Timeline", BACH_FILE),
+                        non_event("dpt_1", "Timeline", BACH_FILE),
                     )
                 ],
             },
@@ -686,7 +695,7 @@ ACCEPTANCES: dict[
                         "Timeline",
                         HANDEL_FILE,
                         HANDEL_FILE,
-                        index("dpt_1", "Timeline", HANDEL_FILE),
+                        non_event("dpt_1", "Timeline", HANDEL_FILE),
                     )
                 ],
             },
@@ -705,13 +714,13 @@ ACCEPTANCES: dict[
                         "Timeline",
                         BACH_FILE,
                         BACH_FILE,
-                        index("dpt_1", "Timeline", BACH_FILE),
+                        non_event("dpt_1", "Timeline", BACH_FILE),
                     ),
                     resolution(
                         "Timeline",
                         HANDEL_FILE,
                         HANDEL_FILE,
-                        index("dpt_1", "Timeline", HANDEL_FILE),
+                        non_event("dpt_1", "Timeline", HANDEL_FILE),
                     ),
                 ],
             },
@@ -719,7 +728,7 @@ ACCEPTANCES: dict[
     ),
     "single_file_registry": (
         _single_file_registry,
-        "The registry is one file, registry.parquet, holding the index rows and "
+        "The registry is one file, registry.parquet, holding the non-event rows and "
         "the event rows of both extractions.",
         None,
     ),
@@ -789,8 +798,8 @@ def _claim_across_manifests(package: Package) -> None:
             (coordinate(3, QUARTERS), coordinate(132300, SAMPLES)),
         ),
     )
-    package.tables[INDEX_FILE][0].insert(
-        14, index("claim_6", "MatchClaim", MATCH_CLAIMS)
+    package.tables[NON_EVENTS_FILE][0].insert(
+        14, non_event("claim_6", "MatchClaim", MATCH_CLAIMS)
     )
 
 
@@ -815,7 +824,9 @@ def _resource_naming_no_table(package: Package) -> None:
             "url": "../tables/Box/",
         }
     )
-    package.tables[INDEX_FILE][0].insert(4, index("resource_3", "Resource", BACH_FILE))
+    package.tables[NON_EVENTS_FILE][0].insert(
+        4, non_event("resource_3", "Resource", BACH_FILE)
+    )
 
 
 def _folder_with_size(package: Package) -> None:
@@ -856,7 +867,7 @@ def _file_in_a_listed_folder(package: Package) -> None:
 
 def _registry_missing(package: Package) -> None:
     del package.package["tables"][0]
-    for name in (INDEX_FILE, BACH_PART, HANDEL_PART):
+    for name in (NON_EVENTS_FILE, BACH_PART, HANDEL_PART):
         del package.tables[name]
     for manifest in package.manifests.values():
         del manifest["resources"][1]
@@ -920,18 +931,33 @@ def _registry_id_twice(package: Package) -> None:
     )
 
 
-def _index_row_with_a_position(package: Package) -> None:
-    row = package.tables[INDEX_FILE][0][0]
+def _non_event_row_with_a_position(package: Package) -> None:
+    row = package.tables[NON_EVENTS_FILE][0][0]
     row.update(unit="quarters", number_type="fraction", start=number(0, "fraction"))
 
 
-def _stale_index(package: Package) -> None:
-    rows = package.tables[INDEX_FILE][0]
-    rows[0]["name"] = "Score"
-    rows.insert(4, index("region_9", "Region", BACH_FILE, timeline_id="clt_1"))
+def _stale_non_event_row(package: Package) -> None:
+    rows = package.tables[NON_EVENTS_FILE][0]
+    rows[0]["kind"] = "VirtualTimeline"
+    rows.insert(4, non_event("region_9", "Region", BACH_FILE, timeline_id="clt_1"))
     package.manifests[HANDEL_FILE]["groups"] = [
         {"id": "group_1", "members": ["clt_2", "dpt_2"]}
     ]
+
+
+FEATURES = "tables/features.parquet"
+"""A carried table of audio features, its rows keyed by no ID."""
+
+
+def _foreign_table(package: Package) -> None:
+    package.package["tables"].append(
+        {"type": "Features", "url": FEATURES, "media_type": PARQUET}
+    )
+    package.tables[FEATURES] = (
+        [{"x": 0.25}, {"x": 0.5}],
+        pa.schema([pa.field("x", pa.float64())]),
+    )
+    package.metadata[FEATURES] = _metadata("Features")
 
 
 def _projection_of_its_own_timeline(package: Package) -> None:
@@ -1267,7 +1293,7 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
         [
             problem(
                 "duplicate_id",
-                INDEX_FILE,
+                NON_EVENTS_FILE,
                 9,
                 ["id"],
                 "the ID 'claim_1' is given twice, first in "
@@ -1275,60 +1301,79 @@ REJECTIONS: dict[str, tuple[Callable[[Package], None], str, list[dict[str, Any]]
             ),
         ],
     ),
-    "index_row_with_a_position": (
-        _index_row_with_a_position,
-        "An index row states a position; an element's position lies in its manifest.",
+    "non_event_row_with_a_position": (
+        _non_event_row_with_a_position,
+        "A non-event row states a position; an element's position lies in its "
+        "manifest.",
         [
             problem(
                 "schema_violation",
-                INDEX_FILE,
+                NON_EVENTS_FILE,
                 0,
                 ["unit"],
-                "an index row has no 'unit'",
+                "a non-event row has no 'unit'",
             ),
             problem(
                 "schema_violation",
-                INDEX_FILE,
+                NON_EVENTS_FILE,
                 0,
                 ["number_type"],
-                "an index row has no 'number_type'",
+                "a non-event row has no 'number_type'",
             ),
             problem(
                 "schema_violation",
-                INDEX_FILE,
+                NON_EVENTS_FILE,
                 0,
                 ["start"],
-                "an index row has no 'start'",
+                "a non-event row has no 'start'",
             ),
         ],
     ),
-    "stale_index": (
-        _stale_index,
-        "The index gives Bach's score a name it does not have and a region it "
-        "does not hold, and lacks the group Handel's manifest gained.",
+    "stale_non_event_row": (
+        _stale_non_event_row,
+        "The registry gives Bach's score timeline the kind of a virtual "
+        "timeline, holds a region the manifest does not hold, and lacks the "
+        "group Handel's manifest gained.",
         [
             problem(
-                "stale_index",
-                INDEX_FILE,
+                "stale_non_event_row",
+                NON_EVENTS_FILE,
                 0,
-                ["name"],
-                "the index row of the ID 'clt_1' at 'bach/manifest.yaml' has the name "
-                "'Score', not None",
+                ["kind"],
+                "the non-event row of the ID 'clt_1' at 'bach/manifest.yaml' has the "
+                "kind 'VirtualTimeline', not 'Timeline'",
             ),
             problem(
-                "stale_index",
-                INDEX_FILE,
+                "stale_non_event_row",
+                NON_EVENTS_FILE,
                 4,
                 ["id"],
-                "the index holds the ID 'region_9' at 'bach/manifest.yaml', which no "
-                "manifest or table holds there",
+                "the registry holds the non-event row of the ID 'region_9' at "
+                "'bach/manifest.yaml', which no manifest or table holds there",
             ),
             problem(
-                "stale_index",
-                INDEX_FILE,
+                "stale_non_event_row",
+                NON_EVENTS_FILE,
                 None,
                 ["id"],
-                "the index lacks the ID 'group_1' at 'handel/manifest.yaml'",
+                "the registry lacks the non-event row of the ID 'group_1' at "
+                "'handel/manifest.yaml'",
+            ),
+        ],
+    ),
+    "foreign_table": (
+        _foreign_table,
+        "The package carries a table of audio features, whose rows have no ID: "
+        "neither registry, Extraction table, MatchClaims nor pre-parsed events.",
+        [
+            problem(
+                "foreign_table",
+                FEATURES,
+                None,
+                [],
+                "the table 'tables/features.parquet' of type 'Features' has no 'id' "
+                "column: a package's tables hold the registry, the Extraction table, "
+                "MatchClaim tables and pre-parsed tables of events keyed by 'id'",
             ),
         ],
     ),

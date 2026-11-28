@@ -65,7 +65,7 @@ from .checks import (
     _shape,
     _shared_provenance,
     extraction_problems,
-    is_index,
+    is_non_event,
     match_claim_problems,
     projection_problems,
     registry_problems,
@@ -80,7 +80,7 @@ from .columns import (
 )
 
 __all__ = [
-    "INDEX_PART",
+    "NON_EVENT_PART",
     "PACKAGE_FILE",
     "TYPE_METADATA_KEY",
     "VERSION_METADATA_KEY",
@@ -89,11 +89,11 @@ __all__ = [
     "package_fixture_path",
     "package_problems",
     "is_table_resource",
-    "index_rows_of",
+    "non_event_rows_of",
     "read_table",
     "stale_problems",
     "table_files",
-    "table_index_rows",
+    "table_non_event_rows",
 ]
 
 TYPE_METADATA_KEY = "timetoshare:type"
@@ -102,8 +102,8 @@ TYPE_METADATA_KEY = "timetoshare:type"
 VERSION_METADATA_KEY = "timetoshare:version"
 """The schema-metadata key holding the format version of a file."""
 
-INDEX_PART = "index.parquet"
-"""The part of a registry folder holding the index rows."""
+NON_EVENT_PART = "non_events.parquet"
+"""The part of a registry folder holding the non-event rows."""
 
 PackageCode = Literal[
     "missing_file",
@@ -123,7 +123,8 @@ PackageCode = Literal[
     "unknown_location",
     "missing_content",
     "unregistered_id",
-    "stale_index",
+    "stale_non_event_row",
+    "foreign_table",
 ]
 """The codes of the package check's own rules. A package problem may also
 carry the code of a manifest's validation (``timetoshare.ValidationCode``)
@@ -565,8 +566,12 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     (``duplicate_url``, at the later entry's ``url``; the later entry reads
     its other files only), a file stating another type (``table_type``) or
     another version (``version_mismatch``) than its entry and the package,
-    and a column of two Arrow types in two files (``column_type_mismatch``,
-    at the folder; its rows are not read). Then the rules the manifests and
+    a column of two Arrow types in two files (``column_type_mismatch``, at
+    the folder; its rows are not read), and a table of another type than
+    ``Registry``, ``Extraction`` and ``MatchClaim`` whose files hold no
+    ``id`` column of strings, a carried table of audio features for instance
+    (``foreign_table``, at the table; its rows are not read, and no location
+    or resource naming it is checked against its rows). Then the rules the manifests and
     the rows keep together, each over every row in the order of the
     entries, their files and their rows:
 
@@ -600,11 +605,11 @@ def package_problems(path: str | os.PathLike[str]) -> list[PackageProblem]:
     - ``invalid_projection_of``, then ``unknown_timeline``: a pre-parsed
       Projection standing for an event of its own registry row's timeline,
       or of a timeline no manifest holds;
-    - ``stale_index``: an index row of the registry that no manifest
-      element, MatchClaim or extraction gives at its location (an extra
-      row), or whose ``kind``, ``timeline_id`` or ``name`` differs from
-      what they give, in the registry's order; then each index row they
-      give that the registry lacks, by location and ID (a missing row). A
+    - ``stale_non_event_row``: a non-event row of the registry that no
+      manifest element, MatchClaim or extraction gives at its location (an
+      extra row), or whose ``kind`` or ``timeline_id`` differs from what
+      they give, in the registry's order; then each non-event row they give
+      that the registry lacks, by location and ID (a missing row). A
       manifest or table that could not be read gives no row and has none
       compared;
     - ``claim_across_manifests``: a MatchClaim whose two timelines no one
@@ -733,7 +738,9 @@ def _entries(
     root: Path, value: Mapping[str, Any], version: str, problems: _Problems
 ) -> list[_Entry]:
     """The table entries whose files could be read as one table; a file an
-    earlier entry of its type reaches already is left to that entry."""
+    earlier entry of its type reaches already is left to that entry, and a
+    table of events without an ``id`` column of strings is reported
+    (``foreign_table``) and not read."""
     found = []
     reached: dict[tuple[str, str], int] = {}
     for index, entry in enumerate(value["tables"]):
@@ -804,8 +811,27 @@ def _entries(
                 found_problem.message,
             )
             continue
+        if kind not in _TABLE_KINDS and not all(
+            _holds_ids(schema) for schema in schemas
+        ):
+            problems.add(
+                "foreign_table",
+                url,
+                None,
+                (),
+                f"the table '{entry['url']}' of type '{kind}' has no 'id' column: a "
+                "package's tables hold the registry, the Extraction table, "
+                "MatchClaim tables and pre-parsed tables of events keyed by 'id'",
+            )
+            continue
         found.append(_Entry(index, kind, url, files, names, schemas))
     return found
+
+
+def _holds_ids(schema: pa.Schema) -> bool:
+    """Whether a file's columns hold an ``id`` column of strings."""
+    index = schema.get_field_index("id")
+    return index >= 0 and pa.types.is_string(schema.field(index).type)
 
 
 @dataclass(frozen=True)
@@ -826,14 +852,13 @@ _REGISTRY_COLUMNS = (
     "timeline_id",
     "unit",
     "number_type",
-    "name",
     "extraction_id",
     "locator",
     "vanished_in",
 )
 _CLAIM_COLUMNS = ("id", "timeline_a_id", "timeline_b_id")
-_COMPARED = ("kind", "timeline_id", "name")
-"""The columns of an index row compared with what the manifests give."""
+_COMPARED = ("kind", "timeline_id")
+"""The columns of a non-event row compared with what the manifests give."""
 
 _KIND_OF = {
     "timelines": "Timeline",
@@ -882,25 +907,23 @@ def _at_path(value: Any, path: Path_) -> Any:
     return value
 
 
-_INDEX_ROW = pa.schema(
-    [
-        pa.field(name, pa.string())
-        for name in ("id", "kind", "location", "timeline_id", "name")
-    ]
+_NON_EVENT_ROW = pa.schema(
+    [pa.field(name, pa.string()) for name in ("id", "kind", "location", "timeline_id")]
 )
-"""The columns of an index row its sources give, as :func:`index_rows_of`
-builds them; every other column of an index row is null."""
+"""The columns of a non-event row its sources give, as
+:func:`non_event_rows_of` builds them; every other column of a non-event row
+is null."""
 
 
-def index_rows_of(manifest: Mapping[str, Any], location: str) -> pa.Table:
-    """The index rows a valid manifest (IDs bare) gives, at ``location``.
+def non_event_rows_of(manifest: Mapping[str, Any], location: str) -> pa.Table:
+    """The non-event rows a valid manifest (IDs bare) gives, at ``location``.
 
     One row per element holding an ID, in the order of
     :func:`~timetoshare.validation.diagnostics.manifest_ids`: ``id``,
     ``kind`` (the schema's name of the element's definition), ``location``,
     ``timeline_id`` (the timeline holding a region or a flow-control
     element, the ``timeline`` of a named timestamp or an elision, else
-    null) and ``name`` (the element's, else null), all strings."""
+    null), all strings; the element's name is its manifest's alone."""
     rows = []
     for identifier, path in manifest_ids(manifest):
         element = _at_path(manifest, path[:-1])
@@ -911,24 +934,24 @@ def index_rows_of(manifest: Mapping[str, Any], location: str) -> pa.Table:
         elif kind in ("Timestamp", "Elision"):
             held = element.get("timeline")
             timeline = held if isinstance(held, str) else None
-        name = element.get("name")
         rows.append(
             {
                 "id": identifier,
                 "kind": kind,
                 "location": location,
                 "timeline_id": timeline,
-                "name": name if isinstance(name, str) else None,
             }
         )
-    return pa.Table.from_pylist(rows, schema=_INDEX_ROW)
+    return pa.Table.from_pylist(rows, schema=_NON_EVENT_ROW)
 
 
-def table_index_rows(ids: pa.Array, kind: str, location: str | pa.Array) -> pa.Table:
-    """The index rows of the MatchClaims or the extractions of a table:
+def table_non_event_rows(
+    ids: pa.Array, kind: str, location: str | pa.Array
+) -> pa.Table:
+    """The non-event rows of the MatchClaims or the extractions of a table:
     one per non-null ID of ``ids``, of ``kind`` (``MatchClaim`` or
     ``Extraction``), at ``location``, the table entry's URL, one for all
-    or one per ID; in the columns of :func:`index_rows_of`."""
+    or one per ID; in the columns of :func:`non_event_rows_of`."""
     kept = pc.is_valid(ids)
     ids = ids.filter(kept)
     if isinstance(location, str):
@@ -941,9 +964,8 @@ def table_index_rows(ids: pa.Array, kind: str, location: str | pa.Array) -> pa.T
             "kind": pa.repeat(pa.scalar(kind, pa.string()), len(ids)),
             "location": locations.cast(pa.string()),
             "timeline_id": pa.nulls(len(ids), pa.string()),
-            "name": pa.nulls(len(ids), pa.string()),
         },
-        schema=_INDEX_ROW,
+        schema=_NON_EVENT_ROW,
     )
 
 
@@ -961,18 +983,18 @@ def _resolved_locations(locations: pa.Array) -> pa.Array:
 def stale_problems(
     held: pa.Table, expected: pa.Table, file: str, unread: Collection[str]
 ) -> list[PackageProblem]:
-    """Where the index rows held disagree with the index rows expected
-    (``stale_index``), one problem per row.
+    """Where the non-event rows held disagree with the non-event rows expected
+    (``stale_non_event_row``), one problem per row.
 
-    ``held`` is the index part's index rows in its order, with their
+    ``held`` is the non-event part's non-event rows in its order, with their
     ``row`` in the part (int64) beside the columns of
-    :func:`index_rows_of`; ``expected`` the index rows the sources give;
-    ``file`` the index part's path from the package root; ``unread`` the
+    :func:`non_event_rows_of`; ``expected`` the non-event rows the sources give;
+    ``file`` the non-event part's path from the package root; ``unread`` the
     paths from the root of the manifests and tables that could not be read,
     whose rows are not compared. Rows are matched by ``id`` and by
     ``location`` resolved against the package root, so that
     ``./bach/manifest.yaml`` and ``bach/manifest.yaml`` are one location;
-    ``kind``, ``timeline_id`` and ``name`` are compared. First the held
+    ``kind`` and ``timeline_id`` are compared. First the held
     rows in their order, an extra one (nothing expected there, or a
     location and ID held again; path ``["id"]``) or a differing one (path
     its first differing column), then each expected row the part lacks, by
@@ -1030,24 +1052,24 @@ def stale_problems(
         if row["extra"]:
             problems.append(
                 PackageProblem(
-                    "stale_index",
+                    "stale_non_event_row",
                     file,
                     row["row"],
                     ("id",),
-                    f"the index holds the ID '{row['id']}' at '{row['location']}', "
-                    "which no manifest or table holds there",
+                    f"the registry holds the non-event row of the ID '{row['id']}' "
+                    f"at '{row['location']}', which no manifest or table holds there",
                 )
             )
             continue
         column = next(name for name in _COMPARED if row[f"differs_{name}"])
         problems.append(
             PackageProblem(
-                "stale_index",
+                "stale_non_event_row",
                 file,
                 row["row"],
                 (column,),
-                f"the index row of the ID '{row['id']}' at '{row['location']}' has "
-                f"the {column} {row[column]!r}, not {row[f'expected_{column}']!r}",
+                f"the non-event row of the ID '{row['id']}' at '{row['location']}' "
+                f"has the {column} {row[column]!r}, not {row[f'expected_{column}']!r}",
             )
         )
     missing = unique.join(
@@ -1059,11 +1081,12 @@ def stale_problems(
     for row in missing.select(["id", "resolved"]).to_pylist():
         problems.append(
             PackageProblem(
-                "stale_index",
+                "stale_non_event_row",
                 file,
                 None,
                 ("id",),
-                f"the index lacks the ID '{row['id']}' at '{row['resolved']}'",
+                f"the registry lacks the non-event row of the ID '{row['id']}' at "
+                f"'{row['resolved']}'",
             )
         )
     return problems
@@ -1115,7 +1138,7 @@ class _Check:
         self._timelines()
         self._resources()
         registry = self._registry_rows()
-        events = registry.filter(pc.invert(is_index(registry["kind"])))
+        events = registry.filter(pc.invert(is_non_event(registry["kind"])))
         contents = self._rows(_content=True)
         claims = self._rows(_content=False)
         extractions = self._column_rows(self.extraction, "id")
@@ -1643,12 +1666,15 @@ class _Check:
                 ),
             )
 
-    def _expected_index(self, claims: pa.Table, extractions: pa.Table) -> pa.Table:
-        """The index rows the manifests, the MatchClaim tables and the
+    def _expected_non_event_rows(
+        self, claims: pa.Table, extractions: pa.Table
+    ) -> pa.Table:
+        """The non-event rows the manifests, the MatchClaim tables and the
         Extraction table give, each manifest's at its path from the root,
         each table's at its entry's URL."""
         parts = [
-            index_rows_of(manifest.bare, manifest.file) for manifest in self.manifests
+            non_event_rows_of(manifest.bare, manifest.file)
+            for manifest in self.manifests
         ]
         urls = pa.array([entry.url for entry in self.entries], pa.string())
         numbers = pa.array([entry.index for entry in self.entries], pa.int64())
@@ -1656,28 +1682,28 @@ class _Check:
             locations = urls.take(
                 pc.index_in(_array(table, "entry"), value_set=numbers)
             )
-            parts.append(table_index_rows(_array(table, "id"), kind, locations))
-        return pa.concat_tables(parts) if parts else _INDEX_ROW.empty_table()
+            parts.append(table_non_event_rows(_array(table, "id"), kind, locations))
+        return pa.concat_tables(parts) if parts else _NON_EVENT_ROW.empty_table()
 
     def _stale(
         self, registry: pa.Table, claims: pa.Table, extractions: pa.Table
     ) -> None:
-        """The index part's index rows (``index.parquet`` of a folder, else
-        the file) against the rows the sources give (:func:`stale_problems`);
-        rows at a manifest or table that could not be read are not
-        compared."""
+        """The non-event part's non-event rows (``non_events.parquet`` of a
+        folder, else the file) against the rows the sources give
+        (:func:`stale_problems`); rows at a manifest or table that could not
+        be read are not compared."""
         entry = self.registry
         if entry is None:
             return
-        at = f"{entry.url}{INDEX_PART}" if entry.url.endswith("/") else entry.url
-        index = registry.filter(is_index(registry["kind"]))
+        at = f"{entry.url}{NON_EVENT_PART}" if entry.url.endswith("/") else entry.url
+        non_events = registry.filter(is_non_event(registry["kind"]))
         if at in self.names:
             part = pa.array([self.names.index(at)], pa.int64())
-            index = index.filter(pc.is_in(index["file"], value_set=part))
+            non_events = non_events.filter(pc.is_in(non_events["file"], value_set=part))
         else:
-            index = index.slice(0, 0)
-        held = index.select([*_INDEX_ROW.names, "row"])
-        expected = self._expected_index(claims, extractions)
+            non_events = non_events.slice(0, 0)
+        held = non_events.select([*_NON_EVENT_ROW.names, "row"])
+        expected = self._expected_non_event_rows(claims, extractions)
         self.problems.found.extend(stale_problems(held, expected, at, self.unread))
 
     def _across(self, claims: pa.Table) -> None:

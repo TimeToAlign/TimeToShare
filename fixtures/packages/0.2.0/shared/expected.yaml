@@ -19,7 +19,6 @@ resolutions:
           kind: Timeline
           location: bach/manifest.yaml
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null
@@ -40,7 +39,6 @@ resolutions:
           kind: Projection
           location: tables/Projection/
           locator: "row 1"
-          name: null
           number_type: int
           start:
             denominator: null
@@ -68,7 +66,6 @@ resolutions:
           kind: MatchClaim
           location: tables/MatchClaim/
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null
@@ -89,7 +86,6 @@ resolutions:
           kind: Extraction
           location: tables/extractions.parquet
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null
@@ -117,7 +113,6 @@ resolutions:
           kind: Projection
           location: tables/Projection/
           locator: null
-          name: null
           number_type: fraction
           start:
             denominator: 2
@@ -141,7 +136,6 @@ resolutions:
           kind: Resource
           location: bach/manifest.yaml
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null
@@ -158,7 +152,6 @@ resolutions:
           kind: Resource
           location: handel/manifest.yaml
           locator: null
-          name: null
           number_type: null
           start: null
           timeline_id: null
@@ -182,7 +175,6 @@ resolutions:
           kind: Projection
           location: tables/Projection/
           locator: null
-          name: null
           number_type: fraction
           start:
             denominator: 2

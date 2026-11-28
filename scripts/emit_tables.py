@@ -55,7 +55,7 @@ Projections keep their numbers, so ``projection_6`` and ``projection_7``
 are not held. Every event row names ``extraction_1``, the aligner's run
 without a source file, and the pre-parsed Projection table
 ``projections.parquet`` holding each Projection's ``projection_of``. The
-registry is one file: its index rows (the extraction at
+registry is one file: its non-event rows (the extraction at
 ``extractions.parquet``, each timeline and resource at ``manifest.yaml``,
 each MatchClaim at ``match_claims.parquet``) sorted by location and ID, then its
 event rows sorted by timeline, start and ID; the pre-parsed rows lie in the
@@ -439,7 +439,6 @@ def _projection(
         "number_type": start["number_type"],
         "start": members(start),
         "duration": members(duration),
-        "name": None,
         "extraction_id": EXTRACTION,
         "locator": None,
         "vanished_in": None,
@@ -485,7 +484,7 @@ EVENT_ORDER = [
 a writer writes them, listed by hand."""
 
 
-def _index(identifier: str, kind: str, location: str) -> dict[str, Any]:
+def _non_event(identifier: str, kind: str, location: str) -> dict[str, Any]:
     return {
         "id": identifier,
         "kind": kind,
@@ -494,20 +493,20 @@ def _index(identifier: str, kind: str, location: str) -> dict[str, Any]:
     }
 
 
-INDEX: list[dict[str, Any]] = [
-    _index(EXTRACTION, "Extraction", "extractions.parquet"),
-    _index("clt_1", "Timeline", "manifest.yaml"),
-    _index("clt_2", "Timeline", "manifest.yaml"),
-    _index("cpt_1", "Timeline", "manifest.yaml"),
-    _index("dpt_1", "Timeline", "manifest.yaml"),
-    _index("resource_1", "Resource", "manifest.yaml"),
-    _index("resource_2", "Resource", "manifest.yaml"),
+NON_EVENTS: list[dict[str, Any]] = [
+    _non_event(EXTRACTION, "Extraction", "extractions.parquet"),
+    _non_event("clt_1", "Timeline", "manifest.yaml"),
+    _non_event("clt_2", "Timeline", "manifest.yaml"),
+    _non_event("cpt_1", "Timeline", "manifest.yaml"),
+    _non_event("dpt_1", "Timeline", "manifest.yaml"),
+    _non_event("resource_1", "Resource", "manifest.yaml"),
+    _non_event("resource_2", "Resource", "manifest.yaml"),
     *(
-        _index(f"claim_{number}", "MatchClaim", "match_claims.parquet")
+        _non_event(f"claim_{number}", "MatchClaim", "match_claims.parquet")
         for number in (1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9)
     ),
 ]
-"""The registry's index rows, by location and ID (code point), listed by hand."""
+"""The registry's non-event rows, by location and ID (code point), listed by hand."""
 
 EXTRACTIONS: list[dict[str, Any]] = [
     {
@@ -717,7 +716,7 @@ def _events() -> list[dict[str, Any]]:
 
 
 def registry_table() -> pa.Table:
-    rows = [*INDEX, *_events()]
+    rows = [*NON_EVENTS, *_events()]
     return pa.Table.from_pylist(rows, schema=REGISTRY_SCHEMA)
 
 

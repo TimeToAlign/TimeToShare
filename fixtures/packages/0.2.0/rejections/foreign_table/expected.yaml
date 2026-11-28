@@ -1,0 +1,8 @@
+problems:
+  -
+    code: foreign_table
+    file: tables/features.parquet
+    message: "the table 'tables/features.parquet' of type 'Features' has no 'id' column: a package's tables hold the registry, the Extraction table, MatchClaim tables and pre-parsed tables of events keyed by 'id'"
+    path: []
+    row: null
+reason: "The package carries a table of audio features, whose rows have no ID: neither registry, Extraction table, MatchClaims nor pre-parsed events."

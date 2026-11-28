@@ -14,7 +14,6 @@ resolutions:
           kind: Onset
           location: null
           locator: "row 5"
-          name: null
           number_type: int
           start:
             denominator: null

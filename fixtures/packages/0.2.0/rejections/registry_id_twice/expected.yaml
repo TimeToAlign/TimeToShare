@@ -1,7 +1,7 @@
 problems:
   -
     code: duplicate_id
-    file: registry/index.parquet
+    file: registry/non_events.parquet
     message: "the ID 'claim_1' is given twice, first in 'registry/extraction_2.parquet' at row 5"
     path: [id]
     row: 9

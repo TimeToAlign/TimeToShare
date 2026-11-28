@@ -36,12 +36,12 @@ from timetoshare.tables import (  # noqa: E402
     EXTRACTION_COLUMNS,
     EXTRACTION_REQUIRED,
     EXTRACTION_SCHEMA,
-    INDEX_KINDS,
     INTEGRITY_TYPE,
     MATCH_CLAIM_COLUMNS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
     NOMATCH_SENTINEL,
+    NON_EVENT_KINDS,
     NUMBER_KEYS,
     NUMBER_MEMBERS,
     NUMBER_TYPE,
@@ -195,7 +195,6 @@ def event(
         "number_type": start["number_type"],
         "start": number(start),
         "duration": number(duration),
-        "name": None,
         "extraction_id": "extraction_1",
         "locator": None,
         "vanished_in": None,
@@ -204,8 +203,8 @@ def event(
     return row
 
 
-def index(identifier: str, kind: str, location: str, **members: Any) -> dict:
-    """A registry's index row."""
+def non_event(identifier: str, kind: str, location: str, **members: Any) -> dict:
+    """A registry's non-event row."""
     row = {key: None for key in REGISTRY_SCHEMA.names}
     row.update(id=identifier, kind=kind, location=location, **members)
     return row
@@ -220,13 +219,13 @@ EVENTS = [
 
 REGISTRY = [
     *EVENTS,
-    index("clt_1", "Timeline", "manifest.yaml"),
-    index("dpt_1", "Timeline", "manifest.yaml", name="the recording"),
-    index("region_1", "Region", "manifest.yaml", timeline_id="clt_1"),
-    index("claim_1", "MatchClaim", "match_claims.parquet"),
-    index("extraction_1", "Extraction", "extractions.parquet"),
+    non_event("clt_1", "Timeline", "manifest.yaml"),
+    non_event("dpt_1", "Timeline", "manifest.yaml"),
+    non_event("region_1", "Region", "manifest.yaml", timeline_id="clt_1"),
+    non_event("claim_1", "MatchClaim", "match_claims.parquet"),
+    non_event("extraction_1", "Extraction", "extractions.parquet"),
 ]
-"""The registry: the three event rows, then index rows of two timelines, a
+"""The registry: the three event rows, then non-event rows of two timelines, a
 region, a MatchClaim and the extraction."""
 
 
@@ -367,7 +366,6 @@ def test_the_registry_and_extraction_columns() -> None:
         "number_type",
         "start",
         "duration",
-        "name",
         "extraction_id",
         "locator",
         "vanished_in",
@@ -384,7 +382,7 @@ def test_the_registry_and_extraction_columns() -> None:
         "seed",
         "date",
     )
-    assert INDEX_KINDS == (
+    assert NON_EVENT_KINDS == (
         "Manifest",
         "Timeline",
         "VirtualTimeline",
@@ -404,7 +402,7 @@ def test_the_registry_and_extraction_columns() -> None:
     )
     # Every kind of a manifest element is the manifest schema's name of it.
     definitions = load_schema()["$defs"]
-    elements = INDEX_KINDS[:-2]
+    elements = NON_EVENT_KINDS[:-2]
     assert [kind for kind in elements if kind not in definitions] == []
 
 
@@ -470,7 +468,6 @@ def test_the_registry_and_extraction_schemas_field_by_field() -> None:
         ("number_type", pa.string(), True),
         ("start", _NUMBER, True),
         ("duration", _NUMBER, True),
-        ("name", pa.string(), True),
         ("extraction_id", pa.string(), True),
         ("locator", pa.string(), True),
         ("vanished_in", pa.string(), True),
@@ -544,12 +541,12 @@ def test_the_column_types_are_published_as_data() -> None:
         "MatchClaim": "stable",
     }
     assert {name: sorted(table) for name, table in tables.items()} == {
-        "Registry": ["columns", "description", "index_kinds", "status"],
+        "Registry": ["columns", "description", "non_event_kinds", "status"],
         "Extraction": ["columns", "description", "status"],
         "Projection": ["columns", "description", "status"],
         "MatchClaim": ["columns", "description", "status"],
     }
-    assert tuple(tables["Registry"]["index_kinds"]) == INDEX_KINDS
+    assert tuple(tables["Registry"]["non_event_kinds"]) == NON_EVENT_KINDS
     columns = {
         name: [(column["name"], column["type"]) for column in table["columns"]]
         for name, table in tables.items()
@@ -581,7 +578,6 @@ def test_the_column_types_are_published_as_data() -> None:
         ("number_type", "string"),
         ("start", "number"),
         ("duration", "number"),
-        ("name", "string"),
         ("extraction_id", "string"),
         ("locator", "string"),
         ("vanished_in", "string"),
@@ -1790,17 +1786,17 @@ REGISTRY_CASES = [
         for key in ("timeline_id", "unit", "number_type", "start", "extraction_id")
     ),
     (
-        "index_location_null",
+        "non_event_location_null",
         put(4, "location", value=None),
         [("schema_violation", 4, ("location",))],
         "'location' is null",
     ),
     *(
         (
-            f"index_{key}_stated",
+            f"non_event_{key}_stated",
             put(5, key, value=value),
             [("schema_violation", 5, (key,))],
-            f"an index row has no '{key}'",
+            f"a non-event row has no '{key}'",
         )
         for key, value in (
             ("unit", "quarters"),
@@ -1958,7 +1954,9 @@ def test_each_registry_rule(
     "change",
     [
         None,
-        lambda rows: rows.insert(4, index("clt_1", "Timeline", "other/manifest.yaml")),
+        lambda rows: rows.insert(
+            4, non_event("clt_1", "Timeline", "other/manifest.yaml")
+        ),
         lambda rows: rows[2].update(
             extraction_id="extraction_2", locator=rows[0]["locator"]
         ),
@@ -2053,10 +2051,10 @@ def test_event_rows_against_the_manifest() -> None:
     )
 
 
-def test_index_rows_are_not_checked_against_the_manifest() -> None:
+def test_non_event_rows_are_not_checked_against_the_manifest() -> None:
     # An element of another manifest, a Region on a timeline the manifest
-    # lacks: the package check compares index rows with the manifests.
-    rows = [*REGISTRY, index("region_9", "Region", "x.yaml", timeline_id="ghost")]
+    # lacks: the package check compares non-event rows with the manifests.
+    rows = [*REGISTRY, non_event("region_9", "Region", "x.yaml", timeline_id="ghost")]
     assert registry_problems(registry_table(rows), MANIFEST) == []
 
 
@@ -2289,7 +2287,7 @@ def test_the_fixture_files_are_the_scripts() -> None:
 
 def _events() -> list[dict[str, Any]]:
     rows = pq.read_table(fixture_path("registry.parquet")).to_pylist()
-    return [row for row in rows if row["kind"] not in INDEX_KINDS]
+    return [row for row in rows if row["kind"] not in NON_EVENT_KINDS]
 
 
 def test_the_manifest_names_its_tables_with_their_size_and_digest() -> None:
@@ -2338,12 +2336,14 @@ def test_the_fixture_tables_pass_every_check_against_their_manifest() -> None:
     assert extraction_problems(extractions) == []
 
 
-def test_the_registry_indexes_the_manifest_the_claims_and_the_extraction() -> None:
+def test_the_registry_holds_rows_of_the_manifest_the_claims_and_the_extraction() -> (
+    None
+):
     rows = pq.read_table(fixture_path("registry.parquet")).to_pylist()
     index = [
         (row["location"], row["id"], row["kind"])
         for row in rows
-        if row["kind"] in INDEX_KINDS
+        if row["kind"] in NON_EVENT_KINDS
     ]
     claims = pq.read_table(fixture_path("match_claims.parquet")).column("id")
     assert index == sorted(

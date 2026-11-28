@@ -39,9 +39,9 @@ from timetoshare.tables.checks import (
 )
 from timetoshare.tables.columns import (
     COORDINATE_KEYS,
-    INDEX_KINDS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
+    NON_EVENT_KINDS,
     PROJECTION_REQUIRED,
     PROJECTION_SCHEMA,
     PROVENANCE_METADATA_KEY,
@@ -392,9 +392,9 @@ def projection_problems(
 
 
 _ELEMENTS = tuple(
-    kind for kind in INDEX_KINDS if kind not in ("MatchClaim", "Extraction")
+    kind for kind in NON_EVENT_KINDS if kind not in ("MatchClaim", "Extraction")
 )
-_INDEX_EMPTY = (
+_NON_EVENT_EMPTY = (
     "unit",
     "number_type",
     "start",
@@ -408,24 +408,24 @@ _INDEX_EMPTY = (
 def _registry_nulls(rows: list[dict[str, Any]]) -> Iterator[TableProblem]:
     for index, row in enumerate(rows):
         kind = row["kind"]
-        is_index = kind in INDEX_KINDS
+        is_non_event = kind in NON_EVENT_KINDS
         for key in REGISTRY_SCHEMA.names:
             value = row[key]
             if key in REGISTRY_REQUIRED:
                 missing = value is None
             elif key in REGISTRY_EVENT_REQUIRED:
-                missing = kind is not None and not is_index and value is None
+                missing = kind is not None and not is_non_event and value is None
             elif key == "location":
-                missing = is_index and value is None
+                missing = is_non_event and value is None
             else:
                 missing = False
             if missing:
                 yield TableProblem(
                     "schema_violation", index, (key,), f"'{key}' is null"
                 )
-            if is_index and key in _INDEX_EMPTY and value is not None:
+            if is_non_event and key in _NON_EVENT_EMPTY and value is not None:
                 yield TableProblem(
-                    "schema_violation", index, (key,), f"an index row has no '{key}'"
+                    "schema_violation", index, (key,), f"a non-event row has no '{key}'"
                 )
 
 
@@ -464,7 +464,7 @@ def registry_problems(
                     )
                 )
             seen.add(key)
-        if row["kind"] in INDEX_KINDS:
+        if row["kind"] in NON_EVENT_KINDS:
             continue
         problem = axes.timeline(index, ("timeline_id",), row["timeline_id"])
         if problem:

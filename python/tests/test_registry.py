@@ -1,6 +1,6 @@
-"""The registry: index rows, resolving an ID, the registry command and its hook.
+"""The registry: non-event rows, resolving an ID, the registry command and its hook.
 
-The strategy is the README's section "The registry: index rows, resolving,
+The strategy is the README's section "The registry: non-event rows, resolving,
 the registry command and version steps".
 """
 
@@ -26,10 +26,10 @@ from timetoshare.tables import (  # noqa: E402
 )
 from timetoshare.tables.registry import (  # noqa: E402
     Resolution,
-    index_rows,
+    non_event_rows,
     resolve,
-    stale_index,
-    write_index,
+    stale_non_event_rows,
+    write_non_event_rows,
 )
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -47,7 +47,6 @@ REGISTRY = pa.schema(
         ("number_type", pa.string()),
         ("start", NUMBER),
         ("duration", NUMBER),
-        ("name", pa.string()),
         ("extraction_id", pa.string()),
         ("locator", pa.string()),
         ("vanished_in", pa.string()),
@@ -266,7 +265,6 @@ def event(
         "number_type": number_type,
         "start": start,
         "duration": None,
-        "name": None,
         "extraction_id": extraction,
         "locator": locator,
         "vanished_in": None,
@@ -335,7 +333,7 @@ def manifest(root: Path, url: str, value: dict[str, Any]) -> None:
 
 
 def package(root: Path, registry: str = "registry/") -> Path:
-    """The test package, its index part not yet written."""
+    """The test package, its non-event part not yet written."""
     manifest(root, BACH, bach())
     manifest(root, HANDEL, handel())
     (root / "package.yaml").write_text(
@@ -390,7 +388,7 @@ def package(root: Path, registry: str = "registry/") -> Path:
     return root
 
 
-def row(id: str, kind: str, location: str, timeline=None, name=None) -> dict:
+def row(id: str, kind: str, location: str, timeline=None) -> dict:
     return {
         "id": id,
         "kind": kind,
@@ -400,32 +398,31 @@ def row(id: str, kind: str, location: str, timeline=None, name=None) -> dict:
         "number_type": None,
         "start": None,
         "duration": None,
-        "name": name,
         "extraction_id": None,
         "locator": None,
         "vanished_in": None,
     }
 
 
-INDEX = [
+NON_EVENTS = [
     row("anchor_1", "AlignmentAnchor", BACH),
-    row("bach", "Manifest", BACH, name="Bach"),
+    row("bach", "Manifest", BACH),
     row("bars", "MeasureMap", BACH),
     row("claims", "Resource", BACH),
     row("elision_1", "Elision", BACH, "score"),
     row("fine", "FlowControlElement", BACH, "score"),
     row("movement", "Timeline", BACH),
-    row("ms_1", "MatchStamp", BACH, name="Bar 1"),
+    row("ms_1", "MatchStamp", BACH),
     row("pair", "Group", BACH),
     row("reading", "FlowMap", BACH),
-    row("region_1", "Region", BACH, "score", "A"),
+    row("region_1", "Region", BACH, "score"),
     row("registry", "Resource", BACH),
-    row("score", "Timeline", BACH, name="Score"),
+    row("score", "Timeline", BACH),
     row("score_read", "VirtualTimeline", BACH),
     row("shared", "Timeline", BACH),
     row("tempo", "ConversionMap", BACH),
     row("tempo_chain", "ConversionMap", BACH),
-    row("ts_1", "Timestamp", BACH, "score", "start"),
+    row("ts_1", "Timestamp", BACH, "score"),
     row("ts_m1", "Timestamp", BACH, "score"),
     row("ts_m2", "Timestamp", BACH, "shared"),
     row("ext_1", "Extraction", "extractions.parquet"),
@@ -436,43 +433,45 @@ INDEX = [
     row("claim_1", "MatchClaim", "tables/MatchClaim/"),
     row("claim_2", "MatchClaim", "tables/MatchClaim/"),
 ]
-"""The index rows of the test package, by hand."""
+"""The non-event rows of the test package, by hand."""
 
 
-def index_of(rows: list[dict], id: str, location: str = BACH) -> dict:
+def row_of(rows: list[dict], id: str, location: str = BACH) -> dict:
     (found,) = [r for r in rows if r["id"] == id and r["location"] == location]
     return found
 
 
-# The index rows ----------------------------------------------------------------
+# The non-event rows ----------------------------------------------------------------
 
 
-def test_the_index_rows_of_every_kind(tmp_path: Path) -> None:
-    table = index_rows(package(tmp_path))
+def test_the_non_event_rows_of_every_kind(tmp_path: Path) -> None:
+    table = non_event_rows(package(tmp_path))
     assert table.schema.names == REGISTRY.names
     assert [field.type for field in table.schema] == list(REGISTRY.types)
-    assert table.to_pylist() == INDEX
+    assert table.to_pylist() == NON_EVENTS
 
 
 def test_a_manifest_that_does_not_validate_gives_no_rows(tmp_path: Path) -> None:
     root = package(tmp_path)
     (root / HANDEL).write_text("timetoshare: '0.2.0'\n", encoding="utf-8")
-    assert index_rows(root).to_pylist() == [r for r in INDEX if r["location"] != HANDEL]
+    assert non_event_rows(root).to_pylist() == [
+        r for r in NON_EVENTS if r["location"] != HANDEL
+    ]
 
 
 # Writing -------------------------------------------------------------------------
 
 
-def test_write_index_into_a_folder(tmp_path: Path) -> None:
+def test_writing_into_a_folder(tmp_path: Path) -> None:
     root = package(tmp_path)
     parts = {
         name: (root / "registry" / name).read_bytes()
         for name in ("ext_1.parquet", "ext_2.parquet")
     }
-    written = write_index(root)
-    assert written == root / "registry" / "index.parquet"
+    written = write_non_event_rows(root)
+    assert written == root / "registry" / "non_events.parquet"
     table = pq.read_table(written)
-    assert table.to_pylist() == INDEX
+    assert table.to_pylist() == NON_EVENTS
     assert table.schema.metadata == {
         b"timetoshare:type": b"Registry",
         b"timetoshare:version": b"0.2.0",
@@ -482,36 +481,39 @@ def test_write_index_into_a_folder(tmp_path: Path) -> None:
     assert sorted(p.name for p in (root / "registry").iterdir()) == [
         "ext_1.parquet",
         "ext_2.parquet",
-        "index.parquet",
+        "non_events.parquet",
     ]
 
 
-def test_write_index_creates_a_missing_folder(tmp_path: Path) -> None:
+def test_writing_creates_a_missing_folder(tmp_path: Path) -> None:
     root = package(tmp_path)
     shutil.rmtree(root / "registry")
-    write_index(root)
-    assert pq.read_table(root / "registry" / "index.parquet").to_pylist() == INDEX
+    write_non_event_rows(root)
+    assert (
+        pq.read_table(root / "registry" / "non_events.parquet").to_pylist()
+        == NON_EVENTS
+    )
 
 
-def test_write_index_into_a_single_file_keeps_its_event_rows(tmp_path: Path) -> None:
+def test_writing_into_a_single_file_keeps_its_event_rows(tmp_path: Path) -> None:
     root = package(tmp_path, registry="registry.parquet")
     stale = row("gone", "Region", BACH, "score")
     parquet(root / "registry.parquet", [NOTE_1, stale, NOTE_2], REGISTRY, "Registry")
-    write_index(root)
+    write_non_event_rows(root)
     assert pq.read_table(root / "registry.parquet").to_pylist() == [
-        *INDEX,
+        *NON_EVENTS,
         NOTE_1,
         NOTE_2,
     ]
     assert [p.name for p in root.iterdir() if p.name.startswith(".")] == []
 
 
-def test_an_event_row_in_the_index_part_is_kept(tmp_path: Path) -> None:
+def test_an_event_row_in_the_non_event_part_is_kept(tmp_path: Path) -> None:
     root = package(tmp_path)
-    parquet(root / "registry" / "index.parquet", [NOTE_2], REGISTRY, "Registry")
-    write_index(root)
-    assert pq.read_table(root / "registry" / "index.parquet").to_pylist() == [
-        *INDEX,
+    parquet(root / "registry" / "non_events.parquet", [NOTE_2], REGISTRY, "Registry")
+    write_non_event_rows(root)
+    assert pq.read_table(root / "registry" / "non_events.parquet").to_pylist() == [
+        *NON_EVENTS,
         NOTE_2,
     ]
 
@@ -525,24 +527,27 @@ def test_a_package_without_a_registry_is_refused(tmp_path: Path) -> None:
     with pytest.raises(
         ValueError, match="^package.yaml lists no table of the type Registry$"
     ):
-        write_index(root)
+        write_non_event_rows(root)
 
 
-# The stale index -----------------------------------------------------------------
+# Stale non-event rows ----------------------------------------------------------
 
-PART = "registry/index.parquet"
+PART = "registry/non_events.parquet"
 
 
 def stale_package(root: Path) -> Path:
-    """The written package, then a region added, a group removed, the score
-    renamed and a MatchClaim added."""
+    """The written package, then a region added, a group removed, a named
+    timestamp moved to another timeline, the score renamed (which leaves its
+    non-event row as it was: the registry holds no names) and a MatchClaim
+    added."""
     package(root)
-    write_index(root)
+    write_non_event_rows(root)
     changed = bach()
     changed["timelines"][0]["regions"].append(
         {"id": "region_9", "start": [4, 1], "end": [8, 1]}
     )
     changed["groups"] = []
+    changed["graphical"]["timestamps"][0].update(timeline="shared", coordinate=0.0)
     changed["timelines"][0]["name"] = "Partitur"
     manifest(root, BACH, changed)
     parquet(
@@ -554,56 +559,62 @@ def stale_package(root: Path) -> Path:
     return root
 
 
-def test_a_written_index_is_not_stale(tmp_path: Path) -> None:
+def test_written_non_event_rows_are_not_stale(tmp_path: Path) -> None:
     root = package(tmp_path)
-    write_index(root)
-    assert stale_index(root) == []
+    write_non_event_rows(root)
+    assert stale_non_event_rows(root) == []
 
 
 def test_each_stale_row_is_one_problem(tmp_path: Path) -> None:
-    assert stale_index(stale_package(tmp_path)) == [
+    assert stale_non_event_rows(stale_package(tmp_path)) == [
         PackageProblem(
-            "stale_index",
+            "stale_non_event_row",
             PART,
             8,
             ("id",),
-            "the index holds the ID 'pair' at 'bach/manifest.yaml', which no "
-            "manifest or table holds there",
+            "the registry holds the non-event row of the ID 'pair' at "
+            "'bach/manifest.yaml', which no manifest or table holds there",
         ),
         PackageProblem(
-            "stale_index",
+            "stale_non_event_row",
             PART,
-            12,
-            ("name",),
-            "the index row of the ID 'score' at 'bach/manifest.yaml' has the name "
-            "'Score', not 'Partitur'",
+            17,
+            ("timeline_id",),
+            "the non-event row of the ID 'ts_1' at 'bach/manifest.yaml' has the "
+            "timeline_id 'score', not 'shared'",
         ),
         PackageProblem(
-            "stale_index",
-            PART,
-            None,
-            ("id",),
-            "the index lacks the ID 'region_9' at 'bach/manifest.yaml'",
-        ),
-        PackageProblem(
-            "stale_index",
+            "stale_non_event_row",
             PART,
             None,
             ("id",),
-            "the index lacks the ID 'claim_3' at 'tables/MatchClaim/'",
+            "the registry lacks the non-event row of the ID 'region_9' at "
+            "'bach/manifest.yaml'",
+        ),
+        PackageProblem(
+            "stale_non_event_row",
+            PART,
+            None,
+            ("id",),
+            "the registry lacks the non-event row of the ID 'claim_3' at "
+            "'tables/MatchClaim/'",
         ),
     ]
 
 
-def test_without_an_index_part_every_row_is_missing(tmp_path: Path) -> None:
-    problems = stale_index(package(tmp_path))
+def test_without_a_non_event_part_every_row_is_missing(tmp_path: Path) -> None:
+    problems = stale_non_event_rows(package(tmp_path))
     assert [(p.row, p.message) for p in problems] == [
-        (None, f"the index lacks the ID '{r['id']}' at '{r['location']}'")
-        for r in INDEX
+        (
+            None,
+            f"the registry lacks the non-event row of the ID '{r['id']}' at "
+            f"'{r['location']}'",
+        )
+        for r in NON_EVENTS
     ]
 
 
-# One comparison of the index --------------------------------------------------
+# One comparison of the non-event rows -----------------------------------------
 
 
 def _package_fixtures() -> list[Path]:
@@ -629,13 +640,13 @@ def _the_checks_stale(root: Path) -> list[PackageProblem]:
     return [
         problem
         for problem in package_problems(root / "package.yaml")
-        if problem.code == "stale_index"
+        if problem.code == "stale_non_event_row"
     ]
 
 
 @pytest.mark.parametrize("root", _package_fixtures(), ids=lambda root: root.name)
 def test_the_command_and_the_check_compare_alike(root: Path) -> None:
-    assert stale_index(root) == _the_checks_stale(root)
+    assert stale_non_event_rows(root) == _the_checks_stale(root)
 
 
 def _shared_copy(tmp_path: Path) -> Path:
@@ -651,16 +662,16 @@ def test_an_invalid_manifests_rows_are_not_compared(tmp_path: Path) -> None:
         handel.read_text(encoding="utf-8").replace("unit: quarters", "unit: quarter"),
         encoding="utf-8",
     )
-    assert stale_index(root) == _the_checks_stale(root) == []
-    part = root / "registry" / "index.parquet"
+    assert stale_non_event_rows(root) == _the_checks_stale(root) == []
+    part = root / "registry" / "non_events.parquet"
     before = pq.read_table(part).to_pylist()
-    write_index(root)
+    write_non_event_rows(root)
     after = pq.read_table(part).to_pylist()
     assert [row for row in after if row["location"] == HANDEL] == [
         row for row in before if row["location"] == HANDEL
     ]
     assert after == before
-    assert stale_index(root) == _the_checks_stale(root) == []
+    assert stale_non_event_rows(root) == _the_checks_stale(root) == []
 
 
 def test_locations_are_compared_resolved(tmp_path: Path) -> None:
@@ -671,7 +682,7 @@ def test_locations_are_compared_resolved(tmp_path: Path) -> None:
         for entry in value[member]:
             entry["url"] = "./" + entry["url"]
     file.write_text(dumps(value), encoding="utf-8")
-    assert stale_index(root) == _the_checks_stale(root) == []
+    assert stale_non_event_rows(root) == _the_checks_stale(root) == []
 
 
 def test_the_registry_names_are_public() -> None:
@@ -681,17 +692,19 @@ def test_the_registry_names_are_public() -> None:
     for name in (
         "Resolution",
         "resolve",
-        "index_rows",
-        "write_index",
-        "stale_index",
-        "INDEX_PART",
+        "non_event_rows",
+        "write_non_event_rows",
+        "stale_non_event_rows",
+        "NON_EVENT_PART",
     ):
         assert name in tables.__all__
         assert getattr(tables, name) is getattr(registry, name)
     assert "ELEMENT_KINDS" in tables.__all__
     assert tables.ELEMENT_KINDS is columns.ELEMENT_KINDS
     assert tables.ELEMENT_KINDS == tuple(
-        kind for kind in tables.INDEX_KINDS if kind not in ("MatchClaim", "Extraction")
+        kind
+        for kind in tables.NON_EVENT_KINDS
+        if kind not in ("MatchClaim", "Extraction")
     )
 
 
@@ -701,22 +714,22 @@ def test_the_registry_names_are_public() -> None:
 @pytest.fixture
 def written(tmp_path: Path) -> Path:
     root = package(tmp_path)
-    write_index(root)
+    write_non_event_rows(root)
     return root
 
 
 def test_resolve_through_the_package(written: Path) -> None:
     assert resolve(written, "note_1") == [Resolution("MidiNote", None, None, NOTE_1)]
     assert resolve(written, "shared") == [
-        Resolution("Timeline", BACH, BACH, index_of(INDEX, "shared")),
-        Resolution("Timeline", HANDEL, HANDEL, index_of(INDEX, "shared", HANDEL)),
+        Resolution("Timeline", BACH, BACH, row_of(NON_EVENTS, "shared")),
+        Resolution("Timeline", HANDEL, HANDEL, row_of(NON_EVENTS, "shared", HANDEL)),
     ]
     assert resolve(written, "claim_1") == [
         Resolution(
             "MatchClaim",
             "tables/MatchClaim/",
             None,
-            index_of(INDEX, "claim_1", "tables/MatchClaim/"),
+            row_of(NON_EVENTS, "claim_1", "tables/MatchClaim/"),
         )
     ]
     assert resolve(written, "ext_2") == [
@@ -724,7 +737,7 @@ def test_resolve_through_the_package(written: Path) -> None:
             "Extraction",
             "extractions.parquet",
             None,
-            index_of(INDEX, "ext_2", "extractions.parquet"),
+            row_of(NON_EVENTS, "ext_2", "extractions.parquet"),
         )
     ]
     assert resolve(written, "nothing") == []
@@ -734,10 +747,10 @@ def test_resolve_through_a_manifest(written: Path) -> None:
     through_bach = written / BACH
     through_handel = written / HANDEL
     assert resolve(through_bach, "score") == [
-        Resolution("Timeline", BACH, BACH, index_of(INDEX, "score"))
+        Resolution("Timeline", BACH, BACH, row_of(NON_EVENTS, "score"))
     ]
     assert resolve(through_bach, "shared") == [
-        Resolution("Timeline", BACH, BACH, index_of(INDEX, "shared"))
+        Resolution("Timeline", BACH, BACH, row_of(NON_EVENTS, "shared"))
     ]
     assert resolve(through_bach, "proj_1") == [
         Resolution("Projection", "tables/Projection/", BACH, PROJ_1)
@@ -749,13 +762,13 @@ def test_resolve_through_a_manifest(written: Path) -> None:
     assert resolve(through_handel, "note_2") == [
         Resolution("MidiNote", None, HANDEL, NOTE_2)
     ]
-    claim = index_of(INDEX, "claim_2", "tables/MatchClaim/")
+    claim = row_of(NON_EVENTS, "claim_2", "tables/MatchClaim/")
     assert resolve(through_bach, "claim_2") == [
         Resolution("MatchClaim", "tables/MatchClaim/", BACH, claim)
     ]
     assert resolve(through_handel, "claim_2") == []
-    first = index_of(INDEX, "ext_1", "extractions.parquet")
-    second = index_of(INDEX, "ext_2", "extractions.parquet")
+    first = row_of(NON_EVENTS, "ext_1", "extractions.parquet")
+    second = row_of(NON_EVENTS, "ext_2", "extractions.parquet")
     assert resolve(through_bach, "ext_1") == [
         Resolution("Extraction", "extractions.parquet", BACH, first)
     ]
@@ -781,8 +794,8 @@ def test_resolving_reads_filtered(
         return original(*arguments, **keywords)
 
     monkeypatch.setattr(registry, "read_table", recorded)
-    first = index_of(INDEX, "ext_1", "extractions.parquet")
-    claim = index_of(INDEX, "claim_2", "tables/MatchClaim/")
+    first = row_of(NON_EVENTS, "ext_1", "extractions.parquet")
+    claim = row_of(NON_EVENTS, "claim_2", "tables/MatchClaim/")
     assert resolve(written, "note_1") == [Resolution("MidiNote", None, None, NOTE_1)]
     assert resolve(written, "claim_2") == [
         Resolution("MatchClaim", "tables/MatchClaim/", None, claim)
@@ -839,7 +852,7 @@ def run(capsys: pytest.CaptureFixture, *arguments: str) -> tuple[int, list[str],
     return status, captured.out.splitlines(), captured.err
 
 
-def test_the_command_writes_the_index(
+def test_the_command_writes_the_non_event_rows(
     tmp_path: Path, capsys: pytest.CaptureFixture
 ) -> None:
     root = package(tmp_path)
@@ -848,7 +861,7 @@ def test_the_command_writes_the_index(
         [f"wrote {PART}"],
         "",
     )
-    assert pq.read_table(root / PART).to_pylist() == INDEX
+    assert pq.read_table(root / PART).to_pylist() == NON_EVENTS
 
 
 def test_the_command_takes_the_current_directory(
@@ -868,14 +881,15 @@ def test_the_check_writes_nothing(
     assert run(capsys, "--check", str(root)) == (
         1,
         [
-            f"{PART}: row 8: stale_index: the index holds the ID 'pair' at "
-            "'bach/manifest.yaml', which no manifest or table holds there",
-            f"{PART}: row 12: stale_index: the index row of the ID 'score' at "
-            "'bach/manifest.yaml' has the name 'Score', not 'Partitur'",
-            f"{PART}: stale_index: the index lacks the ID 'region_9' at "
-            "'bach/manifest.yaml'",
-            f"{PART}: stale_index: the index lacks the ID 'claim_3' at "
-            "'tables/MatchClaim/'",
+            f"{PART}: row 8: stale_non_event_row: the registry holds the non-event "
+            "row of the ID 'pair' at 'bach/manifest.yaml', which no manifest or "
+            "table holds there",
+            f"{PART}: row 17: stale_non_event_row: the non-event row of the ID "
+            "'ts_1' at 'bach/manifest.yaml' has the timeline_id 'score', not 'shared'",
+            f"{PART}: stale_non_event_row: the registry lacks the non-event row of "
+            "the ID 'region_9' at 'bach/manifest.yaml'",
+            f"{PART}: stale_non_event_row: the registry lacks the non-event row of "
+            "the ID 'claim_3' at 'tables/MatchClaim/'",
         ],
         "",
     )

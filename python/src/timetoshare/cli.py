@@ -22,11 +22,11 @@ release allows a lower step than the change requires. On any other
 ``HEAD`` it reports the same comparison and passes. ``--summary FILE``
 appends the report to FILE as Markdown, the job summary of a workflow.
 
-``timetoshare registry [--check] [PACKAGE]`` rewrites the index rows of
+``timetoshare registry [--check] [PACKAGE]`` rewrites the non-event rows of
 the registry of the package PACKAGE (a folder holding ``package.yaml``, the
 current directory without it) from its manifests, MatchClaim tables and
 Extraction table, the event rows untouched; with ``--check`` it writes
-nothing and lists every index row that is missing, extra or differs, one
+nothing and lists every non-event row that is missing, extra or differs, one
 line each, exiting 1 when there is one: the check of the pre-commit hook
 ``timetoshare-registry``.
 
@@ -378,17 +378,17 @@ def _validate(arguments: argparse.Namespace) -> int:
 
 def _registry(arguments: argparse.Namespace) -> int:
     try:
-        from .tables import stale_index, write_index
+        from .tables import stale_non_event_rows, write_non_event_rows
     except ImportError as error:
         print(f"timetoshare: {error}", file=sys.stderr)
         return 1
     root = Path(arguments.package)
     try:
         if not arguments.check:
-            written = write_index(root)
+            written = write_non_event_rows(root)
             print(f"wrote {written.relative_to(root).as_posix()}")
             return 0
-        problems = stale_index(root)
+        problems = stale_non_event_rows(root)
     except (OSError, ValueError) as error:
         print(f"timetoshare: {error}", file=sys.stderr)
         return 1
@@ -573,7 +573,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     step.set_defaults(run=_step)
     registry = commands.add_parser(
-        "registry", help="rewrite or check the index rows of a package's registry"
+        "registry", help="rewrite or check the non-event rows of a package's registry"
     )
     registry.add_argument(
         "package",
@@ -585,7 +585,7 @@ def _parser() -> argparse.ArgumentParser:
     registry.add_argument(
         "--check",
         action="store_true",
-        help="write nothing; list every index row that is missing, extra or "
+        help="write nothing; list every non-event row that is missing, extra or "
         "differs, and fail if there is one",
     )
     registry.set_defaults(run=_registry)

@@ -32,9 +32,9 @@ from .columns import (
     ELEMENT_KINDS,
     EXTRACTION_REQUIRED,
     EXTRACTION_SCHEMA,
-    INDEX_KINDS,
     MATCH_CLAIM_REQUIRED,
     MATCH_CLAIM_SCHEMA,
+    NON_EVENT_KINDS,
     NUMBER_KEYS,
     NUMBER_MEMBERS,
     PROJECTION_REQUIRED,
@@ -1113,31 +1113,32 @@ def _projected_events(
         )
 
 
-_INDEX_KINDS = pa.array(INDEX_KINDS, pa.string())
+_NON_EVENT_KINDS = pa.array(NON_EVENT_KINDS, pa.string())
 _ELEMENT_KINDS = pa.array(ELEMENT_KINDS, pa.string())
-_INDEX_EMPTY = tuple(
+_NON_EVENT_EMPTY = tuple(
     name
     for name in REGISTRY_SCHEMA.names
-    if name not in (*REGISTRY_REQUIRED, "location", "timeline_id", "name")
+    if name not in (*REGISTRY_REQUIRED, "location", "timeline_id")
 )
-"""The columns an index row leaves null: its positions and its extraction."""
+"""The columns a non-event row leaves null: its positions and its extraction."""
 _KEY_SEPARATOR = pa.scalar("\x00")
 
 
-def is_index(kinds: pa.Array | pa.ChunkedArray) -> pa.Array:
-    """Where a registry row is an index row, its ``kind`` one of
-    :data:`~timetoshare.tables.INDEX_KINDS`; a null kind is no index row."""
-    return _held(pc.is_in(kinds, value_set=_INDEX_KINDS))
+def is_non_event(kinds: pa.Array | pa.ChunkedArray) -> pa.Array:
+    """Where a registry row is a non-event row, its ``kind`` one of
+    :data:`~timetoshare.tables.NON_EVENT_KINDS`; a null kind is no non-event
+    row."""
+    return _held(pc.is_in(kinds, value_set=_NON_EVENT_KINDS))
 
 
 def _registry_null_problems(table: pa.Table) -> list[TableProblem]:
     """A null where no row holds one (``id``, ``kind``); in an event row, a
-    null where an event row holds none; in an index row, a ``location`` that
-    is null or a column stated that an index row leaves null."""
+    null where an event row holds none; in a non-event row, a ``location``
+    that is null or a column stated that a non-event row leaves null."""
     found = _Found()
     kinds = _array(table, "kind")
-    index = is_index(kinds)
-    event = _all(pc.is_valid(kinds), _not(index))
+    non_event = is_non_event(kinds)
+    event = _all(pc.is_valid(kinds), _not(non_event))
     for place, key in enumerate(REGISTRY_SCHEMA.names):
         values = _array(table, key)
         if key in REGISTRY_REQUIRED:
@@ -1145,7 +1146,7 @@ def _registry_null_problems(table: pa.Table) -> list[TableProblem]:
         elif key in REGISTRY_EVENT_REQUIRED:
             missing = _all(event, pc.is_null(values))
         elif key == "location":
-            missing = _all(index, pc.is_null(values))
+            missing = _all(non_event, pc.is_null(values))
         else:
             missing = None
         for row in _rows(missing) if missing is not None else ():
@@ -1154,8 +1155,8 @@ def _registry_null_problems(table: pa.Table) -> list[TableProblem]:
                 place,
                 TableProblem("schema_violation", row, (key,), f"'{key}' is null"),
             )
-        if key in _INDEX_EMPTY:
-            for row in _rows(_all(index, pc.is_valid(values))):
+        if key in _NON_EVENT_EMPTY:
+            for row in _rows(_all(non_event, pc.is_valid(values))):
                 found.add(
                     row,
                     place,
@@ -1163,7 +1164,7 @@ def _registry_null_problems(table: pa.Table) -> list[TableProblem]:
                         "schema_violation",
                         row,
                         (key,),
-                        f"an index row has no '{key}'",
+                        f"a non-event row has no '{key}'",
                     ),
                 )
     return found.problems()
@@ -1195,8 +1196,8 @@ def registry_problems(
     """Every problem of a registry, checked against a manifest (as read from
     its file, IDs written ``#``) where one is given.
 
-    A row is an index row when its ``kind`` is one of
-    :data:`~timetoshare.tables.INDEX_KINDS`, else an event row. Each ID is
+    A row is a non-event row when its ``kind`` is one of
+    :data:`~timetoshare.tables.NON_EVENT_KINDS`, else an event row. Each ID is
     valid; an event, MatchClaim or Extraction ID is held once among all of
     these rows, an element's once per ``location`` (``duplicate_id``). An
     event row states its timeline, its axis, its ``start`` and its
@@ -1204,13 +1205,13 @@ def registry_problems(
     number type (``invalid_coordinate``), its duration not negative
     (``invalid_duration``), and one timeline's rows are on one axis, the
     manifest's timeline's where a manifest is given (``axis_mismatch``); a
-    locator is held once within its extraction (``duplicate_locator``). An
-    index row states its ``location`` and no position nor extraction.
+    locator is held once within its extraction (``duplicate_locator``). A
+    non-event row states its ``location`` and no position nor extraction.
     Given a manifest, every event row's timeline is one of it, else
     ``unknown_timeline``: a registry the manifests of a package share is
     read for one manifest by filtering first
     (:func:`timetoshare.tables.read_table` with the timelines its Registry
-    resource lists). Index rows are checked against the manifests by the
+    resource lists). Non-event rows are checked against the manifests by the
     package check."""
     problems = _schema_problems(table, REGISTRY_SCHEMA)
     if problems:
@@ -1222,8 +1223,8 @@ def registry_problems(
     found = _Found()
     ids = _array(table, "id")
     kinds = _array(table, "kind")
-    index = is_index(kinds)
-    event = _not(index)
+    non_event = is_non_event(kinds)
+    event = _not(non_event)
     malformed = _malformed(ids)
     rows = _rows(malformed)
     for row, value in zip(rows, _at(ids, rows), strict=True):

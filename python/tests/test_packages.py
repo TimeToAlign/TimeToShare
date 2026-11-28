@@ -606,7 +606,7 @@ def test_timelines_need_the_column_naming_a_rows_timeline(tmp_path: Path) -> Non
         "the table has no column 'timeline_id'",
     )
     folder = package / "registry"
-    for name in ("index.parquet", "extraction_1.parquet", "extraction_2.parquet"):
+    for name in ("non_events.parquet", "extraction_1.parquet", "extraction_2.parquet"):
         _rewrite(folder / name, lambda table: table.drop_columns(["timeline_id", "id"]))
     assert len(read_table(folder)) == 25
     assert _table_refusal(lambda: read_table(folder, timelines=["dpt_1"])) == (
@@ -759,9 +759,10 @@ def test_every_rejection_is_stated() -> None:
         "file_in_a_listed_folder",
         "file_of_another_type",
         "folder_with_size",
-        "index_row_with_a_position",
+        "foreign_table",
         "locator_twice",
         "missing_content",
+        "non_event_row_with_a_position",
         "projection_id_in_two_files",
         "projection_of_its_own_timeline",
         "projection_of_no_timeline",
@@ -770,7 +771,7 @@ def test_every_rejection_is_stated() -> None:
         "registry_missing",
         "resource_naming_no_table",
         "row_of_no_manifest",
-        "stale_index",
+        "stale_non_event_row",
         "table_listed_twice",
         "timeline_unlisted",
         "unknown_extraction",
@@ -854,15 +855,16 @@ EXPECTED = {
     "locator_twice": [
         ("duplicate_locator", "registry/extraction_1.parquet", 3, ["locator"])
     ],
-    "registry_id_twice": [("duplicate_id", "registry/index.parquet", 9, ["id"])],
-    "index_row_with_a_position": [
-        ("schema_violation", "registry/index.parquet", 0, [column])
+    "registry_id_twice": [("duplicate_id", "registry/non_events.parquet", 9, ["id"])],
+    "foreign_table": [("foreign_table", "tables/features.parquet", None, [])],
+    "non_event_row_with_a_position": [
+        ("schema_violation", "registry/non_events.parquet", 0, [column])
         for column in ("unit", "number_type", "start")
     ],
-    "stale_index": [
-        ("stale_index", "registry/index.parquet", 0, ["name"]),
-        ("stale_index", "registry/index.parquet", 4, ["id"]),
-        ("stale_index", "registry/index.parquet", None, ["id"]),
+    "stale_non_event_row": [
+        ("stale_non_event_row", "registry/non_events.parquet", 0, ["kind"]),
+        ("stale_non_event_row", "registry/non_events.parquet", 4, ["id"]),
+        ("stale_non_event_row", "registry/non_events.parquet", None, ["id"]),
     ],
     "projection_of_its_own_timeline": [
         (
@@ -930,14 +932,22 @@ def test_the_package_check_words_its_new_rules() -> None:
     )
     assert [
         problem["message"]
-        for problem in _problems(package_fixture_path("rejections", "stale_index"))
+        for problem in _problems(
+            package_fixture_path("rejections", "stale_non_event_row")
+        )
     ] == [
-        "the index row of the ID 'clt_1' at 'bach/manifest.yaml' has the name "
-        "'Score', not None",
-        "the index holds the ID 'region_9' at 'bach/manifest.yaml', which no "
-        "manifest or table holds there",
-        "the index lacks the ID 'group_1' at 'handel/manifest.yaml'",
+        "the non-event row of the ID 'clt_1' at 'bach/manifest.yaml' has the kind "
+        "'VirtualTimeline', not 'Timeline'",
+        "the registry holds the non-event row of the ID 'region_9' at "
+        "'bach/manifest.yaml', which no manifest or table holds there",
+        "the registry lacks the non-event row of the ID 'group_1' at "
+        "'handel/manifest.yaml'",
     ]
+    assert first("foreign_table") == (
+        "the table 'tables/features.parquet' of type 'Features' has no 'id' column: "
+        "a package's tables hold the registry, the Extraction table, MatchClaim "
+        "tables and pre-parsed tables of events keyed by 'id'"
+    )
 
 
 def test_each_manifest_alone_passes_the_repeated_id() -> None:
@@ -1030,13 +1040,16 @@ def test_a_url_leaving_the_package_names_no_table(tmp_path: Path) -> None:
 
 
 def _lacks(identifier: str, location: str = "bach/manifest.yaml") -> dict:
-    """The index's missing row of a manifest element added in a test."""
+    """The missing non-event row of a manifest element added in a test."""
     return {
-        "code": "stale_index",
-        "file": "registry/index.parquet",
+        "code": "stale_non_event_row",
+        "file": "registry/non_events.parquet",
         "row": None,
         "path": ["id"],
-        "message": f"the index lacks the ID '{identifier}' at '{location}'",
+        "message": (
+            f"the registry lacks the non-event row of the ID '{identifier}' at "
+            f"'{location}'"
+        ),
     }
 
 
@@ -1275,6 +1288,53 @@ def test_an_event_id_is_unique_across_every_type(tmp_path: Path) -> None:
     ]
 
 
+def _foreign(url: str, kind: str) -> dict[str, Any]:
+    return {
+        "code": "foreign_table",
+        "file": url,
+        "row": None,
+        "path": [],
+        "message": f"the table '{url}' of type '{kind}' has no 'id' column: a "
+        "package's tables hold the registry, the Extraction table, MatchClaim "
+        "tables and pre-parsed tables of events keyed by 'id'",
+    }
+
+
+def test_a_table_without_ids_of_strings_is_foreign(tmp_path: Path) -> None:
+    directory = _copied(tmp_path)
+    _write_table(
+        directory / "tables" / "Box" / "part_a.parquet",
+        [{"id": "box_1", "label": "a box"}],
+        BOX,
+        "Box",
+    )
+    _write_table(
+        directory / "tables" / "Box" / "part_b.parquet",
+        [{"label": "a box without an ID"}],
+        pa.schema([("label", pa.string())]),
+        "Box",
+    )
+    _write_table(
+        directory / "tables" / "scores.parquet",
+        [{"id": 1, "x": 0.5}, {"id": 2, "x": 0.75}],
+        pa.schema([("id", pa.int64()), ("x", pa.float64())]),
+        "Score",
+    )
+    _listing(
+        directory,
+        lambda value: value["tables"].extend(
+            [
+                {"type": "Box", "url": "tables/Box/"},
+                {"type": "Score", "url": "tables/scores.parquet"},
+            ]
+        ),
+    )
+    assert _problems(directory) == [
+        _foreign("tables/Box/", "Box"),
+        _foreign("tables/scores.parquet", "Score"),
+    ]
+
+
 def test_a_large_package_checks_each_row_once(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1365,7 +1425,7 @@ def test_the_fixture_files_are_the_scripts() -> None:
         },
     ]
     for name, kind in (
-        ("registry/index.parquet", "Registry"),
+        ("registry/non_events.parquet", "Registry"),
         ("registry/extraction_1.parquet", "Registry"),
         ("registry/extraction_2.parquet", "Registry"),
         ("tables/extractions.parquet", "Extraction"),
@@ -1377,7 +1437,7 @@ def test_the_fixture_files_are_the_scripts() -> None:
         assert metadata[TYPE_METADATA_KEY.encode()] == kind.encode()
         assert metadata[VERSION_METADATA_KEY.encode()] == b"0.2.0"
         assert (PROVENANCE_METADATA_KEY.encode() in metadata) is (kind == "MatchClaim")
-    index = pq.read_table(SHARED / "registry" / "index.parquet").to_pylist()
+    index = pq.read_table(SHARED / "registry" / "non_events.parquet").to_pylist()
     keys = [(row["location"], row["id"]) for row in index]
     assert keys == sorted(keys)
     assert {row["kind"] for row in index} == {

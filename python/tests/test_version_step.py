@@ -125,7 +125,7 @@ def test_the_cases_cover_the_table() -> None:
         "projection_row_edited",
         "projection_row_removed",
         "region_added",
-        "registry_index_only",
+        "registry_non_event_rows_only",
         "registry_projection_moved",
         "registry_row_added",
         "registry_row_removed",
@@ -160,11 +160,11 @@ def test_every_case_manifest_validates(path: Path) -> None:
 @pytest.mark.parametrize(
     "root", PACKAGES, ids=lambda path: path.relative_to(VERSIONS).as_posix()
 )
-def test_every_case_package_has_a_fresh_index(root: Path) -> None:
+def test_every_case_package_has_fresh_non_event_rows(root: Path) -> None:
     pytest.importorskip("pyarrow")
-    from timetoshare.tables.registry import stale_index
+    from timetoshare.tables.registry import stale_non_event_rows
 
-    assert stale_index(root) == []
+    assert stale_non_event_rows(root) == []
 
 
 def test_the_case_tables_are_the_scripts() -> None:

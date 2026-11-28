@@ -46,7 +46,7 @@ __all__ = [
     "EXTRACTION_COLUMNS",
     "EXTRACTION_REQUIRED",
     "EXTRACTION_SCHEMA",
-    "INDEX_KINDS",
+    "NON_EVENT_KINDS",
     "INTEGRITY_TYPE",
     "MATCH_CLAIM_COLUMNS",
     "MATCH_CLAIM_REQUIRED",
@@ -83,7 +83,7 @@ def tables_path() -> Path:
     The one source of :data:`REGISTRY_SCHEMA`, :data:`EXTRACTION_SCHEMA`,
     :data:`PROJECTION_SCHEMA` and :data:`MATCH_CLAIM_SCHEMA`: its ``types``
     declare the structs a cell holds, its ``tables`` each table's status and
-    its columns, in order, and the registry's ``index_kinds``.
+    its columns, in order, and the registry's ``non_event_kinds``.
     """
     return data_root() / "schema" / SCHEMA_VERSION / TABLES_DOCUMENT
 
@@ -220,7 +220,7 @@ row's."""
 
 REGISTRY_SCHEMA = _table_schema("Registry")
 """The registry: one row per resolvable ID of a package, an event row or an
-index row."""
+non-event row."""
 
 EXTRACTION_SCHEMA = _table_schema("Extraction")
 """The Extraction table: one row per run of a parser over a source file."""
@@ -251,16 +251,18 @@ REGISTRY_EVENT_REQUIRED = (
 EXTRACTION_REQUIRED = _required("Extraction")
 """The columns of the Extraction table that hold no null, in its order."""
 
-INDEX_KINDS: tuple[str, ...] = tuple(_TABLES["tables"]["Registry"]["index_kinds"])
-"""The kinds of the registry's index rows: the schema's names of the manifest
+NON_EVENT_KINDS: tuple[str, ...] = tuple(
+    _TABLES["tables"]["Registry"]["non_event_kinds"]
+)
+"""The kinds of the registry's non-event rows: the schema's names of the manifest
 elements, ``MatchClaim`` and ``Extraction``. A row of any other kind is an
 event row, its kind its event's type."""
 
 ELEMENT_KINDS: tuple[str, ...] = tuple(
-    kind for kind in INDEX_KINDS if kind not in ("MatchClaim", "Extraction")
+    kind for kind in NON_EVENT_KINDS if kind not in ("MatchClaim", "Extraction")
 )
-"""The kinds of the index rows of manifest elements: the schema's names of
-their definitions, the index kinds but ``MatchClaim`` and ``Extraction``."""
+"""The kinds of the non-event rows of manifest elements: the schema's names of
+their definitions, the non-event kinds but ``MatchClaim`` and ``Extraction``."""
 
 
 _INT64 = (-(2**63), 2**63 - 1)

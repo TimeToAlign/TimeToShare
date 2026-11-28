@@ -1,20 +1,21 @@
-"""The registry of a package: its index rows, resolving an ID, writing the index.
+"""The registry of a package: its non-event rows, resolving an ID, writing them.
 
 A package's registry is the table of the type ``Registry`` its
 ``package.yaml`` lists: one row per resolvable ID. An **event row** gives an
 event's position on the axis of the root of its timeline's family, its
-extraction and its locator; an **index row** names an element of a manifest,
-a MatchClaim or an Extraction by its ``kind`` and its ``location``. Index
-rows are derived: :func:`index_rows` builds them from the manifests, the
-MatchClaim tables and the Extraction table, :func:`write_index` writes them
-into the registry's index part, and :func:`stale_index` lists where the
-index part disagrees with them, as the package check does. :func:`resolve`
+extraction and its locator; a **non-event row** names an element of a
+manifest, a MatchClaim or an Extraction by its ``kind`` and its
+``location``. Non-event rows are derived: :func:`non_event_rows` builds them
+from the manifests, the MatchClaim tables and the Extraction table,
+:func:`write_non_event_rows` writes them into the registry's non-event part,
+and :func:`stale_non_event_rows` lists where the non-event part disagrees
+with them, as the package check does. :func:`resolve`
 finds every row of an ID, through a package or through one of its
 manifests.
 
 The registry is a file, or a folder of parts when its URL ends in ``/``:
-``index.parquet`` holds the index rows, every other part the event rows of
-one extraction. A ``location`` is a URI reference resolved against the
+``non_events.parquet`` holds the non-event rows, every other part the event
+rows of one extraction. A ``location`` is a URI reference resolved against the
 package root, the folder of ``package.yaml`` (a manifest alone: its folder).
 """
 
@@ -40,29 +41,29 @@ from ..validate import (
     validate,
 )
 from ..validation.diagnostics import entries_of
-from .checks import TableError, _schema_problems, is_index
+from .checks import TableError, _schema_problems, is_non_event
 from .columns import ELEMENT_KINDS, REGISTRY_SCHEMA
 from .package import (
-    _INDEX_ROW,
-    INDEX_PART,
+    _NON_EVENT_ROW,
+    NON_EVENT_PART,
     TYPE_METADATA_KEY,
     VERSION_METADATA_KEY,
     PackageProblem,
     _resolved_locations,
     _strings,
-    index_rows_of,
+    non_event_rows_of,
     read_table,
     stale_problems,
-    table_index_rows,
+    table_non_event_rows,
 )
 
 __all__ = [
-    "INDEX_PART",
+    "NON_EVENT_PART",
     "Resolution",
-    "index_rows",
+    "non_event_rows",
     "resolve",
-    "stale_index",
-    "write_index",
+    "stale_non_event_rows",
+    "write_non_event_rows",
 ]
 
 
@@ -80,7 +81,7 @@ class Resolution:
             package root: the manifest resolved through, or, through the
             package, an element's own manifest; ``None`` otherwise.
         row: The registry row as a dictionary of its columns; ``None`` for
-            an element of a manifest without a registry or one the index
+            an element of a manifest without a registry or one the registry
             lacks.
     """
 
@@ -97,7 +98,7 @@ def _bare(id: str) -> str:
 
 @dataclass(frozen=True)
 class _Sources:
-    """The index rows a package's sources give, and the paths from the root
+    """The non-event rows a package's sources give, and the paths from the root
     of the manifests and tables listed that could not be read."""
 
     rows: pa.Table
@@ -144,7 +145,7 @@ class _Package:
         return urls[0]
 
     def sources(self) -> _Sources:
-        """The index rows of the valid manifests (each at its URL as
+        """The non-event rows of the valid manifests (each at its URL as
         ``package.yaml`` lists it) and of the MatchClaim and Extraction
         tables (at their entries' URLs), and what could not be read: a
         missing or invalid manifest, a missing or unreadable table."""
@@ -161,7 +162,7 @@ class _Package:
             except (SchemaValidationError, UnsupportedVersionError):
                 unread.add(path)
                 continue
-            parts.append(index_rows_of(with_bare_ids(manifest), url))
+            parts.append(non_event_rows_of(with_bare_ids(manifest), url))
         for kind in ("MatchClaim", "Extraction"):
             for url in self.urls("tables", kind):
                 path = package_path(url)
@@ -173,25 +174,25 @@ class _Package:
                 except TableError:
                     unread.add(path)
                     continue
-                parts.append(table_index_rows(_strings(table, "id"), kind, url))
-        rows = pa.concat_tables(parts) if parts else _INDEX_ROW.empty_table()
+                parts.append(table_non_event_rows(_strings(table, "id"), kind, url))
+        rows = pa.concat_tables(parts) if parts else _NON_EVENT_ROW.empty_table()
         rows = rows.sort_by([("location", "ascending"), ("id", "ascending")])
         return _Sources(rows, frozenset(unread))
 
-    def index_part(self) -> tuple[Path, str]:
-        """The index part of the registry: its path, and its path from the
+    def non_event_part(self) -> tuple[Path, str]:
+        """The non-event part of the registry: its path, and its path from the
         package root."""
         url = self.registry()
         path = package_path(url)
         if path is None:
             raise ValueError(f"the registry '{url}' lies outside the package")
         if url.endswith("/"):
-            path += INDEX_PART
+            path += NON_EVENT_PART
         return self.root / path, path
 
 
 def _as_registry(table: pa.Table) -> pa.Table:
-    """Index rows in the registry's columns and order, every other column null."""
+    """Non-event rows in the registry's columns and order, every other column null."""
     return pa.table(
         {
             field.name: (
@@ -205,18 +206,17 @@ def _as_registry(table: pa.Table) -> pa.Table:
     )
 
 
-def index_rows(package_root: str | os.PathLike[str]) -> pa.Table:
-    """The index rows of a package, as its manifests and tables give them.
+def non_event_rows(package_root: str | os.PathLike[str]) -> pa.Table:
+    """The non-event rows of a package, as its manifests and tables give them.
 
     One row per element with an ID of each valid manifest ``package.yaml``
     lists (``kind`` the schema's name of the element, ``location`` the
     manifest's URL as ``package.yaml`` lists it, ``timeline_id`` the timeline
     holding a region or a flow-control element and the ``timeline`` of a
-    named timestamp or an elision, ``name`` the element's name), one per
-    row of each MatchClaim table and of the Extraction table (``location``
-    the table entry's URL); built by
-    :func:`~timetoshare.tables.package.index_rows_of` and
-    :func:`~timetoshare.tables.package.table_index_rows`, as the package
+    named timestamp or an elision), one per row of each MatchClaim table and
+    of the Extraction table (``location`` the table entry's URL); built by
+    :func:`~timetoshare.tables.package.non_event_rows_of` and
+    :func:`~timetoshare.tables.package.table_non_event_rows`, as the package
     check builds them. Every other column is null. The rows are sorted by
     ``location``, then ``id``, by code point.
 
@@ -226,11 +226,11 @@ def index_rows(package_root: str | os.PathLike[str]) -> pa.Table:
     return _as_registry(_Package.at(package_root).sources().rows)
 
 
-# The index part.
+# The non-event part.
 
 
 def _held_rows(part: Path) -> pa.Table | None:
-    """The rows of an index part as written; ``None`` for no part."""
+    """The rows of a non-event part as written; ``None`` for no part."""
     if not part.is_file():
         return None
     return read_table(part, type="Registry")
@@ -261,15 +261,15 @@ def _at_unread(table: pa.Table, unread: Iterable[str]) -> pa.Array:
     return pc.fill_null(pc.is_in(paths, value_set=gone), False)
 
 
-def write_index(package_root: str | os.PathLike[str]) -> Path:
-    """Write the registry's index part from the package's sources.
+def write_non_event_rows(package_root: str | os.PathLike[str]) -> Path:
+    """Write the registry's non-event part from the package's sources.
 
-    For a registry folder the part is ``index.parquet`` in it, the other
+    For a registry folder the part is ``non_events.parquet`` in it, the other
     parts untouched; for a single file the file itself. The part holds the
-    index rows of :func:`index_rows`, and, sorted in among them, the index
-    rows it held at a manifest or table that could not be read, which
+    non-event rows of :func:`non_event_rows`, and, sorted in among them, the
+    non-event rows it held at a manifest or table that could not be read, which
     cannot be rebuilt and are kept as they were; then the rows that are no
-    index rows, as they were, so that no event row is lost. The file is
+    non-event rows, as they were, so that no event row is lost. The file is
     written under a name starting with ``.`` and renamed over the part, and
     states the type ``Registry`` and the format version in its metadata.
 
@@ -282,36 +282,38 @@ def write_index(package_root: str | os.PathLike[str]) -> Path:
             type ``Registry``, or the registry lies outside the package.
     """
     package = _Package.at(package_root)
-    part, _ = package.index_part()
+    part, _ = package.non_event_part()
     sources = package.sources()
     rows = _as_registry(sources.rows)
     held = _held_rows(part)
     if held is not None:
         held = held.replace_schema_metadata(None)
-        index = is_index(_strings(held, "kind"))
-        indexed = held.filter(index)
-        kept = indexed.filter(_at_unread(indexed, sources.unread))
+        non_event = is_non_event(_strings(held, "kind"))
+        non_events = held.filter(non_event)
+        kept = non_events.filter(_at_unread(non_events, sources.unread))
         if len(kept):
             rows = pa.concat_tables([rows, kept], promote_options="default").sort_by(
                 [("location", "ascending"), ("id", "ascending")]
             )
-        events = held.filter(pc.invert(index))
+        events = held.filter(pc.invert(non_event))
         if len(events):
             rows = pa.concat_tables([rows, events], promote_options="default")
     _write(rows, part)
     return part
 
 
-def stale_index(package_root: str | os.PathLike[str]) -> list[PackageProblem]:
-    """Where the registry's index part disagrees with the package's sources.
+def stale_non_event_rows(
+    package_root: str | os.PathLike[str],
+) -> list[PackageProblem]:
+    """Where the registry's non-event part disagrees with the package's sources.
 
-    The index rows of the part are compared with :func:`index_rows` by
-    :func:`~timetoshare.tables.package.stale_problems`, the comparison the
+    The non-event rows of the part are compared with :func:`non_event_rows`
+    by     :func:`~timetoshare.tables.package.stale_problems`, the comparison the
     package check makes, so that this list is the package check's
-    ``stale_index`` problems: rows matched by ``id`` and ``location``
-    resolved against the package root, ``kind``, ``timeline_id`` and
-    ``name`` compared, rows at a manifest or table that could not be read
-    not compared. A missing index part lacks every row; a part whose columns
+    ``stale_non_event_row`` problems: rows matched by ``id`` and ``location``
+    resolved against the package root, ``kind`` and ``timeline_id``
+    compared, rows at a manifest or table that could not be read not
+    compared. A missing non-event part lacks every row; a part whose columns
     are not the registry's has none compared, its table check's to report.
 
     Raises:
@@ -320,19 +322,19 @@ def stale_index(package_root: str | os.PathLike[str]) -> list[PackageProblem]:
             type ``Registry``, or the registry lies outside the package.
     """
     package = _Package.at(package_root)
-    part, file = package.index_part()
+    part, file = package.non_event_part()
     sources = package.sources()
     held = _held_rows(part)
     if held is None or _schema_problems(held.schema.empty_table(), REGISTRY_SCHEMA):
         held = REGISTRY_SCHEMA.empty_table()
-    rows = pc.indices_nonzero(is_index(_strings(held, "kind")))
-    index = pa.table(
+    rows = pc.indices_nonzero(is_non_event(_strings(held, "kind")))
+    non_events = pa.table(
         {
-            **{name: _strings(held, name).take(rows) for name in _INDEX_ROW.names},
+            **{name: _strings(held, name).take(rows) for name in _NON_EVENT_ROW.names},
             "row": rows.cast(pa.int64()),
         }
     )
-    return stale_problems(index, sources.rows, file, sources.unread)
+    return stale_problems(non_events, sources.rows, file, sources.unread)
 
 
 # Resolving.
@@ -420,15 +422,15 @@ def _through_manifest(file: Path, id: str) -> list[Resolution]:
     resolved = _resolved_locations(_strings(with_id, "location"))
     kinds = _strings(with_id, "kind")
     found: list[Resolution] = []
-    elements = index_rows_of(manifest, location)
+    elements = non_event_rows_of(manifest, location)
     for element in elements.filter(pc.equal(elements["id"], id)).to_pylist():
-        index = with_id.filter(
+        held = with_id.filter(
             pc.fill_null(
                 pc.and_(pc.equal(resolved, at), pc.equal(kinds, element["kind"])), False
             )
         ).to_pylist()
         found.append(
-            Resolution(element["kind"], location, location, index[0] if index else None)
+            Resolution(element["kind"], location, location, held[0] if held else None)
         )
     listed = pa.array(
         sorted(
@@ -442,7 +444,7 @@ def _through_manifest(file: Path, id: str) -> list[Resolution]:
         ),
         pa.string(),
     )
-    event = pc.invert(is_index(kinds))
+    event = pc.invert(is_non_event(kinds))
     events = pc.and_(
         event, pc.fill_null(pc.is_in(_strings(with_id, "timeline_id"), listed), False)
     )
@@ -468,7 +470,8 @@ def resolve(path: str | os.PathLike[str], id: str) -> list[Resolution]:
     Through a package root (a folder holding ``package.yaml``): every row of
     its registry with the ID, an element's with its manifest. Through a
     manifest file: the element of the manifest with the ID first (with its
-    index row, or ``None`` without a registry or where the index lacks it),
+    non-event row, or ``None`` without a registry or where the registry
+    lacks it),
     then the rows of its Registry resources' registries that belong to it:
     an event row on a timeline those resources list, a MatchClaim row of a
     table its MatchClaim resources name, an Extraction row one of its event
