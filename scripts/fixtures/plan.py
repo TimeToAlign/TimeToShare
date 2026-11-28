@@ -117,9 +117,9 @@ RESOURCES: dict[str, tuple[Mapping[str, Any], ...]] = {
         },
         {
             "id": "resource_2",
-            "type": "Projection",
+            "type": "Registry",
             "timelines": ["take_1"],
-            "url": "projections.parquet",
+            "url": "registry.parquet",
         },
     ),
 }

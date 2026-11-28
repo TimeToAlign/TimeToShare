@@ -80,7 +80,7 @@ graphical:
       name: length
       timeline: "#take_1"
 meta:
-  generator: "timetoalign 1.2.0 (0117c0f1)"
+  generator: "timetoalign 1.2.0 (13f55078)"
 name: Resources
 resources:
   -
@@ -92,8 +92,8 @@ resources:
   -
     id: "#resource_2"
     timelines: ["#take_1"]
-    type: Projection
-    url: projections.parquet
+    type: Registry
+    url: registry.parquet
 timelines:
   -
     id: "#score"

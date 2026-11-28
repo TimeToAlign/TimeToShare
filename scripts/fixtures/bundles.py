@@ -386,17 +386,16 @@ def corpus_tilia_bundle() -> AlignmentBundle:
 
 
 def bundle_resources() -> AlignmentBundle:
-    """Build a bundle naming its MatchClaim table and its Projections table.
+    """Build a bundle naming its MatchClaim table and its registry.
 
     The bundle "Resources" holds the score ``score`` ("Score", 8 quarters)
     and the recording ``take_1`` ("Take 1", 352800 samples), ungrouped. Its
     resources, added when the manifest is composed (``RESOURCES``), name the
     MatchClaim table ``match_claims.parquet`` holding data for both
-    timelines, with its media type, and the Projections table
-    ``projections.parquet`` holding data for ``take_1`` alone, with nothing
-    optional. Neither file lies beside the fixture, so neither states a
-    size or a digest; the table fixture's manifest states both of its own
-    tables'.
+    timelines, with its media type, and the registry ``registry.parquet``
+    holding rows of ``take_1`` alone, with nothing optional. Neither file
+    lies beside the fixture, so neither states a size or a digest; the table
+    fixture's manifest states both of its own tables'.
     """
     bundle = AlignmentBundle(name="Resources")
     bundle.add_timeline(
