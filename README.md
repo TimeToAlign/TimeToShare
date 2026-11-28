@@ -3715,14 +3715,14 @@ scope naming the manifest or the part of the dataset (`op106`, `bpsd`):
 | --- | --- | --- | --- | --- |
 | `feat` (release-please reads `feature` alike) | `feat`; `fix` for a correction | minor | Added or changed | adding or editing data, corrections included: `feat(op106): add the BPSD recordings` |
 | `remove` with `!` | `feat!` | major | Removed, and the IDs under the breaking changes | removing anything, changing an ID, with the footer `BREAKING CHANGE: removes #clt_3, #region_7`; any other type with `!` or with that footer also makes a major release, and the hook refuses it for a removal |
-| `belief` | `fix` | patch | Beliefs | recording a belief |
+| `belief` | `fix` | patch | Recorded Beliefs | recording a belief |
 | `label` | `chore` | patch | Names | a `name` |
 | `graphic` | `style` | patch | Drawing | `graphical`: styling rules, orders, display words, elisions |
-| `meta` | `chore` | patch | Application data | `meta` |
+| `meta` | `chore` | patch | Metadata | `meta` |
 | `move` | `refactor` | patch | Moved | a resource's `url` changed for the same bytes |
 | `docs` | `docs` | patch | Documentation | prose |
-| `fix` | `fix` | patch | Scripts | the repository's own scripts or loaders |
-| `chore`, `build`, `ci`, `refactor`, `test`, `style` | the same | none (hidden) | — | everything else about the repository's code |
+| `fix` | `fix` | patch | Code | the repository's own scripts or loaders |
+| `chore`, `build`, `ci`, `refactor`, `test`, `style` | the same | patch | Code | everything else about the repository's code |
 
 A commit touching data and code takes the type of its data. Moving a
 manifest file changes its address and is a removal.
@@ -3844,19 +3844,19 @@ release check reads.
       "changelog-sections": [
         {"type": "feat", "section": "Added or changed"},
         {"type": "remove", "section": "Removed"},
-        {"type": "belief", "section": "Beliefs"},
+        {"type": "belief", "section": "Recorded Beliefs"},
         {"type": "label", "section": "Names"},
         {"type": "graphic", "section": "Drawing"},
-        {"type": "meta", "section": "Application data"},
+        {"type": "meta", "section": "Metadata"},
         {"type": "move", "section": "Moved"},
         {"type": "docs", "section": "Documentation"},
-        {"type": "fix", "section": "Scripts"},
-        {"type": "chore", "hidden": true},
-        {"type": "build", "hidden": true},
-        {"type": "ci", "hidden": true},
-        {"type": "refactor", "hidden": true},
-        {"type": "test", "hidden": true},
-        {"type": "style", "hidden": true}
+        {"type": "fix", "section": "Code"},
+        {"type": "chore", "section": "Code"},
+        {"type": "build", "section": "Code"},
+        {"type": "ci", "section": "Code"},
+        {"type": "refactor", "section": "Code"},
+        {"type": "test", "section": "Code"},
+        {"type": "style", "section": "Code"}
       ]
     }
   }
