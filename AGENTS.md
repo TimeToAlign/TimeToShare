@@ -12,9 +12,8 @@ These rules apply to every contributor, human or automated.
   `<version>/provenance.schema.json`, the provenance entry that
   statements, flow-control elements, FlowMaps and the MatchClaim table
   share, `<version>/tables.json`,
-  the column types of the four table types of a package as data (the
-  registry, the Extraction table, the MatchClaim table and the pre-parsed
-  Projection table), and
+  the column types of the three table types of a package as data (the
+  registry, the Parse table and the MatchClaim table), and
   `<version>/package.schema.json`, the schema of a package's
   `package.yaml` `{timetoshare, manifests, tables, id?, name?, meta?}`;
   they are the format contract and source of truth.
@@ -39,11 +38,11 @@ These rules apply to every contributor, human or automated.
   `fixtures/rdf/<version>/` (canonical N-Quads, emitted), the table
   fixture under `fixtures/tables/<version>/` (a manifest naming its
   registry and its MatchClaim table, the Parquet files of the registry,
-  the MatchClaim table and the pre-parsed Projection table, and the
+  the MatchClaim table and the Parse table, and the
   anchors and potential MatchStamps expected of them, emitted), the
   package fixtures under `fixtures/packages/<version>/` (`shared/`, two
-  manifests sharing a registry, an Extraction table, a pre-parsed
-  Projection table and a folder of MatchClaims, `acceptances/<case>/` and
+  manifests sharing a registry, a Parse table, a pre-parsed table of
+  notes and a folder of MatchClaims, `acceptances/<case>/` and
   `rejections/<case>/`, each beside an `expected.yaml` of the rows read
   and the resolutions, or the problems the package check reports,
   emitted), the
@@ -74,8 +73,8 @@ These rules apply to every contributor, human or automated.
   files are listed with their arithmetic in `drawings/README.md`, everything
   else is emitted), and the hand-authored version cases under
   `fixtures/versions/` (`<case>/old/` and `<case>/new/`, two trees of
-  manifests, and for the cases of tables the registry, the Extraction
-  table and the pre-parsed Projection table they name, whose Parquet
+  manifests, and for the cases of tables the registry and the Parse
+  table they name, whose Parquet
   files are emitted, beside `expected.yaml`, the step and findings
   `tree_step` gives); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37 and Noto Music 2.004, their licences, and the
